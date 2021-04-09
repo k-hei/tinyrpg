@@ -15,15 +15,34 @@ def init_display(window_title: str, window_size: (int, int)) -> Surface:
 
 display = init_display("hello", WINDOW_SIZE_SCALED)
 surface = Surface(WINDOW_SIZE)
-sprite = pygame.image.load("assets/hero.png").convert_alpha()
+sprite_hero = pygame.image.load("assets/hero.png").convert_alpha()
+sprite_wall = pygame.image.load("assets/wall.png").convert_alpha()
+sprite_wall_base = pygame.image.load("assets/wall-base.png").convert_alpha()
 
 class Hero:
   def __init__(hero, cell):
     hero.cell = cell
 
 class Grid:
-  def __init__(grid, size):
-    grid.size = size
+  def __init__(grid):
+    grid.size = (9, 9)
+    grid.data = [
+      1, 1, 1, 1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 1, 1, 1,
+      1, 0, 0, 0, 0, 0, 0, 0, 1,
+      1, 0, 0, 0, 0, 0, 0, 0, 1,
+      1, 0, 0, 0, 0, 0, 0, 0, 1,
+      1, 0, 0, 0, 0, 0, 0, 0, 1,
+      1, 0, 0, 0, 0, 0, 0, 0, 1,
+      1, 0, 0, 0, 0, 0, 0, 0, 1,
+      1, 1, 1, 1, 1, 1, 1, 1, 1,
+    ]
+  def get_at(grid, cell):
+    width = grid.size[0]
+    (x, y) = cell
+    if not grid.contains(cell):
+      return None
+    return grid.data[y * width + x]
   def contains(grid, cell):
     (width, height) = grid.size
     (x, y) = cell
@@ -31,8 +50,8 @@ class Grid:
 
 class Game:
   def __init__(game):
-    game.grid = Grid((7, 7))
-    game.hero = Hero((2, 1))
+    game.grid = Grid()
+    game.hero = Hero((4, 4))
   def move(game, delta):
     (hero_x, hero_y) = game.hero.cell
     (delta_x, delta_y) = delta
@@ -60,8 +79,19 @@ def handle_key(game, key):
 
 def render_game(surface, game):
   (hero_x, hero_y) = game.hero.cell
+  (grid_width, grid_height) = game.grid.size
+
   surface.fill((0, 0, 0))
-  surface.blit(sprite, (hero_x * TILE_SIZE, hero_y * TILE_SIZE))
+  for y in range(grid_height):
+    for x in range(grid_width):
+      if game.grid.get_at((x, y)) == 1:
+        if game.grid.get_at((x, y + 1)) == 0:
+          sprite = sprite_wall_base
+        else:
+          sprite = sprite_wall
+        surface.blit(sprite, (x * TILE_SIZE, y * TILE_SIZE))
+
+  surface.blit(sprite_hero, (hero_x * TILE_SIZE, hero_y * TILE_SIZE))
 
 def render_display():
   render_game(surface, game)
