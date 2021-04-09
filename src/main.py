@@ -1,8 +1,10 @@
 import pygame
 from pygame import Surface
+from grid import Grid
+import gen
 
 TILE_SIZE = 16
-WINDOW_SIZE = (9 * 16, 9 * 16)
+WINDOW_SIZE = (11 * TILE_SIZE, 11 * TILE_SIZE)
 WINDOW_SCALE = 3
 (WINDOW_WIDTH, WINDOW_HEIGHT) = WINDOW_SIZE
 WINDOW_SIZE_SCALED = (WINDOW_WIDTH * WINDOW_SCALE, WINDOW_HEIGHT * WINDOW_SCALE)
@@ -44,37 +46,13 @@ class Anim:
       anim.done = True
     return anim.time / anim.duration
 
-class Grid:
-  def __init__(grid):
-    grid.size = (9, 9)
-    grid.data = [
-      1, 1, 1, 1, 1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1, 1, 1, 1, 1,
-      1, 0, 0, 0, 0, 0, 0, 0, 1,
-      1, 0, 0, 0, 0, 0, 1, 0, 1,
-      1, 0, 0, 0, 0, 0, 1, 0, 1,
-      1, 0, 0, 0, 0, 0, 0, 0, 1,
-      1, 0, 0, 0, 0, 0, 0, 0, 1,
-      1, 0, 0, 0, 0, 0, 0, 0, 1,
-      1, 1, 1, 1, 1, 1, 1, 1, 1,
-    ]
-  def get_at(grid, cell):
-    width = grid.size[0]
-    (x, y) = cell
-    if not grid.contains(cell):
-      return None
-    return grid.data[y * width + x]
-  def contains(grid, cell):
-    (width, height) = grid.size
-    (x, y) = cell
-    return x >= 0 and y >= 0 and x < width and y < height
 
 class Game:
   def __init__(game):
-    game.grid = Grid()
+    game.grid = gen.maze(11, 11)
     game.p1 = Actor("hero", (4, 4))
     game.p2 = Actor("mage", (3, 4))
-    game.actors = [game.p1, game.p2, Actor("bat", (5, 6)), Actor("rat", (2, 5))]
+    game.actors = [game.p1, game.p2, Actor("bat", (5, 7)), Actor("rat", (3, 5))]
     game.anims = []
   def move(game, delta):
     old_cell = game.p1.cell
