@@ -22,14 +22,10 @@ sprite_rat = pygame.image.load("assets/rat.png").convert_alpha()
 sprite_wall = pygame.image.load("assets/wall.png").convert_alpha()
 sprite_wall_base = pygame.image.load("assets/wall-base.png").convert_alpha()
 
-class Hero:
-  def __init__(hero, cell):
-    hero.cell = cell
-
-class Enemy:
-  def __init__(enemy, kind, cell):
-    enemy.kind = kind
-    enemy.cell = cell
+class Actor:
+  def __init__(actor, kind, cell):
+    actor.kind = kind
+    actor.cell = cell
 
 class Grid:
   def __init__(grid):
@@ -59,14 +55,16 @@ class Grid:
 class Game:
   def __init__(game):
     game.grid = Grid()
-    game.hero = Hero((4, 4))
-    game.enemies = [Enemy("bat", (5, 6)), Enemy("rat", (2, 5))]
+    game.p1 = Actor("hero", (4, 4))
+    game.p2 = Actor("mage", (3, 4))
+    game.actors = [game.p1, game.p2, Actor("bat", (5, 6)), Actor("rat", (2, 5))]
   def move(game, delta):
-    (hero_x, hero_y) = game.hero.cell
+    (hero_x, hero_y) = game.p1.cell
     (delta_x, delta_y) = delta
     new_cell = (hero_x + delta_x, hero_y + delta_y)
     if game.grid.get_at(new_cell) == 0:
-      game.hero.cell = new_cell
+      game.p2.cell = game.p1.cell
+      game.p1.cell = new_cell
       return True
     else:
       return False
@@ -87,7 +85,6 @@ def handle_key(game, key):
   game.move((delta_x, delta_y))
 
 def render_game(surface, game):
-  (hero_x, hero_y) = game.hero.cell
   (grid_width, grid_height) = game.grid.size
   surface.fill((0, 0, 0))
   for y in range(grid_height):
@@ -98,17 +95,21 @@ def render_game(surface, game):
         else:
           sprite = sprite_wall
         surface.blit(sprite, (x * TILE_SIZE, y * TILE_SIZE))
-  surface.blit(sprite_hero, (hero_x * TILE_SIZE, hero_y * TILE_SIZE - 8))
 
-  for enemy in game.enemies:
-    (enemy_x, enemy_y) = enemy.cell
-    if enemy.kind == "bat":
+  game.actors.sort(key=lambda actor: actor.cell[1])
+  for actor in game.actors:
+    (col, row) = actor.cell
+    if actor.kind == "hero":
+      sprite = sprite_hero
+    if actor.kind == "mage":
+      sprite = sprite_mage
+    if actor.kind == "bat":
       sprite = sprite_bat
-    elif enemy.kind == "rat":
+    elif actor.kind == "rat":
       sprite = sprite_rat
-    surface.blit(sprite, (enemy_x * TILE_SIZE, enemy_y * TILE_SIZE))
-
-  surface.blit(sprite_mage, (3 * TILE_SIZE, 6 * TILE_SIZE - 8))
+    if sprite.get_height() > 16:
+      row -= 0.5
+    surface.blit(sprite, (col * TILE_SIZE, row * TILE_SIZE))
 
 def render_display():
   render_game(surface, game)
