@@ -3,6 +3,7 @@ class Grid:
     (width, height) = size
     grid.size = size
     grid.data = [0] * (width * height)
+    grid.actors = []
   def fill(grid, data):
     (width, height) = grid.size
     for i in range(width * height):

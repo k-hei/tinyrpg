@@ -23,6 +23,7 @@ sprite_bat = pygame.image.load("assets/bat.png").convert_alpha()
 sprite_rat = pygame.image.load("assets/rat.png").convert_alpha()
 sprite_wall = pygame.image.load("assets/wall.png").convert_alpha()
 sprite_wall_base = pygame.image.load("assets/wall-base.png").convert_alpha()
+sprite_chest = pygame.image.load("assets/chest.png").convert_alpha()
 
 def lerp(a, b, t):
   return a * (1 - t) + b * t
@@ -46,20 +47,31 @@ class Anim:
       anim.done = True
     return anim.time / anim.duration
 
-
 class Game:
   def __init__(game):
     game.grid = gen.maze(11, 11)
     game.p1 = Actor("hero", (4, 4))
     game.p2 = Actor("mage", (3, 4))
-    game.actors = [game.p1, game.p2, Actor("bat", (5, 7)), Actor("rat", (3, 5))]
     game.anims = []
+    game.actors = [
+      game.p1,
+      game.p2,
+      Actor("bat", (5, 7)),
+      Actor("rat", (3, 5)),
+      Actor("chest", (1, 1))
+    ]
+  def get_actor_at(game, cell):
+    for actor in game.actors:
+      if actor.cell[0] == cell[0] and actor.cell[1] == cell[1]:
+        return actor
+    return None
   def move(game, delta):
     old_cell = game.p1.cell
     (hero_x, hero_y) = old_cell
     (delta_x, delta_y) = delta
     new_cell = (hero_x + delta_x, hero_y + delta_y)
-    if game.grid.get_at(new_cell) == 0:
+    target = game.get_actor_at(new_cell)
+    if game.grid.get_at(new_cell) == 0 and (target == None or target == game.p2):
       game.anims.append(Anim(6, {
         "target": game.p1,
         "from": old_cell,
@@ -73,6 +85,9 @@ class Game:
       game.p2.cell = old_cell
       game.p1.cell = new_cell
       return True
+    elif target is not None:
+      game.actors.remove(target)
+      return False
     else:
       return False
 
@@ -110,12 +125,14 @@ def render_game(surface, game):
     (col, row) = actor.cell
     if actor.kind == "hero":
       sprite = sprite_hero
-    if actor.kind == "mage":
+    elif actor.kind == "mage":
       sprite = sprite_mage
-    if actor.kind == "bat":
+    elif actor.kind == "bat":
       sprite = sprite_bat
     elif actor.kind == "rat":
       sprite = sprite_rat
+    elif actor.kind == "chest":
+      sprite = sprite_chest
 
     anim = None
     for anim in game.anims:
@@ -132,12 +149,6 @@ def render_game(surface, game):
     if sprite.get_height() > 16:
       row -= 0.5
     surface.blit(sprite, (col * TILE_SIZE, row * TILE_SIZE))
-
-    # if anim is not None:
-    # else:
-    #   if sprite.get_height() > 16:
-    #     row -= 0.5
-    #   surface.blit(sprite, (col * TILE_SIZE, row * TILE_SIZE))
 
 
 def render_display():
