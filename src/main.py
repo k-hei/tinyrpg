@@ -2,11 +2,11 @@ import pygame
 from pygame import Surface
 
 TILE_SIZE = 16
-WINDOW_SIZE = (256, 224)
-WINDOW_SCALE = 1
+WINDOW_SIZE = (9 * 16, 9 * 16)
+WINDOW_SCALE = 3
 (WINDOW_WIDTH, WINDOW_HEIGHT) = WINDOW_SIZE
 WINDOW_SIZE_SCALED = (WINDOW_WIDTH * WINDOW_SCALE, WINDOW_HEIGHT * WINDOW_SCALE)
-WINDOW_FLAGS = pygame.SCALED
+WINDOW_FLAGS = 0
 
 def init_display(window_title: str, window_size: (int, int)) -> Surface:
   pygame.display.init()
@@ -16,12 +16,20 @@ def init_display(window_title: str, window_size: (int, int)) -> Surface:
 display = init_display("hello", WINDOW_SIZE_SCALED)
 surface = Surface(WINDOW_SIZE)
 sprite_hero = pygame.image.load("assets/hero.png").convert_alpha()
+sprite_mage = pygame.image.load("assets/mage.png").convert_alpha()
+sprite_bat = pygame.image.load("assets/bat.png").convert_alpha()
+sprite_rat = pygame.image.load("assets/rat.png").convert_alpha()
 sprite_wall = pygame.image.load("assets/wall.png").convert_alpha()
 sprite_wall_base = pygame.image.load("assets/wall-base.png").convert_alpha()
 
 class Hero:
   def __init__(hero, cell):
     hero.cell = cell
+
+class Enemy:
+  def __init__(enemy, kind, cell):
+    enemy.kind = kind
+    enemy.cell = cell
 
 class Grid:
   def __init__(grid):
@@ -30,8 +38,8 @@ class Grid:
       1, 1, 1, 1, 1, 1, 1, 1, 1,
       1, 1, 1, 1, 1, 1, 1, 1, 1,
       1, 0, 0, 0, 0, 0, 0, 0, 1,
-      1, 0, 0, 0, 0, 0, 0, 0, 1,
-      1, 0, 0, 0, 0, 0, 0, 0, 1,
+      1, 0, 0, 0, 0, 0, 1, 0, 1,
+      1, 0, 0, 0, 0, 0, 1, 0, 1,
       1, 0, 0, 0, 0, 0, 0, 0, 1,
       1, 0, 0, 0, 0, 0, 0, 0, 1,
       1, 0, 0, 0, 0, 0, 0, 0, 1,
@@ -52,11 +60,12 @@ class Game:
   def __init__(game):
     game.grid = Grid()
     game.hero = Hero((4, 4))
+    game.enemies = [Enemy("bat", (5, 6)), Enemy("rat", (2, 5))]
   def move(game, delta):
     (hero_x, hero_y) = game.hero.cell
     (delta_x, delta_y) = delta
     new_cell = (hero_x + delta_x, hero_y + delta_y)
-    if game.grid.contains(new_cell):
+    if game.grid.get_at(new_cell) == 0:
       game.hero.cell = new_cell
       return True
     else:
@@ -80,7 +89,6 @@ def handle_key(game, key):
 def render_game(surface, game):
   (hero_x, hero_y) = game.hero.cell
   (grid_width, grid_height) = game.grid.size
-
   surface.fill((0, 0, 0))
   for y in range(grid_height):
     for x in range(grid_width):
@@ -90,8 +98,17 @@ def render_game(surface, game):
         else:
           sprite = sprite_wall
         surface.blit(sprite, (x * TILE_SIZE, y * TILE_SIZE))
+  surface.blit(sprite_hero, (hero_x * TILE_SIZE, hero_y * TILE_SIZE - 8))
 
-  surface.blit(sprite_hero, (hero_x * TILE_SIZE, hero_y * TILE_SIZE))
+  for enemy in game.enemies:
+    (enemy_x, enemy_y) = enemy.cell
+    if enemy.kind == "bat":
+      sprite = sprite_bat
+    elif enemy.kind == "rat":
+      sprite = sprite_rat
+    surface.blit(sprite, (enemy_x * TILE_SIZE, enemy_y * TILE_SIZE))
+
+  surface.blit(sprite_mage, (3 * TILE_SIZE, 6 * TILE_SIZE - 8))
 
 def render_display():
   render_game(surface, game)
