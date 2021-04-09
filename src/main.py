@@ -22,10 +22,27 @@ sprite_rat = pygame.image.load("assets/rat.png").convert_alpha()
 sprite_wall = pygame.image.load("assets/wall.png").convert_alpha()
 sprite_wall_base = pygame.image.load("assets/wall-base.png").convert_alpha()
 
+def lerp(a, b, t):
+  return a * (1 - t) + b * t
+
 class Actor:
   def __init__(actor, kind, cell):
     actor.kind = kind
     actor.cell = cell
+
+class Anim:
+  def __init__(anim, duration, data):
+    anim.done = False
+    anim.time = 0
+    anim.duration = duration
+    anim.data = data
+  def update(anim):
+    if anim.done:
+      return -1
+    anim.time += 1
+    if anim.time == anim.duration:
+      anim.done = True
+    return anim.time / anim.duration
 
 class Grid:
   def __init__(grid):
@@ -58,12 +75,24 @@ class Game:
     game.p1 = Actor("hero", (4, 4))
     game.p2 = Actor("mage", (3, 4))
     game.actors = [game.p1, game.p2, Actor("bat", (5, 6)), Actor("rat", (2, 5))]
+    game.anims = []
   def move(game, delta):
-    (hero_x, hero_y) = game.p1.cell
+    old_cell = game.p1.cell
+    (hero_x, hero_y) = old_cell
     (delta_x, delta_y) = delta
     new_cell = (hero_x + delta_x, hero_y + delta_y)
     if game.grid.get_at(new_cell) == 0:
-      game.p2.cell = game.p1.cell
+      game.anims.append(Anim(6, {
+        "target": game.p1,
+        "from": old_cell,
+        "to": new_cell
+      }))
+      game.anims.append(Anim(6, {
+        "target": game.p2,
+        "from": game.p2.cell,
+        "to": old_cell
+      }))
+      game.p2.cell = old_cell
       game.p1.cell = new_cell
       return True
     else:
@@ -96,7 +125,9 @@ def render_game(surface, game):
           sprite = sprite_wall
         surface.blit(sprite, (x * TILE_SIZE, y * TILE_SIZE))
 
+  # depth sorting
   game.actors.sort(key=lambda actor: actor.cell[1])
+
   for actor in game.actors:
     (col, row) = actor.cell
     if actor.kind == "hero":
@@ -107,9 +138,29 @@ def render_game(surface, game):
       sprite = sprite_bat
     elif actor.kind == "rat":
       sprite = sprite_rat
+
+    anim = None
+    for anim in game.anims:
+      if anim.data["target"] == actor:
+        (from_x, from_y) = anim.data["from"]
+        (to_x, to_y) = anim.data["to"]
+        t = anim.update()
+        col = lerp(from_x, to_x, t)
+        row = lerp(from_y, to_y, t)
+        if anim.done:
+          game.anims.remove(anim)
+        break
+
     if sprite.get_height() > 16:
       row -= 0.5
     surface.blit(sprite, (col * TILE_SIZE, row * TILE_SIZE))
+
+    # if anim is not None:
+    # else:
+    #   if sprite.get_height() > 16:
+    #     row -= 0.5
+    #   surface.blit(sprite, (col * TILE_SIZE, row * TILE_SIZE))
+
 
 def render_display():
   render_game(surface, game)
