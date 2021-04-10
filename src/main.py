@@ -3,9 +3,9 @@ from pygame import Surface
 from grid import Grid
 import gen
 
-TILE_SIZE = 16
-WINDOW_SIZE = (11 * TILE_SIZE, 11 * TILE_SIZE)
-WINDOW_SCALE = 3
+TILE_SIZE = 32
+WINDOW_SIZE = (9 * TILE_SIZE, 9 * TILE_SIZE)
+WINDOW_SCALE = 2
 (WINDOW_WIDTH, WINDOW_HEIGHT) = WINDOW_SIZE
 WINDOW_SIZE_SCALED = (WINDOW_WIDTH * WINDOW_SCALE, WINDOW_HEIGHT * WINDOW_SCALE)
 WINDOW_FLAGS = 0
@@ -49,8 +49,8 @@ class Anim:
 
 class Game:
   def __init__(game):
-    game.grid = gen.maze(11, 11)
-    game.p1 = Actor("hero", (4, 4))
+    game.grid = gen.maze(15, 15)
+    game.p1 = Actor("hero", (3, 3))
     game.p2 = Actor("mage", (3, 4))
     game.anims = []
     game.actors = [
@@ -107,6 +107,19 @@ def handle_key(game, key):
   game.move((delta_x, delta_y))
 
 def render_game(surface, game):
+  (window_width, window_height) = WINDOW_SIZE
+  (hero_x, hero_y) = game.p1.cell
+  for anim in game.anims:
+    if anim.data["target"] == game.p1:
+      (from_x, from_y) = anim.data["from"]
+      (to_x, to_y) = anim.data["to"]
+      t = (anim.time + 1) / anim.duration
+      hero_x = lerp(from_x, to_x, t)
+      hero_y = lerp(from_y, to_y, t)
+
+  camera_x = -((hero_x + 0.5) * TILE_SIZE - window_width / 2)
+  camera_y = -((hero_y + 0.5) * TILE_SIZE - window_height / 2)
+
   (grid_width, grid_height) = game.grid.size
   surface.fill((0, 0, 0))
   for y in range(grid_height):
@@ -116,7 +129,7 @@ def render_game(surface, game):
           sprite = sprite_wall_base
         else:
           sprite = sprite_wall
-        surface.blit(sprite, (x * TILE_SIZE, y * TILE_SIZE))
+        surface.blit(sprite, (x * TILE_SIZE + camera_x, y * TILE_SIZE + camera_y))
 
   # depth sorting
   game.actors.sort(key=lambda actor: actor.cell[1])
@@ -146,9 +159,7 @@ def render_game(surface, game):
           game.anims.remove(anim)
         break
 
-    if sprite.get_height() > 16:
-      row -= 0.5
-    surface.blit(sprite, (col * TILE_SIZE, row * TILE_SIZE))
+    surface.blit(sprite, (col * TILE_SIZE + camera_x, row * TILE_SIZE + camera_y))
 
 
 def render_display():
