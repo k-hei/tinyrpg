@@ -2,6 +2,7 @@ import math
 import pygame
 from pygame import Surface
 from game import Game
+from stage import Stage
 
 TILE_SIZE = 32
 WINDOW_SIZE = (9 * TILE_SIZE, 9 * TILE_SIZE)
@@ -90,12 +91,12 @@ def render_game(surface, game):
     for x in range(stage_width):
       tile = game.stage.get_at((x, y))
       sprite = None
-      if tile == 1:
-        if game.stage.get_at((x, y + 1)) == 0:
+      if tile is Stage.WALL:
+        if game.stage.get_at((x, y + 1)) is Stage.FLOOR:
           sprite = sprites["wall_base"]
         else:
           sprite = sprites["wall"]
-      elif tile == 2:
+      elif tile is Stage.STAIRS:
         sprite = sprites["stairs"]
       if sprite:
         surface.blit(sprite, (x * TILE_SIZE + camera_x, y * TILE_SIZE + camera_y))
@@ -136,7 +137,7 @@ def render_game(surface, game):
       break
 
     existing_facing = next((facing for facing in facings if facing[0] is actor), None)
-    if facing is not None:
+    if facing is None:
       if existing_facing:
         (actor, facing) = existing_facing
     else:

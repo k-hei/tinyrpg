@@ -9,6 +9,20 @@ class Room:
     room.size = size
     room.cell = cell
 
+  def get_cells(room):
+    cells = []
+    (room_width, room_height) = room.size
+    (room_x, room_y) = room.cell
+    for y in range(room_height):
+      for x in range(room_width):
+        cells.append((x + room_x, y + room_y))
+    return cells
+
+  def get_center(room):
+    (room_width, room_height) = room.size
+    (room_x, room_y) = room.cell
+    return (room_x + room_width // 2, room_y + room_height // 2)
+
 def cells(size):
   cells = []
   (width, height) = size
@@ -23,17 +37,36 @@ def is_odd(cell):
 def add(a, b):
   return (a[0] + b[0], a[1] + b[1])
 
-def equals(a, b):
-  return a[0] == b[0] and a[1] == b[1]
-
 def manhattan(a, b):
   return abs(b[0] - a[0]) + abs(b[1] - a[1])
 
-def maze(width, height):
+def dungeon(width, height):
   stage = Stage((width, height))
-  stage.fill(1)
+  stage.fill(Stage.WALL)
   nodes = [cell for cell in stage.get_cells() if is_odd(cell)]
 
+  rooms = gen_rooms(nodes)
+  for room in rooms:
+    for cell in room.get_cells():
+      stage.set_at(cell, Stage.FLOOR)
+
+  room = rooms[0]
+  center = room.get_center()
+  stage.spawn(Actor("hero", center))
+  stage.spawn(Actor("mage", (center[0] - 1, center[1])))
+
+  mazes = gen_mazes(nodes)
+  for maze in mazes:
+    for cell in maze:
+      stage.set_at(cell, Stage.FLOOR)
+
+  room = rooms[1]
+  center = room.get_center()
+  stage.set_at(center, Stage.STAIRS)
+
+  return stage
+
+def gen_rooms(nodes):
   rooms = []
   valid_nodes = None
   while valid_nodes is None or len(valid_nodes) > 0:
@@ -43,7 +76,7 @@ def maze(width, height):
     for node in nodes:
       offset_cells = map(lambda cell: add(cell, node), cells((room_width, room_height)))
       odd_offset_cells = [cell for cell in offset_cells if is_odd(cell)]
-      cell_has_node = map(lambda cell: len([node for node in nodes if equals(node, cell)]) == 1, odd_offset_cells)
+      cell_has_node = map(lambda cell: len([node for node in nodes if node == cell]) == 1, odd_offset_cells)
       if all(cell_has_node):
         valid_nodes.append(node)
 
@@ -52,44 +85,34 @@ def maze(width, height):
       room = Room((room_width, room_height), node)
       rooms.append(room)
       for cell in map(lambda cell: add(cell, room.cell), cells(room.size)):
-        stage.set_at(cell, 0)
-        node = next((node for node in nodes if equals(node, cell)), None)
+        node = next((node for node in nodes if node == cell), None)
         if node:
           nodes.remove(node)
+  return rooms
 
-  room = rooms[0]
-  center = (room.cell[0] + room.size[0] // 2, room.cell[1] + room.size[1] // 2)
-  stage.spawn(Actor("hero", center))
-  stage.spawn(Actor("mage", (center[0] - 1, center[1])))
-
-  nodes = [cell for cell in stage.get_cells() if is_odd(cell)]
-  start = random.choice(nodes)
-
-  stage.spawn(Actor("eye", start))
-
-  nodes.remove(start)
-  node = start
-  stack = [start]
-  while node:
-    stage.set_at(node, 0)
-    (x, y) = node
-    neighbors = [other for other in nodes if manhattan(node, other) == 2]
-    if len(neighbors):
-      neighbor = random.choice(neighbors)
-      (neighbor_x, neighbor_y) = neighbor
-      midpoint = ((x + neighbor_x) // 2, (y + neighbor_y) // 2)
-      stage.set_at(midpoint, 0)
-      stack.append(neighbor)
-      nodes.remove(neighbor)
-      node = neighbor
-    elif len(stack) > 1:
-      stack.pop()
-      node = stack[len(stack) - 1]
-    else:
-      node = None
-
-  room = rooms[1]
-  center = (room.cell[0] + room.size[0] // 2, room.cell[1] + room.size[1] // 2)
-  stage.set_at(center, 2)
-
-  return stage
+def gen_mazes(nodes):
+  mazes = []
+  while len(nodes) > 0:
+    node = random.choice(nodes)
+    nodes.remove(node)
+    maze = [node]
+    stack = [node]
+    while node:
+      (x, y) = node
+      neighbors = [other for other in nodes if manhattan(node, other) == 2]
+      if len(neighbors):
+        neighbor = random.choice(neighbors)
+        (neighbor_x, neighbor_y) = neighbor
+        midpoint = ((x + neighbor_x) // 2, (y + neighbor_y) // 2)
+        maze.append(midpoint)
+        maze.append(neighbor)
+        stack.append(neighbor)
+        nodes.remove(neighbor)
+        node = neighbor
+      elif len(stack) > 1:
+        stack.pop()
+        node = stack[len(stack) - 1]
+      else:
+        node = None
+    mazes.append(maze)
+  return mazes

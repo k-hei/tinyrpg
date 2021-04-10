@@ -1,8 +1,21 @@
+from dataclasses import dataclass
+
+@dataclass
+class Tile:
+  solid: bool
+  opaque: bool
+
 class Stage:
+  FLOOR = Tile(solid=False, opaque=False)
+  WALL = Tile(solid=True, opaque=True)
+  DOOR_CLOSED = Tile(solid=True, opaque=True)
+  DOOR_OPEN = Tile(solid=False, opaque=False)
+  STAIRS = Tile(solid=False, opaque=False)
+
   def __init__(stage, size):
     (width, height) = size
     stage.size = size
-    stage.data = [0] * (width * height)
+    stage.data = [Stage.FLOOR] * (width * height)
     stage.actors = []
 
   def fill(stage, data):
