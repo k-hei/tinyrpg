@@ -41,7 +41,8 @@ sprites = {
   "door": pygame.image.load("assets/door.png").convert_alpha(),
   "door_open": pygame.image.load("assets/door-open.png").convert_alpha(),
   "eye": pygame.image.load("assets/eye.png").convert_alpha(),
-  "eye_flinch": pygame.image.load("assets/eye-flinch.png").convert_alpha()
+  "eye_flinch": pygame.image.load("assets/eye-flinch.png").convert_alpha(),
+  "log": pygame.image.load("assets/log.png").convert_alpha()
 }
 font = Font(sprites["font_standard"], **metadata)
 
@@ -204,7 +205,11 @@ def render_game(surface, game):
     is_flipped = facing == -1
     surface.blit(pygame.transform.flip(sprite, is_flipped, False), (sprite_x + camera_x, sprite_y + camera_y))
 
-  surface.blit(game.log.render(font), (0, 0))
+  log = game.log.render(sprites["log"], font)
+  surface.blit(log, (
+    window_width / 2 - log.get_width() / 2,
+    window_height + game.log.y
+  ))
 
 def render_display():
   render_game(surface, game)
