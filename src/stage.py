@@ -37,14 +37,14 @@ class Stage:
         return actor
     return None
 
-  def get_at(stage, cell):
+  def get_tile_at(stage, cell):
     if not stage.contains(cell):
       return None
     width = stage.size[0]
     (x, y) = cell
     return stage.data[y * width + x]
 
-  def set_at(stage, cell, data):
+  def set_tile_at(stage, cell, data):
     if not stage.contains(cell):
       return
     width = stage.size[0]

@@ -139,13 +139,13 @@ def dungeon(width, height):
 
   for elem in rooms + mazes:
     for cell in elem.get_cells():
-      stage.set_at(cell, Stage.FLOOR)
+      stage.set_tile_at(cell, Stage.FLOOR)
 
   for door in doors:
     if random.randint(1, 2) == 1:
-      stage.set_at(door, Stage.DOOR)
+      stage.set_tile_at(door, Stage.DOOR)
     else:
-      stage.set_at(door, Stage.FLOOR)
+      stage.set_tile_at(door, Stage.FLOOR)
 
   room = rooms[0]
   center = room.get_center()
@@ -154,11 +154,11 @@ def dungeon(width, height):
 
   room = rooms[1]
   center = room.get_center()
-  stage.set_at(center, Stage.STAIRS)
+  stage.set_tile_at(center, Stage.STAIRS)
 
   for room in rooms:
     for cell in room.get_cells():
-      if stage.get_at(cell) is not Stage.FLOOR or stage.get_actor_at(cell) is not None:
+      if stage.get_tile_at(cell) is not Stage.FLOOR or stage.get_actor_at(cell) is not None:
         continue
       if random.randint(1, 20) == 1:
         stage.spawn(Actor("eye", cell))

@@ -14,7 +14,7 @@ class Game:
     (hero_x, hero_y) = source_cell
     (delta_x, delta_y) = delta
     target_cell = (hero_x + delta_x, hero_y + delta_y)
-    target_tile = game.stage.get_at(target_cell)
+    target_tile = game.stage.get_tile_at(target_cell)
     target_actor = game.stage.get_actor_at(target_cell)
     if not target_tile.solid and (target_actor == None or target_actor == game.p2):
       game.anims.append(Anim(8, {
@@ -40,8 +40,8 @@ class Game:
         }))
         # game.stage.kill(target_actor)
       if target_tile is Stage.DOOR:
-        game.stage.set_at(target_cell, Stage.DOOR_OPEN)
-      game.anims.append(Anim(6, {
+        game.stage.set_tile_at(target_cell, Stage.DOOR_OPEN)
+      game.anims.append(Anim(8, {
         "kind": "attack",
         "actor": game.p1,
         "from": source_cell,
@@ -50,6 +50,6 @@ class Game:
       return False
 
   def descend(game):
-    target_tile = game.stage.get_at(game.p1.cell)
+    target_tile = game.stage.get_tile_at(game.p1.cell)
     if target_tile is Stage.STAIRS:
       Game.__init__(game)

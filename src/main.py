@@ -3,6 +3,7 @@ import pygame
 from pygame import Surface
 from game import Game
 from stage import Stage
+import fov
 
 TILE_SIZE = 32
 WINDOW_SIZE = (9 * TILE_SIZE, 9 * TILE_SIZE)
@@ -78,9 +79,16 @@ def handle_keyup(key):
   is_key_invalid[key] = False
 
 facings = []
+vision_range = 3.5
+visited_cells = []
 def render_game(surface, game):
   (window_width, window_height) = WINDOW_SIZE
   (hero_x, hero_y) = game.p1.cell
+  visible_cells = fov.shadowcast(game.stage, game.p1.cell, vision_range)
+  for cell in visible_cells:
+    if cell not in visited_cells:
+      visited_cells.append(cell)
+
   for anim in game.anims:
     if anim.data["actor"] == game.p1 and anim.data["kind"] != "attack":
       (from_x, from_y) = anim.data["from"]
@@ -94,28 +102,38 @@ def render_game(surface, game):
 
   (stage_width, stage_height) = game.stage.size
   surface.fill((0, 0, 0))
-  for y in range(stage_height):
-    for x in range(stage_width):
-      tile = game.stage.get_at((x, y))
-      sprite = None
-      if tile is Stage.WALL:
-        if game.stage.get_at((x, y + 1)) is Stage.FLOOR:
-          sprite = sprites["wall_base"]
-        else:
-          sprite = sprites["wall"]
-      elif tile is Stage.STAIRS:
-        sprite = sprites["stairs"]
-      elif tile is Stage.DOOR:
-        sprite = sprites["door"]
-      elif tile is Stage.DOOR_OPEN:
-        sprite = sprites["door_open"]
-      if sprite:
-        surface.blit(sprite, (x * TILE_SIZE + camera_x, y * TILE_SIZE + camera_y))
+  for x, y in visited_cells:
+    tile = game.stage.get_tile_at((x, y))
+    sprite = None
+    if tile is Stage.WALL:
+      if game.stage.get_tile_at((x, y + 1)) is Stage.FLOOR:
+        sprite = sprites["wall_base"]
+      else:
+        sprite = sprites["wall"]
+    elif tile is Stage.STAIRS:
+      sprite = sprites["stairs"]
+    elif tile is Stage.DOOR:
+      sprite = sprites["door"]
+    elif tile is Stage.DOOR_OPEN:
+      sprite = sprites["door_open"]
+    if sprite:
+      opacity = 255
+      if (x, y) not in visible_cells:
+        distance = math.sqrt(math.pow(x - hero_x, 2) + math.pow(y - hero_y, 2))
+        opacity = (1 - distance / 8) * 128
+      sprite.set_alpha(opacity)
+      surface.blit(sprite, (x * TILE_SIZE + camera_x, y * TILE_SIZE + camera_y))
+      sprite.set_alpha(None)
 
   # depth sorting
-  game.stage.actors.sort(key=lambda actor: actor.cell[1])
+  def get_actor_y(actor):
+    return actor.cell[1]
+  game.stage.actors.sort(key=get_actor_y)
 
   for actor in game.stage.actors:
+    if actor.cell not in visible_cells:
+      continue
+
     (col, row) = actor.cell
     sprite_x = col * TILE_SIZE
     sprite_y = row * TILE_SIZE
@@ -126,7 +144,6 @@ def render_game(surface, game):
     for anim in game.anims:
       if anim.data["actor"] != actor:
         continue
-
 
       if anim.data["kind"] in ("attack", "move"):
         (from_x, from_y) = anim.data["from"]
@@ -143,7 +160,7 @@ def render_game(surface, game):
 
       if anim.data["kind"] == "attack":
         t = anim.update()
-        t = t / 8 if t < 0.5 else (1 - (t - 0.5) * 2) / 8
+        t = t / 6 if t < 0.5 else (1 - (t - 0.5) * 2) / 6
         sprite_x = lerp(from_x, to_x, t) * TILE_SIZE
         sprite_y = lerp(from_y, to_y, t) * TILE_SIZE
 
