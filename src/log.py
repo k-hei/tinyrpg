@@ -47,7 +47,7 @@ class Log:
     log.surface = Surface((Log.BOX_WIDTH - Log.INSET_X * 2, line_height * Log.ROW_COUNT))
     log.surface.fill(COLOR_KEY)
     log.surface.set_colorkey(COLOR_KEY)
-    if log.anim is None and log.dirty and (log.row >= len(log.cache) or log.cache[log.row]["dirty"]):
+    if log.anim is None and log.dirty and log.row < len(log.messages) and (log.row >= len(log.cache) or log.cache[log.row]["dirty"]):
       if log.row >= len(log.cache):
         surface = Surface((log.surface.get_width(), line_height))
         surface.fill(COLOR_KEY)

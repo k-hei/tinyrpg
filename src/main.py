@@ -56,13 +56,18 @@ is_key_invalid = {
   pygame.K_RIGHT: False,
   pygame.K_UP: False,
   pygame.K_DOWN: False,
-  pygame.K_COMMA: False
+  pygame.K_COMMA: False,
+  pygame.K_SPACE: False
 }
 
 def handle_keydown(key):
   global visited_cells
   if len(game.anims) > 0:
     return
+
+  if key == pygame.K_SPACE and not is_key_invalid[key]:
+    is_key_invalid[key] = True
+    game.special()
 
   if pygame.key.get_mods() & pygame.KMOD_SHIFT and key == pygame.K_COMMA and not is_key_invalid[key]:
     is_key_invalid[key] = True
@@ -191,7 +196,6 @@ def render_game(surface, game):
 
       if anim.done:
         game.anims.remove(anim)
-      break
 
     existing_facing = next((facing for facing in facings if facing[0] is actor), None)
     if facing is None:
