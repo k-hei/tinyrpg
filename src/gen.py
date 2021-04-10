@@ -162,7 +162,7 @@ def dungeon(width, height):
         continue
       if random.randint(1, 20) == 1:
         stage.spawn(Actor("eye", cell))
-      if random.randint(1, 50) == 1:
+      elif random.randint(1, 50) == 1:
         stage.spawn(Actor("chest", cell))
 
   return stage

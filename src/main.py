@@ -33,7 +33,8 @@ sprites = {
   "stairs": pygame.image.load("assets/downstairs.png").convert_alpha(),
   "door": pygame.image.load("assets/door.png").convert_alpha(),
   "door_open": pygame.image.load("assets/door-open.png").convert_alpha(),
-  "eye": pygame.image.load("assets/eye.png").convert_alpha()
+  "eye": pygame.image.load("assets/eye.png").convert_alpha(),
+  "eye_flinch": pygame.image.load("assets/eye-flinch.png").convert_alpha()
 }
 
 def lerp(a, b, t):
@@ -116,6 +117,8 @@ def render_game(surface, game):
 
   for actor in game.stage.actors:
     (col, row) = actor.cell
+    sprite_x = col * TILE_SIZE
+    sprite_y = row * TILE_SIZE
     sprite = sprites[actor.kind]
     facing = None
 
@@ -124,23 +127,34 @@ def render_game(surface, game):
       if anim.data["actor"] != actor:
         continue
 
-      (from_x, from_y) = anim.data["from"]
-      (to_x, to_y) = anim.data["to"]
-      if to_x < from_x:
-        facing = -1
-      elif to_x > from_x:
-        facing = 1
+
+      if anim.data["kind"] in ("attack", "move"):
+        (from_x, from_y) = anim.data["from"]
+        (to_x, to_y) = anim.data["to"]
+        if to_x < from_x:
+          facing = -1
+        elif to_x > from_x:
+          facing = 1
 
       if anim.data["kind"] == "move":
         t = anim.update()
-        col = lerp(from_x, to_x, t)
-        row = lerp(from_y, to_y, t)
+        sprite_x = lerp(from_x, to_x, t) * TILE_SIZE
+        sprite_y = lerp(from_y, to_y, t) * TILE_SIZE
 
       if anim.data["kind"] == "attack":
         t = anim.update()
         t = t / 8 if t < 0.5 else (1 - (t - 0.5) * 2) / 8
-        col = lerp(from_x, to_x, t)
-        row = lerp(from_y, to_y, t)
+        sprite_x = lerp(from_x, to_x, t) * TILE_SIZE
+        sprite_y = lerp(from_y, to_y, t) * TILE_SIZE
+
+      if anim.data["kind"] == "flinch":
+        anim.update()
+        if actor.kind == "eye":
+          sprite = sprites["eye_flinch"]
+        if anim.time % 4 <= 1:
+          sprite_x += 1
+        else:
+          sprite_x -= 1
 
       if anim.done:
         game.anims.remove(anim)
@@ -156,7 +170,7 @@ def render_game(surface, game):
       facings.append((actor, facing))
 
     is_flipped = facing == -1
-    surface.blit(pygame.transform.flip(sprite, is_flipped, False), (col * TILE_SIZE + camera_x, row * TILE_SIZE + camera_y))
+    surface.blit(pygame.transform.flip(sprite, is_flipped, False), (sprite_x + camera_x, sprite_y + camera_y))
 
 
 def render_display():

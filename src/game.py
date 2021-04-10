@@ -34,7 +34,11 @@ class Game:
       return True
     else:
       if target_actor is not None:
-        game.stage.kill(target_actor)
+        game.anims.append(Anim(10, {
+          "kind": "flinch",
+          "actor": target_actor
+        }))
+        # game.stage.kill(target_actor)
       if target_tile is Stage.DOOR:
         game.stage.set_at(target_cell, Stage.DOOR_OPEN)
       game.anims.append(Anim(6, {
