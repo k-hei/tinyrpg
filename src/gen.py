@@ -142,7 +142,10 @@ def dungeon(width, height):
       stage.set_at(cell, Stage.FLOOR)
 
   for door in doors:
-    stage.set_at(door, Stage.DOOR)
+    if random.randint(1, 2) == 1:
+      stage.set_at(door, Stage.DOOR)
+    else:
+      stage.set_at(door, Stage.FLOOR)
 
   room = rooms[0]
   center = room.get_center()

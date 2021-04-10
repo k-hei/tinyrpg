@@ -51,6 +51,10 @@ def handle_keydown(key):
   if len(game.anims) > 0:
     return
 
+  if pygame.key.get_mods() & pygame.KMOD_SHIFT and key == pygame.K_PERIOD:
+    game.descend()
+    return
+
   delta_x = 0
   delta_y = 0
   if key == pygame.K_LEFT and not is_key_invalid[key]:

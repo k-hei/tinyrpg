@@ -44,3 +44,8 @@ class Game:
         "to": target_cell
       }))
       return False
+
+  def descend(game):
+    target_tile = game.stage.get_at(game.p1.cell)
+    if target_tile is Stage.STAIRS:
+      Game.__init__(game)
