@@ -8,7 +8,7 @@ class Tile:
 class Stage:
   FLOOR = Tile(solid=False, opaque=False)
   WALL = Tile(solid=True, opaque=True)
-  DOOR_CLOSED = Tile(solid=True, opaque=True)
+  DOOR = Tile(solid=True, opaque=True)
   DOOR_OPEN = Tile(solid=False, opaque=False)
   STAIRS = Tile(solid=False, opaque=False)
 

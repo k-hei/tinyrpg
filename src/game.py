@@ -1,5 +1,6 @@
 import gen
 from anim import Anim
+from stage import Stage
 
 class Game:
   def __init__(game):
@@ -15,7 +16,7 @@ class Game:
     target_cell = (hero_x + delta_x, hero_y + delta_y)
     target_tile = game.stage.get_at(target_cell)
     target_actor = game.stage.get_actor_at(target_cell)
-    if target_tile != 3 and (target_actor == None or target_actor == game.p2):
+    if not target_tile.solid and (target_actor == None or target_actor == game.p2):
       game.anims.append(Anim(8, {
         "kind": "move",
         "actor": game.p1,
@@ -34,6 +35,8 @@ class Game:
     else:
       if target_actor is not None:
         game.stage.kill(target_actor)
+      if target_tile is Stage.DOOR:
+        game.stage.set_at(target_cell, Stage.DOOR_OPEN)
       game.anims.append(Anim(6, {
         "kind": "attack",
         "actor": game.p1,

@@ -31,6 +31,8 @@ sprites = {
   "wall_base": pygame.image.load("assets/wall-base.png").convert_alpha(),
   "chest": pygame.image.load("assets/chest.png").convert_alpha(),
   "stairs": pygame.image.load("assets/downstairs.png").convert_alpha(),
+  "door": pygame.image.load("assets/door.png").convert_alpha(),
+  "door_open": pygame.image.load("assets/door-open.png").convert_alpha(),
   "eye": pygame.image.load("assets/eye.png").convert_alpha()
 }
 
@@ -98,6 +100,10 @@ def render_game(surface, game):
           sprite = sprites["wall"]
       elif tile is Stage.STAIRS:
         sprite = sprites["stairs"]
+      elif tile is Stage.DOOR:
+        sprite = sprites["door"]
+      elif tile is Stage.DOOR_OPEN:
+        sprite = sprites["door_open"]
       if sprite:
         surface.blit(sprite, (x * TILE_SIZE + camera_x, y * TILE_SIZE + camera_y))
 
