@@ -15,8 +15,10 @@ def init_display(window_title: str, window_size: (int, int)) -> Surface:
   pygame.display.set_caption(window_title)
   return pygame.display.set_mode(window_size, WINDOW_FLAGS)
 
+
 display = init_display("hello", WINDOW_SIZE_SCALED)
 surface = Surface(WINDOW_SIZE)
+pygame.key.set_repeat(1)
 
 # asset loading
 sprite_hero = pygame.image.load("assets/hero.png").convert_alpha()
@@ -33,21 +35,37 @@ def lerp(a, b, t):
   return a * (1 - t) + b * t
 
 game = Game()
+is_key_invalid = {
+  pygame.K_LEFT: False,
+  pygame.K_RIGHT: False,
+  pygame.K_UP: False,
+  pygame.K_DOWN: False
+}
 
-def handle_key(game, key):
+def handle_keydown(key):
+  if len(game.anims) > 0:
+    return
+
   delta_x = 0
   delta_y = 0
-  if key == pygame.K_LEFT:
+  if key == pygame.K_LEFT and not is_key_invalid[key]:
     delta_x = -1
-  elif key == pygame.K_RIGHT:
+  elif key == pygame.K_RIGHT and not is_key_invalid[key]:
     delta_x = 1
-  elif key == pygame.K_UP:
+  elif key == pygame.K_UP and not is_key_invalid[key]:
     delta_y = -1
-  elif key == pygame.K_DOWN:
+  elif key == pygame.K_DOWN and not is_key_invalid[key]:
     delta_y = 1
 
-  if delta_x != 0 or delta_y != 0:
-    game.move((delta_x, delta_y))
+  if delta_x == 0 and delta_y == 0:
+    return
+
+  moved = game.move((delta_x, delta_y))
+  if not moved:
+    is_key_invalid[key] = True
+
+def handle_keyup(key):
+  is_key_invalid[key] = False
 
 def render_game(surface, game):
   (window_width, window_height) = WINDOW_SIZE
@@ -126,6 +144,7 @@ while not done:
       done = True
       break
     elif event.type == pygame.KEYDOWN:
-      handle_key(game, event.key)
-      break
+      handle_keydown(event.key)
+    elif event.type == pygame.KEYUP:
+      handle_keyup(event.key)
   render_display()
