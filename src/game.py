@@ -1,13 +1,18 @@
 import gen
 from anim import Anim
 from stage import Stage
+from log import Log
 
 class Game:
   def __init__(game):
+    game.reload()
+    game.anims = []
+    game.log = Log()
+
+  def reload(game):
     game.stage = gen.dungeon(19, 19)
     game.p1 = next((actor for actor in game.stage.actors if actor.kind == "hero"), None)
     game.p2 = next((actor for actor in game.stage.actors if actor.kind == "mage"), None)
-    game.anims = []
 
   def move(game, delta):
     source_cell = game.p1.cell
@@ -38,8 +43,14 @@ class Game:
           "kind": "flinch",
           "actor": target_actor
         }))
+        if target_actor.kind == "eye":
+          game.log.print("WARRIOR attacks")
+          game.log.print("BEHOLDER receives 3 damage.")
+        elif target_actor.kind == "chest":
+          game.log.print("The lamp is sealed shut...")
         # game.stage.kill(target_actor)
-      if target_tile is Stage.DOOR:
+      elif target_tile is Stage.DOOR:
+        game.log.print("You open the door.")
         game.stage.set_tile_at(target_cell, Stage.DOOR_OPEN)
       game.anims.append(Anim(8, {
         "kind": "attack",
@@ -52,4 +63,7 @@ class Game:
   def descend(game):
     target_tile = game.stage.get_tile_at(game.p1.cell)
     if target_tile is Stage.STAIRS:
-      Game.__init__(game)
+      game.reload()
+      game.log.print("You go downstairs.")
+      return True
+    return False

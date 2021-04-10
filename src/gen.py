@@ -75,6 +75,9 @@ def dungeon(width, height):
   nodes = [cell for cell in stage.get_cells() if is_odd(cell)]
 
   rooms = gen_rooms(nodes)
+  if len(rooms) == 1:
+    return dungeon(width, height)
+
   mazes = gen_mazes(nodes)
 
   doors = []
@@ -160,9 +163,9 @@ def dungeon(width, height):
     for cell in room.get_cells():
       if stage.get_tile_at(cell) is not Stage.FLOOR or stage.get_actor_at(cell) is not None:
         continue
-      if random.randint(1, 20) == 1:
+      if random.randint(1, 30) == 1:
         stage.spawn(Actor("eye", cell))
-      elif random.randint(1, 50) == 1:
+      elif random.randint(1, 80) == 1:
         stage.spawn(Actor("chest", cell))
 
   return stage

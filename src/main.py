@@ -1,12 +1,15 @@
 import math
+import json
 import pygame
 from pygame import Surface
 from game import Game
 from stage import Stage
+from text import Font
 import fov
+from log import Log
 
 TILE_SIZE = 32
-WINDOW_SIZE = (9 * TILE_SIZE, 9 * TILE_SIZE)
+WINDOW_SIZE = (9 * TILE_SIZE, 7 * TILE_SIZE)
 WINDOW_SCALE = 2
 (WINDOW_WIDTH, WINDOW_HEIGHT) = WINDOW_SIZE
 WINDOW_SIZE_SCALED = (WINDOW_WIDTH * WINDOW_SCALE, WINDOW_HEIGHT * WINDOW_SCALE)
@@ -23,11 +26,14 @@ surface = Surface(WINDOW_SIZE)
 pygame.key.set_repeat(1)
 
 # asset loading
+metadata = json.loads(open("assets/fonts/standard/metadata.json", "r").read())
 sprites = {
+  "font_standard": pygame.image.load("assets/fonts/standard/typeface.png").convert_alpha(),
   "hero": pygame.image.load("assets/hero.png").convert_alpha(),
   "mage": pygame.image.load("assets/mage.png").convert_alpha(),
   "bat": pygame.image.load("assets/bat.png").convert_alpha(),
   "rat": pygame.image.load("assets/rat.png").convert_alpha(),
+  "floor": pygame.image.load("assets/floor.png").convert_alpha(),
   "wall": pygame.image.load("assets/wall.png").convert_alpha(),
   "wall_base": pygame.image.load("assets/wall-base.png").convert_alpha(),
   "chest": pygame.image.load("assets/chest.png").convert_alpha(),
@@ -37,24 +43,31 @@ sprites = {
   "eye": pygame.image.load("assets/eye.png").convert_alpha(),
   "eye_flinch": pygame.image.load("assets/eye-flinch.png").convert_alpha()
 }
+font = Font(sprites["font_standard"], **metadata)
 
 def lerp(a, b, t):
   return a * (1 - t) + b * t
 
 game = Game()
+
 is_key_invalid = {
   pygame.K_LEFT: False,
   pygame.K_RIGHT: False,
   pygame.K_UP: False,
-  pygame.K_DOWN: False
+  pygame.K_DOWN: False,
+  pygame.K_PERIOD: False
 }
 
 def handle_keydown(key):
+  global visited_cells
   if len(game.anims) > 0:
     return
 
-  if pygame.key.get_mods() & pygame.KMOD_SHIFT and key == pygame.K_PERIOD:
-    game.descend()
+  if pygame.key.get_mods() & pygame.KMOD_SHIFT and key == pygame.K_PERIOD and not is_key_invalid[key]:
+    is_key_invalid[key] = True
+    moved = game.descend()
+    if moved:
+      visited_cells = []
     return
 
   delta_x = 0
@@ -116,6 +129,8 @@ def render_game(surface, game):
       sprite = sprites["door"]
     elif tile is Stage.DOOR_OPEN:
       sprite = sprites["door_open"]
+    elif tile is Stage.FLOOR:
+      sprite = sprites["floor"]
     if sprite:
       opacity = 255
       if (x, y) not in visible_cells:
@@ -189,6 +204,7 @@ def render_game(surface, game):
     is_flipped = facing == -1
     surface.blit(pygame.transform.flip(sprite, is_flipped, False), (sprite_x + camera_x, sprite_y + camera_y))
 
+  surface.blit(game.log.render(font), (0, 0))
 
 def render_display():
   render_game(surface, game)
