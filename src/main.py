@@ -1,8 +1,7 @@
+import math
 import pygame
 from pygame import Surface
-from grid import Grid
-import gen
-import math
+from game import Game
 
 TILE_SIZE = 32
 WINDOW_SIZE = (9 * TILE_SIZE, 9 * TILE_SIZE)
@@ -28,69 +27,6 @@ sprite_chest = pygame.image.load("assets/chest.png").convert_alpha()
 
 def lerp(a, b, t):
   return a * (1 - t) + b * t
-
-class Actor:
-  def __init__(actor, kind, cell):
-    actor.kind = kind
-    actor.cell = cell
-
-class Anim:
-  def __init__(anim, duration, data):
-    anim.done = False
-    anim.time = 0
-    anim.duration = duration
-    anim.data = data
-  def update(anim):
-    if anim.done:
-      return -1
-    anim.time += 1
-    if anim.time == anim.duration:
-      anim.done = True
-    return anim.time / anim.duration
-
-class Game:
-  def __init__(game):
-    game.grid = gen.maze(19, 19)
-    game.p1 = Actor("hero", (3, 3))
-    game.p2 = Actor("mage", (3, 4))
-    game.anims = []
-    game.actors = [
-      game.p1,
-      game.p2,
-      Actor("bat", (5, 7)),
-      Actor("rat", (3, 5)),
-      Actor("chest", (1, 1))
-    ]
-  def get_actor_at(game, cell):
-    for actor in game.actors:
-      if actor.cell[0] == cell[0] and actor.cell[1] == cell[1]:
-        return actor
-    return None
-  def move(game, delta):
-    old_cell = game.p1.cell
-    (hero_x, hero_y) = old_cell
-    (delta_x, delta_y) = delta
-    new_cell = (hero_x + delta_x, hero_y + delta_y)
-    target = game.get_actor_at(new_cell)
-    if game.grid.get_at(new_cell) == 0 and (target == None or target == game.p2):
-      game.anims.append(Anim(6, {
-        "target": game.p1,
-        "from": old_cell,
-        "to": new_cell
-      }))
-      game.anims.append(Anim(6, {
-        "target": game.p2,
-        "from": game.p2.cell,
-        "to": old_cell
-      }))
-      game.p2.cell = old_cell
-      game.p1.cell = new_cell
-      return True
-    elif target is not None:
-      game.actors.remove(target)
-      return False
-    else:
-      return False
 
 game = Game()
 
@@ -123,21 +59,21 @@ def render_game(surface, game):
   camera_x = -math.floor((hero_x + 0.5) * TILE_SIZE - window_width / 2)
   camera_y = -math.floor((hero_y + 0.5) * TILE_SIZE - window_height / 2)
 
-  (grid_width, grid_height) = game.grid.size
+  (stage_width, stage_height) = game.stage.size
   surface.fill((0, 0, 0))
-  for y in range(grid_height):
-    for x in range(grid_width):
-      if game.grid.get_at((x, y)) == 1:
-        if game.grid.get_at((x, y + 1)) == 0:
+  for y in range(stage_height):
+    for x in range(stage_width):
+      if game.stage.get_at((x, y)) == 1:
+        if game.stage.get_at((x, y + 1)) == 0:
           sprite = sprite_wall_base
         else:
           sprite = sprite_wall
         surface.blit(sprite, (x * TILE_SIZE + camera_x, y * TILE_SIZE + camera_y))
 
   # depth sorting
-  game.actors.sort(key=lambda actor: actor.cell[1])
+  game.stage.actors.sort(key=lambda actor: actor.cell[1])
 
-  for actor in game.actors:
+  for actor in game.stage.actors:
     (col, row) = actor.cell
     if actor.kind == "hero":
       sprite = sprite_hero

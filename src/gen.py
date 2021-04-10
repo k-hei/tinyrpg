@@ -1,5 +1,6 @@
 import random
-from grid import Grid
+from stage import Stage
+from actor import Actor
 
 lengths = (3, 5, 7)
 
@@ -28,24 +29,10 @@ def equals(a, b):
 def manhattan(a, b):
   return abs(b[0] - a[0]) + abs(b[1] - a[1])
 
-def default():
-  grid = Grid((11, 11))
-  grid.data = [
-    1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 1, 0, 1,
-    1, 0, 0, 0, 0, 0, 1, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1,
-  ]
-
 def maze(width, height):
-  grid = Grid((width, height))
-  grid.fill(1)
-  nodes = [cell for cell in grid.get_cells() if is_odd(cell)]
+  stage = Stage((width, height))
+  stage.fill(1)
+  nodes = [cell for cell in stage.get_cells() if is_odd(cell)]
 
   rooms = []
   valid_nodes = None
@@ -65,25 +52,30 @@ def maze(width, height):
       room = Room((room_width, room_height), node)
       rooms.append(room)
       for cell in map(lambda cell: add(cell, room.cell), cells(room.size)):
-        grid.set_at(cell, 0)
+        stage.set_at(cell, 0)
         node = next((node for node in nodes if equals(node, cell)), None)
         if node:
           nodes.remove(node)
 
-  nodes = [cell for cell in grid.get_cells() if is_odd(cell)]
+  room = rooms[0]
+  center = (room.cell[0] + room.size[0] // 2, room.cell[1] + room.size[1] // 2)
+  stage.spawn(Actor("hero", center))
+  stage.spawn(Actor("mage", (center[0] - 1, center[1])))
+
+  nodes = [cell for cell in stage.get_cells() if is_odd(cell)]
   start = random.choice(nodes)
   nodes.remove(start)
   node = start
   stack = [start]
   while node:
-    grid.set_at(node, 0)
+    stage.set_at(node, 0)
     (x, y) = node
     neighbors = [other for other in nodes if manhattan(node, other) == 2]
     if len(neighbors):
       neighbor = random.choice(neighbors)
       (neighbor_x, neighbor_y) = neighbor
       midpoint = ((x + neighbor_x) // 2, (y + neighbor_y) // 2)
-      grid.set_at(midpoint, 0)
+      stage.set_at(midpoint, 0)
       stack.append(neighbor)
       nodes.remove(neighbor)
       node = neighbor
@@ -92,4 +84,5 @@ def maze(width, height):
       node = stack[len(stack) - 1]
     else:
       node = None
-  return grid
+
+  return stage
