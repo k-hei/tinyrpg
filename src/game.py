@@ -7,6 +7,7 @@ class Game:
     game.p1 = next((actor for actor in game.stage.actors if actor.kind == "hero"), None)
     game.p2 = next((actor for actor in game.stage.actors if actor.kind == "mage"), None)
     game.anims = []
+
   def move(game, delta):
     source_cell = game.p1.cell
     (hero_x, hero_y) = source_cell

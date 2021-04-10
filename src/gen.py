@@ -1,27 +1,31 @@
 import random
 from stage import Stage
 from actor import Actor
+from room import Room
 
 lengths = (3, 5, 7)
 
-class Room:
-  def __init__(room, size, cell=None):
-    room.size = size
-    room.cell = cell
+class Maze:
+  def __init__(maze, cells):
+    maze.cells = cells
 
-  def get_cells(room):
-    cells = []
-    (room_width, room_height) = room.size
-    (room_x, room_y) = room.cell
-    for y in range(room_height):
-      for x in range(room_width):
-        cells.append((x + room_x, y + room_y))
-    return cells
+  def get_cells(maze):
+    return maze.cells
 
-  def get_center(room):
-    (room_width, room_height) = room.size
-    (room_x, room_y) = room.cell
-    return (room_x + room_width // 2, room_y + room_height // 2)
+  def get_edges(maze):
+    edges = []
+    for cell in maze.cells:
+      (x, y) = cell
+      adj_cells = [
+        (x - 1, y),
+        (x, y - 1),
+        (x + 1, y),
+        (x, y + 1)
+      ]
+      for adj in adj_cells:
+        if not adj in edges:
+          edges.append(adj)
+    return edges
 
 def cells(size):
   cells = []
@@ -40,6 +44,25 @@ def add(a, b):
 def manhattan(a, b):
   return abs(b[0] - a[0]) + abs(b[1] - a[1])
 
+def get_neighbors(elems, elem):
+  neighbors = {}
+  for edge in elem.get_edges():
+    (x, y) = edge
+    adj_cells = [
+      (x - 1, y),
+      (x, y - 1),
+      (x + 1, y),
+      (x, y + 1)
+    ]
+    for cell in adj_cells:
+      neighbor = next((target for target in elems if target is not elem and cell in target.get_cells()), None)
+      if neighbor:
+        if neighbor in neighbors:
+          neighbors[neighbor].append(edge)
+        else:
+          neighbors[neighbor] = [edge]
+  return neighbors
+
 def dungeon(width, height):
   stage = Stage((width, height))
   stage.fill(Stage.WALL)
@@ -50,15 +73,60 @@ def dungeon(width, height):
     for cell in room.get_cells():
       stage.set_at(cell, Stage.FLOOR)
 
+  mazes = gen_mazes(nodes)
+  for maze in mazes:
+    for cell in maze.get_cells():
+      stage.set_at(cell, Stage.FLOOR)
+
+  doors = []
+  conns = {}
+  elems = rooms + mazes
+  for elem in elems:
+    conns[elem] = []
+
+  elem = random.choice(elems)
+  elems.remove(elem)
+  stack = [elem]
+  while elem:
+    neighbors = get_neighbors(elems, elem)
+    if len(neighbors) > 0:
+      # pick a random neighbor
+      neighbor = random.choice(list(neighbors.keys()))
+
+      # pick a random connector
+      conn = random.choice(neighbors[neighbor])
+
+      # mark connector as door
+      doors.append(conn)
+
+      # connect this elem to that neighbor
+      conns[elem].append(neighbor)
+      conns[neighbor].append(elem)
+
+      # only add neighbor to the stack if it's not visited (allows loops)
+      if neighbor in elems:
+        stack.append(neighbor)
+
+      # declare neighbor as visited
+      elems.remove(neighbor)
+
+      # use neighbor for next iteration
+      elem = neighbor
+    else:
+      stack.remove(elem)
+      # remove maze if it's a dead end
+      if len(stack) > 0:
+        elem = stack[len(stack) - 1]
+      else:
+        elem = None
+
+  for door in doors:
+    stage.set_at(door, Stage.FLOOR)
+
   room = rooms[0]
   center = room.get_center()
   stage.spawn(Actor("hero", center))
   stage.spawn(Actor("mage", (center[0] - 1, center[1])))
-
-  mazes = gen_mazes(nodes)
-  for maze in mazes:
-    for cell in maze:
-      stage.set_at(cell, Stage.FLOOR)
 
   room = rooms[1]
   center = room.get_center()
@@ -79,7 +147,6 @@ def gen_rooms(nodes):
       cell_has_node = map(lambda cell: len([node for node in nodes if node == cell]) == 1, odd_offset_cells)
       if all(cell_has_node):
         valid_nodes.append(node)
-
     if len(valid_nodes) > 0:
       node = random.choice(valid_nodes)
       room = Room((room_width, room_height), node)
@@ -95,7 +162,7 @@ def gen_mazes(nodes):
   while len(nodes) > 0:
     node = random.choice(nodes)
     nodes.remove(node)
-    maze = [node]
+    cells = [node]
     stack = [node]
     while node:
       (x, y) = node
@@ -104,8 +171,8 @@ def gen_mazes(nodes):
         neighbor = random.choice(neighbors)
         (neighbor_x, neighbor_y) = neighbor
         midpoint = ((x + neighbor_x) // 2, (y + neighbor_y) // 2)
-        maze.append(midpoint)
-        maze.append(neighbor)
+        cells.append(midpoint)
+        cells.append(neighbor)
         stack.append(neighbor)
         nodes.remove(neighbor)
         node = neighbor
@@ -114,5 +181,5 @@ def gen_mazes(nodes):
         node = stack[len(stack) - 1]
       else:
         node = None
-    mazes.append(maze)
+    mazes.append(Maze(cells))
   return mazes
