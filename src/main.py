@@ -2,6 +2,7 @@ import pygame
 from pygame import Surface
 from grid import Grid
 import gen
+import math
 
 TILE_SIZE = 32
 WINDOW_SIZE = (9 * TILE_SIZE, 9 * TILE_SIZE)
@@ -49,7 +50,7 @@ class Anim:
 
 class Game:
   def __init__(game):
-    game.grid = gen.maze(15, 15)
+    game.grid = gen.maze(19, 19)
     game.p1 = Actor("hero", (3, 3))
     game.p2 = Actor("mage", (3, 4))
     game.anims = []
@@ -100,11 +101,13 @@ def handle_key(game, key):
     delta_x = -1
   elif key == pygame.K_RIGHT:
     delta_x = 1
-  if key == pygame.K_UP:
+  elif key == pygame.K_UP:
     delta_y = -1
   elif key == pygame.K_DOWN:
     delta_y = 1
-  game.move((delta_x, delta_y))
+
+  if delta_x != 0 or delta_y != 0:
+    game.move((delta_x, delta_y))
 
 def render_game(surface, game):
   (window_width, window_height) = WINDOW_SIZE
@@ -117,8 +120,8 @@ def render_game(surface, game):
       hero_x = lerp(from_x, to_x, t)
       hero_y = lerp(from_y, to_y, t)
 
-  camera_x = -((hero_x + 0.5) * TILE_SIZE - window_width / 2)
-  camera_y = -((hero_y + 0.5) * TILE_SIZE - window_height / 2)
+  camera_x = -math.floor((hero_x + 0.5) * TILE_SIZE - window_width / 2)
+  camera_y = -math.floor((hero_y + 0.5) * TILE_SIZE - window_height / 2)
 
   (grid_width, grid_height) = game.grid.size
   surface.fill((0, 0, 0))
