@@ -37,7 +37,7 @@ sprites = {
   "wall": pygame.image.load("assets/wall.png").convert_alpha(),
   "wall_base": pygame.image.load("assets/wall-base.png").convert_alpha(),
   "chest": pygame.image.load("assets/chest.png").convert_alpha(),
-  "stairs": pygame.image.load("assets/downstairs.png").convert_alpha(),
+  "stairs": pygame.image.load("assets/stairs-up.png").convert_alpha(),
   "door": pygame.image.load("assets/door.png").convert_alpha(),
   "door_open": pygame.image.load("assets/door-open.png").convert_alpha(),
   "eye": pygame.image.load("assets/eye.png").convert_alpha(),
@@ -56,7 +56,7 @@ is_key_invalid = {
   pygame.K_RIGHT: False,
   pygame.K_UP: False,
   pygame.K_DOWN: False,
-  pygame.K_PERIOD: False
+  pygame.K_COMMA: False
 }
 
 def handle_keydown(key):
@@ -64,9 +64,9 @@ def handle_keydown(key):
   if len(game.anims) > 0:
     return
 
-  if pygame.key.get_mods() & pygame.KMOD_SHIFT and key == pygame.K_PERIOD and not is_key_invalid[key]:
+  if pygame.key.get_mods() & pygame.KMOD_SHIFT and key == pygame.K_COMMA and not is_key_invalid[key]:
     is_key_invalid[key] = True
-    moved = game.descend()
+    moved = game.ascend()
     if moved:
       visited_cells = []
     return

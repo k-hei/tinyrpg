@@ -36,6 +36,8 @@ class Game:
       }))
       game.p2.cell = source_cell
       game.p1.cell = target_cell
+      if target_tile is Stage.STAIRS:
+        game.log.print("There's a staircase going up here.")
       return True
     else:
       if target_actor is not None:
@@ -60,10 +62,10 @@ class Game:
       }))
       return False
 
-  def descend(game):
+  def ascend(game):
     target_tile = game.stage.get_tile_at(game.p1.cell)
     if target_tile is Stage.STAIRS:
       game.reload()
-      game.log.print("You go downstairs.")
+      game.log.print("You go upstairs.")
       return True
     return False

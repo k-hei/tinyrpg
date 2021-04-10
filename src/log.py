@@ -1,6 +1,7 @@
 from pygame import Surface
 from text import render as render_text
 from anim import Anim
+from easeexpo import ease_out, ease_in
 
 COLOR_KEY = (0xFF, 0x00, 0XFF)
 
@@ -46,7 +47,7 @@ class Log:
     log.surface = Surface((Log.BOX_WIDTH - Log.INSET_X * 2, line_height * Log.ROW_COUNT))
     log.surface.fill(COLOR_KEY)
     log.surface.set_colorkey(COLOR_KEY)
-    if log.dirty and (log.row >= len(log.cache) or log.cache[log.row]["dirty"]):
+    if log.anim is None and log.dirty and (log.row >= len(log.cache) or log.cache[log.row]["dirty"]):
       if log.row >= len(log.cache):
         surface = Surface((log.surface.get_width(), line_height))
         surface.fill(COLOR_KEY)
@@ -90,9 +91,16 @@ class Log:
     y = -log.box.get_height() - 8
     if log.anim is not None:
       t = log.anim.update()
-      if log.anim.data["kind"] == "exit":
-        t = 1 - t
+      if log.anim.data["kind"] == "enter":
+        t = ease_out(t)
+      elif log.anim.data["kind"] == "exit":
+        t = ease_in(1 - t)
       if log.anim.done:
+        if log.anim.data["kind"] == "exit":
+          log.messages = []
+          log.cache = []
+          log.row = -1
+          log.offset = 0
         log.anim = None
       log.y = y * t
     elif log.row != -1 and (log.dirty or log.clean_frames < Log.HANG_DURATION):
