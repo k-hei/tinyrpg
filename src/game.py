@@ -8,28 +8,35 @@ class Game:
     game.p2 = next((actor for actor in game.stage.actors if actor.kind == "mage"), None)
     game.anims = []
   def move(game, delta):
-    old_cell = game.p1.cell
-    (hero_x, hero_y) = old_cell
+    source_cell = game.p1.cell
+    (hero_x, hero_y) = source_cell
     (delta_x, delta_y) = delta
-    new_cell = (hero_x + delta_x, hero_y + delta_y)
-    target_tile = game.stage.get_at(new_cell)
-    target_actor = game.stage.get_actor_at(new_cell)
+    target_cell = (hero_x + delta_x, hero_y + delta_y)
+    target_tile = game.stage.get_at(target_cell)
+    target_actor = game.stage.get_actor_at(target_cell)
     if target_tile != 1 and (target_actor == None or target_actor == game.p2):
-      game.anims.append(Anim(6, {
-        "target": game.p1,
-        "from": old_cell,
-        "to": new_cell
+      game.anims.append(Anim(10, {
+        "kind": "move",
+        "actor": game.p1,
+        "from": source_cell,
+        "to": target_cell
       }))
-      game.anims.append(Anim(6, {
-        "target": game.p2,
+      game.anims.append(Anim(10, {
+        "kind": "move",
+        "actor": game.p2,
         "from": game.p2.cell,
-        "to": old_cell
+        "to": source_cell
       }))
-      game.p2.cell = old_cell
-      game.p1.cell = new_cell
+      game.p2.cell = source_cell
+      game.p1.cell = target_cell
       return True
-    elif target_actor is not None:
-      game.stage.kill(target_actor)
-      return False
     else:
+      if target_actor is not None:
+        game.stage.kill(target_actor)
+      game.anims.append(Anim(6, {
+        "kind": "attack",
+        "actor": game.p1,
+        "from": source_cell,
+        "to": target_cell
+      }))
       return False

@@ -62,10 +62,6 @@ def maze(width, height):
   stage.spawn(Actor("hero", center))
   stage.spawn(Actor("mage", (center[0] - 1, center[1])))
 
-  room = rooms[1]
-  center = (room.cell[0] + room.size[0] // 2, room.cell[1] + room.size[1] // 2)
-  stage.set_at(center, 2)
-
   nodes = [cell for cell in stage.get_cells() if is_odd(cell)]
   start = random.choice(nodes)
 
@@ -91,5 +87,9 @@ def maze(width, height):
       node = stack[len(stack) - 1]
     else:
       node = None
+
+  room = rooms[1]
+  center = (room.cell[0] + room.size[0] // 2, room.cell[1] + room.size[1] // 2)
+  stage.set_at(center, 2)
 
   return stage

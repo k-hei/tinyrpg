@@ -21,15 +21,17 @@ surface = Surface(WINDOW_SIZE)
 pygame.key.set_repeat(1)
 
 # asset loading
-sprite_hero = pygame.image.load("assets/hero.png").convert_alpha()
-sprite_mage = pygame.image.load("assets/mage.png").convert_alpha()
-sprite_bat = pygame.image.load("assets/bat.png").convert_alpha()
-sprite_rat = pygame.image.load("assets/rat.png").convert_alpha()
-sprite_wall = pygame.image.load("assets/wall.png").convert_alpha()
-sprite_wall_base = pygame.image.load("assets/wall-base.png").convert_alpha()
-sprite_chest = pygame.image.load("assets/chest.png").convert_alpha()
-sprite_stairs = pygame.image.load("assets/downstairs.png").convert_alpha()
-sprite_eye = pygame.image.load("assets/eye.png").convert_alpha()
+sprites = {
+  "hero": pygame.image.load("assets/hero.png").convert_alpha(),
+  "mage": pygame.image.load("assets/mage.png").convert_alpha(),
+  "bat": pygame.image.load("assets/bat.png").convert_alpha(),
+  "rat": pygame.image.load("assets/rat.png").convert_alpha(),
+  "wall": pygame.image.load("assets/wall.png").convert_alpha(),
+  "wall_base": pygame.image.load("assets/wall-base.png").convert_alpha(),
+  "chest": pygame.image.load("assets/chest.png").convert_alpha(),
+  "stairs": pygame.image.load("assets/downstairs.png").convert_alpha(),
+  "eye": pygame.image.load("assets/eye.png").convert_alpha()
+}
 
 def lerp(a, b, t):
   return a * (1 - t) + b * t
@@ -67,11 +69,12 @@ def handle_keydown(key):
 def handle_keyup(key):
   is_key_invalid[key] = False
 
+facings = []
 def render_game(surface, game):
   (window_width, window_height) = WINDOW_SIZE
   (hero_x, hero_y) = game.p1.cell
   for anim in game.anims:
-    if anim.data["target"] == game.p1:
+    if anim.data["actor"] == game.p1 and anim.data["kind"] != "attack":
       (from_x, from_y) = anim.data["from"]
       (to_x, to_y) = anim.data["to"]
       t = (anim.time + 1) / anim.duration
@@ -89,11 +92,11 @@ def render_game(surface, game):
       sprite = None
       if tile == 1:
         if game.stage.get_at((x, y + 1)) == 0:
-          sprite = sprite_wall_base
+          sprite = sprites["wall_base"]
         else:
-          sprite = sprite_wall
+          sprite = sprites["wall"]
       elif tile == 2:
-        sprite = sprite_stairs
+        sprite = sprites["stairs"]
       if sprite:
         surface.blit(sprite, (x * TILE_SIZE + camera_x, y * TILE_SIZE + camera_y))
 
@@ -102,32 +105,47 @@ def render_game(surface, game):
 
   for actor in game.stage.actors:
     (col, row) = actor.cell
-    if actor.kind == "hero":
-      sprite = sprite_hero
-    elif actor.kind == "mage":
-      sprite = sprite_mage
-    elif actor.kind == "bat":
-      sprite = sprite_bat
-    elif actor.kind == "rat":
-      sprite = sprite_rat
-    elif actor.kind == "chest":
-      sprite = sprite_chest
-    elif actor.kind == "eye":
-      sprite = sprite_eye
+    sprite = sprites[actor.kind]
+    facing = None
 
     anim = None
     for anim in game.anims:
-      if anim.data["target"] == actor:
-        (from_x, from_y) = anim.data["from"]
-        (to_x, to_y) = anim.data["to"]
+      if anim.data["actor"] != actor:
+        continue
+
+      (from_x, from_y) = anim.data["from"]
+      (to_x, to_y) = anim.data["to"]
+      if to_x < from_x:
+        facing = -1
+      elif to_x > from_x:
+        facing = 1
+
+      if anim.data["kind"] == "move":
         t = anim.update()
         col = lerp(from_x, to_x, t)
         row = lerp(from_y, to_y, t)
-        if anim.done:
-          game.anims.remove(anim)
-        break
 
-    surface.blit(sprite, (col * TILE_SIZE + camera_x, row * TILE_SIZE + camera_y))
+      if anim.data["kind"] == "attack":
+        t = anim.update()
+        t = t / 8 if t < 0.5 else (1 - (t - 0.5) * 2) / 8
+        col = lerp(from_x, to_x, t)
+        row = lerp(from_y, to_y, t)
+
+      if anim.done:
+        game.anims.remove(anim)
+      break
+
+    existing_facing = next((facing for facing in facings if facing[0] is actor), None)
+    if facing is not None:
+      if existing_facing:
+        (actor, facing) = existing_facing
+    else:
+      if existing_facing in facings:
+        facings.remove(existing_facing)
+      facings.append((actor, facing))
+
+    is_flipped = facing == -1
+    surface.blit(pygame.transform.flip(sprite, is_flipped, False), (col * TILE_SIZE + camera_x, row * TILE_SIZE + camera_y))
 
 
 def render_display():
