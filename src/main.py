@@ -17,6 +17,8 @@ def init_display(window_title: str, window_size: (int, int)) -> Surface:
 
 display = init_display("hello", WINDOW_SIZE_SCALED)
 surface = Surface(WINDOW_SIZE)
+
+# asset loading
 sprite_hero = pygame.image.load("assets/hero.png").convert_alpha()
 sprite_mage = pygame.image.load("assets/mage.png").convert_alpha()
 sprite_bat = pygame.image.load("assets/bat.png").convert_alpha()
@@ -24,6 +26,8 @@ sprite_rat = pygame.image.load("assets/rat.png").convert_alpha()
 sprite_wall = pygame.image.load("assets/wall.png").convert_alpha()
 sprite_wall_base = pygame.image.load("assets/wall-base.png").convert_alpha()
 sprite_chest = pygame.image.load("assets/chest.png").convert_alpha()
+sprite_stairs = pygame.image.load("assets/downstairs.png").convert_alpha()
+sprite_eye = pygame.image.load("assets/eye.png").convert_alpha()
 
 def lerp(a, b, t):
   return a * (1 - t) + b * t
@@ -63,11 +67,16 @@ def render_game(surface, game):
   surface.fill((0, 0, 0))
   for y in range(stage_height):
     for x in range(stage_width):
-      if game.stage.get_at((x, y)) == 1:
+      tile = game.stage.get_at((x, y))
+      sprite = None
+      if tile == 1:
         if game.stage.get_at((x, y + 1)) == 0:
           sprite = sprite_wall_base
         else:
           sprite = sprite_wall
+      elif tile == 2:
+        sprite = sprite_stairs
+      if sprite:
         surface.blit(sprite, (x * TILE_SIZE + camera_x, y * TILE_SIZE + camera_y))
 
   # depth sorting
@@ -85,6 +94,8 @@ def render_game(surface, game):
       sprite = sprite_rat
     elif actor.kind == "chest":
       sprite = sprite_chest
+    elif actor.kind == "eye":
+      sprite = sprite_eye
 
     anim = None
     for anim in game.anims:

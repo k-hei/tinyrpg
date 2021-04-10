@@ -44,7 +44,7 @@ class Stage:
       actor.cell = cell
 
   def kill(stage, actor):
-    stage.actors.remove()
+    stage.actors.remove(actor)
 
   def contains(stage, cell):
     (width, height) = stage.size

@@ -14,7 +14,7 @@ class Game:
     new_cell = (hero_x + delta_x, hero_y + delta_y)
     target_tile = game.stage.get_at(new_cell)
     target_actor = game.stage.get_actor_at(new_cell)
-    if target_tile == 0 and (target_actor == None or target_actor == game.p2):
+    if target_tile != 1 and (target_actor == None or target_actor == game.p2):
       game.anims.append(Anim(6, {
         "target": game.p1,
         "from": old_cell,
