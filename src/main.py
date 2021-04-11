@@ -7,9 +7,10 @@ from stage import Stage
 from text import Font, render as render_text
 from log import Log
 from filters import recolor
+from anims import AttackAnim, FlickerAnim, MoveAnim, ShakeAnim
 
 TILE_SIZE = 32
-WINDOW_SIZE = (256, 240)
+WINDOW_SIZE = (256, 224)
 WINDOW_SCALE = 2
 (WINDOW_WIDTH, WINDOW_HEIGHT) = WINDOW_SIZE
 WINDOW_SIZE_SCALED = (WINDOW_WIDTH * WINDOW_SCALE, WINDOW_HEIGHT * WINDOW_SCALE)
@@ -19,7 +20,6 @@ def init_display(window_title: str, window_size: (int, int)) -> Surface:
   pygame.display.init()
   pygame.display.set_caption(window_title)
   return pygame.display.set_mode(window_size, WINDOW_FLAGS)
-
 
 display = init_display("hello", WINDOW_SIZE_SCALED)
 surface = Surface(WINDOW_SIZE)
@@ -44,7 +44,10 @@ sprites = {
   "eye_flinch": pygame.image.load("assets/eye-flinch.png").convert_alpha(),
   "log": pygame.image.load("assets/log.png").convert_alpha(),
   "portrait_hero": pygame.image.load("assets/portrait-hero.png").convert_alpha(),
-  "portrait_mage": pygame.image.load("assets/portrait-mage.png").convert_alpha()
+  "portrait_mage": pygame.image.load("assets/portrait-mage.png").convert_alpha(),
+  "icon_shield": pygame.image.load("assets/icon-shield.png").convert_alpha(),
+  "icon_skill": pygame.image.load("assets/icon-skill.png").convert_alpha(),
+  "skill": pygame.image.load("assets/skill.png").convert_alpha()
 }
 font = Font(sprites["font_standard"], **metadata)
 
@@ -112,20 +115,16 @@ camera = None
 
 def render_game(surface, game):
   global camera
-  (window_width, window_height) = WINDOW_SIZE
-  (hero_x, hero_y) = game.p1.cell
+  window_width, window_height = WINDOW_SIZE
+  hero_x, hero_y = game.p1.cell
   visible_cells = game.p1.visible_cells
   for cell in visible_cells:
     if cell not in visited_cells:
       visited_cells.append(cell)
 
   for anim in game.anims:
-    if anim.data["actor"] == game.p1 and anim.data["kind"] != "attack":
-      (from_x, from_y) = anim.data["from"]
-      (to_x, to_y) = anim.data["to"]
-      t = (anim.time + 1) / anim.duration
-      hero_x = lerp(from_x, to_x, t)
-      hero_y = lerp(from_y, to_y, t)
+    if anim.target is game.p1 and type(anim) is MoveAnim:
+      hero_x, hero_y = anim.cur_cell
 
   camera_x = -((hero_x + 0.5) * TILE_SIZE - window_width / 2)
   camera_y = -((hero_y + 0.5) * TILE_SIZE - window_height / 2)
@@ -179,45 +178,31 @@ def render_game(surface, game):
 
     anim = None
     for anim in game.anims:
-      if anim.data["actor"] != actor:
+      if anim.target is not actor:
         continue
 
-      if anim.data["kind"] in ("attack", "move"):
-        (from_x, from_y) = anim.data["from"]
-        (to_x, to_y) = anim.data["to"]
-        if to_x < from_x:
+      if type(anim) in (AttackAnim, MoveAnim):
+        src_x, src_y = anim.src_cell
+        dest_x, dest_y = anim.dest_cell
+        if dest_x < src_x:
           facing = -1
-        elif to_x > from_x:
+        elif dest_x > src_x:
           facing = 1
+        col, row = anim.update()
+        sprite_x = col * TILE_SIZE
+        sprite_y = row * TILE_SIZE
 
-      if anim.data["kind"] == "move":
-        t = anim.update()
-        sprite_x = lerp(from_x, to_x, t) * TILE_SIZE
-        sprite_y = lerp(from_y, to_y, t) * TILE_SIZE
-
-      if anim.data["kind"] == "attack":
-        t = anim.update()
-        t = t / 6 if t < 0.5 else (1 - (t - 0.5) * 2) / 6
-        sprite_x = lerp(from_x, to_x, t) * TILE_SIZE
-        sprite_y = lerp(from_y, to_y, t) * TILE_SIZE
-
-      if anim.data["kind"] == "flinch":
-        anim.update()
+      if type(anim) is ShakeAnim:
+        sprite_x += anim.update()
         if actor.kind == "eye":
           sprite = sprites["eye_flinch"]
-        if anim.time % 4 <= 1:
-          sprite_x += 1
-        else:
-          sprite_x -= 1
 
-      if anim.data["kind"] == "blink" and len([anim for anim in game.anims if anim.data["actor"] == actor]) == 1:
-        anim.update()
-        if anim.time % 2 == 0:
+      if type(anim) is FlickerAnim and len([anim for anim in game.anims if anim.target is actor]) == 1:
+        visible = anim.update()
+        if not visible:
           sprite = None
         elif actor.kind == "eye":
           sprite = sprites["eye_flinch"]
-        if anim.done:
-          game.stage.actors.remove(actor)
 
       if anim.done:
         game.anims.remove(anim)
@@ -249,6 +234,16 @@ def render_game(surface, game):
   surface.blit(portrait_hero, (8, 8))
   surface.blit(portrait_mage, (36, 8))
   # surface.blit(render_text("Tower 1F", font), (80, 8))
+
+  # if game.p1.kind == "hero":
+  #   skill_icon = sprites["icon_shield"]
+  #   skill_text = render_text("Shield Bash", font)
+  # elif game.p1.kind == "mage":
+  #   skill_icon = sprites["icon_skill"]
+  #   skill_text = render_text("Detect Mana", font)
+  # surface.blit(sprites["skill"], (8, 56))
+  # surface.blit(skill_icon, (8 + 7, 56 + 4))
+  # surface.blit(skill_text, (8 + 18, 56 + 4))
 
   log = game.log.render(sprites["log"], font)
   surface.blit(log, (

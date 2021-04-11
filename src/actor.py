@@ -21,4 +21,9 @@ class Actor:
     return damage
 
 def _find_damage(actor, target):
-  return 3
+  if actor.kind == "hero":
+    return 3
+  elif actor.kind == "mage":
+    return 2
+  else:
+    return 1

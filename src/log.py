@@ -3,7 +3,7 @@ from text import render as render_text
 from anim import Anim
 from easeexpo import ease_out, ease_in
 
-COLOR_KEY = (0xFF, 0x00, 0XFF)
+COLOR_KEY = (0xFF, 0x00, 0xFF)
 
 class Log:
   ROW_COUNT = 2
@@ -102,6 +102,7 @@ class Log:
           log.cache = []
           log.row = -1
           log.offset = 0
+        print(log.row, log.dirty, log.clean_frames)
         log.anim = None
       log.y = y * t
     elif log.row != -1 and (log.dirty or log.clean_frames < Log.HANG_DURATION):
