@@ -1,11 +1,12 @@
 import math
 import json
 import pygame
-from pygame import Surface
+from pygame import Surface, PixelArray
 from game import Game
 from stage import Stage
 from text import Font
 from log import Log
+from filters import recolor
 
 TILE_SIZE = 32
 WINDOW_SIZE = (256, 240)
@@ -41,7 +42,9 @@ sprites = {
   "door_open": pygame.image.load("assets/door-open.png").convert_alpha(),
   "eye": pygame.image.load("assets/eye.png").convert_alpha(),
   "eye_flinch": pygame.image.load("assets/eye-flinch.png").convert_alpha(),
-  "log": pygame.image.load("assets/log.png").convert_alpha()
+  "log": pygame.image.load("assets/log.png").convert_alpha(),
+  "portrait_hero": pygame.image.load("assets/portrait-hero.png").convert_alpha(),
+  "portrait_mage": pygame.image.load("assets/portrait-mage.png").convert_alpha()
 }
 font = Font(sprites["font_standard"], **metadata)
 
@@ -221,6 +224,21 @@ def render_game(surface, game):
 
     is_flipped = facing == -1
     surface.blit(pygame.transform.flip(sprite, is_flipped, False), (sprite_x + camera_x, sprite_y + camera_y))
+
+    surface.blit(sprites["portrait_hero"], (8, 8))
+
+    portrait_hero = sprites["portrait_hero"]
+    portrait_mage = sprites["portrait_mage"]
+    if game.p1.kind == "hero":
+      portrait_mage = portrait_mage.copy()
+      pixels = PixelArray(portrait_mage)
+    elif game.p1.kind == "mage":
+      portrait_hero = portrait_hero.copy()
+      pixels = PixelArray(portrait_hero)
+    pixels.replace((0xFF, 0xFF, 0xFF), (0x7F, 0x7F, 0x7F))
+    pixels.close()
+    surface.blit(portrait_hero, (8, 8))
+    surface.blit(portrait_mage, (36, 8))
 
   log = game.log.render(sprites["log"], font)
   surface.blit(log, (
