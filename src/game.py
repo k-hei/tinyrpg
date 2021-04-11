@@ -88,7 +88,7 @@ class Game:
           game.log.print("You open the lamp")
           game.log.print("Received a " + contents + ".")
         else:
-          game.log.print("The lamp is already empty.")
+          game.log.print("There's nothing left to take...")
       elif target_tile is Stage.DOOR:
         game.log.print("You open the door.")
         game.stage.set_tile_at(target_cell, Stage.DOOR_OPEN)

@@ -138,12 +138,18 @@ def dungeon(width, height):
 
   for room in rooms:
     for cell in room.get_cells():
-      if stage.get_tile_at(cell) is not Stage.FLOOR or stage.get_actor_at(cell) is not None:
+      is_floor = stage.get_tile_at(cell) is Stage.FLOOR
+      is_empty = stage.get_actor_at(cell) is None
+      is_beside_door = next((door for door in doors if is_adjacent(door, cell)), None)
+      if not is_floor or not is_empty or is_beside_door:
         continue
       if random.randint(1, 30) == 1:
         stage.spawn(Eye(), cell)
       elif random.randint(1, 80) == 1:
-        stage.spawn(Chest("Potion"), cell)
+        if random.randint(1, 5) == 1:
+          stage.spawn(Chest("Warp Crystal"), cell)
+        else:
+          stage.spawn(Chest("Potion"), cell)
 
   stage.rooms = rooms
   return stage
