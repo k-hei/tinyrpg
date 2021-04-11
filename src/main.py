@@ -12,7 +12,7 @@ from actors import Knight, Mage, Eye, Chest
 
 TILE_SIZE = 32
 WINDOW_SIZE = (256, 224)
-WINDOW_SCALE = 2
+WINDOW_SCALE = 3
 (WINDOW_WIDTH, WINDOW_HEIGHT) = WINDOW_SIZE
 WINDOW_SIZE_SCALED = (WINDOW_WIDTH * WINDOW_SCALE, WINDOW_HEIGHT * WINDOW_SCALE)
 WINDOW_FLAGS = 0
@@ -205,6 +205,9 @@ def render_game(surface, game):
     return actor.cell[1]
   game.stage.actors.sort(key=get_actor_y)
 
+  is_drawing_knight = False
+  is_drawing_mage = False
+
   for actor in game.stage.actors:
     if actor.cell not in visible_cells:
       continue
@@ -286,20 +289,46 @@ def render_game(surface, game):
         facings.remove(existing_facing)
       facings.append((actor, facing))
 
+    if sprite and type(actor) is Knight:
+      is_drawing_knight = True
+
+    if sprite and type(actor) is Mage:
+      is_drawing_mage = True
+
     is_flipped = facing == -1
     if sprite:
       surface.blit(pygame.transform.flip(sprite, is_flipped, False), (sprite_x + camera_x, sprite_y + camera_y))
 
-  portrait_knight = sprites["portrait_knight"]
-  portrait_mage = sprites["portrait_mage"]
-  if type(game.p1) is Knight:
-    portrait_mage = portrait_mage.copy()
-    pixels = PixelArray(portrait_mage)
-  elif type(game.p1) is Mage:
-    portrait_knight = portrait_knight.copy()
-    pixels = PixelArray(portrait_knight)
-  pixels.replace((0xFF, 0xFF, 0xFF), (0x7F, 0x7F, 0x7F))
-  pixels.close()
+  portrait_knight = sprites["portrait_knight"].copy()
+  portrait_mage = sprites["portrait_mage"].copy()
+  pixels_knight = PixelArray(portrait_knight)
+  pixels_mage = PixelArray(portrait_mage)
+
+  hero_anim = None
+  for group in game.anims:
+    for anim in group:
+      if anim.target is hero:
+        hero_anim = anim
+        break
+
+  knight = game.p1 if type(hero) is Knight else game.p2
+  mage = game.p1 if type(hero) is Mage else game.p2
+
+  WHITE = (0xFF, 0xFF, 0xFF)
+  GRAY = (0x7F, 0x7F, 0x7F)
+  RED = (0xE6, 0x46, 0x46)
+  if knight.dead and not is_drawing_knight:
+    pixels_knight.replace(WHITE, RED)
+  elif type(hero) is not Knight:
+    pixels_knight.replace(WHITE, GRAY)
+  pixels_knight.close()
+
+  if mage.dead and not is_drawing_mage:
+    pixels_mage.replace(WHITE, RED)
+  elif type(hero) is not Mage:
+    pixels_mage.replace(WHITE, GRAY)
+  pixels_mage.close()
+
   surface.blit(portrait_knight, (8, 6))
   surface.blit(portrait_mage, (36, 6))
   surface.blit(sprites["hud"], (64, 6))

@@ -117,6 +117,8 @@ class Game:
   def handle_move(game, delta):
     hero = game.p1
     ally = game.p2
+    if hero.dead:
+      return False
     hero.facing = delta
     hero_x, hero_y = hero.cell
     delta_x, delta_y = delta
@@ -126,15 +128,18 @@ class Game:
     target_tile = game.stage.get_tile_at(target_cell)
     target_actor = game.stage.get_actor_at(target_cell)
     if moved:
-      last_group = game.anims[len(game.anims) - 1]
-      ally_x, ally_y = ally.cell
-      game.move(ally, (hero_x - ally_x, hero_y - ally_y))
-      last_group.append(game.anims.pop()[0])
+      if not ally.dead:
+        last_group = game.anims[len(game.anims) - 1]
+        ally_x, ally_y = ally.cell
+        game.move(ally, (hero_x - ally_x, hero_y - ally_y))
+        last_group.append(game.anims.pop()[0])
       game.refresh_fov()
       if target_tile is Stage.STAIRS:
         game.log.print("There's a staircase going up here.")
-      game.p1.regen()
-      game.p2.regen()
+      if not hero.dead:
+        hero.regen()
+      if not ally.dead:
+        ally.regen()
       acted = True
     elif target_actor and type(target_actor) is Eye:
       game.log.print(hero.name.upper() + " attacks")
@@ -176,6 +181,11 @@ class Game:
     return moved
 
   def attack(game, actor, target):
+    def on_flicker_end(_):
+      game.stage.actors.remove(target)
+      if target.faction == "player":
+        game.swap()
+
     def on_shake_end(_):
       if target.dead:
         if target.faction == "enemy":
@@ -185,7 +195,7 @@ class Game:
         game.anims[0].append(FlickerAnim(
           duration=Game.FLICKER_DURATION,
           target=target,
-          on_end=lambda _: game.stage.actors.remove(target)
+          on_end=on_flicker_end
         ))
       elif is_adjacent(actor.cell, target.cell):
         game.anims[0].append(PauseAnim(
@@ -218,7 +228,7 @@ class Game:
     ])
 
   def use_item(game):
-    hero = game.hero
+    hero = game.p1
     if len(game.inventory.items) == 0:
       game.log.print("No items to use!")
       return
@@ -238,8 +248,11 @@ class Game:
       game.log.print("But nothing happened...")
 
   def swap(game):
+    if game.p2.dead:
+      return False
     game.p1, game.p2 = (game.p2, game.p1)
     game.refresh_fov()
+    return True
 
   def special(game):
     if game.sp >= 2:
