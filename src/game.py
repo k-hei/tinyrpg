@@ -21,6 +21,9 @@ class Game:
     game.room = None
     game.sp_max = 40
     game.sp = game.sp_max
+    game.stage = None
+    game.p1 = None
+    game.p2 = None
     game.reload()
 
   def refresh_fov(game):
@@ -34,19 +37,20 @@ class Game:
     if game.room:
       hero.visible_cells += game.room.get_cells() + game.room.get_border()
 
-  def reload(game, swapped=False):
-    game.stage = gen.dungeon(19, 19)
+  def reload(game):
+    players = None
+    if game.p1 and game.p2:
+      players = (game.p1, game.p2)
+    game.stage = gen.dungeon(19, 19, players)
     cells = game.stage.get_cells()
     for cell in cells:
       if game.stage.get_tile_at(cell) is Stage.DOOR_HIDDEN:
         game.log.print("There's an air of mystery about this floor...")
         break
-    game.p1 = next((actor for actor in game.stage.actors if type(actor) is Knight), None)
-    game.p2 = next((actor for actor in game.stage.actors if type(actor) is Mage), None)
-    if swapped:
-      game.swap()
-    else:
-      game.refresh_fov()
+    if players is None:
+      game.p1 = next((actor for actor in game.stage.actors if type(actor) is Knight), None)
+      game.p2 = next((actor for actor in game.stage.actors if type(actor) is Mage), None)
+    game.refresh_fov()
 
   def move(game, delta):
     source_cell = game.p1.cell
@@ -233,7 +237,6 @@ class Game:
     target_tile = game.stage.get_tile_at(game.p1.cell)
     if target_tile is Stage.STAIRS:
       game.log.print("You go upstairs.")
-      swapped = type(game.p1) is Mage
-      game.reload(swapped)
+      game.reload()
       return True
     return False

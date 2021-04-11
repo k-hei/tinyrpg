@@ -35,7 +35,7 @@ def get_neighbors(elems, elem):
           neighbors[neighbor] = [edge]
   return neighbors
 
-def dungeon(width, height):
+def dungeon(width, height, players):
   stage = Stage((width, height))
   stage.fill(Stage.WALL)
   nodes = [cell for cell in stage.get_cells() if is_odd(cell)]
@@ -129,8 +129,13 @@ def dungeon(width, height):
 
   room = rooms[0]
   center_x, center_y = room.get_center()
-  stage.spawn(Knight(), (center_x, center_y))
-  stage.spawn(Mage(), (center_x - 1, center_y))
+  if players:
+    p1, p2 = players
+  else:
+    p1 = Knight()
+    p2 = Mage()
+  stage.spawn(p1, (center_x, center_y))
+  stage.spawn(p2, (center_x - 1, center_y))
 
   room = rooms[1]
   center = room.get_center()
