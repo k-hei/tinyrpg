@@ -130,8 +130,12 @@ def dungeon(width, height, players):
   else:
     p1 = Knight()
     p2 = Mage()
-  stage.spawn(p1, (center_x, center_y))
-  stage.spawn(p2, (center_x - 1, center_y))
+
+  if not p1.dead:
+    stage.spawn(p1, (center_x, center_y))
+
+  if not p2.dead:
+    stage.spawn(p2, (center_x - 1, center_y))
 
   room = rooms[1]
   center = room.get_center()

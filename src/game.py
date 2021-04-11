@@ -64,7 +64,8 @@ class Game:
       if not room or hero.cell not in room.get_cells():
         continue
       if is_adjacent(enemy.cell, hero.cell):
-        game.attack(enemy, hero)
+        if not hero.dead:
+          game.attack(enemy, hero)
       else:
         delta_x, delta_y = (0, 0)
         enemy_x, enemy_y = enemy.cell
