@@ -77,13 +77,18 @@ is_key_invalid = {
   pygame.K_DOWN: False,
   pygame.K_COMMA: False,
   pygame.K_SPACE: False,
-  pygame.K_TAB: False
+  pygame.K_TAB: False,
+  pygame.K_q: False
 }
 
 def handle_keydown(key):
   global visited_cells, camera
   if len(game.anims) > 0:
     return
+
+  if key == pygame.K_q and not is_key_invalid[key]:
+    is_key_invalid[key] = True
+    game.use_item()
 
   if key == pygame.K_TAB and not is_key_invalid[key]:
     is_key_invalid[key] = True

@@ -157,6 +157,20 @@ class Game:
       on_connect=on_connect
     ))
 
+  def use_item(game):
+    if len(game.inventory.items) == 0:
+      game.log.print("No items to use!")
+      return
+    item = game.inventory.items[0]
+    game.inventory.items.remove(item)
+    game.log.print("Used " + item)
+    if item == "Potion":
+      game.log.print(game.p1.name.upper() + " restored 10 HP.")
+      game.p1.regen(10)
+    else:
+      game.log.print("But nothing happened...")
+
+
   def swap(game):
     game.p1, game.p2 = (game.p2, game.p1)
     game.refresh_fov()
