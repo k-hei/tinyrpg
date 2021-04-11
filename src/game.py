@@ -3,6 +3,7 @@ import fov
 from cell import is_adjacent
 from stage import Stage
 from log import Log
+from inventory import Inventory
 from anims import AttackAnim, FlickerAnim, MoveAnim, ShakeAnim, PauseAnim
 from actors import Knight, Mage, Eye, Chest
 
@@ -15,8 +16,8 @@ class Game:
 
   def __init__(game):
     game.log = Log()
+    game.inventory = Inventory(2, 2)
     game.anims = []
-    game.inventory = []
     game.room = None
     game.reload()
 
@@ -84,9 +85,13 @@ class Game:
       ))
       if target_actor and type(target_actor) is Chest:
         if target_actor.contents:
-          contents = target_actor.open()
-          game.log.print("You open the lamp")
-          game.log.print("Received a " + contents + ".")
+          if not game.inventory.is_full():
+            contents = target_actor.open()
+            game.inventory.append(contents)
+            game.log.print("You open the lamp")
+            game.log.print("Received a " + contents + ".")
+          else:
+            game.log.print("Your inventory is already full!")
         else:
           game.log.print("There's nothing left to take...")
       elif target_tile is Stage.DOOR:

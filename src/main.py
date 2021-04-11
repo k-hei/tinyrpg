@@ -52,7 +52,11 @@ sprites = {
   "portrait_mage": pygame.image.load("assets/portrait-mage.png").convert_alpha(),
   "icon_shield": pygame.image.load("assets/icon-shield.png").convert_alpha(),
   "icon_skill": pygame.image.load("assets/icon-skill.png").convert_alpha(),
-  "skill": pygame.image.load("assets/skill.png").convert_alpha()
+  "icon_potion": pygame.image.load("assets/icon-potion.png").convert_alpha(),
+  "icon_crystal": pygame.image.load("assets/icon-crystal.png").convert_alpha(),
+  "skill": pygame.image.load("assets/skill.png").convert_alpha(),
+  "box": pygame.image.load("assets/box.png").convert_alpha(),
+  "hud": pygame.image.load("assets/hud.png").convert_alpha()
 }
 font = Font(sprites["font_standard"], **metadata)
 
@@ -171,7 +175,7 @@ def render_game(surface, game):
         distance = math.sqrt(math.pow(x - hero_x, 2) + math.pow(y - hero_y, 2))
         opacity = (1 - distance / 8) * 128
       sprite.set_alpha(opacity)
-      surface.blit(sprite, (math.floor(x * TILE_SIZE + camera_x), math.floor(y * TILE_SIZE + camera_y)))
+      surface.blit(sprite, (round(x * TILE_SIZE + camera_x), round(y * TILE_SIZE + camera_y)))
       sprite.set_alpha(None)
 
   # depth sorting
@@ -265,8 +269,30 @@ def render_game(surface, game):
     pixels = PixelArray(portrait_knight)
   pixels.replace((0xFF, 0xFF, 0xFF), (0x7F, 0x7F, 0x7F))
   pixels.close()
-  surface.blit(portrait_knight, (8, 8))
-  surface.blit(portrait_mage, (36, 8))
+  surface.blit(portrait_knight, (8, 6))
+  surface.blit(portrait_mage, (36, 6))
+
+  box = sprites["box"]
+  cols = game.inventory.cols
+  rows = game.inventory.rows
+  margin_x = 8
+  margin_y = 6
+  spacing = 2
+  start_x = window_width - (box.get_width() + spacing) * cols - margin_x
+  for row in range(rows):
+    for col in range(cols):
+      index = row * cols + col
+      x = start_x + (box.get_width() + spacing) * col
+      y = margin_y + (box.get_height() + spacing) * row
+      surface.blit(box, (x, y))
+      if index < len(game.inventory.items):
+        item = game.inventory.items[index]
+        if item == "Potion":
+          sprite = sprites["icon_potion"]
+        elif item == "Warp Crystal":
+          sprite = sprites["icon_crystal"]
+        if sprite:
+          surface.blit(sprite, (x + 8, y + 8))
 
   log = game.log.render(sprites["log"], font)
   surface.blit(log, (
