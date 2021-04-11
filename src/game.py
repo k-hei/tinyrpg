@@ -24,6 +24,7 @@ class Game:
     game.stage = None
     game.p1 = None
     game.p2 = None
+    game.floor = 1
     game.reload()
 
   def refresh_fov(game):
@@ -242,6 +243,7 @@ class Game:
   def ascend(game):
     target_tile = game.stage.get_tile_at(game.p1.cell)
     if target_tile is Stage.STAIRS:
+      game.floor += 1
       game.log.print("You go upstairs.")
       game.reload()
       return True

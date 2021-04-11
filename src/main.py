@@ -50,6 +50,7 @@ sprites = {
   "eye_attack": pygame.image.load("assets/eye-attack.png").convert_alpha(),
   "tag_hp": pygame.image.load("assets/hp.png").convert_alpha(),
   "tag_sp": pygame.image.load("assets/sp.png").convert_alpha(),
+  "tag_floor": pygame.image.load("assets/icon-floor.png").convert_alpha(),
   "log": pygame.image.load("assets/log.png").convert_alpha(),
   "portrait_knight": pygame.image.load("assets/portrait-knight.png").convert_alpha(),
   "portrait_mage": pygame.image.load("assets/portrait-mage.png").convert_alpha(),
@@ -284,21 +285,27 @@ def render_game(surface, game):
   surface.blit(portrait_mage, (36, 6))
   surface.blit(sprites["hud"], (64, 6))
 
-  hp_y = 16
-  surface.blit(sprites["tag_hp"], (74, hp_y))
-  surface.blit(sprites["bar"], (93, hp_y + 7))
-  pygame.draw.rect(surface, 0xFFFFFF, Rect(96, hp_y + 8, math.floor(50 * game.p1.hp / game.p1.hp_max), 2))
-  hp_text = str(math.floor(game.p1.hp)) + "/" + str(game.p1.hp_max)
-  surface.blit(recolor(render_text("0" + str(math.floor(game.p1.hp)) + "/" + "0" + str(game.p1.hp_max), font_smallcaps), (0x7F, 0x7F, 0x7F)), (93, hp_y + 1))
-  surface.blit(render_text("  " + str(math.floor(game.p1.hp)) + "/  " + str(game.p1.hp_max), font_smallcaps), (93, hp_y + 1))
+  x = 74
 
-  sp_y = 30
-  surface.blit(sprites["tag_sp"], (74, sp_y))
-  surface.blit(sprites["bar"], (93, sp_y + 7))
-  pygame.draw.rect(surface, 0xFFFFFF, Rect(96, sp_y + 8, math.floor(50 * game.sp / game.sp_max), 2))
+  hp_y = 11
+  surface.blit(sprites["tag_hp"], (x, hp_y))
+  surface.blit(sprites["bar"], (x + 19, hp_y + 7))
+  pygame.draw.rect(surface, 0xFFFFFF, Rect(x + 22, hp_y + 8, math.floor(50 * game.p1.hp / game.p1.hp_max), 2))
+  hp_text = str(math.floor(game.p1.hp)) + "/" + str(game.p1.hp_max)
+  surface.blit(recolor(render_text("0" + str(math.floor(game.p1.hp)) + "/" + "0" + str(game.p1.hp_max), font_smallcaps), (0x7F, 0x7F, 0x7F)), (x + 19, hp_y + 1))
+  surface.blit(render_text("  " + str(math.floor(game.p1.hp)) + "/  " + str(game.p1.hp_max), font_smallcaps), (x + 19, hp_y + 1))
+
+  sp_y = 24
+  surface.blit(sprites["tag_sp"], (x, sp_y))
+  surface.blit(sprites["bar"], (x + 19, sp_y + 7))
+  pygame.draw.rect(surface, 0xFFFFFF, Rect(x + 22, sp_y + 8, math.floor(50 * game.sp / game.sp_max), 2))
   hp_text = str(math.floor(game.sp)) + "/" + str(game.sp_max)
-  surface.blit(recolor(render_text(str(math.floor(game.sp)) + "/" + str(game.sp_max), font_smallcaps), (0x7F, 0x7F, 0x7F)), (93, sp_y + 1))
-  surface.blit(render_text(str(math.floor(game.sp)) + "/" + str(game.sp_max), font_smallcaps), (93, sp_y + 1))
+  surface.blit(recolor(render_text(str(math.floor(game.sp)) + "/" + str(game.sp_max), font_smallcaps), (0x7F, 0x7F, 0x7F)), (x + 19, sp_y + 1))
+  surface.blit(render_text(str(math.floor(game.sp)) + "/" + str(game.sp_max), font_smallcaps), (x + 19, sp_y + 1))
+
+  floor_y = 38
+  surface.blit(sprites["tag_floor"], (x, floor_y))
+  surface.blit(render_text(str(game.floor) + "F", font_smallcaps), (x + 13, floor_y + 3))
 
   box = sprites["box"]
   cols = game.inventory.cols
