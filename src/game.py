@@ -13,10 +13,12 @@ class Game:
     game.anims = []
     game.log = Log()
 
-  def reload(game):
+  def reload(game, swapped=False):
     game.stage = gen.dungeon(19, 19)
     game.p1 = next((actor for actor in game.stage.actors if actor.kind == "hero"), None)
     game.p2 = next((actor for actor in game.stage.actors if actor.kind == "mage"), None)
+    if swapped:
+      game.swap()
 
   def move(game, delta):
     source_cell = game.p1.cell
@@ -67,7 +69,20 @@ class Game:
       }))
       return False
 
+  def swap(game):
+    game.p1, game.p2 = (game.p2, game.p1)
+
   def special(game):
+    if game.p1.kind == "hero":
+      game.shield_bash()
+    elif game.p1.kind == "mage":
+      game.detect_mana()
+
+  def detect_mana(game):
+    game.log.print("MAGE uses Detect Mana")
+    game.log.print("There's nothing magical nearby.")
+
+  def shield_bash(game):
     source_cell = game.p1.cell
     hero_x, hero_y = source_cell
     delta_x, delta_y = game.p1.facing
@@ -107,7 +122,8 @@ class Game:
   def ascend(game):
     target_tile = game.stage.get_tile_at(game.p1.cell)
     if target_tile is Stage.STAIRS:
-      game.reload()
+      swapped = game.p1.kind == "mage"
+      game.reload(swapped)
       game.log.print("You go upstairs.")
       return True
     return False

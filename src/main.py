@@ -9,7 +9,7 @@ import fov
 from log import Log
 
 TILE_SIZE = 32
-WINDOW_SIZE = (9 * TILE_SIZE, 7 * TILE_SIZE)
+WINDOW_SIZE = (256, 240)
 WINDOW_SCALE = 2
 (WINDOW_WIDTH, WINDOW_HEIGHT) = WINDOW_SIZE
 WINDOW_SIZE_SCALED = (WINDOW_WIDTH * WINDOW_SCALE, WINDOW_HEIGHT * WINDOW_SCALE)
@@ -57,13 +57,18 @@ is_key_invalid = {
   pygame.K_UP: False,
   pygame.K_DOWN: False,
   pygame.K_COMMA: False,
-  pygame.K_SPACE: False
+  pygame.K_SPACE: False,
+  pygame.K_TAB: False
 }
 
 def handle_keydown(key):
-  global visited_cells
+  global visited_cells, camera
   if len(game.anims) > 0:
     return
+
+  if key == pygame.K_TAB and not is_key_invalid[key]:
+    is_key_invalid[key] = True
+    game.swap()
 
   if key == pygame.K_SPACE and not is_key_invalid[key]:
     is_key_invalid[key] = True
@@ -71,6 +76,7 @@ def handle_keydown(key):
 
   if pygame.key.get_mods() & pygame.KMOD_SHIFT and key == pygame.K_COMMA and not is_key_invalid[key]:
     is_key_invalid[key] = True
+    camera = None
     moved = game.ascend()
     if moved:
       visited_cells = []
@@ -100,7 +106,10 @@ def handle_keyup(key):
 facings = []
 vision_range = 3.5
 visited_cells = []
+camera = None
+
 def render_game(surface, game):
+  global camera
   (window_width, window_height) = WINDOW_SIZE
   (hero_x, hero_y) = game.p1.cell
   visible_cells = fov.shadowcast(game.stage, game.p1.cell, vision_range)
@@ -118,6 +127,11 @@ def render_game(surface, game):
 
   camera_x = -math.floor((hero_x + 0.5) * TILE_SIZE - window_width / 2)
   camera_y = -math.floor((hero_y + 0.5) * TILE_SIZE - window_height / 2)
+  if camera is not None:
+    old_camera_x, old_camera_y = camera
+    camera_x = old_camera_x + (camera_x - old_camera_x) / 8
+    camera_y = old_camera_y + (camera_y - old_camera_y) / 8
+  camera = (camera_x, camera_y)
 
   (stage_width, stage_height) = game.stage.size
   surface.fill((0, 0, 0))
