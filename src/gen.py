@@ -145,10 +145,20 @@ def dungeon(width, height):
       stage.set_tile_at(cell, Stage.FLOOR)
 
   for door in doors:
-    if random.randint(1, 2) == 1:
-      stage.set_tile_at(door, Stage.DOOR)
+    for room in rooms:
+      if len(conns[room]) == 1:
+        _, conn_door = conns[room][0]
+        if conn_door == door:
+          if random.randint(1, 5) == 1:
+            stage.set_tile_at(door, Stage.DOOR_HIDDEN)
+          else:
+            stage.set_tile_at(door, Stage.DOOR)
+          break
     else:
-      stage.set_tile_at(door, Stage.FLOOR)
+      if random.randint(1, 2) == 1:
+        stage.set_tile_at(door, Stage.DOOR)
+      else:
+        stage.set_tile_at(door, Stage.FLOOR)
 
   room = rooms[0]
   center = room.get_center()

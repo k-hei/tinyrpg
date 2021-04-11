@@ -10,6 +10,7 @@ class Stage:
   WALL = Tile(solid=True, opaque=True)
   DOOR = Tile(solid=True, opaque=True)
   DOOR_OPEN = Tile(solid=False, opaque=False)
+  DOOR_HIDDEN = Tile(solid=True, opaque=True)
   STAIRS = Tile(solid=False, opaque=False)
 
   def __init__(stage, size):

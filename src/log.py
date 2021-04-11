@@ -22,7 +22,7 @@ class Log:
     log.col = 0
     log.offset = 0
     log.dirty = False
-    log.clean_frames = 0
+    log.clean_frames = Log.HANG_DURATION
     log.box = Surface((Log.BOX_WIDTH, Log.BOX_HEIGHT))
     log.surface = None
     log.cache = []
@@ -39,7 +39,7 @@ class Log:
       log.row += 1
       log.col = 0
       log.dirty = True
-      log.clean_frames = False
+      log.clean_frames = 0
 
   def render(log, bg, font):
     line_height = font.char_height + font.line_spacing
@@ -47,7 +47,8 @@ class Log:
     log.surface = Surface((Log.BOX_WIDTH - Log.INSET_X * 2, line_height * Log.ROW_COUNT))
     log.surface.fill(COLOR_KEY)
     log.surface.set_colorkey(COLOR_KEY)
-    if log.anim is None and log.dirty and log.row < len(log.messages) and (log.row >= len(log.cache) or log.cache[log.row]["dirty"]):
+    is_cache_dirty = log.row >= len(log.cache) or log.row >= 0 and log.cache[log.row]["dirty"]
+    if log.anim is None and log.dirty and log.row < len(log.messages) and is_cache_dirty:
       if log.row >= len(log.cache):
         surface = Surface((log.surface.get_width(), line_height))
         surface.fill(COLOR_KEY)

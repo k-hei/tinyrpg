@@ -5,7 +5,6 @@ from pygame import Surface
 from game import Game
 from stage import Stage
 from text import Font
-import fov
 from log import Log
 
 TILE_SIZE = 32
@@ -112,7 +111,7 @@ def render_game(surface, game):
   global camera
   (window_width, window_height) = WINDOW_SIZE
   (hero_x, hero_y) = game.p1.cell
-  visible_cells = fov.shadowcast(game.stage, game.p1.cell, vision_range)
+  visible_cells = game.p1.visible_cells
   for cell in visible_cells:
     if cell not in visited_cells:
       visited_cells.append(cell)
@@ -125,8 +124,8 @@ def render_game(surface, game):
       hero_x = lerp(from_x, to_x, t)
       hero_y = lerp(from_y, to_y, t)
 
-  camera_x = -math.floor((hero_x + 0.5) * TILE_SIZE - window_width / 2)
-  camera_y = -math.floor((hero_y + 0.5) * TILE_SIZE - window_height / 2)
+  camera_x = -((hero_x + 0.5) * TILE_SIZE - window_width / 2)
+  camera_y = -((hero_y + 0.5) * TILE_SIZE - window_height / 2)
   if camera is not None:
     old_camera_x, old_camera_y = camera
     camera_x = old_camera_x + (camera_x - old_camera_x) / 8
@@ -138,7 +137,7 @@ def render_game(surface, game):
   for x, y in visited_cells:
     tile = game.stage.get_tile_at((x, y))
     sprite = None
-    if tile is Stage.WALL:
+    if tile is Stage.WALL or tile is Stage.DOOR_HIDDEN:
       if game.stage.get_tile_at((x, y + 1)) is Stage.FLOOR:
         sprite = sprites["wall_base"]
       else:
@@ -157,7 +156,7 @@ def render_game(surface, game):
         distance = math.sqrt(math.pow(x - hero_x, 2) + math.pow(y - hero_y, 2))
         opacity = (1 - distance / 8) * 128
       sprite.set_alpha(opacity)
-      surface.blit(sprite, (x * TILE_SIZE + camera_x, y * TILE_SIZE + camera_y))
+      surface.blit(sprite, (math.floor(x * TILE_SIZE + camera_x), math.floor(y * TILE_SIZE + camera_y)))
       sprite.set_alpha(None)
 
   # depth sorting

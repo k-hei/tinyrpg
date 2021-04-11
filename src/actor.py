@@ -3,3 +3,7 @@ class Actor:
     actor.kind = kind
     actor.cell = cell
     actor.facing = (1, 0)
+    actor.visible_cells = []
+
+  def move(actor, delta, stage):
+    pass
