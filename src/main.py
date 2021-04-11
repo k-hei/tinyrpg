@@ -4,7 +4,7 @@ import pygame
 from pygame import Surface, PixelArray
 from game import Game
 from stage import Stage
-from text import Font
+from text import Font, render as render_text
 from log import Log
 from filters import recolor
 
@@ -210,6 +210,15 @@ def render_game(surface, game):
         else:
           sprite_x -= 1
 
+      if anim.data["kind"] == "blink" and len([anim for anim in game.anims if anim.data["actor"] == actor]) == 1:
+        anim.update()
+        if anim.time % 2 == 0:
+          sprite = None
+        elif actor.kind == "eye":
+          sprite = sprites["eye_flinch"]
+        if anim.done:
+          game.stage.actors.remove(actor)
+
       if anim.done:
         game.anims.remove(anim)
 
@@ -223,22 +232,23 @@ def render_game(surface, game):
       facings.append((actor, facing))
 
     is_flipped = facing == -1
-    surface.blit(pygame.transform.flip(sprite, is_flipped, False), (sprite_x + camera_x, sprite_y + camera_y))
+    if sprite:
+      surface.blit(pygame.transform.flip(sprite, is_flipped, False), (sprite_x + camera_x, sprite_y + camera_y))
 
-    surface.blit(sprites["portrait_hero"], (8, 8))
-
-    portrait_hero = sprites["portrait_hero"]
-    portrait_mage = sprites["portrait_mage"]
-    if game.p1.kind == "hero":
-      portrait_mage = portrait_mage.copy()
-      pixels = PixelArray(portrait_mage)
-    elif game.p1.kind == "mage":
-      portrait_hero = portrait_hero.copy()
-      pixels = PixelArray(portrait_hero)
-    pixels.replace((0xFF, 0xFF, 0xFF), (0x7F, 0x7F, 0x7F))
-    pixels.close()
-    surface.blit(portrait_hero, (8, 8))
-    surface.blit(portrait_mage, (36, 8))
+  surface.blit(sprites["portrait_hero"], (8, 8))
+  portrait_hero = sprites["portrait_hero"]
+  portrait_mage = sprites["portrait_mage"]
+  if game.p1.kind == "hero":
+    portrait_mage = portrait_mage.copy()
+    pixels = PixelArray(portrait_mage)
+  elif game.p1.kind == "mage":
+    portrait_hero = portrait_hero.copy()
+    pixels = PixelArray(portrait_hero)
+  pixels.replace((0xFF, 0xFF, 0xFF), (0x7F, 0x7F, 0x7F))
+  pixels.close()
+  surface.blit(portrait_hero, (8, 8))
+  surface.blit(portrait_mage, (36, 8))
+  # surface.blit(render_text("Tower 1F", font), (80, 8))
 
   log = game.log.render(sprites["log"], font)
   surface.blit(log, (

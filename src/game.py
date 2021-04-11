@@ -8,6 +8,7 @@ class Game:
   MOVE_DURATION = 8
   FLINCH_DURATION = 10
   ATTACK_DURATION = 8
+  BLINK_DURATION = 30
 
   def __init__(game):
     game.log = Log()
@@ -65,11 +66,17 @@ class Game:
           "actor": target_actor
         }))
         if target_actor.kind == "eye":
+          damage = game.p1.attack(target_actor)
           game.log.print(game.p1.kind.upper() + " attacks")
-          game.log.print("EYEBALL receives 3 damage.")
+          game.log.print("EYEBALL receives " + str(damage) + " damage.")
+          if target_actor.dead:
+            game.log.print("Defeated EYEBALL.")
+            game.anims.append(Anim(Game.BLINK_DURATION, {
+              "kind": "blink",
+              "actor": target_actor
+            }))
         elif target_actor.kind == "chest":
           game.log.print("The lamp is sealed shut...")
-        # game.stage.kill(target_actor)
       elif target_tile is Stage.DOOR:
         game.log.print("You open the door.")
         game.stage.set_tile_at(target_cell, Stage.DOOR_OPEN)
