@@ -9,7 +9,7 @@ class Actor:
 
   def regen(actor):
     if actor.hp < actor.hp_max:
-      actor.hp += 1 / 20
+      actor.hp += 1 / 100
 
   def move(actor, delta, stage):
     pass

@@ -19,6 +19,8 @@ class Game:
     game.inventory = Inventory(2, 2)
     game.anims = []
     game.room = None
+    game.sp_max = 40
+    game.sp = game.sp_max
     game.reload()
 
   def refresh_fov(game):
@@ -78,6 +80,7 @@ class Game:
     elif target_actor and type(target_actor) is Eye:
       game.log.print(game.p1.name.upper() + " attacks")
       game.attack(target_actor)
+      game.sp -= 1
     else:
       game.anims.append(AttackAnim(
         duration=Game.ATTACK_DURATION,
@@ -154,17 +157,17 @@ class Game:
       on_connect=on_connect
     ))
 
-
-
   def swap(game):
     game.p1, game.p2 = (game.p2, game.p1)
     game.refresh_fov()
 
   def special(game):
-    if type(game.p1) is Knight:
-      game.shield_bash()
-    elif type(game.p1) is Mage:
-      game.detect_mana()
+    if game.sp >= 2:
+      if type(game.p1) is Knight:
+        game.shield_bash()
+      elif type(game.p1) is Mage:
+        game.detect_mana()
+      game.sp -= 2
 
   def detect_mana(game):
     game.log.print("MAGE uses Detect Mana")
@@ -200,10 +203,9 @@ class Game:
           src_cell=target_cell,
           dest_cell=nudge_cell
         ))
-        if type(target_actor) is Eye:
-          game.log.print("EYEBALL is reeling.")
       if type(target_actor) is Eye:
         game.attack(target_actor)
+        game.log.print("EYEBALL is reeling.")
     else:
       game.log.print("But nothing happened...")
       game.anims.append(AttackAnim(

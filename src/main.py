@@ -1,7 +1,7 @@
 import math
 import json
 import pygame
-from pygame import Surface, PixelArray
+from pygame import Surface, PixelArray, Rect
 from game import Game
 from stage import Stage
 from text import Font, render as render_text
@@ -49,6 +49,7 @@ sprites = {
   "eye_flinch": pygame.image.load("assets/eye-flinch.png").convert_alpha(),
   "eye_attack": pygame.image.load("assets/eye-attack.png").convert_alpha(),
   "tag_hp": pygame.image.load("assets/hp.png").convert_alpha(),
+  "tag_sp": pygame.image.load("assets/sp.png").convert_alpha(),
   "log": pygame.image.load("assets/log.png").convert_alpha(),
   "portrait_knight": pygame.image.load("assets/portrait-knight.png").convert_alpha(),
   "portrait_mage": pygame.image.load("assets/portrait-mage.png").convert_alpha(),
@@ -58,6 +59,7 @@ sprites = {
   "icon_crystal": pygame.image.load("assets/icon-crystal.png").convert_alpha(),
   "skill": pygame.image.load("assets/skill.png").convert_alpha(),
   "box": pygame.image.load("assets/box.png").convert_alpha(),
+  "bar": pygame.image.load("assets/bar.png").convert_alpha(),
   "hud": pygame.image.load("assets/hud.png").convert_alpha()
 }
 font_standard = Font(sprites["font_standard"], **meta_standard)
@@ -275,10 +277,22 @@ def render_game(surface, game):
   surface.blit(portrait_knight, (8, 6))
   surface.blit(portrait_mage, (36, 6))
   surface.blit(sprites["hud"], (64, 6))
-  surface.blit(sprites["tag_hp"], (75, 11))
 
+  hp_y = 16
+  surface.blit(sprites["tag_hp"], (74, hp_y))
+  surface.blit(sprites["bar"], (93, hp_y + 7))
+  pygame.draw.rect(surface, 0xFFFFFF, Rect(96, hp_y + 8, math.floor(50 * game.p1.hp / game.p1.hp_max), 2))
   hp_text = str(math.floor(game.p1.hp)) + "/" + str(game.p1.hp_max)
-  surface.blit(render_text(hp_text, font_smallcaps), (94, 12))
+  surface.blit(recolor(render_text("0" + str(math.floor(game.p1.hp)) + "/" + "0" + str(game.p1.hp_max), font_smallcaps), (0x7F, 0x7F, 0x7F)), (93, hp_y + 1))
+  surface.blit(render_text("  " + str(math.floor(game.p1.hp)) + "/  " + str(game.p1.hp_max), font_smallcaps), (93, hp_y + 1))
+
+  sp_y = 30
+  surface.blit(sprites["tag_sp"], (74, sp_y))
+  surface.blit(sprites["bar"], (93, sp_y + 7))
+  pygame.draw.rect(surface, 0xFFFFFF, Rect(96, sp_y + 8, math.floor(50 * game.sp / game.sp_max), 2))
+  hp_text = str(math.floor(game.sp)) + "/" + str(game.sp_max)
+  surface.blit(recolor(render_text(str(math.floor(game.sp)) + "/" + str(game.sp_max), font_smallcaps), (0x7F, 0x7F, 0x7F)), (93, sp_y + 1))
+  surface.blit(render_text(str(math.floor(game.sp)) + "/" + str(game.sp_max), font_smallcaps), (93, sp_y + 1))
 
   box = sprites["box"]
   cols = game.inventory.cols
