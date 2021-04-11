@@ -18,6 +18,7 @@ class Stage:
     stage.size = size
     stage.data = [Stage.FLOOR] * (width * height)
     stage.actors = []
+    stage.rooms = []
 
   def fill(stage, data):
     (width, height) = stage.size

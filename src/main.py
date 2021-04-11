@@ -7,7 +7,7 @@ from stage import Stage
 from text import Font, render as render_text
 from log import Log
 from filters import recolor
-from anims import AttackAnim, FlickerAnim, MoveAnim, ShakeAnim
+from anims import AttackAnim, FlickerAnim, MoveAnim, ShakeAnim, PauseAnim
 
 TILE_SIZE = 32
 WINDOW_SIZE = (256, 224)
@@ -181,16 +181,8 @@ def render_game(surface, game):
       if anim.target is not actor:
         continue
 
-      if type(anim) in (AttackAnim, MoveAnim):
-        src_x, src_y = anim.src_cell
-        dest_x, dest_y = anim.dest_cell
-        if dest_x < src_x:
-          facing = -1
-        elif dest_x > src_x:
-          facing = 1
-        col, row = anim.update()
-        sprite_x = col * TILE_SIZE
-        sprite_y = row * TILE_SIZE
+      if type(anim) is PauseAnim:
+        anim.update()
 
       if type(anim) is ShakeAnim:
         sprite_x += anim.update()
@@ -203,6 +195,17 @@ def render_game(surface, game):
           sprite = None
         elif actor.kind == "eye":
           sprite = sprites["eye_flinch"]
+
+      if type(anim) in (AttackAnim, MoveAnim):
+        src_x, src_y = anim.src_cell
+        dest_x, dest_y = anim.dest_cell
+        if dest_x < src_x:
+          facing = -1
+        elif dest_x > src_x:
+          facing = 1
+        col, row = anim.update()
+        sprite_x = col * TILE_SIZE
+        sprite_y = row * TILE_SIZE
 
       if anim.done:
         game.anims.remove(anim)

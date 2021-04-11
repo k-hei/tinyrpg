@@ -1,34 +1,12 @@
 import random
+from cell import is_odd, add, is_adjacent, manhattan
 from stage import Stage
 from actor import Actor
 from room import Room
+from maze import Maze
 
-lengths = (3, 5, 7)
-
-class Maze:
-  def __init__(maze, cells):
-    maze.cells = cells
-
-  def get_cells(maze):
-    return maze.cells
-
-  def get_edges(maze):
-    edges = []
-    for cell in maze.cells:
-      (x, y) = cell
-      adj_cells = [
-        (x - 1, y),
-        (x, y - 1),
-        (x + 1, y),
-        (x, y + 1)
-      ]
-      for adj in adj_cells:
-        if not adj in edges:
-          edges.append(adj)
-    return edges
-
-  def get_ends(maze):
-    return [cell for cell in maze.cells if len([other for other in maze.cells if is_adjacent(other, cell)]) <= 1]
+possible_widths = (3, 5, 7)
+possible_heights = (3, 5)
 
 def cells(size):
   cells = []
@@ -37,18 +15,6 @@ def cells(size):
     for x in range(width):
       cells.append((x, y))
   return cells
-
-def is_odd(cell):
-  return cell[0] % 2 == 1 and cell[1] % 2 == 1
-
-def add(a, b):
-  return (a[0] + b[0], a[1] + b[1])
-
-def is_adjacent(a, b):
-  return manhattan(a, b) == 1
-
-def manhattan(a, b):
-  return abs(b[0] - a[0]) + abs(b[1] - a[1])
 
 def get_neighbors(elems, elem):
   neighbors = {}
@@ -178,14 +144,15 @@ def dungeon(width, height):
       elif random.randint(1, 80) == 1:
         stage.spawn(Actor("chest", cell))
 
+  stage.rooms = rooms
   return stage
 
 def gen_rooms(nodes):
   rooms = []
   valid_nodes = None
   while valid_nodes is None or len(valid_nodes) > 0:
-    room_width = random.choice(lengths)
-    room_height = random.choice(lengths)
+    room_width = random.choice(possible_widths)
+    room_height = random.choice(possible_heights)
     valid_nodes = []
     for node in nodes:
       offset_cells = map(lambda cell: add(cell, node), cells((room_width, room_height)))
