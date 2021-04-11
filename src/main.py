@@ -8,6 +8,7 @@ from text import Font, render as render_text
 from log import Log
 from filters import recolor
 from anims import AttackAnim, FlickerAnim, MoveAnim, ShakeAnim, PauseAnim
+from actors import Knight, Mage, Eye, Chest
 
 TILE_SIZE = 32
 WINDOW_SIZE = (256, 224)
@@ -29,7 +30,8 @@ pygame.key.set_repeat(1)
 metadata = json.loads(open("assets/fonts/standard/metadata.json", "r").read())
 sprites = {
   "font_standard": pygame.image.load("assets/fonts/standard/typeface.png").convert_alpha(),
-  "hero": pygame.image.load("assets/hero.png").convert_alpha(),
+  "knight": pygame.image.load("assets/knight.png").convert_alpha(),
+  "knight_flinch": pygame.image.load("assets/knight-flinch.png").convert_alpha(),
   "mage": pygame.image.load("assets/mage.png").convert_alpha(),
   "bat": pygame.image.load("assets/bat.png").convert_alpha(),
   "rat": pygame.image.load("assets/rat.png").convert_alpha(),
@@ -37,14 +39,16 @@ sprites = {
   "wall": pygame.image.load("assets/wall.png").convert_alpha(),
   "wall_base": pygame.image.load("assets/wall-base.png").convert_alpha(),
   "chest": pygame.image.load("assets/chest.png").convert_alpha(),
+  "chest_open": pygame.image.load("assets/chest-open.png").convert_alpha(),
   "stairs": pygame.image.load("assets/stairs-up.png").convert_alpha(),
   "door": pygame.image.load("assets/door.png").convert_alpha(),
   "door_open": pygame.image.load("assets/door-open.png").convert_alpha(),
   "eye": pygame.image.load("assets/eye.png").convert_alpha(),
   "eye_flinch": pygame.image.load("assets/eye-flinch.png").convert_alpha(),
   "eye_attack": pygame.image.load("assets/eye-attack.png").convert_alpha(),
+  "tag_hp": pygame.image.load("assets/hp.png").convert_alpha(),
   "log": pygame.image.load("assets/log.png").convert_alpha(),
-  "portrait_hero": pygame.image.load("assets/portrait-hero.png").convert_alpha(),
+  "portrait_knight": pygame.image.load("assets/portrait-knight.png").convert_alpha(),
   "portrait_mage": pygame.image.load("assets/portrait-mage.png").convert_alpha(),
   "icon_shield": pygame.image.load("assets/icon-shield.png").convert_alpha(),
   "icon_skill": pygame.image.load("assets/icon-skill.png").convert_alpha(),
@@ -182,7 +186,20 @@ def render_game(surface, game):
     (col, row) = actor.cell
     sprite_x = col * TILE_SIZE
     sprite_y = row * TILE_SIZE
-    sprite = sprites[actor.kind]
+
+    sprite = None
+    if type(actor) is Knight:
+      sprite = sprites["knight"]
+    elif type(actor) is Mage:
+      sprite = sprites["mage"]
+    elif type(actor) is Eye:
+      sprite = sprites["eye"]
+    elif type(actor) is Chest:
+      if actor.opened:
+        sprite = sprites["chest_open"]
+      else:
+        sprite = sprites["chest"]
+
     facing = None
 
     anim = None
@@ -195,18 +212,20 @@ def render_game(surface, game):
 
       if type(anim) is ShakeAnim:
         sprite_x += anim.update()
-        if actor.kind == "eye":
+        if type(actor) is Eye:
           sprite = sprites["eye_flinch"]
+        elif type(actor) is Knight:
+          sprite = sprites["knight_flinch"]
 
       if type(anim) is FlickerAnim and len([anim for anim in game.anims if anim.target is actor]) == 1:
         visible = anim.update()
         if not visible:
           sprite = None
-        elif actor.kind == "eye":
+        elif type(actor) is Eye:
           sprite = sprites["eye_flinch"]
 
       if type(anim) is AttackAnim:
-        if actor.kind == "eye":
+        if type(actor) is Eye:
           sprite = sprites["eye_attack"]
 
       if type(anim) in (AttackAnim, MoveAnim):
@@ -226,7 +245,7 @@ def render_game(surface, game):
     existing_facing = next((facing for facing in facings if facing[0] is actor), None)
     if facing is None:
       if existing_facing:
-        (actor, facing) = existing_facing
+        actor, facing = existing_facing
     else:
       if existing_facing in facings:
         facings.remove(existing_facing)
@@ -236,30 +255,18 @@ def render_game(surface, game):
     if sprite:
       surface.blit(pygame.transform.flip(sprite, is_flipped, False), (sprite_x + camera_x, sprite_y + camera_y))
 
-  surface.blit(sprites["portrait_hero"], (8, 8))
-  portrait_hero = sprites["portrait_hero"]
+  portrait_knight = sprites["portrait_knight"]
   portrait_mage = sprites["portrait_mage"]
-  if game.p1.kind == "hero":
+  if type(game.p1) is Knight:
     portrait_mage = portrait_mage.copy()
     pixels = PixelArray(portrait_mage)
-  elif game.p1.kind == "mage":
-    portrait_hero = portrait_hero.copy()
-    pixels = PixelArray(portrait_hero)
+  elif type(game.p1) is Mage:
+    portrait_knight = portrait_knight.copy()
+    pixels = PixelArray(portrait_knight)
   pixels.replace((0xFF, 0xFF, 0xFF), (0x7F, 0x7F, 0x7F))
   pixels.close()
-  surface.blit(portrait_hero, (8, 8))
+  surface.blit(portrait_knight, (8, 8))
   surface.blit(portrait_mage, (36, 8))
-  # surface.blit(render_text("Tower 1F", font), (80, 8))
-
-  # if game.p1.kind == "hero":
-  #   skill_icon = sprites["icon_shield"]
-  #   skill_text = render_text("Shield Bash", font)
-  # elif game.p1.kind == "mage":
-  #   skill_icon = sprites["icon_skill"]
-  #   skill_text = render_text("Detect Mana", font)
-  # surface.blit(sprites["skill"], (8, 56))
-  # surface.blit(skill_icon, (8 + 7, 56 + 4))
-  # surface.blit(skill_text, (8 + 18, 56 + 4))
 
   log = game.log.render(sprites["log"], font)
   surface.blit(log, (

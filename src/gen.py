@@ -1,9 +1,9 @@
 import random
 from cell import is_odd, add, is_adjacent, manhattan
 from stage import Stage
-from actor import Actor
 from room import Room
 from maze import Maze
+from actors import Knight, Mage, Eye, Chest
 
 possible_widths = (3, 5, 7)
 possible_heights = (3, 5)
@@ -128,9 +128,9 @@ def dungeon(width, height):
       #   stage.set_tile_at(door, Stage.FLOOR)
 
   room = rooms[0]
-  center = room.get_center()
-  stage.spawn(Actor("hero", center))
-  stage.spawn(Actor("mage", (center[0] - 1, center[1])))
+  center_x, center_y = room.get_center()
+  stage.spawn(Knight(), (center_x, center_y))
+  stage.spawn(Mage(), (center_x - 1, center_y))
 
   room = rooms[1]
   center = room.get_center()
@@ -141,9 +141,9 @@ def dungeon(width, height):
       if stage.get_tile_at(cell) is not Stage.FLOOR or stage.get_actor_at(cell) is not None:
         continue
       if random.randint(1, 30) == 1:
-        stage.spawn(Actor("eye", cell))
+        stage.spawn(Eye(), cell)
       elif random.randint(1, 80) == 1:
-        stage.spawn(Actor("chest", cell))
+        stage.spawn(Chest("Potion"), cell)
 
   stage.rooms = rooms
   return stage

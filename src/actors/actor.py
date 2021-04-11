@@ -1,9 +1,8 @@
 class Actor:
-  def __init__(actor, kind, cell):
-    actor.kind = kind
-    actor.cell = cell
-    actor.hp_max = 5
-    actor.hp = actor.hp_max
+  def __init__(actor, name, hp):
+    actor.name = name
+    actor.hp_max = hp
+    actor.hp = hp
     actor.dead = False
     actor.facing = (1, 0)
     actor.visible_cells = []
@@ -21,9 +20,4 @@ class Actor:
     return damage
 
 def _find_damage(actor, target):
-  if actor.kind == "hero":
-    return 3
-  elif actor.kind == "mage":
-    return 2
-  else:
-    return 1
+  return 2

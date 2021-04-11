@@ -97,7 +97,9 @@ class Log:
       elif log.anim.data["kind"] == "exit":
         t = ease_in(1 - t)
       if log.anim.done:
-        if log.anim.data["kind"] == "exit":
+        if log.anim.data["kind"] == "enter" and log.row == -1 and log.dirty:
+          log.dirty = False
+        elif log.anim.data["kind"] == "exit":
           log.messages = []
           log.cache = []
           log.row = -1

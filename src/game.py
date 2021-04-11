@@ -4,6 +4,7 @@ from cell import is_adjacent
 from stage import Stage
 from log import Log
 from anims import AttackAnim, FlickerAnim, MoveAnim, ShakeAnim, PauseAnim
+from actors import Knight, Mage, Eye, Chest
 
 class Game:
   MOVE_DURATION = 8
@@ -37,8 +38,8 @@ class Game:
       if game.stage.get_tile_at(cell) is Stage.DOOR_HIDDEN:
         game.log.print("There's an air of mystery about this floor...")
         break
-    game.p1 = next((actor for actor in game.stage.actors if actor.kind == "hero"), None)
-    game.p2 = next((actor for actor in game.stage.actors if actor.kind == "mage"), None)
+    game.p1 = next((actor for actor in game.stage.actors if type(actor) is Knight), None)
+    game.p2 = next((actor for actor in game.stage.actors if type(actor) is Mage), None)
     if swapped:
       game.swap()
     else:
@@ -71,13 +72,23 @@ class Game:
       if target_tile is Stage.STAIRS:
         game.log.print("There's a staircase going up here.")
       return True
-    elif target_actor and target_actor.kind == "eye":
-      game.log.print(game.p1.kind.upper() + " attacks")
+    elif target_actor and type(target_actor) is Eye:
+      game.log.print(game.p1.name.upper() + " attacks")
       game.attack(target_actor)
     else:
-      if target_actor and target_actor.kind == "chest":
-          game.anims.append(ShakeAnim(duration=Game.SHAKE_DURATION, target=target_actor))
-          game.log.print("The lamp is sealed shut...")
+      game.anims.append(AttackAnim(
+        duration=Game.ATTACK_DURATION,
+        target=game.p1,
+        src_cell=source_cell,
+        dest_cell=target_cell
+      ))
+      if target_actor and type(target_actor) is Chest:
+        if target_actor.contents:
+          contents = target_actor.open()
+          game.log.print("You open the lamp")
+          game.log.print("Received a " + contents + ".")
+        else:
+          game.log.print("The lamp is already empty.")
       elif target_tile is Stage.DOOR:
         game.log.print("You open the door.")
         game.stage.set_tile_at(target_cell, Stage.DOOR_OPEN)
@@ -85,19 +96,13 @@ class Game:
         game.log.print("Discovered a hidden door!")
         game.stage.set_tile_at(target_cell, Stage.DOOR_OPEN)
       game.refresh_fov()
-      game.anims.append(AttackAnim(
-        duration=Game.ATTACK_DURATION,
-        target=game.p1,
-        src_cell=source_cell,
-        dest_cell=target_cell
-      ))
       return False
 
   def attack(game, target):
     def on_pause_end(_):
       damage = target.attack(game.p1)
       game.log.print("EYEBALL counters")
-      game.log.print(game.p1.kind.upper() + " suffers " + str(damage) + " damage.")
+      game.log.print(game.p1.name.upper() + " suffers " + str(damage) + " damage.")
       game.anims.append(AttackAnim(
         duration=Game.ATTACK_DURATION,
         target=target,
@@ -150,9 +155,9 @@ class Game:
     game.refresh_fov()
 
   def special(game):
-    if game.p1.kind == "hero":
+    if type(game.p1) is Knight:
       game.shield_bash()
-    elif game.p1.kind == "mage":
+    elif type(game.p1) is Mage:
       game.detect_mana()
 
   def detect_mana(game):
@@ -189,9 +194,9 @@ class Game:
           src_cell=target_cell,
           dest_cell=nudge_cell
         ))
-        if target_actor.kind == "eye":
+        if type(target_actor) is Eye:
           game.log.print("EYEBALL is reeling.")
-      if target_actor.kind == "eye":
+      if type(target_actor) is Eye:
         game.attack(target_actor)
     else:
       game.log.print("But nothing happened...")
@@ -206,7 +211,7 @@ class Game:
     target_tile = game.stage.get_tile_at(game.p1.cell)
     if target_tile is Stage.STAIRS:
       game.log.print("You go upstairs.")
-      swapped = game.p1.kind == "mage"
+      swapped = type(game.p1) is Mage
       game.reload(swapped)
       return True
     return False

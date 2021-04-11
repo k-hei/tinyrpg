@@ -34,10 +34,7 @@ class Stage:
     return cells
 
   def get_actor_at(stage, cell):
-    for actor in stage.actors:
-      if actor.cell[0] == cell[0] and actor.cell[1] == cell[1]:
-        return actor
-    return None
+    return next((actor for actor in stage.actors if actor.cell == cell), None)
 
   def get_tile_at(stage, cell):
     if not stage.contains(cell):
