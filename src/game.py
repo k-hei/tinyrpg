@@ -171,6 +171,12 @@ class Game:
     if item == "Potion":
       game.log.print(game.p1.name.upper() + " restored 10 HP.")
       game.p1.regen(10)
+    elif item == "Bread":
+      game.log.print("The party restored 5 SP.")
+      if game.sp + 5 < game.sp_max:
+        game.sp += 5
+      else:
+        game.sp = game.sp_max
     else:
       game.log.print("But nothing happened...")
 

@@ -122,10 +122,6 @@ def dungeon(width, height, players):
           break
     else:
       stage.set_tile_at(door, Stage.DOOR)
-      # if random.randint(1, 2) == 1:
-      #   stage.set_tile_at(door, Stage.DOOR)
-      # else:
-      #   stage.set_tile_at(door, Stage.FLOOR)
 
   room = rooms[0]
   center_x, center_y = room.get_center()
@@ -151,8 +147,11 @@ def dungeon(width, height, players):
       if random.randint(1, 30) == 1:
         stage.spawn(Eye(), cell)
       elif random.randint(1, 80) == 1:
-        if random.randint(1, 5) == 1:
+        choice = random.randint(1, 10)
+        if choice == 1:
           stage.spawn(Chest("Warp Crystal"), cell)
+        elif choice <= 4:
+          stage.spawn(Chest("Bread"), cell)
         else:
           stage.spawn(Chest("Potion"), cell)
 

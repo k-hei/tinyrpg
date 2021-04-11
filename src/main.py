@@ -56,6 +56,7 @@ sprites = {
   "icon_shield": pygame.image.load("assets/icon-shield.png").convert_alpha(),
   "icon_skill": pygame.image.load("assets/icon-skill.png").convert_alpha(),
   "icon_potion": pygame.image.load("assets/icon-potion.png").convert_alpha(),
+  "icon_bread": pygame.image.load("assets/icon-bread.png").convert_alpha(),
   "icon_crystal": pygame.image.load("assets/icon-crystal.png").convert_alpha(),
   "skill": pygame.image.load("assets/skill.png").convert_alpha(),
   "box": pygame.image.load("assets/box.png").convert_alpha(),
@@ -316,6 +317,8 @@ def render_game(surface, game):
         item = game.inventory.items[index]
         if item == "Potion":
           sprite = sprites["icon_potion"]
+        elif item == "Bread":
+          sprite = sprites["icon_bread"]
         elif item == "Warp Crystal":
           sprite = sprites["icon_crystal"]
         if sprite:
