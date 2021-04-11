@@ -122,7 +122,7 @@ def handle_keydown(key):
   if delta_x == 0 and delta_y == 0:
     return
 
-  moved = game.move((delta_x, delta_y))
+  moved = game.handle_move((delta_x, delta_y))
   if not moved:
     is_key_invalid[key] = True
 
@@ -137,23 +137,33 @@ camera = None
 def render_game(surface, game):
   global camera
   window_width, window_height = WINDOW_SIZE
-  visible_cells = game.p1.visible_cells
+  hero = game.p1
+
+  visible_cells = hero.visible_cells
   for cell in visible_cells:
     if cell not in visited_cells:
       visited_cells.append(cell)
 
-  hero_x, hero_y = game.p1.cell
+  anim_group = None
+  if len(game.anims) > 0:
+    anim_group = game.anims[0]
+    print_group = lambda group: list(map(
+      lambda anim: type(anim).__name__,
+      group
+    ))
+    print(list(map(print_group, game.anims)))
+
+  hero_x, hero_y = hero.cell
+  focus_x, focus_y = hero.cell
   CAMERA_SPEED = 8
   if game.room:
     focus_x, focus_y = game.room.get_center()
     CAMERA_SPEED = 16
-  else:
-    for anim in game.anims:
-      if anim.target is game.p1 and type(anim) is MoveAnim:
+  elif anim_group:
+    for anim in anim_group:
+      if anim.target is hero and type(anim) is MoveAnim:
         focus_x, focus_y = anim.cur_cell
         break
-    else:
-      focus_x, focus_y = game.p1.cell
 
   camera_x = -((focus_x + 0.5) * TILE_SIZE - window_width / 2)
   camera_y = -((focus_y + 0.5) * TILE_SIZE - window_height / 2)
@@ -217,46 +227,55 @@ def render_game(surface, game):
         sprite = sprites["chest"]
 
     facing = None
+    if anim_group:
+      for anim in anim_group:
+        if anim.target is not actor:
+          continue
 
-    anim = None
-    for anim in game.anims:
-      if anim.target is not actor:
-        continue
+        if type(anim) is PauseAnim:
+          anim.update()
 
-      if type(anim) is PauseAnim:
-        anim.update()
+        if type(anim) is ShakeAnim:
+          sprite_x += anim.update()
+          if type(actor) is Eye:
+            sprite = sprites["eye_flinch"]
+          elif type(actor) is Knight:
+            sprite = sprites["knight_flinch"]
 
-      if type(anim) is ShakeAnim:
-        sprite_x += anim.update()
-        if type(actor) is Eye:
-          sprite = sprites["eye_flinch"]
-        elif type(actor) is Knight:
-          sprite = sprites["knight_flinch"]
+        if type(anim) is FlickerAnim:
+          visible = anim.update()
+          if not visible:
+            sprite = None
+          elif type(actor) is Eye:
+            sprite = sprites["eye_flinch"]
 
-      if type(anim) is FlickerAnim and len([anim for anim in game.anims if anim.target is actor]) == 1:
-        visible = anim.update()
-        if not visible:
-          sprite = None
-        elif type(actor) is Eye:
-          sprite = sprites["eye_flinch"]
+        if type(anim) is AttackAnim:
+          if type(actor) is Eye:
+            sprite = sprites["eye_attack"]
 
-      if type(anim) is AttackAnim:
-        if type(actor) is Eye:
-          sprite = sprites["eye_attack"]
+        if type(anim) in (AttackAnim, MoveAnim):
+          src_x, src_y = anim.src_cell
+          dest_x, dest_y = anim.dest_cell
+          if dest_x < src_x:
+            facing = -1
+          elif dest_x > src_x:
+            facing = 1
+          col, row = anim.update()
+          sprite_x = col * TILE_SIZE
+          sprite_y = row * TILE_SIZE
 
-      if type(anim) in (AttackAnim, MoveAnim):
-        src_x, src_y = anim.src_cell
-        dest_x, dest_y = anim.dest_cell
-        if dest_x < src_x:
-          facing = -1
-        elif dest_x > src_x:
-          facing = 1
-        col, row = anim.update()
-        sprite_x = col * TILE_SIZE
-        sprite_y = row * TILE_SIZE
+        if anim.done:
+          anim_group.remove(anim)
+          if len(anim_group) == 0:
+            game.anims.remove(anim_group)
 
-      if anim.done:
-        game.anims.remove(anim)
+
+    for group in game.anims:
+      for anim in group:
+        if anim.target is actor and type(anim) is MoveAnim and group is not anim_group:
+          col, row = anim.src_cell
+          sprite_x = col * TILE_SIZE
+          sprite_y = row * TILE_SIZE
 
     existing_facing = next((facing for facing in facings if facing[0] is actor), None)
     if facing is None:

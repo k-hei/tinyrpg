@@ -1,10 +1,11 @@
 class Actor:
-  def __init__(actor, name, hp):
+  def __init__(actor, name, faction, hp):
     actor.name = name
     actor.hp_max = hp
     actor.hp = hp
     actor.dead = False
     actor.facing = (1, 0)
+    actor.faction = faction
     actor.visible_cells = []
 
   def regen(actor, amount=1/100):
@@ -17,7 +18,7 @@ class Actor:
     pass
 
   def attack(actor, target, counter=False):
-    damage = _find_damage(actor, target)
+    damage = actor.find_damage(target)
     if damage < target.hp:
       target.hp -= damage
     else:
@@ -25,5 +26,5 @@ class Actor:
       target.dead = True
     return damage
 
-def _find_damage(actor, target):
-  return 2
+  def find_damage(actor, target):
+    return 2

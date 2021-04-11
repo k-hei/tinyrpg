@@ -1,5 +1,6 @@
 import gen
 import fov
+import random
 from cell import is_adjacent
 from stage import Stage
 from log import Log
@@ -53,53 +54,110 @@ class Game:
       game.p2 = next((actor for actor in game.stage.actors if type(actor) is Mage), None)
     game.refresh_fov()
 
-  def move(game, delta):
-    source_cell = game.p1.cell
-    (hero_x, hero_y) = source_cell
-    (delta_x, delta_y) = delta
-    game.p1.facing = delta
+  def step(game):
+    hero = game.p1
+    enemies = [actor for actor in game.stage.actors if type(actor) is Eye]
+    for enemy in enemies:
+      if enemy.dead:
+        continue
+      room = next((room for room in game.stage.rooms if enemy.cell in room.get_cells()), None)
+      if not room or hero.cell not in room.get_cells():
+        continue
+      if is_adjacent(enemy.cell, hero.cell):
+        game.attack(enemy, hero)
+      else:
+        delta_x, delta_y = (0, 0)
+        enemy_x, enemy_y = enemy.cell
+        hero_x, hero_y = hero.cell
+
+        if random.randint(1, 2) == 1:
+          if hero_x < enemy_x:
+            delta_x = -1
+          elif hero_x > enemy_x:
+            delta_x = 1
+          elif hero_y < enemy_y:
+            delta_y = -1
+          elif hero_y > enemy_y:
+            delta_y = 1
+        else:
+          if hero_y < enemy_y:
+            delta_y = -1
+          elif hero_y > enemy_y:
+            delta_y = 1
+          elif hero_x < enemy_x:
+            delta_x = -1
+          elif hero_x > enemy_x:
+            delta_x = 1
+
+        if delta_x == 0 and delta_y == 0:
+          continue
+
+        game.move(enemy, (delta_x, delta_y))
+
+  def move(game, actor, delta):
+    actor_x, actor_y = actor.cell
+    delta_x, delta_y = delta
+    target_cell = (actor_x + delta_x, actor_y + delta_y)
+    target_tile = game.stage.get_tile_at(target_cell)
+    target_actor = game.stage.get_actor_at(target_cell)
+    if not target_tile.solid and (target_actor is None or actor is game.p1 and target_actor is game.p2):
+      game.anims.append([
+        MoveAnim(
+          duration=Game.MOVE_DURATION,
+          target=actor,
+          src_cell=actor.cell,
+          dest_cell=target_cell
+        )
+      ])
+      actor.cell = target_cell
+      return True
+    else:
+      return False
+
+  def handle_move(game, delta):
+    hero = game.p1
+    ally = game.p2
+    hero.facing = delta
+    hero_x, hero_y = hero.cell
+    delta_x, delta_y = delta
+    acted = False
+    moved = game.move(hero, delta)
     target_cell = (hero_x + delta_x, hero_y + delta_y)
     target_tile = game.stage.get_tile_at(target_cell)
     target_actor = game.stage.get_actor_at(target_cell)
-    if not target_tile.solid and (target_actor is None or target_actor is game.p2):
-      game.anims.append(MoveAnim(
-        duration=Game.MOVE_DURATION,
-        target=game.p1,
-        src_cell=source_cell,
-        dest_cell=target_cell
-      ))
-      game.anims.append(MoveAnim(
-        duration=Game.MOVE_DURATION,
-        target=game.p2,
-        src_cell=game.p2.cell,
-        dest_cell=source_cell
-      ))
-      game.p2.cell = source_cell
-      game.p1.cell = target_cell
+    if moved:
+      last_group = game.anims[len(game.anims) - 1]
+      ally_x, ally_y = ally.cell
+      game.move(ally, (hero_x - ally_x, hero_y - ally_y))
+      last_group.append(game.anims.pop()[0])
       game.refresh_fov()
       if target_tile is Stage.STAIRS:
         game.log.print("There's a staircase going up here.")
       game.p1.regen()
       game.p2.regen()
-      return True
+      acted = True
     elif target_actor and type(target_actor) is Eye:
-      game.log.print(game.p1.name.upper() + " attacks")
-      game.attack(target_actor)
-      game.sp -= 1
+      game.log.print(hero.name.upper() + " attacks")
+      game.attack(hero, target_actor)
+      game.sp = max(0, game.sp - 1)
+      acted = True
     else:
-      game.anims.append(AttackAnim(
-        duration=Game.ATTACK_DURATION,
-        target=game.p1,
-        src_cell=source_cell,
-        dest_cell=target_cell
-      ))
+      game.anims.append([
+        AttackAnim(
+          duration=Game.ATTACK_DURATION,
+          target=hero,
+          src_cell=hero.cell,
+          dest_cell=target_cell
+        )
+      ])
       if target_actor and type(target_actor) is Chest:
         if target_actor.contents:
           if not game.inventory.is_full():
             contents = target_actor.open()
             game.inventory.append(contents)
             game.log.print("You open the lamp")
-            game.log.print("Received a " + contents + ".")
+            game.log.print("Received " + contents + ".")
+            acted = True
           else:
             game.log.print("Your inventory is already full!")
         else:
@@ -107,62 +165,60 @@ class Game:
       elif target_tile is Stage.DOOR:
         game.log.print("You open the door.")
         game.stage.set_tile_at(target_cell, Stage.DOOR_OPEN)
+        acted = True
       elif target_tile is Stage.DOOR_HIDDEN:
         game.log.print("Discovered a hidden door!")
         game.stage.set_tile_at(target_cell, Stage.DOOR_OPEN)
+        acted = True
       game.refresh_fov()
-      return False
+    if acted:
+      game.step()
+    return moved
 
-  def attack(game, target):
-    def on_pause_end(_):
-      damage = target.attack(game.p1)
-      game.log.print("EYEBALL counters")
-      game.log.print(game.p1.name.upper() + " suffers " + str(damage) + " damage.")
-      game.anims.append(AttackAnim(
-        duration=Game.ATTACK_DURATION,
-        target=target,
-        src_cell=target.cell,
-        dest_cell=game.p1.cell,
-        on_connect=lambda _:
-          game.anims.append(ShakeAnim(
-            duration=Game.SHAKE_DURATION,
-            target=game.p1
-          ))
-      ))
-
+  def attack(game, actor, target):
     def on_shake_end(_):
       if target.dead:
-        game.log.print("Defeated EYEBALL.")
-        game.anims.append(FlickerAnim(
+        if target.faction == "enemy":
+          game.log.print("Defeated " + target.name.upper() + ".")
+        else:
+          game.log.print(target.name.upper() + " is defeated.")
+        game.anims[0].append(FlickerAnim(
           duration=Game.FLICKER_DURATION,
           target=target,
           on_end=lambda _: game.stage.actors.remove(target)
         ))
-      elif is_adjacent(game.p1.cell, target.cell):
-        game.anims.append(PauseAnim(
+      elif is_adjacent(actor.cell, target.cell):
+        game.anims[0].append(PauseAnim(
           duration=Game.PAUSE_DURATION,
-          target=target,
-          on_end=on_pause_end
+          target=target
         ))
 
     def on_connect(_):
-      damage = game.p1.attack(target)
-      game.log.print("EYEBALL receives " + str(damage) + " damage.")
-      game.anims.append(ShakeAnim(
+      damage = actor.attack(target)
+      verb = "receives" if actor.faction == "enemy" else "suffers"
+      game.log.print(target.name.upper() + " " + verb + " " + str(damage) + " damage.")
+      game.anims[0].append(ShakeAnim(
         duration=Game.SHAKE_DURATION,
         target=target,
         on_end=on_shake_end
       ))
 
-    game.anims.append(AttackAnim(
-      duration=Game.ATTACK_DURATION,
-      target=game.p1,
-      src_cell=game.p1.cell,
-      dest_cell=target.cell,
-      on_connect=on_connect
-    ))
+    damage = actor.find_damage(target)
+    if damage >= target.hp:
+      target.dead = True
+
+    game.anims.append([
+      AttackAnim(
+        duration=Game.ATTACK_DURATION,
+        target=actor,
+        src_cell=actor.cell,
+        dest_cell=target.cell,
+        on_connect=on_connect
+      )
+    ])
 
   def use_item(game):
+    hero = game.hero
     if len(game.inventory.items) == 0:
       game.log.print("No items to use!")
       return
@@ -170,8 +226,8 @@ class Game:
     game.inventory.items.remove(item)
     game.log.print("Used " + item)
     if item == "Potion":
-      game.log.print(game.p1.name.upper() + " restored 10 HP.")
-      game.p1.regen(10)
+      game.log.print(hero.name.upper() + " restored 10 HP.")
+      hero.regen(10)
     elif item == "Bread":
       game.log.print("The party restored 5 SP.")
       if game.sp + 5 < game.sp_max:
@@ -180,7 +236,6 @@ class Game:
         game.sp = game.sp_max
     else:
       game.log.print("But nothing happened...")
-
 
   def swap(game):
     game.p1, game.p2 = (game.p2, game.p1)
@@ -219,26 +274,32 @@ class Game:
       nudge_cell = (target_x + delta_x, target_y + delta_y)
       nudge_tile = game.stage.get_tile_at(nudge_cell)
       nudge_actor = game.stage.get_actor_at(nudge_cell)
-      game.anims.append(ShakeAnim(duration=Game.SHAKE_DURATION, target=target_actor))
+      game.anims.append([
+        ShakeAnim(duration=Game.SHAKE_DURATION, target=target_actor)
+      ])
       if not nudge_tile.solid and nudge_actor is None:
         target_actor.cell = nudge_cell
-        game.anims.append(MoveAnim(
-          duration=Game.MOVE_DURATION,
-          target=target_actor,
-          src_cell=target_cell,
-          dest_cell=nudge_cell
-        ))
+        game.anims.append([
+          MoveAnim(
+            duration=Game.MOVE_DURATION,
+            target=target_actor,
+            src_cell=target_cell,
+            dest_cell=nudge_cell
+          )
+        ])
       if type(target_actor) is Eye:
         game.attack(target_actor)
         game.log.print("EYEBALL is reeling.")
     else:
       game.log.print("But nothing happened...")
-      game.anims.append(AttackAnim(
-        duration=Game.ATTACK_DURATION,
-        target=game.p1,
-        src_cell=game.p1.cell,
-        dest_cell=target_cell
-      ))
+      game.anims.append([
+        AttackAnim(
+          duration=Game.ATTACK_DURATION,
+          target=game.p1,
+          src_cell=game.p1.cell,
+          dest_cell=target_cell
+        )
+      ])
 
   def ascend(game):
     target_tile = game.stage.get_tile_at(game.p1.cell)
