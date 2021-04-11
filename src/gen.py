@@ -6,7 +6,7 @@ from maze import Maze
 from actors import Knight, Mage, Eye, Chest
 
 possible_widths = (3, 5, 7)
-possible_heights = (3, 5)
+possible_heights = [3]
 
 def cells(size):
   cells = []
@@ -149,7 +149,10 @@ def dungeon(width, height, players):
       if not is_floor or not is_empty or is_beside_door:
         continue
       if random.randint(1, 30) == 1:
-        stage.spawn(Eye(), cell)
+        enemy = Eye()
+        stage.spawn(enemy, cell)
+        if random.randint(1, 3) == 1:
+          enemy.asleep = True
       elif random.randint(1, 80) == 1:
         choice = random.randint(1, 10)
         if choice == 1:

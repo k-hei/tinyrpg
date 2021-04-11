@@ -17,6 +17,11 @@ WINDOW_SCALE = 3
 WINDOW_SIZE_SCALED = (WINDOW_WIDTH * WINDOW_SCALE, WINDOW_HEIGHT * WINDOW_SCALE)
 WINDOW_FLAGS = 0
 
+WHITE = (0xFF, 0xFF, 0xFF)
+GRAY = (0x7F, 0x7F, 0x7F)
+RED = (0xE6, 0x46, 0x46)
+PURPLE = (0x82, 0x20, 0x75)
+
 def init_display(window_title: str, window_size: (int, int)) -> Surface:
   pygame.display.init()
   pygame.display.set_caption(window_title)
@@ -147,11 +152,11 @@ def render_game(surface, game):
   anim_group = None
   if len(game.anims) > 0:
     anim_group = game.anims[0]
-    print_group = lambda group: list(map(
-      lambda anim: type(anim).__name__,
-      group
-    ))
-    print(list(map(print_group, game.anims)))
+    # print_group = lambda group: list(map(
+    #   lambda anim: type(anim).__name__,
+    #   group
+    # ))
+    # print(list(map(print_group, game.anims)))
 
   hero_x, hero_y = hero.cell
   focus_x, focus_y = hero.cell
@@ -272,6 +277,11 @@ def render_game(surface, game):
           if len(anim_group) == 0:
             game.anims.remove(anim_group)
 
+    if type(actor) is Eye and actor.asleep and sprite:
+      sprite = sprite.copy()
+      pixels = PixelArray(sprite)
+      pixels.replace(RED, PURPLE)
+      pixels.close()
 
     for group in game.anims:
       for anim in group:
@@ -314,9 +324,6 @@ def render_game(surface, game):
   knight = game.p1 if type(hero) is Knight else game.p2
   mage = game.p1 if type(hero) is Mage else game.p2
 
-  WHITE = (0xFF, 0xFF, 0xFF)
-  GRAY = (0x7F, 0x7F, 0x7F)
-  RED = (0xE6, 0x46, 0x46)
   if knight.dead and not is_drawing_knight:
     pixels_knight.replace(WHITE, RED)
   elif type(hero) is not Knight:

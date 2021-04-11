@@ -55,45 +55,51 @@ class Game:
     game.refresh_fov()
 
   def step(game):
-    hero = game.p1
     enemies = [actor for actor in game.stage.actors if type(actor) is Eye]
     for enemy in enemies:
-      if enemy.dead:
-        continue
-      room = next((room for room in game.stage.rooms if enemy.cell in room.get_cells()), None)
-      if not room or hero.cell not in room.get_cells():
-        continue
-      if is_adjacent(enemy.cell, hero.cell):
-        if not hero.dead:
-          game.attack(enemy, hero)
+      game.step_enemy(enemy)
+
+  def step_enemy(game, enemy):
+    if enemy.dead or enemy.asleep:
+      return False
+
+    hero = game.p1
+    room = next((room for room in game.stage.rooms if enemy.cell in room.get_cells()), None)
+    if not room or hero.cell not in room.get_cells():
+      return False
+
+    if is_adjacent(enemy.cell, hero.cell):
+      if not hero.dead:
+        game.attack(enemy, hero)
+    else:
+      delta_x, delta_y = (0, 0)
+      enemy_x, enemy_y = enemy.cell
+      hero_x, hero_y = hero.cell
+
+      if random.randint(1, 2) == 1:
+        if hero_x < enemy_x:
+          delta_x = -1
+        elif hero_x > enemy_x:
+          delta_x = 1
+        elif hero_y < enemy_y:
+          delta_y = -1
+        elif hero_y > enemy_y:
+          delta_y = 1
       else:
-        delta_x, delta_y = (0, 0)
-        enemy_x, enemy_y = enemy.cell
-        hero_x, hero_y = hero.cell
+        if hero_y < enemy_y:
+          delta_y = -1
+        elif hero_y > enemy_y:
+          delta_y = 1
+        elif hero_x < enemy_x:
+          delta_x = -1
+        elif hero_x > enemy_x:
+          delta_x = 1
 
-        if random.randint(1, 2) == 1:
-          if hero_x < enemy_x:
-            delta_x = -1
-          elif hero_x > enemy_x:
-            delta_x = 1
-          elif hero_y < enemy_y:
-            delta_y = -1
-          elif hero_y > enemy_y:
-            delta_y = 1
-        else:
-          if hero_y < enemy_y:
-            delta_y = -1
-          elif hero_y > enemy_y:
-            delta_y = 1
-          elif hero_x < enemy_x:
-            delta_x = -1
-          elif hero_x > enemy_x:
-            delta_x = 1
+      if delta_x == 0 and delta_y == 0:
+        return True
+      game.move(enemy, (delta_x, delta_y))
 
-        if delta_x == 0 and delta_y == 0:
-          continue
-
-        game.move(enemy, (delta_x, delta_y))
+    return True
 
   def move(game, actor, delta):
     actor_x, actor_y = actor.cell
@@ -182,6 +188,8 @@ class Game:
     return moved
 
   def attack(game, actor, target):
+    was_asleep = target.asleep
+
     def on_flicker_end(_):
       game.stage.actors.remove(target)
       if target.faction == "player":
@@ -208,6 +216,8 @@ class Game:
       damage = actor.attack(target)
       verb = "receives" if actor.faction == "enemy" else "suffers"
       game.log.print(target.name.upper() + " " + verb + " " + str(damage) + " damage.")
+      if was_asleep and not target.asleep:
+        game.log.print(target.name.upper() + " woke up!")
       game.anims[0].append(ShakeAnim(
         duration=Game.SHAKE_DURATION,
         target=target,
