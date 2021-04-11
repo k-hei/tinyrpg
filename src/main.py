@@ -27,9 +27,11 @@ surface = Surface(WINDOW_SIZE)
 pygame.key.set_repeat(1)
 
 # asset loading
-metadata = json.loads(open("assets/fonts/standard/metadata.json", "r").read())
+meta_standard = json.loads(open("assets/fonts/standard/metadata.json", "r").read())
+meta_smallcaps = json.loads(open("assets/fonts/smallcaps/metadata.json", "r").read())
 sprites = {
   "font_standard": pygame.image.load("assets/fonts/standard/typeface.png").convert_alpha(),
+  "font_smallcaps": pygame.image.load("assets/fonts/smallcaps/typeface.png").convert_alpha(),
   "knight": pygame.image.load("assets/knight.png").convert_alpha(),
   "knight_flinch": pygame.image.load("assets/knight-flinch.png").convert_alpha(),
   "mage": pygame.image.load("assets/mage.png").convert_alpha(),
@@ -58,7 +60,8 @@ sprites = {
   "box": pygame.image.load("assets/box.png").convert_alpha(),
   "hud": pygame.image.load("assets/hud.png").convert_alpha()
 }
-font = Font(sprites["font_standard"], **metadata)
+font_standard = Font(sprites["font_standard"], **meta_standard)
+font_smallcaps = Font(sprites["font_smallcaps"], **meta_smallcaps)
 
 def lerp(a, b, t):
   return a * (1 - t) + b * t
@@ -271,6 +274,11 @@ def render_game(surface, game):
   pixels.close()
   surface.blit(portrait_knight, (8, 6))
   surface.blit(portrait_mage, (36, 6))
+  surface.blit(sprites["hud"], (64, 6))
+  surface.blit(sprites["tag_hp"], (75, 11))
+
+  hp_text = str(math.floor(game.p1.hp)) + "/" + str(game.p1.hp_max)
+  surface.blit(render_text(hp_text, font_smallcaps), (94, 12))
 
   box = sprites["box"]
   cols = game.inventory.cols
@@ -294,7 +302,7 @@ def render_game(surface, game):
         if sprite:
           surface.blit(sprite, (x + 8, y + 8))
 
-  log = game.log.render(sprites["log"], font)
+  log = game.log.render(sprites["log"], font_standard)
   surface.blit(log, (
     window_width / 2 - log.get_width() / 2,
     window_height + game.log.y

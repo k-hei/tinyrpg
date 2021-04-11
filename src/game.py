@@ -72,6 +72,8 @@ class Game:
       game.refresh_fov()
       if target_tile is Stage.STAIRS:
         game.log.print("There's a staircase going up here.")
+      game.p1.regen()
+      game.p2.regen()
       return True
     elif target_actor and type(target_actor) is Eye:
       game.log.print(game.p1.name.upper() + " attacks")
@@ -129,7 +131,6 @@ class Game:
           on_end=lambda _: game.stage.actors.remove(target)
         ))
       elif is_adjacent(game.p1.cell, target.cell):
-        print("pause")
         game.anims.append(PauseAnim(
           duration=Game.PAUSE_DURATION,
           target=target,

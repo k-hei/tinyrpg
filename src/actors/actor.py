@@ -7,6 +7,10 @@ class Actor:
     actor.facing = (1, 0)
     actor.visible_cells = []
 
+  def regen(actor):
+    if actor.hp < actor.hp_max:
+      actor.hp += 1 / 20
+
   def move(actor, delta, stage):
     pass
 
