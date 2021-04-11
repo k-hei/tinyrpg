@@ -42,6 +42,7 @@ sprites = {
   "door_open": pygame.image.load("assets/door-open.png").convert_alpha(),
   "eye": pygame.image.load("assets/eye.png").convert_alpha(),
   "eye_flinch": pygame.image.load("assets/eye-flinch.png").convert_alpha(),
+  "eye_attack": pygame.image.load("assets/eye-attack.png").convert_alpha(),
   "log": pygame.image.load("assets/log.png").convert_alpha(),
   "portrait_hero": pygame.image.load("assets/portrait-hero.png").convert_alpha(),
   "portrait_mage": pygame.image.load("assets/portrait-mage.png").convert_alpha(),
@@ -116,22 +117,30 @@ camera = None
 def render_game(surface, game):
   global camera
   window_width, window_height = WINDOW_SIZE
-  hero_x, hero_y = game.p1.cell
   visible_cells = game.p1.visible_cells
   for cell in visible_cells:
     if cell not in visited_cells:
       visited_cells.append(cell)
 
-  for anim in game.anims:
-    if anim.target is game.p1 and type(anim) is MoveAnim:
-      hero_x, hero_y = anim.cur_cell
+  hero_x, hero_y = game.p1.cell
+  CAMERA_SPEED = 8
+  if game.room:
+    focus_x, focus_y = game.room.get_center()
+    CAMERA_SPEED = 16
+  else:
+    for anim in game.anims:
+      if anim.target is game.p1 and type(anim) is MoveAnim:
+        focus_x, focus_y = anim.cur_cell
+        break
+    else:
+      focus_x, focus_y = game.p1.cell
 
-  camera_x = -((hero_x + 0.5) * TILE_SIZE - window_width / 2)
-  camera_y = -((hero_y + 0.5) * TILE_SIZE - window_height / 2)
+  camera_x = -((focus_x + 0.5) * TILE_SIZE - window_width / 2)
+  camera_y = -((focus_y + 0.5) * TILE_SIZE - window_height / 2)
   if camera is not None:
     old_camera_x, old_camera_y = camera
-    camera_x = old_camera_x + (camera_x - old_camera_x) / 8
-    camera_y = old_camera_y + (camera_y - old_camera_y) / 8
+    camera_x = old_camera_x + (camera_x - old_camera_x) / CAMERA_SPEED
+    camera_y = old_camera_y + (camera_y - old_camera_y) / CAMERA_SPEED
   camera = (camera_x, camera_y)
 
   (stage_width, stage_height) = game.stage.size
@@ -195,6 +204,10 @@ def render_game(surface, game):
           sprite = None
         elif actor.kind == "eye":
           sprite = sprites["eye_flinch"]
+
+      if type(anim) is AttackAnim:
+        if actor.kind == "eye":
+          sprite = sprites["eye_attack"]
 
       if type(anim) in (AttackAnim, MoveAnim):
         src_x, src_y = anim.src_cell

@@ -21,12 +21,14 @@ class Game:
 
   def refresh_fov(game):
     hero = game.p1
-    room = next((room for room in game.stage.rooms if hero.cell in room.get_cells()), None)
-    if room:
-      game.room = room
-      hero.visible_cells = room.get_cells() + room.get_border()
+    hero.visible_cells = fov.shadowcast(game.stage, hero.cell, 3.5)
+    rooms = [room for room in game.stage.rooms if hero.cell in room.get_cells() + room.get_border()]
+    if len(rooms) == 1:
+      game.room = rooms[0]
     else:
-      hero.visible_cells = fov.shadowcast(game.stage, hero.cell, 3.5)
+      game.room = next((room for room in rooms if room is not game.room), None)
+    if game.room:
+      hero.visible_cells += game.room.get_cells() + game.room.get_border()
 
   def reload(game, swapped=False):
     game.stage = gen.dungeon(19, 19)
