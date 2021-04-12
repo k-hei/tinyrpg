@@ -20,13 +20,13 @@ class Game:
   def __init__(game):
     game.log = Log()
     game.inventory = Inventory(2, 2)
-    game.anims = []
-    game.room = None
     game.sp_max = 40
     game.sp = game.sp_max
+    game.room = None
     game.floor = None
     game.floors = []
     game.memory = []
+    game.anims = []
     game.p1 = Knight()
     game.p2 = Mage()
     game.load_floor()

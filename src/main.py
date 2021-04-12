@@ -9,6 +9,7 @@ from log import Log
 from filters import recolor
 from anims import AttackAnim, FlickerAnim, MoveAnim, ShakeAnim, PauseAnim, AwakenAnim
 from actors import Knight, Mage, Eye, Chest
+from transits.dissolve import DissolveIn, DissolveOut
 
 TILE_SIZE = 32
 WINDOW_SIZE = (256, 224)
@@ -78,6 +79,7 @@ def lerp(a, b, t):
   return a * (1 - t) + b * t
 
 game = Game()
+transits = [DissolveIn(surface)]
 
 is_key_invalid = {
   pygame.K_LEFT: False,
@@ -93,7 +95,7 @@ is_key_invalid = {
 
 def handle_keydown(key):
   global visited_cells, camera
-  if len(game.anims) > 0:
+  if len(game.anims) or len(transits):
     return
 
   if key == pygame.K_q and not is_key_invalid[key]:
@@ -429,6 +431,12 @@ def render_game(surface, game):
 
 def render_display():
   render_game(surface, game)
+  for transit in transits:
+    transit.update()
+    if transit.done:
+      transits.remove(transit)
+    else:
+      transit.render()
   display.blit(pygame.transform.scale(surface, WINDOW_SIZE_SCALED), (0, 0))
   pygame.display.flip()
 
