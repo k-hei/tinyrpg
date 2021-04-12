@@ -10,6 +10,7 @@ import palette
 
 from anims.tween import TweenAnim
 from easing.expo import ease_out
+from lerp import lerp
 
 SPACING = 4
 MARGIN = 8
@@ -44,11 +45,15 @@ class InventoryContext(Context):
     index = 0
     for col, row in cells:
       ctx.anims.append(TweenAnim(
-          duration=ENTER_DURATION,
-          delay=ENTER_STAGGER * index,
-          target=(col, row)
+        duration=ENTER_DURATION,
+        delay=ENTER_STAGGER * index,
+        target=(col, row)
       ))
       index += 1
+    ctx.anims.append(TweenAnim(
+      duration=ENTER_DURATION,
+      target=ctx.bar
+    ))
 
   def get_item_at(ctx, cell):
     inventory = ctx.data
@@ -104,13 +109,24 @@ class InventoryContext(Context):
     window_height = surface.get_height()
 
     bar = ctx.bar.render()
+    bar_anim = next((a for a in ctx.anims if a.target is ctx.bar), None)
+
+    start_y = window_height
+    end_y = window_height - bar.get_height() - MARGIN
     x = MARGIN
-    y = window_height - bar.get_height() - MARGIN
+    y = end_y
+    if bar_anim:
+      t = ease_out(bar_anim.update())
+      y = lerp(start_y, end_y, t)
+      if bar_anim.done:
+        ctx.anims.remove(bar_anim)
+    else:
+      ctx.bar.update()
     surface.blit(bar, (x, y))
 
     menu = ctx.render_menu()
     x = MARGIN
-    y = y - SPACING - menu.get_height()
+    y = end_y - SPACING - menu.get_height()
     surface.blit(menu, (x, y))
 
   def render_menu(ctx):
@@ -153,7 +169,10 @@ class InventoryContext(Context):
             sprite = pygame.transform.scale(sprite, (box_width, box_height))
             if anim.done:
               ctx.anims.remove(anim)
-        menu.blit(sprite, (x + box.get_width() // 2 - box_width // 2, y))
+        menu.blit(sprite, (
+          x + box.get_width() // 2 - box_width // 2,
+          y + box.get_height() // 2 - box_height // 2
+        ))
         if item and not ctx.anims:
           sprite = ctx.render_item(item)
           menu.blit(sprite, (x + 8, y + 8))
