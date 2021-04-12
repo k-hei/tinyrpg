@@ -47,7 +47,8 @@ sprites = {
   "wall_base": pygame.image.load("assets/wall-base.png").convert_alpha(),
   "chest": pygame.image.load("assets/chest.png").convert_alpha(),
   "chest_open": pygame.image.load("assets/chest-open.png").convert_alpha(),
-  "stairs": pygame.image.load("assets/stairs-up.png").convert_alpha(),
+  "stairs_up": pygame.image.load("assets/stairs-up.png").convert_alpha(),
+  "stairs_down": pygame.image.load("assets/stairs-down.png").convert_alpha(),
   "door": pygame.image.load("assets/door.png").convert_alpha(),
   "door_open": pygame.image.load("assets/door-open.png").convert_alpha(),
   "eye": pygame.image.load("assets/eye.png").convert_alpha(),
@@ -84,6 +85,7 @@ is_key_invalid = {
   pygame.K_UP: False,
   pygame.K_DOWN: False,
   pygame.K_COMMA: False,
+  pygame.K_PERIOD: False,
   pygame.K_SPACE: False,
   pygame.K_TAB: False,
   pygame.K_q: False
@@ -109,9 +111,13 @@ def handle_keydown(key):
   if pygame.key.get_mods() & pygame.KMOD_SHIFT and key == pygame.K_COMMA and not is_key_invalid[key]:
     is_key_invalid[key] = True
     camera = None
-    moved = game.ascend()
-    if moved:
-      visited_cells = []
+    game.change_floors(1)
+    return
+
+  if pygame.key.get_mods() & pygame.KMOD_SHIFT and key == pygame.K_PERIOD and not is_key_invalid[key]:
+    is_key_invalid[key] = True
+    camera = None
+    game.change_floors(-1)
     return
 
   delta_x = 0
@@ -146,9 +152,7 @@ def render_game(surface, game):
   hero = game.p1
 
   visible_cells = hero.visible_cells
-  for cell in visible_cells:
-    if cell not in visited_cells:
-      visited_cells.append(cell)
+  visited_cells = next((cells for floor, cells in game.memory if floor is game.floor), None)
 
   anim_group = None
   if len(game.anims) > 0:
@@ -189,8 +193,10 @@ def render_game(surface, game):
         sprite = sprites["wall_base"]
       else:
         sprite = sprites["wall"]
-    elif tile is Stage.STAIRS:
-      sprite = sprites["stairs"]
+    elif tile is Stage.STAIRS_UP:
+      sprite = sprites["stairs_up"]
+    elif tile is Stage.STAIRS_DOWN:
+      sprite = sprites["stairs_down"]
     elif tile is Stage.DOOR:
       sprite = sprites["door"]
     elif tile is Stage.DOOR_OPEN:

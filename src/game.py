@@ -22,15 +22,17 @@ class Game:
     game.room = None
     game.sp_max = 40
     game.sp = game.sp_max
-    game.floors = []
     game.floor = None
-    game.p1 = None
-    game.p2 = None
+    game.floors = []
+    game.memory = []
+    game.p1 = Knight()
+    game.p2 = Mage()
     game.load_floor()
 
   def refresh_fov(game):
     hero = game.p1
-    hero.visible_cells = fov.shadowcast(game.floor, hero.cell, 3.5)
+    visible_cells = fov.shadowcast(game.floor, hero.cell, 3.5)
+
     rooms = [room for room in game.floor.rooms if hero.cell in room.get_cells() + room.get_border()]
     old_room = game.room
     if len(rooms) == 1:
@@ -40,23 +42,26 @@ class Game:
     if new_room is not old_room:
       game.room = new_room
     if game.room:
-      hero.visible_cells += game.room.get_cells() + game.room.get_border()
+      visible_cells += game.room.get_cells() + game.room.get_border()
+
+    visited_cells = next((cells for floor, cells in game.memory if floor is game.floor), None)
+    for cell in visible_cells:
+      if cell not in visited_cells:
+        visited_cells.append(cell)
+    hero.visible_cells = visible_cells
 
   def load_floor(game):
-    players = None
-    if game.p1 and game.p2:
-      players = (game.p1, game.p2)
-    game.floor = gen.dungeon(19, 19, players)
-    cells = game.floor.get_cells()
-    for cell in cells:
-      if game.floor.get_tile_at(cell) is Stage.DOOR_HIDDEN:
-        game.log.print("There's an air of mystery about this floor...")
-        break
-    if players is None:
-      game.p1 = next((actor for actor in game.floor.actors if type(actor) is Knight), None)
-      game.p2 = next((actor for actor in game.floor.actors if type(actor) is Mage), None)
-    game.refresh_fov()
+    floor = gen.dungeon((19, 19))
+    hidden_door = floor.find_tile(Stage.DOOR_HIDDEN)
+    if hidden_door:
+      game.log.print("There's an air of mystery about this floor...")
+    stairs_x, stairs_y = floor.find_tile(Stage.STAIRS_DOWN)
+    floor.spawn_actor(game.p1, (stairs_x, stairs_y))
+    floor.spawn_actor(game.p2, (stairs_x - 1, stairs_y))
+    game.floor = floor
     game.floors.append(game.floor)
+    game.memory.append((game.floor, []))
+    game.refresh_fov()
 
   def step(game):
     enemies = [actor for actor in game.floor.actors if type(actor) is Eye]
@@ -145,12 +150,20 @@ class Game:
         game.move(ally, (hero_x - ally_x, hero_y - ally_y))
         last_group.append(game.anims.pop()[0])
       game.refresh_fov()
-      if target_tile is Stage.STAIRS:
+
+      if target_tile is Stage.STAIRS_UP:
         game.log.print("There's a staircase going up here.")
+      elif target_tile is Stage.STAIRS_DOWN:
+        if game.floors.index(game.floor):
+          game.log.print("There's a staircase going down here.")
+        else:
+          game.log.print("You can return to the town from here.")
+
       if not hero.dead:
         hero.regen()
       if not ally.dead:
         ally.regen()
+
       acted = True
     elif target_actor and type(target_actor) is Eye:
       game.log.print(hero.name.upper() + " attacks")
@@ -329,23 +342,34 @@ class Game:
         )
       ])
 
-  def ascend(game):
-    target_tile = game.floor.get_tile_at(game.p1.cell)
-    if target_tile is Stage.STAIRS:
-      game.floor += 1
-      game.log.print("You go upstairs.")
-      game.load_floor()
-      return True
-    return False
+  def change_floors(game, direction):
+    exit_tile = Stage.STAIRS_UP if direction == 1 else Stage.STAIRS_DOWN
+    entry_tile = Stage.STAIRS_DOWN if direction == 1 else Stage.STAIRS_UP
+    text = "You go upstairs." if direction == 1 else "You go downstairs."
 
-  def ascend(game):
-    target_tile = game.floor.get_tile_at(game.p1.cell)
-    if target_tile is not Stage.STAIRS:
+    if direction not in (1, -1):
       return False
-    index = game.floors.index(game.floor) + 1
-    if index < len(game.floors):
-      game.floor = game.floors[index]
-    else:
+
+    target_tile = game.floor.get_tile_at(game.p1.cell)
+    if target_tile is not exit_tile:
+      return False
+
+    game.log.print(text)
+    old_floor = game.floor
+    old_floor.remove_actor(game.p1)
+    old_floor.remove_actor(game.p2)
+
+    index = game.floors.index(game.floor) + direction
+    if index >= len(game.floors):
+      # create a new floor if out of bounds
       game.load_floor()
-    game.log.print("You go upstairs.")
+    elif index >= 0:
+      # go back to old floor if within bounds
+      new_floor = game.floors[index]
+      stairs_x, stairs_y = new_floor.find_tile(entry_tile)
+      new_floor.spawn_actor(game.p1, (stairs_x, stairs_y))
+      new_floor.spawn_actor(game.p2, (stairs_x - 1, stairs_y))
+      game.floor = new_floor
+      game.refresh_fov()
+
     return True

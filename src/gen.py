@@ -35,14 +35,15 @@ def get_neighbors(elems, elem):
           neighbors[neighbor] = [edge]
   return neighbors
 
-def dungeon(width, height, players):
+def dungeon(size):
+  width, height = size
   floor = Stage((width, height))
   floor.fill(Stage.WALL)
   nodes = [cell for cell in floor.get_cells() if is_odd(cell)]
 
   rooms = gen_rooms(nodes)
   if len(rooms) == 1:
-    return dungeon(width, height)
+    return dungeon((width, height))
 
   mazes = gen_mazes(nodes)
 
@@ -123,25 +124,12 @@ def dungeon(width, height, players):
     else:
       floor.set_tile_at(door, Stage.DOOR)
 
-  room = rooms[0]
-  center_x, center_y = room.get_center()
-  if players:
-    p1, p2 = players
-  else:
-    p1 = Knight()
-    p2 = Mage()
-
-  if not p1.dead:
-    floor.spawn(p1, (center_x, center_y))
-
-  if not p2.dead:
-    floor.spawn(p2, (center_x - 1, center_y))
-
-  room = rooms[1]
-  center = room.get_center()
-  floor.set_tile_at(center, Stage.STAIRS)
+  floor.set_tile_at(rooms[0].get_center(), Stage.STAIRS_DOWN)
+  floor.set_tile_at(rooms[1].get_center(), Stage.STAIRS_UP)
 
   for room in rooms:
+    if rooms.index(room) in (0, 1):
+      continue
     for cell in room.get_cells():
       is_floor = floor.get_tile_at(cell) is Stage.FLOOR
       is_empty = floor.get_actor_at(cell) is None
@@ -150,7 +138,7 @@ def dungeon(width, height, players):
         continue
       if random.randint(1, 30) == 1:
         enemy = Eye()
-        floor.spawn(enemy, cell)
+        floor.spawn_actor(enemy, cell)
         if random.randint(1, 3) == 1:
           enemy.asleep = True
       elif random.randint(1, 80) == 1:
@@ -163,7 +151,7 @@ def dungeon(width, height, players):
           item = "Bread"
         else:
           item = "Potion"
-        floor.spawn(Chest(item), cell)
+        floor.spawn_actor(Chest(item), cell)
 
   floor.rooms = rooms
   return floor

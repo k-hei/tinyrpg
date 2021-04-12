@@ -11,7 +11,8 @@ class Stage:
   DOOR = Tile(solid=True, opaque=True)
   DOOR_OPEN = Tile(solid=False, opaque=False)
   DOOR_HIDDEN = Tile(solid=True, opaque=True)
-  STAIRS = Tile(solid=False, opaque=False)
+  STAIRS_UP = Tile(solid=False, opaque=False)
+  STAIRS_DOWN = Tile(solid=False, opaque=False)
 
   def __init__(stage, size):
     (width, height) = size
@@ -26,7 +27,7 @@ class Stage:
       stage.data[i] = data
 
   def get_cells(stage):
-    (width, height) = stage.size
+    width, height = stage.size
     cells = []
     for y in range(height):
       for x in range(width):
@@ -40,23 +41,33 @@ class Stage:
     if not stage.contains(cell):
       return None
     width = stage.size[0]
-    (x, y) = cell
+    x, y = cell
     return stage.data[y * width + x]
 
   def set_tile_at(stage, cell, data):
     if not stage.contains(cell):
       return
     width = stage.size[0]
-    (x, y) = cell
+    x, y = cell
     stage.data[y * width + x] = data
 
-  def spawn(stage, actor, cell=None):
+  def find_tile(stage, tile):
+    width, height = stage.size
+    for y in range(height):
+      for x in range(width):
+        cell = (x, y)
+        if stage.get_tile_at(cell) is tile:
+          return cell
+    return None
+
+  def spawn_actor(stage, actor, cell=None):
     stage.actors.append(actor)
     if cell:
       actor.cell = cell
 
-  def kill(stage, actor):
+  def remove_actor(stage, actor):
     stage.actors.remove(actor)
+    actor.cell = None
 
   def contains(stage, cell):
     (width, height) = stage.size
