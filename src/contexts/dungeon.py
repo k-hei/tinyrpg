@@ -110,8 +110,7 @@ class DungeonContext(Context):
 
     if is_adjacent(enemy.cell, hero.cell):
       if not hero.dead:
-        pass
-        # game.attack(enemy, hero)
+        game.attack(enemy, hero)
     else:
       delta_x, delta_y = (0, 0)
       enemy_x, enemy_y = enemy.cell
@@ -182,8 +181,8 @@ class DungeonContext(Context):
     if key == pygame.K_COMMA and key_times[pygame.K_RSHIFT]:
       return ctx.handle_ascend()
 
-    # if key == pygame.K_PERIOD and key_times[pygame.KMOD_SHIFT]:
-    #   return ctx.handle_descend()
+    if key == pygame.K_PERIOD and key_times[pygame.KMOD_SHIFT]:
+      return ctx.handle_descend()
 
     return False
 
@@ -223,7 +222,7 @@ class DungeonContext(Context):
       acted = True
       ctx.sp = max(0, ctx.sp - 1 / 100)
     elif target_actor and type(target_actor) is Eye:
-      # ctx.attack(hero, target_actor)
+      ctx.attack(hero, target_actor)
       ctx.sp = max(0, ctx.sp - 1)
       acted = True
     else:
@@ -281,6 +280,63 @@ class DungeonContext(Context):
       return True
     else:
       return False
+
+  def attack(game, actor, target):
+    was_asleep = target.asleep
+    game.log.print(actor.name.upper() + " attacks")
+
+    def on_flicker_end():
+      game.floor.actors.remove(target)
+      if target.faction == "player":
+        game.swap()
+
+    def on_awaken_end():
+      game.log.print(target.name.upper() + " woke up!")
+      game.anims[0].append(PauseAnim(duration=PAUSE_DURATION))
+
+    def on_shake_end():
+      if target.dead:
+        if target.faction == "enemy":
+          game.log.print("Defeated " + target.name.upper() + ".")
+        else:
+          game.log.print(target.name.upper() + " is defeated.")
+        game.anims[0].append(FlickerAnim(
+          duration=FLICKER_DURATION,
+          target=target,
+          on_end=on_flicker_end
+        ))
+      elif is_adjacent(actor.cell, target.cell):
+        game.anims[0].append(PauseAnim(duration=PAUSE_DURATION))
+
+    def on_connect():
+      damage = actor.attack(target)
+      verb = "suffers" if actor.faction == "enemy" else "receives"
+      game.log.print(target.name.upper() + " " + verb + " " + str(damage) + " damage.")
+      game.anims[0].append(ShakeAnim(
+        duration=SHAKE_DURATION,
+        target=target,
+        on_end=on_shake_end
+      ))
+      if was_asleep and not target.asleep:
+        game.anims[0].append(AwakenAnim(
+          duration=AWAKEN_DURATION,
+          target=target,
+          on_end=on_awaken_end)
+        )
+
+    damage = actor.find_damage(target)
+    if damage >= target.hp:
+      target.dead = True
+
+    game.anims.append([
+      AttackAnim(
+        duration=ATTACK_DURATION,
+        target=actor,
+        src_cell=actor.cell,
+        dest_cell=target.cell,
+        on_connect=on_connect
+      )
+    ])
 
   def handle_swap(game):
     if game.ally.dead:
@@ -350,7 +406,7 @@ class DungeonContext(Context):
         if type(anim) is PauseAnim:
           anim.update()
           if anim.done:
-            anim_group.remove(anim)
+            group.remove(anim)
       if len(group) == 0:
         ctx.anims.remove(group)
 
@@ -437,64 +493,6 @@ class DungeonContext(Context):
 #             sprite = sprites["icon_ankh"]
 #           if sprite:
 #             surface.blit(sprite, (x + 8, y + 8))
-
-
-#   def attack(game, actor, target):
-#     was_asleep = target.asleep
-#     game.log.print(actor.name.upper() + " attacks")
-
-#     def on_flicker_end():
-#       game.floor.actors.remove(target)
-#       if target.faction == "player":
-#         game.swap()
-
-#     def on_awaken_end():
-#       game.log.print(target.name.upper() + " woke up!")
-#       game.anims[0].append(PauseAnim(duration=Game.PAUSE_DURATION))
-
-#     def on_shake_end():
-#       if target.dead:
-#         if target.faction == "enemy":
-#           game.log.print("Defeated " + target.name.upper() + ".")
-#         else:
-#           game.log.print(target.name.upper() + " is defeated.")
-#         game.anims[0].append(FlickerAnim(
-#           duration=Game.FLICKER_DURATION,
-#           target=target,
-#           on_end=on_flicker_end
-#         ))
-#       elif is_adjacent(actor.cell, target.cell):
-#         game.anims[0].append(PauseAnim(duration=Game.PAUSE_DURATION))
-
-#     def on_connect():
-#       damage = actor.attack(target)
-#       verb = "suffers" if actor.faction == "enemy" else "receives"
-#       game.log.print(target.name.upper() + " " + verb + " " + str(damage) + " damage.")
-#       game.anims[0].append(ShakeAnim(
-#         duration=Game.SHAKE_DURATION,
-#         target=target,
-#         on_end=on_shake_end
-#       ))
-#       if was_asleep and not target.asleep:
-#         game.anims[0].append(AwakenAnim(
-#           duration=Game.AWAKEN_DURATION,
-#           target=target,
-#           on_end=on_awaken_end)
-#         )
-
-#     damage = actor.find_damage(target)
-#     if damage >= target.hp:
-#       target.dead = True
-
-#     game.anims.append([
-#       AttackAnim(
-#         duration=Game.ATTACK_DURATION,
-#         target=actor,
-#         src_cell=actor.cell,
-#         dest_cell=target.cell,
-#         on_connect=on_connect
-#       )
-#     ])
 
 #   def use_item(game):
 #     hero = game.p1
