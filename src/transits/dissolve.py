@@ -7,9 +7,10 @@ from pygame import Surface, PixelArray
 # update and render have to be separate in order for speed to work properly
 # however, update requires knowledge of the screen size (we can predefine this in the constructor)
 
-DIAMOND_RADIUS = 32
-MULTIPLY_DELAY = 3
 SPREAD_SPEED = 2
+MULTIPLY_DELAY = 3
+DIAMOND_RADIUS = 32
+MAX_STEPS = DIAMOND_RADIUS // SPREAD_SPEED
 
 def gen_diamonds(radius, step):
   diamonds = []
@@ -97,4 +98,71 @@ class DissolveIn:
       transit.surface.blit(diamond, (x - t, y - t))
 
 class DissolveOut:
-  pass
+  def __init__(transit, surface):
+    transit.surface = surface
+    transit.stack = [(0, 0)]
+    transit.nodes = []
+    transit.node_times = {}
+    transit.time = 0
+    transit.done = False
+    transit.load_nodes()
+
+  def load_nodes(transit):
+    transit.nodes = []
+    transit.node_times = {}
+    view_width = transit.surface.get_width()
+    view_height = transit.surface.get_height()
+    cols = view_width // DIAMOND_RADIUS + 1
+    rows = view_height // DIAMOND_RADIUS + 1
+    for y in range(rows):
+      for x in range(cols):
+        node = (x, y)
+        transit.nodes.append(node)
+        transit.node_times[node] = MAX_STEPS
+    transit.node_times[0, 0] -= 1
+
+  def update(transit):
+    if transit.done:
+      return
+    view_width = transit.surface.get_width()
+    view_height = transit.surface.get_height()
+    nodes = transit.nodes
+    node_times = transit.node_times
+    old_stack = transit.stack
+    new_stack = []
+    for node in nodes:
+      t = node_times[node]
+      if t == MAX_STEPS:
+        continue
+      if t > 0:
+        node_times[node] -= 1
+      else:
+        nodes.remove(node)
+        if len(nodes) == 0:
+          transit.done = True
+    if transit.time % MULTIPLY_DELAY == 0:
+      while len(old_stack):
+        x, y = old_stack.pop()
+
+        right_node = (x + 1, y)
+        if right_node in node_times and node_times[right_node] == MAX_STEPS:
+          node_times[right_node] -= 1
+          new_stack.append(right_node)
+
+        bottom_node = (x, y + 1)
+        if bottom_node in node_times and node_times[bottom_node] == MAX_STEPS:
+          node_times[bottom_node] -= 1
+          new_stack.append(bottom_node)
+
+      transit.stack = new_stack
+    transit.time += 1
+
+  def render(transit):
+    start = DIAMOND_RADIUS // 2
+    for node in transit.nodes:
+      col, row = node
+      time = transit.node_times[node]
+      diamond = diamonds[time]
+      x = start + col * DIAMOND_RADIUS - time * SPREAD_SPEED
+      y = start + row * DIAMOND_RADIUS - time * SPREAD_SPEED
+      transit.surface.blit(diamond, (x, y))

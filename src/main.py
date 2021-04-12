@@ -13,7 +13,7 @@ from transits.dissolve import DissolveIn, DissolveOut
 
 TILE_SIZE = 32
 WINDOW_SIZE = (256, 224)
-WINDOW_SCALE = 3
+WINDOW_SCALE = 2
 (WINDOW_WIDTH, WINDOW_HEIGHT) = WINDOW_SIZE
 WINDOW_SIZE_SCALED = (WINDOW_WIDTH * WINDOW_SCALE, WINDOW_HEIGHT * WINDOW_SCALE)
 WINDOW_FLAGS = 0
@@ -79,7 +79,7 @@ def lerp(a, b, t):
   return a * (1 - t) + b * t
 
 game = Game()
-transits = [DissolveIn(surface)]
+transits = [DissolveOut(surface)]
 
 is_key_invalid = {
   pygame.K_LEFT: False,
@@ -423,11 +423,12 @@ def render_game(surface, game):
         if sprite:
           surface.blit(sprite, (x + 8, y + 8))
 
-  log = game.log.render(sprites["log"], font_standard)
-  surface.blit(log, (
-    window_width / 2 - log.get_width() / 2,
-    window_height + game.log.y
-  ))
+  if len(transits) == 0:
+    log = game.log.render(sprites["log"], font_standard)
+    surface.blit(log, (
+      window_width / 2 - log.get_width() / 2,
+      window_height + game.log.y
+    ))
 
 def render_display():
   render_game(surface, game)
