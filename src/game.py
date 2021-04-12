@@ -22,40 +22,44 @@ class Game:
     game.room = None
     game.sp_max = 40
     game.sp = game.sp_max
-    game.stage = None
+    game.floors = []
+    game.floor = None
     game.p1 = None
     game.p2 = None
-    game.floor = 1
-    game.reload()
+    game.load_floor()
 
   def refresh_fov(game):
     hero = game.p1
-    hero.visible_cells = fov.shadowcast(game.stage, hero.cell, 3.5)
-    rooms = [room for room in game.stage.rooms if hero.cell in room.get_cells() + room.get_border()]
+    hero.visible_cells = fov.shadowcast(game.floor, hero.cell, 3.5)
+    rooms = [room for room in game.floor.rooms if hero.cell in room.get_cells() + room.get_border()]
+    old_room = game.room
     if len(rooms) == 1:
-      game.room = rooms[0]
+      new_room = rooms[0]
     else:
-      game.room = next((room for room in rooms if room is not game.room), None)
+      new_room = next((room for room in rooms if room is not game.room), None)
+    if new_room is not old_room:
+      game.room = new_room
     if game.room:
       hero.visible_cells += game.room.get_cells() + game.room.get_border()
 
-  def reload(game):
+  def load_floor(game):
     players = None
     if game.p1 and game.p2:
       players = (game.p1, game.p2)
-    game.stage = gen.dungeon(19, 19, players)
-    cells = game.stage.get_cells()
+    game.floor = gen.dungeon(19, 19, players)
+    cells = game.floor.get_cells()
     for cell in cells:
-      if game.stage.get_tile_at(cell) is Stage.DOOR_HIDDEN:
+      if game.floor.get_tile_at(cell) is Stage.DOOR_HIDDEN:
         game.log.print("There's an air of mystery about this floor...")
         break
     if players is None:
-      game.p1 = next((actor for actor in game.stage.actors if type(actor) is Knight), None)
-      game.p2 = next((actor for actor in game.stage.actors if type(actor) is Mage), None)
+      game.p1 = next((actor for actor in game.floor.actors if type(actor) is Knight), None)
+      game.p2 = next((actor for actor in game.floor.actors if type(actor) is Mage), None)
     game.refresh_fov()
+    game.floors.append(game.floor)
 
   def step(game):
-    enemies = [actor for actor in game.stage.actors if type(actor) is Eye]
+    enemies = [actor for actor in game.floor.actors if type(actor) is Eye]
     for enemy in enemies:
       game.step_enemy(enemy)
 
@@ -64,7 +68,7 @@ class Game:
       return False
 
     hero = game.p1
-    room = next((room for room in game.stage.rooms if enemy.cell in room.get_cells()), None)
+    room = next((room for room in game.floor.rooms if enemy.cell in room.get_cells()), None)
     if not room or hero.cell not in room.get_cells():
       return False
 
@@ -105,8 +109,8 @@ class Game:
     actor_x, actor_y = actor.cell
     delta_x, delta_y = delta
     target_cell = (actor_x + delta_x, actor_y + delta_y)
-    target_tile = game.stage.get_tile_at(target_cell)
-    target_actor = game.stage.get_actor_at(target_cell)
+    target_tile = game.floor.get_tile_at(target_cell)
+    target_actor = game.floor.get_actor_at(target_cell)
     if not target_tile.solid and (target_actor is None or actor is game.p1 and target_actor is game.p2):
       game.anims.append([
         MoveAnim(
@@ -132,8 +136,8 @@ class Game:
     acted = False
     moved = game.move(hero, delta)
     target_cell = (hero_x + delta_x, hero_y + delta_y)
-    target_tile = game.stage.get_tile_at(target_cell)
-    target_actor = game.stage.get_actor_at(target_cell)
+    target_tile = game.floor.get_tile_at(target_cell)
+    target_actor = game.floor.get_actor_at(target_cell)
     if moved:
       if not ally.dead:
         last_group = game.anims[len(game.anims) - 1]
@@ -176,11 +180,11 @@ class Game:
           game.log.print("There's nothing left to take...")
       elif target_tile is Stage.DOOR:
         game.log.print("You open the door.")
-        game.stage.set_tile_at(target_cell, Stage.DOOR_OPEN)
+        game.floor.set_tile_at(target_cell, Stage.DOOR_OPEN)
         acted = True
       elif target_tile is Stage.DOOR_HIDDEN:
         game.log.print("Discovered a hidden door!")
-        game.stage.set_tile_at(target_cell, Stage.DOOR_OPEN)
+        game.floor.set_tile_at(target_cell, Stage.DOOR_OPEN)
         acted = True
       game.refresh_fov()
     if acted:
@@ -191,7 +195,7 @@ class Game:
     was_asleep = target.asleep
 
     def on_flicker_end(_):
-      game.stage.actors.remove(target)
+      game.floor.actors.remove(target)
       if target.faction == "player":
         game.swap()
 
@@ -214,7 +218,7 @@ class Game:
 
     def on_connect(_):
       damage = actor.attack(target)
-      verb = "receives" if actor.faction == "enemy" else "suffers"
+      verb = "suffers" if actor.faction == "enemy" else "receives"
       game.log.print(target.name.upper() + " " + verb + " " + str(damage) + " damage.")
       if was_asleep and not target.asleep:
         game.log.print(target.name.upper() + " woke up!")
@@ -277,7 +281,7 @@ class Game:
     game.log.print("MAGE uses Detect Mana")
     cells = game.p1.visible_cells
     for cell in cells:
-      tile = game.stage.get_tile_at(cell)
+      tile = game.floor.get_tile_at(cell)
       if tile is Stage.DOOR_HIDDEN:
         game.log.print("There's a hidden passage somewhere here.")
         break
@@ -289,15 +293,15 @@ class Game:
     hero_x, hero_y = source_cell
     delta_x, delta_y = game.p1.facing
     target_cell = (hero_x + delta_x, hero_y + delta_y)
-    target_actor = game.stage.get_actor_at(target_cell)
+    target_actor = game.floor.get_actor_at(target_cell)
     game.log.print("HERO uses Shield Bash")
 
     if target_actor and target_actor is not game.p2:
       # nudge target actor 1 square in the given direction
       target_x, target_y = target_cell
       nudge_cell = (target_x + delta_x, target_y + delta_y)
-      nudge_tile = game.stage.get_tile_at(nudge_cell)
-      nudge_actor = game.stage.get_actor_at(nudge_cell)
+      nudge_tile = game.floor.get_tile_at(nudge_cell)
+      nudge_actor = game.floor.get_actor_at(nudge_cell)
       game.anims.append([
         ShakeAnim(duration=Game.SHAKE_DURATION, target=target_actor)
       ])
@@ -326,10 +330,22 @@ class Game:
       ])
 
   def ascend(game):
-    target_tile = game.stage.get_tile_at(game.p1.cell)
+    target_tile = game.floor.get_tile_at(game.p1.cell)
     if target_tile is Stage.STAIRS:
       game.floor += 1
       game.log.print("You go upstairs.")
-      game.reload()
+      game.load_floor()
       return True
     return False
+
+  def ascend(game):
+    target_tile = game.floor.get_tile_at(game.p1.cell)
+    if target_tile is not Stage.STAIRS:
+      return False
+    index = game.floors.index(game.floor) + 1
+    if index < len(game.floors):
+      game.floor = game.floors[index]
+    else:
+      game.load_floor()
+    game.log.print("You go upstairs.")
+    return True

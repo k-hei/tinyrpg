@@ -64,6 +64,7 @@ sprites = {
   "icon_potion": pygame.image.load("assets/icon-potion.png").convert_alpha(),
   "icon_bread": pygame.image.load("assets/icon-bread.png").convert_alpha(),
   "icon_crystal": pygame.image.load("assets/icon-crystal.png").convert_alpha(),
+  "icon_ankh": pygame.image.load("assets/icon-ankh.png").convert_alpha(),
   "skill": pygame.image.load("assets/skill.png").convert_alpha(),
   "box": pygame.image.load("assets/box.png").convert_alpha(),
   "bar": pygame.image.load("assets/bar.png").convert_alpha(),
@@ -178,13 +179,13 @@ def render_game(surface, game):
     camera_y = old_camera_y + (camera_y - old_camera_y) / CAMERA_SPEED
   camera = (camera_x, camera_y)
 
-  (stage_width, stage_height) = game.stage.size
+  (floor_width, floor_height) = game.floor.size
   surface.fill((0, 0, 0))
   for x, y in visited_cells:
-    tile = game.stage.get_tile_at((x, y))
+    tile = game.floor.get_tile_at((x, y))
     sprite = None
     if tile is Stage.WALL or tile is Stage.DOOR_HIDDEN:
-      if game.stage.get_tile_at((x, y + 1)) is Stage.FLOOR:
+      if game.floor.get_tile_at((x, y + 1)) is Stage.FLOOR:
         sprite = sprites["wall_base"]
       else:
         sprite = sprites["wall"]
@@ -208,12 +209,12 @@ def render_game(surface, game):
   # depth sorting
   def get_actor_y(actor):
     return actor.cell[1]
-  game.stage.actors.sort(key=get_actor_y)
+  game.floor.actors.sort(key=get_actor_y)
 
   is_drawing_knight = False
   is_drawing_mage = False
 
-  for actor in game.stage.actors:
+  for actor in game.floor.actors:
     if actor.cell not in visible_cells:
       continue
 
@@ -359,8 +360,9 @@ def render_game(surface, game):
   surface.blit(render_text(str(math.floor(game.sp)) + "/" + str(game.sp_max), font_smallcaps), (x + 19, sp_y + 1))
 
   floor_y = 38
+  floor = game.floors.index(game.floor) + 1
   surface.blit(sprites["tag_floor"], (x, floor_y))
-  surface.blit(render_text(str(game.floor) + "F", font_smallcaps), (x + 13, floor_y + 3))
+  surface.blit(render_text(str(floor) + "F", font_smallcaps), (x + 13, floor_y + 3))
 
   box = sprites["box"]
   cols = game.inventory.cols
@@ -383,6 +385,8 @@ def render_game(surface, game):
           sprite = sprites["icon_bread"]
         elif item == "Warp Crystal":
           sprite = sprites["icon_crystal"]
+        elif item == "Ankh":
+          sprite = sprites["ankh"]
         if sprite:
           surface.blit(sprite, (x + 8, y + 8))
 

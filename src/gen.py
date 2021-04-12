@@ -36,9 +36,9 @@ def get_neighbors(elems, elem):
   return neighbors
 
 def dungeon(width, height, players):
-  stage = Stage((width, height))
-  stage.fill(Stage.WALL)
-  nodes = [cell for cell in stage.get_cells() if is_odd(cell)]
+  floor = Stage((width, height))
+  floor.fill(Stage.WALL)
+  nodes = [cell for cell in floor.get_cells() if is_odd(cell)]
 
   rooms = gen_rooms(nodes)
   if len(rooms) == 1:
@@ -108,7 +108,7 @@ def dungeon(width, height, players):
 
   for elem in rooms + mazes:
     for cell in elem.get_cells():
-      stage.set_tile_at(cell, Stage.FLOOR)
+      floor.set_tile_at(cell, Stage.FLOOR)
 
   for door in doors:
     for room in rooms:
@@ -116,12 +116,12 @@ def dungeon(width, height, players):
         _, conn_door = conns[room][0]
         if conn_door == door:
           if random.randint(1, 5) == 1:
-            stage.set_tile_at(door, Stage.DOOR_HIDDEN)
+            floor.set_tile_at(door, Stage.DOOR_HIDDEN)
           else:
-            stage.set_tile_at(door, Stage.DOOR)
+            floor.set_tile_at(door, Stage.DOOR)
           break
     else:
-      stage.set_tile_at(door, Stage.DOOR)
+      floor.set_tile_at(door, Stage.DOOR)
 
   room = rooms[0]
   center_x, center_y = room.get_center()
@@ -132,38 +132,41 @@ def dungeon(width, height, players):
     p2 = Mage()
 
   if not p1.dead:
-    stage.spawn(p1, (center_x, center_y))
+    floor.spawn(p1, (center_x, center_y))
 
   if not p2.dead:
-    stage.spawn(p2, (center_x - 1, center_y))
+    floor.spawn(p2, (center_x - 1, center_y))
 
   room = rooms[1]
   center = room.get_center()
-  stage.set_tile_at(center, Stage.STAIRS)
+  floor.set_tile_at(center, Stage.STAIRS)
 
   for room in rooms:
     for cell in room.get_cells():
-      is_floor = stage.get_tile_at(cell) is Stage.FLOOR
-      is_empty = stage.get_actor_at(cell) is None
+      is_floor = floor.get_tile_at(cell) is Stage.FLOOR
+      is_empty = floor.get_actor_at(cell) is None
       is_beside_door = next((door for door in doors if is_adjacent(door, cell)), None)
       if not is_floor or not is_empty or is_beside_door:
         continue
       if random.randint(1, 30) == 1:
         enemy = Eye()
-        stage.spawn(enemy, cell)
+        floor.spawn(enemy, cell)
         if random.randint(1, 3) == 1:
           enemy.asleep = True
       elif random.randint(1, 80) == 1:
         choice = random.randint(1, 10)
         if choice == 1:
-          stage.spawn(Chest("Warp Crystal"), cell)
-        elif choice <= 4:
-          stage.spawn(Chest("Bread"), cell)
+          item = "Ankh"
+        elif choice <= 2:
+          item = "Warp Crystal"
+        elif choice <= 5:
+          item = "Bread"
         else:
-          stage.spawn(Chest("Potion"), cell)
+          item = "Potion"
+        floor.spawn(Chest(item), cell)
 
-  stage.rooms = rooms
-  return stage
+  floor.rooms = rooms
+  return floor
 
 def gen_rooms(nodes):
   rooms = []
