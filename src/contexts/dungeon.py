@@ -319,11 +319,19 @@ class DungeonContext(Context):
 
   def handle_floorchange(ctx, direction):
     ctx.log.exit()
-    ctx.parent.dissolve(lambda: (ctx.camera.reset(), ctx.change_floors(direction)))
+    ctx.hud.exit()
+    ctx.parent.dissolve(
+      on_clear=lambda: (
+        ctx.camera.reset(),
+        ctx.change_floors(direction)
+      ),
+      on_end=ctx.hud.enter
+    )
 
   def handle_inventory(ctx):
     if ctx.child is None:
       ctx.log.exit()
+      ctx.hud.exit()
       ctx.child = InventoryContext(
         parent=ctx,
         inventory=ctx.inventory,
@@ -524,15 +532,16 @@ class DungeonContext(Context):
       if len(group) == 0:
         ctx.anims.remove(group)
 
-    is_playing_enter_transit = len(ctx.parent.transits) and type(ctx.parent.transits[0]) is DissolveOut
-    if not is_playing_enter_transit:
-      log = ctx.log.render(assets.sprites["log"], assets.fonts["standard"])
-      surface.blit(log, (
-        window_width / 2 - log.get_width() / 2,
-        window_height + ctx.log.y
-      ))
+    # is_playing_enter_transit = len(ctx.parent.transits) and type(ctx.parent.transits[0]) is DissolveOut
+    # if not is_playing_enter_transit:
+    log = ctx.log.render(assets.sprites["log"], assets.fonts["standard"])
+    surface.blit(log, (
+      window_width / 2 - log.get_width() / 2,
+      window_height + ctx.log.y
+    ))
 
-    if ctx.child and not ctx.log.anim:
+    animating = ctx.log.anim or ctx.hud.anims
+    if ctx.child and not animating:
       ctx.child.render(surface)
     else:
       ctx.hud.draw(surface, ctx)

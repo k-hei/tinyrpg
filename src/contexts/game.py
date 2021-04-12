@@ -7,9 +7,9 @@ class GameContext(Context):
     super().__init__()
     ctx.transits = [DissolveOut(config.window_size)]
 
-  def dissolve(ctx, on_clear):
+  def dissolve(ctx, on_clear, on_end=None):
     ctx.transits.append(DissolveIn(config.window_size, on_clear))
-    ctx.transits.append(DissolveOut(config.window_size))
+    ctx.transits.append(DissolveOut(config.window_size, on_end))
 
   def handle_keydown(ctx, key):
     if len(ctx.transits):

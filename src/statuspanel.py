@@ -6,7 +6,7 @@ from assets import load as use_assets
 import palette
 
 from lerp import lerp
-from easing.expo import ease_out
+from easing.expo import ease_out, ease_in
 from filters import replace_color, recolor
 from text import render as render_text
 
@@ -16,6 +16,8 @@ from anims.tween import TweenAnim
 
 ENTER_DURATION = 20
 ENTER_STAGGER = 5
+EXIT_DURATION = 8
+EXIT_STAGGER = 3
 PANEL_SPACING = -3
 MARGIN_X = 8
 MARGIN_Y = 6
@@ -34,12 +36,11 @@ FLOOR_PADDING_TOP = 3
 class StatusPanel:
   def __init__(panel):
     panel.surface = None
-    panel.active = False
+    panel.active = True
     panel.enter()
 
   def enter(panel):
-    # if panel.active:
-    #   return
+    panel.active = True
     panel.anims = [
       TweenAnim(
         duration=ENTER_DURATION,
@@ -53,6 +54,25 @@ class StatusPanel:
       ),
       TweenAnim(
         duration=ENTER_DURATION,
+        target="status"
+      )
+    ]
+
+  def exit(panel):
+    panel.active = False
+    panel.anims = [
+      TweenAnim(
+        duration=EXIT_DURATION,
+        delay=EXIT_STAGGER * 2,
+        target=Knight
+      ),
+      TweenAnim(
+        duration=EXIT_DURATION,
+        delay=EXIT_STAGGER,
+        target=Mage
+      ),
+      TweenAnim(
+        duration=EXIT_DURATION,
         target="status"
       )
     ]
@@ -79,10 +99,15 @@ class StatusPanel:
 
     start_y = -portrait_knight.get_height()
     end_y = MARGIN_Y
+    easing = ease_out
+    if not panel.active:
+      start_y, end_y = (end_y, start_y)
+      easing = lambda x: x # ease_in
+
     knight_y, mage_y, status_y = (end_y, end_y, end_y)
     for anim in panel.anims:
       x = anim.update()
-      t = ease_out(x)
+      t = easing(x)
       y = lerp(start_y, end_y, t)
       if anim.target is Knight:
         knight_y = y
