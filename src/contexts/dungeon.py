@@ -285,7 +285,10 @@ class DungeonContext(Context):
 
   def handle_special(game):
     if type(game.hero) is Knight:
-      game.shield_bash()
+      game.shield_bash(on_end=lambda: (
+        game.step(),
+        game.refresh_fov()
+      ))
     elif type(game.hero) is Mage:
       game.detect_mana()
 
@@ -326,7 +329,7 @@ class DungeonContext(Context):
     else:
       return False
 
-  def attack(game, actor, target, on_connect=None):
+  def attack(game, actor, target, on_connect=None, on_end=None):
     was_asleep = target.asleep
     game.log.print(actor.name.upper() + " attacks")
 
@@ -334,10 +337,11 @@ class DungeonContext(Context):
       game.floor.actors.remove(target)
       if target.faction == "player":
         game.handle_swap()
+      if on_end: on_end()
 
     def awaken():
       game.log.print(target.name.upper() + " woke up!")
-      game.anims[0].append(PauseAnim(duration=PAUSE_DURATION))
+      game.anims[0].append(PauseAnim(duration=PAUSE_DURATION, on_end=on_end))
 
     def respond():
       if target.dead:
@@ -351,14 +355,13 @@ class DungeonContext(Context):
           on_end=remove
         ))
       elif is_adjacent(actor.cell, target.cell):
-        game.anims[0].append(PauseAnim(duration=PAUSE_DURATION))
+        game.anims[0].append(PauseAnim(duration=PAUSE_DURATION, on_end=on_end))
 
     def shake():
       damage = actor.attack(target)
       verb = "suffers" if actor.faction == "enemy" else "receives"
       game.log.print(target.name.upper() + " " + verb + " " + str(damage) + " damage.")
-      if on_connect:
-        on_connect()
+      if on_connect: on_connect()
       game.anims[0].append(ShakeAnim(
         duration=SHAKE_DURATION,
         target=target,
@@ -385,7 +388,7 @@ class DungeonContext(Context):
       )
     ])
 
-  def shield_bash(game):
+  def shield_bash(game, on_end=None):
     if game.sp >= 2:
       game.sp = max(0, game.sp - 2)
 
@@ -417,7 +420,7 @@ class DungeonContext(Context):
 
       # attack
       if type(target_actor) is Eye:
-        game.attack(user, target_actor, on_connect)
+        game.attack(user, target_actor, on_connect, on_end)
         game.log.print(target_actor.name.upper() + " is reeling.")
     else:
       game.log.print("But nothing happened...")
@@ -426,7 +429,8 @@ class DungeonContext(Context):
           duration=ATTACK_DURATION,
           target=user,
           src_cell=user.cell,
-          dest_cell=target_cell
+          dest_cell=target_cell,
+          on_end=on_end
         )
       ])
 

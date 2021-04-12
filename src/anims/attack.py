@@ -24,7 +24,7 @@ class AttackAnim():
     if anim.time == anim.duration:
       anim.done = True
       if anim.on_end:
-        anim.on_end(anim)
+        anim.on_end()
     src_x, src_y = anim.src_cell
     norm_x, norm_y = anim.normal
     midpoint = anim.duration // 2
