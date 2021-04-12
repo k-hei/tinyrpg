@@ -13,7 +13,7 @@ class MoveAnim():
 
   def update(anim):
     if anim.done:
-      return anim.dest
+      return anim.dest_cell
     anim.time += 1
     if anim.time == anim.duration:
       anim.done = True

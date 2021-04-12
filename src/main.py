@@ -7,7 +7,7 @@ from stage import Stage
 from text import Font, render as render_text
 from log import Log
 from filters import recolor
-from anims import AttackAnim, FlickerAnim, MoveAnim, ShakeAnim, PauseAnim
+from anims import AttackAnim, FlickerAnim, MoveAnim, ShakeAnim, PauseAnim, AwakenAnim
 from actors import Knight, Mage, Eye, Chest
 
 TILE_SIZE = 32
@@ -247,22 +247,35 @@ def render_game(surface, game):
         if anim.target is not actor:
           continue
 
-        if type(anim) is PauseAnim:
-          anim.update()
-
         if type(anim) is ShakeAnim:
           sprite_x += anim.update()
-          if type(actor) is Eye:
-            sprite = sprites["eye_flinch"]
-          elif type(actor) is Knight:
+          if type(actor) is Knight:
             sprite = sprites["knight_flinch"]
+          elif type(actor) is Eye:
+            sprite = sprites["eye_flinch"]
+            will_awaken = next((anim for anim in anim_group if type(anim) is AwakenAnim), None)
+            if will_awaken:
+              sprite = sprite.copy()
+              pixels = PixelArray(sprite)
+              pixels.replace(RED, PURPLE)
+              pixels.close()
 
         if type(anim) is FlickerAnim:
           visible = anim.update()
           if not visible:
             sprite = None
+          elif type(actor) is Knight:
+            sprite = sprites["knight_flinch"]
           elif type(actor) is Eye:
             sprite = sprites["eye_flinch"]
+
+        if type(anim) is AwakenAnim and len(anim_group) == 1:
+          recolored = anim.update()
+          if recolored and sprite:
+            sprite = sprite.copy()
+            pixels = PixelArray(sprite)
+            pixels.replace(RED, PURPLE)
+            pixels.close()
 
         if type(anim) is AttackAnim:
           if type(actor) is Eye:
@@ -278,11 +291,6 @@ def render_game(surface, game):
           col, row = anim.update()
           sprite_x = col * TILE_SIZE
           sprite_y = row * TILE_SIZE
-
-        if anim.done:
-          anim_group.remove(anim)
-          if len(anim_group) == 0:
-            game.anims.remove(anim_group)
 
     if type(actor) is Eye and actor.asleep and sprite:
       sprite = sprite.copy()
@@ -315,6 +323,16 @@ def render_game(surface, game):
     is_flipped = facing == -1
     if sprite:
       surface.blit(pygame.transform.flip(sprite, is_flipped, False), (sprite_x + camera_x, sprite_y + camera_y))
+
+  if anim_group:
+    for anim in anim_group:
+      if type(anim) is PauseAnim:
+        anim.update()
+
+      if anim.done:
+        anim_group.remove(anim)
+        if len(anim_group) == 0:
+          game.anims.remove(anim_group)
 
   portrait_knight = sprites["portrait_knight"].copy()
   portrait_mage = sprites["portrait_mage"].copy()
@@ -392,7 +410,7 @@ def render_game(surface, game):
         elif item == "Warp Crystal":
           sprite = sprites["icon_crystal"]
         elif item == "Ankh":
-          sprite = sprites["ankh"]
+          sprite = sprites["icon_ankh"]
         if sprite:
           surface.blit(sprite, (x + 8, y + 8))
 

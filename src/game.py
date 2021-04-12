@@ -5,7 +5,7 @@ from cell import is_adjacent
 from stage import Stage
 from log import Log
 from inventory import Inventory
-from anims import AttackAnim, FlickerAnim, MoveAnim, ShakeAnim, PauseAnim
+from anims import AttackAnim, FlickerAnim, MoveAnim, ShakeAnim, PauseAnim, AwakenAnim
 from actors import Knight, Mage, Eye, Chest
 
 class Game:
@@ -14,6 +14,8 @@ class Game:
   SHAKE_DURATION = 30
   FLICKER_DURATION = 30
   PAUSE_DURATION = 15
+  PAUSE_ITEM_DURATION = 30
+  AWAKEN_DURATION = 45
 
   def __init__(game):
     game.log = Log()
@@ -57,7 +59,8 @@ class Game:
       game.log.print("There's an air of mystery about this floor...")
     stairs_x, stairs_y = floor.find_tile(Stage.STAIRS_DOWN)
     floor.spawn_actor(game.p1, (stairs_x, stairs_y))
-    floor.spawn_actor(game.p2, (stairs_x - 1, stairs_y))
+    if not game.p2.dead:
+      floor.spawn_actor(game.p2, (stairs_x - 1, stairs_y))
     game.floor = floor
     game.floors.append(game.floor)
     game.memory.append((game.floor, []))
@@ -212,6 +215,10 @@ class Game:
       if target.faction == "player":
         game.swap()
 
+    def on_awaken_end(_):
+      game.log.print(target.name.upper() + " woke up!")
+      game.anims[0].append(PauseAnim(duration=Game.PAUSE_DURATION))
+
     def on_shake_end(_):
       if target.dead:
         if target.faction == "enemy":
@@ -224,22 +231,23 @@ class Game:
           on_end=on_flicker_end
         ))
       elif is_adjacent(actor.cell, target.cell):
-        game.anims[0].append(PauseAnim(
-          duration=Game.PAUSE_DURATION,
-          target=target
-        ))
+        game.anims[0].append(PauseAnim(duration=Game.PAUSE_DURATION))
 
     def on_connect(_):
       damage = actor.attack(target)
       verb = "suffers" if actor.faction == "enemy" else "receives"
       game.log.print(target.name.upper() + " " + verb + " " + str(damage) + " damage.")
-      if was_asleep and not target.asleep:
-        game.log.print(target.name.upper() + " woke up!")
       game.anims[0].append(ShakeAnim(
         duration=Game.SHAKE_DURATION,
         target=target,
         on_end=on_shake_end
       ))
+      if was_asleep and not target.asleep:
+        game.anims[0].append(AwakenAnim(
+          duration=Game.AWAKEN_DURATION,
+          target=target,
+          on_end=on_awaken_end)
+        )
 
     damage = actor.find_damage(target)
     if damage >= target.hp:
@@ -274,6 +282,8 @@ class Game:
         game.sp = game.sp_max
     else:
       game.log.print("But nothing happened...")
+    game.anims.append([ PauseAnim(duration=Game.PAUSE_ITEM_DURATION) ])
+    game.step()
 
   def swap(game):
     if game.p2.dead:
@@ -283,14 +293,14 @@ class Game:
     return True
 
   def special(game):
-    if game.sp >= 2:
-      if type(game.p1) is Knight:
-        game.shield_bash()
-      elif type(game.p1) is Mage:
-        game.detect_mana()
-      game.sp -= 2
+    if type(game.p1) is Knight:
+      game.shield_bash()
+    elif type(game.p1) is Mage:
+      game.detect_mana()
 
   def detect_mana(game):
+    if game.sp >= 1:
+      game.sp = max(0, game.sp - 1)
     game.log.print("MAGE uses Detect Mana")
     cells = game.p1.visible_cells
     for cell in cells:
@@ -302,6 +312,8 @@ class Game:
       game.log.print("You don't sense anything magical nearby.")
 
   def shield_bash(game):
+    if game.sp >= 2:
+      game.sp = max(0, game.sp - 2)
     source_cell = game.p1.cell
     hero_x, hero_y = source_cell
     delta_x, delta_y = game.p1.facing
@@ -368,7 +380,8 @@ class Game:
       new_floor = game.floors[index]
       stairs_x, stairs_y = new_floor.find_tile(entry_tile)
       new_floor.spawn_actor(game.p1, (stairs_x, stairs_y))
-      new_floor.spawn_actor(game.p2, (stairs_x - 1, stairs_y))
+      if not game.p2.dead:
+        new_floor.spawn_actor(game.p2, (stairs_x - 1, stairs_y))
       game.floor = new_floor
       game.refresh_fov()
 
