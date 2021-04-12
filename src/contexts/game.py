@@ -1,15 +1,15 @@
 from contexts import Context
 from transits.dissolve import DissolveIn, DissolveOut
+import config
 
 class GameContext(Context):
   def __init__(ctx):
     super().__init__()
-    ctx.transits = []
-    ctx.inited = False
+    ctx.transits = [DissolveOut(config.window_size)]
 
   def dissolve(ctx, on_clear):
-    ctx.transits.append(DissolveIn(surface, on_clear))
-    ctx.transits.append(DissolveOut(surface))
+    ctx.transits.append(DissolveIn(config.window_size, on_clear))
+    ctx.transits.append(DissolveOut(config.window_size))
 
   def handle_keydown(ctx, key):
     if len(ctx.transits):
@@ -17,13 +17,10 @@ class GameContext(Context):
     return super().handle_keydown(key)
 
   def render(ctx, surface):
-    if not ctx.inited:
-      ctx.inited = True
-      ctx.transits.append(DissolveOut(surface))
     super().render(surface)
     if len(ctx.transits):
       transit = ctx.transits[0]
       transit.update()
-      transit.render()
+      transit.render(surface)
       if transit.done:
         ctx.transits.remove(transit)

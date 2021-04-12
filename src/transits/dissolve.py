@@ -50,9 +50,9 @@ def gen_diamonds(radius, step):
 diamonds = gen_diamonds(DIAMOND_RADIUS, SPREAD_SPEED)
 
 class DissolveIn:
-  def __init__(transit, surface, on_end=None):
+  def __init__(transit, size, on_end=None):
     start = (DIAMOND_RADIUS // 2, DIAMOND_RADIUS // 2, 0)
-    transit.surface = surface
+    transit.size = size
     transit.on_end = on_end
     transit.stack = [start]
     transit.nodes = [start]
@@ -63,8 +63,7 @@ class DissolveIn:
   def update(transit):
     if transit.done:
       return
-    view_width = transit.surface.get_width()
-    view_height = transit.surface.get_height()
+    view_width, view_height = transit.size
     old_stack = transit.stack
     new_stack = []
     if transit.time % MULTIPLY_DELAY == 0:
@@ -94,15 +93,15 @@ class DissolveIn:
             transit.on_end()
     transit.time += 1
 
-  def render(transit):
+  def render(transit, surface):
     for node in transit.nodes:
       x, y, t = node
       diamond = diamonds[t // SPREAD_SPEED]
-      transit.surface.blit(diamond, (x - t, y - t))
+      surface.blit(diamond, (x - t, y - t))
 
 class DissolveOut:
-  def __init__(transit, surface, on_end=None):
-    transit.surface = surface
+  def __init__(transit, size, on_end=None):
+    transit.size = size
     transit.on_end = on_end
     transit.stack = [(0, 0)]
     transit.nodes = []
@@ -114,8 +113,7 @@ class DissolveOut:
   def load_nodes(transit):
     transit.nodes = []
     transit.node_times = {}
-    view_width = transit.surface.get_width()
-    view_height = transit.surface.get_height()
+    view_width, view_height = transit.size
     cols = view_width // DIAMOND_RADIUS + 1
     rows = view_height // DIAMOND_RADIUS + 1
     for y in range(rows):
@@ -128,8 +126,7 @@ class DissolveOut:
   def update(transit):
     if transit.done:
       return
-    view_width = transit.surface.get_width()
-    view_height = transit.surface.get_height()
+    view_width, view_height = transit.size
     nodes = transit.nodes
     node_times = transit.node_times
     old_stack = transit.stack
@@ -163,7 +160,7 @@ class DissolveOut:
       transit.stack = new_stack
     transit.time += 1
 
-  def render(transit):
+  def render(transit, surface):
     start = DIAMOND_RADIUS // 2
     for node in transit.nodes:
       col, row = node
@@ -171,4 +168,4 @@ class DissolveOut:
       diamond = diamonds[time]
       x = start + col * DIAMOND_RADIUS - time * SPREAD_SPEED
       y = start + row * DIAMOND_RADIUS - time * SPREAD_SPEED
-      transit.surface.blit(diamond, (x, y))
+      surface.blit(diamond, (x, y))

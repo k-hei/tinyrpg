@@ -12,11 +12,13 @@ def init():
 
 def update():
   for key in key_times:
-    key_times[key] += 1
+    if key_times[key] > 0:
+      key_times[key] += 1
 
 def handle_keydown(key):
   if not inited: init()
-  key_times[key] = 1
+  if key not in key_times or key_times[key] == 0:
+    key_times[key] = 1
 
 def handle_keyup(key):
   if not inited: init()

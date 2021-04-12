@@ -53,7 +53,7 @@ class DungeonContext(Context):
     ctx.hero = Knight()
     ctx.ally = Mage()
     ctx.log = Log()
-    ctx.camera = Camera((config.window_width, config.window_height))
+    ctx.camera = Camera(config.window_size)
     ctx.inventory = Inventory(2, 2)
     ctx.create_floor()
     ctx.key_requires_reset = {}
@@ -162,6 +162,30 @@ class DungeonContext(Context):
       moved = ctx.handle_move(delta)
       if not moved:
         ctx.key_requires_reset[key] = True
+      return moved
+
+    if key not in key_times or key_times[key] != 1:
+      return False
+
+    if key == pygame.K_TAB:
+      return ctx.handle_swap()
+
+    # if key == pygame.K_BACKSPACE:
+    #   return ctx.handle_inventory()
+
+    # if key == pygame.K_q:
+    #   return ctx.handle_item()
+
+    # if key == pygame.K_SPACE:
+    #   return ctx.handle_special()
+
+    if key == pygame.K_COMMA and key_times[pygame.K_RSHIFT]:
+      return ctx.handle_ascend()
+
+    # if key == pygame.K_PERIOD and key_times[pygame.KMOD_SHIFT]:
+    #   return ctx.handle_descend()
+
+    return False
 
   def handle_move(ctx, delta):
     hero = ctx.hero
@@ -258,6 +282,60 @@ class DungeonContext(Context):
     else:
       return False
 
+  def handle_swap(game):
+    if game.ally.dead:
+      return False
+    game.hero, game.ally = (game.ally, game.hero)
+    game.refresh_fov()
+    return True
+
+  def handle_ascend(ctx):
+    if ctx.floor.get_tile_at(ctx.hero.cell) is not Stage.STAIRS_UP:
+      return ctx.log.print("There's nowhere to go up here!")
+    ctx.handle_floorchange(1)
+
+  def handle_descend(ctx):
+    if ctx.floor.get_tile_at(ctx.hero.cell) is not Stage.STAIRS_DOWN:
+      return ctx.log.print("There's nowhere to go down here!")
+    ctx.handle_floorchange(-1)
+
+  def handle_floorchange(ctx, direction):
+    ctx.log.exit()
+    ctx.parent.dissolve(lambda: (ctx.camera.reset(), ctx.change_floors(direction)))
+
+  def change_floors(game, direction):
+    exit_tile = Stage.STAIRS_UP if direction == 1 else Stage.STAIRS_DOWN
+    entry_tile = Stage.STAIRS_DOWN if direction == 1 else Stage.STAIRS_UP
+    text = "You go upstairs." if direction == 1 else "You go downstairs."
+
+    if direction not in (1, -1):
+      return False
+
+    target_tile = game.floor.get_tile_at(game.hero.cell)
+    if target_tile is not exit_tile:
+      return False
+
+    game.log.print(text)
+    old_floor = game.floor
+    old_floor.remove_actor(game.hero)
+    old_floor.remove_actor(game.ally)
+
+    index = game.floors.index(game.floor) + direction
+    if index >= len(game.floors):
+      # create a new floor if out of bounds
+      game.create_floor()
+    elif index >= 0:
+      # go back to old floor if within bounds
+      new_floor = game.floors[index]
+      stairs_x, stairs_y = new_floor.find_tile(entry_tile)
+      new_floor.spawn_actor(game.hero, (stairs_x, stairs_y))
+      if not game.ally.dead:
+        new_floor.spawn_actor(game.ally, (stairs_x - 1, stairs_y))
+      game.floor = new_floor
+      game.refresh_fov()
+
+    return True
+
   def render(ctx, surface):
     assets = load_assets()
     surface.fill(0x000000)
@@ -276,6 +354,8 @@ class DungeonContext(Context):
       if len(group) == 0:
         ctx.anims.remove(group)
 
+    ctx.render_hud(surface)
+
     is_playing_enter_transit = len(ctx.parent.transits) and type(ctx.parent.transits[0]) is DissolveOut
     if not is_playing_enter_transit:
       log = ctx.log.render(assets.sprites["log"], assets.fonts["standard"])
@@ -283,8 +363,6 @@ class DungeonContext(Context):
         window_width / 2 - log.get_width() / 2,
         window_height + ctx.log.y
       ))
-
-    ctx.render_hud(surface)
 
   def render_hud(ctx, surface):
     assets = load_assets()
@@ -299,7 +377,7 @@ class DungeonContext(Context):
     if knight.dead and not knight in ctx.floor.actors:
       portrait_knight = replace_color(portrait_knight, palette.WHITE, palette.RED)
     elif type(hero) is not Knight:
-      portrait_knight = replace_color(portrait_mage, palette.WHITE, palette.GRAY)
+      portrait_knight = replace_color(portrait_knight, palette.WHITE, palette.GRAY)
 
     if mage.dead and not mage in ctx.floor.actors:
       portrait_mage = replace_color(portrait_mage, palette.WHITE, palette.RED)
@@ -440,13 +518,6 @@ class DungeonContext(Context):
 #     game.anims.append([ PauseAnim(duration=Game.PAUSE_ITEM_DURATION) ])
 #     game.step()
 
-#   def swap(game):
-#     if game.p2.dead:
-#       return False
-#     game.p1, game.p2 = (game.p2, game.p1)
-#     game.refresh_fov()
-#     return True
-
 #   def special(game):
 #     if type(game.p1) is Knight:
 #       game.shield_bash()
@@ -510,108 +581,3 @@ class DungeonContext(Context):
 #           dest_cell=target_cell
 #         )
 #       ])
-
-#   def change_floors(game, direction):
-#     exit_tile = Stage.STAIRS_UP if direction == 1 else Stage.STAIRS_DOWN
-#     entry_tile = Stage.STAIRS_DOWN if direction == 1 else Stage.STAIRS_UP
-#     text = "You go upstairs." if direction == 1 else "You go downstairs."
-
-#     if direction not in (1, -1):
-#       return False
-
-#     target_tile = game.floor.get_tile_at(game.p1.cell)
-#     if target_tile is not exit_tile:
-#       return False
-
-#     game.log.print(text)
-#     old_floor = game.floor
-#     old_floor.remove_actor(game.p1)
-#     old_floor.remove_actor(game.p2)
-
-#     index = game.floors.index(game.floor) + direction
-#     if index >= len(game.floors):
-#       # create a new floor if out of bounds
-#       game.load_floor()
-#     elif index >= 0:
-#       # go back to old floor if within bounds
-#       new_floor = game.floors[index]
-#       stairs_x, stairs_y = new_floor.find_tile(entry_tile)
-#       new_floor.spawn_actor(game.p1, (stairs_x, stairs_y))
-#       if not game.p2.dead:
-#         new_floor.spawn_actor(game.p2, (stairs_x - 1, stairs_y))
-#       game.floor = new_floor
-#       game.refresh_fov()
-
-#     return True
-
-# key_requires_reset = {}
-# for key in key_times:
-#   key_requires_reset[key] = False
-
-# def handle_keyup(ctx, key):
-#   key_requires_reset[key] = False
-
-# def handle_keydown(ctx, key):
-#   key_deltas = {
-#     pygame.K_LEFT: (-1, 0),
-#     pygame.K_RIGHT: (1, 0),
-#     pygame.K_UP: (0, -1),
-#     pygame.K_DOWN: (0, 1)
-#   }
-
-#   if key in key_deltas and not key_requires_reset[key]:
-#     moved = game.handle_move((delta_x, delta_y))
-#     if not moved:
-#       key_requires_reset[key] = True
-
-#   if not key_times[key] == 1:
-#     return False
-
-#   if key == pygame.K_TAB:
-#     return ctx.handle_swap()
-
-#   if key == pygame.K_:
-#     return ctx.handle_inventory()
-
-#   if key == pygame.K_q:
-#     return ctx.handle_item()
-
-#   if key == pygame.K_SPACE:
-#     return ctx.handle_special()
-
-#   if key == pygame.K_COMMA and key_times[pygame.KMOD_SHIFT]:
-#     return ctx.handle_ascend()
-
-#   if key == pygame.K_PERIOD and key_times[pygame.KMOD_SHIFT]:
-#     return ctx.handle_descend()
-
-#   return False
-
-# def change_floors(ctx, direction):
-#   ctx.log.exit()
-#   on_end =
-#   ctx.parent.dissolve(lambda: ctx.change_floors(1))
-#   ctx.parent.transits.append(DissolveIn(surface, on_end))
-#   ctx.parent.transits.append(DissolveOut(surface))
-
-# def handle_ascend(ctx):
-#   if ctx.floor.get_tile_at(ctx.hero.cell) is not Stage.STAIRS_UP:
-#     return ctx.log.print("There's nowhere to go up here!")
-#   ctx.change_floors(1)
-
-# def handle_descend(ctx):
-#   if ctx.floor.get_tile_at(ctx.hero.cell) is not Stage.STAIRS_DOWN:
-#     return ctx.log.print("There's nowhere to go down here!")
-#   ctx.change_floors(1)
-
-# def handle_keydown(ctx, key):
-#   if len(ctx.transits):
-#     return
-
-#   if ctx.child:
-#     ctx.child.handle_keydown(key)
-#     return
-
-# def reset_camera():
-#   global camera
-#   camera = None
