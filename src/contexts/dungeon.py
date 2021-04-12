@@ -40,7 +40,6 @@ AWAKEN_DURATION = 45
 VISION_RANGE = 3.5
 
 class DungeonContext(Context):
-
   def __init__(ctx, parent):
     super().__init__(parent)
     ctx.sp_max = 40
@@ -175,8 +174,8 @@ class DungeonContext(Context):
     # if key == pygame.K_q:
     #   return ctx.handle_item()
 
-    # if key == pygame.K_SPACE:
-    #   return ctx.handle_special()
+    if key == pygame.K_SPACE:
+      return ctx.handle_special()
 
     if key == pygame.K_COMMA and key_times[pygame.K_RSHIFT]:
       return ctx.handle_ascend()
@@ -213,6 +212,24 @@ class DungeonContext(Context):
           ctx.log.print("There's a staircase going down here.")
         else:
           ctx.log.print("You can return to the town from here.")
+
+      if ctx.room:
+        room = ctx.room
+        floor = ctx.floor
+        enemies = [floor.get_actor_at(cell) for cell in room.get_cells() if type(floor.get_actor_at(cell)) is Eye]
+        for enemy in enemies:
+          if enemy.asleep and random.randint(1, 10) == 1:
+            enemy.asleep = False
+            ctx.anims.append([
+              AwakenAnim(
+                duration=AWAKEN_DURATION,
+                target=enemy,
+                on_end=lambda: (
+                  ctx.log.print(enemy.name.upper() + " woke up!"),
+                  ctx.anims[0].append(PauseAnim(duration=PAUSE_DURATION))
+                )
+              )
+            ])
 
       if not hero.dead:
         hero.regen()
@@ -259,91 +276,18 @@ class DungeonContext(Context):
       ctx.refresh_fov()
     return moved
 
-  def move(ctx, actor, delta, face=True):
-    actor_x, actor_y = actor.cell
-    delta_x, delta_y = delta
-    target_cell = (actor_x + delta_x, actor_y + delta_y)
-    target_tile = ctx.floor.get_tile_at(target_cell)
-    target_actor = ctx.floor.get_actor_at(target_cell)
-    if face and delta_x:
-      actor.facing = (delta_x, 0)
-    if not target_tile.solid and (target_actor is None or actor is ctx.hero and target_actor is ctx.ally):
-      ctx.anims.append([
-        MoveAnim(
-          duration=MOVE_DURATION,
-          target=actor,
-          src_cell=actor.cell,
-          dest_cell=target_cell
-        )
-      ])
-      actor.cell = target_cell
-      return True
-    else:
-      return False
-
-  def attack(game, actor, target):
-    was_asleep = target.asleep
-    game.log.print(actor.name.upper() + " attacks")
-
-    def on_flicker_end():
-      game.floor.actors.remove(target)
-      if target.faction == "player":
-        game.swap()
-
-    def on_awaken_end():
-      game.log.print(target.name.upper() + " woke up!")
-      game.anims[0].append(PauseAnim(duration=PAUSE_DURATION))
-
-    def on_shake_end():
-      if target.dead:
-        if target.faction == "enemy":
-          game.log.print("Defeated " + target.name.upper() + ".")
-        else:
-          game.log.print(target.name.upper() + " is defeated.")
-        game.anims[0].append(FlickerAnim(
-          duration=FLICKER_DURATION,
-          target=target,
-          on_end=on_flicker_end
-        ))
-      elif is_adjacent(actor.cell, target.cell):
-        game.anims[0].append(PauseAnim(duration=PAUSE_DURATION))
-
-    def on_connect():
-      damage = actor.attack(target)
-      verb = "suffers" if actor.faction == "enemy" else "receives"
-      game.log.print(target.name.upper() + " " + verb + " " + str(damage) + " damage.")
-      game.anims[0].append(ShakeAnim(
-        duration=SHAKE_DURATION,
-        target=target,
-        on_end=on_shake_end
-      ))
-      if was_asleep and not target.asleep:
-        game.anims[0].append(AwakenAnim(
-          duration=AWAKEN_DURATION,
-          target=target,
-          on_end=on_awaken_end)
-        )
-
-    damage = actor.find_damage(target)
-    if damage >= target.hp:
-      target.dead = True
-
-    game.anims.append([
-      AttackAnim(
-        duration=ATTACK_DURATION,
-        target=actor,
-        src_cell=actor.cell,
-        dest_cell=target.cell,
-        on_connect=on_connect
-      )
-    ])
-
   def handle_swap(game):
     if game.ally.dead:
       return False
     game.hero, game.ally = (game.ally, game.hero)
     game.refresh_fov()
     return True
+
+  def handle_special(game):
+    if type(game.hero) is Knight:
+      game.shield_bash()
+    elif type(game.hero) is Mage:
+      game.detect_mana()
 
   def handle_ascend(ctx):
     if ctx.floor.get_tile_at(ctx.hero.cell) is not Stage.STAIRS_UP:
@@ -360,6 +304,131 @@ class DungeonContext(Context):
   def handle_floorchange(ctx, direction):
     ctx.log.exit()
     ctx.parent.dissolve(lambda: (ctx.camera.reset(), ctx.change_floors(direction)))
+
+  def move(ctx, actor, delta):
+    actor_x, actor_y = actor.cell
+    delta_x, delta_y = delta
+    target_cell = (actor_x + delta_x, actor_y + delta_y)
+    target_tile = ctx.floor.get_tile_at(target_cell)
+    target_actor = ctx.floor.get_actor_at(target_cell)
+    actor.facing = delta
+    if not target_tile.solid and (target_actor is None or actor is ctx.hero and target_actor is ctx.ally):
+      ctx.anims.append([
+        MoveAnim(
+          duration=MOVE_DURATION,
+          target=actor,
+          src_cell=actor.cell,
+          dest_cell=target_cell
+        )
+      ])
+      actor.cell = target_cell
+      return True
+    else:
+      return False
+
+  def attack(game, actor, target, on_connect=None):
+    was_asleep = target.asleep
+    game.log.print(actor.name.upper() + " attacks")
+
+    def remove():
+      game.floor.actors.remove(target)
+      if target.faction == "player":
+        game.handle_swap()
+
+    def awaken():
+      game.log.print(target.name.upper() + " woke up!")
+      game.anims[0].append(PauseAnim(duration=PAUSE_DURATION))
+
+    def respond():
+      if target.dead:
+        if target.faction == "enemy":
+          game.log.print("Defeated " + target.name.upper() + ".")
+        else:
+          game.log.print(target.name.upper() + " is defeated.")
+        game.anims[0].append(FlickerAnim(
+          duration=FLICKER_DURATION,
+          target=target,
+          on_end=remove
+        ))
+      elif is_adjacent(actor.cell, target.cell):
+        game.anims[0].append(PauseAnim(duration=PAUSE_DURATION))
+
+    def shake():
+      damage = actor.attack(target)
+      verb = "suffers" if actor.faction == "enemy" else "receives"
+      game.log.print(target.name.upper() + " " + verb + " " + str(damage) + " damage.")
+      if on_connect:
+        on_connect()
+      game.anims[0].append(ShakeAnim(
+        duration=SHAKE_DURATION,
+        target=target,
+        on_end=respond
+      ))
+      if was_asleep and not target.asleep:
+        game.anims[0].append(AwakenAnim(
+          duration=AWAKEN_DURATION,
+          target=target,
+          on_end=awaken
+        ))
+
+    damage = actor.find_damage(target)
+    if damage >= target.hp:
+      target.dead = True
+
+    game.anims.append([
+      AttackAnim(
+        duration=ATTACK_DURATION,
+        target=actor,
+        src_cell=actor.cell,
+        dest_cell=target.cell,
+        on_connect=shake
+      )
+    ])
+
+  def shield_bash(game):
+    if game.sp >= 2:
+      game.sp = max(0, game.sp - 2)
+
+    user = game.hero
+    source_cell = user.cell
+    hero_x, hero_y = source_cell
+    delta_x, delta_y = user.facing
+    target_cell = (hero_x + delta_x, hero_y + delta_y)
+    target_actor = game.floor.get_actor_at(target_cell)
+    game.log.print(user.name.upper() + " uses Shield Bash")
+
+    if target_actor and type(target_actor) is Eye:
+      # nudge target actor 1 square in the given direction
+      target_x, target_y = target_cell
+      nudge_cell = (target_x + delta_x, target_y + delta_y)
+      nudge_tile = game.floor.get_tile_at(nudge_cell)
+      nudge_actor = game.floor.get_actor_at(nudge_cell)
+      will_nudge = not nudge_tile.solid and nudge_actor is None
+
+      def on_connect():
+        if will_nudge:
+          target_actor.cell = nudge_cell
+          game.anims[0].append(MoveAnim(
+            duration=MOVE_DURATION,
+            target=target_actor,
+            src_cell=target_cell,
+            dest_cell=nudge_cell
+          ))
+
+      # attack
+      if type(target_actor) is Eye:
+        game.attack(user, target_actor, on_connect)
+        game.log.print(target_actor.name.upper() + " is reeling.")
+    else:
+      game.log.print("But nothing happened...")
+      game.anims.append([
+        AttackAnim(
+          duration=ATTACK_DURATION,
+          target=user,
+          src_cell=user.cell,
+          dest_cell=target_cell
+        )
+      ])
 
   def change_floors(game, direction):
     exit_tile = Stage.STAIRS_UP if direction == 1 else Stage.STAIRS_DOWN
@@ -518,12 +587,6 @@ class DungeonContext(Context):
 #     game.anims.append([ PauseAnim(duration=Game.PAUSE_ITEM_DURATION) ])
 #     game.step()
 
-#   def special(game):
-#     if type(game.p1) is Knight:
-#       game.shield_bash()
-#     elif type(game.p1) is Mage:
-#       game.detect_mana()
-
 #   def detect_mana(game):
 #     if game.sp >= 1:
 #       game.sp = max(0, game.sp - 1)
@@ -538,46 +601,3 @@ class DungeonContext(Context):
 #         game.log.print("You don't sense anything magical nearby.")
 #     game.log.print("MAGE uses Detect Mana")
 #     game.anims.append([ PauseAnim(duration=30, on_end=search) ])
-
-#   def shield_bash(game):
-#     if game.sp >= 2:
-#       game.sp = max(0, game.sp - 2)
-#     source_cell = game.p1.cell
-#     hero_x, hero_y = source_cell
-#     delta_x, delta_y = game.p1.facing
-#     target_cell = (hero_x + delta_x, hero_y + delta_y)
-#     target_actor = game.floor.get_actor_at(target_cell)
-#     game.log.print("HERO uses Shield Bash")
-
-#     if target_actor and target_actor is not game.p2:
-#       # nudge target actor 1 square in the given direction
-#       target_x, target_y = target_cell
-#       nudge_cell = (target_x + delta_x, target_y + delta_y)
-#       nudge_tile = game.floor.get_tile_at(nudge_cell)
-#       nudge_actor = game.floor.get_actor_at(nudge_cell)
-#       game.anims.append([
-#         ShakeAnim(duration=Game.SHAKE_DURATION, target=target_actor)
-#       ])
-#       if not nudge_tile.solid and nudge_actor is None:
-#         target_actor.cell = nudge_cell
-#         game.anims.append([
-#           MoveAnim(
-#             duration=Game.MOVE_DURATION,
-#             target=target_actor,
-#             src_cell=target_cell,
-#             dest_cell=nudge_cell
-#           )
-#         ])
-#       if type(target_actor) is Eye:
-#         game.attack(target_actor)
-#         game.log.print("EYEBALL is reeling.")
-#     else:
-#       game.log.print("But nothing happened...")
-#       game.anims.append([
-#         AttackAnim(
-#           duration=Game.ATTACK_DURATION,
-#           target=game.p1,
-#           src_cell=game.p1.cell,
-#           dest_cell=target_cell
-#         )
-#       ])

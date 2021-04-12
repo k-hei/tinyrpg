@@ -39,6 +39,7 @@ class Stage:
     stage.data = [Stage.FLOOR] * (width * height)
     stage.actors = []
     stage.rooms = []
+    stage.facings = {}
 
   def fill(stage, data):
     (width, height) = stage.size
@@ -117,6 +118,10 @@ class Stage:
     assets = use_assets()
     camera_x, camera_y = camera_pos
 
+    facing = 0
+    if actor in stage.facings:
+      facing = stage.facings[actor]
+
     (col, row) = actor.cell
     sprite_x = col * config.tile_size
     sprite_y = row * config.tile_size
@@ -140,6 +145,9 @@ class Stage:
 
       if type(anim) is ShakeAnim:
         sprite_x += anim.update()
+
+      will_flinch = next((anim for other in anim_group if type(other) is ShakeAnim and other.target is anim.target), None)
+      if type(anim) is ShakeAnim or will_flinch:
         if type(actor) is Knight:
           sprite = assets.sprites["knight_flinch"]
         elif type(actor) is Eye:
@@ -194,9 +202,9 @@ class Stage:
           sprite_x = col * config.tile_size
           sprite_y = row * config.tile_size
 
-    facing_x, _ = actor.facing
+    stage.facings[actor] = facing
     if sprite:
-      sprite = pygame.transform.flip(sprite, facing_x == -1, False)
+      sprite = pygame.transform.flip(sprite, facing == -1, False)
       x = sprite_x - round(camera_x)
       y = sprite_y - round(camera_y)
       surface.blit(sprite, (x, y))
