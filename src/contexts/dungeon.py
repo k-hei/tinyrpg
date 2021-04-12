@@ -181,7 +181,7 @@ class DungeonContext(Context):
     if key == pygame.K_COMMA and key_times[pygame.K_RSHIFT]:
       return ctx.handle_ascend()
 
-    if key == pygame.K_PERIOD and key_times[pygame.KMOD_SHIFT]:
+    if key == pygame.K_PERIOD and key_times[pygame.K_RSHIFT]:
       return ctx.handle_descend()
 
     return False
@@ -353,6 +353,8 @@ class DungeonContext(Context):
   def handle_descend(ctx):
     if ctx.floor.get_tile_at(ctx.hero.cell) is not Stage.STAIRS_DOWN:
       return ctx.log.print("There's nowhere to go down here!")
+    if ctx.floors.index(ctx.floor) == 0:
+      return ctx.log.print("You aren't ready to go back yet.")
     ctx.handle_floorchange(-1)
 
   def handle_floorchange(ctx, direction):
