@@ -16,6 +16,8 @@ SPACING = 4
 MARGIN = 8
 ENTER_DURATION = 8
 ENTER_STAGGER = 4
+EXIT_DURATION = 6
+EXIT_STAGGER = 3
 
 class InventoryContext(Context):
   def __init__(ctx, parent, inventory, on_close=None):
@@ -23,6 +25,7 @@ class InventoryContext(Context):
     ctx.data = inventory
     ctx.grid_size =  (inventory.cols, inventory.rows)
     ctx.on_close = on_close
+    ctx.on_animate = None
     ctx.cursor = (0, 0)
     ctx.active = True
     ctx.anims = []
@@ -34,9 +37,17 @@ class InventoryContext(Context):
       ctx.bar.print("Your pack is currently empty.")
     ctx.enter()
 
-  def enter(ctx):
+  def enter(ctx, on_end=None):
+    ctx.animate(active=True, on_end=on_end)
+
+  def exit(ctx, on_end=None):
+    ctx.animate(active=False, on_end=on_end)
+
+  def animate(ctx, active, on_end=None):
+    DURATION = ENTER_DURATION if active else EXIT_DURATION
+    STAGGER = ENTER_STAGGER if active else EXIT_STAGGER
     cols, rows = ctx.grid_size
-    ctx.active = True
+    ctx.active = active
     cells = []
     for row in range(rows):
       for col in range(cols):
@@ -45,15 +56,22 @@ class InventoryContext(Context):
     index = 0
     for col, row in cells:
       ctx.anims.append(TweenAnim(
-        duration=ENTER_DURATION,
-        delay=ENTER_STAGGER * index,
+        duration=DURATION,
+        delay=STAGGER * index,
         target=(col, row)
       ))
       index += 1
     ctx.anims.append(TweenAnim(
-      duration=ENTER_DURATION,
+      duration=DURATION,
       target=ctx.bar
     ))
+    ctx.on_animate = on_end
+
+  def remove_anim(ctx, anim):
+    if anim in ctx.anims:
+      ctx.anims.remove(anim)
+    if not ctx.anims and ctx.on_animate:
+      ctx.on_animate()
 
   def get_item_at(ctx, cell):
     inventory = ctx.data
@@ -90,8 +108,11 @@ class InventoryContext(Context):
       return False
 
     if key == pygame.K_BACKSPACE:
-      ctx.parent.child = None
-      if ctx.on_close: ctx.on_close()
+      ctx.animate(active=False, on_end=ctx.close)
+
+  def close(ctx):
+    ctx.parent.child = None
+    if ctx.on_close: ctx.on_close()
 
   def handle_move(ctx, delta):
     delta_x, delta_y = delta
@@ -114,12 +135,16 @@ class InventoryContext(Context):
     start_y = window_height
     end_y = window_height - bar.get_height() - MARGIN
     x = MARGIN
-    y = end_y
+    y = end_y if ctx.active else start_y
     if bar_anim:
-      t = ease_out(bar_anim.update())
+      t = bar_anim.update()
+      if ctx.active:
+        t = ease_out(t)
+      else:
+        t = 1 - t
       y = lerp(start_y, end_y, t)
       if bar_anim.done:
-        ctx.anims.remove(bar_anim)
+        ctx.remove_anim(bar_anim)
     else:
       ctx.bar.update()
     surface.blit(bar, (x, y))
@@ -158,24 +183,29 @@ class InventoryContext(Context):
             old_color=palette.WHITE,
             new_color=new_color
           )
-        t = 1
+        t = 1 if ctx.active else 0
         box_width = box.get_width()
         box_height = box.get_height()
-        for anim in ctx.anims:
-          if anim.target == cell:
-            t = ease_out(anim.update())
-            box_width = round(box_width * t)
-            box_height = round(box_height)
-            sprite = pygame.transform.scale(sprite, (box_width, box_height))
-            if anim.done:
-              ctx.anims.remove(anim)
-        menu.blit(sprite, (
-          x + box.get_width() // 2 - box_width // 2,
-          y + box.get_height() // 2 - box_height // 2
-        ))
-        if item and not ctx.anims:
-          sprite = ctx.render_item(item)
-          menu.blit(sprite, (x + 8, y + 8))
+        box_anim = next((a for a in ctx.anims if a.target == cell), None)
+        if box_anim:
+          t = box_anim.update()
+          if box_anim.done:
+            ctx.remove_anim(box_anim)
+          if ctx.active:
+            t = ease_out(t)
+          else:
+            t = 1 - t
+          box_width = round(box_width * t)
+          box_height = round(box_height)
+          sprite = pygame.transform.scale(sprite, (box_width, box_height))
+        if t:
+          menu.blit(sprite, (
+            x + box.get_width() // 2 - box_width // 2,
+            y + box.get_height() // 2 - box_height // 2
+          ))
+          if item and not ctx.anims:
+            sprite = ctx.render_item(item)
+            menu.blit(sprite, (x + 8, y + 8))
         x += box.get_width() + SPACING
       y += box.get_height() + SPACING
 
@@ -200,7 +230,7 @@ class InventoryContext(Context):
     elif item == "Bread":
       return "Bread: Restores 10 SP"
     elif item == "Warp Crystal":
-      return "Warp Crystal: Return to the town"
+      return "Warp Crystal: Return to town"
     elif item == "Ankh":
-      return "Ankh: Revive incapacitated ally at half HP"
+      return "Ankh: Revives incapacitated ally at half HP"
     return None
