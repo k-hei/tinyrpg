@@ -7,9 +7,8 @@ def init():
   global inited
   inited = True
   keys = pygame.key.get_pressed()
-  for key in keys:
-    key_times[key] = 0
-
+  for i in range(len(keys)):
+    key_times[i] = 0
 
 def update():
   for key in key_times:

@@ -3,15 +3,24 @@ from assets import load as load_assets
 from text import render as render_text
 from filters import recolor
 from stage import Stage
-from actors.knight import Knight
-from actors.mage import Mage
 from log import Log
 from camera import Camera
 from inventory import Inventory
+from keyboard import key_times
 import gen
 import fov
 import pygame
 import config
+
+from actors.knight import Knight
+from actors.mage import Mage
+
+from anims.move import MoveAnim
+from anims.attack import AttackAnim
+from anims.shake import ShakeAnim
+from anims.flicker import FlickerAnim
+from anims.pause import PauseAnim
+from anims.awaken import AwakenAnim
 
 MOVE_DURATION = 8
 ATTACK_DURATION = 12
@@ -39,6 +48,7 @@ class DungeonContext(Context):
     ctx.camera = Camera((config.window_width, config.window_height))
     ctx.inventory = Inventory(2, 2)
     ctx.create_floor()
+    ctx.key_requires_reset = {}
 
   def create_floor(ctx):
     floor = gen.dungeon((19, 19))
@@ -76,6 +86,9 @@ class DungeonContext(Context):
         visited_cells.append(cell)
     ctx.hero.visible_cells = visible_cells
 
+  def handle_keyup(ctx, key):
+    ctx.key_requires_reset[key] = False
+
   def handle_keydown(ctx, key):
     key_deltas = {
       pygame.K_LEFT: (-1, 0),
@@ -83,13 +96,71 @@ class DungeonContext(Context):
       pygame.K_UP: (0, -1),
       pygame.K_DOWN: (0, 1)
     }
-    if key in key_deltas:
+
+    key_requires_reset = key in ctx.key_requires_reset and ctx.key_requires_reset[key]
+    if key in key_deltas and not key_requires_reset:
       delta = key_deltas[key]
-      return ctx.handle_move(delta)
-    return False
+      moved = ctx.handle_move(delta)
+      if not moved:
+        ctx.key_requires_reset[key] = True
 
   def handle_move(ctx, delta):
-    pass
+    hero = ctx.hero
+    ally = ctx.ally
+    if hero.dead:
+      return False
+    hero_x, hero_y = hero.cell
+    delta_x, delta_y = delta
+    acted = False
+    moved = ctx.move(hero, delta)
+    target_cell = (hero_x + delta_x, hero_y + delta_y)
+    target_tile = ctx.floor.get_tile_at(target_cell)
+    target_actor = ctx.floor.get_actor_at(target_cell)
+    if moved:
+      if not ally.dead:
+        last_group = ctx.anims[len(ctx.anims) - 1]
+        ally_x, ally_y = ally.cell
+        ctx.move(ally, (hero_x - ally_x, hero_y - ally_y))
+        last_group.append(ctx.anims.pop()[0])
+      ctx.refresh_fov()
+
+      if target_tile is Stage.STAIRS_UP:
+        ctx.log.print("There's a staircase going up here.")
+      elif target_tile is Stage.STAIRS_DOWN:
+        if ctx.floors.index(ctx.floor):
+          ctx.log.print("There's a staircase going down here.")
+        else:
+          ctx.log.print("You can return to the town from here.")
+
+      if not hero.dead:
+        hero.regen()
+      if not ally.dead:
+        ally.regen()
+
+      acted = True
+      ctx.sp = max(0, ctx.sp - 1 / 100)
+
+  def move(game, actor, delta, face=True):
+    actor_x, actor_y = actor.cell
+    delta_x, delta_y = delta
+    target_cell = (actor_x + delta_x, actor_y + delta_y)
+    target_tile = game.floor.get_tile_at(target_cell)
+    target_actor = game.floor.get_actor_at(target_cell)
+    if face and delta_x:
+      actor.facing = (delta_x, 0)
+    if not target_tile.solid and (target_actor is None or actor is game.hero and target_actor is game.ally):
+      game.anims.append([
+        MoveAnim(
+          duration=MOVE_DURATION,
+          target=actor,
+          src_cell=actor.cell,
+          dest_cell=target_cell
+        )
+      ])
+      actor.cell = target_cell
+      return True
+    else:
+      return False
 
   def render(ctx, surface):
     assets = load_assets()
@@ -97,207 +168,21 @@ class DungeonContext(Context):
     window_width = surface.get_width()
     window_height = surface.get_height()
 
-    hero = ctx.hero
-    visible_cells = hero.visible_cells
-    visited_cells = next((cells for floor, cells in ctx.memory if floor is ctx.floor), None)
-
     ctx.camera.update(ctx)
-    ctx.floor.render_tiles(
-      surface=surface,
-      visible_cells=ctx.hero.visible_cells,
-      visited_cells=visited_cells,
-      camera_pos=ctx.camera.pos
-    )
+    ctx.floor.render(surface, ctx)
+
+    for group in ctx.anims:
+      for anim in group:
+        if type(anim) is PauseAnim:
+          anim.update()
+          if anim.done:
+            anim_group.remove(anim)
+      if len(group) == 0:
+        ctx.anims.remove(group)
+
 
 
 #   def render(ctx, surface):
-#     window_width, window_height = WINDOW_SIZE
-#     hero = game.p1
-
-#     visible_cells = hero.visible_cells
-#     visited_cells = next((cells for floor, cells in game.memory if floor is game.floor), None)
-
-#     anim_group = None
-#     if len(game.anims) > 0:
-#       anim_group = game.anims[0]
-
-#     hero_x, hero_y = hero.cell
-#     focus_x, focus_y = hero.cell
-#     CAMERA_SPEED = 8
-#     if game.room:
-#       focus_x, focus_y = game.room.get_center()
-#       CAMERA_SPEED = 16
-#     elif anim_group:
-#       for anim in anim_group:
-#         if anim.target is hero and type(anim) is MoveAnim and not anim.done:
-#           focus_x, focus_y = anim.cur_cell
-#           break
-
-#     camera_x = -((focus_x + 0.5) * TILE_SIZE - window_width / 2)
-#     camera_y = -((focus_y + 0.5) * TILE_SIZE - window_height / 2)
-#     if camera is not None:
-#       old_camera_x, old_camera_y = camera
-#       camera_x = old_camera_x + (camera_x - old_camera_x) / CAMERA_SPEED
-#       camera_y = old_camera_y + (camera_y - old_camera_y) / CAMERA_SPEED
-#     camera = (camera_x, camera_y)
-
-#     (floor_width, floor_height) = game.floor.size
-#     surface.fill((0, 0, 0))
-#     for x, y in visited_cells:
-#       tile = game.floor.get_tile_at((x, y))
-#       sprite = None
-#       if tile is Stage.WALL or tile is Stage.DOOR_HIDDEN:
-#         if game.floor.get_tile_at((x, y + 1)) is Stage.FLOOR:
-#           sprite = sprites["wall_base"]
-#         else:
-#           sprite = sprites["wall"]
-#       elif tile is Stage.STAIRS_UP:
-#         sprite = sprites["stairs_up"]
-#       elif tile is Stage.STAIRS_DOWN:
-#         sprite = sprites["stairs_down"]
-#       elif tile is Stage.DOOR:
-#         sprite = sprites["door"]
-#       elif tile is Stage.DOOR_OPEN:
-#         sprite = sprites["door_open"]
-#       elif tile is Stage.FLOOR:
-#         sprite = sprites["floor"]
-#       if sprite:
-#         opacity = 255
-#         if (x, y) not in visible_cells:
-#           distance = math.sqrt(math.pow(x - hero_x, 2) + math.pow(y - hero_y, 2))
-#           opacity = (1 - distance / 8) * 128
-#         sprite.set_alpha(opacity)
-#         surface.blit(sprite, (round(x * TILE_SIZE + camera_x), round(y * TILE_SIZE + camera_y)))
-#         sprite.set_alpha(None)
-
-#     # depth sorting
-#     def get_actor_y(actor):
-#       return actor.cell[1]
-#     game.floor.actors.sort(key=get_actor_y)
-
-#     is_drawing_knight = False
-#     is_drawing_mage = False
-
-#     for actor in game.floor.actors:
-#       if actor.cell not in visible_cells:
-#         continue
-
-#       (col, row) = actor.cell
-#       sprite_x = col * TILE_SIZE
-#       sprite_y = row * TILE_SIZE
-
-#       sprite = None
-#       if type(actor) is Knight:
-#         sprite = sprites["knight"]
-#       elif type(actor) is Mage:
-#         sprite = sprites["mage"]
-#       elif type(actor) is Eye:
-#         sprite = sprites["eye"]
-#       elif type(actor) is Chest:
-#         if actor.opened:
-#           sprite = sprites["chest_open"]
-#         else:
-#           sprite = sprites["chest"]
-
-#       facing = None
-#       if anim_group:
-#         for anim in anim_group:
-#           if anim.target is not actor:
-#             continue
-
-#           if type(anim) is ShakeAnim:
-#             sprite_x += anim.update()
-#             if type(actor) is Knight:
-#               sprite = sprites["knight_flinch"]
-#             elif type(actor) is Eye:
-#               sprite = sprites["eye_flinch"]
-#               will_awaken = next((anim for anim in anim_group if type(anim) is AwakenAnim), None)
-#               if will_awaken:
-#                 sprite = sprite.copy()
-#                 pixels = PixelArray(sprite)
-#                 pixels.replace(RED, PURPLE)
-#                 pixels.close()
-
-#           if type(anim) is FlickerAnim:
-#             visible = anim.update()
-#             if not visible:
-#               sprite = None
-#             elif type(actor) is Knight:
-#               sprite = sprites["knight_flinch"]
-#             elif type(actor) is Eye:
-#               sprite = sprites["eye_flinch"]
-
-#           if type(anim) is AwakenAnim and len(anim_group) == 1:
-#             if type(actor) is Eye:
-#               sprite = sprites["eye_attack"]
-#             recolored = anim.update()
-#             if recolored and sprite:
-#               sprite = sprite.copy()
-#               pixels = PixelArray(sprite)
-#               pixels.replace(RED, PURPLE)
-#               pixels.close()
-
-#           if type(anim) is AttackAnim:
-#             if type(actor) is Eye:
-#               sprite = sprites["eye_attack"]
-
-#           if type(anim) in (AttackAnim, MoveAnim):
-#             src_x, src_y = anim.src_cell
-#             dest_x, dest_y = anim.dest_cell
-#             if dest_x < src_x:
-#               facing = -1
-#             elif dest_x > src_x:
-#               facing = 1
-#             col, row = anim.update()
-#             sprite_x = col * TILE_SIZE
-#             sprite_y = row * TILE_SIZE
-
-#         if anim.done:
-#           anim_group.remove(anim)
-#           if len(anim_group) == 0:
-#             game.anims.remove(anim_group)
-
-#       if type(actor) is Eye and actor.asleep and sprite:
-#         sprite = sprite.copy()
-#         pixels = PixelArray(sprite)
-#         pixels.replace(RED, PURPLE)
-#         pixels.close()
-
-#       for group in game.anims:
-#         for anim in group:
-#           if anim.target is actor and type(anim) is MoveAnim and group is not anim_group:
-#             col, row = anim.src_cell
-#             sprite_x = col * TILE_SIZE
-#             sprite_y = row * TILE_SIZE
-
-#       existing_facing = next((facing for facing in facings if facing[0] is actor), None)
-#       if facing is None:
-#         if existing_facing:
-#           actor, facing = existing_facing
-#       else:
-#         if existing_facing in facings:
-#           facings.remove(existing_facing)
-#         facings.append((actor, facing))
-
-#       if sprite and type(actor) is Knight:
-#         is_drawing_knight = True
-
-#       if sprite and type(actor) is Mage:
-#         is_drawing_mage = True
-
-#       is_flipped = facing == -1
-#       if sprite:
-#         surface.blit(pygame.transform.flip(sprite, is_flipped, False), (sprite_x + camera_x, sprite_y + camera_y))
-
-#     if anim_group:
-#       for anim in anim_group:
-#         if type(anim) is PauseAnim:
-#           anim.update()
-
-#         if anim.done:
-#           anim_group.remove(anim)
-#           if len(anim_group) == 0:
-#             game.anims.remove(anim_group)
 
 #     portrait_knight = sprites["portrait_knight"].copy()
 #     portrait_mage = sprites["portrait_mage"].copy()
@@ -439,26 +324,6 @@ class DungeonContext(Context):
 #       game.move(enemy, (delta_x, delta_y))
 
 #     return True
-
-#   def move(game, actor, delta):
-#     actor_x, actor_y = actor.cell
-#     delta_x, delta_y = delta
-#     target_cell = (actor_x + delta_x, actor_y + delta_y)
-#     target_tile = game.floor.get_tile_at(target_cell)
-#     target_actor = game.floor.get_actor_at(target_cell)
-#     if not target_tile.solid and (target_actor is None or actor is game.p1 and target_actor is game.p2):
-#       game.anims.append([
-#         MoveAnim(
-#           duration=Game.MOVE_DURATION,
-#           target=actor,
-#           src_cell=actor.cell,
-#           dest_cell=target_cell
-#         )
-#       ])
-#       actor.cell = target_cell
-#       return True
-#     else:
-#       return False
 
 #   def handle_move(game, delta):
 #     hero = game.p1

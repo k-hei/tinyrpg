@@ -19,10 +19,10 @@ pygame.display.init()
 pygame.display.set_caption("hello")
 display = pygame.display.set_mode(WINDOW_SIZE_SCALED)
 surface = Surface(WINDOW_SIZE)
-pygame.key.set_repeat(17)
+pygame.key.set_repeat(1000 // config.fps)
 
-# asset loading
 assets.load()
+keyboard.init()
 
 game_ctx = GameContext()
 game_ctx.child = DungeonContext(parent=game_ctx)
@@ -43,7 +43,7 @@ def render():
 done = False
 clock = pygame.time.Clock()
 while not done:
-  ms = clock.tick(60)
+  ms = clock.tick(config.fps)
   keyboard.update()
   for event in pygame.event.get():
     if event.type == pygame.QUIT:

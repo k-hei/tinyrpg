@@ -17,6 +17,12 @@ def recolor(surface, color):
   new_surface.set_colorkey(COLOR_KEY)
   return new_surface
 
+def replace_color(surface, old_color, new_color):
+  surface = surface.copy()
+  pixels = PixelArray(surface)
+  pixels.replace(old_color, new_color)
+  pixels.close()
+
 def outline(surface, color):
   (width, height) = surface.get_size()
   new_surface = Surface((width + 2, height + 2))
