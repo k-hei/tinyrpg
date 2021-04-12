@@ -1,5 +1,7 @@
-import pygame
+import math
 import random
+import pygame
+from pygame import Rect
 
 from contexts import Context
 from assets import load as load_assets
@@ -274,7 +276,6 @@ class DungeonContext(Context):
       if len(group) == 0:
         ctx.anims.remove(group)
 
-
     is_playing_enter_transit = len(ctx.parent.transits) and type(ctx.parent.transits[0]) is DissolveOut
     if not is_playing_enter_transit:
       log = ctx.log.render(assets.sprites["log"], assets.fonts["standard"])
@@ -283,48 +284,55 @@ class DungeonContext(Context):
         window_height + ctx.log.y
       ))
 
+    ctx.render_hud(surface)
+
+  def render_hud(ctx, surface):
+    assets = load_assets()
+    hero = ctx.hero
+    ally = ctx.ally
+
     portrait_knight = assets.sprites["portrait_knight"]
     portrait_mage = assets.sprites["portrait_mage"]
-    knight = ctx.hero if type(ctx.hero) is Knight else ctx.ally
-    mage = ctx.hero if type(ctx.hero) is Mage else ctx.ally
+    knight = hero if type(hero) is Knight else ally
+    mage = hero if type(hero) is Mage else ally
 
     if knight.dead and not knight in ctx.floor.actors:
       portrait_knight = replace_color(portrait_knight, palette.WHITE, palette.RED)
-    elif type(ctx.hero) is not Knight:
+    elif type(hero) is not Knight:
       portrait_knight = replace_color(portrait_mage, palette.WHITE, palette.GRAY)
 
     if mage.dead and not mage in ctx.floor.actors:
       portrait_mage = replace_color(portrait_mage, palette.WHITE, palette.RED)
-    elif type(ctx.hero) is not Mage:
+    elif type(hero) is not Mage:
       portrait_mage = replace_color(portrait_mage, palette.WHITE, palette.GRAY)
 
     surface.blit(portrait_knight, (8, 6))
     surface.blit(portrait_mage, (36, 6))
+    surface.blit(assets.sprites["hud"], (64, 6))
 
-#     surface.blit(sprites["hud"], (64, 6))
+    x = 74
+    font = assets.fonts["smallcaps"]
 
-#     x = 74
+    hp_y = 11
+    surface.blit(assets.sprites["tag_hp"], (x, hp_y))
+    surface.blit(assets.sprites["bar"], (x + 19, hp_y + 7))
+    pygame.draw.rect(surface, 0xFFFFFF, Rect(x + 22, hp_y + 8, math.ceil(50 * hero.hp / hero.hp_max), 2))
+    hp_text = str(math.ceil(hero.hp)) + "/" + str(hero.hp_max)
+    surface.blit(recolor(render_text("0" + str(math.ceil(hero.hp)) + "/" + "0" + str(hero.hp_max), font), (0x7F, 0x7F, 0x7F)), (x + 19, hp_y + 1))
+    surface.blit(render_text("  " + str(math.ceil(hero.hp)) + "/  " + str(hero.hp_max), font), (x + 19, hp_y + 1))
 
-#     hp_y = 11
-#     surface.blit(sprites["tag_hp"], (x, hp_y))
-#     surface.blit(sprites["bar"], (x + 19, hp_y + 7))
-#     pygame.draw.rect(surface, 0xFFFFFF, Rect(x + 22, hp_y + 8, math.ceil(50 * game.p1.hp / game.p1.hp_max), 2))
-#     hp_text = str(math.ceil(game.p1.hp)) + "/" + str(game.p1.hp_max)
-#     surface.blit(recolor(render_text("0" + str(math.ceil(game.p1.hp)) + "/" + "0" + str(game.p1.hp_max), font_smallcaps), (0x7F, 0x7F, 0x7F)), (x + 19, hp_y + 1))
-#     surface.blit(render_text("  " + str(math.ceil(game.p1.hp)) + "/  " + str(game.p1.hp_max), font_smallcaps), (x + 19, hp_y + 1))
+    sp_y = 24
+    surface.blit(assets.sprites["tag_sp"], (x, sp_y))
+    surface.blit(assets.sprites["bar"], (x + 19, sp_y + 7))
+    pygame.draw.rect(surface, 0xFFFFFF, Rect(x + 22, sp_y + 8, math.ceil(50 * ctx.sp / ctx.sp_max), 2))
+    hp_text = str(math.ceil(ctx.sp)) + "/" + str(ctx.sp_max)
+    surface.blit(recolor(render_text(str(math.ceil(ctx.sp)) + "/" + str(ctx.sp_max), font), (0x7F, 0x7F, 0x7F)), (x + 19, sp_y + 1))
+    surface.blit(render_text(str(math.ceil(ctx.sp)) + "/" + str(ctx.sp_max), font), (x + 19, sp_y + 1))
 
-#     sp_y = 24
-#     surface.blit(sprites["tag_sp"], (x, sp_y))
-#     surface.blit(sprites["bar"], (x + 19, sp_y + 7))
-#     pygame.draw.rect(surface, 0xFFFFFF, Rect(x + 22, sp_y + 8, math.ceil(50 * game.sp / game.sp_max), 2))
-#     hp_text = str(math.ceil(game.sp)) + "/" + str(game.sp_max)
-#     surface.blit(recolor(render_text(str(math.ceil(game.sp)) + "/" + str(game.sp_max), font_smallcaps), (0x7F, 0x7F, 0x7F)), (x + 19, sp_y + 1))
-#     surface.blit(render_text(str(math.ceil(game.sp)) + "/" + str(game.sp_max), font_smallcaps), (x + 19, sp_y + 1))
-
-#     floor_y = 38
-#     floor = game.floors.index(game.floor) + 1
-#     surface.blit(sprites["tag_floor"], (x, floor_y))
-#     surface.blit(render_text(str(floor) + "F", font_smallcaps), (x + 13, floor_y + 3))
+    floor_y = 38
+    floor = ctx.floors.index(ctx.floor) + 1
+    surface.blit(assets.sprites["tag_floor"], (x, floor_y))
+    surface.blit(render_text(str(floor) + "F", font), (x + 13, floor_y + 3))
 
 #     box = sprites["box"]
 #     cols = game.inventory.cols
@@ -351,14 +359,6 @@ class DungeonContext(Context):
 #             sprite = sprites["icon_ankh"]
 #           if sprite:
 #             surface.blit(sprite, (x + 8, y + 8))
-
-#     is_playing_enter_transition = len(transits) and type(transits[0]) is DissolveOut
-#     if not is_playing_enter_transition:
-#       log = game.log.render(sprites["log"], font_standard)
-#       surface.blit(log, (
-#         window_width / 2 - log.get_width() / 2,
-#         window_height + game.log.y
-#       ))
 
 
 #   def attack(game, actor, target):
