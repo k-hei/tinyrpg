@@ -168,6 +168,7 @@ class Game:
         ally.regen()
 
       acted = True
+      game.sp = max(0, game.sp - 1 / 100)
     elif target_actor and type(target_actor) is Eye:
       game.log.print(hero.name.upper() + " attacks")
       game.attack(hero, target_actor)

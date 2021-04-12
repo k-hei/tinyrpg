@@ -378,17 +378,17 @@ def render_game(surface, game):
   surface.blit(sprites["tag_hp"], (x, hp_y))
   surface.blit(sprites["bar"], (x + 19, hp_y + 7))
   pygame.draw.rect(surface, 0xFFFFFF, Rect(x + 22, hp_y + 8, math.floor(50 * game.p1.hp / game.p1.hp_max), 2))
-  hp_text = str(math.floor(game.p1.hp)) + "/" + str(game.p1.hp_max)
-  surface.blit(recolor(render_text("0" + str(math.floor(game.p1.hp)) + "/" + "0" + str(game.p1.hp_max), font_smallcaps), (0x7F, 0x7F, 0x7F)), (x + 19, hp_y + 1))
-  surface.blit(render_text("  " + str(math.floor(game.p1.hp)) + "/  " + str(game.p1.hp_max), font_smallcaps), (x + 19, hp_y + 1))
+  hp_text = str(math.ceil(game.p1.hp)) + "/" + str(game.p1.hp_max)
+  surface.blit(recolor(render_text("0" + str(math.ceil(game.p1.hp)) + "/" + "0" + str(game.p1.hp_max), font_smallcaps), (0x7F, 0x7F, 0x7F)), (x + 19, hp_y + 1))
+  surface.blit(render_text("  " + str(math.ceil(game.p1.hp)) + "/  " + str(game.p1.hp_max), font_smallcaps), (x + 19, hp_y + 1))
 
   sp_y = 24
   surface.blit(sprites["tag_sp"], (x, sp_y))
   surface.blit(sprites["bar"], (x + 19, sp_y + 7))
   pygame.draw.rect(surface, 0xFFFFFF, Rect(x + 22, sp_y + 8, math.floor(50 * game.sp / game.sp_max), 2))
-  hp_text = str(math.floor(game.sp)) + "/" + str(game.sp_max)
-  surface.blit(recolor(render_text(str(math.floor(game.sp)) + "/" + str(game.sp_max), font_smallcaps), (0x7F, 0x7F, 0x7F)), (x + 19, sp_y + 1))
-  surface.blit(render_text(str(math.floor(game.sp)) + "/" + str(game.sp_max), font_smallcaps), (x + 19, sp_y + 1))
+  hp_text = str(math.ceil(game.sp)) + "/" + str(game.sp_max)
+  surface.blit(recolor(render_text(str(math.ceil(game.sp)) + "/" + str(game.sp_max), font_smallcaps), (0x7F, 0x7F, 0x7F)), (x + 19, sp_y + 1))
+  surface.blit(render_text(str(math.ceil(game.sp)) + "/" + str(game.sp_max), font_smallcaps), (x + 19, sp_y + 1))
 
   floor_y = 38
   floor = game.floors.index(game.floor) + 1

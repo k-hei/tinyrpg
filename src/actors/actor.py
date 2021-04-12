@@ -24,7 +24,7 @@ class Actor:
 
   def attack(actor, target, counter=False):
     damage = actor.find_damage(target)
-    if damage < target.hp // 1:
+    if damage < target.hp:
       target.hp -= damage
       if target.asleep and random.randint(0, 1):
         target.asleep = False
