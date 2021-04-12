@@ -1,4 +1,5 @@
 import config
+from anims.move import MoveAnim
 
 class Camera:
   def __init__(camera, size):
@@ -23,7 +24,7 @@ class Camera:
       focus_x, focus_y = game.room.get_center()
       CAMERA_SPEED = 16
     else:
-      for anim in anim_group:
+      for anim in anims:
         if anim.target is hero and type(anim) is MoveAnim and not anim.done:
           focus_x, focus_y = anim.cur_cell
           break

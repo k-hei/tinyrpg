@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+import math
 import pygame
 import config
 import palette
@@ -208,18 +209,16 @@ class Stage:
     if visible_cells is None:
       visible_cells = stage.get_cells()
 
-    for cell in visible_cells:
+    for cell in visited_cells:
       col, row = cell
       sprite = stage.render_cell(cell)
-      if sprite:
-        opacity = 255
-        if cell not in visible_cells:
-          opacity = 127
-        sprite.set_alpha(opacity)
-        x = col * config.tile_size - round(camera_x)
-        y = row * config.tile_size - round(camera_y)
-        surface.blit(sprite, (x, y))
-        sprite.set_alpha(None)
+      if sprite is None:
+        continue
+      if cell not in visible_cells:
+        sprite = replace_color(sprite, palette.WHITE, palette.GRAY)
+      x = col * config.tile_size - round(camera_x)
+      y = row * config.tile_size - round(camera_y)
+      surface.blit(sprite, (x, y))
 
   def render_cell(stage, cell):
     assets = use_assets()

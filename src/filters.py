@@ -22,6 +22,7 @@ def replace_color(surface, old_color, new_color):
   pixels = PixelArray(surface)
   pixels.replace(old_color, new_color)
   pixels.close()
+  return surface
 
 def outline(surface, color):
   (width, height) = surface.get_size()

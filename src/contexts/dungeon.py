@@ -14,6 +14,8 @@ import config
 
 from actors.knight import Knight
 from actors.mage import Mage
+from actors.eye import Eye
+from actors.chest import Chest
 
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
@@ -90,6 +92,9 @@ class DungeonContext(Context):
     ctx.key_requires_reset[key] = False
 
   def handle_keydown(ctx, key):
+    if len(ctx.anims):
+      return False
+
     key_deltas = {
       pygame.K_LEFT: (-1, 0),
       pygame.K_RIGHT: (1, 0),
@@ -139,17 +144,54 @@ class DungeonContext(Context):
 
       acted = True
       ctx.sp = max(0, ctx.sp - 1 / 100)
+    elif target_actor and type(target_actor) is Eye:
+      # ctx.attack(hero, target_actor)
+      ctx.sp = max(0, ctx.sp - 1)
+      acted = True
+    else:
+      ctx.anims.append([
+        AttackAnim(
+          duration=ATTACK_DURATION,
+          target=hero,
+          src_cell=hero.cell,
+          dest_cell=target_cell
+        )
+      ])
+      if target_actor and type(target_actor) is Chest:
+        if target_actor.contents:
+          if not ctx.inventory.is_full():
+            contents = target_actor.open()
+            ctx.inventory.append(contents)
+            ctx.log.print("You open the lamp")
+            ctx.log.print("Received " + contents + ".")
+            acted = True
+          else:
+            ctx.log.print("Your inventory is already full!")
+        else:
+          ctx.log.print("There's nothing left to take...")
+      elif target_tile is Stage.DOOR:
+        ctx.log.print("You open the door.")
+        ctx.floor.set_tile_at(target_cell, Stage.DOOR_OPEN)
+        acted = True
+      elif target_tile is Stage.DOOR_HIDDEN:
+        ctx.log.print("Discovered a hidden door!")
+        ctx.floor.set_tile_at(target_cell, Stage.DOOR_OPEN)
+        acted = True
+    if acted:
+      # ctx.step()
+      ctx.refresh_fov()
+    return moved
 
-  def move(game, actor, delta, face=True):
+  def move(ctx, actor, delta, face=True):
     actor_x, actor_y = actor.cell
     delta_x, delta_y = delta
     target_cell = (actor_x + delta_x, actor_y + delta_y)
-    target_tile = game.floor.get_tile_at(target_cell)
-    target_actor = game.floor.get_actor_at(target_cell)
+    target_tile = ctx.floor.get_tile_at(target_cell)
+    target_actor = ctx.floor.get_actor_at(target_cell)
     if face and delta_x:
       actor.facing = (delta_x, 0)
-    if not target_tile.solid and (target_actor is None or actor is game.hero and target_actor is game.ally):
-      game.anims.append([
+    if not target_tile.solid and (target_actor is None or actor is ctx.hero and target_actor is ctx.ally):
+      ctx.anims.append([
         MoveAnim(
           duration=MOVE_DURATION,
           target=actor,
@@ -324,80 +366,6 @@ class DungeonContext(Context):
 #       game.move(enemy, (delta_x, delta_y))
 
 #     return True
-
-#   def handle_move(game, delta):
-#     hero = game.p1
-#     ally = game.p2
-#     if hero.dead:
-#       return False
-#     hero.facing = delta
-#     hero_x, hero_y = hero.cell
-#     delta_x, delta_y = delta
-#     acted = False
-#     moved = game.move(hero, delta)
-#     target_cell = (hero_x + delta_x, hero_y + delta_y)
-#     target_tile = game.floor.get_tile_at(target_cell)
-#     target_actor = game.floor.get_actor_at(target_cell)
-#     if moved:
-#       if not ally.dead:
-#         last_group = game.anims[len(game.anims) - 1]
-#         ally_x, ally_y = ally.cell
-#         game.move(ally, (hero_x - ally_x, hero_y - ally_y))
-#         last_group.append(game.anims.pop()[0])
-#       game.refresh_fov()
-
-#       if target_tile is Stage.STAIRS_UP:
-#         game.log.print("There's a staircase going up here.")
-#       elif target_tile is Stage.STAIRS_DOWN:
-#         if game.floors.index(game.floor):
-#           game.log.print("There's a staircase going down here.")
-#         else:
-#           game.log.print("You can return to the town from here.")
-
-#       if not hero.dead:
-#         hero.regen()
-#       if not ally.dead:
-#         ally.regen()
-
-#       acted = True
-#       game.sp = max(0, game.sp - 1 / 100)
-#     elif target_actor and type(target_actor) is Eye:
-#       game.attack(hero, target_actor)
-#       game.sp = max(0, game.sp - 1)
-#       acted = True
-#     else:
-#       game.anims.append([
-#         AttackAnim(
-#           duration=Game.ATTACK_DURATION,
-#           target=hero,
-#           src_cell=hero.cell,
-#           dest_cell=target_cell
-#         )
-#       ])
-#       if target_actor and type(target_actor) is Chest:
-#         if target_actor.contents:
-#           if not game.inventory.is_full():
-#             contents = target_actor.open()
-#             game.inventory.append(contents)
-#             game.log.print("You open the lamp")
-#             game.log.print("Received " + contents + ".")
-#             acted = True
-#           else:
-#             game.log.print("Your inventory is already full!")
-#         else:
-#           game.log.print("There's nothing left to take...")
-#       elif target_tile is Stage.DOOR:
-#         game.log.print("You open the door.")
-#         game.floor.set_tile_at(target_cell, Stage.DOOR_OPEN)
-#         acted = True
-#       elif target_tile is Stage.DOOR_HIDDEN:
-#         game.log.print("Discovered a hidden door!")
-#         game.floor.set_tile_at(target_cell, Stage.DOOR_OPEN)
-#         acted = True
-#       game.refresh_fov()
-#     if acted:
-#       game.step()
-#     return moved
 
 #   def attack(game, actor, target):
 #     was_asleep = target.asleep
