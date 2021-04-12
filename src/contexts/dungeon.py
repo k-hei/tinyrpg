@@ -4,7 +4,7 @@ import random
 from contexts import Context
 from assets import load as load_assets
 from text import render as render_text
-from filters import recolor
+from filters import recolor, replace_color
 from stage import Stage
 from log import Log
 from camera import Camera
@@ -14,18 +14,19 @@ from cell import is_adjacent
 import gen
 import fov
 import config
+import palette
 
 from actors.knight import Knight
 from actors.mage import Mage
 from actors.eye import Eye
 from actors.chest import Chest
-
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
 from anims.shake import ShakeAnim
 from anims.flicker import FlickerAnim
 from anims.pause import PauseAnim
 from anims.awaken import AwakenAnim
+from transits.dissolve import DissolveOut
 
 MOVE_DURATION = 8
 ATTACK_DURATION = 12
@@ -274,38 +275,32 @@ class DungeonContext(Context):
         ctx.anims.remove(group)
 
 
+    is_playing_enter_transit = len(ctx.parent.transits) and type(ctx.parent.transits[0]) is DissolveOut
+    if not is_playing_enter_transit:
+      log = ctx.log.render(assets.sprites["log"], assets.fonts["standard"])
+      surface.blit(log, (
+        window_width / 2 - log.get_width() / 2,
+        window_height + ctx.log.y
+      ))
 
-#   def render(ctx, surface):
+    portrait_knight = assets.sprites["portrait_knight"]
+    portrait_mage = assets.sprites["portrait_mage"]
+    knight = ctx.hero if type(ctx.hero) is Knight else ctx.ally
+    mage = ctx.hero if type(ctx.hero) is Mage else ctx.ally
 
-#     portrait_knight = sprites["portrait_knight"].copy()
-#     portrait_mage = sprites["portrait_mage"].copy()
-#     pixels_knight = PixelArray(portrait_knight)
-#     pixels_mage = PixelArray(portrait_mage)
+    if knight.dead and not knight in ctx.floor.actors:
+      portrait_knight = replace_color(portrait_knight, palette.WHITE, palette.RED)
+    elif type(ctx.hero) is not Knight:
+      portrait_knight = replace_color(portrait_mage, palette.WHITE, palette.GRAY)
 
-#     hero_anim = None
-#     for group in game.anims:
-#       for anim in group:
-#         if anim.target is hero:
-#           hero_anim = anim
-#           break
+    if mage.dead and not mage in ctx.floor.actors:
+      portrait_mage = replace_color(portrait_mage, palette.WHITE, palette.RED)
+    elif type(ctx.hero) is not Mage:
+      portrait_mage = replace_color(portrait_mage, palette.WHITE, palette.GRAY)
 
-#     knight = game.p1 if type(hero) is Knight else game.p2
-#     mage = game.p1 if type(hero) is Mage else game.p2
+    surface.blit(portrait_knight, (8, 6))
+    surface.blit(portrait_mage, (36, 6))
 
-#     if knight.dead and not is_drawing_knight:
-#       pixels_knight.replace(WHITE, RED)
-#     elif type(hero) is not Knight:
-#       pixels_knight.replace(WHITE, GRAY)
-#     pixels_knight.close()
-
-#     if mage.dead and not is_drawing_mage:
-#       pixels_mage.replace(WHITE, RED)
-#     elif type(hero) is not Mage:
-#       pixels_mage.replace(WHITE, GRAY)
-#     pixels_mage.close()
-
-#     surface.blit(portrait_knight, (8, 6))
-#     surface.blit(portrait_mage, (36, 6))
 #     surface.blit(sprites["hud"], (64, 6))
 
 #     x = 74

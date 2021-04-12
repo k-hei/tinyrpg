@@ -33,6 +33,7 @@ class Log:
     log.anim = None
 
   def print(log, message):
+    print(message)
     log.messages.append(message)
     if not log.active and log.anim is None:
       log.active = True
@@ -47,7 +48,7 @@ class Log:
   def exit(log):
     log.anim = ExitAnim(
       duration=Log.EXIT_DURATION,
-      on_end=lambda: log.reset()
+      on_end=log.reset
     )
 
   def reset(log):
