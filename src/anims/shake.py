@@ -13,7 +13,7 @@ class ShakeAnim():
     if anim.time == anim.duration:
       anim.done = True
       if anim.on_end:
-        anim.on_end(anim)
+        anim.on_end()
     if anim.time % 4 >= 2:
       return 0
     else:

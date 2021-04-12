@@ -30,7 +30,7 @@ class AttackAnim():
     midpoint = anim.duration // 2
     if anim.time == midpoint:
       if anim.on_connect:
-        anim.on_connect(anim)
+        anim.on_connect()
     steps = anim.time if anim.time <= midpoint else midpoint - anim.time + midpoint
     x = src_x + norm_x / 16 * steps
     y = src_y + norm_y / 16 * steps

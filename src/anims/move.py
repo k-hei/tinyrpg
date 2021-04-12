@@ -18,7 +18,7 @@ class MoveAnim():
     if anim.time == anim.duration:
       anim.done = True
       if anim.on_end:
-        anim.on_end(anim)
+        anim.on_end()
     src_x, src_y = anim.src_cell
     dest_x, dest_y = anim.dest_cell
     t = anim.time / anim.duration

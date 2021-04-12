@@ -13,5 +13,5 @@ class PauseAnim():
     if anim.time == anim.duration:
       anim.done = True
       if anim.on_end:
-        anim.on_end(anim)
+        anim.on_end()
     return None

@@ -170,7 +170,6 @@ class Game:
       acted = True
       game.sp = max(0, game.sp - 1 / 100)
     elif target_actor and type(target_actor) is Eye:
-      game.log.print(hero.name.upper() + " attacks")
       game.attack(hero, target_actor)
       game.sp = max(0, game.sp - 1)
       acted = True
@@ -210,17 +209,18 @@ class Game:
 
   def attack(game, actor, target):
     was_asleep = target.asleep
+    game.log.print(actor.name.upper() + " attacks")
 
-    def on_flicker_end(_):
+    def on_flicker_end():
       game.floor.actors.remove(target)
       if target.faction == "player":
         game.swap()
 
-    def on_awaken_end(_):
+    def on_awaken_end():
       game.log.print(target.name.upper() + " woke up!")
       game.anims[0].append(PauseAnim(duration=Game.PAUSE_DURATION))
 
-    def on_shake_end(_):
+    def on_shake_end():
       if target.dead:
         if target.faction == "enemy":
           game.log.print("Defeated " + target.name.upper() + ".")
@@ -234,7 +234,7 @@ class Game:
       elif is_adjacent(actor.cell, target.cell):
         game.anims[0].append(PauseAnim(duration=Game.PAUSE_DURATION))
 
-    def on_connect(_):
+    def on_connect():
       damage = actor.attack(target)
       verb = "suffers" if actor.faction == "enemy" else "receives"
       game.log.print(target.name.upper() + " " + verb + " " + str(damage) + " damage.")
@@ -302,15 +302,17 @@ class Game:
   def detect_mana(game):
     if game.sp >= 1:
       game.sp = max(0, game.sp - 1)
+    def search():
+      cells = game.p1.visible_cells
+      for cell in cells:
+        tile = game.floor.get_tile_at(cell)
+        if tile is Stage.DOOR_HIDDEN:
+          game.log.print("There's a hidden passage somewhere here.")
+          break
+      else:
+        game.log.print("You don't sense anything magical nearby.")
     game.log.print("MAGE uses Detect Mana")
-    cells = game.p1.visible_cells
-    for cell in cells:
-      tile = game.floor.get_tile_at(cell)
-      if tile is Stage.DOOR_HIDDEN:
-        game.log.print("There's a hidden passage somewhere here.")
-        break
-    else:
-      game.log.print("You don't sense anything magical nearby.")
+    game.anims.append([ PauseAnim(duration=30, on_end=search) ])
 
   def shield_bash(game):
     if game.sp >= 2:

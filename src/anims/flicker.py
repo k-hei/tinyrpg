@@ -13,5 +13,5 @@ class FlickerAnim():
     if anim.time == anim.duration:
       anim.done = True
       if anim.on_end:
-        anim.on_end(anim)
+        anim.on_end()
     return anim.time % 2 == 0
