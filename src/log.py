@@ -1,9 +1,12 @@
 from pygame import Surface
 from text import render as render_text
-from anim import Anim
+from anims.tween import TweenAnim
 from easeexpo import ease_out, ease_in
 
 COLOR_KEY = (0xFF, 0x00, 0xFF)
+
+class EnterAnim(TweenAnim): pass
+class ExitAnim(TweenAnim): pass
 
 class Log:
   ROW_COUNT = 2
@@ -17,29 +20,42 @@ class Log:
 
   def __init__(log):
     log.messages = []
+    log.cache = []
     log.y = 0
     log.row = -1
     log.col = 0
     log.offset = 0
     log.dirty = False
+    log.active = False
     log.clean_frames = Log.HANG_DURATION
     log.box = Surface((Log.BOX_WIDTH, Log.BOX_HEIGHT))
     log.surface = None
-    log.cache = []
     log.anim = None
 
   def print(log, message):
     log.messages.append(message)
-    if log.row == -1 or log.clean_frames > log.HANG_DURATION and log.anim is None:
-      log.anim = Anim(Log.ENTER_DURATION, {
-        "kind": "enter",
-        "target": log
-      })
+    if not log.active and log.anim is None:
+      log.active = True
+      log.dirty = False
+      log.anim = EnterAnim(duration=Log.ENTER_DURATION)
     if not log.dirty:
       log.row += 1
       log.col = 0
       log.dirty = True
       log.clean_frames = 0
+
+  def exit(log):
+    log.anim = ExitAnim(
+      duration=Log.EXIT_DURATION,
+      on_end=lambda: log.reset()
+    )
+
+  def reset(log):
+    log.messages = []
+    log.cache = []
+    log.row = -1
+    log.offset = 0
+    log.active = False
 
   def render(log, bg, font):
     line_height = font.char_height + font.line_spacing
@@ -76,10 +92,7 @@ class Log:
     if not log.dirty:
       log.clean_frames += 1
       if log.clean_frames == Log.HANG_DURATION:
-        log.anim = Anim(Log.EXIT_DURATION, {
-          "kind": "exit",
-          "target": log
-        })
+        log.exit()
 
     if log.row >= Log.ROW_COUNT:
       log.offset += (log.row - 1 - log.offset) / 8
@@ -90,24 +103,16 @@ class Log:
       log.surface.blit(line["surface"], (0, y))
 
     y = -log.box.get_height() - 8
-    if log.anim is not None:
-      t = log.anim.update()
-      if log.anim.data["kind"] == "enter":
-        t = ease_out(t)
-      elif log.anim.data["kind"] == "exit":
-        t = ease_in(1 - t)
-      if log.anim.done:
-        if log.anim.data["kind"] == "enter" and log.row == -1 and log.dirty:
-          log.dirty = False
-        elif log.anim.data["kind"] == "exit":
-          log.messages = []
-          log.cache = []
-          log.row = -1
-          log.offset = 0
-        print(log.row, log.dirty, log.clean_frames)
+    if log.anim:
+      anim = log.anim
+      t = anim.update()
+      if type(anim) == EnterAnim:
+        log.y = y * ease_out(t)
+      elif type(anim) == ExitAnim:
+        log.y = y * ease_in(1 - t)
+      if anim.done:
         log.anim = None
-      log.y = y * t
-    elif log.row != -1 and (log.dirty or log.clean_frames < Log.HANG_DURATION):
+    elif log.active:
       log.y = y
     else:
       log.y = 0

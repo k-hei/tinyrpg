@@ -116,6 +116,7 @@ def handle_keydown(key):
 
   if pygame.key.get_mods() & pygame.KMOD_SHIFT and key == pygame.K_COMMA and not is_key_invalid[key]:
     is_key_invalid[key] = True
+    game.log.exit()
     transits.append(DissolveIn(
       surface=surface,
       on_end=lambda: (reset_camera(), game.change_floors(1))
@@ -125,6 +126,7 @@ def handle_keydown(key):
 
   if pygame.key.get_mods() & pygame.KMOD_SHIFT and key == pygame.K_PERIOD and not is_key_invalid[key]:
     is_key_invalid[key] = True
+    game.log.exit()
     transits.append(DissolveIn(
       surface=surface,
       on_end=lambda: (reset_camera(), game.change_floors(-1))
@@ -428,11 +430,13 @@ def render_game(surface, game):
         if sprite:
           surface.blit(sprite, (x + 8, y + 8))
 
-  log = game.log.render(sprites["log"], font_standard)
-  surface.blit(log, (
-    window_width / 2 - log.get_width() / 2,
-    window_height + game.log.y
-  ))
+  is_playing_enter_transition = len(transits) and type(transits[0]) is DissolveOut
+  if not is_playing_enter_transition:
+    log = game.log.render(sprites["log"], font_standard)
+    surface.blit(log, (
+      window_width / 2 - log.get_width() / 2,
+      window_height + game.log.y
+    ))
 
 def render_display():
   render_game(surface, game)
