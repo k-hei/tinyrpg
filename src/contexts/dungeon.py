@@ -11,6 +11,7 @@ from stage import Stage
 from log import Log
 from camera import Camera
 from inventory import Inventory
+from statuspanel import StatusPanel
 from contexts.inventory import InventoryContext
 from keyboard import key_times
 from cell import is_adjacent
@@ -54,6 +55,7 @@ class DungeonContext(Context):
     ctx.ally = Mage()
     ctx.log = Log()
     ctx.camera = Camera(config.window_size)
+    ctx.hud = StatusPanel()
     ctx.inventory = Inventory(2, 2)
     ctx.create_floor()
     ctx.key_requires_reset = {}
@@ -321,8 +323,12 @@ class DungeonContext(Context):
 
   def handle_inventory(ctx):
     if ctx.child is None:
-      ctx.child = InventoryContext(parent=ctx, inventory=ctx.inventory)
       ctx.log.exit()
+      ctx.child = InventoryContext(
+        parent=ctx,
+        inventory=ctx.inventory,
+        on_close=ctx.hud.enter
+      )
 
   def move(ctx, actor, delta):
     actor_x, actor_y = actor.cell
@@ -518,9 +524,6 @@ class DungeonContext(Context):
       if len(group) == 0:
         ctx.anims.remove(group)
 
-    if not ctx.child:
-      ctx.render_hud(surface)
-
     is_playing_enter_transit = len(ctx.parent.transits) and type(ctx.parent.transits[0]) is DissolveOut
     if not is_playing_enter_transit:
       log = ctx.log.render(assets.sprites["log"], assets.fonts["standard"])
@@ -529,56 +532,11 @@ class DungeonContext(Context):
         window_height + ctx.log.y
       ))
 
-    if ctx.child:
+    if ctx.child and not ctx.log.anim:
       ctx.child.render(surface)
+    else:
+      ctx.hud.draw(surface, ctx)
 
-  def render_hud(ctx, surface):
-    assets = load_assets()
-    hero = ctx.hero
-    ally = ctx.ally
-
-    portrait_knight = assets.sprites["portrait_knight"]
-    portrait_mage = assets.sprites["portrait_mage"]
-    knight = hero if type(hero) is Knight else ally
-    mage = hero if type(hero) is Mage else ally
-
-    if knight.dead and not knight in ctx.floor.actors:
-      portrait_knight = replace_color(portrait_knight, palette.WHITE, palette.RED)
-    elif type(hero) is not Knight:
-      portrait_knight = replace_color(portrait_knight, palette.WHITE, palette.GRAY)
-
-    if mage.dead and not mage in ctx.floor.actors:
-      portrait_mage = replace_color(portrait_mage, palette.WHITE, palette.RED)
-    elif type(hero) is not Mage:
-      portrait_mage = replace_color(portrait_mage, palette.WHITE, palette.GRAY)
-
-    surface.blit(portrait_knight, (8, 6))
-    surface.blit(portrait_mage, (36, 6))
-    surface.blit(assets.sprites["hud"], (64, 6))
-
-    x = 74
-    font = assets.fonts["smallcaps"]
-
-    hp_y = 11
-    surface.blit(assets.sprites["tag_hp"], (x, hp_y))
-    surface.blit(assets.sprites["bar"], (x + 19, hp_y + 7))
-    pygame.draw.rect(surface, 0xFFFFFF, Rect(x + 22, hp_y + 8, math.ceil(50 * hero.hp / hero.hp_max), 2))
-    hp_text = str(math.ceil(hero.hp)) + "/" + str(hero.hp_max)
-    surface.blit(recolor(render_text("0" + str(math.ceil(hero.hp)) + "/" + "0" + str(hero.hp_max), font), (0x7F, 0x7F, 0x7F)), (x + 19, hp_y + 1))
-    surface.blit(render_text("  " + str(math.ceil(hero.hp)) + "/  " + str(hero.hp_max), font), (x + 19, hp_y + 1))
-
-    sp_y = 24
-    surface.blit(assets.sprites["tag_sp"], (x, sp_y))
-    surface.blit(assets.sprites["bar"], (x + 19, sp_y + 7))
-    pygame.draw.rect(surface, 0xFFFFFF, Rect(x + 22, sp_y + 8, math.ceil(50 * ctx.sp / ctx.sp_max), 2))
-    hp_text = str(math.ceil(ctx.sp)) + "/" + str(ctx.sp_max)
-    surface.blit(recolor(render_text(str(math.ceil(ctx.sp)) + "/" + str(ctx.sp_max), font), (0x7F, 0x7F, 0x7F)), (x + 19, sp_y + 1))
-    surface.blit(render_text(str(math.ceil(ctx.sp)) + "/" + str(ctx.sp_max), font), (x + 19, sp_y + 1))
-
-    floor_y = 38
-    floor = ctx.floors.index(ctx.floor) + 1
-    surface.blit(assets.sprites["tag_floor"], (x, floor_y))
-    surface.blit(render_text(str(floor) + "F", font), (x + 13, floor_y + 3))
 
 #     box = sprites["box"]
 #     cols = game.inventory.cols

@@ -11,10 +11,11 @@ SPACING = 4
 MARGIN = 8
 
 class InventoryContext(Context):
-  def __init__(ctx, parent, inventory):
+  def __init__(ctx, parent, inventory, on_close=None):
     super().__init__(parent)
     ctx.data = inventory
     ctx.grid_size =  (inventory.cols, inventory.rows)
+    ctx.on_close = on_close
     ctx.cursor = (0, 0)
     ctx.bar = StatusBar()
     item = ctx.get_item_at(ctx.cursor)
@@ -56,6 +57,7 @@ class InventoryContext(Context):
 
     if key == pygame.K_BACKSPACE:
       ctx.parent.child = None
+      if ctx.on_close: ctx.on_close()
 
   def handle_move(ctx, delta):
     delta_x, delta_y = delta

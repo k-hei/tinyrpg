@@ -1,7 +1,7 @@
 from pygame import Surface
 from text import render as render_text
 from anims.tween import TweenAnim
-from easeexpo import ease_out, ease_in
+from easing.expo import ease_out, ease_in
 
 COLOR_KEY = (0xFF, 0x00, 0xFF)
 
