@@ -98,6 +98,7 @@ class DungeonContext(Context):
     for enemy in enemies:
       game.step_enemy(enemy)
 
+  # TODO: move into enemy module (requires some kind of event/cache system)
   def step_enemy(game, enemy):
     if enemy.dead or enemy.asleep:
       return False
@@ -203,7 +204,6 @@ class DungeonContext(Context):
         ally_x, ally_y = ally.cell
         ctx.move(ally, (hero_x - ally_x, hero_y - ally_y))
         last_group.append(ctx.anims.pop()[0])
-      ctx.refresh_fov()
 
       if target_tile is Stage.STAIRS_UP:
         ctx.log.print("There's a staircase going up here.")
@@ -213,6 +213,7 @@ class DungeonContext(Context):
         else:
           ctx.log.print("You can return to the town from here.")
 
+      is_waking_up = False
       if ctx.room:
         room = ctx.room
         floor = ctx.floor
@@ -220,16 +221,22 @@ class DungeonContext(Context):
         for enemy in enemies:
           if enemy.asleep and random.randint(1, 10) == 1:
             enemy.asleep = False
+            is_waking_up = True
             ctx.anims.append([
               AwakenAnim(
                 duration=AWAKEN_DURATION,
                 target=enemy,
                 on_end=lambda: (
                   ctx.log.print(enemy.name.upper() + " woke up!"),
-                  ctx.anims[0].append(PauseAnim(duration=PAUSE_DURATION))
+                  ctx.anims[0].append(PauseAnim(duration=PAUSE_DURATION)),
                 )
               )
             ])
+            break
+
+      if not is_waking_up:
+        ctx.step()
+        ctx.refresh_fov()
 
       if not hero.dead:
         hero.regen()
@@ -242,6 +249,8 @@ class DungeonContext(Context):
       ctx.attack(hero, target_actor)
       ctx.sp = max(0, ctx.sp - 1)
       acted = True
+      ctx.step()
+      ctx.refresh_fov()
     else:
       ctx.anims.append([
         AttackAnim(
@@ -263,17 +272,18 @@ class DungeonContext(Context):
             ctx.log.print("Your inventory is already full!")
         else:
           ctx.log.print("There's nothing left to take...")
+        ctx.step()
+        ctx.refresh_fov()
       elif target_tile is Stage.DOOR:
         ctx.log.print("You open the door.")
         ctx.floor.set_tile_at(target_cell, Stage.DOOR_OPEN)
-        acted = True
+        ctx.step()
+        ctx.refresh_fov()
       elif target_tile is Stage.DOOR_HIDDEN:
         ctx.log.print("Discovered a hidden door!")
         ctx.floor.set_tile_at(target_cell, Stage.DOOR_OPEN)
-        acted = True
-    if acted:
-      ctx.step()
-      ctx.refresh_fov()
+        ctx.step()
+        ctx.refresh_fov()
     return moved
 
   def handle_swap(game):
@@ -388,6 +398,7 @@ class DungeonContext(Context):
       )
     ])
 
+  # TODO: move into separate skill
   def shield_bash(game, on_end=None):
     if game.sp >= 2:
       game.sp = max(0, game.sp - 2)
@@ -434,10 +445,25 @@ class DungeonContext(Context):
         )
       ])
 
+  # TODO: move into separate skill
+  def detect_mana(game):
+    if game.sp >= 1:
+      game.sp = max(0, game.sp - 1)
+    def search():
+      cells = game.hero.visible_cells
+      for cell in cells:
+        tile = game.floor.get_tile_at(cell)
+        if tile is Stage.DOOR_HIDDEN:
+          game.log.print("There's a hidden passage somewhere here.")
+          break
+      else:
+        game.log.print("You don't sense anything magical nearby.")
+    game.log.print("MAGE uses Detect Mana")
+    game.anims.append([ PauseAnim(duration=30, on_end=search) ])
+
   def change_floors(game, direction):
     exit_tile = Stage.STAIRS_UP if direction == 1 else Stage.STAIRS_DOWN
     entry_tile = Stage.STAIRS_DOWN if direction == 1 else Stage.STAIRS_UP
-    text = "You go upstairs." if direction == 1 else "You go downstairs."
 
     if direction not in (1, -1):
       return False
@@ -446,7 +472,6 @@ class DungeonContext(Context):
     if target_tile is not exit_tile:
       return False
 
-    game.log.print(text)
     old_floor = game.floor
     old_floor.remove_actor(game.hero)
     old_floor.remove_actor(game.ally)
@@ -455,6 +480,7 @@ class DungeonContext(Context):
     if index >= len(game.floors):
       # create a new floor if out of bounds
       game.create_floor()
+      game.log.print("You go upstairs.")
     elif index >= 0:
       # go back to old floor if within bounds
       new_floor = game.floors[index]
@@ -464,6 +490,7 @@ class DungeonContext(Context):
         new_floor.spawn_actor(game.ally, (stairs_x - 1, stairs_y))
       game.floor = new_floor
       game.refresh_fov()
+      game.log.print("You go upstairs." if direction == 1 else "You go back downstairs.")
 
     return True
 
@@ -590,18 +617,3 @@ class DungeonContext(Context):
 #       game.log.print("But nothing happened...")
 #     game.anims.append([ PauseAnim(duration=Game.PAUSE_ITEM_DURATION) ])
 #     game.step()
-
-#   def detect_mana(game):
-#     if game.sp >= 1:
-#       game.sp = max(0, game.sp - 1)
-#     def search():
-#       cells = game.p1.visible_cells
-#       for cell in cells:
-#         tile = game.floor.get_tile_at(cell)
-#         if tile is Stage.DOOR_HIDDEN:
-#           game.log.print("There's a hidden passage somewhere here.")
-#           break
-#       else:
-#         game.log.print("You don't sense anything magical nearby.")
-#     game.log.print("MAGE uses Detect Mana")
-#     game.anims.append([ PauseAnim(duration=30, on_end=search) ])
