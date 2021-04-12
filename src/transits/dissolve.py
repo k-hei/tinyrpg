@@ -50,9 +50,10 @@ def gen_diamonds(radius, step):
 diamonds = gen_diamonds(DIAMOND_RADIUS, SPREAD_SPEED)
 
 class DissolveIn:
-  def __init__(transit, surface):
+  def __init__(transit, surface, on_end=None):
     start = (DIAMOND_RADIUS // 2, DIAMOND_RADIUS // 2, 0)
     transit.surface = surface
+    transit.on_end = on_end
     transit.stack = [start]
     transit.nodes = [start]
     transit.nodes_done = []
@@ -89,6 +90,8 @@ class DissolveIn:
         transit.nodes_done.append(node)
         if len(transit.nodes_done) == len(transit.nodes) and len(new_stack) == 0:
           transit.done = True
+          if transit.on_end:
+            transit.on_end()
     transit.time += 1
 
   def render(transit):
@@ -98,8 +101,9 @@ class DissolveIn:
       transit.surface.blit(diamond, (x - t, y - t))
 
 class DissolveOut:
-  def __init__(transit, surface):
+  def __init__(transit, surface, on_end=None):
     transit.surface = surface
+    transit.on_end = on_end
     transit.stack = [(0, 0)]
     transit.nodes = []
     transit.node_times = {}
@@ -140,6 +144,8 @@ class DissolveOut:
         nodes.remove(node)
         if len(nodes) == 0:
           transit.done = True
+          if transit.on_end:
+            transit.on_end()
     if transit.time % MULTIPLY_DELAY == 0:
       while len(old_stack):
         x, y = old_stack.pop()

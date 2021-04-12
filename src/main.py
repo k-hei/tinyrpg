@@ -81,6 +81,10 @@ def lerp(a, b, t):
 game = Game()
 transits = [DissolveOut(surface)]
 
+def reset_camera():
+  global camera
+  camera = None
+
 is_key_invalid = {
   pygame.K_LEFT: False,
   pygame.K_RIGHT: False,
@@ -94,7 +98,7 @@ is_key_invalid = {
 }
 
 def handle_keydown(key):
-  global visited_cells, camera
+  global visited_cells
   if len(game.anims) or len(transits):
     return
 
@@ -112,14 +116,20 @@ def handle_keydown(key):
 
   if pygame.key.get_mods() & pygame.KMOD_SHIFT and key == pygame.K_COMMA and not is_key_invalid[key]:
     is_key_invalid[key] = True
-    camera = None
-    game.change_floors(1)
+    transits.append(DissolveIn(
+      surface=surface,
+      on_end=lambda: (reset_camera(), game.change_floors(1))
+    ))
+    transits.append(DissolveOut(surface))
     return
 
   if pygame.key.get_mods() & pygame.KMOD_SHIFT and key == pygame.K_PERIOD and not is_key_invalid[key]:
     is_key_invalid[key] = True
-    camera = None
-    game.change_floors(-1)
+    transits.append(DissolveIn(
+      surface=surface,
+      on_end=lambda: (reset_camera(), game.change_floors(-1))
+    ))
+    transits.append(DissolveOut(surface))
     return
 
   delta_x = 0
@@ -159,11 +169,6 @@ def render_game(surface, game):
   anim_group = None
   if len(game.anims) > 0:
     anim_group = game.anims[0]
-    # print_group = lambda group: list(map(
-    #   lambda anim: type(anim).__name__,
-    #   group
-    # ))
-    # print(list(map(print_group, game.anims)))
 
   hero_x, hero_y = hero.cell
   focus_x, focus_y = hero.cell
@@ -423,21 +428,20 @@ def render_game(surface, game):
         if sprite:
           surface.blit(sprite, (x + 8, y + 8))
 
-  if len(transits) == 0:
-    log = game.log.render(sprites["log"], font_standard)
-    surface.blit(log, (
-      window_width / 2 - log.get_width() / 2,
-      window_height + game.log.y
-    ))
+  log = game.log.render(sprites["log"], font_standard)
+  surface.blit(log, (
+    window_width / 2 - log.get_width() / 2,
+    window_height + game.log.y
+  ))
 
 def render_display():
   render_game(surface, game)
-  for transit in transits:
+  if len(transits):
+    transit = transits[0]
     transit.update()
+    transit.render()
     if transit.done:
       transits.remove(transit)
-    else:
-      transit.render()
   display.blit(pygame.transform.scale(surface, WINDOW_SIZE_SCALED), (0, 0))
   pygame.display.flip()
 
