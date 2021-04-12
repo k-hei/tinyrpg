@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from assets import load as load_assets
+import config
 
 @dataclass
 class Tile:
@@ -74,3 +76,49 @@ class Stage:
     (width, height) = stage.size
     (x, y) = cell
     return x >= 0 and y >= 0 and x < width and y < height
+
+  def render_tiles(stage, surface, visible_cells=None, visited_cells=[], camera_pos=None):
+    camera_x, camera_y = (0, 0)
+    if camera_pos:
+      camera_x, camera_y = camera_pos
+
+    if visible_cells is None:
+      visible_cells = stage.get_cells()
+
+    for cell in visible_cells:
+      col, row = cell
+      sprite = stage.render_tile(cell)
+      if sprite:
+        opacity = 255
+        if cell not in visible_cells:
+          opacity = 127
+        sprite.set_alpha(opacity)
+        x = col * config.tile_size - round(camera_x)
+        y = row * config.tile_size - round(camera_y)
+        surface.blit(sprite, (x, y))
+        sprite.set_alpha(None)
+
+  def render_tile(stage, cell):
+    assets = load_assets()
+    x, y = cell
+    sprite_name = None
+    tile = stage.get_tile_at(cell)
+    if tile is Stage.WALL or tile is Stage.DOOR_HIDDEN:
+      if stage.get_tile_at((x, y + 1)) is Stage.FLOOR:
+        sprite_name = "wall_base"
+      else:
+        sprite_name = "wall"
+    elif tile is Stage.STAIRS_UP:
+      sprite_name = "stairs_up"
+    elif tile is Stage.STAIRS_DOWN:
+      sprite_name = "stairs_down"
+    elif tile is Stage.DOOR:
+      sprite_name = "door"
+    elif tile is Stage.DOOR_OPEN:
+      sprite_name = "door_open"
+    elif tile is Stage.FLOOR:
+      sprite_name = "floor"
+    if sprite_name is not None:
+      return assets.sprites[sprite_name]
+    else:
+      return None

@@ -19,7 +19,7 @@ pygame.display.init()
 pygame.display.set_caption("hello")
 display = pygame.display.set_mode(WINDOW_SIZE_SCALED)
 surface = Surface(WINDOW_SIZE)
-pygame.key.set_repeat(1)
+pygame.key.set_repeat(17)
 
 # asset loading
 assets.load()
@@ -44,6 +44,7 @@ done = False
 clock = pygame.time.Clock()
 while not done:
   ms = clock.tick(60)
+  keyboard.update()
   for event in pygame.event.get():
     if event.type == pygame.QUIT:
       done = True

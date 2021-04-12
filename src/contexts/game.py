@@ -14,7 +14,7 @@ class GameContext(Context):
   def handle_keydown(ctx, key):
     if len(ctx.transits):
       return False
-    return super().render(surface)
+    return super().handle_keydown(key)
 
   def render(ctx, surface):
     if not ctx.inited:
