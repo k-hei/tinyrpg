@@ -171,7 +171,7 @@ def render_game(surface, game):
     CAMERA_SPEED = 16
   elif anim_group:
     for anim in anim_group:
-      if anim.target is hero and type(anim) is MoveAnim:
+      if anim.target is hero and type(anim) is MoveAnim and not anim.done:
         focus_x, focus_y = anim.cur_cell
         break
 
@@ -270,6 +270,8 @@ def render_game(surface, game):
             sprite = sprites["eye_flinch"]
 
         if type(anim) is AwakenAnim and len(anim_group) == 1:
+          if type(actor) is Eye:
+            sprite = sprites["eye_attack"]
           recolored = anim.update()
           if recolored and sprite:
             sprite = sprite.copy()
@@ -291,6 +293,11 @@ def render_game(surface, game):
           col, row = anim.update()
           sprite_x = col * TILE_SIZE
           sprite_y = row * TILE_SIZE
+
+      if anim.done:
+        anim_group.remove(anim)
+        if len(anim_group) == 0:
+          game.anims.remove(anim_group)
 
     if type(actor) is Eye and actor.asleep and sprite:
       sprite = sprite.copy()
