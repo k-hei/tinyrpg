@@ -136,7 +136,7 @@ def dungeon(size):
       is_beside_door = next((door for door in doors if is_adjacent(door, cell)), None)
       if not is_floor or not is_empty or is_beside_door:
         continue
-      if random.randint(1, 30) == 1:
+      if random.randint(1, 25) == 1:
         enemy = Eye()
         floor.spawn_actor(enemy, cell)
         if random.randint(1, 3) == 1:
