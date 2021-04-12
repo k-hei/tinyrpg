@@ -1,3 +1,6 @@
+import pygame
+import random
+
 from contexts import Context
 from assets import load as load_assets
 from text import render as render_text
@@ -7,9 +10,9 @@ from log import Log
 from camera import Camera
 from inventory import Inventory
 from keyboard import key_times
+from cell import is_adjacent
 import gen
 import fov
-import pygame
 import config
 
 from actors.knight import Knight
@@ -87,6 +90,54 @@ class DungeonContext(Context):
       if cell not in visited_cells:
         visited_cells.append(cell)
     ctx.hero.visible_cells = visible_cells
+
+  def step(game):
+    enemies = [actor for actor in game.floor.actors if type(actor) is Eye]
+    for enemy in enemies:
+      game.step_enemy(enemy)
+
+  def step_enemy(game, enemy):
+    if enemy.dead or enemy.asleep:
+      return False
+
+    hero = game.hero
+    room = next((room for room in game.floor.rooms if enemy.cell in room.get_cells()), None)
+    if not room or hero.cell not in room.get_cells():
+      return False
+
+    if is_adjacent(enemy.cell, hero.cell):
+      if not hero.dead:
+        pass
+        # game.attack(enemy, hero)
+    else:
+      delta_x, delta_y = (0, 0)
+      enemy_x, enemy_y = enemy.cell
+      hero_x, hero_y = hero.cell
+
+      if random.randint(1, 2) == 1:
+        if hero_x < enemy_x:
+          delta_x = -1
+        elif hero_x > enemy_x:
+          delta_x = 1
+        elif hero_y < enemy_y:
+          delta_y = -1
+        elif hero_y > enemy_y:
+          delta_y = 1
+      else:
+        if hero_y < enemy_y:
+          delta_y = -1
+        elif hero_y > enemy_y:
+          delta_y = 1
+        elif hero_x < enemy_x:
+          delta_x = -1
+        elif hero_x > enemy_x:
+          delta_x = 1
+
+      if delta_x == 0 and delta_y == 0:
+        return True
+      game.move(enemy, (delta_x, delta_y))
+
+    return True
 
   def handle_keyup(ctx, key):
     ctx.key_requires_reset[key] = False
@@ -178,7 +229,7 @@ class DungeonContext(Context):
         ctx.floor.set_tile_at(target_cell, Stage.DOOR_OPEN)
         acted = True
     if acted:
-      # ctx.step()
+      ctx.step()
       ctx.refresh_fov()
     return moved
 
@@ -314,58 +365,6 @@ class DungeonContext(Context):
 #         window_height + game.log.y
 #       ))
 
-
-
-
-
-
-
-#   def step(game):
-#     enemies = [actor for actor in game.floor.actors if type(actor) is Eye]
-#     for enemy in enemies:
-#       game.step_enemy(enemy)
-
-#   def step_enemy(game, enemy):
-#     if enemy.dead or enemy.asleep:
-#       return False
-
-#     hero = game.p1
-#     room = next((room for room in game.floor.rooms if enemy.cell in room.get_cells()), None)
-#     if not room or hero.cell not in room.get_cells():
-#       return False
-
-#     if is_adjacent(enemy.cell, hero.cell):
-#       if not hero.dead:
-#         game.attack(enemy, hero)
-#     else:
-#       delta_x, delta_y = (0, 0)
-#       enemy_x, enemy_y = enemy.cell
-#       hero_x, hero_y = hero.cell
-
-#       if random.randint(1, 2) == 1:
-#         if hero_x < enemy_x:
-#           delta_x = -1
-#         elif hero_x > enemy_x:
-#           delta_x = 1
-#         elif hero_y < enemy_y:
-#           delta_y = -1
-#         elif hero_y > enemy_y:
-#           delta_y = 1
-#       else:
-#         if hero_y < enemy_y:
-#           delta_y = -1
-#         elif hero_y > enemy_y:
-#           delta_y = 1
-#         elif hero_x < enemy_x:
-#           delta_x = -1
-#         elif hero_x > enemy_x:
-#           delta_x = 1
-
-#       if delta_x == 0 and delta_y == 0:
-#         return True
-#       game.move(enemy, (delta_x, delta_y))
-
-#     return True
 
 #   def attack(game, actor, target):
 #     was_asleep = target.asleep
