@@ -46,7 +46,8 @@ sprite_paths = {
   "skill": "assets/skill.png",
   "box": "assets/box.png",
   "bar": "assets/bar.png",
-  "hud": "assets/hud.png"
+  "hud": "assets/hud.png",
+  "statusbar": "assets/statusbar.png"
 }
 
 def load():

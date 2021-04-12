@@ -46,10 +46,11 @@ class Log:
       log.clean_frames = 0
 
   def exit(log):
-    log.anim = ExitAnim(
-      duration=Log.EXIT_DURATION,
-      on_end=log.reset
-    )
+    if log.active:
+      log.anim = ExitAnim(
+        duration=Log.EXIT_DURATION,
+        on_end=log.reset
+      )
 
   def reset(log):
     log.messages = []

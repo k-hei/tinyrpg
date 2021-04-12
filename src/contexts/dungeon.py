@@ -11,6 +11,7 @@ from stage import Stage
 from log import Log
 from camera import Camera
 from inventory import Inventory
+from contexts.inventory import InventoryContext
 from keyboard import key_times
 from cell import is_adjacent
 import gen
@@ -148,6 +149,9 @@ class DungeonContext(Context):
     if len(ctx.anims):
       return False
 
+    if ctx.child:
+      return ctx.child.handle_keydown(key)
+
     key_deltas = {
       pygame.K_LEFT: (-1, 0),
       pygame.K_RIGHT: (1, 0),
@@ -169,11 +173,8 @@ class DungeonContext(Context):
     if key == pygame.K_TAB:
       return ctx.handle_swap()
 
-    # if key == pygame.K_BACKSPACE:
-    #   return ctx.handle_inventory()
-
-    # if key == pygame.K_q:
-    #   return ctx.handle_item()
+    if key == pygame.K_BACKSPACE:
+      return ctx.handle_inventory()
 
     if key == pygame.K_SPACE:
       return ctx.handle_special()
@@ -317,6 +318,11 @@ class DungeonContext(Context):
   def handle_floorchange(ctx, direction):
     ctx.log.exit()
     ctx.parent.dissolve(lambda: (ctx.camera.reset(), ctx.change_floors(direction)))
+
+  def handle_inventory(ctx):
+    if ctx.child is None:
+      ctx.child = InventoryContext(parent=ctx, inventory=ctx.inventory)
+      ctx.log.exit()
 
   def move(ctx, actor, delta):
     actor_x, actor_y = actor.cell
@@ -479,8 +485,8 @@ class DungeonContext(Context):
     index = game.floors.index(game.floor) + direction
     if index >= len(game.floors):
       # create a new floor if out of bounds
-      game.create_floor()
       game.log.print("You go upstairs.")
+      game.create_floor()
     elif index >= 0:
       # go back to old floor if within bounds
       new_floor = game.floors[index]
@@ -512,7 +518,8 @@ class DungeonContext(Context):
       if len(group) == 0:
         ctx.anims.remove(group)
 
-    ctx.render_hud(surface)
+    if not ctx.child:
+      ctx.render_hud(surface)
 
     is_playing_enter_transit = len(ctx.parent.transits) and type(ctx.parent.transits[0]) is DissolveOut
     if not is_playing_enter_transit:
@@ -521,6 +528,9 @@ class DungeonContext(Context):
         window_width / 2 - log.get_width() / 2,
         window_height + ctx.log.y
       ))
+
+    if ctx.child:
+      ctx.child.render(surface)
 
   def render_hud(ctx, surface):
     assets = load_assets()
