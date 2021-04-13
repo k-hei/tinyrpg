@@ -37,7 +37,7 @@ from anims.awaken import AwakenAnim
 from items.potion import Potion
 from items.ankh import Ankh
 
-MOVE_DURATION = 8
+MOVE_DURATION = 16
 ATTACK_DURATION = 12
 SHAKE_DURATION = 30
 FLICKER_DURATION = 30

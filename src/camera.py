@@ -22,10 +22,10 @@ class Camera:
     if len(game.anims):
       anims = game.anims[0]
 
-    CAMERA_SPEED = 8
+    CAMERA_SPEED = 4
     if game.room:
       focus_x, focus_y = game.room.get_center()
-      CAMERA_SPEED = 16
+      CAMERA_SPEED = 8
 
       if game.room.get_width() > MAX_RADIUS_X * 2 + 1:
         for anim in anims:

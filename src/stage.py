@@ -156,6 +156,12 @@ class Stage:
       if type(anim) is ShakeAnim:
         sprite_x += anim.update()
 
+      if type(anim) is MoveAnim and anim.time % 8 >= 4:
+        if type(actor) is Knight:
+          sprite = assets.sprites["knight_walk"]
+        elif type(actor) is Mage:
+          sprite = assets.sprites["mage_walk"]
+
       will_flinch = next((anim for other in anim_group if type(other) is ShakeAnim and other.target is anim.target), None)
       if type(anim) is ShakeAnim or will_flinch:
         if type(actor) is Knight:
