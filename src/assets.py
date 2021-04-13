@@ -18,6 +18,7 @@ sprite_paths = {
   "knight": "assets/knight.png",
   "knight_flinch": "assets/knight-flinch.png",
   "mage": "assets/mage.png",
+  "mage_flinch": "assets/mage-flinch.png",
   "bat": "assets/bat.png",
   "rat": "assets/rat.png",
   "floor": "assets/floor.png",

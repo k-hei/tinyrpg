@@ -160,6 +160,8 @@ class Stage:
       if type(anim) is ShakeAnim or will_flinch:
         if type(actor) is Knight:
           sprite = assets.sprites["knight_flinch"]
+        elif type(actor) is Mage:
+          sprite = assets.sprites["mage_flinch"]
         elif type(actor) is Eye:
           sprite = assets.sprites["eye_flinch"]
           will_awaken = next((anim for anim in anim_group if type(anim) is AwakenAnim), None)
