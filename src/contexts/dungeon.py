@@ -30,6 +30,7 @@ from anims.shake import ShakeAnim
 from anims.flicker import FlickerAnim
 from anims.pause import PauseAnim
 from anims.awaken import AwakenAnim
+from items.potion import Potion
 from transits.dissolve import DissolveOut
 
 MOVE_DURATION = 8
@@ -57,7 +58,7 @@ class DungeonContext(Context):
     ctx.log = Log()
     ctx.camera = Camera(config.window_size)
     ctx.hud = StatusPanel()
-    ctx.inventory = Inventory((2, 2), ["Potion"])
+    ctx.inventory = Inventory((2, 2), [Potion()])
     ctx.create_floor()
     ctx.key_requires_reset = {}
 
@@ -109,7 +110,7 @@ class DungeonContext(Context):
 
     hero = game.hero
     room = next((room for room in game.floor.rooms if enemy.cell in room.get_cells()), None)
-    if not room or hero.cell not in room.get_cells():
+    if not room or hero.cell not in room.get_cells(): # + room.get_border():
       return False
 
     if is_adjacent(enemy.cell, hero.cell):
@@ -267,10 +268,10 @@ class DungeonContext(Context):
       if target_actor and type(target_actor) is Chest:
         if target_actor.contents:
           if not ctx.inventory.is_full():
-            contents = target_actor.open()
-            ctx.inventory.append(contents)
+            item = target_actor.open()
+            ctx.inventory.append(item)
             ctx.log.print("You open the lamp")
-            ctx.log.print("Received " + contents + ".")
+            ctx.log.print("Received " + item.name + ".")
             acted = True
           else:
             ctx.log.print("Your inventory is already full!")
@@ -487,6 +488,17 @@ class DungeonContext(Context):
     game.log.print("MAGE uses Detect Mana")
     game.anims.append([ PauseAnim(duration=30, on_end=search) ])
 
+  def use_item(game, item):
+    success, message = item.effect(game)
+    if success:
+      game.log.print("Used " + item.name)
+      game.log.print(message)
+      game.anims.append([ PauseAnim(duration=30) ])
+      game.inventory.items.remove(item)
+      return (True, None)
+    else:
+      return (False, message)
+
   def change_floors(game, direction):
     exit_tile = Stage.STAIRS_UP if direction == 1 else Stage.STAIRS_DOWN
     entry_tile = Stage.STAIRS_DOWN if direction == 1 else Stage.STAIRS_UP
@@ -540,44 +552,18 @@ class DungeonContext(Context):
 
     # is_playing_enter_transit = len(ctx.parent.transits) and type(ctx.parent.transits[0]) is DissolveOut
     # if not is_playing_enter_transit:
-    log = ctx.log.render(assets.sprites["log"], assets.fonts["standard"])
-    surface.blit(log, (
-      window_width / 2 - log.get_width() / 2,
-      window_height + ctx.log.y
-    ))
+    if not ctx.child or ctx.log.anim and ctx.log.exiting:
+      log = ctx.log.render(assets.sprites["log"], assets.fonts["standard"])
+      surface.blit(log, (
+        window_width / 2 - log.get_width() / 2,
+        window_height + ctx.log.y
+      ))
+
     ctx.hud.draw(surface, ctx)
 
-    animating = ctx.log.anim or ctx.hud.anims
+    animating = ctx.log.anim and ctx.log.exiting or ctx.hud.anims
     if ctx.child and not animating:
       ctx.child.draw(surface)
-
-
-
-#     box = sprites["box"]
-#     cols = game.inventory.cols
-#     rows = game.inventory.rows
-#     margin_x = 8
-#     margin_y = 6
-#     spacing = 2
-#     start_x = window_width - (box.get_width() + spacing) * cols - margin_x
-#     for row in range(rows):
-#       for col in range(cols):
-#         index = row * cols + col
-#         x = start_x + (box.get_width() + spacing) * col
-#         y = margin_y + (box.get_height() + spacing) * row
-#         surface.blit(box, (x, y))
-#         if index < len(game.inventory.items):
-#           item = game.inventory.items[index]
-#           if item == "Potion":
-#             sprite = sprites["icon_potion"]
-#           elif item == "Bread":
-#             sprite = sprites["icon_bread"]
-#           elif item == "Warp Crystal":
-#             sprite = sprites["icon_crystal"]
-#           elif item == "Ankh":
-#             sprite = sprites["icon_ankh"]
-#           if sprite:
-#             surface.blit(sprite, (x + 8, y + 8))
 
 #   def use_item(game):
 #     hero = game.p1

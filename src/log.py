@@ -27,6 +27,7 @@ class Log:
     log.offset = 0
     log.dirty = False
     log.active = False
+    log.exiting = False
     log.clean_frames = Log.HANG_DURATION
     log.box = Surface((Log.BOX_WIDTH, Log.BOX_HEIGHT))
     log.surface = None
@@ -37,6 +38,7 @@ class Log:
     log.messages.append(message)
     if not log.active and log.anim is None:
       log.active = True
+      log.exiting = False
       log.dirty = False
       log.anim = EnterAnim(duration=Log.ENTER_DURATION)
     if not log.dirty:
@@ -47,6 +49,7 @@ class Log:
 
   def exit(log):
     if log.active:
+      log.exiting = True
       log.anim = ExitAnim(
         duration=Log.EXIT_DURATION,
         on_end=log.reset

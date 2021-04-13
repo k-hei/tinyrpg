@@ -74,9 +74,9 @@ class ChoiceContext(Context):
 
   def handle_choose(ctx):
     choice = ctx.choices[ctx.index]
-    ctx.chosen = True
-    ctx.on_choose(choice)
-    ctx.exit()
+    if ctx.on_choose(choice):
+      ctx.chosen = True
+      ctx.exit()
 
   def handle_close(ctx):
     ctx.exit()

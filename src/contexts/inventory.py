@@ -33,10 +33,7 @@ class InventoryContext(Context):
     ctx.anims = []
     ctx.bar = StatusBar()
     item = ctx.get_item_at(ctx.cursor)
-    if item:
-      ctx.select_item(item)
-    else:
-      ctx.bar.print("Your pack is currently empty.")
+    ctx.select_item(item)
     ctx.enter()
 
   def enter(ctx, on_end=None):
@@ -84,8 +81,14 @@ class InventoryContext(Context):
       return None
     return inventory.items[index]
 
-  def select_item(ctx, item):
-    ctx.bar.print(ctx.get_item_description(item))
+  def select_item(ctx, item=None):
+    if item is None:
+      item = ctx.get_item_at(ctx.cursor)
+
+    if item is None:
+      ctx.bar.print("Your pack is currently empty.")
+    else:
+      ctx.bar.print(item.name + ": " + item.description)
 
   def contains(ctx, cell):
     cols, rows = ctx.grid_size
@@ -134,12 +137,26 @@ class InventoryContext(Context):
   def handle_choose(ctx):
     item = ctx.get_item_at(ctx.cursor)
     if item:
+      def use_item():
+        success, message = ctx.parent.use_item(item)
+        if not success:
+          ctx.bar.print(message)
+          return False
+        else:
+          ctx.exit()
+          return True
+
+      def discard_item():
+        ctx.data.items.remove(item)
+        ctx.select_item()
+        return True
+
       ctx.child = ChoiceContext(
         parent=ctx,
         choices=("Use", "Discard"),
         on_choose=lambda choice: (
-          print("selected", choice),
-          ctx.exit()
+          choice == "Use" and use_item() or
+          choice == "Discard" and discard_item()
         )
       )
 
@@ -229,33 +246,8 @@ class InventoryContext(Context):
             y + box.get_height() // 2 - box_height // 2
           ))
           if item and not ctx.anims:
-            sprite = ctx.render_item(item)
-            menu.blit(sprite, (x + 8, y + 8))
+            menu.blit(item.render(), (x + 8, y + 8))
         x += box.get_width() + SPACING
       y += box.get_height() + SPACING
 
     return menu
-
-  def render_item(ctx, item):
-    assets = use_assets()
-    if item == "Potion":
-      return assets.sprites["icon_potion"]
-    elif item == "Bread":
-      return assets.sprites["icon_bread"]
-    elif item == "Warp Crystal":
-      return assets.sprites["icon_crystal"]
-    elif item == "Ankh":
-      return assets.sprites["icon_ankh"]
-    return None
-
-  def get_item_description(ctx, item):
-    assets = use_assets()
-    if item == "Potion":
-      return "Potion: Restores 5 HP"
-    elif item == "Bread":
-      return "Bread: Restores 10 SP"
-    elif item == "Warp Crystal":
-      return "Warp Crystal: Return to town"
-    elif item == "Ankh":
-      return "Ankh: Revives incapacitated ally at half HP"
-    return None

@@ -4,6 +4,10 @@ from stage import Stage
 from room import Room
 from maze import Maze
 from actors import Knight, Mage, Eye, Chest
+from items.potion import Potion
+from items.bread import Bread
+from items.ankh import Ankh
+from items.warp import WarpCrystal
 
 possible_widths = (3, 5, 7)
 possible_heights = [3]
@@ -144,13 +148,13 @@ def dungeon(size):
       elif random.randint(1, 80) == 1:
         choice = random.randint(1, 10)
         if choice == 1:
-          item = "Ankh"
+          item = Ankh()
         elif choice <= 2:
-          item = "Warp Crystal"
+          item = WarpCrystal()
         elif choice <= 5:
-          item = "Bread"
+          item = Bread()
         else:
-          item = "Potion"
+          item = Potion()
         floor.spawn_actor(Chest(item), cell)
 
   floor.rooms = rooms

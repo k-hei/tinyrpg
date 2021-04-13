@@ -114,6 +114,13 @@ class Stage:
     for actor in visible_actors:
       sprite = stage.draw_actor(actor, surface, anims, camera_pos)
 
+    for group in anims:
+      for anim in group:
+        if anim.target is not None and anim.target not in visible_actors:
+          group.remove(anim)
+          if len(group) == 0:
+            anims.remove(group)
+
   def draw_actor(stage, actor, surface, anims, camera_pos=(0, 0)):
     assets = use_assets()
     camera_x, camera_y = camera_pos
