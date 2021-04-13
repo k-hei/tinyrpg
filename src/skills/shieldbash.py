@@ -16,8 +16,8 @@ class ShieldBash(Skill):
 
   # TODO: move into separate skill
   def effect(skill, game, on_end=None):
-    if game.sp >= 2:
-      game.sp = max(0, game.sp - 2)
+    if game.sp >= skill.cost:
+      game.sp -= skill.cost
 
     user = game.hero
     source_cell = user.cell
@@ -44,7 +44,7 @@ class ShieldBash(Skill):
             src_cell=target_cell,
             dest_cell=nudge_cell
           ))
-      game.attack(user, target_actor, on_connect, on_end)
+      game.attack(user, target_actor, False, on_connect, on_end)
       game.log.print(target_actor.name.upper() + " is reeling.")
     else:
       game.log.print("But nothing happened...")

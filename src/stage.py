@@ -175,7 +175,7 @@ class Stage:
         sprite_x += anim.update()
 
       if type(anim) is MoveAnim:
-        if anim.time % 8 >= 4:
+        if anim.time % (anim.duration // 2) >= anim.duration // 4:
           if type(actor) is Knight:
             sprite = assets.sprites["knight_walk"]
           elif type(actor) is Mage:

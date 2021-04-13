@@ -39,6 +39,7 @@ from items.potion import Potion
 from items.ankh import Ankh
 
 MOVE_DURATION = 16
+RUN_DURATION = 12
 ATTACK_DURATION = 12
 SHAKE_DURATION = 30
 FLICKER_DURATION = 30
@@ -111,13 +112,13 @@ class DungeonContext(Context):
         visited_cells.append(cell)
     ctx.hero.visible_cells = visible_cells
 
-  def step(game):
+  def step(game, run=False):
     enemies = [actor for actor in game.floor.actors if actor.faction == "enemy"]
     for enemy in enemies:
-      game.step_enemy(enemy)
+      game.step_enemy(enemy, run)
 
   # TODO: move into enemy module (requires some kind of event/cache system)
-  def step_enemy(game, enemy):
+  def step_enemy(game, enemy, run=False):
     if enemy.dead or enemy.asleep or enemy.idle:
       return False
 
@@ -130,10 +131,10 @@ class DungeonContext(Context):
 
     if is_adjacent(enemy.cell, hero.cell):
       if not hero.dead:
-        game.attack(enemy, hero)
+        game.attack(enemy, hero, run)
     elif is_adjacent(enemy.cell, ally.cell):
       if not ally.dead:
-        game.attack(enemy, ally)
+        game.attack(enemy, ally, run)
     else:
       delta_x, delta_y = (0, 0)
       enemy_x, enemy_y = enemy.cell
@@ -160,7 +161,7 @@ class DungeonContext(Context):
 
       if delta_x == 0 and delta_y == 0:
         return True
-      game.move(enemy, (delta_x, delta_y))
+      game.move(enemy, (delta_x, delta_y), run)
 
     return True
 
@@ -184,7 +185,8 @@ class DungeonContext(Context):
     key_requires_reset = key in ctx.key_requires_reset and ctx.key_requires_reset[key]
     if key in key_deltas and not key_requires_reset:
       delta = key_deltas[key]
-      moved = ctx.handle_move(delta)
+      run = pygame.K_RSHIFT in key_times and key_times[pygame.K_RSHIFT] > 0
+      moved = ctx.handle_move(delta, run)
       if not moved:
         ctx.key_requires_reset[key] = True
       return moved
@@ -212,7 +214,7 @@ class DungeonContext(Context):
 
     return False
 
-  def handle_move(ctx, delta):
+  def handle_move(ctx, delta, run=False):
     hero = ctx.hero
     ally = ctx.ally
     if hero.dead:
@@ -220,7 +222,7 @@ class DungeonContext(Context):
     hero_x, hero_y = hero.cell
     delta_x, delta_y = delta
     acted = False
-    moved = ctx.move(hero, delta)
+    moved = ctx.move(hero, delta, run)
     target_cell = (hero_x + delta_x, hero_y + delta_y)
     target_tile = ctx.floor.get_tile_at(target_cell)
     target_actor = ctx.floor.get_actor_at(target_cell)
@@ -228,7 +230,7 @@ class DungeonContext(Context):
       if not ally.dead:
         last_group = ctx.anims[len(ctx.anims) - 1]
         ally_x, ally_y = ally.cell
-        ctx.move(ally, (hero_x - ally_x, hero_y - ally_y))
+        ctx.move(ally, (hero_x - ally_x, hero_y - ally_y), run)
         last_group.append(ctx.anims.pop()[0])
 
       if target_tile is Stage.STAIRS_UP:
@@ -278,21 +280,19 @@ class DungeonContext(Context):
           PauseAnim(duration=30, on_end=lambda: (
             target_actor.activate(),
             ctx.log.print("The lamp was " + target_actor.name.upper() + "!"),
-            ctx.step(),
+            ctx.step(run),
             ctx.anims[0].append(PauseAnim(
               duration=15,
-              on_end=lambda: (
-                ctx.refresh_fov()
-              )
+              on_end=lambda: ctx.refresh_fov
             ))
           ))
         ])
         ctx.log.print("You open the lamp")
       else:
-        ctx.attack(hero, target_actor)
+        ctx.attack(hero, target_actor, run)
         ctx.sp = max(0, ctx.sp - 1)
         acted = True
-        ctx.step()
+        ctx.step(run)
         ctx.refresh_fov()
     else:
       ctx.anims.append([
@@ -324,17 +324,17 @@ class DungeonContext(Context):
             ctx.log.print("Your inventory is already full!")
         else:
           ctx.log.print("There's nothing left to take...")
-        ctx.step()
+        ctx.step(run)
         ctx.refresh_fov()
       elif target_tile is Stage.DOOR:
         ctx.log.print("You open the door.")
         ctx.floor.set_tile_at(target_cell, Stage.DOOR_OPEN)
-        ctx.step()
+        ctx.step(run)
         ctx.refresh_fov()
       elif target_tile is Stage.DOOR_HIDDEN:
         ctx.log.print("Discovered a hidden door!")
         ctx.floor.set_tile_at(target_cell, Stage.DOOR_OPEN)
-        ctx.step()
+        ctx.step(run)
         ctx.refresh_fov()
       elif target_tile is Stage.DOOR_LOCKED:
         ctx.log.print("The door is locked...")
@@ -385,7 +385,7 @@ class DungeonContext(Context):
         inventory=ctx.inventory
       )
 
-  def move(ctx, actor, delta):
+  def move(ctx, actor, delta, run=False):
     actor_x, actor_y = actor.cell
     delta_x, delta_y = delta
     target_cell = (actor_x + delta_x, actor_y + delta_y)
@@ -393,9 +393,10 @@ class DungeonContext(Context):
     target_actor = ctx.floor.get_actor_at(target_cell)
     actor.facing = delta
     if not target_tile.solid and (target_actor is None or actor is ctx.hero and target_actor is ctx.ally):
+      duration = RUN_DURATION if run else MOVE_DURATION
       ctx.anims.append([
         MoveAnim(
-          duration=MOVE_DURATION,
+          duration=duration,
           target=actor,
           src_cell=actor.cell,
           dest_cell=target_cell
@@ -406,7 +407,7 @@ class DungeonContext(Context):
     else:
       return False
 
-  def attack(game, actor, target, on_connect=None, on_end=None):
+  def attack(game, actor, target, run=False, on_connect=None, on_end=None):
     was_asleep = target.asleep
     game.log.print(actor.name.upper() + " attacks")
 

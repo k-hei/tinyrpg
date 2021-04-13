@@ -3,3 +3,7 @@ class Skill:
     skill.name = name
     skill.desc = desc
     skill.cost = cost
+
+  def effect(skill, game):
+    if game.sp >= skill.cost:
+      game.sp -= skill.cost
