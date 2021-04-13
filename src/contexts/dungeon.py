@@ -111,13 +111,13 @@ class DungeonContext(Context):
     ctx.hero.visible_cells = visible_cells
 
   def step(game):
-    enemies = [actor for actor in game.floor.actors if type(actor) is Eye]
+    enemies = [actor for actor in game.floor.actors if actor.faction == "enemy"]
     for enemy in enemies:
       game.step_enemy(enemy)
 
   # TODO: move into enemy module (requires some kind of event/cache system)
   def step_enemy(game, enemy):
-    if enemy.dead or enemy.asleep:
+    if enemy.dead or enemy.asleep or enemy.idle:
       return False
 
     hero = game.hero
@@ -234,7 +234,8 @@ class DungeonContext(Context):
       if ctx.room:
         room = ctx.room
         floor = ctx.floor
-        enemies = [floor.get_actor_at(cell) for cell in room.get_cells() if type(floor.get_actor_at(cell)) is Eye]
+        room_actors = [floor.get_actor_at(cell) for cell in room.get_cells() if floor.get_actor_at(cell)]
+        enemies = [actor for actor in room_actors if actor.faction == "enemy"]
         for enemy in enemies:
           if enemy.asleep and random.randint(1, 10) == 1:
             enemy.asleep = False
@@ -262,12 +263,28 @@ class DungeonContext(Context):
 
       acted = True
       ctx.sp = max(0, ctx.sp - 1 / 100)
-    elif target_actor and type(target_actor) is Eye:
-      ctx.attack(hero, target_actor)
-      ctx.sp = max(0, ctx.sp - 1)
-      acted = True
-      ctx.step()
-      ctx.refresh_fov()
+    elif target_actor and target_actor.faction == "enemy":
+      if target_actor.idle:
+        ctx.anims.append([
+          PauseAnim(duration=30, on_end=lambda: (
+            target_actor.activate(),
+            ctx.log.print("The lamp was " + target_actor.name.upper() + "!"),
+            ctx.step(),
+            ctx.anims[0].append(PauseAnim(
+              duration=15,
+              on_end=lambda: (
+                ctx.refresh_fov()
+              )
+            ))
+          ))
+        ])
+        ctx.log.print("You open the lamp")
+      else:
+        ctx.attack(hero, target_actor)
+        ctx.sp = max(0, ctx.sp - 1)
+        acted = True
+        ctx.step()
+        ctx.refresh_fov()
     else:
       ctx.anims.append([
         AttackAnim(
@@ -313,13 +330,8 @@ class DungeonContext(Context):
     return True
 
   def handle_special(game):
-    if type(game.hero) is Knight:
-      game.shield_bash(on_end=lambda: (
-        game.step(),
-        game.refresh_fov()
-      ))
-    elif type(game.hero) is Mage:
-      game.somnus()
+    hero = game.hero
+    hero.use_skill(game)
 
   def handle_ascend(ctx):
     if ctx.floor.get_tile_at(ctx.hero.cell) is not Stage.STAIRS_UP:
@@ -440,50 +452,6 @@ class DungeonContext(Context):
     ])
 
   # TODO: move into separate skill
-  def shield_bash(game, on_end=None):
-    if game.sp >= 2:
-      game.sp = max(0, game.sp - 2)
-
-    user = game.hero
-    source_cell = user.cell
-    hero_x, hero_y = source_cell
-    delta_x, delta_y = user.facing
-    target_cell = (hero_x + delta_x, hero_y + delta_y)
-    target_actor = game.floor.get_actor_at(target_cell)
-    game.log.print(user.name.upper() + " uses Shield Bash")
-
-    if target_actor and type(target_actor) is Eye:
-      # nudge target actor 1 square in the given direction
-      target_x, target_y = target_cell
-      nudge_cell = (target_x + delta_x, target_y + delta_y)
-      nudge_tile = game.floor.get_tile_at(nudge_cell)
-      nudge_actor = game.floor.get_actor_at(nudge_cell)
-      will_nudge = not nudge_tile.solid and nudge_actor is None
-
-      def on_connect():
-        if will_nudge:
-          target_actor.cell = nudge_cell
-          game.anims[0].append(MoveAnim(
-            duration=MOVE_DURATION,
-            target=target_actor,
-            src_cell=target_cell,
-            dest_cell=nudge_cell
-          ))
-      game.attack(user, target_actor, on_connect, on_end)
-      game.log.print(target_actor.name.upper() + " is reeling.")
-    else:
-      game.log.print("But nothing happened...")
-      game.anims.append([
-        AttackAnim(
-          duration=ATTACK_DURATION,
-          target=user,
-          src_cell=user.cell,
-          dest_cell=target_cell,
-          on_end=on_end
-        )
-      ])
-
-  # TODO: move into separate skill
   def detect_mana(game):
     if game.sp >= 1:
       game.sp = max(0, game.sp - 1)
@@ -499,35 +467,6 @@ class DungeonContext(Context):
       game.step()
     game.log.print("MAGE uses Detect Mana")
     game.anims.append([ PauseAnim(duration=30, on_end=search) ])
-
-  def somnus(game):
-    if game.sp >= 4:
-      game.sp = max(0, game.sp - 4)
-
-    user = game.hero
-    source_cell = user.cell
-    hero_x, hero_y = source_cell
-    delta_x, delta_y = user.facing
-    target_cell = (hero_x + delta_x, hero_y + delta_y)
-    target_actor = game.floor.get_actor_at(target_cell)
-    game.log.print(user.name.upper() + " uses Somnus")
-    def on_end():
-      if target_actor and type(target_actor) is Eye:
-        target_actor.asleep = True
-        game.log.print(target_actor.name.upper() + " fell asleep!")
-        game.step()
-      else:
-        game.log.print("But nothing happened...")
-        game.step()
-    game.anims.append([
-      AttackAnim(
-        duration=ATTACK_DURATION,
-        target=user,
-        src_cell=user.cell,
-        dest_cell=target_cell,
-        on_end=on_end
-      )
-    ])
 
   def use_item(game, item):
     success, message = item.effect(game)

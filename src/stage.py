@@ -10,6 +10,7 @@ from filters import replace_color
 from actors.knight import Knight
 from actors.mage import Mage
 from actors.eye import Eye
+from actors.mimic import Mimic
 from actors.chest import Chest
 
 from anims.move import MoveAnim
@@ -147,8 +148,14 @@ class Stage:
         sprite = assets.sprites["chest_open"]
       else:
         sprite = assets.sprites["chest"]
+    elif type(actor) is Mimic:
+      sprite = assets.sprites["chest"]
+      if not actor.idle:
+        sprite = replace_color(sprite, palette.GOLD, palette.RED)
 
     anim_group = anims[0] if len(anims) else []
+    pause = next((anim for anim in anim_group if type(anim) is PauseAnim), None)
+
     for anim in anim_group:
       if anim.target is not actor:
         continue
@@ -156,11 +163,14 @@ class Stage:
       if type(anim) is ShakeAnim:
         sprite_x += anim.update()
 
-      if type(anim) is MoveAnim and anim.time % 8 >= 4:
-        if type(actor) is Knight:
-          sprite = assets.sprites["knight_walk"]
-        elif type(actor) is Mage:
-          sprite = assets.sprites["mage_walk"]
+      if type(anim) is MoveAnim:
+        if anim.time % 8 >= 4:
+          if type(actor) is Knight:
+            sprite = assets.sprites["knight_walk"]
+          elif type(actor) is Mage:
+            sprite = assets.sprites["mage_walk"]
+        if type(actor) is Eye:
+          sprite = assets.sprites["eye_attack"]
 
       will_flinch = next((anim for other in anim_group if type(other) is ShakeAnim and other.target is anim.target), None)
       if type(anim) is ShakeAnim or will_flinch:
@@ -206,7 +216,7 @@ class Stage:
       if anim.done:
         anim_group.remove(anim)
 
-    if type(actor) is Eye and actor.asleep and sprite:
+    if actor.asleep and sprite:
       sprite = replace_color(surface=sprite, old_color=palette.RED, new_color=palette.PURPLE)
 
     for group in anims:
@@ -220,7 +230,10 @@ class Stage:
 
     stage.facings[actor] = facing
     if sprite:
-      sprite = pygame.transform.flip(sprite, facing == -1, False)
+      flipped = facing == -1
+      if type(actor) is Mimic and not actor.idle:
+        flipped = not flipped
+      sprite = pygame.transform.flip(sprite, flipped, False)
       x = sprite_x - round(camera_x)
       y = sprite_y - round(camera_y)
       surface.blit(sprite, (x, y))

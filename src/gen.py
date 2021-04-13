@@ -3,7 +3,10 @@ from cell import is_odd, add, is_adjacent, manhattan
 from stage import Stage
 from room import Room
 from maze import Maze
+
 from actors import Knight, Mage, Eye, Chest
+from actors.mimic import Mimic
+
 from items.potion import Potion
 from items.bread import Bread
 from items.ankh import Ankh
@@ -230,14 +233,18 @@ def dungeon(size, floor=1):
     for i in range(elems):
       cell = random.choice(cells)
       cells.remove(cell)
-      if random.randint(1, 3) == 1:
+      kind = random.choices(("Item", "Mimic", "Eye"), (2, 1, 2))[0]
+      if kind == "Item":
         item = random.choices((Ankh, WarpCrystal, Bread, Potion), (1, 2, 3, 4))[0]()
         stage.spawn_actor(Chest(item), cell)
-      else:
+      elif kind == "Eye":
         enemy = Eye()
         stage.spawn_actor(enemy, cell)
         if random.randint(1, 3) == 1:
           enemy.asleep = True
+      elif kind == "Mimic":
+        enemy = Mimic()
+        stage.spawn_actor(enemy, cell)
 
   for room in secret_rooms:
     kind = random.choice(("Treasure", "MonsterDen"))
@@ -247,9 +254,13 @@ def dungeon(size, floor=1):
       is_beside_door = next((door for door in doors if is_adjacent(door, cell)), None)
       if not is_floor or not is_empty or is_beside_door:
         continue
-      if kind == "Treasure" and random.randint(1, 2) == 1:
-        item = random.choice((Ankh, WarpCrystal, Bread, Potion))()
-        stage.spawn_actor(Chest(item), cell)
+      if kind == "Treasure" and random.randomint(1, 2):
+        if random.randint(1, 2) == 1:
+          item = random.choice((Ankh, WarpCrystal, Bread, Potion))()
+          stage.spawn_actor(Chest(item), cell)
+        else:
+          enemy = Mimic()
+          stage.spawn_actor(enemy, cell)
       elif kind == "MonsterDen" and random.randint(1, 2) == 1:
         enemy = Eye()
         if random.randint(0, 4):

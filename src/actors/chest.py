@@ -4,6 +4,8 @@ class Chest:
     chest.opened = False
     chest.cell = None
     chest.facing = (1, 0)
+    chest.faction = None
+    chest.asleep = False
 
   def open(chest):
     contents = chest.contents

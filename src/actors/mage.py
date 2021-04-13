@@ -1,4 +1,5 @@
 from actors.actor import Actor
+from skills.somnus import Somnus
 
 class Mage(Actor):
   def __init__(mage):
@@ -7,5 +8,6 @@ class Mage(Actor):
       faction="player",
       hp=7,
       st=3,
-      en=0
+      en=0,
+      skill=Somnus()
     )

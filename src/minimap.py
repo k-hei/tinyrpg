@@ -36,7 +36,7 @@ class Minimap:
       color = None
       if type(actor) is Knight or type(actor) is Mage and cell in visible_cells:
         color = 0x7F7FFF
-      elif type(actor) is Eye and cell in visible_cells:
+      elif actor and actor.faction == "enemy" and cell in visible_cells:
         if actor.asleep:
           color = 0x7F007F
         else:

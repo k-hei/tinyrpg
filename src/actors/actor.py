@@ -1,14 +1,16 @@
 import random
 
 class Actor:
-  def __init__(actor, name, faction, hp, st, en):
+  def __init__(actor, name, faction, hp, st, en, skill=None):
     actor.name = name
     actor.hp_max = hp
     actor.hp = hp
     actor.st = st
     actor.en = en
+    actor.skill = skill
     actor.dead = False
     actor.asleep = False
+    actor.idle = False
     actor.facing = (1, 0)
     actor.faction = faction
     actor.visible_cells = []
@@ -32,6 +34,15 @@ class Actor:
       target.hp = 0
       target.dead = True
     return damage
+
+  def use_skill(actor, game):
+    if actor.skill is None:
+      return False
+    actor.skill.effect(game, on_end=lambda: (
+      game.step(),
+      game.refresh_fov()
+    ))
+    return True
 
   def find_damage(actor, target):
     st = actor.st
