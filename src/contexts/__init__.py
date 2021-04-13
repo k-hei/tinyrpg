@@ -13,6 +13,6 @@ class Context:
       return ctx.child.handle_keyup(key)
     return False
 
-  def render(ctx, surface):
+  def draw(ctx, surface):
     if ctx.child:
-      ctx.child.render(surface)
+      ctx.child.draw(surface)

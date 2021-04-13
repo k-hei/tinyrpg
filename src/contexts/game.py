@@ -16,11 +16,11 @@ class GameContext(Context):
       return False
     return super().handle_keydown(key)
 
-  def render(ctx, surface):
-    super().render(surface)
+  def draw(ctx, surface):
+    super().draw(surface)
     if len(ctx.transits):
       transit = ctx.transits[0]
       transit.update()
-      transit.render(surface)
+      transit.draw(surface)
       if transit.done:
         ctx.transits.remove(transit)

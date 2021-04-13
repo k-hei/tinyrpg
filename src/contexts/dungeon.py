@@ -38,6 +38,7 @@ SHAKE_DURATION = 30
 FLICKER_DURATION = 30
 PAUSE_DURATION = 15
 PAUSE_ITEM_DURATION = 30
+PAUSE_DEATH_DURATION = 45
 AWAKEN_DURATION = 45
 VISION_RANGE = 3.5
 
@@ -56,7 +57,7 @@ class DungeonContext(Context):
     ctx.log = Log()
     ctx.camera = Camera(config.window_size)
     ctx.hud = StatusPanel()
-    ctx.inventory = Inventory(2, 2)
+    ctx.inventory = Inventory((2, 2), ["Potion"])
     ctx.create_floor()
     ctx.key_requires_reset = {}
 
@@ -148,7 +149,7 @@ class DungeonContext(Context):
     ctx.key_requires_reset[key] = False
 
   def handle_keydown(ctx, key):
-    if len(ctx.anims):
+    if len(ctx.anims) or ctx.log.anim or ctx.hud.anims:
       return False
 
     if ctx.child:
@@ -366,8 +367,15 @@ class DungeonContext(Context):
     def remove():
       game.floor.actors.remove(target)
       if target.faction == "player":
-        game.handle_swap()
-      if on_end: on_end()
+        game.anims[0].append(PauseAnim(
+          duration=PAUSE_DEATH_DURATION,
+          on_end=lambda: (
+            game.handle_swap(),
+            on_end and on_end()
+          )
+        ))
+      else:
+        if on_end: on_end()
 
     def awaken():
       game.log.print(target.name.upper() + " woke up!")
@@ -514,14 +522,14 @@ class DungeonContext(Context):
 
     return True
 
-  def render(ctx, surface):
+  def draw(ctx, surface):
     assets = load_assets()
     surface.fill(0x000000)
     window_width = surface.get_width()
     window_height = surface.get_height()
 
     ctx.camera.update(ctx)
-    ctx.floor.render(surface, ctx)
+    ctx.floor.draw(surface, ctx)
 
     for group in ctx.anims:
       for anim in group:
@@ -542,7 +550,7 @@ class DungeonContext(Context):
 
     animating = ctx.log.anim or ctx.hud.anims
     if ctx.child and not animating:
-      ctx.child.render(surface)
+      ctx.child.draw(surface)
     else:
       ctx.hud.draw(surface, ctx)
 

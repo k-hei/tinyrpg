@@ -1,8 +1,10 @@
 import random
 import pygame
 from pygame import Surface
+
 from assets import load as use_assets
 from contexts import Context
+from contexts.choice import ChoiceContext
 from filters import replace_color
 from statusbar import StatusBar
 from keyboard import key_times
@@ -94,6 +96,9 @@ class InventoryContext(Context):
     if ctx.anims:
       return False
 
+    if ctx.child:
+      return ctx.child.handle_keydown(key)
+
     key_deltas = {
       pygame.K_LEFT: (-1, 0),
       pygame.K_RIGHT: (1, 0),
@@ -106,6 +111,9 @@ class InventoryContext(Context):
 
     if key not in key_times or key_times[key] != 1:
       return False
+
+    if key == pygame.K_RETURN:
+      ctx.handle_choose()
 
     if key == pygame.K_BACKSPACE:
       ctx.animate(active=False, on_end=ctx.close)
@@ -123,7 +131,16 @@ class InventoryContext(Context):
       ctx.cursor = target_cell
       ctx.select_item(target_item)
 
-  def render(ctx, surface):
+  def handle_choose(ctx):
+    item = ctx.get_item_at(ctx.cursor)
+    if item:
+      ctx.child = ChoiceContext(
+        parent=ctx,
+        choices=("Use", "Discard"),
+        on_choose=lambda choice: print("selected", choice)
+      )
+
+  def draw(ctx, surface):
     assets = use_assets()
 
     window_width = surface.get_width()
@@ -153,6 +170,11 @@ class InventoryContext(Context):
     x = MARGIN
     y = end_y - SPACING - menu.get_height()
     surface.blit(menu, (x, y))
+
+    x += menu.get_width() + SPACING
+    if type(ctx.child) is ChoiceContext:
+      menu = ctx.child.render()
+      surface.blit(menu, (x, y))
 
   def render_menu(ctx):
     assets = use_assets()

@@ -36,7 +36,7 @@ def handle_keyup(key):
   game_ctx.handle_keyup(key)
 
 def render():
-  game_ctx.render(surface)
+  game_ctx.draw(surface)
   display.blit(pygame.transform.scale(surface, WINDOW_SIZE_SCALED), (0, 0))
   pygame.display.flip()
 

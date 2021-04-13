@@ -93,7 +93,7 @@ class DissolveIn:
             transit.on_end()
     transit.time += 1
 
-  def render(transit, surface):
+  def draw(transit, surface):
     for node in transit.nodes:
       x, y, t = node
       diamond = diamonds[t // SPREAD_SPEED]
@@ -160,7 +160,7 @@ class DissolveOut:
       transit.stack = new_stack
     transit.time += 1
 
-  def render(transit, surface):
+  def draw(transit, surface):
     start = DIAMOND_RADIUS // 2
     for node in transit.nodes:
       col, row = node

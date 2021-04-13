@@ -1,8 +1,9 @@
 class Inventory:
-  def __init__(inv, cols, rows):
+  def __init__(inv, size, items=[]):
+    cols, rows = size
     inv.cols = cols
     inv.rows = rows
-    inv.items = []
+    inv.items = items
 
   def is_full(inv):
     return len(inv.items) == inv.cols * inv.rows

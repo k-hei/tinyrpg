@@ -95,15 +95,15 @@ class Stage:
     (x, y) = cell
     return x >= 0 and y >= 0 and x < width and y < height
 
-  def render(stage, surface, ctx):
+  def draw(stage, surface, ctx):
     visible_cells = ctx.hero.visible_cells
     visited_cells = next((cells for floor, cells in ctx.memory if floor is ctx.floor), None)
     anims = ctx.anims
     camera_pos = ctx.camera.pos
-    stage.render_tiles(surface, visible_cells, visited_cells, camera_pos)
-    stage.render_actors(surface, visible_cells, anims, camera_pos)
+    stage.draw_tiles(surface, visible_cells, visited_cells, camera_pos)
+    stage.draw_actors(surface, visible_cells, anims, camera_pos)
 
-  def render_actors(stage, surface, visible_cells=None, anims=[], camera_pos=(0, 0)):
+  def draw_actors(stage, surface, visible_cells=None, anims=[], camera_pos=(0, 0)):
     camera_x, camera_y = camera_pos
 
     if visible_cells is None:
@@ -112,9 +112,9 @@ class Stage:
     stage.actors.sort(key=lambda actor: actor.cell[1])
     visible_actors = [actor for actor in stage.actors if actor.cell in visible_cells]
     for actor in visible_actors:
-      sprite = stage.render_actor(actor, surface, anims, camera_pos)
+      sprite = stage.draw_actor(actor, surface, anims, camera_pos)
 
-  def render_actor(stage, actor, surface, anims, camera_pos=(0, 0)):
+  def draw_actor(stage, actor, surface, anims, camera_pos=(0, 0)):
     assets = use_assets()
     camera_x, camera_y = camera_pos
 
@@ -209,7 +209,7 @@ class Stage:
       y = sprite_y - round(camera_y)
       surface.blit(sprite, (x, y))
 
-  def render_tiles(stage, surface, visible_cells=None, visited_cells=[], camera_pos=None):
+  def draw_tiles(stage, surface, visible_cells=None, visited_cells=[], camera_pos=None):
     camera_x, camera_y = (0, 0)
     if camera_pos:
       camera_x, camera_y = camera_pos
@@ -219,7 +219,7 @@ class Stage:
 
     for cell in visited_cells:
       col, row = cell
-      sprite = stage.render_cell(cell)
+      sprite = stage.render_tile(cell)
       if sprite is None:
         continue
       if cell not in visible_cells:
@@ -228,7 +228,7 @@ class Stage:
       y = row * config.tile_size - round(camera_y)
       surface.blit(sprite, (x, y))
 
-  def render_cell(stage, cell):
+  def render_tile(stage, cell):
     assets = use_assets()
     x, y = cell
     sprite_name = None
