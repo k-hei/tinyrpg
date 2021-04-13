@@ -8,6 +8,5 @@ class Emerald:
   def effect(emerald, game):
     return (True, "But nothing happened...")
 
-  def render(emerald):
-    assets = use_assets()
-    return assets.sprites["icon_emerald"]
+  def render():
+    return use_assets().sprites["icon_emerald"]

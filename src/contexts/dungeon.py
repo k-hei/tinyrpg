@@ -34,6 +34,7 @@ from anims.shake import ShakeAnim
 from anims.flicker import FlickerAnim
 from anims.pause import PauseAnim
 from anims.awaken import AwakenAnim
+from anims.chest import ChestAnim
 from items.potion import Potion
 from items.ankh import Ankh
 
@@ -303,9 +304,18 @@ class DungeonContext(Context):
         )
       ])
       if target_actor and type(target_actor) is Chest:
-        if target_actor.contents:
+        chest = target_actor
+        item = chest.contents
+        if item:
           if not ctx.inventory.is_full():
-            item = target_actor.open()
+            ctx.anims.append([
+              ChestAnim(
+                duration=30,
+                target=chest,
+                item=type(item),
+                on_end=chest.open
+              )
+            ])
             ctx.inventory.append(item)
             ctx.log.print("You open the lamp")
             ctx.log.print("Received " + item.name + ".")

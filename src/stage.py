@@ -19,6 +19,7 @@ from anims.shake import ShakeAnim
 from anims.flicker import FlickerAnim
 from anims.pause import PauseAnim
 from anims.awaken import AwakenAnim
+from anims.chest import ChestAnim
 
 @dataclass
 class Tile:
@@ -153,12 +154,22 @@ class Stage:
       if not actor.idle:
         sprite = replace_color(sprite, palette.GOLD, palette.RED)
 
+    item = None
     anim_group = anims[0] if len(anims) else []
     pause = next((anim for anim in anim_group if type(anim) is PauseAnim), None)
 
     for anim in anim_group:
       if anim.target is not actor:
         continue
+
+      if type(anim) is ChestAnim:
+        frame = anim.update() + 1
+        sprite = assets.sprites["chest_open" + str(frame)]
+        item = (
+          anim.item.render(),
+          anim.time / anim.duration,
+          actor.cell
+        )
 
       if type(anim) is ShakeAnim:
         sprite_x += anim.update()
@@ -172,7 +183,7 @@ class Stage:
         if type(actor) is Eye:
           sprite = assets.sprites["eye_attack"]
 
-      will_flinch = next((anim for other in anim_group if type(other) is ShakeAnim and other.target is anim.target), None)
+      will_flinch = next((other for other in anim_group if type(other) is ShakeAnim and other.target is anim.target), None)
       if type(anim) is ShakeAnim or will_flinch:
         if type(actor) is Knight:
           sprite = assets.sprites["knight_flinch"]
@@ -236,6 +247,16 @@ class Stage:
       sprite = pygame.transform.flip(sprite, flipped, False)
       x = sprite_x - round(camera_x)
       y = sprite_y - round(camera_y)
+      surface.blit(sprite, (x, y))
+
+    if item:
+      sprite, t, (col, row) = item
+      sprite_x = (col + 0.5) * config.tile_size
+      sprite_y = (row + 0.5) * config.tile_size
+      offset = min(1, t * 3) * 6
+      sprite_y -= offset
+      x = sprite_x - sprite.get_width() // 2 - round(camera_x)
+      y = sprite_y - sprite.get_height() - round(camera_y)
       surface.blit(sprite, (x, y))
 
   def draw_tiles(stage, surface, visible_cells=None, visited_cells=[], camera_pos=None):

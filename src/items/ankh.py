@@ -29,6 +29,5 @@ class Ankh:
     else:
       return (False, "Your partner is still alive!")
 
-  def render(ankh):
-    assets = use_assets()
-    return assets.sprites["icon_ankh"]
+  def render():
+    return use_assets().sprites["icon_ankh"]

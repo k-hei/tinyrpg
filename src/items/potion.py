@@ -14,6 +14,5 @@ class Potion:
     else:
       return (False, "Your health is already full!")
 
-  def render(potion):
-    assets = use_assets()
-    return assets.sprites["icon_potion"]
+  def render():
+    return use_assets().sprites["icon_potion"]
