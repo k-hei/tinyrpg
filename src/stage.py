@@ -30,6 +30,7 @@ class Stage:
   DOOR = Tile(solid=True, opaque=True)
   DOOR_OPEN = Tile(solid=False, opaque=False)
   DOOR_HIDDEN = Tile(solid=True, opaque=True)
+  DOOR_LOCKED = Tile(solid=True, opaque=True)
   STAIRS_UP = Tile(solid=False, opaque=False)
   STAIRS_DOWN = Tile(solid=False, opaque=False)
 
@@ -253,6 +254,8 @@ class Stage:
       sprite_name = "door"
     elif tile is Stage.DOOR_OPEN:
       sprite_name = "door_open"
+    elif tile is Stage.DOOR_LOCKED:
+      sprite_name = "door"
     elif tile is Stage.FLOOR:
       sprite_name = "floor"
     if sprite_name is not None:

@@ -3,6 +3,14 @@ class Room:
     room.size = size
     room.cell = cell
 
+  def get_width(room):
+    room_width, _ = room.size
+    return room_width
+
+  def get_height(room):
+    _, room_height = room.size
+    return room_height
+
   def get_cells(room):
     cells = []
     (room_width, room_height) = room.size

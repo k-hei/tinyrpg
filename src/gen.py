@@ -10,7 +10,7 @@ from items.ankh import Ankh
 from items.warp import WarpCrystal
 
 possible_widths = (3, 5, 7)
-possible_heights = [3]
+possible_heights = (3, 5, 7)
 
 def cells(size):
   cells = []
@@ -45,9 +45,21 @@ def dungeon(size, floor=1):
   stage.fill(Stage.WALL)
   slots = [cell for cell in stage.get_cells() if is_odd(cell)]
 
+  if floor == 1:
+    for slot in slots:
+      x, y = slot
+      if abs(width // 2 - x) <= 2 and y >= height - 8:
+        slots.remove(slot)
+    entry_room = Room((5, 7), (width // 2 - 2, height - 8))
+  else:
+    entry_room = None
+
   rooms = gen_rooms(slots)
   if len(rooms) == 1:
-    return dungeon(size)
+    return dungeon(size, floor)
+
+  if entry_room:
+    rooms.insert(0, entry_room)
 
   mazes = gen_mazes(slots)
 
@@ -129,7 +141,7 @@ def dungeon(size, floor=1):
       if len(conns[room]) == 1:
         _, conn_door = conns[room][0]
         if conn_door == door:
-          if random.randint(1, 5) == 1:
+          if random.randint(1, 5) == 1 and floor != 1:
             secret_rooms.append(room)
             stage.set_tile_at(door, Stage.DOOR_HIDDEN)
           else:
@@ -139,32 +151,40 @@ def dungeon(size, floor=1):
       stage.set_tile_at(door, Stage.DOOR)
 
   if len(rooms) == 1:
-    return dungeon(size)
+    return dungeon(size, floor)
 
   normal_rooms = [r for r in rooms if r not in secret_rooms]
   if len(normal_rooms) < 2:
-    return dungeon(size)
+    return dungeon(size, floor)
 
-  best = { "steps": 0, "start": None, "end": None }
-  for a in normal_rooms:
-    local_best = { "steps": 0, "room": None }
-    for b in normal_rooms:
-      if a is b:
-        continue
-      steps = manhattan(a.get_center(), b.get_center())
-      if steps > local_best["steps"]:
-        local_best["steps"] = steps
-        local_best["room"] = b
-    if local_best["steps"] > best["steps"]:
-      best["steps"] = local_best["steps"]
-      best["start"] = a
-      best["end"] = local_best["room"]
+  exit_room = None
+  if entry_room is None:
+    best = { "steps": 0, "start": None, "end": None }
+    for a in normal_rooms:
+      local_best = { "steps": 0, "room": None }
+      for b in normal_rooms:
+        if a is b:
+          continue
+        steps = manhattan(a.get_center(), b.get_center())
+        if steps > local_best["steps"]:
+          local_best["steps"] = steps
+          local_best["room"] = b
+      if local_best["steps"] > best["steps"]:
+        best["steps"] = local_best["steps"]
+        best["start"] = a
+        best["end"] = local_best["room"]
+    entry_room = best["start"]
+    exit_room = best["end"]
+    stage.set_tile_at(entry_room.get_center(), Stage.STAIRS_DOWN)
+    normal_rooms.remove(entry_room)
+  else:
+    center_x, _ = entry_room.get_center()
+    stage.set_tile_at((center_x, height - 1), Stage.DOOR_LOCKED)
+    normal_rooms.remove(entry_room)
 
-  entry_room = best["start"]
-  stage.set_tile_at(entry_room.get_center(), Stage.STAIRS_DOWN)
-  normal_rooms.remove(entry_room)
+  if exit_room is None:
+    exit_room = random.choice(normal_rooms)
 
-  exit_room = best["end"]
   stage.set_tile_at(exit_room.get_center(), Stage.STAIRS_UP)
   normal_rooms.remove(exit_room)
 

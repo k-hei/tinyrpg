@@ -63,15 +63,20 @@ class DungeonContext(Context):
     ctx.key_requires_reset = {}
 
   def create_floor(ctx):
-    floor = gen.dungeon((19, 19))
+    floor = gen.dungeon((19, 19), len(ctx.floors) + 1)
 
     if floor.find_tile(Stage.DOOR_HIDDEN):
       ctx.log.print("This floor seems to hold many secrets.")
 
-    stairs_x, stairs_y = floor.find_tile(Stage.STAIRS_DOWN)
-    floor.spawn_actor(ctx.hero, (stairs_x, stairs_y))
+    entrance = floor.find_tile(Stage.STAIRS_DOWN)
+    if entrance is None:
+      x, y = floor.rooms[0].get_center()
+      entrance = (x, y + 2)
+
+    floor.spawn_actor(ctx.hero, entrance)
     if not ctx.ally.dead:
-      floor.spawn_actor(ctx.ally, (stairs_x - 1, stairs_y))
+      x, y = entrance
+      floor.spawn_actor(ctx.ally, (x - 1, y))
 
     ctx.floor = floor
     ctx.floors.append(ctx.floor)
@@ -291,6 +296,8 @@ class DungeonContext(Context):
         ctx.floor.set_tile_at(target_cell, Stage.DOOR_OPEN)
         ctx.step()
         ctx.refresh_fov()
+      elif target_tile is Stage.DOOR_LOCKED:
+        ctx.log.print("The door is locked...")
     return moved
 
   def handle_swap(game):
@@ -487,6 +494,7 @@ class DungeonContext(Context):
           break
       else:
         game.log.print("You don't sense anything magical nearby.")
+      game.step()
     game.log.print("MAGE uses Detect Mana")
     game.anims.append([ PauseAnim(duration=30, on_end=search) ])
 
