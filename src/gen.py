@@ -141,8 +141,11 @@ def dungeon(size, floor=1):
   # neighbors(node) -> (other_node, conn)
 
   secret_rooms = []
+  dead_ends = []
   for door in doors:
     for room in rooms:
+      if room is entry_room or room is exit_room:
+        continue
       if len(conns[room]) == 1:
         _, conn_door = conns[room][0]
         if conn_door == door:
@@ -150,6 +153,7 @@ def dungeon(size, floor=1):
             secret_rooms.append(room)
             stage.set_tile_at(door, Stage.DOOR_HIDDEN)
           else:
+            dead_ends.append(room)
             stage.set_tile_at(door, Stage.DOOR)
           break
     else:
@@ -158,7 +162,7 @@ def dungeon(size, floor=1):
   if len(rooms) == 1:
     return dungeon(size, floor)
 
-  normal_rooms = [r for r in rooms if r not in secret_rooms]
+  normal_rooms = [r for r in rooms if r not in secret_rooms and r not in dead_ends]
   if len(normal_rooms) < 2:
     return dungeon(size, floor)
 
@@ -184,13 +188,15 @@ def dungeon(size, floor=1):
   else:
     center_x, _ = entry_room.get_center()
     stage.set_tile_at((center_x, height - 1), Stage.DOOR_LOCKED)
-    normal_rooms.remove(entry_room)
+    if entry_room in normal_rooms:
+      normal_rooms.remove(entry_room)
 
   if exit_room is None:
     exit_room = random.choice(normal_rooms)
 
   stage.set_tile_at(exit_room.get_center(), Stage.STAIRS_UP)
-  normal_rooms.remove(exit_room)
+  if exit_room in normal_rooms:
+    normal_rooms.remove(exit_room)
 
   for room in normal_rooms:
     for cell in room.get_cells():
@@ -216,9 +222,25 @@ def dungeon(size, floor=1):
           item = Potion()
         stage.spawn_actor(Chest(item), cell)
 
+  for room in dead_ends:
+    room_width, room_height = room.size
+    max_elems = min(room_width, room_height)
+    elems = random.randint(1, max_elems)
+    cells = [c for c in room.get_cells() if next((d for d in doors if is_adjacent(d, c)), None) is None]
+    for i in range(elems):
+      cell = random.choice(cells)
+      cells.remove(cell)
+      if random.randint(1, 3) == 1:
+        item = random.choices((Ankh, WarpCrystal, Bread, Potion), (1, 2, 3, 4))[0]()
+        stage.spawn_actor(Chest(item), cell)
+      else:
+        enemy = Eye()
+        stage.spawn_actor(enemy, cell)
+        if random.randint(1, 3) == 1:
+          enemy.asleep = True
+
   for room in secret_rooms:
     kind = random.choice(("Treasure", "MonsterDen"))
-    actors = 0
     for cell in room.get_cells():
       is_floor = stage.get_tile_at(cell) is Stage.FLOOR
       is_empty = stage.get_actor_at(cell) is None
@@ -228,13 +250,11 @@ def dungeon(size, floor=1):
       if kind == "Treasure" and random.randint(1, 2) == 1:
         item = random.choice((Ankh, WarpCrystal, Bread, Potion))()
         stage.spawn_actor(Chest(item), cell)
-        actors += 1
       elif kind == "MonsterDen" and random.randint(1, 2) == 1:
         enemy = Eye()
         if random.randint(0, 4):
           enemy.asleep = True
         stage.spawn_actor(enemy, cell)
-        actors += 1
 
   stage.rooms = rooms
   return stage

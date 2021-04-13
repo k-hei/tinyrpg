@@ -8,18 +8,22 @@ from assets import load as load_assets
 from text import render as render_text
 from filters import recolor, replace_color
 from stage import Stage
+from keyboard import key_times
+from cell import is_adjacent
+
 from log import Log
 from camera import Camera
 from inventory import Inventory
 from statuspanel import StatusPanel
+from minimap import Minimap
 from contexts.inventory import InventoryContext
-from keyboard import key_times
-from cell import is_adjacent
+
 import gen
 import fov
 import config
 import palette
 
+from transits.dissolve import DissolveOut
 from actors.knight import Knight
 from actors.mage import Mage
 from actors.eye import Eye
@@ -30,8 +34,8 @@ from anims.shake import ShakeAnim
 from anims.flicker import FlickerAnim
 from anims.pause import PauseAnim
 from anims.awaken import AwakenAnim
+from items.potion import Potion
 from items.ankh import Ankh
-from transits.dissolve import DissolveOut
 
 MOVE_DURATION = 8
 ATTACK_DURATION = 12
@@ -58,7 +62,8 @@ class DungeonContext(Context):
     ctx.log = Log()
     ctx.camera = Camera(config.window_size)
     ctx.hud = StatusPanel()
-    ctx.inventory = Inventory((2, 2), [Ankh()])
+    ctx.minimap = Minimap((15, 15))
+    ctx.inventory = Inventory((2, 2), [Potion(), Ankh()])
     ctx.create_floor()
     ctx.key_requires_reset = {}
 
@@ -314,7 +319,7 @@ class DungeonContext(Context):
         game.refresh_fov()
       ))
     elif type(game.hero) is Mage:
-      game.detect_mana()
+      game.somnus()
 
   def handle_ascend(ctx):
     if ctx.floor.get_tile_at(ctx.hero.cell) is not Stage.STAIRS_UP:
@@ -464,11 +469,8 @@ class DungeonContext(Context):
             src_cell=target_cell,
             dest_cell=nudge_cell
           ))
-
-      # attack
-      if type(target_actor) is Eye:
-        game.attack(user, target_actor, on_connect, on_end)
-        game.log.print(target_actor.name.upper() + " is reeling.")
+      game.attack(user, target_actor, on_connect, on_end)
+      game.log.print(target_actor.name.upper() + " is reeling.")
     else:
       game.log.print("But nothing happened...")
       game.anims.append([
@@ -497,6 +499,35 @@ class DungeonContext(Context):
       game.step()
     game.log.print("MAGE uses Detect Mana")
     game.anims.append([ PauseAnim(duration=30, on_end=search) ])
+
+  def somnus(game):
+    if game.sp >= 4:
+      game.sp = max(0, game.sp - 4)
+
+    user = game.hero
+    source_cell = user.cell
+    hero_x, hero_y = source_cell
+    delta_x, delta_y = user.facing
+    target_cell = (hero_x + delta_x, hero_y + delta_y)
+    target_actor = game.floor.get_actor_at(target_cell)
+    game.log.print(user.name.upper() + " uses Somnus")
+    def on_end():
+      if target_actor and type(target_actor) is Eye:
+        target_actor.asleep = True
+        game.log.print(target_actor.name.upper() + " fell asleep!")
+        game.step()
+      else:
+        game.log.print("But nothing happened...")
+        game.step()
+    game.anims.append([
+      AttackAnim(
+        duration=ATTACK_DURATION,
+        target=user,
+        src_cell=user.cell,
+        dest_cell=target_cell,
+        on_end=on_end
+      )
+    ])
 
   def use_item(game, item):
     success, message = item.effect(game)
@@ -570,29 +601,8 @@ class DungeonContext(Context):
       ))
 
     ctx.hud.draw(surface, ctx)
+    ctx.minimap.draw(surface, ctx)
 
     animating = ctx.log.anim and ctx.log.exiting or ctx.hud.anims
     if ctx.child and not animating:
       ctx.child.draw(surface)
-
-#   def use_item(game):
-#     hero = game.p1
-#     if len(game.inventory.items) == 0:
-#       game.log.print("No items to use!")
-#       return
-#     item = game.inventory.items[0]
-#     game.inventory.items.remove(item)
-#     game.log.print("Used " + item)
-#     if item == "Potion":
-#       game.log.print(hero.name.upper() + " restored 10 HP.")
-#       hero.regen(10)
-#     elif item == "Bread":
-#       game.log.print("The party restored 5 SP.")
-#       if game.sp + 5 < game.sp_max:
-#         game.sp += 5
-#       else:
-#         game.sp = game.sp_max
-#     else:
-#       game.log.print("But nothing happened...")
-#     game.anims.append([ PauseAnim(duration=Game.PAUSE_ITEM_DURATION) ])
-#     game.step()

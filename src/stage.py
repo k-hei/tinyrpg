@@ -140,6 +140,8 @@ class Stage:
       sprite = assets.sprites["mage"]
     elif type(actor) is Eye:
       sprite = assets.sprites["eye"]
+      if actor.asleep:
+        sprite = assets.sprites["eye_attack"]
     elif type(actor) is Chest:
       if actor.opened:
         sprite = assets.sprites["chest_open"]
@@ -174,8 +176,6 @@ class Stage:
           sprite = assets.sprites["eye_flinch"]
 
       if type(anim) is AwakenAnim and len(anim_group) == 1:
-        if type(actor) is Eye:
-          sprite = assets.sprites["eye_attack"]
         recolored = anim.update()
         if recolored and sprite:
           sprite = replace_color(surface=sprite, old_color=palette.RED, new_color=palette.PURPLE)
