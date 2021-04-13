@@ -42,8 +42,8 @@ class InventoryContext(Context):
   def enter(ctx, on_end=None):
     ctx.animate(active=True, on_end=on_end)
 
-  def exit(ctx, on_end=None):
-    ctx.animate(active=False, on_end=on_end)
+  def exit(ctx):
+    ctx.animate(active=False, on_end=ctx.close)
 
   def animate(ctx, active, on_end=None):
     DURATION = ENTER_DURATION if active else EXIT_DURATION
@@ -116,7 +116,7 @@ class InventoryContext(Context):
       ctx.handle_choose()
 
     if key == pygame.K_BACKSPACE:
-      ctx.animate(active=False, on_end=ctx.close)
+      ctx.exit()
 
   def close(ctx):
     ctx.parent.child = None
@@ -137,7 +137,10 @@ class InventoryContext(Context):
       ctx.child = ChoiceContext(
         parent=ctx,
         choices=("Use", "Discard"),
-        on_choose=lambda choice: print("selected", choice)
+        on_choose=lambda choice: (
+          print("selected", choice),
+          ctx.exit()
+        )
       )
 
   def draw(ctx, surface):

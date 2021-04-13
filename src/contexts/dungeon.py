@@ -332,11 +332,9 @@ class DungeonContext(Context):
   def handle_inventory(ctx):
     if ctx.child is None:
       ctx.log.exit()
-      ctx.hud.exit()
       ctx.child = InventoryContext(
         parent=ctx,
-        inventory=ctx.inventory,
-        on_close=ctx.hud.enter
+        inventory=ctx.inventory
       )
 
   def move(ctx, actor, delta):
@@ -547,12 +545,12 @@ class DungeonContext(Context):
       window_width / 2 - log.get_width() / 2,
       window_height + ctx.log.y
     ))
+    ctx.hud.draw(surface, ctx)
 
     animating = ctx.log.anim or ctx.hud.anims
     if ctx.child and not animating:
       ctx.child.draw(surface)
-    else:
-      ctx.hud.draw(surface, ctx)
+
 
 
 #     box = sprites["box"]

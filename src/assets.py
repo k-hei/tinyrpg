@@ -14,6 +14,7 @@ assets = None
 sprite_paths = {
   "font_standard": "assets/fonts/standard/typeface.png",
   "font_smallcaps": "assets/fonts/smallcaps/typeface.png",
+  "cursor": "assets/cursor.png",
   "knight": "assets/knight.png",
   "knight_flinch": "assets/knight-flinch.png",
   "mage": "assets/mage.png",
