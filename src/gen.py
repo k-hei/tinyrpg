@@ -20,9 +20,9 @@ def cells(size):
       cells.append((x, y))
   return cells
 
-def get_neighbors(elems, elem):
+def get_neighbors(nodes, node):
   neighbors = {}
-  for edge in elem.get_edges():
+  for edge in node.get_edges():
     (x, y) = edge
     adj_cells = [
       (x - 1, y),
@@ -31,7 +31,7 @@ def get_neighbors(elems, elem):
       (x, y + 1)
     ]
     for cell in adj_cells:
-      neighbor = next((target for target in elems if target is not elem and cell in target.get_cells()), None)
+      neighbor = next((target for target in nodes if target is not node and cell in target.get_cells()), None)
       if neighbor:
         if neighbor in neighbors:
           neighbors[neighbor].append(edge)
@@ -39,30 +39,30 @@ def get_neighbors(elems, elem):
           neighbors[neighbor] = [edge]
   return neighbors
 
-def dungeon(size):
+def dungeon(size, floor=1):
   width, height = size
-  floor = Stage((width, height))
-  floor.fill(Stage.WALL)
-  nodes = [cell for cell in floor.get_cells() if is_odd(cell)]
+  stage = Stage((width, height))
+  stage.fill(Stage.WALL)
+  slots = [cell for cell in stage.get_cells() if is_odd(cell)]
 
-  rooms = gen_rooms(nodes)
+  rooms = gen_rooms(slots)
   if len(rooms) == 1:
-    return dungeon((width, height))
+    return dungeon(size)
 
-  mazes = gen_mazes(nodes)
+  mazes = gen_mazes(slots)
 
   doors = []
   conns = {}
-  elems = rooms + mazes
-  for elem in elems:
-    conns[elem] = []
+  nodes = rooms + mazes
+  for node in nodes:
+    conns[node] = []
 
-  elem = random.choice(elems)
-  elems.remove(elem)
-  stack = [elem]
-  while elem:
-    neighbors = get_neighbors(elems, elem)
-    targets = [neighbor for neighbor in list(neighbors.keys()) if next((target for target, conn in conns[elem] if target is neighbor), None) is None]
+  node = random.choice(nodes)
+  nodes.remove(node)
+  stack = [node]
+  while node:
+    neighbors = get_neighbors(nodes, node)
+    targets = [neighbor for neighbor in list(neighbors.keys()) if next((target for target, conn in conns[node] if target is neighbor), None) is None]
     if len(targets) > 0:
       # pick a random neighbor
       neighbor = random.choice(targets)
@@ -73,26 +73,26 @@ def dungeon(size):
       # mark connector as door
       doors.append(conn)
 
-      # connect this elem to that neighbor
-      conns[elem].append((neighbor, conn))
-      conns[neighbor].append((elem, conn))
+      # connect this node to that neighbor
+      conns[node].append((neighbor, conn))
+      conns[neighbor].append((node, conn))
 
       # only add neighbor to the stack if it's not visited (allows loops)
-      if neighbor in elems:
+      if neighbor in nodes:
         stack.append(neighbor)
 
       # declare neighbor as visited
       if random.randint(1, 5) != 1:
-        elems.remove(neighbor)
+        nodes.remove(neighbor)
 
       # use neighbor for next iteration
-      elem = neighbor
+      node = neighbor
     else:
-      stack.remove(elem)
+      stack.remove(node)
       if len(stack) > 0:
-        elem = stack[len(stack) - 1]
+        node = stack[len(stack) - 1]
       else:
-        elem = None
+        node = None
 
   for maze in mazes:
     if len(conns[maze]) == 1:
@@ -111,38 +111,58 @@ def dungeon(size):
     if len(mazes) == 0:
       mazes.remove(maze)
 
-  for elem in rooms + mazes:
-    for cell in elem.get_cells():
-      floor.set_tile_at(cell, Stage.FLOOR)
+  for node in rooms + mazes:
+    for cell in node.get_cells():
+      stage.set_tile_at(cell, Stage.FLOOR)
 
+  # from a door, we need to get the list of rooms it connects to
+  # if we think of a dungeon as a maze, the dead ends are where we wanna put special stuff
+  # a dungeon is a bit more than a maze though: it has connections between nodes
+  # conn = node_conns[node]
+  # node = conn_nodes[conn]
+  # we need to be able to traverse the graph
+  # neighbors(node) -> (other_node, conn)
+
+  secret_rooms = []
   for door in doors:
     for room in rooms:
       if len(conns[room]) == 1:
         _, conn_door = conns[room][0]
         if conn_door == door:
           if random.randint(1, 5) == 1:
-            floor.set_tile_at(door, Stage.DOOR_HIDDEN)
+            secret_rooms.append(room)
+            stage.set_tile_at(door, Stage.DOOR_HIDDEN)
           else:
-            floor.set_tile_at(door, Stage.DOOR)
+            stage.set_tile_at(door, Stage.DOOR)
           break
     else:
-      floor.set_tile_at(door, Stage.DOOR)
+      stage.set_tile_at(door, Stage.DOOR)
 
-  floor.set_tile_at(rooms[0].get_center(), Stage.STAIRS_DOWN)
-  floor.set_tile_at(rooms[1].get_center(), Stage.STAIRS_UP)
+  if len(rooms) == 1:
+    return dungeon(size)
 
-  for room in rooms:
-    if rooms.index(room) in (0, 1):
-      continue
+  normal_rooms = [r for r in rooms if r not in secret_rooms]
+  if len(normal_rooms) < 2:
+    return dungeon(size)
+
+  entry_room = normal_rooms[0]
+  stage.set_tile_at(entry_room.get_center(), Stage.STAIRS_DOWN)
+  normal_rooms.remove(entry_room)
+
+  exit_room = normal_rooms[1]
+  stage.set_tile_at(exit_room.get_center(), Stage.STAIRS_UP)
+  normal_rooms.remove(exit_room)
+
+  for room in normal_rooms:
     for cell in room.get_cells():
-      is_floor = floor.get_tile_at(cell) is Stage.FLOOR
-      is_empty = floor.get_actor_at(cell) is None
+      is_floor = stage.get_tile_at(cell) is Stage.FLOOR
+      is_empty = stage.get_actor_at(cell) is None
       is_beside_door = next((door for door in doors if is_adjacent(door, cell)), None)
       if not is_floor or not is_empty or is_beside_door:
         continue
       if random.randint(1, 25) == 1:
         enemy = Eye()
-        floor.spawn_actor(enemy, cell)
+        stage.spawn_actor(enemy, cell)
         if random.randint(1, 3) == 1:
           enemy.asleep = True
       elif random.randint(1, 80) == 1:
@@ -155,44 +175,64 @@ def dungeon(size):
           item = Bread()
         else:
           item = Potion()
-        floor.spawn_actor(Chest(item), cell)
+        stage.spawn_actor(Chest(item), cell)
 
-  floor.rooms = rooms
-  return floor
+  for room in secret_rooms:
+    kind = random.choice(("Treasure", "MonsterDen"))
+    actors = 0
+    for cell in room.get_cells():
+      is_floor = stage.get_tile_at(cell) is Stage.FLOOR
+      is_empty = stage.get_actor_at(cell) is None
+      is_beside_door = next((door for door in doors if is_adjacent(door, cell)), None)
+      if not is_floor or not is_empty or is_beside_door:
+        continue
+      if kind == "Treasure" and random.randint(1, 2) == 1:
+        item = random.choice((Ankh, WarpCrystal, Bread, Potion))()
+        stage.spawn_actor(Chest(item), cell)
+        actors += 1
+      elif kind == "MonsterDen" and random.randint(1, 2) == 1:
+        enemy = Eye()
+        if random.randint(0, 4):
+          enemy.asleep = True
+        stage.spawn_actor(enemy, cell)
+        actors += 1
 
-def gen_rooms(nodes):
+  stage.rooms = rooms
+  return stage
+
+def gen_rooms(slots):
   rooms = []
-  valid_nodes = None
-  while valid_nodes is None or len(valid_nodes) > 0:
+  valid_slots = None
+  while valid_slots is None or len(valid_slots) > 0:
     room_width = random.choice(possible_widths)
     room_height = random.choice(possible_heights)
-    valid_nodes = []
-    for node in nodes:
-      offset_cells = map(lambda cell: add(cell, node), cells((room_width, room_height)))
+    valid_slots = []
+    for slot in slots:
+      offset_cells = map(lambda cell: add(cell, slot), cells((room_width, room_height)))
       odd_offset_cells = [cell for cell in offset_cells if is_odd(cell)]
-      cell_has_node = map(lambda cell: len([node for node in nodes if node == cell]) == 1, odd_offset_cells)
-      if all(cell_has_node):
-        valid_nodes.append(node)
-    if len(valid_nodes) > 0:
-      node = random.choice(valid_nodes)
-      room = Room((room_width, room_height), node)
+      cell_has_slot = map(lambda cell: len([slot for slot in slots if slot == cell]) == 1, odd_offset_cells)
+      if all(cell_has_slot):
+        valid_slots.append(slot)
+    if len(valid_slots) > 0:
+      slot = random.choice(valid_slots)
+      room = Room((room_width, room_height), slot)
       rooms.append(room)
       for cell in map(lambda cell: add(cell, room.cell), cells(room.size)):
-        node = next((node for node in nodes if node == cell), None)
-        if node:
-          nodes.remove(node)
+        slot = next((slot for slot in slots if slot == cell), None)
+        if slot:
+          slots.remove(slot)
   return rooms
 
-def gen_mazes(nodes):
+def gen_mazes(slots):
   mazes = []
-  while len(nodes) > 0:
-    node = random.choice(nodes)
-    nodes.remove(node)
-    cells = [node]
-    stack = [node]
-    while node:
-      (x, y) = node
-      neighbors = [other for other in nodes if manhattan(node, other) == 2]
+  while len(slots) > 0:
+    slot = random.choice(slots)
+    slots.remove(slot)
+    cells = [slot]
+    stack = [slot]
+    while slot:
+      (x, y) = slot
+      neighbors = [other for other in slots if manhattan(slot, other) == 2]
       if len(neighbors):
         neighbor = random.choice(neighbors)
         (neighbor_x, neighbor_y) = neighbor
@@ -200,12 +240,12 @@ def gen_mazes(nodes):
         cells.append(midpoint)
         cells.append(neighbor)
         stack.append(neighbor)
-        nodes.remove(neighbor)
-        node = neighbor
+        slots.remove(neighbor)
+        slot = neighbor
       elif len(stack) > 1:
         stack.pop()
-        node = stack[len(stack) - 1]
+        slot = stack[len(stack) - 1]
       else:
-        node = None
+        slot = None
     mazes.append(Maze(cells))
   return mazes

@@ -76,19 +76,21 @@ class DungeonContext(Context):
     ctx.floor = floor
     ctx.floors.append(ctx.floor)
     ctx.memory.append((ctx.floor, []))
-    ctx.refresh_fov()
+    ctx.refresh_fov(moving=True)
 
-  def refresh_fov(ctx):
+  def refresh_fov(ctx, moving=False):
     visible_cells = fov.shadowcast(ctx.floor, ctx.hero.cell, VISION_RANGE)
 
-    rooms = [room for room in ctx.floor.rooms if ctx.hero.cell in room.get_cells() + room.get_border()]
-    old_room = ctx.room
-    if len(rooms) == 1:
-      new_room = rooms[0]
-    else:
-      new_room = next((room for room in rooms if room is not ctx.room), None)
-    if new_room is not old_room:
-      ctx.room = new_room
+    if moving:
+      rooms = [room for room in ctx.floor.rooms if ctx.hero.cell in room.get_cells() + room.get_border()]
+      old_room = ctx.room
+      if len(rooms) == 1:
+        new_room = rooms[0]
+      else:
+        new_room = next((room for room in rooms if room is not ctx.room), None)
+      if new_room is not old_room:
+        ctx.room = new_room
+
     if ctx.room:
       visible_cells += ctx.room.get_cells() + ctx.room.get_border()
 
@@ -110,7 +112,7 @@ class DungeonContext(Context):
 
     hero = game.hero
     room = next((room for room in game.floor.rooms if enemy.cell in room.get_cells()), None)
-    if not room or hero.cell not in room.get_cells(): # + room.get_border():
+    if not room or hero.cell not in room.get_cells() + room.get_border():
       return False
 
     if is_adjacent(enemy.cell, hero.cell):
@@ -241,7 +243,7 @@ class DungeonContext(Context):
 
       if not is_waking_up:
         ctx.step()
-        ctx.refresh_fov()
+        ctx.refresh_fov(moving=True)
 
       if not hero.dead:
         hero.regen()
@@ -295,7 +297,7 @@ class DungeonContext(Context):
     if game.ally.dead:
       return False
     game.hero, game.ally = (game.ally, game.hero)
-    game.refresh_fov()
+    game.refresh_fov(moving=True)
     return True
 
   def handle_special(game):
@@ -527,7 +529,7 @@ class DungeonContext(Context):
       if not game.ally.dead:
         new_floor.spawn_actor(game.ally, (stairs_x - 1, stairs_y))
       game.floor = new_floor
-      game.refresh_fov()
+      game.refresh_fov(moving=True)
       game.log.print("You go upstairs." if direction == 1 else "You go back downstairs.")
 
     return True
