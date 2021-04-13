@@ -121,13 +121,18 @@ class DungeonContext(Context):
       return False
 
     hero = game.hero
+    ally = game.ally
     room = next((room for room in game.floor.rooms if enemy.cell in room.get_cells()), None)
-    if not room or hero.cell not in room.get_cells() + room.get_border():
+    room_cells = room.get_cells() + room.get_border()
+    if not room or (hero.cell not in room_cells and ally.cell not in room_cells):
       return False
 
     if is_adjacent(enemy.cell, hero.cell):
       if not hero.dead:
         game.attack(enemy, hero)
+    elif is_adjacent(enemy.cell, ally.cell):
+      if not ally.dead:
+        game.attack(enemy, ally)
     else:
       delta_x, delta_y = (0, 0)
       enemy_x, enemy_y = enemy.cell
