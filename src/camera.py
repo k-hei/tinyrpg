@@ -2,7 +2,7 @@ import config
 from anims.move import MoveAnim
 
 MAX_RADIUS_X = 3
-MAX_RADIUS_Y = 1
+MAX_RADIUS_Y = 2
 
 class Camera:
   def __init__(camera, size):
@@ -39,7 +39,7 @@ class Camera:
         else:
           focus_x = hero_x
 
-      if game.room.get_height() > MAX_RADIUS_Y * 2 + 1:
+      if game.room.get_height() > MAX_RADIUS_Y + 1:
         for anim in anims:
           if anim.target is hero and type(anim) is MoveAnim and not anim.done:
             _, hero_y = anim.cur_cell

@@ -45,14 +45,17 @@ def dungeon(size, floor=1):
   stage.fill(Stage.WALL)
   slots = [cell for cell in stage.get_cells() if is_odd(cell)]
 
+  entry_room = None
+  exit_room = None
+  doors = []
   if floor == 1:
-    for slot in slots:
-      x, y = slot
-      if abs(width // 2 - x) <= 2 and y >= height - 8:
-        slots.remove(slot)
     entry_room = Room((5, 7), (width // 2 - 2, height - 8))
-  else:
-    entry_room = None
+    exit_room = Room((5, 3), (width // 2 - 2, height - 8 - 4))
+    doors.append((width // 2, height - 9))
+    cells = entry_room.get_cells() + exit_room.get_cells()
+    for cell in cells:
+      if cell in slots:
+        slots.remove(cell)
 
   rooms = gen_rooms(slots)
   if len(rooms) == 1:
@@ -60,14 +63,16 @@ def dungeon(size, floor=1):
 
   if entry_room:
     rooms.insert(0, entry_room)
+    rooms.insert(1, exit_room)
 
-  mazes = gen_mazes(slots)
-
-  doors = []
   conns = {}
+  mazes = gen_mazes(slots)
   nodes = rooms + mazes
   for node in nodes:
     conns[node] = []
+
+  if exit_room:
+    nodes.remove(exit_room)
 
   node = random.choice(nodes)
   nodes.remove(node)
@@ -157,7 +162,6 @@ def dungeon(size, floor=1):
   if len(normal_rooms) < 2:
     return dungeon(size, floor)
 
-  exit_room = None
   if entry_room is None:
     best = { "steps": 0, "start": None, "end": None }
     for a in normal_rooms:
