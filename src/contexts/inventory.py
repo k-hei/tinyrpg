@@ -2,11 +2,11 @@ import random
 import pygame
 from pygame import Surface
 
-from assets import load as use_assets
 from contexts import Context
 from contexts.choice import ChoiceContext
+from comps.bar import Bar
+from assets import load as use_assets
 from filters import replace_color
-from statusbar import StatusBar
 from keyboard import key_times
 import palette
 
@@ -31,16 +31,18 @@ class InventoryContext(Context):
     ctx.cursor = (0, 0)
     ctx.active = True
     ctx.anims = []
-    ctx.bar = StatusBar()
+    ctx.bar = Bar()
     item = ctx.get_item_at(ctx.cursor)
     ctx.select_item(item)
     ctx.enter()
 
   def enter(ctx, on_end=None):
     ctx.animate(active=True, on_end=on_end)
+    ctx.bar.enter()
 
   def exit(ctx):
     ctx.animate(active=False, on_end=ctx.close)
+    ctx.bar.exit()
 
   def animate(ctx, active, on_end=None):
     DURATION = ENTER_DURATION if active else EXIT_DURATION
@@ -60,10 +62,6 @@ class InventoryContext(Context):
         target=(col, row)
       ))
       index += 1
-    ctx.anims.append(TweenAnim(
-      duration=DURATION,
-      target=ctx.bar
-    ))
     ctx.on_animate = on_end
 
   def remove_anim(ctx, anim):
@@ -123,7 +121,8 @@ class InventoryContext(Context):
 
   def close(ctx):
     ctx.parent.child = None
-    if ctx.on_close: ctx.on_close()
+    if ctx.on_close:
+      ctx.on_close()
 
   def handle_move(ctx, delta):
     delta_x, delta_y = delta
@@ -162,38 +161,18 @@ class InventoryContext(Context):
 
   def draw(ctx, surface):
     assets = use_assets()
-
     window_width = surface.get_width()
     window_height = surface.get_height()
 
-    bar = ctx.bar.render()
-    bar_anim = next((a for a in ctx.anims if a.target is ctx.bar), None)
-
-    start_y = window_height
-    end_y = window_height - bar.get_height() - MARGIN
-    x = MARGIN
-    y = end_y if ctx.active else start_y
-    if bar_anim:
-      t = bar_anim.update()
-      if ctx.active:
-        t = ease_out(t)
-      else:
-        t = 1 - t
-      y = lerp(start_y, end_y, t)
-      if bar_anim.done:
-        ctx.remove_anim(bar_anim)
-    else:
-      ctx.bar.update()
-    surface.blit(bar, (x, y))
-
+    ctx.bar.draw(surface)
     menu = ctx.render_menu()
     x = MARGIN
-    y = end_y - SPACING - menu.get_height()
+    y = window_height - MARGIN - ctx.bar.surface.get_height() - SPACING - menu.get_height()
     surface.blit(menu, (x, y))
 
-    x += menu.get_width() + SPACING
     if type(ctx.child) is ChoiceContext:
       menu = ctx.child.render()
+      x += menu.get_width() + SPACING
       surface.blit(menu, (x, y))
 
   def render_menu(ctx):

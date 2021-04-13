@@ -1,4 +1,5 @@
 from contexts import Context
+from comps.bar import Bar
 
 class SkillContext(Context):
   def __init__(ctx, parent, on_close=None):

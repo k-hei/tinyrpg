@@ -11,23 +11,30 @@ from stage import Stage
 from keyboard import key_times
 from cell import is_adjacent
 
-from log import Log
-from camera import Camera
-from inventory import Inventory
-from statuspanel import StatusPanel
-from minimap import Minimap
-from contexts.inventory import InventoryContext
-
 import gen
 import fov
 import config
 import palette
 
+from log import Log
+from camera import Camera
+from inventory import Inventory
+from statuspanel import StatusPanel
+from minimap import Minimap
+
 from transits.dissolve import DissolveOut
+
+from contexts.inventory import InventoryContext
+from contexts.skill import SkillContext
+
 from actors.knight import Knight
 from actors.mage import Mage
 from actors.eye import Eye
 from actors.chest import Chest
+
+from items.potion import Potion
+from items.ankh import Ankh
+
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
 from anims.shake import ShakeAnim
@@ -35,8 +42,6 @@ from anims.flicker import FlickerAnim
 from anims.pause import PauseAnim
 from anims.awaken import AwakenAnim
 from anims.chest import ChestAnim
-from items.potion import Potion
-from items.ankh import Ankh
 
 MOVE_DURATION = 16
 RUN_DURATION = 12
@@ -205,7 +210,7 @@ class DungeonContext(Context):
       return ctx.handle_wait()
 
     if key == pygame.K_RETURN:
-      return ctx.handle_special()
+      return ctx.handle_skill()
 
     if key == pygame.K_COMMA and key_times[pygame.K_RSHIFT]:
       return ctx.handle_ascend()
@@ -357,10 +362,6 @@ class DungeonContext(Context):
     game.refresh_fov(moving=True)
     return True
 
-  def handle_special(game):
-    hero = game.hero
-    hero.use_skill(game)
-
   def handle_ascend(ctx):
     if ctx.floor.get_tile_at(ctx.hero.cell) is not Stage.STAIRS_UP:
       return ctx.log.print("There's nowhere to go up here!")
@@ -383,6 +384,13 @@ class DungeonContext(Context):
       ),
       on_end=ctx.hud.enter
     )
+
+  def handle_skill(ctx):
+    # game.hero.use_skill(game)
+    if ctx.child is None:
+      ctx.log.exit()
+      ctx.hud.exit()
+      ctx.child = SkillContext(parent=ctx)
 
   def handle_inventory(ctx):
     if ctx.child is None:
@@ -480,8 +488,6 @@ class DungeonContext(Context):
       )
     ])
 
-  # TODO: move into separate skill
-  def detect_mana(game):
     if game.sp >= 1:
       game.sp = max(0, game.sp - 1)
     def search():

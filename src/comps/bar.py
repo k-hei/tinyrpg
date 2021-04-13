@@ -1,0 +1,74 @@
+import pygame
+from pygame import Surface, Rect
+from assets import load as use_assets
+from text import render as render_text
+from filters import recolor
+
+from anims.tween import TweenAnim
+from easing.expo import ease_out
+from lerp import lerp
+
+MARGIN = 8
+ENTER_DURATION = 8
+EXIT_DURATION = 6
+
+class Bar:
+  def __init__(bar):
+    bar.message = None
+    bar.surface = None
+    bar.anim = None
+    bar.exiting = False
+    bar.index = 0
+
+  def print(bar, message):
+    bar.message = message
+    bar.index = 0
+
+  def update(bar):
+    if bar.message and bar.index < len(bar.message):
+      bar.index += 1
+
+  def render(bar):
+    assets = use_assets()
+
+    if not bar.surface:
+      bar.surface = assets.sprites["statusbar"].copy()
+
+    if bar.message and bar.index <= len(bar.message):
+      bar.surface = assets.sprites["statusbar"].copy()
+      content = bar.message[0:bar.index]
+      text = render_text(content, assets.fonts["standard"])
+      message = recolor(text, (0xFF, 0xFF, 0xFF))
+      bar.surface.blit(message, (12, 11))
+    return bar.surface
+
+  def enter(bar):
+    bar.exiting = False
+    bar.anim = TweenAnim(duration=ENTER_DURATION)
+
+  def exit(bar):
+    bar.exiting = True
+    bar.anim = TweenAnim(duration=EXIT_DURATION)
+
+  def draw(bar, surface):
+    assets = use_assets()
+    window_width = surface.get_width()
+    window_height = surface.get_height()
+
+    sprite = bar.render()
+    start_y = window_height
+    end_y = window_height - bar.surface.get_height() - MARGIN
+    x = MARGIN
+    y = start_y if bar.exiting else end_y
+    if bar.anim:
+      t = bar.anim.update()
+      if bar.exiting:
+        t = 1 - t
+      else:
+        t = ease_out(t)
+      y = lerp(start_y, end_y, t)
+      if bar.anim.done:
+        bar.anim = None
+    else:
+      bar.update()
+    surface.blit(bar.surface, (x, y))
