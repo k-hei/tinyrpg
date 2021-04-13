@@ -390,7 +390,7 @@ class DungeonContext(Context):
     if ctx.child is None:
       ctx.log.exit()
       ctx.hud.exit()
-      ctx.child = SkillContext(parent=ctx)
+      ctx.child = SkillContext(parent=ctx, on_close=ctx.hud.enter)
 
   def handle_inventory(ctx):
     if ctx.child is None:
@@ -487,21 +487,6 @@ class DungeonContext(Context):
         on_connect=shake
       )
     ])
-
-    if game.sp >= 1:
-      game.sp = max(0, game.sp - 1)
-    def search():
-      cells = game.hero.visible_cells
-      for cell in cells:
-        tile = game.floor.get_tile_at(cell)
-        if tile is Stage.DOOR_HIDDEN:
-          game.log.print("There's a hidden passage somewhere here.")
-          break
-      else:
-        game.log.print("You don't sense anything magical nearby.")
-      game.step()
-    game.log.print("MAGE uses Detect Mana")
-    game.anims.append([ PauseAnim(duration=30, on_end=search) ])
 
   def use_item(game, item):
     success, message = item.effect(game)

@@ -119,11 +119,6 @@ class InventoryContext(Context):
     if key == pygame.K_BACKSPACE:
       ctx.exit()
 
-  def close(ctx):
-    ctx.parent.child = None
-    if ctx.on_close:
-      ctx.on_close()
-
   def handle_move(ctx, delta):
     delta_x, delta_y = delta
     cursor_x, cursor_y = ctx.cursor

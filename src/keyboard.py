@@ -23,3 +23,8 @@ def handle_keydown(key):
 def handle_keyup(key):
   if not inited: init()
   key_times[key] = 0
+
+def get_pressed(key):
+  if key not in key_times:
+    return 0
+  return key_times[key]

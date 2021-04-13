@@ -57,6 +57,14 @@ class Stage:
         cells.append((x, y))
     return cells
 
+  def is_cell_empty(stage, cell, actor):
+    if stage.get_tile_at(cell).solid:
+      return False
+    target = stage.get_actor_at(cell)
+    if target and target.faction == actor.faction:
+      return False
+    return True
+
   def get_actor_at(stage, cell):
     return next((actor for actor in stage.actors if actor.cell == cell), None)
 
@@ -128,9 +136,12 @@ class Stage:
     assets = use_assets()
     camera_x, camera_y = camera_pos
 
-    facing = 0
+    facing_x, facing_y = (0, 0)
     if actor in stage.facings:
-      facing = stage.facings[actor]
+      facing_x, facing_y = stage.facings[actor]
+      new_facing_x, _ = actor.facing
+      if new_facing_x != 0:
+        facing_x = new_facing_x
 
     (col, row) = actor.cell
     sprite_x = col * config.tile_size
@@ -220,9 +231,9 @@ class Stage:
         src_x, src_y = anim.src_cell
         dest_x, dest_y = anim.dest_cell
         if dest_x < src_x:
-          facing = -1
+          facing_x = -1
         elif dest_x > src_x:
-          facing = 1
+          facing_y = 1
         col, row = anim.update()
         sprite_x = col * config.tile_size
         sprite_y = row * config.tile_size
@@ -242,9 +253,9 @@ class Stage:
           sprite_x = col * config.tile_size
           sprite_y = row * config.tile_size
 
-    stage.facings[actor] = facing
+    stage.facings[actor] = (facing_x, facing_y)
     if sprite:
-      flipped = facing == -1
+      flipped = facing_x == -1
       if type(actor) is Mimic and not actor.idle:
         flipped = not flipped
       sprite = pygame.transform.flip(sprite, flipped, False)

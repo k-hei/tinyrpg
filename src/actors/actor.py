@@ -21,6 +21,9 @@ class Actor:
     else:
       actor.hp = actor.hp_max
 
+  def face(actor, facing):
+    actor.facing = facing
+
   def move(actor, delta, stage):
     pass
 
