@@ -145,11 +145,26 @@ def dungeon(size, floor=1):
   if len(normal_rooms) < 2:
     return dungeon(size)
 
-  entry_room = normal_rooms[0]
+  best = { "steps": 0, "start": None, "end": None }
+  for a in normal_rooms:
+    local_best = { "steps": 0, "room": None }
+    for b in normal_rooms:
+      if a is b:
+        continue
+      steps = manhattan(a.get_center(), b.get_center())
+      if steps > local_best["steps"]:
+        local_best["steps"] = steps
+        local_best["room"] = b
+    if local_best["steps"] > best["steps"]:
+      best["steps"] = local_best["steps"]
+      best["start"] = a
+      best["end"] = local_best["room"]
+
+  entry_room = best["start"]
   stage.set_tile_at(entry_room.get_center(), Stage.STAIRS_DOWN)
   normal_rooms.remove(entry_room)
 
-  exit_room = normal_rooms[1]
+  exit_room = best["end"]
   stage.set_tile_at(exit_room.get_center(), Stage.STAIRS_UP)
   normal_rooms.remove(exit_room)
 
