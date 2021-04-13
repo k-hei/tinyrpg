@@ -24,6 +24,8 @@ class Somnus(Skill):
     def on_attack_end():
       if target_actor and target_actor.faction == "enemy":
         target_actor.asleep = True
+        if target_actor.idle:
+          target_actor.activate()
         game.log.print(target_actor.name.upper() + " fell asleep!")
       else:
         game.log.print("But nothing happened...")

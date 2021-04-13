@@ -2,7 +2,7 @@ from assets import load as use_assets
 
 class Bread:
   def __init__(bread):
-    bread.sp = 10
+    bread.sp = 20
     bread.name = "Bread"
     bread.description = "Restores " + str(bread.sp) + " SP"
 

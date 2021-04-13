@@ -8,9 +8,11 @@ from actors import Knight, Mage, Eye, Chest
 from actors.mimic import Mimic
 
 from items.potion import Potion
-from items.bread import Bread
 from items.ankh import Ankh
-from items.warp import WarpCrystal
+from items.cheese import Cheese
+from items.bread import Bread
+from items.fish import Fish
+from items.emerald import Emerald
 
 possible_widths = (3, 5, 7)
 possible_heights = (3, 5, 7)
@@ -214,15 +216,7 @@ def dungeon(size, floor=1):
         if random.randint(1, 3) == 1:
           enemy.asleep = True
       elif random.randint(1, 80) == 1:
-        choice = random.randint(1, 10)
-        if choice == 1:
-          item = Ankh()
-        elif choice <= 2:
-          item = WarpCrystal()
-        elif choice <= 5:
-          item = Bread()
-        else:
-          item = Potion()
+        item = random.choices((Potion, Ankh, Cheese, Bread, Fish, Emerald), (2, 1, 4, 2, 1, 1))[0]()
         stage.spawn_actor(Chest(item), cell)
 
   for room in dead_ends:
@@ -235,7 +229,7 @@ def dungeon(size, floor=1):
       cells.remove(cell)
       kind = random.choices(("Item", "Mimic", "Eye"), (2, 1, 2))[0]
       if kind == "Item":
-        item = random.choices((Ankh, WarpCrystal, Bread, Potion), (1, 2, 3, 4))[0]()
+        item = random.choices((Potion, Ankh, Cheese, Bread, Fish, Emerald), (2, 1, 4, 2, 1, 1))[0]()
         stage.spawn_actor(Chest(item), cell)
       elif kind == "Eye":
         enemy = Eye()
@@ -256,7 +250,7 @@ def dungeon(size, floor=1):
         continue
       if kind == "Treasure" and random.randomint(1, 2):
         if random.randint(1, 2) == 1:
-          item = random.choice((Ankh, WarpCrystal, Bread, Potion))()
+          item = random.choice((Potion, Ankh, Cheese, Bread, Fish, Emerald))()
           stage.spawn_actor(Chest(item), cell)
         else:
           enemy = Mimic()
