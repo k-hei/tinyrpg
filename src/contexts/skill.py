@@ -6,4 +6,6 @@ class SkillContext(Context):
     ctx.on_close = on_close
 
   def draw(ctx, surface):
-    print(ctx.parent.hero.cell)
+    game = ctx.parent # may not always be true
+    hero = game.hero
+    print(hero.cell, hero.facing)

@@ -1,7 +1,7 @@
 import config
 from anims.move import MoveAnim
 
-MAX_RADIUS_X = 3
+MAX_RADIUS_X = 1
 MAX_RADIUS_Y = 2
 
 class Camera:
@@ -32,10 +32,10 @@ class Camera:
           if anim.target is hero and type(anim) is MoveAnim and not anim.done:
             hero_x, _ = anim.cur_cell
             break
-        if focus_x - hero_x > MAX_RADIUS_X:
-          focus_x -= MAX_RADIUS_X
-        elif hero_x - focus_x > MAX_RADIUS_X:
+        if hero_x - focus_x >= MAX_RADIUS_X:
           focus_x += MAX_RADIUS_X
+        elif hero_x - focus_x <= -MAX_RADIUS_X:
+          focus_x -= MAX_RADIUS_X
         else:
           focus_x = hero_x
 
@@ -44,10 +44,10 @@ class Camera:
           if anim.target is hero and type(anim) is MoveAnim and not anim.done:
             _, hero_y = anim.cur_cell
             break
-        if focus_y - hero_y > MAX_RADIUS_Y:
-          focus_y -= MAX_RADIUS_Y
-        elif hero_y - focus_y > MAX_RADIUS_Y:
+        if hero_y - focus_y >= MAX_RADIUS_Y:
           focus_y += MAX_RADIUS_Y
+        elif hero_y - focus_y <= -MAX_RADIUS_Y:
+          focus_y -= MAX_RADIUS_Y
         else:
           focus_y = hero_y
     else:

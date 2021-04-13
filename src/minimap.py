@@ -18,11 +18,11 @@ class Minimap:
     sprite_width, sprite_height = minimap.size
     scaled_size = (sprite_width * SCALE, sprite_height * SCALE)
     surface = Surface(scaled_size)
-    surface.set_colorkey(0xFF00FF)
-    surface.fill(0xFF00FF)
+    surface.set_colorkey(0x123456)
+    surface.fill(0x123456)
     temp_surface = Surface((sprite_width, sprite_height))
-    temp_surface.set_colorkey(0xFF00FF)
-    temp_surface.fill(0xFF00FF)
+    temp_surface.set_colorkey(0x123456)
+    temp_surface.fill(0x123456)
     pixels = PixelArray(temp_surface)
 
     hero = ctx.hero

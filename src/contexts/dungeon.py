@@ -125,16 +125,17 @@ class DungeonContext(Context):
     hero = game.hero
     ally = game.ally
     room = next((room for room in game.floor.rooms if enemy.cell in room.get_cells()), None)
-    room_cells = room.get_cells() + room.get_border()
-    if not room or (hero.cell not in room_cells and ally.cell not in room_cells):
+    if not room:
       return False
 
-    if is_adjacent(enemy.cell, hero.cell):
-      if not hero.dead:
-        game.attack(enemy, hero, run)
-    elif is_adjacent(enemy.cell, ally.cell):
-      if not ally.dead:
-        game.attack(enemy, ally, run)
+    room_cells = room.get_cells() + room.get_border()
+    if hero.cell not in room_cells:
+      return False
+
+    if is_adjacent(enemy.cell, hero.cell) and not hero.dead:
+      game.attack(enemy, hero, run)
+    elif is_adjacent(enemy.cell, ally.cell) and not ally.dead:
+      game.attack(enemy, ally, run)
     else:
       delta_x, delta_y = (0, 0)
       enemy_x, enemy_y = enemy.cell
@@ -277,10 +278,16 @@ class DungeonContext(Context):
     elif target_actor and target_actor.faction == "enemy":
       if target_actor.idle:
         ctx.anims.append([
-          PauseAnim(duration=30, on_end=lambda: (
+          AttackAnim(
+            duration=ATTACK_DURATION,
+            target=hero,
+            src_cell=hero.cell,
+            dest_cell=target_cell
+          ),
+          PauseAnim(duration=15, on_end=lambda: (
             target_actor.activate(),
             ctx.log.print("The lamp was " + target_actor.name.upper() + "!"),
-            ctx.step(run),
+            ctx.step(),
             ctx.anims[0].append(PauseAnim(
               duration=15,
               on_end=lambda: ctx.refresh_fov

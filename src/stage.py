@@ -207,7 +207,10 @@ class Stage:
       if type(anim) is AwakenAnim and len(anim_group) == 1:
         recolored = anim.update()
         if recolored and sprite:
-          sprite = replace_color(surface=sprite, old_color=palette.RED, new_color=palette.PURPLE)
+          if type(actor) is Mimic:
+            sprite = replace_color(surface=sprite, old_color=palette.YELLOW, new_color=palette.PURPLE)
+          else:
+            sprite = replace_color(surface=sprite, old_color=palette.RED, new_color=palette.PURPLE)
 
       if type(anim) is AttackAnim:
         if type(actor) is Eye:
