@@ -162,7 +162,8 @@ class StatusPanel:
     # hp text
     x = STATUS_PADDING_X + hp_tag.get_width() + BAR_X
     y = STATUS_PADDING_Y + 1
-    surface.blit(panel.render_text(math.ceil(hp), hp_max), (x, y))
+    hp = 1 if hp > 0 and hp < 1 else math.floor(hp)
+    surface.blit(panel.render_values(hp, hp_max), (x, y))
 
     # sp tag
     x = STATUS_PADDING_X
@@ -177,7 +178,8 @@ class StatusPanel:
     # sp text
     x = STATUS_PADDING_X + sp_tag.get_width() + BAR_X
     y = STATUS_PADDING_Y + hp_tag.get_height() + STATUS_FIELD_SPACING + 1
-    surface.blit(panel.render_text(math.ceil(sp), sp_max), (x, y))
+    sp = 1 if sp > 0 and sp < 1 else math.floor(sp)
+    surface.blit(panel.render_values(sp, sp_max), (x, y))
 
     # floor icon
     x = STATUS_PADDING_X
@@ -207,7 +209,7 @@ class StatusPanel:
     ))
     return surface
 
-  def render_text(panel, val_cur, val_max):
+  def render_values(panel, val_cur, val_max):
     assets = use_assets()
     font = assets.fonts["smallcaps"]
     bg_hp = str(val_cur) if val_cur >= 10 else "0" + str(val_cur)
@@ -220,17 +222,3 @@ class StatusPanel:
     fg_text = recolor(fg_text, palette.WHITE)
     bg_text.blit(fg_text, (0, 0))
     return bg_text
-
-
-    # sp_y = 24
-    # surface.blit(assets.sprites["tag_sp"], (x, sp_y))
-    # surface.blit(assets.sprites["bar"], (x + 19, sp_y + 7))
-    # pygame.draw.rect(surface, 0xFFFFFF, Rect(x + 22, sp_y + 8, math.ceil(50 * ctx.sp / ctx.sp_max), 2))
-    # hp_text = str(math.ceil(ctx.sp)) + "/" + str(ctx.sp_max)
-    # surface.blit(recolor(render_text(str(math.ceil(ctx.sp)) + "/" + str(ctx.sp_max), font), (0x7F, 0x7F, 0x7F)), (x + 19, sp_y + 1))
-    # surface.blit(render_text(str(math.ceil(ctx.sp)) + "/" + str(ctx.sp_max), font), (x + 19, sp_y + 1))
-
-    # floor_y = 38
-    # floor = ctx.floors.index(ctx.floor) + 1
-    # surface.blit(assets.sprites["tag_floor"], (x, floor_y))
-    # surface.blit(render_text(str(floor) + "F", font), (x + 13, floor_y + 3))

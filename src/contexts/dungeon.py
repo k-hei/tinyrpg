@@ -63,7 +63,7 @@ class DungeonContext(Context):
     ctx.camera = Camera(config.window_size)
     ctx.hud = StatusPanel()
     ctx.minimap = Minimap((15, 15))
-    ctx.inventory = Inventory((2, 2), [Potion(), Ankh()])
+    ctx.inventory = Inventory((2, 2), [Potion()])
     ctx.create_floor()
     ctx.key_requires_reset = {}
 
@@ -193,6 +193,9 @@ class DungeonContext(Context):
       return ctx.handle_inventory()
 
     if key == pygame.K_SPACE:
+      return ctx.handle_wait()
+
+    if key == pygame.K_RETURN:
       return ctx.handle_special()
 
     if key == pygame.K_COMMA and key_times[pygame.K_RSHIFT]:
@@ -321,6 +324,9 @@ class DungeonContext(Context):
       elif target_tile is Stage.DOOR_LOCKED:
         ctx.log.print("The door is locked...")
     return moved
+
+  def handle_wait(ctx):
+    ctx.step()
 
   def handle_swap(game):
     if game.ally.dead:
@@ -473,8 +479,13 @@ class DungeonContext(Context):
     if success:
       game.log.print("Used " + item.name)
       game.log.print(message)
-      game.anims.append([ PauseAnim(duration=30) ])
       game.inventory.items.remove(item)
+      game.anims.append([
+        PauseAnim(
+          duration=30,
+          on_end=game.step
+        )
+      ])
       return (True, None)
     else:
       return (False, message)

@@ -3,7 +3,7 @@ from pygame import Surface, Rect, PixelArray
 from stage import Stage
 from actors.knight import Knight
 from actors.mage import Mage
-from actors.eye import Eye
+from actors.mimic import Mimic
 from actors.chest import Chest
 
 MARGIN_X = 8
@@ -36,6 +36,11 @@ class Minimap:
       color = None
       if type(actor) is Knight or type(actor) is Mage and cell in visible_cells:
         color = 0x7F7FFF
+      elif type(actor) is Mimic and cell in visible_cells:
+        if actor.idle:
+          color = 0xFFFF00
+        else:
+          color = 0xFF0000
       elif actor and actor.faction == "enemy" and cell in visible_cells:
         if actor.asleep:
           color = 0x7F007F
@@ -56,6 +61,11 @@ class Minimap:
           color = 0x00FFFF
         else:
           color = 0x007F7F
+      elif tile is Stage.DOOR_OPEN:
+        if cell in visible_cells:
+          color = 0x007F7F
+        else:
+          color = 0x007F7F
       elif tile is Stage.STAIRS_UP:
         if cell in visible_cells:
           color = 0x00FF00
@@ -67,7 +77,10 @@ class Minimap:
         else:
           color = 0x007F00
       else:
-        color = 0x000000
+        if cell in visible_cells:
+          color = 0x333333
+        else:
+          color = 0x000000
       x, y = cell
       x = x - hero_x + sprite_width // 2
       y = y - hero_y + sprite_height // 2

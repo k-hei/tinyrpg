@@ -216,7 +216,7 @@ def dungeon(size, floor=1):
         if random.randint(1, 3) == 1:
           enemy.asleep = True
       elif random.randint(1, 80) == 1:
-        item = random.choices((Potion, Ankh, Cheese, Bread, Fish, Emerald), (2, 1, 4, 2, 1, 1))[0]()
+        item = gen_item()
         stage.spawn_actor(Chest(item), cell)
 
   for room in dead_ends:
@@ -229,7 +229,7 @@ def dungeon(size, floor=1):
       cells.remove(cell)
       kind = random.choices(("Item", "Mimic", "Eye"), (2, 1, 2))[0]
       if kind == "Item":
-        item = random.choices((Potion, Ankh, Cheese, Bread, Fish, Emerald), (2, 1, 4, 2, 1, 1))[0]()
+        item = gen_item()
         stage.spawn_actor(Chest(item), cell)
       elif kind == "Eye":
         enemy = Eye()
@@ -248,13 +248,13 @@ def dungeon(size, floor=1):
       is_beside_door = next((door for door in doors if is_adjacent(door, cell)), None)
       if not is_floor or not is_empty or is_beside_door:
         continue
-      if kind == "Treasure" and random.randomint(1, 2):
-        if random.randint(1, 2) == 1:
-          item = random.choice((Potion, Ankh, Cheese, Bread, Fish, Emerald))()
-          stage.spawn_actor(Chest(item), cell)
-        else:
+      if kind == "Treasure" and random.randint(1, 2) == 1:
+        if random.randint(1, 5) == 1:
           enemy = Mimic()
           stage.spawn_actor(enemy, cell)
+        else:
+          item = random.choice((Potion, Ankh, Bread, Fish, Emerald))()
+          stage.spawn_actor(Chest(item), cell)
       elif kind == "MonsterDen" and random.randint(1, 2) == 1:
         enemy = Eye()
         if random.randint(0, 4):
@@ -263,6 +263,9 @@ def dungeon(size, floor=1):
 
   stage.rooms = rooms
   return stage
+
+def gen_item():
+   return random.choices((Potion, Ankh, Cheese, Bread, Fish, Emerald), (3, 1, 4, 3, 1, 1))[0]()
 
 def gen_rooms(slots):
   rooms = []
