@@ -30,7 +30,7 @@ from anims.shake import ShakeAnim
 from anims.flicker import FlickerAnim
 from anims.pause import PauseAnim
 from anims.awaken import AwakenAnim
-from items.potion import Potion
+from items.ankh import Ankh
 from transits.dissolve import DissolveOut
 
 MOVE_DURATION = 8
@@ -58,7 +58,7 @@ class DungeonContext(Context):
     ctx.log = Log()
     ctx.camera = Camera(config.window_size)
     ctx.hud = StatusPanel()
-    ctx.inventory = Inventory((2, 2), [Potion()])
+    ctx.inventory = Inventory((2, 2), [Ankh()])
     ctx.create_floor()
     ctx.key_requires_reset = {}
 
