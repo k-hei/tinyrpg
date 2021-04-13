@@ -19,6 +19,7 @@ PADDING_RIGHT = BORDER_WIDTH + 8
 PADDING_BOTTOM = BORDER_WIDTH + 8
 SPACING = 6
 ENTER_DURATION = 8
+EXIT_DURATION = 6
 
 class ChoiceContext(Context):
   def __init__(ctx, parent, choices, on_choose, on_close=None):
@@ -26,6 +27,7 @@ class ChoiceContext(Context):
     ctx.parent = parent
     ctx.choices = choices
     ctx.chosen = False
+    ctx.exiting = False
     ctx.on_choose = on_choose
     ctx.on_close = on_close
     ctx.anims = []
@@ -35,6 +37,14 @@ class ChoiceContext(Context):
     ctx.anims.append(TweenAnim(
       duration=ENTER_DURATION,
       target=ctx
+    ))
+
+  def exit(ctx):
+    ctx.exiting = True
+    ctx.anims.append(TweenAnim(
+      duration=EXIT_DURATION,
+      target=ctx,
+      on_end=ctx.close
     ))
 
   def handle_keydown(ctx, key):
@@ -65,10 +75,10 @@ class ChoiceContext(Context):
     choice = ctx.choices[ctx.index]
     ctx.chosen = True
     ctx.on_choose(choice)
+    ctx.exit()
 
   def handle_close(ctx):
-    ctx.close()
-    # ctx.animate(active=False, on_end=ctx.close)
+    ctx.exit()
 
   def close(ctx):
     ctx.parent.child = None
@@ -83,14 +93,24 @@ class ChoiceContext(Context):
     box_width = PADDING_LEFT + INNER_WIDTH + PADDING_RIGHT
     box_height = PADDING_TOP + INNER_HEIGHT + PADDING_BOTTOM
 
+    t = 1
     for anim in ctx.anims:
-      if anim.target is ctx:
-        t = anim.update()
-        t = ease_out(t)
-        box_width *= t
-        box_height *= t
       if anim.done:
         ctx.anims.remove(anim)
+        continue
+      if anim.target is ctx:
+        t = anim.update()
+        if ctx.exiting:
+          t = 1 - t
+        else:
+          t = ease_out(t)
+        break
+    else:
+      if ctx.exiting:
+        t = 0
+
+    box_width *= t
+    box_height *= t
 
     surface = pygame.Surface((box_width, box_height))
     pygame.draw.rect(surface, 0x000000, Rect(0, 0, box_width, box_height))
