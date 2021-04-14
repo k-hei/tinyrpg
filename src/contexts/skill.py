@@ -11,10 +11,12 @@ from text import render as render_text
 from filters import recolor, replace_color, outline
 import palette
 from comps.skill import Skill
-from anims.sine import SineAnim
-from anims.tween import TweenAnim
+
 from lerp import lerp
 from easing.expo import ease_out
+from anims.sine import SineAnim
+from anims.tween import TweenAnim
+from anims.flicker import FlickerAnim
 
 MARGIN = 8
 OFFSET = 4
@@ -88,7 +90,7 @@ class SkillContext(Context):
     new_skill = skills[(index + 1) % len(skills)]
     if old_skill.name != new_skill.name:
       ctx.select_skill(new_skill)
-      ctx.anims.append(TweenAnim(duration=30))
+      ctx.anims.append(TweenAnim(duration=30, target=options))
     hero.skill = new_skill
 
   def handle_confirm(ctx):
@@ -103,7 +105,17 @@ class SkillContext(Context):
     ctx.bar.enter()
 
   def exit(ctx, skill=None):
-    ctx.bar.exit(on_end=lambda: ctx.close(skill))
+    if skill:
+      print("selected " + skill.name)
+      ctx.bar.exit()
+      ctx.anims.append(FlickerAnim(
+        duration=30,
+        target="cursor",
+        on_end=lambda: ctx.close(skill)
+      ))
+    else:
+      print("closing without selecting")
+      ctx.bar.exit(on_end=ctx.close)
 
   def draw(ctx, surface):
     assets = use_assets()
@@ -151,6 +163,8 @@ class SkillContext(Context):
     elif t == 2:
       cursor_sprite = assets.sprites["cursor_cell2"]
 
+    anim = ctx.anims[0] if ctx.anims else None
+
     new_cursor_x, new_cursor_y = scale_up(cursor)
     cursor_x += (new_cursor_x - cursor_x) / 4
     cursor_y += (new_cursor_y - cursor_y) / 4
@@ -159,15 +173,23 @@ class SkillContext(Context):
       int(cursor_sprite.get_width() * cursor_scale),
       int(cursor_sprite.get_height() * cursor_scale)
     ))
-    surface.blit(cursor_sprite, (
-      cursor_x + tile_size // 2 - cursor_sprite.get_width() // 2 - 1,
-      cursor_y + tile_size // 2 - cursor_sprite.get_height() // 2 - 1
-    ))
+
+    if anim and anim.target == "cursor":
+      visible = anim.update()
+      if not visible:
+        cursor_sprite = None
+      if anim.done:
+        ctx.anims.remove(anim)
+
+    if cursor_sprite:
+      surface.blit(cursor_sprite, (
+        cursor_x + tile_size // 2 - cursor_sprite.get_width() // 2 - 1,
+        cursor_y + tile_size // 2 - cursor_sprite.get_height() // 2 - 1
+      ))
     ctx.cursor = (cursor_x, cursor_y, cursor_scale)
 
     ctx.bar.draw(surface)
 
-    anim = ctx.anims[0] if ctx.anims else None
     nodes = []
     sel_option = next((option for option in ctx.options if option.data.name == hero.skill.name), None)
     sel_index = ctx.options.index(sel_option)
@@ -187,7 +209,7 @@ class SkillContext(Context):
       sprite = option.render()
       if option.data.name != hero.skill.name:
         sprite = replace_color(sprite, palette.WHITE, palette.GRAY)
-      if anim:
+      if anim and anim.target is options:
         old_i = (i + 1) % len(options) # i - 1 if i else i + len(options)
         old_x, old_y = get_skill_pos(sprite, old_i)
         new_x, new_y = get_skill_pos(sprite, i)
