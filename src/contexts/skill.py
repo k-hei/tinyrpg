@@ -116,14 +116,16 @@ class SkillContext(Context):
 
   def exit(ctx, skill=None):
     ctx.exiting = True
-    ctx.parent.camera.blur()
     index = 0
     for option in ctx.options:
       is_last = skill is None and index == len(ctx.options) - 1
       ctx.anims.append(TweenAnim(
         duration=6,
         target=index,
-        on_end=ctx.close if is_last else None
+        on_end=(lambda: (
+          ctx.close(),
+          ctx.parent.camera.blur()
+        )) if is_last else None
       ))
       index += 1
     if skill:
@@ -132,7 +134,10 @@ class SkillContext(Context):
       ctx.anims.append(FlickerAnim(
         duration=30,
         target="cursor",
-        on_end=lambda: ctx.close(skill)
+        on_end=lambda: (
+          ctx.close(skill),
+          ctx.parent.camera.blur()
+        )
       ))
     else:
       ctx.bar.exit()
@@ -173,7 +178,12 @@ class SkillContext(Context):
 
     if cursor not in neighbors:
       cursor = neighbors[0]
-    camera.focus(cursor)
+
+    camera_speed = 8
+    if skill.radius == math.inf:
+      camera.focus(cursor, 16)
+    else:
+      camera.focus(cursor, 8)
 
     def scale_up(cell):
       col, row = cell

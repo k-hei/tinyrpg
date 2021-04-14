@@ -9,15 +9,18 @@ class Camera:
     camera.size = size
     camera.pos = None
     camera.flag = None
+    camera.speed = None
 
   def reset(camera):
     camera.pos = None
 
-  def focus(camera, cell):
+  def focus(camera, cell, speed=None):
     camera.flag = cell
+    camera.speed = speed
 
   def blur(camera):
     camera.flag = None
+    camera.speed = None
 
   def update(camera, game):
     view_width, view_height = camera.size
@@ -29,13 +32,13 @@ class Camera:
     if len(game.anims):
       anims = game.anims[0]
 
-    CAMERA_SPEED = 4
+    camera_speed = 4
     if camera.flag:
       focus_x, focus_y = camera.flag
-      CAMERA_SPEED = 16
+      camera_speed = 16
     elif game.room:
       focus_x, focus_y = game.room.get_center()
-      CAMERA_SPEED = 8
+      camera_speed = 8
 
       if game.room.get_width() > MAX_RADIUS_X * 2 + 1:
         for anim in anims:
@@ -66,10 +69,11 @@ class Camera:
           focus_x, focus_y = anim.cur_cell
           break
 
+    camera_speed = camera.speed or camera_speed
     camera_x = (focus_x + 0.5) * config.tile_size - view_width / 2
     camera_y = (focus_y + 0.5) * config.tile_size - view_height / 2
     if camera.pos:
       old_camera_x, old_camera_y = camera.pos
-      camera_x = old_camera_x + (camera_x - old_camera_x) / CAMERA_SPEED
-      camera_y = old_camera_y + (camera_y - old_camera_y) / CAMERA_SPEED
+      camera_x = old_camera_x + (camera_x - old_camera_x) / camera_speed
+      camera_y = old_camera_y + (camera_y - old_camera_y) / camera_speed
     camera.pos = (camera_x, camera_y)

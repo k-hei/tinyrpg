@@ -136,7 +136,7 @@ class DungeonContext(Context):
       if actor.faction == "enemy":
         game.step_enemy(actor, run)
       elif actor.asleep:
-        actor.hp += 1 / 25
+        actor.hp += min(actor.hp_max, 1 / 25)
 
   # TODO: move into enemy module (requires some kind of event/cache system)
   def step_enemy(game, enemy, run=False):
