@@ -226,7 +226,8 @@ def dungeon(size, floor=1):
     room_width, room_height = room.size
     max_elems = min(room_width, room_height)
     elems = random.randint(1, max_elems)
-    cells = [c for c in room.get_cells() if next((d for d in doors if is_adjacent(d, c)), None) is None]
+    is_door_adjacent = lambda c: next((d for d in doors if is_adjacent(d, c)), None)
+    cells = [c for c in room.get_cells() if not is_door_adjacent(c)]
     for i in range(elems):
       cell = random.choice(cells)
       cells.remove(cell)

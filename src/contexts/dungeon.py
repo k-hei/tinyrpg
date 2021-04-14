@@ -72,6 +72,7 @@ class DungeonContext(Context):
     game.floors = []
     game.memory = []
     game.anims = []
+    game.vfx = []
     game.hero = Knight()
     game.ally = Mage()
     game.log = Log()

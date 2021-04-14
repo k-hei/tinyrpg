@@ -2,6 +2,7 @@ from skills import Skill
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from anims.attack import AttackAnim
+from anims.frame import FrameAnim
 from config import ATTACK_DURATION
 
 class Blitzritter(Skill):
@@ -21,9 +22,21 @@ class Blitzritter(Skill):
     user = game.hero
     hero_x, hero_y = user.cell
     delta_x, delta_y = user.facing
-    target_cell = (hero_x + delta_x, hero_y + delta_y)
-    target_a = floor.get_actor_at(target_cell)
-    target_b = floor.get_actor_at((hero_x + delta_x * 2, hero_y + delta_y * 2))
+    near_cell = (hero_x + delta_x, hero_y + delta_y)
+    far_cell = (hero_x + delta_x * 2, hero_y + delta_y * 2)
+    target_a = floor.get_actor_at(near_cell)
+    target_b = floor.get_actor_at(far_cell)
+
+    def connect():
+      game.vfx.append(("impact", near_cell, FrameAnim(
+        duration=20,
+        frame_count=7
+      )))
+      game.vfx.append(("impact", far_cell, FrameAnim(
+        duration=20,
+        delay=10,
+        frame_count=7
+      )))
 
     def end_bump():
       if not target_a and not target_b:
@@ -59,8 +72,9 @@ class Blitzritter(Skill):
       duration=ATTACK_DURATION,
       target=user,
       src_cell=user.cell,
-      dest_cell=target_cell,
+      dest_cell=near_cell,
+      on_connect=connect,
       on_end=end_bump
     )])
 
-    return target_cell
+    return near_cell

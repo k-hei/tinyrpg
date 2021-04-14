@@ -63,7 +63,14 @@ sprite_paths = {
   "box": "assets/box.png",
   "bar": "assets/bar.png",
   "hud": "assets/hud.png",
-  "statusbar": "assets/statusbar.png"
+  "statusbar": "assets/statusbar.png",
+  "fx_impact0": "assets/fx-impact0.png",
+  "fx_impact1": "assets/fx-impact1.png",
+  "fx_impact2": "assets/fx-impact2.png",
+  "fx_impact3": "assets/fx-impact3.png",
+  "fx_impact4": "assets/fx-impact4.png",
+  "fx_impact5": "assets/fx-impact5.png",
+  "fx_impact6": "assets/fx-impact6.png"
 }
 
 def load():

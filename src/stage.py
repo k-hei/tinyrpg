@@ -112,6 +112,28 @@ class Stage:
     camera_pos = ctx.camera.pos
     stage.draw_tiles(surface, visible_cells, visited_cells, camera_pos)
     stage.draw_actors(surface, visible_cells, anims, camera_pos)
+    stage.draw_vfx(surface, ctx.vfx, camera_pos)
+
+  def draw_vfx(stage, surface, vfx, camera_pos):
+    assets = use_assets()
+    for fx in vfx:
+      kind, cell, anim = fx
+      col, row = cell
+      camera_x, camera_y = camera_pos
+      frame = anim.update()
+      if frame == -1:
+        continue
+      if anim.done:
+        vfx.remove(fx)
+        continue
+      sprite = assets.sprites["fx_" + kind + str(frame)]
+      x = col * config.tile_size
+      x += config.tile_size // 2 - sprite.get_width() // 2
+      x += -round(camera_x)
+      y = row * config.tile_size
+      y = y + config.tile_size // 2 - sprite.get_height() // 2
+      y += -round(camera_y)
+      surface.blit(sprite, (x, y))
 
   def draw_actors(stage, surface, visible_cells=None, anims=[], camera_pos=(0, 0)):
     camera_x, camera_y = camera_pos
