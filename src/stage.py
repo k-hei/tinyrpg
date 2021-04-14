@@ -57,11 +57,10 @@ class Stage:
         cells.append((x, y))
     return cells
 
-  def is_cell_empty(stage, cell, actor):
+  def is_cell_empty(stage, cell):
     if stage.get_tile_at(cell).solid:
       return False
-    target = stage.get_actor_at(cell)
-    if target and target.faction == actor.faction:
+    if stage.get_actor_at(cell):
       return False
     return True
 

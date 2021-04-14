@@ -2,9 +2,9 @@ from assets import load as use_assets
 
 class Bread:
   def __init__(bread):
-    bread.sp = 20
+    bread.sp = 10
     bread.name = "Bread"
-    bread.description = "Restores " + str(bread.sp) + " SP"
+    bread.desc = "Restores " + str(bread.sp) + " SP"
 
   def effect(bread, game):
     if game.sp < game.sp_max:

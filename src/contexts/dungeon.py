@@ -10,7 +10,7 @@ from filters import recolor, replace_color
 from stage import Stage
 from actors import Actor
 from keyboard import key_times
-from cell import is_adjacent
+from cell import is_adjacent, manhattan
 
 import gen
 import fov
@@ -160,32 +160,12 @@ class DungeonContext(Context):
       game.log.print(enemy.name.upper() + " attacks")
       game.attack(enemy, ally, run)
     else:
-      delta_x, delta_y = (0, 0)
-      enemy_x, enemy_y = enemy.cell
-      hero_x, hero_y = hero.cell
-
-      if random.randint(1, 2) == 1:
-        if hero_x < enemy_x:
-          delta_x = -1
-        elif hero_x > enemy_x:
-          delta_x = 1
-        elif hero_y < enemy_y:
-          delta_y = -1
-        elif hero_y > enemy_y:
-          delta_y = 1
+      steps_to_hero = manhattan(enemy.cell, hero.cell)
+      steps_to_ally = manhattan(enemy.cell, ally.cell)
+      if steps_to_hero <= steps_to_ally:
+        game.move_to(enemy, hero.cell)
       else:
-        if hero_y < enemy_y:
-          delta_y = -1
-        elif hero_y > enemy_y:
-          delta_y = 1
-        elif hero_x < enemy_x:
-          delta_x = -1
-        elif hero_x > enemy_x:
-          delta_x = 1
-
-      if delta_x == 0 and delta_y == 0:
-        return True
-      game.move(enemy, (delta_x, delta_y), run)
+        game.move_to(enemy, ally.cell)
 
     return True
 
@@ -245,7 +225,8 @@ class DungeonContext(Context):
     ally = ctx.ally
     if hero.dead or hero.asleep:
       return False
-    hero_x, hero_y = hero.cell
+    old_cell = hero.cell
+    hero_x, hero_y = old_cell
     delta_x, delta_y = delta
     acted = False
     moved = ctx.move(hero, delta, run)
@@ -255,9 +236,14 @@ class DungeonContext(Context):
     if moved:
       if not ally.dead and not ally.asleep:
         last_group = ctx.anims[len(ctx.anims) - 1]
-        ally_x, ally_y = ally.cell
-        ctx.move(ally, (hero_x - ally_x, hero_y - ally_y), run)
-        last_group.append(ctx.anims.pop()[0])
+        if manhattan(ally.cell, old_cell) == 1:
+          ally_x, ally_y = ally.cell
+          old_x, old_y = old_cell
+          ctx.move(ally, (old_x - ally_x, old_y - ally_y), run)
+          last_group.append(ctx.anims.pop()[0])
+        elif manhattan(ally.cell, hero.cell) > 1:
+          ctx.move_to(ally, hero.cell, run)
+          last_group.append(ctx.anims.pop()[0])
 
       if target_tile is Stage.STAIRS_UP:
         ctx.log.print("There's a staircase going up here.")
@@ -425,7 +411,10 @@ class DungeonContext(Context):
       ctx.child = SkillContext(
         parent=ctx,
         on_close=lambda skill: (
-          skill and ctx.hero.use_skill(ctx)
+          skill and (
+            ctx.log.print(ctx.hero.name.upper() + " uses " + skill.name),
+            ctx.hero.use_skill(ctx)
+          )
         )
       )
 
@@ -456,6 +445,50 @@ class DungeonContext(Context):
       ])
       actor.cell = target_cell
       return True
+    else:
+      return False
+
+  def move_to(ctx, actor, cell, run=False):
+    if actor.cell == cell:
+      return False
+
+    delta_x, delta_y = (0, 0)
+    actor_x, actor_y = actor.cell
+    target_x, target_y = cell
+    floor = ctx.floor
+
+    def is_empty(cell):
+      target_tile = floor.get_tile_at(cell)
+      target_actor = floor.get_actor_at(cell)
+      return not target_tile.solid and not target_actor
+
+    def select_x():
+      if target_x < actor_x and is_empty((actor_x - 1, actor_y)):
+        return -1
+      elif target_x > actor_x and is_empty((actor_x + 1, actor_y)):
+        return 1
+      else:
+        return 0
+
+    def select_y():
+      if target_y < actor_y and is_empty((actor_x, actor_y - 1)):
+        return -1
+      elif target_y > actor_y and is_empty((actor_x, actor_y + 1)):
+        return 1
+      else:
+        return 0
+
+    if random.randint(0, 1):
+      delta_x = select_x()
+      if not delta_x:
+        delta_y = select_y()
+    else:
+      delta_y = select_y()
+      if not delta_y:
+        delta_x = select_x()
+
+    if delta_x or delta_y:
+      return ctx.move(actor, (delta_x, delta_y), run)
     else:
       return False
 
@@ -492,7 +525,7 @@ class DungeonContext(Context):
         game.anims[0].append(PauseAnim(duration=PAUSE_DURATION, on_end=on_end))
 
     def shake():
-      actor.attack(target)
+      actor.attack(target, damage)
       verb = "suffers" if actor.faction == "enemy" else "receives"
       game.log.print(target.name.upper() + " " + verb + " " + str(damage) + " damage.")
       if on_connect: on_connect()

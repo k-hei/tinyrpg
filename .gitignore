@@ -4,3 +4,6 @@ node_modules
 tmp
 .vscode
 __pycache__
+main.spec
+dist
+build

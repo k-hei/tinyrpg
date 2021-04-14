@@ -30,7 +30,6 @@ class ShieldBash(Skill):
     delta_x, delta_y = user.facing
     target_cell = (hero_x + delta_x, hero_y + delta_y)
     target_actor = game.floor.get_actor_at(target_cell)
-    game.log.print(user.name.upper() + " uses Shield Bash")
 
     if target_actor:
       # nudge target actor 1 square in the given direction

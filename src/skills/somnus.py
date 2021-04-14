@@ -24,7 +24,6 @@ class Somnus(Skill):
     delta_x, delta_y = user.facing
     target_cell = (hero_x + delta_x, hero_y + delta_y)
     target_actor = game.floor.get_actor_at(target_cell)
-    game.log.print(user.name.upper() + " uses Somnus")
     def on_attack_end():
       if target_actor:
         target_actor.asleep = True

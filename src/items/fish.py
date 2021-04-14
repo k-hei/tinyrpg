@@ -2,9 +2,9 @@ from assets import load as use_assets
 
 class Fish:
   def __init__(fish):
-    fish.sp = 30
+    fish.sp = 20
     fish.name = "Fish"
-    fish.description = "Restores " + str(fish.sp) + " SP"
+    fish.desc = "Restores " + str(fish.sp) + " SP"
 
   def effect(fish, game):
     if game.sp < game.sp_max:

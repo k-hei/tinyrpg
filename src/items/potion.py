@@ -4,7 +4,7 @@ class Potion:
   def __init__(potion):
     potion.hp = 5
     potion.name = "Potion"
-    potion.description = "Restores " + str(potion.hp) + " HP"
+    potion.desc = "Restores " + str(potion.hp) + " HP"
 
   def effect(potion, game):
     hero = game.hero

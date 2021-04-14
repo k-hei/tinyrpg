@@ -4,7 +4,7 @@ class Cheese:
   def __init__(cheese):
     cheese.sp = 5
     cheese.name = "Cheese"
-    cheese.description = "Restores " + str(cheese.sp) + " SP"
+    cheese.desc = "Restores " + str(cheese.sp) + " SP"
 
   def effect(cheese, game):
     if game.sp < game.sp_max:
