@@ -65,71 +65,71 @@ class DungeonContext(Context):
   AWAKEN_DURATION = 45
   VISION_RANGE = 3.5
 
-  def __init__(ctx, parent):
+  def __init__(game, parent):
     super().__init__(parent)
-    ctx.sp_max = 40
-    ctx.sp = ctx.sp_max
-    ctx.room = None
-    ctx.floor = None
-    ctx.floors = []
-    ctx.memory = []
-    ctx.anims = []
-    ctx.hero = Knight()
-    ctx.ally = Mage()
-    ctx.log = Log()
-    ctx.camera = Camera(config.window_size)
-    ctx.hud = StatusPanel()
-    ctx.minimap = Minimap((15, 15))
-    ctx.inventory = Inventory((2, 2), [Potion()])
-    ctx.create_floor()
-    ctx.key_requires_reset = {}
-    ctx.skills = {
-      ctx.hero: [ShieldBash(), Phalanx(), Blitzritter()],
-      ctx.ally: [Ignis(), Somnus(), DetectMana()]
+    game.sp_max = 40
+    game.sp = game.sp_max
+    game.room = None
+    game.floor = None
+    game.floors = []
+    game.memory = []
+    game.anims = []
+    game.hero = Knight()
+    game.ally = Mage()
+    game.log = Log()
+    game.camera = Camera(config.window_size)
+    game.hud = StatusPanel()
+    game.minimap = Minimap((15, 15))
+    game.inventory = Inventory((2, 2), [Potion()])
+    game.create_floor()
+    game.key_requires_reset = {}
+    game.skills = {
+      game.hero: [ShieldBash(), Phalanx(), Blitzritter()],
+      game.ally: [Ignis(), Somnus(), DetectMana()]
     }
 
-  def create_floor(ctx):
-    floor = gen.dungeon((19, 19), len(ctx.floors) + 1)
+  def create_floor(game):
+    floor = gen.dungeon((19, 19), len(game.floors) + 1)
 
     if floor.find_tile(Stage.DOOR_HIDDEN):
-      ctx.log.print("This floor seems to hold many secrets.")
+      game.log.print("This floor seems to hold many secrets.")
 
     entrance = floor.find_tile(Stage.STAIRS_DOWN)
     if entrance is None:
       x, y = floor.rooms[0].get_center()
       entrance = (x, y + 2)
 
-    floor.spawn_actor(ctx.hero, entrance)
-    if not ctx.ally.dead:
+    floor.spawn_actor(game.hero, entrance)
+    if not game.ally.dead:
       x, y = entrance
-      floor.spawn_actor(ctx.ally, (x - 1, y))
+      floor.spawn_actor(game.ally, (x - 1, y))
 
-    ctx.floor = floor
-    ctx.floors.append(ctx.floor)
-    ctx.memory.append((ctx.floor, []))
-    ctx.refresh_fov(moving=True)
+    game.floor = floor
+    game.floors.append(game.floor)
+    game.memory.append((game.floor, []))
+    game.refresh_fov(moving=True)
 
-  def refresh_fov(ctx, moving=False):
-    visible_cells = fov.shadowcast(ctx.floor, ctx.hero.cell, DungeonContext.VISION_RANGE)
+  def refresh_fov(game, moving=False):
+    visible_cells = fov.shadowcast(game.floor, game.hero.cell, DungeonContext.VISION_RANGE)
 
     if moving:
-      rooms = [room for room in ctx.floor.rooms if ctx.hero.cell in room.get_cells() + room.get_border()]
-      old_room = ctx.room
+      rooms = [room for room in game.floor.rooms if game.hero.cell in room.get_cells() + room.get_border()]
+      old_room = game.room
       if len(rooms) == 1:
         new_room = rooms[0]
       else:
-        new_room = next((room for room in rooms if room is not ctx.room), None)
+        new_room = next((room for room in rooms if room is not game.room), None)
       if new_room is not old_room:
-        ctx.room = new_room
+        game.room = new_room
 
-    if ctx.room:
-      visible_cells += ctx.room.get_cells() + ctx.room.get_border()
+    if game.room:
+      visible_cells += game.room.get_cells() + game.room.get_border()
 
-    visited_cells = next((cells for floor, cells in ctx.memory if floor is ctx.floor), None)
+    visited_cells = next((cells for floor, cells in game.memory if floor is game.floor), None)
     for cell in visible_cells:
       if cell not in visited_cells:
         visited_cells.append(cell)
-    ctx.hero.visible_cells = visible_cells
+    game.hero.visible_cells = visible_cells
 
   def step(game, run=False):
     for actor in game.floor.actors:
@@ -173,15 +173,15 @@ class DungeonContext(Context):
 
     return True
 
-  def handle_keyup(ctx, key):
-    ctx.key_requires_reset[key] = False
+  def handle_keyup(game, key):
+    game.key_requires_reset[key] = False
 
-  def handle_keydown(ctx, key):
-    if len(ctx.anims) or ctx.log.anim or ctx.hud.anims:
+  def handle_keydown(game, key):
+    if len(game.anims) or game.log.anim or game.hud.anims:
       return False
 
-    if ctx.child:
-      return ctx.child.handle_keydown(key)
+    if game.child:
+      return game.child.handle_keydown(key)
 
     key_deltas = {
       pygame.K_LEFT: (-1, 0),
@@ -190,101 +190,101 @@ class DungeonContext(Context):
       pygame.K_DOWN: (0, 1)
     }
 
-    key_requires_reset = key in ctx.key_requires_reset and ctx.key_requires_reset[key]
+    key_requires_reset = key in game.key_requires_reset and game.key_requires_reset[key]
     if key in key_deltas and not key_requires_reset:
       delta = key_deltas[key]
       run = pygame.K_RSHIFT in key_times and key_times[pygame.K_RSHIFT] > 0
-      moved = ctx.handle_move(delta, run)
+      moved = game.handle_move(delta, run)
       if not moved:
-        ctx.key_requires_reset[key] = True
+        game.key_requires_reset[key] = True
       return moved
 
     if key not in key_times or key_times[key] != 1:
       return False
 
     if key == pygame.K_TAB:
-      return ctx.handle_swap()
+      return game.handle_swap()
 
-    if ctx.hero.dead or ctx.hero.asleep:
+    if game.hero.dead or game.hero.asleep:
       return False
 
     if key == pygame.K_BACKSPACE:
-      return ctx.handle_inventory()
+      return game.handle_inventory()
 
     if key == pygame.K_SPACE:
-      return ctx.handle_wait()
+      return game.handle_wait()
 
     if key == pygame.K_RETURN:
-      if ctx.floor.get_tile_at(ctx.hero.cell) is Stage.STAIRS_UP:
-        return ctx.handle_ascend()
-      elif ctx.floor.get_tile_at(ctx.hero.cell) is Stage.STAIRS_DOWN:
-        return ctx.handle_descend()
+      if game.floor.get_tile_at(game.hero.cell) is Stage.STAIRS_UP:
+        return game.handle_ascend()
+      elif game.floor.get_tile_at(game.hero.cell) is Stage.STAIRS_DOWN:
+        return game.handle_descend()
       else:
-        return ctx.handle_skill()
+        return game.handle_skill()
 
     return False
 
-  def handle_move(ctx, delta, run=False):
-    hero = ctx.hero
-    ally = ctx.ally
+  def handle_move(game, delta, run=False):
+    hero = game.hero
+    ally = game.ally
     if hero.dead or hero.asleep:
       return False
     old_cell = hero.cell
     hero_x, hero_y = old_cell
     delta_x, delta_y = delta
     acted = False
-    moved = ctx.move(hero, delta, run)
+    moved = game.move(hero, delta, run)
     target_cell = (hero_x + delta_x, hero_y + delta_y)
-    target_tile = ctx.floor.get_tile_at(target_cell)
-    target_actor = ctx.floor.get_actor_at(target_cell)
+    target_tile = game.floor.get_tile_at(target_cell)
+    target_actor = game.floor.get_actor_at(target_cell)
     if moved:
       if not ally.dead and not ally.asleep:
-        last_group = ctx.anims[len(ctx.anims) - 1]
+        last_group = game.anims[len(game.anims) - 1]
         if manhattan(ally.cell, old_cell) == 1:
           ally_x, ally_y = ally.cell
           old_x, old_y = old_cell
-          ctx.move(ally, (old_x - ally_x, old_y - ally_y), run)
-          last_group.append(ctx.anims.pop()[0])
+          game.move(ally, (old_x - ally_x, old_y - ally_y), run)
+          last_group.append(game.anims.pop()[0])
         elif manhattan(ally.cell, hero.cell) > 1:
-          ctx.move_to(ally, hero.cell, run)
-          last_group.append(ctx.anims.pop()[0])
+          game.move_to(ally, hero.cell, run)
+          last_group.append(game.anims.pop()[0])
 
       if target_tile is Stage.STAIRS_UP:
-        ctx.log.print("There's a staircase going up here.")
+        game.log.print("There's a staircase going up here.")
       elif target_tile is Stage.STAIRS_DOWN:
-        if ctx.floors.index(ctx.floor):
-          ctx.log.print("There's a staircase going down here.")
+        if game.floors.index(game.floor):
+          game.log.print("There's a staircase going down here.")
         else:
-          ctx.log.print("You can return to the town from here.")
+          game.log.print("You can return to the town from here.")
 
       is_waking_up = False
-      if ctx.room:
-        room = ctx.room
-        floor = ctx.floor
+      if game.room:
+        room = game.room
+        floor = game.floor
         room_actors = [floor.get_actor_at(cell) for cell in room.get_cells() if floor.get_actor_at(cell)]
         enemies = [actor for actor in room_actors if actor.faction == "enemy"]
         enemy = next((e for e in enemies if e.asleep and random.randint(1, 10) == 1), None)
         if enemy:
           enemy.asleep = False
           is_waking_up = True
-          ctx.camera.focus(enemy.cell)
-          ctx.anims.append([
+          game.camera.focus(enemy.cell)
+          game.anims.append([
             AwakenAnim(
               duration=DungeonContext.AWAKEN_DURATION,
               target=enemy,
               on_end=lambda: (
-                ctx.log.print(enemy.name.upper() + " woke up!"),
-                ctx.anims[0].append(PauseAnim(
+                game.log.print(enemy.name.upper() + " woke up!"),
+                game.anims[0].append(PauseAnim(
                   duration=DungeonContext.PAUSE_DURATION,
-                  on_end=ctx.camera.blur
+                  on_end=game.camera.blur
                 ))
               )
             )
           ])
 
       if not is_waking_up:
-        ctx.step()
-        ctx.refresh_fov(moving=True)
+        game.step()
+        game.refresh_fov(moving=True)
 
       if not hero.dead and not hero.asleep:
         hero.regen()
@@ -292,10 +292,10 @@ class DungeonContext(Context):
         ally.regen()
 
       acted = True
-      ctx.sp = max(0, ctx.sp - 1 / 100)
+      game.sp = max(0, game.sp - 1 / 100)
     elif target_actor and target_actor.faction == "enemy":
       if target_actor.idle:
-        ctx.anims.append([
+        game.anims.append([
           AttackAnim(
             duration=DungeonContext.ATTACK_DURATION,
             target=hero,
@@ -304,24 +304,24 @@ class DungeonContext(Context):
           ),
           PauseAnim(duration=15, on_end=lambda: (
             target_actor.activate(),
-            ctx.log.print("The lamp was " + target_actor.name.upper() + "!"),
-            ctx.step(),
-            ctx.anims[0].append(PauseAnim(
+            game.log.print("The lamp was " + target_actor.name.upper() + "!"),
+            game.step(),
+            game.anims[0].append(PauseAnim(
               duration=15,
-              on_end=lambda: ctx.refresh_fov
+              on_end=lambda: game.refresh_fov
             ))
           ))
         ])
-        ctx.log.print("You open the lamp")
+        game.log.print("You open the lamp")
       else:
-        ctx.log.print(hero.name.upper() + " attacks")
-        ctx.attack(hero, target_actor, run)
-        ctx.sp = max(0, ctx.sp - 1)
+        game.log.print(hero.name.upper() + " attacks")
+        game.attack(hero, target_actor, run)
+        game.sp = max(0, game.sp - 1)
         acted = True
-        ctx.step(run)
-        ctx.refresh_fov()
+        game.step(run)
+        game.refresh_fov()
     else:
-      ctx.anims.append([
+      game.anims.append([
         AttackAnim(
           duration=DungeonContext.ATTACK_DURATION,
           target=hero,
@@ -333,8 +333,8 @@ class DungeonContext(Context):
         chest = target_actor
         item = chest.contents
         if item:
-          if not ctx.inventory.is_full():
-            ctx.anims.append([
+          if not game.inventory.is_full():
+            game.anims.append([
               ChestAnim(
                 duration=30,
                 target=chest,
@@ -342,45 +342,45 @@ class DungeonContext(Context):
                 on_end=chest.open
               )
             ])
-            ctx.inventory.append(item)
-            ctx.log.print("You open the lamp")
-            ctx.log.print("Received " + item.name + ".")
+            game.inventory.append(item)
+            game.log.print("You open the lamp")
+            game.log.print("Received " + item.name + ".")
             acted = True
           else:
-            ctx.log.print("Your inventory is already full!")
+            game.log.print("Your inventory is already full!")
         else:
-          ctx.log.print("There's nothing left to take...")
-        ctx.step(run)
-        ctx.refresh_fov()
+          game.log.print("There's nothing left to take...")
+        game.step(run)
+        game.refresh_fov()
       elif target_actor and target_actor.faction == "player":
-        ctx.log.exit()
-        ctx.anims[0].append(PauseAnim(
+        game.log.exit()
+        game.anims[0].append(PauseAnim(
           duration=60,
           on_end=lambda: (
             target_actor.wake_up(),
-            ctx.log.print(target_actor.name.upper() + " woke up!"),
-            ctx.anims[0].append(ShakeAnim(
+            game.log.print(target_actor.name.upper() + " woke up!"),
+            game.anims[0].append(ShakeAnim(
               duration=DungeonContext.SHAKE_DURATION,
               target=target_actor,
             ))
           )
         ))
       elif target_tile is Stage.DOOR:
-        ctx.log.print("You open the door.")
-        ctx.floor.set_tile_at(target_cell, Stage.DOOR_OPEN)
-        ctx.step(run)
-        ctx.refresh_fov()
+        game.log.print("You open the door.")
+        game.floor.set_tile_at(target_cell, Stage.DOOR_OPEN)
+        game.step(run)
+        game.refresh_fov()
       elif target_tile is Stage.DOOR_HIDDEN:
-        ctx.log.print("Discovered a hidden door!")
-        ctx.floor.set_tile_at(target_cell, Stage.DOOR_OPEN)
-        ctx.step(run)
-        ctx.refresh_fov()
+        game.log.print("Discovered a hidden door!")
+        game.floor.set_tile_at(target_cell, Stage.DOOR_OPEN)
+        game.step(run)
+        game.refresh_fov()
       elif target_tile is Stage.DOOR_LOCKED:
-        ctx.log.print("The door is locked...")
+        game.log.print("The door is locked...")
     return moved
 
-  def handle_wait(ctx):
-    ctx.step()
+  def handle_wait(game):
+    game.step()
 
   def handle_swap(game):
     if game.ally.dead:
@@ -389,60 +389,55 @@ class DungeonContext(Context):
     game.refresh_fov(moving=True)
     return True
 
-  def handle_ascend(ctx):
-    if ctx.floor.get_tile_at(ctx.hero.cell) is not Stage.STAIRS_UP:
-      return ctx.log.print("There's nowhere to go up here!")
-    ctx.handle_floorchange(1)
+  def handle_ascend(game):
+    if game.floor.get_tile_at(game.hero.cell) is not Stage.STAIRS_UP:
+      return game.log.print("There's nowhere to go up here!")
+    game.handle_floorchange(1)
 
-  def handle_descend(ctx):
-    if ctx.floor.get_tile_at(ctx.hero.cell) is not Stage.STAIRS_DOWN:
-      return ctx.log.print("There's nowhere to go down here!")
-    if ctx.floors.index(ctx.floor) == 0:
-      return ctx.log.print("You aren't ready to go back yet.")
-    ctx.handle_floorchange(-1)
+  def handle_descend(game):
+    if game.floor.get_tile_at(game.hero.cell) is not Stage.STAIRS_DOWN:
+      return game.log.print("There's nowhere to go down here!")
+    if game.floors.index(game.floor) == 0:
+      return game.log.print("You aren't ready to go back yet.")
+    game.handle_floorchange(-1)
 
-  def handle_floorchange(ctx, direction):
-    ctx.log.exit()
-    ctx.hud.exit()
-    ctx.parent.dissolve(
+  def handle_floorchange(game, direction):
+    game.log.exit()
+    game.hud.exit()
+    game.parent.dissolve(
       on_clear=lambda: (
-        ctx.camera.reset(),
-        ctx.change_floors(direction)
+        game.camera.reset(),
+        game.change_floors(direction)
       ),
-      on_end=ctx.hud.enter
+      on_end=game.hud.enter
     )
 
-  def handle_skill(ctx):
-    if ctx.child is None:
-      ctx.log.exit()
-      ctx.child = SkillContext(
-        parent=ctx,
-        on_close=lambda skill: (
-          skill and (
-            ctx.log.print(ctx.hero.name.upper() + " uses " + skill.name),
-            ctx.hero.use_skill(ctx)
-          )
-        )
+  def handle_skill(game):
+    if game.child is None:
+      game.log.exit()
+      game.child = SkillContext(
+        parent=game,
+        on_close=lambda skill: skill and game.use_skill(skill)
       )
 
-  def handle_inventory(ctx):
-    if ctx.child is None:
-      ctx.log.exit()
-      ctx.child = InventoryContext(
-        parent=ctx,
-        inventory=ctx.inventory
+  def handle_inventory(game):
+    if game.child is None:
+      game.log.exit()
+      game.child = InventoryContext(
+        parent=game,
+        inventory=game.inventory
       )
 
-  def move(ctx, actor, delta, run=False):
+  def move(game, actor, delta, run=False):
     actor_x, actor_y = actor.cell
     delta_x, delta_y = delta
     target_cell = (actor_x + delta_x, actor_y + delta_y)
-    target_tile = ctx.floor.get_tile_at(target_cell)
-    target_actor = ctx.floor.get_actor_at(target_cell)
+    target_tile = game.floor.get_tile_at(target_cell)
+    target_actor = game.floor.get_actor_at(target_cell)
     actor.facing = delta
-    if not target_tile.solid and (target_actor is None or actor is ctx.hero and target_actor is ctx.ally and not ctx.ally.asleep):
+    if not target_tile.solid and (target_actor is None or actor is game.hero and target_actor is game.ally and not game.ally.asleep):
       duration = DungeonContext.RUN_DURATION if run else DungeonContext.MOVE_DURATION
-      ctx.anims.append([
+      game.anims.append([
         MoveAnim(
           duration=duration,
           target=actor,
@@ -455,14 +450,14 @@ class DungeonContext(Context):
     else:
       return False
 
-  def move_to(ctx, actor, cell, run=False):
+  def move_to(game, actor, cell, run=False):
     if actor.cell == cell:
       return False
 
     delta_x, delta_y = (0, 0)
     actor_x, actor_y = actor.cell
     target_x, target_y = cell
-    floor = ctx.floor
+    floor = game.floor
 
     def is_empty(cell):
       target_tile = floor.get_tile_at(cell)
@@ -495,12 +490,11 @@ class DungeonContext(Context):
         delta_x = select_x()
 
     if delta_x or delta_y:
-      return ctx.move(actor, (delta_x, delta_y), run)
+      return game.move(actor, (delta_x, delta_y), run)
     else:
       return False
 
   def attack(game, actor, target, damage=None, on_connect=None, on_end=None):
-    was_asleep = target.asleep
     if not damage:
       damage = Actor.find_damage(actor, target)
     game.anims.append([
@@ -511,7 +505,11 @@ class DungeonContext(Context):
         dest_cell=target.cell,
         on_connect=lambda: (
           on_connect and on_connect(),
-          game.flinch(target=target, damage=damage, on_end=on_end)
+          game.flinch(
+            target=target,
+            damage=damage,
+            on_end=on_end
+          )
         )
       )
     ])
@@ -566,6 +564,17 @@ class DungeonContext(Context):
         on_end=awaken
       ))
 
+  def use_skill(game, skill):
+    hero = game.hero
+    camera = game.camera
+    game.log.print(game.hero.name.upper() + " uses " + skill.name),
+    target_cell = game.hero.use_skill(game, on_end=lambda: (
+      camera.blur(),
+      game.step(),
+      game.refresh_fov()
+    ))
+    camera.focus(target_cell)
+
   def use_item(game, item):
     success, message = item.effect(game)
     if success:
@@ -615,36 +624,36 @@ class DungeonContext(Context):
 
     return True
 
-  def draw(ctx, surface):
+  def draw(game, surface):
     assets = load_assets()
     surface.fill(0x000000)
     window_width = surface.get_width()
     window_height = surface.get_height()
 
-    ctx.camera.update(ctx)
-    ctx.floor.draw(surface, ctx)
+    game.camera.update(game)
+    game.floor.draw(surface, game)
 
-    for group in ctx.anims:
+    for group in game.anims:
       for anim in group:
         if type(anim) is PauseAnim:
           anim.update()
           if anim.done:
             group.remove(anim)
       if len(group) == 0:
-        ctx.anims.remove(group)
+        game.anims.remove(group)
 
-    # is_playing_enter_transit = len(ctx.parent.transits) and type(ctx.parent.transits[0]) is DissolveOut
+    # is_playing_enter_transit = len(game.parent.transits) and type(game.parent.transits[0]) is DissolveOut
     # if not is_playing_enter_transit:
-    if not ctx.child or ctx.log.anim and ctx.log.exiting:
-      log = ctx.log.render(assets.sprites["log"], assets.fonts["standard"])
+    if not game.child or game.log.anim and game.log.exiting:
+      log = game.log.render(assets.sprites["log"], assets.fonts["standard"])
       surface.blit(log, (
         window_width / 2 - log.get_width() / 2,
-        window_height + ctx.log.y
+        window_height + game.log.y
       ))
 
-    animating = ctx.log.anim and ctx.log.exiting or ctx.hud.anims
-    if ctx.child and not animating:
-      ctx.child.draw(surface)
+    animating = game.log.anim and game.log.exiting or game.hud.anims
+    if game.child and not animating:
+      game.child.draw(surface)
 
-    ctx.hud.draw(surface, ctx)
-    ctx.minimap.draw(surface, ctx)
+    game.hud.draw(surface, game)
+    game.minimap.draw(surface, game)

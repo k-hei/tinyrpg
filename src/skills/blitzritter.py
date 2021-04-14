@@ -25,21 +25,13 @@ class Blitzritter(Skill):
     target_a = floor.get_actor_at(target_cell)
     target_b = floor.get_actor_at((hero_x + delta_x * 2, hero_y + delta_y * 2))
 
-    camera.focus(target_cell)
-    def end():
-      print("Finishing Blitzritter...")
-      camera.blur()
-      if on_end:
-        on_end()
-
     def end_bump():
-      print(target_a, target_b)
       if not target_a and not target_b:
-         return game.anims[0].append(PauseAnim(
+        return game.anims[0].append(PauseAnim(
           duration=45,
           on_end=lambda: (
             game.log.print("But nothing happened..."),
-            end()
+            on_end and on_end()
           )
         ))
 
@@ -52,7 +44,7 @@ class Blitzritter(Skill):
           on_end=lambda: (game.flinch(
             target=target_b,
             damage=atk,
-            on_end=end
+            on_end=on_end
           ))
         )
 
@@ -60,7 +52,7 @@ class Blitzritter(Skill):
       game.flinch(
         target=target,
         damage=atk,
-        on_end=end
+        on_end=on_end
       )
 
     game.anims.append([AttackAnim(
@@ -70,3 +62,5 @@ class Blitzritter(Skill):
       dest_cell=target_cell,
       on_end=end_bump
     )])
+
+    return target_cell

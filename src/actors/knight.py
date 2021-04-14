@@ -1,5 +1,5 @@
 from actors import Actor
-from skills.shieldbash import ShieldBash
+from skills.blitzritter import Blitzritter
 
 class Knight(Actor):
   def __init__(knight):
@@ -9,5 +9,5 @@ class Knight(Actor):
       hp=9,
       st=5,
       en=2,
-      skill=ShieldBash()
+      skill=Blitzritter()
     )

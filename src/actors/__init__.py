@@ -26,6 +26,7 @@ class Actor:
     actor.facing = facing
 
   def wake_up(actor):
+    actor.stun = True
     actor.asleep = False
 
   def move(actor, delta, stage):
@@ -40,7 +41,7 @@ class Actor:
     if damage < target.hp:
       target.hp -= damage
       if target.asleep and random.randint(0, 1):
-        target.asleep = False
+        target.wake_up()
     else:
       target.hp = 0
       target.dead = True
@@ -51,14 +52,10 @@ class Actor:
     en = target.en if not target.asleep else 0
     return max(0, st - en)
 
-  def use_skill(actor, game):
+  def use_skill(actor, game, on_end=None):
     skill = actor.skill
     if skill is None:
-      return False
+      return None
     if game.sp >= skill.cost:
       game.sp -= skill.cost
-    skill.effect(game, on_end=lambda: (
-      game.step(),
-      game.refresh_fov()
-    ))
-    return True
+    return skill.effect(game, on_end=on_end)

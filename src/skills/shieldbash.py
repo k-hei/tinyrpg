@@ -4,6 +4,7 @@ from actors import Actor
 from actors.eye import Eye
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
+from anims.pause import PauseAnim
 from config import ATTACK_DURATION, MOVE_DURATION
 
 class ShieldBash(Skill):
@@ -20,18 +21,21 @@ class ShieldBash(Skill):
   # TODO: move into separate skill
   def effect(skill, game, on_end=None):
     user = game.hero
+    floor = game.floor
+    camera = game.camera
+
     source_cell = user.cell
     hero_x, hero_y = source_cell
     delta_x, delta_y = user.facing
     target_cell = (hero_x + delta_x, hero_y + delta_y)
-    target_actor = game.floor.get_actor_at(target_cell)
+    target_actor = floor.get_actor_at(target_cell)
 
     if target_actor:
       # nudge target actor 1 square in the given direction
       target_x, target_y = target_cell
       nudge_cell = (target_x + delta_x, target_y + delta_y)
-      nudge_tile = game.floor.get_tile_at(nudge_cell)
-      nudge_actor = game.floor.get_actor_at(nudge_cell)
+      nudge_tile = floor.get_tile_at(nudge_cell)
+      nudge_actor = floor.get_actor_at(nudge_cell)
       will_nudge = not nudge_tile.solid and nudge_actor is None
 
       def on_connect():
@@ -54,13 +58,20 @@ class ShieldBash(Skill):
         on_end=on_end
       )
     else:
-      game.log.print("But nothing happened...")
       game.anims.append([
         AttackAnim(
           duration=ATTACK_DURATION,
           target=user,
           src_cell=user.cell,
           dest_cell=target_cell,
-          on_end=on_end
+          on_end=lambda: (game.anims[0].append(PauseAnim(
+            duration=45,
+            on_end=lambda: (
+              game.log.print("But nothing happened..."),
+              on_end and on_end()
+            )
+          )))
         )
       ])
+
+    return target_cell

@@ -183,9 +183,6 @@ class Stage:
           actor.cell
         )
 
-      if type(anim) is ShakeAnim:
-        sprite_x += anim.update()
-
       if type(anim) is MoveAnim:
         if anim.time % (anim.duration // 2) >= anim.duration // 4:
           if type(actor) is Knight:
@@ -195,9 +192,14 @@ class Stage:
         if type(actor) is Eye:
           sprite = assets.sprites["eye_attack"]
 
+      if type(anim) is ShakeAnim:
+        sprite_x += anim.update()
+
       will_flinch = next((other for other in anim_group if type(other) is ShakeAnim and other.target is anim.target), None)
       if type(anim) is ShakeAnim or will_flinch:
-        if type(actor) is Knight:
+        if anim.time <= 1:
+          sprite = None
+        elif type(actor) is Knight:
           sprite = assets.sprites["knight_flinch"]
         elif type(actor) is Mage:
           sprite = assets.sprites["mage_flinch"]
