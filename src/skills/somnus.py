@@ -26,20 +26,20 @@ class Somnus(Skill):
         target_actor.asleep = True
         if target_actor.idle:
           target_actor.activate()
-        game.log.print(target_actor.name.upper() + " fell asleep!")
-        if on_end:
-          on_end()
+        result = target_actor.name.upper() + " fell asleep!"
       else:
-        game.anims[0].append(PauseAnim(
-          duration=30,
-          on_end=lambda: (
-            game.log.print("But nothing happened..."),
-            game.anims[0].append(PauseAnim(
-              duration=45,
-              on_end=on_end
-            ))
-          )
-        ))
+        result = "But nothing happened..."
+      game.anims[0].append(PauseAnim(
+        duration=30,
+        on_end=lambda: (
+          game.log.print(result),
+          game.anims[0].append(PauseAnim(
+            duration=30,
+            on_end=on_end
+          ))
+        )
+      ))
+
     game.anims.append([
       AttackAnim(
         duration=ATTACK_DURATION,
@@ -49,3 +49,4 @@ class Somnus(Skill):
         on_end=on_attack_end
       )
     ])
+    return target_cell

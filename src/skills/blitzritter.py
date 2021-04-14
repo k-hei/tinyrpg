@@ -11,7 +11,7 @@ class Blitzritter(Skill):
       kind="lance",
       element=None,
       desc="Pierces two squares ahead",
-      cost=4,
+      cost=6,
       radius=2
     )
 
