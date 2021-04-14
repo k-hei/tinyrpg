@@ -217,6 +217,9 @@ class DungeonContext(Context):
     if key == pygame.K_TAB:
       return ctx.handle_swap()
 
+    if ctx.hero.dead or ctx.hero.asleep:
+      return False
+
     if key == pygame.K_BACKSPACE:
       return ctx.handle_inventory()
 
@@ -230,12 +233,6 @@ class DungeonContext(Context):
         return ctx.handle_descend()
       else:
         return ctx.handle_skill()
-
-    if key == pygame.K_COMMA and key_times[pygame.K_RSHIFT]:
-      return ctx.handle_ascend()
-
-    if key == pygame.K_PERIOD and key_times[pygame.K_RSHIFT]:
-      return ctx.handle_descend()
 
     return False
 

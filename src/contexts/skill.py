@@ -33,6 +33,7 @@ class SkillContext(Context):
     ctx.cursor_anim = SineAnim(60)
     ctx.anims = []
     ctx.exiting = False
+    ctx.confirmed = False
     ctx.enter()
     ctx.select_skill()
 
@@ -115,7 +116,17 @@ class SkillContext(Context):
 
   def exit(ctx, skill=None):
     ctx.exiting = True
+    index = 0
+    for option in ctx.options:
+      is_last = skill is None and index == len(ctx.options) - 1
+      ctx.anims.append(TweenAnim(
+        duration=6,
+        target=index,
+        on_end=ctx.close() if is_last else None
+      ))
+      index += 1
     if skill:
+      ctx.confirmed = True
       ctx.bar.exit()
       ctx.anims.append(FlickerAnim(
         duration=30,
@@ -123,7 +134,7 @@ class SkillContext(Context):
         on_end=lambda: ctx.close(skill)
       ))
     else:
-      ctx.bar.exit(on_end=ctx.close)
+      ctx.bar.exit()
 
   def draw(ctx, surface):
     assets = use_assets()
@@ -195,7 +206,7 @@ class SkillContext(Context):
         cursor_sprite = assets.sprites["cursor_cell2"]
 
     new_cursor_x, new_cursor_y = scale_up(cursor)
-    if ctx.exiting:
+    if ctx.exiting and not ctx.confirmed:
       new_cursor_x, new_cursor_y = scale_up(hero.cell)
       cursor_scale += -cursor_scale / 4
     else:
@@ -264,8 +275,11 @@ class SkillContext(Context):
         if anim.done:
           ctx.anims.remove(anim)
         height = int(height * t)
+      elif ctx.exiting:
+        sprite = None
 
-      nodes.append((sprite, x, y, height))
+      if sprite:
+        nodes.append((sprite, x, y, height))
 
     nodes.reverse()
     for sprite, x, y, height in nodes:
@@ -273,7 +287,8 @@ class SkillContext(Context):
       sprite = pygame.transform.scale(sprite, (sprite.get_width(), height))
       surface.blit(sprite, (x, y + real_height / 2 - sprite.get_height() / 2))
 
-    if not next((anim for anim in ctx.anims if anim.target == 0), None):
+    first_anim = next((anim for anim in ctx.anims if anim.target == 0), None)
+    if not ctx.exiting and not first_anim:
       title = render_text("SKILL", assets.fonts["smallcaps"])
       title = recolor(title, (0xFF, 0xFF, 0x00))
       title = outline(title, (0x00, 0x00, 0x00))
