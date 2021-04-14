@@ -2,6 +2,7 @@ class FlickerAnim():
   def __init__(anim, duration, target, on_end=None):
     anim.done = False
     anim.time = 0
+    anim.visible = False
     anim.duration = duration
     anim.target = target
     anim.on_end = on_end
@@ -14,4 +15,5 @@ class FlickerAnim():
       anim.done = True
       if anim.on_end:
         anim.on_end()
-    return anim.time % 2 == 0
+    anim.visible = anim.time % 2 == 0
+    return anim.visible

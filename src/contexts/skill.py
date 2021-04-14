@@ -91,7 +91,7 @@ class SkillContext(Context):
     new_skill = skills[(index + 1) % len(skills)]
     if old_skill.name != new_skill.name:
       ctx.select_skill(new_skill)
-      ctx.anims.append(TweenAnim(duration=30, target=options))
+      ctx.anims.append(TweenAnim(duration=12, target=options))
     hero.skill = new_skill
 
   def handle_confirm(ctx):
@@ -106,7 +106,11 @@ class SkillContext(Context):
     ctx.bar.enter()
     index = 0
     for option in ctx.options:
-
+      ctx.anims.append(TweenAnim(
+        duration=10,
+        delay=8 * index,
+        target=index
+      ))
       index += 1
 
   def exit(ctx, skill=None):
@@ -148,6 +152,11 @@ class SkillContext(Context):
       y = row * tile_size - round(camera_y) + 1
       return (x, y)
 
+    for anim in ctx.anims:
+      anim.update()
+      if anim.done:
+        ctx.anims.remove(anim)
+
     anim = ctx.anims[0] if ctx.anims else None
     cursor_anim = ctx.cursor_anim
     t = cursor_anim.update()
@@ -171,8 +180,7 @@ class SkillContext(Context):
       cursor_scale = 0.5
 
     if anim and anim.target == "cursor":
-      visible = anim.update()
-      if visible:
+      if anim.visible:
         cursor_sprite = assets.sprites["cursor_cell1"]
       else:
         cursor_sprite = None
@@ -225,13 +233,17 @@ class SkillContext(Context):
       index = (sel_index + i) % len(options)
       option = options[index]
       sprite = option.render()
+      height = sprite.get_height()
       if option.data.name != hero.skill.name:
         sprite = replace_color(sprite, palette.WHITE, palette.GRAY)
+      x, y = get_skill_pos(sprite, i)
+
+      anim = ctx.anims[0] if ctx.anims else None
       if anim and anim.target is options:
-        old_i = (i + 1) % len(options) # i - 1 if i else i + len(options)
+        old_i = (i + 1) % len(options)
         old_x, old_y = get_skill_pos(sprite, old_i)
         new_x, new_y = get_skill_pos(sprite, i)
-        t = ease_out(anim.update())
+        t = ease_out(anim.time / anim.duration)
         if anim.done:
           ctx.anims.remove(anim)
         x = lerp(old_x, new_x, t)
@@ -239,21 +251,38 @@ class SkillContext(Context):
         if option.data.name == hero.skill.name:
           value = lerp(0x7F, 0xFF, t)
           sprite = replace_color(sprite, palette.WHITE, (value, value, value))
-      else:
-        x, y = get_skill_pos(sprite, i)
-      nodes.append((sprite, x, y))
+
+      anim = next((anim for anim in ctx.anims if anim.target == i), None)
+      if anim:
+        sprite = assets.sprites["skill"]
+        sprite = replace_color(sprite, palette.WHITE, palette.GRAY)
+        t = max(0, anim.time / anim.duration)
+        if ctx.exiting:
+          t = 1 - t
+        else:
+          t = ease_out(t)
+        if anim.done:
+          ctx.anims.remove(anim)
+        height = int(height * t)
+
+      nodes.append((sprite, x, y, height))
 
     nodes.reverse()
-    for sprite, x, y in nodes:
-      surface.blit(sprite, (x, y))
+    for sprite, x, y, height in nodes:
+      real_height = sprite.get_height()
+      sprite = pygame.transform.scale(sprite, (sprite.get_width(), height))
+      surface.blit(sprite, (x, y + real_height / 2 - sprite.get_height() / 2))
 
-    title = render_text("SKILL", assets.fonts["smallcaps"])
-    title = recolor(title, (0xFF, 0xFF, 0x00))
-    title = outline(title, (0x00, 0x00, 0x00))
-    surface.blit(title, (
-      MARGIN + Skill.PADDING_X - 4,
-      surface.get_height() - MARGIN - ctx.bar.surface.get_height() - OFFSET - sprite.get_height() - title.get_height() + 4
-    ))
+    if not next((anim for anim in ctx.anims if anim.target == 0), None):
+      title = render_text("SKILL", assets.fonts["smallcaps"])
+      title = recolor(title, (0xFF, 0xFF, 0x00))
+      title = outline(title, (0x00, 0x00, 0x00))
+      x = MARGIN + Skill.PADDING_X - 4
+      y = surface.get_height()
+      y += -MARGIN - ctx.bar.surface.get_height()
+      y += -OFFSET - assets.sprites["skill"].get_height()
+      y += -title.get_height() + 4
+      surface.blit(title, (x, y))
 
 def get_skill_text(skill):
   return skill.name + ': ' + skill.desc + " (" + str(skill.cost) + " SP)"
