@@ -84,7 +84,7 @@ class DungeonContext(Context):
     ctx.create_floor()
     ctx.key_requires_reset = {}
     ctx.skills = {
-      ctx.hero: [ShieldBash(), Blitzritter(), HelmSplitter(), Phalanx()],
+      ctx.hero: [ShieldBash(), Phalanx(), Blitzritter(), HelmSplitter()],
       ctx.ally: [Ignis(), Somnus(), DetectMana()]
     }
 

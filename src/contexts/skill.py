@@ -149,13 +149,19 @@ class SkillContext(Context):
     hero_x, hero_y = hero.cell
     cursor = (hero_x + facing_x, hero_y + facing_y)
     neighbors = []
-    for r in range(1, skill.radius + 1):
-      neighbors.extend([
-        (hero_x, hero_y - r),
-        (hero_x - r, hero_y),
-        (hero_x + r, hero_y),
-        (hero_x, hero_y + r)
-      ])
+    if skill.radius == 0:
+      neighbors = [hero.cell]
+    else:
+      for r in range(1, skill.radius + 1):
+        neighbors.extend([
+          (hero_x, hero_y - r),
+          (hero_x - r, hero_y),
+          (hero_x + r, hero_y),
+          (hero_x, hero_y + r)
+        ])
+
+    if cursor not in neighbors:
+      cursor = neighbors[0]
 
     def scale_up(cell):
       col, row = cell
@@ -179,7 +185,8 @@ class SkillContext(Context):
       else:
         alpha = 0x5f
       square = Surface((tile_size - 1, tile_size - 1), pygame.SRCALPHA)
-      pygame.draw.rect(square, (*palette.RED, alpha), square.get_rect())
+      color = palette.GREEN if neighbors[0] == hero.cell else palette.RED
+      pygame.draw.rect(square, (*color, alpha), square.get_rect())
       for cell in neighbors:
         x, y = scale_up(cell)
         surface.blit(square, (x, y))
