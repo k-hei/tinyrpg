@@ -33,13 +33,11 @@ from actors.mage import Mage
 from actors.eye import Eye
 from actors.chest import Chest
 
-from skills.shieldbash import ShieldBash
-from skills.phalanx import Phalanx
 from skills.blitzritter import Blitzritter
-from skills.helmsplitter import HelmSplitter
+from skills.shieldbash import ShieldBash
+from skills.counter import Counter
 from skills.ignis import Ignis
 from skills.somnus import Somnus
-from skills.obscura import Obscura
 from skills.detectmana import DetectMana
 
 from items.potion import Potion
@@ -84,7 +82,7 @@ class DungeonContext(Context):
     game.create_floor()
     game.key_requires_reset = {}
     game.skills = {
-      game.hero: [ShieldBash(), Phalanx(), Blitzritter()],
+      game.hero: [ShieldBash(), Counter(), Blitzritter()],
       game.ally: [Ignis(), Somnus(), DetectMana()]
     }
 
@@ -497,20 +495,28 @@ class DungeonContext(Context):
   def attack(game, actor, target, damage=None, on_connect=None, on_end=None):
     if not damage:
       damage = Actor.find_damage(actor, target)
+    def connect():
+      if on_connect:
+        on_connect()
+      real_target = actor if target.counter else target
+      real_damage = damage
+      if target.counter:
+        game.log.print(target.name.upper() + " reflected the attack!")
+        target.counter = False
+        real_target = actor
+        real_damage = Actor.find_damage(actor, actor)
+      game.flinch(
+        target=real_target,
+        damage=damage,
+        on_end=on_end
+      )
     game.anims.append([
       AttackAnim(
         duration=DungeonContext.ATTACK_DURATION,
         target=actor,
         src_cell=actor.cell,
         dest_cell=target.cell,
-        on_connect=lambda: (
-          on_connect and on_connect(),
-          game.flinch(
-            target=target,
-            damage=damage,
-            on_end=on_end
-          )
-        )
+        on_connect=connect
       )
     ])
 
@@ -573,7 +579,8 @@ class DungeonContext(Context):
       game.step(),
       game.refresh_fov()
     ))
-    camera.focus(target_cell)
+    if target_cell:
+      camera.focus(target_cell)
 
   def use_item(game, item):
     success, message = item.effect(game)

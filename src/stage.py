@@ -195,9 +195,9 @@ class Stage:
       if type(anim) is ShakeAnim:
         sprite_x += anim.update()
 
-      will_flinch = next((other for other in anim_group if type(other) is ShakeAnim and other.target is anim.target), None)
-      if type(anim) is ShakeAnim or will_flinch:
-        if anim.time <= 1:
+      flinch_anim = next((a for a in anim_group if type(a) is ShakeAnim and a.target is anim.target), None)
+      if type(anim) is ShakeAnim or flinch_anim:
+        if anim is flinch_anim and anim.time <= 1:
           sprite = None
         elif type(actor) is Knight:
           sprite = assets.sprites["knight_flinch"]

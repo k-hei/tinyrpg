@@ -11,6 +11,7 @@ class Actor:
     actor.dead = False
     actor.stun = False
     actor.asleep = False
+    actor.counter = False
     actor.idle = False
     actor.facing = (1, 0)
     actor.faction = faction
