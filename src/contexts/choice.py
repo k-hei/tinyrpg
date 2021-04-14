@@ -52,18 +52,18 @@ class ChoiceContext(Context):
     if ctx.anims or ctx.chosen:
       return False
 
-    if key == pygame.K_UP:
+    if key == pygame.K_UP or key == pygame.K_w:
       ctx.handle_move(-1)
-    elif key == pygame.K_DOWN:
+    elif key == pygame.K_DOWN or key == pygame.K_s:
       ctx.handle_move(1)
 
     if key not in key_times or key_times[key] != 1:
       return False
 
-    if key == pygame.K_RETURN:
+    if key == pygame.K_RETURN or key == pygame.K_SPACE:
       ctx.handle_choose()
 
-    if key == pygame.K_BACKSPACE:
+    if key == pygame.K_BACKSPACE or key == pygame.K_ESCAPE:
       ctx.handle_close()
 
   def handle_move(ctx, delta):

@@ -104,7 +104,11 @@ class InventoryContext(Context):
       pygame.K_LEFT: (-1, 0),
       pygame.K_RIGHT: (1, 0),
       pygame.K_UP: (0, -1),
-      pygame.K_DOWN: (0, 1)
+      pygame.K_DOWN: (0, 1),
+      pygame.K_a: (-1, 0),
+      pygame.K_d: (1, 0),
+      pygame.K_w: (0, -1),
+      pygame.K_s: (0, 1)
     }
     if key in key_deltas:
       delta = key_deltas[key]
@@ -113,10 +117,10 @@ class InventoryContext(Context):
     if key not in key_times or key_times[key] != 1:
       return False
 
-    if key == pygame.K_RETURN:
+    if key == pygame.K_RETURN or key == pygame.K_SPACE:
       ctx.handle_choose()
 
-    if key == pygame.K_BACKSPACE:
+    if key == pygame.K_BACKSPACE or key == pygame.K_ESCAPE:
       ctx.exit()
 
   def handle_move(ctx, delta):

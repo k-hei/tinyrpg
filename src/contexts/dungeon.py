@@ -21,7 +21,7 @@ from log import Log
 from camera import Camera
 from inventory import Inventory
 from statuspanel import StatusPanel
-from minimap import Minimap
+from comps.minimap import Minimap
 
 from transits.dissolve import DissolveOut
 
@@ -186,13 +186,18 @@ class DungeonContext(Context):
       pygame.K_LEFT: (-1, 0),
       pygame.K_RIGHT: (1, 0),
       pygame.K_UP: (0, -1),
-      pygame.K_DOWN: (0, 1)
+      pygame.K_DOWN: (0, 1),
+      pygame.K_a: (-1, 0),
+      pygame.K_d: (1, 0),
+      pygame.K_w: (0, -1),
+      pygame.K_s: (0, 1)
     }
 
     key_requires_reset = key in game.key_requires_reset and game.key_requires_reset[key]
     if key in key_deltas and not key_requires_reset:
       delta = key_deltas[key]
       run = pygame.K_RSHIFT in key_times and key_times[pygame.K_RSHIFT] > 0
+      run = run or pygame.K_LSHIFT in key_times and key_times[pygame.K_LSHIFT] > 0
       moved = game.handle_move(delta, run)
       if not moved:
         game.key_requires_reset[key] = True
@@ -207,13 +212,13 @@ class DungeonContext(Context):
     if game.hero.dead or game.hero.asleep:
       return False
 
-    if key == pygame.K_BACKSPACE:
+    if key == pygame.K_ESCAPE or key == pygame.K_BACKSPACE:
       return game.handle_inventory()
 
-    if key == pygame.K_SPACE:
+    if key == pygame.K_BACKSLASH or key == pygame.K_BACKQUOTE:
       return game.handle_wait()
 
-    if key == pygame.K_RETURN:
+    if key == pygame.K_RETURN or key == pygame.K_SPACE:
       if game.floor.get_tile_at(game.hero.cell) is Stage.STAIRS_UP:
         return game.handle_ascend()
       elif game.floor.get_tile_at(game.hero.cell) is Stage.STAIRS_DOWN:
@@ -508,7 +513,7 @@ class DungeonContext(Context):
         real_damage = Actor.find_damage(actor, actor)
       game.flinch(
         target=real_target,
-        damage=damage,
+        damage=real_damage,
         on_end=on_end
       )
     game.anims.append([

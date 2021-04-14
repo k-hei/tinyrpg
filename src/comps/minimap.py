@@ -76,7 +76,7 @@ class Minimap:
           else:
             color = 0x007F00
         else:
-          color = 0x007F00
+          color = 0x00FF00
       elif tile is Stage.STAIRS_DOWN:
         if cell in visible_cells:
           color = 0xFFFFFF

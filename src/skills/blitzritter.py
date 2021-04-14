@@ -38,18 +38,8 @@ class Blitzritter(Skill):
         frame_count=7
       )))
 
-    def end_bump():
-      if not target_a and not target_b:
-        return game.anims[0].append(PauseAnim(
-          duration=45,
-          on_end=lambda: (
-            game.log.print("But nothing happened..."),
-            on_end and on_end()
-          )
-        ))
-
+    def end_pause():
       atk = user.st + 1
-
       if target_a and target_b:
         return game.flinch(
           target=target_a,
@@ -60,13 +50,26 @@ class Blitzritter(Skill):
             on_end=on_end
           ))
         )
-
       target = target_a or target_b
       game.flinch(
         target=target,
         damage=atk,
         on_end=on_end
       )
+
+    def end_bump():
+      if not target_a and not target_b:
+        return game.anims[0].append(PauseAnim(
+          duration=45,
+          on_end=lambda: (
+            game.log.print("But nothing happened..."),
+            on_end and on_end()
+          )
+        ))
+      game.anims[0].append(PauseAnim(
+        duration=45,
+        on_end=end_pause
+      ))
 
     game.anims.append([AttackAnim(
       duration=ATTACK_DURATION,

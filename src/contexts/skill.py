@@ -55,13 +55,17 @@ class SkillContext(Context):
       pygame.K_LEFT: (-1, 0),
       pygame.K_RIGHT: (1, 0),
       pygame.K_UP: (0, -1),
-      pygame.K_DOWN: (0, 1)
+      pygame.K_DOWN: (0, 1),
+      pygame.K_a: (-1, 0),
+      pygame.K_d: (1, 0),
+      pygame.K_w: (0, -1),
+      pygame.K_s: (0, 1)
     }
     if key in key_deltas:
       delta = key_deltas[key]
       ctx.handle_turn(delta)
 
-    if key == pygame.K_RETURN:
+    if key == pygame.K_RETURN or key == pygame.K_SPACE:
       ctx.handle_confirm()
 
     if key == pygame.K_TAB:
