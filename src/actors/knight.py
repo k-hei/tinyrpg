@@ -1,4 +1,4 @@
-from actors.actor import Actor
+from actors import Actor
 from skills.shieldbash import ShieldBash
 
 class Knight(Actor):
@@ -7,7 +7,7 @@ class Knight(Actor):
       name="Knight",
       faction="player",
       hp=9,
-      st=4,
-      en=1,
+      st=5,
+      en=2,
       skill=ShieldBash()
     )

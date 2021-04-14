@@ -1,4 +1,4 @@
-from actors.actor import Actor
+from actors import Actor
 
 class Eye(Actor):
   def __init__(eye):
@@ -6,6 +6,6 @@ class Eye(Actor):
       name="Eyeball",
       faction="enemy",
       hp=7,
-      st=3,
-      en=1
+      st=4,
+      en=2
     )

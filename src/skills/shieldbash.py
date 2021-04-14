@@ -1,7 +1,9 @@
 from skills import Skill
+from actors import Actor
 from actors.eye import Eye
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
+import math
 
 MOVE_DURATION = 16
 ATTACK_DURATION = 12
@@ -27,7 +29,7 @@ class ShieldBash(Skill):
     target_actor = game.floor.get_actor_at(target_cell)
     game.log.print(user.name.upper() + " uses Shield Bash")
 
-    if target_actor and target_actor.faction == "enemy":
+    if target_actor:
       # nudge target actor 1 square in the given direction
       target_x, target_y = target_cell
       nudge_cell = (target_x + delta_x, target_y + delta_y)
@@ -44,8 +46,15 @@ class ShieldBash(Skill):
             src_cell=target_cell,
             dest_cell=nudge_cell
           ))
-      game.attack(user, target_actor, False, on_connect, on_end)
-      game.log.print(target_actor.name.upper() + " is reeling.")
+          game.log.print(target_actor.name.upper() + " is reeling.")
+
+      game.attack(
+        actor=user,
+        target=target_actor,
+        damage=math.ceil(Actor.find_damage(user, target_actor) / 2),
+        on_connect=on_connect,
+        on_end=on_end
+      )
     else:
       game.log.print("But nothing happened...")
       game.anims.append([

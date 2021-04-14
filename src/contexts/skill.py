@@ -52,10 +52,10 @@ class SkillContext(Context):
     hero_x, hero_y = hero.cell
     delta_x, delta_y = delta
     target_cell = (hero_x + delta_x, hero_y + delta_y)
-    if floor.is_cell_empty(target_cell, hero):
-      hero.face(delta)
-      if ctx.bar.message != get_skill_text(hero.skill):
-        ctx.select_skill()
+    # if floor.is_cell_empty(target_cell, hero):
+    hero.face(delta)
+    if ctx.bar.message != get_skill_text(hero.skill):
+      ctx.select_skill()
 
   def handle_confirm(ctx):
     game = ctx.parent
@@ -87,12 +87,12 @@ class SkillContext(Context):
       (hero_x, hero_y + 1)
     ]
 
-    if not floor.is_cell_empty(cursor, hero):
-      cursor = next((n for n in neighbors if floor.is_cell_empty(n, hero)), None)
-      if cursor:
-        cursor_x, cursor_y = cursor
-        facing = (cursor_x - hero_x, cursor_y - hero_y)
-        hero.face(facing)
+    # if not floor.is_cell_empty(cursor, hero):
+    #   cursor = next((n for n in neighbors if floor.is_cell_empty(n, hero)), None)
+    #   if cursor:
+    #     cursor_x, cursor_y = cursor
+    #     facing = (cursor_x - hero_x, cursor_y - hero_y)
+    #     hero.face(facing)
 
     def scale_up(cell):
       col, row = cell
@@ -103,8 +103,8 @@ class SkillContext(Context):
     square = Surface((tile_size - 1, tile_size - 1), pygame.SRCALPHA)
     pygame.draw.rect(square, (*palette.RED, 0x7F), square.get_rect())
     for cell in neighbors:
-      if not floor.is_cell_empty(cell, hero):
-        continue
+      # if not floor.is_cell_empty(cell, hero):
+      #   continue
       x, y = scale_up(cell)
       surface.blit(square, (x, y))
 

@@ -1,4 +1,4 @@
-from actors.actor import Actor
+from actors import Actor
 from skills.somnus import Somnus
 
 class Mage(Actor):
@@ -7,7 +7,7 @@ class Mage(Actor):
       name="Mage",
       faction="player",
       hp=7,
-      st=3,
-      en=0,
+      st=4,
+      en=1,
       skill=Somnus()
     )

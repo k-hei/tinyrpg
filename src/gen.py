@@ -4,7 +4,10 @@ from stage import Stage
 from room import Room
 from maze import Maze
 
-from actors import Knight, Mage, Eye, Chest
+from actors.knight import Knight
+from actors.mage import Mage
+from actors.eye import Eye
+from actors.chest import Chest
 from actors.mimic import Mimic
 
 from items.potion import Potion

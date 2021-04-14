@@ -23,7 +23,7 @@ class Somnus(Skill):
     target_actor = game.floor.get_actor_at(target_cell)
     game.log.print(user.name.upper() + " uses Somnus")
     def on_attack_end():
-      if target_actor and target_actor.faction == "enemy":
+      if target_actor:
         target_actor.asleep = True
         if target_actor.idle:
           target_actor.activate()

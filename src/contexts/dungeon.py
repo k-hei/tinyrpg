@@ -8,6 +8,7 @@ from assets import load as load_assets
 from text import render as render_text
 from filters import recolor, replace_color
 from stage import Stage
+from actors import Actor
 from keyboard import key_times
 from cell import is_adjacent
 
@@ -118,9 +119,11 @@ class DungeonContext(Context):
     ctx.hero.visible_cells = visible_cells
 
   def step(game, run=False):
-    enemies = [actor for actor in game.floor.actors if actor.faction == "enemy"]
-    for enemy in enemies:
-      game.step_enemy(enemy, run)
+    for actor in game.floor.actors:
+      if actor.faction == "enemy":
+        game.step_enemy(actor, run)
+      elif actor.asleep:
+        actor.hp += 1 / 25
 
   # TODO: move into enemy module (requires some kind of event/cache system)
   def step_enemy(game, enemy, run=False):
@@ -138,8 +141,10 @@ class DungeonContext(Context):
       return False
 
     if is_adjacent(enemy.cell, hero.cell) and not hero.dead:
+      game.log.print(enemy.name.upper() + " attacks")
       game.attack(enemy, hero, run)
     elif is_adjacent(enemy.cell, ally.cell) and not ally.dead:
+      game.log.print(enemy.name.upper() + " attacks")
       game.attack(enemy, ally, run)
     else:
       delta_x, delta_y = (0, 0)
@@ -223,7 +228,7 @@ class DungeonContext(Context):
   def handle_move(ctx, delta, run=False):
     hero = ctx.hero
     ally = ctx.ally
-    if hero.dead:
+    if hero.dead or hero.asleep:
       return False
     hero_x, hero_y = hero.cell
     delta_x, delta_y = delta
@@ -233,7 +238,7 @@ class DungeonContext(Context):
     target_tile = ctx.floor.get_tile_at(target_cell)
     target_actor = ctx.floor.get_actor_at(target_cell)
     if moved:
-      if not ally.dead:
+      if not ally.dead and not ally.asleep:
         last_group = ctx.anims[len(ctx.anims) - 1]
         ally_x, ally_y = ally.cell
         ctx.move(ally, (hero_x - ally_x, hero_y - ally_y), run)
@@ -273,9 +278,9 @@ class DungeonContext(Context):
         ctx.step()
         ctx.refresh_fov(moving=True)
 
-      if not hero.dead:
+      if not hero.dead and not hero.asleep:
         hero.regen()
-      if not ally.dead:
+      if not ally.dead and not ally.asleep:
         ally.regen()
 
       acted = True
@@ -301,6 +306,7 @@ class DungeonContext(Context):
         ])
         ctx.log.print("You open the lamp")
       else:
+        ctx.log.print(hero.name.upper() + " attacks")
         ctx.attack(hero, target_actor, run)
         ctx.sp = max(0, ctx.sp - 1)
         acted = True
@@ -315,7 +321,7 @@ class DungeonContext(Context):
           dest_cell=target_cell
         )
       ])
-      if target_actor and type(target_actor) is Chest:
+      if type(target_actor) is Chest:
         chest = target_actor
         item = chest.contents
         if item:
@@ -338,6 +344,19 @@ class DungeonContext(Context):
           ctx.log.print("There's nothing left to take...")
         ctx.step(run)
         ctx.refresh_fov()
+      elif target_actor and target_actor.faction == "player":
+        ctx.log.exit()
+        ctx.anims[0].append(PauseAnim(
+          duration=60,
+          on_end=lambda: (
+            target_actor.wake_up(),
+            ctx.log.print(target_actor.name.upper() + " woke up!"),
+            ctx.anims[0].append(ShakeAnim(
+              duration=SHAKE_DURATION,
+              target=target_actor,
+            ))
+          )
+        ))
       elif target_tile is Stage.DOOR:
         ctx.log.print("You open the door.")
         ctx.floor.set_tile_at(target_cell, Stage.DOOR_OPEN)
@@ -410,7 +429,7 @@ class DungeonContext(Context):
     target_tile = ctx.floor.get_tile_at(target_cell)
     target_actor = ctx.floor.get_actor_at(target_cell)
     actor.facing = delta
-    if not target_tile.solid and (target_actor is None or actor is ctx.hero and target_actor is ctx.ally):
+    if not target_tile.solid and (target_actor is None or actor is ctx.hero and target_actor is ctx.ally and not ctx.ally.asleep):
       duration = RUN_DURATION if run else MOVE_DURATION
       ctx.anims.append([
         MoveAnim(
@@ -425,10 +444,7 @@ class DungeonContext(Context):
     else:
       return False
 
-  def attack(game, actor, target, run=False, on_connect=None, on_end=None):
-    was_asleep = target.asleep
-    game.log.print(actor.name.upper() + " attacks")
-
+  def attack(game, actor, target, damage=None, run=False, on_connect=None, on_end=None):
     def remove():
       game.floor.actors.remove(target)
       if target.faction == "player":
@@ -461,7 +477,7 @@ class DungeonContext(Context):
         game.anims[0].append(PauseAnim(duration=PAUSE_DURATION, on_end=on_end))
 
     def shake():
-      damage = actor.attack(target)
+      actor.attack(target)
       verb = "suffers" if actor.faction == "enemy" else "receives"
       game.log.print(target.name.upper() + " " + verb + " " + str(damage) + " damage.")
       if on_connect: on_connect()
@@ -477,7 +493,9 @@ class DungeonContext(Context):
           on_end=awaken
         ))
 
-    damage = actor.find_damage(target)
+    was_asleep = target.asleep
+    if not damage:
+      damage = Actor.find_damage(actor, target)
     if damage >= target.hp:
       target.dead = True
 

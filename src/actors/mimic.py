@@ -1,4 +1,4 @@
-from actors.actor import Actor
+from actors import Actor
 
 class Mimic(Actor):
   def __init__(mimic):
@@ -6,8 +6,8 @@ class Mimic(Actor):
       name="Mimic",
       faction="enemy",
       hp=5,
-      st=4,
-      en=0
+      st=5,
+      en=1
     )
     mimic.idle = True
 
