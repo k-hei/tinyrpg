@@ -6,20 +6,24 @@ import pygame
 from pygame import Rect, Surface
 from config import tile_size
 from assets import load as use_assets
+from text import render as render_text
+from filters import recolor, replace_color, outline
 from anims.sine import SineAnim
 import palette
 import keyboard
 from comps.skill import Skill
 
+
 MARGIN = 8
-SPACING = 4
+OFFSET = 4
+SPACING = 10
 
 class SkillContext(Context):
   def __init__(ctx, parent, on_close=None):
     super().__init__(parent)
     ctx.on_close = on_close
     ctx.bar = Bar()
-    ctx.option = Skill(ctx.parent.hero.skill)
+    ctx.options = [Skill(data=skill) for skill in ctx.parent.skills[ctx.parent.hero]]
     ctx.cursor_anim = SineAnim(15)
     ctx.enter()
     ctx.select_skill()
@@ -44,11 +48,14 @@ class SkillContext(Context):
       delta = key_deltas[key]
       ctx.handle_turn(delta)
 
-    if key == pygame.K_ESCAPE or key == pygame.K_BACKSPACE:
-      ctx.exit()
-
     if key == pygame.K_RETURN:
       ctx.handle_confirm()
+
+    if key == pygame.K_TAB:
+      ctx.handle_select()
+
+    if key == pygame.K_ESCAPE or key == pygame.K_BACKSPACE:
+      ctx.exit()
 
   def handle_turn(ctx, delta):
     game = ctx.parent
@@ -59,6 +66,18 @@ class SkillContext(Context):
     target_cell = (hero_x + delta_x, hero_y + delta_y)
     hero.face(delta)
     if ctx.bar.message != get_skill_text(hero.skill):
+      ctx.select_skill()
+
+  def handle_select(ctx, reverse=False):
+    options = ctx.options
+    game = ctx.parent
+    hero = game.hero
+    skills = game.skills[hero]
+    skill = next((s for s in game.skills[hero] if s.name == hero.skill.name), None)
+    index = skills.index(skill)
+    next_skill = skills[(index + 1) % len(skills)]
+    hero.skill = next_skill
+    if hero.skill is not next_skill:
       ctx.select_skill()
 
   def handle_confirm(ctx):
@@ -120,10 +139,30 @@ class SkillContext(Context):
 
     ctx.bar.draw(surface)
 
-    option = ctx.option.render()
-    x = MARGIN
-    y = surface.get_height() - MARGIN - ctx.bar.surface.get_height() - SPACING - option.get_height()
-    surface.blit(option, (x, y))
+    nodes = []
+    sel_option = next((option for option in ctx.options if option.data.name == hero.skill.name), None)
+    sel_index = ctx.options.index(sel_option)
+    for i in range(len(ctx.options)):
+      index = (sel_index + i) % len(ctx.options)
+      option = ctx.options[index]
+      sprite = option.render()
+      if option.data.name != hero.skill.name:
+        sprite = replace_color(sprite, (0xFF, 0xFF, 0xFF), (0x7F, 0x7F, 0x7F))
+      x = MARGIN + i * SPACING
+      y = surface.get_height()
+      y += -MARGIN - ctx.bar.surface.get_height()
+      y += -OFFSET - sprite.get_height()
+      y += i * -SPACING
+      nodes.append((sprite, x, y))
+
+    nodes.reverse()
+    for sprite, x, y in nodes:
+      surface.blit(sprite, (x, y))
+
+    title = render_text("SKILL", assets.fonts["smallcaps"])
+    title = recolor(title, (0xFF, 0xFF, 0x00))
+    title = outline(title, (0x00, 0x00, 0x00))
+    surface.blit(title, (x + Skill.PADDING_X, y - title.get_height() + 4))
 
 def get_skill_text(skill):
   return skill.desc + " (" + str(skill.cost) + " SP)"

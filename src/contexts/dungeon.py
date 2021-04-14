@@ -33,6 +33,11 @@ from actors.mage import Mage
 from actors.eye import Eye
 from actors.chest import Chest
 
+from skills.ignis import Ignis
+from skills.somnus import Somnus
+from skills.obscura import Obscura
+from skills.shieldbash import ShieldBash
+
 from items.potion import Potion
 from items.ankh import Ankh
 
@@ -74,6 +79,10 @@ class DungeonContext(Context):
     ctx.inventory = Inventory((2, 2), [Potion()])
     ctx.create_floor()
     ctx.key_requires_reset = {}
+    ctx.skills = {
+      ctx.hero: [ShieldBash()],
+      ctx.ally: [Ignis(), Somnus(), Obscura()]
+    }
 
   def create_floor(ctx):
     floor = gen.dungeon((19, 19), len(ctx.floors) + 1)
