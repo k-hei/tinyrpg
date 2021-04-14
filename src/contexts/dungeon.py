@@ -215,7 +215,12 @@ class DungeonContext(Context):
       return ctx.handle_wait()
 
     if key == pygame.K_RETURN:
-      return ctx.handle_skill()
+      if ctx.floor.get_tile_at(ctx.hero.cell) is Stage.STAIRS_UP:
+        return ctx.handle_ascend()
+      elif ctx.floor.get_tile_at(ctx.hero.cell) is Stage.STAIRS_DOWN:
+        return ctx.handle_descend()
+      else:
+        return ctx.handle_skill()
 
     if key == pygame.K_COMMA and key_times[pygame.K_RSHIFT]:
       return ctx.handle_ascend()
