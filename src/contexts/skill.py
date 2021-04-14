@@ -32,6 +32,7 @@ class SkillContext(Context):
     ctx.cursor = None
     ctx.cursor_anim = SineAnim(60)
     ctx.anims = []
+    ctx.exiting = False
     ctx.enter()
     ctx.select_skill()
 
@@ -103,10 +104,14 @@ class SkillContext(Context):
 
   def enter(ctx):
     ctx.bar.enter()
+    index = 0
+    for option in ctx.options:
+
+      index += 1
 
   def exit(ctx, skill=None):
+    ctx.exiting = True
     if skill:
-      print("selected " + skill.name)
       ctx.bar.exit()
       ctx.anims.append(FlickerAnim(
         duration=30,
@@ -114,7 +119,6 @@ class SkillContext(Context):
         on_end=lambda: ctx.close(skill)
       ))
     else:
-      print("closing without selecting")
       ctx.bar.exit(on_end=ctx.close)
 
   def draw(ctx, surface):
@@ -144,11 +148,21 @@ class SkillContext(Context):
       y = row * tile_size - round(camera_y) + 1
       return (x, y)
 
-    square = Surface((tile_size - 1, tile_size - 1), pygame.SRCALPHA)
-    pygame.draw.rect(square, (*palette.RED, 0x7F), square.get_rect())
-    for cell in neighbors:
-      x, y = scale_up(cell)
-      surface.blit(square, (x, y))
+    anim = ctx.anims[0] if ctx.anims else None
+    cursor_anim = ctx.cursor_anim
+    t = cursor_anim.update()
+    if not ctx.exiting and not (anim and anim.target == "cursor"):
+      if cursor_anim.time % 60 >= 40:
+        alpha = 0x7f
+      elif cursor_anim.time % 60 >= 20:
+        alpha = 0x6f
+      else:
+        alpha = 0x5f
+      square = Surface((tile_size - 1, tile_size - 1), pygame.SRCALPHA)
+      pygame.draw.rect(square, (*palette.RED, alpha), square.get_rect())
+      for cell in neighbors:
+        x, y = scale_up(cell)
+        surface.blit(square, (x, y))
 
     if ctx.cursor:
       cursor_x, cursor_y, cursor_scale = ctx.cursor
@@ -156,32 +170,36 @@ class SkillContext(Context):
       cursor_x, cursor_y = scale_up(hero.cell)
       cursor_scale = 0.5
 
-    t = min(2, math.floor((ctx.cursor_anim.update() + 1) / 2 * 3))
-    cursor_sprite = assets.sprites["cursor_cell"]
-    if t == 1:
-      cursor_sprite = assets.sprites["cursor_cell1"]
-    elif t == 2:
-      cursor_sprite = assets.sprites["cursor_cell2"]
-
-    anim = ctx.anims[0] if ctx.anims else None
-
-    new_cursor_x, new_cursor_y = scale_up(cursor)
-    cursor_x += (new_cursor_x - cursor_x) / 4
-    cursor_y += (new_cursor_y - cursor_y) / 4
-    cursor_scale += (1 - cursor_scale) / 4
-    cursor_sprite = pygame.transform.scale(cursor_sprite, (
-      int(cursor_sprite.get_width() * cursor_scale),
-      int(cursor_sprite.get_height() * cursor_scale)
-    ))
-
     if anim and anim.target == "cursor":
       visible = anim.update()
-      if not visible:
+      if visible:
+        cursor_sprite = assets.sprites["cursor_cell1"]
+      else:
         cursor_sprite = None
       if anim.done:
         ctx.anims.remove(anim)
+    else:
+      t = min(2, math.floor((t + 1) / 2 * 3))
+      cursor_sprite = assets.sprites["cursor_cell"]
+      if t == 1:
+        cursor_sprite = assets.sprites["cursor_cell1"]
+      elif t == 2:
+        cursor_sprite = assets.sprites["cursor_cell2"]
+
+    new_cursor_x, new_cursor_y = scale_up(cursor)
+    if ctx.exiting:
+      new_cursor_x, new_cursor_y = scale_up(hero.cell)
+      cursor_scale += -cursor_scale / 4
+    else:
+      cursor_scale += (1 - cursor_scale) / 4
+    cursor_x += (new_cursor_x - cursor_x) / 4
+    cursor_y += (new_cursor_y - cursor_y) / 4
 
     if cursor_sprite:
+      cursor_sprite = pygame.transform.scale(cursor_sprite, (
+        int(cursor_sprite.get_width() * cursor_scale),
+        int(cursor_sprite.get_height() * cursor_scale)
+      ))
       surface.blit(cursor_sprite, (
         cursor_x + tile_size // 2 - cursor_sprite.get_width() // 2 - 1,
         cursor_y + tile_size // 2 - cursor_sprite.get_height() // 2 - 1
