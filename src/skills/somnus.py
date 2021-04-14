@@ -1,5 +1,6 @@
 from skills import Skill
 from anims.attack import AttackAnim
+from anims.pause import PauseAnim
 
 ATTACK_DURATION = 12
 
@@ -27,10 +28,19 @@ class Somnus(Skill):
         if target_actor.idle:
           target_actor.activate()
         game.log.print(target_actor.name.upper() + " fell asleep!")
+        if on_end:
+          on_end()
       else:
-        game.log.print("But nothing happened...")
-      if on_end:
-        on_end()
+        game.anims[0].append(PauseAnim(
+          duration=30,
+          on_end=lambda: (
+            game.log.print("But nothing happened..."),
+            game.anims[0].append(PauseAnim(
+              duration=45,
+              on_end=on_end
+            ))
+          )
+        ))
     game.anims.append([
       AttackAnim(
         duration=ATTACK_DURATION,

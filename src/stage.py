@@ -256,8 +256,8 @@ class Stage:
     stage.facings[actor] = (facing_x, facing_y)
     if sprite:
       flipped = facing_x == -1
-      if type(actor) is Mimic and not actor.idle:
-        flipped = not flipped
+      # if type(actor) is Mimic and not actor.idle:
+      #   flipped = not flipped
       sprite = pygame.transform.flip(sprite, flipped, False)
       x = sprite_x - round(camera_x)
       y = sprite_y - round(camera_y)

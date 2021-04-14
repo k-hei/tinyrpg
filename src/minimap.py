@@ -5,6 +5,7 @@ from actors.knight import Knight
 from actors.mage import Mage
 from actors.mimic import Mimic
 from actors.chest import Chest
+import palette
 
 MARGIN_X = 8
 MARGIN_Y = 6
@@ -13,6 +14,7 @@ SCALE = 2
 class Minimap:
   def __init__(minimap, size):
     minimap.size = size
+    minimap.time = 0
 
   def render(minimap, ctx):
     sprite_width, sprite_height = minimap.size
@@ -24,6 +26,7 @@ class Minimap:
     temp_surface.set_colorkey(0x123456)
     temp_surface.fill(0x123456)
     pixels = PixelArray(temp_surface)
+    minimap.time += 1
 
     hero = ctx.hero
     hero_x, hero_y = hero.cell
@@ -35,7 +38,7 @@ class Minimap:
       actor = ctx.floor.get_actor_at(cell)
       color = None
       if type(actor) is Knight or type(actor) is Mage and cell in visible_cells:
-        color = 0x7F7FFF
+        color = 0x337FFF #palette.BLUE
       elif type(actor) is Mimic and cell in visible_cells:
         if actor.idle:
           color = 0xFFFF00
@@ -58,24 +61,27 @@ class Minimap:
           color = 0x7F7F7F
       elif tile is Stage.DOOR:
         if cell in visible_cells:
-          color = 0x00FFFF
+          color = 0x7F7F7F
         else:
-          color = 0x007F7F
+          color = 0x333333
       elif tile is Stage.DOOR_OPEN:
         if cell in visible_cells:
-          color = 0x007F7F
+          color = 0x333333
         else:
-          color = 0x007F7F
+          color = 0x333333
       elif tile is Stage.STAIRS_UP:
         if cell in visible_cells:
-          color = 0x00FF00
+          if minimap.time % 60 >= 30:
+            color = 0x00FF00
+          else:
+            color = 0x007F00
         else:
           color = 0x007F00
       elif tile is Stage.STAIRS_DOWN:
         if cell in visible_cells:
-          color = 0x00FF00
+          color = 0xFFFFFF
         else:
-          color = 0x007F00
+          color = 0x7F7F7F
       else:
         if cell in visible_cells:
           color = 0x333333

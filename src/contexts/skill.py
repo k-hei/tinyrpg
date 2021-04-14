@@ -8,7 +8,6 @@ from config import tile_size
 from assets import load as use_assets
 from anims.sine import SineAnim
 import palette
-
 import keyboard
 
 class SkillContext(Context):
@@ -24,7 +23,7 @@ class SkillContext(Context):
     game = ctx.parent
     hero = game.hero
     skill = hero.skill
-    ctx.bar.print(skill.name + ": " + skill.desc)
+    ctx.bar.print(get_skill_text(skill))
 
   def handle_keydown(ctx, key):
     if keyboard.get_pressed(key) != 1:
@@ -40,8 +39,11 @@ class SkillContext(Context):
       delta = key_deltas[key]
       ctx.handle_turn(delta)
 
-    if key == pygame.K_RETURN:
+    if key == pygame.K_ESCAPE or key == pygame.K_BACKSPACE:
       ctx.exit()
+
+    if key == pygame.K_RETURN:
+      ctx.handle_confirm()
 
   def handle_turn(ctx, delta):
     game = ctx.parent
@@ -52,12 +54,22 @@ class SkillContext(Context):
     target_cell = (hero_x + delta_x, hero_y + delta_y)
     if floor.is_cell_empty(target_cell, hero):
       hero.face(delta)
+      if ctx.bar.message != get_skill_text(hero.skill):
+        ctx.select_skill()
+
+  def handle_confirm(ctx):
+    game = ctx.parent
+    hero = game.hero
+    if hero.skill.cost > game.sp:
+      ctx.bar.print("You don't have enough SP!")
+    else:
+      ctx.exit(hero.skill)
 
   def enter(ctx):
     ctx.bar.enter()
 
-  def exit(ctx):
-    ctx.bar.exit(on_end=ctx.close)
+  def exit(ctx, skill=None):
+    ctx.bar.exit(on_end=lambda: ctx.close(skill))
 
   def draw(ctx, surface):
     assets = use_assets()
@@ -107,3 +119,6 @@ class SkillContext(Context):
       surface.blit(cursor_sprite, (cursor_x - 1 - t, cursor_y - 1 - t))
 
     ctx.bar.draw(surface)
+
+def get_skill_text(skill):
+  return skill.desc + " (" + str(skill.cost) + " SP)"

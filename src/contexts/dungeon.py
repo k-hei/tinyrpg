@@ -386,11 +386,14 @@ class DungeonContext(Context):
     )
 
   def handle_skill(ctx):
-    # game.hero.use_skill(game)
     if ctx.child is None:
       ctx.log.exit()
-      ctx.hud.exit()
-      ctx.child = SkillContext(parent=ctx, on_close=ctx.hud.enter)
+      ctx.child = SkillContext(
+        parent=ctx,
+        on_close=lambda skill: (
+          skill and ctx.hero.use_skill(ctx)
+        )
+      )
 
   def handle_inventory(ctx):
     if ctx.child is None:

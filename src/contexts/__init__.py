@@ -14,10 +14,10 @@ class Context:
       return ctx.child.handle_keyup(key)
     return False
 
-  def close(ctx):
+  def close(ctx, data=None):
     ctx.parent.child = None
     if ctx.on_close:
-      ctx.on_close()
+      ctx.on_close(data)
 
   def draw(ctx, surface):
     if ctx.child:
