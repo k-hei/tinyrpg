@@ -138,8 +138,12 @@ class DungeonContext(Context):
       elif actor.asleep:
         actor.hp += min(actor.hp_max, 1 / 25)
 
-  # TODO: move into enemy module (requires some kind of event/cache system)
+  # TODO: move into enemy module
   def step_enemy(game, enemy, run=False):
+    if enemy.stun:
+      enemy.stun = False
+      return False
+
     if enemy.dead or enemy.asleep or enemy.idle:
       return False
 
@@ -495,15 +499,30 @@ class DungeonContext(Context):
     else:
       return False
 
-  def attack(game, actor, target, damage=None, run=False, on_connect=None, on_end=None):
-    def end():
-      # game.camera.blur()
-      if on_end:
-        on_end()
+  def attack(game, actor, target, damage=None, on_connect=None, on_end=None):
+    was_asleep = target.asleep
+    if not damage:
+      damage = Actor.find_damage(actor, target)
+    game.anims.append([
+      AttackAnim(
+        duration=DungeonContext.ATTACK_DURATION,
+        target=actor,
+        src_cell=actor.cell,
+        dest_cell=target.cell,
+        on_connect=lambda: (
+          on_connect and on_connect(),
+          game.flinch(target=target, damage=damage, on_end=on_end)
+        )
+      )
+    ])
+
+  def flinch(game, target, damage, on_end=None):
+    was_asleep = target.asleep
+    end = lambda: on_end and on_end()
 
     def remove():
       game.floor.actors.remove(target)
-      if target.faction == "player":
+      if target is game.hero:
         game.anims[0].append(PauseAnim(
           duration=DungeonContext.PAUSE_DEATH_DURATION,
           on_end=lambda: (game.handle_swap(), end())
@@ -513,7 +532,7 @@ class DungeonContext(Context):
 
     def awaken():
       game.log.print(target.name.upper() + " woke up!")
-      game.anims[0].append(PauseAnim(duration=DungeonContext.PAUSE_DURATION, on_end=end))
+      game.anims[0].append(PauseAnim(duration=DungeonContext.PAUSE_DURATION))
 
     def respond():
       if target.dead:
@@ -526,45 +545,26 @@ class DungeonContext(Context):
           target=target,
           on_end=remove
         ))
-      elif is_adjacent(actor.cell, target.cell):
-        game.anims[0].append(PauseAnim(duration=DungeonContext.PAUSE_DURATION, on_end=end))
+      elif is_adjacent(target.cell, target.cell):
+        # pause before performing step
+        return game.anims[0].append(PauseAnim(duration=DungeonContext.PAUSE_DURATION, on_end=end))
+      else:
+        end()
 
-    def shake():
-      actor.attack(target, damage)
-      verb = "suffers" if actor.faction == "enemy" else "receives"
-      game.log.print(target.name.upper() + " " + verb + " " + str(damage) + " damage.")
-      if on_connect: on_connect()
-      game.anims[0].append(ShakeAnim(
-        duration=DungeonContext.SHAKE_DURATION,
+    target.damage(damage)
+    verb = "receives" if target.faction == "enemy" else "suffers"
+    game.log.print(target.name.upper() + " " + verb + " " + str(damage) + " damage.")
+    game.anims[0].append(ShakeAnim(
+      duration=DungeonContext.SHAKE_DURATION,
+      target=target,
+      on_end=respond
+    ))
+    if was_asleep and not target.asleep:
+      game.anims[0].append(AwakenAnim(
+        duration=DungeonContext.AWAKEN_DURATION,
         target=target,
-        on_end=respond
+        on_end=awaken
       ))
-      if was_asleep and not target.asleep:
-        game.anims[0].append(AwakenAnim(
-          duration=DungeonContext.AWAKEN_DURATION,
-          target=target,
-          on_end=awaken
-        ))
-
-    was_asleep = target.asleep
-    if not damage:
-      damage = Actor.find_damage(actor, target)
-    if damage >= target.hp:
-      target.dead = True
-
-    # game.camera.focus(target.cell)
-    game.anims.append([
-      AttackAnim(
-        duration=DungeonContext.ATTACK_DURATION,
-        target=actor,
-        src_cell=actor.cell,
-        dest_cell=target.cell,
-        on_connect=shake
-      )
-    ])
-
-  def flinch(game, actor):
-
 
   def use_item(game, item):
     success, message = item.effect(game)

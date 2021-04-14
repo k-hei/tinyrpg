@@ -37,6 +37,7 @@ class ShieldBash(Skill):
       def on_connect():
         if will_nudge:
           target_actor.cell = nudge_cell
+          target_actor.stun = True
           game.anims[0].append(MoveAnim(
             duration=MOVE_DURATION,
             target=target_actor,
