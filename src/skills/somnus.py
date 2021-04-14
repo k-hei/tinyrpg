@@ -1,8 +1,7 @@
 from skills import Skill
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
-
-ATTACK_DURATION = 12
+from config import ATTACK_DURATION
 
 class Somnus(Skill):
   def __init__(skill):
@@ -16,8 +15,6 @@ class Somnus(Skill):
     )
 
   def effect(skill, game, on_end=None):
-    if game.sp >= skill.cost:
-      game.sp = max(0, game.sp - skill.cost)
     user = game.hero
     source_cell = user.cell
     hero_x, hero_y = source_cell

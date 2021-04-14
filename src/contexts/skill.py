@@ -123,8 +123,8 @@ class SkillContext(Context):
         duration=6,
         target=index,
         on_end=(lambda: (
-          ctx.close(),
-          ctx.parent.camera.blur()
+          ctx.parent.camera.blur(),
+          ctx.close()
         )) if is_last else None
       ))
       index += 1
@@ -135,8 +135,8 @@ class SkillContext(Context):
         duration=30,
         target="cursor",
         on_end=lambda: (
-          ctx.close(skill),
-          ctx.parent.camera.blur()
+          ctx.parent.camera.blur(),
+          ctx.close(skill)
         )
       ))
     else:
@@ -167,6 +167,9 @@ class SkillContext(Context):
           cursor_x, cursor_y = cursor
           cursor = (cursor_x + facing_x, cursor_y + facing_y)
           neighbors.append(cursor)
+    elif skill.radius > 1:
+      for r in range(1, skill.radius + 1):
+        neighbors.append((hero_x + facing_x * r, hero_y + facing_y * r))
     else:
       for r in range(1, skill.radius + 1):
         neighbors.extend([
@@ -240,8 +243,8 @@ class SkillContext(Context):
       cursor_scale += -cursor_scale / 4
     else:
       cursor_scale += (1 - cursor_scale) / 4
-    cursor_col += (new_cursor_col - cursor_col) / 2
-    cursor_row += (new_cursor_row - cursor_row) / 2
+    cursor_col += (new_cursor_col - cursor_col) / 4
+    cursor_row += (new_cursor_row - cursor_row) / 4
     cursor_x, cursor_y = scale_up((cursor_col, cursor_row))
 
     if cursor_sprite:

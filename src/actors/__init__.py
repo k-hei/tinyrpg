@@ -43,9 +43,12 @@ class Actor:
     return damage
 
   def use_skill(actor, game):
-    if actor.skill is None:
+    skill = actor.skill
+    if skill is None:
       return False
-    actor.skill.effect(game, on_end=lambda: (
+    if game.sp >= skill.cost:
+      game.sp -= skill.cost
+    skill.effect(game, on_end=lambda: (
       game.step(),
       game.refresh_fov()
     ))

@@ -16,6 +16,4 @@ class Obscura(Skill):
     )
 
   def effect(skill, game, on_end=None):
-    if game.sp >= skill.cost:
-      game.sp -= skill.cost
     game.log.print("But nothing happened...")

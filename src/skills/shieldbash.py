@@ -1,12 +1,10 @@
+import math
 from skills import Skill
 from actors import Actor
 from actors.eye import Eye
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
-import math
-
-MOVE_DURATION = 16
-ATTACK_DURATION = 12
+from config import ATTACK_DURATION, MOVE_DURATION
 
 class ShieldBash(Skill):
   def __init__(skill):
@@ -21,9 +19,6 @@ class ShieldBash(Skill):
 
   # TODO: move into separate skill
   def effect(skill, game, on_end=None):
-    if game.sp >= skill.cost:
-      game.sp -= skill.cost
-
     user = game.hero
     source_cell = user.cell
     hero_x, hero_y = source_cell
