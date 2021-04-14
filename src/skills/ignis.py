@@ -9,9 +9,9 @@ class Ignis(Skill):
     super().__init__(
       name="Ignis",
       kind="spell",
-      desc="Launch flame with burn chance",
+      desc="Burns target with flame",
       cost=3,
-      radius=1
+      radius=2
     )
 
   def effect(skill, game, on_end=None):

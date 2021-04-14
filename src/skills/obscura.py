@@ -11,7 +11,7 @@ class Obscura(Skill):
       kind="spell",
       desc="Blinds target with darkness",
       cost=8,
-      radius=2
+      radius=1
     )
 
   def effect(skill, game, on_end=None):

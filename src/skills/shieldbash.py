@@ -13,7 +13,7 @@ class ShieldBash(Skill):
     super().__init__(
       name="Shield Bash",
       kind="shield",
-      desc="Pushes target one square",
+      desc="Pushes target back",
       cost=2,
       radius=1,
     )
