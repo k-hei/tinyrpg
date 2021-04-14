@@ -86,7 +86,7 @@ class InventoryContext(Context):
     if item is None:
       ctx.bar.print("Your pack is currently empty.")
     else:
-      ctx.bar.print(item.name + ": " + item.description)
+      ctx.bar.print(item.name + ": " + item.desc)
 
   def contains(ctx, cell):
     cols, rows = ctx.grid_size

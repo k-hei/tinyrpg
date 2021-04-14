@@ -259,21 +259,24 @@ class DungeonContext(Context):
         floor = ctx.floor
         room_actors = [floor.get_actor_at(cell) for cell in room.get_cells() if floor.get_actor_at(cell)]
         enemies = [actor for actor in room_actors if actor.faction == "enemy"]
-        for enemy in enemies:
-          if enemy.asleep and random.randint(1, 10) == 1:
-            enemy.asleep = False
-            is_waking_up = True
-            ctx.anims.append([
-              AwakenAnim(
-                duration=AWAKEN_DURATION,
-                target=enemy,
-                on_end=lambda: (
-                  ctx.log.print(enemy.name.upper() + " woke up!"),
-                  ctx.anims[0].append(PauseAnim(duration=PAUSE_DURATION)),
-                )
+        enemy = next((e for e in enemies if e.asleep and random.randint(1, 10) == 1), None)
+        if enemy:
+          enemy.asleep = False
+          is_waking_up = True
+          ctx.camera.focus(enemy.cell)
+          ctx.anims.append([
+            AwakenAnim(
+              duration=AWAKEN_DURATION,
+              target=enemy,
+              on_end=lambda: (
+                ctx.log.print(enemy.name.upper() + " woke up!"),
+                ctx.anims[0].append(PauseAnim(
+                  duration=PAUSE_DURATION,
+                  on_end=ctx.camera.blur
+                ))
               )
-            ])
-            break
+            )
+          ])
 
       if not is_waking_up:
         ctx.step()
@@ -493,22 +496,24 @@ class DungeonContext(Context):
       return False
 
   def attack(game, actor, target, damage=None, run=False, on_connect=None, on_end=None):
+    def end():
+      # game.camera.blur()
+      if on_end:
+        on_end()
+
     def remove():
       game.floor.actors.remove(target)
       if target.faction == "player":
         game.anims[0].append(PauseAnim(
           duration=PAUSE_DEATH_DURATION,
-          on_end=lambda: (
-            game.handle_swap(),
-            on_end and on_end()
-          )
+          on_end=lambda: (game.handle_swap(), end())
         ))
       else:
-        if on_end: on_end()
+        end()
 
     def awaken():
       game.log.print(target.name.upper() + " woke up!")
-      game.anims[0].append(PauseAnim(duration=PAUSE_DURATION, on_end=on_end))
+      game.anims[0].append(PauseAnim(duration=PAUSE_DURATION, on_end=end))
 
     def respond():
       if target.dead:
@@ -522,7 +527,7 @@ class DungeonContext(Context):
           on_end=remove
         ))
       elif is_adjacent(actor.cell, target.cell):
-        game.anims[0].append(PauseAnim(duration=PAUSE_DURATION, on_end=on_end))
+        game.anims[0].append(PauseAnim(duration=PAUSE_DURATION, on_end=end))
 
     def shake():
       actor.attack(target, damage)
@@ -547,6 +552,7 @@ class DungeonContext(Context):
     if damage >= target.hp:
       target.dead = True
 
+    # game.camera.focus(target.cell)
     game.anims.append([
       AttackAnim(
         duration=ATTACK_DURATION,
