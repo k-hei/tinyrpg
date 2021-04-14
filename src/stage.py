@@ -149,6 +149,8 @@ class Stage:
     sprite = None
     if type(actor) is Knight:
       sprite = assets.sprites["knight"]
+      if actor.asleep:
+        sprite = replace_color(sprite, palette.BLUE, palette.PURPLE)
     elif type(actor) is Mage:
       sprite = assets.sprites["mage"]
     elif type(actor) is Eye:

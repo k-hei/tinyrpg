@@ -201,10 +201,13 @@ class StatusPanel:
     assets = use_assets()
     font = assets.fonts["smallcaps"]
     surface = assets.sprites["bar"].copy()
+    width = math.ceil(BAR_WIDTH * val_cur / val_max)
+    if width == BAR_WIDTH and val_cur != val_max:
+      width -= 1
     pygame.draw.rect(surface, palette.WHITE, Rect(
       BAR_PADDING_X,
       BAR_PADDING_Y,
-      math.ceil(BAR_WIDTH * val_cur / val_max),
+      width,
       BAR_HEIGHT
     ))
     return surface

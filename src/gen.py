@@ -230,7 +230,7 @@ def dungeon(size, floor=1):
     for i in range(elems):
       cell = random.choice(cells)
       cells.remove(cell)
-      kind = random.choices(("Item", "Mimic", "Eye"), (2, 1, 2))[0]
+      kind = random.choice(("Item", "Eye"))
       if kind == "Item":
         item = gen_item()
         stage.spawn_actor(Chest(item), cell)
@@ -239,9 +239,6 @@ def dungeon(size, floor=1):
         stage.spawn_actor(enemy, cell)
         if random.randint(1, 3) == 1:
           enemy.asleep = True
-      elif kind == "Mimic":
-        enemy = Mimic()
-        stage.spawn_actor(enemy, cell)
 
   for room in secret_rooms:
     kind = random.choice(("Treasure", "MonsterDen"))
@@ -252,7 +249,7 @@ def dungeon(size, floor=1):
       if not is_floor or not is_empty or is_beside_door:
         continue
       if kind == "Treasure" and random.randint(1, 2) == 1:
-        if random.randint(1, 5) == 1:
+        if random.randint(1, 10) == 1:
           enemy = Mimic()
           stage.spawn_actor(enemy, cell)
         else:

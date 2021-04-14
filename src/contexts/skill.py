@@ -9,12 +9,17 @@ from assets import load as use_assets
 from anims.sine import SineAnim
 import palette
 import keyboard
+from comps.skill import Skill
+
+MARGIN = 8
+SPACING = 4
 
 class SkillContext(Context):
   def __init__(ctx, parent, on_close=None):
     super().__init__(parent)
     ctx.on_close = on_close
     ctx.bar = Bar()
+    ctx.option = Skill(ctx.parent.hero.skill)
     ctx.cursor_anim = SineAnim(15)
     ctx.enter()
     ctx.select_skill()
@@ -52,7 +57,6 @@ class SkillContext(Context):
     hero_x, hero_y = hero.cell
     delta_x, delta_y = delta
     target_cell = (hero_x + delta_x, hero_y + delta_y)
-    # if floor.is_cell_empty(target_cell, hero):
     hero.face(delta)
     if ctx.bar.message != get_skill_text(hero.skill):
       ctx.select_skill()
@@ -73,26 +77,24 @@ class SkillContext(Context):
 
   def draw(ctx, surface):
     assets = use_assets()
-    game = ctx.parent # may not always be true
+    game = ctx.parent
     hero = game.hero
     floor = game.floor
-    camera_x, camera_y = game.camera.pos
+    skill = hero.skill
+    camera = game.camera
+
+    camera_x, camera_y = camera.pos
     facing_x, facing_y = hero.facing
     hero_x, hero_y = hero.cell
     cursor = (hero_x + facing_x, hero_y + facing_y)
-    neighbors = [
-      (hero_x, hero_y - 1),
-      (hero_x - 1, hero_y),
-      (hero_x + 1, hero_y),
-      (hero_x, hero_y + 1)
-    ]
-
-    # if not floor.is_cell_empty(cursor, hero):
-    #   cursor = next((n for n in neighbors if floor.is_cell_empty(n, hero)), None)
-    #   if cursor:
-    #     cursor_x, cursor_y = cursor
-    #     facing = (cursor_x - hero_x, cursor_y - hero_y)
-    #     hero.face(facing)
+    neighbors = []
+    for r in range(1, skill.radius + 1):
+      neighbors.extend([
+        (hero_x, hero_y - r),
+        (hero_x - r, hero_y),
+        (hero_x + r, hero_y),
+        (hero_x, hero_y + r)
+      ])
 
     def scale_up(cell):
       col, row = cell
@@ -103,8 +105,6 @@ class SkillContext(Context):
     square = Surface((tile_size - 1, tile_size - 1), pygame.SRCALPHA)
     pygame.draw.rect(square, (*palette.RED, 0x7F), square.get_rect())
     for cell in neighbors:
-      # if not floor.is_cell_empty(cell, hero):
-      #   continue
       x, y = scale_up(cell)
       surface.blit(square, (x, y))
 
@@ -119,6 +119,11 @@ class SkillContext(Context):
       surface.blit(cursor_sprite, (cursor_x - 1 - t, cursor_y - 1 - t))
 
     ctx.bar.draw(surface)
+
+    option = ctx.option.render()
+    x = MARGIN
+    y = surface.get_height() - MARGIN - ctx.bar.surface.get_height() - SPACING - option.get_height()
+    surface.blit(option, (x, y))
 
 def get_skill_text(skill):
   return skill.desc + " (" + str(skill.cost) + " SP)"

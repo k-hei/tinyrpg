@@ -12,8 +12,10 @@ class ShieldBash(Skill):
   def __init__(skill):
     super().__init__(
       name="Shield Bash",
-      desc="Pushes an enemy one square",
-      cost=2
+      kind="shield",
+      desc="Pushes target one square",
+      cost=2,
+      radius=1,
     )
 
   # TODO: move into separate skill

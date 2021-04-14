@@ -8,8 +8,10 @@ class Somnus(Skill):
   def __init__(skill):
     super().__init__(
       name="Somnus",
-      desc="Puts an enemy to sleep",
-      cost=4
+      kind="spell",
+      desc="Puts target to sleep",
+      cost=4,
+      radius=1
     )
 
   def effect(skill, game, on_end=None):
