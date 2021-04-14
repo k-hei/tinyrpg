@@ -116,6 +116,7 @@ class SkillContext(Context):
 
   def exit(ctx, skill=None):
     ctx.exiting = True
+    ctx.parent.camera.blur()
     index = 0
     for option in ctx.options:
       is_last = skill is None and index == len(ctx.options) - 1
@@ -151,6 +152,16 @@ class SkillContext(Context):
     neighbors = []
     if skill.radius == 0:
       neighbors = [hero.cell]
+    elif skill.radius == math.inf:
+      neighbors.append(cursor)
+      is_blocked = False
+      while not is_blocked:
+        if floor.get_tile_at(cursor).solid or floor.get_actor_at(cursor):
+          is_blocked = True
+        else:
+          cursor_x, cursor_y = cursor
+          cursor = (cursor_x + facing_x, cursor_y + facing_y)
+          neighbors.append(cursor)
     else:
       for r in range(1, skill.radius + 1):
         neighbors.extend([
@@ -162,6 +173,7 @@ class SkillContext(Context):
 
     if cursor not in neighbors:
       cursor = neighbors[0]
+    camera.focus(cursor)
 
     def scale_up(cell):
       col, row = cell
@@ -192,9 +204,9 @@ class SkillContext(Context):
         surface.blit(square, (x, y))
 
     if ctx.cursor:
-      cursor_x, cursor_y, cursor_scale = ctx.cursor
+      cursor_col, cursor_row, cursor_scale = ctx.cursor
     else:
-      cursor_x, cursor_y = scale_up(hero.cell)
+      cursor_col, cursor_row = hero.cell
       cursor_scale = 0.5
 
     if anim and anim.target == "cursor":
@@ -212,14 +224,15 @@ class SkillContext(Context):
       elif t == 2:
         cursor_sprite = assets.sprites["cursor_cell2"]
 
-    new_cursor_x, new_cursor_y = scale_up(cursor)
+    new_cursor_col, new_cursor_row = cursor
     if ctx.exiting and not ctx.confirmed:
-      new_cursor_x, new_cursor_y = scale_up(hero.cell)
+      new_cursor_col, new_cursor_row = hero.cell
       cursor_scale += -cursor_scale / 4
     else:
       cursor_scale += (1 - cursor_scale) / 4
-    cursor_x += (new_cursor_x - cursor_x) / 4
-    cursor_y += (new_cursor_y - cursor_y) / 4
+    cursor_col += (new_cursor_col - cursor_col) / 2
+    cursor_row += (new_cursor_row - cursor_row) / 2
+    cursor_x, cursor_y = scale_up((cursor_col, cursor_row))
 
     if cursor_sprite:
       cursor_sprite = pygame.transform.scale(cursor_sprite, (
@@ -230,7 +243,7 @@ class SkillContext(Context):
         cursor_x + tile_size // 2 - cursor_sprite.get_width() // 2 - 1,
         cursor_y + tile_size // 2 - cursor_sprite.get_height() // 2 - 1
       ))
-    ctx.cursor = (cursor_x, cursor_y, cursor_scale)
+    ctx.cursor = (cursor_col, cursor_row, cursor_scale)
 
     ctx.bar.draw(surface)
 

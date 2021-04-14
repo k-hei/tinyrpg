@@ -8,9 +8,16 @@ class Camera:
   def __init__(camera, size):
     camera.size = size
     camera.pos = None
+    camera.flag = None
 
   def reset(camera):
     camera.pos = None
+
+  def focus(camera, cell):
+    camera.flag = cell
+
+  def blur(camera):
+    camera.flag = None
 
   def update(camera, game):
     view_width, view_height = camera.size
@@ -23,7 +30,10 @@ class Camera:
       anims = game.anims[0]
 
     CAMERA_SPEED = 4
-    if game.room:
+    if camera.flag:
+      focus_x, focus_y = camera.flag
+      CAMERA_SPEED = 16
+    elif game.room:
       focus_x, focus_y = game.room.get_center()
       CAMERA_SPEED = 8
 
