@@ -4,15 +4,15 @@ from anims.pause import PauseAnim
 
 ATTACK_DURATION = 12
 
-class Obscura(Skill):
+class DetectMana(Skill):
   def __init__(skill):
     super().__init__(
-      name="Obscura",
-      kind="spell",
-      element="dark",
-      desc="Blinds target with darkness",
-      cost=6,
-      radius=1
+      name="Detect Mana",
+      kind="support",
+      element=None,
+      desc="Reveals hidden passages",
+      cost=1,
+      radius=0
     )
 
   def effect(skill, game, on_end=None):

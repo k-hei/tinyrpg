@@ -33,10 +33,14 @@ from actors.mage import Mage
 from actors.eye import Eye
 from actors.chest import Chest
 
+from skills.shieldbash import ShieldBash
+from skills.phalanx import Phalanx
+from skills.blitzritter import Blitzritter
+from skills.helmsplitter import HelmSplitter
 from skills.ignis import Ignis
 from skills.somnus import Somnus
 from skills.obscura import Obscura
-from skills.shieldbash import ShieldBash
+from skills.detectmana import DetectMana
 
 from items.potion import Potion
 from items.ankh import Ankh
@@ -80,8 +84,8 @@ class DungeonContext(Context):
     ctx.create_floor()
     ctx.key_requires_reset = {}
     ctx.skills = {
-      ctx.hero: [ShieldBash()],
-      ctx.ally: [Ignis(), Somnus(), Obscura()]
+      ctx.hero: [ShieldBash(), Blitzritter(), HelmSplitter(), Phalanx()],
+      ctx.ally: [Ignis(), Somnus(), DetectMana()]
     }
 
   def create_floor(ctx):
@@ -596,9 +600,9 @@ class DungeonContext(Context):
         window_height + ctx.log.y
       ))
 
-    ctx.hud.draw(surface, ctx)
-    ctx.minimap.draw(surface, ctx)
-
     animating = ctx.log.anim and ctx.log.exiting or ctx.hud.anims
     if ctx.child and not animating:
       ctx.child.draw(surface)
+
+    ctx.hud.draw(surface, ctx)
+    ctx.minimap.draw(surface, ctx)

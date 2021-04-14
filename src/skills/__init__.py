@@ -1,7 +1,8 @@
 class Skill:
-  def __init__(skill, name, kind, desc, cost, radius):
+  def __init__(skill, name, kind, element, desc, cost, radius):
     skill.name = name
     skill.kind = kind
+    skill.element = element
     skill.desc = desc
     skill.cost = cost
     skill.radius = radius

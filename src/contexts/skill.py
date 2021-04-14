@@ -122,7 +122,7 @@ class SkillContext(Context):
       ctx.anims.append(TweenAnim(
         duration=6,
         target=index,
-        on_end=ctx.close() if is_last else None
+        on_end=ctx.close if is_last else None
       ))
       index += 1
     if skill:
@@ -300,4 +300,8 @@ class SkillContext(Context):
       surface.blit(title, (x, y))
 
 def get_skill_text(skill):
-  return skill.name + ': ' + skill.desc + " (" + str(skill.cost) + " SP)"
+  tag = skill.element or skill.kind
+  text = tag[0].upper() + tag[1:]
+  text += ': ' + skill.desc
+  text += " (" + str(skill.cost) + " SP)"
+  return text

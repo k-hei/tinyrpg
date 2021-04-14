@@ -4,13 +4,13 @@ from anims.pause import PauseAnim
 
 ATTACK_DURATION = 12
 
-class Obscura(Skill):
+class HelmSplitter(Skill):
   def __init__(skill):
     super().__init__(
-      name="Obscura",
-      kind="spell",
-      element="dark",
-      desc="Blinds target with darkness",
+      name="Helm Splitter",
+      kind="axe",
+      element=None,
+      desc="Stuns target with mighty swing",
       cost=6,
       radius=1
     )

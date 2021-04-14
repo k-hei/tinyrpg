@@ -4,15 +4,15 @@ from anims.pause import PauseAnim
 
 ATTACK_DURATION = 12
 
-class Obscura(Skill):
+class Blitzritter(Skill):
   def __init__(skill):
     super().__init__(
-      name="Obscura",
-      kind="spell",
-      element="dark",
-      desc="Blinds target with darkness",
-      cost=6,
-      radius=1
+      name="Blitzritter",
+      kind="lance",
+      element=None,
+      desc="Pierces two squares",
+      cost=4,
+      radius=2
     )
 
   def effect(skill, game, on_end=None):

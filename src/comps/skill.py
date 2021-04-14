@@ -34,4 +34,10 @@ def get_icon(kind):
     return assets.sprites["icon_hat"]
   elif kind == "shield":
     return assets.sprites["icon_shield"]
+  elif kind == "lance":
+    return assets.sprites["icon_lance"]
+  elif kind == "axe":
+    return assets.sprites["icon_axe"]
+  elif kind == "support":
+    return assets.sprites["icon_skill"]
   return None

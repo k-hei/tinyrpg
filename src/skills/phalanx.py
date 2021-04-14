@@ -4,15 +4,15 @@ from anims.pause import PauseAnim
 
 ATTACK_DURATION = 12
 
-class Obscura(Skill):
+class Phalanx(Skill):
   def __init__(skill):
     super().__init__(
-      name="Obscura",
-      kind="spell",
-      element="dark",
-      desc="Blinds target with darkness",
-      cost=6,
-      radius=1
+      name="Phalanx",
+      kind="shield",
+      element=None,
+      desc="Completely nulls one attack",
+      cost=12,
+      radius=0
     )
 
   def effect(skill, game, on_end=None):

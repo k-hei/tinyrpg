@@ -9,6 +9,7 @@ class Ignis(Skill):
     super().__init__(
       name="Ignis",
       kind="spell",
+      element="fire",
       desc="Burns target with flame",
       cost=3,
       radius=2
