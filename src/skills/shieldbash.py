@@ -2,6 +2,7 @@ import math
 from skills import Skill
 from actors import Actor
 from actors.eye import Eye
+from actors.chest import Chest
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
@@ -30,6 +31,7 @@ class ShieldBash(Skill):
     delta_x, delta_y = user.facing
     target_cell = (hero_x + delta_x, hero_y + delta_y)
     target_actor = floor.get_actor_at(target_cell)
+    target_actor = None if type(target_actor) is Chest else target_actor
 
     if target_actor:
       # nudge target actor 1 square in the given direction
@@ -37,7 +39,10 @@ class ShieldBash(Skill):
       nudge_cell = (target_x + delta_x, target_y + delta_y)
       nudge_tile = floor.get_tile_at(nudge_cell)
       nudge_actor = floor.get_actor_at(nudge_cell)
-      will_nudge = (not nudge_tile.solid or nudge_tile.pit) and nudge_actor is None
+      will_nudge = (
+        (not nudge_tile.solid or nudge_tile.pit)
+        and nudge_actor is None
+      )
 
       def on_move():
         if nudge_tile.pit:

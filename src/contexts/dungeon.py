@@ -88,7 +88,7 @@ class DungeonContext(Context):
     game.key_requires_reset = {}
     game.skills = {
       game.hero: [ShieldBash(), Counter(), Blitzritter()],
-      game.ally: [Ignis(), Somnus(), DetectMana()]
+      game.ally: [Somnus(), DetectMana()]
     }
     game.create_floor()
 
@@ -347,10 +347,11 @@ class DungeonContext(Context):
         game.step()
         game.refresh_fov(moving=True)
 
-      if not hero.dead and not hero.asleep:
-        hero.regen()
-      if not ally.dead and not ally.asleep:
-        ally.regen()
+      if game.sp:
+        if not hero.dead and not hero.asleep:
+          hero.regen()
+        if not ally.dead and not ally.asleep:
+          ally.regen()
 
       acted = True
       game.sp = max(0, game.sp - 1 / 100)
