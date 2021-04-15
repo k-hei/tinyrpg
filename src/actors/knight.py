@@ -7,7 +7,7 @@ class Knight(Actor):
       name="Knight",
       faction="player",
       hp=9,
-      st=5,
+      st=12,
       en=2,
       skill=Blitzritter()
     )

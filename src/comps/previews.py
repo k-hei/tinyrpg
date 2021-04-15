@@ -8,6 +8,10 @@ from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in_out
 from lerp import lerp
 
+class EnterAnim(TweenAnim): pass
+class ExitAnim(TweenAnim): pass
+class ArrangeAnim(TweenAnim): pass
+
 MARGIN = 8
 SPACING = 4
 LOG_HEIGHT = 48
@@ -30,88 +34,104 @@ class Previews:
     enemies.sort(key=lambda e: manhattan(e.cell, hero.cell))
     enemies = enemies[:3]
 
-    targets = [a.target for a in self.anims if a.target[0] != "Arrange"]
-    entering = [preview for (kind, preview) in targets if kind == "Enter"]
-    exiting = [preview for (kind, preview) in targets if kind == "Exit"]
+    entering = [a for a in self.anims if type(a) is EnterAnim]
+    exiting = [a for a in self.anims if type(a) is ExitAnim]
+    arranging = [a for a in self.anims if type(a) is ArrangeAnim]
 
+    # exit
     if not entering:
       added = 0
       for preview in self.previews:
-        if preview.actor not in enemies and preview not in exiting:
-          anim = TweenAnim(
+        if preview is None:
+          continue
+        exit_anim = next((a for a in exiting if a.target is preview), None)
+        if exit_anim is None and preview.actor not in enemies:
+          anim = ExitAnim(
             duration=6,
             delay=added * 4,
-            target=("Exit", preview)
+            target=preview
           )
-          exiting.append(anim)
           self.anims.append(anim)
+          exiting.append(anim)
           added += 1
 
-    if not exiting:
+    # enter
+    if not exiting and not arranging:
       added = 0
       for enemy in enemies:
-        preview = next((p for p in self.previews if p.actor is enemy), None)
+        preview = next((p for p in self.previews if p and p.actor is enemy), None)
         if preview is None:
           preview = Preview(enemy)
           self.previews.append(preview)
-          anim = TweenAnim(
+          anim = EnterAnim(
             duration=15,
             delay=added * 10,
-            target=("Enter", preview)
+            target=preview
           )
-          entering.append(anim)
           self.anims.append(anim)
+          entering.append(anim)
           added += 1
 
+    # arrange
     if not exiting and not entering:
-      added = 0
       for preview in self.previews:
+        if preview is None:
+          continue
         cur_idx = self.previews.index(preview)
         tgt_idx = enemies.index(preview.actor)
-        if cur_idx != tgt_idx:
-          self.anims.append(TweenAnim(
+        arrange_anim = next((a for a in arranging if a.target[0] is preview), None)
+        if cur_idx != tgt_idx and arrange_anim is None:
+          anim = ArrangeAnim(
             duration=15,
-            delay=added * 10,
-            target=("Arrange", preview, cur_idx, tgt_idx)
-          ))
-          added += 1
+            target=(preview, cur_idx, tgt_idx)
+          )
+          self.anims.append(anim)
+          arranging.append(anim)
 
     for anim in self.anims:
       t = anim.update()
-      kind = anim.target[0]
-      if kind == "Enter" or kind == "Exit":
-        kind, preview = anim.target
-        if kind == "Enter":
+      if type(anim) is EnterAnim or type(anim) is ExitAnim:
+        preview = anim.target
+        if type(anim) is EnterAnim:
           t = ease_out(t)
-        elif kind == "Exit":
+        elif type(anim) is ExitAnim:
           t = 1 - t
         start_x = 0
         end_x = MARGIN + (preview.sprite or preview.render()).get_width()
         preview.x = lerp(start_x, end_x, t)
-      elif kind == "Arrange":
-        kind, preview, src, tgt = anim.target
+      elif type(anim) is ArrangeAnim:
+        preview, src, tgt = anim.target
         t = ease_in_out(t)
         start_y = src
         end_y = tgt
         preview.y = lerp(start_y, end_y, t)
       if anim.done:
         self.anims.remove(anim)
-        if kind == "Exit":
+        if type(anim) is ExitAnim:
+          index = self.previews.index(preview)
           self.previews.remove(preview)
+          self.previews.insert(index, None)
+        elif type(anim) is ArrangeAnim:
+          preview, src, tgt = anim.target
+          self.previews.remove(preview)
+          self.previews.insert(tgt, preview)
+          arranging.remove(anim)
+          self.previews = [p for p in self.previews if p]
 
     window_width = surface.get_width()
     window_height = surface.get_height()
-    arranges = [a for a in self.anims if a.target[0] == "Arrange"]
     for i in range(len(self.previews)):
       preview = self.previews[i]
+      if preview is None:
+        continue
       preview.update()
       sprite = preview.render()
       offset_x, offset_y = preview.offset
       x = window_width - preview.x + offset_x
       y = window_height - MARGIN - LOG_HEIGHT + offset_y
       delta = -SPACING - sprite.get_height()
-      anim = next((a for a in arranges if a.target[1] is preview), None)
-      if anim:
+      arrange_anim = next((a for a in arranging if a.target[0] is preview), None)
+      if arrange_anim:
         y += delta * (preview.y + 1)
       else:
         y += delta * (i + 1)
