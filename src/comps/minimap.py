@@ -38,7 +38,7 @@ class Minimap:
       actor = ctx.floor.get_actor_at(cell)
       color = None
       if type(actor) is Knight or type(actor) is Mage and cell in visible_cells:
-        color = 0x337FFF #palette.BLUE
+        color = 0x337FFF
       elif type(actor) is Mimic and cell in visible_cells:
         if actor.idle:
           color = 0xFFFF00

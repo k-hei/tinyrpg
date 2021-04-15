@@ -31,6 +31,8 @@ class Preview:
     preview.sprite = None
     preview.x = 0
     preview.y = 0
+    preview.width = -1
+    preview.height = -1
     preview.hp = actor.hp
     preview.hp_prev = actor.hp
     preview.hp_time = 0

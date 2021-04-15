@@ -10,6 +10,7 @@ from lerp import lerp
 
 class EnterAnim(TweenAnim): pass
 class ExitAnim(TweenAnim): pass
+class SquishAnim(TweenAnim): pass
 class ArrangeAnim(TweenAnim): pass
 
 MARGIN = 8
@@ -35,7 +36,7 @@ class Previews:
     enemies = enemies[:3]
 
     entering = [a for a in self.anims if type(a) is EnterAnim]
-    exiting = [a for a in self.anims if type(a) is ExitAnim]
+    exiting = [a for a in self.anims if type(a) is ExitAnim or type(a) is SquishAnim]
     arranging = [a for a in self.anims if type(a) is ArrangeAnim]
 
     # exit
@@ -46,11 +47,18 @@ class Previews:
           continue
         exit_anim = next((a for a in exiting if a.target is preview), None)
         if exit_anim is None and preview.actor not in enemies:
-          anim = ExitAnim(
-            duration=6,
-            delay=added * 4,
-            target=preview
-          )
+          if preview.actor.hp:
+            anim = ExitAnim(
+              duration=7,
+              delay=added * 4,
+              target=preview
+            )
+          else:
+            anim = SquishAnim(
+              duration=7,
+              delay=added * 4,
+              target=preview
+            )
           self.anims.append(anim)
           exiting.append(anim)
           added += 1
@@ -97,13 +105,19 @@ class Previews:
       t = anim.update()
       if type(anim) is EnterAnim or type(anim) is ExitAnim:
         preview = anim.target
+        sprite = preview.sprite or preview.render()
         if type(anim) is EnterAnim:
           t = ease_out(t)
         elif type(anim) is ExitAnim:
           t = 1 - t
         start_x = 0
-        end_x = MARGIN + (preview.sprite or preview.render()).get_width()
+        end_x = MARGIN + sprite.get_width()
         preview.x = lerp(start_x, end_x, t)
+      elif type(anim) is SquishAnim:
+        preview = anim.target
+        sprite = preview.sprite or preview.render()
+        preview.width = lerp(sprite.get_width(), sprite.get_width() * 2, t)
+        preview.height = lerp(sprite.get_height(), 0, t)
       elif type(anim) is ArrangeAnim:
         preview, src, tgt = anim.target
         t = ease_in_out(t)
@@ -112,7 +126,7 @@ class Previews:
         preview.y = lerp(start_y, end_y, t)
       if anim.done:
         self.anims.remove(anim)
-        if type(anim) is ExitAnim:
+        if type(anim) is ExitAnim or type(anim) is SquishAnim:
           index = self.previews.index(preview)
           self.previews.remove(preview)
           self.previews.insert(index, None)
@@ -140,4 +154,10 @@ class Previews:
         y += delta * (preview.y + 1)
       else:
         y += delta * (i + 1)
+      sprite_width = sprite.get_width()
+      sprite_height = sprite.get_height()
+      if preview.width != -1 or preview.height != -1:
+        sprite = pygame.transform.scale(sprite, (int(preview.width), int(preview.height)))
+      x += sprite_width // 2 - sprite.get_width() // 2
+      y += sprite_height // 2 - sprite.get_height() // 2
       surface.blit(sprite, (x, y))
