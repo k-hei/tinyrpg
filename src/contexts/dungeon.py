@@ -96,12 +96,14 @@ class DungeonContext(Context):
     floor_no = len(game.floors) + 1
     if floor_no == 3:
       floor = gen.giant_room((19, 19))
-    elif floor_no == 1:
+    elif floor_no == 5:
       floor = gen.top_floor()
     else:
       floor = gen.dungeon((19, 19), len(game.floors) + 1)
 
-    if floor.find_tile(Stage.DOOR_HIDDEN):
+    if floor_no == 5:
+      game.log.print("The air feels different up here.")
+    elif floor.find_tile(Stage.DOOR_HIDDEN):
       game.log.print("This floor seems to hold many secrets.")
 
     floor.spawn_actor(game.hero, floor.entrance)
