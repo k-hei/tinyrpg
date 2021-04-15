@@ -18,10 +18,7 @@ class Actor:
     actor.visible_cells = []
 
   def regen(actor, amount=1/100):
-    if actor.hp + amount < actor.hp_max:
-      actor.hp += amount
-    else:
-      actor.hp = actor.hp_max
+    actor.hp = min(actor.hp_max, actor.hp + amount)
 
   def face(actor, facing):
     actor.facing = facing

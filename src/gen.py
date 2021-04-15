@@ -422,6 +422,9 @@ def dungeon(size, floor=1):
     stage.set_tile_at((width // 2 + 1, height - 6), Stage.PIT)
     stage.set_tile_at((width // 2 - 1, height - 7), Stage.PIT)
     stage.set_tile_at((width // 2 + 1, height - 7), Stage.PIT)
+    eye = Eye()
+    eye.asleep = True
+    stage.spawn_actor(eye, (width // 2 + 1, height - 3))
 
   stage.rooms = rooms
   return stage

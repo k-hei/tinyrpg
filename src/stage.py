@@ -309,10 +309,9 @@ class Stage:
       sprite, t, (col, row) = item
       sprite_x = (col + 0.5) * config.tile_size
       sprite_y = (row + 0.5) * config.tile_size
-      offset = min(1, t * 3) * 6
-      sprite_y -= offset
+      offset = min(1, t * 3) * 6 + 8
       x = sprite_x - sprite.get_width() // 2 - round(camera_x)
-      y = sprite_y - sprite.get_height() - round(camera_y)
+      y = sprite_y - sprite.get_height() // 2 - round(camera_y) - offset
       surface.blit(sprite, (x, y))
 
   def draw_tiles(stage, surface, visible_cells=None, visited_cells=[], camera_pos=None):

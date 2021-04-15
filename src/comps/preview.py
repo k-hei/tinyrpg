@@ -45,7 +45,7 @@ class Preview:
   def update(preview):
     if preview.sprite is None or preview.hp != preview.actor.hp:
       preview.sprite = preview.render()
-      if preview.hp == preview.hp_prev:
+      if preview.actor.hp != preview.hp_prev:
         preview.anim = ShakeAnim(duration=10)
       preview.hp = max(preview.actor.hp, preview.hp - 1 / 20)
     preview.hp_prev = preview.actor.hp
@@ -98,12 +98,19 @@ class Preview:
       BAR_HEIGHT
     )
     anim = preview.anim
-    if type(anim) is FlickerAnim and (anim.time % 4 >= 2 or anim.done):
-      portrait = portrait and replace_color(portrait, palette.WHITE, palette.GRAY)
-    elif type(anim) is ShakeAnim and anim.time <= 2:
-      portrait = portrait and replace_color(portrait, palette.WHITE, palette.RED)
-    elif actor.asleep:
-      portrait = portrait and replace_color(portrait, palette.WHITE, palette.PURPLE)
+    if type(anim) is ShakeAnim:
+      if anim.time <= 2:
+        portrait = portrait and replace_color(portrait, palette.WHITE, palette.RED)
+    if type(anim) is FlickerAnim:
+      if anim.time % 4 >= 2 or anim.done:
+        portrait = portrait and replace_color(portrait, palette.WHITE, palette.GRAY)
+    else:
+      # anim = game.anims and next((a for a in game.anims[0] if (
+      #   a.target is actor
+      #   and type(a) is FlickerAnim
+      # )), None)
+      if actor.asleep:
+        portrait = portrait and replace_color(portrait, palette.WHITE, palette.PURPLE)
     surface_width = bar_x + bar.get_width()
     surface_height = HP_OFFSET_Y + hp_tag.get_height()
     surface = Surface((surface_width, surface_height))
