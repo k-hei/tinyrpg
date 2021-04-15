@@ -415,6 +415,14 @@ def dungeon(size, floor=1):
           enemy.asleep = True
         stage.spawn_actor(enemy, cell)
 
+  stage.spawn_actor(Eye(), (width // 2 - 1, height - 5))
+  stage.spawn_actor(Eye(), (width // 2 + 0, height - 5))
+  stage.spawn_actor(Eye(), (width // 2 + 1, height - 5))
+  stage.set_tile_at((width // 2 - 1, height - 4), Stage.PIT)
+  stage.set_tile_at((width // 2 + 0, height - 4), Stage.PIT)
+  stage.set_tile_at((width // 2 + 1, height - 4), Stage.PIT)
+  stage.spawn_actor(Mimic(), (width // 2 + 1, height - 3))
+
   stage.rooms = rooms
   return stage
 

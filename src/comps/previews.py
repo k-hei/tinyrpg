@@ -27,14 +27,12 @@ class Previews:
   def draw(self, surface, game):
     hero = game.hero
     floor = game.floor
-    is_valid_actor = lambda actor: (
+    enemies = [actor for actor in floor.actors if (
       actor.faction == "enemy"
       and actor in floor.actors
       and actor.cell in hero.visible_cells
       and not (type(actor) is Mimic and actor.idle)
-    )
-
-    enemies = [a for a in floor.actors if is_valid_actor(a)]
+    )]
     enemies.sort(key=lambda e: manhattan(e.cell, hero.cell))
     enemies = enemies[:3]
 
@@ -49,62 +47,31 @@ class Previews:
         if preview is None:
           continue
         exit_anim = next((a for a in exiting if a.target is preview), None)
-        if exit_anim is None and preview.actor not in enemies:
-          if preview.actor.hp:
-            anim = ExitAnim(
-              duration=7,
-              delay=added * 4,
-              target=preview
-            )
-          else:
-            anim = SquishAnim(
-              duration=7,
-              delay=added * 4,
-              target=preview
-            )
-          self.anims.append(anim)
-          exiting.append(anim)
-          added += 1
-
-    # enter
-    if not exiting and not arranging:
-      added = 0
-      for enemy in enemies:
-        preview = next((p for p in self.previews if p and p.actor is enemy), None)
-        if preview is None:
-          preview = Preview(enemy)
-          if None in self.previews:
-            index = self.previews.index(None)
-            self.previews.remove(None)
-            self.previews.insert(index, preview)
-          else:
-            self.previews.append(preview)
-          anim = EnterAnim(
-            duration=15,
-            delay=added * 10,
+        if exit_anim is None and not preview.actor in enemies:
+          Anim = ExitAnim if preview.actor.hp else SquishAnim
+          anim = Anim(
+            duration=7,
+            delay=added * 4,
             target=preview
           )
           self.anims.append(anim)
-          entering.append(anim)
+          exiting.append(anim)
+          print(pygame.time.get_ticks(), "removing", preview.actor.name)
           added += 1
 
-    # arrange
-    if not exiting and not entering:
-      for preview in self.previews:
-        if preview is None:
-          continue
-        cur_idx = self.previews.index(preview)
-        tgt_idx = enemies.index(preview.actor)
-        arrange_anim = next((a for a in arranging if a.target[0] is preview), None)
-        if cur_idx != tgt_idx and arrange_anim is None:
-          anim = ArrangeAnim(
-            duration=15,
-            target=(preview, cur_idx, tgt_idx)
-          )
-          self.anims.append(anim)
-          arranging.append(anim)
-
+    exited = False
     for anim in self.anims:
+      if anim.done:
+        self.anims.remove(anim)
+        if type(anim) is ExitAnim or type(anim) is SquishAnim:
+          index = self.previews.index(anim.target)
+          self.previews.pop(index)
+          self.previews.insert(index, None)
+          exiting.remove(anim)
+          exited = True
+        elif type(anim) is ArrangeAnim:
+          arranging.remove(anim)
+        continue
       t = anim.update()
       if type(anim) is EnterAnim or type(anim) is ExitAnim:
         preview = anim.target
@@ -122,25 +89,58 @@ class Previews:
         preview.width = lerp(sprite.get_width(), sprite.get_width() * 2, t)
         preview.height = lerp(sprite.get_height(), 0, t)
       elif type(anim) is ArrangeAnim:
-        preview, src, tgt = anim.target
-        t = ease_in_out(t)
-        start_y = src
-        end_y = tgt
-        preview.y = lerp(start_y, end_y, t)
-      if anim.done:
-        self.anims.remove(anim)
-        if type(anim) is ExitAnim or type(anim) is SquishAnim:
-          index = self.previews.index(preview)
-          if preview in self.previews:
-            self.previews.remove(preview)
-            self.previews.insert(index, None)
-        elif type(anim) is ArrangeAnim:
-          preview, src, tgt = anim.target
-          if preview in self.previews:
-            self.previews.remove(preview)
-            self.previews.insert(tgt, preview)
-          arranging.remove(anim)
-          self.previews = [p for p in self.previews if p]
+        for preview, (src, tgt) in anim.target.items():
+          t = ease_in_out(t)
+          start_y = src
+          end_y = tgt
+          preview.y = lerp(start_y, end_y, t)
+
+    if exited:
+      targets = {}
+      # actors = [p.actor for p in self.previews]
+      # print(pygame.time.get_ticks(), "Exited, remainder is", actors)
+      for preview in self.previews:
+        if preview is None or preview.actor not in enemies:
+          continue
+        cur_idx = self.previews.index(preview)
+        tgt_idx = enemies.index(preview.actor)
+        arrange_anim = next((a for a in arranging if a.target[0] is preview), None)
+        if cur_idx != tgt_idx and arrange_anim is None:
+          preview.y = cur_idx
+          targets[preview] = (cur_idx, tgt_idx)
+
+      if targets:
+        anim = ArrangeAnim(
+          duration=15,
+          target=targets
+        )
+        print(pygame.time.get_ticks(), "Rearranging")
+        self.anims.append(anim)
+        arranging.append(anim)
+
+    # enter
+    if not exiting and (not arranging or exited):
+      added = 0
+      for enemy in enemies:
+        preview = next((p for p in self.previews if p and p.actor is enemy), None)
+        if preview is None:
+          preview = Preview(enemy)
+          if enemies.index(preview.actor) == 0:
+            self.previews.insert(0, preview)
+          else:
+            self.previews.append(preview)
+          anim = EnterAnim(
+            duration=15,
+            delay=added * 10,
+            target=preview
+          )
+          self.anims.append(anim)
+          entering.append(anim)
+          added += 1
+      self.previews = [p for p in self.previews if p]
+
+    # actors = [p.actor for p in self.previews]
+    # print(pygame.time.get_ticks(), actors)
 
     window_width = surface.get_width()
     window_height = surface.get_height()
@@ -154,7 +154,7 @@ class Previews:
       x = window_width - preview.x + offset_x
       y = window_height - MARGIN - LOG_HEIGHT + offset_y
       delta = -SPACING - sprite.get_height()
-      arrange_anim = next((a for a in arranging if a.target[0] is preview), None)
+      arrange_anim = arranging and preview in arranging[0].target
       if arrange_anim:
         y += delta * (preview.y + 1)
       else:

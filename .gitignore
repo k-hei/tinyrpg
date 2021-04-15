@@ -5,5 +5,7 @@ tmp
 .vscode
 __pycache__
 *.spec
+*.dmg
+*.zip
 dist
 build
