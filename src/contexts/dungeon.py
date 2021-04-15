@@ -252,6 +252,7 @@ class DungeonContext(Context):
   def handle_move(game, delta, run=False):
     hero = game.hero
     ally = game.ally
+    floor = game.floor
     if hero.dead or hero.asleep:
       return False
     old_cell = hero.cell
@@ -260,8 +261,8 @@ class DungeonContext(Context):
     acted = False
     moved = game.move(hero, delta, run)
     target_cell = (hero_x + delta_x, hero_y + delta_y)
-    target_tile = game.floor.get_tile_at(target_cell)
-    target_actor = game.floor.get_actor_at(target_cell)
+    target_tile = floor.get_tile_at(target_cell)
+    target_actor = floor.get_actor_at(target_cell)
     if moved:
       if not ally.dead and not ally.asleep:
         last_group = game.anims[len(game.anims) - 1]
@@ -277,20 +278,48 @@ class DungeonContext(Context):
       if target_tile is Stage.STAIRS_UP:
         game.log.print("There's a staircase going up here.")
       elif target_tile is Stage.STAIRS_DOWN:
-        if game.floors.index(game.floor):
+        if game.floors.index(floor):
           game.log.print("There's a staircase going down here.")
         else:
           game.log.print("You can return to the town from here.")
+      elif target_tile is Stage.MONSTER_DEN and not floor.trap_sprung:
+        floor.trap_sprung = True
+
+        def spawn():
+          monsters = 15
+          cells = [c for c in game.room.get_cells() if (
+            not floor.get_actor_at(c)
+            and floor.get_tile_at(c) is Stage.FLOOR
+            and manhattan(c, hero.cell) > 2
+          )]
+          for i in range(monsters):
+            cell = random.choice(cells)
+            enemy = Eye()
+            floor.spawn_actor(enemy, cell)
+            cells.remove(cell)
+            if random.randint(0, 2):
+              enemy.asleep = True
+
+        game.anims.append([
+          PauseAnim(
+            duration=45,
+            on_end=lambda: (
+              floor.set_tile_at((hero_x - 1, hero_y), Stage.DOOR_LOCKED),
+              game.log.clear(),
+              game.log.print("Stepped into a monster den!"),
+              spawn()
+            )
+          )
+        ])
 
       is_waking_up = False
       if game.room:
         room = game.room
-        floor = game.floor
         room_actors = [floor.get_actor_at(cell) for cell in room.get_cells() if floor.get_actor_at(cell)]
         enemies = [actor for actor in room_actors if actor.faction == "enemy"]
         enemy = next((e for e in enemies if e.asleep and random.randint(1, 10) == 1), None)
         if enemy:
-          enemy.asleep = False
+          enemy.wake_up()
           is_waking_up = True
           if game.camera.is_cell_visible(enemy.cell):
             game.anims.append([
@@ -581,6 +610,7 @@ class DungeonContext(Context):
   def flinch(game, target, damage, on_end=None):
     was_asleep = target.asleep
     end = lambda: on_end and on_end()
+    if target.dead: end()
 
     def remove():
       game.floor.actors.remove(target)
@@ -590,6 +620,10 @@ class DungeonContext(Context):
           on_end=lambda: (game.handle_swap(), end())
         ))
       else:
+        trap = game.floor.find_tile(Stage.MONSTER_DEN)
+        if trap and len([a for a in game.floor.actors if a.faction == "enemy"]) == 0:
+          trap_x, trap_y = trap
+          game.floor.set_tile_at((trap_x - 2, trap_y), Stage.DOOR_OPEN)
         end()
 
     def awaken():

@@ -131,12 +131,14 @@ class Previews:
         self.anims.remove(anim)
         if type(anim) is ExitAnim or type(anim) is SquishAnim:
           index = self.previews.index(preview)
-          self.previews.remove(preview)
-          self.previews.insert(index, None)
+          if preview in self.previews:
+            self.previews.remove(preview)
+            self.previews.insert(index, None)
         elif type(anim) is ArrangeAnim:
           preview, src, tgt = anim.target
-          self.previews.remove(preview)
-          self.previews.insert(tgt, preview)
+          if preview in self.previews:
+            self.previews.remove(preview)
+            self.previews.insert(tgt, preview)
           arranging.remove(anim)
           self.previews = [p for p in self.previews if p]
 

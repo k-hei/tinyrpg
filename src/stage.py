@@ -26,17 +26,19 @@ from anims.chest import ChestAnim
 class Tile:
   solid: bool
   opaque: bool
+  pit: bool
 
 class Stage:
-  FLOOR = Tile(solid=False, opaque=False)
-  WALL = Tile(solid=True, opaque=True)
-  PIT = Tile(solid=True, opaque=False)
-  DOOR = Tile(solid=True, opaque=True)
-  DOOR_OPEN = Tile(solid=False, opaque=False)
-  DOOR_HIDDEN = Tile(solid=True, opaque=True)
-  DOOR_LOCKED = Tile(solid=True, opaque=True)
-  STAIRS_UP = Tile(solid=False, opaque=False)
-  STAIRS_DOWN = Tile(solid=False, opaque=False)
+  FLOOR = Tile(solid=False, opaque=False, pit=False)
+  WALL = Tile(solid=True, opaque=True, pit=False)
+  PIT = Tile(solid=True, opaque=False, pit=True)
+  DOOR = Tile(solid=True, opaque=True, pit=False)
+  DOOR_OPEN = Tile(solid=False, opaque=False, pit=False)
+  DOOR_HIDDEN = Tile(solid=True, opaque=True, pit=False)
+  DOOR_LOCKED = Tile(solid=True, opaque=True, pit=False)
+  STAIRS_UP = Tile(solid=False, opaque=False, pit=False)
+  STAIRS_DOWN = Tile(solid=False, opaque=False, pit=False)
+  MONSTER_DEN = Tile(solid=False, opaque=False, pit=False)
 
   def __init__(stage, size):
     (width, height) = size
@@ -46,6 +48,7 @@ class Stage:
     stage.rooms = []
     stage.entrance = None
     stage.stairs = None
+    stage.trap_sprung = False
     stage.facings = {}
 
   def fill(stage, data):
@@ -356,6 +359,8 @@ class Stage:
       sprite_name = "floor"
     elif tile is Stage.PIT and not stage.get_tile_at((x, y - 1)) is Stage.PIT:
       sprite_name = "pit"
+    elif tile is Stage.MONSTER_DEN:
+      sprite_name = "floor"
     if sprite_name is not None:
       return assets.sprites[sprite_name]
     else:

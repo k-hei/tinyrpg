@@ -72,7 +72,7 @@ def top_floor():
     "##.......####.#...........#",
     "##.......####.#..       ..#",
     "#####.#######.#..  ...  ..#",
-    "#####.#######.+..  .......#",
+    "#####.#######.+.!  .......#",
     "#####.#########..  ...  ..#",
     "####...########..       ..#",
     "###..>..#######...........#",
@@ -87,8 +87,6 @@ def top_floor():
     Room((11, 9), (15, 18))
   ]
 
-  item = Fish()
-  floor.spawn_actor(Chest(item), (24, 20))
   floor.spawn_actor(Mimic(), (20, 22))
   floor.spawn_actor(NPC(), (4, 1))
 
@@ -116,6 +114,8 @@ def parse_data(data):
         tile = Stage.DOOR_LOCKED
       elif char == "*":
         tile = Stage.DOOR_HIDDEN
+      elif char == "!":
+        tile = Stage.MONSTER_DEN
       elif char == ">":
         tile = Stage.STAIRS_DOWN
         entrance = cell
