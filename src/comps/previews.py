@@ -37,7 +37,6 @@ class Previews:
     if not entering:
       added = 0
       for preview in self.previews:
-        if preview.done: continue
         if preview.actor not in enemies and preview not in exiting:
           anim = TweenAnim(
             duration=6,
@@ -88,7 +87,6 @@ class Previews:
         self.anims.remove(anim)
         if kind == "Exit":
           self.previews.remove(preview)
-          preview.done = True
 
     window_width = surface.get_width()
     window_height = surface.get_height()
@@ -96,7 +94,8 @@ class Previews:
       preview = self.previews[i]
       preview.update()
       sprite = preview.render()
-      x = window_width - preview.x
-      y = window_height - MARGIN - LOG_HEIGHT
+      offset_x, offset_y = preview.offset
+      x = window_width - preview.x + offset_x
+      y = window_height - MARGIN - LOG_HEIGHT + offset_y
       y += -(SPACING + sprite.get_height()) * (i + 1)
       surface.blit(sprite, (x, y))

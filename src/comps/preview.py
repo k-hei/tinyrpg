@@ -1,7 +1,9 @@
 from assets import load as use_assets
 from pygame import Surface, Rect
 import pygame
+import random
 
+from anims import Anim
 from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lerp import lerp
@@ -23,37 +25,29 @@ class Preview:
     preview.sprite = None
     preview.x = 0
     preview.hp = actor.hp
-    preview.side = "right"
-    preview.active = True
+    preview.hp_prev = actor.hp
+    preview.hp_time = 0
+    preview.offset = (0, 0)
     preview.anim = None
-    preview.done = False
-
-  def enter(preview, on_end=None):
-    preview.active = True
-    preview.anim = TweenAnim(duration=30, on_end=on_end)
-
-  def exit(preview, on_end=None):
-    preview.active = False
-    preview.anim = TweenAnim(duration=30, on_end=on_end)
 
   def update(preview):
     if preview.sprite is None or preview.hp != preview.actor.hp:
       preview.sprite = preview.render()
+      if preview.hp == preview.hp_prev:
+        preview.anim = Anim(duration=10)
       preview.hp = max(preview.actor.hp, preview.hp - 1 / 20)
+    preview.hp_prev = preview.actor.hp
+
     if preview.anim:
+      offset_x, offset_y = preview.offset
+      while (offset_x, offset_y) == preview.offset:
+        offset_x = random.randint(-1, 1)
+        offset_y = random.randint(-1, 1)
+      preview.offset = (offset_x, offset_y)
       anim = preview.anim
-      t = anim.update()
-      if preview.active:
-        t = ease_out(t)
-      else:
-        t = 1 - t
-      start_x = 0
-      end_x = MARGIN + preview.sprite.get_width()
-      preview.x = lerp(start_x, end_x, t)
+      anim.update()
       if anim.done:
-        print(preview, "done")
-        if anim.on_end:
-          anim.on_end()
+        offset = (0, 0)
         preview.anim = None
 
   def render(preview):
@@ -65,7 +59,6 @@ class Preview:
     bar_x = HP_OFFSET_X + hp_tag.get_width() + 1
     bar_y = HP_OFFSET_Y + hp_tag.get_height() - bar.get_height()
     bar_width = (bar.get_width() - BAR_PADDING_X * 2)
-    print(actor.hp, preview.hp, actor.hp_max)
     bar_bg_width = bar_width * preview.hp / actor.hp_max
     bar_fg_width = bar_width * actor.hp / actor.hp_max
     bar_bg_rect = Rect(
