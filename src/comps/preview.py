@@ -11,6 +11,9 @@ from anims.flicker import FlickerAnim
 from easing.expo import ease_out
 from lerp import lerp
 
+from actors.eye import Eye
+from actors.mimic import Mimic
+
 MARGIN = 8
 HP_OVERLAP = 0
 HP_OFFSET_X = 6
@@ -69,8 +72,12 @@ class Preview:
   def render(preview):
     actor = preview.actor
     assets = use_assets()
-    base = assets.sprites["portrait_enemy"] # TODO: disambiguate based on type
-    portrait = assets.sprites["portrait_eye"] # TODO: disambiguate based on type
+    base = assets.sprites["portrait_enemy"]
+    portrait = None
+    if type(actor) is Eye:
+      portrait = assets.sprites["portrait_eye"]
+    elif type(actor) is Mimic:
+      portrait = assets.sprites["portrait_mimic"]
     hp_tag = assets.sprites["tag_hp"]
     bar = assets.sprites["bar_small"]
     bar_x = HP_OFFSET_X + hp_tag.get_width() + 1
@@ -91,15 +98,18 @@ class Preview:
       BAR_HEIGHT
     )
     anim = preview.anim
-    if type(anim) is FlickerAnim and (anim.time % 4 >= 2 or anim.done):
-      portrait = replace_color(portrait, palette.WHITE, palette.GRAY)
+    if type(anim) is ShakeAnim and anim.time <= 2:
+      portrait = portrait and replace_color(portrait, palette.WHITE, palette.RED)
+    elif type(anim) is FlickerAnim and (anim.time % 4 >= 2 or anim.done):
+      portrait = portrait and replace_color(portrait, palette.WHITE, palette.GRAY)
     surface_width = bar_x + bar.get_width()
     surface_height = HP_OFFSET_Y + hp_tag.get_height()
     surface = Surface((surface_width, surface_height))
     surface.set_colorkey(0xFF00FF)
     surface.fill(0xFF00FF)
     surface.blit(base, (0, 0))
-    surface.blit(portrait, (PORTRAIT_X, PORTRAIT_Y))
+    if portrait is not None:
+      surface.blit(portrait, (PORTRAIT_X, PORTRAIT_Y))
     surface.blit(hp_tag, (HP_OFFSET_X, HP_OFFSET_Y))
     surface.blit(bar, (bar_x, bar_y))
     pygame.draw.rect(surface, palette.RED, bar_bg_rect)

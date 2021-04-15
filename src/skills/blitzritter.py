@@ -1,9 +1,10 @@
 from skills import Skill
+from config import ATTACK_DURATION
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from anims.attack import AttackAnim
 from anims.frame import FrameAnim
-from config import ATTACK_DURATION
+from actors.chest import Chest
 
 class Blitzritter(Skill):
   def __init__(skill):
@@ -26,6 +27,12 @@ class Blitzritter(Skill):
     far_cell = (hero_x + delta_x * 2, hero_y + delta_y * 2)
     target_a = floor.get_actor_at(near_cell)
     target_b = floor.get_actor_at(far_cell)
+
+    # TODO: prevent chests from being recognized as actors
+    if type(target_a) is Chest:
+      target_a = None
+    if type(target_b) is Chest:
+      target_b = None
 
     def connect():
       game.vfx.append(("impact", near_cell, FrameAnim(

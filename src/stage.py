@@ -29,6 +29,7 @@ class Tile:
 class Stage:
   FLOOR = Tile(solid=False, opaque=False)
   WALL = Tile(solid=True, opaque=True)
+  PIT = Tile(solid=True, opaque=False)
   DOOR = Tile(solid=True, opaque=True)
   DOOR_OPEN = Tile(solid=False, opaque=False)
   DOOR_HIDDEN = Tile(solid=True, opaque=True)
@@ -233,7 +234,10 @@ class Stage:
 
       if type(anim) is FlickerAnim:
         visible = anim.update()
-        if not visible:
+        if type(actor) is Mimic and not actor.dead:
+          if not visible:
+            sprite = replace_color(sprite, palette.GOLD, palette.RED)
+        elif not visible:
           sprite = None
         elif type(actor) is Knight:
           sprite = assets.sprites["knight_flinch"]
@@ -339,6 +343,8 @@ class Stage:
       sprite_name = "door"
     elif tile is Stage.FLOOR:
       sprite_name = "floor"
+    elif tile is Stage.PIT and not stage.get_tile_at((x, y - 1)) is Stage.PIT:
+      sprite_name = "pit"
     if sprite_name is not None:
       return assets.sprites[sprite_name]
     else:

@@ -309,12 +309,17 @@ class DungeonContext(Context):
             dest_cell=target_cell
           ),
           PauseAnim(duration=15, on_end=lambda: (
-            target_actor.activate(),
-            game.log.print("The lamp was " + target_actor.name.upper() + "!"),
-            game.step(),
-            game.anims[0].append(PauseAnim(
-              duration=15,
-              on_end=lambda: game.refresh_fov
+            game.anims[0].append(FlickerAnim(
+              duration=45,
+              target=target_actor,
+              on_end=lambda: (
+                target_actor.activate(),
+                game.log.print("The lamp was " + target_actor.name.upper() + "!"),
+                game.anims[0].append(PauseAnim(duration=15, on_end=lambda: (
+                  game.step(),
+                  game.refresh_fov()
+                )))
+              )
             ))
           ))
         ])

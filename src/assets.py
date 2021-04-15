@@ -27,6 +27,7 @@ sprite_paths = {
   "bat": "assets/bat.png",
   "rat": "assets/rat.png",
   "floor": "assets/floor.png",
+  "pit": "assets/pit.png",
   "wall": "assets/wall.png",
   "wall_base": "assets/wall-base.png",
   "chest": "assets/chest.png",

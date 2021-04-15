@@ -8,6 +8,8 @@ from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in_out
 from lerp import lerp
 
+from actors.mimic import Mimic
+
 class EnterAnim(TweenAnim): pass
 class ExitAnim(TweenAnim): pass
 class SquishAnim(TweenAnim): pass
@@ -29,6 +31,7 @@ class Previews:
       actor.faction == "enemy"
       and actor in floor.actors
       and actor.cell in hero.visible_cells
+      and not (type(actor) is Mimic and actor.idle)
     )
 
     enemies = [a for a in floor.actors if is_valid_actor(a)]

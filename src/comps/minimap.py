@@ -82,7 +82,7 @@ class Minimap:
         else:
           color = 0x7F7F7F
       else:
-        if cell in visible_cells:
+        if cell in visible_cells and not tile is Stage.PIT:
           color = 0x333333
         else:
           color = 0x000000

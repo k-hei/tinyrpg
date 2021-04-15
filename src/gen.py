@@ -207,6 +207,26 @@ def dungeon(size, floor=1):
     normal_rooms.remove(exit_room)
 
   for room in normal_rooms:
+    if random.randint(0, 4): continue
+    room_left, room_top = room.cell
+    room_width, room_height = room.size
+    center_x, center_y = room.get_center()
+    left_tile = stage.get_tile_at((room_left - 1, center_y))
+    right_tile = stage.get_tile_at((room_left + room_width, center_y))
+    top_tile = stage.get_tile_at((center_x, room_top - 1))
+    bottom_tile = stage.get_tile_at((center_x, room_top + room_height))
+    if room_height >= room_width and left_tile is not Stage.DOOR and right_tile is not Stage.DOOR:
+      y = center_y
+      for x in range(room_width):
+        if room_left + x == center_x: continue
+        stage.set_tile_at((room_left + x, y), Stage.PIT)
+    elif room_width >= room_height and top_tile is not Stage.DOOR and bottom_tile is not Stage.DOOR:
+      x = center_x
+      for y in range(room_height):
+        if room_top + y == center_y: continue
+        stage.set_tile_at((x, room_top + y), Stage.PIT)
+
+  for room in normal_rooms:
     for cell in room.get_cells():
       is_floor = stage.get_tile_at(cell) is Stage.FLOOR
       is_empty = stage.get_actor_at(cell) is None

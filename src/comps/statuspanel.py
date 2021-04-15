@@ -21,14 +21,14 @@ EXIT_STAGGER = 3
 PANEL_SPACING = -3
 MARGIN_X = 8
 MARGIN_Y = 6
-STATUS_PADDING_X = 11
+STATUS_PADDING_X = 10
 STATUS_PADDING_Y = 4
 STATUS_FIELD_SPACING = 1
 BAR_X = 2
 BAR_Y = 7
 BAR_PADDING_X = 3
 BAR_PADDING_Y = 1
-BAR_WIDTH = 50
+BAR_WIDTH = 42
 BAR_HEIGHT = 2
 FLOOR_PADDING_LEFT = 3
 FLOOR_PADDING_TOP = 3
@@ -200,7 +200,7 @@ class StatusPanel:
   def render_bar(panel, val_cur, val_max):
     assets = use_assets()
     font = assets.fonts["smallcaps"]
-    surface = assets.sprites["bar"].copy()
+    surface = assets.sprites["bar_small"].copy()
     width = math.ceil(BAR_WIDTH * val_cur / val_max)
     if width == BAR_WIDTH and val_cur != val_max:
       width -= 1
