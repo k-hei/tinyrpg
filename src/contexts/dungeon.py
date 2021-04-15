@@ -590,7 +590,7 @@ class DungeonContext(Context):
       real_damage = damage
       if target.counter:
         game.log.print(target.name.upper() + " reflected the attack!")
-        target.counter = False
+        # target.counter = False
         real_target = actor
         real_damage = Actor.find_damage(actor, actor)
       game.flinch(

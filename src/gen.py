@@ -339,11 +339,13 @@ def dungeon(size, floor=1):
     room_width, room_height = room.size
     center_x, center_y = room.get_center()
     if random.randint(1, 30) and min(room_width, room_height) > 3:
+      # giant pit
       radius = 1
       for y in range(room_height - radius * 2):
         for x in range(room_width - radius * 2):
           stage.set_tile_at((room_left + radius + x, room_top + radius + y), Stage.PIT)
     elif random.randint(1, 5) == 1:
+      # edge-center pits (TODO: random radius)
       left_tile = stage.get_tile_at((room_left - 1, center_y))
       right_tile = stage.get_tile_at((room_left + room_width, center_y))
       top_tile = stage.get_tile_at((center_x, room_top - 1))
@@ -358,6 +360,38 @@ def dungeon(size, floor=1):
         for y in range(room_height):
           if room_top + y == center_y: continue
           stage.set_tile_at((x, room_top + y), Stage.PIT)
+    elif random.randint(1, 30):
+      # fill with pit
+      # get all doors
+      # if doors >= 2 (always true for normal rooms):
+      #   get approximate midpoint of doors that is within room bounds
+      #   for each door:
+      #     paint from door to midpoint
+      # otherwise,
+      #   use center as midpoint
+      #   paint from door to midpoint
+      #
+      # paint_x(x1, x2, y)
+      # paint_y(y1, y2, x)
+      #
+      # paint from p1 to p2:
+      #   get normal x
+      #   get normal y
+      #   pick one of two options:
+      #     y = y1
+      #     while y != y2:
+      #       y += normal y
+      #     x = x1
+      #     while x != x2:
+      #       x += normal x
+      #   else:
+      #     y = y1
+      #     while y != y2:
+      #       y += normal y
+      #     x = x1
+      #     while x != x2:
+      #       x += normal x
+      pass
 
   for room in normal_rooms:
     for cell in room.get_cells():
@@ -414,17 +448,6 @@ def dungeon(size, floor=1):
         if random.randint(0, 4):
           enemy.asleep = True
         stage.spawn_actor(enemy, cell)
-
-  if floor == 1:
-    stage.set_tile_at((width // 2 - 1, height - 5), Stage.PIT)
-    stage.set_tile_at((width // 2 + 1, height - 5), Stage.PIT)
-    stage.set_tile_at((width // 2 - 1, height - 6), Stage.PIT)
-    stage.set_tile_at((width // 2 + 1, height - 6), Stage.PIT)
-    stage.set_tile_at((width // 2 - 1, height - 7), Stage.PIT)
-    stage.set_tile_at((width // 2 + 1, height - 7), Stage.PIT)
-    eye = Eye()
-    eye.asleep = True
-    stage.spawn_actor(eye, (width // 2 + 1, height - 3))
 
   stage.rooms = rooms
   return stage

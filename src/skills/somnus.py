@@ -12,7 +12,7 @@ class Somnus(Skill):
       kind="spell",
       element="dark",
       desc="Lulls target to sleep",
-      cost=6,
+      cost=4,
       radius=1
     )
 

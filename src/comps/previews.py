@@ -103,7 +103,13 @@ class Previews:
           continue
         cur_idx = self.previews.index(preview)
         tgt_idx = enemies.index(preview.actor)
-        arrange_anim = next((a for a in arranging if a.target[0] is preview), None)
+        arrange_anim = (
+          arranging
+          and next((a for a in arranging if (
+            a.target
+            and a.target[0] is preview
+          )), None)
+        )
         if cur_idx != tgt_idx and arrange_anim is None:
           preview.y = cur_idx
           targets[preview] = (cur_idx, tgt_idx)

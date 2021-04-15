@@ -9,8 +9,8 @@ class Counter(Skill):
       name="Counter",
       kind="shield",
       element=None,
-      desc="Reflects one phys attack",
-      cost=12,
+      desc="Reflects phys damage",
+      cost=6,
       radius=0
     )
 
