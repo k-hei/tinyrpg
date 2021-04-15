@@ -66,6 +66,7 @@ class DungeonContext(Context):
   PAUSE_DEATH_DURATION = 45
   AWAKEN_DURATION = 45
   VISION_RANGE = 3.5
+  TOP_FLOOR = 1
 
   def __init__(game, parent):
     super().__init__(parent)
@@ -94,14 +95,14 @@ class DungeonContext(Context):
 
   def create_floor(game):
     floor_no = len(game.floors) + 1
-    if floor_no == 3:
-      floor = gen.giant_room((19, 19))
-    elif floor_no == 5:
+    if floor_no == DungeonContext.TOP_FLOOR:
       floor = gen.top_floor()
+    elif floor_no == 3:
+      floor = gen.giant_room((19, 19))
     else:
       floor = gen.dungeon((19, 19), len(game.floors) + 1)
 
-    if floor_no == 5:
+    if floor_no == DungeonContext.TOP_FLOOR:
       game.log.print("The air feels different up here.")
     elif floor.find_tile(Stage.DOOR_HIDDEN):
       game.log.print("This floor seems to hold many secrets.")
@@ -157,8 +158,10 @@ class DungeonContext(Context):
         game.step_enemy(actor, run)
       elif actor.asleep:
         actor.hp += min(actor.hp_max, 1 / 25)
-      if type(actor) is Actor and actor.counter:
-        actor.counter = False
+      if isinstance(actor, Actor) and actor.counter:
+        actor.counter = max(0, actor.counter - 1)
+        if actor.counter == 0:
+          print("Barrier expired")
 
   # TODO: move into enemy module
   def step_enemy(game, enemy, run=False):
@@ -299,7 +302,7 @@ class DungeonContext(Context):
             enemy = Eye()
             floor.spawn_actor(enemy, cell)
             cells.remove(cell)
-            if random.randint(0, 2):
+            if random.randint(0, 9):
               enemy.asleep = True
 
         game.anims.append([

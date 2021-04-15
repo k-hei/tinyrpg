@@ -1,7 +1,7 @@
 from comps.preview import Preview
 from easing.expo import ease_out
 from lerp import lerp
-from cell import manhattan
+from cell import manhattan, is_adjacent
 import pygame
 
 from anims.tween import TweenAnim
@@ -22,6 +22,7 @@ LOG_HEIGHT = 48
 class Previews:
   def __init__(self):
     self.previews = []
+    self.enemies = []
     self.anims = []
 
   def draw(self, surface, game):
@@ -34,7 +35,14 @@ class Previews:
       and not (type(actor) is Mimic and actor.idle)
     )]
     enemies.sort(key=lambda e: manhattan(e.cell, hero.cell))
-    enemies = enemies[:3]
+    adjacent_enemies = [e for e in enemies if is_adjacent(e.cell, hero.cell)]
+    if not self.enemies:
+      self.enemies = enemies[:3]
+    self.enemies = [e for e in self.enemies if e in enemies]
+    new_enemies = [e for e in enemies if e not in self.enemies]
+    if len(self.enemies) < 3 and new_enemies:
+      while len(self.enemies) < 3 and new_enemies:
+        self.enemies.append(new_enemies.pop(0))
 
     entering = [a for a in self.anims if type(a) is EnterAnim]
     exiting = [a for a in self.anims if type(a) is ExitAnim or type(a) is SquishAnim]
@@ -96,23 +104,26 @@ class Previews:
 
     if exited:
       targets = {}
+      def arrange_previews():
+        for preview in self.previews:
+          if preview is None or preview.actor not in self.enemies:
+            continue
+          cur_idx = self.previews.index(preview)
+          tgt_idx = self.enemies.index(preview.actor)
+          arrange_anim = None
+          if arranging:
+            arrange_anim = next((a for a in arranging if (
+              0 in a.target
+              and a.target[0] is preview
+            )), None)
+          if cur_idx != tgt_idx and arrange_anim is None:
+            preview.y = cur_idx
+            targets[preview] = (cur_idx, tgt_idx)
       # actors = [p.actor for p in self.previews]
       # print(pygame.time.get_ticks(), "Exited, remainder is", actors)
-      for preview in self.previews:
-        if preview is None or preview.actor not in enemies:
-          continue
-        cur_idx = self.previews.index(preview)
-        tgt_idx = enemies.index(preview.actor)
-        arrange_anim = (
-          arranging
-          and next((a for a in arranging if (
-            a.target
-            and a.target[0] is preview
-          )), None)
-        )
-        if cur_idx != tgt_idx and arrange_anim is None:
-          preview.y = cur_idx
-          targets[preview] = (cur_idx, tgt_idx)
+      arrange_previews()
+      self.previews = [p for p in self.previews if p]
+      arrange_previews()
 
       if targets:
         anim = ArrangeAnim(
@@ -125,11 +136,11 @@ class Previews:
     # enter
     if not exiting and (not arranging or exited):
       added = 0
-      for enemy in enemies:
+      for enemy in self.enemies:
         preview = next((p for p in self.previews if p and p.actor is enemy), None)
-        if preview is None:
+        if preview is None and len(self.previews) < 3:
           preview = Preview(enemy)
-          if enemies.index(preview.actor) == 0:
+          if self.enemies.index(preview.actor) == 0:
             self.previews.insert(0, preview)
           else:
             self.previews.append(preview)
