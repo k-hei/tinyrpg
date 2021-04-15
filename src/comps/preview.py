@@ -1,13 +1,15 @@
-from assets import load as use_assets
-from pygame import Surface, Rect
-import pygame
 import random
+import pygame
+from pygame import Surface, Rect
+from assets import load as use_assets
+from filters import replace_color
+import palette
 
 from anims import Anim
 from anims.tween import TweenAnim
+from anims.flicker import FlickerAnim
 from easing.expo import ease_out
 from lerp import lerp
-import palette
 
 MARGIN = 8
 HP_OVERLAP = 0
@@ -18,6 +20,10 @@ EXIT_SPEED = 8
 BAR_PADDING_X = 3
 BAR_PADDING_Y = 1
 BAR_HEIGHT = 2
+PORTRAIT_X = 23
+PORTRAIT_Y = 3
+
+class ShakeAnim(Anim): pass
 
 class Preview:
   def __init__(preview, actor):
@@ -35,25 +41,33 @@ class Preview:
     if preview.sprite is None or preview.hp != preview.actor.hp:
       preview.sprite = preview.render()
       if preview.hp == preview.hp_prev:
-        preview.anim = Anim(duration=10)
+        preview.anim = ShakeAnim(duration=10)
       preview.hp = max(preview.actor.hp, preview.hp - 1 / 20)
     preview.hp_prev = preview.actor.hp
 
-    if preview.anim:
+    if preview.anim is None:
+      return
+
+    anim = preview.anim
+    if type(anim) is ShakeAnim:
       offset_x, offset_y = preview.offset
       while (offset_x, offset_y) == preview.offset:
         offset_x = random.randint(-1, 1)
         offset_y = random.randint(-1, 1)
       preview.offset = (offset_x, offset_y)
-      anim = preview.anim
       anim.update()
       if anim.done:
         offset = (0, 0)
         preview.anim = None
+      if anim.done and preview.actor.hp == 0:
+        preview.anim = FlickerAnim(duration=30, target=preview)
+    elif type(anim) is FlickerAnim:
+      anim.update()
 
   def render(preview):
     actor = preview.actor
     assets = use_assets()
+    base = assets.sprites["portrait_enemy"] # TODO: disambiguate based on type
     portrait = assets.sprites["portrait_eye"] # TODO: disambiguate based on type
     hp_tag = assets.sprites["tag_hp"]
     bar = assets.sprites["bar_small"]
@@ -74,12 +88,16 @@ class Preview:
       bar_fg_width,
       BAR_HEIGHT
     )
+    anim = preview.anim
+    if type(anim) is FlickerAnim and (anim.time % 4 >= 2 or anim.done):
+      portrait = replace_color(portrait, palette.WHITE, palette.GRAY)
     surface_width = bar_x + bar.get_width()
     surface_height = HP_OFFSET_Y + hp_tag.get_height()
     surface = Surface((surface_width, surface_height))
     surface.set_colorkey(0xFF00FF)
     surface.fill(0xFF00FF)
-    surface.blit(portrait, (0, 0))
+    surface.blit(base, (0, 0))
+    surface.blit(portrait, (PORTRAIT_X, PORTRAIT_Y))
     surface.blit(hp_tag, (HP_OFFSET_X, HP_OFFSET_Y))
     surface.blit(bar, (bar_x, bar_y))
     pygame.draw.rect(surface, palette.RED, bar_bg_rect)

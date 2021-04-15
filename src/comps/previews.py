@@ -62,7 +62,12 @@ class Previews:
         preview = next((p for p in self.previews if p and p.actor is enemy), None)
         if preview is None:
           preview = Preview(enemy)
-          self.previews.append(preview)
+          if None in self.previews:
+            index = self.previews.index(None)
+            self.previews.remove(None)
+            self.previews.insert(index, preview)
+          else:
+            self.previews.append(preview)
           anim = EnterAnim(
             duration=15,
             delay=added * 10,

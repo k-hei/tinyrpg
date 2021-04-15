@@ -50,6 +50,7 @@ sprite_paths = {
   "portrait_knight": "assets/portrait-knight.png",
   "portrait_mage": "assets/portrait-mage.png",
   "portrait_eye": "assets/portrait-eye.png",
+  "portrait_enemy": "assets/portrait-enemy.png",
   "portrait_mimic": "assets/portrait-mimic.png",
   "icon_shield": "assets/icon-shield.png",
   "icon_hat": "assets/icon-hat.png",
