@@ -50,10 +50,12 @@ class Minimap:
         else:
           color = 0xFF0000
       elif type(actor) is Chest:
-        if cell in visible_cells:
-          color = 0xFFFF00
-        else:
+        if actor.opened:
           color = 0x7F7F00
+        elif cell in visible_cells:
+          color = 0xFFFF00 if minimap.time % 60 >= 30 else 0x7F7F00
+        else:
+          color = 0xFFFF00
       elif tile is Stage.WALL or tile is Stage.DOOR_HIDDEN or tile is Stage.DOOR_LOCKED:
         if cell in visible_cells:
           color = 0xFFFFFF
@@ -71,10 +73,7 @@ class Minimap:
           color = 0x333333
       elif tile is Stage.STAIRS_UP:
         if cell in visible_cells:
-          if minimap.time % 60 >= 30:
-            color = 0x00FF00
-          else:
-            color = 0x007F00
+          color = 0x00FF00 if minimap.time % 60 >= 30 else 0x007F00
         else:
           color = 0x00FF00
       elif tile is Stage.STAIRS_DOWN:

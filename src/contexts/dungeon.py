@@ -17,11 +17,12 @@ import fov
 import config
 import palette
 
-from log import Log
 from camera import Camera
 from inventory import Inventory
-from statuspanel import StatusPanel
+from comps.statuspanel import StatusPanel
+from comps.log import Log
 from comps.minimap import Minimap
+from comps.previews import Previews
 
 from transits.dissolve import DissolveOut
 
@@ -80,12 +81,13 @@ class DungeonContext(Context):
     game.hud = StatusPanel()
     game.minimap = Minimap((15, 15))
     game.inventory = Inventory((2, 2), [Potion()])
-    game.create_floor()
+    game.previews = Previews()
     game.key_requires_reset = {}
     game.skills = {
       game.hero: [ShieldBash(), Counter(), Blitzritter()],
       game.ally: [Ignis(), Somnus(), DetectMana()]
     }
+    game.create_floor()
 
   def create_floor(game):
     floor = gen.dungeon((19, 19), len(game.floors) + 1)
@@ -670,3 +672,4 @@ class DungeonContext(Context):
 
     game.hud.draw(surface, game)
     game.minimap.draw(surface, game)
+    game.previews.draw(surface, game)
