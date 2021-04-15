@@ -4,6 +4,6 @@ node_modules
 tmp
 .vscode
 __pycache__
-main.spec
+*.spec
 dist
 build

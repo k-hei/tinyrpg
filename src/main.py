@@ -8,7 +8,7 @@ import keyboard
 from contexts.game import GameContext
 from contexts.dungeon import DungeonContext
 
-WINDOW_TITLE = "hello"
+WINDOW_TITLE = "tinyrpg"
 WINDOW_SIZE = (config.window_width, config.window_height)
 WINDOW_SIZE_SCALED = (
   config.window_width * config.window_scale,
@@ -16,7 +16,7 @@ WINDOW_SIZE_SCALED = (
 )
 
 pygame.display.init()
-pygame.display.set_caption("hello")
+pygame.display.set_caption("tinyrpg")
 display = pygame.display.set_mode(WINDOW_SIZE_SCALED)
 surface = Surface(WINDOW_SIZE)
 pygame.key.set_repeat(1000 // config.fps)
