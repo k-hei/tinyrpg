@@ -9,6 +9,7 @@ class Camera:
   def __init__(camera, size):
     camera.size = size
     camera.pos = None
+    camera.cell = None
     camera.flag = None
     camera.speed = None
 
@@ -22,6 +23,14 @@ class Camera:
   def blur(camera):
     camera.flag = None
     camera.speed = None
+
+  def is_cell_visible(camera, cell):
+    col, row = cell
+    center_col, center_row = camera.cell
+    return (
+      abs(col - center_col) <= MAX_RADIUS_X
+      and abs(row - center_row) <= MAX_RADIUS_Y
+    )
 
   def update(camera, game):
     view_width, view_height = camera.size
@@ -79,3 +88,4 @@ class Camera:
       camera_x = old_camera_x + (camera_x - old_camera_x) / camera_speed
       camera_y = old_camera_y + (camera_y - old_camera_y) / camera_speed
     camera.pos = (camera_x, camera_y)
+    camera.cell = (focus_x, focus_y)

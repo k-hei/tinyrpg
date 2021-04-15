@@ -285,18 +285,25 @@ class DungeonContext(Context):
         if enemy:
           enemy.asleep = False
           is_waking_up = True
-          game.anims.append([
-            AwakenAnim(
-              duration=DungeonContext.AWAKEN_DURATION,
-              target=enemy,
-              on_end=lambda: (
-                game.log.print(enemy.name.upper() + " woke up!"),
-                game.anims[0].append(PauseAnim(
-                  duration=DungeonContext.PAUSE_DURATION
-                ))
+          if game.camera.is_cell_visible(enemy.cell):
+            game.anims.append([
+              AwakenAnim(
+                duration=DungeonContext.AWAKEN_DURATION,
+                target=enemy,
+                on_end=lambda: (
+                  game.log.print(enemy.name.upper() + " woke up!"),
+                  game.anims[0].append(PauseAnim(
+                    duration=DungeonContext.PAUSE_DURATION,
+                    on_end=lambda: (
+                      game.step(),
+                      game.refresh_fov(moving=True)
+                    )
+                  ))
+                )
               )
-            )
-          ])
+            ])
+          else:
+            print("Waking up offscreen")
 
       if not is_waking_up:
         game.step()
