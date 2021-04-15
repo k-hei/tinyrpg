@@ -9,6 +9,7 @@ from actors.mage import Mage
 from actors.eye import Eye
 from actors.chest import Chest
 from actors.mimic import Mimic
+from actors.npc import NPC
 
 from items.potion import Potion
 from items.ankh import Ankh
@@ -46,6 +47,87 @@ def get_neighbors(nodes, node):
         else:
           neighbors[neighbor] = [edge]
   return neighbors
+
+def top_floor():
+  floor = parse_data([
+    "#####-#####################",
+    "   .....                   ",
+    "   .....                   ",
+    "   .....                   ",
+    "     .                     ",
+    "     .                     ",
+    "     .                     ",
+    "     .                     ",
+    "     .                     ",
+    "     .                     ",
+    "     .                     ",
+    "     .                     ",
+    "     .                     ",
+    "     .                     ",
+    "     .                     ",
+    "#####+#####################",
+    "##.......##################",
+    "##.......*....#############",
+    "##.......####.#...........#",
+    "##.......####.#...........#",
+    "##.......####.#..       ..#",
+    "#####.#######.#..  ...  ..#",
+    "#####.#######.+..  .......#",
+    "#####.#########..  ...  ..#",
+    "####...########..       ..#",
+    "###..>..#######...........#",
+    "####...########...........#",
+    "#####.#####################",
+    "###########################"
+  ])
+
+  floor.rooms = [
+    Room((5, 3), (3, 1)),
+    Room((7, 5), (2, 16)),
+    Room((11, 9), (15, 18))
+  ]
+
+  item = Fish()
+  floor.spawn_actor(Chest(item), (24, 20))
+  floor.spawn_actor(Mimic(), (20, 22))
+  floor.spawn_actor(NPC(), (4, 1))
+
+  return floor
+
+def parse_data(data):
+  rows = len(data)
+  cols = len(data[0])
+  floor = Stage((cols, rows))
+  entrance = None
+  stairs = None
+  x, y = (0, 0)
+  for row in data:
+    x = 0
+    for char in row:
+      cell = (x, y)
+      tile = Stage.FLOOR
+      if char == "#":
+        tile = Stage.WALL
+      elif char == " ":
+        tile = Stage.PIT
+      elif char == "+":
+        tile = Stage.DOOR
+      elif char == "-":
+        tile = Stage.DOOR_LOCKED
+      elif char == "*":
+        tile = Stage.DOOR_HIDDEN
+      elif char == ">":
+        tile = Stage.STAIRS_DOWN
+        entrance = cell
+      elif char == "<":
+        tile = Stage.STAIRS_UP
+        stairs = cell
+      floor.set_tile_at(cell, tile)
+      x += 1
+    y += 1
+  floor.entrance = entrance
+  floor.stairs = stairs
+  return floor
 
 def giant_room(size):
   stage = Stage(size)

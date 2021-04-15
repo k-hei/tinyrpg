@@ -12,6 +12,7 @@ from actors.mage import Mage
 from actors.eye import Eye
 from actors.mimic import Mimic
 from actors.chest import Chest
+from actors.npc import NPC
 
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
@@ -190,6 +191,9 @@ class Stage:
       sprite = assets.sprites["chest"]
       if not actor.idle:
         sprite = replace_color(sprite, palette.GOLD, palette.RED)
+    elif type(actor) is NPC:
+      sprite = assets.sprites["eye"]
+      sprite = replace_color(sprite, palette.RED, (0x37, 0x94, 0x6E))
 
     item = None
     anim_group = anims[0] if len(anims) else []

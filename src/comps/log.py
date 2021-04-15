@@ -55,11 +55,14 @@ class Log:
         on_end=log.reset
       )
 
-  def reset(log):
+  def clear(log):
     log.messages = []
     log.cache = []
     log.row = -1
     log.offset = 0
+
+  def reset(log):
+    log.clear()
     log.active = False
 
   def render(log, bg, font):

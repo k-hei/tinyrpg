@@ -35,6 +35,7 @@ from actors.mage import Mage
 from actors.eye import Eye
 from actors.chest import Chest
 from actors.mimic import Mimic
+from actors.npc import NPC
 
 from skills.blitzritter import Blitzritter
 from skills.shieldbash import ShieldBash
@@ -92,7 +93,13 @@ class DungeonContext(Context):
     game.create_floor()
 
   def create_floor(game):
-    floor = gen.dungeon((19, 19), len(game.floors) + 1)
+    floor_no = len(game.floors) + 1
+    if floor_no == 3:
+      floor = gen.giant_room((19, 19))
+    elif floor_no == 1:
+      floor = gen.top_floor()
+    else:
+      floor = gen.dungeon((19, 19), len(game.floors) + 1)
 
     if floor.find_tile(Stage.DOOR_HIDDEN):
       game.log.print("This floor seems to hold many secrets.")
@@ -362,7 +369,18 @@ class DungeonContext(Context):
           dest_cell=target_cell
         )
       ])
-      if type(target_actor) is Chest:
+      if type(target_actor) is NPC:
+        npc = target_actor
+        game.log.clear()
+        message = npc.message
+        game.log.print(npc.name + ": " + message[0])
+        for i in range(1, len(message)):
+          game.log.print(message[i])
+        if npc.message == npc.messages[0]:
+          npc.message = npc.messages[1]
+        else:
+          npc.message = npc.messages[0]
+      elif type(target_actor) is Chest:
         chest = target_actor
         item = chest.contents
         if item:
