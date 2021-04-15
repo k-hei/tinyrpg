@@ -5,7 +5,7 @@ from cell import manhattan
 import pygame
 
 from anims.tween import TweenAnim
-from easing.expo import ease_out
+from easing.expo import ease_out, ease_in_out
 from lerp import lerp
 
 MARGIN = 8
@@ -35,28 +35,34 @@ class Previews:
     exiting = [preview for (kind, preview) in targets if kind == "Exit"]
 
     if not entering:
+      added = 0
       for preview in self.previews:
         if preview.done: continue
         if preview.actor not in enemies and preview not in exiting:
           anim = TweenAnim(
             duration=6,
+            delay=added * 4,
             target=("Exit", preview)
           )
           exiting.append(anim)
           self.anims.append(anim)
+          added += 1
 
     if not exiting:
+      added = 0
       for enemy in enemies:
         preview = next((p for p in self.previews if p.actor is enemy), None)
         if preview is None:
           preview = Preview(enemy)
           self.previews.append(preview)
           anim = TweenAnim(
-            duration=20,
+            duration=15,
+            delay=added * 10,
             target=("Enter", preview)
           )
           entering.append(anim)
           self.anims.append(anim)
+          added += 1
 
     if not exiting and not entering:
       for preview in self.previews:
@@ -68,11 +74,16 @@ class Previews:
       kind, preview = anim.target
       if kind == "Enter":
         t = ease_out(t)
-      else:
+      elif kind == "Exit":
         t = 1 - t
-      start_x = 0
-      end_x = MARGIN + (preview.sprite or preview.render()).get_width()
-      preview.x = lerp(start_x, end_x, t)
+      elif kind == "Arrange":
+        t = ease_in_out(t)
+      if kind == "Arrange":
+        pass
+      else:
+        start_x = 0
+        end_x = MARGIN + (preview.sprite or preview.render()).get_width()
+        preview.x = lerp(start_x, end_x, t)
       if anim.done:
         self.anims.remove(anim)
         if kind == "Exit":

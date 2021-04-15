@@ -5,6 +5,7 @@ import pygame
 from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lerp import lerp
+import palette
 
 MARGIN = 8
 HP_OVERLAP = 0
@@ -38,7 +39,7 @@ class Preview:
   def update(preview):
     if preview.sprite is None or preview.hp != preview.actor.hp:
       preview.sprite = preview.render()
-      preview.hp = preview.actor.hp
+      preview.hp = max(preview.actor.hp, preview.hp - 1 / 20)
     if preview.anim:
       anim = preview.anim
       t = anim.update()
@@ -63,11 +64,20 @@ class Preview:
     bar = assets.sprites["bar_small"]
     bar_x = HP_OFFSET_X + hp_tag.get_width() + 1
     bar_y = HP_OFFSET_Y + hp_tag.get_height() - bar.get_height()
-    bar_width = (bar.get_width() - BAR_PADDING_X * 2) * actor.hp / actor.hp_max
-    bar_rect = Rect(
+    bar_width = (bar.get_width() - BAR_PADDING_X * 2)
+    print(actor.hp, preview.hp, actor.hp_max)
+    bar_bg_width = bar_width * preview.hp / actor.hp_max
+    bar_fg_width = bar_width * actor.hp / actor.hp_max
+    bar_bg_rect = Rect(
       bar_x + BAR_PADDING_X,
       bar_y + BAR_PADDING_Y,
-      bar_width,
+      bar_bg_width,
+      BAR_HEIGHT
+    )
+    bar_fg_rect = Rect(
+      bar_x + BAR_PADDING_X,
+      bar_y + BAR_PADDING_Y,
+      bar_fg_width,
       BAR_HEIGHT
     )
     surface_width = bar_x + bar.get_width()
@@ -78,7 +88,8 @@ class Preview:
     surface.blit(portrait, (0, 0))
     surface.blit(hp_tag, (HP_OFFSET_X, HP_OFFSET_Y))
     surface.blit(bar, (bar_x, bar_y))
-    pygame.draw.rect(surface, 0xFFFFFF, bar_rect)
+    pygame.draw.rect(surface, palette.RED, bar_bg_rect)
+    pygame.draw.rect(surface, 0xFFFFFF, bar_fg_rect)
     return surface
 
   def draw(preview, window):
