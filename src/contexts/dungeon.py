@@ -29,6 +29,7 @@ from transits.dissolve import DissolveOut
 from contexts.inventory import InventoryContext
 from contexts.skill import SkillContext
 
+from actors import Actor
 from actors.knight import Knight
 from actors.mage import Mage
 from actors.eye import Eye
@@ -138,6 +139,8 @@ class DungeonContext(Context):
         game.step_enemy(actor, run)
       elif actor.asleep:
         actor.hp += min(actor.hp_max, 1 / 25)
+      if type(actor) is Actor and actor.counter:
+        actor.counter = False
 
   # TODO: move into enemy module
   def step_enemy(game, enemy, run=False):

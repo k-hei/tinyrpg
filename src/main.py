@@ -17,7 +17,7 @@ WINDOW_SIZE_SCALED = (
 
 pygame.display.init()
 pygame.display.set_caption("hello")
-display = pygame.display.set_mode(WINDOW_SIZE_SCALED)
+display = pygame.display.set_mode(WINDOW_SIZE_SCALED, pygame.FULLSCREEN)
 surface = Surface(WINDOW_SIZE)
 pygame.key.set_repeat(1000 // config.fps)
 

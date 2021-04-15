@@ -81,15 +81,18 @@ class Minimap:
           color = 0xFFFFFF
         else:
           color = 0x7F7F7F
+      elif tile is Stage.PIT:
+        if cell in visible_cells:
+          color = 0x000000
       else:
-        if cell in visible_cells and not tile is Stage.PIT:
+        if cell in visible_cells:
           color = 0x333333
         else:
           color = 0x000000
       x, y = cell
       x = x - hero_x + sprite_width // 2
       y = y - hero_y + sprite_height // 2
-      if x >= 0 and y >= 0 and x < sprite_width and y < sprite_height:
+      if color is not None and x >= 0 and y >= 0 and x < sprite_width and y < sprite_height:
         pixels[x, y] = color
     pixels.close()
     surface.blit(pygame.transform.scale(temp_surface, scaled_size), (0, 0))
