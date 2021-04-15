@@ -56,7 +56,6 @@ class Previews:
           )
           self.anims.append(anim)
           exiting.append(anim)
-          print(pygame.time.get_ticks(), "removing", preview.actor.name)
           added += 1
 
     exited = False
@@ -114,7 +113,6 @@ class Previews:
           duration=15,
           target=targets
         )
-        print(pygame.time.get_ticks(), "Rearranging")
         self.anims.append(anim)
         arranging.append(anim)
 

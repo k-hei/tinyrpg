@@ -149,7 +149,7 @@ def giant_room(size):
   cells = [c for c in cells if manhattan(c, entrance) >= 3]
 
   stairs = random.choice(cells)
-  stage.set_tile_at(entrance, Stage.STAIRS_UP)
+  stage.set_tile_at(stairs, Stage.STAIRS_UP)
   cells.remove(stairs)
   cells = [c for c in cells if manhattan(c, stairs) >= 3]
 
@@ -338,7 +338,7 @@ def dungeon(size, floor=1):
     room_left, room_top = room.cell
     room_width, room_height = room.size
     center_x, center_y = room.get_center()
-    if random.randint(1, 20) and min(room_width, room_height) > 3:
+    if random.randint(1, 30) and min(room_width, room_height) > 3:
       radius = 1
       for y in range(room_height - radius * 2):
         for x in range(room_width - radius * 2):
@@ -415,13 +415,13 @@ def dungeon(size, floor=1):
           enemy.asleep = True
         stage.spawn_actor(enemy, cell)
 
-  stage.spawn_actor(Eye(), (width // 2 - 1, height - 5))
-  stage.spawn_actor(Eye(), (width // 2 + 0, height - 5))
-  stage.spawn_actor(Eye(), (width // 2 + 1, height - 5))
-  stage.set_tile_at((width // 2 - 1, height - 4), Stage.PIT)
-  stage.set_tile_at((width // 2 + 0, height - 4), Stage.PIT)
-  stage.set_tile_at((width // 2 + 1, height - 4), Stage.PIT)
-  stage.spawn_actor(Mimic(), (width // 2 + 1, height - 3))
+  if floor == 1:
+    stage.set_tile_at((width // 2 - 1, height - 5), Stage.PIT)
+    stage.set_tile_at((width // 2 + 1, height - 5), Stage.PIT)
+    stage.set_tile_at((width // 2 - 1, height - 6), Stage.PIT)
+    stage.set_tile_at((width // 2 + 1, height - 6), Stage.PIT)
+    stage.set_tile_at((width // 2 - 1, height - 7), Stage.PIT)
+    stage.set_tile_at((width // 2 + 1, height - 7), Stage.PIT)
 
   stage.rooms = rooms
   return stage

@@ -98,10 +98,12 @@ class Preview:
       BAR_HEIGHT
     )
     anim = preview.anim
-    if type(anim) is ShakeAnim and anim.time <= 2:
-      portrait = portrait and replace_color(portrait, palette.WHITE, palette.RED)
-    elif type(anim) is FlickerAnim and (anim.time % 4 >= 2 or anim.done):
+    if type(anim) is FlickerAnim and (anim.time % 4 >= 2 or anim.done):
       portrait = portrait and replace_color(portrait, palette.WHITE, palette.GRAY)
+    elif type(anim) is ShakeAnim and anim.time <= 2:
+      portrait = portrait and replace_color(portrait, palette.WHITE, palette.RED)
+    elif actor.asleep:
+      portrait = portrait and replace_color(portrait, palette.WHITE, palette.PURPLE)
     surface_width = bar_x + bar.get_width()
     surface_height = HP_OFFSET_Y + hp_tag.get_height()
     surface = Surface((surface_width, surface_height))

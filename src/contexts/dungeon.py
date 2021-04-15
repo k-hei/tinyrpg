@@ -340,8 +340,6 @@ class DungeonContext(Context):
                 )
               )
             ])
-          else:
-            print("Waking up offscreen")
 
       if not is_waking_up:
         game.step()
