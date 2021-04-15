@@ -30,7 +30,7 @@ class Previews:
     enemies.sort(key=lambda e: manhattan(e.cell, hero.cell))
     enemies = enemies[:3]
 
-    targets = [a.target for a in self.anims]
+    targets = [a.target for a in self.anims if a.target[0] != "Arrange"]
     entering = [preview for (kind, preview) in targets if kind == "Enter"]
     exiting = [preview for (kind, preview) in targets if kind == "Exit"]
 
@@ -64,25 +64,36 @@ class Previews:
           added += 1
 
     if not exiting and not entering:
+      added = 0
       for preview in self.previews:
-        if self.previews.index(preview) != enemies.index(preview.actor):
-          pass
+        cur_idx = self.previews.index(preview)
+        tgt_idx = enemies.index(preview.actor)
+        if cur_idx != tgt_idx:
+          self.anims.append(TweenAnim(
+            duration=15,
+            delay=added * 10,
+            target=("Arrange", preview, cur_idx, tgt_idx)
+          ))
+          added += 1
 
     for anim in self.anims:
       t = anim.update()
-      kind, preview = anim.target
-      if kind == "Enter":
-        t = ease_out(t)
-      elif kind == "Exit":
-        t = 1 - t
-      elif kind == "Arrange":
-        t = ease_in_out(t)
-      if kind == "Arrange":
-        pass
-      else:
+      kind = anim.target[0]
+      if kind == "Enter" or kind == "Exit":
+        kind, preview = anim.target
+        if kind == "Enter":
+          t = ease_out(t)
+        elif kind == "Exit":
+          t = 1 - t
         start_x = 0
         end_x = MARGIN + (preview.sprite or preview.render()).get_width()
         preview.x = lerp(start_x, end_x, t)
+      elif kind == "Arrange":
+        kind, preview, src, tgt = anim.target
+        t = ease_in_out(t)
+        start_y = src
+        end_y = tgt
+        preview.y = lerp(start_y, end_y, t)
       if anim.done:
         self.anims.remove(anim)
         if kind == "Exit":
@@ -90,6 +101,7 @@ class Previews:
 
     window_width = surface.get_width()
     window_height = surface.get_height()
+    arranges = [a for a in self.anims if a.target[0] == "Arrange"]
     for i in range(len(self.previews)):
       preview = self.previews[i]
       preview.update()
@@ -97,5 +109,10 @@ class Previews:
       offset_x, offset_y = preview.offset
       x = window_width - preview.x + offset_x
       y = window_height - MARGIN - LOG_HEIGHT + offset_y
-      y += -(SPACING + sprite.get_height()) * (i + 1)
+      delta = -SPACING - sprite.get_height()
+      anim = next((a for a in arranges if a.target[1] is preview), None)
+      if anim:
+        y += delta * (preview.y + 1)
+      else:
+        y += delta * (i + 1)
       surface.blit(sprite, (x, y))
