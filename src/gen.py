@@ -47,7 +47,50 @@ def get_neighbors(nodes, node):
           neighbors[neighbor] = [edge]
   return neighbors
 
+def giant_room(size):
+  stage = Stage(size)
+  width, height = size
+  stage.fill(Stage.WALL)
+  room = Room((width - 2, height - 2), (1, 1))
+  for cell in room.get_cells():
+    stage.set_tile_at(cell, Stage.FLOOR)
+  stage.rooms.append(room)
+
+  cells = []
+  for y in range(width - 4):
+    for x in range(height - 4):
+      cells.append((x + 2, y + 2))
+
+  entrance = random.choice(cells)
+  stage.set_tile_at(entrance, Stage.STAIRS_DOWN)
+  cells.remove(entrance)
+  cells = [c for c in cells if manhattan(c, entrance) >= 3]
+
+  stairs = random.choice(cells)
+  stage.set_tile_at(entrance, Stage.STAIRS_UP)
+  cells.remove(stairs)
+  cells = [c for c in cells if manhattan(c, stairs) >= 3]
+
+  for cell in cells:
+    if random.randint(1, 25) != 1:
+      continue
+    if random.randint(1, 3) == 1:
+      item = random.choices((Cheese, Bread, Fish, Potion, Ankh, Emerald), (3, 2, 1, 2, 1, 1))[0]()
+      stage.spawn_actor(Chest(item), cell)
+    else:
+      enemy = random.choices((Eye, Mimic), (5, 1))[0]()
+      stage.spawn_actor(enemy, cell)
+      if type(enemy) is Eye and random.randint(1, 2) == 1:
+        enemy.asleep = True
+
+  stage.entrance = entrance
+  stage.stairs = stairs
+  return stage
+
 def dungeon(size, floor=1):
+  if floor == 3:
+    return giant_room(size)
+
   width, height = size
   stage = Stage((width, height))
   stage.fill(Stage.WALL)
@@ -191,10 +234,12 @@ def dungeon(size, floor=1):
         best["end"] = local_best["room"]
     entry_room = best["start"]
     exit_room = best["end"]
+    stage.entrance = entry_room.get_center()
     stage.set_tile_at(entry_room.get_center(), Stage.STAIRS_DOWN)
     normal_rooms.remove(entry_room)
   else:
-    center_x, _ = entry_room.get_center()
+    center_x, center_y = entry_room.get_center()
+    stage.entrance = (center_x, center_y + 2)
     stage.set_tile_at((center_x, height - 1), Stage.DOOR_LOCKED)
     if entry_room in normal_rooms:
       normal_rooms.remove(entry_room)
@@ -202,7 +247,8 @@ def dungeon(size, floor=1):
   if exit_room is None:
     exit_room = random.choice(normal_rooms)
 
-  stage.set_tile_at(exit_room.get_center(), Stage.STAIRS_UP)
+  stage.stairs = exit_room.get_center()
+  stage.set_tile_at(stage.stairs, Stage.STAIRS_UP)
   if exit_room in normal_rooms:
     normal_rooms.remove(exit_room)
 
@@ -210,11 +256,10 @@ def dungeon(size, floor=1):
     room_left, room_top = room.cell
     room_width, room_height = room.size
     center_x, center_y = room.get_center()
-    if random.randint(1, 10) and min(room_width, room_height) > 3:
+    if random.randint(1, 20) and min(room_width, room_height) > 3:
       radius = 1
       for y in range(room_height - radius * 2):
         for x in range(room_width - radius * 2):
-          print(x, y)
           stage.set_tile_at((room_left + radius + x, room_top + radius + y), Stage.PIT)
     elif random.randint(1, 5) == 1:
       left_tile = stage.get_tile_at((room_left - 1, center_y))

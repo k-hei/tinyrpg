@@ -1,7 +1,8 @@
 import config
+import math
 from anims.move import MoveAnim
 
-MAX_RADIUS_X = 1
+MAX_RADIUS_X = 3
 MAX_RADIUS_Y = 2
 
 class Camera:
@@ -37,30 +38,31 @@ class Camera:
       focus_x, focus_y = camera.flag
       camera_speed = 16
     elif game.room:
-      focus_x, focus_y = game.room.get_center()
+      room = game.room
+      focus_x, focus_y = room.get_center()
       camera_speed = 8
+      for anim in anims:
+        if anim.target is hero and type(anim) is MoveAnim and not anim.done:
+          hero_x, hero_y = anim.cur_cell
+          break
 
-      if game.room.get_width() > MAX_RADIUS_X * 2 + 1:
-        for anim in anims:
-          if anim.target is hero and type(anim) is MoveAnim and not anim.done:
-            hero_x, _ = anim.cur_cell
-            break
-        if hero_x - focus_x >= MAX_RADIUS_X:
-          focus_x += MAX_RADIUS_X
-        elif hero_x - focus_x <= -MAX_RADIUS_X:
-          focus_x -= MAX_RADIUS_X
+      room_halfwidth = room.get_width() // 2 + 1
+      room_halfheight = room.get_height() // 2 + 1
+      max_radius_x = room_halfwidth - MAX_RADIUS_X
+      max_radius_y = room_halfheight - MAX_RADIUS_Y
+      if room.get_width() > MAX_RADIUS_X * 2 + 1:
+        if hero_x - focus_x < -max_radius_x:
+          focus_x -= max_radius_x
+        elif hero_x - focus_x > max_radius_x:
+          focus_x += max_radius_x
         else:
           focus_x = hero_x
 
-      if game.room.get_height() > MAX_RADIUS_Y + 1:
-        for anim in anims:
-          if anim.target is hero and type(anim) is MoveAnim and not anim.done:
-            _, hero_y = anim.cur_cell
-            break
-        if hero_y - focus_y >= MAX_RADIUS_Y:
-          focus_y += MAX_RADIUS_Y
-        elif hero_y - focus_y <= -MAX_RADIUS_Y:
-          focus_y -= MAX_RADIUS_Y
+      if room.get_height() > MAX_RADIUS_Y + 1:
+        if hero_y - focus_y < -max_radius_y:
+          focus_y -= max_radius_y
+        elif hero_y - focus_y > max_radius_y:
+          focus_y += max_radius_y
         else:
           focus_y = hero_y
     else:

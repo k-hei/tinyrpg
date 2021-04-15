@@ -3,6 +3,8 @@ from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from config import ATTACK_DURATION
 
+from actors import Actor
+
 class Somnus(Skill):
   def __init__(skill):
     super().__init__(
@@ -24,7 +26,7 @@ class Somnus(Skill):
     def on_attack_end():
       if target_actor:
         target_actor.asleep = True
-        if target_actor.idle:
+        if type(target_actor) is Actor and target_actor.idle:
           target_actor.activate()
         result = target_actor.name.upper() + " fell asleep!"
       else:

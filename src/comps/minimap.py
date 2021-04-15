@@ -41,7 +41,7 @@ class Minimap:
         color = 0x337FFF
       elif type(actor) is Mimic and cell in visible_cells:
         if actor.idle:
-          color = 0xFFFF00
+          color = 0xFFFF00 if minimap.time % 60 >= 30 else 0x7F7F00
         else:
           color = 0xFF0000
       elif actor and actor.faction == "enemy" and cell in visible_cells:

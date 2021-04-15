@@ -34,6 +34,7 @@ from actors.knight import Knight
 from actors.mage import Mage
 from actors.eye import Eye
 from actors.chest import Chest
+from actors.mimic import Mimic
 
 from skills.blitzritter import Blitzritter
 from skills.shieldbash import ShieldBash
@@ -96,14 +97,9 @@ class DungeonContext(Context):
     if floor.find_tile(Stage.DOOR_HIDDEN):
       game.log.print("This floor seems to hold many secrets.")
 
-    entrance = floor.find_tile(Stage.STAIRS_DOWN)
-    if entrance is None:
-      x, y = floor.rooms[0].get_center()
-      entrance = (x, y + 2)
-
-    floor.spawn_actor(game.hero, entrance)
+    floor.spawn_actor(game.hero, floor.entrance)
     if not game.ally.dead:
-      x, y = entrance
+      x, y = floor.entrance
       floor.spawn_actor(game.ally, (x - 1, y))
 
     game.floor = floor
@@ -132,6 +128,19 @@ class DungeonContext(Context):
       if cell not in visited_cells:
         visited_cells.append(cell)
     game.hero.visible_cells = visible_cells
+
+    hero = game.hero
+    camera = game.camera
+    for actor in game.floor.actors:
+      if actor.faction == "enemy" and is_adjacent(hero.cell, actor.cell) and not (type(actor) is Mimic and actor.idle):
+        hero_x, hero_y = hero.cell
+        actor_x, actor_y = actor.cell
+        mid_x = (hero_x + actor_x) / 2
+        mid_y = (hero_y + actor_y) / 2
+        camera.focus((mid_x, mid_y))
+        break
+    else:
+      camera.blur()
 
   def step(game, run=False):
     for actor in game.floor.actors:
@@ -170,10 +179,10 @@ class DungeonContext(Context):
     else:
       steps_to_hero = manhattan(enemy.cell, hero.cell)
       steps_to_ally = manhattan(enemy.cell, ally.cell)
-      if steps_to_hero <= steps_to_ally:
-        game.move_to(enemy, hero.cell)
-      else:
+      if steps_to_ally <= steps_to_hero and not ally.dead:
         game.move_to(enemy, ally.cell)
+      else:
+        game.move_to(enemy, hero.cell)
 
     return True
 
@@ -181,7 +190,7 @@ class DungeonContext(Context):
     game.key_requires_reset[key] = False
 
   def handle_keydown(game, key):
-    if len(game.anims) or game.log.anim or game.hud.anims:
+    if game.anims or game.log.anim or game.hud.anims:
       return False
 
     if game.child:
@@ -276,7 +285,6 @@ class DungeonContext(Context):
         if enemy:
           enemy.asleep = False
           is_waking_up = True
-          game.camera.focus(enemy.cell)
           game.anims.append([
             AwakenAnim(
               duration=DungeonContext.AWAKEN_DURATION,
@@ -284,8 +292,7 @@ class DungeonContext(Context):
               on_end=lambda: (
                 game.log.print(enemy.name.upper() + " woke up!"),
                 game.anims[0].append(PauseAnim(
-                  duration=DungeonContext.PAUSE_DURATION,
-                  on_end=game.camera.blur
+                  duration=DungeonContext.PAUSE_DURATION
                 ))
               )
             )
@@ -329,11 +336,16 @@ class DungeonContext(Context):
         game.log.print("You open the lamp")
       else:
         game.log.print(hero.name.upper() + " attacks")
-        game.attack(hero, target_actor, run)
+        game.attack(
+          actor=hero,
+          target=target_actor,
+          on_end=lambda: (
+            game.step(),
+            game.refresh_fov()
+          )
+        )
         game.sp = max(0, game.sp - 1)
         acted = True
-        game.step(run)
-        game.refresh_fov()
     else:
       game.anims.append([
         AttackAnim(
@@ -431,7 +443,9 @@ class DungeonContext(Context):
       game.log.exit()
       game.child = SkillContext(
         parent=game,
-        on_close=lambda skill: skill and game.use_skill(skill)
+        on_close=lambda skill: (
+          game.use_skill(skill) if skill else game.refresh_fov()
+        )
       )
 
   def handle_inventory(game):
@@ -451,14 +465,17 @@ class DungeonContext(Context):
     actor.facing = delta
     if not target_tile.solid and (target_actor is None or actor is game.hero and target_actor is game.ally and not game.ally.asleep):
       duration = DungeonContext.RUN_DURATION if run else DungeonContext.MOVE_DURATION
-      game.anims.append([
-        MoveAnim(
-          duration=duration,
-          target=actor,
-          src_cell=actor.cell,
-          dest_cell=target_cell
-        )
-      ])
+      anim = MoveAnim(
+        duration=duration,
+        target=actor,
+        src_cell=actor.cell,
+        dest_cell=target_cell,
+        on_end=game.refresh_fov
+      )
+      if game.anims and actor.faction == "enemy":
+        game.anims[0].append(anim)
+      else:
+        game.anims.append([anim])
       actor.cell = target_cell
       return True
     else:

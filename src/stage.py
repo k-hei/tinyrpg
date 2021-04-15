@@ -43,6 +43,8 @@ class Stage:
     stage.data = [Stage.FLOOR] * (width * height)
     stage.actors = []
     stage.rooms = []
+    stage.entrance = None
+    stage.stairs = None
     stage.facings = {}
 
   def fill(stage, data):
@@ -253,7 +255,11 @@ class Stage:
             sprite = replace_color(surface=sprite, old_color=palette.RED, new_color=palette.PURPLE)
 
       if type(anim) is AttackAnim:
-        if type(actor) is Eye:
+        if type(actor) is Knight:
+          sprite = assets.sprites["knight_walk"]
+        elif type(actor) is Mage:
+          sprite = assets.sprites["mage_walk"]
+        elif type(actor) is Eye:
           sprite = assets.sprites["eye_attack"]
 
       if type(anim) in (AttackAnim, MoveAnim):
