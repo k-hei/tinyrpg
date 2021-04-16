@@ -6,8 +6,8 @@ class Knight(Actor):
     super().__init__(
       name="Knight",
       faction="player",
-      hp=9,
-      st=5,
-      en=2,
+      hp=34,
+      st=32,
+      en=12,
       skill=Blitzritter()
     )

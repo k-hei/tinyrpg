@@ -2,7 +2,7 @@ from assets import load as use_assets
 
 class Potion:
   def __init__(potion):
-    potion.hp = 5
+    potion.hp = 30
     potion.name = "Potion"
     potion.desc = "Restores " + str(potion.hp) + " HP"
 

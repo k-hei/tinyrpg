@@ -5,7 +5,7 @@ class Eye(Actor):
     super().__init__(
       name="Eyeball",
       faction="enemy",
-      hp=7,
-      st=4,
-      en=2
+      hp=44,
+      st=21,
+      en=14
     )

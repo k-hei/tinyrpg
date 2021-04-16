@@ -45,6 +45,7 @@ class ShieldBash(Skill):
       )
 
       def on_move():
+        target_actor.cell = nudge_cell
         if nudge_tile.pit:
           game.log.print(target_actor.name.upper() + " tumbles into the chasm below!")
           game.anims[0].append(FlickerAnim(
@@ -57,7 +58,6 @@ class ShieldBash(Skill):
 
       def on_connect():
         if will_nudge:
-          target_actor.cell = nudge_cell
           target_actor.stun = True
           game.anims[0].append(MoveAnim(
             duration=MOVE_DURATION,

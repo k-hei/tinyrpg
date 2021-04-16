@@ -120,6 +120,13 @@ class Stage:
     stage.draw_tiles(surface, visible_cells, visited_cells, camera_pos)
     stage.draw_actors(surface, visible_cells, anims, camera_pos)
     stage.draw_vfx(surface, ctx.vfx, camera_pos)
+    stage.draw_numbers(surface, ctx.numbers, camera_pos)
+
+  def draw_numbers(stage, surface, numbers, camera_pos):
+    for value in numbers:
+      value.draw(surface, camera_pos)
+      if value.done:
+        numbers.remove(value)
 
   def draw_vfx(stage, surface, vfx, camera_pos):
     assets = use_assets()
@@ -341,7 +348,7 @@ class Stage:
     tile_above = stage.get_tile_at((x, y - 1))
     tile_below = stage.get_tile_at((x, y + 1))
     if tile is Stage.WALL or tile is Stage.DOOR_HIDDEN:
-      if tile_below in (Stage.FLOOR, Stage.PIT):
+      if tile_below is Stage.FLOOR or tile_below is Stage.PIT:
         sprite_name = "wall_base"
       else:
         sprite_name = "wall"

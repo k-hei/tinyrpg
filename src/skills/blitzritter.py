@@ -5,6 +5,7 @@ from anims.pause import PauseAnim
 from anims.attack import AttackAnim
 from anims.frame import FrameAnim
 from actors.chest import Chest
+import random
 
 class Blitzritter(Skill):
   def __init__(skill):
@@ -45,22 +46,25 @@ class Blitzritter(Skill):
         frame_count=7
       )))
 
+    def find_damage(target):
+      en = target.en if not target.asleep else 0
+      return int(user.st * 1.25 - en) + random.randint(-2, 2)
+
     def end_pause():
-      atk = user.st + 1
       if target_a and target_b:
         return game.flinch(
           target=target_a,
-          damage=atk,
+          damage=find_damage(target_a),
           on_end=lambda: (game.flinch(
             target=target_b,
-            damage=atk,
+            damage=find_damage(target_b),
             on_end=on_end
           ))
         )
       target = target_a or target_b
       game.flinch(
         target=target,
-        damage=atk,
+        damage=find_damage(target),
         on_end=on_end
       )
 

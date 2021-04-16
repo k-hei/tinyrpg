@@ -23,6 +23,7 @@ from comps.statuspanel import StatusPanel
 from comps.log import Log
 from comps.minimap import Minimap
 from comps.previews import Previews
+from comps.damage import DamageValue
 
 from transits.dissolve import DissolveOut
 
@@ -66,7 +67,7 @@ class DungeonContext(Context):
   PAUSE_DEATH_DURATION = 45
   AWAKEN_DURATION = 45
   VISION_RANGE = 3.5
-  TOP_FLOOR = 1
+  TOP_FLOOR = 5
 
   def __init__(game, parent):
     super().__init__(parent)
@@ -78,6 +79,7 @@ class DungeonContext(Context):
     game.memory = []
     game.anims = []
     game.vfx = []
+    game.numbers = []
     game.hero = Knight()
     game.ally = Mage()
     game.log = Log()
@@ -652,6 +654,7 @@ class DungeonContext(Context):
         end()
 
     target.damage(damage)
+    game.numbers.append(DamageValue(str(damage), target.cell))
     verb = "receives" if target.faction == "enemy" else "suffers"
     game.log.print(target.name.upper() + " " + verb + " " + str(damage) + " damage.")
     game.anims[0].append(ShakeAnim(

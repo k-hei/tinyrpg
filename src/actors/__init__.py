@@ -17,7 +17,9 @@ class Actor:
     actor.faction = faction
     actor.visible_cells = []
 
-  def regen(actor, amount=1/100):
+  def regen(actor, amount=None):
+    if amount is None:
+      amount = actor.hp_max / 200
     actor.hp = min(actor.hp_max, actor.hp + amount)
 
   def face(actor, facing):
@@ -36,10 +38,8 @@ class Actor:
     return actor.damage(damage)
 
   def damage(target, damage):
-    if damage < target.hp:
+    if damage < int(target.hp):
       target.hp -= damage
-      if target.hp < 1:
-        target.hp = 0
       if target.asleep and random.randint(0, 1):
         target.wake_up()
     else:
@@ -50,7 +50,7 @@ class Actor:
   def find_damage(actor, target):
     st = actor.st
     en = target.en if not target.asleep else 0
-    return max(0, st - en)
+    return max(0, st - en) + random.randint(-2, 2)
 
   def use_skill(actor, game, on_end=None):
     skill = actor.skill

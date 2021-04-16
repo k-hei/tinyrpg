@@ -6,8 +6,8 @@ class Mage(Actor):
     super().__init__(
       name="Mage",
       faction="player",
-      hp=7,
-      st=4,
-      en=1,
+      hp=27,
+      st=28,
+      en=10,
       skill=Somnus()
     )
