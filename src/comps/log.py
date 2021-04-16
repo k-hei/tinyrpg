@@ -12,8 +12,8 @@ class ExitAnim(TweenAnim): pass
 
 class Log:
   ROW_COUNT = 2
-  BOX_WIDTH = 240
-  BOX_HEIGHT = 48
+  BOX_WIDTH = 192
+  BOX_HEIGHT = 64
   INSET_X = 11
   INSET_Y = 13
   ENTER_DURATION = 15
@@ -72,7 +72,7 @@ class Log:
   def render(log):
     assets = use_assets()
     font = assets.fonts["standard"]
-    bg = assets.sprites["log"]
+    bg = assets.sprites["log_parchment"]
     line_height = font.char_height + font.line_spacing
     log.box.blit(bg, (0, 0))
     log.surface = Surface((Log.BOX_WIDTH - Log.INSET_X * 2, line_height * Log.ROW_COUNT))
@@ -93,7 +93,7 @@ class Log:
       message = log.messages[log.row]
       char = message[log.col]
       text = render_text(char, font)
-      # text = recolor(text, (0x00, 0x00, 0x00))
+      text = recolor(text, (0x00, 0x00, 0x00))
       line["surface"].blit(text, (line["x"], 0))
       line["x"] += text.get_width()
       if log.col < len(message) - 1:

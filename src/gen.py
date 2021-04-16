@@ -49,6 +49,61 @@ def get_neighbors(nodes, node):
           neighbors[neighbor] = [edge]
   return neighbors
 
+class Dungeon:
+  def __init__(dungeon):
+    dungeon.nodes = []
+    dungeon.conns = {}
+
+  def get_node_neighbors(dungeon, node):
+    neighbors = {}
+    for edge in node.get_edges():
+      x, y = edge
+      edge_neighbors = [n for n in dungeon.get_conn_neighbors(dungeon, edge) if n is not node]
+      for neighbor in edge_neighbors:
+        if neighbor in neighbors:
+          neighbors[neighbor].append(edge)
+        else:
+          neighbors[neighbor] = [edge]
+    return neighbors
+
+  def get_conn_neighbors(dungeon, conn):
+    neighbors = []
+    x, y = conn
+    adj_cells = (
+      (x - 1, y),
+      (x, y - 1),
+      (x + 1, y),
+      (x, y + 1)
+    )
+    for cell in adj_cells:
+      for neighbor in dungeon.nodes:
+        if cell in neighbor.get_cells():
+          neighbors.append(neighbor)
+    return neighbors
+
+  def connect(dungeon, node_a, node_b, conn):
+    dungeon.conns[node_a, node_b] = conn
+    dungeon.conns[node_b, node_a] = conn
+
+def split_at(dungeon, conn):
+  (node_a, node_b) = dungeon.get_conn_neighbors(conn)
+
+  def flood_fill(node, graph):
+    nodes, conns = graph
+    nodes.append(node)
+    neighbors = dungeon.get_node_neighbors(node)
+    neighbors = [n for n, c in neighbors if c is not conn and n not in nodes]
+    for neighbor, conn in neighbors:
+      flood_fill(node)
+      conns[node, neighbor] = conn
+      conns[neighbor, node] = conn
+
+  graph_a = flood_fill(node_a, ([], {}))
+  if len(graph_a.nodes) == len(dungeon.nodes):
+    return None
+  graph_b = flood_fill(node_b, ([], {}))
+  return (graph_a, graph_b)
+
 def top_floor():
   floor = parse_data([
     "#####-#####################",
@@ -219,7 +274,7 @@ def dungeon(size, floor=1):
     targets = [neighbor for neighbor in list(neighbors.keys()) if (
       next((target for target, conn in conns[node] if target is neighbor), None) is None
     )]
-    if len(targets) > 0:
+    if targets:
       # pick a random neighbor
       neighbor = random.choice(targets)
 
