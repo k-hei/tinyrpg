@@ -338,9 +338,10 @@ class Stage:
     x, y = cell
     sprite_name = None
     tile = stage.get_tile_at(cell)
+    tile_above = stage.get_tile_at((x, y - 1))
+    tile_below = stage.get_tile_at((x, y + 1))
     if tile is Stage.WALL or tile is Stage.DOOR_HIDDEN:
-      below_tile = stage.get_tile_at((x, y + 1))
-      if below_tile in (Stage.FLOOR, Stage.PIT):
+      if tile_below in (Stage.FLOOR, Stage.PIT):
         sprite_name = "wall_base"
       else:
         sprite_name = "wall"
@@ -356,7 +357,7 @@ class Stage:
       sprite_name = "door"
     elif tile is Stage.FLOOR:
       sprite_name = "floor"
-    elif tile is Stage.PIT and not stage.get_tile_at((x, y - 1)) is Stage.PIT:
+    elif tile is Stage.PIT and tile_above and tile_above is not Stage.PIT:
       sprite_name = "pit"
     elif tile is Stage.MONSTER_DEN:
       sprite_name = "floor"

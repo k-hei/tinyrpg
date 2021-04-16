@@ -66,7 +66,7 @@ class DungeonContext(Context):
   PAUSE_DEATH_DURATION = 45
   AWAKEN_DURATION = 45
   VISION_RANGE = 3.5
-  TOP_FLOOR = 1
+  TOP_FLOOR = 5
 
   def __init__(game, parent):
     super().__init__(parent)

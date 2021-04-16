@@ -20,6 +20,7 @@ from items.emerald import Emerald
 
 possible_widths = (3, 5, 7)
 possible_heights = (3, 5, 7)
+WALLLESS_FLOOR = 4
 
 def cells(size):
   cells = []
@@ -175,7 +176,10 @@ def dungeon(size, floor=1):
 
   width, height = size
   stage = Stage((width, height))
-  stage.fill(Stage.WALL)
+  if floor == WALLLESS_FLOOR:
+    stage.fill(Stage.PIT)
+  else:
+    stage.fill(Stage.WALL)
   slots = [cell for cell in stage.get_cells() if is_odd(cell)]
 
   entry_room = None
@@ -282,7 +286,7 @@ def dungeon(size, floor=1):
       if len(conns[room]) == 1:
         _, conn_door = conns[room][0]
         if conn_door == door:
-          if random.randint(1, 5) == 1 and floor != 1:
+          if floor not in (1, WALLLESS_FLOOR) and random.randint(1, 5) == 1:
             secret_rooms.append(room)
             stage.set_tile_at(door, Stage.DOOR_HIDDEN)
           else:
@@ -448,6 +452,10 @@ def dungeon(size, floor=1):
         if random.randint(0, 4):
           enemy.asleep = True
         stage.spawn_actor(enemy, cell)
+
+  if floor == WALLLESS_FLOOR:
+    for door in doors:
+      stage.set_tile_at(door, Stage.FLOOR)
 
   stage.rooms = rooms
   return stage
