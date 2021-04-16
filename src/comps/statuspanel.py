@@ -222,6 +222,9 @@ class StatusPanel:
     bg_text = render_text(bg_hp + "/" + bg_hp_max, font)
     bg_text = recolor(bg_text, palette.GRAY)
     fg_text = render_text(fg_hp + "/" + fg_hp_max, font)
-    fg_text = recolor(fg_text, palette.WHITE)
+    if val_cur > 0:
+      fg_text = recolor(fg_text, palette.WHITE)
+    else:
+      fg_text = recolor(fg_text, palette.RED)
     bg_text.blit(fg_text, (0, 0))
     return bg_text

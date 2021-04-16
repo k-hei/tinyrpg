@@ -216,7 +216,9 @@ def dungeon(size, floor=1):
   stack = [node]
   while node:
     neighbors = get_neighbors(nodes, node)
-    targets = [neighbor for neighbor in list(neighbors.keys()) if next((target for target, conn in conns[node] if target is neighbor), None) is None]
+    targets = [neighbor for neighbor in list(neighbors.keys()) if (
+      next((target for target, conn in conns[node] if target is neighbor), None) is None
+    )]
     if len(targets) > 0:
       # pick a random neighbor
       neighbor = random.choice(targets)

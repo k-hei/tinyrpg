@@ -38,6 +38,8 @@ class Actor:
   def damage(target, damage):
     if damage < target.hp:
       target.hp -= damage
+      if target.hp < 1:
+        target.hp = 0
       if target.asleep and random.randint(0, 1):
         target.wake_up()
     else:
@@ -56,4 +58,6 @@ class Actor:
       return None
     if game.sp >= skill.cost:
       game.sp -= skill.cost
+      if game.sp < 1:
+        game.sp = 0
     return skill.effect(game, on_end=on_end)

@@ -43,6 +43,14 @@ class Previews:
     if len(self.enemies) < 3 and new_enemies:
       while len(self.enemies) < 3 and new_enemies:
         self.enemies.append(new_enemies.pop(0))
+    if len(self.enemies) == 3 and adjacent_enemies:
+      new_enemies = [e for e in adjacent_enemies if e not in self.enemies]
+      if new_enemies:
+        farthest = sorted(self.enemies, key=lambda e: manhattan(e.cell, hero.cell), reverse=True)
+        for i in range(len(new_enemies)):
+          index = self.enemies.index(farthest[i])
+          self.enemies.pop(index)
+          self.enemies.insert(index, new_enemies[i])
 
     entering = [a for a in self.anims if type(a) is EnterAnim]
     exiting = [a for a in self.anims if type(a) is ExitAnim or type(a) is SquishAnim]
