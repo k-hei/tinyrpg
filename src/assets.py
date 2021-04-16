@@ -48,6 +48,7 @@ sprite_paths = {
   "bar": "assets/bar.png",
   "bar_small": "assets/bar-small.png",
   "log": "assets/log.png",
+  "log_parchment": "assets/log-parchment.png",
   "portrait_knight": "assets/portrait-knight.png",
   "portrait_mage": "assets/portrait-mage.png",
   "portrait_eye": "assets/portrait-eye.png",

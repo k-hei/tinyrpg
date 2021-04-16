@@ -1,7 +1,9 @@
+from assets import load as use_assets
 from pygame import Surface
 from text import render as render_text
 from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in
+from filters import recolor
 
 COLOR_KEY = (0xFF, 0x00, 0xFF)
 
@@ -30,6 +32,8 @@ class Log:
     log.exiting = False
     log.clean_frames = Log.HANG_DURATION
     log.box = Surface((Log.BOX_WIDTH, Log.BOX_HEIGHT))
+    log.box.set_colorkey(0xFF00FF)
+    log.box.fill(0xFF00FF)
     log.surface = None
     log.anim = None
 
@@ -65,7 +69,10 @@ class Log:
     log.clear()
     log.active = False
 
-  def render(log, bg, font):
+  def render(log):
+    assets = use_assets()
+    font = assets.fonts["standard"]
+    bg = assets.sprites["log"]
     line_height = font.char_height + font.line_spacing
     log.box.blit(bg, (0, 0))
     log.surface = Surface((Log.BOX_WIDTH - Log.INSET_X * 2, line_height * Log.ROW_COUNT))
@@ -86,6 +93,7 @@ class Log:
       message = log.messages[log.row]
       char = message[log.col]
       text = render_text(char, font)
+      # text = recolor(text, (0x00, 0x00, 0x00))
       line["surface"].blit(text, (line["x"], 0))
       line["x"] += text.get_width()
       if log.col < len(message) - 1:

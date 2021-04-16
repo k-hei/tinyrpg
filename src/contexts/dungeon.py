@@ -29,6 +29,7 @@ from transits.dissolve import DissolveOut
 
 from contexts.inventory import InventoryContext
 from contexts.skill import SkillContext
+from contexts.examine import ExamineContext
 
 from actors import Actor
 from actors.knight import Knight
@@ -234,6 +235,9 @@ class DungeonContext(Context):
 
     if key == pygame.K_TAB:
       return game.handle_swap()
+
+    if key == pygame.K_f:
+      return game.handle_examine()
 
     if game.hero.dead or game.hero.asleep:
       return False
@@ -514,6 +518,18 @@ class DungeonContext(Context):
         inventory=game.inventory
       )
 
+  def handle_examine(game):
+    if game.child is None:
+      game.log.exit()
+      game.hud.exit()
+      game.child = ExamineContext(
+        parent=game,
+        on_close=lambda _: (
+          game.hud.enter(),
+          game.refresh_fov()
+        )
+      )
+
   def move(game, actor, delta, run=False):
     actor_x, actor_y = actor.cell
     delta_x, delta_y = delta
@@ -651,15 +667,7 @@ class DungeonContext(Context):
 
     def respond():
       if target.dead:
-        if target.faction == "enemy":
-          game.log.print("Defeated " + target.name.upper() + ".")
-        else:
-          game.log.print(target.name.upper() + " is defeated.")
-        game.anims[0].append(FlickerAnim(
-          duration=DungeonContext.FLICKER_DURATION,
-          target=target,
-          on_end=lambda: game.kill(target, on_end)
-        ))
+        game.kill(target, on_end)
       elif is_adjacent(target.cell, target.cell):
         # pause before performing step
         return game.anims[0].append(PauseAnim(duration=DungeonContext.PAUSE_DURATION, on_end=end))
@@ -764,7 +772,7 @@ class DungeonContext(Context):
     # is_playing_enter_transit = len(game.parent.transits) and type(game.parent.transits[0]) is DissolveOut
     # if not is_playing_enter_transit:
     if not game.child or game.log.anim and game.log.exiting:
-      log = game.log.render(assets.sprites["log"], assets.fonts["standard"])
+      log = game.log.render()
       surface.blit(log, (
         window_width / 2 - log.get_width() / 2,
         window_height + game.log.y

@@ -2,10 +2,10 @@ import config
 import math
 from anims.move import MoveAnim
 
-MAX_RADIUS_X = 3
-MAX_RADIUS_Y = 2
-
 class Camera:
+  MAX_RADIUS_X = 3
+  MAX_RADIUS_Y = 2
+
   def __init__(camera, size):
     camera.size = size
     camera.pos = None
@@ -28,8 +28,8 @@ class Camera:
     col, row = cell
     center_col, center_row = camera.cell
     return (
-      abs(col - center_col) <= MAX_RADIUS_X
-      and abs(row - center_row) <= MAX_RADIUS_Y
+      abs(col - center_col) <= Camera.MAX_RADIUS_X
+      and abs(row - center_row) <= Camera.MAX_RADIUS_Y
     )
 
   def update(camera, game):
@@ -57,9 +57,9 @@ class Camera:
 
       room_halfwidth = room.get_width() // 2 + 1
       room_halfheight = room.get_height() // 2 + 1
-      max_radius_x = room_halfwidth - MAX_RADIUS_X
-      max_radius_y = room_halfheight - MAX_RADIUS_Y
-      if room.get_width() > MAX_RADIUS_X * 2 + 1:
+      max_radius_x = room_halfwidth - Camera.MAX_RADIUS_X
+      max_radius_y = room_halfheight - Camera.MAX_RADIUS_Y
+      if room.get_width() > Camera.MAX_RADIUS_X * 2 + 1:
         if hero_x - focus_x < -max_radius_x:
           focus_x -= max_radius_x
         elif hero_x - focus_x > max_radius_x:
@@ -67,7 +67,7 @@ class Camera:
         else:
           focus_x = hero_x
 
-      if room.get_height() > MAX_RADIUS_Y + 1:
+      if room.get_height() > Camera.MAX_RADIUS_Y + 1:
         if hero_y - focus_y < -max_radius_y:
           focus_y -= max_radius_y
         elif hero_y - focus_y > max_radius_y:

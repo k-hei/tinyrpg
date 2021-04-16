@@ -1,4 +1,5 @@
 import random
+import palette
 
 class Actor:
   def __init__(actor, name, faction, hp, st, en, skill=None):
@@ -61,3 +62,6 @@ class Actor:
       if game.sp < 1:
         game.sp = 0
     return skill.effect(game, on_end=on_end)
+
+  def render(actor):
+    pass
