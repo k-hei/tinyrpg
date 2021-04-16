@@ -162,8 +162,6 @@ class DungeonContext(Context):
         actor.hp += min(actor.hp_max, 1 / 25)
       if isinstance(actor, Actor) and actor.counter:
         actor.counter = max(0, actor.counter - 1)
-        if actor.counter == 0:
-          print("Barrier expired")
 
   # TODO: move into enemy module
   def step_enemy(game, enemy, run=False):
@@ -613,24 +611,39 @@ class DungeonContext(Context):
       )
     ])
 
-  def flinch(game, target, damage, on_end=None):
-    was_asleep = target.asleep
-    end = lambda: on_end and on_end()
-    if target.dead: end()
-
+  def kill(game, target, on_end=None):
     def remove():
       game.floor.actors.remove(target)
       if target is game.hero:
         game.anims[0].append(PauseAnim(
           duration=DungeonContext.PAUSE_DEATH_DURATION,
-          on_end=lambda: (game.handle_swap(), end())
+          on_end=lambda: (
+            game.handle_swap(),
+            on_end and on_end()
+          )
         ))
       else:
         trap = game.floor.find_tile(Stage.MONSTER_DEN)
         if trap and len([a for a in game.floor.actors if a.faction == "enemy"]) == 0:
           trap_x, trap_y = trap
           game.floor.set_tile_at((trap_x - 2, trap_y), Stage.DOOR_OPEN)
-        end()
+        if on_end:
+          on_end()
+
+    if target.faction == "enemy":
+      game.log.print("Defeated " + target.name.upper() + ".")
+    else:
+      game.log.print(target.name.upper() + " is defeated.")
+    game.anims[0].append(FlickerAnim(
+      duration=DungeonContext.FLICKER_DURATION,
+      target=target,
+      on_end=remove
+    ))
+
+  def flinch(game, target, damage, on_end=None):
+    was_asleep = target.asleep
+    end = lambda: on_end and on_end()
+    if target.dead: end()
 
     def awaken():
       game.log.print(target.name.upper() + " woke up!")
@@ -645,7 +658,7 @@ class DungeonContext(Context):
         game.anims[0].append(FlickerAnim(
           duration=DungeonContext.FLICKER_DURATION,
           target=target,
-          on_end=remove
+          on_end=lambda: game.kill(target, on_end)
         ))
       elif is_adjacent(target.cell, target.cell):
         # pause before performing step

@@ -48,11 +48,7 @@ class ShieldBash(Skill):
         target_actor.cell = nudge_cell
         if nudge_tile.pit:
           game.log.print(target_actor.name.upper() + " tumbles into the chasm below!")
-          game.anims[0].append(FlickerAnim(
-            duration=30,
-            target=target_actor,
-            on_end=lambda: game.floor.actors.remove(target_actor)
-          ))
+          game.kill(target_actor)
         else:
           game.log.print(target_actor.name.upper() + " is reeling.")
 

@@ -43,14 +43,15 @@ class Previews:
     if len(self.enemies) < 3 and new_enemies:
       while len(self.enemies) < 3 and new_enemies:
         self.enemies.append(new_enemies.pop(0))
-    if len(self.enemies) == 3 and adjacent_enemies:
-      new_enemies = [e for e in adjacent_enemies if e not in self.enemies]
-      if new_enemies:
-        farthest = sorted(self.enemies, key=lambda e: manhattan(e.cell, hero.cell), reverse=True)
-        for i in range(len(new_enemies)):
-          index = self.enemies.index(farthest[i])
-          self.enemies.pop(index)
-          self.enemies.insert(index, new_enemies[i])
+    # if len(self.enemies) == 3 and adjacent_enemies:
+    #   new_enemies = [e for e in adjacent_enemies if e not in self.enemies]
+    #   if new_enemies:
+    #     farthest = sorted(self.enemies, key=lambda e: manhattan(e.cell, hero.cell), reverse=True)
+    #     for i, new_enemy in enumerate(new_enemies):
+    #       index = self.enemies.index(farthest[i])
+    #       self.enemies.pop(index)
+    #       self.enemies.insert(index, new_enemy)
+    #       print("inserted", new_enemy.name, "at", index)
 
     entering = [a for a in self.anims if type(a) is EnterAnim]
     exiting = [a for a in self.anims if type(a) is ExitAnim or type(a) is SquishAnim]
@@ -63,7 +64,7 @@ class Previews:
         if preview is None:
           continue
         exit_anim = next((a for a in exiting if a.target is preview), None)
-        if exit_anim is None and not preview.actor in enemies:
+        if exit_anim is None and not preview.actor in self.enemies:
           Anim = ExitAnim if preview.actor.hp else SquishAnim
           anim = Anim(
             duration=7,
@@ -82,6 +83,7 @@ class Previews:
           index = self.previews.index(anim.target)
           self.previews.pop(index)
           self.previews.insert(index, None)
+          # self.previews.remove(anim.target)
           exiting.remove(anim)
           exited = True
         elif type(anim) is ArrangeAnim:
@@ -109,6 +111,29 @@ class Previews:
           start_y = src
           end_y = tgt
           preview.y = lerp(start_y, end_y, t)
+
+
+    # enter
+    if not exiting and (not arranging or exited):
+      added = 0
+      for enemy in self.enemies:
+        preview = next((p for p in self.previews if p and p.actor is enemy), None)
+        if preview is None and len(self.previews) < 3:
+          preview = Preview(enemy)
+          # self.previews.insert(self.enemies.index(preview.actor), preview)
+          if self.enemies.index(preview.actor) == 0:
+            self.previews.insert(0, preview)
+          else:
+            self.previews.append(preview)
+          anim = EnterAnim(
+            duration=15,
+            delay=added * 10,
+            target=preview
+          )
+          self.anims.append(anim)
+          entering.append(anim)
+          added += 1
+      self.previews = [p for p in self.previews if p]
 
     if exited:
       targets = {}
@@ -140,27 +165,6 @@ class Previews:
         )
         self.anims.append(anim)
         arranging.append(anim)
-
-    # enter
-    if not exiting and (not arranging or exited):
-      added = 0
-      for enemy in self.enemies:
-        preview = next((p for p in self.previews if p and p.actor is enemy), None)
-        if preview is None and len(self.previews) < 3:
-          preview = Preview(enemy)
-          if self.enemies.index(preview.actor) == 0:
-            self.previews.insert(0, preview)
-          else:
-            self.previews.append(preview)
-          anim = EnterAnim(
-            duration=15,
-            delay=added * 10,
-            target=preview
-          )
-          self.anims.append(anim)
-          entering.append(anim)
-          added += 1
-      self.previews = [p for p in self.previews if p]
 
     # actors = [p.actor for p in self.previews]
     # print(pygame.time.get_ticks(), actors)
