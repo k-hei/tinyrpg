@@ -365,7 +365,7 @@ class DungeonContext(Context):
       is_waking_up = False
       if game.room:
         room = game.room
-        room_actors = [floor.get_actor_at(cell) for cell in room.get_cells() if floor.get_actor_at(cell)]
+        room_actors = [a for a in [floor.get_actor_at(cell) for cell in room.get_cells()] if a]
         enemies = [actor for actor in room_actors if actor.faction == "enemy"]
         enemy = next((e for e in enemies if e.asleep and random.randint(1, 10) == 1), None)
         if enemy:
@@ -388,6 +388,9 @@ class DungeonContext(Context):
                 )
               )
             ])
+          else:
+            game.step(),
+            game.refresh_fov(moving=True)
 
       if not is_waking_up:
         game.step()

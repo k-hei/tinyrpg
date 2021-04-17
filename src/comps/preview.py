@@ -45,7 +45,7 @@ class Preview:
   def update(preview):
     if preview.sprite is None or preview.hp != preview.actor.hp:
       preview.sprite = preview.render()
-      if preview.actor.hp != preview.hp_prev:
+      if preview.actor.hp < preview.hp_prev:
         preview.anim = ShakeAnim(duration=10)
       preview.hp = max(preview.actor.hp, preview.hp - preview.actor.hp_max / 90)
     preview.hp_prev = preview.actor.hp
