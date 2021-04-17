@@ -324,7 +324,6 @@ class DungeonContext(Context):
         elif manhattan(ally.cell, hero.cell) > 1:
           ally.stepped = game.move_to(ally, hero.cell, run)
           last_group.append(game.anims.pop()[0])
-        print(ally.stepped)
 
       if target_tile is Stage.STAIRS_UP:
         game.log.print("There's a staircase going up here.")
@@ -563,12 +562,14 @@ class DungeonContext(Context):
     if game.child is None:
       game.log.exit()
       game.hud.exit()
+      game.previews.exit()
       game.minimap.exit()
       game.child = CustomContext(
         parent=game,
         on_close=lambda _: (
           game.update_skills(),
           game.hud.enter(),
+          game.previews.enter(),
           game.minimap.enter()
         )
       )
@@ -850,7 +851,11 @@ class DungeonContext(Context):
         window_height + game.log.y
       ))
 
-    animating = game.log.anim and game.log.exiting or game.hud.anims
+    animating = (
+      game.log.exiting and game.log.anim
+      or game.hud.anims
+      or game.previews.anims
+    )
     if game.child and not animating:
       game.child.draw(surface)
 

@@ -24,6 +24,13 @@ class Previews:
     self.previews = []
     self.enemies = []
     self.anims = []
+    self.active = True
+
+  def enter(self):
+    self.active = True
+
+  def exit(self):
+    self.active = False
 
   def draw(self, surface, game):
     hero = game.hero
@@ -64,7 +71,10 @@ class Previews:
         if preview is None:
           continue
         exit_anim = next((a for a in exiting if a.target is preview), None)
-        if exit_anim is None and not preview.actor in self.enemies:
+        if exit_anim is None and (
+          not self.active
+          or not preview.actor in self.enemies
+        ):
           Anim = ExitAnim if preview.actor.hp else SquishAnim
           anim = Anim(
             duration=7,
@@ -81,9 +91,11 @@ class Previews:
         self.anims.remove(anim)
         if type(anim) is ExitAnim or type(anim) is SquishAnim:
           index = self.previews.index(anim.target)
-          self.previews.pop(index)
-          self.previews.insert(index, None)
-          # self.previews.remove(anim.target)
+          if self.active:
+            self.previews.pop(index)
+            self.previews.insert(index, None)
+          else:
+            self.previews.remove(anim.target)
           exiting.remove(anim)
           exited = True
         elif type(anim) is ArrangeAnim:
@@ -112,9 +124,8 @@ class Previews:
           end_y = tgt
           preview.y = lerp(start_y, end_y, t)
 
-
     # enter
-    if not exiting and (not arranging or exited):
+    if self.active and not exiting and (not arranging or exited):
       added = 0
       for enemy in self.enemies:
         preview = next((p for p in self.previews if p and p.actor is enemy), None)
@@ -134,7 +145,7 @@ class Previews:
           entering.append(anim)
           added += 1
 
-    if exited:
+    if exited and self.active:
       targets = {}
       def arrange_previews():
         for preview in self.previews:
