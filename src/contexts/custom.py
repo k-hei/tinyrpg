@@ -20,8 +20,6 @@ SKILL_MARGIN_Y = 1
 SKILL_NUDGE_LEFT = 8
 SKILLS_VISIBLE = 4
 TAB_OVERLAP = 3
-DECK_PADDING_X = 8
-DECK_PADDING_Y = 10
 
 class CustomContext(Context):
   def __init__(ctx, parent, on_close=None):
@@ -33,7 +31,7 @@ class CustomContext(Context):
     ctx.arrange = False
     ctx.cursor = (0, 0)
     ctx.pieces = parent.skill_builds[ctx.char]
-    ctx.matrix_size = (4, 4)
+    ctx.matrix_size = (3, 3)
     ctx.bar = Bar()
     ctx.bar.enter()
     ctx.update_bar()
@@ -186,8 +184,18 @@ class CustomContext(Context):
     text = render_text("1", assets.fonts["smallcaps"])
     surface.blit(text, (8, tab_y + 8))
 
-    grid_x = DECK_PADDING_X
-    grid_y = deck_y + DECK_PADDING_Y
+    grid_width, grid_height = ctx.matrix_size
+    grid_x = deck.get_width() // 2 - grid_width * Piece.BLOCK_SIZE // 2
+    grid_y = deck_y + deck.get_height() // 2 - grid_height * Piece.BLOCK_SIZE // 2
+    for row in range(grid_width):
+      for col in range(grid_height):
+        x = col * Piece.BLOCK_SIZE + grid_x
+        y = row * Piece.BLOCK_SIZE + grid_y
+        pygame.draw.rect(surface, palette.GRAY_DARK, Rect(
+          x, y,
+          Piece.BLOCK_SIZE - 1, Piece.BLOCK_SIZE - 1
+        ), 1)
+
     for skill, (col, row) in ctx.pieces:
       sprite = Piece.render(skill.blocks, Skill.get_color(skill), Skill.get_icon(skill))
       surface.blit(sprite, (
