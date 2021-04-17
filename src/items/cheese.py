@@ -13,5 +13,5 @@ class Cheese:
     else:
       return (False, "Your stamina is already full!")
 
-  def render():
+  def render(cheese):
     return use_assets().sprites["icon_cheese"]

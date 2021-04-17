@@ -28,5 +28,5 @@ class Ankh:
     floor.spawn_actor(ally, neighbor)
     return (True, ally.name.upper() + " was revived.")
 
-  def render():
+  def render(ankh):
     return use_assets().sprites["icon_ankh"]

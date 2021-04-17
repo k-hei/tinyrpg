@@ -2,7 +2,7 @@ from assets import load as use_assets
 
 class Potion:
   def __init__(potion):
-    potion.hp = 30
+    potion.hp = 25
     potion.name = "Potion"
     potion.desc = "Restores " + str(potion.hp) + " HP"
 
@@ -14,5 +14,5 @@ class Potion:
     else:
       return (False, "Your health is already full!")
 
-  def render():
+  def render(potion):
     return use_assets().sprites["icon_potion"]

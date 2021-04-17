@@ -5,8 +5,8 @@ from actors.mage import Mage
 
 ATTACK_DURATION = 12
 
-class Obscura(Skill):
-  name = "Obscura"
+class Exoculo(Skill):
+  name = "Exoculo"
   kind = "ailment"
   element = "dark"
   desc = "Blinds target with darkness"

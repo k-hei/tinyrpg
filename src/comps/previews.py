@@ -133,7 +133,6 @@ class Previews:
           self.anims.append(anim)
           entering.append(anim)
           added += 1
-      self.previews = [p for p in self.previews if p]
 
     if exited:
       targets = {}

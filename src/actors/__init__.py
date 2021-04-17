@@ -11,6 +11,7 @@ class Actor:
     actor.st = st
     actor.en = en
     actor.skills = skills
+    actor.stepped = False
     actor.dead = False
     actor.stun = False
     actor.asleep = False
@@ -33,7 +34,7 @@ class Actor:
   def regen(actor, amount=None):
     if amount is None:
       amount = actor.get_hp_max() / 200
-    actor.hp = min(actor.get_hp_max(), actor.hp + amount)
+    actor.hp = min(actor.hp_max, actor.hp + amount)
 
   def face(actor, facing):
     actor.facing = facing
@@ -51,12 +52,10 @@ class Actor:
     return actor.damage(damage)
 
   def damage(target, damage):
-    if damage < int(target.get_hp()):
-      target.hp -= damage
-      if target.asleep and random.randint(0, 1):
-        target.wake_up()
-    else:
-      target.hp = 0
+    target.hp -= damage
+    if target.asleep and random.randint(0, 1):
+      target.wake_up()
+    if int(target.get_hp()) <= 0:
       target.dead = True
     return damage
 

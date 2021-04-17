@@ -224,7 +224,7 @@ class InventoryContext(Context):
             y + box.get_height() // 2 - box_height // 2
           ))
           if item and not ctx.anims:
-            menu.blit(type(item).render(), (x + 8, y + 8))
+            menu.blit(item.render(), (x + 8, y + 8))
         x += box.get_width() + SPACING
       y += box.get_height() + SPACING
 

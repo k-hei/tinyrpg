@@ -399,7 +399,7 @@ def dungeon(size, floor=1):
     room_left, room_top = room.cell
     room_width, room_height = room.size
     center_x, center_y = room.get_center()
-    if random.randint(1, 30) and min(room_width, room_height) > 3:
+    if random.randint(1, 10) == 1 and min(room_width, room_height) > 3:
       # giant pit
       radius = 1
       for y in range(room_height - radius * 2):

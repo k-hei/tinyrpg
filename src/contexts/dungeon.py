@@ -45,8 +45,9 @@ from skills.shieldbash import ShieldBash
 from skills.counter import Counter
 from skills.ignis import Ignis
 from skills.glacio import Glacio
+from skills.vortex import Vortex
 from skills.somnus import Somnus
-from skills.obscura import Obscura
+from skills.exoculo import Exoculo
 from skills.detectmana import DetectMana
 from skills.hpup import HpUp
 
@@ -85,6 +86,7 @@ class DungeonContext(Context):
     game.anims = []
     game.vfx = []
     game.numbers = []
+    game.key_requires_reset = {}
     game.log = Log()
     game.camera = Camera(config.window_size)
     game.hud = StatusPanel()
@@ -93,10 +95,30 @@ class DungeonContext(Context):
     game.previews = Previews()
     game.hero = Knight(skills=[])
     game.ally = Mage(skills=[])
-    game.skill_pool = [Blitzritter, ShieldBash, Counter, Ignis, Glacio, Somnus, Obscura, DetectMana, HpUp]
-    game.skill_builds = { game.hero: [], game.ally: [] }
+    game.skill_pool = [
+      Blitzritter,
+      ShieldBash,
+      Counter,
+      Ignis,
+      Glacio,
+      Vortex,
+      Somnus,
+      Exoculo,
+      DetectMana,
+      HpUp
+    ]
     game.skill_selected = { game.hero: None, game.ally: None }
-    game.key_requires_reset = {}
+    game.skill_builds = {
+      game.hero: [
+        (Blitzritter, (0, 0)),
+        (Counter, (1, 2))
+      ],
+      game.ally: [
+        (Somnus, (0, 0)),
+        (DetectMana, (1, 1))
+      ]
+    }
+    game.update_skills()
     game.create_floor()
 
   def create_floor(game):
@@ -159,13 +181,26 @@ class DungeonContext(Context):
       camera.blur()
 
   def step(game, run=False):
-    for actor in game.floor.actors:
-      if actor.faction == "enemy":
+    actors = [a for a in game.floor.actors if isinstance(a, Actor)]
+    enemies = [a for a in actors if a.faction == "enemy"]
+    for actor in actors:
+      if actor in enemies:
         game.step_enemy(actor, run)
-      elif actor.asleep:
-        actor.hp += min(actor.hp_max, 1 / 25)
-      if isinstance(actor, Actor) and actor.counter:
+      if actor.asleep:
+        actor.regen(actor.get_hp_max() / 50)
+      if actor.counter:
         actor.counter = max(0, actor.counter - 1)
+
+    ally = game.ally
+    if not ally.stepped and not ally.dead and not ally.asleep and not ally.stun:
+      adjacent_enemies = [e for e in enemies if is_adjacent(e.cell, ally.cell)]
+      if not adjacent_enemies: return
+      adjacent_enemies.sort(key=lambda e: e.get_hp())
+      enemy = adjacent_enemies[0]
+      game.attack(ally, enemy)
+
+    for actor in actors:
+      actor.stepped = False
 
   # TODO: move into enemy module
   def step_enemy(game, enemy, run=False):
@@ -284,11 +319,12 @@ class DungeonContext(Context):
         if manhattan(ally.cell, old_cell) == 1:
           ally_x, ally_y = ally.cell
           old_x, old_y = old_cell
-          game.move(ally, (old_x - ally_x, old_y - ally_y), run)
+          ally.stepped = game.move(ally, (old_x - ally_x, old_y - ally_y), run)
           last_group.append(game.anims.pop()[0])
         elif manhattan(ally.cell, hero.cell) > 1:
-          game.move_to(ally, hero.cell, run)
+          ally.stepped = game.move_to(ally, hero.cell, run)
           last_group.append(game.anims.pop()[0])
+        print(ally.stepped)
 
       if target_tile is Stage.STAIRS_UP:
         game.log.print("There's a staircase going up here.")
@@ -432,7 +468,7 @@ class DungeonContext(Context):
               ChestAnim(
                 duration=30,
                 target=chest,
-                item=type(item),
+                item=item,
                 on_end=chest.open
               )
             ])
@@ -751,7 +787,8 @@ class DungeonContext(Context):
       return
     char.skills = [skill for skill, cell in game.skill_builds[char]]
     active_skills = [s for s in char.skills if s.kind != "passive"]
-    game.skill_selected[char] = active_skills[0] if active_skills else None
+    skill = active_skills[0] if active_skills else None
+    game.skill_selected[char] = skill
 
   def change_floors(game, direction):
     exit_tile = Stage.STAIRS_UP if direction == 1 else Stage.STAIRS_DOWN

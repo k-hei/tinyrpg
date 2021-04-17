@@ -13,5 +13,5 @@ class Bread:
     else:
       return (False, "Your stamina is already full!")
 
-  def render():
+  def render(bread):
     return use_assets().sprites["icon_bread"]

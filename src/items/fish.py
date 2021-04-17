@@ -13,5 +13,5 @@ class Fish:
     else:
       return (False, "Your stamina is already full!")
 
-  def render():
+  def render(fish):
     return use_assets().sprites["icon_fish"]
