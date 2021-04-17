@@ -11,6 +11,7 @@ from text import render as render_text
 from filters import recolor, replace_color, outline
 import palette
 from comps.skill import Skill
+from skills import get_skill_text
 
 from lerp import lerp
 from easing.expo import ease_out
@@ -346,10 +347,3 @@ class SkillContext(Context):
       y += -OFFSET - assets.sprites["skill"].get_height()
       y += -title.get_height() + 3
       surface.blit(title, (x, y))
-
-def get_skill_text(skill):
-  tag = skill.element or skill.kind
-  text = tag[0].upper() + tag[1:]
-  text += ': ' + skill.desc
-  text += " (" + str(skill.cost) + " SP)"
-  return text

@@ -8,13 +8,13 @@ from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lerp import lerp
 
-PADDING_X = 12
-PADDING_Y = 11
-MARGIN = 8
-ENTER_DURATION = 8
-EXIT_DURATION = 6
-
 class Bar:
+  MARGIN = 8
+  PADDING_X = 12
+  PADDING_Y = 11
+  ENTER_DURATION = 8
+  EXIT_DURATION = 6
+
   def __init__(bar):
     bar.index = 0
     bar.message = None
@@ -41,16 +41,16 @@ class Bar:
       content = bar.message[0:bar.index]
       text = render_text(content, assets.fonts["standard"])
       message = recolor(text, (0xFF, 0xFF, 0xFF))
-      bar.surface.blit(message, (PADDING_X, PADDING_Y))
+      bar.surface.blit(message, (Bar.PADDING_X, Bar.PADDING_Y))
     return bar.surface
 
   def enter(bar, on_end=None):
     bar.exiting = False
-    bar.anim = TweenAnim(duration=ENTER_DURATION, on_end=on_end)
+    bar.anim = TweenAnim(duration=Bar.ENTER_DURATION, on_end=on_end)
 
   def exit(bar, on_end=None):
     bar.exiting = True
-    bar.anim = TweenAnim(duration=EXIT_DURATION, on_end=on_end)
+    bar.anim = TweenAnim(duration=Bar.EXIT_DURATION, on_end=on_end)
 
   def draw(bar, surface):
     assets = use_assets()
@@ -59,8 +59,8 @@ class Bar:
 
     sprite = bar.render()
     start_y = window_height
-    end_y = window_height - bar.surface.get_height() - MARGIN
-    x = MARGIN
+    end_y = window_height - bar.surface.get_height() - Bar.MARGIN
+    x = Bar.MARGIN
     y = start_y if bar.exiting else end_y
     if bar.anim:
       t = bar.anim.update()

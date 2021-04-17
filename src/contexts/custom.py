@@ -1,6 +1,8 @@
 from assets import load as use_assets
 from contexts import Context
+from comps.bar import Bar
 from comps.skill import Skill
+from skills import get_skill_text
 from filters import replace_color, recolor, outline
 from text import render as render_text
 import pygame
@@ -16,8 +18,10 @@ SPACING_X = 4
 SPACING_Y = 4
 SKILL_MARGIN_Y = 1
 SKILL_NUDGE_LEFT = 8
+SKILLS_VISIBLE = 4
 TAB_OVERLAP = 3
-DECK_PADDING = 8
+DECK_PADDING_X = 8
+DECK_PADDING_Y = 10
 
 class CustomContext(Context):
   def __init__(ctx, parent, on_close=None):
@@ -25,10 +29,19 @@ class CustomContext(Context):
     ctx.on_close = on_close
     ctx.char = parent.hero
     ctx.index = 0
+    ctx.offset = 0
     ctx.arrange = False
     ctx.cursor = (0, 0)
     ctx.pieces = parent.skill_builds[ctx.char]
-    ctx.matrix_size = (4, 6)
+    ctx.matrix_size = (4, 4)
+    ctx.bar = Bar()
+    ctx.bar.enter()
+    ctx.update_bar()
+
+  def update_bar(ctx):
+    skill = ctx.get_selected_skill()
+    skill_text = get_skill_text(skill)
+    ctx.bar.print(skill_text)
 
   def get_char_skills(ctx):
     return [s for s in ctx.parent.skill_pool if type(ctx.char) in s.users]
@@ -86,14 +99,20 @@ class CustomContext(Context):
       ctx.char = game.hero
     ctx.pieces = game.skill_builds[ctx.char]
     ctx.index = 0
+    ctx.offset = 0
+    ctx.update_bar()
 
   def handle_move_index(ctx, delta):
     max_index = len(ctx.get_char_skills()) - 1
+    old_index = ctx.index
     ctx.index += delta
     if ctx.index < 0:
       ctx.index = 0
     if ctx.index > max_index:
       ctx.index = max_index
+    if ctx.index != old_index:
+      ctx.update_bar()
+    ctx.offset = max(0, ctx.index - (SKILLS_VISIBLE - 1))
 
   def handle_select_piece(ctx):
     skill = ctx.get_selected_skill()
@@ -152,7 +171,7 @@ class CustomContext(Context):
     deck_y = tab_y + tab.get_height() - TAB_OVERLAP
     surface = pygame.Surface((
       deck.get_width() + SPACING_X + skill.get_width() + SKILL_NUDGE_LEFT,
-      deck_y + deck.get_height()
+      deck_y + deck.get_height() + 1
     ))
     surface.set_colorkey(0xFF00FF)
     surface.fill(0xFF00FF)
@@ -164,8 +183,11 @@ class CustomContext(Context):
     surface.blit(deck, (0, deck_y))
     surface.blit(tab, (0, tab_y))
 
-    grid_x = DECK_PADDING
-    grid_y = deck_y + DECK_PADDING
+    text = render_text("1", assets.fonts["smallcaps"])
+    surface.blit(text, (8, tab_y + 8))
+
+    grid_x = DECK_PADDING_X
+    grid_y = deck_y + DECK_PADDING_Y
     for skill, (col, row) in ctx.pieces:
       sprite = Piece.render(skill.blocks, Skill.get_color(skill), Skill.get_icon(skill))
       surface.blit(sprite, (
@@ -185,13 +207,17 @@ class CustomContext(Context):
 
     texts = []
     y = deck_y
-    for i, skill in enumerate(skills):
-      if ctx.arrange and i != ctx.index:
+    visible_start = ctx.offset
+    visible_end = SKILLS_VISIBLE + ctx.offset
+    visible_skills = skills[visible_start:visible_end]
+    for i, skill in enumerate(visible_skills):
+      index = i + ctx.offset
+      if ctx.arrange and index != ctx.index:
         sprite = Skill.render(skill, False)
       else:
         sprite = Skill.render(skill)
       x = deck.get_width() + SPACING_X
-      if i == ctx.index:
+      if index == ctx.index:
         subspr = sprite.subsurface(Rect(
           Skill.PADDING_X,
           Skill.PADDING_Y,
@@ -203,8 +229,10 @@ class CustomContext(Context):
         x += SKILL_NUDGE_LEFT
       if ctx.is_skill_used(skill):
         color = Skill.get_color(skill)
-        sprite = replace_color(sprite, color, palette.darken(color))
-        sprite = replace_color(sprite, palette.WHITE, palette.GRAY)
+        subspr = sprite.subsurface(Rect(3, 3, sprite.get_width() - 6, sprite.get_height() - 6))
+        subspr = replace_color(subspr, color, palette.darken(color))
+        subspr = replace_color(subspr, palette.WHITE, palette.GRAY)
+        sprite.blit(subspr, (3, 3))
         surface.blit(sprite, (x, y))
         text = render_text("ON", assets.fonts["smallcaps"])
         text = recolor(text, palette.YELLOW)
@@ -219,8 +247,10 @@ class CustomContext(Context):
     return surface
 
   def draw(ctx, surface):
+    assets = use_assets()
     sprite = ctx.render()
     surface.blit(sprite, (
       surface.get_width() // 2 - sprite.get_width() // 2 + SKILL_NUDGE_LEFT,
-      surface.get_height() // 2 - sprite.get_height() // 2
+      (surface.get_height() - assets.sprites["statusbar"].get_height() - Bar.MARGIN * 2) // 2 - sprite.get_height() // 2
     ))
+    ctx.bar.draw(surface)

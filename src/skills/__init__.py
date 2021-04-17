@@ -10,3 +10,10 @@ class Skill:
   def effect(skill, game):
     if game.sp >= skill.cost:
       game.sp -= skill.cost
+
+def get_skill_text(skill):
+  tag = skill.element or skill.kind
+  text = tag[0].upper() + tag[1:]
+  text += ': ' + skill.desc
+  text += " (" + str(skill.cost) + " SP)"
+  return text
