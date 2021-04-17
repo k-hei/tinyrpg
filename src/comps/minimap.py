@@ -6,15 +6,31 @@ from actors.mage import Mage
 from actors.mimic import Mimic
 from actors.chest import Chest
 import palette
+from anims.tween import TweenAnim
+from easing.expo import ease_out
+from lerp import lerp
 
 MARGIN_X = 8
 MARGIN_Y = 6
 SCALE = 2
+ENTER_DURATION = 8
+EXIT_DURATION = 4
 
 class Minimap:
   def __init__(minimap, size):
     minimap.size = size
     minimap.time = 0
+    minimap.active = False
+    minimap.anim = None
+    minimap.enter()
+
+  def enter(minimap):
+    minimap.active = True
+    minimap.anim = TweenAnim(duration=ENTER_DURATION)
+
+  def exit(minimap):
+    minimap.active = False
+    minimap.anim = TweenAnim(duration=EXIT_DURATION)
 
   def render(minimap, ctx):
     sprite_width, sprite_height = minimap.size
@@ -102,7 +118,22 @@ class Minimap:
     window_width = surface.get_width()
     window_height = surface.get_height()
     sprite = minimap.render(ctx)
+    start_x = window_width
+    target_x = start_x - sprite.get_width() - MARGIN_X
+    if minimap.anim:
+      t = minimap.anim.update()
+      if minimap.active:
+        t = ease_out(t)
+      else:
+        start_x, target_x = (target_x, start_x)
+      x = lerp(start_x, target_x, t)
+      if minimap.anim.done:
+        minimap.anim = None
+    elif minimap.active:
+      x = target_x
+    else:
+      return
     surface.blit(sprite, (
-      window_width - sprite.get_width() - MARGIN_X,
+      x,
       MARGIN_Y
     ))

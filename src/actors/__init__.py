@@ -2,13 +2,14 @@ import random
 import palette
 
 class Actor:
-  def __init__(actor, name, faction, hp, st, en, skill=None):
+  def __init__(actor, name, faction, hp, st, en, skills=[]):
     actor.name = name
     actor.hp_max = hp
     actor.hp = hp
     actor.st = st
     actor.en = en
-    actor.skill = skill
+    actor.skills = skills
+    actor.skill = skills[0] if skills else None
     actor.dead = False
     actor.stun = False
     actor.asleep = False

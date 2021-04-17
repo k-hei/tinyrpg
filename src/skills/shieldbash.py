@@ -9,16 +9,13 @@ from anims.pause import PauseAnim
 from anims.flicker import FlickerAnim
 from config import ATTACK_DURATION, MOVE_DURATION
 
-class ShieldBash(Skill):
-  def __init__(skill):
-    super().__init__(
-      name="Shield Bash",
-      kind="attack",
-      element="shield",
-      desc="Pushes target one square",
-      cost=2,
-      radius=1,
-    )
+class ShieldBash:
+  name = "Shield Bash"
+  kind = "attack"
+  element = "shield"
+  desc = "Pushes target one square"
+  cost = 2
+  radius = 1
 
   # TODO: move into separate skill
   def effect(skill, game, on_end=None):

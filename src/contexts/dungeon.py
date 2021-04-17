@@ -30,6 +30,7 @@ from transits.dissolve import DissolveOut
 from contexts.inventory import InventoryContext
 from contexts.skill import SkillContext
 from contexts.examine import ExamineContext
+from contexts.custom import CustomContext
 
 from actors import Actor
 from actors.knight import Knight
@@ -81,8 +82,8 @@ class DungeonContext(Context):
     game.anims = []
     game.vfx = []
     game.numbers = []
-    game.hero = Knight()
-    game.ally = Mage()
+    game.hero = Knight(skills=[Blitzritter, ShieldBash, Counter])
+    game.ally = Mage(skills=[Somnus, DetectMana])
     game.log = Log()
     game.camera = Camera(config.window_size)
     game.hud = StatusPanel()
@@ -91,8 +92,8 @@ class DungeonContext(Context):
     game.previews = Previews()
     game.key_requires_reset = {}
     game.skills = {
-      game.hero: [ShieldBash(), Counter(), Blitzritter()],
-      game.ally: [Somnus(), DetectMana()]
+      game.hero: [Blitzritter, ShieldBash, Counter],
+      game.ally: [Ignis, Somnus, DetectMana]
     }
     game.create_floor()
 
@@ -238,6 +239,9 @@ class DungeonContext(Context):
 
     if key == pygame.K_f:
       return game.handle_examine()
+
+    if key == pygame.K_b:
+      return game.handle_custom()
 
     if game.hero.dead or game.hero.asleep:
       return False
@@ -515,6 +519,19 @@ class DungeonContext(Context):
       game.child = InventoryContext(
         parent=game,
         inventory=game.inventory
+      )
+
+  def handle_custom(game):
+    if game.child is None:
+      game.log.exit()
+      game.hud.exit()
+      game.minimap.exit()
+      game.child = CustomContext(
+        parent=game,
+        on_close=lambda _: (
+          game.hud.enter(),
+          game.minimap.enter()
+        )
       )
 
   def handle_examine(game):

@@ -3,18 +3,15 @@ from anims.pause import PauseAnim
 
 ATTACK_DURATION = 12
 
-class Counter(Skill):
-  def __init__(skill):
-    super().__init__(
-      name="Counter",
-      kind="defense",
-      element="shield",
-      desc="Reflects phys damage",
-      cost=6,
-      radius=0
-    )
+class Counter:
+  name = "Counter"
+  kind = "defense"
+  element = "shield"
+  desc = "Reflects phys damage"
+  cost = 6
+  radius = 0
 
-  def effect(skill, game, on_end=None):
+  def effect(game, on_end=None):
     user = game.hero
     user.counter = 2
     game.log.print(user.name.upper() + " stands ready.")

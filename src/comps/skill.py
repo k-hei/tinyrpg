@@ -10,11 +10,7 @@ class Skill():
   PADDING_Y = 5
   ICON_MARGIN = 9
 
-  def __init__(skill, data):
-    skill.data = data
-
-  def render(option, selected=True):
-    skill = option.data
+  def render(skill, selected=True):
     assets = use_assets()
     icon = Skill.get_icon(skill)
     icon_bgcolor = Skill.get_color(skill)

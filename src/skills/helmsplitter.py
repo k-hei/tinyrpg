@@ -4,16 +4,13 @@ from anims.pause import PauseAnim
 from anims.attack import AttackAnim
 from config import ATTACK_DURATION
 
-class HelmSplitter(Skill):
-  def __init__(skill):
-    super().__init__(
-      name="Helm Splitter",
-      kind="attack",
-      element="axe",
-      desc="Stuns target with mighty swing",
-      cost=6,
-      radius=1
-    )
+class HelmSplitter:
+  name = "Helm Splitter"
+  kind = "attack"
+  element = "axe"
+  desc = "Stuns target with mighty swing"
+  cost = 6
+  radius = 1
 
   def effect(skill, game, on_end=None):
     camera = game.camera

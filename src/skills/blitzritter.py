@@ -7,18 +7,15 @@ from anims.frame import FrameAnim
 from actors.chest import Chest
 import random
 
-class Blitzritter(Skill):
-  def __init__(skill):
-    super().__init__(
-      name="Blitzritter",
-      kind="attack",
-      element="lance",
-      desc="Pierces two squares ahead",
-      cost=6,
-      radius=2
-    )
+class Blitzritter:
+  name = "Blitzritter"
+  kind = "attack"
+  element = "lance"
+  desc = "Pierces two squares ahead"
+  cost = 6
+  radius = 2
 
-  def effect(skill, game, on_end=None):
+  def effect(game, on_end=None):
     camera = game.camera
     floor = game.floor
     user = game.hero

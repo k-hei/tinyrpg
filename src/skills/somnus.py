@@ -5,16 +5,13 @@ from config import ATTACK_DURATION
 
 from actors import Actor
 
-class Somnus(Skill):
-  def __init__(skill):
-    super().__init__(
-      name="Somnus",
-      kind="ailment",
-      element="dark",
-      desc="Lulls target to sleep",
-      cost=4,
-      radius=1
-    )
+class Somnus:
+  name = "Somnus"
+  kind = "ailment"
+  element = "dark"
+  desc = "Lulls target to sleep"
+  cost = 4
+  radius = 1
 
   def effect(skill, game, on_end=None):
     user = game.hero

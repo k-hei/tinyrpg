@@ -27,7 +27,7 @@ class SkillContext(Context):
     super().__init__(parent)
     ctx.on_close = on_close
     ctx.bar = Bar()
-    ctx.options = [Skill(data=skill) for skill in ctx.parent.skills[ctx.parent.hero]]
+    ctx.options = ctx.parent.hero.skills
     ctx.offsets = {}
     ctx.cursor = None
     ctx.cursor_anim = SineAnim(60)
@@ -89,8 +89,8 @@ class SkillContext(Context):
     options = ctx.options
     game = ctx.parent
     hero = game.hero
-    skills = game.skills[hero]
-    skill = next((s for s in game.skills[hero] if s.name == hero.skill.name), None)
+    skills = hero.skills
+    skill = next((s for s in skills if s.name == hero.skill.name), None)
     index = skills.index(skill)
     old_skill = hero.skill
     new_skill = skills[(index + 1) % len(skills)]
@@ -265,7 +265,7 @@ class SkillContext(Context):
     ctx.bar.draw(surface)
 
     nodes = []
-    sel_option = next((option for option in ctx.options if option.data.name == hero.skill.name), None)
+    sel_option = next((option for option in ctx.options if option is hero.skill), None)
     sel_index = ctx.options.index(sel_option)
 
     def get_skill_pos(sprite, i):
@@ -280,7 +280,7 @@ class SkillContext(Context):
     for i in range(len(options)):
       index = (sel_index + i) % len(options)
       option = options[index]
-      sprite = option.render(selected=option.data.name == hero.skill.name)
+      sprite = Skill.render(skill=option, selected=option is hero.skill)
       height = sprite.get_height()
       x, y = get_skill_pos(sprite, i)
 
@@ -294,7 +294,7 @@ class SkillContext(Context):
           ctx.anims.remove(anim)
         x = lerp(old_x, new_x, t)
         y = lerp(old_y, new_y, t)
-        if option.data.name == hero.skill.name:
+        if option is hero.skill:
           value = lerp(0x7F, 0xFF, t)
           sprite = replace_color(sprite, palette.WHITE, (value, value, value))
 

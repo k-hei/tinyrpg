@@ -5,16 +5,13 @@ import math
 
 ATTACK_DURATION = 12
 
-class Ignis(Skill):
-  def __init__(skill):
-    super().__init__(
-      name="Ignis",
-      kind="spell",
-      element="fire",
-      desc="Burns target with flame",
-      cost=3,
-      radius=math.inf
-    )
+class Ignis:
+  name = "Ignis"
+  kind = "spell"
+  element = "fire"
+  desc = "Burns target with flame"
+  cost = 3
+  radius = math.inf
 
   def effect(skill, game, on_end=None):
     game.log.print("But nothing happened...")
