@@ -6,7 +6,7 @@ from actors.mage import Mage
 
 ATTACK_DURATION = 12
 
-class Ignis:
+class Ignis(Skill):
   name = "Ignis"
   kind = "spell"
   element = "fire"

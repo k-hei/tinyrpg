@@ -1,19 +1,23 @@
 class Skill:
-  def __init__(skill, name, kind, element, desc, cost, radius):
-    skill.name = name
-    skill.kind = kind
-    skill.element = element
-    skill.desc = desc
-    skill.cost = cost
-    skill.radius = radius
+  name = None
+  kind = None
+  element = None
+  desc = None
+  cost = 0
+  radius = 0
+  hp = 0
+  users = ()
+  blocks = (
+    (0, 0),
+  )
 
-  def effect(skill, game):
-    if game.sp >= skill.cost:
-      game.sp -= skill.cost
+  def effect(game):
+    game.log.print("But nothing happened...")
 
 def get_skill_text(skill):
   tag = skill.element or skill.kind
   text = tag[0].upper() + tag[1:]
   text += ': ' + skill.desc
-  text += " (" + str(skill.cost) + " SP)"
+  if skill.cost:
+    text += " (" + str(skill.cost) + " SP)"
   return text

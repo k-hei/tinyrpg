@@ -48,6 +48,7 @@ from skills.glacio import Glacio
 from skills.somnus import Somnus
 from skills.obscura import Obscura
 from skills.detectmana import DetectMana
+from skills.hpup import HpUp
 
 from items.potion import Potion
 from items.ankh import Ankh
@@ -92,7 +93,7 @@ class DungeonContext(Context):
     game.previews = Previews()
     game.hero = Knight(skills=[])
     game.ally = Mage(skills=[])
-    game.skill_pool = [Blitzritter, ShieldBash, Counter, Ignis, Glacio, Somnus, Obscura, DetectMana]
+    game.skill_pool = [Blitzritter, ShieldBash, Counter, Ignis, Glacio, Somnus, Obscura, DetectMana, HpUp]
     game.skill_builds = { game.hero: [], game.ally: [] }
     game.skill_selected = { game.hero: None, game.ally: None }
     game.key_requires_reset = {}

@@ -4,7 +4,7 @@ from anims.pause import PauseAnim
 from stage import Stage
 from actors.mage import Mage
 
-class DetectMana:
+class DetectMana(Skill):
   name = "Detect Mana"
   kind = "support"
   element = None

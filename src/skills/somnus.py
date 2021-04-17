@@ -6,7 +6,7 @@ from config import ATTACK_DURATION
 from actors import Actor
 from actors.mage import Mage
 
-class Somnus:
+class Somnus(Skill):
   name = "Somnus"
   kind = "ailment"
   element = "dark"

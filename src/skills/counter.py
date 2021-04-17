@@ -4,7 +4,7 @@ from actors.knight import Knight
 
 ATTACK_DURATION = 12
 
-class Counter:
+class Counter(Skill):
   name = "Counter"
   kind = "defense"
   element = "shield"
@@ -14,9 +14,7 @@ class Counter:
   users = (Knight,)
   blocks = (
     (0, 0),
-    (1, 0),
-    (0, 1),
-    (1, 1)
+    (1, 0)
   )
 
   def effect(game, on_end=None):

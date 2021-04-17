@@ -6,7 +6,7 @@ from actors.mage import Mage
 
 ATTACK_DURATION = 12
 
-class Glacio:
+class Glacio(Skill):
   name = "Glacio"
   kind = "spell"
   element = "ice"

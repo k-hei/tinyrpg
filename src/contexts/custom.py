@@ -48,7 +48,8 @@ class CustomContext(Context):
     return ctx.get_char_skills()[ctx.index]
 
   def is_skill_used(ctx, skill):
-    return skill in [skill for skill, cell in ctx.pieces]
+    game = ctx.parent
+    return skill in [skill for skill, cell in game.skill_builds[game.hero] + game.skill_builds[game.ally]]
 
   def is_cell_in_bounds(ctx, target):
     matrix_width, matrix_height = ctx.matrix_size
@@ -117,8 +118,15 @@ class CustomContext(Context):
     if not ctx.is_skill_used(skill):
       ctx.arrange = True
     else:
-      index = [skill for skill, cell in ctx.pieces].index(skill)
-      ctx.pieces.pop(index)
+      game = ctx.parent
+      hero_skills = [skill for skill, cell in game.skill_builds[game.hero]]
+      ally_skills = [skill for skill, cell in game.skill_builds[game.ally]]
+      if skill in hero_skills:
+        index = hero_skills.index(skill)
+        game.skill_builds[game.hero].pop(index)
+      elif skill in ally_skills:
+        index = ally_skills.index(skill)
+        game.skill_builds[game.ally].pop(index)
 
   def handle_keydown(ctx, key):
     if keyboard.get_pressed(key) != 1:

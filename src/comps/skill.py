@@ -55,6 +55,8 @@ class Skill():
       return assets.sprites["icon_skull"]
     elif skill.kind == "support":
       return assets.sprites["icon_skill"]
+    elif skill.kind == "passive":
+      return assets.sprites["icon_heartplus"]
 
     return None
 
@@ -70,3 +72,5 @@ class Skill():
       return palette.PURPLE
     elif skill.kind == "support":
       return palette.YELLOW
+    elif skill.kind == "passive":
+      return palette.GRAY

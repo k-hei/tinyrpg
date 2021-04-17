@@ -10,7 +10,7 @@ from anims.pause import PauseAnim
 from anims.flicker import FlickerAnim
 from config import ATTACK_DURATION, MOVE_DURATION
 
-class ShieldBash:
+class ShieldBash(Skill):
   name = "Shield Bash"
   kind = "attack"
   element = "shield"
@@ -19,8 +19,9 @@ class ShieldBash:
   radius = 1
   users = (Knight,)
   blocks = (
-    (0, 0),
-    (1, 0)
+    (1, 0),
+    (0, 1),
+    (1, 1),
   )
 
   # TODO: move into separate skill

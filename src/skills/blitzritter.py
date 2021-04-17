@@ -8,7 +8,7 @@ from actors.chest import Chest
 from actors.knight import Knight
 import random
 
-class Blitzritter:
+class Blitzritter(Skill):
   name = "Blitzritter"
   kind = "attack"
   element = "lance"

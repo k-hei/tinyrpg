@@ -28,7 +28,7 @@ class SkillContext(Context):
     super().__init__(parent)
     ctx.on_close = on_close
     ctx.bar = Bar()
-    ctx.options = ctx.parent.hero.skills or [None]
+    ctx.options = [s for s in ctx.parent.hero.skills if s.kind != "passive"] or [None]
     ctx.offsets = {}
     ctx.cursor = None
     ctx.cursor_anim = SineAnim(60)
@@ -90,7 +90,7 @@ class SkillContext(Context):
     options = ctx.options
     game = ctx.parent
     hero = game.hero
-    skills = hero.skills
+    skills = [s for s in hero.skills if s.kind != "passive"]
     old_skill = game.skill_selected[hero]
     if old_skill is None:
       return

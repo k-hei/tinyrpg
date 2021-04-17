@@ -5,7 +5,7 @@ from anims.attack import AttackAnim
 from actors.knight import Knight
 from config import ATTACK_DURATION
 
-class HelmSplitter:
+class HelmSplitter(Skill):
   name = "Helm Splitter"
   kind = "attack"
   element = "axe"
