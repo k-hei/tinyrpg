@@ -1,7 +1,7 @@
 import math
 from pygame import Surface
 from assets import load as use_assets
-from filters import replace_color
+from filters import replace_color, outline
 import palette
 
 class Piece:
@@ -27,15 +27,28 @@ class Piece:
     delta_x, delta_y = delta
     return [(x + delta_x, y + delta_y) for x, y in blocks]
 
-  def render(blocks, color=None):
+  def render(blocks, color=None, icon=None):
     assets = use_assets()
-    sprite = assets.sprites["block"]
+    block = assets.sprites["block"]
     if color:
-      sprite = replace_color(sprite, palette.PURPLE, color)
+      block = replace_color(block, palette.PURPLE, color)
+    if icon:
+      icon = outline(icon, (0, 0, 0))
     cols, rows = Piece.get_size(blocks)
     surface = Surface((cols * Piece.BLOCK_SIZE, rows * Piece.BLOCK_SIZE))
     surface.set_colorkey(0xFF00FF)
     surface.fill(0xFF00FF)
-    for col, row in blocks:
-      surface.blit(sprite, (col * Piece.BLOCK_SIZE, row * Piece.BLOCK_SIZE))
+    icon_pos = None
+    for i, (col, row) in enumerate(blocks):
+      x = col * Piece.BLOCK_SIZE
+      y = row * Piece.BLOCK_SIZE
+      if icon and i == 0:
+        icon_pos = (x, y)
+      surface.blit(block, (x, y))
+    if icon_pos:
+      x, y = icon_pos
+      surface.blit(icon, (
+        x + Piece.BLOCK_SIZE // 2 - icon.get_width() // 2 - 1,
+        y + Piece.BLOCK_SIZE // 2 - icon.get_height() // 2 - 1
+      ))
     return surface

@@ -54,12 +54,6 @@ class CustomContext(Context):
     if keyboard.get_pressed(key) != 1:
       return
 
-    if key == pygame.K_TAB:
-      if ctx.char is ctx.parent.hero:
-        ctx.char = ctx.parent.ally
-      elif ctx.char is ctx.parent.ally:
-        ctx.char = ctx.parent.hero
-
     if ctx.arrange:
       if key in keyboard.ARROW_DELTAS:
         delta_x, delta_y = keyboard.ARROW_DELTAS[key]
@@ -81,13 +75,18 @@ class CustomContext(Context):
           ctx.pieces.append((skill, ctx.cursor))
           ctx.arrange = False
           ctx.cursor = (0, 0)
-          ctx.index = 0
 
       if key == pygame.K_ESCAPE or key == pygame.K_BACKSPACE:
         ctx.arrange = False
         ctx.cursor = (0, 0)
-        ctx.index = 0
     else:
+      if key == pygame.K_TAB:
+        if ctx.char is ctx.parent.hero:
+          ctx.char = ctx.parent.ally
+        elif ctx.char is ctx.parent.ally:
+          ctx.char = ctx.parent.hero
+        ctx.index = 0
+
       if key == pygame.K_UP or key == pygame.K_w:
         ctx.index = max(0, ctx.index - 1)
 
@@ -136,25 +135,31 @@ class CustomContext(Context):
     surface.blit(deck, (0, deck_y))
     surface.blit(tab, (0, tab_y))
 
+    grid_x = DECK_PADDING
+    grid_y = deck_y + DECK_PADDING
     for skill, (col, row) in ctx.pieces:
-      surface.blit(Piece.render(skill.blocks, Skill.get_color(skill)), (
-        DECK_PADDING + col * Piece.BLOCK_SIZE,
-        deck_y + DECK_PADDING + row * Piece.BLOCK_SIZE,
+      sprite = Piece.render(skill.blocks, Skill.get_color(skill), Skill.get_icon(skill))
+      surface.blit(sprite, (
+        grid_x + col * Piece.BLOCK_SIZE,
+        grid_y + row * Piece.BLOCK_SIZE,
       ))
 
     cursor_x, cursor_y = ctx.cursor
     skill = ctx.get_selected_skill()
     if ctx.arrange:
       blocks = skill.blocks
-      piece = Piece.render(blocks, Skill.get_color(skill))
-      surface.blit(piece, (
-        DECK_PADDING + cursor_x * Piece.BLOCK_SIZE,
-        deck_y + DECK_PADDING - 4 + cursor_y * Piece.BLOCK_SIZE,
+      sprite = Piece.render(blocks, Skill.get_color(skill), Skill.get_icon(skill))
+      surface.blit(sprite, (
+        grid_x + cursor_x * Piece.BLOCK_SIZE,
+        grid_y + cursor_y * Piece.BLOCK_SIZE - 4,
       ))
 
     y = deck_y
     for i, skill in enumerate(ctx.parent.skills[ctx.char]):
-      sprite = Skill.render(skill)
+      if ctx.arrange and i != ctx.index:
+        sprite = Skill.render(skill, False)
+      else:
+        sprite = Skill.render(skill)
       x = deck.get_width() + SPACING_X
       if i == ctx.index:
         subspr = sprite.subsurface(Rect(
@@ -174,7 +179,6 @@ class CustomContext(Context):
 
   def draw(ctx, surface):
     sprite = ctx.render()
-    surface.fill(0x000000)
     surface.blit(sprite, (
       surface.get_width() // 2 - sprite.get_width() // 2 + SKILL_NUDGE_LEFT,
       surface.get_height() // 2 - sprite.get_height() // 2
