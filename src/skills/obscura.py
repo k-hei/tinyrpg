@@ -11,6 +11,11 @@ class Obscura:
   desc = "Blinds target with darkness"
   cost = 6
   radius = 1
+  blocks = (
+    (0, 0),
+    (1, 0),
+    (2, 0)
+  )
 
   def effect(skill, game, on_end=None):
     game.log.print("But nothing happened...")

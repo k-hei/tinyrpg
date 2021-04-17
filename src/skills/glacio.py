@@ -5,16 +5,16 @@ import math
 
 ATTACK_DURATION = 12
 
-class Ignis:
-  name = "Ignis"
+class Glacio:
+  name = "Glacio"
   kind = "spell"
-  element = "fire"
-  desc = "Burns target with flame"
+  element = "ice"
+  desc = "Freezes target with ice"
   cost = 3
   radius = math.inf
   blocks = (
     (0, 0),
-    (0, 1)
+    (1, 0)
   )
 
   def effect(skill, game, on_end=None):

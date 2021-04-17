@@ -14,6 +14,13 @@ class Blitzritter:
   desc = "Pierces two squares ahead"
   cost = 6
   radius = 2
+  blocks = (
+    (1, 0),
+    (0, 1),
+    (1, 1),
+    (2, 1),
+    (0, 2)
+  )
 
   def effect(game, on_end=None):
     camera = game.camera

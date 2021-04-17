@@ -44,7 +44,9 @@ from skills.blitzritter import Blitzritter
 from skills.shieldbash import ShieldBash
 from skills.counter import Counter
 from skills.ignis import Ignis
+from skills.glacio import Glacio
 from skills.somnus import Somnus
+from skills.obscura import Obscura
 from skills.detectmana import DetectMana
 
 from items.potion import Potion
@@ -93,7 +95,7 @@ class DungeonContext(Context):
     game.key_requires_reset = {}
     game.skills = {
       game.hero: [Blitzritter, ShieldBash, Counter],
-      game.ally: [Ignis, Somnus, DetectMana]
+      game.ally: [Ignis, Glacio, Somnus, Obscura, DetectMana]
     }
     game.create_floor()
 

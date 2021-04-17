@@ -10,6 +10,12 @@ class Counter:
   desc = "Reflects phys damage"
   cost = 6
   radius = 0
+  blocks = (
+    (0, 0),
+    (1, 0),
+    (0, 1),
+    (1, 1)
+  )
 
   def effect(game, on_end=None):
     user = game.hero

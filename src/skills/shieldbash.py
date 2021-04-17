@@ -16,6 +16,10 @@ class ShieldBash:
   desc = "Pushes target one square"
   cost = 2
   radius = 1
+  blocks = (
+    (0, 0),
+    (1, 0)
+  )
 
   # TODO: move into separate skill
   def effect(skill, game, on_end=None):

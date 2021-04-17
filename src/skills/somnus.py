@@ -12,6 +12,11 @@ class Somnus:
   desc = "Lulls target to sleep"
   cost = 4
   radius = 1
+  blocks = (
+    (0, 0),
+    (1, 0),
+    (0, 1)
+  )
 
   def effect(skill, game, on_end=None):
     user = game.hero

@@ -74,6 +74,7 @@ sprite_paths = {
   "hud": "assets/hud.png",
   "deck": "assets/deck.png",
   "deck_tab": "assets/deck-tab.png",
+  "block": "assets/block.png",
   "statusbar": "assets/statusbar.png",
   "fx_impact0": "assets/fx-impact0.png",
   "fx_impact1": "assets/fx-impact1.png",

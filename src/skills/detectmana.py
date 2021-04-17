@@ -10,6 +10,9 @@ class DetectMana:
   desc = "Reveals hidden passages"
   cost = 1
   radius = 0
+  blocks = (
+    (0, 0),
+  )
 
   def effect(skill, game, on_end=None):
     user = game.hero
