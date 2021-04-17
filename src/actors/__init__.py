@@ -1,5 +1,7 @@
 import random
 import palette
+from functools import reduce
+from operator import add
 
 class Actor:
   def __init__(actor, name, faction, hp, st, en, skills=[]):
@@ -18,10 +20,20 @@ class Actor:
     actor.faction = faction
     actor.visible_cells = []
 
+  def get_skill_hp(actor):
+    passive_hps = [s.hp for s in actor.skills if s.kind == "passive"]
+    return reduce(add, passive_hps) if passive_hps else 0
+
+  def get_hp(actor):
+    return actor.hp + actor.get_skill_hp()
+
+  def get_hp_max(actor):
+    return actor.hp_max + actor.get_skill_hp()
+
   def regen(actor, amount=None):
     if amount is None:
-      amount = actor.hp_max / 200
-    actor.hp = min(actor.hp_max, actor.hp + amount)
+      amount = actor.get_hp_max() / 200
+    actor.hp = min(actor.get_hp_max(), actor.hp + amount)
 
   def face(actor, facing):
     actor.facing = facing
@@ -39,7 +51,7 @@ class Actor:
     return actor.damage(damage)
 
   def damage(target, damage):
-    if damage < int(target.hp):
+    if damage < int(target.get_hp()):
       target.hp -= damage
       if target.asleep and random.randint(0, 1):
         target.wake_up()
@@ -52,16 +64,6 @@ class Actor:
     st = actor.st
     en = target.en if not target.asleep else 0
     return max(0, st - en) + random.randint(-2, 2)
-
-  def use_skill(actor, game, on_end=None):
-    skill = actor.skill
-    if skill is None:
-      return None
-    if game.sp >= skill.cost:
-      game.sp -= skill.cost
-      if game.sp < 1:
-        game.sp = 0
-    return skill.effect(game, on_end=on_end)
 
   def render(actor):
     pass

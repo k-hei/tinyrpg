@@ -124,8 +124,8 @@ class StatusPanel:
     surface.blit(portrait_knight, (knight_x, knight_y))
     surface.blit(portrait_mage, (mage_x, mage_y))
     surface.blit(panel.render_status(
-      hp=hero.hp,
-      hp_max=hero.hp_max,
+      hp=hero.get_hp(),
+      hp_max=hero.get_hp_max(),
       sp=ctx.sp,
       sp_max=ctx.sp_max,
       floor=ctx.floors.index(ctx.floor) + 1

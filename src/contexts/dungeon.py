@@ -712,8 +712,15 @@ class DungeonContext(Context):
   def use_skill(game, skill):
     hero = game.hero
     camera = game.camera
-    game.log.print(game.hero.name.upper() + " uses " + skill.name),
-    target_cell = game.hero.use_skill(game, on_end=lambda: (
+    skill = game.skill_selected[hero]
+    if skill is None:
+      return None
+    if game.sp >= skill.cost:
+      game.sp -= skill.cost
+      if game.sp < 1:
+        game.sp = 0
+    game.log.print(hero.name.upper() + " uses " + skill.name)
+    target_cell = skill.effect(game, on_end=lambda: (
       camera.blur(),
       game.step(),
       game.refresh_fov()
@@ -743,7 +750,8 @@ class DungeonContext(Context):
       game.update_skills(game.ally)
       return
     char.skills = [skill for skill, cell in game.skill_builds[char]]
-    game.skill_selected[char] = char.skills[0] if char.skills else None
+    active_skills = [s for s in char.skills if s.kind != "passive"]
+    game.skill_selected[char] = active_skills[0] if active_skills else None
 
   def change_floors(game, direction):
     exit_tile = Stage.STAIRS_UP if direction == 1 else Stage.STAIRS_DOWN
