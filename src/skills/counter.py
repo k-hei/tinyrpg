@@ -1,5 +1,6 @@
 from skills import Skill
 from anims.pause import PauseAnim
+from actors.knight import Knight
 
 ATTACK_DURATION = 12
 
@@ -10,6 +11,7 @@ class Counter:
   desc = "Reflects phys damage"
   cost = 6
   radius = 0
+  users = (Knight,)
   blocks = (
     (0, 0),
     (1, 0),

@@ -2,6 +2,7 @@ from skills import Skill
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from stage import Stage
+from actors.mage import Mage
 
 class DetectMana:
   name = "Detect Mana"
@@ -10,11 +11,12 @@ class DetectMana:
   desc = "Reveals hidden passages"
   cost = 1
   radius = 0
+  users = (Mage,)
   blocks = (
     (0, 0),
   )
 
-  def effect(skill, game, on_end=None):
+  def effect(game, on_end=None):
     user = game.hero
     floor = game.floor
     camera = game.camera

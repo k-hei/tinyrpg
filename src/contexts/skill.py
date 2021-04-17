@@ -27,7 +27,7 @@ class SkillContext(Context):
     super().__init__(parent)
     ctx.on_close = on_close
     ctx.bar = Bar()
-    ctx.options = ctx.parent.hero.skills
+    ctx.options = ctx.parent.hero.skills or [None]
     ctx.offsets = {}
     ctx.cursor = None
     ctx.cursor_anim = SineAnim(60)
@@ -35,14 +35,13 @@ class SkillContext(Context):
     ctx.exiting = False
     ctx.confirmed = False
     ctx.enter()
-    ctx.select_skill()
+    ctx.select_skill(ctx.parent.skill_selected[ctx.parent.hero])
 
   def select_skill(ctx, skill=None):
-    if skill is None:
-      game = ctx.parent
-      hero = game.hero
-      skill = hero.skill
-    ctx.bar.print(get_skill_text(skill))
+    if skill:
+      ctx.bar.print(get_skill_text(skill))
+    else:
+      ctx.bar.print("No active skills equipped.")
 
   def handle_keydown(ctx, key):
     if len(ctx.anims):
@@ -78,11 +77,12 @@ class SkillContext(Context):
     game = ctx.parent
     hero = game.hero
     floor = game.floor
+    skill = game.skill_selected[hero]
     hero_x, hero_y = hero.cell
     delta_x, delta_y = delta
     target_cell = (hero_x + delta_x, hero_y + delta_y)
     hero.face(delta)
-    if ctx.bar.message != get_skill_text(hero.skill):
+    if ctx.bar.message != get_skill_text(skill):
       ctx.select_skill()
 
   def handle_select(ctx, reverse=False):
@@ -90,22 +90,26 @@ class SkillContext(Context):
     game = ctx.parent
     hero = game.hero
     skills = hero.skills
-    skill = next((s for s in skills if s.name == hero.skill.name), None)
-    index = skills.index(skill)
-    old_skill = hero.skill
+    old_skill = game.skill_selected[hero]
+    if old_skill is None:
+      return
+    index = skills.index(old_skill)
     new_skill = skills[(index + 1) % len(skills)]
-    if old_skill.name != new_skill.name:
+    if old_skill != new_skill:
       ctx.select_skill(new_skill)
       ctx.anims.append(TweenAnim(duration=12, target=options))
-    hero.skill = new_skill
+    game.skill_selected[hero] = new_skill
 
   def handle_confirm(ctx):
     game = ctx.parent
     hero = game.hero
-    if hero.skill.cost > game.sp:
+    skill = game.skill_selected[hero]
+    if skill is None:
+      return
+    if skill.cost > game.sp:
       ctx.bar.print("You don't have enough SP!")
     else:
-      ctx.exit(hero.skill)
+      ctx.exit(skill)
 
   def enter(ctx):
     ctx.bar.enter()
@@ -119,6 +123,10 @@ class SkillContext(Context):
       index += 1
 
   def exit(ctx, skill=None):
+    def close():
+      ctx.parent.camera.blur()
+      ctx.close(skill)
+
     ctx.exiting = True
     index = 0
     for option in ctx.options:
@@ -126,22 +134,18 @@ class SkillContext(Context):
       ctx.anims.append(TweenAnim(
         duration=6,
         target=index,
-        on_end=(lambda: (
-          ctx.parent.camera.blur(),
-          ctx.close()
-        )) if is_last else None
+        on_end=close if is_last else None
       ))
       index += 1
-    if skill:
+    if len(ctx.options) == 0:
+      ctx.bar.exit(on_end=close)
+    elif skill:
       ctx.confirmed = True
       ctx.bar.exit()
       ctx.anims.append(FlickerAnim(
         duration=30,
         target="cursor",
-        on_end=lambda: (
-          ctx.parent.camera.blur(),
-          ctx.close(skill)
-        )
+        on_end=close
       ))
     else:
       ctx.bar.exit()
@@ -151,15 +155,15 @@ class SkillContext(Context):
     game = ctx.parent
     hero = game.hero
     floor = game.floor
-    skill = hero.skill
     camera = game.camera
+    skill = game.skill_selected[hero]
 
     camera_x, camera_y = camera.pos
     facing_x, facing_y = hero.facing
     hero_x, hero_y = hero.cell
     cursor = (hero_x + facing_x, hero_y + facing_y)
     neighbors = []
-    if skill.radius == 0:
+    if skill is None or skill.radius == 0:
       neighbors = [hero.cell]
     elif skill.radius == math.inf:
       neighbors.append(cursor)
@@ -187,7 +191,7 @@ class SkillContext(Context):
       cursor = neighbors[0]
 
     camera_speed = 8
-    if skill.radius == math.inf:
+    if skill and skill.radius == math.inf:
       camera.focus(cursor, 16)
     else:
       camera.focus(cursor, 8)
@@ -206,7 +210,7 @@ class SkillContext(Context):
     anim = ctx.anims[0] if ctx.anims else None
     cursor_anim = ctx.cursor_anim
     t = cursor_anim.update()
-    if not ctx.exiting and not (anim and anim.target == "cursor"):
+    if skill and not ctx.exiting and not (anim and anim.target == "cursor"):
       if cursor_anim.time % 60 >= 40:
         alpha = 0x7f
       elif cursor_anim.time % 60 >= 20:
@@ -265,8 +269,8 @@ class SkillContext(Context):
     ctx.bar.draw(surface)
 
     nodes = []
-    sel_option = next((option for option in ctx.options if option is hero.skill), None)
-    sel_index = ctx.options.index(sel_option)
+    sel_option = next((option for option in ctx.options if option is skill), None)
+    sel_index = ctx.options.index(sel_option) if sel_option in ctx.options else 0
 
     def get_skill_pos(sprite, i):
       x = MARGIN + i * SPACING
@@ -280,7 +284,16 @@ class SkillContext(Context):
     for i in range(len(options)):
       index = (sel_index + i) % len(options)
       option = options[index]
-      sprite = Skill.render(skill=option, selected=option is hero.skill)
+      if skill:
+        sprite = Skill.render(skill=option, selected=option is skill)
+      else:
+        sprite = assets.sprites["skill"].copy()
+        text = render_text("[ N/A ]", assets.fonts["smallcaps"])
+        text = recolor(text, palette.WHITE)
+        sprite.blit(text, (
+          sprite.get_width() // 2 - text.get_width() // 2,
+          sprite.get_height() // 2 - text.get_height() // 2 - 1
+        ))
       height = sprite.get_height()
       x, y = get_skill_pos(sprite, i)
 
@@ -294,7 +307,7 @@ class SkillContext(Context):
           ctx.anims.remove(anim)
         x = lerp(old_x, new_x, t)
         y = lerp(old_y, new_y, t)
-        if option is hero.skill:
+        if option is skill:
           value = lerp(0x7F, 0xFF, t)
           sprite = replace_color(sprite, palette.WHITE, (value, value, value))
 

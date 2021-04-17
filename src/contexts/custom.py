@@ -1,7 +1,8 @@
 from assets import load as use_assets
 from contexts import Context
 from comps.skill import Skill
-from filters import replace_color, recolor
+from filters import replace_color, recolor, outline
+from text import render as render_text
 import pygame
 from pygame import Rect
 import palette
@@ -13,7 +14,7 @@ from actors.mage import Mage
 
 SPACING_X = 4
 SPACING_Y = 4
-SKILL_MARGIN_Y = 0
+SKILL_MARGIN_Y = 1
 SKILL_NUDGE_LEFT = 8
 TAB_OVERLAP = 3
 DECK_PADDING = 8
@@ -26,11 +27,14 @@ class CustomContext(Context):
     ctx.index = 0
     ctx.arrange = False
     ctx.cursor = (0, 0)
-    ctx.pieces = []
+    ctx.pieces = parent.skill_builds[ctx.char]
     ctx.matrix_size = (4, 6)
 
+  def get_char_skills(ctx):
+    return [s for s in ctx.parent.skill_pool if type(ctx.char) in s.users]
+
   def get_selected_skill(ctx):
-    return ctx.parent.skills[ctx.char][ctx.index]
+    return ctx.get_char_skills()[ctx.index]
 
   def is_skill_used(ctx, skill):
     return skill in [skill for skill, cell in ctx.pieces]
@@ -50,56 +54,80 @@ class CustomContext(Context):
   def is_cell_valid(ctx, cell):
     return ctx.is_cell_in_bounds(cell) and ctx.is_cell_empty(cell)
 
+  def handle_move_piece(ctx, delta):
+    delta_x, delta_y = delta
+    cursor_x, cursor_y = ctx.cursor
+    new_cursor = (cursor_x + delta_x, cursor_y + delta_y)
+    skill = ctx.get_selected_skill()
+    for block in Piece.offset(skill.blocks, new_cursor):
+      if not ctx.is_cell_in_bounds(block):
+        break
+    else:
+      ctx.cursor = new_cursor
+
+  def handle_place_piece(ctx):
+    skill = ctx.get_selected_skill()
+    for block in Piece.offset(skill.blocks, ctx.cursor):
+      if not ctx.is_cell_empty(block):
+        break
+    else:
+      ctx.pieces.append((skill, ctx.cursor))
+      ctx.stop_arrange()
+
+  def stop_arrange(ctx):
+    ctx.arrange = False
+    ctx.cursor = (0, 0)
+
+  def handle_swap_char(ctx):
+    game = ctx.parent
+    if ctx.char is game.hero:
+      ctx.char = game.ally
+    elif ctx.char is game.ally:
+      ctx.char = game.hero
+    ctx.pieces = game.skill_builds[ctx.char]
+    ctx.index = 0
+
+  def handle_move_index(ctx, delta):
+    max_index = len(ctx.get_char_skills()) - 1
+    ctx.index += delta
+    if ctx.index < 0:
+      ctx.index = 0
+    if ctx.index > max_index:
+      ctx.index = max_index
+
+  def handle_select_piece(ctx):
+    skill = ctx.get_selected_skill()
+    if not ctx.is_skill_used(skill):
+      ctx.arrange = True
+    else:
+      index = [skill for skill, cell in ctx.pieces].index(skill)
+      ctx.pieces.pop(index)
+
   def handle_keydown(ctx, key):
     if keyboard.get_pressed(key) != 1:
       return
 
     if ctx.arrange:
       if key in keyboard.ARROW_DELTAS:
-        delta_x, delta_y = keyboard.ARROW_DELTAS[key]
-        cursor_x, cursor_y = ctx.cursor
-        new_cursor = (cursor_x + delta_x, cursor_y + delta_y)
-        skill = ctx.get_selected_skill()
-        for block in Piece.offset(skill.blocks, new_cursor):
-          if not ctx.is_cell_in_bounds(block):
-            break
-        else:
-          ctx.cursor = new_cursor
+        ctx.handle_move_piece(delta=keyboard.ARROW_DELTAS[key])
 
       if key == pygame.K_RETURN or key == pygame.K_SPACE:
-        skill = ctx.get_selected_skill()
-        for block in Piece.offset(skill.blocks, ctx.cursor):
-          if not ctx.is_cell_empty(block):
-            break
-        else:
-          ctx.pieces.append((skill, ctx.cursor))
-          ctx.arrange = False
-          ctx.cursor = (0, 0)
+        ctx.handle_place_piece()
 
       if key == pygame.K_ESCAPE or key == pygame.K_BACKSPACE:
-        ctx.arrange = False
-        ctx.cursor = (0, 0)
+        ctx.stop_arrange()
     else:
       if key == pygame.K_TAB:
-        if ctx.char is ctx.parent.hero:
-          ctx.char = ctx.parent.ally
-        elif ctx.char is ctx.parent.ally:
-          ctx.char = ctx.parent.hero
-        ctx.index = 0
+        ctx.handle_swap_char()
 
       if key == pygame.K_UP or key == pygame.K_w:
-        ctx.index = max(0, ctx.index - 1)
+        ctx.handle_move_index(-1)
 
       if key == pygame.K_DOWN or key == pygame.K_s:
-        ctx.index = min(len(ctx.parent.skills[ctx.char]) - 1, ctx.index + 1)
+        ctx.handle_move_index(1)
 
       if key == pygame.K_RETURN or key == pygame.K_SPACE:
-        skill = ctx.get_selected_skill()
-        if not ctx.is_skill_used(skill):
-          ctx.arrange = True
-        else:
-          index = [skill for skill, cell in ctx.pieces].index(skill)
-          ctx.pieces.pop(index)
+        ctx.handle_select_piece()
 
       if key == pygame.K_ESCAPE:
         ctx.close()
@@ -117,7 +145,8 @@ class CustomContext(Context):
     deck = assets.sprites["deck"]
     tab = assets.sprites["deck_tab"]
     tab_inactive = replace_color(tab, palette.WHITE, palette.GRAY)
-    skill = Skill.render(ctx.char.skill)
+    skills = ctx.get_char_skills()
+    skill = Skill.render(skills[0])
 
     tab_y = circle_knight.get_height() + SPACING_Y
     deck_y = tab_y + tab.get_height() - TAB_OVERLAP
@@ -130,8 +159,8 @@ class CustomContext(Context):
     surface.blit(circle_knight, (0, 0))
     surface.blit(circle_mage, (circle_knight.get_width() + SPACING_X, 0))
 
-    surface.blit(tab_inactive, (tab.get_width() - 1, tab_y))
-    surface.blit(tab_inactive, (tab.get_width() * 2 - 2, tab_y))
+    # surface.blit(tab_inactive, (tab.get_width() - 1, tab_y))
+    # surface.blit(tab_inactive, (tab.get_width() * 2 - 2, tab_y))
     surface.blit(deck, (0, deck_y))
     surface.blit(tab, (0, tab_y))
 
@@ -154,8 +183,9 @@ class CustomContext(Context):
         grid_y + cursor_y * Piece.BLOCK_SIZE - 4,
       ))
 
+    texts = []
     y = deck_y
-    for i, skill in enumerate(ctx.parent.skills[ctx.char]):
+    for i, skill in enumerate(skills):
       if ctx.arrange and i != ctx.index:
         sprite = Skill.render(skill, False)
       else:
@@ -172,9 +202,20 @@ class CustomContext(Context):
         sprite.blit(subspr, (Skill.PADDING_X, Skill.PADDING_Y))
         x += SKILL_NUDGE_LEFT
       if ctx.is_skill_used(skill):
+        color = Skill.get_color(skill)
+        sprite = replace_color(sprite, color, palette.darken(color))
         sprite = replace_color(sprite, palette.WHITE, palette.GRAY)
+        surface.blit(sprite, (x, y))
+        text = render_text("ON", assets.fonts["smallcaps"])
+        text = recolor(text, palette.YELLOW)
+        text = outline(text, (0, 0, 0))
+        texts.append((text, x + sprite.get_width() - text.get_width() - 6, y + sprite.get_height() - 6))
       surface.blit(sprite, (x, y))
       y += sprite.get_height() + SKILL_MARGIN_Y
+
+    for text, x, y in texts:
+      surface.blit(text, (x, y))
+
     return surface
 
   def draw(ctx, surface):

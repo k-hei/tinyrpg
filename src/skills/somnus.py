@@ -4,6 +4,7 @@ from anims.pause import PauseAnim
 from config import ATTACK_DURATION
 
 from actors import Actor
+from actors.mage import Mage
 
 class Somnus:
   name = "Somnus"
@@ -12,13 +13,14 @@ class Somnus:
   desc = "Lulls target to sleep"
   cost = 4
   radius = 1
+  users = (Mage,)
   blocks = (
     (0, 0),
     (1, 0),
     (0, 1)
   )
 
-  def effect(skill, game, on_end=None):
+  def effect(game, on_end=None):
     user = game.hero
     source_cell = user.cell
     hero_x, hero_y = source_cell

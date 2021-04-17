@@ -5,6 +5,7 @@ from anims.pause import PauseAnim
 from anims.attack import AttackAnim
 from anims.frame import FrameAnim
 from actors.chest import Chest
+from actors.knight import Knight
 import random
 
 class Blitzritter:
@@ -14,6 +15,7 @@ class Blitzritter:
   desc = "Pierces two squares ahead"
   cost = 6
   radius = 2
+  users = (Knight,)
   blocks = (
     (1, 0),
     (0, 1),

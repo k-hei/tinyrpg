@@ -84,19 +84,18 @@ class DungeonContext(Context):
     game.anims = []
     game.vfx = []
     game.numbers = []
-    game.hero = Knight(skills=[Blitzritter, ShieldBash, Counter])
-    game.ally = Mage(skills=[Somnus, DetectMana])
     game.log = Log()
     game.camera = Camera(config.window_size)
     game.hud = StatusPanel()
     game.minimap = Minimap((15, 15))
     game.inventory = Inventory((2, 2), [Potion()])
     game.previews = Previews()
+    game.hero = Knight(skills=[])
+    game.ally = Mage(skills=[])
+    game.skill_pool = [Blitzritter, ShieldBash, Counter, Ignis, Glacio, Somnus, Obscura, DetectMana]
+    game.skill_builds = { game.hero: [], game.ally: [] }
+    game.skill_selected = { game.hero: None, game.ally: None }
     game.key_requires_reset = {}
-    game.skills = {
-      game.hero: [Blitzritter, ShieldBash, Counter],
-      game.ally: [Ignis, Glacio, Somnus, Obscura, DetectMana]
-    }
     game.create_floor()
 
   def create_floor(game):
@@ -531,6 +530,7 @@ class DungeonContext(Context):
       game.child = CustomContext(
         parent=game,
         on_close=lambda _: (
+          game.update_skills(),
           game.hud.enter(),
           game.minimap.enter()
         )
@@ -735,6 +735,14 @@ class DungeonContext(Context):
       return (True, None)
     else:
       return (False, message)
+
+  def update_skills(game, char=None):
+    if char is None:
+      game.update_skills(game.hero)
+      game.update_skills(game.ally)
+      return
+    char.skills = [skill for skill, cell in game.skill_builds[char]]
+    game.skill_selected[char] = char.skills[0] if char.skills else None
 
   def change_floors(game, direction):
     exit_tile = Stage.STAIRS_UP if direction == 1 else Stage.STAIRS_DOWN

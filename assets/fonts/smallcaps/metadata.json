@@ -9,7 +9,7 @@
   "line_spacing": 2,
   "cols": 10,
   "rows": 4,
-  "order": "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ,.!/",
+  "order": "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ,.!/[]",
   "exceptions": {
     "1": 3,
     ",": 1,

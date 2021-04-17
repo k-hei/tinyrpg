@@ -1,5 +1,4 @@
 from actors import Actor
-from skills.somnus import Somnus
 
 class Mage(Actor):
   def __init__(mage, skills):

@@ -1,5 +1,4 @@
 from actors import Actor
-from skills.blitzritter import Blitzritter
 
 class Knight(Actor):
   def __init__(knight, skills):

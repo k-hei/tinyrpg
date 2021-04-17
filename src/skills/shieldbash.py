@@ -3,6 +3,7 @@ from skills import Skill
 from actors import Actor
 from actors.eye import Eye
 from actors.chest import Chest
+from actors.knight import Knight
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
@@ -16,13 +17,14 @@ class ShieldBash:
   desc = "Pushes target one square"
   cost = 2
   radius = 1
+  users = (Knight,)
   blocks = (
     (0, 0),
     (1, 0)
   )
 
   # TODO: move into separate skill
-  def effect(skill, game, on_end=None):
+  def effect(game, on_end=None):
     user = game.hero
     floor = game.floor
     camera = game.camera

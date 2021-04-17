@@ -9,7 +9,6 @@ class Actor:
     actor.st = st
     actor.en = en
     actor.skills = skills
-    actor.skill = skills[0] if skills else None
     actor.dead = False
     actor.stun = False
     actor.asleep = False

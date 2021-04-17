@@ -2,6 +2,7 @@ from skills import Skill
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from anims.attack import AttackAnim
+from actors.knight import Knight
 from config import ATTACK_DURATION
 
 class HelmSplitter:
@@ -11,8 +12,9 @@ class HelmSplitter:
   desc = "Stuns target with mighty swing"
   cost = 6
   radius = 1
+  users = (Knight,)
 
-  def effect(skill, game, on_end=None):
+  def effect(game, on_end=None):
     camera = game.camera
     floor = game.floor
     user = game.hero
