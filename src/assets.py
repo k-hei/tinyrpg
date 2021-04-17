@@ -82,7 +82,27 @@ sprite_paths = {
   "fx_impact3": "assets/fx-impact3.png",
   "fx_impact4": "assets/fx-impact4.png",
   "fx_impact5": "assets/fx-impact5.png",
-  "fx_impact6": "assets/fx-impact6.png"
+  "fx_impact6": "assets/fx-impact6.png",
+  "block_news": "assets/block-news.png",
+  "block_sew": "assets/block-sew.png",
+  "block_nws": "assets/block-nws.png",
+  "block_new": "assets/block-new.png",
+  "block_nes": "assets/block-nes.png",
+  "block_nef": "assets/block-nef.png",
+  "block_sef": "assets/block-sef.png",
+  "block_swf": "assets/block-swf.png",
+  "block_nwf": "assets/block-nwf.png",
+  "block_ne": "assets/block-ne.png",
+  "block_se": "assets/block-se.png",
+  "block_sw": "assets/block-sw.png",
+  "block_nw": "assets/block-nw.png",
+  "block_ns": "assets/block-ns.png",
+  "block_ew": "assets/block-ew.png",
+  "block_n": "assets/block-n.png",
+  "block_e": "assets/block-e.png",
+  "block_w": "assets/block-w.png",
+  "block_s": "assets/block-s.png",
+  "block": "assets/block.png"
 }
 
 def load():
