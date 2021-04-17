@@ -7,8 +7,8 @@ class Counter(Skill):
   def __init__(skill):
     super().__init__(
       name="Counter",
-      kind="shield",
-      element=None,
+      kind="defense",
+      element="shield",
       desc="Reflects phys damage",
       cost=6,
       radius=0

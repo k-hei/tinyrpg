@@ -8,8 +8,8 @@ class HelmSplitter(Skill):
   def __init__(skill):
     super().__init__(
       name="Helm Splitter",
-      kind="axe",
-      element=None,
+      kind="attack",
+      element="axe",
       desc="Stuns target with mighty swing",
       cost=6,
       radius=1

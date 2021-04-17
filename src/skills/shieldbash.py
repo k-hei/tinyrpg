@@ -13,8 +13,8 @@ class ShieldBash(Skill):
   def __init__(skill):
     super().__init__(
       name="Shield Bash",
-      kind="shield",
-      element=None,
+      kind="attack",
+      element="shield",
       desc="Pushes target one square",
       cost=2,
       radius=1,

@@ -214,7 +214,7 @@ class SkillContext(Context):
       else:
         alpha = 0x5f
       square = Surface((tile_size - 1, tile_size - 1), pygame.SRCALPHA)
-      color = palette.GREEN if neighbors[0] == hero.cell else palette.RED
+      color = Skill.get_color(skill)
       pygame.draw.rect(square, (*color, alpha), square.get_rect())
       for cell in neighbors:
         x, y = scale_up(cell)
@@ -280,10 +280,8 @@ class SkillContext(Context):
     for i in range(len(options)):
       index = (sel_index + i) % len(options)
       option = options[index]
-      sprite = option.render()
+      sprite = option.render(selected=option.data.name == hero.skill.name)
       height = sprite.get_height()
-      if option.data.name != hero.skill.name:
-        sprite = replace_color(sprite, palette.WHITE, palette.GRAY)
       x, y = get_skill_pos(sprite, i)
 
       anim = ctx.anims[0] if ctx.anims else None
@@ -329,11 +327,11 @@ class SkillContext(Context):
       title = render_text("SKILL", assets.fonts["smallcaps"])
       title = recolor(title, (0xFF, 0xFF, 0x00))
       title = outline(title, (0x00, 0x00, 0x00))
-      x = MARGIN + Skill.PADDING_X - 4
+      x = MARGIN + Skill.PADDING_X
       y = surface.get_height()
       y += -MARGIN - ctx.bar.surface.get_height()
       y += -OFFSET - assets.sprites["skill"].get_height()
-      y += -title.get_height() + 4
+      y += -title.get_height() + 3
       surface.blit(title, (x, y))
 
 def get_skill_text(skill):

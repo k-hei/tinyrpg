@@ -454,7 +454,6 @@ class DungeonContext(Context):
           )
         ))
       elif target_tile is Stage.DOOR:
-        game.log.print("You open the door.")
         game.floor.set_tile_at(target_cell, Stage.DOOR_OPEN)
         game.step(run)
         game.refresh_fov()

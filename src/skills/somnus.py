@@ -9,7 +9,7 @@ class Somnus(Skill):
   def __init__(skill):
     super().__init__(
       name="Somnus",
-      kind="spell",
+      kind="ailment",
       element="dark",
       desc="Lulls target to sleep",
       cost=4,

@@ -58,6 +58,7 @@ sprite_paths = {
   "icon_hat": "assets/icon-hat.png",
   "icon_axe": "assets/icon-axe.png",
   "icon_lance": "assets/icon-lance.png",
+  "icon_skull": "assets/icon-skull.png",
   "icon_skill": "assets/icon-skill.png",
   "icon_potion": "assets/icon-potion.png",
   "icon_bread": "assets/icon-bread.png",

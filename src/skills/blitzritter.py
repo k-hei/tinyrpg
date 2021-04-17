@@ -11,8 +11,8 @@ class Blitzritter(Skill):
   def __init__(skill):
     super().__init__(
       name="Blitzritter",
-      kind="lance",
-      element=None,
+      kind="attack",
+      element="lance",
       desc="Pierces two squares ahead",
       cost=6,
       radius=2

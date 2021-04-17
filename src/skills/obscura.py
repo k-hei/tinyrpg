@@ -8,7 +8,7 @@ class Obscura(Skill):
   def __init__(skill):
     super().__init__(
       name="Obscura",
-      kind="spell",
+      kind="ailment",
       element="dark",
       desc="Blinds target with darkness",
       cost=6,
