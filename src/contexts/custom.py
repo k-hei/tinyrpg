@@ -26,6 +26,7 @@ SKILLS_VISIBLE = 4
 TAB_OVERLAP = 3
 
 class EnterAnim(TweenAnim): pass
+class ExitAnim(TweenAnim): pass
 class SelectAnim(TweenAnim): pass
 class DeselectAnim(TweenAnim): pass
 
@@ -35,6 +36,7 @@ class CustomContext(Context):
     ctx.on_close = on_close
     ctx.char = parent.hero
     ctx.index = 0
+    ctx.prev_char = ctx.char
     ctx.prev_index = -1
     ctx.offset = 0
     ctx.arrange = False
@@ -48,12 +50,13 @@ class CustomContext(Context):
   def enter(ctx):
     ctx.bar.enter()
     ctx.update_bar()
-    ctx.anims.append(EnterAnim(
-      duration=10,
-      target="Deck"
-    ))
+    ctx.anims.append([
+      EnterAnim(duration=10, target="Deck"),
+      EnterAnim(duration=10, target="Knight"),
+      EnterAnim(duration=10, delay=4, target="Mage")
+    ])
     for i, skill in enumerate(ctx.get_char_skills()):
-      ctx.anims.append(EnterAnim(
+      ctx.anims[0].append(EnterAnim(
         duration=10,
         delay=i * 6,
         target=skill
@@ -64,8 +67,8 @@ class CustomContext(Context):
     skill_text = get_skill_text(skill)
     ctx.bar.print(skill_text)
 
-  def get_char_skills(ctx):
-    return [s for s in ctx.parent.skill_pool if type(ctx.char) in s.users]
+  def get_char_skills(ctx, char=None):
+    return [s for s in ctx.parent.skill_pool if type(char or ctx.char) in s.users]
 
   def get_selected_skill(ctx):
     return ctx.get_char_skills()[ctx.index]
@@ -152,8 +155,13 @@ class CustomContext(Context):
         game.skill_builds[game.ally].pop(index)
 
   def handle_keydown(ctx, key):
-    entering = next((a for a in ctx.anims if type(a) is EnterAnim), None)
-    if entering or keyboard.get_pressed(key) != 1:
+    blocking = False
+    for group in ctx.anims:
+      for anim in group:
+        if type(anim) is EnterAnim or type(anim) is ExitAnim:
+          blocking = True
+          break
+    if blocking or keyboard.get_pressed(key) != 1:
       return
 
     if ctx.arrange:
@@ -183,21 +191,21 @@ class CustomContext(Context):
 
   def render(ctx):
     assets = use_assets()
-    circle_knight = assets.sprites["circle_knight"]
-    circle_mage = assets.sprites["circle_mage"]
+    knight = assets.sprites["circle_knight"]
+    mage = assets.sprites["circle_mage"]
     if type(ctx.char) is Knight:
-      circle_mage = replace_color(circle_mage, palette.WHITE, palette.GRAY)
-      circle_mage = replace_color(circle_mage, palette.BLUE, palette.BLUE_DARK)
+      mage = replace_color(mage, palette.WHITE, palette.GRAY)
+      mage = replace_color(mage, palette.BLUE, palette.BLUE_DARK)
     elif type(ctx.char) is Mage:
-      circle_knight = replace_color(circle_knight, palette.WHITE, palette.GRAY)
-      circle_knight = replace_color(circle_knight, palette.BLUE, palette.BLUE_DARK)
+      knight = replace_color(knight, palette.WHITE, palette.GRAY)
+      knight = replace_color(knight, palette.BLUE, palette.BLUE_DARK)
     deck = assets.sprites["deck"]
     tab = assets.sprites["deck_tab"]
     tab_inactive = replace_color(tab, palette.WHITE, palette.GRAY)
     skills = ctx.get_char_skills()
     skill = Skill.render(skills[0])
 
-    tab_y = circle_knight.get_height() + SPACING_Y
+    tab_y = knight.get_height() + SPACING_Y
     deck_y = tab_y + tab.get_height() - TAB_OVERLAP
     surface = pygame.Surface((
       deck.get_width() + SPACING_X + skill.get_width() + SKILL_NUDGE_LEFT,
@@ -205,32 +213,79 @@ class CustomContext(Context):
     ))
     surface.set_colorkey(0xFF00FF)
     surface.fill(0xFF00FF)
-    surface.blit(circle_knight, (0, 0))
-    surface.blit(circle_mage, (circle_knight.get_width() + SPACING_X, 0))
 
-    for anim in ctx.anims:
-      anim.update()
-      if anim.done:
-        ctx.anims.remove(anim)
+    knight_scaled = knight
+    knight_anim = ctx.anims and next((a for a in ctx.anims[0] if a.target == "Knight"), None)
+    if knight_anim:
+      t = ease_out(knight_anim.pos)
+      knight_scaled = pygame.transform.scale(knight, (
+        int(knight.get_width() * t),
+        knight.get_height()
+      ))
+    surface.blit(knight_scaled, (
+      knight.get_width() // 2 - knight_scaled.get_width() // 2,
+      0
+    ))
+
+    mage_scaled = mage
+    mage_anim = ctx.anims and next((a for a in ctx.anims[0] if a.target == "Mage"), None)
+    if mage_anim:
+      t = ease_out(mage_anim.pos)
+      mage_scaled = pygame.transform.scale(mage, (
+        int(mage.get_width() * t),
+        mage.get_height()
+      ))
+    surface.blit(mage_scaled, (
+      knight.get_width() + SPACING_X + mage.get_width() // 2 - mage_scaled.get_width() // 2,
+      0
+    ))
 
     skills = ctx.get_char_skills()
-    entering = next((a for a in ctx.anims if type(a) is EnterAnim), None)
+    entering = next((g for g in ctx.anims if (
+      next((a for a in g if type(a) is EnterAnim), None)
+    )), None)
+
     if not entering and ctx.index != ctx.prev_index:
-      ctx.anims.append(SelectAnim(
-        duration=8,
-        target=skills[ctx.index]
-      ))
+      # select the new skill
+      ctx.anims.append([
+        SelectAnim(
+          duration=8,
+          target=skills[ctx.index]
+        )
+      ])
       if ctx.prev_index >= 0 and ctx.prev_index < len(skills):
-        ctx.anims.append(DeselectAnim(
-          duration=6,
-          target=skills[ctx.prev_index]
-        ))
+        # deselect the old skill
+        ctx.anims[0].append(
+          DeselectAnim(
+            duration=6,
+            target=skills[ctx.prev_index]
+          )
+        )
       ctx.prev_index = ctx.index
+
+    if not entering and ctx.char != ctx.prev_char:
+      if not ctx.anims:
+        ctx.anims.append([])
+      for skill in skills:
+        ctx.anims[0].append(ExitAnim(
+          duration=6,
+          target=skill
+        ))
+      skill_enters = []
+      for i, skill in enumerate(ctx.get_char_skills()[:SKILLS_VISIBLE]):
+        skill_enters.append(EnterAnim(
+          duration=10,
+          delay=i * 6,
+          target=skill
+        ))
+      ctx.anims.append(skill_enters)
+      ctx.prev_char = ctx.char
+      ctx.prev_index = -1
 
     # surface.blit(tab_inactive, (tab.get_width() - 1, tab_y))
     # surface.blit(tab_inactive, (tab.get_width() * 2 - 2, tab_y))
     deck_scaled = deck
-    deck_anim = next((a for a in ctx.anims if type(a) is EnterAnim and a.target == "Deck"), None)
+    deck_anim = ctx.anims and next((a for a in ctx.anims[0] if type(a) is EnterAnim and a.target == "Deck"), None)
     if deck_anim:
       t = deck_anim.pos
       t = ease_out(t)
@@ -292,9 +347,20 @@ class CustomContext(Context):
       y = deck_y + i * (sprite.get_height() + SKILL_MARGIN_Y)
 
       skill_sprite = sprite
-      skill_anim = next((a for a in ctx.anims if a.target is skill), None)
-      if skill_anim and type(skill_anim) is EnterAnim:
-        t = ease_out(skill_anim.pos)
+      skill_anim = None
+      for group in ctx.anims:
+        for anim in group:
+          if anim.target is skill:
+            skill_anim = anim
+            break
+      if skill_anim and type(skill_anim) in (EnterAnim, ExitAnim):
+        t = skill_anim.pos
+        if type(skill_anim) is EnterAnim:
+          t = ease_out(t)
+        elif type(skill_anim) is ExitAnim:
+          t = 1 - t
+          if index == ctx.index:
+            x += SKILL_NUDGE_LEFT
         sprite = skill_sprite
         sprite = pygame.transform.scale(sprite, (
           sprite.get_width(),
@@ -344,6 +410,15 @@ class CustomContext(Context):
 
       for text, x, y in badges:
         surface.blit(text, (x, y))
+
+    for group in ctx.anims:
+      for anim in group:
+        anim.update()
+        if anim.done:
+          group.remove(anim)
+      if not group:
+        ctx.anims.remove(group)
+    anim_group = ctx.anims[0] if ctx.anims else []
 
     return surface
 
