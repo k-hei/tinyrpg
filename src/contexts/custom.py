@@ -24,14 +24,18 @@ SKILL_MARGIN_Y = 1
 SKILL_NUDGE_LEFT = 8
 SKILLS_VISIBLE = 4
 TAB_OVERLAP = 3
+ANIM_PLACE_DURATION = 4
+ANIM_PLACE_STAGGER = 4
 
-class EnterAnim(TweenAnim): pass
-class ExitAnim(TweenAnim): pass
-class SelectAnim(TweenAnim): pass
-class DeselectAnim(TweenAnim): pass
-class PlaceAnim(TweenAnim): pass
-class CallAnim(TweenAnim): pass
-class RecallAnim(TweenAnim): pass
+class SkillAnim(TweenAnim): pass
+class PieceAnim(TweenAnim): pass
+class EnterAnim(SkillAnim): pass
+class ExitAnim(SkillAnim): pass
+class SelectAnim(SkillAnim): pass
+class DeselectAnim(SkillAnim): pass
+class PlaceAnim(PieceAnim): pass
+class CallAnim(PieceAnim): pass
+class RecallAnim(PieceAnim): pass
 
 class CustomContext(Context):
   def __init__(ctx, parent, on_close=None):
@@ -65,6 +69,14 @@ class CustomContext(Context):
         duration=10,
         delay=i * 6,
         target=skill
+      ))
+    game = ctx.parent
+    build = game.skill_builds[ctx.char]
+    for i, (skill, cell) in enumerate(build):
+      ctx.anims[0].append(PlaceAnim(
+        duration=ANIM_PLACE_DURATION,
+        delay=i * ANIM_PLACE_STAGGER,
+        target=skill.blocks
       ))
 
   def update_bar(ctx):
@@ -116,7 +128,7 @@ class CustomContext(Context):
     else:
       ctx.pieces.append((skill, ctx.cursor))
       ctx.stop_arrange()
-    ctx.anims.append([PlaceAnim(duration=4, target=skill.blocks)])
+    ctx.anims.append([PlaceAnim(duration=ANIM_PLACE_DURATION, target=skill.blocks)])
 
   def handle_recall_piece(ctx):
     skill = ctx.get_selected_skill()
@@ -267,6 +279,7 @@ class CustomContext(Context):
       next((a for a in g if type(a) is EnterAnim), None)
     )), None)
 
+    # handle skill select (TODO: refactor into input handler?)
     if not entering and ctx.index_drawn != ctx.index:
       # select the new skill
       ctx.anims.append([
@@ -285,6 +298,7 @@ class CustomContext(Context):
         )
       ctx.index_drawn = ctx.index
 
+    # handle character switch (TODO: refactor into input handler?)
     if not entering and ctx.char_drawn != ctx.char:
       if not ctx.anims:
         ctx.anims.append([])
@@ -299,6 +313,14 @@ class CustomContext(Context):
           duration=10,
           delay=i * 6,
           target=skill
+        ))
+      game = ctx.parent
+      build = game.skill_builds[ctx.char]
+      for i, (skill, cell) in enumerate(build):
+        skill_enters.append(PlaceAnim(
+          duration=ANIM_PLACE_DURATION,
+          delay=i * ANIM_PLACE_STAGGER,
+          target=skill.blocks
         ))
       ctx.anims.append(skill_enters)
       ctx.char_drawn = ctx.char
@@ -346,27 +368,30 @@ class CustomContext(Context):
             Piece.BLOCK_SIZE - 1, Piece.BLOCK_SIZE - 1
           ), 1)
 
+      # pieces
       piece_anim = None
       in_range = abs(target_x - cursor_x) + abs(target_y - cursor_y) < 1
-      for group in ctx.anims:
-        for anim in group:
-          if type(anim) is PlaceAnim:
-            piece_anim = anim
-            break
-
-      # pieces
       for skill, (col, row) in ctx.pieces:
         offset = 0
-        if piece_anim and piece_anim.target is skill.blocks:
+        sprite = Piece.render(skill.blocks, Skill.get_color(skill), Skill.get_icon(skill))
+        for group in ctx.anims:
+          for anim in group:
+            if type(anim) is PlaceAnim and anim.target is skill.blocks:
+              piece_anim = anim
+              break
+        if piece_anim:
           if in_range:
             t = piece_anim.update()
-            offset = -4 * (1 - t)
+            if piece_anim.time >= 0:
+              offset = -4 * (1 - t)
+            else:
+              sprite = None
           else:
             offset = -4
         x = grid_x + col * Piece.BLOCK_SIZE
         y = grid_y + row * Piece.BLOCK_SIZE + offset
-        sprite = Piece.render(skill.blocks, Skill.get_color(skill), Skill.get_icon(skill))
-        surface.blit(sprite, (x, y))
+        if sprite:
+          surface.blit(sprite, (x, y))
 
     pieces = []
     piece_anim = None
@@ -406,6 +431,14 @@ class CustomContext(Context):
         grid_y + cursor_y * Piece.BLOCK_SIZE - 4,
       ))
 
+    if not entering:
+      text = render_text("SKILL", assets.fonts["smallcaps"])
+      text = recolor(text, palette.YELLOW)
+      text = outline(text, (0, 0, 0))
+      x = deck.get_width() + SPACING_X
+      y = deck_y - text.get_height() - 2
+      surface.blit(text, (x, y))
+
     badges = []
     visible_start = ctx.offset
     visible_end = SKILLS_VISIBLE + ctx.offset
@@ -420,7 +453,7 @@ class CustomContext(Context):
       skill_anim = None
       for group in ctx.anims:
         for anim in group:
-          if anim.target is skill and type(anim) is not RecallAnim:
+          if anim.target is skill and isinstance(anim, SkillAnim):
             skill_anim = anim
             break
       if skill_anim and type(skill_anim) in (EnterAnim, ExitAnim):
