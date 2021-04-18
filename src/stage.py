@@ -7,20 +7,22 @@ import palette
 from assets import load as use_assets
 from filters import replace_color
 
+from actors import Actor
 from actors.knight import Knight
 from actors.mage import Mage
 from actors.eye import Eye
 from actors.mimic import Mimic
-from actors.chest import Chest
 from actors.npc import NPC
+from props.chest import Chest
 
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
-from anims.shake import ShakeAnim
+from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from anims.pause import PauseAnim
 from anims.awaken import AwakenAnim
 from anims.chest import ChestAnim
+from lerp import lerp
 
 @dataclass
 class Tile:
@@ -44,7 +46,7 @@ class Stage:
     (width, height) = size
     stage.size = size
     stage.data = [Stage.FLOOR] * (width * height)
-    stage.actors = []
+    stage.elems = []
     stage.rooms = []
     stage.entrance = None
     stage.stairs = None
@@ -67,12 +69,12 @@ class Stage:
   def is_cell_empty(stage, cell):
     if stage.get_tile_at(cell).solid:
       return False
-    if stage.get_actor_at(cell):
+    if stage.get_elem_at(cell):
       return False
     return True
 
-  def get_actor_at(stage, cell):
-    return next((actor for actor in stage.actors if actor.cell == cell), None)
+  def get_elem_at(stage, cell):
+    return next((e for e in stage.elems if e.cell == cell), None)
 
   def get_tile_at(stage, cell):
     if not stage.contains(cell):
@@ -97,15 +99,15 @@ class Stage:
           return cell
     return None
 
-  def spawn_actor(stage, actor, cell=None):
-    stage.actors.append(actor)
+  def spawn_elem(stage, elem, cell=None):
+    stage.elems.append(elem)
     if cell:
-      actor.cell = cell
+      elem.cell = cell
 
-  def remove_actor(stage, actor):
-    if actor in stage.actors:
-      stage.actors.remove(actor)
-      actor.cell = None
+  def remove_elem(stage, elem):
+    if elem in stage.elems:
+      stage.elems.remove(elem)
+      elem.cell = None
 
   def contains(stage, cell):
     (width, height) = stage.size
@@ -118,7 +120,7 @@ class Stage:
     anims = ctx.anims
     camera_pos = ctx.camera.pos
     stage.draw_tiles(surface, visible_cells, visited_cells, camera_pos)
-    stage.draw_actors(surface, visible_cells, anims, camera_pos)
+    stage.draw_elems(surface, visible_cells, anims, camera_pos)
     stage.draw_vfx(surface, ctx.vfx, camera_pos)
     stage.draw_numbers(surface, ctx.numbers, camera_pos)
 
@@ -149,132 +151,69 @@ class Stage:
       y += -round(camera_y)
       surface.blit(sprite, (x, y))
 
-  def draw_actors(stage, surface, visible_cells=None, anims=[], camera_pos=(0, 0)):
+  def draw_elems(stage, surface, visible_cells=None, anims=[], camera_pos=(0, 0)):
     camera_x, camera_y = camera_pos
 
     if visible_cells is None:
       visible_cells = stage.get_cells()
 
-    stage.actors.sort(key=lambda actor: actor.cell[1])
-    visible_actors = [actor for actor in stage.actors if actor.cell in visible_cells]
-    for actor in visible_actors:
-      sprite = stage.draw_actor(actor, surface, anims, camera_pos)
+    # depthsort by y position
+    stage.elems.sort(key=lambda elem: elem.cell[1])
 
-    for group in anims:
-      for anim in group:
-        if anim.target is not None and anim.target not in visible_actors:
-          group.remove(anim)
-          if len(group) == 0:
-            anims.remove(group)
+    visible_elems = [e for e in stage.elems if e.cell in visible_cells]
+    for elem in visible_elems:
+      sprite = stage.draw_elem(elem, surface, anims, camera_pos)
 
-  def draw_actor(stage, actor, surface, anims, camera_pos=(0, 0)):
+    anim_group = anims[0] if anims else []
+    for anim in anim_group:
+      anim.update()
+      if anim.done:
+        anim_group.remove(anim)
+    for anim_group in anims:
+      for anim in anim_group:
+        if anim.target is not None and anim.target not in visible_elems:
+          anim_group.remove(anim)
+        if len(anim_group) == 0:
+          anims.remove(anim_group)
+
+  def draw_elem(stage, elem, surface, anims, camera_pos=(0, 0)):
     assets = use_assets()
     camera_x, camera_y = camera_pos
 
     facing_x, facing_y = (0, 0)
-    if actor in stage.facings:
-      facing_x, facing_y = stage.facings[actor]
-      new_facing_x, _ = actor.facing
+    if elem in stage.facings:
+      facing_x, facing_y = stage.facings[elem]
+      new_facing_x, _ = elem.facing
       if new_facing_x != 0:
         facing_x = new_facing_x
 
-    (col, row) = actor.cell
+    (col, row) = elem.cell
+    sprite = elem.render(anims)
     sprite_x = col * config.tile_size
     sprite_y = row * config.tile_size
-    sprite = None
-    if type(actor) is Knight:
-      sprite = assets.sprites["knight"]
-      if actor.asleep:
-        sprite = replace_color(sprite, palette.BLUE, palette.PURPLE)
-    elif type(actor) is Mage:
-      sprite = assets.sprites["mage"]
-    elif type(actor) is Eye:
-      sprite = assets.sprites["eye"]
-      if actor.asleep:
-        sprite = assets.sprites["eye_attack"]
-    elif type(actor) is Chest:
-      if actor.opened:
-        sprite = assets.sprites["chest_open"]
-      else:
-        sprite = assets.sprites["chest"]
-    elif type(actor) is Mimic:
-      sprite = assets.sprites["chest"]
-      if not actor.idle:
-        sprite = replace_color(sprite, palette.GOLD, palette.RED)
-    elif type(actor) is NPC:
-      sprite = assets.sprites["eye"]
-      sprite = replace_color(sprite, palette.RED, (0x37, 0x94, 0x6E))
+    scale_x = 1
+    scale_y = 1
 
     item = None
-    anim_group = anims[0] if len(anims) else []
-    pause = next((anim for anim in anim_group if type(anim) is PauseAnim), None)
+    anim_group = [a for a in anims[0] if a.target is elem] if anims else []
+    pausing = next((a for a in anim_group if type(a) is PauseAnim), None)
 
     for anim in anim_group:
-      if anim.target is not actor:
-        continue
-
       if type(anim) is ChestAnim:
-        frame = anim.update() + 1
-        sprite = assets.sprites["chest_open" + str(frame)]
         item = (
           anim.item.render(),
           anim.time / anim.duration,
-          actor.cell
+          elem.cell
         )
 
-      if type(anim) is MoveAnim:
-        if anim.time % (anim.duration // 2) >= anim.duration // 4:
-          if type(actor) is Knight:
-            sprite = assets.sprites["knight_walk"]
-          elif type(actor) is Mage:
-            sprite = assets.sprites["mage_walk"]
-        if type(actor) is Eye:
-          sprite = assets.sprites["eye_attack"]
-
-      if type(anim) is ShakeAnim:
+      if type(anim) is FlinchAnim:
         sprite_x += anim.update()
 
-      flinch_anim = next((a for a in anim_group if type(a) is ShakeAnim and a.target is anim.target), None)
-      if type(anim) is ShakeAnim or flinch_anim:
-        if anim is flinch_anim and anim.time <= 1:
-          sprite = None
-        elif type(actor) is Knight:
-          sprite = assets.sprites["knight_flinch"]
-        elif type(actor) is Mage:
-          sprite = assets.sprites["mage_flinch"]
-        elif type(actor) is Eye:
-          sprite = assets.sprites["eye_flinch"]
-          will_awaken = next((anim for anim in anim_group if type(anim) is AwakenAnim), None)
-          if will_awaken:
-            sprite = replace_color(surface=sprite, old_color=palette.RED, new_color=palette.PURPLE)
-
       if type(anim) is FlickerAnim:
-        visible = anim.update()
-        if type(actor) is Mimic and not actor.dead:
-          if not visible:
-            sprite = replace_color(sprite, palette.GOLD, palette.RED)
-        elif not visible:
-          sprite = None
-        elif type(actor) is Knight:
-          sprite = assets.sprites["knight_flinch"]
-        elif type(actor) is Eye:
-          sprite = assets.sprites["eye_flinch"]
-
-      if type(anim) is AwakenAnim and len(anim_group) == 1:
-        recolored = anim.update()
-        if recolored and sprite:
-          if type(actor) is Mimic:
-            sprite = replace_color(surface=sprite, old_color=palette.YELLOW, new_color=palette.PURPLE)
-          else:
-            sprite = replace_color(surface=sprite, old_color=palette.RED, new_color=palette.PURPLE)
-
-      if type(anim) is AttackAnim:
-        if type(actor) is Knight:
-          sprite = assets.sprites["knight_walk"]
-        elif type(actor) is Mage:
-          sprite = assets.sprites["mage_walk"]
-        elif type(actor) is Eye:
-          sprite = assets.sprites["eye_attack"]
+        pinch_duration = anim.duration // 4
+        t = max(0, anim.time - anim.duration + pinch_duration) / pinch_duration
+        scale_x = lerp(1, 0, t)
+        scale_y = lerp(1, 2, t)
 
       if type(anim) in (AttackAnim, MoveAnim):
         src_x, src_y = anim.src_cell
@@ -283,34 +222,34 @@ class Stage:
           facing_x = -1
         elif dest_x > src_x:
           facing_y = 1
-        col, row = anim.update()
+        col, row = anim.cur_cell
         sprite_x = col * config.tile_size
         sprite_y = row * config.tile_size
 
-      if anim.done:
-        anim_group.remove(anim)
-
-    if actor.asleep and sprite:
-      sprite = replace_color(surface=sprite, old_color=palette.RED, new_color=palette.PURPLE)
-
+    # HACK: if element will move, make sure it doesn't jump ahead to the target position
     for group in anims:
       for anim in group:
-        if group is anim_group:
+        if anims.index(group) == 0:
           continue
-        if anim.target is actor and type(anim) is MoveAnim:
+        if anim.target is elem and type(anim) is MoveAnim:
           col, row = anim.src_cell
           sprite_x = col * config.tile_size
           sprite_y = row * config.tile_size
 
-    stage.facings[actor] = (facing_x, facing_y)
+    if isinstance(elem, Actor):
+      stage.facings[elem] = (facing_x, facing_y)
     if sprite:
-      flipped = facing_x == -1
-      # if type(actor) is Mimic and not actor.idle:
-      #   flipped = not flipped
-      sprite = pygame.transform.flip(sprite, flipped, False)
-      x = sprite_x - round(camera_x)
-      y = sprite_y - round(camera_y)
-      surface.blit(sprite, (x, y))
+      if facing_x == -1:
+        sprite = pygame.transform.flip(sprite, True, False)
+      scaled_sprite = sprite
+      if scale_x != 1 or scale_y != 1:
+        scaled_sprite = pygame.transform.scale(sprite, (
+          round(sprite.get_width() * scale_x),
+          round(sprite.get_height() * scale_y)
+        ))
+      x = sprite_x - round(camera_x) + sprite.get_width() // 2 - scaled_sprite.get_width() // 2
+      y = sprite_y - round(camera_y) + sprite.get_height() // 2 - scaled_sprite.get_height() // 2
+      surface.blit(scaled_sprite, (x, y))
 
     if item:
       sprite, t, (col, row) = item

@@ -170,7 +170,7 @@ class SkillContext(Context):
       neighbors.append(cursor)
       is_blocked = False
       while not is_blocked:
-        if floor.get_tile_at(cursor).solid or floor.get_actor_at(cursor):
+        if floor.get_tile_at(cursor).solid or floor.get_elem_at(cursor):
           is_blocked = True
         else:
           cursor_x, cursor_y = cursor

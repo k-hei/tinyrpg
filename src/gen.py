@@ -7,9 +7,9 @@ from maze import Maze
 from actors.knight import Knight
 from actors.mage import Mage
 from actors.eye import Eye
-from actors.chest import Chest
 from actors.mimic import Mimic
 from actors.npc import NPC
+from props.chest import Chest
 
 from items.potion import Potion
 from items.ankh import Ankh
@@ -143,8 +143,8 @@ def top_floor():
     Room((11, 9), (15, 18))
   ]
 
-  floor.spawn_actor(Mimic(), (20, 22))
-  floor.spawn_actor(NPC(), (4, 1))
+  floor.spawn_elem(Mimic(), (20, 22))
+  floor.spawn_elem(NPC(), (4, 1))
 
   return floor
 
@@ -214,10 +214,10 @@ def giant_room(size):
       continue
     if random.randint(1, 3) == 1:
       item = random.choices((Cheese, Bread, Fish, Potion, Ankh, Emerald), (3, 2, 1, 2, 1, 1))[0]()
-      stage.spawn_actor(Chest(item), cell)
+      stage.spawn_elem(Chest(item), cell)
     else:
       enemy = random.choices((Eye, Mimic), (5, 1))[0]()
-      stage.spawn_actor(enemy, cell)
+      stage.spawn_elem(enemy, cell)
       if type(enemy) is Eye and random.randint(1, 2) == 1:
         enemy.asleep = True
 
@@ -457,18 +457,18 @@ def dungeon(size, floor=1):
   for room in normal_rooms:
     for cell in room.get_cells():
       is_floor = stage.get_tile_at(cell) is Stage.FLOOR
-      is_empty = stage.get_actor_at(cell) is None
+      is_empty = stage.get_elem_at(cell) is None
       is_beside_door = next((door for door in doors if is_adjacent(door, cell)), None)
       if not is_floor or not is_empty or is_beside_door:
         continue
       if random.randint(1, 25) == 1:
         enemy = Eye()
-        stage.spawn_actor(enemy, cell)
+        stage.spawn_elem(enemy, cell)
         if random.randint(1, 3) == 1:
           enemy.asleep = True
       elif random.randint(1, 80) == 1:
         item = gen_item()
-        stage.spawn_actor(Chest(item), cell)
+        stage.spawn_elem(Chest(item), cell)
 
   for room in dead_ends:
     room_width, room_height = room.size
@@ -482,10 +482,10 @@ def dungeon(size, floor=1):
       kind = random.choice(("Item", "Eye"))
       if kind == "Item":
         item = gen_item()
-        stage.spawn_actor(Chest(item), cell)
+        stage.spawn_elem(Chest(item), cell)
       elif kind == "Eye":
         enemy = Eye()
-        stage.spawn_actor(enemy, cell)
+        stage.spawn_elem(enemy, cell)
         if random.randint(1, 3) == 1:
           enemy.asleep = True
 
@@ -493,26 +493,32 @@ def dungeon(size, floor=1):
     kind = random.choice(("Treasure", "MonsterDen"))
     for cell in room.get_cells():
       is_floor = stage.get_tile_at(cell) is Stage.FLOOR
-      is_empty = stage.get_actor_at(cell) is None
+      is_empty = stage.get_elem_at(cell) is None
       is_beside_door = next((door for door in doors if is_adjacent(door, cell)), None)
       if not is_floor or not is_empty or is_beside_door:
         continue
       if kind == "Treasure" and random.randint(1, 2) == 1:
         if random.randint(1, 10) == 1:
           enemy = Mimic()
-          stage.spawn_actor(enemy, cell)
+          stage.spawn_elem(enemy, cell)
         else:
           item = random.choice((Potion, Ankh, Bread, Fish, Emerald))()
-          stage.spawn_actor(Chest(item), cell)
+          stage.spawn_elem(Chest(item), cell)
       elif kind == "MonsterDen" and random.randint(1, 2) == 1:
         enemy = Eye()
         if random.randint(0, 4):
           enemy.asleep = True
-        stage.spawn_actor(enemy, cell)
+        stage.spawn_elem(enemy, cell)
 
   if floor == WALLLESS_FLOOR:
     for door in doors:
       stage.set_tile_at(door, Stage.FLOOR)
+
+  entrance_x, entrance_y = stage.entrance
+  eye = Eye()
+  eye.asleep = True
+  stage.spawn_elem(eye,   (entrance_x + 0, entrance_y - 2))
+  stage.spawn_elem(Mimic(),  (entrance_x - 1, entrance_y - 2))
 
   stage.rooms = rooms
   return stage

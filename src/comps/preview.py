@@ -26,7 +26,7 @@ BAR_HEIGHT = 2
 PORTRAIT_X = 23
 PORTRAIT_Y = 3
 
-class ShakeAnim(Anim): pass
+class FlinchAnim(Anim): pass
 
 class Preview:
   def __init__(preview, actor):
@@ -46,7 +46,7 @@ class Preview:
     if preview.sprite is None or preview.hp != preview.actor.hp:
       preview.sprite = preview.render()
       if preview.actor.hp < preview.hp_prev:
-        preview.anim = ShakeAnim(duration=10)
+        preview.anim = FlinchAnim(duration=10)
       preview.hp = max(preview.actor.hp, preview.hp - preview.actor.hp_max / 90)
     preview.hp_prev = preview.actor.hp
 
@@ -54,7 +54,7 @@ class Preview:
       return
 
     anim = preview.anim
-    if type(anim) is ShakeAnim:
+    if type(anim) is FlinchAnim:
       offset_x, offset_y = preview.offset
       while (offset_x, offset_y) == preview.offset:
         offset_x = random.randint(-1, 1)
@@ -98,7 +98,7 @@ class Preview:
       BAR_HEIGHT
     )
     anim = preview.anim
-    if type(anim) is ShakeAnim:
+    if type(anim) is FlinchAnim:
       if anim.time <= 2:
         portrait = portrait and replace_color(portrait, palette.WHITE, palette.RED)
     if type(anim) is FlickerAnim:

@@ -1,9 +1,8 @@
 import math
 from skills import Skill
 from actors import Actor
-from actors.eye import Eye
-from actors.chest import Chest
 from actors.knight import Knight
+from props import Prop
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
@@ -34,34 +33,34 @@ class ShieldBash(Skill):
     hero_x, hero_y = source_cell
     delta_x, delta_y = user.facing
     target_cell = (hero_x + delta_x, hero_y + delta_y)
-    target_actor = floor.get_actor_at(target_cell)
-    target_actor = None if type(target_actor) is Chest else target_actor
+    target_elem = floor.get_elem_at(target_cell)
+    target_elem = None if isinstance(target_elem, Prop) else target_elem
 
-    if target_actor:
+    if target_elem:
       # nudge target actor 1 square in the given direction
       target_x, target_y = target_cell
       nudge_cell = (target_x + delta_x, target_y + delta_y)
       nudge_tile = floor.get_tile_at(nudge_cell)
-      nudge_actor = floor.get_actor_at(nudge_cell)
+      nudge_actor = floor.get_elem_at(nudge_cell)
       will_nudge = (
         (not nudge_tile.solid or nudge_tile.pit)
         and nudge_actor is None
       )
 
       def on_move():
-        target_actor.cell = nudge_cell
+        target_elem.cell = nudge_cell
         if nudge_tile.pit:
-          game.log.print(target_actor.name.upper() + " tumbles into the chasm below!")
-          game.kill(target_actor)
+          game.log.print(target_elem.name.upper() + " tumbles into the chasm below!")
+          game.kill(target_elem)
         else:
-          game.log.print(target_actor.name.upper() + " is reeling.")
+          game.log.print(target_elem.name.upper() + " is reeling.")
 
       def on_connect():
         if will_nudge:
-          target_actor.stun = True
+          target_elem.stun = True
           game.anims[0].append(MoveAnim(
             duration=MOVE_DURATION,
-            target=target_actor,
+            target=target_elem,
             src_cell=target_cell,
             dest_cell=nudge_cell,
             on_end=on_move
@@ -69,8 +68,8 @@ class ShieldBash(Skill):
 
       game.attack(
         actor=user,
-        target=target_actor,
-        damage=math.ceil(Actor.find_damage(user, target_actor) / 2),
+        target=target_elem,
+        damage=math.ceil(Actor.find_damage(user, target_elem) / 2),
         on_connect=on_connect,
         on_end=on_end
       )

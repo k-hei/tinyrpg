@@ -26,13 +26,13 @@ class Somnus(Skill):
     hero_x, hero_y = source_cell
     delta_x, delta_y = user.facing
     target_cell = (hero_x + delta_x, hero_y + delta_y)
-    target_actor = game.floor.get_actor_at(target_cell)
+    target_elem = game.floor.get_elem_at(target_cell)
     def on_attack_end():
-      if target_actor:
-        target_actor.asleep = True
-        if type(target_actor) is Actor and target_actor.idle:
-          target_actor.activate()
-        result = target_actor.name.upper() + " fell asleep!"
+      if target_elem:
+        target_elem.asleep = True
+        if type(target_elem) is Actor and target_elem.idle:
+          target_elem.activate()
+        result = target_elem.name.upper() + " fell asleep!"
       else:
         result = "But nothing happened..."
       game.anims[0].append(PauseAnim(

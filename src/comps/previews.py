@@ -8,6 +8,7 @@ from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in_out
 from lerp import lerp
 
+from actors import Actor
 from actors.mimic import Mimic
 
 class EnterAnim(TweenAnim): pass
@@ -35,11 +36,11 @@ class Previews:
   def draw(self, surface, game):
     hero = game.hero
     floor = game.floor
-    enemies = [actor for actor in floor.actors if (
-      actor.faction == "enemy"
-      and actor in floor.actors
-      and actor.cell in hero.visible_cells
-      and not (type(actor) is Mimic and actor.idle)
+    enemies = [e for e in floor.elems if (
+      isinstance(e, Actor)
+      and e.faction == "enemy"
+      and e.cell in hero.visible_cells
+      and not (type(e) is Mimic and e.idle)
     )]
     enemies.sort(key=lambda e: manhattan(e.cell, hero.cell))
     adjacent_enemies = [e for e in enemies if is_adjacent(e.cell, hero.cell)]

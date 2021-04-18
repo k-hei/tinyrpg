@@ -1,4 +1,5 @@
 from actors import Actor
+from assets import load as use_assets
 
 class NPC(Actor):
   def __init__(npc):
@@ -10,13 +11,12 @@ class NPC(Actor):
       en=0
     )
     npc.messages = [
-      [
-        "I've heard there's a hidden room",
-        "somewhere on this floor."
-      ],
-      [
-        "Not that they've ever let me",
-        "see it..."
-      ]
+      ("I've heard there's a hidden room", "somewhere on this floor."),
+      ("Not that they've ever let me", "see it...")
     ]
     npc.message = npc.messages[0]
+
+  def render(npc, anims):
+    sprites = use_assets().sprites
+    sprite = sprites["eye"]
+    return super().render(sprite, anims)

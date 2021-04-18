@@ -11,6 +11,7 @@ class AttackAnim():
     anim.time = 0
     anim.duration = duration
     anim.target = target
+    anim.cur_cell = src_cell
     anim.src_cell = src_cell
     anim.dest_cell = dest_cell
     anim.normal = normal
@@ -34,4 +35,5 @@ class AttackAnim():
     steps = anim.time if anim.time <= midpoint else midpoint - anim.time + midpoint
     x = src_x + norm_x / 16 * steps
     y = src_y + norm_y / 16 * steps
-    return (x, y)
+    anim.cur_cell = (x, y)
+    return anim.cur_cell

@@ -8,7 +8,6 @@ from assets import load as load_assets
 from text import render as render_text
 from filters import recolor, replace_color
 from stage import Stage
-from actors import Actor
 from keyboard import key_times
 from cell import is_adjacent, manhattan
 
@@ -36,9 +35,9 @@ from actors import Actor
 from actors.knight import Knight
 from actors.mage import Mage
 from actors.eye import Eye
-from actors.chest import Chest
 from actors.mimic import Mimic
 from actors.npc import NPC
+from props.chest import Chest
 
 from skills.blitzritter import Blitzritter
 from skills.shieldbash import ShieldBash
@@ -56,17 +55,18 @@ from items.ankh import Ankh
 
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
-from anims.shake import ShakeAnim
+from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from anims.pause import PauseAnim
 from anims.awaken import AwakenAnim
+from anims.activate import ActivateAnim
 from anims.chest import ChestAnim
 
 class DungeonContext(Context):
   MOVE_DURATION = 16
   RUN_DURATION = 12
   ATTACK_DURATION = 12
-  SHAKE_DURATION = 30
+  FLINCH_DURATION = 45
   FLICKER_DURATION = 30
   PAUSE_DURATION = 15
   PAUSE_ITEM_DURATION = 30
@@ -135,10 +135,10 @@ class DungeonContext(Context):
     elif floor.find_tile(Stage.DOOR_HIDDEN):
       game.log.print("This floor seems to hold many secrets.")
 
-    floor.spawn_actor(game.hero, floor.entrance)
+    floor.spawn_elem(game.hero, floor.entrance)
     if not game.ally.dead:
       x, y = floor.entrance
-      floor.spawn_actor(game.ally, (x - 1, y))
+      floor.spawn_elem(game.ally, (x - 1, y))
 
     game.floor = floor
     game.floors.append(game.floor)
@@ -169,19 +169,24 @@ class DungeonContext(Context):
 
     hero = game.hero
     camera = game.camera
-    for actor in game.floor.actors:
-      if actor.faction == "enemy" and is_adjacent(hero.cell, actor.cell) and not (type(actor) is Mimic and actor.idle):
-        hero_x, hero_y = hero.cell
-        actor_x, actor_y = actor.cell
-        mid_x = (hero_x + actor_x) / 2
-        mid_y = (hero_y + actor_y) / 2
-        camera.focus((mid_x, mid_y))
-        break
+    adjacent_enemies = [e for e in game.floor.elems if (
+      isinstance(e, Actor)
+      and e.faction == "enemy"
+      and is_adjacent(hero.cell, e.cell)
+      and (type(e) is not Mimic or not e.idle)
+    )]
+    if adjacent_enemies:
+      enemy = adjacent_enemies[0]
+      hero_x, hero_y = hero.cell
+      enemy_x, enemy_y = enemy.cell
+      mid_x = (hero_x + enemy_x) / 2
+      mid_y = (hero_y + enemy_y) / 2
+      camera.focus((mid_x, mid_y))
     else:
       camera.blur()
 
   def step(game, run=False):
-    actors = [a for a in game.floor.actors if isinstance(a, Actor)]
+    actors = [e for e in game.floor.elems if isinstance(e, Actor)]
     enemies = [a for a in actors if a.faction == "enemy"]
     for actor in actors:
       if actor in enemies:
@@ -312,7 +317,7 @@ class DungeonContext(Context):
     moved = game.move(hero, delta, run)
     target_cell = (hero_x + delta_x, hero_y + delta_y)
     target_tile = floor.get_tile_at(target_cell)
-    target_actor = floor.get_actor_at(target_cell)
+    target_elem = floor.get_elem_at(target_cell)
     if moved:
       if not ally.dead and not ally.asleep:
         last_group = game.anims[len(game.anims) - 1]
@@ -338,14 +343,14 @@ class DungeonContext(Context):
         def spawn():
           monsters = 15
           cells = [c for c in game.room.get_cells() if (
-            not floor.get_actor_at(c)
+            not floor.get_elem_at(c)
             and floor.get_tile_at(c) is Stage.FLOOR
             and manhattan(c, hero.cell) > 2
           )]
           for i in range(monsters):
             cell = random.choice(cells)
             enemy = Eye()
-            floor.spawn_actor(enemy, cell)
+            floor.spawn_elem(enemy, cell)
             cells.remove(cell)
             if random.randint(0, 9):
               enemy.asleep = True
@@ -365,8 +370,8 @@ class DungeonContext(Context):
       is_waking_up = False
       if game.room:
         room = game.room
-        room_actors = [a for a in [floor.get_actor_at(cell) for cell in room.get_cells()] if a]
-        enemies = [actor for actor in room_actors if actor.faction == "enemy"]
+        room_elems = [a for a in [floor.get_elem_at(cell) for cell in room.get_cells()] if a]
+        enemies = [e for e in room_elems if isinstance(e, Actor) and e.faction == "enemy"]
         enemy = next((e for e in enemies if e.asleep and random.randint(1, 10) == 1), None)
         if enemy:
           enemy.wake_up()
@@ -404,8 +409,8 @@ class DungeonContext(Context):
 
       acted = True
       game.sp = max(0, game.sp - 1 / 100)
-    elif target_actor and target_actor.faction == "enemy":
-      if target_actor.idle:
+    elif isinstance(target_elem, Actor) and target_elem.faction == "enemy":
+      if target_elem.idle:
         game.anims.append([
           AttackAnim(
             duration=DungeonContext.ATTACK_DURATION,
@@ -414,12 +419,12 @@ class DungeonContext(Context):
             dest_cell=target_cell
           ),
           PauseAnim(duration=15, on_end=lambda: (
-            game.anims[0].append(FlickerAnim(
+            game.anims[0].append(ActivateAnim(
               duration=45,
-              target=target_actor,
+              target=target_elem,
               on_end=lambda: (
-                target_actor.activate(),
-                game.log.print("The lamp was " + target_actor.name.upper() + "!"),
+                target_elem.activate(),
+                game.log.print("The lamp was " + target_elem.name.upper() + "!"),
                 game.anims[0].append(PauseAnim(duration=15, on_end=lambda: (
                   game.step(),
                   game.refresh_fov()
@@ -433,7 +438,7 @@ class DungeonContext(Context):
         game.log.print(hero.name.upper() + " attacks")
         game.attack(
           actor=hero,
-          target=target_actor,
+          target=target_elem,
           on_end=lambda: (
             game.step(),
             game.refresh_fov()
@@ -450,8 +455,8 @@ class DungeonContext(Context):
           dest_cell=target_cell
         )
       ])
-      if type(target_actor) is NPC:
-        npc = target_actor
+      if type(target_elem) is NPC:
+        npc = target_elem
         game.log.clear()
         message = npc.message
         game.log.print(npc.name + ": " + message[0])
@@ -461,8 +466,8 @@ class DungeonContext(Context):
           npc.message = npc.messages[1]
         else:
           npc.message = npc.messages[0]
-      elif type(target_actor) is Chest:
-        chest = target_actor
+      elif type(target_elem) is Chest:
+        chest = target_elem
         item = chest.contents
         if item:
           if not game.inventory.is_full():
@@ -484,16 +489,16 @@ class DungeonContext(Context):
           game.log.print("There's nothing left to take...")
         game.step(run)
         game.refresh_fov()
-      elif target_actor and target_actor.faction == "player":
+      elif isinstance(target_elem, Actor) and target_elem.asleep and target_elem.faction == "player":
         game.log.exit()
         game.anims[0].append(PauseAnim(
           duration=60,
           on_end=lambda: (
-            target_actor.wake_up(),
-            game.log.print(target_actor.name.upper() + " woke up!"),
-            game.anims[0].append(ShakeAnim(
-              duration=DungeonContext.SHAKE_DURATION,
-              target=target_actor,
+            target_elem.wake_up(),
+            game.log.print(target_elem.name.upper() + " woke up!"),
+            game.anims[0].append(FlinchAnim(
+              duration=DungeonContext.FLINCH_DURATION,
+              target=target_elem,
             ))
           )
         ))
@@ -594,9 +599,13 @@ class DungeonContext(Context):
     delta_x, delta_y = delta
     target_cell = (actor_x + delta_x, actor_y + delta_y)
     target_tile = game.floor.get_tile_at(target_cell)
-    target_actor = game.floor.get_actor_at(target_cell)
+    target_elem = game.floor.get_elem_at(target_cell)
     actor.facing = delta
-    if not target_tile.solid and (target_actor is None or actor is game.hero and target_actor is game.ally and not game.ally.asleep):
+    if not target_tile.solid and (
+    target_elem is None
+    or actor is game.hero
+    and target_elem is game.ally
+    and not game.ally.asleep):
       duration = DungeonContext.RUN_DURATION if run else DungeonContext.MOVE_DURATION
       anim = MoveAnim(
         duration=duration,
@@ -625,8 +634,8 @@ class DungeonContext(Context):
 
     def is_empty(cell):
       target_tile = floor.get_tile_at(cell)
-      target_actor = floor.get_actor_at(cell)
-      return not target_tile.solid and not target_actor
+      target_elem = floor.get_elem_at(cell)
+      return not target_tile.solid and not target_elem
 
     def select_x():
       if target_x < actor_x and is_empty((actor_x - 1, actor_y)):
@@ -688,7 +697,7 @@ class DungeonContext(Context):
 
   def kill(game, target, on_end=None):
     def remove():
-      game.floor.actors.remove(target)
+      game.floor.elems.remove(target)
       if target is game.hero:
         game.anims[0].append(PauseAnim(
           duration=DungeonContext.PAUSE_DEATH_DURATION,
@@ -699,7 +708,7 @@ class DungeonContext(Context):
         ))
       else:
         trap = game.floor.find_tile(Stage.MONSTER_DEN)
-        if trap and len([a for a in game.floor.actors if a.faction == "enemy"]) == 0:
+        if trap and len([e for e in game.floor.elems if isinstance(e, Actor) and e.faction == "enemy"]) == 0:
           trap_x, trap_y = trap
           game.floor.set_tile_at((trap_x - 2, trap_y), Stage.DOOR_OPEN)
         if on_end:
@@ -737,8 +746,8 @@ class DungeonContext(Context):
     game.numbers.append(DamageValue(str(damage), target.cell))
     verb = "receives" if target.faction == "enemy" else "suffers"
     game.log.print(target.name.upper() + " " + verb + " " + str(damage) + " damage.")
-    game.anims[0].append(ShakeAnim(
-      duration=DungeonContext.SHAKE_DURATION,
+    game.anims[0].append(FlinchAnim(
+      duration=DungeonContext.FLINCH_DURATION,
       target=target,
       on_end=respond
     ))
@@ -806,8 +815,8 @@ class DungeonContext(Context):
       return False
 
     old_floor = game.floor
-    old_floor.remove_actor(game.hero)
-    old_floor.remove_actor(game.ally)
+    old_floor.remove_elem(game.hero)
+    old_floor.remove_elem(game.ally)
 
     index = game.floors.index(game.floor) + direction
     if index >= len(game.floors):
@@ -818,9 +827,9 @@ class DungeonContext(Context):
       # go back to old floor if within bounds
       new_floor = game.floors[index]
       stairs_x, stairs_y = new_floor.find_tile(entry_tile)
-      new_floor.spawn_actor(game.hero, (stairs_x, stairs_y))
+      new_floor.spawn_elem(game.hero, (stairs_x, stairs_y))
       if not game.ally.dead:
-        new_floor.spawn_actor(game.ally, (stairs_x - 1, stairs_y))
+        new_floor.spawn_elem(game.ally, (stairs_x - 1, stairs_y))
       game.floor = new_floor
       game.refresh_fov(moving=True)
       game.log.print("You go upstairs." if direction == 1 else "You go back downstairs.")

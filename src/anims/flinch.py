@@ -1,4 +1,4 @@
-class ShakeAnim():
+class FlinchAnim():
   def __init__(anim, duration, target, on_end=None):
     anim.done = False
     anim.time = 0

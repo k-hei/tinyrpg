@@ -87,12 +87,12 @@ class StatusPanel:
     knight = hero if type(hero) is Knight else ally
     mage = hero if type(hero) is Mage else ally
 
-    if knight.dead and not knight in ctx.floor.actors:
+    if knight.dead and not knight in ctx.floor.elems:
       portrait_knight = replace_color(portrait_knight, palette.WHITE, palette.RED)
     elif type(hero) is not Knight:
       portrait_knight = replace_color(portrait_knight, palette.WHITE, palette.GRAY)
 
-    if mage.dead and not mage in ctx.floor.actors:
+    if mage.dead and not mage in ctx.floor.elems:
       portrait_mage = replace_color(portrait_mage, palette.WHITE, palette.RED)
     elif type(hero) is not Mage:
       portrait_mage = replace_color(portrait_mage, palette.WHITE, palette.GRAY)

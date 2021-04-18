@@ -25,7 +25,7 @@ class Ankh:
 
     ally.hp = ally.hp_max // 2
     ally.dead = False
-    floor.spawn_actor(ally, neighbor)
+    floor.spawn_elem(ally, neighbor)
     return (True, ally.name.upper() + " was revived.")
 
   def render(ankh):

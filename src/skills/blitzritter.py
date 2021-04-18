@@ -4,8 +4,8 @@ from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from anims.attack import AttackAnim
 from anims.frame import FrameAnim
-from actors.chest import Chest
 from actors.knight import Knight
+from props.chest import Chest
 import random
 
 class Blitzritter(Skill):
@@ -31,8 +31,8 @@ class Blitzritter(Skill):
     delta_x, delta_y = user.facing
     near_cell = (hero_x + delta_x, hero_y + delta_y)
     far_cell = (hero_x + delta_x * 2, hero_y + delta_y * 2)
-    target_a = floor.get_actor_at(near_cell)
-    target_b = floor.get_actor_at(far_cell)
+    target_a = floor.get_elem_at(near_cell)
+    target_b = floor.get_elem_at(far_cell)
 
     # TODO: prevent chests from being recognized as actors
     if type(target_a) is Chest:

@@ -2,9 +2,10 @@ import pygame
 from pygame import Surface, Rect, PixelArray
 from stage import Stage
 from actors.knight import Knight
+from actors import Actor
 from actors.mage import Mage
 from actors.mimic import Mimic
-from actors.chest import Chest
+from props.chest import Chest
 import palette
 from anims.tween import TweenAnim
 from easing.expo import ease_out
@@ -51,22 +52,22 @@ class Minimap:
     visited_cells = next((cells for floor, cells in ctx.memory if floor is ctx.floor), None)
     for cell in visited_cells:
       tile = ctx.floor.get_tile_at(cell)
-      actor = ctx.floor.get_actor_at(cell)
+      elem = ctx.floor.get_elem_at(cell)
       color = None
-      if type(actor) is Knight or type(actor) is Mage and cell in visible_cells:
+      if type(elem) is Knight or type(elem) is Mage and cell in visible_cells:
         color = 0x337FFF
-      elif type(actor) is Mimic and cell in visible_cells:
-        if actor.idle:
+      elif type(elem) is Mimic and cell in visible_cells:
+        if elem.idle:
           color = 0xFFFF00 if minimap.time % 60 >= 30 else 0x7F7F00
         else:
           color = 0xFF0000
-      elif actor and actor.faction == "enemy" and cell in visible_cells:
-        if actor.asleep:
+      elif isinstance(elem, Actor) and elem.faction == "enemy" and cell in visible_cells:
+        if elem.asleep:
           color = 0xFF00FF
         else:
           color = 0xFF0000
-      elif type(actor) is Chest:
-        if actor.opened:
+      elif type(elem) is Chest:
+        if elem.opened:
           color = 0x7F7F00
         elif cell in visible_cells:
           color = 0xFFFF00 if minimap.time % 60 >= 30 else 0x7F7F00

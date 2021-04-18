@@ -1,4 +1,4 @@
 from anims.flicker import FlickerAnim
 
-class AwakenAnim(FlickerAnim):
+class ActivateAnim(FlickerAnim):
   pass

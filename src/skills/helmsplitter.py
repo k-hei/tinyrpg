@@ -21,7 +21,7 @@ class HelmSplitter(Skill):
     hero_x, hero_y = user.cell
     delta_x, delta_y = user.facing
     target_cell = (hero_x + delta_x, hero_y + delta_y)
-    target_actor = floor.get_actor_at(target_cell)
+    target_elem = floor.get_elem_at(target_cell)
     camera.focus(target_cell)
     game.anims.append([
       AttackAnim(

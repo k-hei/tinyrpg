@@ -10,6 +10,7 @@ class ChestAnim:
     anim.on_end = on_end
     anim.done = False
     anim.time = 0
+    anim.frame = 0
 
   def update(anim):
     if anim.done:
@@ -19,4 +20,5 @@ class ChestAnim:
       anim.done = True
       if anim.on_end:
         anim.on_end()
-    return min(FRAMES - 1, math.floor(anim.time / anim.duration * 2 * FRAMES))
+    anim.frame = min(FRAMES - 1, math.floor(anim.time / anim.duration * 2 * FRAMES))
+    return anim.frame

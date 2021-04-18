@@ -11,6 +11,7 @@ class Mushroom(Actor):
       en=9
     )
 
-  def render(mushroom):
-    assets = use_assets()
-    return super().render(assets.sprites["mushroom"])
+  def render(knight, anims):
+    sprites = use_assets().sprites
+    sprite = sprites["mushroom"]
+    return super().render(sprite, anims)

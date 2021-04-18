@@ -1,11 +1,18 @@
 import random
-import palette
+from element import Element
 from functools import reduce
 from operator import add
 
-class Actor:
+import palette
+from assets import load as use_assets
+from filters import replace_color
+from anims.awaken import AwakenAnim
+from anims.flinch import FlinchAnim
+from anims.flicker import FlickerAnim
+
+class Actor(Element):
   def __init__(actor, name, faction, hp, st, en, skills=[]):
-    actor.name = name
+    super().__init__(name)
     actor.hp_max = hp
     actor.hp = hp
     actor.st = st
@@ -64,5 +71,27 @@ class Actor:
     en = target.en if not target.asleep else 0
     return max(0, st - en) + random.randint(-2, 2)
 
-  def render(actor):
-    pass
+  def render(actor, sprite, anims=[]):
+    new_color = None
+    sprites = use_assets().sprites
+    anim_group = [a for a in anims[0] if a.target is actor] if anims else []
+    for anim in anim_group:
+      if type(anim) is AwakenAnim and anim.visible:
+        new_color = palette.PURPLE
+        break
+      elif type(anim) is FlinchAnim and anim.time <= 2:
+        return None
+      elif type(anim) is FlickerAnim and not anim.visible:
+        return None
+    else:
+      if actor.asleep:
+        new_color = palette.PURPLE
+      elif actor.faction == "player":
+        new_color = palette.BLUE
+      elif actor.faction == "ally":
+        new_color = palette.GREEN
+      elif actor.faction == "enemy":
+        new_color = palette.RED
+    if new_color:
+      sprite = replace_color(sprite, palette.BLACK, new_color)
+    return sprite

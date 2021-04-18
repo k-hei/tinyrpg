@@ -93,8 +93,6 @@ class Log:
       message = log.messages[log.row]
       char = message[log.col]
       text = render_text(char, font)
-      # text = recolor(text, (0x00, 0x00, 0x00))
-      # text = outline(text, 0x000000)
       line["surface"].blit(text, (line["x"], 0))
       line["x"] += text.get_width() # - 2
       if log.col < len(message) - 1:
