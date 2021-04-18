@@ -59,7 +59,6 @@ class Previews:
     #       index = self.enemies.index(farthest[i])
     #       self.enemies.pop(index)
     #       self.enemies.insert(index, new_enemy)
-    #       print("inserted", new_enemy.name, "at", index)
 
     entering = [a for a in self.anims if type(a) is EnterAnim]
     exiting = [a for a in self.anims if type(a) is ExitAnim or type(a) is SquishAnim]
@@ -163,8 +162,6 @@ class Previews:
           if cur_idx != tgt_idx and arrange_anim is None:
             preview.y = cur_idx
             targets[preview] = (cur_idx, tgt_idx)
-      # actors = [p.actor for p in self.previews]
-      # print(pygame.time.get_ticks(), "Exited, remainder is", actors)
       arrange_previews()
       self.previews = [p for p in self.previews if p]
       arrange_previews()
@@ -176,9 +173,6 @@ class Previews:
         )
         self.anims.append(anim)
         arranging.append(anim)
-
-    # actors = [p.actor for p in self.previews]
-    # print(pygame.time.get_ticks(), actors)
 
     window_width = surface.get_width()
     window_height = surface.get_height()

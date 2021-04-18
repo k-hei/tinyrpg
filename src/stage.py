@@ -160,18 +160,20 @@ class Stage:
     # depthsort by y position
     stage.elems.sort(key=lambda elem: elem.cell[1])
 
-    anim_group = anims[0] if anims else []
-    for anim in anim_group:
-      anim.update()
-      if anim.done:
-        anim_group.remove(anim)
-
     visible_elems = [e for e in stage.elems if e.cell in visible_cells]
     for elem in visible_elems:
       sprite = stage.draw_elem(elem, surface, anims, camera_pos)
 
+    anim_group = anims[0] if anims else []
+    for anim in anim_group:
+      # HACK: update move and attack separately in an attempt to reduce jitter (doesn't work)
+      if type(anim) not in (MoveAnim, AttackAnim):
+        anim.update()
+
     for anim_group in anims:
       for anim in anim_group:
+        if anim.done:
+          anim_group.remove(anim)
         if anim.target is not None and anim.target not in visible_elems:
           anim_group.remove(anim)
         if len(anim_group) == 0:
@@ -196,10 +198,10 @@ class Stage:
     scale_y = 1
 
     item = None
-    anim_group = [a for a in anims[0] if a.target is elem] if anims else []
+    anim_group = anims[0] if anims else []
     pausing = next((a for a in anim_group if type(a) is PauseAnim), None)
 
-    for anim in anim_group:
+    for anim in [a for a in anim_group if a.target is elem]:
       if type(anim) is ChestAnim:
         item = (
           anim.item.render(),
@@ -223,11 +225,15 @@ class Stage:
           facing_x = -1
         elif dest_x > src_x:
           facing_y = 1
-        col, row = anim.cur_cell
+        col, row = anim.update()
         sprite_x = col * config.tile_size
         sprite_y = row * config.tile_size
 
-    # HACK: if element will move, make sure it doesn't jump ahead to the target position
+      if anim.done:
+        anim_group.remove(anim)
+
+    # HACK: if element will move during the next animation sequence,
+    # make sure it doesn't jump ahead to the target position
     for group in anims:
       for anim in group:
         if anims.index(group) == 0:

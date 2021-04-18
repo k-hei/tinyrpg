@@ -324,7 +324,8 @@ class DungeonContext(Context):
         if manhattan(ally.cell, old_cell) == 1:
           ally_x, ally_y = ally.cell
           old_x, old_y = old_cell
-          ally.stepped = game.move(ally, (old_x - ally_x, old_y - ally_y), run)
+          ally_delta = (old_x - ally_x, old_y - ally_y)
+          ally.stepped = game.move(ally, ally_delta, run)
           last_group.append(game.anims.pop()[0])
         elif manhattan(ally.cell, hero.cell) > 1:
           ally.stepped = game.move_to(ally, hero.cell, run)

@@ -463,7 +463,7 @@ def dungeon(size, floor=1):
       if not is_floor or not is_empty or is_beside_door:
         continue
       if random.randint(1, 25) == 1:
-        enemy = Eye()
+        enemy = gen_enemy(floor)
         stage.spawn_elem(enemy, cell)
         if random.randint(1, 3) == 1:
           enemy.asleep = True
@@ -480,12 +480,12 @@ def dungeon(size, floor=1):
     for i in range(elems):
       cell = random.choice(cells)
       cells.remove(cell)
-      kind = random.choice(("Item", "Eye"))
+      kind = random.choice(("Item", "Enemy"))
       if kind == "Item":
         item = gen_item()
         stage.spawn_elem(Chest(item), cell)
-      elif kind == "Eye":
-        enemy = Eye()
+      elif kind == "Enemy":
+        enemy = gen_enemy(floor)
         stage.spawn_elem(enemy, cell)
         if random.randint(1, 3) == 1:
           enemy.asleep = True
@@ -525,13 +525,20 @@ def dungeon(size, floor=1):
   # # eye.asleep = True
   # stage.spawn_elem(eye, (entrance_x + 0, entrance_y - 3))
 
-  stage.spawn_elem(Mimic(), (entrance_x + 0, entrance_y - 2))
+  # stage.spawn_elem(Mimic(), (entrance_x + 0, entrance_y - 2))
 
   stage.rooms = rooms
   return stage
 
+def gen_enemy(floor):
+  if floor == 1:
+    return random.choices((Eye, Mushroom), (5, 1))[0]()
+  else:
+    return random.choices((Eye, Mushroom), (3, 1))[0]()
+
+
 def gen_item():
-   return random.choices((Potion, Ankh, Cheese, Bread, Fish, Emerald), (3, 1, 4, 3, 1, 1))[0]()
+  return random.choices((Potion, Ankh, Cheese, Bread, Fish, Emerald), (3, 1, 4, 3, 1, 1))[0]()
 
 def gen_rooms(slots):
   rooms = []

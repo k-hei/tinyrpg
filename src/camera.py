@@ -45,7 +45,7 @@ class Camera:
     camera_speed = 4
     if camera.flag:
       focus_x, focus_y = camera.flag
-      camera_speed = 16
+      camera_speed = 20
     elif game.room:
       room = game.room
       focus_x, focus_y = room.get_center()
