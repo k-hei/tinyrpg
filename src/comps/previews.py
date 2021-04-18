@@ -91,11 +91,8 @@ class Previews:
         self.anims.remove(anim)
         if type(anim) is ExitAnim or type(anim) is SquishAnim:
           index = self.previews.index(anim.target)
-          if self.active:
-            self.previews.pop(index)
-            self.previews.insert(index, None)
-          else:
-            self.previews.remove(anim.target)
+          self.previews.pop(index)
+          self.previews.insert(index, None)
           exiting.remove(anim)
           exited = True
         elif type(anim) is ArrangeAnim:
@@ -123,6 +120,9 @@ class Previews:
           start_y = src
           end_y = tgt
           preview.y = lerp(start_y, end_y, t)
+
+    if not exiting and not self.active:
+      self.previews = [p for p in self.previews if p]
 
     # enter
     if self.active and not exiting and (not arranging or exited):

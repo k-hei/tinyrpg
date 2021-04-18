@@ -55,7 +55,7 @@ class Actor:
     target.hp -= damage
     if target.asleep and random.randint(0, 1):
       target.wake_up()
-    if int(target.get_hp()) <= 0:
+    if target.get_hp() <= 0:
       target.dead = True
     return damage
 

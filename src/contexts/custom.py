@@ -35,12 +35,13 @@ class CustomContext(Context):
     super().__init__(parent)
     ctx.on_close = on_close
     ctx.char = parent.hero
+    ctx.char_drawn = ctx.char
     ctx.index = 0
-    ctx.prev_char = ctx.char
-    ctx.prev_index = -1
+    ctx.index_drawn = -1
     ctx.offset = 0
-    ctx.arrange = False
     ctx.cursor = (0, 0)
+    ctx.cursor_drawn = ctx.cursor
+    ctx.arrange = False
     ctx.pieces = parent.skill_builds[ctx.char]
     ctx.matrix_size = (3, 3)
     ctx.anims = []
@@ -137,7 +138,10 @@ class CustomContext(Context):
       ctx.index = max_index
     if ctx.index != old_index:
       ctx.update_bar()
-    ctx.offset = max(0, ctx.index - (SKILLS_VISIBLE - 1))
+    if ctx.index < ctx.offset:
+      ctx.offset = ctx.index
+    elif ctx.index > ctx.offset + SKILLS_VISIBLE - 1:
+      ctx.offset = ctx.index - SKILLS_VISIBLE + 1
 
   def handle_select_piece(ctx):
     skill = ctx.get_selected_skill()
@@ -145,14 +149,20 @@ class CustomContext(Context):
       ctx.arrange = True
     else:
       game = ctx.parent
-      hero_skills = [skill for skill, cell in game.skill_builds[game.hero]]
-      ally_skills = [skill for skill, cell in game.skill_builds[game.ally]]
-      if skill in hero_skills:
-        index = hero_skills.index(skill)
-        game.skill_builds[game.hero].pop(index)
-      elif skill in ally_skills:
-        index = ally_skills.index(skill)
-        game.skill_builds[game.ally].pop(index)
+      ctx.arrange = True
+      other = game.hero if ctx.char is game.ally else game.ally
+      char_skills = [skill for skill, cell in game.skill_builds[ctx.char]]
+      other_skills = [skill for skill, cell in game.skill_builds[other]]
+      if skill in char_skills:
+        index = char_skills.index(skill)
+        build = game.skill_builds[ctx.char]
+        _, cell = build.pop(index)
+        ctx.cursor = cell
+      elif skill in other_skills:
+        index = other_skills.index(skill)
+        build = game.skill_builds[other]
+        build.pop(index)
+        ctx.cursor = (0, 0)
 
   def handle_keydown(ctx, key):
     blocking = False
@@ -245,7 +255,7 @@ class CustomContext(Context):
       next((a for a in g if type(a) is EnterAnim), None)
     )), None)
 
-    if not entering and ctx.index != ctx.prev_index:
+    if not entering and ctx.index_drawn != ctx.index:
       # select the new skill
       ctx.anims.append([
         SelectAnim(
@@ -253,17 +263,17 @@ class CustomContext(Context):
           target=skills[ctx.index]
         )
       ])
-      if ctx.prev_index >= 0 and ctx.prev_index < len(skills):
+      if ctx.index_drawn >= 0 and ctx.index_drawn < len(skills):
         # deselect the old skill
         ctx.anims[0].append(
           DeselectAnim(
             duration=6,
-            target=skills[ctx.prev_index]
+            target=skills[ctx.index_drawn]
           )
         )
-      ctx.prev_index = ctx.index
+      ctx.index_drawn = ctx.index
 
-    if not entering and ctx.char != ctx.prev_char:
+    if not entering and ctx.char_drawn != ctx.char:
       if not ctx.anims:
         ctx.anims.append([])
       for skill in skills:
@@ -279,8 +289,8 @@ class CustomContext(Context):
           target=skill
         ))
       ctx.anims.append(skill_enters)
-      ctx.prev_char = ctx.char
-      ctx.prev_index = -1
+      ctx.char_drawn = ctx.char
+      ctx.index_drawn = -1
 
     # surface.blit(tab_inactive, (tab.get_width() - 1, tab_y))
     # surface.blit(tab_inactive, (tab.get_width() * 2 - 2, tab_y))
