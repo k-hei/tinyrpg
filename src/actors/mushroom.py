@@ -4,9 +4,9 @@ from actors import Actor
 class Mushroom(Actor):
   def __init__(mushroom):
     super().__init__(
-      name="Mushroom",
+      name="Toadstool",
       faction="enemy",
-      hp=38,
+      hp=55,
       st=17,
       en=9
     )

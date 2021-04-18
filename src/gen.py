@@ -7,6 +7,7 @@ from maze import Maze
 from actors.knight import Knight
 from actors.mage import Mage
 from actors.eye import Eye
+from actors.mushroom import Mushroom
 from actors.mimic import Mimic
 from actors.npc import NPC
 from props.chest import Chest
@@ -515,10 +516,9 @@ def dungeon(size, floor=1):
       stage.set_tile_at(door, Stage.FLOOR)
 
   entrance_x, entrance_y = stage.entrance
-  eye = Eye()
-  eye.asleep = True
-  stage.spawn_elem(eye,   (entrance_x + 0, entrance_y - 2))
-  stage.spawn_elem(Mimic(),  (entrance_x - 1, entrance_y - 2))
+  mushroom = Mushroom()
+  mushroom.asleep = True
+  stage.spawn_elem(mushroom, (entrance_x + 0, entrance_y - 2))
 
   stage.rooms = rooms
   return stage

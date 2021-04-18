@@ -207,13 +207,13 @@ class Stage:
         )
 
       if type(anim) is FlinchAnim:
-        sprite_x += anim.update()
+        sprite_x += anim.x
 
       if type(anim) is FlickerAnim:
         pinch_duration = anim.duration // 4
         t = max(0, anim.time - anim.duration + pinch_duration) / pinch_duration
         scale_x = lerp(1, 0, t)
-        scale_y = lerp(1, 2, t)
+        scale_y = lerp(1, 3, t)
 
       if type(anim) in (AttackAnim, MoveAnim):
         src_x, src_y = anim.src_cell

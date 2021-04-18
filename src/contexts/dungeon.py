@@ -66,7 +66,7 @@ class DungeonContext(Context):
   MOVE_DURATION = 16
   RUN_DURATION = 12
   ATTACK_DURATION = 12
-  FLINCH_DURATION = 45
+  FLINCH_DURATION = 30
   FLICKER_DURATION = 30
   PAUSE_DURATION = 15
   PAUSE_ITEM_DURATION = 30
@@ -751,7 +751,7 @@ class DungeonContext(Context):
       target=target,
       on_end=respond
     ))
-    if was_asleep and not target.asleep:
+    if was_asleep and not target.asleep and not target.dead:
       game.anims[0].append(AwakenAnim(
         duration=DungeonContext.AWAKEN_DURATION,
         target=target,

@@ -74,10 +74,9 @@ class Preview:
     assets = use_assets()
     base = assets.sprites["portrait_enemy"]
     portrait = None
-    if type(actor) is Eye:
-      portrait = assets.sprites["portrait_eye"]
-    elif type(actor) is Mimic:
-      portrait = assets.sprites["portrait_mimic"]
+    portrait_id = "portrait_" + actor.name.lower()
+    if portrait_id in assets.sprites:
+      portrait = assets.sprites[portrait_id]
     hp_tag = assets.sprites["tag_hp"]
     bar = assets.sprites["bar_small"]
     bar_x = HP_OFFSET_X + hp_tag.get_width() + 1
