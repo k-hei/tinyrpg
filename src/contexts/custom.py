@@ -30,6 +30,7 @@ class ExitAnim(TweenAnim): pass
 class SelectAnim(TweenAnim): pass
 class DeselectAnim(TweenAnim): pass
 class PlaceAnim(TweenAnim): pass
+class RecallAnim(TweenAnim): pass
 
 class CustomContext(Context):
   def __init__(ctx, parent, on_close=None):
@@ -114,6 +115,12 @@ class CustomContext(Context):
     else:
       ctx.pieces.append((skill, ctx.cursor))
       ctx.stop_arrange()
+    ctx.anims.append([PlaceAnim(duration=4, target=skill.blocks)])
+
+  def handle_recall_piece(ctx):
+    skill = ctx.get_selected_skill()
+    ctx.anims.append([RecallAnim(duration=15, target=(skill, ctx.cursor))])
+    ctx.stop_arrange()
 
   def stop_arrange(ctx):
     ctx.arrange = False
@@ -184,7 +191,7 @@ class CustomContext(Context):
         ctx.handle_place_piece()
 
       if key == pygame.K_ESCAPE or key == pygame.K_BACKSPACE:
-        ctx.stop_arrange()
+        ctx.handle_recall_piece()
     else:
       if key == pygame.K_TAB:
         ctx.handle_swap_char()
@@ -198,7 +205,7 @@ class CustomContext(Context):
       if key == pygame.K_RETURN or key == pygame.K_SPACE:
         ctx.handle_select_piece()
 
-      if key == pygame.K_ESCAPE:
+      if key == pygame.K_ESCAPE or key == pygame.K_BACKSPACE:
         ctx.close()
 
   def render(ctx):
@@ -313,8 +320,6 @@ class CustomContext(Context):
 
     if ctx.arrange and not ctx.arrange_drawn:
       ctx.cursor_drawn = ctx.cursor
-    elif not ctx.arrange and ctx.arrange_drawn:
-      ctx.anims.append([PlaceAnim(duration=4, target=skill_sel.blocks)])
     ctx.arrange_drawn = ctx.arrange
 
     cursor_x, cursor_y = ctx.cursor_drawn
@@ -373,6 +378,27 @@ class CustomContext(Context):
         grid_y + cursor_y * Piece.BLOCK_SIZE - 4,
       ))
 
+    pieces = []
+    recalling = None
+    for group in ctx.anims:
+      for anim in group:
+        if type(anim) is RecallAnim:
+          recalling = anim
+          break
+    if recalling:
+      skill, (col, row) = recalling.target
+      sprite = Piece.render(skill.blocks, Skill.get_color(skill_sel), Skill.get_icon(skill_sel))
+      i = skills.index(skill)
+      start_x = grid_x + col * Piece.BLOCK_SIZE
+      start_y = grid_y + row * Piece.BLOCK_SIZE - 4
+      end_x = deck.get_width() + SPACING_X
+      end_y = deck_y + (i - ctx.offset) * (assets.sprites["skill"].get_height() + SKILL_MARGIN_Y)
+      t = ease_out(recalling.pos)
+      x = lerp(start_x, end_x, t)
+      y = lerp(start_y, end_y, t)
+      if recalling.time < recalling.duration // 2 or recalling.time % 2:
+        pieces.append((sprite, x, y))
+
     badges = []
     visible_start = ctx.offset
     visible_end = SKILLS_VISIBLE + ctx.offset
@@ -387,7 +413,7 @@ class CustomContext(Context):
       skill_anim = None
       for group in ctx.anims:
         for anim in group:
-          if anim.target is skill:
+          if anim.target is skill and type(anim) is not RecallAnim:
             skill_anim = anim
             break
       if skill_anim and type(skill_anim) in (EnterAnim, ExitAnim):
@@ -445,8 +471,11 @@ class CustomContext(Context):
       y += skill_sprite.get_height() // 2 - sprite.get_height() // 2
       surface.blit(sprite, (x, y))
 
-      for text, x, y in badges:
-        surface.blit(text, (x, y))
+    for text, x, y in badges:
+      surface.blit(text, (x, y))
+
+    for sprite, x, y in pieces:
+      surface.blit(sprite, (x, y))
 
     for group in ctx.anims:
       for anim in group:
