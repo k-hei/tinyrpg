@@ -14,13 +14,14 @@ from comps.piece import Piece
 from actors.knight import Knight
 from actors.mage import Mage
 
+from anims import Anim
 from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lerp import lerp
 
 SPACING_X = 4
 SPACING_Y = 4
-SKILL_MARGIN_Y = 1
+SKILL_SPACING = 1
 SKILL_NUDGE_LEFT = 8
 SKILLS_VISIBLE = 4
 TAB_OVERLAP = 3
@@ -53,6 +54,7 @@ class CustomContext(Context):
     ctx.pieces = parent.skill_builds[ctx.char]
     ctx.matrix_size = (3, 3)
     ctx.anims = []
+    ctx.renders = 0
     ctx.bar = Bar()
     ctx.enter()
 
@@ -224,6 +226,7 @@ class CustomContext(Context):
 
   def render(ctx):
     assets = use_assets()
+    arrow = assets.sprites["arrow"]
     knight = assets.sprites["circle_knight"]
     mage = assets.sprites["circle_mage"]
     if type(ctx.char) is Knight:
@@ -242,7 +245,7 @@ class CustomContext(Context):
     deck_y = tab_y + tab.get_height() - TAB_OVERLAP
     surface = pygame.Surface((
       deck.get_width() + SPACING_X + skill.get_width() + SKILL_NUDGE_LEFT,
-      deck_y + deck.get_height() + 1
+      deck_y + deck.get_height() + 1 + SKILL_SPACING + arrow.get_height()
     ))
     surface.set_colorkey(0xFF00FF)
     surface.fill(0xFF00FF)
@@ -407,7 +410,7 @@ class CustomContext(Context):
       start_x = grid_x + col * Piece.BLOCK_SIZE
       start_y = grid_y + row * Piece.BLOCK_SIZE - 4
       end_x = deck.get_width() + SPACING_X
-      end_y = deck_y + (i - ctx.offset) * (assets.sprites["skill"].get_height() + SKILL_MARGIN_Y)
+      end_y = deck_y + (i - ctx.offset) * (assets.sprites["skill"].get_height() + SKILL_SPACING)
       t = ease_out(piece_anim.pos)
       if type(piece_anim) is CallAnim:
         t = 1 - t
@@ -436,18 +439,18 @@ class CustomContext(Context):
       text = recolor(text, palette.YELLOW)
       text = outline(text, (0, 0, 0))
       x = deck.get_width() + SPACING_X
-      y = deck_y - text.get_height() - 2
+      y = deck_y - text.get_height() - SKILL_SPACING - 1
       surface.blit(text, (x, y))
 
     badges = []
     visible_start = ctx.offset
-    visible_end = SKILLS_VISIBLE + ctx.offset
+    visible_end = ctx.offset + SKILLS_VISIBLE
     visible_skills = skills[visible_start:visible_end]
     for i, skill in enumerate(visible_skills):
       index = i + ctx.offset
       sprite = assets.sprites["skill"]
       x = deck.get_width() + SPACING_X
-      y = deck_y + i * (sprite.get_height() + SKILL_MARGIN_Y)
+      y = deck_y + i * (sprite.get_height() + SKILL_SPACING)
 
       skill_sprite = sprite
       skill_anim = None
@@ -517,6 +520,18 @@ class CustomContext(Context):
     for sprite, x, y in pieces:
       surface.blit(sprite, (x, y))
 
+    skill_sprite = assets.sprites["skill"]
+    if ctx.renders % 30 >= 10:
+      x = deck.get_width() + SPACING_X + skill_sprite.get_width() // 2  - arrow.get_width() // 2
+      if ctx.offset > 0:
+        y = deck_y - arrow.get_height() - SKILL_SPACING - 1
+        surface.blit(arrow, (x, y))
+
+      if ctx.offset + SKILLS_VISIBLE < len(skills):
+        arrow = pygame.transform.flip(arrow, False, True)
+        y = deck_y + SKILLS_VISIBLE * (skill_sprite.get_height() + SKILL_SPACING)
+        surface.blit(arrow, (x, y))
+
     for group in ctx.anims:
       for anim in group:
         # piece animations are updated conditionally (TODO: consistency)
@@ -528,13 +543,16 @@ class CustomContext(Context):
         ctx.anims.remove(group)
     anim_group = ctx.anims[0] if ctx.anims else []
 
+    ctx.renders += 1
     return surface
 
   def draw(ctx, surface):
     assets = use_assets()
     sprite = ctx.render()
-    surface.blit(sprite, (
-      surface.get_width() // 2 - sprite.get_width() // 2 + SKILL_NUDGE_LEFT,
-      (surface.get_height() - assets.sprites["statusbar"].get_height() - Bar.MARGIN * 2) // 2 - sprite.get_height() // 2
-    ))
+    bar_height = assets.sprites["statusbar"].get_height() + Bar.MARGIN * 2
+    arrow_offset = assets.sprites["arrow"].get_height() + SKILL_SPACING
+    x = surface.get_width() // 2 - sprite.get_width() // 2 + SKILL_NUDGE_LEFT
+    y = (surface.get_height() - bar_height) // 2
+    y -= (sprite.get_height() - arrow_offset) // 2
+    surface.blit(sprite, (x, y))
     ctx.bar.draw(surface)

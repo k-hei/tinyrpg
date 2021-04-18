@@ -46,6 +46,14 @@ class Skill():
       return assets.sprites["icon_axe"]
     elif skill.element == "shield":
       return assets.sprites["icon_shield"]
+    elif skill.element == "fire":
+      return assets.sprites["icon_fire"]
+    elif skill.element == "ice":
+      return assets.sprites["icon_ice"]
+    elif skill.element == "volt":
+      return assets.sprites["icon_volt"]
+    elif skill.element == "wind":
+      return assets.sprites["icon_wind"]
 
     if skill.kind == "spell":
       return assets.sprites["icon_hat"]
@@ -73,4 +81,4 @@ class Skill():
     elif skill.kind == "support":
       return palette.YELLOW
     elif skill.kind == "passive":
-      return palette.GRAY
+      return palette.YELLOW
