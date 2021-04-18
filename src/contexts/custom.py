@@ -29,6 +29,7 @@ class EnterAnim(TweenAnim): pass
 class ExitAnim(TweenAnim): pass
 class SelectAnim(TweenAnim): pass
 class DeselectAnim(TweenAnim): pass
+class PlaceAnim(TweenAnim): pass
 
 class CustomContext(Context):
   def __init__(ctx, parent, on_close=None):
@@ -42,6 +43,7 @@ class CustomContext(Context):
     ctx.cursor = (0, 0)
     ctx.cursor_drawn = ctx.cursor
     ctx.arrange = False
+    ctx.arrange_drawn = ctx.arrange
     ctx.pieces = parent.skill_builds[ctx.char]
     ctx.matrix_size = (3, 3)
     ctx.anims = []
@@ -251,6 +253,7 @@ class CustomContext(Context):
     ))
 
     skills = ctx.get_char_skills()
+    skill_sel = ctx.get_selected_skill()
     entering = next((g for g in ctx.anims if (
       next((a for a in g if type(a) is EnterAnim), None)
     )), None)
@@ -308,6 +311,15 @@ class CustomContext(Context):
       deck_y + deck.get_height() // 2 - deck_scaled.get_height() // 2
     ))
 
+    if ctx.arrange and not ctx.arrange_drawn:
+      ctx.cursor_drawn = ctx.cursor
+    elif not ctx.arrange and ctx.arrange_drawn:
+      ctx.anims.append([PlaceAnim(duration=4, target=skill_sel.blocks)])
+    ctx.arrange_drawn = ctx.arrange
+
+    cursor_x, cursor_y = ctx.cursor_drawn
+    target_x, target_y = ctx.cursor
+
     if not deck_anim:
       # tab
       surface.blit(tab, (0, tab_y))
@@ -327,20 +339,35 @@ class CustomContext(Context):
             Piece.BLOCK_SIZE - 1, Piece.BLOCK_SIZE - 1
           ), 1)
 
+      piece_anim = None
+      in_range = abs(target_x - cursor_x) + abs(target_y - cursor_y) < 1
+      for group in ctx.anims:
+        for anim in group:
+          if type(anim) is PlaceAnim:
+            piece_anim = anim
+            break
+
       # pieces
       for skill, (col, row) in ctx.pieces:
+        offset = 0
+        if piece_anim and piece_anim.target is skill.blocks:
+          if in_range:
+            t = piece_anim.update()
+            offset = -4 * (1 - t)
+          else:
+            offset = -4
+        x = grid_x + col * Piece.BLOCK_SIZE
+        y = grid_y + row * Piece.BLOCK_SIZE + offset
         sprite = Piece.render(skill.blocks, Skill.get_color(skill), Skill.get_icon(skill))
-        surface.blit(sprite, (
-          grid_x + col * Piece.BLOCK_SIZE,
-          grid_y + row * Piece.BLOCK_SIZE,
-        ))
+        surface.blit(sprite, (x, y))
 
     # selected piece
-    cursor_x, cursor_y = ctx.cursor
-    skill = ctx.get_selected_skill()
+    cursor_x += (target_x - cursor_x) / 4
+    cursor_y += (target_y - cursor_y) / 4
+    ctx.cursor_drawn = (cursor_x, cursor_y)
     if ctx.arrange:
-      blocks = skill.blocks
-      sprite = Piece.render(blocks, Skill.get_color(skill), Skill.get_icon(skill))
+      blocks = skill_sel.blocks
+      sprite = Piece.render(blocks, Skill.get_color(skill_sel), Skill.get_icon(skill_sel))
       surface.blit(sprite, (
         grid_x + cursor_x * Piece.BLOCK_SIZE,
         grid_y + cursor_y * Piece.BLOCK_SIZE - 4,
@@ -423,7 +450,9 @@ class CustomContext(Context):
 
     for group in ctx.anims:
       for anim in group:
-        anim.update()
+        # piece animations are updated conditionally (TODO: consistency)
+        if type(anim) is not PlaceAnim:
+          anim.update()
         if anim.done:
           group.remove(anim)
       if not group:
