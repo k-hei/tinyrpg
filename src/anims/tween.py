@@ -1,6 +1,7 @@
 class TweenAnim():
   def __init__(anim, duration, delay=0, target=None, on_end=None):
     anim.done = False
+    anim.pos = 0
     anim.time = -delay
     anim.duration = duration
     anim.target = target
@@ -14,4 +15,5 @@ class TweenAnim():
       anim.done = True
       if anim.on_end:
         anim.on_end()
-    return max(0, anim.time / anim.duration)
+    anim.pos = max(0, anim.time / anim.duration)
+    return anim.pos
