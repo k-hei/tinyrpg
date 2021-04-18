@@ -10,9 +10,9 @@ class Mimic(Actor):
     super().__init__(
       name="Mimic",
       faction="enemy",
-      hp=38,
-      st=17,
-      en=9
+      hp=23,
+      st=11,
+      en=6
     )
     mimic.idle = True
     mimic.opened = False

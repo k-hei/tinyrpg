@@ -11,9 +11,9 @@ class Eye(Actor):
     super().__init__(
       name="Eyeball",
       faction="enemy",
-      hp=44,
-      st=21,
-      en=14
+      hp=20,
+      st=12,
+      en=7
     )
 
   def render(eye, anims):

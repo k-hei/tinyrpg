@@ -6,9 +6,9 @@ class Mushroom(Actor):
     super().__init__(
       name="Toadstool",
       faction="enemy",
-      hp=55,
-      st=17,
-      en=9
+      hp=27,
+      st=14,
+      en=8
     )
 
   def render(knight, anims):

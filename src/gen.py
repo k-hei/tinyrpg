@@ -516,9 +516,16 @@ def dungeon(size, floor=1):
       stage.set_tile_at(door, Stage.FLOOR)
 
   entrance_x, entrance_y = stage.entrance
-  mushroom = Mushroom()
-  mushroom.asleep = True
-  stage.spawn_elem(mushroom, (entrance_x + 0, entrance_y - 2))
+
+  # mushroom = Mushroom()
+  # # mushroom.asleep = True
+  # stage.spawn_elem(mushroom, (entrance_x + 0, entrance_y - 4))
+
+  # eye = Eye()
+  # # eye.asleep = True
+  # stage.spawn_elem(eye, (entrance_x + 0, entrance_y - 3))
+
+  stage.spawn_elem(Mimic(), (entrance_x + 0, entrance_y - 2))
 
   stage.rooms = rooms
   return stage

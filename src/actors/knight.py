@@ -10,9 +10,9 @@ class Knight(Actor):
     super().__init__(
       name="Knight",
       faction="player",
-      hp=34,
-      st=33,
-      en=12,
+      hp=23,
+      st=17,
+      en=9,
       skills=skills
     )
 

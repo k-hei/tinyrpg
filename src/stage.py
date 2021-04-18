@@ -160,15 +160,16 @@ class Stage:
     # depthsort by y position
     stage.elems.sort(key=lambda elem: elem.cell[1])
 
-    visible_elems = [e for e in stage.elems if e.cell in visible_cells]
-    for elem in visible_elems:
-      sprite = stage.draw_elem(elem, surface, anims, camera_pos)
-
     anim_group = anims[0] if anims else []
     for anim in anim_group:
       anim.update()
       if anim.done:
         anim_group.remove(anim)
+
+    visible_elems = [e for e in stage.elems if e.cell in visible_cells]
+    for elem in visible_elems:
+      sprite = stage.draw_elem(elem, surface, anims, camera_pos)
+
     for anim_group in anims:
       for anim in anim_group:
         if anim.target is not None and anim.target not in visible_elems:

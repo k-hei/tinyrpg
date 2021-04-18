@@ -69,7 +69,8 @@ class Actor(Element):
   def find_damage(actor, target):
     st = actor.st
     en = target.en if not target.asleep else 0
-    return max(0, st - en) + random.randint(-2, 2)
+    variance = 1 if actor.faction == "enemy" else 2
+    return max(0, st - en) + random.randint(-variance, variance)
 
   def render(actor, sprite, anims=[]):
     new_color = None
