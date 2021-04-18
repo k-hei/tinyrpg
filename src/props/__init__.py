@@ -1,4 +1,6 @@
 from element import Element
 
 class Prop(Element):
-  pass
+  def __init__(prop, name=None, solid=True):
+    super().__init__(name)
+    prop.solid = solid

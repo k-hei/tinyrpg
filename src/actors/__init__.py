@@ -18,6 +18,7 @@ class Actor(Element):
     actor.st = st
     actor.en = en
     actor.skills = skills
+    actor.solid = True
     actor.stepped = False
     actor.dead = False
     actor.stun = False

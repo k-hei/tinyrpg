@@ -1,5 +1,5 @@
 class Element:
-  def __init__(elem, name):
+  def __init__(elem, name=None):
     elem.name = name
     elem.cell = None
 

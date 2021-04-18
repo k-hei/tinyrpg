@@ -8,9 +8,12 @@ from actors.knight import Knight
 from actors.mage import Mage
 from actors.eye import Eye
 from actors.mushroom import Mushroom
+from actors.skeleton import Skeleton
 from actors.mimic import Mimic
 from actors.npc import NPC
+
 from props.chest import Chest
+from props.soul import Soul
 
 from items.potion import Potion
 from items.ankh import Ankh
@@ -525,7 +528,7 @@ def dungeon(size, floor=1):
   # # eye.asleep = True
   # stage.spawn_elem(eye, (entrance_x + 0, entrance_y - 3))
 
-  # stage.spawn_elem(Mimic(), (entrance_x + 0, entrance_y - 2))
+  stage.spawn_elem(Soul(), (entrance_x + 0, entrance_y - 2))
 
   stage.rooms = rooms
   return stage
@@ -533,8 +536,10 @@ def dungeon(size, floor=1):
 def gen_enemy(floor):
   if floor == 1:
     return random.choices((Eye, Mushroom), (5, 1))[0]()
-  else:
+  elif floor <= 3:
     return random.choices((Eye, Mushroom), (3, 1))[0]()
+  else:
+    return random.choices((Eye, Mushroom, Skeleton), (4, 2, 1))[0]()
 
 
 def gen_item():

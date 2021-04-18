@@ -13,7 +13,9 @@ from actors.mage import Mage
 from actors.eye import Eye
 from actors.mimic import Mimic
 from actors.npc import NPC
+
 from props.chest import Chest
+from props.soul import Soul
 
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
@@ -158,7 +160,7 @@ class Stage:
       visible_cells = stage.get_cells()
 
     # depthsort by y position
-    stage.elems.sort(key=lambda elem: elem.cell[1])
+    stage.elems.sort(key=lambda elem: elem.cell[1] + (100 if type(elem) is Soul else 0))
 
     visible_elems = [e for e in stage.elems if e.cell in visible_cells]
     for elem in visible_elems:
@@ -196,6 +198,12 @@ class Stage:
     sprite_y = row * config.tile_size
     scale_x = 1
     scale_y = 1
+
+    if type(elem) is Soul:
+      tx = elem.time % Soul.ANIM_SWIVEL_PERIOD / Soul.ANIM_SWIVEL_PERIOD
+      ty = elem.time % Soul.ANIM_FLOAT_PERIOD / Soul.ANIM_FLOAT_PERIOD
+      sprite_x += math.cos(math.pi * 2 * tx) * 4
+      sprite_y += math.sin(math.pi * 2 * ty) * 3
 
     item = None
     anim_group = anims[0] if anims else []
@@ -254,17 +262,17 @@ class Stage:
           round(sprite.get_width() * scale_x),
           round(sprite.get_height() * scale_y)
         ))
-      x = sprite_x - round(camera_x) + sprite.get_width() // 2 - scaled_sprite.get_width() // 2
-      y = sprite_y - round(camera_y) + sprite.get_height() // 2 - scaled_sprite.get_height() // 2
+      x = sprite_x + config.tile_size // 2 - scaled_sprite.get_width() // 2 - round(camera_x)
+      y = sprite_y + config.tile_size // 2 - scaled_sprite.get_height() // 2 - round(camera_y)
       surface.blit(scaled_sprite, (x, y))
 
     if item:
       sprite, t, (col, row) = item
-      sprite_x = (col + 0.5) * config.tile_size
-      sprite_y = (row + 0.5) * config.tile_size
+      sprite_x = col * config.tile_size
+      sprite_y = row * config.tile_size
       offset = min(1, t * 3) * 6 + 8
-      x = sprite_x - sprite.get_width() // 2 - round(camera_x)
-      y = sprite_y - sprite.get_height() // 2 - round(camera_y) - offset
+      x = sprite_x + config.tile_size // 2 - sprite.get_width() // 2 - round(camera_x)
+      y = sprite_y + config.tile_size // 2 - sprite.get_height() // 2 - round(camera_y) - offset
       surface.blit(sprite, (x, y))
 
   def draw_tiles(stage, surface, visible_cells=None, visited_cells=[], camera_pos=None):

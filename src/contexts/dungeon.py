@@ -603,7 +603,7 @@ class DungeonContext(Context):
     target_elem = game.floor.get_elem_at(target_cell)
     actor.facing = delta
     if not target_tile.solid and (
-    target_elem is None
+    (target_elem is None or not target_elem.solid)
     or actor is game.hero
     and target_elem is game.ally
     and not game.ally.asleep):
