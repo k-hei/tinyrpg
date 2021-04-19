@@ -22,6 +22,11 @@ from items.bread import Bread
 from items.fish import Fish
 from items.emerald import Emerald
 
+from skills.shieldbash import ShieldBash
+from skills.ignis import Ignis
+from skills.counter import Counter
+from skills.exoculo import Exoculo
+
 possible_widths = (3, 5, 7)
 possible_heights = (3, 5, 7)
 WALLLESS_FLOOR = 4
@@ -528,7 +533,10 @@ def dungeon(size, floor=1):
   # # eye.asleep = True
   # stage.spawn_elem(eye, (entrance_x + 0, entrance_y - 3))
 
-  stage.spawn_elem(Soul(), (entrance_x + 0, entrance_y - 2))
+  stage.spawn_elem(Soul(ShieldBash), (entrance_x - 1, entrance_y - 3))
+  stage.spawn_elem(Soul(Ignis), (entrance_x + 0, entrance_y - 3))
+  stage.spawn_elem(Soul(Counter), (entrance_x - 1, entrance_y - 2))
+  stage.spawn_elem(Soul(Exoculo), (entrance_x + 0, entrance_y - 2))
 
   stage.rooms = rooms
   return stage

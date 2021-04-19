@@ -5,7 +5,7 @@ from pygame import Rect
 import pygame
 import palette
 
-class Skill():
+class Skill:
   PADDING_X = 6
   PADDING_Y = 5
   ICON_MARGIN = 9
