@@ -6,7 +6,7 @@ ATTACK_DURATION = 12
 
 class Counter(Skill):
   name = "Counter"
-  kind = "defense"
+  kind = "support"
   element = "shield"
   desc = "Reflects phys damage"
   cost = 6

@@ -24,7 +24,7 @@ from items.emerald import Emerald
 
 from skills.shieldbash import ShieldBash
 from skills.ignis import Ignis
-from skills.counter import Counter
+from skills.sana import Sana
 from skills.exoculo import Exoculo
 
 possible_widths = (3, 5, 7)
@@ -535,7 +535,7 @@ def dungeon(size, floor=1):
 
   stage.spawn_elem(Soul(ShieldBash), (entrance_x - 1, entrance_y - 3))
   stage.spawn_elem(Soul(Ignis), (entrance_x + 0, entrance_y - 3))
-  stage.spawn_elem(Soul(Counter), (entrance_x - 1, entrance_y - 2))
+  stage.spawn_elem(Soul(Sana), (entrance_x - 1, entrance_y - 2))
   stage.spawn_elem(Soul(Exoculo), (entrance_x + 0, entrance_y - 2))
 
   stage.rooms = rooms

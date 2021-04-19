@@ -12,9 +12,10 @@ class DamageNumber:
   STAGGER = 10
   BOUNCE = 0
 
-  def __init__(number, value, x):
+  def __init__(number, value, x, color=None):
     number.value = value
     number.x = x
+    number.color = color
     number.y = 0
     number.done = False
     number.time = -DamageNumber.STAGGER * x
@@ -40,19 +41,19 @@ class DamageNumber:
     assets = use_assets()
     font = assets.fonts["smallcaps"]
     sprite = render_text(number.value, font)
-    sprite = recolor(sprite, (0xFF, 0xFF, 0xFF))
+    sprite = recolor(sprite, number.color or (0xFF, 0xFF, 0xFF))
     sprite = outline(sprite, (0x00, 0x00, 0x00))
     return sprite
 
 class DamageValue:
-  def __init__(value, number, cell):
+  def __init__(value, number, cell, color=None):
     value.cell = cell
     value.done = False
     value.width = 0
     value.time = 0
     value.numbers = []
     for i, char in enumerate(number):
-      number = DamageNumber(value=char, x=i)
+      number = DamageNumber(value=char, x=i, color=color)
       value.numbers.append(number)
       value.width += number.sprite.get_width()
 

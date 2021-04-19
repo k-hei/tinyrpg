@@ -13,7 +13,7 @@ class Blitzritter(Skill):
   kind = "attack"
   element = "lance"
   desc = "Pierces two squares ahead"
-  cost = 6
+  cost = 4
   radius = 2
   users = (Knight,)
   blocks = (

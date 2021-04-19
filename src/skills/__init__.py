@@ -15,7 +15,7 @@ class Skill:
     game.log.print("But nothing happened...")
 
 def get_sort_order(skill):
-  return ["attack", "spell", "defense", "ailment", "support", "passive"].index(skill.kind)
+  return ["attack", "magic", "support", "ailment", "field", "passive"].index(skill.kind)
 
 def get_skill_text(skill):
   tag = skill.element or skill.kind

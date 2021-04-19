@@ -8,7 +8,7 @@ ATTACK_DURATION = 12
 
 class Vortex(Skill):
   name = "Vortex"
-  kind = "spell"
+  kind = "magic"
   element = "wind"
   desc = "Drives target back with wind"
   cost = 3

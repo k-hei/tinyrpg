@@ -8,10 +8,10 @@ ATTACK_DURATION = 12
 
 class Ignis(Skill):
   name = "Ignis"
-  kind = "spell"
+  kind = "magic"
   element = "fire"
   desc = "Burns target with flame"
-  cost = 3
+  cost = 2
   radius = math.inf
   users = (Mage,)
   blocks = (

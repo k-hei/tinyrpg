@@ -10,7 +10,7 @@ class Mage(Actor):
     super().__init__(
       name="Mage",
       faction="player",
-      hp=14,
+      hp=17,
       st=14,
       en=7,
       skills=skills

@@ -6,7 +6,7 @@ from actors.mage import Mage
 
 class DetectMana(Skill):
   name = "Detect Mana"
-  kind = "support"
+  kind = "field"
   element = None
   desc = "Reveals hidden passages"
   cost = 1

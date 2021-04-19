@@ -55,13 +55,13 @@ class Skill:
     elif skill.element == "wind":
       return assets.sprites["icon_wind"]
 
-    if skill.kind == "spell":
+    if skill.kind == "magic":
       return assets.sprites["icon_hat"]
-    elif skill.kind == "defense":
-      return assets.sprites["icon_shield"]
+    elif skill.kind == "support":
+      return assets.sprites["icon_skill"]
     elif skill.kind == "ailment":
       return assets.sprites["icon_skull"]
-    elif skill.kind == "support":
+    elif skill.kind == "field":
       return assets.sprites["icon_skill"]
     elif skill.kind == "passive":
       return assets.sprites["icon_heartplus"]
@@ -72,13 +72,13 @@ class Skill:
     assets = use_assets()
     if skill.kind == "attack":
       return palette.RED
-    elif skill.kind == "spell":
+    elif skill.kind == "magic":
       return palette.BLUE
-    elif skill.kind == "defense":
+    elif skill.kind == "support":
       return palette.GREEN
     elif skill.kind == "ailment":
       return palette.PURPLE
-    elif skill.kind == "support":
+    elif skill.kind == "field":
       return palette.YELLOW
     elif skill.kind == "passive":
       return palette.YELLOW

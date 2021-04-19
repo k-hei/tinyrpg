@@ -42,6 +42,7 @@ from props.chest import Chest
 from skills.blitzritter import Blitzritter
 from skills.shieldbash import ShieldBash
 from skills.counter import Counter
+from skills.sana import Sana
 from skills.ignis import Ignis
 from skills.glacio import Glacio
 from skills.vortex import Vortex

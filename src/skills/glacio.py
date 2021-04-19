@@ -8,7 +8,7 @@ ATTACK_DURATION = 12
 
 class Glacio(Skill):
   name = "Glacio"
-  kind = "spell"
+  kind = "magic"
   element = "ice"
   desc = "Freezes target with ice"
   cost = 3
