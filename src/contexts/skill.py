@@ -5,7 +5,7 @@ import keyboard
 import math
 import pygame
 from pygame import Rect, Surface
-from config import tile_size
+from config import TILE_SIZE
 from assets import load as use_assets
 from text import render as render_text
 from filters import recolor, replace_color, outline
@@ -199,8 +199,8 @@ class SkillContext(Context):
 
     def scale_up(cell):
       col, row = cell
-      x = col * tile_size - round(camera_x)
-      y = row * tile_size - round(camera_y) + 1
+      x = col * TILE_SIZE - round(camera_x)
+      y = row * TILE_SIZE - round(camera_y) + 1
       return (x, y)
 
     for anim in ctx.anims:
@@ -218,7 +218,7 @@ class SkillContext(Context):
         alpha = 0x6f
       else:
         alpha = 0x5f
-      square = Surface((tile_size - 1, tile_size - 1), pygame.SRCALPHA)
+      square = Surface((TILE_SIZE - 1, TILE_SIZE - 1), pygame.SRCALPHA)
       color = Skill.get_color(skill)
       pygame.draw.rect(square, (*color, alpha), square.get_rect())
       for cell in neighbors:
@@ -262,8 +262,8 @@ class SkillContext(Context):
         int(cursor_sprite.get_height() * cursor_scale)
       ))
       surface.blit(cursor_sprite, (
-        cursor_x + tile_size // 2 - cursor_sprite.get_width() // 2 - 1,
-        cursor_y + tile_size // 2 - cursor_sprite.get_height() // 2 - 1
+        cursor_x + TILE_SIZE // 2 - cursor_sprite.get_width() // 2 - 1,
+        cursor_y + TILE_SIZE // 2 - cursor_sprite.get_height() // 2 - 1
       ))
     ctx.cursor = (cursor_col, cursor_row, cursor_scale)
 

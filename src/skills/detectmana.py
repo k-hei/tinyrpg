@@ -5,7 +5,7 @@ from stage import Stage
 from actors.mage import Mage
 
 class DetectMana(Skill):
-  name = "Detect Mana"
+  name = "DetectMana"
   kind = "field"
   element = None
   desc = "Reveals hidden passages"

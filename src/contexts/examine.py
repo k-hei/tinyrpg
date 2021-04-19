@@ -43,8 +43,8 @@ class ExamineContext(Context):
     camera = game.camera
     camera_x, camera_y = camera.pos
     col, row = ctx.cursor.update()
-    x = col * config.tile_size - round(camera_x)
-    y = row * config.tile_size - round(camera_y)
+    x = col * config.TILE_SIZE - round(camera_x)
+    y = row * config.TILE_SIZE - round(camera_y)
     surface.blit(sprite, (x, y))
     pass
 

@@ -10,7 +10,7 @@ from anims.flicker import FlickerAnim
 from config import ATTACK_DURATION, MOVE_DURATION
 
 class ShieldBash(Skill):
-  name = "Shield Bash"
+  name = "ShieldBash"
   kind = "attack"
   element = "shield"
   desc = "Pushes target one square"

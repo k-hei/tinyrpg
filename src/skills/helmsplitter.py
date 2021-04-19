@@ -6,7 +6,7 @@ from actors.knight import Knight
 from config import ATTACK_DURATION
 
 class HelmSplitter(Skill):
-  name = "Helm Splitter"
+  name = "HelmSplitter"
   kind = "attack"
   element = "axe"
   desc = "Stuns target with mighty swing"

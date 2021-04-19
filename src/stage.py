@@ -135,21 +135,20 @@ class Stage:
   def draw_vfx(stage, surface, vfx, camera_pos):
     assets = use_assets()
     for fx in vfx:
-      kind, cell, anim = fx
-      col, row = cell
+      x, y = fx.pos
       camera_x, camera_y = camera_pos
-      frame = anim.update()
+      frame = fx.update()
       if frame == -1:
         continue
-      if anim.done:
+      if fx.done:
         vfx.remove(fx)
         continue
-      sprite = assets.sprites["fx_" + kind + str(frame)]
-      x = col * config.tile_size
-      x += config.tile_size // 2 - sprite.get_width() // 2
+      sprite = assets.sprites["fx_" + fx.kind + str(frame)]
+      if fx.color:
+        sprite = replace_color(sprite, palette.BLACK, fx.color)
+      x += config.TILE_SIZE // 2 - sprite.get_width() // 2
       x += -round(camera_x)
-      y = row * config.tile_size
-      y = y + config.tile_size // 2 - sprite.get_height() // 2
+      y = y + config.TILE_SIZE // 2 - sprite.get_height() // 2
       y += -round(camera_y)
       surface.blit(sprite, (x, y))
 
@@ -194,16 +193,22 @@ class Stage:
 
     (col, row) = elem.cell
     sprite = elem.render(anims)
-    sprite_x = col * config.tile_size
-    sprite_y = row * config.tile_size
+    sprite_x = col * config.TILE_SIZE
+    sprite_y = row * config.TILE_SIZE
     scale_x = 1
     scale_y = 1
 
     if type(elem) is Soul:
-      tx = elem.time % Soul.ANIM_SWIVEL_PERIOD / Soul.ANIM_SWIVEL_PERIOD
-      ty = elem.time % Soul.ANIM_FLOAT_PERIOD / Soul.ANIM_FLOAT_PERIOD
-      sprite_x += math.cos(math.pi * 2 * tx) * Soul.ANIM_SWIVEL_AMP
-      sprite_y += math.sin(math.pi * 2 * ty) * Soul.ANIM_FLOAT_AMP
+      elem.update()
+      if elem.obtaining:
+        pos_x, pos_y = elem.pos
+        sprite_x += pos_x
+        sprite_y += pos_y
+      else:
+        tx = elem.time % Soul.ANIM_SWIVEL_PERIOD / Soul.ANIM_SWIVEL_PERIOD
+        ty = elem.time % Soul.ANIM_FLOAT_PERIOD / Soul.ANIM_FLOAT_PERIOD
+        sprite_x += math.cos(math.pi * 2 * tx) * Soul.ANIM_SWIVEL_AMP
+        sprite_y += math.sin(math.pi * 2 * ty) * Soul.ANIM_FLOAT_AMP
 
     item = None
     anim_group = anims[0] if anims else []
@@ -234,8 +239,8 @@ class Stage:
         elif dest_x > src_x:
           facing_y = 1
         col, row = anim.update()
-        sprite_x = col * config.tile_size
-        sprite_y = row * config.tile_size
+        sprite_x = col * config.TILE_SIZE
+        sprite_y = row * config.TILE_SIZE
 
       if anim.done:
         anim_group.remove(anim)
@@ -248,8 +253,8 @@ class Stage:
           continue
         if anim.target is elem and type(anim) is MoveAnim:
           col, row = anim.src_cell
-          sprite_x = col * config.tile_size
-          sprite_y = row * config.tile_size
+          sprite_x = col * config.TILE_SIZE
+          sprite_y = row * config.TILE_SIZE
 
     if isinstance(elem, Actor):
       stage.facings[elem] = (facing_x, facing_y)
@@ -262,17 +267,17 @@ class Stage:
           round(sprite.get_width() * scale_x),
           round(sprite.get_height() * scale_y)
         ))
-      x = sprite_x + config.tile_size // 2 - scaled_sprite.get_width() // 2 - round(camera_x)
-      y = sprite_y + config.tile_size // 2 - scaled_sprite.get_height() // 2 - round(camera_y)
+      x = sprite_x + config.TILE_SIZE // 2 - scaled_sprite.get_width() // 2 - round(camera_x)
+      y = sprite_y + config.TILE_SIZE // 2 - scaled_sprite.get_height() // 2 - round(camera_y)
       surface.blit(scaled_sprite, (x, y))
 
     if item:
       sprite, t, (col, row) = item
-      sprite_x = col * config.tile_size
-      sprite_y = row * config.tile_size
+      sprite_x = col * config.TILE_SIZE
+      sprite_y = row * config.TILE_SIZE
       offset = min(1, t * 3) * 6 + 8
-      x = sprite_x + config.tile_size // 2 - sprite.get_width() // 2 - round(camera_x)
-      y = sprite_y + config.tile_size // 2 - sprite.get_height() // 2 - round(camera_y) - offset
+      x = sprite_x + config.TILE_SIZE // 2 - sprite.get_width() // 2 - round(camera_x)
+      y = sprite_y + config.TILE_SIZE // 2 - sprite.get_height() // 2 - round(camera_y) - offset
       surface.blit(sprite, (x, y))
 
   def draw_tiles(stage, surface, visible_cells=None, visited_cells=[], camera_pos=None):
@@ -290,8 +295,8 @@ class Stage:
         continue
       if cell not in visible_cells:
         sprite = replace_color(sprite, palette.WHITE, palette.GRAY)
-      x = col * config.tile_size - round(camera_x)
-      y = row * config.tile_size - round(camera_y)
+      x = col * config.TILE_SIZE - round(camera_x)
+      y = row * config.TILE_SIZE - round(camera_y)
       surface.blit(sprite, (x, y))
 
   def render_tile(stage, cell):

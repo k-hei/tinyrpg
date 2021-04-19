@@ -81,8 +81,8 @@ class Camera:
           break
 
     camera_speed = camera.speed or camera_speed
-    camera_x = (focus_x + 0.5) * config.tile_size - view_width / 2
-    camera_y = (focus_y + 0.5) * config.tile_size - view_height / 2
+    camera_x = (focus_x + 0.5) * config.TILE_SIZE - view_width / 2
+    camera_y = (focus_y + 0.5) * config.TILE_SIZE - view_height / 2
     if camera.pos:
       old_camera_x, old_camera_y = camera.pos
       camera_x = old_camera_x + (camera_x - old_camera_x) / camera_speed

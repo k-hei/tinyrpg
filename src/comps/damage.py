@@ -60,8 +60,8 @@ class DamageValue:
   def draw(value, surface, camera):
     camera_x, camera_y = camera
     col, row = value.cell
-    x = (col + 0.5) * config.tile_size - round(camera_x) - value.width // 2
-    y = row * config.tile_size - round(camera_y) - 8
+    x = (col + 0.5) * config.TILE_SIZE - round(camera_x) - value.width // 2
+    y = row * config.TILE_SIZE - round(camera_y) - 8
     value.time += 1
     for i, number in enumerate(value.numbers):
       number.update()

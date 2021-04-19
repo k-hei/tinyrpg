@@ -1,11 +1,12 @@
 from skills import Skill
-from config import ATTACK_DURATION
+from config import ATTACK_DURATION, TILE_SIZE
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from anims.attack import AttackAnim
 from anims.frame import FrameAnim
 from actors.knight import Knight
 from props.chest import Chest
+from comps.vfx import Vfx
 import random
 
 class Blitzritter(Skill):
@@ -41,15 +42,35 @@ class Blitzritter(Skill):
       target_b = None
 
     def connect():
-      game.vfx.append(("impact", near_cell, FrameAnim(
-        duration=20,
-        frame_count=7
-      )))
-      game.vfx.append(("impact", far_cell, FrameAnim(
-        duration=20,
-        delay=10,
-        frame_count=7
-      )))
+      near_col, near_row = near_cell
+      near_x = near_col * TILE_SIZE
+      near_y = near_row * TILE_SIZE
+      near_pos = (near_x, near_y)
+
+      far_col, far_row = far_cell
+      far_x = far_col * TILE_SIZE
+      far_y = far_row * TILE_SIZE
+      far_pos = (far_x, far_y)
+
+      game.vfx.extend([
+        Vfx(
+          kind="impact",
+          cell=near_pos,
+          anim=FrameAnim(
+            duration=20,
+            frame_count=7
+          )
+        ),
+        Vfx(
+          kind="impact",
+          cell=far_pos,
+          anim=FrameAnim(
+            duration=20,
+            delay=10,
+            frame_count=7
+          )
+        )
+      ])
 
     def find_damage(target):
       en = target.en if not target.asleep else 0

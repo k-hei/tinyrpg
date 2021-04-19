@@ -1,11 +1,15 @@
 from props import Prop
 from assets import load as use_assets
 from anims.frame import FrameAnim
+from anims.pause import PauseAnim
 from filters import replace_color
 from comps.skill import Skill
+from comps.vfx import Vfx
 from skills import get_sort_order
 import palette
 import random
+import math
+import config
 
 class Soul(Prop):
   ANIM_FRAMES = 5
@@ -14,22 +18,88 @@ class Soul(Prop):
   ANIM_SWIVEL_AMP = 5
   ANIM_FLOAT_PERIOD = 75
   ANIM_FLOAT_AMP = 4
+  BOUNCE_AMP = 5
+  ACCEL = 0.25
 
   def __init__(soul, skill=None):
     super().__init__(solid=False)
     soul.skill = skill
     soul.time = random.randrange(0, Soul.ANIM_SWIVEL_PERIOD)
+    soul.obtaining = False
+    soul.pos = (0, 0)
+    soul.norm = (0, 0)
+    soul.vel = 0
+    soul.vpos = 0
+    soul.on_end = None
 
-  def effect(soul, game):
+  def obtain(soul, game):
     if not soul.skill in game.skill_pool:
       game.skill_pool.append(soul.skill)
       game.skill_pool.sort(key=get_sort_order)
-    game.log.print("Obtained skill \"" + soul.skill.name + "\".")
+    game.log.print("Obtained skill \"" + soul.skill.name + "\"!")
+    game.log.print("Equip it with the CUSTOM menu (press 'B').")
+    game.floor.elems.remove(soul)
+
+  def burst(soul, game):
+    col, row = soul.cell
+    x = col * config.TILE_SIZE
+    y = row * config.TILE_SIZE
+    game.vfx.append(Vfx(
+      kind="burst",
+      pos=(x, y),
+      color=Skill.get_color(soul.skill),
+      anim=FrameAnim(
+        duration=15,
+        frame_count=5
+      )
+    ))
+    for i in range(10):
+      r = 2 * math.pi * random.random()
+      norm_x = math.cos(r)
+      norm_y = math.sin(r)
+      start_x = x + norm_x * 16
+      start_y = y + norm_y * 16
+      vel_x = norm_x * random.random() * 2
+      vel_y = norm_y * random.random() * 2
+      game.vfx.append(Vfx(
+        kind="spark",
+        pos=(start_x, start_y),
+        vel=(vel_x, vel_y),
+        color=Skill.get_color(soul.skill),
+        anim=FrameAnim(
+          duration=random.randint(15, 45),
+          frame_count=3
+        )
+      ))
+
+
+  def effect(soul, game):
+    r = 2 * math.pi * random.random()
+    soul.norm = (math.cos(r), math.sin(r))
+    soul.vel = Soul.BOUNCE_AMP
+    soul.obtaining = soul.time
+    soul.on_end = lambda: (
+      soul.burst(game),
+      soul.obtain(game)
+    )
+    game.anims.append([ PauseAnim(duration=180) ])
+
+  def update(soul):
+    soul.time += 1
+    if soul.obtaining:
+      pos_x, pos_y = soul.pos
+      norm_x, norm_y = soul.norm
+      pos_x += norm_x * soul.vel
+      pos_y += norm_y * soul.vel
+      soul.pos = (pos_x, pos_y)
+      soul.vpos += soul.vel
+      soul.vel -= Soul.ACCEL
+      if soul.vpos <= 0 and soul.on_end:
+        soul.on_end()
 
   def render(soul, anims):
     sprites = use_assets().sprites
-    soul.time += 1
-    if soul.time % 2:
+    if not soul.obtaining and soul.time % 2:
       return None
     delay = Soul.ANIM_PERIOD // Soul.ANIM_FRAMES
     frame = soul.time % Soul.ANIM_PERIOD // delay

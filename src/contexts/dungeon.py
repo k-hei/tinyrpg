@@ -328,7 +328,6 @@ class DungeonContext(Context):
 
       if target_elem and not target_elem.solid:
         target_elem.effect(game)
-        game.floor.elems.remove(target_elem)
 
       if target_tile is Stage.STAIRS_UP:
         game.log.print("There's a staircase going up here.")
