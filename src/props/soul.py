@@ -53,8 +53,9 @@ class Soul(Prop):
         frame_count=5
       )
     ))
-    for i in range(10):
-      r = 2 * math.pi * random.random()
+    r = 0
+    while r < 2 * math.pi:
+      r += math.pi / 4 * random.random()
       norm_x = math.cos(r)
       norm_y = math.sin(r)
       start_x = x + norm_x * 16
@@ -72,7 +73,6 @@ class Soul(Prop):
         )
       ))
 
-
   def effect(soul, game):
     r = 2 * math.pi * random.random()
     soul.norm = (math.cos(r), math.sin(r))
@@ -84,18 +84,37 @@ class Soul(Prop):
     )
     game.anims.append([ PauseAnim(duration=180) ])
 
-  def update(soul):
+  def update(soul, vfx):
     soul.time += 1
+    pos_x, pos_y = soul.pos
     if soul.obtaining:
-      pos_x, pos_y = soul.pos
       norm_x, norm_y = soul.norm
       pos_x += norm_x * soul.vel
       pos_y += norm_y * soul.vel
-      soul.pos = (pos_x, pos_y)
       soul.vpos += soul.vel
       soul.vel -= Soul.ACCEL
       if soul.vpos <= 0 and soul.on_end:
         soul.on_end()
+    else:
+      tx = soul.time % Soul.ANIM_SWIVEL_PERIOD / Soul.ANIM_SWIVEL_PERIOD
+      ty = soul.time % Soul.ANIM_FLOAT_PERIOD / Soul.ANIM_FLOAT_PERIOD
+      pos_x = math.cos(math.pi * 2 * tx) * Soul.ANIM_SWIVEL_AMP
+      pos_y = math.sin(math.pi * 2 * ty) * Soul.ANIM_FLOAT_AMP
+      if soul.time % random.randint(30, 45) == 0:
+        col, row = soul.cell
+        x = col * config.TILE_SIZE + pos_x + random.random()
+        y = row * config.TILE_SIZE + pos_y + random.random() + 2
+        vfx.append(Vfx(
+          kind="spark",
+          pos=(x, y),
+          vel=(0, 0.25),
+          color=Skill.get_color(soul.skill),
+          anim=FrameAnim(
+            duration=60,
+            frame_count=3
+          )
+        ))
+    soul.pos = (pos_x, pos_y)
 
   def render(soul, anims):
     sprites = use_assets().sprites

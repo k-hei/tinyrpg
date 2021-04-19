@@ -122,7 +122,7 @@ class Stage:
     anims = ctx.anims
     camera_pos = ctx.camera.pos
     stage.draw_tiles(surface, visible_cells, visited_cells, camera_pos)
-    stage.draw_elems(surface, visible_cells, anims, camera_pos)
+    stage.draw_elems(surface, visible_cells, anims, ctx.vfx, camera_pos)
     stage.draw_vfx(surface, ctx.vfx, camera_pos)
     stage.draw_numbers(surface, ctx.numbers, camera_pos)
 
@@ -152,7 +152,7 @@ class Stage:
       y += -round(camera_y)
       surface.blit(sprite, (x, y))
 
-  def draw_elems(stage, surface, visible_cells=None, anims=[], camera_pos=(0, 0)):
+  def draw_elems(stage, surface, visible_cells, anims, vfx, camera_pos):
     camera_x, camera_y = camera_pos
 
     if visible_cells is None:
@@ -163,7 +163,7 @@ class Stage:
 
     visible_elems = [e for e in stage.elems if e.cell in visible_cells]
     for elem in visible_elems:
-      sprite = stage.draw_elem(elem, surface, anims, camera_pos)
+      sprite = stage.draw_elem(elem, surface, anims, vfx, camera_pos)
 
     anim_group = anims[0] if anims else []
     for anim in anim_group:
@@ -180,7 +180,7 @@ class Stage:
         if len(anim_group) == 0:
           anims.remove(anim_group)
 
-  def draw_elem(stage, elem, surface, anims, camera_pos=(0, 0)):
+  def draw_elem(stage, elem, surface, anims, vfx, camera_pos=(0, 0)):
     assets = use_assets()
     camera_x, camera_y = camera_pos
 
@@ -199,16 +199,10 @@ class Stage:
     scale_y = 1
 
     if type(elem) is Soul:
-      elem.update()
-      if elem.obtaining:
-        pos_x, pos_y = elem.pos
-        sprite_x += pos_x
-        sprite_y += pos_y
-      else:
-        tx = elem.time % Soul.ANIM_SWIVEL_PERIOD / Soul.ANIM_SWIVEL_PERIOD
-        ty = elem.time % Soul.ANIM_FLOAT_PERIOD / Soul.ANIM_FLOAT_PERIOD
-        sprite_x += math.cos(math.pi * 2 * tx) * Soul.ANIM_SWIVEL_AMP
-        sprite_y += math.sin(math.pi * 2 * ty) * Soul.ANIM_FLOAT_AMP
+      elem.update(vfx)
+      pos_x, pos_y = elem.pos
+      sprite_x += pos_x
+      sprite_y += pos_y
 
     item = None
     anim_group = anims[0] if anims else []
