@@ -21,6 +21,7 @@ class Sana(Skill):
     (1, 0),
     (0, 1),
     (1, 1),
+    (0, 2),
   )
 
   def effect(game, on_end=None):

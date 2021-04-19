@@ -16,8 +16,7 @@ class Somnus(Skill):
   users = (Mage,)
   blocks = (
     (0, 0),
-    (1, 0),
-    (0, 1)
+    (0, 1),
   )
 
   def effect(game, on_end=None):

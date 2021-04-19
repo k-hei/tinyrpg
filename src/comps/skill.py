@@ -54,6 +54,8 @@ class Skill:
       return assets.sprites["icon_volt"]
     elif skill.element == "wind":
       return assets.sprites["icon_wind"]
+    elif skill.element == "dark":
+      return assets.sprites["icon_skull"]
 
     if skill.kind == "magic":
       return assets.sprites["icon_hat"]

@@ -23,9 +23,10 @@ from items.fish import Fish
 from items.emerald import Emerald
 
 from skills.shieldbash import ShieldBash
-from skills.ignis import Ignis
+from skills.fulgur import Fulgur
 from skills.sana import Sana
-from skills.exoculo import Exoculo
+from skills.hirudo import Hirudo
+from skills.hpup import HpUp
 
 possible_widths = (3, 5, 7)
 possible_heights = (3, 5, 7)
@@ -112,6 +113,40 @@ def split_at(dungeon, conn):
     return None
   graph_b = flood_fill(node_b, ([], {}))
   return (graph_a, graph_b)
+
+def debug_floor():
+  floor = parse_data([
+    "  #####  ",
+    " ##...## ",
+    " #.....# ",
+    " #.....# ",
+    " #.....# ",
+    " ##...## ",
+    "  ##+##  ",
+    "    .    ",
+    "    .    ",
+    "    .    ",
+    "    .    ",
+    " ....... ",
+    " ....... ",
+    " ....... ",
+    " ....... ",
+    " ....... ",
+    "         "
+  ])
+
+  floor.rooms = [
+    Room((5, 5), (2, 1)),
+    Room((7, 5), (1, 11)),
+  ]
+  floor.entrance = (4, 3)
+  floor.set_tile_at(floor.entrance, Stage.STAIRS_DOWN)
+  floor.spawn_elem(Soul(ShieldBash), (2, 14))
+  floor.spawn_elem(Soul(Fulgur), (3, 14))
+  floor.spawn_elem(Soul(Sana), (4, 14))
+  floor.spawn_elem(Soul(Hirudo), (5, 14))
+  floor.spawn_elem(Soul(HpUp), (6, 14))
+  return floor
 
 def top_floor():
   floor = parse_data([

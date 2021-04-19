@@ -110,7 +110,7 @@ class DungeonContext(Context):
       ],
       game.ally: [
         (Somnus, (0, 0)),
-        (DetectMana, (1, 1))
+        (DetectMana, (1, 0))
       ]
     }
     game.update_skills()
@@ -118,7 +118,9 @@ class DungeonContext(Context):
 
   def create_floor(game):
     floor_no = len(game.floors) + 1
-    if floor_no == DungeonContext.TOP_FLOOR:
+    if floor_no == 1:
+      floor = gen.debug_floor()
+    elif floor_no == DungeonContext.TOP_FLOOR:
       floor = gen.top_floor()
     elif floor_no == 3:
       floor = gen.giant_room((19, 19))
