@@ -97,15 +97,9 @@ class DungeonContext(Context):
     game.ally = Mage(skills=[])
     game.skill_pool = [
       Blitzritter,
-      ShieldBash,
       Counter,
-      Ignis,
-      Glacio,
-      Vortex,
       Somnus,
-      Exoculo,
-      DetectMana,
-      HpUp
+      DetectMana
     ]
     game.skill_selected = { game.hero: None, game.ally: None }
     game.skill_builds = {
@@ -314,10 +308,10 @@ class DungeonContext(Context):
     hero_x, hero_y = old_cell
     delta_x, delta_y = delta
     acted = False
-    moved = game.move(hero, delta, run)
     target_cell = (hero_x + delta_x, hero_y + delta_y)
     target_tile = floor.get_tile_at(target_cell)
     target_elem = floor.get_elem_at(target_cell)
+    moved = game.move(hero, delta, run)
     if moved:
       if not ally.dead and not ally.asleep:
         last_group = game.anims[len(game.anims) - 1]
@@ -330,6 +324,10 @@ class DungeonContext(Context):
         elif manhattan(ally.cell, hero.cell) > 1:
           ally.stepped = game.move_to(ally, hero.cell, run)
           last_group.append(game.anims.pop()[0])
+
+      if target_elem and not target_elem.solid:
+        target_elem.effect(game)
+        game.floor.elems.remove(target_elem)
 
       if target_tile is Stage.STAIRS_UP:
         game.log.print("There's a staircase going up here.")

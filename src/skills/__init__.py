@@ -14,6 +14,9 @@ class Skill:
   def effect(game):
     game.log.print("But nothing happened...")
 
+def get_sort_order(skill):
+  return ["attack", "spell", "defense", "ailment", "support", "passive"].index(skill.kind)
+
 def get_skill_text(skill):
   tag = skill.element or skill.kind
   text = tag[0].upper() + tag[1:]

@@ -202,8 +202,8 @@ class Stage:
     if type(elem) is Soul:
       tx = elem.time % Soul.ANIM_SWIVEL_PERIOD / Soul.ANIM_SWIVEL_PERIOD
       ty = elem.time % Soul.ANIM_FLOAT_PERIOD / Soul.ANIM_FLOAT_PERIOD
-      sprite_x += math.cos(math.pi * 2 * tx) * 4
-      sprite_y += math.sin(math.pi * 2 * ty) * 3
+      sprite_x += math.cos(math.pi * 2 * tx) * Soul.ANIM_SWIVEL_AMP
+      sprite_y += math.sin(math.pi * 2 * ty) * Soul.ANIM_FLOAT_AMP
 
     item = None
     anim_group = anims[0] if anims else []
