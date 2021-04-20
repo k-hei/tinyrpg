@@ -1,4 +1,4 @@
-class TweenAnim():
+class TweenAnim:
   def __init__(anim, duration, delay=0, target=None, on_end=None):
     anim.done = False
     anim.pos = 0

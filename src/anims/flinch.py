@@ -26,9 +26,10 @@ class FlinchAnim:
     if anim.direction:
       delta_x, delta_y = anim.direction
       p = anim.duration // 2
-      t = anim.time % p / p
-      if anim.time >= anim.duration // 2:
-        t = 1 - t
+      if anim.time < p:
+        t = anim.time / p
+      else:
+        t = 1 - (anim.time - p) / p
       offset_x = lerp(0, delta_x * 8, t)
       offset_y = lerp(0, delta_y * 8, t)
     else:

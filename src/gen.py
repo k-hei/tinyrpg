@@ -138,12 +138,12 @@ def debug_floor():
     Room((5, 5), (2, 1)),
     Room((7, 5), (1, 11)),
   ]
-  floor.entrance = (4, 3)
+  floor.entrance = (4, 12)
   floor.set_tile_at(floor.entrance, Stage.STAIRS_DOWN)
-  floor.spawn_elem(Soul(ShieldBash), (2, 14))
+  floor.spawn_elem(Skeleton(), (2, 14))
   floor.spawn_elem(Soul(Fulgur), (3, 14))
   floor.spawn_elem(Soul(Sana), (4, 14))
-  floor.spawn_elem(Mushroom(), (5, 14))
+  floor.spawn_elem(Soul(Virus), (5, 14))
   floor.spawn_elem(Soul(HpUp), (6, 14))
   return floor
 

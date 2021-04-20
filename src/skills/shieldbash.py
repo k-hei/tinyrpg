@@ -45,7 +45,6 @@ class ShieldBash(Skill):
       )
 
       def on_move():
-        target_elem.cell = nudge_cell
         if nudge_tile.pit:
           game.log.print(target_elem.name.upper() + " tumbles into the chasm below!")
           game.kill(target_elem)
@@ -53,23 +52,29 @@ class ShieldBash(Skill):
           game.log.print(target_elem.name.upper() + " is reeling.")
 
       def on_connect():
+        print(will_nudge)
         if will_nudge:
-          target_elem.stepped = True
-          game.anims[0].append(MoveAnim(
-            duration=MOVE_DURATION,
-            target=target_elem,
-            src_cell=target_cell,
-            dest_cell=nudge_cell,
-            on_end=on_move
-          ))
+          move.start()
 
       game.attack(
         actor=user,
         target=target_elem,
         damage=math.ceil(Actor.find_damage(user, target_elem) / 2),
-        on_connect=on_connect,
-        on_end=on_end
+        on_end=on_end,
+        on_connect=on_connect
       )
+      if will_nudge:
+        target_elem.cell = nudge_cell
+        target_elem.stepped = True
+        move = MoveAnim(
+          duration=MOVE_DURATION,
+          target=target_elem,
+          src_cell=target_cell,
+          dest_cell=nudge_cell,
+          started=False,
+          on_end=on_move
+        )
+        game.anims[-1].append(move)
     else:
       game.anims.append([
         AttackAnim(

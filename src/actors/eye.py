@@ -23,6 +23,8 @@ class Eye(Actor):
       for anim in [a for a in anim_group if a.target is eye]:
         if type(anim) is AwakenAnim:
           return super().render(sprites["eye_attack"], anims)
+    if eye.dead:
+      return super().render(sprites["eye_flinch"], anims)
     anim_group = [a for a in anims[0] if a.target is eye] if anims else []
     for anim in anim_group:
       if type(anim) is MoveAnim:

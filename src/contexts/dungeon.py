@@ -69,7 +69,7 @@ class DungeonContext(Context):
   MOVE_DURATION = 16
   RUN_DURATION = 12
   ATTACK_DURATION = 12
-  FLINCH_DURATION = 20
+  FLINCH_DURATION = 25
   FLINCH_PAUSE_DURATION = 60
   FLICKER_DURATION = 30
   PAUSE_DURATION = 15
@@ -208,16 +208,31 @@ class DungeonContext(Context):
         actor.counter = max(0, actor.counter - 1)
 
     # make ally attack closest enemy
-    ally = game.ally
-    if not ally.dead and not ally.stepped and not ally.ailment == "sleep":
-      adjacent_enemies = [e for e in enemies if is_adjacent(e.cell, ally.cell)]
-      if not adjacent_enemies: return
-      adjacent_enemies.sort(key=lambda e: e.get_hp())
-      enemy = adjacent_enemies[0]
-      game.attack(ally, enemy)
+    if not game.ally.stepped:
+      game.step_ally(game.ally)
 
     for actor in actors:
       actor.stepped = False
+
+  def step_ally(game, ally, run=False, old_hero_cell=None):
+    if ally.stepped or ally.dead or ally.ailment == "sleep":
+      return False
+    hero = game.hero
+    actors = [e for e in game.floor.elems if isinstance(e, Actor)]
+    enemies = [a for a in actors if a.faction == "enemy"]
+    adjacent_enemies = [e for e in enemies if is_adjacent(e.cell, ally.cell)]
+    if adjacent_enemies:
+      adjacent_enemies.sort(key=lambda e: e.get_hp())
+      enemy = adjacent_enemies[0]
+      game.attack(ally, enemy)
+    elif enemies:
+      enemies.sort(key=lambda e: e.get_hp())
+      enemy = enemies[0]
+      game.move_to(ally, enemy.cell)
+      game.anims[-2].append(game.anims.pop()[0])
+    elif not is_adjacent(ally.cell, hero.cell):
+      ally.stepped = game.move_to(ally, hero.cell, run)
+      game.anims[-2].append(game.anims.pop()[0])
 
   def step_enemy(game, enemy):
     if enemy.dead or enemy.stepped or enemy.idle or enemy.ailment == "sleep":
@@ -323,23 +338,16 @@ class DungeonContext(Context):
     target_cell = (hero_x + delta_x, hero_y + delta_y)
     target_tile = floor.get_tile_at(target_cell)
     target_elem = floor.get_elem_at(target_cell)
-    moved = game.move(hero, delta, run)
-    if moved:
-      if not ally.dead and ally.ailment != "sleep":
-        last_group = game.anims[len(game.anims) - 1]
-        if manhattan(ally.cell, old_cell) == 1:
-          ally_x, ally_y = ally.cell
-          old_x, old_y = old_cell
-          ally_delta = (old_x - ally_x, old_y - ally_y)
-          ally.stepped = game.move(ally, ally_delta, run)
-          last_group.append(game.anims.pop()[0])
-        elif manhattan(ally.cell, hero.cell) > 1:
-          ally.stepped = game.move_to(ally, hero.cell, run)
-          last_group.append(game.anims.pop()[0])
 
+    def end_move():
+      game.step()
+      game.refresh_fov(moving=True)
+
+    def on_move():
+      if not moved:
+        return False
       if target_elem and not target_elem.solid:
         target_elem.effect(game)
-
       if target_tile is Stage.STAIRS_UP:
         game.log.print("There's a staircase going up here.")
       elif target_tile is Stage.STAIRS_DOWN:
@@ -385,8 +393,8 @@ class DungeonContext(Context):
         enemy = next((e for e in enemies if e.ailment == "sleep" and random.randint(1, 10) == 1), None)
         if enemy:
           enemy.wake_up()
-          is_waking_up = True
           if game.camera.is_cell_visible(enemy.cell):
+            is_waking_up = True
             game.anims.append([
               AwakenAnim(
                 duration=DungeonContext.AWAKEN_DURATION,
@@ -395,30 +403,33 @@ class DungeonContext(Context):
                   game.log.print(enemy.name.upper() + " woke up!"),
                   game.anims[0].append(PauseAnim(
                     duration=DungeonContext.PAUSE_DURATION,
-                    on_end=lambda: (
-                      game.step(),
-                      game.refresh_fov(moving=True)
-                    )
+                    on_end=end_move
                   ))
                 )
               )
             ])
-          else:
-            game.step(),
-            game.refresh_fov(moving=True)
 
       if not is_waking_up:
-        game.step()
-        game.refresh_fov(moving=True)
+        end_move()
 
       if game.sp:
         if not hero.dead and not hero.ailment == "sleep":
           hero.regen()
         if not ally.dead and not ally.ailment == "sleep":
           ally.regen()
-
-      acted = True
       game.sp = max(0, game.sp - 1 / 100)
+
+    moved = game.move(hero, delta, run, on_move)
+    if moved:
+      if is_adjacent(ally.cell, old_cell):
+        ally_x, ally_y = ally.cell
+        old_x, old_y = old_cell
+        ally_delta = (old_x - ally_x, old_y - ally_y)
+        ally.stepped = game.move(ally, ally_delta, run)
+        game.anims[-2].append(game.anims.pop()[0])
+      else:
+        game.step_ally(game.ally, run)
+      acted = True
     elif isinstance(target_elem, Actor) and target_elem.faction == "enemy":
       if target_elem.idle:
         game.anims.append([
@@ -604,7 +615,7 @@ class DungeonContext(Context):
         )
       )
 
-  def move(game, actor, delta, run=False):
+  def move(game, actor, delta, run=False, on_end=None):
     actor_x, actor_y = actor.cell
     delta_x, delta_y = delta
     target_cell = (actor_x + delta_x, actor_y + delta_y)
@@ -622,7 +633,7 @@ class DungeonContext(Context):
         target=actor,
         src_cell=actor.cell,
         dest_cell=target_cell,
-        on_end=game.refresh_fov
+        on_end=on_end
       )
       if game.anims and actor.faction == "enemy":
         game.anims[0].append(anim)
@@ -696,9 +707,7 @@ class DungeonContext(Context):
         direction=actor.facing,
         on_end=on_end
       )
-    print("Before", actor.facing)
     actor.face(target.cell)
-    print("After", actor.facing)
     game.anims.append([
       AttackAnim(
         duration=DungeonContext.ATTACK_DURATION,
@@ -715,6 +724,7 @@ class DungeonContext(Context):
         skill = target.skills[0]
         if skill not in game.skill_pool:
           game.floor.spawn_elem(Soul(skill), target.cell)
+      target.dead = True
       game.floor.elems.remove(target)
       if target is game.hero:
         game.anims[0].append(PauseAnim(

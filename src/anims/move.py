@@ -1,7 +1,7 @@
 from lerp import lerp
 
 class MoveAnim():
-  def __init__(anim, duration, target, src_cell, dest_cell, on_end=None):
+  def __init__(anim, duration,  target, src_cell, dest_cell, started=True, on_end=None):
     anim.done = False
     anim.time = 0
     anim.duration = duration
@@ -9,11 +9,18 @@ class MoveAnim():
     anim.cur_cell = src_cell
     anim.src_cell = src_cell
     anim.dest_cell = dest_cell
+    anim.started = started
     anim.on_end = on_end
+
+  def start(anim):
+    anim.started = True
+    print("Starting")
 
   def update(anim):
     if anim.done:
       return anim.dest_cell
+    if not anim.started:
+      return anim.src_cell
     anim.time += 1
     if anim.time == anim.duration:
       anim.done = True

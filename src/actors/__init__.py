@@ -54,9 +54,9 @@ class Actor(Element):
     delta_x = dest_x - actor_x
     delta_y = dest_y - actor_y
     if abs(delta_x) >= abs(delta_y):
-      actor.facing = (delta_x / abs(delta_x) if delta_x else 0, 0)
+      actor.facing = (int(delta_x / abs(delta_x) if delta_x else 0), 0)
     else:
-      actor.facing = (0, delta_y / abs(delta_y) if delta_y else 0)
+      actor.facing = (0, int(delta_y / abs(delta_y) if delta_y else 0))
 
   def inflict(actor, ailment):
     if ailment == actor.ailment:
