@@ -103,6 +103,7 @@ class DungeonContext(Context):
       Somnus,
       DetectMana
     ]
+    game.new_skills = []
     game.skill_selected = { game.hero: None, game.ally: None }
     game.skill_builds = {
       game.hero: [
@@ -188,7 +189,7 @@ class DungeonContext(Context):
     enemies = [a for a in actors if a.faction == "enemy"]
     for actor in actors:
       if actor in enemies:
-        if actor.dead or actor.asleep or actor.idle:
+        if actor.stepped or actor.dead or actor.asleep or actor.idle:
           continue
 
         hero = game.hero

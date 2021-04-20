@@ -34,6 +34,7 @@ class Soul(Prop):
 
   def obtain(soul, game):
     if not soul.skill in game.skill_pool:
+      game.new_skills.append(soul.skill)
       game.skill_pool.append(soul.skill)
       game.skill_pool.sort(key=get_sort_order)
     game.log.print("Obtained skill \"" + soul.skill.name + "\"!")

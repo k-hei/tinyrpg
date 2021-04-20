@@ -130,6 +130,8 @@ class CustomContext(Context):
     else:
       ctx.pieces.append((skill, ctx.cursor))
       ctx.stop_arrange()
+      if skill in ctx.parent.new_skills:
+        ctx.parent.new_skills.remove(skill)
     ctx.anims.append([PlaceAnim(duration=ANIM_PLACE_DURATION, target=skill.blocks)])
 
   def handle_recall_piece(ctx):
@@ -153,7 +155,8 @@ class CustomContext(Context):
     ctx.update_bar()
 
   def handle_move_index(ctx, delta):
-    max_index = len(ctx.get_char_skills()) - 1
+    skills = ctx.get_char_skills()
+    max_index = len(skills) - 1
     old_index = ctx.index
     ctx.index += delta
     if ctx.index < 0:
@@ -495,19 +498,22 @@ class CustomContext(Context):
         sprite.blit(subspr, (Skill.PADDING_X, Skill.PADDING_Y))
         x += SKILL_NUDGE_LEFT
 
-      if ctx.is_skill_used(skill) and (
-        not skill_anim
-        or type(skill_anim) in (SelectAnim, DeselectAnim)
-      ):
-        color = Skill.get_color(skill)
-        subspr = sprite.subsurface(Rect(3, 3, sprite.get_width() - 6, sprite.get_height() - 6))
-        subspr = replace_color(subspr, color, palette.darken(color))
-        subspr = replace_color(subspr, palette.WHITE, palette.GRAY)
-        sprite.blit(subspr, (3, 3))
-        surface.blit(sprite, (x, y))
-        if not entering:
-          text = render_text("ON", assets.fonts["smallcaps"])
-          text = recolor(text, palette.YELLOW)
+      if not skill_anim or type(skill_anim) in (SelectAnim, DeselectAnim):
+        if ctx.is_skill_used(skill):
+          color = Skill.get_color(skill)
+          subspr = sprite.subsurface(Rect(3, 3, sprite.get_width() - 6, sprite.get_height() - 6))
+          subspr = replace_color(subspr, color, palette.darken(color))
+          subspr = replace_color(subspr, palette.WHITE, palette.GRAY)
+          sprite.blit(subspr, (3, 3))
+          surface.blit(sprite, (x, y))
+          if not entering:
+            text = render_text("ON", assets.fonts["smallcaps"])
+            text = recolor(text, palette.YELLOW)
+            text = outline(text, (0, 0, 0))
+            badges.append((text, x + sprite.get_width() - text.get_width() - 6, y + sprite.get_height() - 6))
+        elif skill in ctx.parent.new_skills and not entering:
+          text = render_text("NEW", assets.fonts["smallcaps"])
+          text = recolor(text, palette.YELLOW if ctx.renders % 60 >= 30 else palette.YELLOW_DARK)
           text = outline(text, (0, 0, 0))
           badges.append((text, x + sprite.get_width() - text.get_width() - 6, y + sprite.get_height() - 6))
 
