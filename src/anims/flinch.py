@@ -1,7 +1,8 @@
 class FlinchAnim():
-  def __init__(anim, duration, target, on_end=None):
+  def __init__(anim, duration, target, on_start=None, on_end=None):
     anim.duration = duration
     anim.target = target
+    anim.on_start = on_start
     anim.on_end = on_end
     anim.done = False
     anim.time = 0
@@ -10,6 +11,9 @@ class FlinchAnim():
   def update(anim):
     if anim.done:
       return -1
+    if anim.time == 0:
+      if anim.on_start:
+        anim.on_start()
     anim.time += 1
     if anim.time == anim.duration:
       anim.done = True

@@ -49,6 +49,7 @@ from skills.glacio import Glacio
 from skills.vortex import Vortex
 from skills.somnus import Somnus
 from skills.exoculo import Exoculo
+from skills.virus import Virus
 from skills.detectmana import DetectMana
 from skills.hpup import HpUp
 
@@ -111,8 +112,8 @@ class DungeonContext(Context):
         (Counter, (1, 2))
       ],
       game.ally: [
-        (Somnus, (0, 0)),
-        (DetectMana, (1, 0))
+        (Virus, (0, 0)),
+        (DetectMana, (0, 1))
       ]
     }
     game.update_skills()
@@ -189,24 +190,19 @@ class DungeonContext(Context):
     enemies = [a for a in actors if a.faction == "enemy"]
     for actor in actors:
       if actor in enemies:
-        if actor.dead or actor.stepped or actor.idle or actor.ailment == "sleep":
-          continue
-
-        hero = game.hero
-        ally = game.ally
-        rooms = [r for r in game.floor.rooms if actor.cell in r.get_cells()]
-        if len(rooms) == 0:
-          continue
-
-        room = rooms[0]
-        room_cells = room.get_cells() + room.get_border()
-        if hero.cell not in room_cells:
-          continue
-
-        actor.step(game)
+        game.step_enemy(actor)
 
       if actor.ailment == "sleep":
         actor.regen(actor.get_hp_max() / 50)
+
+      if actor.ailment == "poison":
+        if actor.ailment_turns < Actor.POISON_DURATION:
+          damage = int(actor.get_hp_max() / Actor.POISON_DURATION)
+          game.flinch(actor, damage, delayed=True)
+        if actor.ailment_turns == 0:
+          actor.ailment = None
+        else:
+          actor.ailment_turns -= 1
 
       if actor.counter:
         actor.counter = max(0, actor.counter - 1)
@@ -223,11 +219,28 @@ class DungeonContext(Context):
     for actor in actors:
       actor.stepped = False
 
+  def step_enemy(game, enemy):
+    if enemy.dead or enemy.stepped or enemy.idle or enemy.ailment == "sleep":
+      return False
+
+    hero = game.hero
+    ally = game.ally
+    rooms = [r for r in game.floor.rooms if enemy.cell in r.get_cells()]
+    if len(rooms) == 0:
+      return False
+
+    room = rooms[0]
+    room_cells = room.get_cells() + room.get_border()
+    if hero.cell not in room_cells:
+      return False
+
+    return enemy.step(game)
+
   def find_closest_enemy(game, actor):
     enemies = [e for e in game.floor.elems if (
       isinstance(e, Actor)
-      and e.faction != actor.faction
       and not e.dead
+      and e.faction != actor.faction
     )]
     if len(enemies) == 0:
       return None
@@ -725,7 +738,7 @@ class DungeonContext(Context):
       on_end=remove
     ))
 
-  def flinch(game, target, damage, on_end=None):
+  def flinch(game, target, damage, delayed=False, on_end=None):
     was_asleep = target.ailment == "sleep"
     end = lambda: on_end and on_end()
     if target.dead: end()
@@ -743,15 +756,22 @@ class DungeonContext(Context):
       else:
         end()
 
-    target.damage(damage)
-    game.numbers.append(DamageValue(str(damage), target.cell))
-    verb = "receives" if target.faction == "enemy" else "suffers"
-    game.log.print(target.name.upper() + " " + verb + " " + str(damage) + " damage.")
-    game.anims[0].append(FlinchAnim(
+    anim = FlinchAnim(
       duration=DungeonContext.FLINCH_DURATION,
       target=target,
+      on_start=lambda:(
+        target.damage(damage),
+        game.numbers.append(DamageValue(str(damage), target.cell)),
+        game.log.print(target.name.upper() + " "
+          + ("receives" if target.faction == "enemy" else "suffers")
+          + " " + str(damage) + " damage.")
+      ),
       on_end=respond
-    ))
+    )
+    if delayed:
+      game.anims.append([anim])
+    else:
+      game.anims[0].append(anim)
     if was_asleep and not target.ailment == "sleep" and not target.dead:
       game.anims[0].append(AwakenAnim(
         duration=DungeonContext.AWAKEN_DURATION,

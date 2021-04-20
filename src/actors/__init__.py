@@ -12,6 +12,8 @@ from anims.flicker import FlickerAnim
 from cell import is_adjacent, manhattan
 
 class Actor(Element):
+  POISON_DURATION = 5
+
   def __init__(actor, name, faction, hp, st, en, skills=[]):
     super().__init__(name)
     actor.hp_max = hp
@@ -23,6 +25,7 @@ class Actor(Element):
     actor.stepped = False
     actor.dead = False
     actor.ailment = None
+    actor.ailment_turns = 0
     actor.counter = False
     actor.idle = False
     actor.facing = (1, 0)
@@ -46,6 +49,11 @@ class Actor(Element):
 
   def face(actor, facing):
     actor.facing = facing
+
+  def inflict(actor, ailment):
+    actor.ailment = ailment
+    if ailment == "poison":
+      actor.ailment_turns = Actor.POISON_DURATION
 
   def wake_up(actor):
     actor.stepped = True
@@ -102,6 +110,8 @@ class Actor(Element):
     else:
       if actor.ailment == "sleep":
         new_color = palette.PURPLE
+      if actor.ailment == "poison":
+        new_color = palette.GREEN_DARK
       elif actor.faction == "player":
         new_color = palette.BLUE
       elif actor.faction == "ally":

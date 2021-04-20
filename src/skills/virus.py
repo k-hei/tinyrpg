@@ -1,8 +1,11 @@
 from skills import Skill
-from anims.attack import AttackAnim
+from anims.bounce import BounceAnim
+from anims.flinch import FlinchAnim
 from anims.pause import PauseAnim
 import math
+from actors import Actor
 from actors.mage import Mage
+from cell import is_adjacent
 
 ATTACK_DURATION = 12
 
@@ -23,4 +26,44 @@ class Virus(Skill):
   )
 
   def effect(game, on_end=None):
-    game.log.print("But nothing happened...")
+    user = game.hero
+    targets = [e for e in game.floor.elems if (
+      isinstance(e, Actor)
+      and not e.dead
+      and is_adjacent(e.cell, user.cell)
+    )]
+
+    def poison():
+      try:
+        target = targets.pop()
+      except IndexError:
+        game.camera.blur()
+        if on_end:
+          on_end()
+        return
+      target.inflict("poison")
+      game.log.print(target.name.upper() + " was poisoned.")
+      game.camera.focus(target.cell)
+      game.anims[0].extend([
+        FlinchAnim(duration=45, target=target),
+        PauseAnim(duration=120, on_end=poison)
+      ])
+
+    def on_bounce():
+      if targets:
+        poison()
+      else:
+        game.log.print("But nothing happened...")
+        if on_end:
+          on_end()
+
+    game.anims.append([BounceAnim(
+      duration=20,
+      target=user,
+      on_end=lambda: game.anims[0].append(PauseAnim(
+        duration=60,
+        on_end=on_bounce
+      ))
+    )])
+
+    return user.cell

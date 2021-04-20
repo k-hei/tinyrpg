@@ -21,6 +21,7 @@ from anims.move import MoveAnim
 from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
+from anims.bounce import BounceAnim
 from anims.pause import PauseAnim
 from anims.awaken import AwakenAnim
 from anims.chest import ChestAnim
@@ -197,6 +198,7 @@ class Stage:
     sprite_y = row * config.TILE_SIZE
     scale_x = 1
     scale_y = 1
+    scale_origin = "center"
 
     if type(elem) is Soul:
       elem.update(vfx)
@@ -218,6 +220,10 @@ class Stage:
 
       if type(anim) is FlinchAnim:
         sprite_x += anim.x
+
+      if type(anim) is BounceAnim:
+        scale_x, scale_y = anim.scale
+        scale_origin = "bottom"
 
       if type(anim) is FlickerAnim:
         pinch_duration = anim.duration // 4
@@ -261,8 +267,12 @@ class Stage:
           round(sprite.get_width() * scale_x),
           round(sprite.get_height() * scale_y)
         ))
-      x = sprite_x + config.TILE_SIZE // 2 - scaled_sprite.get_width() // 2 - round(camera_x)
-      y = sprite_y + config.TILE_SIZE // 2 - scaled_sprite.get_height() // 2 - round(camera_y)
+      x = sprite_x - round(camera_x) + config.TILE_SIZE // 2 - scaled_sprite.get_width() // 2
+      y = sprite_y - round(camera_y)
+      if scale_origin == "center":
+        y += config.TILE_SIZE // 2 - scaled_sprite.get_height() // 2
+      else:
+        y += config.TILE_SIZE - scaled_sprite.get_height()
       surface.blit(scaled_sprite, (x, y))
 
     if item:

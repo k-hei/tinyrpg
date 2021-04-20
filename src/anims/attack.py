@@ -1,6 +1,6 @@
 import math
 
-class AttackAnim():
+class AttackAnim:
   def __init__(anim, duration, target, src_cell, dest_cell, on_connect=None, on_end=None):
     src_x, src_y = src_cell
     dest_x, dest_y = dest_cell
