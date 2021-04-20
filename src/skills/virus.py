@@ -16,8 +16,6 @@ class Virus(Skill):
   desc = "Poisons adjacent targets"
   cost = 4
   range_type = "radial"
-  source_range = (1, 1)
-  target_radius = 0
   users = (Mage,)
   blocks = (
     (0, 0),
@@ -25,8 +23,7 @@ class Virus(Skill):
     (1, 1),
   )
 
-  def effect(game, on_end=None):
-    user = game.hero
+  def effect(user, game, on_end=None):
     targets = [e for e in game.floor.elems if (
       isinstance(e, Actor)
       and not e.dead
@@ -41,13 +38,17 @@ class Virus(Skill):
         if on_end:
           on_end()
         return
-      target.inflict("poison")
-      game.log.print(target.name.upper() + " was poisoned.")
       game.camera.focus(target.cell)
-      game.anims[0].extend([
-        FlinchAnim(duration=45, target=target),
-        PauseAnim(duration=120, on_end=poison)
-      ])
+      poisoned = target.inflict("poison")
+      if poisoned:
+        game.log.print(target.name.upper() + " was poisoned.")
+        game.anims[0].extend([
+          FlinchAnim(duration=45, target=target),
+          PauseAnim(duration=120, on_end=poison)
+        ])
+      else:
+        game.log.print("But " + target.name.upper() + " was already poisoned...")
+        game.anims[0].append(PauseAnim(duration=120, on_end=poison))
 
     def on_bounce():
       if targets:

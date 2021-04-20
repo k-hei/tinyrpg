@@ -18,5 +18,5 @@ class Exoculo(Skill):
     (2, 0)
   )
 
-  def effect(game, on_end=None):
+  def effect(user, game, on_end=None):
     game.log.print("But nothing happened...")

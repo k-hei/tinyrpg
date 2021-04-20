@@ -19,5 +19,5 @@ class Ignis(Skill):
     (0, 1)
   )
 
-  def effect(game, on_end=None):
+  def effect(user, game, on_end=None):
     game.log.print("But nothing happened...")

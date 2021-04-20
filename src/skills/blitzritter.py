@@ -28,10 +28,9 @@ class Blitzritter(Skill):
     (0, 2)
   )
 
-  def effect(game, on_end=None):
+  def effect(user, game, on_end=None):
     camera = game.camera
     floor = game.floor
-    user = game.hero
     hero_x, hero_y = user.cell
     delta_x, delta_y = user.facing
     near_cell = (hero_x + delta_x, hero_y + delta_y)

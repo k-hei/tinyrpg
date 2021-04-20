@@ -25,8 +25,7 @@ class Sana(Skill):
     (0, 2),
   )
 
-  def effect(game, on_end=None):
-    user = game.hero
+  def effect(user, game, on_end=None):
     source_cell = user.cell
     hero_x, hero_y = source_cell
     delta_x, delta_y = user.facing

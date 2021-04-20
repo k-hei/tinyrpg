@@ -112,8 +112,8 @@ class DungeonContext(Context):
         (Counter, (1, 2))
       ],
       game.ally: [
-        (Virus, (0, 0)),
-        (DetectMana, (0, 1))
+        (Somnus, (0, 0)),
+        (DetectMana, (1, 0))
       ]
     }
     game.update_skills()
@@ -196,9 +196,8 @@ class DungeonContext(Context):
         actor.regen(actor.get_hp_max() / 50)
 
       if actor.ailment == "poison":
-        if actor.ailment_turns < Actor.POISON_DURATION:
-          damage = int(actor.get_hp_max() / Actor.POISON_DURATION)
-          game.flinch(actor, damage, delayed=True)
+        damage = int(actor.get_hp_max() * Actor.POISON_STRENGTH)
+        game.flinch(actor, damage, delayed=True)
         if actor.ailment_turns == 0:
           actor.ailment = None
         else:
@@ -564,7 +563,7 @@ class DungeonContext(Context):
       game.child = SkillContext(
         parent=game,
         on_close=lambda skill: (
-          game.use_skill(skill) if skill else game.refresh_fov()
+          game.use_skill(game.hero, skill) if skill else game.refresh_fov()
         )
       )
 
@@ -779,20 +778,17 @@ class DungeonContext(Context):
         on_end=awaken
       ))
 
-  def use_skill(game, skill):
-    hero = game.hero
+  def use_skill(game, actor, skill):
     camera = game.camera
-    skill = game.skill_selected[hero]
-    if skill is None:
-      return None
-    if game.sp >= skill.cost:
-      game.sp -= skill.cost
-      if game.sp < 1:
-        game.sp = 0
-    game.log.print(hero.name.upper() + " uses " + skill.name)
-    target_cell = skill.effect(game, on_end=lambda: (
+    if actor.faction == "player":
+      if game.sp >= skill.cost:
+        game.sp -= skill.cost
+        if game.sp < 1:
+          game.sp = 0
+    game.log.print(actor.name.upper() + " uses " + skill.name)
+    target_cell = skill.effect(actor, game, on_end=lambda: (
       camera.blur(),
-      game.step(),
+      actor is game.hero and game.step(),
       game.refresh_fov()
     ))
     if target_cell:

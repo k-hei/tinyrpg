@@ -22,9 +22,7 @@ class ShieldBash(Skill):
     (1, 1),
   )
 
-  # TODO: move into separate skill
-  def effect(game, on_end=None):
-    user = game.hero
+  def effect(user, game, on_end=None):
     floor = game.floor
     camera = game.camera
 

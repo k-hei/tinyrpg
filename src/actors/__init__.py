@@ -13,6 +13,7 @@ from cell import is_adjacent, manhattan
 
 class Actor(Element):
   POISON_DURATION = 5
+  POISON_STRENGTH = 1 / 6
 
   def __init__(actor, name, faction, hp, st, en, skills=[]):
     super().__init__(name)
@@ -51,9 +52,12 @@ class Actor(Element):
     actor.facing = facing
 
   def inflict(actor, ailment):
-    actor.ailment = ailment
+    if ailment == actor.ailment:
+      return False
     if ailment == "poison":
       actor.ailment_turns = Actor.POISON_DURATION
+    actor.ailment = ailment
+    return True
 
   def wake_up(actor):
     actor.stepped = True

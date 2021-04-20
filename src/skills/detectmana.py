@@ -17,8 +17,7 @@ class DetectMana(Skill):
     (0, 0),
   )
 
-  def effect(game, on_end=None):
-    user = game.hero
+  def effect(user, game, on_end=None):
     floor = game.floor
     camera = game.camera
 

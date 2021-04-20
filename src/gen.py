@@ -140,7 +140,6 @@ def debug_floor():
   ]
   floor.entrance = (4, 3)
   floor.set_tile_at(floor.entrance, Stage.STAIRS_DOWN)
-  floor.spawn_elem(Soul(Virus), (4, 5))
   floor.spawn_elem(Soul(ShieldBash), (2, 14))
   floor.spawn_elem(Soul(Fulgur), (3, 14))
   floor.spawn_elem(Soul(Sana), (4, 14))

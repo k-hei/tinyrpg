@@ -18,8 +18,7 @@ class Counter(Skill):
     (1, 0)
   )
 
-  def effect(game, on_end=None):
-    user = game.hero
+  def effect(user, game, on_end=None):
     user.counter = 2
     game.log.print(user.name.upper() + " stands ready.")
     game.anims.append([PauseAnim(
