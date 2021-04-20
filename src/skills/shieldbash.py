@@ -57,7 +57,7 @@ class ShieldBash(Skill):
 
       def on_connect():
         if will_nudge:
-          target_elem.stun = True
+          target_elem.stepped = True
           game.anims[0].append(MoveAnim(
             duration=MOVE_DURATION,
             target=target_elem,

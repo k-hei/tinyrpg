@@ -23,6 +23,7 @@ from comps.log import Log
 from comps.minimap import Minimap
 from comps.previews import Previews
 from comps.damage import DamageValue
+from props.soul import Soul
 
 from transits.dissolve import DissolveOut
 
@@ -187,14 +188,31 @@ class DungeonContext(Context):
     enemies = [a for a in actors if a.faction == "enemy"]
     for actor in actors:
       if actor in enemies:
-        game.step_enemy(actor, run)
+        if actor.dead or actor.asleep or actor.idle:
+          continue
+
+        hero = game.hero
+        ally = game.ally
+        rooms = [r for r in game.floor.rooms if actor.cell in r.get_cells()]
+        if len(rooms) == 0:
+          continue
+
+        room = rooms[0]
+        room_cells = room.get_cells() + room.get_border()
+        if hero.cell not in room_cells:
+          continue
+
+        actor.step(game)
+
       if actor.asleep:
         actor.regen(actor.get_hp_max() / 50)
+
       if actor.counter:
         actor.counter = max(0, actor.counter - 1)
 
+    # make ally attack closest enemy
     ally = game.ally
-    if not ally.stepped and not ally.dead and not ally.asleep and not ally.stun:
+    if not ally.stepped and not ally.dead and not ally.asleep:
       adjacent_enemies = [e for e in enemies if is_adjacent(e.cell, ally.cell)]
       if not adjacent_enemies: return
       adjacent_enemies.sort(key=lambda e: e.get_hp())
@@ -204,40 +222,17 @@ class DungeonContext(Context):
     for actor in actors:
       actor.stepped = False
 
-  # TODO: move into enemy module
-  def step_enemy(game, enemy, run=False):
-    if enemy.stun:
-      enemy.stun = False
-      return False
-
-    if enemy.dead or enemy.asleep or enemy.idle:
-      return False
-
-    hero = game.hero
-    ally = game.ally
-    room = next((room for room in game.floor.rooms if enemy.cell in room.get_cells()), None)
-    if not room:
-      return False
-
-    room_cells = room.get_cells() + room.get_border()
-    if hero.cell not in room_cells:
-      return False
-
-    if is_adjacent(enemy.cell, hero.cell) and not hero.dead:
-      game.log.print(enemy.name.upper() + " attacks")
-      game.attack(enemy, hero, run)
-    elif is_adjacent(enemy.cell, ally.cell) and not ally.dead:
-      game.log.print(enemy.name.upper() + " attacks")
-      game.attack(enemy, ally, run)
-    else:
-      steps_to_hero = manhattan(enemy.cell, hero.cell)
-      steps_to_ally = manhattan(enemy.cell, ally.cell)
-      if steps_to_ally <= steps_to_hero and not ally.dead:
-        game.move_to(enemy, ally.cell)
-      else:
-        game.move_to(enemy, hero.cell)
-
-    return True
+  def find_closest_enemy(game, actor):
+    enemies = [e for e in game.floor.elems if (
+      isinstance(e, Actor)
+      and e.faction != actor.faction
+      and not e.dead
+    )]
+    if len(enemies) == 0:
+      return None
+    if len(enemies) > 1:
+      enemies.sort(key=lambda e: manhattan(e.cell, actor.cell))
+    return enemies[0]
 
   def handle_keyup(game, key):
     game.key_requires_reset[key] = False
@@ -698,6 +693,10 @@ class DungeonContext(Context):
 
   def kill(game, target, on_end=None):
     def remove():
+      if target.faction == "enemy" and target.skills:
+        skill = target.skills[0]
+        if skill not in game.skill_pool:
+          game.floor.spawn_elem(Soul(skill), target.cell)
       game.floor.elems.remove(target)
       if target is game.hero:
         game.anims[0].append(PauseAnim(

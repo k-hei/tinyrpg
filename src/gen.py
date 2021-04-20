@@ -25,7 +25,7 @@ from items.emerald import Emerald
 from skills.shieldbash import ShieldBash
 from skills.fulgur import Fulgur
 from skills.sana import Sana
-from skills.hirudo import Hirudo
+from skills.virus import Virus
 from skills.hpup import HpUp
 
 possible_widths = (3, 5, 7)
@@ -134,7 +134,6 @@ def debug_floor():
     " ....... ",
     "         "
   ])
-
   floor.rooms = [
     Room((5, 5), (2, 1)),
     Room((7, 5), (1, 11)),
@@ -144,7 +143,7 @@ def debug_floor():
   floor.spawn_elem(Soul(ShieldBash), (2, 14))
   floor.spawn_elem(Soul(Fulgur), (3, 14))
   floor.spawn_elem(Soul(Sana), (4, 14))
-  floor.spawn_elem(Soul(Hirudo), (5, 14))
+  floor.spawn_elem(Mushroom(), (5, 14))
   floor.spawn_elem(Soul(HpUp), (6, 14))
   return floor
 
@@ -568,10 +567,10 @@ def dungeon(size, floor=1):
   # # eye.asleep = True
   # stage.spawn_elem(eye, (entrance_x + 0, entrance_y - 3))
 
-  stage.spawn_elem(Soul(ShieldBash), (entrance_x - 1, entrance_y - 3))
-  stage.spawn_elem(Soul(Ignis), (entrance_x + 0, entrance_y - 3))
-  stage.spawn_elem(Soul(Sana), (entrance_x - 1, entrance_y - 2))
-  stage.spawn_elem(Soul(Exoculo), (entrance_x + 0, entrance_y - 2))
+  # stage.spawn_elem(Soul(ShieldBash), (entrance_x - 1, entrance_y - 3))
+  # stage.spawn_elem(Soul(Ignis), (entrance_x + 0, entrance_y - 3))
+  # stage.spawn_elem(Soul(Sana), (entrance_x - 1, entrance_y - 2))
+  # stage.spawn_elem(Soul(Exoculo), (entrance_x + 0, entrance_y - 2))
 
   stage.rooms = rooms
   return stage

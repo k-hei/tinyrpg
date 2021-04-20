@@ -9,6 +9,7 @@ from filters import replace_color
 from anims.awaken import AwakenAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
+from cell import is_adjacent, manhattan
 
 class Actor(Element):
   def __init__(actor, name, faction, hp, st, en, skills=[]):
@@ -21,7 +22,6 @@ class Actor(Element):
     actor.solid = True
     actor.stepped = False
     actor.dead = False
-    actor.stun = False
     actor.asleep = False
     actor.counter = False
     actor.idle = False
@@ -48,7 +48,7 @@ class Actor(Element):
     actor.facing = facing
 
   def wake_up(actor):
-    actor.stun = True
+    actor.stepped = True
     actor.asleep = False
 
   def move(actor, delta, stage):
@@ -72,6 +72,19 @@ class Actor(Element):
     en = target.en if not target.asleep else 0
     variance = 1 if actor.faction == "enemy" else 2
     return max(0, st - en) + random.randint(-variance, variance)
+
+  def step(actor, game):
+    enemy = game.find_closest_enemy(actor)
+    if enemy is None:
+      return False
+
+    if is_adjacent(actor.cell, enemy.cell):
+      game.log.print(enemy.name.upper() + " attacks")
+      game.attack(actor, enemy)
+    else:
+      game.move_to(actor, enemy.cell)
+
+    return True
 
   def render(actor, sprite, anims=[]):
     new_color = None
