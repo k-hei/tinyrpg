@@ -12,7 +12,6 @@ class Somnus(Skill):
   element = "dark"
   desc = "Lulls target to sleep"
   cost = 4
-  radius = 1
   users = (Mage,)
   blocks = (
     (0, 0),

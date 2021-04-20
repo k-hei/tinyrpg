@@ -10,7 +10,8 @@ class DetectMana(Skill):
   element = None
   desc = "Reveals hidden passages"
   cost = 1
-  radius = 0
+  range_min = 0
+  range_max = 0
   users = (Mage,)
   blocks = (
     (0, 0),

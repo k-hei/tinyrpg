@@ -12,7 +12,7 @@ class Fulgur(Skill):
   element = "volt"
   desc = "Shocks target with lightning"
   cost = 3
-  radius = math.inf
+  range_max = 4
   users = (Mage,)
   blocks = (
     (0, 0),

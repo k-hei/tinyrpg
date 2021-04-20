@@ -10,7 +10,8 @@ class Counter(Skill):
   element = "shield"
   desc = "Reflects phys damage"
   cost = 6
-  radius = 0
+  range_min = 0
+  range_max = 0
   users = (Knight,)
   blocks = (
     (0, 0),

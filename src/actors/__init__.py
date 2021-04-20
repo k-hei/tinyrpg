@@ -79,7 +79,7 @@ class Actor(Element):
       return False
 
     if is_adjacent(actor.cell, enemy.cell):
-      game.log.print(enemy.name.upper() + " attacks")
+      game.log.print(actor.name.upper() + " attacks")
       game.attack(actor, enemy)
     else:
       game.move_to(actor, enemy.cell)

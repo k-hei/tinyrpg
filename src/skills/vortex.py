@@ -12,7 +12,7 @@ class Vortex(Skill):
   element = "wind"
   desc = "Drives target back with wind"
   cost = 3
-  radius = math.inf
+  range_max = math.inf
   users = (Mage,)
   blocks = (
     (1, 0),

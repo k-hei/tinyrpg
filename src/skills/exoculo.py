@@ -11,7 +11,6 @@ class Exoculo(Skill):
   element = "dark"
   desc = "Blinds target with darkness"
   cost = 4
-  radius = 1
   users = (Mage,)
   blocks = (
     (0, 0),

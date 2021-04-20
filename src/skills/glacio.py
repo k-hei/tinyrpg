@@ -12,7 +12,7 @@ class Glacio(Skill):
   element = "ice"
   desc = "Freezes target with ice"
   cost = 3
-  radius = math.inf
+  range_max = 4
   users = (Mage,)
   blocks = (
     (0, 0),

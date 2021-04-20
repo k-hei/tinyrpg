@@ -4,7 +4,10 @@ class Skill:
   element = None
   desc = None
   cost = 0
-  radius = 0
+  range_type = "linear"
+  range_min = 1
+  range_max = 1
+  range_radius = 0
   hp = 0
   users = ()
   blocks = (

@@ -15,7 +15,6 @@ class Anastasis(Skill):
   element = None
   desc = "Restores HP slightly"
   cost = 12
-  radius = 1
   users = (Mage,)
   blocks = (
     (0, 0),

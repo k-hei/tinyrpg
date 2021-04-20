@@ -16,6 +16,10 @@ class Blitzritter(Skill):
   desc = "Pierces two squares ahead"
   cost = 4
   radius = 2
+  range_type = "linear"
+  range_min = 1
+  range_max = 2
+  range_radius = 0
   users = (Knight,)
   blocks = (
     (1, 0),
@@ -55,7 +59,7 @@ class Blitzritter(Skill):
       game.vfx.extend([
         Vfx(
           kind="impact",
-          cell=near_pos,
+          pos=near_pos,
           anim=FrameAnim(
             duration=20,
             frame_count=7
@@ -63,7 +67,7 @@ class Blitzritter(Skill):
         ),
         Vfx(
           kind="impact",
-          cell=far_pos,
+          pos=far_pos,
           anim=FrameAnim(
             duration=20,
             delay=10,

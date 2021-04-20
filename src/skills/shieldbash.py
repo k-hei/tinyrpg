@@ -15,7 +15,6 @@ class ShieldBash(Skill):
   element = "shield"
   desc = "Pushes target one square"
   cost = 2
-  radius = 1
   users = (Knight,)
   blocks = (
     (1, 0),

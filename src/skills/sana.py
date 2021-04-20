@@ -15,7 +15,8 @@ class Sana(Skill):
   element = None
   desc = "Restores HP slightly"
   cost = 3
-  radius = 1
+  range_min = 0
+  range_max = 1
   users = (Mage,)
   blocks = (
     (1, 0),

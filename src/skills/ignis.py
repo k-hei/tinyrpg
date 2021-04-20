@@ -12,7 +12,7 @@ class Ignis(Skill):
   element = "fire"
   desc = "Burns target with flame"
   cost = 2
-  radius = math.inf
+  range_max = 4
   users = (Mage,)
   blocks = (
     (0, 0),

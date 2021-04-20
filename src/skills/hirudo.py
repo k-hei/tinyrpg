@@ -12,7 +12,6 @@ class Hirudo(Skill):
   element = "dark"
   desc = "Drains target's HP"
   cost = 6
-  radius = 1
   users = (Mage,)
   blocks = (
     (0, 0),

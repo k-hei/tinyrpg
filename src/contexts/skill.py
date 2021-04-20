@@ -164,35 +164,37 @@ class SkillContext(Context):
     hero_x, hero_y = hero.cell
     cursor = (hero_x + facing_x, hero_y + facing_y)
     neighbors = []
-    if skill is None or skill.radius == 0:
-      neighbors = [hero.cell]
-    elif skill.radius == math.inf:
+
+    if skill.range_type == "radial" or skill.range_type == "linear" and skill.range_max == 1:
+      if skill.range_min == 0:
+        neighbors.append((hero_x, hero_y))
+      neighbors.extend([
+        (hero_x, hero_y - 1),
+        (hero_x - 1, hero_y),
+        (hero_x + 1, hero_y),
+        (hero_x, hero_y + 1)
+      ])
+    elif skill.range_type == "linear" and skill.range_max > 2:
       neighbors.append(cursor)
       is_blocked = False
-      while not is_blocked:
+      r = 1
+      while not is_blocked and r < skill.range_max:
         if floor.get_tile_at(cursor).solid or floor.get_elem_at(cursor):
           is_blocked = True
         else:
           cursor_x, cursor_y = cursor
           cursor = (cursor_x + facing_x, cursor_y + facing_y)
           neighbors.append(cursor)
-    elif skill.radius > 1:
-      for r in range(1, skill.radius + 1):
+        r += 1
+    elif skill.range_type == "linear":
+      for r in range(skill.range_min, skill.range_max + 1):
         neighbors.append((hero_x + facing_x * r, hero_y + facing_y * r))
-    else:
-      for r in range(1, skill.radius + 1):
-        neighbors.extend([
-          (hero_x, hero_y - r),
-          (hero_x - r, hero_y),
-          (hero_x + r, hero_y),
-          (hero_x, hero_y + r)
-        ])
 
     if cursor not in neighbors:
       cursor = neighbors[0]
 
     camera_speed = 8
-    if skill and skill.radius == math.inf:
+    if skill and skill.range_max == math.inf:
       camera.focus(cursor, 16)
     else:
       camera.focus(cursor, 8)

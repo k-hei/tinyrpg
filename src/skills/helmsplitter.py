@@ -11,7 +11,6 @@ class HelmSplitter(Skill):
   element = "axe"
   desc = "Stuns target with mighty swing"
   cost = 6
-  radius = 1
   users = (Knight,)
 
   def effect(game, on_end=None):

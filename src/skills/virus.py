@@ -12,10 +12,9 @@ class Virus(Skill):
   element = "dark"
   desc = "Poisons adjacent targets"
   cost = 4
-  radius = 1
-  radius_min = 1
-  radius_max = 1
-  radius_type = "radial"
+  range_type = "radial"
+  source_range = (1, 1)
+  target_radius = 0
   users = (Mage,)
   blocks = (
     (0, 0),
