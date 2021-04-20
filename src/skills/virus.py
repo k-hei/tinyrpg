@@ -27,6 +27,7 @@ class Virus(Skill):
     targets = [e for e in game.floor.elems if (
       isinstance(e, Actor)
       and not e.dead
+      and e.faction != user.faction
       and is_adjacent(e.cell, user.cell)
     )]
 

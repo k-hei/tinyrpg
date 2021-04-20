@@ -69,7 +69,8 @@ class DungeonContext(Context):
   MOVE_DURATION = 16
   RUN_DURATION = 12
   ATTACK_DURATION = 12
-  FLINCH_DURATION = 30
+  FLINCH_DURATION = 20
+  FLINCH_PAUSE_DURATION = 60
   FLICKER_DURATION = 30
   PAUSE_DURATION = 15
   PAUSE_ITEM_DURATION = 30
@@ -692,8 +693,12 @@ class DungeonContext(Context):
       game.flinch(
         target=real_target,
         damage=real_damage,
+        direction=actor.facing,
         on_end=on_end
       )
+    print("Before", actor.facing)
+    actor.face(target.cell)
+    print("After", actor.facing)
     game.anims.append([
       AttackAnim(
         duration=DungeonContext.ATTACK_DURATION,
@@ -737,7 +742,7 @@ class DungeonContext(Context):
       on_end=remove
     ))
 
-  def flinch(game, target, damage, delayed=False, on_end=None):
+  def flinch(game, target, damage, direction=None, delayed=False, on_end=None):
     was_asleep = target.ailment == "sleep"
     end = lambda: on_end and on_end()
     if target.dead: end()
@@ -755,22 +760,25 @@ class DungeonContext(Context):
       else:
         end()
 
-    anim = FlinchAnim(
+    flinch = FlinchAnim(
       duration=DungeonContext.FLINCH_DURATION,
       target=target,
+      direction=direction,
       on_start=lambda:(
         target.damage(damage),
         game.numbers.append(DamageValue(str(damage), target.cell)),
         game.log.print(target.name.upper() + " "
           + ("receives" if target.faction == "enemy" else "suffers")
           + " " + str(damage) + " damage.")
-      ),
-      on_end=respond
+      )
     )
+
+    pause = PauseAnim(duration=DungeonContext.FLINCH_PAUSE_DURATION, on_end=respond)
+
     if delayed:
-      game.anims.append([anim])
+      game.anims.append([flinch, pause])
     else:
-      game.anims[0].append(anim)
+      game.anims[0].extend([flinch, pause])
     if was_asleep and not target.ailment == "sleep" and not target.dead:
       game.anims[0].append(AwakenAnim(
         duration=DungeonContext.AWAKEN_DURATION,

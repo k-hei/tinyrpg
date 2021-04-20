@@ -219,7 +219,9 @@ class Stage:
         )
 
       if type(anim) is FlinchAnim:
-        sprite_x += anim.x
+        offset_x, offset_y = anim.offset
+        sprite_x += offset_x
+        sprite_y += offset_y
 
       if type(anim) is BounceAnim:
         scale_x, scale_y = anim.scale

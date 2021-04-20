@@ -82,7 +82,7 @@ class SkillContext(Context):
     hero_x, hero_y = hero.cell
     delta_x, delta_y = delta
     target_cell = (hero_x + delta_x, hero_y + delta_y)
-    hero.face(delta)
+    hero.facing = delta
     if ctx.bar.message != get_skill_text(skill):
       ctx.select_skill()
 

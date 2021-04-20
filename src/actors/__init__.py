@@ -48,8 +48,15 @@ class Actor(Element):
       amount = actor.get_hp_max() / 200
     actor.hp = min(actor.hp_max, actor.hp + amount)
 
-  def face(actor, facing):
-    actor.facing = facing
+  def face(actor, dest):
+    actor_x, actor_y = actor.cell
+    dest_x, dest_y = dest
+    delta_x = dest_x - actor_x
+    delta_y = dest_y - actor_y
+    if abs(delta_x) >= abs(delta_y):
+      actor.facing = (delta_x / abs(delta_x) if delta_x else 0, 0)
+    else:
+      actor.facing = (0, delta_y / abs(delta_y) if delta_y else 0)
 
   def inflict(actor, ailment):
     if ailment == actor.ailment:
