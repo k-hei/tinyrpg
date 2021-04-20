@@ -52,7 +52,6 @@ class ShieldBash(Skill):
           game.log.print(target_elem.name.upper() + " is reeling.")
 
       def on_connect():
-        print(will_nudge)
         if will_nudge:
           move.start()
 

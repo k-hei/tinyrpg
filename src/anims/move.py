@@ -14,7 +14,6 @@ class MoveAnim():
 
   def start(anim):
     anim.started = True
-    print("Starting")
 
   def update(anim):
     if anim.done:

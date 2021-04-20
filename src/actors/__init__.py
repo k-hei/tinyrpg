@@ -121,7 +121,7 @@ class Actor(Element):
     else:
       if actor.ailment == "sleep":
         new_color = palette.PURPLE
-      if actor.ailment == "poison":
+      elif actor.ailment == "poison":
         new_color = palette.GREEN_DARK
       elif actor.faction == "player":
         new_color = palette.BLUE

@@ -4,8 +4,8 @@ from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from anims.attack import AttackAnim
 from anims.frame import FrameAnim
+from actors import Actor
 from actors.knight import Knight
-from props.chest import Chest
 from comps.vfx import Vfx
 import random
 
@@ -38,10 +38,9 @@ class Blitzritter(Skill):
     target_a = floor.get_elem_at(near_cell)
     target_b = floor.get_elem_at(far_cell)
 
-    # TODO: prevent chests from being recognized as actors
-    if type(target_a) is Chest:
+    if not isinstance(target_a, Actor):
       target_a = None
-    if type(target_b) is Chest:
+    if not isinstance(target_b, Actor):
       target_b = None
 
     def connect():

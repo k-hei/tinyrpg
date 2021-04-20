@@ -225,13 +225,18 @@ class DungeonContext(Context):
       adjacent_enemies.sort(key=lambda e: e.get_hp())
       enemy = adjacent_enemies[0]
       game.attack(ally, enemy)
+    elif old_hero_cell and is_adjacent(ally.cell, old_hero_cell):
+      ally_x, ally_y = ally.cell
+      old_x, old_y = old_hero_cell
+      ally_delta = (old_x - ally_x, old_y - ally_y)
+      ally.stepped = game.move(ally, ally_delta, run)
     elif enemies:
       enemies.sort(key=lambda e: e.get_hp())
       enemy = enemies[0]
-      game.move_to(ally, enemy.cell)
-      game.anims[-2].append(game.anims.pop()[0])
+      ally.stepped = game.move_to(ally, enemy.cell)
     elif not is_adjacent(ally.cell, hero.cell):
       ally.stepped = game.move_to(ally, hero.cell, run)
+    if ally.stepped:
       game.anims[-2].append(game.anims.pop()[0])
 
   def step_enemy(game, enemy):
@@ -421,14 +426,7 @@ class DungeonContext(Context):
 
     moved = game.move(hero, delta, run, on_move)
     if moved:
-      if is_adjacent(ally.cell, old_cell):
-        ally_x, ally_y = ally.cell
-        old_x, old_y = old_cell
-        ally_delta = (old_x - ally_x, old_y - ally_y)
-        ally.stepped = game.move(ally, ally_delta, run)
-        game.anims[-2].append(game.anims.pop()[0])
-      else:
-        game.step_ally(game.ally, run)
+      game.step_ally(game.ally, run, old_cell)
       acted = True
     elif isinstance(target_elem, Actor) and target_elem.faction == "enemy":
       if target_elem.idle:
