@@ -22,7 +22,7 @@ class Actor(Element):
     actor.solid = True
     actor.stepped = False
     actor.dead = False
-    actor.asleep = False
+    actor.ailment = None
     actor.counter = False
     actor.idle = False
     actor.facing = (1, 0)
@@ -49,7 +49,8 @@ class Actor(Element):
 
   def wake_up(actor):
     actor.stepped = True
-    actor.asleep = False
+    if actor.ailment == "sleep":
+      actor.ailment = None
 
   def move(actor, delta, stage):
     pass
@@ -61,7 +62,7 @@ class Actor(Element):
 
   def damage(target, damage):
     target.hp -= damage
-    if target.asleep and random.randint(0, 1):
+    if target.ailment == "sleep" and random.randint(0, 1):
       target.wake_up()
     if target.get_hp() <= 0:
       target.dead = True
@@ -69,7 +70,7 @@ class Actor(Element):
 
   def find_damage(actor, target):
     st = actor.st
-    en = target.en if not target.asleep else 0
+    en = target.en if target.ailment != "sleep" else 0
     variance = 1 if actor.faction == "enemy" else 2
     return max(0, st - en) + random.randint(-variance, variance)
 
@@ -99,7 +100,7 @@ class Actor(Element):
       elif type(anim) is FlickerAnim and not anim.visible:
         return None
     else:
-      if actor.asleep:
+      if actor.ailment == "sleep":
         new_color = palette.PURPLE
       elif actor.faction == "player":
         new_color = palette.BLUE

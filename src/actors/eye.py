@@ -36,7 +36,7 @@ class Eye(Actor):
         sprite = sprites["eye_flinch"]
         break
     else:
-      if eye.asleep:
+      if eye.ailment == "sleep":
         sprite = sprites["eye_attack"]
       else:
         sprite = sprites["eye"]

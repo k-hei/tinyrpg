@@ -77,7 +77,7 @@ class Blitzritter(Skill):
       ])
 
     def find_damage(target):
-      en = target.en if not target.asleep else 0
+      en = target.en if not target.ailment == "sleep" else 0
       return int(user.st * 1.25 - en) + random.randint(-2, 2)
 
     def end_pause():

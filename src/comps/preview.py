@@ -108,7 +108,7 @@ class Preview:
       #   a.target is actor
       #   and type(a) is FlickerAnim
       # )), None)
-      if actor.asleep:
+      if actor.ailment == "sleep":
         portrait = portrait and replace_color(portrait, palette.WHITE, palette.PURPLE)
     surface_width = bar_x + bar.get_width()
     surface_height = HP_OFFSET_Y + hp_tag.get_height()

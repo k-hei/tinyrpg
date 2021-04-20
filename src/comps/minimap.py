@@ -62,7 +62,7 @@ class Minimap:
         else:
           color = 0xFF0000
       elif isinstance(elem, Actor) and elem.faction == "enemy" and cell in visible_cells:
-        if elem.asleep:
+        if elem.ailment == "sleep":
           color = 0xFF00FF
         else:
           color = 0xFF0000

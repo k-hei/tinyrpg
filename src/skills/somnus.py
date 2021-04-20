@@ -27,7 +27,7 @@ class Somnus(Skill):
     target_elem = game.floor.get_elem_at(target_cell)
     def on_attack_end():
       if target_elem:
-        target_elem.asleep = True
+        target_elem.ailment = "sleep"
         if type(target_elem) is Actor and target_elem.idle:
           target_elem.activate()
         result = target_elem.name.upper() + " fell asleep!"

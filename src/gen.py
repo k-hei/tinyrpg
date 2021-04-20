@@ -262,7 +262,7 @@ def giant_room(size):
       enemy = random.choices((Eye, Mimic), (5, 1))[0]()
       stage.spawn_elem(enemy, cell)
       if type(enemy) is Eye and random.randint(1, 2) == 1:
-        enemy.asleep = True
+        enemy.ailment = "sleep"
 
   stage.entrance = entrance
   stage.stairs = stairs
@@ -508,7 +508,7 @@ def dungeon(size, floor=1):
         enemy = gen_enemy(floor)
         stage.spawn_elem(enemy, cell)
         if random.randint(1, 3) == 1:
-          enemy.asleep = True
+          enemy.ailment = "sleep"
       elif random.randint(1, 80) == 1:
         item = gen_item()
         stage.spawn_elem(Chest(item), cell)
@@ -530,7 +530,7 @@ def dungeon(size, floor=1):
         enemy = gen_enemy(floor)
         stage.spawn_elem(enemy, cell)
         if random.randint(1, 3) == 1:
-          enemy.asleep = True
+          enemy.ailment = "sleep"
 
   for room in secret_rooms:
     kind = random.choice(("Treasure", "MonsterDen"))
@@ -550,7 +550,7 @@ def dungeon(size, floor=1):
       elif kind == "MonsterDen" and random.randint(1, 2) == 1:
         enemy = Eye()
         if random.randint(0, 4):
-          enemy.asleep = True
+          enemy.ailment = "sleep"
         stage.spawn_elem(enemy, cell)
 
   if floor == WALLLESS_FLOOR:
@@ -560,11 +560,9 @@ def dungeon(size, floor=1):
   entrance_x, entrance_y = stage.entrance
 
   # mushroom = Mushroom()
-  # # mushroom.asleep = True
   # stage.spawn_elem(mushroom, (entrance_x + 0, entrance_y - 4))
 
   # eye = Eye()
-  # # eye.asleep = True
   # stage.spawn_elem(eye, (entrance_x + 0, entrance_y - 3))
 
   # stage.spawn_elem(Soul(ShieldBash), (entrance_x - 1, entrance_y - 3))

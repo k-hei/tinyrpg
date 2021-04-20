@@ -189,7 +189,7 @@ class DungeonContext(Context):
     enemies = [a for a in actors if a.faction == "enemy"]
     for actor in actors:
       if actor in enemies:
-        if actor.stepped or actor.dead or actor.asleep or actor.idle:
+        if actor.dead or actor.stepped or actor.idle or actor.ailment == "sleep":
           continue
 
         hero = game.hero
@@ -205,7 +205,7 @@ class DungeonContext(Context):
 
         actor.step(game)
 
-      if actor.asleep:
+      if actor.ailment == "sleep":
         actor.regen(actor.get_hp_max() / 50)
 
       if actor.counter:
@@ -213,7 +213,7 @@ class DungeonContext(Context):
 
     # make ally attack closest enemy
     ally = game.ally
-    if not ally.stepped and not ally.dead and not ally.asleep:
+    if not ally.dead and not ally.stepped and not ally.ailment == "sleep":
       adjacent_enemies = [e for e in enemies if is_adjacent(e.cell, ally.cell)]
       if not adjacent_enemies: return
       adjacent_enemies.sort(key=lambda e: e.get_hp())
@@ -278,7 +278,7 @@ class DungeonContext(Context):
     if key == pygame.K_b:
       return game.handle_custom()
 
-    if game.hero.dead or game.hero.asleep:
+    if game.hero.dead or game.hero.ailment == "sleep":
       return False
 
     if key == pygame.K_ESCAPE or key == pygame.K_BACKSPACE:
@@ -301,7 +301,7 @@ class DungeonContext(Context):
     hero = game.hero
     ally = game.ally
     floor = game.floor
-    if hero.dead or hero.asleep:
+    if hero.dead or hero.ailment == "sleep":
       return False
     old_cell = hero.cell
     hero_x, hero_y = old_cell
@@ -312,7 +312,7 @@ class DungeonContext(Context):
     target_elem = floor.get_elem_at(target_cell)
     moved = game.move(hero, delta, run)
     if moved:
-      if not ally.dead and not ally.asleep:
+      if not ally.dead and ally.ailment != "sleep":
         last_group = game.anims[len(game.anims) - 1]
         if manhattan(ally.cell, old_cell) == 1:
           ally_x, ally_y = ally.cell
@@ -350,7 +350,7 @@ class DungeonContext(Context):
             floor.spawn_elem(enemy, cell)
             cells.remove(cell)
             if random.randint(0, 9):
-              enemy.asleep = True
+              enemy.ailment = "sleep"
 
         game.anims.append([
           PauseAnim(
@@ -369,7 +369,7 @@ class DungeonContext(Context):
         room = game.room
         room_elems = [a for a in [floor.get_elem_at(cell) for cell in room.get_cells()] if a]
         enemies = [e for e in room_elems if isinstance(e, Actor) and e.faction == "enemy"]
-        enemy = next((e for e in enemies if e.asleep and random.randint(1, 10) == 1), None)
+        enemy = next((e for e in enemies if e.ailment == "sleep" and random.randint(1, 10) == 1), None)
         if enemy:
           enemy.wake_up()
           is_waking_up = True
@@ -399,9 +399,9 @@ class DungeonContext(Context):
         game.refresh_fov(moving=True)
 
       if game.sp:
-        if not hero.dead and not hero.asleep:
+        if not hero.dead and not hero.ailment == "sleep":
           hero.regen()
-        if not ally.dead and not ally.asleep:
+        if not ally.dead and not ally.ailment == "sleep":
           ally.regen()
 
       acted = True
@@ -486,7 +486,7 @@ class DungeonContext(Context):
           game.log.print("There's nothing left to take...")
         game.step(run)
         game.refresh_fov()
-      elif isinstance(target_elem, Actor) and target_elem.asleep and target_elem.faction == "player":
+      elif isinstance(target_elem, Actor) and target_elem.ailment == "sleep" and target_elem.faction == "player":
         game.log.exit()
         game.anims[0].append(PauseAnim(
           duration=60,
@@ -602,7 +602,7 @@ class DungeonContext(Context):
     (target_elem is None or not target_elem.solid)
     or actor is game.hero
     and target_elem is game.ally
-    and not game.ally.asleep):
+    and not game.ally.ailment == "sleep"):
       duration = DungeonContext.RUN_DURATION if run else DungeonContext.MOVE_DURATION
       anim = MoveAnim(
         duration=duration,
@@ -726,7 +726,7 @@ class DungeonContext(Context):
     ))
 
   def flinch(game, target, damage, on_end=None):
-    was_asleep = target.asleep
+    was_asleep = target.ailment == "sleep"
     end = lambda: on_end and on_end()
     if target.dead: end()
 
@@ -752,7 +752,7 @@ class DungeonContext(Context):
       target=target,
       on_end=respond
     ))
-    if was_asleep and not target.asleep and not target.dead:
+    if was_asleep and not target.ailment == "sleep" and not target.dead:
       game.anims[0].append(AwakenAnim(
         duration=DungeonContext.AWAKEN_DURATION,
         target=target,
