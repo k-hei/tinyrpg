@@ -355,6 +355,13 @@ class CustomContext(Context):
     cursor_x, cursor_y = ctx.cursor_drawn
     target_x, target_y = ctx.cursor
 
+    piece_anim = None
+    for group in ctx.anims:
+      for anim in group:
+        if type(anim) in (CallAnim, RecallAnim):
+          piece_anim = anim
+          break
+
     if not deck_anim:
       # tab
       surface.blit(tab, (0, tab_y))
@@ -374,8 +381,16 @@ class CustomContext(Context):
             Piece.BLOCK_SIZE - 1, Piece.BLOCK_SIZE - 1
           ), 1)
 
+      if ctx.arrange and not piece_anim and ctx.renders % 2:
+        blocks = skill_sel.blocks
+        sprite = Piece.render(blocks, (0, 0, 0, 0))
+        surface.blit(sprite, (
+          grid_x + target_x * Piece.BLOCK_SIZE,
+          grid_y + target_y * Piece.BLOCK_SIZE
+        ))
+
       # pieces
-      piece_anim = None
+      place_anim = None
       in_range = abs(target_x - cursor_x) + abs(target_y - cursor_y) < 1
       for skill, (col, row) in ctx.pieces:
         offset = 0
@@ -383,34 +398,28 @@ class CustomContext(Context):
         for group in ctx.anims:
           for anim in group:
             if type(anim) is PlaceAnim and anim.target is skill.blocks:
-              piece_anim = anim
+              place_anim = anim
               break
-        if piece_anim:
+        if place_anim:
           if in_range:
-            t = piece_anim.update()
-            if piece_anim.time >= 0:
+            t = place_anim.update()
+            if place_anim.time >= 0:
               offset = -4 * (1 - t)
             else:
               sprite = None
           else:
             offset = -4
-        x = grid_x + col * Piece.BLOCK_SIZE
+        x = grid_x + col * Piece.BLOCK_SIZE + offset
         y = grid_y + row * Piece.BLOCK_SIZE + offset
         if sprite:
           surface.blit(sprite, (x, y))
 
     pieces = []
-    piece_anim = None
-    for group in ctx.anims:
-      for anim in group:
-        if type(anim) in (CallAnim, RecallAnim):
-          piece_anim = anim
-          break
     if piece_anim:
       skill, (col, row) = piece_anim.target
       sprite = Piece.render(skill.blocks, Skill.get_color(skill_sel), Skill.get_icon(skill_sel))
       i = skills.index(skill)
-      start_x = grid_x + col * Piece.BLOCK_SIZE
+      start_x = grid_x + col * Piece.BLOCK_SIZE - 4
       start_y = grid_y + row * Piece.BLOCK_SIZE - 4
       end_x = deck.get_width() + SPACING_X
       end_y = deck_y + (i - ctx.offset) * (assets.sprites["skill"].get_height() + SKILL_SPACING)
@@ -433,7 +442,7 @@ class CustomContext(Context):
       blocks = skill_sel.blocks
       sprite = Piece.render(blocks, Skill.get_color(skill_sel), Skill.get_icon(skill_sel))
       surface.blit(sprite, (
-        grid_x + cursor_x * Piece.BLOCK_SIZE,
+        grid_x + cursor_x * Piece.BLOCK_SIZE - 4,
         grid_y + cursor_y * Piece.BLOCK_SIZE - 4,
       ))
 

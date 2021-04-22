@@ -9,7 +9,7 @@ class Skeleton(Actor):
     super().__init__(
       name="Skeleton",
       faction="enemy",
-      hp=30,
+      hp=35,
       st=16,
       en=9,
       skills=[ShieldBash]

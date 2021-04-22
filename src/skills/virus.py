@@ -28,6 +28,7 @@ class Virus(Skill):
       isinstance(e, Actor)
       and not e.dead
       and e.faction != user.faction
+      and e.ailment != "poison"
       and is_adjacent(e.cell, user.cell)
     )]
 
@@ -39,17 +40,13 @@ class Virus(Skill):
         if on_end:
           on_end()
         return
+      target.inflict("poison")
       game.camera.focus(target.cell)
-      poisoned = target.inflict("poison")
-      if poisoned:
-        game.log.print(target.name.upper() + " was poisoned.")
-        game.anims[0].extend([
-          FlinchAnim(duration=45, target=target),
-          PauseAnim(duration=120, on_end=poison)
-        ])
-      else:
-        game.log.print("But " + target.name.upper() + " was already poisoned...")
-        game.anims[0].append(PauseAnim(duration=120, on_end=poison))
+      game.log.print(target.name.upper() + " was poisoned.")
+      game.anims[0].extend([
+        FlinchAnim(duration=45, target=target),
+        PauseAnim(duration=120, on_end=poison)
+      ])
 
     def on_bounce():
       if targets:

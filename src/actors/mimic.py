@@ -11,7 +11,7 @@ class Mimic(Actor):
       name="Mimic",
       faction="enemy",
       hp=23,
-      st=11,
+      st=13,
       en=6
     )
     mimic.idle = True

@@ -187,8 +187,12 @@ class DungeonContext(Context):
       camera.blur()
 
   def step(game, run=False):
+    if not game.ally.stepped:
+      game.step_ally(game.ally)
+
     actors = [e for e in game.floor.elems if isinstance(e, Actor)]
     enemies = [a for a in actors if a.faction == "enemy"]
+
     for actor in actors:
       if actor in enemies:
         game.step_enemy(actor)
@@ -207,10 +211,6 @@ class DungeonContext(Context):
       if actor.counter:
         actor.counter = max(0, actor.counter - 1)
 
-    # make ally attack closest enemy
-    if not game.ally.stepped:
-      game.step_ally(game.ally)
-
     for actor in actors:
       actor.stepped = False
 
@@ -225,19 +225,21 @@ class DungeonContext(Context):
       adjacent_enemies.sort(key=lambda e: e.get_hp())
       enemy = adjacent_enemies[0]
       game.attack(ally, enemy)
+      ally.stepped = True
     elif old_hero_cell and is_adjacent(ally.cell, old_hero_cell):
       ally_x, ally_y = ally.cell
       old_x, old_y = old_hero_cell
       ally_delta = (old_x - ally_x, old_y - ally_y)
       ally.stepped = game.move(ally, ally_delta, run)
-    elif enemies:
+    elif enemies and not is_adjacent(ally.cell, hero.cell):
       enemies.sort(key=lambda e: e.get_hp())
       enemy = enemies[0]
       ally.stepped = game.move_to(ally, enemy.cell)
     elif not is_adjacent(ally.cell, hero.cell):
       ally.stepped = game.move_to(ally, hero.cell, run)
-    if ally.stepped:
+    if ally.stepped and len(game.anims) >= 2:
       game.anims[-2].append(game.anims.pop()[0])
+    ally.stepped = True
 
   def step_enemy(game, enemy):
     if enemy.dead or enemy.stepped or enemy.idle or enemy.ailment == "sleep":
@@ -265,7 +267,7 @@ class DungeonContext(Context):
     if len(enemies) == 0:
       return None
     if len(enemies) > 1:
-      enemies.sort(key=lambda e: manhattan(e.cell, actor.cell))
+      enemies.sort(key=lambda e: manhattan(e.cell, actor.cell) + random.random() / 2)
     return enemies[0]
 
   def handle_keyup(game, key):
@@ -723,6 +725,7 @@ class DungeonContext(Context):
         if skill not in game.skill_pool:
           game.floor.spawn_elem(Soul(skill), target.cell)
       target.dead = True
+      target.ailment = None
       game.floor.elems.remove(target)
       if target is game.hero:
         game.anims[0].append(PauseAnim(
@@ -760,7 +763,7 @@ class DungeonContext(Context):
       game.anims[0].append(PauseAnim(duration=DungeonContext.PAUSE_DURATION))
 
     def respond():
-      if target.dead:
+      if target.dead or game.floor.get_tile_at(target.cell) is Stage.PIT:
         game.kill(target, on_end)
       elif is_adjacent(target.cell, target.cell):
         # pause before performing step

@@ -30,7 +30,7 @@ from skills.hpup import HpUp
 
 possible_widths = (3, 5, 7)
 possible_heights = (3, 5, 7)
-WALLLESS_FLOOR = 4
+WALLLESS_FLOOR = 6
 
 def cells(size):
   cells = []
@@ -138,7 +138,7 @@ def debug_floor():
     Room((5, 5), (2, 1)),
     Room((7, 5), (1, 11)),
   ]
-  floor.entrance = (4, 12)
+  floor.entrance = (4, 3)
   floor.set_tile_at(floor.entrance, Stage.STAIRS_DOWN)
   floor.spawn_elem(Skeleton(), (2, 14))
   floor.spawn_elem(Soul(Fulgur), (3, 14))
@@ -259,9 +259,9 @@ def giant_room(size):
       item = random.choices((Cheese, Bread, Fish, Potion, Ankh, Emerald), (3, 2, 1, 2, 1, 1))[0]()
       stage.spawn_elem(Chest(item), cell)
     else:
-      enemy = random.choices((Eye, Mimic), (5, 1))[0]()
+      enemy = random.choices((Eye, Mushroom, Mimic), (4, 2, 1))[0]()
       stage.spawn_elem(enemy, cell)
-      if type(enemy) is Eye and random.randint(1, 2) == 1:
+      if type(enemy) is not Mimic and random.randint(0, 2):
         enemy.ailment = "sleep"
 
   stage.entrance = entrance
@@ -548,7 +548,7 @@ def dungeon(size, floor=1):
           item = random.choice((Potion, Ankh, Bread, Fish, Emerald))()
           stage.spawn_elem(Chest(item), cell)
       elif kind == "MonsterDen" and random.randint(1, 2) == 1:
-        enemy = Eye()
+        enemy = gen_enemy(10)
         if random.randint(0, 4):
           enemy.ailment = "sleep"
         stage.spawn_elem(enemy, cell)
@@ -576,10 +576,10 @@ def dungeon(size, floor=1):
 def gen_enemy(floor):
   if floor == 1:
     return random.choices((Eye, Mushroom), (5, 1))[0]()
-  elif floor <= 3:
+  elif floor == 2:
     return random.choices((Eye, Mushroom), (3, 1))[0]()
   else:
-    return random.choices((Eye, Mushroom, Skeleton), (4, 2, 1))[0]()
+    return random.choices((Eye, Mushroom, Skeleton), (2, 2, 1))[0]()
 
 
 def gen_item():

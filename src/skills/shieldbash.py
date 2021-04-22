@@ -47,7 +47,6 @@ class ShieldBash(Skill):
       def on_move():
         if nudge_tile.pit:
           game.log.print(target_elem.name.upper() + " tumbles into the chasm below!")
-          game.kill(target_elem)
         else:
           game.log.print(target_elem.name.upper() + " is reeling.")
 
