@@ -117,7 +117,7 @@ sprite_paths = {
   "soul3": "soul3.png",
   "soul4": "soul4.png",
   "block_news": "block-news.png",
-  "block_sew": "block-sew.png",
+  "block_ews": "block-ews.png",
   "block_nws": "block-nws.png",
   "block_new": "block-new.png",
   "block_nes": "block-nes.png",
@@ -135,7 +135,23 @@ sprite_paths = {
   "block_e": "block-e.png",
   "block_w": "block-w.png",
   "block_s": "block-s.png",
-  "block": "block.png"
+  "block": "block.png",
+  "wall_news": "wall-news.png",
+  "wall_ews": "wall-ews.png",
+  "wall_nws": "wall-nws.png",
+  "wall_new": "wall-new.png",
+  "wall_nes": "wall-nes.png",
+  "wall_ne": "wall-ne.png",
+  "wall_se": "wall-se.png",
+  "wall_sw": "wall-sw.png",
+  "wall_nw": "wall-nw.png",
+  "wall_ns": "wall-ns.png",
+  "wall_ew": "wall-ew.png",
+  "wall_n": "wall-n.png",
+  "wall_e": "wall-e.png",
+  "wall_w": "wall-w.png",
+  "wall_s": "wall-s.png",
+  "wall": "wall.png"
 }
 
 def load_font(font_name, alpha=False):

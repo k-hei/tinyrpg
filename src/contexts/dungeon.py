@@ -123,7 +123,7 @@ class DungeonContext(Context):
   def create_floor(game):
     floor_no = len(game.floors) + 1
     if floor_no == 1:
-      floor = gen.debug_floor()
+      floor = gen.debug_gen()
     elif floor_no == DungeonContext.TOP_FLOOR:
       floor = gen.top_floor()
     elif floor_no == 3:
@@ -622,7 +622,7 @@ class DungeonContext(Context):
     target_tile = game.floor.get_tile_at(target_cell)
     target_elem = game.floor.get_elem_at(target_cell)
     actor.facing = delta
-    if not target_tile.solid and (
+    if target_tile and not target_tile.solid and (
     (target_elem is None or not target_elem.solid)
     or actor is game.hero
     and target_elem is game.ally

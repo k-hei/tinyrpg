@@ -316,7 +316,7 @@ class Stage:
       if tile_below is Stage.FLOOR or tile_below is Stage.PIT:
         sprite_name = "wall_base"
       else:
-        sprite_name = "wall"
+        return Stage.render_wall(stage, cell)
     elif tile is Stage.STAIRS_UP:
       sprite_name = "stairs_up"
     elif tile is Stage.STAIRS_DOWN:
@@ -333,7 +333,48 @@ class Stage:
       sprite_name = "pit"
     elif tile is Stage.MONSTER_DEN:
       sprite_name = "floor"
-    if sprite_name is not None:
-      return assets.sprites[sprite_name]
-    else:
-      return None
+    return assets.sprites[sprite_name] if sprite_name is not None else None
+
+  def render_wall(stage, cell):
+    assets = use_assets()
+    x, y = cell
+    is_wall = lambda x, y: stage.get_tile_at((x, y)) is Stage.WALL
+    is_none = lambda x, y: stage.get_tile_at((x, y)) is None
+    n = is_wall(x, y - 1) or is_none(x, y - 1)
+    w = is_wall(x - 1, y)
+    e = is_wall(x + 1, y)
+    sw = is_wall(x - 1, y + 1)
+    s = is_wall(x, y + 1) and (is_wall(x, y + 2) or is_none(x, y + 2))
+    se = is_wall(x + 1, y + 1)
+    sprite_name = None
+    if n and e and w and s and sw and se:
+      sprite_name = "wall_news"
+    elif n and e and w and not s:
+      sprite_name = "wall_new"
+    elif e and w and s and sw and se:
+      sprite_name = "wall_ews"
+    elif n and w and s and sw:
+      sprite_name = "wall_nws"
+    elif n and e and s and se:
+      sprite_name = "wall_nes"
+    elif n and s:
+      sprite_name = "wall_ns"
+    elif e and w:
+      sprite_name = "wall_ew"
+    elif n and e:
+      sprite_name = "wall_ne"
+    elif s and e and se:
+      sprite_name = "wall_se"
+    elif n and w:
+      sprite_name = "wall_nw"
+    elif s and w and sw:
+      sprite_name = "wall_sw"
+    elif n:
+      sprite_name = "wall_n"
+    elif e:
+      sprite_name = "wall_e"
+    elif w:
+      sprite_name = "wall_w"
+    elif s:
+      sprite_name = "wall_s"
+    return assets.sprites[sprite_name] if sprite_name is not None else None

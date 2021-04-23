@@ -114,6 +114,20 @@ def split_at(dungeon, conn):
   graph_b = flood_fill(node_b, ([], {}))
   return (graph_a, graph_b)
 
+def debug_gen():
+  stage = Stage((9, 9))
+  stage.fill(Stage.WALL)
+  stage.entrance = (1, 1)
+  slots = [(x, y) for x, y in stage.get_cells() if (
+    x % 2 == 1
+    and y % 3 == 1
+  )]
+  mazes = gen_mazes(slots)
+  for maze in mazes:
+    for x, y in maze.get_cells():
+      stage.set_tile_at((x, y), Stage.FLOOR)
+  return stage
+
 def debug_floor():
   floor = parse_data([
     "  #####  ",
@@ -581,7 +595,6 @@ def gen_enemy(floor):
   else:
     return random.choices((Eye, Mushroom, Skeleton), (2, 2, 1))[0]()
 
-
 def gen_item():
   return random.choices((Potion, Ankh, Cheese, Bread, Fish, Emerald), (3, 1, 4, 3, 1, 1))[0]()
 
@@ -610,26 +623,32 @@ def gen_rooms(slots):
 
 def gen_mazes(slots):
   mazes = []
-  while len(slots) > 0:
+  while slots:
     slot = random.choice(slots)
     slots.remove(slot)
     cells = [slot]
     stack = [slot]
     while slot:
-      (x, y) = slot
-      neighbors = [other for other in slots if manhattan(slot, other) == 2]
-      if len(neighbors):
+      x, y = slot
+      neighbors = [(sx, sy) for sx, sy in slots if (
+        abs(sx - x) == 2 and y == sy
+        or abs(sy - y) == 3 and x == sx
+      )]
+      if neighbors:
         neighbor = random.choice(neighbors)
-        (neighbor_x, neighbor_y) = neighbor
-        midpoint = ((x + neighbor_x) // 2, (y + neighbor_y) // 2)
-        cells.append(midpoint)
-        cells.append(neighbor)
+        neighbor_x, neighbor_y = neighbor
+        while x != neighbor_x:
+          x += 1 if x < neighbor_x else -1
+          cells.append((x, y))
+        while y != neighbor_y:
+          y += 1 if y < neighbor_y else -1
+          cells.append((x, y))
         stack.append(neighbor)
         slots.remove(neighbor)
         slot = neighbor
       elif len(stack) > 1:
         stack.pop()
-        slot = stack[len(stack) - 1]
+        slot = stack[-1]
       else:
         slot = None
     mazes.append(Maze(cells))
