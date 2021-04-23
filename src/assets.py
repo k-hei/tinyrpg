@@ -14,17 +14,19 @@ class Assets:
 
 assets = None
 sprite_paths = {
-  "font_standard": "fonts/standard/typeface.png",
-  "font_smallcaps": "fonts/smallcaps/typeface.png",
   "cursor": "cursor.png",
   "cursor_cell": "cursor-cell.png",
   "cursor_cell1": "cursor-cell1.png",
   "cursor_cell2": "cursor-cell2.png",
   "knight": "knight.png",
   "knight_walk": "knight-walk.png",
+  "knight_down": "knight-down.png",
+  "knight_walkdown": "knight-walkdown.png",
   "knight_flinch": "knight-flinch.png",
   "mage": "mage.png",
   "mage_walk": "mage-walk.png",
+  "mage_down": "mage-down.png",
+  "mage_walkdown": "mage-walkdown.png",
   "mage_flinch": "mage-flinch.png",
   "floor": "floor.png",
   "pit": "pit.png",
@@ -45,8 +47,9 @@ sprite_paths = {
   "eye_attack": "eye-attack.png",
   "mushroom": "mushroom.png",
   "skeleton": "skeleton.png",
-  "tag_hp": "hp.png",
-  "tag_sp": "sp.png",
+  "hp": "hp.png",
+  "sp": "sp.png",
+  "tag_hp": "tag-hp.png",
   "arrow": "arrow.png",
   "bar": "bar.png",
   "bar_small": "bar-small.png",
@@ -54,6 +57,8 @@ sprite_paths = {
   "log_parchment": "log-parchment.png",
   "circle_knight": "circle-knight.png",
   "circle_mage": "circle-mage.png",
+  "circ16_knight": "circ16-knight.png",
+  "circ16_mage": "circ16-mage.png",
   "portrait_knight": "portrait-knight.png",
   "portrait_mage": "portrait-mage.png",
   "portrait_enemy": "portrait-enemy.png",
@@ -133,6 +138,15 @@ sprite_paths = {
   "block": "block.png"
 }
 
+def load_font(font_name, alpha=False):
+  typeface = pygame.image.load(ASSETS_PATH + "fonts/" + font_name + "/typeface.png")
+  if alpha:
+    typeface = typeface.convert_alpha()
+  else:
+    typeface = typeface.convert()
+  metadata = json.loads(open(ASSETS_PATH + "fonts/" + font_name + "/metadata.json", "r").read())
+  return Font(typeface, **metadata)
+
 def load():
   global assets
   if assets:
@@ -144,8 +158,8 @@ def load():
       sprites[name] = pygame.image.load(ASSETS_PATH + path).convert_alpha()
     except FileNotFoundError:
       print("FileNotFoundError: Could not find", name, "at", path)
-  meta_standard = json.loads(open(ASSETS_PATH + "fonts/standard/metadata.json", "r").read())
-  meta_smallcaps = json.loads(open(ASSETS_PATH + "fonts/smallcaps/metadata.json", "r").read())
-  fonts["standard"] = Font(sprites["font_standard"], **meta_standard)
-  fonts["smallcaps"] = Font(sprites["font_smallcaps"], **meta_smallcaps)
+  fonts["standard"] = load_font("standard", True)
+  fonts["smallcaps"] = load_font("smallcaps", True)
+  fonts["numbers13"] = load_font("numbers13", True)
+  fonts["numbers16"] = load_font("numbers16", True)
   assets = Assets(sprites, fonts)

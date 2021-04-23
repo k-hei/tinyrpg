@@ -19,7 +19,7 @@ def recolor(surface, color):
   return new_surface
 
 def replace_color(surface, old_color, new_color):
-  surface = surface.copy()
+  surface = surface.convert_alpha()
   pixels = PixelArray(surface)
   pixels.replace(old_color, new_color)
   pixels.close()

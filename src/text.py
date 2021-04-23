@@ -57,3 +57,11 @@ def render(content: str, font: Font) -> Surface:
       char_width = font.exceptions[char.upper()]
     x += char_width + font.char_spacing
   return surface
+
+def render_char(char: str, font: Font) -> Surface:
+  index = font.order.find(char)
+  col = index % font.cols
+  row = index // font.cols
+  return font.surface.subsurface(Rect(
+    (col * font.cell_width, row * font.cell_height),
+    (font.cell_width, font.cell_height)))

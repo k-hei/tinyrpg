@@ -1,0 +1,14 @@
+{
+  "name": "numbers16",
+  "cell_width": 8,
+  "cell_height": 16,
+  "char_width": 8,
+  "char_height": 16,
+  "char_spacing": 1,
+  "word_spacing": 3,
+  "line_spacing": 2,
+  "cols": 10,
+  "rows": 1,
+  "order": "0123456789",
+  "exceptions": {}
+}

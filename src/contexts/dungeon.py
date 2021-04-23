@@ -18,7 +18,7 @@ import palette
 
 from camera import Camera
 from inventory import Inventory
-from comps.statuspanel import StatusPanel
+from comps.hud import Hud
 from comps.log import Log
 from comps.minimap import Minimap
 from comps.previews import Previews
@@ -93,7 +93,7 @@ class DungeonContext(Context):
     game.key_requires_reset = {}
     game.log = Log()
     game.camera = Camera(config.window_size)
-    game.hud = StatusPanel()
+    game.hud = Hud()
     game.minimap = Minimap((15, 15))
     game.inventory = Inventory((2, 2), [Potion()])
     game.previews = Previews()
@@ -724,6 +724,7 @@ class DungeonContext(Context):
         skill = target.skills[0]
         if skill not in game.skill_pool:
           game.floor.spawn_elem(Soul(skill), target.cell)
+      target.hp = 0
       target.dead = True
       target.ailment = None
       game.floor.elems.remove(target)
