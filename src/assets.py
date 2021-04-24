@@ -151,7 +151,9 @@ sprite_paths = {
   "wall_e": "wall-e.png",
   "wall_w": "wall-w.png",
   "wall_s": "wall-s.png",
-  "wall": "wall.png"
+  "wall": "wall.png",
+  "wall_edge": "wall-edge.png",
+  "wall_link": "wall-link.png"
 }
 
 def load_font(font_name, alpha=False):

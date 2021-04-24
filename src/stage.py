@@ -2,6 +2,9 @@ from dataclasses import dataclass
 
 import math
 import pygame
+from pygame import Surface, Rect
+from pygame.transform import rotate, flip
+
 import config
 import palette
 from assets import load as use_assets
@@ -338,43 +341,79 @@ class Stage:
   def render_wall(stage, cell):
     assets = use_assets()
     x, y = cell
-    is_wall = lambda x, y: stage.get_tile_at((x, y)) is Stage.WALL
-    is_none = lambda x, y: stage.get_tile_at((x, y)) is None
-    n = is_wall(x, y - 1) or is_none(x, y - 1)
-    w = is_wall(x - 1, y)
-    e = is_wall(x + 1, y)
-    sw = is_wall(x - 1, y + 1)
-    s = is_wall(x, y + 1) and (is_wall(x, y + 2) or is_none(x, y + 2))
-    se = is_wall(x + 1, y + 1)
-    sprite_name = None
-    if n and e and w and s and sw and se:
-      sprite_name = "wall_news"
-    elif n and e and w and not s:
-      sprite_name = "wall_new"
-    elif e and w and s and sw and se:
-      sprite_name = "wall_ews"
-    elif n and w and s and sw:
-      sprite_name = "wall_nws"
-    elif n and e and s and se:
-      sprite_name = "wall_nes"
-    elif n and s:
-      sprite_name = "wall_ns"
-    elif e and w:
-      sprite_name = "wall_ew"
-    elif n and e:
-      sprite_name = "wall_ne"
-    elif s and e and se:
-      sprite_name = "wall_se"
-    elif n and w:
-      sprite_name = "wall_nw"
-    elif s and w and sw:
-      sprite_name = "wall_sw"
-    elif n:
-      sprite_name = "wall_n"
-    elif e:
-      sprite_name = "wall_e"
-    elif w:
-      sprite_name = "wall_w"
-    elif s:
-      sprite_name = "wall_s"
-    return assets.sprites[sprite_name] if sprite_name is not None else None
+    is_wall = lambda x, y: (
+      stage.get_tile_at((x, y)) is None
+      or stage.get_tile_at((x, y)) is Stage.WALL
+      or stage.get_tile_at((x, y)) is Stage.DOOR_HIDDEN
+    )
+    is_door = lambda x, y: (
+      stage.get_tile_at((x, y)) is Stage.DOOR
+      or stage.get_tile_at((x, y)) is Stage.DOOR_OPEN
+      or stage.get_tile_at((x, y)) is Stage.DOOR_LOCKED
+    )
+
+    sprite = Surface((config.TILE_SIZE, config.TILE_SIZE))
+    sprite.fill(palette.BLACK)
+
+    CORNER_SIZE = 7
+    edge = assets.sprites["wall_edge"]
+    link = assets.sprites["wall_link"]
+
+    if not is_wall(x - 1, y) or not is_wall(x - 1, y + 1):
+      sprite.blit(edge, (0, 0))
+      if is_wall(x, y - 1):
+        sprite.blit(link, (0, 0))
+      if is_wall(x, y + 1) and (is_wall(x, y + 2) or is_door(x, y + 2)):
+        sprite.blit(flip(link, False, True), (0, 0))
+
+    if not is_wall(x + 1, y) or not is_wall(x + 1, y + 1):
+      sprite.blit(rotate(edge, 180), (0, 0))
+      if is_wall(x, y - 1):
+        sprite.blit(flip(link, True, False), (0, 0))
+      if is_wall(x, y + 1) and (is_wall(x, y + 2) or is_door(x, y + 2)):
+        sprite.blit(flip(link, True, True), (0, 0))
+
+    if not is_wall(x, y - 1):
+      sprite.blit(rotate(edge, -90), (0, 0))
+
+    if not is_wall(x, y + 2) and not is_door(x, y + 2) or is_door(x, y + 1):
+      sprite.blit(rotate(edge, 90), (0, 0))
+
+    if not is_wall(x, y - 1) and is_wall(x - 1, y):
+      sprite.blit(rotate(flip(link, False, True), -90), (0, 0))
+
+    if not is_wall(x, y - 1) and is_wall(x + 1, y):
+      sprite.blit(rotate(link, -90), (0, 0))
+
+    if (not is_wall(x - 1, y - 1) and is_wall(x - 1, y) and is_wall(x, y - 1)
+    or not is_wall(x - 1, y - 1) and not is_wall(x, y - 1) and not is_wall(x - 1, y)):
+      draw_corner(sprite, 1, 1)
+
+    if (not is_wall(x + 1, y - 1) and is_wall(x + 1, y) and is_wall(x, y - 1)
+    or not is_wall(x + 1, y - 1) and not is_wall(x, y - 1) and not is_wall(x + 1, y)):
+      draw_corner(sprite, config.TILE_SIZE - CORNER_SIZE - 1, 1)
+
+    if (not is_wall(x - 1, y + 2) and is_wall(x - 1, y + 1) and is_wall(x - 1, y) and (is_wall(x, y + 2) or is_door(x, y + 2))
+    or is_wall(x, y + 1) and not is_wall(x - 1, y) and not is_wall(x - 1, y + 1) and not is_wall(x, y + 2) and (not is_door(x, y + 2) or is_wall(x - 1, y))
+    or is_door(x, y + 1) and (not is_wall(x - 1, y) or not is_wall(x - 1, y + 1))):
+      draw_corner(sprite, 1, config.TILE_SIZE - CORNER_SIZE - 1)
+
+    if (not is_wall(x + 1, y + 2) and is_wall(x + 1, y + 1) and is_wall(x + 1, y) and (is_wall(x, y + 2) or is_door(x, y + 2))
+    or is_wall(x, y + 1) and not is_wall(x + 1, y) and not is_wall(x + 1, y + 1) and not is_wall(x, y + 2) and (not is_door(x, y + 2) or is_wall(x + 1, y))
+    or is_door(x, y + 1) and (not is_wall(x + 1, y) or not is_wall(x + 1, y + 1))):
+      draw_corner(sprite, config.TILE_SIZE - CORNER_SIZE - 1, config.TILE_SIZE - CORNER_SIZE - 1)
+
+    if not is_wall(x, y + 2) and is_wall(x - 1, y):
+      sprite.blit(rotate(link, 90), (0, 0))
+
+    if not is_wall(x, y + 2) and is_wall(x + 1, y):
+      sprite.blit(rotate(flip(link, True, False), -90), (0, 0))
+
+    return sprite
+
+
+def draw_corner(sprite, x, y):
+  CORNER_SIZE = 7
+  rect = Rect(x, y, CORNER_SIZE, CORNER_SIZE)
+  pygame.draw.rect(sprite, palette.BLACK, rect)
+  pygame.draw.rect(sprite, palette.WHITE, rect, width=1)

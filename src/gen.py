@@ -29,7 +29,7 @@ from skills.virus import Virus
 from skills.hpup import HpUp
 
 possible_widths = (3, 5, 7)
-possible_heights = (3, 5, 7)
+possible_heights = (4, 7, 10)
 WALLLESS_FLOOR = 6
 
 def cells(size):
@@ -126,7 +126,7 @@ def debug_gen():
   for maze in mazes:
     for x, y in maze.get_cells():
       stage.set_tile_at((x, y), Stage.FLOOR)
-  return stage
+  return dungeon((19, 19))
 
 def debug_floor():
   floor = parse_data([
@@ -292,14 +292,18 @@ def dungeon(size, floor=1):
     stage.fill(Stage.PIT)
   else:
     stage.fill(Stage.WALL)
-  slots = [cell for cell in stage.get_cells() if is_odd(cell)]
+
+  slots = [(x, y) for x, y in stage.get_cells() if (
+    x % 2 == 1
+    and y % 3 == 1
+  )]
 
   entry_room = None
   exit_room = None
   doors = []
   if floor == 1:
     entry_room = Room((5, 7), (width // 2 - 2, height - 8))
-    exit_room = Room((5, 3), (width // 2 - 2, height - 8 - 4))
+    exit_room = Room((5, 4), (width // 2 - 2, height - 8 - 5))
     doors.append((width // 2, height - 9))
     cells = entry_room.get_cells() + exit_room.get_cells()
     for cell in cells:
@@ -607,7 +611,10 @@ def gen_rooms(slots):
     valid_slots = []
     for slot in slots:
       offset_cells = map(lambda cell: add(cell, slot), cells((room_width, room_height)))
-      odd_offset_cells = [cell for cell in offset_cells if is_odd(cell)]
+      odd_offset_cells = [(x, y) for x, y in offset_cells if (
+        x % 2 == 1
+        and y % 3 == 1
+      )]
       cell_has_slot = map(lambda cell: len([slot for slot in slots if slot == cell]) == 1, odd_offset_cells)
       if all(cell_has_slot):
         valid_slots.append(slot)
