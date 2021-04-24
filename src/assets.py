@@ -30,8 +30,6 @@ sprite_paths = {
   "mage_flinch": "mage-flinch.png",
   "floor": "floor.png",
   "pit": "pit.png",
-  "wall": "wall.png",
-  "wall_base": "wall-base.png",
   "chest": "chest.png",
   "chest_open": "chest-open.png",
   "chest_open1": "chest-open1.png",
@@ -136,24 +134,10 @@ sprite_paths = {
   "block_w": "block-w.png",
   "block_s": "block-s.png",
   "block": "block.png",
-  "wall_news": "wall-news.png",
-  "wall_ews": "wall-ews.png",
-  "wall_nws": "wall-nws.png",
-  "wall_new": "wall-new.png",
-  "wall_nes": "wall-nes.png",
-  "wall_ne": "wall-ne.png",
-  "wall_se": "wall-se.png",
-  "wall_sw": "wall-sw.png",
-  "wall_nw": "wall-nw.png",
-  "wall_ns": "wall-ns.png",
-  "wall_ew": "wall-ew.png",
-  "wall_n": "wall-n.png",
-  "wall_e": "wall-e.png",
-  "wall_w": "wall-w.png",
-  "wall_s": "wall-s.png",
-  "wall": "wall.png",
+  "wall_base": "wall-base.png",
   "wall_edge": "wall-edge.png",
-  "wall_link": "wall-link.png"
+  "wall_link": "wall-link.png",
+  "wall_torch": "wall-torch.png"
 }
 
 def load_font(font_name, alpha=False):

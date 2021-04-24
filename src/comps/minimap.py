@@ -13,7 +13,7 @@ from lerp import lerp
 
 MARGIN_X = 8
 MARGIN_Y = 6
-SCALE = 2
+SCALE = 3
 ENTER_DURATION = 8
 EXIT_DURATION = 4
 

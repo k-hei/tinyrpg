@@ -299,16 +299,21 @@ class Stage:
 
     for cell in visited_cells:
       col, row = cell
-      sprite = stage.render_tile(cell)
+      x = col * config.TILE_SIZE - round(camera_x)
+      y = row * config.TILE_SIZE - round(camera_y)
+      if (x < -config.TILE_SIZE
+      or y < -config.TILE_SIZE
+      or x >= surface.get_width()
+      or y >= surface.get_height()):
+        continue
+      sprite = stage.render_tile(cell, visited_cells)
       if sprite is None:
         continue
       if cell not in visible_cells:
         sprite = replace_color(sprite, palette.WHITE, palette.GRAY)
-      x = col * config.TILE_SIZE - round(camera_x)
-      y = row * config.TILE_SIZE - round(camera_y)
       surface.blit(sprite, (x, y))
 
-  def render_tile(stage, cell):
+  def render_tile(stage, cell, visited_cells):
     assets = use_assets()
     x, y = cell
     sprite_name = None
@@ -317,9 +322,12 @@ class Stage:
     tile_below = stage.get_tile_at((x, y + 1))
     if tile is Stage.WALL or tile is Stage.DOOR_HIDDEN:
       if tile_below is Stage.FLOOR or tile_below is Stage.PIT:
-        sprite_name = "wall_base"
+        if x % (3 + y % 2) == 0:
+          sprite_name = "wall_torch"
+        else:
+          sprite_name = "wall_base"
       else:
-        return Stage.render_wall(stage, cell)
+        return Stage.render_wall(stage, cell, visited_cells)
     elif tile is Stage.STAIRS_UP:
       sprite_name = "stairs_up"
     elif tile is Stage.STAIRS_DOWN:
@@ -338,11 +346,12 @@ class Stage:
       sprite_name = "floor"
     return assets.sprites[sprite_name] if sprite_name is not None else None
 
-  def render_wall(stage, cell):
+  def render_wall(stage, cell, visited_cells):
     assets = use_assets()
     x, y = cell
     is_wall = lambda x, y: (
-      stage.get_tile_at((x, y)) is None
+      (x, y) not in visited_cells
+      or stage.get_tile_at((x, y)) is None
       or stage.get_tile_at((x, y)) is Stage.WALL
       or stage.get_tile_at((x, y)) is Stage.DOOR_HIDDEN
     )
@@ -398,15 +407,15 @@ class Stage:
     or is_door(x, y + 1) and (not is_wall(x - 1, y) or not is_wall(x - 1, y + 1))):
       draw_corner(sprite, 1, config.TILE_SIZE - CORNER_SIZE - 1)
 
-    if (not is_wall(x + 1, y + 2) and is_wall(x + 1, y + 1) and is_wall(x + 1, y) and (is_wall(x, y + 2) or is_door(x, y + 2))
+    if ((not is_wall(x + 1, y + 2) and not is_door(x + 1, y + 2)) and is_wall(x + 1, y + 1) and is_wall(x + 1, y) and (is_wall(x, y + 2) or is_door(x, y + 2))
     or is_wall(x, y + 1) and not is_wall(x + 1, y) and not is_wall(x + 1, y + 1) and not is_wall(x, y + 2) and (not is_door(x, y + 2) or is_wall(x + 1, y))
     or is_door(x, y + 1) and (not is_wall(x + 1, y) or not is_wall(x + 1, y + 1))):
       draw_corner(sprite, config.TILE_SIZE - CORNER_SIZE - 1, config.TILE_SIZE - CORNER_SIZE - 1)
 
-    if not is_wall(x, y + 2) and is_wall(x - 1, y):
+    if is_wall(x - 1, y) and (not is_wall(x, y + 2) and not is_door(x, y + 2) or is_door(x, y + 1)):
       sprite.blit(rotate(link, 90), (0, 0))
 
-    if not is_wall(x, y + 2) and is_wall(x + 1, y):
+    if is_wall(x + 1, y) and (not is_wall(x, y + 2) and not is_door(x, y + 2) or is_door(x, y + 1)):
       sprite.blit(rotate(flip(link, True, False), -90), (0, 0))
 
     return sprite

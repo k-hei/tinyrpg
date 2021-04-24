@@ -3,7 +3,7 @@ import math
 from anims.move import MoveAnim
 
 class Camera:
-  MAX_RADIUS_X = 3
+  MAX_RADIUS_X = 2
   MAX_RADIUS_Y = 2
 
   def __init__(camera, size):

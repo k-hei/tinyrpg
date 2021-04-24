@@ -29,7 +29,7 @@ from skills.virus import Virus
 from skills.hpup import HpUp
 
 possible_widths = (3, 5, 7)
-possible_heights = (4, 7, 10)
+possible_heights = (4, 7)
 WALLLESS_FLOOR = 6
 
 def cells(size):
@@ -126,7 +126,7 @@ def debug_gen():
   for maze in mazes:
     for x, y in maze.get_cells():
       stage.set_tile_at((x, y), Stage.FLOOR)
-  return dungeon((19, 19), 2)
+  return dungeon((21, 21), 2)
 
 def debug_floor():
   floor = parse_data([
@@ -541,7 +541,7 @@ def dungeon(size, floor=1):
     room_width, room_height = room.size
     max_elems = min(room_width, room_height)
     elems = random.randint(1, max_elems)
-    is_door_adjacent = lambda c: next((d for d in doors if is_adjacent(d, c)), None)
+    is_door_adjacent = lambda c: next((d for d in doors if manhattan(d, c) <= 2), None)
     cells = [c for c in room.get_cells() if not is_door_adjacent(c)]
     for i in range(elems):
       cell = random.choice(cells)
@@ -561,7 +561,7 @@ def dungeon(size, floor=1):
     for cell in room.get_cells():
       is_floor = stage.get_tile_at(cell) is Stage.FLOOR
       is_empty = stage.get_elem_at(cell) is None
-      is_beside_door = next((door for door in doors if is_adjacent(door, cell)), None)
+      is_beside_door = next((d for d in doors if manhattan(d, cell) <= 2), None)
       if not is_floor or not is_empty or is_beside_door:
         continue
       if kind == "Treasure" and random.randint(1, 2) == 1:

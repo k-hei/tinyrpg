@@ -94,8 +94,8 @@ class DungeonContext(Context):
     game.log = Log()
     game.camera = Camera(config.window_size)
     game.hud = Hud()
-    game.minimap = Minimap((15, 15))
-    game.inventory = Inventory((2, 2), [Potion()])
+    game.minimap = Minimap((16, 16))
+    game.inventory = Inventory((3, 3), [Potion()])
     game.previews = Previews()
     game.hero = Knight(skills=[])
     game.ally = Mage(skills=[])
@@ -170,14 +170,14 @@ class DungeonContext(Context):
 
     hero = game.hero
     camera = game.camera
-    adjacent_enemies = [e for e in game.floor.elems if (
+    nearby_enemies = [e for e in game.floor.elems if (
       isinstance(e, Actor)
       and e.faction == "enemy"
-      and is_adjacent(hero.cell, e.cell)
+      and manhattan(hero.cell, e.cell) <= 2
       and (type(e) is not Mimic or not e.idle)
     )]
-    if adjacent_enemies:
-      enemy = adjacent_enemies[0]
+    if nearby_enemies:
+      enemy = nearby_enemies[0]
       hero_x, hero_y = hero.cell
       enemy_x, enemy_y = enemy.cell
       mid_x = (hero_x + enemy_x) / 2
@@ -684,7 +684,7 @@ class DungeonContext(Context):
         delta_x = select_x()
 
     if delta_x or delta_y:
-      return game.move(actor, (delta_x, delta_y), run)
+      return game.move(actor, (delta_x, delta_y), run, on_end=game.refresh_fov)
     else:
       return False
 
