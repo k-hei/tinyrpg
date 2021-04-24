@@ -352,7 +352,7 @@ class Stage:
       or stage.get_tile_at((x, y)) is Stage.DOOR_LOCKED
     )
 
-    sprite = Surface((config.TILE_SIZE, config.TILE_SIZE))
+    sprite = Surface((config.TILE_SIZE, config.TILE_SIZE)).convert_alpha()
     sprite.fill(palette.BLACK)
 
     CORNER_SIZE = 7
@@ -414,6 +414,5 @@ class Stage:
 
 def draw_corner(sprite, x, y):
   CORNER_SIZE = 7
-  rect = Rect(x, y, CORNER_SIZE, CORNER_SIZE)
-  pygame.draw.rect(sprite, palette.BLACK, rect)
-  pygame.draw.rect(sprite, palette.WHITE, rect, width=1)
+  pygame.draw.rect(sprite, palette.BLACK, Rect(x - 1, y - 1, CORNER_SIZE + 2, CORNER_SIZE + 2))
+  pygame.draw.rect(sprite, palette.WHITE, Rect(x, y, CORNER_SIZE, CORNER_SIZE), width=1)

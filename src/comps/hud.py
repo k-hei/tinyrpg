@@ -14,8 +14,8 @@ from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in
 from lerp import lerp
 
-MARGIN_LEFT = 0
-MARGIN_TOP = 0
+MARGIN_LEFT = 8
+MARGIN_TOP = 8
 CIRC16_X = 28
 CIRC16_Y = 26
 HP_X = 31

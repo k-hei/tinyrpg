@@ -29,7 +29,7 @@ class Room:
     (room_width, room_height) = room.size
     (left, top) = room.cell
     right = left + room_width
-    bottom = top + room_height
+    bottom = top + room_height + 1
 
     edges = []
     for x in range(left, right):

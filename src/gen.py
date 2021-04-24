@@ -50,7 +50,7 @@ def get_neighbors(nodes, node):
       (x + 1, y),
       (x, y + 1)
     ]
-    for cell in adj_cells:
+    for cell in [(x, y) for x, y in adj_cells if y % 3 == 1]:
       neighbor = next((target for target in nodes if target is not node and cell in target.get_cells()), None)
       if neighbor:
         if neighbor in neighbors:
@@ -126,7 +126,7 @@ def debug_gen():
   for maze in mazes:
     for x, y in maze.get_cells():
       stage.set_tile_at((x, y), Stage.FLOOR)
-  return dungeon((19, 19))
+  return dungeon((19, 19), 2)
 
 def debug_floor():
   floor = parse_data([
@@ -303,8 +303,8 @@ def dungeon(size, floor=1):
   doors = []
   if floor == 1:
     entry_room = Room((5, 7), (width // 2 - 2, height - 8))
-    exit_room = Room((5, 4), (width // 2 - 2, height - 8 - 5))
-    doors.append((width // 2, height - 9))
+    exit_room = Room((5, 4), (width // 2 - 2, height - 8 - 6))
+    doors.append((width // 2, height - 10))
     cells = entry_room.get_cells() + exit_room.get_cells()
     for cell in cells:
       if cell in slots:
@@ -318,11 +318,12 @@ def dungeon(size, floor=1):
     rooms.insert(0, entry_room)
     rooms.insert(1, exit_room)
 
-  conns = {}
+  node_conns = {}
+  conn_nodes = {}
   mazes = gen_mazes(slots)
   nodes = rooms + mazes
   for node in nodes:
-    conns[node] = []
+    node_conns[node] = []
 
   if exit_room:
     nodes.remove(exit_room)
@@ -333,7 +334,7 @@ def dungeon(size, floor=1):
   while node:
     neighbors = get_neighbors(nodes, node)
     targets = [neighbor for neighbor in list(neighbors.keys()) if (
-      next((target for target, conn in conns[node] if target is neighbor), None) is None
+      next((target for target, conn in node_conns[node] if target is neighbor), None) is None
     )]
     if targets:
       # pick a random neighbor
@@ -346,8 +347,9 @@ def dungeon(size, floor=1):
       doors.append(conn)
 
       # connect this node to that neighbor
-      conns[node].append((neighbor, conn))
-      conns[neighbor].append((node, conn))
+      node_conns[node].append((neighbor, conn))
+      node_conns[neighbor].append((node, conn))
+      conn_nodes[conn] = (node, neighbor)
 
       # only add neighbor to the stack if it's not visited (allows loops)
       if neighbor in nodes:
@@ -367,8 +369,8 @@ def dungeon(size, floor=1):
         node = None
 
   for maze in mazes:
-    if len(conns[maze]) == 1:
-      (neighbor, conn) = conns[maze][0]
+    if len(node_conns[maze]) == 1:
+      (neighbor, conn) = node_conns[maze][0]
       doors.remove(conn)
     stack = maze.get_ends()
     while len(stack) > 0:
@@ -398,21 +400,25 @@ def dungeon(size, floor=1):
   secret_rooms = []
   dead_ends = []
   for door in doors:
+    x, y = door
     for room in rooms:
-      if room is entry_room or room is exit_room:
+      if room is entry_room or room is exit_room or len(node_conns[room]) != 1:
         continue
-      if len(conns[room]) == 1:
-        _, conn_door = conns[room][0]
-        if conn_door == door:
-          if floor not in (1, WALLLESS_FLOOR) and random.randint(1, 5) == 1:
-            secret_rooms.append(room)
-            stage.set_tile_at(door, Stage.DOOR_HIDDEN)
-          else:
-            dead_ends.append(room)
-            stage.set_tile_at(door, Stage.DOOR)
-          break
+      _, conn_door = node_conns[room][0]
+      if conn_door == door:
+        if floor not in (1, WALLLESS_FLOOR) and random.randint(1, 5) == 1:
+          secret_rooms.append(room)
+          stage.set_tile_at(door, Stage.DOOR_HIDDEN)
+        else:
+          dead_ends.append(room)
+          stage.set_tile_at(door, Stage.DOOR)
+        if x == room.get_center()[0]:
+          stage.set_tile_at((x, y - 1), Stage.FLOOR)
+        break
     else:
       stage.set_tile_at(door, Stage.DOOR)
+      if stage.get_tile_at((x - 1, y)) is Stage.WALL and stage.get_tile_at((x + 1, y)) is Stage.WALL:
+        stage.set_tile_at((x, y - 1), Stage.FLOOR)
 
   if len(rooms) == 1:
     return dungeon(size, floor)
