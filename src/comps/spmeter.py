@@ -31,16 +31,17 @@ class SpMeter:
     assets = use_assets()
     sp_pct = min(1, ctx.sp / ctx.sp_max)
     sprite = assets.sprites["sp_meter"].copy()
-    fill_sprite = assets.sprites["sp_fill"]
     tag_sprite = assets.sprites["sp_tag"]
+    fill_sprite = assets.sprites["sp_fill"]
+    fill_y = 0
     if sp_pct < 1:
-      y = fill_sprite.get_height() * (1 - sp_pct)
+      fill_y = fill_sprite.get_height() * (1 - sp_pct)
       fill_sprite = fill_sprite.subsurface(Rect(
-        (0, math.ceil(y)),
-        (fill_sprite.get_width(), fill_sprite.get_height() - y)
+        (0, math.ceil(fill_y)),
+        (fill_sprite.get_width(), fill_sprite.get_height() - fill_y)
       ))
 
-    sprite.blit(fill_sprite, (PADDING_X, PADDING_Y))
+    sprite.blit(fill_sprite, (PADDING_X, PADDING_Y + math.ceil(fill_y)))
     sprite.blit(tag_sprite, (TAG_X, TAG_Y))
     return sprite
 
