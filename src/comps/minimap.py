@@ -1,3 +1,4 @@
+from math import ceil
 import pygame
 from pygame import Surface, Rect, PixelArray
 from stage import Stage
@@ -46,6 +47,7 @@ class Minimap:
     minimap.time = 0
     minimap.active = False
     minimap.expanded = False
+    minimap.sprite = None
     minimap.anims = []
     minimap.enter()
 
@@ -69,25 +71,37 @@ class Minimap:
     minimap.expanded = False
     minimap.anims.append(ShrinkAnim())
 
-  def render(minimap):
-    sprite_width, sprite_height = minimap.size
-    scaled_size = (sprite_width * minimap.scale, sprite_height * minimap.scale)
-    surface = Surface(scaled_size)
-    surface.set_colorkey(0x123456)
-    surface.fill(0x123456)
-    temp_surface = Surface(minimap.size)
-    temp_surface.set_colorkey(0x123456)
-    temp_surface.fill(0x123456)
-    pixels = PixelArray(temp_surface)
-    minimap.time += 1
+  def render(minimap, t=None):
+    if t is None:
+      t = 1 if minimap.expanded else 0
+
+    start_width, start_height = Minimap.SIZE_INIT
+    end_width, end_height = minimap.parent.floor.size
+    start_scale, end_scale = Minimap.SCALE_INIT, Minimap.SCALE_EXPAND
+
+    sprite_width = lerp(start_width, end_width, t)
+    sprite_height = lerp(start_height, end_height, t)
+    sprite_scale = lerp(start_scale, end_scale, t)
 
     # requires: game.hero, game.floor, game.memory
     game = minimap.parent
     hero = game.hero
-    focus_x, focus_y = hero.cell
-    if minimap.expanded:
-      focus_x = sprite_width // 2
-      focus_y = sprite_height // 2
+    start_x, start_y = hero.cell
+    end_x, end_y = sprite_width // 2, sprite_height // 2
+    focus_x = round(lerp(start_x, end_x, t))
+    focus_y = round(lerp(start_y, end_y, t))
+
+    scaled_width = round(sprite_width * sprite_scale)
+    scaled_height = round(sprite_height * sprite_scale)
+    scaled_size = (scaled_width, scaled_height)
+    surface = Surface(scaled_size)
+    surface.set_colorkey(0x123456)
+    surface.fill(0x123456)
+    temp_surface = Surface((ceil(sprite_width), ceil(sprite_height)))
+    temp_surface.set_colorkey(0x123456)
+    temp_surface.fill(0x123456)
+    pixels = PixelArray(temp_surface)
+    minimap.time += 1
 
     floor = game.floor
     visible_cells = hero.visible_cells
@@ -149,8 +163,8 @@ class Minimap:
         else:
           color = 0x000000
       x, y = cell
-      x = x - focus_x + sprite_width // 2
-      y = y - focus_y + sprite_height // 2
+      x = int(x - focus_x + sprite_width // 2)
+      y = int(y - focus_y + sprite_height // 2)
       if color is not None and x >= 0 and y >= 0 and x < sprite_width and y < sprite_height:
         pixels[x, y] = color
 
@@ -159,11 +173,16 @@ class Minimap:
     return surface
 
   def draw(minimap, surface):
-    sprite = minimap.render()
-    corner_x = surface.get_width() - sprite.get_width() - MARGIN_X
+    if minimap.sprite is None:
+      minimap.sprite = minimap.render()
+      rendered = True
+    else:
+      rendered = False
+
+    corner_x = surface.get_width() - minimap.sprite.get_width() - MARGIN_X
     corner_y = MARGIN_Y
-    center_x = surface.get_width() // 2 - sprite.get_width() // 2
-    center_y = surface.get_height() // 2 - sprite.get_height() // 2
+    center_x = surface.get_width() // 2 - minimap.sprite.get_width() // 2
+    center_y = surface.get_height() // 2 - minimap.sprite.get_height() // 2
     anim = minimap.anims[0] if minimap.anims else None
     if anim:
       t = anim.update()
@@ -174,14 +193,24 @@ class Minimap:
       elif type(anim) is ExitAnim:
         start_x, start_y = corner_x, corner_y
         target_x, target_y = surface.get_width(), corner_y
-      elif type(anim) is ExpandAnim:
+
+      if type(anim) in (ExpandAnim, ShrinkAnim):
         t = ease_in_out(t)
+        rendered = True
+        if type(anim) is ExpandAnim:
+          minimap.sprite = minimap.render(t)
+        elif type(anim) is ShrinkAnim:
+          minimap.sprite = minimap.render(1 - t)
+        center_x = surface.get_width() // 2 - minimap.sprite.get_width() // 2
+        center_y = surface.get_height() // 2 - minimap.sprite.get_height() // 2
+
+      if type(anim) is ExpandAnim:
         start_x, start_y = corner_x, corner_y
         target_x, target_y = center_x, center_y
       elif type(anim) is ShrinkAnim:
-        t = ease_in_out(t)
         start_x, start_y = center_x, center_y
         target_x, target_y = corner_x, corner_y
+
       x = lerp(start_x, target_x, t)
       y = lerp(start_y, target_y, t)
       if anim.done:
@@ -195,4 +224,8 @@ class Minimap:
     else:
       return
 
-    surface.blit(sprite, (x, y))
+    if not rendered:
+      rendered = True
+      minimap.sprite = minimap.render()
+
+    surface.blit(minimap.sprite, (x, y))
