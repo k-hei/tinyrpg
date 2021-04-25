@@ -18,6 +18,8 @@ ENTER_DURATION = 8
 EXIT_DURATION = 4
 EXPAND_DURATION = 15
 SHRINK_DURATION = 10
+BLACKOUT_DURATION = 10
+BLACKOUT_DELAY = 60
 
 class EnterAnim(TweenAnim):
   def __init__(anim):
@@ -42,11 +44,9 @@ class Minimap:
 
   def __init__(minimap, parent):
     minimap.parent = parent
-    minimap.size = Minimap.SIZE_INIT
-    minimap.scale = Minimap.SCALE_INIT
     minimap.time = 0
     minimap.active = False
-    minimap.expanded = False
+    minimap.expanded = 0
     minimap.sprite = None
     minimap.anims = []
     minimap.enter()
@@ -60,15 +60,11 @@ class Minimap:
     minimap.anims.append(ExitAnim())
 
   def expand(minimap):
-    minimap.size = minimap.parent.floor.size
-    minimap.scale = Minimap.SCALE_EXPAND
-    minimap.expanded = True
+    minimap.expanded = 1
     minimap.anims.append(ExpandAnim())
 
   def shrink(minimap):
-    minimap.size = Minimap.SIZE_INIT
-    minimap.scale = Minimap.SCALE_INIT
-    minimap.expanded = False
+    minimap.expanded = 0
     minimap.anims.append(ShrinkAnim())
 
   def render(minimap, t=None):
@@ -175,9 +171,9 @@ class Minimap:
   def draw(minimap, surface):
     if minimap.sprite is None:
       minimap.sprite = minimap.render()
-      rendered = True
+      redrawn = True
     else:
-      rendered = False
+      redrawn = False
 
     corner_x = surface.get_width() - minimap.sprite.get_width() - MARGIN_X
     corner_y = MARGIN_Y
@@ -196,7 +192,7 @@ class Minimap:
 
       if type(anim) in (ExpandAnim, ShrinkAnim):
         t = ease_in_out(t)
-        rendered = True
+        redrawn = True
         if type(anim) is ExpandAnim:
           minimap.sprite = minimap.render(t)
         elif type(anim) is ShrinkAnim:
@@ -218,14 +214,21 @@ class Minimap:
     elif minimap.expanded:
       x = center_x
       y = center_y
+      minimap.expanded += 1
+      if minimap.expanded >= BLACKOUT_DELAY:
+        t = min(1, (minimap.expanded - BLACKOUT_DELAY) / BLACKOUT_DURATION)
+        alpha = int(t * 3) / 3 * 0xFF
+        fill = Surface(surface.get_size(), pygame.SRCALPHA)
+        pygame.draw.rect(fill, (0, 0, 0, alpha), fill.get_rect())
+        surface.blit(fill, (0, 0))
     elif minimap.active:
       x = corner_x
       y = corner_y
     else:
       return
 
-    if not rendered:
-      rendered = True
+    if not redrawn:
+      redrawn = True
       minimap.sprite = minimap.render()
 
     surface.blit(minimap.sprite, (x, y))

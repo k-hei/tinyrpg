@@ -25,6 +25,7 @@ BAR_PADDING_Y = 1
 BAR_HEIGHT = 2
 PORTRAIT_X = 23
 PORTRAIT_Y = 3
+DEPLETE_SPEED = 90
 
 class FlinchAnim(Anim): pass
 
@@ -37,18 +38,17 @@ class Preview:
     preview.width = -1
     preview.height = -1
     preview.hp = actor.hp
-    preview.hp_prev = actor.hp
-    preview.hp_time = 0
+    preview.hp_drawn = actor.hp
     preview.offset = (0, 0)
     preview.anim = None
 
   def update(preview):
     if preview.sprite is None or preview.hp != preview.actor.hp:
       preview.sprite = preview.render()
-      if preview.actor.hp < preview.hp_prev:
+      if preview.actor.hp < preview.hp_drawn:
         preview.anim = FlinchAnim(duration=10)
-      preview.hp = max(preview.actor.hp, preview.hp - preview.actor.hp_max / 90)
-    preview.hp_prev = preview.actor.hp
+      preview.hp = max(preview.actor.hp, preview.hp - preview.actor.hp_max / DEPLETE_SPEED)
+    preview.hp_drawn = preview.actor.hp
 
     if preview.anim is None:
       return
