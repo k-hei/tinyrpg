@@ -11,6 +11,7 @@ from contexts.dungeon import DungeonContext
 WINDOW_TITLE = "tinyrpg"
 WINDOW_SIZE = (config.window_width, config.window_height)
 window_scale = config.SCALE_INIT
+fullscreen = False
 
 pygame.display.init()
 pygame.display.set_caption(WINDOW_TITLE)
@@ -28,6 +29,14 @@ def resize(new_scale):
   display = pygame.display.set_mode(window_size_scaled)
   return True
 
+def toggle_fullscreen():
+  global display, fullscreen
+  fullscreen = not fullscreen
+  if fullscreen:
+    display = pygame.display.set_mode(window_size_scaled, pygame.FULLSCREEN)
+  else:
+    display = pygame.display.set_mode(window_size_scaled)
+
 resize(window_scale)
 surface = Surface(WINDOW_SIZE)
 pygame.key.set_repeat(1000 // config.fps)
@@ -40,15 +49,17 @@ game_ctx.child = DungeonContext(parent=game_ctx)
 
 def handle_keydown(key):
   keyboard.handle_keydown(key)
-  game_ctx.handle_keydown(key)
-  if keyboard.get_pressed(key) > 1:
-    return
+  tapping = keyboard.get_pressed(key) == 1
   ctrl = (keyboard.get_pressed(pygame.K_LCTRL)
       or keyboard.get_pressed(pygame.K_RCTRL))
-  if key == pygame.K_MINUS and ctrl:
+  if key == pygame.K_MINUS and ctrl and tapping:
     resize(window_scale - 1)
-  elif key == pygame.K_EQUALS and ctrl:
+  elif key == pygame.K_EQUALS and ctrl and tapping:
     resize(window_scale + 1)
+  elif key == pygame.K_f and ctrl and tapping:
+    toggle_fullscreen()
+  else:
+    game_ctx.handle_keydown(key)
 
 def handle_keyup(key):
   keyboard.handle_keyup(key)
