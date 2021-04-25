@@ -101,9 +101,14 @@ class Hud:
           panel.hp_ally = ally.hp_max
       anim = panel.anims[0] if panel.anims else None
       panel.anims_drawn = len(panel.anims)
-      if anim is None:
+      if anim is None and panel.hp_hero > hero.hp:
         panel.hp_hero = max(hero.hp, panel.hp_hero - hero.hp_max / DEPLETE_SPEED)
+      if anim is None and panel.hp_hero < hero.hp:
+        panel.hp_hero = min(hero.hp, panel.hp_hero + hero.hp_max / DEPLETE_SPEED)
+      if anim is None and panel.hp_ally < ally.hp:
         panel.hp_ally = max(ally.hp, panel.hp_ally - ally.hp_max / DEPLETE_SPEED)
+      if anim is None and panel.hp_ally < ally.hp:
+        panel.hp_ally = min(ally.hp, panel.hp_ally + ally.hp_max / DEPLETE_SPEED)
       panel.sprite = panel.render(hero, ally, anim)
     panel.hp_hero_drawn = hero.hp
     panel.hp_ally_drawn = ally.hp
@@ -185,10 +190,21 @@ class Hud:
     number = outline(number, palette.WHITE)
     sprite.blit(number, (HP_MAX_X, HP_MAX_Y))
 
-    draw_bar(sprite, panel.hp_hero / hero.hp_max, (HP_BAR_X, HP_BAR_Y1), palette.RED)
-    draw_bar(sprite, hero.hp / hero.hp_max, (HP_BAR_X, HP_BAR_Y1))
-    draw_bar(sprite, panel.hp_ally / ally.hp_max, (HP_BAR_X, HP_BAR_Y2), palette.RED)
-    draw_bar(sprite, ally.hp / ally.hp_max, (HP_BAR_X, HP_BAR_Y2))
+    if hero.hp <= panel.hp_hero:
+      draw_bar(sprite, panel.hp_hero / hero.hp_max, (HP_BAR_X, HP_BAR_Y1), palette.RED)
+      draw_bar(sprite, hero.hp / hero.hp_max, (HP_BAR_X, HP_BAR_Y1))
+    else:
+      draw_bar(sprite, hero.hp / hero.hp_max, (HP_BAR_X, HP_BAR_Y1), palette.CYAN)
+      draw_bar(sprite, panel.hp_hero / hero.hp_max, (HP_BAR_X, HP_BAR_Y1))
+
+    if ally.hp <= panel.hp_ally:
+      draw_bar(sprite, panel.hp_ally / ally.hp_max, (HP_BAR_X, HP_BAR_Y2), palette.RED)
+      draw_bar(sprite, ally.hp / ally.hp_max, (HP_BAR_X, HP_BAR_Y2))
+    else:
+      draw_bar(sprite, ally.hp / ally.hp_max, (HP_BAR_X, HP_BAR_Y2), palette.CYAN)
+      draw_bar(sprite, panel.hp_ally / ally.hp_max, (HP_BAR_X, HP_BAR_Y2))
+
+
     return sprite
 
   def draw(panel, surface, ctx):
