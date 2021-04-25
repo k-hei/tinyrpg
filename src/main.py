@@ -10,14 +10,25 @@ from contexts.dungeon import DungeonContext
 
 WINDOW_TITLE = "tinyrpg"
 WINDOW_SIZE = (config.window_width, config.window_height)
-WINDOW_SIZE_SCALED = (
-  config.window_width * config.window_scale,
-  config.window_height * config.window_scale
-)
+window_scale = config.SCALE_INIT
 
 pygame.display.init()
 pygame.display.set_caption(WINDOW_TITLE)
-display = pygame.display.set_mode(WINDOW_SIZE_SCALED)
+display = None
+window_size_scaled = None
+
+def resize(new_scale):
+  if new_scale < 1 or new_scale > config.SCALE_MAX:
+    return False
+  global window_scale, window_size_scaled, display
+  window_scale = new_scale
+  new_width = config.window_width * new_scale
+  new_height = config.window_height * new_scale
+  window_size_scaled = (new_width, new_height)
+  display = pygame.display.set_mode(window_size_scaled)
+  return True
+
+resize(window_scale)
 surface = Surface(WINDOW_SIZE)
 pygame.key.set_repeat(1000 // config.fps)
 
@@ -30,6 +41,14 @@ game_ctx.child = DungeonContext(parent=game_ctx)
 def handle_keydown(key):
   keyboard.handle_keydown(key)
   game_ctx.handle_keydown(key)
+  if keyboard.get_pressed(key) > 1:
+    return
+  ctrl = (keyboard.get_pressed(pygame.K_LCTRL)
+      or keyboard.get_pressed(pygame.K_RCTRL))
+  if key == pygame.K_MINUS and ctrl:
+    resize(window_scale - 1)
+  elif key == pygame.K_EQUALS and ctrl:
+    resize(window_scale + 1)
 
 def handle_keyup(key):
   keyboard.handle_keyup(key)
@@ -37,7 +56,7 @@ def handle_keyup(key):
 
 def render():
   game_ctx.draw(surface)
-  display.blit(pygame.transform.scale(surface, WINDOW_SIZE_SCALED), (0, 0))
+  display.blit(pygame.transform.scale(surface, window_size_scaled), (0, 0))
   pygame.display.flip()
 
 done = False
