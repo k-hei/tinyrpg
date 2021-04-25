@@ -1,10 +1,12 @@
-from contexts import Context
-from transits.dissolve import DissolveIn, DissolveOut
 import config
+from contexts import Context
+from contexts.dungeon import DungeonContext
+from transits.dissolve import DissolveIn, DissolveOut
 
 class GameContext(Context):
   def __init__(ctx):
     super().__init__()
+    ctx.child = DungeonContext(parent=ctx)
     ctx.transits = [DissolveOut(config.window_size)]
 
   def dissolve(ctx, on_clear, on_end=None):
