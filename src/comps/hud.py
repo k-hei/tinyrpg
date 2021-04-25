@@ -28,6 +28,8 @@ HP_BAR_X = 52
 HP_BAR_Y1 = 18
 HP_BAR_Y2 = 28
 HP_HALFWIDTH = 13
+ENTER_DURATION = 8
+EXIT_DURATION = 6
 
 class Hud:
   def __init__(panel):
@@ -38,9 +40,11 @@ class Hud:
 
   def enter(panel):
     panel.active = True
+    panel.anims.append(TweenAnim(duration=ENTER_DURATION))
 
   def exit(panel):
     panel.active = False
+    panel.anims.append(TweenAnim(duration=EXIT_DURATION))
 
   def render(panel, ctx):
     assets = use_assets()
@@ -131,8 +135,30 @@ class Hud:
     return sprite
 
   def draw(panel, surface, ctx):
-    if not panel.active:
-      return
     assets = use_assets()
     sprite = panel.render(ctx)
-    surface.blit(sprite, (MARGIN_LEFT, MARGIN_TOP))
+
+    hidden_x, hidden_y = MARGIN_LEFT, -sprite.get_height()
+    corner_x, corner_y = MARGIN_LEFT, MARGIN_TOP
+
+    anim = panel.anims[0] if panel.anims else None
+    if anim:
+      t = anim.update()
+      if panel.active:
+        t = ease_out(t)
+        start_x, start_y = hidden_x, hidden_y
+        target_x, target_y = corner_x, corner_y
+      else:
+        start_x, start_y = corner_x, corner_y
+        target_x, target_y = hidden_x, hidden_y
+      x = lerp(start_x, target_x, t)
+      y = lerp(start_y, target_y, t)
+      if anim.done:
+        panel.anims.pop(0)
+    elif panel.active:
+      x = corner_x
+      y = corner_y
+    else:
+      return
+
+    surface.blit(sprite, (x, y))
