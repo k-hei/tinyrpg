@@ -30,7 +30,9 @@ HP_BAR_X = 52
 HP_BAR_Y1 = 18
 HP_BAR_Y2 = 28
 HP_HALFWIDTH = 13
-ENTER_DURATION = 8
+HP_CRITICAL = 5
+DEPLETE_SPEED = 200
+ENTER_DURATION = 15
 EXIT_DURATION = 6
 FLINCH_DURATION = 10
 SWITCHOUT_DURATION = 6
@@ -65,6 +67,8 @@ class Hud:
     panel.hero = None
     panel.hp_hero = math.inf
     panel.hp_ally = math.inf
+    panel.hp_hero_drawn = math.inf
+    panel.hp_ally_drawn = math.inf
     panel.offset = (0, 0)
     panel.enter()
 
@@ -83,18 +87,26 @@ class Hud:
     or hero.hp != panel.hp_hero
     or ally.hp != panel.hp_ally):
       if hero != panel.hero:
-        panel.anims.append(SwitchOutAnim())
-        panel.anims.append(SwitchInAnim())
+        if panel.hero is not None:
+          panel.anims.append(SwitchOutAnim())
+          panel.anims.append(SwitchInAnim())
         panel.hero = hero
         panel.hp_hero = hero.hp
         panel.hp_ally = ally.hp
-      elif hero.hp < panel.hp_hero or ally.hp < panel.hp_ally:
+      elif hero.hp < panel.hp_hero_drawn or ally.hp < panel.hp_ally_drawn:
         panel.anims.append(FlinchAnim())
-        panel.hp_hero = hero.hp
-        panel.hp_ally = ally.hp
+        if panel.hp_hero == math.inf:
+          panel.hp_hero = hero.hp_max
+        if panel.hp_ally == math.inf:
+          panel.hp_ally = ally.hp_max
       anim = panel.anims[0] if panel.anims else None
       panel.anims_drawn = len(panel.anims)
+      if anim is None:
+        panel.hp_hero = max(hero.hp, panel.hp_hero - hero.hp_max / DEPLETE_SPEED)
+        panel.hp_ally = max(ally.hp, panel.hp_ally - ally.hp_max / DEPLETE_SPEED)
       panel.sprite = panel.render(hero, ally, anim)
+    panel.hp_hero_drawn = hero.hp
+    panel.hp_ally_drawn = ally.hp
 
   def render(panel, hero, ally, anim=None):
     assets = use_assets()
@@ -146,6 +158,7 @@ class Hud:
 
     hp_text = str(math.ceil(max(0, hero.hp)))
     gray = False
+    red = int(hero.hp) <= HP_CRITICAL
     if len(hp_text) == 1:
       hp_text = "0" + hp_text
       gray = True
@@ -159,7 +172,11 @@ class Hud:
 
     x = HP_VALUE_X + first_number.get_width() - 1
     for char in hp_text[1:]:
-      number = render_text(char, assets.fonts["numbers13"])
+      number = render_char(char, assets.fonts["numbers13"]).convert_alpha()
+      if red:
+        pixels = PixelArray(number)
+        pixels.replace(palette.BLACK, palette.RED)
+        pixels.close()
       sprite.blit(number, (x, HP_VALUE_Y))
       x += number.get_width() - 2
 
@@ -168,8 +185,10 @@ class Hud:
     number = outline(number, palette.WHITE)
     sprite.blit(number, (HP_MAX_X, HP_MAX_Y))
 
-    draw_bar(sprite, hero.hp / hero.hp_max, HP_BAR_X, HP_BAR_Y1)
-    draw_bar(sprite, ally.hp / ally.hp_max, HP_BAR_X, HP_BAR_Y2)
+    draw_bar(sprite, panel.hp_hero / hero.hp_max, (HP_BAR_X, HP_BAR_Y1), palette.RED)
+    draw_bar(sprite, hero.hp / hero.hp_max, (HP_BAR_X, HP_BAR_Y1))
+    draw_bar(sprite, panel.hp_ally / ally.hp_max, (HP_BAR_X, HP_BAR_Y2), palette.RED)
+    draw_bar(sprite, ally.hp / ally.hp_max, (HP_BAR_X, HP_BAR_Y2))
     return sprite
 
   def draw(panel, surface, ctx):
@@ -211,13 +230,14 @@ class Hud:
       return
     surface.blit(sprite, (x, y))
 
-def draw_bar(surface, pct, x, y):
-  pygame.draw.rect(surface, palette.WHITE, Rect(
+def draw_bar(surface, pct, pos, color=palette.WHITE):
+  x, y = pos
+  pygame.draw.rect(surface, color, Rect(
     (x, y),
     (HP_HALFWIDTH * min(0.5, pct) / 0.5, 1)
   ))
   if pct > 0.5:
-    pygame.draw.rect(surface, palette.WHITE, Rect(
+    pygame.draw.rect(surface, color, Rect(
       (x + HP_HALFWIDTH - 1, y + 1),
       (HP_HALFWIDTH * min(1, (pct - 0.5) / 0.5), 1)
     ))
