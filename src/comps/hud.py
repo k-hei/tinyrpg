@@ -71,7 +71,6 @@ class Hud:
 
     sprite.blit(hero_portrait, (0, 0))
     sprite.blit(ally_portrait, (CIRC16_X, CIRC16_Y))
-
     sprite.blit(assets.sprites["hp"], (HP_X, HP_Y))
 
     hp_text = str(math.ceil(max(0, ctx.hero.hp)))
@@ -98,39 +97,8 @@ class Hud:
     number = outline(number, palette.WHITE)
     sprite.blit(number, (HP_MAX_X, HP_MAX_Y))
 
-    halfmax1 = ctx.hero.hp_max // 2
-    bar1_half1 = min(halfmax1, ctx.hero.hp) / halfmax1
-    pygame.draw.rect(sprite, palette.WHITE, Rect(
-      HP_BAR_X,
-      HP_BAR_Y1,
-      HP_HALFWIDTH * bar1_half1,
-      1
-    ))
-    if ctx.hero.hp > halfmax1:
-      bar1_half2 = min(1, (ctx.hero.hp - halfmax1) / halfmax1)
-      pygame.draw.rect(sprite, palette.WHITE, Rect(
-        HP_BAR_X + HP_HALFWIDTH - 1,
-        HP_BAR_Y1 + 1,
-        HP_HALFWIDTH * bar1_half2,
-        1
-      ))
-
-    halfmax2 = ctx.ally.hp_max // 2
-    bar2_half1 = min(halfmax2, ctx.ally.hp) / halfmax2
-    pygame.draw.rect(sprite, palette.WHITE, Rect(
-      HP_BAR_X,
-      HP_BAR_Y2,
-      HP_HALFWIDTH * bar2_half1,
-      1
-    ))
-    if ctx.ally.hp > halfmax2:
-      bar2_half2 = min(1, (ctx.ally.hp - halfmax2) / halfmax2)
-      pygame.draw.rect(sprite, palette.WHITE, Rect(
-        HP_BAR_X + HP_HALFWIDTH - 1,
-        HP_BAR_Y2 + 1,
-        HP_HALFWIDTH * bar2_half2,
-        1
-      ))
+    draw_bar(sprite, ctx.hero.hp / ctx.hero.hp_max, HP_BAR_X, HP_BAR_Y1)
+    draw_bar(sprite, ctx.ally.hp / ctx.ally.hp_max, HP_BAR_X, HP_BAR_Y2)
 
     return sprite
 
@@ -158,3 +126,14 @@ class Hud:
     else:
       return
     surface.blit(sprite, (x, y))
+
+def draw_bar(surface, pct, x, y):
+  pygame.draw.rect(surface, palette.WHITE, Rect(
+    (x, y),
+    (HP_HALFWIDTH * min(0.5, pct) / 0.5, 1)
+  ))
+  if pct > 0.5:
+    pygame.draw.rect(surface, palette.WHITE, Rect(
+      (x + HP_HALFWIDTH - 1, y + 1),
+      (HP_HALFWIDTH * min(1, (pct - 0.5) / 0.5), 1)
+    ))
