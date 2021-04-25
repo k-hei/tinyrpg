@@ -338,7 +338,7 @@ class Stage:
       sprite_name = "door_open"
     elif tile is Stage.DOOR_LOCKED:
       sprite_name = "door"
-    elif tile is Stage.FLOOR:
+    elif tile is Stage.FLOOR and tile_below is not Stage.DOOR:
       sprite_name = "floor"
     elif tile is Stage.PIT and tile_above and tile_above is not Stage.PIT:
       sprite_name = "pit"
@@ -402,7 +402,7 @@ class Stage:
     or not is_wall(x + 1, y - 1) and not is_wall(x, y - 1) and not is_wall(x + 1, y)):
       draw_corner(sprite, config.TILE_SIZE - CORNER_SIZE - 1, 1)
 
-    if (not is_wall(x - 1, y + 2) and is_wall(x - 1, y + 1) and is_wall(x - 1, y) and (is_wall(x, y + 2) or is_door(x, y + 2))
+    if ((not is_wall(x - 1, y + 2) and not is_door(x - 1, y + 2)) and is_wall(x - 1, y + 1) and is_wall(x - 1, y) and (is_wall(x, y + 2) or is_door(x, y + 2))
     or is_wall(x, y + 1) and not is_wall(x - 1, y) and not is_wall(x - 1, y + 1) and not is_wall(x, y + 2) and (not is_door(x, y + 2) or is_wall(x - 1, y))
     or is_door(x, y + 1) and (not is_wall(x - 1, y) or not is_wall(x - 1, y + 1))):
       draw_corner(sprite, 1, config.TILE_SIZE - CORNER_SIZE - 1)

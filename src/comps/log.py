@@ -1,9 +1,9 @@
+from pygame import Surface, Rect
 from assets import load as use_assets
-from pygame import Surface
-from text import render as render_text
+from text import render as render_text, find_width as find_text_width
+from filters import recolor, outline
 from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in
-from filters import recolor, outline
 
 COLOR_KEY = (0xFF, 0x00, 0xFF)
 
@@ -12,48 +12,48 @@ class ExitAnim(TweenAnim): pass
 
 class Log:
   ROW_COUNT = 2
-  BOX_WIDTH = 240
-  BOX_HEIGHT = 48
-  INSET_X = 11
-  INSET_Y = 13
+  PADDING_X = 12
+  PADDING_Y = 22
+  MARGIN_LEFT = 12
+  MARGIN_BOTTOM = 8
   ENTER_DURATION = 15
   EXIT_DURATION = 7
   HANG_DURATION = 180
 
   def __init__(log):
     log.messages = []
-    log.cache = []
-    log.y = 0
-    log.row = -1
+    log.lines = []
+    log.index = 0
+    log.row = 0
     log.col = 0
-    log.offset = 0
-    log.dirty = False
+    log.cursor_x = 0
+    log.cursor_y = 0
     log.active = False
-    log.exiting = False
-    log.clean_frames = Log.HANG_DURATION
-    log.box = Surface((Log.BOX_WIDTH, Log.BOX_HEIGHT))
-    log.box.set_colorkey(0xFF00FF)
-    log.box.fill(0xFF00FF)
+    log.clean = 1
+    log.box = None
     log.surface = None
     log.anim = None
 
   def print(log, message):
     print(message)
-    log.messages.append(message)
     if not log.active and log.anim is None:
-      log.active = True
-      log.exiting = False
-      log.dirty = False
-      log.anim = EnterAnim(duration=Log.ENTER_DURATION)
-    if not log.dirty:
+      log.enter()
+    if log.clean and log.messages:
+      log.index += 1
       log.row += 1
       log.col = 0
-      log.dirty = True
-      log.clean_frames = 0
+      log.cursor_x = 0
+    log.messages.append(message)
+    log.clean = 0
+
+  def enter(log):
+    if not log.active:
+      log.active = True
+      log.anim = EnterAnim(duration=Log.ENTER_DURATION)
 
   def exit(log):
     if log.active:
-      log.exiting = True
+      log.active = False
       log.anim = ExitAnim(
         duration=Log.EXIT_DURATION,
         on_end=log.reset
@@ -61,63 +61,83 @@ class Log:
 
   def clear(log):
     log.messages = []
-    log.cache = []
-    log.row = -1
-    log.offset = 0
+    log.lines = []
+    log.index = 0
+    log.row = 0
+    log.col = 0
+    log.cursor_x = 0
+    log.cursor_y = 0
 
   def reset(log):
     log.clear()
-    log.active = False
 
   def render(log):
     assets = use_assets()
+    bg = assets.sprites["log_parchment"]
     font = assets.fonts["standard"]
-    bg = assets.sprites["log"]
     line_height = font.char_height + font.line_spacing
-    log.box.blit(bg, (0, 0))
-    log.surface = Surface((Log.BOX_WIDTH - Log.INSET_X * 2, line_height * Log.ROW_COUNT))
-    log.surface.fill(COLOR_KEY)
-    log.surface.set_colorkey(COLOR_KEY)
-    is_cache_dirty = log.row >= len(log.cache) or log.row >= 0 and log.cache[log.row]["dirty"]
-    if log.anim is None and log.dirty and log.row < len(log.messages) and is_cache_dirty:
-      if log.row >= len(log.cache):
-        surface = Surface((log.surface.get_width(), line_height))
-        surface.fill(COLOR_KEY)
-        surface.set_colorkey(COLOR_KEY)
-        log.cache.append({
-          "x": 0,
-          "dirty": True,
-          "surface": surface
-        })
-      line = log.cache[log.row]
-      message = log.messages[log.row]
+
+    log.box = bg.copy()
+    target_height = (log.row + 1) * line_height
+
+    if log.surface is None or target_height > log.surface.get_height():
+      log.surface = Surface((
+        log.box.get_width() - Log.PADDING_X * 2,
+        target_height
+      ))
+      log.surface.set_colorkey(COLOR_KEY)
+      log.surface.fill(COLOR_KEY)
+
+    if not log.clean and log.row + 1 > len(log.lines):
+      line = Surface((log.surface.get_width(), line_height)).convert_alpha()
+      line.set_colorkey(COLOR_KEY)
+      line.fill(COLOR_KEY)
+      log.lines.append(line)
+      print("new line!")
+
+    if not log.clean and log.anim is None:
+      message = log.messages[log.index]
       char = message[log.col]
-      text = render_text(char, font)
-      line["surface"].blit(text, (line["x"], 0))
-      line["x"] += text.get_width() # - 2
+      if log.col == 0 or char == " ":
+        next_space = message.find(" ", log.col + 1)
+        if next_space == -1:
+          word = message[log.col+1:]
+        else:
+          word = message[log.col+1:next_space]
+        if log.cursor_x + find_text_width(word, font) > log.surface.get_width():
+          log.col += 1
+          log.row += 1
+          log.cursor_x = 0
+          return log.render()
+      char_sprite = render_text(char, font)
+      char_sprite = recolor(char_sprite, (0, 0, 0))
+      print(log.cursor_x, len(log.lines) - 1, char)
+      log.lines[-1].blit(char_sprite, (log.cursor_x, 0))
+      for row, line in enumerate(log.lines):
+        log.surface.blit(line, (0, row * line_height))
+      log.cursor_x += char_sprite.get_width()
       if log.col < len(message) - 1:
         log.col += 1
-      elif log.row < len(log.messages) - 1:
-        log.row += 1
+      elif log.index < len(log.messages) - 1:
+        log.index += 1
         log.col = 0
-        line["dirty"] = False
+        log.row += 1
+        log.cursor_x = 0
       else:
-        log.dirty = False
+        log.clean = 1
 
-    if not log.dirty:
-      log.clean_frames += 1
-      if log.clean_frames == Log.HANG_DURATION:
+    target_row = log.row
+    if target_row >= Log.ROW_COUNT - 1 and target_row == len(log.lines) - 1:
+      target_row -= 1
+    target_y = target_row * line_height
+    log.cursor_y += (target_y - log.cursor_y) / 8
+
+    if log.clean:
+      log.clean += 1
+      if log.clean == Log.HANG_DURATION:
         log.exit()
 
-    if log.row >= Log.ROW_COUNT:
-      log.offset += (log.row - 1 - log.offset) / 8
-
-    for i in range(len(log.cache)):
-      line = log.cache[i]
-      y = round((i - log.offset) * line_height)
-      log.surface.blit(line["surface"], (0, y))
-
-    y = -log.box.get_height() - 8
+    y = -log.box.get_height() - Log.MARGIN_BOTTOM
     if log.anim:
       anim = log.anim
       t = anim.update()
@@ -127,10 +147,28 @@ class Log:
         log.y = y * ease_in(1 - t)
       if anim.done:
         log.anim = None
+      if anim.done and not log.active:
+        log.surface = None
     elif log.active:
       log.y = y
     else:
       log.y = 0
 
-    log.box.blit(log.surface, (Log.INSET_X, Log.INSET_Y))
+    if log.surface:
+      rect_y = log.cursor_y
+      rect_height = line_height * min(Log.ROW_COUNT, len(log.lines))
+      if rect_y + rect_height > log.surface.get_height():
+        rect_y = log.surface.get_height() - rect_height
+      rect = Rect(
+        (0, rect_y),
+        (log.box.get_width() - Log.PADDING_X * 2, rect_height)
+      )
+      print(rect, log.surface.get_height())
+      log.box.blit(log.surface.subsurface(rect), (Log.PADDING_X, Log.PADDING_Y))
     return log.box
+
+  def draw(log, surface):
+    surface.blit(log.render(), (
+      Log.MARGIN_LEFT,
+      surface.get_height() + log.y
+    ))

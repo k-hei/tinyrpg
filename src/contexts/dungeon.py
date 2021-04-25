@@ -23,7 +23,7 @@ from comps.log import Log
 from comps.minimap import Minimap
 from comps.previews import Previews
 from comps.damage import DamageValue
-from props.soul import Soul
+from comps.spmeter import SpMeter
 
 from transits.dissolve import DissolveOut
 
@@ -39,6 +39,7 @@ from actors.eye import Eye
 from actors.mimic import Mimic
 from actors.npc import NPC
 from props.chest import Chest
+from props.soul import Soul
 
 from skills.blitzritter import Blitzritter
 from skills.shieldbash import ShieldBash
@@ -94,6 +95,7 @@ class DungeonContext(Context):
     game.log = Log()
     game.camera = Camera(config.window_size)
     game.hud = Hud()
+    game.sp_meter = SpMeter()
     game.minimap = Minimap((16, 16))
     game.inventory = Inventory((3, 3), [Potion()])
     game.previews = Previews()
@@ -173,7 +175,7 @@ class DungeonContext(Context):
     nearby_enemies = [e for e in game.floor.elems if (
       isinstance(e, Actor)
       and e.faction == "enemy"
-      and manhattan(hero.cell, e.cell) <= 2
+      and manhattan(hero.cell, e.cell) <= 1
       and (type(e) is not Mimic or not e.idle)
     )]
     if nearby_enemies:
@@ -893,15 +895,11 @@ class DungeonContext(Context):
 
     # is_playing_enter_transit = len(game.parent.transits) and type(game.parent.transits[0]) is DissolveOut
     # if not is_playing_enter_transit:
-    if not game.child or game.log.anim and game.log.exiting:
-      log = game.log.render()
-      surface.blit(log, (
-        window_width / 2 - log.get_width() / 2,
-        window_height + game.log.y
-      ))
+    if not game.child or game.log.anim and not game.log.active:
+      game.log.draw(surface)
 
     animating = (
-      game.log.exiting and game.log.anim
+      game.log.anim and not game.log.active
       or game.hud.anims
       or game.previews.anims
     )
@@ -909,5 +907,6 @@ class DungeonContext(Context):
       game.child.draw(surface)
 
     game.hud.draw(surface, game)
+    game.sp_meter.draw(surface, game)
     game.minimap.draw(surface, game)
     game.previews.draw(surface, game)

@@ -126,7 +126,7 @@ def debug_gen():
   for maze in mazes:
     for x, y in maze.get_cells():
       stage.set_tile_at((x, y), Stage.FLOOR)
-  return dungeon((21, 21), 2)
+  return dungeon((27, 27), 2)
 
 def debug_floor():
   floor = parse_data([
@@ -412,7 +412,7 @@ def dungeon(size, floor=1):
         else:
           dead_ends.append(room)
           stage.set_tile_at(door, Stage.DOOR)
-        if x == room.get_center()[0]:
+        if stage.get_tile_at((x - 1, y)) is Stage.WALL and stage.get_tile_at((x + 1, y)) is Stage.WALL:
           stage.set_tile_at((x, y - 1), Stage.FLOOR)
         break
     else:
@@ -473,22 +473,24 @@ def dungeon(size, floor=1):
         for x in range(room_width - radius * 2):
           stage.set_tile_at((room_left + radius + x, room_top + radius + y), Stage.PIT)
     elif random.randint(1, 5) == 1:
-      # edge-center pits (TODO: random radius)
-      left_tile = stage.get_tile_at((room_left - 1, center_y))
-      right_tile = stage.get_tile_at((room_left + room_width, center_y))
-      top_tile = stage.get_tile_at((center_x, room_top - 1))
-      bottom_tile = stage.get_tile_at((center_x, room_top + room_height))
-      if room_height >= room_width and left_tile is not Stage.DOOR and right_tile is not Stage.DOOR:
-        y = center_y
-        for x in range(room_width):
-          if room_left + x == center_x: continue
-          stage.set_tile_at((room_left + x, y), Stage.PIT)
-      elif room_width >= room_height and top_tile is not Stage.DOOR and bottom_tile is not Stage.DOOR:
-        x = center_x
-        for y in range(room_height):
-          if room_top + y == center_y: continue
-          stage.set_tile_at((x, room_top + y), Stage.PIT)
+      pass
+      # # edge-center pits (TODO: random radius)
+      # left_tile = stage.get_tile_at((room_left - 1, center_y))
+      # right_tile = stage.get_tile_at((room_left + room_width, center_y))
+      # top_tile = stage.get_tile_at((center_x, room_top - 1))
+      # bottom_tile = stage.get_tile_at((center_x, room_top + room_height))
+      # if room_height >= room_width and left_tile is not Stage.DOOR and right_tile is not Stage.DOOR:
+      #   y = center_y
+      #   for x in range(room_width):
+      #     if room_left + x == center_x: continue
+      #     stage.set_tile_at((room_left + x, y), Stage.PIT)
+      # elif room_width >= room_height and top_tile is not Stage.DOOR and bottom_tile is not Stage.DOOR:
+      #   x = center_x
+      #   for y in range(room_height):
+      #     if room_top + y == center_y: continue
+      #     stage.set_tile_at((x, room_top + y), Stage.PIT)
     elif random.randint(1, 30):
+      pass
       # fill with pit
       # get all doors
       # if doors >= 2 (always true for normal rooms):
@@ -519,7 +521,6 @@ def dungeon(size, floor=1):
       #     x = x1
       #     while x != x2:
       #       x += normal x
-      pass
 
   for room in normal_rooms:
     for cell in room.get_cells():
