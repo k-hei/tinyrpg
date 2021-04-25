@@ -8,51 +8,93 @@ from actors.mimic import Mimic
 from props.chest import Chest
 import palette
 from anims.tween import TweenAnim
-from easing.expo import ease_out
+from easing.expo import ease_out, ease_in_out
 from lerp import lerp
 
 MARGIN_X = 8
 MARGIN_Y = 6
-SCALE = 3
 ENTER_DURATION = 8
 EXIT_DURATION = 4
+EXPAND_DURATION = 15
+SHRINK_DURATION = 10
+
+class EnterAnim(TweenAnim):
+  def __init__(anim):
+    super().__init__(duration=ENTER_DURATION)
+
+class ExitAnim(TweenAnim):
+  def __init__(anim):
+    super().__init__(duration=EXIT_DURATION)
+
+class ExpandAnim(TweenAnim):
+  def __init__(anim):
+    super().__init__(duration=EXPAND_DURATION)
+
+class ShrinkAnim(TweenAnim):
+  def __init__(anim):
+    super().__init__(duration=SHRINK_DURATION)
 
 class Minimap:
-  def __init__(minimap, size):
-    minimap.size = size
+  SIZE_INIT = (16, 16)
+  SCALE_INIT = 3
+  SCALE_EXPAND = 5
+
+  def __init__(minimap, parent):
+    minimap.parent = parent
+    minimap.size = Minimap.SIZE_INIT
+    minimap.scale = Minimap.SCALE_INIT
     minimap.time = 0
     minimap.active = False
-    minimap.anim = None
+    minimap.expanded = False
+    minimap.anims = []
     minimap.enter()
 
   def enter(minimap):
     minimap.active = True
-    minimap.anim = TweenAnim(duration=ENTER_DURATION)
+    minimap.anims.append(EnterAnim())
 
   def exit(minimap):
     minimap.active = False
-    minimap.anim = TweenAnim(duration=EXIT_DURATION)
+    minimap.anims.append(ExitAnim())
 
-  def render(minimap, ctx):
+  def expand(minimap):
+    minimap.size = minimap.parent.floor.size
+    minimap.scale = Minimap.SCALE_EXPAND
+    minimap.expanded = True
+    minimap.anims.append(ExpandAnim())
+
+  def shrink(minimap):
+    minimap.size = Minimap.SIZE_INIT
+    minimap.scale = Minimap.SCALE_INIT
+    minimap.expanded = False
+    minimap.anims.append(ShrinkAnim())
+
+  def render(minimap):
     sprite_width, sprite_height = minimap.size
-    scaled_size = (sprite_width * SCALE, sprite_height * SCALE)
+    scaled_size = (sprite_width * minimap.scale, sprite_height * minimap.scale)
     surface = Surface(scaled_size)
     surface.set_colorkey(0x123456)
     surface.fill(0x123456)
-    temp_surface = Surface((sprite_width, sprite_height))
+    temp_surface = Surface(minimap.size)
     temp_surface.set_colorkey(0x123456)
     temp_surface.fill(0x123456)
     pixels = PixelArray(temp_surface)
     minimap.time += 1
 
-    hero = ctx.hero
-    hero_x, hero_y = hero.cell
-    floor = ctx.floor
+    # requires: game.hero, game.floor, game.memory
+    game = minimap.parent
+    hero = game.hero
+    focus_x, focus_y = hero.cell
+    if minimap.expanded:
+      focus_x = sprite_width // 2
+      focus_y = sprite_height // 2
+
+    floor = game.floor
     visible_cells = hero.visible_cells
-    visited_cells = next((cells for floor, cells in ctx.memory if floor is ctx.floor), None)
+    visited_cells = next((cells for floor, cells in game.memory if floor is game.floor), None)
     for cell in visited_cells:
-      tile = ctx.floor.get_tile_at(cell)
-      elem = ctx.floor.get_elem_at(cell)
+      tile = game.floor.get_tile_at(cell)
+      elem = game.floor.get_elem_at(cell)
       color = None
       if type(elem) is Knight or type(elem) is Mage and cell in visible_cells:
         color = 0x337FFF
@@ -107,34 +149,50 @@ class Minimap:
         else:
           color = 0x000000
       x, y = cell
-      x = x - hero_x + sprite_width // 2
-      y = y - hero_y + sprite_height // 2
+      x = x - focus_x + sprite_width // 2
+      y = y - focus_y + sprite_height // 2
       if color is not None and x >= 0 and y >= 0 and x < sprite_width and y < sprite_height:
         pixels[x, y] = color
+
     pixels.close()
     surface.blit(pygame.transform.scale(temp_surface, scaled_size), (0, 0))
     return surface
 
-  def draw(minimap, surface, ctx):
-    window_width = surface.get_width()
-    window_height = surface.get_height()
-    sprite = minimap.render(ctx)
-    start_x = window_width
-    target_x = start_x - sprite.get_width() - MARGIN_X
-    if minimap.anim:
-      t = minimap.anim.update()
-      if minimap.active:
+  def draw(minimap, surface):
+    sprite = minimap.render()
+    corner_x = surface.get_width() - sprite.get_width() - MARGIN_X
+    corner_y = MARGIN_Y
+    center_x = surface.get_width() // 2 - sprite.get_width() // 2
+    center_y = surface.get_height() // 2 - sprite.get_height() // 2
+    anim = minimap.anims[0] if minimap.anims else None
+    if anim:
+      t = anim.update()
+      if type(anim) is EnterAnim:
         t = ease_out(t)
-      else:
-        start_x, target_x = (target_x, start_x)
+        start_x, start_y = surface.get_width(), corner_y
+        target_x, target_y = corner_x, corner_y
+      elif type(anim) is ExitAnim:
+        start_x, start_y = corner_x, corner_y
+        target_x, target_y = surface.get_width(), corner_y
+      elif type(anim) is ExpandAnim:
+        t = ease_in_out(t)
+        start_x, start_y = corner_x, corner_y
+        target_x, target_y = center_x, center_y
+      elif type(anim) is ShrinkAnim:
+        t = ease_in_out(t)
+        start_x, start_y = center_x, center_y
+        target_x, target_y = corner_x, corner_y
       x = lerp(start_x, target_x, t)
-      if minimap.anim.done:
-        minimap.anim = None
+      y = lerp(start_y, target_y, t)
+      if anim.done:
+        minimap.anims.pop(0)
+    elif minimap.expanded:
+      x = center_x
+      y = center_y
     elif minimap.active:
-      x = target_x
+      x = corner_x
+      y = corner_y
     else:
       return
-    surface.blit(sprite, (
-      x,
-      MARGIN_Y
-    ))
+
+    surface.blit(sprite, (x, y))

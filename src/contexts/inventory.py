@@ -7,7 +7,7 @@ from contexts.choice import ChoiceContext
 from comps.bar import Bar
 from assets import load as use_assets
 from filters import replace_color
-from keyboard import key_times
+from keyboard import key_times, ARROW_DELTAS
 import palette
 
 from anims.tween import TweenAnim
@@ -100,22 +100,12 @@ class InventoryContext(Context):
     if ctx.child:
       return ctx.child.handle_keydown(key)
 
-    key_deltas = {
-      pygame.K_LEFT: (-1, 0),
-      pygame.K_RIGHT: (1, 0),
-      pygame.K_UP: (0, -1),
-      pygame.K_DOWN: (0, 1),
-      pygame.K_a: (-1, 0),
-      pygame.K_d: (1, 0),
-      pygame.K_w: (0, -1),
-      pygame.K_s: (0, 1)
-    }
-    if key in key_deltas:
-      delta = key_deltas[key]
-      ctx.handle_move(delta)
-
     if key not in key_times or key_times[key] != 1:
       return False
+
+    if key in ARROW_DELTAS:
+      delta = ARROW_DELTAS[key]
+      ctx.handle_move(delta)
 
     if key == pygame.K_RETURN or key == pygame.K_SPACE:
       ctx.handle_choose()

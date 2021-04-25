@@ -131,6 +131,8 @@ class Hud:
     return sprite
 
   def draw(panel, surface, ctx):
+    if not panel.active:
+      return
     assets = use_assets()
     sprite = panel.render(ctx)
     surface.blit(sprite, (MARGIN_LEFT, MARGIN_TOP))

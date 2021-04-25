@@ -8,7 +8,7 @@ from assets import load as load_assets
 from text import render as render_text
 from filters import recolor, replace_color
 from stage import Stage
-from keyboard import key_times
+from keyboard import key_times, ARROW_DELTAS
 from cell import is_adjacent, manhattan
 
 import gen
@@ -29,8 +29,9 @@ from transits.dissolve import DissolveOut
 
 from contexts.inventory import InventoryContext
 from contexts.skill import SkillContext
-from contexts.examine import ExamineContext
 from contexts.custom import CustomContext
+from contexts.examine import ExamineContext
+from contexts.minimap import MinimapContext
 
 from actors import Actor
 from actors.knight import Knight
@@ -96,7 +97,7 @@ class DungeonContext(Context):
     game.camera = Camera(config.window_size)
     game.hud = Hud()
     game.sp_meter = SpMeter()
-    game.minimap = Minimap((16, 16))
+    game.minimap = Minimap(parent=game)
     game.inventory = Inventory((3, 3), [Potion()])
     game.previews = Previews()
     game.hero = Knight(skills=[])
@@ -163,6 +164,18 @@ class DungeonContext(Context):
 
     if game.room:
       visible_cells += game.room.get_cells() + game.room.get_border()
+
+    # for cell in visible_cells:
+    #   col, row = cell
+    #   cell_above = (col, row - 1)
+    #   cell_below = (col, row + 1)
+    #   tile_below = game.floor.get_tile_at(cell_below)
+    #   if (game.floor.get_tile_at(cell) is Stage.WALL and (
+    #     tile_below is Stage.FLOOR
+    #     or tile_below is Stage.DOOR
+    #     or tile_below is Stage.DOOR_OPEN
+    #   ) and cell_above not in visible_cells):
+    #     visible_cells.append(cell_above)
 
     visited_cells = next((cells for floor, cells in game.memory if floor is game.floor), None)
     for cell in visible_cells:
@@ -282,20 +295,9 @@ class DungeonContext(Context):
     if game.child:
       return game.child.handle_keydown(key)
 
-    key_deltas = {
-      pygame.K_LEFT: (-1, 0),
-      pygame.K_RIGHT: (1, 0),
-      pygame.K_UP: (0, -1),
-      pygame.K_DOWN: (0, 1),
-      pygame.K_a: (-1, 0),
-      pygame.K_d: (1, 0),
-      pygame.K_w: (0, -1),
-      pygame.K_s: (0, 1)
-    }
-
     key_requires_reset = key in game.key_requires_reset and game.key_requires_reset[key]
-    if key in key_deltas and not key_requires_reset:
-      delta = key_deltas[key]
+    if key in ARROW_DELTAS and not key_requires_reset:
+      delta = ARROW_DELTAS[key]
       run = pygame.K_RSHIFT in key_times and key_times[pygame.K_RSHIFT] > 0
       run = run or pygame.K_LSHIFT in key_times and key_times[pygame.K_LSHIFT] > 0
       moved = game.handle_move(delta, run)
@@ -314,6 +316,9 @@ class DungeonContext(Context):
 
     if key == pygame.K_b:
       return game.handle_custom()
+
+    if key == pygame.K_m:
+      return game.handle_minimap()
 
     if game.hero.dead or game.hero.ailment == "sleep":
       return False
@@ -617,6 +622,19 @@ class DungeonContext(Context):
         )
       )
 
+  def handle_minimap(game):
+    if game.child is None:
+      game.log.exit()
+      game.hud.exit()
+      game.child = MinimapContext(
+        parent=game,
+        minimap=game.minimap,
+        on_close=lambda _: (
+          game.hud.enter(),
+          game.refresh_fov()
+        )
+      )
+
   def move(game, actor, delta, run=False, on_end=None):
     actor_x, actor_y = actor.cell
     delta_x, delta_y = delta
@@ -658,7 +676,7 @@ class DungeonContext(Context):
     def is_empty(cell):
       target_tile = floor.get_tile_at(cell)
       target_elem = floor.get_elem_at(cell)
-      return not target_tile.solid and not target_elem
+      return not target_tile.solid and (not target_elem or not target_elem.solid)
 
     def select_x():
       if target_x < actor_x and is_empty((actor_x - 1, actor_y)):
@@ -908,5 +926,5 @@ class DungeonContext(Context):
 
     game.hud.draw(surface, game)
     game.sp_meter.draw(surface, game)
-    game.minimap.draw(surface, game)
     game.previews.draw(surface, game)
+    game.minimap.draw(surface)

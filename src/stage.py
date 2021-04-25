@@ -412,10 +412,10 @@ class Stage:
     or is_door(x, y + 1) and (not is_wall(x + 1, y) or not is_wall(x + 1, y + 1))):
       draw_corner(sprite, config.TILE_SIZE - CORNER_SIZE - 1, config.TILE_SIZE - CORNER_SIZE - 1)
 
-    if is_wall(x - 1, y) and (not is_wall(x, y + 2) and not is_door(x, y + 2) or is_door(x, y + 1)):
+    if is_wall(x - 1, y) and (not is_wall(x, y + 2) and not is_door(x, y + 2) or is_door(x, y + 1) and is_wall(x - 1, y + 1)):
       sprite.blit(rotate(link, 90), (0, 0))
 
-    if is_wall(x + 1, y) and (not is_wall(x, y + 2) and not is_door(x, y + 2) or is_door(x, y + 1)):
+    if is_wall(x + 1, y) and (not is_wall(x, y + 2) and not is_door(x, y + 2) or is_door(x, y + 1) and is_wall(x + 1, y + 1)):
       sprite.blit(rotate(flip(link, True, False), -90), (0, 0))
 
     return sprite
