@@ -589,15 +589,18 @@ class DungeonContext(Context):
   def handle_inventory(game):
     if game.child is None:
       game.log.exit()
+      game.sp_meter.exit()
       game.child = InventoryContext(
         parent=game,
-        inventory=game.inventory
+        inventory=game.inventory,
+        on_close=lambda _: game.sp_meter.enter()
       )
 
   def handle_custom(game):
     if game.child is None:
       game.log.exit()
       game.hud.exit()
+      game.sp_meter.exit()
       game.previews.exit()
       game.minimap.exit()
       game.child = CustomContext(
@@ -605,6 +608,7 @@ class DungeonContext(Context):
         on_close=lambda _: (
           game.update_skills(),
           game.hud.enter(),
+          game.sp_meter.enter(),
           game.previews.enter(),
           game.minimap.enter()
         )
@@ -614,10 +618,12 @@ class DungeonContext(Context):
     if game.child is None:
       game.log.exit()
       game.hud.exit()
+      game.sp_meter.exit()
       game.child = ExamineContext(
         parent=game,
         on_close=lambda _: (
           game.hud.enter(),
+          game.sp_meter.enter(),
           game.refresh_fov()
         )
       )
@@ -626,11 +632,13 @@ class DungeonContext(Context):
     if game.child is None:
       game.log.exit()
       game.hud.exit()
+      game.sp_meter.exit()
       game.child = MinimapContext(
         parent=game,
         minimap=game.minimap,
         on_close=lambda _: (
           game.hud.enter(),
+          game.sp_meter.enter(),
           game.refresh_fov()
         )
       )

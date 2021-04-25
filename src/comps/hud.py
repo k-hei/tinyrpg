@@ -135,12 +135,9 @@ class Hud:
     return sprite
 
   def draw(panel, surface, ctx):
-    assets = use_assets()
     sprite = panel.render(ctx)
-
     hidden_x, hidden_y = MARGIN_LEFT, -sprite.get_height()
     corner_x, corner_y = MARGIN_LEFT, MARGIN_TOP
-
     anim = panel.anims[0] if panel.anims else None
     if anim:
       t = anim.update()
@@ -160,5 +157,4 @@ class Hud:
       y = corner_y
     else:
       return
-
     surface.blit(sprite, (x, y))
