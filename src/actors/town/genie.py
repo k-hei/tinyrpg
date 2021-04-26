@@ -3,7 +3,7 @@ from assets import load as use_assets
 from actors.town import Actor
 from pygame import Surface, Rect
 
-RIPPLE_PERIOD = 75
+RIPPLE_PERIOD = 120
 RIPPLE_START = 20
 RIPPLE_END = 32
 RIPPLE_EXTENT = RIPPLE_END - RIPPLE_START
@@ -21,7 +21,8 @@ class Genie(Actor):
     sprite.blit(sprite_genie.subsurface(Rect(0, 0, 32, RIPPLE_START)), (0, 0))
     for y in range(RIPPLE_START, RIPPLE_END):
       i = y - RIPPLE_START
-      t = (genie.renders + i / RIPPLE_EXTENT * RIPPLE_PERIOD) % RIPPLE_PERIOD / RIPPLE_PERIOD
+      t = genie.renders + i / RIPPLE_EXTENT * RIPPLE_PERIOD
+      t = t % RIPPLE_PERIOD / RIPPLE_PERIOD
       x = math.sin(2 * math.pi * t) * i / RIPPLE_EXTENT * RIPPLE_AMP
       sprite.blit(sprite_genie.subsurface(Rect(0, y, 32, 1)), (x, y))
     genie.renders += 1

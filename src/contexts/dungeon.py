@@ -15,6 +15,7 @@ import gen
 import fov
 import config
 import palette
+import keyboard
 
 from camera import Camera
 from comps.hud import Hud
@@ -330,6 +331,9 @@ class DungeonContext(Context):
 
     if key == pygame.K_m:
       return game.handle_minimap()
+
+    if key == pygame.K_ESCAPE and keyboard.get_pressed(pygame.K_LCTRL):
+      return game.handle_debug()
 
     if game.hero.dead or game.hero.ailment == "sleep":
       return False
@@ -653,6 +657,9 @@ class DungeonContext(Context):
           game.refresh_fov()
         )
       )
+
+  def handle_debug(game):
+    game.memory[game.floors.index(game.floor)] = (game.floor, game.floor.get_cells())
 
   def move(game, actor, delta, run=False, on_end=None):
     actor_x, actor_y = actor.cell
