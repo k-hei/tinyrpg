@@ -1,7 +1,7 @@
 import config
 from contexts import Context
 from contexts.dungeon import DungeonContext
-from contexts.town import TownContext
+from town import TownContext
 from transits.dissolve import DissolveIn, DissolveOut
 
 from inventory import Inventory

@@ -1,6 +1,6 @@
-import math
+from math import pi, sin
 from assets import load as use_assets
-from actors.town import Actor
+from town.actors.npc import Npc
 from pygame import Surface, Rect
 
 RIPPLE_PERIOD = 120
@@ -8,10 +8,12 @@ RIPPLE_START = 20
 RIPPLE_END = 32
 RIPPLE_EXTENT = RIPPLE_END - RIPPLE_START
 RIPPLE_AMP = 6
+FLOAT_PERIOD = 90
+FLOAT_AMP = 2
 
-class Genie(Actor):
-  def __init__(genie):
-    super().__init__()
+class Genie(Npc):
+  def __init__(genie, message=None):
+    super().__init__(message)
     genie.renders = 0
 
   def render(genie):
@@ -22,7 +24,10 @@ class Genie(Actor):
       i = y - RIPPLE_START
       t = genie.renders + i / RIPPLE_EXTENT * RIPPLE_PERIOD
       t = t % RIPPLE_PERIOD / RIPPLE_PERIOD
-      x = math.sin(2 * math.pi * t) * i / RIPPLE_EXTENT * RIPPLE_AMP
+      x = sin(t * 2 * pi) * i / RIPPLE_EXTENT * RIPPLE_AMP
       sprite.blit(sprite_genie.subsurface(Rect(0, y, 32, 1)), (x, y))
+    sprite, _, _ = super().render(sprite)
+    x = 0
+    y = sin(genie.renders % FLOAT_PERIOD / FLOAT_PERIOD * 2 * pi) * FLOAT_AMP
     genie.renders += 1
-    return super().render(sprite)
+    return (sprite, x, y)

@@ -1,7 +1,6 @@
 import pygame
 import config
 import palette
-from filters import replace_color
 
 class Actor:
   SPEED = 1.5
@@ -38,7 +37,6 @@ class Actor:
       actor.x = target_x
 
   def render(actor, sprite):
-    sprite = replace_color(sprite, palette.BLACK, palette.BLUE)
     if actor.facing == -1:
       sprite = pygame.transform.flip(sprite, True, False)
-    return sprite
+    return (sprite, 0, 0)
