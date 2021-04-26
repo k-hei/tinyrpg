@@ -53,6 +53,10 @@ class TownContext(Context):
       town.handle_move(-1)
     elif key == pygame.K_RIGHT or key == pygame.K_d:
       town.handle_move(1)
+    if keyboard.get_pressed(key) > 1:
+      return
+    if key == pygame.K_TAB:
+      town.handle_swap()
 
   def handle_keyup(town, key):
     if key == pygame.K_LEFT or key == pygame.K_a:
@@ -103,6 +107,11 @@ class TownContext(Context):
       hero.x = config.TILE_SIZE
       ally.x = hero.x - config.TILE_SIZE
     ally.stop_move()
+
+  def handle_swap(town):
+    town.hero, town.ally = town.ally, town.hero
+    town.actors.remove(town.hero) # HACK: move hero to front
+    town.actors.append(town.hero)
 
   def draw(town, surface):
     assets = use_assets()
