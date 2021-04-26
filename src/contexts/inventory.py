@@ -20,9 +20,15 @@ SPACING = 4
 MARGIN = 8
 ENTER_DURATION = 8
 ENTER_STAGGER = 3
-EXIT_DURATION = 6
-EXIT_STAGGER = 3
+EXIT_DURATION = 4
+EXIT_STAGGER = 2
 DURATION_BELTENTER = 15
+DURATION_BELTEXIT = 7
+STAGGER_BELTEXIT = 0
+DURATION_CHARENTER = ENTER_DURATION
+STAGGER_CHARENTER = 4
+DURATION_CHAREXIT = 6
+STAGGER_CHAREXIT = 2
 
 class InventoryContext(Context):
   def __init__(ctx, parent, inventory, on_close=None):
@@ -43,14 +49,12 @@ class InventoryContext(Context):
   def enter(ctx, on_end=None):
     ctx.bar.enter()
     ctx.anims.append(TweenAnim(duration=DURATION_BELTENTER, target="belt"))
-
     for i, char in enumerate("item"):
       ctx.anims.append(TweenAnim(
-        duration=9,
-        delay=4 * (i + 1),
+        duration=DURATION_CHARENTER,
+        delay=STAGGER_CHARENTER * (i + 1),
         target=char
       ))
-
     cols, rows = ctx.grid_size
     for row in range(rows):
       for col in range(cols):
@@ -62,29 +66,28 @@ class InventoryContext(Context):
         ))
 
   def exit(ctx):
-    # ctx.animate(active=False, on_end=ctx.close)
+    ctx.active = False
     ctx.bar.exit()
-    ctx.close()
-
-  def animate(ctx, active, on_end=None):
-    DURATION = ENTER_DURATION if active else EXIT_DURATION
-    STAGGER = ENTER_STAGGER if active else EXIT_STAGGER
+    ctx.anims.append(TweenAnim(
+      duration=DURATION_BELTEXIT,
+      delay=STAGGER_BELTEXIT + STAGGER_CHAREXIT * 2,
+      target="belt"
+    ))
+    for i, char in enumerate("item"):
+      ctx.anims.append(TweenAnim(
+        duration=DURATION_CHAREXIT,
+        delay=STAGGER_BELTEXIT + STAGGER_CHAREXIT * i + 5,
+        target=char
+      ))
     cols, rows = ctx.grid_size
-    ctx.active = active
-    cells = []
     for row in range(rows):
       for col in range(cols):
-        cells.append((col, row))
-    random.shuffle(cells)
-    index = 0
-    for col, row in cells:
-      ctx.anims.append(TweenAnim(
-        duration=DURATION,
-        delay=STAGGER * index,
-        target=(col, row)
-      ))
-      index += 1
-    ctx.on_animate = on_end
+        index = cols * rows - (col * rows + row)
+        ctx.anims.append(TweenAnim(
+          duration=EXIT_DURATION,
+          delay=EXIT_STAGGER * index,
+          target=(col, row)
+        ))
 
   def remove_anim(ctx, anim):
     if anim in ctx.anims:
@@ -191,10 +194,15 @@ class InventoryContext(Context):
       anim.update()
       if anim.done:
         ctx.anims.remove(anim)
+      if not ctx.anims and not ctx.active:
+        return ctx.close()
 
     anim_belt = next((a for a in ctx.anims if a.target == "belt"), None)
     if anim_belt:
-      t = ease_out(anim_belt.pos)
+      if ctx.active:
+        t = ease_out(anim_belt.pos)
+      else:
+        t = 1 - anim_belt.pos
       start_height = 0
       end_height = sprite_belt.get_height()
       belt_width = sprite_belt.get_width()
@@ -204,24 +212,32 @@ class InventoryContext(Context):
         (belt_width, belt_height)
       ))
 
-    surface.blit(sprite_belt, (
-      Hud.MARGIN_LEFT,
-      Hud.MARGIN_TOP + sprite_circle.get_height() // 2
-    ))
+    if anim_belt or ctx.active:
+      surface.blit(sprite_belt, (
+        Hud.MARGIN_LEFT,
+        Hud.MARGIN_TOP + sprite_circle.get_height() // 2
+      ))
 
     start_x = -16
     target_x = Hud.MARGIN_LEFT
     y = Hud.MARGIN_TOP + sprite_circle.get_height() + 2
     for i, char in enumerate("item"):
       sprite_char = assets.sprites["item_" + char]
+      sprite_height = sprite_char.get_height()
       anim = next((a for a in ctx.anims if a.target == char), None)
       if anim:
-        t = ease_out(anim.pos)
+        if ctx.active:
+          t = ease_out(anim.pos)
+        else:
+          t = 1 - anim.pos
         x = lerp(start_x, target_x, t)
       else:
         x = target_x
-      surface.blit(sprite_char, (x, y))
-      y += sprite_char.get_height() + 2
+        if not ctx.active:
+          sprite_char = None
+      if sprite_char:
+        surface.blit(sprite_char, (x, y))
+      y += sprite_height + 2
 
     cols, rows = ctx.grid_size
     cells_x = Hud.MARGIN_LEFT + sprite_belt.get_width() - 2
@@ -237,6 +253,14 @@ class InventoryContext(Context):
           sprite = sprite_tile
         anim = next((a for a in ctx.anims if a.target == cell), None)
         if anim:
+          if ctx.active:
+            continue
+          else:
+            t = anim.pos
+            width = lerp(tile_width, 0, t)
+            height = lerp(tile_height, 0, t)
+            sprite = pygame.transform.scale(sprite, (int(width), int(height)))
+        elif not ctx.active:
           continue
         x = cells_x + tile_width * col + tile_width // 2 - sprite.get_width() // 2
         y = cells_y + tile_height * row + tile_height // 2 - sprite.get_height() // 2
@@ -245,11 +269,11 @@ class InventoryContext(Context):
         if item and not anim:
           surface.blit(item.render(), (x, y))
 
+    cursor_col, cursor_row = ctx.cursor
+    cursor_color = palette.BLUE if ctx.cursor_anim.time % 2 or type(ctx.child) is ChoiceContext else palette.WHITE
+    cursor_x = cells_x + tile_width * cursor_col
+    cursor_y = cells_y + tile_height * cursor_row
     if not ctx.anims:
-      cursor_col, cursor_row = ctx.cursor
-      cursor_color = palette.BLUE if ctx.cursor_anim.time % 2 or type(ctx.child) is ChoiceContext else palette.WHITE
-      cursor_x = cells_x + tile_width * cursor_col
-      cursor_y = cells_y + tile_height * cursor_row
       pygame.draw.rect(surface, cursor_color, Rect(cursor_x, cursor_y, tile_width, tile_height), width=1)
 
     if type(ctx.child) is ChoiceContext:
