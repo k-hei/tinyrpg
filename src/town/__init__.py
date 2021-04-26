@@ -8,6 +8,7 @@ from anims.sine import SineAnim
 from contexts import Context
 from contexts.inventory import InventoryContext
 from contexts.dialogue import DialogueContext
+from contexts.custom import CustomContext
 
 from town.actors.knight import Knight
 from town.actors.mage import Mage
@@ -74,6 +75,8 @@ class TownContext(Context):
       return town.handle_swap()
     if key in (pygame.K_ESCAPE, pygame.K_BACKSPACE):
       return town.handle_inventory()
+    if key == pygame.K_b:
+      return town.handle_custom()
 
   def handle_keyup(town, key):
     if town.child:
@@ -157,6 +160,18 @@ class TownContext(Context):
     dist_x = hero.x - actor.x
     facing = dist_x / abs(dist_x)
     actor.facing = facing
+
+  def handle_custom(town):
+    town.hud.exit()
+    def on_close(_):
+      town.child = None
+      town.parent.child = town
+      town.parent.update_skills()
+      town.hud.enter()
+    town.child = CustomContext(
+      parent=town.parent,
+      on_close=on_close
+    )
 
   def draw(town, surface):
     assets = use_assets()

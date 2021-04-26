@@ -131,7 +131,6 @@ class DungeonContext(Context):
       floor.spawn_elem(ally, (x - 1, y))
       ally.facing = (1, 0)
 
-
     game.floor = floor
     game.floors.append(game.floor)
     game.memory.append((game.floor, []))

@@ -60,6 +60,10 @@ class GameContext(Context):
   def goto_town(ctx, returning=False):
     ctx.child = TownContext(parent=ctx, returning=returning)
 
+  def update_skills(ctx):
+    ctx.hero.skills = [skill for skill, cell in ctx.skill_builds[ctx.hero]]
+    ctx.ally.skills = [skill for skill, cell in ctx.skill_builds[ctx.ally]]
+
   def dissolve(ctx, on_clear, on_end=None):
     ctx.transits.append(DissolveIn(config.WINDOW_SIZE, on_clear))
     ctx.transits.append(DissolveOut(config.WINDOW_SIZE, on_end))
