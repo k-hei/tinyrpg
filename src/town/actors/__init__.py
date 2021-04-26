@@ -5,7 +5,8 @@ import palette
 class Actor:
   SPEED = 1.5
 
-  def __init__(actor):
+  def __init__(actor, name=None):
+    actor.name = name
     actor.x = 0
     actor.facing = 1
     actor.walks = 0

@@ -53,6 +53,7 @@ sprite_paths = {
   "sp_fill": "sp-fill",
   "tag_hp": "tag-hp",
   "arrow": "arrow",
+  "arrow_dialogue": "arrow-dialogue",
   "bar": "bar",
   "bar_small": "bar-small",
   "log": "log",

@@ -7,13 +7,14 @@ from anims.sine import SineAnim
 
 from contexts import Context
 from contexts.inventory import InventoryContext
+from contexts.dialogue import DialogueContext
 
 from town.actors.knight import Knight
 from town.actors.mage import Mage
 from town.actors.genie import Genie
 from town.actors.npc import Npc
 
-from town.areas import Area
+from town.areas import Area, can_talk
 from town.areas.central import CentralArea
 from town.areas.outskirts import OutskirtsArea
 
@@ -60,16 +61,18 @@ class TownContext(Context):
       return
     if town.child:
       return town.child.handle_keydown(key)
-    if key == pygame.K_LEFT or key == pygame.K_a:
-      town.handle_move(-1)
-    elif key == pygame.K_RIGHT or key == pygame.K_d:
-      town.handle_move(1)
+    if key in (pygame.K_LEFT, pygame.K_a):
+      return town.handle_move(-1)
+    if key in (pygame.K_RIGHT, pygame.K_d):
+      return town.handle_move(1)
     if keyboard.get_pressed(key) > 1:
       return
+    if key in (pygame.K_RETURN, pygame.K_SPACE):
+      return town.handle_talk()
     if key == pygame.K_TAB:
-      town.handle_swap()
-    if key == pygame.K_ESCAPE or key == pygame.K_BACKSPACE:
-      town.handle_inventory()
+      return town.handle_swap()
+    if key in (pygame.K_ESCAPE, pygame.K_BACKSPACE):
+      return town.handle_inventory()
 
   def handle_keyup(town, key):
     if town.child:
@@ -90,7 +93,8 @@ class TownContext(Context):
     if (hero.x >= config.WINDOW_WIDTH + config.TILE_SIZE // 2
     and town.areas.index(town.area) + 1 < len(town.areas)):
       town.handle_areachange(1)
-    if hero.x >= OutskirtsArea.TOWER_X + config.TILE_SIZE // 2 and town.area == "outskirts":
+    if (hero.x >= OutskirtsArea.TOWER_X + config.TILE_SIZE // 2
+    and type(town.area) is OutskirtsArea):
       town.handle_areachange(1)
 
   def handle_movestop(town):
@@ -102,7 +106,7 @@ class TownContext(Context):
   def handle_areachange(town, delta):
     town.area_change = delta
     town.hud.exit()
-    if town.area == "outskirts" and delta == 1:
+    if type(town.area) is OutskirtsArea and delta == 1:
       town.parent.dissolve(on_clear=town.parent.goto_dungeon)
     else:
       town.parent.dissolve(
@@ -133,11 +137,25 @@ class TownContext(Context):
     town.area.actors.append(town.hero) # we can alleviate this by sorting actor render order instead of altering the array (which is kind of the same thing)
 
   def handle_inventory(town):
-    if town.child is None:
-      town.child = InventoryContext(parent=town, inventory=town.parent.inventory)
+    town.child = InventoryContext(parent=town, inventory=town.parent.inventory)
 
   def use_item(town, item):
-    return (False, "You can't use this here!")
+    return (False, "You can't use that here!")
+
+  def handle_talk(town):
+    hero = town.hero
+    actor = next((a for a in town.area.actors if can_talk(hero, a)), None)
+    if actor is None:
+      return
+
+    script = map(lambda page: (actor.name, page), actor.message)
+    script = tuple(script)
+    town.child = DialogueContext(parent=town, script=script)
+
+    # TODO: actor.face method
+    dist_x = hero.x - actor.x
+    facing = dist_x / abs(dist_x)
+    actor.facing = facing
 
   def draw(town, surface):
     assets = use_assets()

@@ -22,10 +22,10 @@ class Area:
       y = y + Area.ACTOR_Y - 1
       if isinstance(actor, Npc):
         y -= config.TILE_SIZE // 2
-        if hero and can_talk(hero, actor):
-          bubble_x = x + config.TILE_SIZE * 0.75
-          bubble_y = y - config.TILE_SIZE * 0.25
-          nodes.append((sprite_talkbubble, (bubble_x, bubble_y)))
+      if isinstance(actor, Npc) and actor.message and hero and can_talk(hero, actor):
+        bubble_x = x + config.TILE_SIZE * 0.75
+        bubble_y = y - config.TILE_SIZE * 0.25
+        nodes.append((sprite_talkbubble, (bubble_x, bubble_y)))
       nodes.append((sprite, (x, y)))
     return nodes
 

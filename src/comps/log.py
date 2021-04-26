@@ -20,8 +20,10 @@ class Log:
   ENTER_DURATION = 15
   EXIT_DURATION = 7
   HANG_DURATION = 180
+  FONT_NAME = "standard"
 
-  def __init__(log):
+  def __init__(log, autohide=True):
+    log.autohide = autohide
     log.messages = []
     log.lines = []
     log.index = 0
@@ -34,6 +36,7 @@ class Log:
     log.box = None
     log.surface = None
     log.anim = None
+    log.on_end = None
 
   def print(log, message):
     print(message)
@@ -52,12 +55,15 @@ class Log:
       log.active = True
       log.anim = EnterAnim(duration=Log.ENTER_DURATION)
 
-  def exit(log):
+  def exit(log, on_end=None):
     if log.active:
       log.active = False
       log.anim = ExitAnim(
         duration=Log.EXIT_DURATION,
-        on_end=log.reset
+        on_end=lambda: (
+          log.reset(),
+          on_end()
+        )
       )
 
   def clear(log):
@@ -68,6 +74,7 @@ class Log:
     log.col = 0
     log.cursor_x = 0
     log.cursor_y = 0
+    log.surface = None
 
   def reset(log):
     log.clear()
@@ -75,7 +82,7 @@ class Log:
   def render(log):
     assets = use_assets()
     bg = assets.sprites["log_parchment"]
-    font = assets.fonts["standard"]
+    font = assets.fonts[Log.FONT_NAME]
     line_height = font.char_height + font.line_spacing
 
     if not log.clean and log.active and log.anim is None:
@@ -108,7 +115,6 @@ class Log:
           return log.render()
       char_sprite = render_text(char, font)
       char_sprite = recolor(char_sprite, (0, 0, 0))
-      # char_sprite = shadow(char_sprite, (204, 204, 204))
       log.lines[-1].blit(char_sprite, (log.cursor_x, 0))
       for row, line in enumerate(log.lines):
         log.surface.blit(line, (0, row * line_height))
@@ -128,7 +134,6 @@ class Log:
       target_row -= 1
     target_y = target_row * line_height
     log.cursor_y += min(Log.SCROLL_SPEED, target_y - log.cursor_y)
-    # log.cursor_y += (target_y - log.cursor_y) / 8
 
     if log.surface and (log.clean <= 1 or log.cursor_y != target_y):
       rect_y = log.cursor_y
@@ -144,14 +149,14 @@ class Log:
 
     if log.clean:
       log.clean += 1
-      if log.clean == Log.HANG_DURATION:
-        log.exit()
+    if log.clean == Log.HANG_DURATION and log.autohide:
+      log.exit()
 
     if not log.box:
       log.box = bg.copy()
     return log.box
 
-  def draw(log, surface):
+  def update(log):
     sprite = log.render()
     if sprite is None:
       return
@@ -168,11 +173,18 @@ class Log:
       if anim.done and not log.active:
         log.surface = None
         log.box = None
+        if log.on_end:
+          log.on_end()
     elif log.active:
       log.y = y
     else:
       log.y = 0
-    surface.blit(sprite, (
+
+  def draw(log, surface):
+    log.update()
+    if log.box is None:
+      return
+    surface.blit(log.box, (
       Log.MARGIN_LEFT,
       surface.get_height() + log.y
     ))
