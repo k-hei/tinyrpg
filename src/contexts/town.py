@@ -2,12 +2,14 @@ import pygame
 
 import keyboard
 
+from assets import load as use_assets
 from contexts import Context
 from contexts.inventory import InventoryContext
-from assets import load as use_assets
+from hud import Hud
 from actors.town.knight import Knight
 from actors.town.mage import Mage
-from hud import Hud
+from actors.town.genie import Genie
+from anims.sine import SineAnim
 
 from filters import stroke
 import palette
@@ -30,6 +32,7 @@ class TownContext(Context):
     town.areas = ["central", "outskirts"]
     town.area = "outskirts"
     town.area_change = 0
+    town.genie_anim = SineAnim(90)
     town.hud = Hud()
     town.spawn(returning)
 
@@ -103,6 +106,7 @@ class TownContext(Context):
       )
 
   def change_areas(town, delta):
+    prev_area = town.area
     town.area_change = 0
     town.area = town.areas[town.areas.index(town.area) + delta]
     hero = town.hero
@@ -114,6 +118,12 @@ class TownContext(Context):
       hero.x = config.TILE_SIZE
       ally.x = hero.x - config.TILE_SIZE
     ally.stop_move()
+    if town.area == "central":
+      genie = Genie()
+      genie.x = 112
+      town.actors.insert(0, genie)
+    elif prev_area == "central":
+      town.actors.pop(0)
 
   def handle_swap(town):
     town.hero, town.ally = town.ally, town.hero
@@ -137,7 +147,13 @@ class TownContext(Context):
     for actor in town.actors:
       sprite = actor.render()
       sprite = stroke(sprite, palette.WHITE)
-      surface.blit(sprite, (actor.x - config.TILE_SIZE // 2, ACTOR_Y - 1))
+      x = actor.x - config.TILE_SIZE // 2
+      y = ACTOR_Y - 1
+      if town.area == "central":
+        y -= config.TILE_SIZE // 4
+      if type(actor) is Genie:
+        y -= config.TILE_SIZE // 2 + round(town.genie_anim.update() * 2)
+      surface.blit(sprite, (x, y))
     if town.area == "outskirts":
       surface.blit(sprite_tower, (TOWER_X, ACTOR_Y - 16))
     if town.child:
