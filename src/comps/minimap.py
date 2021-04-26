@@ -103,6 +103,11 @@ class Minimap:
     visible_cells = hero.visible_cells
     visited_cells = next((cells for floor, cells in game.memory if floor is game.floor), None)
     for cell in visited_cells:
+      x, y = cell
+      x = int(x - focus_x + sprite_width // 2)
+      y = int(y - focus_y + sprite_height // 2)
+      if x < 0 or y < 0 or x >= sprite_width or y >= sprite_height:
+        continue
       tile = game.floor.get_tile_at(cell)
       elem = game.floor.get_elem_at(cell)
       color = None
@@ -150,10 +155,7 @@ class Minimap:
           color = 0x333333
         else:
           color = 0x000000
-      x, y = cell
-      x = int(x - focus_x + sprite_width // 2)
-      y = int(y - focus_y + sprite_height // 2)
-      if color is not None and x >= 0 and y >= 0 and x < sprite_width and y < sprite_height:
+      if color is not None:
         pixels[x, y] = color
 
     pixels.close()

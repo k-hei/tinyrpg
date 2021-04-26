@@ -417,11 +417,13 @@ def dungeon(size, floor=1):
           stage.set_tile_at(door, Stage.DOOR)
         if stage.get_tile_at((x - 1, y)) is Stage.WALL and stage.get_tile_at((x + 1, y)) is Stage.WALL:
           stage.set_tile_at((x, y - 1), Stage.FLOOR)
+          stage.set_tile_at((x, y + 1), Stage.FLOOR)
         break
     else:
       stage.set_tile_at(door, Stage.DOOR)
       if stage.get_tile_at((x - 1, y)) is Stage.WALL and stage.get_tile_at((x + 1, y)) is Stage.WALL:
         stage.set_tile_at((x, y - 1), Stage.FLOOR)
+        stage.set_tile_at((x, y + 1), Stage.FLOOR)
 
   if len(rooms) == 1:
     return dungeon(size, floor)

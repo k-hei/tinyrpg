@@ -301,8 +301,8 @@ class Stage:
       col, row = cell
       x = col * config.TILE_SIZE - round(camera_x)
       y = row * config.TILE_SIZE - round(camera_y)
-      if (x < -config.TILE_SIZE
-      or y < -config.TILE_SIZE
+      if (x <= -config.TILE_SIZE
+      or y <= -config.TILE_SIZE
       or x >= surface.get_width()
       or y >= surface.get_height()):
         continue
