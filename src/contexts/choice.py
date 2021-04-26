@@ -22,7 +22,7 @@ EXIT_DURATION = 6
 
 class ChoiceContext(Context):
   def __init__(ctx, parent, choices, on_choose, on_close=None):
-    ctx.parent = parent
+    super().__init__(parent)
     ctx.choices = choices
     ctx.index = 0
     ctx.cursor = (BORDER_WIDTH + PADDING, SineAnim(30))

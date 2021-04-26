@@ -4,10 +4,15 @@ from contexts.dungeon import DungeonContext
 from contexts.town import TownContext
 from transits.dissolve import DissolveIn, DissolveOut
 
+from inventory import Inventory
+from items.potion import Potion
+from items.balloon import Balloon
+
 class GameContext(Context):
   def __init__(ctx):
     super().__init__()
     ctx.transits = [DissolveOut(config.WINDOW_SIZE)]
+    ctx.inventory = Inventory((2, 4), [Potion(), Balloon()])
 
   def goto_dungeon(ctx):
     ctx.child = DungeonContext(parent=ctx)

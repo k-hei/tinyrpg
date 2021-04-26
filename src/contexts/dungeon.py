@@ -17,7 +17,6 @@ import config
 import palette
 
 from camera import Camera
-from inventory import Inventory
 from comps.hud import Hud
 from comps.log import Log
 from comps.minimap import Minimap
@@ -54,9 +53,6 @@ from skills.exoculo import Exoculo
 from skills.virus import Virus
 from skills.detectmana import DetectMana
 from skills.hpup import HpUp
-
-from items.potion import Potion
-from items.balloon import Balloon
 
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
@@ -97,7 +93,6 @@ class DungeonContext(Context):
     game.hud = Hud()
     game.sp_meter = SpMeter()
     game.minimap = Minimap(parent=game)
-    game.inventory = Inventory((2, 4), [Potion(), Balloon()])
     game.previews = Previews()
     game.hero = Knight(skills=[])
     game.ally = Mage(skills=[])
@@ -514,7 +509,7 @@ class DungeonContext(Context):
         chest = target_elem
         item = chest.contents
         if item:
-          if not game.inventory.is_full():
+          if not game.parent.inventory.is_full():
             game.anims.append([
               ChestAnim(
                 duration=30,
@@ -523,7 +518,7 @@ class DungeonContext(Context):
                 on_end=chest.open
               )
             ])
-            game.inventory.append(item)
+            game.parent.inventory.append(item)
             game.log.print("You open the lamp")
             game.log.print("Received " + item.name + ".")
             acted = True
@@ -608,7 +603,7 @@ class DungeonContext(Context):
       game.sp_meter.exit()
       game.child = InventoryContext(
         parent=game,
-        inventory=game.inventory,
+        inventory=game.parent.inventory,
         on_close=lambda _: game.sp_meter.enter()
       )
 
@@ -865,7 +860,7 @@ class DungeonContext(Context):
     if success:
       game.log.print("Used " + item.name)
       game.log.print(message)
-      game.inventory.items.remove(item)
+      game.parent.inventory.items.remove(item)
       game.anims.append([
         PauseAnim(
           duration=30,

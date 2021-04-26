@@ -3,6 +3,7 @@ import pygame
 import keyboard
 
 from contexts import Context
+from contexts.inventory import InventoryContext
 from assets import load as use_assets
 from actors.town.knight import Knight
 from actors.town.mage import Mage
@@ -49,6 +50,8 @@ class TownContext(Context):
   def handle_keydown(town, key):
     if town.parent.transits:
       return
+    if town.child:
+      return town.child.handle_keydown(key)
     if key == pygame.K_LEFT or key == pygame.K_a:
       town.handle_move(-1)
     elif key == pygame.K_RIGHT or key == pygame.K_d:
@@ -57,8 +60,12 @@ class TownContext(Context):
       return
     if key == pygame.K_TAB:
       town.handle_swap()
+    if key == pygame.K_ESCAPE or key == pygame.K_BACKSPACE:
+      town.handle_inventory()
 
   def handle_keyup(town, key):
+    if town.child:
+      return town.child.handle_keyup(key)
     if key == pygame.K_LEFT or key == pygame.K_a:
       town.handle_movestop()
     elif key == pygame.K_RIGHT or key == pygame.K_d:
@@ -113,6 +120,13 @@ class TownContext(Context):
     town.actors.remove(town.hero) # HACK: move hero to front
     town.actors.append(town.hero)
 
+  def handle_inventory(town):
+    if town.child is None:
+      town.child = InventoryContext(parent=town, inventory=town.parent.inventory)
+
+  def use_item(town, item):
+    return (False, "You can't use this here!")
+
   def draw(town, surface):
     assets = use_assets()
     sprite_bg = assets.sprites["town_" + town.area]
@@ -126,4 +140,6 @@ class TownContext(Context):
       surface.blit(sprite, (actor.x - config.TILE_SIZE // 2, ACTOR_Y - 1))
     if town.area == "outskirts":
       surface.blit(sprite_tower, (TOWER_X, ACTOR_Y - 16))
+    if town.child:
+      town.child.draw(surface)
     town.hud.draw(surface, town)
