@@ -31,7 +31,8 @@ HP_BAR_Y1 = 18
 HP_BAR_Y2 = 28
 HP_HALFWIDTH = 13
 HP_CRITICAL = 5
-DEPLETE_SPEED = 200
+SPEED_DEPLETE = 200
+SPEED_RESTORE = 100
 ENTER_DURATION = 15
 EXIT_DURATION = 6
 FLINCH_DURATION = 10
@@ -102,13 +103,13 @@ class Hud:
       anim = panel.anims[0] if panel.anims else None
       panel.anims_drawn = len(panel.anims)
       if anim is None and panel.hp_hero > hero.hp:
-        panel.hp_hero = max(hero.hp, panel.hp_hero - hero.hp_max / DEPLETE_SPEED)
+        panel.hp_hero = max(hero.hp, panel.hp_hero - hero.hp_max / SPEED_DEPLETE)
       if anim is None and panel.hp_hero < hero.hp:
-        panel.hp_hero = min(hero.hp, panel.hp_hero + hero.hp_max / DEPLETE_SPEED)
+        panel.hp_hero = min(hero.hp, panel.hp_hero + hero.hp_max / SPEED_RESTORE)
       if anim is None and panel.hp_ally < ally.hp:
-        panel.hp_ally = max(ally.hp, panel.hp_ally - ally.hp_max / DEPLETE_SPEED)
+        panel.hp_ally = max(ally.hp, panel.hp_ally - ally.hp_max / SPEED_DEPLETE)
       if anim is None and panel.hp_ally < ally.hp:
-        panel.hp_ally = min(ally.hp, panel.hp_ally + ally.hp_max / DEPLETE_SPEED)
+        panel.hp_ally = min(ally.hp, panel.hp_ally + ally.hp_max / SPEED_RESTORE)
       panel.sprite = panel.render(hero, ally, anim)
     panel.hp_hero_drawn = hero.hp
     panel.hp_ally_drawn = ally.hp

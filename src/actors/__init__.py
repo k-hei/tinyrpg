@@ -14,6 +14,7 @@ from cell import is_adjacent, manhattan
 class Actor(Element):
   POISON_DURATION = 5
   POISON_STRENGTH = 1 / 6
+  skill = None
 
   def __init__(actor, name, faction, hp, st, en, skills=[]):
     super().__init__(name)
@@ -29,6 +30,7 @@ class Actor(Element):
     actor.ailment_turns = 0
     actor.counter = False
     actor.idle = False
+    actor.rare = False
     actor.facing = (1, 0)
     actor.faction = faction
     actor.visible_cells = []
@@ -42,6 +44,13 @@ class Actor(Element):
 
   def get_hp_max(actor):
     return actor.hp_max + actor.get_skill_hp()
+
+  def promote(actor):
+    actor.rare = True
+    actor.hp_max += 5
+    actor.hp += 5
+    actor.st += 2
+    actor.en += 2
 
   def regen(actor, amount=None):
     if amount is None:
@@ -127,6 +136,8 @@ class Actor(Element):
         new_color = palette.BLUE
       elif actor.faction == "ally":
         new_color = palette.GREEN
+      elif actor.faction == "enemy" and actor.rare:
+        new_color = palette.GOLD_DARK
       elif actor.faction == "enemy":
         new_color = palette.RED
     if new_color:

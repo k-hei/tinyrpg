@@ -16,10 +16,12 @@ from props.chest import Chest
 from props.soul import Soul
 
 from items.potion import Potion
+from items.elixir import Elixir
 from items.ankh import Ankh
 from items.cheese import Cheese
 from items.bread import Bread
 from items.fish import Fish
+from items.antidote import Antidote
 from items.emerald import Emerald
 
 from skills.shieldbash import ShieldBash
@@ -177,7 +179,7 @@ def top_floor():
     "     .                     ",
     "     .                     ",
     "     .                     ",
-    "     .                     ",
+    "#####.#####################",
     "#####+#####################",
     "##.......##################",
     "##.......*....#############",
@@ -570,7 +572,7 @@ def dungeon(size, floor=1):
           enemy = Mimic()
           stage.spawn_elem(enemy, cell)
         else:
-          item = random.choice((Potion, Ankh, Bread, Fish, Emerald))()
+          item = random.choice((Potion, Elixir, Ankh, Cheese, Bread, Fish, Antidote, Emerald))()
           stage.spawn_elem(Chest(item), cell)
       elif kind == "MonsterDen" and random.randint(1, 2) == 1:
         enemy = gen_enemy(10)
@@ -607,7 +609,10 @@ def gen_enemy(floor):
     return random.choices((Eye, Mushroom, Skeleton), (2, 2, 1))[0]()
 
 def gen_item():
-  return random.choices((Potion, Ankh, Cheese, Bread, Fish, Emerald), (3, 1, 4, 3, 1, 1))[0]()
+  return random.choices(
+    (Potion, Elixir, Ankh, Cheese, Bread, Fish, Antidote, Emerald),
+    (     3,      1,    1,      4,     3,    1,        3,       1)
+  )[0]()
 
 def gen_rooms(slots):
   rooms = []

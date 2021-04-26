@@ -5,6 +5,8 @@ from cell import is_adjacent
 import random
 
 class Skeleton(Actor):
+  skill = ShieldBash
+
   def __init__(skeleton):
     super().__init__(
       name="Skeleton",

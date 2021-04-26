@@ -103,13 +103,10 @@ class Preview:
     if type(anim) is FlickerAnim:
       if anim.time % 4 >= 2 or anim.done:
         portrait = portrait and replace_color(portrait, palette.WHITE, palette.GRAY)
-    else:
-      # anim = game.anims and next((a for a in game.anims[0] if (
-      #   a.target is actor
-      #   and type(a) is FlickerAnim
-      # )), None)
-      if actor.ailment == "sleep":
-        portrait = portrait and replace_color(portrait, palette.WHITE, palette.PURPLE)
+    elif actor.ailment == "sleep":
+      portrait = portrait and replace_color(portrait, palette.WHITE, palette.PURPLE)
+    elif actor.rare:
+      portrait = portrait and replace_color(portrait, palette.WHITE, palette.GOLD)
     surface_width = bar_x + bar.get_width()
     surface_height = HP_OFFSET_Y + hp_tag.get_height()
     surface = Surface((surface_width, surface_height))

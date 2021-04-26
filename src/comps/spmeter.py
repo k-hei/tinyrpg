@@ -38,7 +38,7 @@ class SpMeter:
       fill_y = fill_sprite.get_height() * (1 - sp_pct)
       fill_sprite = fill_sprite.subsurface(Rect(
         (0, math.ceil(fill_y)),
-        (fill_sprite.get_width(), fill_sprite.get_height() - fill_y)
+        (fill_sprite.get_width(), fill_sprite.get_height() - math.ceil(fill_y))
       ))
 
     sprite.blit(fill_sprite, (PADDING_X, PADDING_Y + math.ceil(fill_y)))

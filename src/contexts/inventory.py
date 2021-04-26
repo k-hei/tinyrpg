@@ -160,9 +160,8 @@ class InventoryContext(Context):
     surface.blit(menu, (x, y))
 
     if type(ctx.child) is ChoiceContext:
-      menu = ctx.child.render()
       x += menu.get_width() + SPACING
-      surface.blit(menu, (x, y))
+      surface.blit(ctx.child.render(), (x, y))
 
   def render_menu(ctx):
     assets = use_assets()

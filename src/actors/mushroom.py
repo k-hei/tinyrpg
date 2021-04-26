@@ -5,6 +5,8 @@ from cell import is_adjacent
 import random
 
 class Mushroom(Actor):
+  skill = Virus
+
   def __init__(mushroom):
     super().__init__(
       name="Toadstool",

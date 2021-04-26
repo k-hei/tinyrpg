@@ -56,7 +56,8 @@ from skills.detectmana import DetectMana
 from skills.hpup import HpUp
 
 from items.potion import Potion
-from items.ankh import Ankh
+from items.antidote import Antidote
+from items.elixir import Elixir
 
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
@@ -98,7 +99,7 @@ class DungeonContext(Context):
     game.hud = Hud()
     game.sp_meter = SpMeter()
     game.minimap = Minimap(parent=game)
-    game.inventory = Inventory((3, 3), [Potion()])
+    game.inventory = Inventory((3, 3), [Potion(), Antidote(), Elixir()])
     game.previews = Previews()
     game.hero = Knight(skills=[])
     game.ally = Mage(skills=[])
@@ -120,6 +121,7 @@ class DungeonContext(Context):
         (DetectMana, (1, 0))
       ]
     }
+    game.monster_kills = {}
     game.update_skills()
     game.create_floor()
 
@@ -134,8 +136,21 @@ class DungeonContext(Context):
     else:
       floor = gen.dungeon((19, 19), len(game.floors) + 1)
 
+    promoted = False
+    enemies = [e for e in floor.elems if isinstance(e, Actor) and e.faction == "enemy"]
+    for monster, kills in game.monster_kills.items():
+      if (monster.skill is not None
+      and monster.skill not in game.skill_pool
+      and kills >= 3):
+        enemy = next((e for e in enemies if type(e) is monster), None)
+        if enemy is not None:
+          enemy.promote()
+          promoted = True
+
     if floor_no == DungeonContext.TOP_FLOOR:
       game.log.print("The air feels different up here.")
+    elif promoted:
+      game.log.print("You feel a powerful presence on this floor...")
     elif floor.find_tile(Stage.DOOR_HIDDEN):
       game.log.print("This floor seems to hold many secrets.")
 
@@ -748,10 +763,12 @@ class DungeonContext(Context):
 
   def kill(game, target, on_end=None):
     def remove():
-      if target.faction == "enemy" and target.skills:
-        skill = target.skills[0]
-        if skill not in game.skill_pool:
-          game.floor.spawn_elem(Soul(skill), target.cell)
+      if target.faction == "enemy" and type(target).skill:
+        game.monster_kills[type(target)] = game.monster_kills[type(target)] + 1 if type(target) in game.monster_kills else 0
+        if target.rare:
+          skill = type(target).skill
+          if skill not in game.skill_pool:
+            game.floor.spawn_elem(Soul(skill), target.cell)
       target.hp = 0
       target.dead = True
       target.ailment = None

@@ -79,6 +79,8 @@ sprite_paths = {
   "icon_heartplus": "icon-heartplus.png",
   "icon_stairs": "icon-stairs.png",
   "icon_potion": "icon-potion.png",
+  "icon_antidote": "icon-antidote.png",
+  "icon_elixir": "icon-elixir.png",
   "icon_bread": "icon-bread.png",
   "icon_fish": "icon-fish.png",
   "icon_cheese": "icon-cheese.png",
