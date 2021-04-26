@@ -13,7 +13,10 @@ class GameContext(Context):
     ctx.child = DungeonContext(parent=ctx)
 
   def goto_town(ctx):
-    ctx.child = TownContext(parent=ctx)
+    if ctx.child:
+      ctx.child = TownContext(parent=ctx, returning=True)
+    else:
+      ctx.child = TownContext(parent=ctx)
 
   def dissolve(ctx, on_clear, on_end=None):
     ctx.transits.append(DissolveIn(config.WINDOW_SIZE, on_clear))

@@ -91,6 +91,7 @@ sprite_paths = {
   "skill": "skill",
   "box": "box",
   "hud": "hud",
+  "hud_town": "hud-town",
   "belt": "item-belt",
   "item_text": "item-text",
   "item_tiles": "item-tiles",
