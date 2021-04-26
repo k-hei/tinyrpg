@@ -10,7 +10,6 @@ RIPPLE_EXTENT = RIPPLE_END - RIPPLE_START
 RIPPLE_AMP = 6
 
 class Genie(Actor):
-
   def __init__(genie):
     super().__init__()
     genie.renders = 0

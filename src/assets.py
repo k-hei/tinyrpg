@@ -29,6 +29,7 @@ sprite_paths = {
   "mage_walkdown": "mage-walkdown",
   "mage_flinch": "mage-flinch",
   "genie": "genie",
+  "bubble_talk": "bubble-talk",
   "floor": "floor",
   "pit": "pit",
   "chest": "chest",

@@ -141,9 +141,11 @@ class TownContext(Context):
     assets = use_assets()
     sprite_bg = assets.sprites["town_" + town.area]
     sprite_tower = assets.sprites["tower"]
+    sprite_talkbubble = assets.sprites["bubble_talk"]
     surface.blit(sprite_bg, (0, 0))
     if town.area_change:
       town.ally.move(town.area_change)
+    bubbles = []
     for actor in town.actors:
       sprite = actor.render()
       sprite = stroke(sprite, palette.WHITE)
@@ -153,9 +155,14 @@ class TownContext(Context):
         y -= config.TILE_SIZE // 4
       if type(actor) is Genie:
         y -= config.TILE_SIZE // 2 + round(town.genie_anim.update() * 2)
+        if abs(actor.x - town.hero.x) < config.TILE_SIZE:
+          bubbles.append((sprite_talkbubble, (x + config.TILE_SIZE * 0.75, y - config.TILE_SIZE // 3)))
       surface.blit(sprite, (x, y))
     if town.area == "outskirts":
       surface.blit(sprite_tower, (TOWER_X, ACTOR_Y - 16))
     if town.child:
       town.child.draw(surface)
+    else:
+      for sprite, pos in bubbles:
+        surface.blit(sprite, pos)
     town.hud.draw(surface, town)
