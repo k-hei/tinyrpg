@@ -7,7 +7,7 @@ from anims.flicker import FlickerAnim
 import pygame
 
 class Mage(Actor):
-  def __init__(mage, skills):
+  def __init__(mage, skills=[]):
     super().__init__(
       name="Mage",
       faction="player",

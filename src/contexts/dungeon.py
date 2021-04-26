@@ -42,19 +42,6 @@ from actors.npc import NPC
 from props.chest import Chest
 from props.soul import Soul
 
-from skills.blitzritter import Blitzritter
-from skills.shieldbash import ShieldBash
-from skills.counter import Counter
-from skills.sana import Sana
-from skills.ignis import Ignis
-from skills.glacio import Glacio
-from skills.vortex import Vortex
-from skills.somnus import Somnus
-from skills.exoculo import Exoculo
-from skills.virus import Virus
-from skills.detectmana import DetectMana
-from skills.hpup import HpUp
-
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
@@ -79,6 +66,13 @@ class DungeonContext(Context):
 
   def __init__(game, parent):
     super().__init__(parent)
+    game.hero = parent.hero
+    game.ally = parent.ally
+    game.new_skills = parent.new_skills
+    game.skill_pool = parent.skill_pool
+    game.skill_builds = parent.skill_builds
+    game.monster_kills = parent.monster_kills
+    game.skill_selected = { game.hero: None, game.ally: None }
     game.room = None
     game.floor = None
     game.floors = []
@@ -93,27 +87,6 @@ class DungeonContext(Context):
     game.sp_meter = SpMeter()
     game.minimap = Minimap(parent=game)
     game.previews = Previews()
-    game.hero = Knight(skills=[])
-    game.ally = Mage(skills=[])
-    game.skill_pool = [
-      Blitzritter,
-      Counter,
-      Somnus,
-      DetectMana
-    ]
-    game.new_skills = []
-    game.skill_selected = { game.hero: None, game.ally: None }
-    game.skill_builds = {
-      game.hero: [
-        (Blitzritter, (0, 0)),
-        (Counter, (1, 2))
-      ],
-      game.ally: [
-        (Somnus, (0, 0)),
-        (DetectMana, (1, 0))
-      ]
-    }
-    game.monster_kills = {}
     game.update_skills()
     game.create_floor()
 
@@ -149,10 +122,15 @@ class DungeonContext(Context):
     elif floor.find_tile(Stage.DOOR_HIDDEN):
       game.log.print("This floor seems to hold many secrets.")
 
-    floor.spawn_elem(game.hero, floor.entrance)
-    if not game.ally.dead:
+    hero = game.hero
+    ally = game.ally
+    floor.spawn_elem(hero, floor.entrance)
+    hero.facing = (1, 0)
+    if not ally.dead:
       x, y = floor.entrance
-      floor.spawn_elem(game.ally, (x - 1, y))
+      floor.spawn_elem(ally, (x - 1, y))
+      ally.facing = (1, 0)
+
 
     game.floor = floor
     game.floors.append(game.floor)
@@ -926,7 +904,7 @@ class DungeonContext(Context):
     game.hud.exit()
     game.sp_meter.exit()
     game.minimap.exit()
-    game.parent.dissolve(on_clear=game.parent.goto_town)
+    game.parent.dissolve(on_clear=lambda: game.parent.goto_town(returning=True))
 
   def draw(game, surface):
     assets = load_assets()

@@ -7,7 +7,7 @@ from anims.flicker import FlickerAnim
 import pygame
 
 class Knight(Actor):
-  def __init__(knight, skills):
+  def __init__(knight, skills=[]):
     super().__init__(
       name="Knight",
       faction="player",
