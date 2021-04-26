@@ -16,7 +16,7 @@ pygame.display.init()
 pygame.display.set_caption(WINDOW_TITLE)
 display = None
 window_size_scaled = None
-game_ctx = None
+game = None
 
 def resize(new_scale):
   if new_scale < 1 or new_scale > config.SCALE_MAX:
@@ -38,8 +38,9 @@ def toggle_fullscreen():
     display = pygame.display.set_mode(window_size_scaled)
 
 def new_game():
-  global game_ctx
-  game_ctx = GameContext()
+  global game
+  game = GameContext()
+  game.goto_dungeon()
 
 resize(window_scale)
 new_game()
@@ -63,14 +64,14 @@ def handle_keydown(key):
   elif key == pygame.K_r and ctrl and tapping:
     new_game()
   else:
-    game_ctx.handle_keydown(key)
+    game.handle_keydown(key)
 
 def handle_keyup(key):
   keyboard.handle_keyup(key)
-  game_ctx.handle_keyup(key)
+  game.handle_keyup(key)
 
 def render():
-  game_ctx.draw(surface)
+  game.draw(surface)
   display.blit(pygame.transform.scale(surface, window_size_scaled), (0, 0))
   pygame.display.flip()
 

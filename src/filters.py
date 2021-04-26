@@ -26,7 +26,7 @@ def replace_color(surface, old_color, new_color):
   return surface
 
 def outline(surface, color):
-  (width, height) = surface.get_size()
+  width, height = surface.get_size()
   new_surface = Surface((width + 2, height + 2))
   new_surface.fill(COLOR_KEY)
   recolored_surface = recolor(surface, color)
@@ -39,8 +39,21 @@ def outline(surface, color):
   new_surface.set_colorkey(COLOR_KEY)
   return new_surface
 
+def stroke(surface, color):
+  width, height = surface.get_size()
+  new_surface = Surface((width + 2, height + 2))
+  new_surface.fill(COLOR_KEY)
+  recolored_surface = recolor(surface, color)
+  new_surface.blit(recolored_surface, (0, 1))
+  new_surface.blit(recolored_surface, (1, 0))
+  new_surface.blit(recolored_surface, (2, 1))
+  new_surface.blit(recolored_surface, (1, 2))
+  new_surface.blit(surface, (1, 1))
+  new_surface.set_colorkey(COLOR_KEY)
+  return new_surface
+
 def shadow(surface, color):
-  (width, height) = surface.get_size()
+  width, height = surface.get_size()
   new_surface = Surface((width + 1, height + 1))
   new_surface.fill(COLOR_KEY)
   new_surface.set_colorkey(COLOR_KEY)

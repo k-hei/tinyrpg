@@ -578,7 +578,7 @@ class DungeonContext(Context):
     if game.floor.get_tile_at(game.hero.cell) is not Stage.STAIRS_DOWN:
       return game.log.print("There's nowhere to go down here!")
     if game.floors.index(game.floor) == 0:
-      return game.log.print("You aren't ready to go back yet.")
+      return game.leave_dungeon()
     game.descend()
 
   def handle_floorchange(game, direction):
@@ -920,6 +920,13 @@ class DungeonContext(Context):
       game.log.print("You go back upstairs." if direction == 1 else "You go back downstairs.")
 
     return True
+
+  def leave_dungeon(game):
+    game.log.exit()
+    game.hud.exit()
+    game.sp_meter.exit()
+    game.minimap.exit()
+    game.parent.dissolve(on_clear=game.parent.goto_town)
 
   def draw(game, surface):
     assets = load_assets()
