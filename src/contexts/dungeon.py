@@ -79,8 +79,6 @@ class DungeonContext(Context):
 
   def __init__(game, parent):
     super().__init__(parent)
-    game.sp_max = 40
-    game.sp = game.sp_max
     game.room = None
     game.floor = None
     game.floors = []
@@ -441,12 +439,12 @@ class DungeonContext(Context):
       if not is_waking_up:
         end_move()
 
-      if game.sp:
+      if game.parent.sp:
         if not hero.dead and not hero.ailment == "sleep":
           hero.regen()
         if not ally.dead and not ally.ailment == "sleep":
           ally.regen()
-      game.sp = max(0, game.sp - 1 / 100)
+      game.parent.sp = max(0, game.parent.sp - 1 / 100)
 
     moved = game.move(hero, delta, run, on_move)
     if moved:
@@ -487,7 +485,7 @@ class DungeonContext(Context):
             game.refresh_fov()
           )
         )
-        game.sp = max(0, game.sp - 1)
+        game.parent.sp = max(0, game.parent.sp - 1)
         acted = True
     else:
       game.anims.append([
@@ -849,10 +847,10 @@ class DungeonContext(Context):
   def use_skill(game, actor, skill):
     camera = game.camera
     if actor.faction == "player":
-      if game.sp >= skill.cost:
-        game.sp -= skill.cost
-        if game.sp < 1:
-          game.sp = 0
+      if game.parent.sp >= skill.cost:
+        game.parent.sp -= skill.cost
+        if game.parent.sp < 1:
+          game.parent.sp = 0
     game.log.print(actor.name.upper() + " uses " + skill.name)
     target_cell = skill.effect(actor, game, on_end=lambda: (
       camera.blur(),
@@ -962,6 +960,6 @@ class DungeonContext(Context):
       game.child.draw(surface)
 
     game.hud.draw(surface, game)
-    game.sp_meter.draw(surface, game)
+    game.sp_meter.draw(surface, game.parent)
     game.previews.draw(surface, game)
     game.minimap.draw(surface)

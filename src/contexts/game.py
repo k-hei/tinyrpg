@@ -13,6 +13,8 @@ class GameContext(Context):
     super().__init__()
     ctx.transits = [DissolveOut(config.WINDOW_SIZE)]
     ctx.inventory = Inventory((2, 4), [Potion(), Emerald()])
+    ctx.sp_max = 50
+    ctx.sp = ctx.sp_max
 
   def reset(ctx):
     if type(ctx.child) is DungeonContext:

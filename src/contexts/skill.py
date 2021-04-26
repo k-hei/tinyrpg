@@ -107,7 +107,7 @@ class SkillContext(Context):
     skill = game.skill_selected[hero]
     if skill is None:
       return
-    if skill.cost > game.sp:
+    if skill.cost > game.parent.sp:
       ctx.bar.print("You don't have enough SP!")
     else:
       ctx.exit(skill)
