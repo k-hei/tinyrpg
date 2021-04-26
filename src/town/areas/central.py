@@ -6,7 +6,10 @@ import config
 
 class CentralArea(Area):
   def __init__(area):
-    genie = Genie(name="Doshin", message=("Hail, traveler!", "How fares the exploration?"))
+    genie = Genie(name="Doshin", message=(
+      "Hail, traveler!",
+      "How fares the exploration? Remember to pace yourself!"
+    ))
     genie.x = 112
     genie.facing = 1
     area.actors = [genie]

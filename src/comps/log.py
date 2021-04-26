@@ -14,7 +14,7 @@ class Log:
   ROW_COUNT = 2
   SCROLL_SPEED = 1
   PADDING_X = 12
-  PADDING_Y = 22
+  PADDING_Y = 13
   MARGIN_LEFT = 12
   MARGIN_BOTTOM = 8
   ENTER_DURATION = 15
@@ -62,7 +62,7 @@ class Log:
         duration=Log.EXIT_DURATION,
         on_end=lambda: (
           log.reset(),
-          on_end()
+          on_end and on_end()
         )
       )
 
@@ -78,6 +78,12 @@ class Log:
 
   def reset(log):
     log.clear()
+
+  def skip(log):
+    if log.anim:
+      return
+    while not log.clean:
+      log.render()
 
   def render(log):
     assets = use_assets()

@@ -30,7 +30,7 @@ class DialogueContext(Context):
 
   def handle_next(ctx):
     if not ctx.log.clean:
-      return
+      return ctx.log.skip()
     ctx.index += 1
     if ctx.index == len(ctx.script):
       ctx.log.exit(on_end=ctx.close)
