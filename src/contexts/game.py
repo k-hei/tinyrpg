@@ -14,6 +14,12 @@ class GameContext(Context):
     ctx.transits = [DissolveOut(config.WINDOW_SIZE)]
     ctx.inventory = Inventory((2, 4), [Potion(), Emerald()])
 
+  def reset(ctx):
+    if type(ctx.child) is DungeonContext:
+      ctx.goto_dungeon()
+    elif type(ctx.child) is TownContext:
+      ctx.goto_town()
+
   def goto_dungeon(ctx):
     ctx.child = DungeonContext(parent=ctx)
 
