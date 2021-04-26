@@ -22,7 +22,7 @@ ENTER_DURATION = 8
 ENTER_STAGGER = 3
 EXIT_DURATION = 6
 EXIT_STAGGER = 3
-DURATION_ENTERBELT = 15
+DURATION_BELTENTER = 15
 
 class InventoryContext(Context):
   def __init__(ctx, parent, inventory, on_close=None):
@@ -42,14 +42,22 @@ class InventoryContext(Context):
 
   def enter(ctx, on_end=None):
     ctx.bar.enter()
-    ctx.anims.append(TweenAnim(duration=DURATION_ENTERBELT, target="belt"))
+    ctx.anims.append(TweenAnim(duration=DURATION_BELTENTER, target="belt"))
+
+    for i, char in enumerate("item"):
+      ctx.anims.append(TweenAnim(
+        duration=9,
+        delay=4 * (i + 1),
+        target=char
+      ))
+
     cols, rows = ctx.grid_size
     for row in range(rows):
       for col in range(cols):
         index = col * rows + row
         ctx.anims.append(TweenAnim(
           duration=ENTER_DURATION,
-          delay=ENTER_STAGGER * index + DURATION_ENTERBELT // 2,
+          delay=ENTER_STAGGER * index,
           target=(col, row)
         ))
 
@@ -201,10 +209,18 @@ class InventoryContext(Context):
       Hud.MARGIN_TOP + sprite_circle.get_height() // 2
     ))
 
+    start_x = -16
+    target_x = Hud.MARGIN_LEFT
     y = Hud.MARGIN_TOP + sprite_circle.get_height() + 2
     for i, char in enumerate("item"):
       sprite_char = assets.sprites["item_" + char]
-      surface.blit(sprite_char, (Hud.MARGIN_LEFT, y))
+      anim = next((a for a in ctx.anims if a.target == char), None)
+      if anim:
+        t = ease_out(anim.pos)
+        x = lerp(start_x, target_x, t)
+      else:
+        x = target_x
+      surface.blit(sprite_char, (x, y))
       y += sprite_char.get_height() + 2
 
     cols, rows = ctx.grid_size
@@ -221,12 +237,7 @@ class InventoryContext(Context):
           sprite = sprite_tile
         anim = next((a for a in ctx.anims if a.target == cell), None)
         if anim:
-          t = ease_out(anim.pos)
-          start_height = 0
-          target_height = sprite.get_height()
-          width = sprite.get_width()
-          height = lerp(start_height, target_height, t)
-          sprite = pygame.transform.scale(sprite, (int(width), int(height)))
+          continue
         x = cells_x + tile_width * col + tile_width // 2 - sprite.get_width() // 2
         y = cells_y + tile_height * row + tile_height // 2 - sprite.get_height() // 2
         surface.blit(sprite, (x, y))
