@@ -8,7 +8,7 @@ import keyboard
 from contexts.game import GameContext
 
 WINDOW_TITLE = "tinyrpg"
-WINDOW_SIZE = (config.window_width, config.window_height)
+WINDOW_SIZE = (config.WINDOW_WIDTH, config.WINDOW_HEIGHT)
 window_scale = config.SCALE_INIT
 fullscreen = False
 
@@ -23,8 +23,8 @@ def resize(new_scale):
     return False
   global window_scale, window_size_scaled, display
   window_scale = new_scale
-  new_width = config.window_width * new_scale
-  new_height = config.window_height * new_scale
+  new_width = config.WINDOW_WIDTH * new_scale
+  new_height = config.WINDOW_HEIGHT * new_scale
   window_size_scaled = (new_width, new_height)
   display = pygame.display.set_mode(window_size_scaled)
   return True
@@ -40,13 +40,13 @@ def toggle_fullscreen():
 def new_game():
   global game
   game = GameContext()
-  game.goto_dungeon()
+  game.goto_town()
 
 resize(window_scale)
 new_game()
 
 surface = Surface(WINDOW_SIZE)
-pygame.key.set_repeat(1000 // config.fps)
+pygame.key.set_repeat(1000 // config.FPS)
 assets.load()
 keyboard.init()
 
@@ -78,7 +78,7 @@ def render():
 done = False
 clock = pygame.time.Clock()
 while not done:
-  ms = clock.tick(config.fps)
+  ms = clock.tick(config.FPS)
   keyboard.update()
   for event in pygame.event.get():
     if event.type == pygame.QUIT:

@@ -12,15 +12,16 @@ import palette
 import config
 
 TOWER_X = 224
-SPAWN_X = TOWER_X - config.TILE_SIZE // 2
 ACTOR_Y = 128
+SPAWN_X = 32 # TOWER_X - config.TILE_SIZE // 2
+SPAWN_FACING = 1
 
 class TownContext(Context):
   def __init__(town, parent):
     super().__init__(parent)
     knight = Knight()
     knight.x = SPAWN_X
-    knight.facing = -1
+    knight.facing = SPAWN_FACING
     town.hero = knight
     town.actors = [knight]
     town.area = "outskirts"

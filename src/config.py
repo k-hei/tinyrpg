@@ -1,8 +1,8 @@
-fps = 60
+FPS = 60
 TILE_SIZE = 32
-window_width = 256
-window_height = 224
-window_size = (window_width, window_height)
+WINDOW_WIDTH = 256
+WINDOW_HEIGHT = 224
+WINDOW_SIZE = (WINDOW_WIDTH, WINDOW_HEIGHT)
 SCALE_INIT = 2
 SCALE_MAX = 6
 TOP_FLOOR = 5

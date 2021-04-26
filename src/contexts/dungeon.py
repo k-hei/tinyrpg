@@ -93,7 +93,7 @@ class DungeonContext(Context):
     game.numbers = []
     game.key_requires_reset = {}
     game.log = Log()
-    game.camera = Camera(config.window_size)
+    game.camera = Camera(config.WINDOW_SIZE)
     game.hud = Hud()
     game.sp_meter = SpMeter()
     game.minimap = Minimap(parent=game)
