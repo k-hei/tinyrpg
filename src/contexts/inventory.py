@@ -19,9 +19,10 @@ from lerp import lerp
 SPACING = 4
 MARGIN = 8
 ENTER_DURATION = 8
-ENTER_STAGGER = 4
+ENTER_STAGGER = 3
 EXIT_DURATION = 6
 EXIT_STAGGER = 3
+DURATION_ENTERBELT = 15
 
 class InventoryContext(Context):
   def __init__(ctx, parent, inventory, on_close=None):
@@ -40,8 +41,17 @@ class InventoryContext(Context):
     ctx.enter()
 
   def enter(ctx, on_end=None):
-    # ctx.animate(active=True, on_end=on_end)
     ctx.bar.enter()
+    ctx.anims.append(TweenAnim(duration=DURATION_ENTERBELT, target="belt"))
+    cols, rows = ctx.grid_size
+    for row in range(rows):
+      for col in range(cols):
+        index = col * rows + row
+        ctx.anims.append(TweenAnim(
+          duration=ENTER_DURATION,
+          delay=ENTER_STAGGER * index + DURATION_ENTERBELT // 2,
+          target=(col, row)
+        ))
 
   def exit(ctx):
     # ctx.animate(active=False, on_end=ctx.close)
@@ -163,21 +173,39 @@ class InventoryContext(Context):
     sprite_belt = assets.sprites["belt"]
     sprite_hand = assets.sprites["hand"]
     sprite_circle = assets.sprites["circle_knight"]
-    sprite_text = assets.sprites["item_text"]
     sprite_tile = assets.sprites["item_tile"]
     sprite_tileleft = assets.sprites["item_tile_left"]
     sprite_tileright = assets.sprites["item_tile_right"]
     tile_width = sprite_tile.get_width()
     tile_height = sprite_tile.get_height()
 
+    for anim in ctx.anims:
+      anim.update()
+      if anim.done:
+        ctx.anims.remove(anim)
+
+    anim_belt = next((a for a in ctx.anims if a.target == "belt"), None)
+    if anim_belt:
+      t = ease_out(anim_belt.pos)
+      start_height = 0
+      end_height = sprite_belt.get_height()
+      belt_width = sprite_belt.get_width()
+      belt_height = lerp(start_height, end_height, t)
+      sprite_belt = sprite_belt.subsurface(Rect(
+        (0, end_height - belt_height),
+        (belt_width, belt_height)
+      ))
+
     surface.blit(sprite_belt, (
       Hud.MARGIN_LEFT,
       Hud.MARGIN_TOP + sprite_circle.get_height() // 2
     ))
-    surface.blit(sprite_text, (
-      Hud.MARGIN_LEFT,
-      Hud.MARGIN_TOP + sprite_circle.get_height() - 2
-    ))
+
+    y = Hud.MARGIN_TOP + sprite_circle.get_height() + 2
+    for i, char in enumerate("item"):
+      sprite_char = assets.sprites["item_" + char]
+      surface.blit(sprite_char, (Hud.MARGIN_LEFT, y))
+      y += sprite_char.get_height() + 2
 
     cols, rows = ctx.grid_size
     cells_x = Hud.MARGIN_LEFT + sprite_belt.get_width() - 2
@@ -185,29 +213,48 @@ class InventoryContext(Context):
     for row in range(rows):
       for col in range(cols):
         cell = (col, row)
-        item = ctx.get_item_at(cell)
         if col == 0:
           sprite = sprite_tileleft
         elif col == cols - 1:
           sprite = sprite_tileright
         else:
           sprite = sprite_tile
-        x = cells_x + tile_width * col
-        y = cells_y + tile_height * row
+        anim = next((a for a in ctx.anims if a.target == cell), None)
+        if anim:
+          t = ease_out(anim.pos)
+          start_height = 0
+          target_height = sprite.get_height()
+          width = sprite.get_width()
+          height = lerp(start_height, target_height, t)
+          sprite = pygame.transform.scale(sprite, (int(width), int(height)))
+        x = cells_x + tile_width * col + tile_width // 2 - sprite.get_width() // 2
+        y = cells_y + tile_height * row + tile_height // 2 - sprite.get_height() // 2
         surface.blit(sprite, (x, y))
-        if item:
+        item = ctx.get_item_at(cell)
+        if item and not anim:
           surface.blit(item.render(), (x, y))
 
-    cursor_col, cursor_row = ctx.cursor
-    cursor_color = palette.BLUE if ctx.cursor_anim.time % 2 or type(ctx.child) is ChoiceContext else palette.WHITE
-    cursor_x = cells_x + tile_width * cursor_col
-    cursor_y = cells_y + tile_height * cursor_row
-    pygame.draw.rect(surface, cursor_color, Rect(cursor_x, cursor_y, tile_width, tile_height), width=1)
+    if not ctx.anims:
+      cursor_col, cursor_row = ctx.cursor
+      cursor_color = palette.BLUE if ctx.cursor_anim.time % 2 or type(ctx.child) is ChoiceContext else palette.WHITE
+      cursor_x = cells_x + tile_width * cursor_col
+      cursor_y = cells_y + tile_height * cursor_row
+      pygame.draw.rect(surface, cursor_color, Rect(cursor_x, cursor_y, tile_width, tile_height), width=1)
 
     if type(ctx.child) is ChoiceContext:
-      x = cells_x + tile_width * cols + 4
+      start_x = cursor_x
+      target_x = cursor_x + tile_width + 4
+      if ctx.child.anims:
+        t = ctx.child.anims[0].pos
+        if not ctx.child.exiting:
+          t = ease_out(t)
+        else:
+          t = 1 - t
+        x = lerp(start_x, target_x, t)
+      else:
+        x = target_x
       y = cells_y
       surface.blit(ctx.child.render(), (x, y))
-    else:
+    elif not ctx.anims:
       hand_x = cursor_x + tile_width - 3 + ctx.cursor_anim.update() * 2
       surface.blit(sprite_hand, (hand_x, cursor_y))
