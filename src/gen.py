@@ -22,6 +22,7 @@ from items.cheese import Cheese
 from items.bread import Bread
 from items.fish import Fish
 from items.antidote import Antidote
+from items.balloon import Balloon
 from items.emerald import Emerald
 
 from skills.shieldbash import ShieldBash
@@ -572,7 +573,7 @@ def dungeon(size, floor=1):
           enemy = Mimic()
           stage.spawn_elem(enemy, cell)
         else:
-          item = random.choice((Potion, Elixir, Ankh, Cheese, Bread, Fish, Antidote, Emerald))()
+          item = random.choice((Potion, Elixir, Ankh, Cheese, Bread, Fish, Antidote, Balloon, Emerald))()
           stage.spawn_elem(Chest(item), cell)
       elif kind == "MonsterDen" and random.randint(1, 2) == 1:
         enemy = gen_enemy(10)
@@ -585,17 +586,6 @@ def dungeon(size, floor=1):
       stage.set_tile_at(door, Stage.FLOOR)
 
   entrance_x, entrance_y = stage.entrance
-
-  # mushroom = Mushroom()
-  # stage.spawn_elem(mushroom, (entrance_x + 0, entrance_y - 4))
-
-  # eye = Eye()
-  # stage.spawn_elem(eye, (entrance_x + 0, entrance_y - 3))
-
-  # stage.spawn_elem(Soul(ShieldBash), (entrance_x - 1, entrance_y - 3))
-  # stage.spawn_elem(Soul(Ignis), (entrance_x + 0, entrance_y - 3))
-  # stage.spawn_elem(Soul(Sana), (entrance_x - 1, entrance_y - 2))
-  # stage.spawn_elem(Soul(Exoculo), (entrance_x + 0, entrance_y - 2))
 
   stage.rooms = rooms
   return stage
@@ -610,8 +600,8 @@ def gen_enemy(floor):
 
 def gen_item():
   return random.choices(
-    (Potion, Elixir, Ankh, Cheese, Bread, Fish, Antidote, Emerald),
-    (     3,      1,    1,      4,     3,    1,        3,       1)
+    (Potion, Ankh, Cheese, Bread, Fish, Antidote, Emerald),
+    (     3,    1,      4,     3,    1,        3,       1)
   )[0]()
 
 def gen_rooms(slots):

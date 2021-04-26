@@ -56,8 +56,7 @@ from skills.detectmana import DetectMana
 from skills.hpup import HpUp
 
 from items.potion import Potion
-from items.antidote import Antidote
-from items.elixir import Elixir
+from items.balloon import Balloon
 
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
@@ -80,7 +79,6 @@ class DungeonContext(Context):
   PAUSE_DEATH_DURATION = 45
   AWAKEN_DURATION = 45
   VISION_RANGE = 3.5
-  TOP_FLOOR = 5
 
   def __init__(game, parent):
     super().__init__(parent)
@@ -99,7 +97,7 @@ class DungeonContext(Context):
     game.hud = Hud()
     game.sp_meter = SpMeter()
     game.minimap = Minimap(parent=game)
-    game.inventory = Inventory((3, 3), [Potion(), Antidote(), Elixir()])
+    game.inventory = Inventory((3, 3), [Potion(), Balloon()])
     game.previews = Previews()
     game.hero = Knight(skills=[])
     game.ally = Mage(skills=[])
@@ -125,11 +123,14 @@ class DungeonContext(Context):
     game.update_skills()
     game.create_floor()
 
+  def get_floor_no(game):
+    return len(game.floors) + 1
+
   def create_floor(game):
-    floor_no = len(game.floors) + 1
+    floor_no = game.get_floor_no()
     if floor_no == 1:
       floor = gen.debug_gen()
-    elif floor_no == DungeonContext.TOP_FLOOR:
+    elif floor_no == config.TOP_FLOOR:
       floor = gen.top_floor()
     elif floor_no == 3:
       floor = gen.giant_room((19, 19))
@@ -147,7 +148,7 @@ class DungeonContext(Context):
           enemy.promote()
           promoted = True
 
-    if floor_no == DungeonContext.TOP_FLOOR:
+    if floor_no == config.TOP_FLOOR:
       game.log.print("The air feels different up here.")
     elif promoted:
       game.log.print("You feel a powerful presence on this floor...")
@@ -571,14 +572,14 @@ class DungeonContext(Context):
   def handle_ascend(game):
     if game.floor.get_tile_at(game.hero.cell) is not Stage.STAIRS_UP:
       return game.log.print("There's nowhere to go up here!")
-    game.handle_floorchange(1)
+    game.ascend()
 
   def handle_descend(game):
     if game.floor.get_tile_at(game.hero.cell) is not Stage.STAIRS_DOWN:
       return game.log.print("There's nowhere to go down here!")
     if game.floors.index(game.floor) == 0:
       return game.log.print("You aren't ready to go back yet.")
-    game.handle_floorchange(-1)
+    game.descend()
 
   def handle_floorchange(game, direction):
     game.log.exit()
@@ -885,15 +886,17 @@ class DungeonContext(Context):
     skill = active_skills[0] if active_skills else None
     game.skill_selected[char] = skill
 
+  def ascend(game):
+    game.handle_floorchange(1)
+
+  def descend(game):
+    game.handle_floorchange(-1)
+
   def change_floors(game, direction):
     exit_tile = Stage.STAIRS_UP if direction == 1 else Stage.STAIRS_DOWN
     entry_tile = Stage.STAIRS_DOWN if direction == 1 else Stage.STAIRS_UP
 
     if direction not in (1, -1):
-      return False
-
-    target_tile = game.floor.get_tile_at(game.hero.cell)
-    if target_tile is not exit_tile:
       return False
 
     old_floor = game.floor
@@ -914,7 +917,7 @@ class DungeonContext(Context):
         new_floor.spawn_elem(game.ally, (stairs_x - 1, stairs_y))
       game.floor = new_floor
       game.refresh_fov(moving=True)
-      game.log.print("You go upstairs." if direction == 1 else "You go back downstairs.")
+      game.log.print("You go back upstairs." if direction == 1 else "You go back downstairs.")
 
     return True
 
