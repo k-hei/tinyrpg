@@ -6,13 +6,13 @@ from transits.dissolve import DissolveIn, DissolveOut
 
 from inventory import Inventory
 from items.potion import Potion
-from items.balloon import Balloon
+from items.emerald import Emerald
 
 class GameContext(Context):
   def __init__(ctx):
     super().__init__()
     ctx.transits = [DissolveOut(config.WINDOW_SIZE)]
-    ctx.inventory = Inventory((2, 4), [Potion(), Balloon()])
+    ctx.inventory = Inventory((2, 4), [Potion(), Emerald()])
 
   def goto_dungeon(ctx):
     ctx.child = DungeonContext(parent=ctx)
