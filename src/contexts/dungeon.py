@@ -97,7 +97,7 @@ class DungeonContext(Context):
     game.hud = Hud()
     game.sp_meter = SpMeter()
     game.minimap = Minimap(parent=game)
-    game.inventory = Inventory((3, 3), [Potion(), Balloon()])
+    game.inventory = Inventory((2, 4), [Potion(), Balloon()])
     game.previews = Previews()
     game.hero = Knight(skills=[])
     game.ally = Mage(skills=[])

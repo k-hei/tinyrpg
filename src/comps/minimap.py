@@ -107,17 +107,17 @@ class Minimap:
       elem = game.floor.get_elem_at(cell)
       color = None
       if type(elem) is Knight or type(elem) is Mage and cell in visible_cells:
-        color = 0x337FFF
+        color = 0x3399FF if minimap.time % 60 >= 30 else 0x0066CC
       elif type(elem) is Mimic and cell in visible_cells:
         if elem.idle:
           color = 0xFFFF00 if minimap.time % 60 >= 30 else 0x7F7F00
         else:
-          color = 0xFF0000
+          color = 0xFF0000 if minimap.time % 60 >= 30 else 0x990000
       elif isinstance(elem, Actor) and elem.faction == "enemy" and cell in visible_cells:
         if elem.ailment == "sleep":
-          color = 0xFF00FF
+          color = 0xCC0000
         else:
-          color = 0xFF0000
+          color = 0xFF0000 if minimap.time % 60 >= 30 else 0x990000
       elif type(elem) is Chest:
         if elem.opened:
           color = 0x7F7F00

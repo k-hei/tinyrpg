@@ -16,8 +16,6 @@ from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in
 from lerp import lerp
 
-MARGIN_LEFT = 8
-MARGIN_TOP = 8
 CIRC16_X = 28
 CIRC16_Y = 26
 HP_X = 31
@@ -42,24 +40,23 @@ SWITCHIN_DURATION = 12
 class EnterAnim(TweenAnim):
   def __init__(anim):
     super().__init__(duration=ENTER_DURATION)
-
 class ExitAnim(TweenAnim):
   def __init__(anim):
     super().__init__(duration=EXIT_DURATION)
-
 class FlinchAnim(Anim):
   def __init__(anim):
     super().__init__(duration=FLINCH_DURATION)
-
 class SwitchOutAnim(TweenAnim):
   def __init__(anim):
     super().__init__(duration=SWITCHOUT_DURATION)
-
 class SwitchInAnim(TweenAnim):
   def __init__(anim):
     super().__init__(duration=SWITCHIN_DURATION)
 
 class Hud:
+  MARGIN_LEFT = 8
+  MARGIN_TOP = 8
+
   def __init__(panel):
     panel.sprite = None
     panel.active = True
@@ -211,8 +208,8 @@ class Hud:
   def draw(panel, surface, ctx):
     panel.update(ctx.hero, ctx.ally)
     sprite = panel.sprite
-    hidden_x, hidden_y = MARGIN_LEFT, -sprite.get_height()
-    corner_x, corner_y = MARGIN_LEFT, MARGIN_TOP
+    hidden_x, hidden_y = Hud.MARGIN_LEFT, -sprite.get_height()
+    corner_x, corner_y = Hud.MARGIN_LEFT, Hud.MARGIN_TOP
     anim = panel.anims[0] if panel.anims else None
     if anim:
       t = anim.update()
