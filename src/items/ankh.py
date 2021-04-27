@@ -21,7 +21,7 @@ class Ankh:
     ]
     neighbor = next((n for n in neighbors if floor.is_cell_empty(n)), None)
     if neighbor is None:
-      return (False, "There's nowhere for " + ally.name.upper() + " to spawn...")
+      return (False, "There's nowhere for " + ally.name.upper() + " to spawn!")
 
     ally.set_hp(ally.get_hp_max() // 2)
     ally.dead = False

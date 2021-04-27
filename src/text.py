@@ -20,6 +20,16 @@ class Font:
   order: str
   exceptions: Dict[str, str]
 
+class Ttf:
+  def __init__(ttf, font):
+    ttf.font = font
+
+  def size(ttf, text=""):
+    return ttf.font.size(text)
+
+  def render(ttf, text, color=(0xFF, 0xFF, 0xFF)):
+    return ttf.font.render(text, False, color)
+
 def find_width(content: str, font: Font) -> int:
   text_width = 0
   for char in content:

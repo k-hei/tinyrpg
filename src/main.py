@@ -12,7 +12,7 @@ WINDOW_SIZE = (config.WINDOW_WIDTH, config.WINDOW_HEIGHT)
 window_scale = config.SCALE_INIT
 fullscreen = False
 
-pygame.display.init()
+pygame.init()
 pygame.display.set_caption(WINDOW_TITLE)
 display = None
 window_size_scaled = None
@@ -43,12 +43,11 @@ def new_game():
   game.goto_dungeon() # town()
 
 resize(window_scale)
-new_game()
-
 surface = Surface(WINDOW_SIZE)
 pygame.key.set_repeat(1000 // config.FPS)
 assets.load()
 keyboard.init()
+new_game()
 
 def handle_keydown(key):
   keyboard.handle_keydown(key)

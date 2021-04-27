@@ -1,11 +1,25 @@
 def manhattan(a, b):
-  return abs(b[0] - a[0]) + abs(b[1] - a[1])
+  x1, y1 = a
+  x2, y2 = b
+  return abs(x2 - x1) + abs(y2 - y1)
 
 def is_adjacent(a, b):
   return manhattan(a, b) == 1
 
 def add(a, b):
-  return (a[0] + b[0], a[1] + b[1])
+  x1, y1 = a
+  x2, y2 = b
+  return (x1 + x2, y1 + y2)
 
 def is_odd(cell):
-  return cell[0] % 2 == 1 and cell[1] % 2 == 1
+  x, y = cell
+  return x % 2 == 1 and y % 2 == 1
+
+def neighbors(cell):
+  x, y = cell
+  return [
+    (x - 1, y),
+    (x, y - 1),
+    (x + 1, y),
+    (x, y + 1)
+  ]

@@ -20,7 +20,8 @@ class Log:
   ENTER_DURATION = 15
   EXIT_DURATION = 7
   HANG_DURATION = 180
-  FONT_NAME = "english"
+  FONT_NAME = "roman"
+  LINE_SPACING = 4
 
   def __init__(log, autohide=True):
     log.autohide = autohide
@@ -88,8 +89,9 @@ class Log:
   def render(log):
     assets = use_assets()
     bg = assets.sprites["log_parchment"]
-    font = assets.fonts[Log.FONT_NAME]
-    line_height = font.char_height + font.line_spacing
+    font = assets.ttf[Log.FONT_NAME]
+    _, char_height = font.size()
+    line_height = char_height + Log.LINE_SPACING
 
     if not log.clean and log.active and log.anim is None:
       target_height = (log.row + 1) * line_height
@@ -114,13 +116,13 @@ class Log:
           word = message[log.col+1:]
         else:
           word = message[log.col+1:next_space]
-        if log.cursor_x + find_text_width(word, font) > log.surface.get_width():
+        word_width, _ = font.size(word)
+        if log.cursor_x + word_width > log.surface.get_width():
           log.col += 1
           log.row += 1
           log.cursor_x = 0
           return log.render()
-      char_sprite = render_text(char, font)
-      char_sprite = recolor(char_sprite, (0, 0, 0))
+      char_sprite = font.render(char, (0, 0, 0))
       log.lines[-1].blit(char_sprite, (log.cursor_x, 0))
       for row, line in enumerate(log.lines):
         log.surface.blit(line, (0, row * line_height))

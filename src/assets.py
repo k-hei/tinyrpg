@@ -3,7 +3,7 @@ from typing import Dict
 import json
 import pygame
 from pygame import Surface, Rect
-from text import Font
+from text import Font, Ttf
 
 ASSETS_PATH = "assets/"
 
@@ -11,6 +11,7 @@ ASSETS_PATH = "assets/"
 class Assets:
   sprites: Dict[str, Surface]
   fonts: Dict[str, Font]
+  ttf: Dict[str, Ttf]
 
 assets = None
 sprite_paths = {
@@ -159,12 +160,17 @@ def load_font(font_name):
   metadata = json.loads(open(ASSETS_PATH + "fonts/" + font_name + "/metadata.json", "r").read())
   return Font(typeface, **metadata)
 
+def load_ttf(font_name):
+  font = pygame.font.Font(ASSETS_PATH + "ttf/" + font_name + ".ttf", 8)
+  return Ttf(font)
+
 def load():
   global assets
   if assets:
     return assets
   sprites = {}
   fonts = {}
+  ttf = {}
   for name, path in sprite_paths.items():
     try:
       sprite = pygame.image.load(ASSETS_PATH + path + ".png").convert_alpha()
@@ -185,4 +191,5 @@ def load():
   fonts["numbers13"] = load_font("numbers13")
   fonts["numbers16"] = load_font("numbers16")
   fonts["english"] = load_font("english")
-  assets = Assets(sprites, fonts)
+  ttf["roman"] = load_ttf("PCPaintRomanSmall")
+  assets = Assets(sprites, fonts, ttf)
