@@ -31,7 +31,8 @@ from skills.sana import Sana
 from skills.virus import Virus
 from skills.hpup import HpUp
 
-from dungeon.features.battleroom import BattleRoom
+from dungeon.features.battleroom1 import BattleRoom as BattleRoom1
+from dungeon.features.battleroom2 import BattleRoom as BattleRoom2
 
 possible_widths = (3, 5, 7)
 possible_heights = (4, 7)
@@ -280,9 +281,6 @@ def giant_room(size):
   return stage
 
 def dungeon(size, floor=1):
-  if floor == 3:
-    return giant_room(size)
-
   width, height = size
   stage = Stage((width, height))
   stage.fill(Stage.WALL)
@@ -294,18 +292,16 @@ def dungeon(size, floor=1):
   entry_room = None
   exit_room = None
   doors = []
-  if floor == 1:
-    entry_room = Room((5, 7), (width // 2 - 2, height - 8))
-    exit_room = Room((5, 4), (width // 2 - 2, height - 8 - 6))
-    doors.append((width // 2, height - 10))
-    cells = entry_room.get_cells() + exit_room.get_cells()
-    for cell in cells:
-      if cell in slots:
-        slots.remove(cell)
-
   features = []
+
   if floor == 2:
-    feature = BattleRoom()
+    feature = BattleRoom1()
+  elif floor == 4:
+    feature = BattleRoom2()
+  else:
+    feature = None
+
+  if feature:
     valid_slots = []
     padded_slots = [(x, y) for x, y in slots if (
       x > 1 and x < width - 2
@@ -500,8 +496,8 @@ def dungeon(size, floor=1):
 
   stage.entrance = entry_room.get_center()
   stage.set_tile_at(entry_room.get_center(), Stage.STAIRS_DOWN)
-  if entry_room in normal_rooms:
-    normal_rooms.remove(entry_room)
+  if entry_room in normal_rooms: normal_rooms.remove(entry_room)
+  if entry_room in dead_ends: dead_ends.remove(entry_room)
 
   if exit_room is None:
     exit_room = random.choice(normal_rooms)

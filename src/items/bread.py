@@ -6,7 +6,8 @@ class Bread:
     bread.name = "Bread"
     bread.desc = "Restores " + str(bread.sp) + " SP"
 
-  def effect(bread, game):
+  def effect(bread, ctx):
+    game = ctx.parent
     if game.sp < game.sp_max:
       game.sp = min(game.sp_max, game.sp + bread.sp)
       return (True, "The party restored " + str(bread.sp) + " SP.")

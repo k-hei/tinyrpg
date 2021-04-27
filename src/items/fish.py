@@ -6,7 +6,8 @@ class Fish:
     fish.name = "Fish"
     fish.desc = "Restores " + str(fish.sp) + " SP"
 
-  def effect(fish, game):
+  def effect(fish, ctx):
+    game = ctx.parent
     if game.sp < game.sp_max:
       game.sp = min(game.sp_max, game.sp + fish.sp)
       return (True, "The party restored " + str(fish.sp) + " SP.")

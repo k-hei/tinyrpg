@@ -95,14 +95,12 @@ class DungeonContext(Context):
 
   def create_floor(game):
     floor_no = game.get_floor_no()
-    if floor_no == 1:
-      floor = gen.debug_gen()
-    elif floor_no == config.TOP_FLOOR:
+    if floor_no == config.TOP_FLOOR:
       floor = gen.top_floor()
     elif floor_no == 3:
       floor = gen.giant_room((19, 19))
     else:
-      floor = gen.dungeon((19, 19), len(game.floors) + 1)
+      floor = gen.dungeon((27, 27), floor_no)
 
     promoted = False
     enemies = [e for e in floor.elems if isinstance(e, Actor) and e.faction == "enemy"]

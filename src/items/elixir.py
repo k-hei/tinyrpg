@@ -5,7 +5,8 @@ class Elixir:
     elixir.name = "Elixir"
     elixir.desc = "Restores full HP and SP"
 
-  def effect(potion, game):
+  def effect(elixir, ctx):
+    game = ctx.parent
     hero = game.hero
     ally = game.ally
     if hero.hp < hero.hp_max or ally.hp < ally.hp_max or game.sp < game.sp_max:
