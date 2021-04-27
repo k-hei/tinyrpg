@@ -5,7 +5,7 @@ from pygame import Surface, Rect
 from contexts import Context
 from contexts.choice import ChoiceContext
 from comps.hud import Hud
-from comps.bar import Bar
+from comps.invdesc import InventoryDescription
 from assets import load as use_assets
 from filters import replace_color
 from keyboard import key_times, ARROW_DELTAS
@@ -48,21 +48,16 @@ class InventoryContext(Context):
     ctx.on_animate = None
     ctx.cursor = (0, 0)
     ctx.cursor_anim = SineAnim(period=30)
-    ctx.desc_x = 0
-    ctx.desc_y = 0
-    ctx.desc_index = 0
-    ctx.desc_surface = None
     ctx.active = True
     ctx.anims = []
-    ctx.bar = Bar()
-    item = ctx.get_item_at(ctx.cursor)
-    ctx.select_item(item)
+    ctx.box = InventoryDescription()
+    ctx.select()
     ctx.enter()
 
   def enter(ctx, on_end=None):
-    ctx.bar.enter()
+    ctx.active = True
+    ctx.box.enter()
     ctx.anims.append(TweenAnim(duration=DURATION_BELTENTER, target="belt"))
-    ctx.anims.append(TweenAnim(duration=DURATION_DESCENTER, target="desc"))
     for i, char in enumerate("item"):
       ctx.anims.append(TweenAnim(
         duration=DURATION_CHARENTER,
@@ -81,7 +76,7 @@ class InventoryContext(Context):
 
   def exit(ctx):
     ctx.active = False
-    ctx.bar.exit()
+    ctx.box.exit()
     ctx.anims.append(TweenAnim(
       duration=DURATION_BELTEXIT,
       delay=STAGGER_BELTEXIT + STAGGER_CHAREXIT * 2,
@@ -119,17 +114,32 @@ class InventoryContext(Context):
       return None
     return inventory.items[index]
 
-  def select_item(ctx, item=None):
+  def get_selected_item(ctx):
+    return ctx.get_item_at(ctx.cursor)
+
+  def select(ctx, item=None):
     if item is None:
       item = ctx.get_item_at(ctx.cursor)
-
-    if item is None:
-      ctx.bar.print("Your pack is currently empty.")
+    if item:
+      ctx.box.print(item)
     else:
-      ctx.desc_x = 0
-      ctx.desc_y = 0
-      ctx.desc_index = 0
-      ctx.desc_surface = None
+      ctx.box.print("Your pack is empty.")
+
+  def use(ctx):
+    item = ctx.get_selected_item()
+    success, message = ctx.parent.use_item(item)
+    if not success:
+      ctx.box.print(message)
+      return False
+    else:
+      ctx.exit()
+      return True
+
+  def discard(ctx):
+    item = ctx.get_selected_item()
+    ctx.data.items.remove(item)
+    ctx.select()
+    return True
 
   def contains(ctx, cell):
     cols, rows = ctx.grid_size
@@ -163,33 +173,17 @@ class InventoryContext(Context):
     target_item = ctx.get_item_at(target_cell)
     if target_item:
       ctx.cursor = target_cell
-      ctx.select_item(target_item)
+      ctx.select(target_item)
 
   def handle_choose(ctx):
-    item = ctx.get_item_at(ctx.cursor)
-    if item:
-      def use_item():
-        success, message = ctx.parent.use_item(item)
-        if not success:
-          ctx.bar.print(message)
-          return False
-        else:
-          ctx.exit()
-          return True
-
-      def discard_item():
-        ctx.data.items.remove(item)
-        ctx.select_item()
-        return True
-
-      ctx.child = ChoiceContext(
-        parent=ctx,
-        choices=("Use", "Discard"),
-        on_choose=lambda choice: (
-          choice == "Use" and use_item() or
-          choice == "Discard" and discard_item()
-        )
+    ctx.child = ChoiceContext(
+      parent=ctx,
+      choices=("Use", "Discard"),
+      on_choose=lambda choice: (
+        choice == "Use" and ctx.use() or
+        choice == "Discard" and ctx.discard()
       )
+    )
 
   def draw(ctx, surface):
     assets = use_assets()
@@ -300,57 +294,11 @@ class InventoryContext(Context):
       pygame.draw.rect(surface, cursor_color, Rect(cursor_x, cursor_y, tile_width, tile_height), width=1)
 
     # description box
-    anim_desc = next((a for a in ctx.anims if a.target == "desc"), None)
-    if anim_desc:
-      t = anim_desc.pos
-      if ctx.active:
-        t = ease_out(t)
-      else:
-        t = 1 - t
-      start_height = 0
-      end_height = sprite_desc.get_height()
-      sprite_height = lerp(start_height, end_height, t)
-      sprite_desc = sprite_desc.subsurface(Rect(
-        (0, 0),
-        (sprite_desc.get_width(), sprite_height)
-      ))
-
-    if anim_desc or ctx.active:
+    sprite_desc = ctx.box.render()
+    if sprite_desc:
       box_x = cells_x
       box_y = cells_y + tile_height * rows
       surface.blit(sprite_desc, (box_x, box_y))
-
-    if not anim_desc and ctx.active:
-      item = ctx.get_item_at(ctx.cursor)
-      item_name = font_heading.render(item.name, get_color(item))
-      surface.blit(item_name, (box_x + DESC_PADDING_X, box_y + DESC_PADDING_Y))
-
-      if ctx.desc_surface is None:
-        ctx.desc_surface = Surface((
-          sprite_desc.get_width() - DESC_PADDING_X * 2,
-          sprite_desc.get_height() - DESC_PADDING_Y * 2 - DESC_TITLE_SPACING - item_name.get_height()
-        )).convert_alpha()
-      if ctx.desc_index < len(item.desc):
-        if ctx.desc_index == 0 or item.desc[ctx.desc_index] == " ":
-          next_space = item.desc.find(" ", ctx.desc_index + 1)
-          if next_space == -1:
-            word = item.desc[ctx.desc_index+1:]
-          else:
-            word = item.desc[ctx.desc_index+1:next_space]
-          word_width, word_height = font_content.size(word)
-          if ctx.desc_x + word_width > ctx.desc_surface.get_width():
-            ctx.desc_x = 0
-            ctx.desc_y += word_height + DESC_LINE_SPACING
-            ctx.desc_index += 1
-        char = item.desc[ctx.desc_index]
-        text = font_content.render(char, 0x000000)
-        ctx.desc_surface.blit(text, (ctx.desc_x, ctx.desc_y))
-        ctx.desc_x += text.get_width()
-        ctx.desc_index += 1
-
-      desc_x = box_x + DESC_PADDING_X
-      desc_y = box_y + DESC_PADDING_Y + DESC_TITLE_SPACING + item_name.get_height()
-      surface.blit(ctx.desc_surface, (desc_x, desc_y))
 
     # choice box
     if type(ctx.child) is ChoiceContext:
@@ -370,6 +318,3 @@ class InventoryContext(Context):
     elif not ctx.anims:
       hand_x = cursor_x + tile_width - 3 + ctx.cursor_anim.update() * 2
       surface.blit(sprite_hand, (hand_x, cursor_y))
-
-    # bar (obsolete)
-    # ctx.bar.draw(surface)
