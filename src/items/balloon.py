@@ -5,7 +5,8 @@ import config
 class Balloon:
   def __init__(balloon):
     balloon.name = "Balloon"
-    balloon.desc = "Ascend to the next floor"
+    balloon.kind = "dungeon"
+    balloon.desc = "Ascends to next floor."
 
   def effect(balloon, game):
     if game.get_floor_no() < config.TOP_FLOOR:

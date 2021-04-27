@@ -5,7 +5,8 @@ import config
 class Emerald:
   def __init__(emerald):
     emerald.name = "Emerald"
-    emerald.desc = "Return to town"
+    emerald.kind = "dungeon"
+    emerald.desc = "Returns to town."
 
   def effect(emerald, game):
     game.anims.append([

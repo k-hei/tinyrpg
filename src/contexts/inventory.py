@@ -11,6 +11,8 @@ from filters import replace_color
 from keyboard import key_times, ARROW_DELTAS
 import palette
 
+from items import get_color
+
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
 from easing.expo import ease_out
@@ -18,6 +20,11 @@ from lerp import lerp
 
 SPACING = 4
 MARGIN = 8
+DESC_PADDING_X = 12
+DESC_PADDING_Y = 10
+DESC_TITLE_SPACING = 5
+DESC_WORD_SPACING = 8
+DESC_LINE_SPACING = 3
 ENTER_DURATION = 8
 ENTER_STAGGER = 3
 EXIT_DURATION = 4
@@ -25,6 +32,8 @@ EXIT_STAGGER = 2
 DURATION_BELTENTER = 15
 DURATION_BELTEXIT = 7
 STAGGER_BELTEXIT = 0
+DURATION_DESCENTER = 15
+DURATION_DESCEXIT = 7
 DURATION_CHARENTER = ENTER_DURATION
 STAGGER_CHARENTER = 4
 DURATION_CHAREXIT = 6
@@ -39,6 +48,10 @@ class InventoryContext(Context):
     ctx.on_animate = None
     ctx.cursor = (0, 0)
     ctx.cursor_anim = SineAnim(period=30)
+    ctx.desc_x = 0
+    ctx.desc_y = 0
+    ctx.desc_index = 0
+    ctx.desc_surface = None
     ctx.active = True
     ctx.anims = []
     ctx.bar = Bar()
@@ -49,6 +62,7 @@ class InventoryContext(Context):
   def enter(ctx, on_end=None):
     ctx.bar.enter()
     ctx.anims.append(TweenAnim(duration=DURATION_BELTENTER, target="belt"))
+    ctx.anims.append(TweenAnim(duration=DURATION_DESCENTER, target="desc"))
     for i, char in enumerate("item"):
       ctx.anims.append(TweenAnim(
         duration=DURATION_CHARENTER,
@@ -73,6 +87,7 @@ class InventoryContext(Context):
       delay=STAGGER_BELTEXIT + STAGGER_CHAREXIT * 2,
       target="belt"
     ))
+    ctx.anims.append(TweenAnim(duration=DURATION_DESCEXIT, target="desc"))
     for i, char in enumerate("item"):
       ctx.anims.append(TweenAnim(
         duration=DURATION_CHAREXIT,
@@ -111,7 +126,10 @@ class InventoryContext(Context):
     if item is None:
       ctx.bar.print("Your pack is currently empty.")
     else:
-      ctx.bar.print(item.name + ": " + item.desc)
+      ctx.desc_x = 0
+      ctx.desc_y = 0
+      ctx.desc_index = 0
+      ctx.desc_surface = None
 
   def contains(ctx, cell):
     cols, rows = ctx.grid_size
@@ -178,8 +196,6 @@ class InventoryContext(Context):
     window_width = surface.get_width()
     window_height = surface.get_height()
 
-    ctx.bar.draw(surface)
-
     sprite_hud = assets.sprites["hud"]
     sprite_belt = assets.sprites["belt"]
     sprite_hand = assets.sprites["hand"]
@@ -187,9 +203,13 @@ class InventoryContext(Context):
     sprite_tile = assets.sprites["item_tile"]
     sprite_tileleft = assets.sprites["item_tile_left"]
     sprite_tileright = assets.sprites["item_tile_right"]
+    sprite_desc = assets.sprites["item_desc"]
+    font_heading = assets.ttf["english"]
+    font_content = assets.ttf["roman"]
     tile_width = sprite_tile.get_width()
     tile_height = sprite_tile.get_height()
 
+    # update anims
     for anim in ctx.anims:
       anim.update()
       if anim.done:
@@ -197,6 +217,7 @@ class InventoryContext(Context):
       if not ctx.anims and not ctx.active:
         return ctx.close()
 
+    # belt
     anim_belt = next((a for a in ctx.anims if a.target == "belt"), None)
     if anim_belt:
       if ctx.active:
@@ -211,13 +232,13 @@ class InventoryContext(Context):
         (0, end_height - belt_height),
         (belt_width, belt_height)
       ))
-
     if anim_belt or ctx.active:
       surface.blit(sprite_belt, (
         Hud.MARGIN_LEFT,
         Hud.MARGIN_TOP + sprite_circle.get_height() // 2
       ))
 
+    # "ITEM" letters
     start_x = -16
     target_x = Hud.MARGIN_LEFT
     y = Hud.MARGIN_TOP + sprite_circle.get_height() + 2
@@ -239,6 +260,7 @@ class InventoryContext(Context):
         surface.blit(sprite_char, (x, y))
       y += sprite_height + 2
 
+    # grid
     cols, rows = ctx.grid_size
     cells_x = Hud.MARGIN_LEFT + sprite_belt.get_width() - 2
     cells_y = Hud.MARGIN_TOP + sprite_hud.get_height()
@@ -269,6 +291,7 @@ class InventoryContext(Context):
         if item and not anim:
           surface.blit(item.render(), (x, y))
 
+    # cursor
     cursor_col, cursor_row = ctx.cursor
     cursor_color = palette.BLUE if ctx.cursor_anim.time % 2 or type(ctx.child) is ChoiceContext else palette.WHITE
     cursor_x = cells_x + tile_width * cursor_col
@@ -276,6 +299,60 @@ class InventoryContext(Context):
     if not ctx.anims:
       pygame.draw.rect(surface, cursor_color, Rect(cursor_x, cursor_y, tile_width, tile_height), width=1)
 
+    # description box
+    anim_desc = next((a for a in ctx.anims if a.target == "desc"), None)
+    if anim_desc:
+      t = anim_desc.pos
+      if ctx.active:
+        t = ease_out(t)
+      else:
+        t = 1 - t
+      start_height = 0
+      end_height = sprite_desc.get_height()
+      sprite_height = lerp(start_height, end_height, t)
+      sprite_desc = sprite_desc.subsurface(Rect(
+        (0, 0),
+        (sprite_desc.get_width(), sprite_height)
+      ))
+
+    if anim_desc or ctx.active:
+      box_x = cells_x
+      box_y = cells_y + tile_height * rows
+      surface.blit(sprite_desc, (box_x, box_y))
+
+    if not anim_desc and ctx.active:
+      item = ctx.get_item_at(ctx.cursor)
+      item_name = font_heading.render(item.name, get_color(item))
+      surface.blit(item_name, (box_x + DESC_PADDING_X, box_y + DESC_PADDING_Y))
+
+      if ctx.desc_surface is None:
+        ctx.desc_surface = Surface((
+          sprite_desc.get_width() - DESC_PADDING_X * 2,
+          sprite_desc.get_height() - DESC_PADDING_Y * 2 - DESC_TITLE_SPACING - item_name.get_height()
+        )).convert_alpha()
+      if ctx.desc_index < len(item.desc):
+        if ctx.desc_index == 0 or item.desc[ctx.desc_index] == " ":
+          next_space = item.desc.find(" ", ctx.desc_index + 1)
+          if next_space == -1:
+            word = item.desc[ctx.desc_index+1:]
+          else:
+            word = item.desc[ctx.desc_index+1:next_space]
+          word_width, word_height = font_content.size(word)
+          if ctx.desc_x + word_width > ctx.desc_surface.get_width():
+            ctx.desc_x = 0
+            ctx.desc_y += word_height + DESC_LINE_SPACING
+            ctx.desc_index += 1
+        char = item.desc[ctx.desc_index]
+        text = font_content.render(char, 0x000000)
+        ctx.desc_surface.blit(text, (ctx.desc_x, ctx.desc_y))
+        ctx.desc_x += text.get_width()
+        ctx.desc_index += 1
+
+      desc_x = box_x + DESC_PADDING_X
+      desc_y = box_y + DESC_PADDING_Y + DESC_TITLE_SPACING + item_name.get_height()
+      surface.blit(ctx.desc_surface, (desc_x, desc_y))
+
+    # choice box
     if type(ctx.child) is ChoiceContext:
       start_x = cursor_x
       target_x = cursor_x + tile_width + 4
@@ -293,3 +370,6 @@ class InventoryContext(Context):
     elif not ctx.anims:
       hand_x = cursor_x + tile_width - 3 + ctx.cursor_anim.update() * 2
       surface.blit(sprite_hand, (hand_x, cursor_y))
+
+    # bar (obsolete)
+    # ctx.bar.draw(surface)

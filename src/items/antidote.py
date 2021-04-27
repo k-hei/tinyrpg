@@ -3,7 +3,8 @@ from assets import load as use_assets
 class Antidote:
   def __init__(antidote):
     antidote.name = "Antidote"
-    antidote.desc = "Cures poison"
+    antidote.kind = "ailment"
+    antidote.desc = "Cures poison."
 
   def effect(antidote, game):
     hero = game.hero

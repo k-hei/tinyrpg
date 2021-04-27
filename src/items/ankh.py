@@ -3,7 +3,8 @@ from assets import load as use_assets
 class Ankh:
   def __init__(ankh):
     ankh.name = "Ankh"
-    ankh.desc = "Revives the dead with half HP"
+    ankh.kind = "hp"
+    ankh.desc = "Revives ally with 50% HP."
 
   def effect(ankh, game):
     hero = game.hero

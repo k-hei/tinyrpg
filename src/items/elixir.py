@@ -3,7 +3,8 @@ from assets import load as use_assets
 class Elixir:
   def __init__(elixir):
     elixir.name = "Elixir"
-    elixir.desc = "Restores full HP and SP"
+    elixir.kind = "hp"
+    elixir.desc = "Restores all HP and SP."
 
   def effect(elixir, ctx):
     game = ctx.parent

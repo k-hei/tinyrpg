@@ -4,7 +4,8 @@ class Bread:
   def __init__(bread):
     bread.sp = 10
     bread.name = "Bread"
-    bread.desc = "Restores " + str(bread.sp) + " SP"
+    bread.kind = "sp"
+    bread.desc = "Restores " + str(bread.sp) + " SP."
 
   def effect(bread, ctx):
     game = ctx.parent

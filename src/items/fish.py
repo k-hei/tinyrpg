@@ -4,7 +4,8 @@ class Fish:
   def __init__(fish):
     fish.sp = 20
     fish.name = "Fish"
-    fish.desc = "Restores " + str(fish.sp) + " SP"
+    fish.kind = "sp"
+    fish.desc = "Restores " + str(fish.sp) + " SP."
 
   def effect(fish, ctx):
     game = ctx.parent

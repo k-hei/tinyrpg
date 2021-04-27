@@ -9,7 +9,13 @@ from actors.mage import Mage
 
 from inventory import Inventory
 from items.potion import Potion
+from items.ankh import Ankh
+from items.bread import Bread
+from items.fish import Fish
 from items.emerald import Emerald
+from items.balloon import Balloon
+from items.antidote import Antidote
+from items.elixir import Elixir
 
 from skills.blitzritter import Blitzritter
 from skills.counter import Counter
@@ -22,7 +28,12 @@ class GameContext(Context):
   def __init__(ctx):
     super().__init__()
     ctx.transits = [DissolveOut(config.WINDOW_SIZE)]
-    ctx.inventory = Inventory((2, 4), [Potion(), Emerald()])
+    ctx.inventory = Inventory((2, 4), [
+      Potion(), Ankh(),
+      Bread(), Fish(),
+      Emerald(), Balloon(),
+      Antidote(), Elixir()
+    ])
     ctx.sp_max = 50
     ctx.sp = ctx.sp_max
     ctx.hero = Knight()

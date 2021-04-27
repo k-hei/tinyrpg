@@ -4,7 +4,8 @@ class Cheese:
   def __init__(cheese):
     cheese.sp = 5
     cheese.name = "Cheese"
-    cheese.desc = "Restores " + str(cheese.sp) + " SP"
+    cheese.kind = "sp"
+    cheese.desc = "Restores " + str(cheese.sp) + " SP."
 
   def effect(cheese, ctx):
     game = ctx.parent

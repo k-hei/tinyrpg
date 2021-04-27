@@ -99,6 +99,7 @@ sprite_paths = {
   "belt": "item-belt",
   "item_text": "item-text",
   "item_tiles": "item-tiles",
+  "item_desc": "item-desc",
   "hand": "hand",
   "deck": "deck",
   "deck_tab": "deck-tab",
@@ -191,5 +192,6 @@ def load():
   fonts["numbers13"] = load_font("numbers13")
   fonts["numbers16"] = load_font("numbers16")
   fonts["english"] = load_font("english")
+  ttf["english"] = load_ttf("PCPaintEnglishSmall")
   ttf["roman"] = load_ttf("PCPaintRomanSmall")
   assets = Assets(sprites, fonts, ttf)

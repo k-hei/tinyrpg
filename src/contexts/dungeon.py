@@ -577,11 +577,9 @@ class DungeonContext(Context):
   def handle_inventory(game):
     if game.child is None:
       game.log.exit()
-      game.sp_meter.exit()
       game.child = InventoryContext(
         parent=game,
-        inventory=game.parent.inventory,
-        on_close=lambda _: game.sp_meter.enter()
+        inventory=game.parent.inventory
       )
 
   def handle_custom(game):
