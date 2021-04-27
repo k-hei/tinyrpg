@@ -8,8 +8,8 @@ class Potion:
 
   def effect(potion, game):
     hero = game.hero
-    if hero.hp < hero.hp_max:
-      hero.hp = min(hero.hp_max, hero.hp + potion.hp)
+    if hero.get_hp() < hero.get_hp_max():
+      hero.regen(potion.hp)
       return (True, "Restored " + str(potion.hp) + " HP.")
     else:
       return (False, "Your health is already full!")

@@ -8,7 +8,7 @@ class CentralArea(Area):
   def __init__(area):
     genie = Genie(name="Doshin", message=(
       "Hail, traveler!",
-      "How fares the exploration? Remember to pace yourself!"
+      "How fares the exploration?"
     ))
     genie.x = 112
     genie.facing = 1

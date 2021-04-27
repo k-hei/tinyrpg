@@ -745,9 +745,7 @@ class DungeonContext(Context):
           skill = type(target).skill
           if skill not in game.skill_pool:
             game.floor.spawn_elem(Soul(skill), target.cell)
-      target.hp = 0
-      target.dead = True
-      target.ailment = None
+      target.kill()
       game.floor.elems.remove(target)
       if target is game.hero:
         game.anims[0].append(PauseAnim(

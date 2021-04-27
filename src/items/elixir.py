@@ -9,9 +9,11 @@ class Elixir:
     game = ctx.parent
     hero = game.hero
     ally = game.ally
-    if hero.hp < hero.hp_max or ally.hp < ally.hp_max or game.sp < game.sp_max:
-      hero.hp = hero.hp_max
-      ally.hp = ally.hp_max
+    if (hero.get_hp() < hero.get_hp_max()
+    or ally.get_hp() < ally.get_hp_max()
+    or game.sp < game.sp_max):
+      hero.set_hp(hero.get_hp_max())
+      ally.set_hp(ally.get_hp_max())
       game.sp = game.sp_max
       return (True, "The party restored full HP and SP.")
     else:

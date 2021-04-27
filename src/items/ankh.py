@@ -23,7 +23,7 @@ class Ankh:
     if neighbor is None:
       return (False, "There's nowhere for " + ally.name.upper() + " to spawn...")
 
-    ally.hp = ally.hp_max // 2
+    ally.set_hp(ally.get_hp_max() // 2)
     ally.dead = False
     floor.spawn_elem(ally, neighbor)
     return (True, ally.name.upper() + " was revived.")

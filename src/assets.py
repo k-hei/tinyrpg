@@ -154,12 +154,8 @@ sprite_paths = {
   "tower": "tower"
 }
 
-def load_font(font_name, alpha=False):
-  typeface = pygame.image.load(ASSETS_PATH + "fonts/" + font_name + "/typeface.png")
-  if alpha:
-    typeface = typeface.convert_alpha()
-  else:
-    typeface = typeface.convert()
+def load_font(font_name):
+  typeface = pygame.image.load(ASSETS_PATH + "fonts/" + font_name + "/typeface.png").convert_alpha()
   metadata = json.loads(open(ASSETS_PATH + "fonts/" + font_name + "/metadata.json", "r").read())
   return Font(typeface, **metadata)
 
@@ -184,8 +180,9 @@ def load():
         sprites[name] = sprite.subsurface(Rect(*rect))
     elif sprite:
       sprites[name] = sprite
-  fonts["standard"] = load_font("standard", True)
-  fonts["smallcaps"] = load_font("smallcaps", True)
-  fonts["numbers13"] = load_font("numbers13", True)
-  fonts["numbers16"] = load_font("numbers16", True)
+  fonts["standard"] = load_font("standard")
+  fonts["smallcaps"] = load_font("smallcaps")
+  fonts["numbers13"] = load_font("numbers13")
+  fonts["numbers16"] = load_font("numbers16")
+  fonts["english"] = load_font("english")
   assets = Assets(sprites, fonts)

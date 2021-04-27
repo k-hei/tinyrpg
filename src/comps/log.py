@@ -14,13 +14,13 @@ class Log:
   ROW_COUNT = 2
   SCROLL_SPEED = 1
   PADDING_X = 12
-  PADDING_Y = 13
+  PADDING_Y = 12
   MARGIN_LEFT = 12
   MARGIN_BOTTOM = 8
   ENTER_DURATION = 15
   EXIT_DURATION = 7
   HANG_DURATION = 180
-  FONT_NAME = "standard"
+  FONT_NAME = "english"
 
   def __init__(log, autohide=True):
     log.autohide = autohide

@@ -45,6 +45,15 @@ class Actor(Element):
   def get_hp_max(actor):
     return actor.hp_max + actor.get_skill_hp()
 
+  def set_hp(actor, hp):
+    actor.hp = hp - actor.get_skill_hp()
+
+  def kill(actor):
+    actor.set_hp(0)
+    actor.dead = True
+    actor.ailment = None
+    actor.ailment_turns = 0
+
   def promote(actor):
     actor.rare = True
     actor.hp_max += 5
@@ -55,7 +64,7 @@ class Actor(Element):
   def regen(actor, amount=None):
     if amount is None:
       amount = actor.get_hp_max() / 200
-    actor.hp = min(actor.hp_max, actor.hp + amount)
+    actor.set_hp(min(actor.get_hp_max(), actor.get_hp() + amount))
 
   def face(actor, dest):
     actor_x, actor_y = actor.cell
@@ -93,7 +102,7 @@ class Actor(Element):
     if target.ailment == "sleep" and random.randint(0, 1):
       target.wake_up()
     if target.get_hp() <= 0:
-      target.dead = True
+      target.kill()
     return damage
 
   def find_damage(actor, target):
