@@ -31,9 +31,10 @@ from skills.sana import Sana
 from skills.virus import Virus
 from skills.hpup import HpUp
 
+from dungeon.features.battleroom import BattleRoom
+
 possible_widths = (3, 5, 7)
 possible_heights = (4, 7)
-WALLLESS_FLOOR = 6
 
 def cells(size):
   cells = []
@@ -45,21 +46,14 @@ def cells(size):
 
 def get_neighbors(nodes, node):
   neighbors = {}
+  others = [n for n in nodes if n is not node]
   for edge in node.get_edges():
-    (x, y) = edge
-    adj_cells = [
-      (x - 1, y),
-      (x, y - 1),
-      (x + 1, y),
-      (x, y + 1)
-    ]
-    for cell in [(x, y) for x, y in adj_cells if y % 3 == 1]:
-      neighbor = next((target for target in nodes if target is not node and cell in target.get_cells()), None)
-      if neighbor:
-        if neighbor in neighbors:
-          neighbors[neighbor].append(edge)
-        else:
-          neighbors[neighbor] = [edge]
+    neighbor = next((n for n in others if edge in n.get_edges()), None)
+    if neighbor:
+      if neighbor not in neighbors:
+        neighbors[neighbor] = [edge]
+      else:
+        neighbors[neighbor].append(edge)
   return neighbors
 
 class Dungeon:
@@ -291,11 +285,7 @@ def dungeon(size, floor=1):
 
   width, height = size
   stage = Stage((width, height))
-  if floor == WALLLESS_FLOOR:
-    stage.fill(Stage.PIT)
-  else:
-    stage.fill(Stage.WALL)
-
+  stage.fill(Stage.WALL)
   slots = [(x, y) for x, y in stage.get_cells() if (
     x % 2 == 1
     and y % 3 == 1
@@ -313,22 +303,56 @@ def dungeon(size, floor=1):
       if cell in slots:
         slots.remove(cell)
 
+  features = []
+  if floor == 2:
+    feature = BattleRoom()
+    valid_slots = []
+    padded_slots = [(x, y) for x, y in slots if (
+      x > 1 and x < width - 2
+      and y > 1 and y < height - 2
+    )]
+    for slot in padded_slots:
+      offset_cells = [add(cell, slot) for cell in feature.get_cells()]
+      offset_cells = [(x, y) for x, y in offset_cells if (
+        x % 2 == 1
+        and y % 3 == 1
+      )]
+      for cell in offset_cells:
+        if cell not in padded_slots:
+          break
+      else:
+        valid_slots.append(slot)
+    slot = random.choice(valid_slots)
+    feature.place(stage, slot)
+    for cell in feature.get_cells():
+      if cell in slots:
+        slots.remove(cell)
+    features.append(feature)
+    for room in stage.rooms:
+      for cell in room.get_cells():
+        if stage.get_tile_at(cell) is Stage.STAIRS_UP:
+          exit_room = room
+          break
+
+  slots_before = slots.copy()
   rooms = gen_rooms(slots)
   if len(rooms) == 1:
+    print("restart: Too few rooms")
     return dungeon(size, floor)
 
   if entry_room:
     rooms.insert(0, entry_room)
     rooms.insert(1, exit_room)
 
+  mazes = gen_mazes(slots)
+
   node_conns = {}
   conn_nodes = {}
-  mazes = gen_mazes(slots)
-  nodes = rooms + mazes
+  nodes = rooms + mazes + features
   for node in nodes:
     node_conns[node] = []
 
-  if exit_room:
+  if exit_room and exit_room in nodes:
     nodes.remove(exit_room)
 
   node = random.choice(nodes)
@@ -336,6 +360,7 @@ def dungeon(size, floor=1):
   stack = [node]
   while node:
     neighbors = get_neighbors(nodes, node)
+    # only connect to neighbors that this neighbor hasn't connected to before
     targets = [neighbor for neighbor in list(neighbors.keys()) if (
       next((target for target, conn in node_conns[node] if target is neighbor), None) is None
     )]
@@ -354,39 +379,49 @@ def dungeon(size, floor=1):
       node_conns[neighbor].append((node, conn))
       conn_nodes[conn] = (node, neighbor)
 
-      # only add neighbor to the stack if it's not visited (allows loops)
+      # only add neighbor to the stack if it's not visited
       if neighbor in nodes:
         stack.append(neighbor)
 
-      # declare neighbor as visited
-      if random.randint(1, 5) != 1:
+      # declare neighbor as visited (chance of creating loops)
+      if random.randint(1, 10) != 1 or neighbor in features:
         nodes.remove(neighbor)
 
       # use neighbor for next iteration
-      node = neighbor
+      if neighbor not in features:
+        node = neighbor
     else:
       stack.remove(node)
-      if len(stack) > 0:
-        node = stack[len(stack) - 1]
-      else:
-        node = None
+      node = stack[-1] if stack else None
+
+  for node in nodes:
+    if node in features:
+      print("restart: Unconnected feature")
+      return dungeon(size, floor)
 
   for maze in mazes:
+    # remove dead ends
     if len(node_conns[maze]) == 1:
-      (neighbor, conn) = node_conns[maze][0]
+      neighbor, conn = node_conns[maze][0]
       doors.remove(conn)
+
     stack = maze.get_ends()
-    while len(stack) > 0:
+    while stack:
       end = stack.pop()
-      door = next((door for door in doors if is_adjacent(door, end)), None)
+      door = next((d for d in doors if is_adjacent(d, end)), None)
       if door is None:
-        neighbors = [cell for cell in maze.cells if is_adjacent(cell, end)]
+        neighbors = [c for c in maze.cells if is_adjacent(c, end)]
         if len(neighbors) <= 1 and end in maze.cells:
           maze.cells.remove(end)
         if len(neighbors) == 1:
           stack.append(neighbors[0])
-    if len(mazes) == 0:
+    if len(maze.cells) <= 1:
       mazes.remove(maze)
+
+  for maze in mazes:
+    if len(maze.cells) / (len(node_conns[maze]) or 1) >= 12:
+      print("restart: Corridor too long")
+      return dungeon(size, floor)
 
   for node in rooms + mazes:
     for cell in node.get_cells():
@@ -409,7 +444,7 @@ def dungeon(size, floor=1):
         continue
       _, conn_door = node_conns[room][0]
       if conn_door == door:
-        if floor not in (1, WALLLESS_FLOOR) and random.randint(1, 5) == 1:
+        if floor != 1 and random.randint(1, 5) == 1:
           secret_rooms.append(room)
           stage.set_tile_at(door, Stage.DOOR_HIDDEN)
         else:
@@ -426,13 +461,15 @@ def dungeon(size, floor=1):
         stage.set_tile_at((x, y + 1), Stage.FLOOR)
 
   if len(rooms) == 1:
+    print("restart: Too few rooms")
     return dungeon(size, floor)
 
   normal_rooms = [r for r in rooms if r not in secret_rooms and r not in dead_ends]
   if len(normal_rooms) < 2:
+    print("restart: Too few rooms")
     return dungeon(size, floor)
 
-  if entry_room is None:
+  if entry_room is None and exit_room is None:
     best = { "steps": 0, "start": None, "end": None }
     for a in normal_rooms:
       local_best = { "steps": 0, "room": None }
@@ -449,15 +486,22 @@ def dungeon(size, floor=1):
         best["end"] = local_best["room"]
     entry_room = best["start"]
     exit_room = best["end"]
-    stage.entrance = entry_room.get_center()
-    stage.set_tile_at(entry_room.get_center(), Stage.STAIRS_DOWN)
+  elif entry_room is None:
+    best = None
+    for room in normal_rooms + dead_ends:
+      dist = manhattan(room.get_center(), exit_room.get_center())
+      if best is None:
+        best = (dist, room)
+      else:
+        best_dist, best_room = best
+        if dist > best_dist:
+          best = (dist, room)
+    _, entry_room = best
+
+  stage.entrance = entry_room.get_center()
+  stage.set_tile_at(entry_room.get_center(), Stage.STAIRS_DOWN)
+  if entry_room in normal_rooms:
     normal_rooms.remove(entry_room)
-  else:
-    center_x, center_y = entry_room.get_center()
-    stage.entrance = (center_x, center_y + 2)
-    stage.set_tile_at((center_x, height - 1), Stage.DOOR_LOCKED)
-    if entry_room in normal_rooms:
-      normal_rooms.remove(entry_room)
 
   if exit_room is None:
     exit_room = random.choice(normal_rooms)
@@ -583,13 +627,7 @@ def dungeon(size, floor=1):
           enemy.ailment = "sleep"
         stage.spawn_elem(enemy, cell)
 
-  if floor == WALLLESS_FLOOR:
-    for door in doors:
-      stage.set_tile_at(door, Stage.FLOOR)
-
-  entrance_x, entrance_y = stage.entrance
-
-  stage.rooms = rooms
+  stage.rooms.extend(rooms)
   return stage
 
 def gen_enemy(floor):
@@ -614,22 +652,23 @@ def gen_rooms(slots):
     room_height = random.choice(possible_heights)
     valid_slots = []
     for slot in slots:
-      offset_cells = map(lambda cell: add(cell, slot), cells((room_width, room_height)))
+      offset_cells = [add(cell, slot) for cell in cells((room_width, room_height))]
       odd_offset_cells = [(x, y) for x, y in offset_cells if (
         x % 2 == 1
         and y % 3 == 1
       )]
-      cell_has_slot = map(lambda cell: len([slot for slot in slots if slot == cell]) == 1, odd_offset_cells)
-      if all(cell_has_slot):
+      for cell in odd_offset_cells:
+        if cell not in slots:
+          break
+      else:
         valid_slots.append(slot)
     if len(valid_slots) > 0:
       slot = random.choice(valid_slots)
       room = Room((room_width, room_height), slot)
       rooms.append(room)
       for cell in map(lambda cell: add(cell, room.cell), cells(room.size)):
-        slot = next((slot for slot in slots if slot == cell), None)
-        if slot:
-          slots.remove(slot)
+        if cell in slots:
+          slots.remove(cell)
   return rooms
 
 def gen_mazes(slots):

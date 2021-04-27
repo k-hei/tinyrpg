@@ -82,34 +82,34 @@ class Hud:
     if (panel.sprite is None
     or panel.anims_drawn
     or hero != panel.hero
-    or hero.hp != panel.hp_hero
-    or ally.hp != panel.hp_ally):
+    or hero.get_hp() != panel.hp_hero
+    or ally.get_hp() != panel.hp_ally):
       if hero != panel.hero:
         if panel.hero is not None:
           panel.anims.append(SwitchOutAnim())
           panel.anims.append(SwitchInAnim())
         panel.hero = hero
-        panel.hp_hero = hero.hp
-        panel.hp_ally = ally.hp
-      elif hero.hp < panel.hp_hero_drawn or ally.hp < panel.hp_ally_drawn:
+        panel.hp_hero = hero.get_hp()
+        panel.hp_ally = ally.get_hp()
+      elif hero.get_hp() < panel.hp_hero_drawn or ally.get_hp() < panel.hp_ally_drawn:
         panel.anims.append(FlinchAnim())
         if panel.hp_hero == math.inf:
-          panel.hp_hero = hero.hp_max
+          panel.hp_hero = hero.get_hp_max()
         if panel.hp_ally == math.inf:
-          panel.hp_ally = ally.hp_max
+          panel.hp_ally = ally.get_hp_max()
       anim = panel.anims[0] if panel.anims else None
       panel.anims_drawn = len(panel.anims)
-      if anim is None and panel.hp_hero > hero.hp:
-        panel.hp_hero = max(hero.hp, panel.hp_hero - hero.hp_max / SPEED_DEPLETE)
-      if anim is None and panel.hp_hero < hero.hp:
-        panel.hp_hero = min(hero.hp, panel.hp_hero + hero.hp_max / SPEED_RESTORE)
-      if anim is None and panel.hp_ally < ally.hp:
-        panel.hp_ally = max(ally.hp, panel.hp_ally - ally.hp_max / SPEED_DEPLETE)
-      if anim is None and panel.hp_ally < ally.hp:
-        panel.hp_ally = min(ally.hp, panel.hp_ally + ally.hp_max / SPEED_RESTORE)
+      if anim is None and panel.hp_hero > hero.get_hp():
+        panel.hp_hero = max(hero.get_hp(), panel.hp_hero - hero.get_hp_max() / SPEED_DEPLETE)
+      if anim is None and panel.hp_hero < hero.get_hp():
+        panel.hp_hero = min(hero.get_hp(), panel.hp_hero + hero.get_hp_max() / SPEED_RESTORE)
+      if anim is None and panel.hp_ally > ally.get_hp():
+        panel.hp_ally = max(ally.get_hp(), panel.hp_ally - ally.get_hp_max() / SPEED_DEPLETE)
+      if anim is None and panel.hp_ally < ally.get_hp():
+        panel.hp_ally = min(ally.get_hp(), panel.hp_ally + ally.get_hp_max() / SPEED_RESTORE)
       panel.sprite = panel.render(hero, ally, anim)
-    panel.hp_hero_drawn = hero.hp
-    panel.hp_ally_drawn = ally.hp
+    panel.hp_hero_drawn = hero.get_hp()
+    panel.hp_ally_drawn = ally.get_hp()
 
   def render(panel, hero, ally, anim=None):
     assets = use_assets()
@@ -159,9 +159,9 @@ class Hud:
     ))
     sprite.blit(assets.sprites["hp"], (HP_X, HP_Y))
 
-    hp_text = str(math.ceil(max(0, hero.hp)))
+    hp_text = str(math.ceil(max(0, hero.get_hp())))
     gray = False
-    red = int(hero.hp) <= HP_CRITICAL
+    red = int(hero.get_hp()) <= HP_CRITICAL
     if len(hp_text) == 1:
       hp_text = "0" + hp_text
       gray = True
@@ -183,24 +183,24 @@ class Hud:
       sprite.blit(number, (x, HP_VALUE_Y))
       x += number.get_width() - 2
 
-    number = render_text(str(hero.hp_max), assets.fonts["smallcaps"])
+    number = render_text(str(hero.get_hp_max()), assets.fonts["smallcaps"])
     number = outline(number, palette.BLACK)
     number = outline(number, palette.WHITE)
     sprite.blit(number, (HP_MAX_X, HP_MAX_Y))
 
-    if hero.hp <= panel.hp_hero:
-      draw_bar(sprite, panel.hp_hero / hero.hp_max, (HP_BAR_X, HP_BAR_Y1), palette.RED)
-      draw_bar(sprite, hero.hp / hero.hp_max, (HP_BAR_X, HP_BAR_Y1))
+    if hero.get_hp() <= panel.hp_hero:
+      draw_bar(sprite, panel.hp_hero / hero.get_hp_max(), (HP_BAR_X, HP_BAR_Y1), palette.RED)
+      draw_bar(sprite, hero.get_hp() / hero.get_hp_max(), (HP_BAR_X, HP_BAR_Y1))
     else:
-      draw_bar(sprite, hero.hp / hero.hp_max, (HP_BAR_X, HP_BAR_Y1), palette.CYAN)
-      draw_bar(sprite, panel.hp_hero / hero.hp_max, (HP_BAR_X, HP_BAR_Y1))
+      draw_bar(sprite, hero.get_hp() / hero.get_hp_max(), (HP_BAR_X, HP_BAR_Y1), palette.CYAN)
+      draw_bar(sprite, panel.hp_hero / hero.get_hp_max(), (HP_BAR_X, HP_BAR_Y1))
 
-    if ally.hp <= panel.hp_ally:
-      draw_bar(sprite, panel.hp_ally / ally.hp_max, (HP_BAR_X, HP_BAR_Y2), palette.RED)
-      draw_bar(sprite, ally.hp / ally.hp_max, (HP_BAR_X, HP_BAR_Y2))
+    if ally.get_hp() <= panel.hp_ally:
+      draw_bar(sprite, panel.hp_ally / ally.get_hp_max(), (HP_BAR_X, HP_BAR_Y2), palette.RED)
+      draw_bar(sprite, ally.get_hp() / ally.get_hp_max(), (HP_BAR_X, HP_BAR_Y2))
     else:
-      draw_bar(sprite, ally.hp / ally.hp_max, (HP_BAR_X, HP_BAR_Y2), palette.CYAN)
-      draw_bar(sprite, panel.hp_ally / ally.hp_max, (HP_BAR_X, HP_BAR_Y2))
+      draw_bar(sprite, ally.get_hp() / ally.get_hp_max(), (HP_BAR_X, HP_BAR_Y2), palette.CYAN)
+      draw_bar(sprite, panel.hp_ally / ally.get_hp_max(), (HP_BAR_X, HP_BAR_Y2))
 
 
     return sprite

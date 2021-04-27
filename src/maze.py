@@ -10,7 +10,7 @@ class Maze:
   def get_edges(maze):
     edges = []
     for cell in maze.cells:
-      (x, y) = cell
+      x, y = cell
       adj_cells = [
         (x - 1, y),
         (x, y - 1),
@@ -18,9 +18,9 @@ class Maze:
         (x, y + 1)
       ]
       for adj in adj_cells:
-        if not adj in edges:
+        if not adj in edges + maze.cells:
           edges.append(adj)
     return edges
 
   def get_ends(maze):
-    return [cell for cell in maze.cells if len([other for other in maze.cells if is_adjacent(other, cell)]) <= 1]
+    return [c for c in maze.cells if len([o for o in maze.cells if is_adjacent(o, c)]) <= 1]

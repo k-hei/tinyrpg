@@ -23,7 +23,10 @@ class Room:
   def get_center(room):
     (room_width, room_height) = room.size
     (room_x, room_y) = room.cell
-    return (room_x + room_width // 2, room_y + room_height // 2)
+    if room_height % 2 == 1:
+      return (room_x + room_width // 2, room_y + room_height // 2)
+    else:
+      return (room_x + room_width // 2, room_y + room_height // 2 - 1)
 
   def get_edges(room):
     (room_width, room_height) = room.size
@@ -35,6 +38,8 @@ class Room:
     for x in range(left, right):
       edges.append((x, top - 1))
       edges.append((x, bottom + 1))
+      # edges.append((x, top - 2))
+      # edges.append((x, bottom))
 
     for y in range(top, bottom):
       edges.append((left - 1, y))

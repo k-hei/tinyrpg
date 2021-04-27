@@ -32,7 +32,7 @@ SPAWN_RIGHT_FACING = -1
 class TownContext(Context):
   def __init__(town, parent, returning=False):
     super().__init__(parent)
-    swapped = type(parent.hero).__name__ == "Knight"
+    swapped = type(parent.hero).__name__ != "Knight"
     town.hero = Knight() if not swapped else Mage()
     town.ally = Mage() if not swapped else Knight()
     town.areas = [CentralArea(), OutskirtsArea()]

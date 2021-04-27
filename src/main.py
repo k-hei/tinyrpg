@@ -40,7 +40,7 @@ def toggle_fullscreen():
 def new_game():
   global game
   game = GameContext()
-  game.goto_town()
+  game.goto_dungeon() # town()
 
 resize(window_scale)
 new_game()

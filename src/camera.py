@@ -3,7 +3,7 @@ import math
 from anims.move import MoveAnim
 
 class Camera:
-  MAX_RADIUS_X = 2
+  MAX_RADIUS_X = 3
   MAX_RADIUS_Y = 2
 
   def __init__(camera, size):
@@ -67,7 +67,7 @@ class Camera:
         else:
           focus_x = hero_x
 
-      if room.get_height() > Camera.MAX_RADIUS_Y + 1:
+      if room.get_height() > Camera.MAX_RADIUS_Y * 2 + 1:
         if hero_y - focus_y < -max_radius_y:
           focus_y -= max_radius_y
         elif hero_y - focus_y > max_radius_y:
