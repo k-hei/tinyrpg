@@ -30,7 +30,7 @@ class GameContext(Context):
     super().__init__()
     ctx.transits = [DissolveOut(config.WINDOW_SIZE)]
     ctx.inventory = Inventory((2, 4), [
-      Potion()
+      Potion(), Balloon()
     ])
     ctx.sp_max = 50
     ctx.sp = ctx.sp_max
@@ -56,6 +56,7 @@ class GameContext(Context):
       ]
     }
     ctx.monster_kills = {}
+    ctx.debug = False
 
   def reset(ctx):
     if type(ctx.child) is DungeonContext:

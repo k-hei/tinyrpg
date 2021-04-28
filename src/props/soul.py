@@ -33,8 +33,7 @@ class Soul(Prop):
     soul.on_end = None
 
   def obtain(soul, game):
-    if not soul.skill in game.skill_pool:
-      game.learn_skill(soul.skill)
+    game.learn_skill(soul.skill)
     game.log.print("Obtained skill \"" + soul.skill.name + "\"!")
     game.log.print("Equip it with the CUSTOM menu (press 'B').")
     game.floor.elems.remove(soul)

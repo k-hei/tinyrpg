@@ -78,6 +78,8 @@ class DungeonContext(Context):
     game.anims = []
     game.vfx = []
     game.numbers = []
+    game.room_entrances = {}
+    game.rooms_entered = []
     game.key_requires_reset = {}
     game.log = Log()
     game.camera = Camera(config.WINDOW_SIZE)
@@ -100,7 +102,6 @@ class DungeonContext(Context):
     else:
       floor = gen.dungeon((27, 27), floor_no)
 
-    print("Enemies defeated:", game.monster_kills)
     promoted = False
     enemies = [e for e in floor.elems if isinstance(e, Actor) and e.faction == "enemy"]
     for monster, kills in game.monster_kills.items():
@@ -132,40 +133,54 @@ class DungeonContext(Context):
     game.floors.append(game.floor)
     game.memory.append((game.floor, []))
     game.refresh_fov(moving=True)
+    game.rooms_entered.append(game.room)
+    game.camera.blur()
 
   def refresh_fov(game, moving=False):
-    visible_cells = fov.shadowcast(game.floor, game.hero.cell, DungeonContext.VISION_RANGE)
+    hero = game.hero
+    floor = game.floor
+    visible_cells = fov.shadowcast(floor, hero.cell, DungeonContext.VISION_RANGE)
 
+    door = None
     if moving:
-      rooms = [room for room in game.floor.rooms if game.hero.cell in room.get_cells() + room.get_border()]
+      rooms = [room for room in floor.rooms if hero.cell in room.get_cells() + room.get_border()]
       old_room = game.room
       if len(rooms) == 1:
-        new_room = rooms[0]
+        room = rooms[0]
       else:
-        new_room = next((room for room in rooms if room is not game.room), None)
-      if new_room is not old_room:
-        game.room = new_room
+        room = next((room for room in rooms if room is not game.room), None)
+      game.room = room
+      if room and room not in game.room_entrances:
+        game.room_entrances[room] = hero.cell
+      if (room
+      and room in game.room_entrances
+      and room not in game.rooms_entered
+      and manhattan(hero.cell, game.room_entrances[room]) == 2
+      and [e for e in game.floor.elems if (
+        e.cell in room.get_cells()
+        and isinstance(e, Actor)
+        and e.faction != hero.faction
+      )]):
+        door = game.room_entrances[room]
+        game.rooms_entered.append(room)
+        game.camera.focus(door, speed=8)
+        game.anims.append([
+          PauseAnim(90, on_end=lambda: floor.set_tile_at(door, Stage.DOOR_LOCKED)),
+          PauseAnim(105, on_end=game.camera.blur),
+          PauseAnim(45)
+        ])
 
     if game.room:
       visible_cells += game.room.get_cells() + game.room.get_border()
 
-    # for cell in visible_cells:
-    #   col, row = cell
-    #   cell_above = (col, row - 1)
-    #   cell_below = (col, row + 1)
-    #   tile_below = game.floor.get_tile_at(cell_below)
-    #   if (game.floor.get_tile_at(cell) is Stage.WALL and (
-    #     tile_below is Stage.FLOOR
-    #     or tile_below is Stage.DOOR
-    #     or tile_below is Stage.DOOR_OPEN
-    #   ) and cell_above not in visible_cells):
-    #     visible_cells.append(cell_above)
-
+    hero.visible_cells = visible_cells
     visited_cells = next((cells for floor, cells in game.memory if floor is game.floor), None)
     for cell in visible_cells:
       if cell not in visited_cells:
         visited_cells.append(cell)
-    game.hero.visible_cells = visible_cells
+
+    if door is not None:
+      return
 
     hero = game.hero
     camera = game.camera
@@ -281,6 +296,19 @@ class DungeonContext(Context):
     if len(visible_enemies) > 1:
       visible_enemies.sort(key=lambda e: manhattan(e.cell, hero.cell))
     return visible_enemies[0]
+
+  def find_room_enemies(game):
+    floor = game.floor
+    hero = game.hero
+    room = game.room
+    if room is None:
+      return []
+    room_cells = room.get_cells()
+    return [e for e in game.floor.elems if (
+      e.cell in room_cells
+      and isinstance(e, Actor)
+      and e.faction != hero.faction
+    )]
 
   def handle_keyup(game, key):
     game.key_requires_reset[key] = False
@@ -758,7 +786,7 @@ class DungeonContext(Context):
   def kill(game, target, on_end=None):
     def remove():
       if target.faction == "enemy" and type(target).skill:
-        game.monster_kills[type(target)] = game.monster_kills[type(target)] + 1 if type(target) in game.monster_kills else 0
+        game.monster_kills[type(target)] = game.monster_kills[type(target)] + 1 if type(target) in game.monster_kills else 1
         if target.rare:
           skill = type(target).skill
           if skill not in game.skill_pool:
@@ -773,11 +801,15 @@ class DungeonContext(Context):
             on_end and on_end()
           )
         ))
-      else:
+      elif game.floor.find_tile(Stage.MONSTER_DEN):
         trap = game.floor.find_tile(Stage.MONSTER_DEN)
         if trap and len([e for e in game.floor.elems if isinstance(e, Actor) and e.faction == "enemy"]) == 0:
           trap_x, trap_y = trap
           game.floor.set_tile_at((trap_x - 2, trap_y), Stage.DOOR_OPEN)
+        if on_end:
+          on_end()
+      elif game.room in game.rooms_entered and not game.find_room_enemies():
+        game.floor.set_tile_at(game.room_entrances[game.room], Stage.DOOR_OPEN)
         if on_end:
           on_end()
 
@@ -836,9 +868,10 @@ class DungeonContext(Context):
       ))
 
   def learn_skill(game, skill):
-    game.new_skills.append(skill)
-    game.skill_pool.append(skill)
-    game.skill_pool.sort(key=get_skill_order)
+    if not skill in game.skill_pool:
+      game.new_skills.append(skill)
+      game.skill_pool.append(skill)
+      game.skill_pool.sort(key=get_skill_order)
 
   def use_skill(game, actor, skill):
     camera = game.camera

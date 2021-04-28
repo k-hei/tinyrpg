@@ -173,9 +173,9 @@ class Stage:
 
     anim_group = anims[0] if anims else []
     for anim in anim_group:
-      # HACK: update move and attack separately in an attempt to reduce jitter (doesn't work)
-      if type(anim) not in (MoveAnim, AttackAnim):
-        anim.update()
+      anim.update()
+      if type(anim) is PauseAnim and anim is anim_group[0]:
+        break
 
     for anim_group in anims:
       for anim in anim_group:
@@ -213,7 +213,6 @@ class Stage:
 
     item = None
     anim_group = anims[0] if anims else []
-    pausing = next((a for a in anim_group if type(a) is PauseAnim), None)
 
     for anim in [a for a in anim_group if a.target is elem]:
       if type(anim) is ChestAnim:
@@ -245,7 +244,7 @@ class Stage:
           facing_x = -1
         elif dest_x > src_x:
           facing_y = 1
-        col, row = anim.update()
+        col, row = anim.cur_cell
         sprite_x = col * config.TILE_SIZE
         sprite_y = row * config.TILE_SIZE
 
