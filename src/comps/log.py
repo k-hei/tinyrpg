@@ -110,7 +110,7 @@ class Log:
       if log.col == 0 or char == " ":
         next_space = message.find(" ", log.col + 1)
         if next_space == -1:
-          word = message[log.col:]
+          word = message[log.col+1:]
         else:
           word = message[log.col+1:next_space]
         word_width, _ = font.size(word)

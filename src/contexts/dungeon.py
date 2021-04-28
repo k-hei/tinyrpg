@@ -195,6 +195,7 @@ class DungeonContext(Context):
 
     actors = [e for e in game.floor.elems if isinstance(e, Actor)]
     enemies = [a for a in actors if a.faction == "enemy"]
+    enemies.sort(key=lambda e: manhattan(e.cell, game.hero.cell))
 
     for actor in actors:
       if actor in enemies:
