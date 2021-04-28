@@ -24,6 +24,7 @@ from comps.minimap import Minimap
 from comps.previews import Previews
 from comps.damage import DamageValue
 from comps.spmeter import SpMeter
+from comps.skill import Skill
 
 from transits.dissolve import DissolveOut
 
@@ -716,7 +717,7 @@ class DungeonContext(Context):
       real_target = actor if target.counter else target
       real_damage = damage
       if target.counter:
-        game.log.print(actor.token(), " reflected the attack!")
+        game.log.print(target.token(), " reflected the attack!")
         # target.counter = False
         real_target = actor
         real_damage = Actor.find_damage(actor, actor)
@@ -824,7 +825,7 @@ class DungeonContext(Context):
         game.parent.sp -= skill.cost
         if game.parent.sp < 1:
           game.parent.sp = 0
-    game.log.print(actor.token(), " uses " + skill.name)
+    game.log.print(actor.token(), " uses ", Token(skill.name, Skill.get_color(skill)))
     target_cell = skill.effect(actor, game, on_end=lambda: (
       camera.blur(),
       actor is game.hero and game.step(),
