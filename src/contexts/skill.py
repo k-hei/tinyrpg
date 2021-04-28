@@ -11,7 +11,7 @@ from text import render as render_text
 from filters import recolor, replace_color, outline
 import palette
 from comps.skill import Skill
-from skills import get_skill_text
+from skills import get_skill_text, get_skill_color
 
 from lerp import lerp
 from easing.expo import ease_out
@@ -201,7 +201,7 @@ class SkillContext(Context):
       else:
         alpha = 0x5f
       square = Surface((TILE_SIZE - 1, TILE_SIZE - 1), pygame.SRCALPHA)
-      color = Skill.get_color(skill)
+      color = get_skill_color(skill)
       pygame.draw.rect(square, (*color, alpha), square.get_rect())
       for cell in neighbors:
         x, y = scale_up(cell)

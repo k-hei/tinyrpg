@@ -44,6 +44,7 @@ from props.chest import Chest
 from props.soul import Soul
 
 from items import get_color as get_item_color
+from skills import get_skill_token
 
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
@@ -442,42 +443,7 @@ class DungeonContext(Context):
       game.step_ally(game.ally, run, old_cell)
       acted = True
     elif isinstance(target_elem, Actor) and target_elem.faction == "enemy":
-      if target_elem.idle:
-        game.anims.append([
-          AttackAnim(
-            duration=DungeonContext.ATTACK_DURATION,
-            target=hero,
-            src_cell=hero.cell,
-            dest_cell=target_cell
-          ),
-          PauseAnim(duration=15, on_end=lambda: (
-            game.anims[0].append(ActivateAnim(
-              duration=45,
-              target=target_elem,
-              on_end=lambda: (
-                target_elem.activate(),
-                game.log.print("The lamp was ", target_elem.token(), "!"),
-                game.anims[0].append(PauseAnim(duration=15, on_end=lambda: (
-                  game.step(),
-                  game.refresh_fov()
-                )))
-              )
-            ))
-          ))
-        ])
-        game.log.print("You open the lamp")
-      else:
-        game.log.print(hero.token(), " attacks")
-        game.attack(
-          actor=hero,
-          target=target_elem,
-          on_end=lambda: (
-            game.step(),
-            game.refresh_fov()
-          )
-        )
-        game.parent.sp = max(0, game.parent.sp - 1)
-        acted = True
+      acted = game.handle_attack(target_elem)
     else:
       game.anims.append([
         AttackAnim(
@@ -546,6 +512,41 @@ class DungeonContext(Context):
       elif target_tile is Stage.DOOR_LOCKED:
         game.log.print("The door is locked...")
     return moved
+
+  def handle_attack(game, target):
+    hero = game.hero
+    if target.idle:
+      game.anims.append([
+        AttackAnim(
+          duration=DungeonContext.ATTACK_DURATION,
+          target=hero,
+          src_cell=hero.cell,
+          dest_cell=target.cell
+        ),
+        PauseAnim(duration=15, on_end=lambda: (
+          game.anims[0].append(ActivateAnim(
+            duration=45,
+            target=target,
+            on_end=lambda: (
+              target.activate(),
+              game.log.print("The lamp was ", target.token(), "!"),
+              game.anims[0].append(PauseAnim(duration=15, on_end=lambda: (
+                game.step(),
+                game.refresh_fov()
+              )))
+            )
+          ))
+        ))
+      ])
+      game.log.print("You open the lamp")
+      return True
+    else:
+      weapon = next((s for s in hero.skills if s.kind == "weapon"), None)
+      if weapon:
+        game.use_skill(hero, weapon)
+        return True
+      else:
+        return False
 
   def handle_wait(game):
     game.step()
@@ -722,8 +723,13 @@ class DungeonContext(Context):
       return False
 
   def attack(game, actor, target, damage=None, on_connect=None, on_end=None):
-    if not damage:
-      damage = Actor.find_damage(actor, target)
+    weapon = actor.weapon()
+    if damage is None:
+      modifier = weapon.st if weapon else 0
+      damage = Actor.find_damage(actor, target, modifier)
+      game.log.print(actor.token(), " uses ", get_skill_token(weapon))
+    if weapon is None:
+      return False
     def connect():
       if on_connect:
         on_connect()
@@ -838,14 +844,34 @@ class DungeonContext(Context):
         game.parent.sp -= skill.cost
         if game.parent.sp < 1:
           game.parent.sp = 0
-    game.log.print(actor.token(), " uses ", Token(skill.name, Skill.get_color(skill)))
-    target_cell = skill.effect(actor, game, on_end=lambda: (
-      camera.blur(),
-      actor is game.hero and game.step(),
-      game.refresh_fov()
-    ))
-    if target_cell:
-      camera.focus(target_cell)
+    if skill.kind == "weapon":
+      actor_x, actor_y = actor.cell
+      facing_x, facing_y = actor.facing
+      target_cell = (actor_x + facing_x, actor_y + facing_y)
+      target = next((e for e in game.floor.elems if (
+        isinstance(e, Actor)
+        and e.cell == target_cell
+      )), None)
+      if target:
+        game.attack(
+          actor=actor,
+          target=target,
+          on_end=lambda: (
+            game.step(),
+            game.refresh_fov()
+          )
+        )
+      else:
+        game.log.print("But nothing happened...")
+    else:
+      game.log.print(actor.token(), " uses ", get_skill_token(skill))
+      target_cell = skill.effect(actor, game, on_end=lambda: (
+        camera.blur(),
+        actor is game.hero and game.step(),
+        game.refresh_fov()
+      ))
+      if target_cell:
+        camera.focus(target_cell)
 
   def use_item(game, item):
     success, message = item.effect(game)

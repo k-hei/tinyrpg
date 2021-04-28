@@ -21,6 +21,7 @@ def darken(color):
   elif color == RED: return RED_DARK
   elif color == PURPLE: return PURPLE_DARK
   elif color == YELLOW: return YELLOW_DARK
+  elif color == GOLD: return GOLD_DARK
   elif color == GREEN: return GREEN_DARK
   elif color == GRAY: return GRAY_DARK
   elif color == BLUE: return BLUE_DARK

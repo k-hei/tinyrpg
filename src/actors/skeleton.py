@@ -1,6 +1,7 @@
 from assets import load as use_assets
 from actors import Actor
 from skills.shieldbash import ShieldBash
+from skills.club import Club
 from cell import is_adjacent
 import random
 
@@ -12,9 +13,9 @@ class Skeleton(Actor):
       name="Skeleton",
       faction="enemy",
       hp=35,
-      st=16,
+      st=14,
       en=9,
-      skills=[ShieldBash]
+      skills=[Club, ShieldBash]
     )
 
   def step(actor, game):
@@ -27,7 +28,6 @@ class Skeleton(Actor):
         actor.face(enemy.cell)
         game.use_skill(actor, ShieldBash)
       else:
-        game.log.print(actor.token(), " attacks")
         game.attack(actor, enemy)
     else:
       game.move_to(actor, enemy.cell)

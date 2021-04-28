@@ -4,6 +4,7 @@ from filters import recolor, outline, replace_color
 from pygame import Rect
 import pygame
 import palette
+from skills import get_skill_color
 
 class Skill:
   PADDING_X = 6
@@ -13,7 +14,7 @@ class Skill:
   def render(skill, selected=True):
     assets = use_assets()
     icon = Skill.get_icon(skill)
-    icon_bgcolor = Skill.get_color(skill)
+    icon_bgcolor = get_skill_color(skill)
     icon_bgcolor = icon_bgcolor if selected else palette.darken(icon_bgcolor)
     text_color = (0xFF, 0xFF, 0xFF) if selected else (0x7F, 0x7F, 0x7F)
     font = assets.fonts["standard"]
@@ -69,18 +70,3 @@ class Skill:
       return assets.sprites["icon_heartplus"]
 
     return None
-
-  def get_color(skill):
-    assets = use_assets()
-    if skill.kind == "attack":
-      return palette.RED
-    elif skill.kind == "magic":
-      return palette.BLUE
-    elif skill.kind == "support":
-      return palette.GREEN
-    elif skill.kind == "ailment":
-      return palette.PURPLE
-    elif skill.kind == "field":
-      return palette.YELLOW
-    elif skill.kind == "passive":
-      return palette.YELLOW

@@ -14,8 +14,9 @@ class Counter(Skill):
   range_max = 0
   users = (Knight,)
   blocks = (
-    (0, 0),
-    (1, 0)
+    (1, 0),
+    (0, 1),
+    (1, 1)
   )
 
   def effect(user, game, on_end=None):

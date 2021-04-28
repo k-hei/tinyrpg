@@ -103,18 +103,20 @@ class Actor(Element):
       target.kill()
     return damage
 
-  def find_damage(actor, target):
-    st = actor.st
+  def find_damage(actor, target, modifier=0):
+    st = actor.st + modifier
     en = target.en if target.ailment != "sleep" else 0
     variance = 1 if actor.faction == "enemy" else 2
     return max(0, st - en) + random.randint(-variance, variance)
+
+  def weapon(actor):
+    return next((s for s in actor.skills if s.kind == "weapon"), None)
 
   def step(actor, game):
     enemy = game.find_closest_enemy(actor)
     if enemy is None:
       return False
     if is_adjacent(actor.cell, enemy.cell):
-      game.log.print(actor.token(), " attacks")
       game.attack(actor, enemy)
     else:
       game.move_to(actor, enemy.cell)

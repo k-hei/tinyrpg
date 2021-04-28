@@ -1,5 +1,6 @@
 from actors import Actor
 from assets import load as use_assets
+from skills.bash import Bash
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
 from anims.awaken import AwakenAnim
@@ -13,7 +14,8 @@ class Eye(Actor):
       faction="enemy",
       hp=20,
       st=12,
-      en=7
+      en=7,
+      skills=[Bash]
     )
 
   def render(eye, anims):

@@ -2,7 +2,7 @@ from assets import load as use_assets
 from contexts import Context
 from comps.bar import Bar
 from comps.skill import Skill
-from skills import get_skill_text
+from skills import get_skill_text, get_skill_color
 from filters import replace_color, recolor, outline
 from text import render as render_text
 import pygame
@@ -394,7 +394,7 @@ class CustomContext(Context):
       in_range = abs(target_x - cursor_x) + abs(target_y - cursor_y) < 1
       for skill, (col, row) in ctx.pieces:
         offset = 0
-        sprite = Piece.render(skill.blocks, Skill.get_color(skill), Skill.get_icon(skill))
+        sprite = Piece.render(skill.blocks, get_skill_color(skill), Skill.get_icon(skill))
         for group in ctx.anims:
           for anim in group:
             if type(anim) is PlaceAnim and anim.target is skill.blocks:
@@ -417,7 +417,7 @@ class CustomContext(Context):
     pieces = []
     if piece_anim:
       skill, (col, row) = piece_anim.target
-      sprite = Piece.render(skill.blocks, Skill.get_color(skill_sel), Skill.get_icon(skill_sel))
+      sprite = Piece.render(skill.blocks, get_skill_color(skill_sel), Skill.get_icon(skill_sel))
       i = skills.index(skill)
       start_x = grid_x + col * Piece.BLOCK_SIZE - 4
       start_y = grid_y + row * Piece.BLOCK_SIZE - 4
@@ -440,7 +440,7 @@ class CustomContext(Context):
     ctx.cursor_drawn = (cursor_x, cursor_y)
     if ctx.arrange and not piece_anim:
       blocks = skill_sel.blocks
-      sprite = Piece.render(blocks, Skill.get_color(skill_sel), Skill.get_icon(skill_sel))
+      sprite = Piece.render(blocks, get_skill_color(skill_sel), Skill.get_icon(skill_sel))
       surface.blit(sprite, (
         grid_x + cursor_x * Piece.BLOCK_SIZE - 4,
         grid_y + cursor_y * Piece.BLOCK_SIZE - 4,
@@ -509,7 +509,7 @@ class CustomContext(Context):
 
       if not skill_anim or type(skill_anim) in (SelectAnim, DeselectAnim):
         if ctx.is_skill_used(skill):
-          color = Skill.get_color(skill)
+          color = get_skill_color(skill)
           subspr = sprite.subsurface(Rect(3, 3, sprite.get_width() - 6, sprite.get_height() - 6))
           subspr = replace_color(subspr, color, palette.darken(color))
           subspr = replace_color(subspr, palette.WHITE, palette.GRAY)

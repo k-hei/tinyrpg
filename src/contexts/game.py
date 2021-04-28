@@ -17,6 +17,7 @@ from items.balloon import Balloon
 from items.antidote import Antidote
 from items.elixir import Elixir
 
+from skills.stick import Stick
 from skills.blitzritter import Blitzritter
 from skills.counter import Counter
 from skills.hpup import HpUp
@@ -29,10 +30,7 @@ class GameContext(Context):
     super().__init__()
     ctx.transits = [DissolveOut(config.WINDOW_SIZE)]
     ctx.inventory = Inventory((2, 4), [
-      Potion(), Ankh(),
-      Bread(), Fish(),
-      Emerald(), Balloon(),
-      Antidote(), Elixir()
+      Potion()
     ])
     ctx.sp_max = 50
     ctx.sp = ctx.sp_max
@@ -40,17 +38,17 @@ class GameContext(Context):
     ctx.ally = Mage()
     ctx.new_skills = []
     ctx.skill_pool = [
+      Stick,
       Blitzritter,
       Somnus,
-      Counter,
       Sana,
       DetectMana,
       HpUp,
     ]
     ctx.skill_builds = {
       ctx.hero: [
-        (Blitzritter, (0, 0)),
-        (Counter, (1, 2))
+        (Stick, (0, 0)),
+        (Blitzritter, (1, 0))
       ],
       ctx.ally: [
         (Somnus, (0, 0)),

@@ -12,7 +12,7 @@ class Knight(Actor):
       name="Knight",
       faction="player",
       hp=23,
-      st=17,
+      st=15,
       en=9,
       skills=skills
     )
