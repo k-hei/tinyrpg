@@ -5,7 +5,7 @@ from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lerp import lerp
 from comps.hud import render_numbers
-from filters import recolor
+from filters import recolor, replace_color
 import palette
 
 MARGIN = 12
@@ -23,7 +23,7 @@ SPEED_RESTORE = 1 / 250
 class SpMeter:
   def __init__(meter):
     meter.active = False
-    meter.sp_drawn = 1
+    meter.sp_drawn = None
     meter.draws = 0
     meter.anims = []
     meter.enter()
@@ -43,8 +43,10 @@ class SpMeter:
     fill_sprite = assets.sprites["sp_fill"]
     fill_y = 0
     delta = 0
-    sp_pct = min(1, ctx.sp / ctx.sp_max)
-    if sp_pct > meter.sp_drawn:
+    sp_pct = min(1, ctx.sp / (ctx.sp_max or 1))
+    if meter.sp_drawn == None:
+      meter.sp_drawn = sp_pct
+    elif sp_pct > meter.sp_drawn:
       delta = min(sp_pct - meter.sp_drawn, SPEED_RESTORE)
       meter.sp_drawn += delta
     elif sp_pct < meter.sp_drawn:
@@ -73,6 +75,10 @@ class SpMeter:
     numbers_sprite = render_numbers(int(meter.sp_drawn * ctx.sp_max), ctx.sp_max)
     numbers_x = 0
     numbers_y = meter_sprite.get_height() // 2 - numbers_sprite.get_height() // 2 + NUMBERS_OFFSET
+
+    if ctx.sp == 0:
+      tag_sprite = replace_color(tag_sprite, palette.BLUE, palette.RED)
+
     sprite = Surface((
       meter_sprite.get_width() + numbers_sprite.get_width() - NUMBERS_OVERLAP,
       meter_sprite.get_height()

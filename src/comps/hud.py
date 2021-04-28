@@ -232,6 +232,7 @@ def draw_bar(surface, pct, pos, color=palette.WHITE):
 
 def render_numbers(hp, hp_max, crit_threshold=0):
   assets = use_assets()
+
   hp_text = str(math.ceil(max(0, hp)))
   if len(hp_text) == 1:
     hp_text = "0" + hp_text
@@ -239,10 +240,13 @@ def render_numbers(hp, hp_max, crit_threshold=0):
   else:
     gray = False
 
+  hp_max = str(hp_max)
+  if len(hp_max) == 1:
+    hp_max = "0" + hp_max
+
   sprite_slash = assets.sprites["hud_slash"]
   sprite_firstno = render_char(hp_text[0], assets.fonts["numbers16"])
-  sprite_hpmax = render_text(str(hp_max), assets.fonts["smallcaps"])
-
+  sprite_hpmax = render_text(hp_max, assets.fonts["smallcaps"])
   sprite_width = sprite_firstno.get_width() - 1
   sprite_width += find_text_width(hp_text[1:], assets.fonts["numbers13"])
   sprite_width += sprite_slash.get_width()
