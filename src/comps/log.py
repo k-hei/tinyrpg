@@ -114,7 +114,8 @@ class Log:
         else:
           word = message[log.col+1:next_space]
         word_width, _ = font.size(word)
-        if log.cursor_x + word_width > log.surface.get_width():
+        space_width, _ = font.size(" ")
+        if log.cursor_x + space_width + word_width > log.surface.get_width():
           log.col += 1
           log.row += 1
           log.cursor_x = 0

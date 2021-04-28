@@ -1,9 +1,10 @@
 import math
-from pygame import Rect
+from pygame import Surface, Rect
 from assets import load as use_assets
 from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lerp import lerp
+from comps.hud import render_numbers
 
 MARGIN = 12
 PADDING_X = 3
@@ -12,6 +13,8 @@ TAG_X = 18
 TAG_Y = 28
 ENTER_DURATION = 8
 EXIT_DURATION = 6
+NUMBERS_OVERLAP = 20
+NUMBERS_OFFSET = -2
 
 class SpMeter:
   def __init__(meter):
@@ -30,7 +33,7 @@ class SpMeter:
   def render(meter, ctx):
     assets = use_assets()
     sp_pct = min(1, ctx.sp / ctx.sp_max)
-    sprite = assets.sprites["sp_meter"].copy()
+    meter_sprite = assets.sprites["sp_meter"]
     tag_sprite = assets.sprites["sp_tag"]
     fill_sprite = assets.sprites["sp_fill"]
     fill_y = 0
@@ -40,9 +43,20 @@ class SpMeter:
         (0, math.ceil(fill_y)),
         (fill_sprite.get_width(), fill_sprite.get_height() - math.ceil(fill_y))
       ))
+    numbers_sprite = render_numbers(ctx.sp, ctx.sp_max)
+    numbers_x = 0
+    numbers_y = meter_sprite.get_height() // 2 - numbers_sprite.get_height() // 2 + NUMBERS_OFFSET
+    sprite = Surface((
+      meter_sprite.get_width() + numbers_sprite.get_width() - NUMBERS_OVERLAP,
+      meter_sprite.get_height()
+    )).convert_alpha()
 
-    sprite.blit(fill_sprite, (PADDING_X, PADDING_Y + math.ceil(fill_y)))
-    sprite.blit(tag_sprite, (TAG_X, TAG_Y))
+    meter_x = numbers_sprite.get_width() - NUMBERS_OVERLAP
+    meter_y = 0
+    sprite.blit(meter_sprite, (meter_x, meter_y))
+    sprite.blit(fill_sprite, (meter_x + PADDING_X, meter_y + PADDING_Y + math.ceil(fill_y)))
+    sprite.blit(tag_sprite, (meter_x + TAG_X, meter_y + TAG_Y))
+    sprite.blit(numbers_sprite, (numbers_x, numbers_y))
     return sprite
 
   def draw(meter, surface, ctx):

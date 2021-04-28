@@ -405,7 +405,7 @@ class DungeonContext(Context):
                 duration=DungeonContext.AWAKEN_DURATION,
                 target=enemy,
                 on_end=lambda: (
-                  game.log.print(enemy.token() + " woke up!"),
+                  game.log.print(enemy.token(), " woke up!"),
                   game.anims[0].append(PauseAnim(
                     duration=DungeonContext.PAUSE_DURATION,
                     on_end=end_move

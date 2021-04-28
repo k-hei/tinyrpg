@@ -6,7 +6,7 @@ from pygame import Surface, Rect, PixelArray
 import palette
 from assets import load as use_assets
 from filters import replace_color, recolor, outline
-from text import render_char, render as render_text
+from text import render_char, render as render_text, find_width as find_text_width
 
 from actors.knight import Knight
 from actors.mage import Mage
@@ -22,7 +22,7 @@ HP_X = 31
 HP_Y = 0
 HP_VALUE_X = 48
 HP_VALUE_Y = 0
-HP_MAX_X = 66
+HP_MAX_X = 18
 HP_MAX_Y = 7
 HP_BAR_X = 52
 HP_BAR_Y1 = 18
@@ -159,34 +159,8 @@ class Hud:
     ))
     sprite.blit(assets.sprites["hp"], (HP_X, HP_Y))
 
-    hp_text = str(math.ceil(max(0, hero.get_hp())))
-    gray = False
-    red = int(hero.get_hp()) <= HP_CRITICAL
-    if len(hp_text) == 1:
-      hp_text = "0" + hp_text
-      gray = True
-
-    first_number = render_char(hp_text[0], assets.fonts["numbers16"])
-    if gray:
-      pixels = PixelArray(first_number)
-      pixels.replace(palette.WHITE, palette.GRAY)
-      pixels.close()
-    sprite.blit(first_number, (HP_VALUE_X, HP_VALUE_Y))
-
-    x = HP_VALUE_X + first_number.get_width() - 1
-    for char in hp_text[1:]:
-      number = render_char(char, assets.fonts["numbers13"]).convert_alpha()
-      if red:
-        pixels = PixelArray(number)
-        pixels.replace(palette.BLACK, palette.RED)
-        pixels.close()
-      sprite.blit(number, (x, HP_VALUE_Y))
-      x += number.get_width() - 2
-
-    number = render_text(str(hero.get_hp_max()), assets.fonts["smallcaps"])
-    number = outline(number, palette.BLACK)
-    number = outline(number, palette.WHITE)
-    sprite.blit(number, (HP_MAX_X, HP_MAX_Y))
+    hp_text = render_numbers(hero.get_hp(), hero.get_hp_max(), HP_CRITICAL)
+    sprite.blit(hp_text, (HP_VALUE_X, HP_VALUE_Y))
 
     if hero.get_hp() <= panel.hp_hero:
       draw_bar(sprite, panel.hp_hero / hero.get_hp_max(), (HP_BAR_X, HP_BAR_Y1), palette.RED)
@@ -255,3 +229,48 @@ def draw_bar(surface, pct, pos, color=palette.WHITE):
       (x + HP_HALFWIDTH - 1, y + 1),
       (HP_HALFWIDTH * min(1, (pct - 0.5) / 0.5), 1)
     ))
+
+def render_numbers(hp, hp_max, crit_threshold=0):
+  assets = use_assets()
+  hp_text = str(math.ceil(max(0, hp)))
+  if len(hp_text) == 1:
+    hp_text = "0" + hp_text
+    gray = True
+  else:
+    gray = False
+
+  sprite_slash = assets.sprites["hud_slash"]
+  sprite_firstno = render_char(hp_text[0], assets.fonts["numbers16"])
+  sprite_hpmax = render_text(str(hp_max), assets.fonts["smallcaps"])
+
+  sprite_width = sprite_firstno.get_width() - 1
+  sprite_width += find_text_width(hp_text[1:], assets.fonts["numbers13"])
+  sprite_width += sprite_slash.get_width()
+  sprite_width += sprite_hpmax.get_width()
+  sprite_height = sprite_firstno.get_height()
+
+  sprite = Surface((sprite_width, sprite_height)).convert_alpha()
+
+  if gray:
+    pixels = PixelArray(sprite_firstno)
+    pixels.replace(palette.WHITE, palette.GRAY)
+    pixels.close()
+  sprite.blit(sprite_firstno, (0, 0))
+
+  x = sprite_firstno.get_width() - 1
+
+  for char in hp_text[1:]:
+    number = render_char(char, assets.fonts["numbers13"]).convert_alpha()
+    if hp <= crit_threshold:
+      pixels = PixelArray(number)
+      pixels.replace(palette.BLACK, palette.RED)
+      pixels.close()
+    sprite.blit(number, (x, HP_VALUE_Y))
+    x += number.get_width() - 2
+
+  sprite.blit(sprite_slash, (x, HP_MAX_Y))
+
+  sprite_hpmax = outline(sprite_hpmax, palette.BLACK)
+  sprite_hpmax = outline(sprite_hpmax, palette.WHITE)
+  sprite.blit(sprite_hpmax, (HP_MAX_X, HP_MAX_Y))
+  return sprite
