@@ -18,7 +18,7 @@ EXIT_DURATION = 6
 NUMBERS_OVERLAP = 20
 NUMBERS_OFFSET = -2
 SPEED_DEPLETE = 1 / 500
-SPEED_RESTORE = 1 / 500
+SPEED_RESTORE = 1 / 250
 
 class SpMeter:
   def __init__(meter):
@@ -42,14 +42,27 @@ class SpMeter:
     tag_sprite = assets.sprites["sp_tag"]
     fill_sprite = assets.sprites["sp_fill"]
     fill_y = 0
+    delta = 0
     sp_pct = min(1, ctx.sp / ctx.sp_max)
     if sp_pct > meter.sp_drawn:
-      meter.sp_drawn += min(sp_pct - meter.sp_drawn, SPEED_RESTORE)
+      delta = min(sp_pct - meter.sp_drawn, SPEED_RESTORE)
+      meter.sp_drawn += delta
     elif sp_pct < meter.sp_drawn:
       delta = max(sp_pct - meter.sp_drawn, -SPEED_DEPLETE)
       meter.sp_drawn += delta
-      if meter.draws % 2 and delta == -SPEED_DEPLETE:
-        fill_sprite = recolor(fill_sprite, palette.WHITE)
+
+    if delta == -SPEED_DEPLETE and meter.draws % 2:
+      fill_sprite = recolor(fill_sprite, palette.WHITE)
+
+    bg_sprite = None
+    if delta > 0 and meter.draws % 2:
+      bg_sprite = recolor(fill_sprite, palette.WHITE)
+      bg_y = bg_sprite.get_height() * (1 - sp_pct)
+      bg_sprite = bg_sprite.subsurface(Rect(
+        (0, math.ceil(bg_y)),
+        (bg_sprite.get_width(), bg_sprite.get_height() - math.ceil(bg_y))
+      ))
+
     if sp_pct < 1:
       fill_y = fill_sprite.get_height() * (1 - meter.sp_drawn)
       fill_sprite = fill_sprite.subsurface(Rect(
@@ -57,7 +70,7 @@ class SpMeter:
         (fill_sprite.get_width(), fill_sprite.get_height() - math.ceil(fill_y))
       ))
 
-    numbers_sprite = render_numbers(ctx.sp, ctx.sp_max)
+    numbers_sprite = render_numbers(int(meter.sp_drawn * ctx.sp_max), ctx.sp_max)
     numbers_x = 0
     numbers_y = meter_sprite.get_height() // 2 - numbers_sprite.get_height() // 2 + NUMBERS_OFFSET
     sprite = Surface((
@@ -68,6 +81,8 @@ class SpMeter:
     meter_x = numbers_sprite.get_width() - NUMBERS_OVERLAP
     meter_y = 0
     sprite.blit(meter_sprite, (meter_x, meter_y))
+    if bg_sprite:
+      sprite.blit(bg_sprite, (meter_x + PADDING_X, meter_y + PADDING_Y + math.ceil(bg_y)))
     sprite.blit(fill_sprite, (meter_x + PADDING_X, meter_y + PADDING_Y + math.ceil(fill_y)))
     sprite.blit(numbers_sprite, (numbers_x, numbers_y))
     sprite.blit(tag_sprite, (
