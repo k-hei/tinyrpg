@@ -1,7 +1,7 @@
 from math import ceil
 import pygame
 from pygame import Surface, Rect, PixelArray
-from stage import Stage
+from dungeon.stage import Stage
 from actors.knight import Knight
 from actors import Actor
 from actors.mage import Mage
@@ -10,7 +10,7 @@ from props.chest import Chest
 import palette
 from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in_out
-from lerp import lerp
+from lib.lerp import lerp
 
 MARGIN_X = 8
 MARGIN_Y = 6

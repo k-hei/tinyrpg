@@ -1,12 +1,12 @@
 from comps.preview import Preview
 from easing.expo import ease_out
-from lerp import lerp
-from cell import manhattan, is_adjacent
+from lib.lerp import lerp
+from lib.cell import manhattan, is_adjacent
 import pygame
 
 from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in_out
-from lerp import lerp
+from lib.lerp import lerp
 
 from actors import Actor
 from actors.mimic import Mimic

@@ -1,18 +1,24 @@
 import math
 import random
+import pygame
+from pygame import Rect
 
 import config
-import fov
-import gen
+import dungeon.fov
+import dungeon.gen
 import keyboard
 import palette
-import pygame
+
 from actors import Actor
 from actors.eye import Eye
 from actors.knight import Knight
 from actors.mage import Mage
 from actors.mimic import Mimic
 from actors.npc import NPC
+
+from props.chest import Chest
+from props.soul import Soul
+
 from anims.activate import ActivateAnim
 from anims.attack import AttackAnim
 from anims.awaken import AwakenAnim
@@ -21,23 +27,21 @@ from anims.flicker import FlickerAnim
 from anims.flinch import FlinchAnim
 from anims.move import MoveAnim
 from anims.pause import PauseAnim
-from assets import load as load_assets
-from camera import Camera
-from cell import is_adjacent, manhattan
+
 from comps.damage import DamageValue
 from comps.hud import Hud
 from comps.log import Log, Message, Token
 from comps.minimap import Minimap
 from comps.previews import Previews
 from comps.spmeter import SpMeter
+
+from assets import load as load_assets
+from dungeon.camera import Camera
+from lib.cell import is_adjacent, manhattan
 from filters import recolor, replace_color
-from items import get_color as get_item_color
 from keyboard import ARROW_DELTAS, key_times
-from props.chest import Chest
-from props.soul import Soul
-from pygame import Rect
 from skills import Skill, get_skill_order, get_skill_token
-from stage import Stage
+from dungeon.stage import Stage
 from text import render as render_text
 from transits.dissolve import DissolveOut
 
@@ -47,7 +51,6 @@ from contexts.examine import ExamineContext
 from contexts.inventory import InventoryContext
 from contexts.minimap import MinimapContext
 from contexts.skill import SkillContext
-
 
 class DungeonContext(Context):
   MOVE_DURATION = 16
@@ -139,7 +142,7 @@ class DungeonContext(Context):
   def refresh_fov(game, moving=False):
     hero = game.hero
     floor = game.floor
-    visible_cells = fov.shadowcast(floor, hero.cell, DungeonContext.VISION_RANGE)
+    visible_cells = dungeon.fov.shadowcast(floor, hero.cell, DungeonContext.VISION_RANGE)
 
     door = None
     if moving:
@@ -505,7 +508,7 @@ class DungeonContext(Context):
             else:
               game.parent.inventory.append(item)
             game.log.print("You open the lamp")
-            game.log.print("Received ", Token(item.name, get_item_color(item)), ".")
+            game.log.print("Received ", item.token(), ".")
             acted = True
           else:
             game.log.print("Your inventory is already full!")
@@ -910,9 +913,9 @@ class DungeonContext(Context):
         camera.focus(target_cell)
 
   def use_item(game, item):
-    success, message = item.effect(game)
+    success, message = item.use(game)
     if success:
-      game.log.print("Used ", Token(item.name, get_item_color(item)))
+      game.log.print("Used ", item.token())
       game.log.print(message)
       game.parent.inventory.items.remove(item)
       game.anims.append([
@@ -921,9 +924,9 @@ class DungeonContext(Context):
           on_end=game.step
         )
       ])
-      return (True, None)
+      return True, None
     else:
-      return (False, message)
+      return False, message
 
   def update_skills(game, char=None):
     if char is None:

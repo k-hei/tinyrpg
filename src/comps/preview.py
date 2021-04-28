@@ -9,7 +9,7 @@ from anims import Anim
 from anims.tween import TweenAnim
 from anims.flicker import FlickerAnim
 from easing.expo import ease_out
-from lerp import lerp
+from lib.lerp import lerp
 
 from actors.eye import Eye
 from actors.mimic import Mimic

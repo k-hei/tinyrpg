@@ -1,5 +1,5 @@
 import random
-from element import Element
+from dungeon.element import Element
 from functools import reduce
 from operator import add
 
@@ -9,7 +9,7 @@ from filters import replace_color
 from anims.awaken import AwakenAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
-from cell import is_adjacent, manhattan
+from lib.cell import is_adjacent, manhattan
 from comps.log import Token
 
 class Actor(Element):
@@ -151,10 +151,10 @@ class Actor(Element):
       sprite = replace_color(sprite, palette.BLACK, new_color)
     return sprite
 
-  def get_color(actor):
+  def color(actor):
     if actor.faction == "player": return palette.BLUE
     if actor.faction == "enemy" and actor.rare: return palette.GOLD_DARK
     if actor.faction == "enemy": return palette.RED
 
   def token(actor):
-    return Token(text=actor.name.upper(), color=actor.get_color())
+    return Token(text=actor.name.upper(), color=actor.color())

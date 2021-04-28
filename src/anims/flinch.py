@@ -1,4 +1,4 @@
-from lerp import lerp
+from lib.lerp import lerp
 
 class FlinchAnim:
   def __init__(anim, duration, target, direction=None, on_start=None, on_end=None):

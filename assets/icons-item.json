@@ -1,0 +1,10 @@
+{
+  "cell_width": 16,
+  "cell_height": 16,
+  "order": [
+    [   "item_potion",     "item_ankh",     "item_elixir",                "" ],
+    [   "item_cheese",    "item_bread",       "item_fish",                "" ],
+    [  "item_emerald",  "item_balloon",                "",                "" ],
+    [ "item_antidote", "item_musicbox", "item_alarmclock", "item_lovepotion" ]
+  ]
+}

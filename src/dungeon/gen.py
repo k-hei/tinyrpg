@@ -1,8 +1,9 @@
 import random
-from cell import is_odd, add, is_adjacent, manhattan
-from stage import Stage
-from room import Room
-from maze import Maze
+from lib.cell import is_odd, add, is_adjacent, manhattan
+
+from dungeon.stage import Stage
+from dungeon.room import Room
+from dungeon.maze import Maze
 
 from actors.knight import Knight
 from actors.mage import Mage
@@ -15,15 +16,15 @@ from actors.npc import NPC
 from props.chest import Chest
 from props.soul import Soul
 
-from items.potion import Potion
-from items.elixir import Elixir
-from items.ankh import Ankh
-from items.cheese import Cheese
-from items.bread import Bread
-from items.fish import Fish
-from items.antidote import Antidote
-from items.balloon import Balloon
-from items.emerald import Emerald
+from items.hp.potion import Potion
+from items.hp.ankh import Ankh
+from items.hp.elixir import Elixir
+from items.sp.cheese import Cheese
+from items.sp.bread import Bread
+from items.sp.fish import Fish
+from items.dungeon.balloon import Balloon
+from items.dungeon.emerald import Emerald
+from items.ailment.antidote import Antidote
 
 from skills.shieldbash import ShieldBash
 from skills.fulgur import Fulgur

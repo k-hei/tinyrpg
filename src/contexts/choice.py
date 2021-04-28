@@ -11,7 +11,7 @@ import palette
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
 from easing.expo import ease_out
-from lerp import lerp
+from lib.lerp import lerp
 
 BORDER_WIDTH = 5
 PADDING = 8

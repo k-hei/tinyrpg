@@ -1,6 +1,6 @@
 import config
 from contexts import Context
-from contexts.dungeon import DungeonContext
+from dungeon import DungeonContext
 from town import TownContext
 from transits.dissolve import DissolveIn, DissolveOut
 
@@ -8,14 +8,14 @@ from actors.knight import Knight
 from actors.mage import Mage
 
 from inventory import Inventory
-from items.potion import Potion
-from items.ankh import Ankh
-from items.bread import Bread
-from items.fish import Fish
-from items.emerald import Emerald
-from items.balloon import Balloon
-from items.antidote import Antidote
-from items.elixir import Elixir
+from items.hp.potion import Potion
+from items.hp.ankh import Ankh
+from items.hp.elixir import Elixir
+from items.sp.bread import Bread
+from items.sp.fish import Fish
+from items.dungeon.emerald import Emerald
+from items.dungeon.balloon import Balloon
+from items.ailment.antidote import Antidote
 
 from skills.stick import Stick
 from skills.blitzritter import Blitzritter
@@ -30,7 +30,10 @@ class GameContext(Context):
     super().__init__()
     ctx.transits = [DissolveOut(config.WINDOW_SIZE)]
     ctx.inventory = Inventory((2, 4), [
-      Potion(), Balloon()
+      Potion(), Elixir(),
+      Ankh(), Bread(),
+      Emerald(), Balloon(),
+      Antidote()
     ])
     ctx.sp_max = 50
     ctx.sp = ctx.sp_max

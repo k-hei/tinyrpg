@@ -28,11 +28,11 @@ from anims.bounce import BounceAnim
 from anims.pause import PauseAnim
 from anims.awaken import AwakenAnim
 from anims.chest import ChestAnim
-from lerp import lerp
+from lib.lerp import lerp
 
 ITEM_OFFSET = 20
 
-@dataclass
+@dataclass(frozen=True)
 class Tile:
   solid: bool
   opaque: bool

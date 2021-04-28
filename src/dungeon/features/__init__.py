@@ -1,5 +1,5 @@
-from stage import Stage
-from room import Room
+from dungeon.stage import Stage
+from dungeon.room import Room
 
 class Feature:
   def __init__(feature):

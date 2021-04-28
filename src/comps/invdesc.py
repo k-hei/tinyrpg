@@ -1,9 +1,8 @@
 from pygame import Surface, Rect
 from anims.tween import TweenAnim
 from easing.expo import ease_out
-from lerp import lerp
+from lib.lerp import lerp
 from assets import load as use_assets
-from items import get_color
 from comps.log import Message, Token
 
 PADDING_X = 12
@@ -76,7 +75,7 @@ class InventoryDescription:
       else:
         # assume message is an Item (TODO: item superclass)
         item = box.message
-        sprite_title = font_heading.render(item.name, get_color(item))
+        sprite_title = font_heading.render(item.name, item.color)
         message = item.desc
 
       if box.index < len(message):

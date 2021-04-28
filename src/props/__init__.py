@@ -1,4 +1,4 @@
-from element import Element
+from dungeon.element import Element
 
 class Prop(Element):
   def __init__(prop, name=None, solid=True):

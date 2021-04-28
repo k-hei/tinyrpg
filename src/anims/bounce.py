@@ -1,4 +1,4 @@
-from lerp import lerp
+from lib.lerp import lerp
 from easing.expo import ease_in, ease_out
 
 class BounceAnim:

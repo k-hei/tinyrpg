@@ -88,16 +88,7 @@ sprite_paths = {
   "icon_skull": "icon-skull",
   "icon_heartplus": "icon-heartplus",
   "icon_stairs": "icon-stairs",
-  "icon_potion": "icon-potion",
-  "icon_ankh": "icon-ankh",
-  "icon_bread": "icon-bread",
-  "icon_fish": "icon-fish",
-  "icon_cheese": "icon-cheese",
-  "icon_elixir": "icon-elixir",
-  "icon_antidote": "icon-antidote",
-  "icon_emerald": "icon-emerald",
-  "icon_balloon": "icon-balloon",
-  "icon_stairs": "icon-stairs",
+  "icons-item": "icons-item",
   "skill": "skill",
   "box": "box",
   "hud": "hud",
@@ -163,6 +154,41 @@ sprite_paths = {
   "tower": "tower"
 }
 
+def load_sprite(sprite_name, path, sprites):
+  try:
+    sprite = pygame.image.load(ASSETS_PATH + path + ".png").convert_alpha()
+  except FileNotFoundError:
+    print("FileNotFoundError: Could not find", sprite_name, "at", path)
+    return
+
+  try:
+    metadata = json.loads(open(ASSETS_PATH + path + ".json", "r").read())
+  except FileNotFoundError:
+    sprites[sprite_name] = sprite
+    return
+
+  cell_width = 0
+  cell_height = 0
+  cols = 0
+  rows = 0
+  for key, value in metadata.items():
+    if key == "cell_width":
+      cell_width = value
+    elif key == "cell_height":
+      cell_height = value
+    elif key == "order":
+      cols = len(value[0])
+      rows = len(value)
+      for row in range(rows):
+        for col in range(cols):
+          key = value[row][col]
+          if key == "": continue
+          rect = Rect(col * cell_width, row * cell_height, cell_width, cell_height)
+          sprites[key] = sprite.subsurface(rect)
+    elif type(value) is list:
+      rect = Rect(*value)
+      sprites[key] = sprite.subsurface(rect)
+
 def load_font(font_name):
   typeface = pygame.image.load(ASSETS_PATH + "fonts/" + font_name + "/typeface.png").convert_alpha()
   metadata = json.loads(open(ASSETS_PATH + "fonts/" + font_name + "/metadata.json", "r").read())
@@ -176,33 +202,19 @@ def load():
   global assets
   if assets:
     return assets
+
   sprites = {}
-  fonts = {}
-  ttf = {}
   for name, path in sprite_paths.items():
-    try:
-      sprite = pygame.image.load(ASSETS_PATH + path + ".png").convert_alpha()
-    except FileNotFoundError:
-      sprite = None
-      print("FileNotFoundError: Could not find", name, "at", path)
-    try:
-      metadata = json.loads(open(ASSETS_PATH + path + ".json", "r").read())
-    except FileNotFoundError:
-      metadata = None
-    if sprite and metadata:
-      for name, data in metadata.items():
-        if type(data) is str:
-          color = getattr(palette, data)
-          sprites[name] = replace_color(sprite, color)
-        else:
-          sprites[name] = sprite.subsurface(Rect(*data))
-    elif sprite:
-      sprites[name] = sprite
+    load_sprite(name, path, sprites)
+
+  fonts = {}
   fonts["standard"] = load_font("standard")
   fonts["smallcaps"] = load_font("smallcaps")
   fonts["numbers13"] = load_font("numbers13")
   fonts["numbers16"] = load_font("numbers16")
-  fonts["english"] = load_font("english")
+
+  ttf = {}
   ttf["english"] = load_ttf("PCPaintEnglishSmall")
   ttf["roman"] = load_ttf("PCPaintRomanSmall")
+
   assets = Assets(sprites, fonts, ttf)

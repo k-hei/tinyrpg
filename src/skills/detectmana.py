@@ -1,7 +1,7 @@
 from skills import Skill
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
-from stage import Stage
+from dungeon.stage import Stage
 from actors.mage import Mage
 
 class DetectMana(Skill):

@@ -6,7 +6,7 @@ from filters import recolor
 
 from anims.tween import TweenAnim
 from easing.expo import ease_out
-from lerp import lerp
+from lib.lerp import lerp
 
 class Bar:
   MARGIN = 8

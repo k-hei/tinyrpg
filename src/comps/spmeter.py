@@ -3,7 +3,7 @@ from pygame import Surface, Rect
 from assets import load as use_assets
 from anims.tween import TweenAnim
 from easing.expo import ease_out
-from lerp import lerp
+from lib.lerp import lerp
 from comps.hud import render_numbers
 from filters import recolor, replace_color
 import palette

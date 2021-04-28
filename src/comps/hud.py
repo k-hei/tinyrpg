@@ -14,7 +14,7 @@ from actors.mage import Mage
 from anims import Anim
 from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in
-from lerp import lerp
+from lib.lerp import lerp
 
 CIRC16_X = 28
 CIRC16_Y = 26

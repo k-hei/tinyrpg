@@ -2,7 +2,7 @@ from assets import load as use_assets
 from actors import Actor
 from skills.virus import Virus
 from skills.bash import Bash
-from cell import is_adjacent
+from lib.cell import is_adjacent
 import random
 
 class Mushroom(Actor):

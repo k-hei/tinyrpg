@@ -1,4 +1,4 @@
-from lerp import lerp
+from lib.lerp import lerp
 
 class MoveAnim():
   def __init__(anim, duration,  target, src_cell, dest_cell, started=True, on_end=None):

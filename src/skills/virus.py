@@ -5,7 +5,7 @@ from anims.pause import PauseAnim
 import math
 from actors import Actor
 from actors.mage import Mage
-from cell import is_adjacent
+from lib.cell import is_adjacent
 
 ATTACK_DURATION = 12
 

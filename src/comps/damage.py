@@ -1,7 +1,7 @@
 from assets import load as use_assets
 from filters import recolor, outline
 from text import render as render_text
-from lerp import lerp
+from lib.lerp import lerp
 import config
 import pygame
 

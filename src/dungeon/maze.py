@@ -1,4 +1,4 @@
-from cell import is_adjacent
+from lib.cell import is_adjacent
 
 class Maze:
   def __init__(maze, cells):

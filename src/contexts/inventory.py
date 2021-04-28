@@ -11,12 +11,10 @@ from filters import replace_color
 from keyboard import key_times, ARROW_DELTAS
 import palette
 
-from items import get_color
-
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
 from easing.expo import ease_out
-from lerp import lerp
+from lib.lerp import lerp
 
 SPACING = 4
 MARGIN = 8

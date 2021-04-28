@@ -13,14 +13,14 @@ import palette
 from comps.skill import Skill
 from skills import get_skill_text, get_skill_color
 
-from lerp import lerp
+from lib.lerp import lerp
 from easing.expo import ease_out
 from anims.sine import SineAnim
 from anims.tween import TweenAnim
 from anims.flicker import FlickerAnim
 
 from actors import Actor
-from cell import manhattan
+from lib.cell import manhattan
 
 MARGIN = 8
 OFFSET = 4
