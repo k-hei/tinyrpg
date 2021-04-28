@@ -4,6 +4,8 @@ import json
 import pygame
 from pygame import Surface, Rect
 from text import Font, Ttf
+from filters import replace_color
+import palette
 
 ASSETS_PATH = "assets/"
 
@@ -188,8 +190,12 @@ def load():
     except FileNotFoundError:
       metadata = None
     if sprite and metadata:
-      for name, rect in metadata.items():
-        sprites[name] = sprite.subsurface(Rect(*rect))
+      for name, data in metadata.items():
+        if type(data) is str:
+          color = getattr(palette, data)
+          sprites[name] = replace_color(sprite, color)
+        else:
+          sprites[name] = sprite.subsurface(Rect(*data))
     elif sprite:
       sprites[name] = sprite
   fonts["standard"] = load_font("standard")

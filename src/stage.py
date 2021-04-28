@@ -311,7 +311,9 @@ class Stage:
       if sprite is None:
         continue
       if cell not in visible_cells:
-        sprite = replace_color(sprite, palette.WHITE, palette.GRAY)
+        sprite = replace_color(sprite, palette.WHITE, palette.GOLD_DARK)
+      else:
+        sprite = replace_color(sprite, palette.WHITE, palette.SAFFRON)
       surface.blit(sprite, (x, y))
 
   def render_tile(stage, cell, visited_cells):

@@ -5,20 +5,26 @@ from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lerp import lerp
 from comps.hud import render_numbers
+from filters import recolor
+import palette
 
 MARGIN = 12
 PADDING_X = 3
 PADDING_Y = 4
-TAG_X = 18
+TAG_X = 16
 TAG_Y = 28
 ENTER_DURATION = 8
 EXIT_DURATION = 6
 NUMBERS_OVERLAP = 20
 NUMBERS_OFFSET = -2
+SPEED_DEPLETE = 1 / 500
+SPEED_RESTORE = 1 / 500
 
 class SpMeter:
   def __init__(meter):
     meter.active = False
+    meter.sp_drawn = 1
+    meter.draws = 0
     meter.anims = []
     meter.enter()
 
@@ -32,17 +38,25 @@ class SpMeter:
 
   def render(meter, ctx):
     assets = use_assets()
-    sp_pct = min(1, ctx.sp / ctx.sp_max)
     meter_sprite = assets.sprites["sp_meter"]
     tag_sprite = assets.sprites["sp_tag"]
     fill_sprite = assets.sprites["sp_fill"]
     fill_y = 0
+    sp_pct = min(1, ctx.sp / ctx.sp_max)
+    if sp_pct > meter.sp_drawn:
+      meter.sp_drawn += min(sp_pct - meter.sp_drawn, SPEED_RESTORE)
+    elif sp_pct < meter.sp_drawn:
+      delta = max(sp_pct - meter.sp_drawn, -SPEED_DEPLETE)
+      meter.sp_drawn += delta
+      if meter.draws % 2 and delta == -SPEED_DEPLETE:
+        fill_sprite = recolor(fill_sprite, palette.WHITE)
     if sp_pct < 1:
-      fill_y = fill_sprite.get_height() * (1 - sp_pct)
+      fill_y = fill_sprite.get_height() * (1 - meter.sp_drawn)
       fill_sprite = fill_sprite.subsurface(Rect(
         (0, math.ceil(fill_y)),
         (fill_sprite.get_width(), fill_sprite.get_height() - math.ceil(fill_y))
       ))
+
     numbers_sprite = render_numbers(ctx.sp, ctx.sp_max)
     numbers_x = 0
     numbers_y = meter_sprite.get_height() // 2 - numbers_sprite.get_height() // 2 + NUMBERS_OFFSET
@@ -55,8 +69,13 @@ class SpMeter:
     meter_y = 0
     sprite.blit(meter_sprite, (meter_x, meter_y))
     sprite.blit(fill_sprite, (meter_x + PADDING_X, meter_y + PADDING_Y + math.ceil(fill_y)))
-    sprite.blit(tag_sprite, (meter_x + TAG_X, meter_y + TAG_Y))
     sprite.blit(numbers_sprite, (numbers_x, numbers_y))
+    sprite.blit(tag_sprite, (
+      meter_x + meter_sprite.get_width() - tag_sprite.get_width(),
+      meter_y + meter_sprite.get_height() - tag_sprite.get_height()
+    ))
+
+    meter.draws += 1
     return sprite
 
   def draw(meter, surface, ctx):
