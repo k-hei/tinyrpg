@@ -4,6 +4,7 @@ from easing.expo import ease_out
 from lerp import lerp
 from assets import load as use_assets
 from items import get_color
+from comps.log import Message, Token
 
 PADDING_X = 12
 PADDING_Y = 10
@@ -30,9 +31,12 @@ class InventoryDescription:
     box.active = False
     box.anim = TweenAnim(duration=DURATION_EXIT)
 
-  def print(box, message):
+  def print(box, data):
     box.clear()
-    box.message = message
+    if type(data) is str or type(data) is tuple:
+      box.message = Message(*data)
+    else:
+      box.message = data
 
   def clear(box):
     box.index = 0
@@ -66,7 +70,7 @@ class InventoryDescription:
           surface.get_height() - PADDING_Y * 2
         )).convert_alpha()
 
-      if type(box.message) is str:
+      if type(box.message) is Message:
         sprite_title = None
         message = box.message
       else:
@@ -89,7 +93,9 @@ class InventoryDescription:
             cursor_y += word_height + LINE_SPACING
             box.index += 1
         char = message[box.index]
-        sprite_char = font_content.render(char, 0x000000)
+        token = message.get_token_at(box.index) if type(message) is Message else None
+        color = token and token.color or 0x000000
+        sprite_char = font_content.render(char, color)
         box.surface.blit(sprite_char, (cursor_x, cursor_y))
         cursor_x += sprite_char.get_width()
         box.index += 1

@@ -19,7 +19,7 @@ import keyboard
 
 from camera import Camera
 from comps.hud import Hud
-from comps.log import Log
+from comps.log import Log, Message, Token
 from comps.minimap import Minimap
 from comps.previews import Previews
 from comps.damage import DamageValue
@@ -41,6 +41,8 @@ from actors.mimic import Mimic
 from actors.npc import NPC
 from props.chest import Chest
 from props.soul import Soul
+
+from items import get_color as get_item_color
 
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
@@ -402,7 +404,7 @@ class DungeonContext(Context):
                 duration=DungeonContext.AWAKEN_DURATION,
                 target=enemy,
                 on_end=lambda: (
-                  game.log.print(enemy.name.upper() + " woke up!"),
+                  game.log.print(enemy.token() + " woke up!"),
                   game.anims[0].append(PauseAnim(
                     duration=DungeonContext.PAUSE_DURATION,
                     on_end=end_move
@@ -440,7 +442,7 @@ class DungeonContext(Context):
               target=target_elem,
               on_end=lambda: (
                 target_elem.activate(),
-                game.log.print("The lamp was " + target_elem.name.upper() + "!"),
+                game.log.print("The lamp was ", target_elem.token(), "!"),
                 game.anims[0].append(PauseAnim(duration=15, on_end=lambda: (
                   game.step(),
                   game.refresh_fov()
@@ -451,7 +453,7 @@ class DungeonContext(Context):
         ])
         game.log.print("You open the lamp")
       else:
-        game.log.print(hero.name.upper() + " attacks")
+        game.log.print(hero.token(), " attacks")
         game.attack(
           actor=hero,
           target=target_elem,
@@ -497,7 +499,7 @@ class DungeonContext(Context):
             ])
             game.parent.inventory.append(item)
             game.log.print("You open the lamp")
-            game.log.print("Received " + item.name + ".")
+            game.log.print("Received ", Token(item.name, get_item_color(item)), ".")
             acted = True
           else:
             game.log.print("Your inventory is already full!")
@@ -511,7 +513,7 @@ class DungeonContext(Context):
           duration=60,
           on_end=lambda: (
             target_elem.wake_up(),
-            game.log.print(target_elem.name.upper() + " woke up!"),
+            game.log.print(target_elem.token(), " woke up!"),
             game.anims[0].append(FlinchAnim(
               duration=DungeonContext.FLINCH_DURATION,
               target=target_elem,
@@ -714,7 +716,7 @@ class DungeonContext(Context):
       real_target = actor if target.counter else target
       real_damage = damage
       if target.counter:
-        game.log.print(target.name.upper() + " reflected the attack!")
+        game.log.print(actor.token(), " reflected the attack!")
         # target.counter = False
         real_target = actor
         real_damage = Actor.find_damage(actor, actor)
@@ -762,9 +764,9 @@ class DungeonContext(Context):
           on_end()
 
     if target.faction == "enemy":
-      game.log.print("Defeated " + target.name.upper() + ".")
+      game.log.print("Defeated ", target.token(), ".")
     else:
-      game.log.print(target.name.upper() + " is defeated.")
+      game.log.print(target.token(), " is defeated.")
     game.anims[0].append(FlickerAnim(
       duration=DungeonContext.FLICKER_DURATION,
       target=target,
@@ -777,7 +779,7 @@ class DungeonContext(Context):
     if target.dead: end()
 
     def awaken():
-      game.log.print(target.name.upper() + " woke up!")
+      game.log.print(target.token(), " woke up!")
       game.anims[0].append(PauseAnim(duration=DungeonContext.PAUSE_DURATION))
 
     def respond():
@@ -796,8 +798,8 @@ class DungeonContext(Context):
       on_start=lambda:(
         target.damage(damage),
         game.numbers.append(DamageValue(str(damage), target.cell)),
-        game.log.print(target.name.upper() + " "
-          + ("receives" if target.faction == "enemy" else "suffers")
+        game.log.print(target.token(),
+          (" receives" if target.faction == "enemy" else " suffers")
           + " " + str(damage) + " damage.")
       )
     )
@@ -822,7 +824,7 @@ class DungeonContext(Context):
         game.parent.sp -= skill.cost
         if game.parent.sp < 1:
           game.parent.sp = 0
-    game.log.print(actor.name.upper() + " uses " + skill.name)
+    game.log.print(actor.token(), " uses " + skill.name)
     target_cell = skill.effect(actor, game, on_end=lambda: (
       camera.blur(),
       actor is game.hero and game.step(),

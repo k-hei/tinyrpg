@@ -24,7 +24,7 @@ class Anastasis(Skill):
   )
 
   def effect(user, game, on_end=None):
-    game.log.print(user.name.upper() + " stands ready.")
+    game.log.print(user.token(), " stands ready.")
     game.anims.append([PauseAnim(
       duration=30,
       on_end=on_end

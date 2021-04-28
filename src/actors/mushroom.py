@@ -26,7 +26,7 @@ class Mushroom(Actor):
       if random.randint(1, 5) == 1:
         game.use_skill(actor, Virus)
       else:
-        game.log.print(actor.name.upper() + " attacks")
+        game.log.print(actor.token(), " attacks")
         game.attack(actor, enemy)
     else:
       game.move_to(actor, enemy.cell)

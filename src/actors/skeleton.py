@@ -27,7 +27,7 @@ class Skeleton(Actor):
         actor.face(enemy.cell)
         game.use_skill(actor, ShieldBash)
       else:
-        game.log.print(actor.name.upper() + " attacks")
+        game.log.print(actor.token(), " attacks")
         game.attack(actor, enemy)
     else:
       game.move_to(actor, enemy.cell)

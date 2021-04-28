@@ -11,9 +11,9 @@ class Antidote:
     if hero.ailment == "poison":
       hero.ailment = None
       hero.ailment_turns = 0
-      return (True, hero.name.upper() + "'s poison was cured.")
+      return (True, (hero.token(), "'s poison was cured."))
     else:
-      return (False, hero.name.upper() + " isn't poisoned!")
+      return (False, (hero.token(), " isn't poisoned!"))
 
   def render(antidote):
     return use_assets().sprites["icon_antidote"]

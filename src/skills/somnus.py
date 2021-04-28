@@ -29,7 +29,7 @@ class Somnus(Skill):
         target_elem.ailment = "sleep"
         if type(target_elem) is Actor and target_elem.idle:
           target_elem.activate()
-        result = target_elem.name.upper() + " fell asleep!"
+        result = (target_elem.token(), " fell asleep!")
       else:
         result = "But nothing happened..."
       game.anims[0].append(PauseAnim(

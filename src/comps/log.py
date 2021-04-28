@@ -39,8 +39,9 @@ class Log:
     log.anim = None
     log.on_end = None
 
-  def print(log, message):
-    print(message)
+  def print(log, *tokens):
+    message = Message(*tokens)
+    print(str(message))
     if not log.active and log.anim is None:
       log.enter()
     if log.clean and log.messages:
@@ -99,21 +100,17 @@ class Log:
         log.surface = Surface((
           log.box.get_width() - Log.PADDING_X * 2,
           target_height
-        ))
-        log.surface.set_colorkey(COLOR_KEY)
-        log.surface.fill(COLOR_KEY)
-
+        )).convert_alpha()
       if log.row + 1 > len(log.lines):
         line = Surface((log.surface.get_width(), line_height)).convert_alpha()
-        line.set_colorkey(COLOR_KEY)
-        line.fill(COLOR_KEY)
         log.lines.append(line)
       message = log.messages[log.index]
       char = message[log.col]
+      token = message.get_token_at(log.col)
       if log.col == 0 or char == " ":
         next_space = message.find(" ", log.col + 1)
         if next_space == -1:
-          word = message[log.col+1:]
+          word = message[log.col:]
         else:
           word = message[log.col+1:next_space]
         word_width, _ = font.size(word)
@@ -122,7 +119,7 @@ class Log:
           log.row += 1
           log.cursor_x = 0
           return log.render()
-      char_sprite = font.render(char, (0, 0, 0))
+      char_sprite = font.render(char, token.color or (0, 0, 0))
       log.lines[-1].blit(char_sprite, (log.cursor_x, 0))
       for row, line in enumerate(log.lines):
         log.surface.blit(line, (0, row * line_height))
@@ -196,3 +193,72 @@ class Log:
       Log.MARGIN_LEFT,
       surface.get_height() + log.y
     ))
+
+class Message:
+  def __init__(message, *data):
+    message.tokens = []
+    for item in data:
+      if type(item) is tuple:
+        message.tokens.extend(item)
+      elif type(item) is str:
+        message.tokens.append(Token(item))
+      elif type(item) is Token:
+        message.tokens.append(item)
+
+  def __len__(message):
+    length = 0
+    for token in message.tokens:
+      length += len(token)
+    return length
+
+  def __str__(message):
+    string = ""
+    for token in message.tokens:
+      string += str(token)
+    return string
+
+  def __getitem__(message, key):
+    if type(key) is slice:
+      return str(message)[key.start:key.stop]
+    else:
+      return message.get_char_at(key)
+
+  def get_char_at(message, index):
+    for i, token in enumerate(message.tokens):
+      if index < len(token):
+        return token[index]
+      index -= len(token)
+    return None
+
+  def get_token_at(message, index):
+    for i, token in enumerate(message.tokens):
+      if index < len(token):
+        return token
+      index -= len(token)
+    return None
+
+  def get_at(message, index):
+    for i, token in enumerate(message.tokens):
+      if index < len(token):
+        return (i, index)
+      index -= len(token)
+    return (-1, -1)
+
+  def find(message, sub, start=0, end=None):
+    if end is None:
+      end = len(message)
+    return str(message).find(sub, start, end)
+
+class Token:
+  def __init__(token, text="", color=None):
+    token.text = text
+    token.color = color
+
+  def __len__(token):
+    return len(token.text)
+
+  def __str__(token):
+    return token.text
+
+  def __getitem__(token, key):
+    return token.text[key]

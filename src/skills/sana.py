@@ -36,7 +36,7 @@ class Sana(Skill):
         amount = 20 + random.randint(-2, 2)
         target_elem.regen(amount)
         game.numbers.append(DamageValue(str(amount), target_cell, palette.GREEN))
-        result = target_elem.name.upper() + " restored " + str(amount) + " HP."
+        result = (target_elem.token(), " restored ", str(amount), " HP.")
       else:
         result = "But nothing happened..."
       game.anims[0].append(PauseAnim(

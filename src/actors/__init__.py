@@ -10,6 +10,7 @@ from anims.awaken import AwakenAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from cell import is_adjacent, manhattan
+from comps.log import Token
 
 class Actor(Element):
   POISON_DURATION = 5
@@ -89,9 +90,6 @@ class Actor(Element):
     if actor.ailment == "sleep":
       actor.ailment = None
 
-  def move(actor, delta, stage):
-    pass
-
   def attack(actor, target, damage=None):
     if damage == None:
       damage = Actor.find_damage(actor, target)
@@ -115,13 +113,11 @@ class Actor(Element):
     enemy = game.find_closest_enemy(actor)
     if enemy is None:
       return False
-
     if is_adjacent(actor.cell, enemy.cell):
-      game.log.print(actor.name.upper() + " attacks")
+      game.log.print(actor.token(), " attacks")
       game.attack(actor, enemy)
     else:
       game.move_to(actor, enemy.cell)
-
     return True
 
   def render(actor, sprite, anims=[]):
@@ -152,3 +148,11 @@ class Actor(Element):
     if new_color:
       sprite = replace_color(sprite, palette.BLACK, new_color)
     return sprite
+
+  def get_color(actor):
+    if actor.faction == "player": return palette.BLUE
+    if actor.faction == "enemy" and actor.rare: return palette.GOLD_DARK
+    if actor.faction == "enemy": return palette.RED
+
+  def token(actor):
+    return Token(text=actor.name.upper(), color=actor.get_color())
