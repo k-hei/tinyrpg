@@ -19,7 +19,7 @@ from anims.sine import SineAnim
 from anims.tween import TweenAnim
 from anims.flicker import FlickerAnim
 
-from actors import Actor
+from dungeon.actors import DungeonActor
 from lib.cell import manhattan
 
 MARGIN = 8

@@ -2,11 +2,11 @@ from math import ceil
 import pygame
 from pygame import Surface, Rect, PixelArray
 from dungeon.stage import Stage
-from actors.knight import Knight
-from actors import Actor
-from actors.mage import Mage
-from actors.mimic import Mimic
-from props.chest import Chest
+from dungeon.actors.knight import Knight
+from dungeon.actors import DungeonActor
+from dungeon.actors.mage import Mage
+from dungeon.actors.mimic import Mimic
+from dungeon.props.chest import Chest
 import palette
 from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in_out
@@ -118,7 +118,7 @@ class Minimap:
           color = 0xFFFF00 if minimap.time % 60 >= 30 else 0x7F7F00
         else:
           color = 0xFF0000 if minimap.time % 60 >= 30 else 0x990000
-      elif isinstance(elem, Actor) and elem.faction == "enemy" and cell in visible_cells:
+      elif isinstance(elem, DungeonActor) and elem.faction == "enemy" and cell in visible_cells:
         if elem.ailment == "sleep":
           color = 0xCC0000
         else:

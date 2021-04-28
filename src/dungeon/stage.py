@@ -10,15 +10,15 @@ import palette
 from assets import load as use_assets
 from filters import replace_color
 
-from actors import Actor
-from actors.knight import Knight
-from actors.mage import Mage
-from actors.eye import Eye
-from actors.mimic import Mimic
-from actors.npc import NPC
+from dungeon.actors import DungeonActor
+from dungeon.actors.knight import Knight
+from dungeon.actors.mage import Mage
+from dungeon.actors.eye import Eye
+from dungeon.actors.mimic import Mimic
+from dungeon.actors.npc import NPC
 
-from props.chest import Chest
-from props.soul import Soul
+from dungeon.props.chest import Chest
+from dungeon.props.soul import Soul
 
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
@@ -262,7 +262,7 @@ class Stage:
           sprite_x = col * config.TILE_SIZE
           sprite_y = row * config.TILE_SIZE
 
-    if isinstance(elem, Actor):
+    if isinstance(elem, DungeonActor):
       stage.facings[elem] = (facing_x, facing_y)
     if sprite:
       if facing_x == -1:

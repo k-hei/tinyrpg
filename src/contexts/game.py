@@ -4,8 +4,8 @@ from dungeon import DungeonContext
 from town import TownContext
 from transits.dissolve import DissolveIn, DissolveOut
 
-from actors.knight import Knight
-from actors.mage import Mage
+from cores.knight import Knight
+from cores.mage import Mage
 
 from inventory import Inventory
 from items.hp.potion import Potion
@@ -17,13 +17,13 @@ from items.dungeon.emerald import Emerald
 from items.dungeon.balloon import Balloon
 from items.ailment.antidote import Antidote
 
-from skills.stick import Stick
-from skills.blitzritter import Blitzritter
-from skills.counter import Counter
-from skills.hpup import HpUp
-from skills.sana import Sana
-from skills.somnus import Somnus
-from skills.detectmana import DetectMana
+# from skills.weapon.stick import Stick
+# from skills.armor.hpup import HpUp
+# from skills.attack.blitzritter import Blitzritter
+# from skills.support.counter import Counter
+# from skills.support.sana import Sana
+# from skills.ailment.somnus import Somnus
+# from skills.field.detectmana import DetectMana
 
 class GameContext(Context):
   def __init__(ctx):
@@ -41,23 +41,25 @@ class GameContext(Context):
     ctx.ally = Mage()
     ctx.new_skills = []
     ctx.skill_pool = [
-      Stick,
-      Blitzritter,
-      Somnus,
-      Sana,
-      DetectMana,
-      HpUp,
+      # Stick,
+      # Blitzritter,
+      # Somnus,
+      # Sana,
+      # DetectMana,
+      # HpUp,
     ]
-    ctx.skill_builds = {
-      ctx.hero: [
-        (Stick, (0, 0)),
-        (Blitzritter, (1, 0))
-      ],
-      ctx.ally: [
-        (Somnus, (0, 0)),
-        (DetectMana, (1, 0))
-      ]
-    }
+    # ctx.load_skills(ctx.hero, [])
+    # ctx.load_skills(ctx.ally, [])
+    # ctx.skill_builds = {
+    #   ctx.hero: [
+    #     # (Stick, (0, 0)),
+    #     # (Blitzritter, (1, 0))
+    #   ],
+    #   ctx.ally: [
+    #     # (Somnus, (0, 0)),
+    #     # (DetectMana, (1, 0))
+    #   ]
+    # }
     ctx.monster_kills = {}
     ctx.debug = False
 

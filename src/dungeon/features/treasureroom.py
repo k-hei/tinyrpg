@@ -1,9 +1,9 @@
 import random
 from dungeon.features import Feature
-from props.chest import Chest
-from skills.caladbolg import Caladbolg
-from skills.longinus import Longinus
-from skills.mjolnir import Mjolnir
+from dungeon.props.chest import Chest
+from skills.weapon.caladbolg import Caladbolg
+from skills.weapon.longinus import Longinus
+from skills.weapon.mjolnir import Mjolnir
 
 weapons = (Caladbolg, Longinus, Mjolnir)
 

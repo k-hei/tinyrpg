@@ -1,24 +1,19 @@
-import palette
+from dataclasses import dataclass
 from comps.log import Token
 from anims.pause import PauseAnim
+from cores import Core
+from palette import BLACK
 
+@dataclass
 class Skill:
-  name = None
-  kind = None
-  element = None
-  desc = None
-  rare = False
-  cost = 0
-  range_type = "linear"
-  range_min = 1
-  range_max = 1
-  range_radius = 0
-  hp = 0
-  st = 0
-  users = ()
-  blocks = (
-    (0, 0),
-  )
+  name: str
+  desc: str
+  element: str
+  rare: bool
+  cost: int
+  users: tuple[Core]
+  blocks: tuple[tuple[int, int]]
+  color: tuple[int, int, int] = BLACK
 
   def effect(user, game, on_end=None):
     user_x, user_y = user.cell
@@ -32,15 +27,25 @@ class Skill:
     )])
     return target_cell
 
+  def token(skill):
+    return Token(skill.name, skill.color())
+
 def get_skill_order(skill):
-  return ["weapon", "attack", "magic", "support", "ailment", "field", "passive"].index(skill.kind)
+  return [
+    "WeaponSkill",
+    "AttackSkill",
+    "MagicSkill",
+    "SupportSkill",
+    "AilmentSkill",
+    "FieldSkill",
+    "ArmorSkill"
+  ].index(type(skill).__name__)
 
 def get_skill_text(skill):
   tag = skill.element or skill.kind
-  text = tag[0].upper() + tag[1:]
-  text += ': ' + skill.desc
+  text = tag[0].upper() + tag[1:] + ": " + skill.desc
   if skill.cost:
-    text += " (" + str(skill.cost) + " SP)"
+    text += " ({} SP)".format(skill.cost)
   return text
 
 def get_skill_color(skill):
@@ -53,6 +58,3 @@ def get_skill_color(skill):
   if skill.kind == "weapon" and skill.element == "beast": return palette.BLACK
   if skill.kind == "weapon" and skill.rare: return palette.PINK
   if skill.kind == "weapon": return palette.GRAY
-
-def  get_skill_token(skill):
-  return Token(skill.name, get_skill_color(skill))

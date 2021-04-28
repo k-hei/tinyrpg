@@ -11,8 +11,8 @@ import palette
 import keyboard
 from comps.piece import Piece
 
-from actors.knight import Knight
-from actors.mage import Mage
+from dungeon.actors.knight import Knight
+from dungeon.actors.mage import Mage
 
 from anims import Anim
 from anims.tween import TweenAnim

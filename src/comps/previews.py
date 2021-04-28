@@ -8,8 +8,8 @@ from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in_out
 from lib.lerp import lerp
 
-from actors import Actor
-from actors.mimic import Mimic
+from dungeon.actors import DungeonActor
+from dungeon.actors.mimic import Mimic
 
 class EnterAnim(TweenAnim): pass
 class ExitAnim(TweenAnim): pass
@@ -37,7 +37,7 @@ class Previews:
     hero = game.hero
     floor = game.floor
     enemies = [e for e in floor.elems if (
-      isinstance(e, Actor)
+      isinstance(e, DungeonActor)
       and e.faction == "enemy"
       and e.cell in hero.visible_cells
       and not (type(e) is Mimic and e.idle)

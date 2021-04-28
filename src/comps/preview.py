@@ -11,8 +11,8 @@ from anims.flicker import FlickerAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
 
-from actors.eye import Eye
-from actors.mimic import Mimic
+from dungeon.actors.eye import Eye
+from dungeon.actors.mimic import Mimic
 
 MARGIN = 8
 HP_OVERLAP = 0

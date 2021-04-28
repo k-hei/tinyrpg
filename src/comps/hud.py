@@ -8,8 +8,8 @@ from assets import load as use_assets
 from filters import replace_color, recolor, outline
 from text import render_char, render as render_text, find_width as find_text_width
 
-from actors.knight import Knight
-from actors.mage import Mage
+from dungeon.actors.knight import Knight
+from dungeon.actors.mage import Mage
 
 from anims import Anim
 from anims.tween import TweenAnim

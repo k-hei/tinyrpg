@@ -1,6 +1,6 @@
 import random
 from dungeon.features import Feature
-from actors.skeleton import Skeleton
+from dungeon.actors.skeleton import Skeleton
 
 class BattleRoom(Feature):
   def __init__(feature):

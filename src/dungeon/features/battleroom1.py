@@ -1,7 +1,7 @@
 import random
 from dungeon.features import Feature
-from actors.eye import Eye
-from actors.mushroom import Mushroom
+from dungeon.actors.eye import Eye
+from dungeon.actors.mushroom import Mushroom
 
 configs = (
   [

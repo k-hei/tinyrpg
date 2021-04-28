@@ -10,6 +10,8 @@ from contexts.inventory import InventoryContext
 from contexts.dialogue import DialogueContext
 from contexts.custom import CustomContext
 
+from cores.knight import Knight as KnightCore
+from cores.mage import Mage as MageCore
 from town.actors.knight import Knight
 from town.actors.mage import Mage
 from town.actors.genie import Genie
@@ -32,9 +34,8 @@ SPAWN_RIGHT_FACING = -1
 class TownContext(Context):
   def __init__(town, parent, returning=False):
     super().__init__(parent)
-    swapped = type(parent.hero).__name__ != "Knight"
-    town.hero = Knight() if not swapped else Mage()
-    town.ally = Mage() if not swapped else Knight()
+    town.hero = Knight() if type(parent.hero) is KnightCore else Mage()
+    town.ally = Knight() if type(parent.ally) is KnightCore else Mage()
     town.areas = [CentralArea(), OutskirtsArea()]
     town.area = town.areas[1]
     town.area_change = 0
