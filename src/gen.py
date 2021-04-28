@@ -36,6 +36,7 @@ from skills.mjolnir import Mjolnir
 
 from dungeon.features.battleroom1 import BattleRoom as BattleRoom1
 from dungeon.features.battleroom2 import BattleRoom as BattleRoom2
+from dungeon.features.treasureroom import TreasureRoom
 
 possible_widths = (3, 5, 7)
 possible_heights = (4, 7)
@@ -297,9 +298,11 @@ def dungeon(size, floor=1):
   doors = []
   features = []
 
-  floor = 4
-  if floor == 2:
+  floor = 2
+  if floor == 1:
     feature = BattleRoom1()
+  if floor == 2:
+    feature = TreasureRoom()
   elif floor == 4:
     feature = BattleRoom2()
   else:
@@ -626,11 +629,6 @@ def dungeon(size, floor=1):
         if random.randint(0, 4):
           enemy.ailment = "sleep"
         stage.spawn_elem(enemy, cell)
-
-  entrance_x, entrance_y = stage.entrance
-  stage.spawn_elem(Chest(Caladbolg, True), (entrance_x - 1, entrance_y - 2))
-  stage.spawn_elem(Chest(Longinus, True), (entrance_x, entrance_y - 2))
-  stage.spawn_elem(Chest(Mjolnir, True), (entrance_x + 1, entrance_y - 2))
 
   stage.rooms.extend(rooms)
   return stage
