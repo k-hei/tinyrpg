@@ -5,3 +5,4 @@ def get_color(item):
   if item.kind == "sp": return palette.BLUE
   if item.kind == "dungeon": return palette.GREEN
   if item.kind == "ailment": return palette.PURPLE
+  if item.kind == "weapon": return palette.PINK

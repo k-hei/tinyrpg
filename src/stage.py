@@ -30,6 +30,8 @@ from anims.awaken import AwakenAnim
 from anims.chest import ChestAnim
 from lerp import lerp
 
+ITEM_OFFSET = 20
+
 @dataclass
 class Tile:
   solid: bool
@@ -284,7 +286,7 @@ class Stage:
       sprite, t, (col, row) = item
       sprite_x = col * config.TILE_SIZE
       sprite_y = row * config.TILE_SIZE
-      offset = min(1, t * 3) * 6 + 8
+      offset = min(1, t * 3) * 6 + ITEM_OFFSET
       x = sprite_x + config.TILE_SIZE // 2 - sprite.get_width() // 2 - round(camera_x)
       y = sprite_y + config.TILE_SIZE // 2 - sprite.get_height() // 2 - round(camera_y) - offset
       surface.blit(sprite, (x, y))

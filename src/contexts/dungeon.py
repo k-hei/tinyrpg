@@ -1,59 +1,53 @@
 import math
 import random
-import pygame
-from pygame import Rect
 
-from contexts import Context
-from assets import load as load_assets
-from text import render as render_text
-from filters import recolor, replace_color
-from stage import Stage
-from keyboard import key_times, ARROW_DELTAS
-from cell import is_adjacent, manhattan
-
-import gen
-import fov
 import config
-import palette
+import fov
+import gen
 import keyboard
-
+import palette
+import pygame
+from actors import Actor
+from actors.eye import Eye
+from actors.knight import Knight
+from actors.mage import Mage
+from actors.mimic import Mimic
+from actors.npc import NPC
+from anims.activate import ActivateAnim
+from anims.attack import AttackAnim
+from anims.awaken import AwakenAnim
+from anims.chest import ChestAnim
+from anims.flicker import FlickerAnim
+from anims.flinch import FlinchAnim
+from anims.move import MoveAnim
+from anims.pause import PauseAnim
+from assets import load as load_assets
 from camera import Camera
+from cell import is_adjacent, manhattan
+from comps.damage import DamageValue
 from comps.hud import Hud
 from comps.log import Log, Message, Token
 from comps.minimap import Minimap
 from comps.previews import Previews
-from comps.damage import DamageValue
 from comps.spmeter import SpMeter
-from comps.skill import Skill
-
-from transits.dissolve import DissolveOut
-
-from contexts.inventory import InventoryContext
-from contexts.skill import SkillContext
-from contexts.custom import CustomContext
-from contexts.examine import ExamineContext
-from contexts.minimap import MinimapContext
-
-from actors import Actor
-from actors.knight import Knight
-from actors.mage import Mage
-from actors.eye import Eye
-from actors.mimic import Mimic
-from actors.npc import NPC
+from filters import recolor, replace_color
+from items import get_color as get_item_color
+from keyboard import ARROW_DELTAS, key_times
 from props.chest import Chest
 from props.soul import Soul
+from pygame import Rect
+from skills import Skill, get_skill_order, get_skill_token
+from stage import Stage
+from text import render as render_text
+from transits.dissolve import DissolveOut
 
-from items import get_color as get_item_color
-from skills import get_skill_token
+from contexts import Context
+from contexts.custom import CustomContext
+from contexts.examine import ExamineContext
+from contexts.inventory import InventoryContext
+from contexts.minimap import MinimapContext
+from contexts.skill import SkillContext
 
-from anims.move import MoveAnim
-from anims.attack import AttackAnim
-from anims.flinch import FlinchAnim
-from anims.flicker import FlickerAnim
-from anims.pause import PauseAnim
-from anims.awaken import AwakenAnim
-from anims.activate import ActivateAnim
-from anims.chest import ChestAnim
 
 class DungeonContext(Context):
   MOVE_DURATION = 16
@@ -106,6 +100,7 @@ class DungeonContext(Context):
     else:
       floor = gen.dungeon((27, 27), floor_no)
 
+    print("Enemies defeated:", game.monster_kills)
     promoted = False
     enemies = [e for e in floor.elems if isinstance(e, Actor) and e.faction == "enemy"]
     for monster, kills in game.monster_kills.items():
@@ -477,7 +472,10 @@ class DungeonContext(Context):
                 on_end=chest.open
               )
             ])
-            game.parent.inventory.append(item)
+            if item.kind == "weapon":
+              game.learn_skill(item)
+            else:
+              game.parent.inventory.append(item)
             game.log.print("You open the lamp")
             game.log.print("Received ", Token(item.name, get_item_color(item)), ".")
             acted = True
@@ -724,12 +722,12 @@ class DungeonContext(Context):
 
   def attack(game, actor, target, damage=None, on_connect=None, on_end=None):
     weapon = actor.weapon()
+    if weapon is None:
+      return False
     if damage is None:
       modifier = weapon.st if weapon else 0
       damage = Actor.find_damage(actor, target, modifier)
       game.log.print(actor.token(), " uses ", get_skill_token(weapon))
-    if weapon is None:
-      return False
     def connect():
       if on_connect:
         on_connect()
@@ -836,6 +834,11 @@ class DungeonContext(Context):
         target=target,
         on_end=awaken
       ))
+
+  def learn_skill(game, skill):
+    game.new_skills.append(skill)
+    game.skill_pool.append(skill)
+    game.skill_pool.sort(key=get_skill_order)
 
   def use_skill(game, actor, skill):
     camera = game.camera

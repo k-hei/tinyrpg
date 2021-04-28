@@ -7,6 +7,7 @@ class Skill:
   kind = None
   element = None
   desc = None
+  rare = False
   cost = 0
   range_type = "linear"
   range_min = 1
@@ -31,8 +32,8 @@ class Skill:
     )])
     return target_cell
 
-def get_sort_order(skill):
-  return ["attack", "magic", "support", "ailment", "field", "passive"].index(skill.kind)
+def get_skill_order(skill):
+  return ["weapon", "attack", "magic", "support", "ailment", "field", "passive"].index(skill.kind)
 
 def get_skill_text(skill):
   tag = skill.element or skill.kind
@@ -50,7 +51,8 @@ def get_skill_color(skill):
   if skill.kind == "field": return palette.GOLD
   if skill.kind == "passive": return palette.GOLD
   if skill.kind == "weapon" and skill.element == "beast": return palette.BLACK
-  if skill.kind == "weapon": return palette.GOLD
+  if skill.kind == "weapon" and skill.rare: return palette.PINK
+  if skill.kind == "weapon": return palette.GRAY
 
 def  get_skill_token(skill):
   return Token(skill.name, get_skill_color(skill))

@@ -5,9 +5,10 @@ from anims.chest import ChestAnim
 import palette
 
 class Chest(Prop):
-  def __init__(chest, contents):
+  def __init__(chest, contents, rare=False):
     super().__init__(name="Chest")
     chest.contents = contents
+    chest.rare = rare
     chest.opened = False
 
   def open(chest):
@@ -29,5 +30,6 @@ class Chest(Prop):
         sprite = sprites["chest_open"]
       else:
         sprite = sprites["chest"]
-    sprite = replace_color(sprite, palette.BLACK, palette.GOLD)
+    color = palette.PINK if chest.rare else palette.GOLD
+    sprite = replace_color(sprite, palette.BLACK, color)
     return sprite

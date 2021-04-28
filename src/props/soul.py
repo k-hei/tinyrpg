@@ -5,7 +5,7 @@ from anims.pause import PauseAnim
 from filters import replace_color
 from comps.skill import Skill
 from comps.vfx import Vfx
-from skills import get_sort_order, get_skill_color
+from skills import get_skill_color
 import palette
 import random
 import math
@@ -34,9 +34,7 @@ class Soul(Prop):
 
   def obtain(soul, game):
     if not soul.skill in game.skill_pool:
-      game.new_skills.append(soul.skill)
-      game.skill_pool.append(soul.skill)
-      game.skill_pool.sort(key=get_sort_order)
+      game.learn_skill(soul.skill)
     game.log.print("Obtained skill \"" + soul.skill.name + "\"!")
     game.log.print("Equip it with the CUSTOM menu (press 'B').")
     game.floor.elems.remove(soul)

@@ -123,6 +123,11 @@ class Minimap:
           color = 0xCC0000
         else:
           color = 0xFF0000 if minimap.time % 60 >= 30 else 0x990000
+      elif type(elem) is Chest and elem.rare:
+        if elem.opened:
+          color = 0x7F007F
+        else:
+          color = 0xFF00FF if minimap.time % 60 >= 30 else 0x7F007F
       elif type(elem) is Chest:
         if elem.opened:
           color = 0x7F7F00

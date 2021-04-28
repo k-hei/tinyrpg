@@ -15,6 +15,8 @@ BLUE_DARK = (0x3D, 0x35, 0xAF)
 CYAN = (0x00, 0xFF, 0xFF)
 GOLD = (0xFC, 0xBC, 0x82)
 GOLD_DARK = (0xE9, 0x9B, 0x54)
+PINK = (0xDB, 0x4E, 0xDF)
+PINK_DARK = (0x76, 0x1B, 0xA6)
 
 def darken(color):
   if color == WHITE: return GRAY
@@ -25,4 +27,5 @@ def darken(color):
   elif color == GREEN: return GREEN_DARK
   elif color == GRAY: return GRAY_DARK
   elif color == BLUE: return BLUE_DARK
+  elif color == PINK: return PINK_DARK
   return color
