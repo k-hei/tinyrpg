@@ -223,6 +223,7 @@ class DungeonContext(Context):
     hero = game.hero
     actors = [e for e in game.floor.elems if isinstance(e, Actor)]
     enemies = [a for a in actors if a.faction == "enemy"]
+    visible_enemies = [e for e in enemies if e.cell in hero.visible_cells]
     adjacent_enemies = [e for e in enemies if is_adjacent(e.cell, ally.cell)]
     if adjacent_enemies:
       adjacent_enemies.sort(key=lambda e: e.get_hp())
@@ -234,9 +235,9 @@ class DungeonContext(Context):
       old_x, old_y = old_hero_cell
       ally_delta = (old_x - ally_x, old_y - ally_y)
       ally.stepped = game.move(ally, ally_delta, run)
-    elif enemies and not is_adjacent(ally.cell, hero.cell):
-      enemies.sort(key=lambda e: e.get_hp())
-      enemy = enemies[0]
+    elif visible_enemies and not is_adjacent(ally.cell, hero.cell):
+      visible_enemies.sort(key=lambda e: e.get_hp())
+      enemy = visible_enemies[0]
       ally.stepped = game.move_to(ally, enemy.cell)
     elif not is_adjacent(ally.cell, hero.cell):
       ally.stepped = game.move_to(ally, hero.cell, run)
@@ -272,6 +273,17 @@ class DungeonContext(Context):
     if len(enemies) > 1:
       enemies.sort(key=lambda e: manhattan(e.cell, actor.cell) + random.random() / 2)
     return enemies[0]
+
+  def find_closest_visible_enemy(game, actor):
+    hero = game.hero
+    floor = game.floor
+    visible_elems = [floor.get_elem_at(c) for c in hero.visible_cells if floor.get_elem_at(c)]
+    visible_enemies = [e for e in visible_elems if isinstance(e, Actor) and e.faction == "enemy"]
+    if len(visible_enemies) == 0:
+      return None
+    if len(visible_enemies) > 1:
+      visible_enemies.sort(key=lambda e: manhattan(e.cell, hero.cell))
+    return visible_enemies[0]
 
   def handle_keyup(game, key):
     game.key_requires_reset[key] = False

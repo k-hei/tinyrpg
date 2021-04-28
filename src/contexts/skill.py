@@ -19,6 +19,9 @@ from anims.sine import SineAnim
 from anims.tween import TweenAnim
 from anims.flicker import FlickerAnim
 
+from actors import Actor
+from cell import manhattan
+
 MARGIN = 8
 OFFSET = 4
 SPACING = 10
@@ -28,7 +31,7 @@ class SkillContext(Context):
     super().__init__(parent)
     ctx.on_close = on_close
     ctx.bar = Bar()
-    ctx.options = [s for s in ctx.parent.hero.skills if s.kind != "passive"] or [None]
+    ctx.options = [s for s in parent.hero.skills if s.kind != "passive"] or [None]
     ctx.offsets = {}
     ctx.cursor = None
     ctx.cursor_anim = SineAnim(60)
@@ -36,7 +39,10 @@ class SkillContext(Context):
     ctx.exiting = False
     ctx.confirmed = False
     ctx.enter()
-    ctx.select_skill(ctx.parent.skill_selected[ctx.parent.hero])
+    ctx.select_skill(parent.skill_selected[parent.hero])
+    enemy = parent.find_closest_visible_enemy(parent.hero)
+    if enemy:
+      parent.hero.face(enemy.cell)
 
   def select_skill(ctx, skill=None):
     if skill:
@@ -162,33 +168,7 @@ class SkillContext(Context):
     camera_x, camera_y = camera.pos
     facing_x, facing_y = hero.facing
     hero_x, hero_y = hero.cell
-    cursor = (hero_x + facing_x, hero_y + facing_y)
-    neighbors = []
-
-    if skill.range_type == "radial" or skill.range_type == "linear" and skill.range_max == 1:
-      if skill.range_min == 0:
-        neighbors.append((hero_x, hero_y))
-      neighbors.extend([
-        (hero_x, hero_y - 1),
-        (hero_x - 1, hero_y),
-        (hero_x + 1, hero_y),
-        (hero_x, hero_y + 1)
-      ])
-    elif skill.range_type == "linear" and skill.range_max > 2:
-      neighbors.append(cursor)
-      is_blocked = False
-      r = 1
-      while not is_blocked and r < skill.range_max:
-        if floor.get_tile_at(cursor).solid or floor.get_elem_at(cursor):
-          is_blocked = True
-        else:
-          cursor_x, cursor_y = cursor
-          cursor = (cursor_x + facing_x, cursor_y + facing_y)
-          neighbors.append(cursor)
-        r += 1
-    elif skill.range_type == "linear":
-      for r in range(skill.range_min, skill.range_max + 1):
-        neighbors.append((hero_x + facing_x * r, hero_y + facing_y * r))
+    neighbors, cursor = find_skill_targets(skill, hero, floor)
 
     if cursor not in neighbors:
       cursor = neighbors[0]
@@ -203,7 +183,7 @@ class SkillContext(Context):
       col, row = cell
       x = col * TILE_SIZE - round(camera_x)
       y = row * TILE_SIZE - round(camera_y) + 1
-      return (x, y)
+      return x, y
 
     for anim in ctx.anims:
       anim.update()
@@ -349,3 +329,34 @@ class SkillContext(Context):
       y += -OFFSET - assets.sprites["skill"].get_height()
       y += -title.get_height() + 3
       surface.blit(title, (x, y))
+
+def find_skill_targets(skill, user, floor):
+  targets = []
+  user_x, user_y = user.cell
+  facing_x, facing_y = user.facing
+  cursor = (user_x + facing_x, user_y + facing_y)
+  if skill.range_type == "radial" or skill.range_type == "linear" and skill.range_max == 1:
+    if skill.range_min == 0:
+      targets.append((user_x, user_y))
+    targets.extend([
+      (user_x, user_y - 1),
+      (user_x - 1, user_y),
+      (user_x + 1, user_y),
+      (user_x, user_y + 1)
+    ])
+  elif skill.range_type == "linear" and skill.range_max > 2:
+    targets.append(cursor)
+    is_blocked = False
+    r = 1
+    while not is_blocked and r < skill.range_max:
+      if floor.get_tile_at(cursor).solid or floor.get_elem_at(cursor):
+        is_blocked = True
+      else:
+        cursor_x, cursor_y = cursor
+        cursor = (cursor_x + facing_x, cursor_y + facing_y)
+        targets.append(cursor)
+      r += 1
+  elif skill.range_type == "linear":
+    for r in range(skill.range_min, skill.range_max + 1):
+      targets.append((user_x + facing_x * r, user_y + facing_y * r))
+  return targets, cursor
