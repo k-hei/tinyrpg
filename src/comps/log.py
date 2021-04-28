@@ -194,16 +194,20 @@ class Log:
       surface.get_height() + log.y
     ))
 
+def expand_tokens(tokens):
+  result = []
+  for token in tokens:
+    if type(token) is tuple:
+      result.extend(expand_tokens(token))
+    elif type(token) is str:
+      result.append(Token(token))
+    elif type(token) is Token:
+      result.append(token)
+  return result
+
 class Message:
   def __init__(message, *data):
-    message.tokens = []
-    for item in data:
-      if type(item) is tuple:
-        message.tokens.extend(item)
-      elif type(item) is str:
-        message.tokens.append(Token(item))
-      elif type(item) is Token:
-        message.tokens.append(item)
+    message.tokens = expand_tokens(data)
 
   def __len__(message):
     length = 0

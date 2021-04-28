@@ -836,7 +836,7 @@ class DungeonContext(Context):
   def use_item(game, item):
     success, message = item.effect(game)
     if success:
-      game.log.print("Used " + item.name)
+      game.log.print("Used ", Token(item.name, get_item_color(item)))
       game.log.print(message)
       game.parent.inventory.items.remove(item)
       game.anims.append([
