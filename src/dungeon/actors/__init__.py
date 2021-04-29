@@ -128,20 +128,18 @@ class DungeonActor(DungeonElement):
 
   def render(actor, sprite, anims=[]):
     new_color = None
+    asleep = actor.ailment == "sleep"
     sprites = use_assets().sprites
     anim_group = [a for a in anims[0] if a.target is actor] if anims else []
     for anim in anim_group:
       if type(anim) is AwakenAnim and anim.visible:
-        new_color = palette.PURPLE
-        break
+        asleep = True
       elif type(anim) is FlinchAnim and anim.time <= 2:
         return None
       elif type(anim) is FlickerAnim and not anim.visible:
         return None
     else:
-      if actor.ailment == "sleep":
-        new_color = palette.PURPLE
-      elif actor.ailment == "poison":
+      if actor.ailment == "poison":
         new_color = palette.GREEN_DARK
       elif actor.core.faction == "player":
         new_color = palette.BLUE
@@ -151,6 +149,9 @@ class DungeonActor(DungeonElement):
         new_color = palette.GOLD_DARK
       elif actor.core.faction == "enemy":
         new_color = palette.RED
+    if asleep:
+      new_color = palette.darken(new_color)
+      sprite = replace_color(sprite, palette.WHITE, palette.GRAY)
     if new_color:
       sprite = replace_color(sprite, palette.BLACK, new_color)
     return sprite

@@ -3,6 +3,7 @@ from skills.weapon import WeaponSkill
 from cores import Core
 from cores.knight import Knight
 from assets import load as use_assets
+from palette import PINK
 
 @dataclass
 class Caladbolg(WeaponSkill):
@@ -10,6 +11,7 @@ class Caladbolg(WeaponSkill):
   desc: str = "A legendary blade."
   element: str = "sword"
   rare: bool = True
+  color: tuple = PINK
   cost: int = 2
   st: int = 14
   users: tuple[Core] = (Knight,)

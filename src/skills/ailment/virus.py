@@ -1,11 +1,11 @@
+import math
 from dataclasses import dataclass
 from skills import Skill
 from anims.bounce import BounceAnim
 from anims.flinch import FlinchAnim
 from anims.pause import PauseAnim
-import math
 from dungeon.actors import DungeonActor
-from dungeon.actors.mage import Mage
+from cores.mage import Mage
 from lib.cell import is_adjacent
 
 ATTACK_DURATION = 12

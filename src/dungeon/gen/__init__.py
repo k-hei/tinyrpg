@@ -1,6 +1,8 @@
 import random
 from lib.cell import is_odd, add, is_adjacent, manhattan
 
+import config
+
 from dungeon.stage import Stage
 from dungeon.room import Room
 from dungeon.maze import Maze
@@ -207,6 +209,11 @@ def dungeon(size, floor=1):
     x % 2 == 1
     and y % 3 == 1
   )]
+  if config.SEED is not None:
+    stage.seed = config.SEED
+  else:
+    stage.seed = random.getrandbits(32)
+  random.seed(stage.seed)
 
   entry_room = None
   exit_room = None

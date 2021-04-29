@@ -172,8 +172,10 @@ class DungeonContext(Context):
 
     if game.room:
       visible_cells += game.room.get_cells() + game.room.get_border()
-
+    if config.DEBUG:
+      visible_cells = floor.get_cells()
     hero.visible_cells = visible_cells
+
     visited_cells = next((cells for floor, cells in game.memory if floor is game.floor), None)
     for cell in visible_cells:
       if cell not in visited_cells:
@@ -321,6 +323,14 @@ class DungeonContext(Context):
     if game.child:
       return game.child.handle_keydown(key)
 
+    # debug functionality
+    if keyboard.get_pressed(key) == 1 and keyboard.get_pressed(pygame.K_LCTRL):
+      game.key_requires_reset[key] = True
+      if key == pygame.K_ESCAPE:
+        return game.handle_debug()
+      if key == pygame.K_s:
+        return print(game.floor.seed)
+
     key_requires_reset = key in game.key_requires_reset and game.key_requires_reset[key]
     if key in ARROW_DELTAS and not key_requires_reset:
       delta = ARROW_DELTAS[key]
@@ -345,9 +355,6 @@ class DungeonContext(Context):
 
     if key == pygame.K_m:
       return game.handle_minimap()
-
-    if key == pygame.K_ESCAPE and keyboard.get_pressed(pygame.K_LCTRL):
-      return game.handle_debug()
 
     if game.hero.is_dead() or game.hero.ailment == "sleep":
       return False

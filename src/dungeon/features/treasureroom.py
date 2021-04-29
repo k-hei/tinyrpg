@@ -14,9 +14,9 @@ class TreasureRoom(Feature):
     feature.rooms = [ (0, 0, 7, 7) ]
     feature.shape = [
       "#     #",
-      "       ",
+      "   0   ",
       "  ...  ",
-      "  .0.  ",
+      "  ...  ",
       "  ...  ",
       "   .   ",
       "#  .  #"
