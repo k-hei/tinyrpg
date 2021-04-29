@@ -201,7 +201,7 @@ def giant_room(size):
   stage.stairs = stairs
   return stage
 
-def dungeon(size, floor=1):
+def dungeon(size, seed=None):
   width, height = size
   stage = Stage((width, height))
   stage.fill(Stage.WALL)
@@ -209,8 +209,8 @@ def dungeon(size, floor=1):
     x % 2 == 1
     and y % 3 == 1
   )]
-  if config.SEED is not None:
-    stage.seed = config.SEED
+  if seed is not None:
+    stage.seed = seed
   else:
     stage.seed = random.getrandbits(32)
   random.seed(stage.seed)
@@ -263,7 +263,7 @@ def dungeon(size, floor=1):
   rooms = gen_rooms(slots)
   if len(rooms) == 1:
     print("restart: Too few rooms")
-    return dungeon(size, floor)
+    return dungeon(size)
 
   if entry_room:
     rooms.insert(0, entry_room)
@@ -281,12 +281,17 @@ def dungeon(size, floor=1):
     nodes.remove(exit_room)
 
   # connect nodes
-  start = random.choice(nodes)
+  start = random.choice([r for r in rooms if r is not entry_room and r is not exit_room])
   nodes.remove(start)
   stack = [start]
   node = start
+  neighbor_table = {}
   while node:
-    neighbor_conns = get_neighbors(nodes, node)
+    if node in neighbor_table:
+      neighbor_conns = neighbor_table[node]
+    else:
+      neighbor_conns = get_neighbors(nodes, node)
+      neighbor_table[node] = neighbor_conns
     # only connect to neighbors that this neighbor hasn't connected to before
     targets = []
     neighbors_deg1 = [n1 for n1, _ in node_conns[node]]
@@ -294,7 +299,8 @@ def dungeon(size, floor=1):
       neighbors_deg2 = [n2 for n2, _ in node_conns[n1]]
       if node in neighbors_deg2:
         continue
-      if not [n2 for n2 in neighbors_deg2 if n2 in neighbors_deg1]:
+      if (not [n2 for n2 in neighbors_deg2 if n2 in neighbors_deg1]
+      and (n1 not in neighbor_table or random.randint(1, 5) == 1)):
         targets.append(n1)
     if targets:
       # pick a random neighbor
@@ -316,24 +322,30 @@ def dungeon(size, floor=1):
         stack.append(neighbor)
 
       # declare neighbor as visited (chance of creating loops)
-      if random.randint(1, 10) != 1 or neighbor in features:
+      # if neighbor in nodes and (neighbor in features
+      # or random.randint(1, 10) != 1 and (
+      #   neighbor not in mazes
+      #   or len(neighbors_deg1) == len(neighbor_conns.keys())
+      # )):
+      if neighbor in nodes:
         nodes.remove(neighbor)
 
       # use neighbor for next iteration
       if neighbor not in features:
         node = neighbor
     else:
-      stack.remove(node)
+      if node in stack:
+        stack.remove(node)
       node = stack[-1] if stack else None
 
   if len(node_conns) == 0:
     print("restart: No connections made")
-    return dungeon(size, floor)
+    return dungeon(size)
 
-  # for node in nodes:
-  #   if node in features:
-  #     print("restart: Unconnected feature")
-  #     return dungeon(size, floor)
+  for node in nodes:
+    if node in features:
+      print("restart: Unconnected feature")
+      return dungeon(size)
 
   # remove dead ends
   for maze in mazes:
@@ -357,15 +369,18 @@ def dungeon(size, floor=1):
       mazes.remove(maze)
 
   for maze in mazes:
-    if len(maze.cells) / (len(node_conns[maze]) or 1) >= 12:
+    score = len(maze.cells) / (len(node_conns[maze]) or 1)
+    print(len(maze.cells), score)
+    if len(maze.cells) / (len(node_conns[maze]) or 1) >= 16:
       print("restart: Corridor too long")
-      return dungeon(size, floor)
+      return dungeon(size)
 
   # carve out rooms and mazes
   for node in rooms + mazes:
     for cell in node.get_cells():
       stage.set_tile_at(cell, Stage.FLOOR)
 
+  # draw doors
   secret_rooms = []
   dead_ends = []
   for door in doors:
@@ -377,16 +392,23 @@ def dungeon(size, floor=1):
         continue
       conn_node, conn_door = node_conns[room][0]
       if conn_door == door:
-        if floor != 1:
+        can_connect = True
+        if conn_node in mazes:
+          ends = conn_node.get_ends()
+          for end in ends:
+            if manhattan(end, conn_door) <= 2:
+              can_connect = False
+              break
+        if floor != 1 and can_connect:
           secret_rooms.append(room)
           door_tile = Stage.DOOR_HIDDEN
         else:
           dead_ends.append(room)
           door_tile = Stage.DOOR
+        stage.set_tile_at(door, door_tile)
         if left_tile is Stage.WALL and right_tile is Stage.WALL:
-          stage.set_tile_at(door, door_tile)
           stage.set_tile_at((x, y - 1), Stage.FLOOR)
-          if type(conn_node) is Room:
+          if conn_node in rooms:
             _, center_y = conn_node.get_center()
             if center_y < y:
               stage.set_tile_at(door, Stage.FLOOR)
@@ -399,12 +421,12 @@ def dungeon(size, floor=1):
 
   if len(rooms) == 1:
     print("restart: Too few rooms")
-    return dungeon(size, floor)
+    return dungeon(size)
 
   normal_rooms = [r for r in rooms if r not in secret_rooms and r not in dead_ends]
   if len(normal_rooms) < 2:
     print("restart: Too few rooms")
-    return dungeon(size, floor)
+    return dungeon(size)
 
   if entry_room is None and exit_room is None:
     best = { "steps": 0, "start": None, "end": None }

@@ -100,8 +100,10 @@ class DungeonContext(Context):
       floor = gen.top_floor()
     elif floor_no == 3:
       floor = gen.giant_room((19, 19))
+    elif floor_no == 1:
+      floor = gen.dungeon((27, 27), config.SEED)
     else:
-      floor = gen.dungeon((27, 27), floor_no)
+      floor = gen.dungeon((27, 27))
 
     hero = game.hero
     ally = game.ally
@@ -577,7 +579,8 @@ class DungeonContext(Context):
       ])
       game.log.print("You open the lamp")
       return True
-    else:
+    elif hero.weapon:
+      game.parent.deplete_sp(hero.weapon.cost)
       return game.attack(hero, target, on_end=lambda: (
         game.step(),
         game.refresh_fov()
@@ -984,7 +987,7 @@ class DungeonContext(Context):
     game.parent.dissolve(on_clear=lambda: game.parent.goto_town(returning=True))
 
   def toggle_lights(game):
-    game.lights = not game.toggle_lights
+    game.lights = not game.lights
     game.refresh_fov()
 
   def draw(game, surface):

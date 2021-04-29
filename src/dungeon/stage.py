@@ -325,7 +325,8 @@ class Stage:
     tile_above = stage.get_tile_at((x, y - 1))
     tile_below = stage.get_tile_at((x, y + 1))
     if tile is Stage.WALL or tile is Stage.DOOR_HIDDEN:
-      if tile_below is Stage.FLOOR or tile_below is Stage.PIT:
+      if ((tile_above is Stage.WALL or tile_above is None)
+      and (tile_below is Stage.FLOOR or tile_below is Stage.PIT)):
         if x % (3 + y % 2) == 0:
           sprite_name = "wall_torch"
         else:
