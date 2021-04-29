@@ -6,6 +6,7 @@ from anims.pause import PauseAnim
 class Emerald(DungeonItem):
   name: str = "Emerald"
   desc: str = "Returns to town."
+  sprite: str = "gem"
   effect: str = "leave_dungeon"
 
   def use(emerald, game):

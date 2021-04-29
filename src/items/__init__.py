@@ -8,13 +8,15 @@ from palette import BLACK
 class Item:
   name: str
   desc: str
+  sprite: str = None
   color: tuple[int, int, int] = BLACK
 
   def token(item):
     return Token(item.name, item.color)
 
   def render(item):
-    sprite = use_assets().sprites["item_" + item.name.lower()]
+    sprite_name = item.sprite or item.name.lower()
+    sprite = use_assets().sprites["item_" + sprite_name]
     if item.color == BLACK:
       return sprite
     else:

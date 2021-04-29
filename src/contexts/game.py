@@ -10,6 +10,7 @@ from cores.mage import Mage
 from inventory import Inventory
 from items.hp.potion import Potion
 from items.hp.ankh import Ankh
+from items.hp.ruby import Ruby
 from items.hp.elixir import Elixir
 from items.sp.bread import Bread
 from items.sp.fish import Fish
@@ -32,10 +33,10 @@ class GameContext(Context):
     super().__init__()
     ctx.transits = [DissolveOut(config.WINDOW_SIZE)]
     ctx.inventory = Inventory((2, 4), [
-      Potion(), Elixir(),
-      Ankh(), Bread(),
-      Emerald(), Balloon(),
-      Antidote()
+      Potion(), Ruby(),
+      Elixir(), Ankh(),
+      Bread(), Emerald(),
+      Balloon(), Antidote()
     ])
     ctx.sp_max = 50
     ctx.sp = ctx.sp_max
