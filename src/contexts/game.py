@@ -91,6 +91,10 @@ class GameContext(Context):
     ctx.skill_builds[char] = build
     char.skills = [skill for skill, cell in build]
 
+  def update_skills(ctx):
+    ctx.hero.skills = [skill for skill, cell in ctx.skill_builds[ctx.hero]]
+    ctx.ally.skills = [skill for skill, cell in ctx.skill_builds[ctx.ally]]
+
   def dissolve(ctx, on_clear, on_end=None):
     ctx.transits.append(DissolveIn(config.WINDOW_SIZE, on_clear))
     ctx.transits.append(DissolveOut(config.WINDOW_SIZE, on_end))

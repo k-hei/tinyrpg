@@ -10,8 +10,8 @@ import palette
 import keyboard
 from comps.piece import Piece
 
-from dungeon.actors.knight import Knight
-from dungeon.actors.mage import Mage
+from cores.knight import Knight
+from cores.mage import Mage
 
 from anims import Anim
 from anims.tween import TweenAnim
@@ -102,7 +102,7 @@ class CustomContext(Context):
   def is_skill_used(menu, skill):
     for char, build in menu.builds.items():
       for s, _ in build:
-        if skill is s:
+        if type(s) is type(skill):
           return True
     return False
 
@@ -250,7 +250,10 @@ class CustomContext(Context):
     tab = assets.sprites["deck_tab"]
     tab_inactive = replace_color(tab, palette.WHITE, palette.GRAY)
     skills = menu.get_char_skills()
-    skill = Skill.render(skills[0])
+    if skills:
+      skill = Skill.render(skills[0])
+    else:
+      skill = assets.sprites["skill"]
 
     tab_y = knight.get_height() + SPACING_Y
     deck_y = tab_y + tab.get_height() - TAB_OVERLAP
@@ -294,7 +297,7 @@ class CustomContext(Context):
     )), None)
 
     # handle skill select (TODO: refactor into input handler?)
-    if not entering and menu.index_drawn != menu.index:
+    if skills and not entering and menu.index_drawn != menu.index:
       # select the new skill
       menu.anims.append([
         SelectAnim(
