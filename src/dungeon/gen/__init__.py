@@ -208,6 +208,7 @@ def dungeon(size, seed=None):
   slots = [(x, y) for x, y in stage.get_cells() if (
     x % 2 == 1
     and y % 3 == 1
+    and pow(width // 2 - x, 2) + pow(height // 2 - y, 2) <= pow(min(width, height) // 2, 2)
   )]
   if seed is not None:
     stage.seed = seed
@@ -286,12 +287,12 @@ def dungeon(size, seed=None):
   stack = [start]
   node = start
   neighbor_table = {}
+  loops = 0
   while node:
     if node in neighbor_table:
       neighbor_conns = neighbor_table[node]
     else:
       neighbor_conns = get_neighbors(nodes, node)
-      neighbor_table[node] = neighbor_conns
     # only connect to neighbors that this neighbor hasn't connected to before
     targets = []
     neighbors_deg1 = [n1 for n1, _ in node_conns[node]]
@@ -299,9 +300,13 @@ def dungeon(size, seed=None):
       neighbors_deg2 = [n2 for n2, _ in node_conns[n1]]
       if node in neighbors_deg2:
         continue
+      looping = node in neighbor_table and n1 in neighbor_table
       if (not [n2 for n2 in neighbors_deg2 if n2 in neighbors_deg1]
-      and (n1 not in neighbor_table or random.randint(1, 5) == 1)):
+      and (not looping or loops < config.MAX_LOOPS)):
         targets.append(n1)
+        if looping:
+          loops += 1
+    neighbor_table[node] = neighbor_conns
     if targets:
       # pick a random neighbor
       neighbor = random.choice(targets)
@@ -368,17 +373,57 @@ def dungeon(size, seed=None):
     if len(maze.cells) == 0:
       mazes.remove(maze)
 
+  # root out generations with extremely long corridors
   for maze in mazes:
     score = len(maze.cells) / (len(node_conns[maze]) or 1)
-    print(len(maze.cells), score)
+    # print(len(maze.cells), score)
     if len(maze.cells) / (len(node_conns[maze]) or 1) >= 16:
       print("restart: Corridor too long")
       return dungeon(size)
+
+  room_borders = []
+  for room in rooms:
+    room_borders.extend(room.get_border())
+
+  maze_cells = []
+  for maze in mazes:
+    maze_cells.extend(maze.get_cells())
 
   # carve out rooms and mazes
   for node in rooms + mazes:
     for cell in node.get_cells():
       stage.set_tile_at(cell, Stage.FLOOR)
+
+  minirooms = []
+  choices = maze_cells.copy()
+  while choices:
+    maze_cell = random.choice(choices)
+    choices.remove(maze_cell)
+
+    major_axis = random.randint(3, 6)
+    if random.randint(1, 2) == 1:
+      room_size = (2, major_axis)
+    else:
+      room_size = (major_axis, 2)
+
+    room_width, room_height = room_size
+    cell_x, cell_y = maze_cell
+    if random.randint(1, 2) == 1:
+      cell_x -= room_width - 1
+    if random.randint(1, 2) == 1:
+      cell_y -= room_height - 1
+
+    miniroom = Room(room_size, maze_cell)
+    for cell in miniroom.get_cells() + miniroom.get_border():
+      if (cell in room_borders
+      or cell not in maze_cells and stage.get_tile_at(cell) is not Stage.WALL):
+        break
+    else:
+      minirooms.append(miniroom)
+      for cell in miniroom.get_cells():
+        stage.set_tile_at(cell, Stage.FLOOR)
+
+  print("This floor has {} minirooms".format(len(minirooms)))
 
   # draw doors
   secret_rooms = []
@@ -387,7 +432,7 @@ def dungeon(size, seed=None):
     x, y = door
     left_tile = stage.get_tile_at((x - 1, y))
     right_tile = stage.get_tile_at((x + 1, y))
-    for room in rooms:
+    for room in rooms + features:
       if room is entry_room or room is exit_room or len(node_conns[room]) != 1:
         continue
       conn_node, conn_door = node_conns[room][0]
@@ -400,24 +445,26 @@ def dungeon(size, seed=None):
               can_connect = False
               break
         if floor != 1 and can_connect:
-          secret_rooms.append(room)
+          if not room in features:
+            secret_rooms.append(room)
           door_tile = Stage.DOOR_HIDDEN
         else:
-          dead_ends.append(room)
+          if not room in features:
+            dead_ends.append(room)
           door_tile = Stage.DOOR
         stage.set_tile_at(door, door_tile)
         if left_tile is Stage.WALL and right_tile is Stage.WALL:
-          stage.set_tile_at((x, y - 1), Stage.FLOOR)
+          stage.set_tile_at((x, y - 1), Stage.DOOR_WAY)
           if conn_node in rooms:
             _, center_y = conn_node.get_center()
             if center_y < y:
-              stage.set_tile_at(door, Stage.FLOOR)
+              stage.set_tile_at(door, Stage.DOOR_WAY)
               stage.set_tile_at((x, y - 1), door_tile)
         break
     else:
       stage.set_tile_at(door, Stage.DOOR)
       if left_tile is Stage.WALL and right_tile is Stage.WALL:
-        stage.set_tile_at((x, y - 1), Stage.FLOOR)
+        stage.set_tile_at((x, y - 1), Stage.DOOR_WAY)
 
   if len(rooms) == 1:
     print("restart: Too few rooms")

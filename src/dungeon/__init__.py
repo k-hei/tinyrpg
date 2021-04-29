@@ -101,9 +101,9 @@ class DungeonContext(Context):
     elif floor_no == 3:
       floor = gen.giant_room((19, 19))
     elif floor_no == 1:
-      floor = gen.dungeon((27, 27), config.SEED)
+      floor = gen.dungeon(config.FLOOR_SIZE, config.SEED)
     else:
-      floor = gen.dungeon((27, 27))
+      floor = gen.dungeon(config.FLOOR_SIZE)
 
     hero = game.hero
     ally = game.ally
@@ -323,9 +323,6 @@ class DungeonContext(Context):
     if game.anims or game.log.anim or game.hud.anims:
       return False
 
-    if game.child:
-      return game.child.handle_keydown(key)
-
     # debug functionality
     if keyboard.get_pressed(key) == 1 and keyboard.get_pressed(pygame.K_LCTRL):
       game.key_requires_reset[key] = True
@@ -335,6 +332,9 @@ class DungeonContext(Context):
         return print(game.floor.seed)
       if key == pygame.K_l:
         return game.toggle_lights()
+
+    if game.child:
+      return game.child.handle_keydown(key)
 
     key_requires_reset = key in game.key_requires_reset and game.key_requires_reset[key]
     if key in ARROW_DELTAS and not key_requires_reset:

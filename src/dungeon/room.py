@@ -58,8 +58,10 @@ class Room:
 
     edges = []
     for x in range(left - 1, right + 1):
+      edges.append((x, top - 2))
       edges.append((x, top - 1))
       edges.append((x, bottom))
+      # edges.append((x, bottom + 1))
 
     for y in range(top, bottom):
       edges.append((left - 1, y))

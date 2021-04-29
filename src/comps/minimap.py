@@ -108,11 +108,13 @@ class Minimap:
     visited_cells = next((cells for floor, cells in game.memory if floor is game.floor), None)
     for cell in visited_cells:
       x, y = cell
+      tile = game.floor.get_tile_at(cell)
+      tile_above = game.floor.get_tile_at((x, y - 1))
+      tile_below = game.floor.get_tile_at((x, y + 1))
       x = int(x - focus_x + sprite_width // 2)
       y = int(y - focus_y + sprite_height // 2)
       if x < 0 or y < 0 or x >= sprite_width or y >= sprite_height:
         continue
-      tile = game.floor.get_tile_at(cell)
       elem = game.floor.get_elem_at(cell)
       color = None
       if type(elem) is Knight or type(elem) is Mage and cell in visible_cells:
@@ -124,7 +126,7 @@ class Minimap:
           color = 0xFF0000 if minimap.time % 60 >= 30 else 0x990000
       elif isinstance(elem, DungeonActor) and elem.get_faction() == "enemy" and cell in visible_cells:
         if elem.ailment == "sleep":
-          color = 0xCC0000
+          color = 0x990000
         else:
           color = 0xFF0000 if minimap.time % 60 >= 30 else 0x990000
       elif type(elem) is Chest and elem.rare:
@@ -137,7 +139,8 @@ class Minimap:
           color = 0x7F7F00
         else:
           color = 0xFFFF00 if minimap.time % 60 >= 30 else 0x7F7F00
-      elif tile is Stage.WALL or tile is Stage.DOOR_HIDDEN or tile is Stage.DOOR_LOCKED:
+      elif tile is Stage.WALL or tile is Stage.DOOR_HIDDEN or tile is Stage.DOOR_LOCKED or (
+      tile is Stage.DOOR_WAY and (tile_above is Stage.DOOR_HIDDEN or tile_below is Stage.DOOR_HIDDEN)):
         if cell in visible_cells:
           color = 0xFFFFFF
         else:

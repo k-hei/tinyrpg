@@ -47,6 +47,7 @@ class Stage:
   DOOR_OPEN = Tile(solid=False, opaque=False, pit=False)
   DOOR_HIDDEN = Tile(solid=True, opaque=True, pit=False)
   DOOR_LOCKED = Tile(solid=True, opaque=True, pit=False)
+  DOOR_WAY = Tile(solid=False, opaque=False, pit=False)
   STAIRS_UP = Tile(solid=False, opaque=False, pit=False)
   STAIRS_DOWN = Tile(solid=False, opaque=False, pit=False)
   MONSTER_DEN = Tile(solid=False, opaque=False, pit=False)
@@ -324,9 +325,13 @@ class Stage:
     tile = stage.get_tile_at(cell)
     tile_above = stage.get_tile_at((x, y - 1))
     tile_below = stage.get_tile_at((x, y + 1))
-    if tile is Stage.WALL or tile is Stage.DOOR_HIDDEN:
-      if ((tile_above is Stage.WALL or tile_above is None)
-      and (tile_below is Stage.FLOOR or tile_below is Stage.PIT)):
+    tile_nw = stage.get_tile_at((x - 1, y - 1))
+    tile_ne = stage.get_tile_at((x + 1, y - 1))
+    tile_sw = stage.get_tile_at((x - 1, y + 1))
+    tile_se = stage.get_tile_at((x + 1, y + 1))
+    if tile is Stage.WALL or tile is Stage.DOOR_HIDDEN or (
+    tile is Stage.DOOR_WAY and tile_below is Stage.DOOR_HIDDEN):
+      if tile_below is Stage.FLOOR or tile_below is Stage.PIT:
         if x % (3 + y % 2) == 0:
           sprite_name = "wall_torch"
         else:
@@ -359,6 +364,7 @@ class Stage:
       or stage.get_tile_at((x, y)) is None
       or stage.get_tile_at((x, y)) is Stage.WALL
       or stage.get_tile_at((x, y)) is Stage.DOOR_HIDDEN
+      or stage.get_tile_at((x, y)) is Stage.DOOR_WAY and (is_wall(x, y - 1) or is_wall(x, y + 1))
     )
     is_door = lambda x, y: (
       stage.get_tile_at((x, y)) is Stage.DOOR
