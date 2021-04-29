@@ -280,21 +280,29 @@ def dungeon(size, floor=1):
   if exit_room and exit_room in nodes:
     nodes.remove(exit_room)
 
-  node = random.choice(nodes)
-  nodes.remove(node)
-  stack = [node]
+  # connect nodes
+  start =random.choice(nodes)
+  nodes.remove(start)
+  stack = [start]
+  node = start
+  print(node.get_center(), node.get_size())
   while node:
-    neighbors = get_neighbors(nodes, node)
+    neighbor_conns = get_neighbors(nodes, node)
     # only connect to neighbors that this neighbor hasn't connected to before
-    targets = [neighbor for neighbor in list(neighbors.keys()) if (
-      next((target for target, conn in node_conns[node] if target is neighbor), None) is None
-    )]
+    targets = []
+    neighbors_deg1 = [n1 for n1, _ in node_conns[node]]
+    for n1 in neighbor_conns.keys():
+      neighbors_deg2 = [n2 for n2, _ in node_conns[n1]]
+      if node in neighbors_deg2:
+        continue
+      if not [n2 for n2 in neighbors_deg2 if n2 in neighbors_deg1]:
+        targets.append(n1)
     if targets:
       # pick a random neighbor
       neighbor = random.choice(targets)
 
       # pick a random connector
-      conn = random.choice(neighbors[neighbor])
+      conn = random.choice(neighbor_conns[neighbor])
 
       # mark connector as door
       doors.append(conn)
@@ -323,11 +331,12 @@ def dungeon(size, floor=1):
     print("restart: No connections made")
     return dungeon(size, floor)
 
-  for node in nodes:
-    if node in features:
-      print("restart: Unconnected feature")
-      return dungeon(size, floor)
+  # for node in nodes:
+  #   if node in features:
+  #     print("restart: Unconnected feature")
+  #     return dungeon(size, floor)
 
+  # remove dead ends
   for maze in mazes:
     # remove dead ends
     if len(node_conns[maze]) == 1:
@@ -344,7 +353,8 @@ def dungeon(size, floor=1):
           maze.cells.remove(end)
         if len(neighbors) == 1:
           stack.append(neighbors[0])
-    if len(maze.cells) <= 1:
+  for maze in mazes:
+    if len(maze.cells) == 0:
       mazes.remove(maze)
 
   for maze in mazes:
@@ -352,6 +362,7 @@ def dungeon(size, floor=1):
       print("restart: Corridor too long")
       return dungeon(size, floor)
 
+  # carve out rooms and mazes
   for node in rooms + mazes:
     for cell in node.get_cells():
       stage.set_tile_at(cell, Stage.FLOOR)
@@ -360,26 +371,32 @@ def dungeon(size, floor=1):
   dead_ends = []
   for door in doors:
     x, y = door
+    left_tile = stage.get_tile_at((x - 1, y))
+    right_tile = stage.get_tile_at((x + 1, y))
     for room in rooms:
       if room is entry_room or room is exit_room or len(node_conns[room]) != 1:
         continue
-      _, conn_door = node_conns[room][0]
+      conn_node, conn_door = node_conns[room][0]
       if conn_door == door:
-        if floor != 1 and random.randint(1, 5) == 1:
+        if floor != 1:
           secret_rooms.append(room)
-          stage.set_tile_at(door, Stage.DOOR_HIDDEN)
+          door_tile = Stage.DOOR_HIDDEN
         else:
           dead_ends.append(room)
-          stage.set_tile_at(door, Stage.DOOR)
-        if stage.get_tile_at((x - 1, y)) is Stage.WALL and stage.get_tile_at((x + 1, y)) is Stage.WALL:
+          door_tile = Stage.DOOR
+        if left_tile is Stage.WALL and right_tile is Stage.WALL:
+          stage.set_tile_at(door, door_tile)
           stage.set_tile_at((x, y - 1), Stage.FLOOR)
-          stage.set_tile_at((x, y + 1), Stage.FLOOR)
+          if type(conn_node) is Room:
+            _, center_y = conn_node.get_center()
+            if center_y < y:
+              stage.set_tile_at(door, Stage.FLOOR)
+              stage.set_tile_at((x, y - 1), door_tile)
         break
     else:
       stage.set_tile_at(door, Stage.DOOR)
-      if stage.get_tile_at((x - 1, y)) is Stage.WALL and stage.get_tile_at((x + 1, y)) is Stage.WALL:
+      if left_tile is Stage.WALL and right_tile is Stage.WALL:
         stage.set_tile_at((x, y - 1), Stage.FLOOR)
-        stage.set_tile_at((x, y + 1), Stage.FLOOR)
 
   if len(rooms) == 1:
     print("restart: Too few rooms")

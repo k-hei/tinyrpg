@@ -11,6 +11,9 @@ class Room:
     _, room_height = room.size
     return room_height
 
+  def get_size(room):
+    return room.size
+
   def get_cells(room):
     cells = []
     (room_width, room_height) = room.size

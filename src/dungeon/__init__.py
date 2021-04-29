@@ -81,6 +81,7 @@ class DungeonContext(Context):
     game.vfx = []
     game.numbers = []
     game.key_requires_reset = {}
+    game.lights = config.DEBUG
     game.log = Log()
     game.camera = Camera(config.WINDOW_SIZE)
     game.hud = Hud()
@@ -172,7 +173,7 @@ class DungeonContext(Context):
 
     if game.room:
       visible_cells += game.room.get_cells() + game.room.get_border()
-    if config.DEBUG:
+    if game.lights:
       visible_cells = floor.get_cells()
     hero.visible_cells = visible_cells
 
@@ -330,6 +331,8 @@ class DungeonContext(Context):
         return game.handle_debug()
       if key == pygame.K_s:
         return print(game.floor.seed)
+      if key == pygame.K_l:
+        return game.toggle_lights()
 
     key_requires_reset = key in game.key_requires_reset and game.key_requires_reset[key]
     if key in ARROW_DELTAS and not key_requires_reset:
@@ -980,6 +983,10 @@ class DungeonContext(Context):
     game.minimap.exit()
     game.parent.dissolve(on_clear=lambda: game.parent.goto_town(returning=True))
 
+  def toggle_lights(game):
+    game.lights = not game.toggle_lights
+    game.refresh_fov()
+
   def draw(game, surface):
     assets = load_assets()
     surface.fill(0x000000)
@@ -987,7 +994,9 @@ class DungeonContext(Context):
     window_height = surface.get_height()
 
     game.camera.update(game)
-    game.floor.draw(surface, game)
+
+    if not game.minimap.is_focused():
+      game.floor.draw(surface, game)
 
     for group in game.anims:
       for anim in group:

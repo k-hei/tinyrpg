@@ -20,6 +20,7 @@ EXPAND_DURATION = 15
 SHRINK_DURATION = 10
 BLACKOUT_DURATION = 10
 BLACKOUT_DELAY = 60
+BLACKOUT_FRAMES = 3
 
 class EnterAnim(TweenAnim):
   def __init__(anim):
@@ -66,6 +67,9 @@ class Minimap:
   def shrink(minimap):
     minimap.expanded = 0
     minimap.anims.append(ShrinkAnim())
+
+  def is_focused(minimap):
+    return minimap.expanded >= BLACKOUT_DELAY + BLACKOUT_FRAMES
 
   def render(minimap, t=None):
     if t is None:
@@ -214,9 +218,9 @@ class Minimap:
       x = center_x
       y = center_y
       minimap.expanded += 1
-      if minimap.expanded >= BLACKOUT_DELAY:
+      if minimap.is_focused():
         t = min(1, (minimap.expanded - BLACKOUT_DELAY) / BLACKOUT_DURATION)
-        alpha = int(t * 3) / 3 * 0xFF
+        alpha = min(0xFF, int(t * BLACKOUT_FRAMES) / BLACKOUT_FRAMES * 0xFF)
         fill = Surface(surface.get_size(), pygame.SRCALPHA)
         pygame.draw.rect(fill, (0, 0, 0, alpha), fill.get_rect())
         surface.blit(fill, (0, 0))

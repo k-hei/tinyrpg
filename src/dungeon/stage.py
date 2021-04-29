@@ -313,7 +313,7 @@ class Stage:
         continue
       if cell not in visible_cells:
         sprite = replace_color(sprite, palette.WHITE, palette.GOLD_DARK)
-      else:
+      elif not config.DEBUG:
         sprite = replace_color(sprite, palette.WHITE, palette.SAFFRON)
       surface.blit(sprite, (x, y))
 
