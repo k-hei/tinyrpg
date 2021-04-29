@@ -1,4 +1,4 @@
-from lib.cell import is_adjacent
+from lib.cell import is_adjacent, neighbors
 
 class Maze:
   def __init__(maze, cells):
@@ -10,16 +10,9 @@ class Maze:
   def get_edges(maze):
     edges = []
     for cell in maze.cells:
-      x, y = cell
-      adj_cells = [
-        (x - 1, y),
-        (x, y - 1),
-        (x + 1, y),
-        (x, y + 1)
-      ]
-      for adj in adj_cells:
-        if not adj in edges + maze.cells:
-          edges.append(adj)
+      for neighbor in neighbors(cell):
+        if not neighbor in edges + maze.cells:
+          edges.append(neighbor)
     return edges
 
   def get_ends(maze):

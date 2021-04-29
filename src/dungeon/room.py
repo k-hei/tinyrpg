@@ -51,17 +51,15 @@ class Room:
     return edges
 
   def get_border(room):
-    (room_width, room_height) = room.size
-    (left, top) = room.cell
-    right = left + room_width
-    bottom = top + room_height
+    left, top = room.cell
+    right = left + room.get_width()
+    bottom = top + room.get_height()
 
     edges = []
     for x in range(left - 1, right + 1):
       edges.append((x, top - 2))
       edges.append((x, top - 1))
       edges.append((x, bottom))
-      # edges.append((x, bottom + 1))
 
     for y in range(top, bottom):
       edges.append((left - 1, y))

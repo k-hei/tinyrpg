@@ -1,4 +1,6 @@
+from dataclasses import dataclass
 import math
+
 from skills import Skill
 from dungeon.actors import DungeonActor
 from dungeon.actors.knight import Knight
@@ -10,19 +12,19 @@ from anims.flicker import FlickerAnim
 from config import ATTACK_DURATION, MOVE_DURATION
 
 class ShieldBash(Skill):
-  name = "ShieldBash"
-  kind = "attack"
-  element = "shield"
-  desc = "Pushes target one square"
-  cost = 2
-  users = (Knight,)
-  blocks = (
+  name: str = "ShieldBash"
+  desc: str = "Pushes target one square"
+  kind: str = "attack"
+  element: str = "shield"
+  cost: int = 2
+  users: tuple = (Knight,)
+  blocks: tuple = (
     (1, 0),
     (0, 1),
     (1, 1),
   )
 
-  def effect(user, game, on_end=None):
+  def effect(skill, user, game, on_end=None):
     floor = game.floor
     camera = game.camera
 

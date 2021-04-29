@@ -30,6 +30,8 @@ from dungeon.actors.npc import NPC
 from dungeon.props.chest import Chest
 from dungeon.props.soul import Soul
 
+from skills.weapon import WeaponSkill
+
 from anims.activate import ActivateAnim
 from anims.attack import AttackAnim
 from anims.awaken import AwakenAnim
@@ -327,11 +329,9 @@ class DungeonContext(Context):
     if keyboard.get_pressed(key) == 1 and keyboard.get_pressed(pygame.K_LCTRL):
       game.key_requires_reset[key] = True
       if key == pygame.K_ESCAPE:
-        return game.handle_debug()
+        return game.toggle_lights()
       if key == pygame.K_s:
         return print(game.floor.seed)
-      if key == pygame.K_l:
-        return game.toggle_lights()
 
     if game.child:
       return game.child.handle_keydown(key)
@@ -513,7 +513,7 @@ class DungeonContext(Context):
                 on_end=chest.open
               )
             ])
-            if type(item).__name__ == "WeaponSkill":
+            if isinstance(item, WeaponSkill):
               game.learn_skill(item)
             else:
               game.parent.inventory.append(item)
@@ -651,7 +651,7 @@ class DungeonContext(Context):
         builds=game.parent.skill_builds,
         chars=(game.hero.core, game.ally.core),
         on_close=lambda _: (
-          game.parent.update_skills(),
+          game.update_skills(),
           game.hud.enter(),
           game.sp_meter.enter(),
           game.previews.enter(),
@@ -884,16 +884,31 @@ class DungeonContext(Context):
         on_end=awaken
       ))
 
-  def learn_skill(game, skill):
-    game.parent.learn_skill(skill)
+  def use_item(game, item):
+    success, message = item.use(game)
+    if success:
+      game.log.print("Used ", item.token())
+      game.log.print(message)
+      game.parent.inventory.items.remove(item)
+      game.anims.append([
+        ItemAnim(
+          duration=30,
+          target=game.hero,
+          item=item
+        ),
+        PauseAnim(
+          duration=60,
+          on_end=game.step
+        ),
+      ])
+      return True, None
+    else:
+      return False, message
 
   def use_skill(game, actor, skill):
     camera = game.camera
     if actor.get_faction() == "player":
-      if game.parent.sp >= skill.cost:
-        game.parent.sp -= skill.cost
-        if game.parent.sp < 1:
-          game.parent.sp = 0
+      game.deplete_sp(skill.cost)
     if type(skill).__name__ == "WeaponSkill":
       actor_x, actor_y = actor.cell
       facing_x, facing_y = actor.facing
@@ -923,26 +938,13 @@ class DungeonContext(Context):
       if target_cell:
         camera.focus(target_cell)
 
-  def use_item(game, item):
-    success, message = item.use(game)
-    if success:
-      game.log.print("Used ", item.token())
-      game.log.print(message)
-      game.parent.inventory.items.remove(item)
-      game.anims.append([
-        ItemAnim(
-          duration=30,
-          target=game.hero,
-          item=item
-        ),
-        PauseAnim(
-          duration=60,
-          on_end=game.step
-        ),
-      ])
-      return True, None
-    else:
-      return False, message
+  def learn_skill(game, skill):
+    game.parent.learn_skill(skill)
+
+  def update_skills(game):
+    game.parent.update_skills()
+    game.hero.weapon = game.hero.load_weapon()
+    game.ally.weapon = game.ally.load_weapon()
 
   def ascend(game):
     game.handle_floorchange(1)

@@ -8,6 +8,7 @@ from palette import BLACK
 class Skill:
   name: str = ""
   desc: str = ""
+  kind: str = ""
   element: str = ""
   rare: bool = False
   cost: int = 0
@@ -31,16 +32,15 @@ class Skill:
     return Token(skill.name, skill.color)
 
 def get_skill_order(skill):
-  skill_type = type(skill).__name__
   return [
-    "WeaponSkill",
-    "AttackSkill",
-    "MagicSkill",
-    "SupportSkill",
-    "AilmentSkill",
-    "FieldSkill",
-    "ArmorSkill"
-  ].index(skill_type)
+    "weapon",
+    "attack",
+    "magic",
+    "support",
+    "ailment",
+    "field",
+    "armor"
+  ].index(skill.kind)
 
 def get_skill_text(skill):
   tag = skill.element or skill.kind
