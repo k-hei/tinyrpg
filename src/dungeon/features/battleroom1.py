@@ -24,8 +24,8 @@ class BattleRoom(Feature):
   def __init__(feature):
     super().__init__()
     feature.actors = (Mushroom(), Eye(), Mushroom())
-    feature.actors[1].inflict("sleep")
-    feature.actors[2].inflict("sleep")
+    feature.actors[1].inflict_ailment("sleep")
+    feature.actors[2].inflict_ailment("sleep")
     feature.rooms = ((2, 0, 3, 3), (0, 5, 7, 5))
     feature.shape = [
       "##...##",

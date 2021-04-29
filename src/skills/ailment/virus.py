@@ -23,7 +23,7 @@ class Virus(Skill):
     (1, 1),
   )
 
-  def effect(user, game, on_end=None):
+  def effect(skill, user, game, on_end=None):
     targets = [e for e in game.floor.elems if (
       isinstance(e, DungeonActor)
       and not e.is_dead()
@@ -40,7 +40,7 @@ class Virus(Skill):
         if on_end:
           on_end()
         return
-      target.inflict("poison")
+      target.inflict_ailment("poison")
       game.camera.focus(target.cell)
       game.log.print(target.token(), " is poisoned.")
       game.anims[0].extend([

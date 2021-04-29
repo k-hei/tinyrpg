@@ -281,11 +281,10 @@ def dungeon(size, floor=1):
     nodes.remove(exit_room)
 
   # connect nodes
-  start =random.choice(nodes)
+  start = random.choice(nodes)
   nodes.remove(start)
   stack = [start]
   node = start
-  print(node.get_center(), node.get_size())
   while node:
     neighbor_conns = get_neighbors(nodes, node)
     # only connect to neighbors that this neighbor hasn't connected to before
