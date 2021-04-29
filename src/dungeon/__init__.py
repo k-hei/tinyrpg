@@ -34,6 +34,7 @@ from anims.activate import ActivateAnim
 from anims.attack import AttackAnim
 from anims.awaken import AwakenAnim
 from anims.chest import ChestAnim
+from anims.item import ItemAnim
 from anims.flicker import FlickerAnim
 from anims.flinch import FlinchAnim
 from anims.move import MoveAnim
@@ -272,7 +273,6 @@ class DungeonContext(Context):
     if hero.cell not in room_cells:
       return False
 
-    print(enemy.weapon)
     return enemy.step(game)
 
   def find_closest_enemy(game, actor):
@@ -307,6 +307,7 @@ class DungeonContext(Context):
     room_cells = room.get_cells()
     return [e for e in game.floor.elems if (
       e.cell in room_cells
+      and isinstance(e, DungeonActor)
       and not hero.allied(e)
     )]
 
@@ -916,10 +917,15 @@ class DungeonContext(Context):
       game.log.print(message)
       game.parent.inventory.items.remove(item)
       game.anims.append([
-        PauseAnim(
+        ItemAnim(
           duration=30,
+          target=game.hero,
+          item=item
+        ),
+        PauseAnim(
+          duration=60,
           on_end=game.step
-        )
+        ),
       ])
       return True, None
     else:

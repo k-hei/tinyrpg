@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from skills import Skill
 from anims.bounce import BounceAnim
 from anims.flinch import FlinchAnim
@@ -9,15 +10,14 @@ from lib.cell import is_adjacent
 
 ATTACK_DURATION = 12
 
+@dataclass
 class Virus(Skill):
-  name = "Virus"
-  kind = "ailment"
-  element = "dark"
-  desc = "Poisons adjacent targets"
-  cost = 4
-  range_type = "radial"
-  users = (Mage,)
-  blocks = (
+  name: str = "Virus"
+  desc: str = "Poisons adjacent targets"
+  element: str = "dark"
+  cost: int = 4
+  users: tuple = (Mage,)
+  blocks: tuple = (
     (0, 0),
     (1, 0),
     (1, 1),
@@ -27,7 +27,7 @@ class Virus(Skill):
     targets = [e for e in game.floor.elems if (
       isinstance(e, DungeonActor)
       and not e.is_dead()
-      and e.faction != user.faction
+      and not e.allied(user)
       and e.ailment != "poison"
       and is_adjacent(e.cell, user.cell)
     )]

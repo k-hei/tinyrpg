@@ -28,6 +28,7 @@ from anims.bounce import BounceAnim
 from anims.pause import PauseAnim
 from anims.awaken import AwakenAnim
 from anims.chest import ChestAnim
+from anims.item import ItemAnim
 from lib.lerp import lerp
 
 ITEM_OFFSET = 20
@@ -215,7 +216,7 @@ class Stage:
     anim_group = anims[0] if anims else []
 
     for anim in [a for a in anim_group if a.target is elem]:
-      if type(anim) is ChestAnim:
+      if type(anim) is ChestAnim or type(anim) is ItemAnim:
         item = (
           anim.item.render(),
           anim.time / anim.duration,

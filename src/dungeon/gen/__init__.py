@@ -312,6 +312,10 @@ def dungeon(size, floor=1):
       stack.remove(node)
       node = stack[-1] if stack else None
 
+  if len(node_conns) == 0:
+    print("restart: No connections made")
+    return dungeon(size, floor)
+
   for node in nodes:
     if node in features:
       print("restart: Unconnected feature")
