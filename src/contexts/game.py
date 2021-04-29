@@ -14,9 +14,11 @@ from items.hp.ruby import Ruby
 from items.hp.elixir import Elixir
 from items.sp.bread import Bread
 from items.sp.fish import Fish
+from items.sp.sapphire import Sapphire
 from items.dungeon.emerald import Emerald
 from items.dungeon.balloon import Balloon
 from items.ailment.antidote import Antidote
+from items.ailment.amethyst import Amethyst
 
 from skills import get_skill_order
 from skills.weapon import WeaponSkill
@@ -33,10 +35,7 @@ class GameContext(Context):
     super().__init__()
     ctx.transits = [DissolveOut(config.WINDOW_SIZE)]
     ctx.inventory = Inventory((2, 4), [
-      Potion(), Ruby(),
-      Elixir(), Ankh(),
-      Bread(), Emerald(),
-      Balloon(), Antidote()
+      Ruby(), Sapphire(), Emerald(), Amethyst()
     ])
     ctx.sp_max = 50
     ctx.sp = ctx.sp_max

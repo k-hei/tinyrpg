@@ -10,9 +10,11 @@ class AilmentItem(Item):
 
   def use(item, game):
     hero = game.hero
-    if hero.ailment == item.ailment:
-      hero.ailment = None
-      hero.ailment_turns = 0
-      return True, (hero.token(), "'s {} was cured.".format(item.ailment))
+    if hero.ailment == item.ailment or item.ailment == "any" and hero.ailment != None:
+      ailment = hero.ailment
+      hero.dispel_ailment()
+      return True, (hero.token(), "'s {} was cured.".format(ailment))
+    elif item.ailment == "any":
+      return False, "Nothing to dispel!"
     else:
       return False, ("No {} to dispel on ".format(item.ailment), hero.token(), ".")

@@ -13,4 +13,4 @@ class Emerald(DungeonItem):
     game.anims.append([
       PauseAnim(duration=DungeonItem.PAUSE_DURATION, on_end=game.leave_dungeon)
     ])
-    return True, "You take the balloon to the next floor."
+    return True, "The gem's return magic has activated."
