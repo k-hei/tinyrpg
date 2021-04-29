@@ -57,7 +57,7 @@ class ShieldBash(Skill):
       game.attack(
         actor=user,
         target=target_elem,
-        damage=math.ceil(Actor.find_damage(user, target_elem) / 2),
+        damage=math.ceil(DungeonActor.find_damage(user, target_elem) / 2),
         on_end=on_end,
         on_connect=on_connect
       )

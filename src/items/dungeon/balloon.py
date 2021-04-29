@@ -3,7 +3,7 @@ from items.dungeon import DungeonItem
 from anims.pause import PauseAnim
 import config
 
-@dataclass(frozen=True)
+@dataclass
 class Balloon(DungeonItem):
   name: str = "Balloon"
   desc: str = "Ascends to next floor."

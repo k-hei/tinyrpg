@@ -3,7 +3,7 @@ from items import Item
 from assets import load as use_assets
 from palette import PURPLE
 
-@dataclass(frozen=True)
+@dataclass
 class AilmentItem(Item):
   color: tuple[int, int, int] = PURPLE
   ailment: str = ""

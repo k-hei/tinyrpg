@@ -38,7 +38,7 @@ class Previews:
     floor = game.floor
     enemies = [e for e in floor.elems if (
       isinstance(e, DungeonActor)
-      and e.faction == "enemy"
+      and not hero.allied(e)
       and e.cell in hero.visible_cells
       and not (type(e) is Mimic and e.idle)
     )]
@@ -75,7 +75,7 @@ class Previews:
           not self.active
           or not preview.actor in self.enemies
         ):
-          Anim = ExitAnim if preview.actor.hp else SquishAnim
+          Anim = ExitAnim if preview.actor.get_hp() else SquishAnim
           anim = Anim(
             duration=7,
             delay=added * 4,

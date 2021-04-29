@@ -1,8 +1,10 @@
+from dataclasses import dataclass
 from skills.weapon import WeaponSkill
 from cores import Core
-from dungeon.actors.knight import Knight
+from cores.knight import Knight
 from assets import load as use_assets
 
+@dataclass
 class Club(WeaponSkill):
   name: str = "Club"
   desc: str = "A makeshift weapon."

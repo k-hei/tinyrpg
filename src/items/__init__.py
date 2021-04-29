@@ -4,7 +4,7 @@ from filters import replace_color
 from comps.log import Token
 from palette import BLACK
 
-@dataclass(frozen=True)
+@dataclass
 class Item:
   name: str
   desc: str

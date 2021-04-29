@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from items import Item
 from palette import RED
 
-@dataclass(frozen=True)
+@dataclass
 class HpItem(Item):
   color: tuple[int, int, int] = RED
   hp: int = 0

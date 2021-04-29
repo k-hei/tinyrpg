@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from items.hp import HpItem
 
-@dataclass(frozen=True)
+@dataclass
 class Potion(HpItem):
   name: str = "Potion"
   desc: str = "Restores 20 HP."

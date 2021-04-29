@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from items.hp import HpItem
 import lib.cell as cell
 
-@dataclass(frozen=True)
+@dataclass
 class Ankh(HpItem):
   name: str = "Ankh"
   desc: str = "Revives ally with 50% HP."
@@ -11,7 +11,7 @@ class Ankh(HpItem):
     hero = game.hero
     ally = game.ally
     floor = game.floor
-    if not ally.dead:
+    if not ally.is_dead():
       return False, "Your partner is still alive!"
 
     neighbors = cell.neighbors(hero.cell)
@@ -19,7 +19,6 @@ class Ankh(HpItem):
     if neighbor is None:
       return False, ("There's nowhere for ", ally.token(), " to spawn!")
 
-    ally.set_hp(ally.get_hp_max() // 2)
-    ally.dead = False
+    ally.revive(1 / 2)
     floor.spawn_elem(ally, neighbor)
     return True, (ally.token(), " was revived.")

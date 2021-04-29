@@ -1,4 +1,5 @@
 from dungeon.actors import DungeonActor
+from cores import Core
 from dungeon.props.chest import Chest
 from assets import load as use_assets
 from anims.activate import ActivateAnim
@@ -7,13 +8,13 @@ import palette
 
 class Mimic(DungeonActor):
   def __init__(mimic):
-    super().__init__(
+    super().__init__(Core(
       name="Mimic",
       faction="enemy",
       hp=23,
       st=13,
       en=6
-    )
+    ))
     mimic.idle = True
     mimic.opened = False
 

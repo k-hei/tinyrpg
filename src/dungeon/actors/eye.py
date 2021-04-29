@@ -1,4 +1,5 @@
 from dungeon.actors import DungeonActor
+from cores import Core
 from assets import load as use_assets
 from skills.weapon.tackle import Tackle
 from anims.move import MoveAnim
@@ -9,14 +10,14 @@ from anims.flicker import FlickerAnim
 
 class Eye(DungeonActor):
   def __init__(eye):
-    super().__init__(
+    super().__init__(Core(
       name="Eyeball",
       faction="enemy",
       hp=20,
       st=12,
       en=7,
-      skills=[Tackle]
-    )
+      skills=[ Tackle() ]
+    ))
 
   def render(eye, anims):
     sprites = use_assets().sprites
@@ -25,7 +26,7 @@ class Eye(DungeonActor):
       for anim in [a for a in anim_group if a.target is eye]:
         if type(anim) is AwakenAnim:
           return super().render(sprites["eye_attack"], anims)
-    if eye.dead:
+    if eye.is_dead():
       return super().render(sprites["eye_flinch"], anims)
     anim_group = [a for a in anims[0] if a.target is eye] if anims else []
     for anim in anim_group:

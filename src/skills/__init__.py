@@ -6,13 +6,13 @@ from palette import BLACK
 
 @dataclass
 class Skill:
-  name: str
-  desc: str
-  element: str
-  rare: bool
-  cost: int
-  users: tuple[Core]
-  blocks: tuple[tuple[int, int]]
+  name: str = ""
+  desc: str = ""
+  element: str = ""
+  rare: bool = False
+  cost: int = 0
+  users: tuple[Core] = ()
+  blocks: tuple[tuple[int, int]] = ((0, 0),)
   color: tuple[int, int, int] = BLACK
 
   def effect(user, game, on_end=None):
@@ -28,9 +28,10 @@ class Skill:
     return target_cell
 
   def token(skill):
-    return Token(skill.name, skill.color())
+    return Token(skill.name, skill.color)
 
 def get_skill_order(skill):
+  skill_type = type(skill).__name__
   return [
     "WeaponSkill",
     "AttackSkill",
@@ -39,7 +40,7 @@ def get_skill_order(skill):
     "AilmentSkill",
     "FieldSkill",
     "ArmorSkill"
-  ].index(type(skill).__name__)
+  ].index(skill_type)
 
 def get_skill_text(skill):
   tag = skill.element or skill.kind

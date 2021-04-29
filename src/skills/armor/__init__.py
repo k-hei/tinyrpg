@@ -2,6 +2,5 @@ from dataclasses import dataclass
 from skills import Skill
 
 @dataclass
-class WeaponSkill(Skill):
-  cost: int = 1
-  st: int = 0
+class ArmorSkill(Skill):
+  hp: int = 0

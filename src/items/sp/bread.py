@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from items.sp import SpItem
 
-@dataclass(frozen=True)
+@dataclass
 class Bread(SpItem):
   name: str = "Bread"
   desc: str = "Restores 10 SP."

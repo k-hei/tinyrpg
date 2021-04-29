@@ -30,8 +30,6 @@ from dungeon.actors.npc import NPC
 from dungeon.props.chest import Chest
 from dungeon.props.soul import Soul
 
-from skills import Skill, get_skill_order
-
 from anims.activate import ActivateAnim
 from anims.attack import AttackAnim
 from anims.awaken import AwakenAnim
@@ -70,8 +68,8 @@ class DungeonContext(Context):
 
   def __init__(game, parent):
     super().__init__(parent)
-    game.hero = DungeonActor(parent.hero)
-    game.ally = DungeonActor(parent.ally)
+    game.hero = Knight(parent.hero)
+    game.ally = Mage(parent.ally)
     game.floors = []
     game.floor = None
     game.room = None
@@ -88,7 +86,7 @@ class DungeonContext(Context):
     game.sp_meter = SpMeter()
     game.minimap = Minimap(parent=game)
     game.previews = Previews()
-    game.update_skills()
+    # game.update_skills()
     game.create_floor()
 
   def get_floor_no(game):
@@ -103,11 +101,20 @@ class DungeonContext(Context):
     else:
       floor = gen.dungeon((27, 27), floor_no)
 
+    hero = game.hero
+    ally = game.ally
+    floor.spawn_elem(hero, floor.entrance)
+    hero.facing = (1, 0)
+    if not ally.is_dead():
+      x, y = floor.entrance
+      floor.spawn_elem(ally, (x - 1, y))
+      ally.facing = (1, 0)
+
     promoted = False
-    enemies = [e for e in floor.elems if isinstance(e, DungeonActor) and e.faction == "enemy"]
-    for monster, kills in game.monster_kills.items():
+    enemies = [e for e in floor.elems if isinstance(e, DungeonActor) and not hero.allied(e)]
+    for monster, kills in game.parent.monster_kills.items():
       if (monster.skill is not None
-      and monster.skill not in game.skill_pool
+      and monster.skill not in game.parent.skill_pool
       and kills >= 3):
         enemy = next((e for e in enemies if type(e) is monster), None)
         if enemy is not None:
@@ -120,15 +127,6 @@ class DungeonContext(Context):
       game.log.print("You feel a powerful presence on this floor...")
     elif floor.find_tile(Stage.DOOR_HIDDEN):
       game.log.print("This floor seems to hold many secrets.")
-
-    hero = game.hero
-    ally = game.ally
-    floor.spawn_elem(hero, floor.entrance)
-    hero.facing = (1, 0)
-    if not ally.dead:
-      x, y = floor.entrance
-      floor.spawn_elem(ally, (x - 1, y))
-      ally.facing = (1, 0)
 
     game.floor = floor
     game.floors.append(game.floor)
@@ -160,7 +158,7 @@ class DungeonContext(Context):
       and [e for e in game.floor.elems if (
         e.cell in room.get_cells()
         and isinstance(e, DungeonActor)
-        and e.faction != hero.faction
+        and not hero.allied(e)
       )]):
         door = game.room_entrances[room]
         game.rooms_entered.append(room)
@@ -187,7 +185,7 @@ class DungeonContext(Context):
     camera = game.camera
     nearby_enemies = [e for e in game.floor.elems if (
       isinstance(e, DungeonActor)
-      and e.faction == "enemy"
+      and not hero.allied(e)
       and manhattan(hero.cell, e.cell) <= 1
       and (type(e) is not Mimic or not e.idle)
     )]
@@ -205,9 +203,10 @@ class DungeonContext(Context):
     if not game.ally.stepped:
       game.step_ally(game.ally)
 
+    hero = game.hero
     actors = [e for e in game.floor.elems if isinstance(e, DungeonActor)]
-    enemies = [a for a in actors if a.faction == "enemy"]
-    enemies.sort(key=lambda e: manhattan(e.cell, game.hero.cell))
+    enemies = [a for a in actors if not a.allied(hero)]
+    enemies.sort(key=lambda e: manhattan(e.cell, hero.cell))
 
     for actor in actors:
       if actor in enemies:
@@ -217,7 +216,7 @@ class DungeonContext(Context):
         actor.regen(actor.get_hp_max() / 50)
 
       if actor.ailment == "poison":
-        damage = int(actor.get_hp_max() * Actor.POISON_STRENGTH)
+        damage = int(actor.get_hp_max() * DungeonActor.POISON_STRENGTH)
         game.flinch(actor, damage, delayed=True)
         if actor.ailment_turns == 0:
           actor.ailment = None
@@ -231,11 +230,11 @@ class DungeonContext(Context):
       actor.stepped = False
 
   def step_ally(game, ally, run=False, old_hero_cell=None):
-    if ally.stepped or ally.dead or ally.ailment == "sleep":
+    if ally.stepped or ally.is_dead() or ally.ailment == "sleep":
       return False
     hero = game.hero
     actors = [e for e in game.floor.elems if isinstance(e, DungeonActor)]
-    enemies = [a for a in actors if a.faction == "enemy"]
+    enemies = [a for a in actors if not hero.allied(a)]
     visible_enemies = [e for e in enemies if e.cell in hero.visible_cells]
     adjacent_enemies = [e for e in enemies if is_adjacent(e.cell, ally.cell)]
     if adjacent_enemies:
@@ -259,7 +258,7 @@ class DungeonContext(Context):
     ally.stepped = True
 
   def step_enemy(game, enemy):
-    if enemy.dead or enemy.stepped or enemy.idle or enemy.ailment == "sleep":
+    if enemy.is_dead() or enemy.stepped or enemy.idle or enemy.ailment == "sleep":
       return False
 
     hero = game.hero
@@ -273,13 +272,14 @@ class DungeonContext(Context):
     if hero.cell not in room_cells:
       return False
 
+    print(enemy.weapon)
     return enemy.step(game)
 
   def find_closest_enemy(game, actor):
     enemies = [e for e in game.floor.elems if (
       isinstance(e, DungeonActor)
-      and not e.dead
-      and e.faction != actor.faction
+      and not e.is_dead()
+      and not e.allied(actor)
     )]
     if len(enemies) == 0:
       return None
@@ -291,7 +291,7 @@ class DungeonContext(Context):
     hero = game.hero
     floor = game.floor
     visible_elems = [floor.get_elem_at(c) for c in hero.visible_cells if floor.get_elem_at(c)]
-    visible_enemies = [e for e in visible_elems if isinstance(e, DungeonActor) and e.faction == "enemy"]
+    visible_enemies = [e for e in visible_elems if isinstance(e, DungeonActor) and not e.allied(actor)]
     if len(visible_enemies) == 0:
       return None
     if len(visible_enemies) > 1:
@@ -307,8 +307,7 @@ class DungeonContext(Context):
     room_cells = room.get_cells()
     return [e for e in game.floor.elems if (
       e.cell in room_cells
-      and isinstance(e, DungeonActor)
-      and e.faction != hero.faction
+      and not hero.allied(e)
     )]
 
   def handle_keyup(game, key):
@@ -349,7 +348,7 @@ class DungeonContext(Context):
     if key == pygame.K_ESCAPE and keyboard.get_pressed(pygame.K_LCTRL):
       return game.handle_debug()
 
-    if game.hero.dead or game.hero.ailment == "sleep":
+    if game.hero.is_dead() or game.hero.ailment == "sleep":
       return False
 
     if key == pygame.K_ESCAPE or key == pygame.K_BACKSPACE:
@@ -372,7 +371,7 @@ class DungeonContext(Context):
     hero = game.hero
     ally = game.ally
     floor = game.floor
-    if hero.dead or hero.ailment == "sleep":
+    if hero.is_dead() or hero.ailment == "sleep":
       return False
     old_cell = hero.cell
     hero_x, hero_y = old_cell
@@ -432,7 +431,7 @@ class DungeonContext(Context):
       if game.room:
         room = game.room
         room_elems = [a for a in [floor.get_elem_at(cell) for cell in room.get_cells()] if a]
-        enemies = [e for e in room_elems if isinstance(e, DungeonActor) and e.faction == "enemy"]
+        enemies = [e for e in room_elems if isinstance(e, DungeonActor) and not hero.allied(e)]
         enemy = next((e for e in enemies if e.ailment == "sleep" and random.randint(1, 10) == 1), None)
         if enemy:
           enemy.wake_up()
@@ -456,9 +455,9 @@ class DungeonContext(Context):
         end_move()
 
       if game.parent.sp:
-        if not hero.dead and not hero.ailment == "sleep":
+        if not hero.is_dead() and not hero.ailment == "sleep":
           hero.regen()
-        if not ally.dead and not ally.ailment == "sleep":
+        if not ally.is_dead() and not ally.ailment == "sleep":
           ally.regen()
       game.parent.sp = max(0, game.parent.sp - 1 / 100)
 
@@ -466,7 +465,7 @@ class DungeonContext(Context):
     if moved:
       game.step_ally(game.ally, run, old_cell)
       acted = True
-    elif isinstance(target_elem, DungeonActor) and target_elem.faction == "enemy":
+    elif isinstance(target_elem, DungeonActor) and not hero.allied(target_elem):
       acted = game.handle_attack(target_elem)
     else:
       game.anims.append([
@@ -501,7 +500,7 @@ class DungeonContext(Context):
                 on_end=chest.open
               )
             ])
-            if item.kind == "weapon":
+            if type(item).__name__ == "WeaponSkill":
               game.learn_skill(item)
             else:
               game.parent.inventory.append(item)
@@ -514,7 +513,7 @@ class DungeonContext(Context):
           game.log.print("There's nothing left to take...")
         game.step(run)
         game.refresh_fov()
-      elif isinstance(target_elem, DungeonActor) and target_elem.ailment == "sleep" and target_elem.faction == "player":
+      elif isinstance(target_elem, DungeonActor) and target_elem.ailment == "sleep" and hero.allied(target_elem):
         game.log.exit()
         game.anims[0].append(PauseAnim(
           duration=60,
@@ -568,18 +567,16 @@ class DungeonContext(Context):
       game.log.print("You open the lamp")
       return True
     else:
-      weapon = next((s for s in hero.skills if s.kind == "weapon"), None)
-      if weapon:
-        game.use_skill(hero, weapon)
-        return True
-      else:
-        return False
+      return game.attack(hero, target, on_end=lambda: (
+        game.step(),
+        game.refresh_fov()
+      ))
 
   def handle_wait(game):
     game.step()
 
   def handle_swap(game):
-    if game.ally.dead:
+    if game.ally.is_dead():
       return False
     game.hero, game.ally = (game.ally, game.hero)
     game.refresh_fov(moving=True)
@@ -635,8 +632,12 @@ class DungeonContext(Context):
       game.minimap.exit()
       game.child = CustomContext(
         parent=game,
+        pool=game.parent.skill_pool,
+        new_skills=game.parent.new_skills,
+        builds=game.parent.skill_builds,
+        chars=(game.hero.core, game.ally.core),
         on_close=lambda _: (
-          game.update_skills(),
+          game.parent.update_skills(),
           game.hud.enter(),
           game.sp_meter.enter(),
           game.previews.enter(),
@@ -696,7 +697,7 @@ class DungeonContext(Context):
         dest_cell=target_cell,
         on_end=on_end
       )
-      if game.anims and actor.faction == "enemy":
+      if game.anims and actor.allied(target_elem):
         game.anims[0].append(anim)
       else:
         game.anims.append([anim])
@@ -750,13 +751,12 @@ class DungeonContext(Context):
       return False
 
   def attack(game, actor, target, damage=None, on_connect=None, on_end=None):
-    weapon = actor.weapon()
-    if weapon is None:
+    if actor.weapon is None:
       return False
     if damage is None:
-      modifier = weapon.st if weapon else 0
-      damage = Actor.find_damage(actor, target, modifier)
-      game.log.print(actor.token(), " uses ", weapon.token())
+      modifier = actor.weapon.st if actor.weapon else 0
+      damage = DungeonActor.find_damage(actor, target, modifier)
+      game.log.print(actor.token(), " uses ", actor.weapon.token())
     def connect():
       if on_connect:
         on_connect()
@@ -766,7 +766,7 @@ class DungeonContext(Context):
         game.log.print(target.token(), " reflected the attack!")
         # target.counter = False
         real_target = actor
-        real_damage = Actor.find_damage(actor, actor)
+        real_damage = DungeonActor.find_damage(actor, actor)
       game.flinch(
         target=real_target,
         damage=real_damage,
@@ -785,16 +785,17 @@ class DungeonContext(Context):
     ])
 
   def kill(game, target, on_end=None):
+    hero = game.hero
     def remove():
-      if target.faction == "enemy" and type(target).skill:
-        game.monster_kills[type(target)] = game.monster_kills[type(target)] + 1 if type(target) in game.monster_kills else 1
+      if not hero.allied(target) and type(target).skill:
+        game.parent.record_kill(target)
         if target.rare:
           skill = type(target).skill
-          if skill not in game.skill_pool:
+          if skill not in game.parent.skill_pool:
             game.floor.spawn_elem(Soul(skill), target.cell)
       target.kill()
       game.floor.elems.remove(target)
-      if target is game.hero:
+      if target is hero:
         game.anims[0].append(PauseAnim(
           duration=DungeonContext.PAUSE_DEATH_DURATION,
           on_end=lambda: (
@@ -804,7 +805,7 @@ class DungeonContext(Context):
         ))
       elif game.floor.find_tile(Stage.MONSTER_DEN):
         trap = game.floor.find_tile(Stage.MONSTER_DEN)
-        if trap and len([e for e in game.floor.elems if isinstance(e, DungeonActor) and e.faction == "enemy"]) == 0:
+        if trap and not [e for e in game.floor.elems if isinstance(e, DungeonActor) and hero.allied(e)]:
           trap_x, trap_y = trap
           game.floor.set_tile_at((trap_x - 2, trap_y), Stage.DOOR_OPEN)
         if on_end:
@@ -814,7 +815,7 @@ class DungeonContext(Context):
         if on_end:
           on_end()
 
-    if target.faction == "enemy":
+    if not hero.allied(target):
       game.log.print("Defeated ", target.token(), ".")
     else:
       game.log.print(target.token(), " is defeated.")
@@ -827,14 +828,14 @@ class DungeonContext(Context):
   def flinch(game, target, damage, direction=None, delayed=False, on_end=None):
     was_asleep = target.ailment == "sleep"
     end = lambda: on_end and on_end()
-    if target.dead: end()
+    if target.is_dead(): end()
 
     def awaken():
       game.log.print(target.token(), " woke up!")
       game.anims[0].append(PauseAnim(duration=DungeonContext.PAUSE_DURATION))
 
     def respond():
-      if target.dead or game.floor.get_tile_at(target.cell) is Stage.PIT:
+      if target.is_dead() or game.floor.get_tile_at(target.cell) is Stage.PIT:
         game.kill(target, on_end)
       elif is_adjacent(target.cell, target.cell):
         # pause before performing step
@@ -849,9 +850,10 @@ class DungeonContext(Context):
       on_start=lambda:(
         target.damage(damage),
         game.numbers.append(DamageValue(str(damage), target.cell)),
-        game.log.print(target.token(),
-          (" receives" if target.faction == "enemy" else " suffers")
-          + " " + str(damage) + " damage.")
+        game.log.print(target.token(), " {} {} damage.".format(
+          "receives" if not game.hero.allied(target) else "suffers",
+          damage
+        ))
       )
     )
 
@@ -861,7 +863,7 @@ class DungeonContext(Context):
       game.anims.append([flinch, pause])
     else:
       game.anims[0].extend([flinch, pause])
-    if was_asleep and not target.ailment == "sleep" and not target.dead:
+    if was_asleep and not target.ailment == "sleep" and not target.is_dead():
       game.anims[0].append(AwakenAnim(
         duration=DungeonContext.AWAKEN_DURATION,
         target=target,
@@ -869,19 +871,16 @@ class DungeonContext(Context):
       ))
 
   def learn_skill(game, skill):
-    if not skill in game.skill_pool:
-      game.new_skills.append(skill)
-      game.skill_pool.append(skill)
-      game.skill_pool.sort(key=get_skill_order)
+    game.parent.learn_skill(skill)
 
   def use_skill(game, actor, skill):
     camera = game.camera
-    if actor.faction == "player":
+    if actor.get_faction() == "player":
       if game.parent.sp >= skill.cost:
         game.parent.sp -= skill.cost
         if game.parent.sp < 1:
           game.parent.sp = 0
-    if skill.kind == "weapon":
+    if type(skill).__name__ == "WeaponSkill":
       actor_x, actor_y = actor.cell
       facing_x, facing_y = actor.facing
       target_cell = (actor_x + facing_x, actor_y + facing_y)
@@ -926,16 +925,6 @@ class DungeonContext(Context):
     else:
       return False, message
 
-  def update_skills(game, char=None):
-    if char is None:
-      game.update_skills(game.hero)
-      game.update_skills(game.ally)
-      return
-    char.skills = [skill for skill, cell in game.skill_builds[char]]
-    active_skills = [s for s in char.skills if s.kind != "passive"]
-    skill = active_skills[0] if active_skills else None
-    game.skill_selected[char] = skill
-
   def ascend(game):
     game.handle_floorchange(1)
 
@@ -963,7 +952,7 @@ class DungeonContext(Context):
       new_floor = game.floors[index]
       stairs_x, stairs_y = new_floor.find_tile(entry_tile)
       new_floor.spawn_elem(game.hero, (stairs_x, stairs_y))
-      if not game.ally.dead:
+      if not game.ally.is_dead():
         new_floor.spawn_elem(game.ally, (stairs_x - 1, stairs_y))
       game.floor = new_floor
       game.refresh_fov(moving=True)

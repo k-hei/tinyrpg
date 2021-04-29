@@ -26,7 +26,7 @@ class Virus(Skill):
   def effect(user, game, on_end=None):
     targets = [e for e in game.floor.elems if (
       isinstance(e, DungeonActor)
-      and not e.dead
+      and not e.is_dead()
       and e.faction != user.faction
       and e.ailment != "poison"
       and is_adjacent(e.cell, user.cell)

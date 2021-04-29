@@ -8,8 +8,8 @@ from assets import load as use_assets
 from filters import replace_color, recolor, outline
 from text import render_char, render as render_text, find_width as find_text_width
 
-from dungeon.actors.knight import Knight
-from dungeon.actors.mage import Mage
+from cores.knight import Knight
+from cores.mage import Mage
 
 from anims import Anim
 from anims.tween import TweenAnim
@@ -180,7 +180,7 @@ class Hud:
     return sprite
 
   def draw(panel, surface, ctx):
-    panel.update(ctx.hero, ctx.ally)
+    panel.update(ctx.hero.core, ctx.ally.core)
     sprite = panel.sprite
     hidden_x, hidden_y = Hud.MARGIN_LEFT, -sprite.get_height()
     corner_x, corner_y = Hud.MARGIN_LEFT, Hud.MARGIN_TOP

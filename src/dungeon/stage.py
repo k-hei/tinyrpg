@@ -32,7 +32,7 @@ from lib.lerp import lerp
 
 ITEM_OFFSET = 20
 
-@dataclass(frozen=True)
+@dataclass
 class Tile:
   solid: bool
   opaque: bool
@@ -197,7 +197,7 @@ class Stage:
       if new_facing_x != 0:
         facing_x = new_facing_x
 
-    (col, row) = elem.cell
+    col, row = elem.cell
     sprite = elem.render(anims)
     sprite_x = col * config.TILE_SIZE
     sprite_y = row * config.TILE_SIZE

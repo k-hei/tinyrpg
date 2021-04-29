@@ -1,6 +1,8 @@
 import random
 from dungeon.element import DungeonElement
 from cores import Core
+from skills.weapon import WeaponSkill
+from skills.armor import ArmorSkill
 
 import palette
 from assets import load as use_assets
@@ -11,7 +13,7 @@ from anims.flicker import FlickerAnim
 from lib.cell import is_adjacent, manhattan
 from comps.log import Token
 
-class DungeonActor(DungeonElement, Core):
+class DungeonActor(DungeonElement):
   POISON_DURATION = 5
   POISON_STRENGTH = 1 / 6
   skill = None
@@ -19,6 +21,7 @@ class DungeonActor(DungeonElement, Core):
   def __init__(actor, core):
     super().__init__(solid=True)
     actor.core = core
+    actor.weapon = actor.load_weapon()
     actor.solid = True
     actor.stepped = False
     actor.ailment = None
@@ -28,6 +31,24 @@ class DungeonActor(DungeonElement, Core):
     actor.rare = False
     actor.facing = (1, 0)
     actor.visible_cells = []
+
+  def get_name(actor): return actor.core.name
+  def get_faction(actor): return actor.core.faction
+  def get_hp(actor): return actor.core.get_hp()
+  def get_hp_max(actor): return actor.core.get_hp_max()
+  def set_hp(actor, hp): actor.core.set_hp(hp)
+  def get_skills(actor): return actor.core.skills
+  def get_active_skills(actor): return [s for s in actor.core.skills if not isinstance(s, ArmorSkill)]
+  def is_dead(actor): return actor.core.dead
+
+  def load_weapon(actor):
+    return next((s for s in actor.core.skills if isinstance(s, WeaponSkill)), None)
+
+  def allied(actor, target):
+    if target is None or not isinstance(target, DungeonActor):
+      return False
+    else:
+      return Core.allied(actor.core, target.core)
 
   def face(actor, dest):
     actor_x, actor_y = actor.cell
@@ -66,10 +87,10 @@ class DungeonActor(DungeonElement, Core):
 
   def promote(actor):
     actor.rare = True
-    actor.hp_max += 5
-    actor.hp += 5
-    actor.st += 2
-    actor.en += 2
+    actor.core.hp_max += 5
+    actor.core.hp += 5
+    actor.core.st += 2
+    actor.core.en += 2
 
   def regen(actor, amount=None):
     if amount is None:
@@ -82,7 +103,7 @@ class DungeonActor(DungeonElement, Core):
     return actor.damage(damage)
 
   def damage(target, damage):
-    target.hp -= damage
+    target.set_hp(target.get_hp() - damage)
     if target.get_hp() <= 0:
       target.kill()
     elif target.ailment == "sleep" and random.randint(0, 1):
@@ -90,13 +111,10 @@ class DungeonActor(DungeonElement, Core):
     return damage
 
   def find_damage(actor, target, modifier=0):
-    st = actor.st + modifier
-    en = target.en if target.ailment != "sleep" else 0
-    variance = 1 if actor.faction == "enemy" else 2
+    st = actor.core.st + modifier
+    en = target.core.en if target.ailment != "sleep" else 0
+    variance = 1 if actor.core.faction == "enemy" else 2
     return max(0, st - en) + random.randint(-variance, variance)
-
-  def weapon(actor):
-    return next((s for s in actor.skills if s.kind == "weapon"), None)
 
   def step(actor, game):
     enemy = game.find_closest_enemy(actor)
@@ -125,22 +143,22 @@ class DungeonActor(DungeonElement, Core):
         new_color = palette.PURPLE
       elif actor.ailment == "poison":
         new_color = palette.GREEN_DARK
-      elif actor.faction == "player":
+      elif actor.core.faction == "player":
         new_color = palette.BLUE
-      elif actor.faction == "ally":
+      elif actor.core.faction == "ally":
         new_color = palette.GREEN
-      elif actor.faction == "enemy" and actor.rare:
+      elif actor.core.faction == "enemy" and actor.rare:
         new_color = palette.GOLD_DARK
-      elif actor.faction == "enemy":
+      elif actor.core.faction == "enemy":
         new_color = palette.RED
     if new_color:
       sprite = replace_color(sprite, palette.BLACK, new_color)
     return sprite
 
   def color(actor):
-    if actor.faction == "player": return palette.BLUE
-    if actor.faction == "enemy" and actor.rare: return palette.GOLD_DARK
-    if actor.faction == "enemy": return palette.RED
+    if actor.core.faction == "player": return palette.BLUE
+    if actor.core.faction == "enemy" and actor.rare: return palette.GOLD_DARK
+    if actor.core.faction == "enemy": return palette.RED
 
   def token(actor):
-    return Token(text=actor.name.upper(), color=actor.color())
+    return Token(text=actor.get_name().upper(), color=actor.color())

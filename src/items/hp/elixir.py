@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from items.hp import HpItem
 
-@dataclass(frozen=True)
+@dataclass
 class Elixir(HpItem):
   name: str = "Elixir"
   desc: str = "Restores all HP and SP."

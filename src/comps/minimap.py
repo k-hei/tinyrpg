@@ -118,7 +118,7 @@ class Minimap:
           color = 0xFFFF00 if minimap.time % 60 >= 30 else 0x7F7F00
         else:
           color = 0xFF0000 if minimap.time % 60 >= 30 else 0x990000
-      elif isinstance(elem, DungeonActor) and elem.faction == "enemy" and cell in visible_cells:
+      elif isinstance(elem, DungeonActor) and elem.get_faction() == "enemy" and cell in visible_cells:
         if elem.ailment == "sleep":
           color = 0xCC0000
         else:

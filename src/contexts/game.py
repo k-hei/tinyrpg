@@ -17,7 +17,9 @@ from items.dungeon.emerald import Emerald
 from items.dungeon.balloon import Balloon
 from items.ailment.antidote import Antidote
 
-# from skills.weapon.stick import Stick
+from skills import get_skill_order
+from skills.weapon import WeaponSkill
+from skills.weapon.stick import Stick
 # from skills.armor.hpup import HpUp
 # from skills.attack.blitzritter import Blitzritter
 # from skills.support.counter import Counter
@@ -41,25 +43,22 @@ class GameContext(Context):
     ctx.ally = Mage()
     ctx.new_skills = []
     ctx.skill_pool = [
-      # Stick,
+      Stick(),
       # Blitzritter,
       # Somnus,
       # Sana,
       # DetectMana,
       # HpUp,
     ]
-    # ctx.load_skills(ctx.hero, [])
-    # ctx.load_skills(ctx.ally, [])
-    # ctx.skill_builds = {
-    #   ctx.hero: [
-    #     # (Stick, (0, 0)),
-    #     # (Blitzritter, (1, 0))
-    #   ],
-    #   ctx.ally: [
-    #     # (Somnus, (0, 0)),
-    #     # (DetectMana, (1, 0))
-    #   ]
-    # }
+    ctx.skill_builds = {}
+    ctx.load_build(ctx.hero, [
+      (Stick(), (0, 0)),
+      # (Blitzritter, (1, 0))
+    ])
+    ctx.load_build(ctx.ally, [
+      # (Somnus, (0, 0)),
+      # (DetectMana, (1, 0))
+    ])
     ctx.monster_kills = {}
     ctx.debug = False
 
@@ -75,9 +74,22 @@ class GameContext(Context):
   def goto_town(ctx, returning=False):
     ctx.child = TownContext(parent=ctx, returning=returning)
 
-  def update_skills(ctx):
-    ctx.hero.skills = [skill for skill, cell in ctx.skill_builds[ctx.hero]]
-    ctx.ally.skills = [skill for skill, cell in ctx.skill_builds[ctx.ally]]
+  def record_kill(ctx, target):
+    target_type = type(target)
+    if target_type in ctx.monster_kills:
+      ctx.monster_kills[target_type] += 1
+    else:
+      ctx.monster_kills[target_type] = 1
+
+  def learn_skill(ctx, skill):
+    if not skill in ctx.skill_pool:
+      ctx.new_skills.append(skill)
+      ctx.skill_pool.append(skill)
+      ctx.skill_pool.sort(key=get_skill_order)
+
+  def load_build(ctx, char, build):
+    ctx.skill_builds[char] = build
+    char.skills = [skill for skill, cell in build]
 
   def dissolve(ctx, on_clear, on_end=None):
     ctx.transits.append(DissolveIn(config.WINDOW_SIZE, on_clear))

@@ -1,10 +1,12 @@
+from dataclasses import dataclass
 from skills import Skill
-from dungeon.actors.knight import Knight
-from dungeon.actors.mage import Mage
+from cores import Core
+from cores.knight import Knight
+from cores.mage import Mage
 
+@dataclass
 class HpUp(Skill):
-  hp = 5
-  name = "HP +" + str(hp)
-  kind = "passive"
-  desc = "Increases HP by " + str(hp)
-  users = (Knight, Mage)
+  hp: int = 5
+  name: str = "HP +5"
+  desc: str = "Increases HP by 5"
+  users: tuple[Core] = (Knight, Mage)

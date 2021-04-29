@@ -5,7 +5,6 @@ from anims.pause import PauseAnim
 from filters import replace_color
 from comps.skill import Skill
 from comps.vfx import Vfx
-from skills import get_skill_color
 import palette
 import random
 import math
@@ -45,7 +44,7 @@ class Soul(Prop):
     game.vfx.append(Vfx(
       kind="burst",
       pos=(x, y),
-      color=get_skill_color(soul.skill),
+      color=soul.skill.color,
       anim=FrameAnim(
         duration=15,
         frame_count=5
@@ -65,7 +64,7 @@ class Soul(Prop):
         kind=kind,
         pos=(start_x, start_y),
         vel=(vel_x, vel_y),
-        color=get_skill_color(soul.skill),
+        color=soul.skill.color,
         anim=FrameAnim(
           duration=random.randint(15, 45),
           frame_count=3
@@ -108,7 +107,7 @@ class Soul(Prop):
           kind=kind,
           pos=(x, y),
           vel=(0, 0.25),
-          color=get_skill_color(soul.skill),
+          color=soul.skill.color,
           anim=FrameAnim(
             duration=60,
             frame_count=3
@@ -125,6 +124,6 @@ class Soul(Prop):
     frame = min(Soul.ANIM_FRAMES - 1, frame)
     sprite = sprites["soul" + str(frame)]
     if soul.skill:
-      color = get_skill_color(soul.skill)
+      color = soul.skill.color
       sprite = replace_color(sprite, palette.BLACK, color)
     return sprite

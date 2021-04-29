@@ -1,4 +1,5 @@
 from dungeon.actors import DungeonActor
+from cores import Core
 from assets import load as use_assets
 from skills.ailment.virus import Virus
 from skills.weapon.tackle import Tackle
@@ -9,14 +10,14 @@ class Mushroom(DungeonActor):
   skill = Virus
 
   def __init__(mushroom):
-    super().__init__(
+    super().__init__(Core(
       name="Toadstool",
       faction="enemy",
       hp=27,
       st=14,
       en=8,
-      skills=[Tackle, Virus]
-    )
+      skills=[ Tackle(), Virus() ]
+    ))
 
   def step(actor, game):
     enemy = game.find_closest_enemy(actor)

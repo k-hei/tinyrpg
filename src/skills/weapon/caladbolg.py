@@ -1,8 +1,10 @@
+from dataclasses import dataclass
 from skills.weapon import WeaponSkill
 from cores import Core
-from dungeon.actors.knight import Knight
+from cores.knight import Knight
 from assets import load as use_assets
 
+@dataclass
 class Caladbolg(WeaponSkill):
   name: str = "Caladbolg"
   desc: str = "A legendary blade."
@@ -19,5 +21,5 @@ class Caladbolg(WeaponSkill):
     (2, 1),
   )
 
-  def render():
+  def render(weapon):
     return use_assets().sprites["icon16_sword"]

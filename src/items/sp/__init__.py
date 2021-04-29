@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from items import Item
 from palette import BLUE
 
-@dataclass(frozen=True)
+@dataclass
 class SpItem(Item):
   color: tuple[int, int, int] = BLUE
   sp: int = 0

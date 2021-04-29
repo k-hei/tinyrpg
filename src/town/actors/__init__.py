@@ -10,7 +10,6 @@ class Actor:
     actor.x = 0
     actor.facing = 1
     actor.walks = 0
-    actor.dead = False
 
   def move(actor, delta):
     if actor.facing != delta:

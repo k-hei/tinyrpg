@@ -73,7 +73,6 @@ class InventoryDescription:
         sprite_title = None
         message = box.message
       else:
-        # assume message is an Item (TODO: item superclass)
         item = box.message
         sprite_title = font_heading.render(item.name, item.color)
         message = item.desc
@@ -87,7 +86,8 @@ class InventoryDescription:
           else:
             word = message[box.index+1:next_space]
           word_width, word_height = font_content.size(word)
-          if cursor_x + word_width > box.surface.get_width():
+          space_width, _ = font_content.size(" ")
+          if cursor_x + space_width + word_width > box.surface.get_width():
             cursor_x = 0
             cursor_y += word_height + LINE_SPACING
             box.index += 1

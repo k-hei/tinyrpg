@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from items.dungeon import DungeonItem
 from anims.pause import PauseAnim
 
-@dataclass(frozen=True)
+@dataclass
 class Emerald(DungeonItem):
   name: str = "Emerald"
   desc: str = "Returns to town."

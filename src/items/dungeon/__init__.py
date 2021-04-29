@@ -3,7 +3,7 @@ from items import Item
 from assets import load as use_assets
 from palette import GREEN
 
-@dataclass(frozen=True)
+@dataclass
 class DungeonItem(Item):
   color: tuple[int, int, int] = GREEN
   effect: str = None

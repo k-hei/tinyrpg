@@ -14,7 +14,7 @@ class Skill:
   def render(skill, selected=True):
     assets = use_assets()
     icon = Skill.get_icon(skill)
-    icon_bgcolor = get_skill_color(skill)
+    icon_bgcolor = skill.color
     icon_bgcolor = icon_bgcolor if selected else palette.darken(icon_bgcolor)
     text_color = (0xFF, 0xFF, 0xFF) if selected else (0x7F, 0x7F, 0x7F)
     font = assets.fonts["standard"]

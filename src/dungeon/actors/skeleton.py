@@ -1,4 +1,5 @@
 from dungeon.actors import DungeonActor
+from cores import Core
 from assets import load as use_assets
 from skills.attack.shieldbash import ShieldBash
 from skills.weapon.club import Club
@@ -9,14 +10,14 @@ class Skeleton(DungeonActor):
   skill = ShieldBash
 
   def __init__(skeleton):
-    super().__init__(
+    super().__init__(Core(
       name="Skeleton",
       faction="enemy",
       hp=35,
       st=14,
       en=9,
       skills=[Club, ShieldBash]
-    )
+    ))
 
   def step(actor, game):
     enemy = game.find_closest_enemy(actor)

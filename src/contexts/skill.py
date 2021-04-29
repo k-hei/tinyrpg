@@ -11,7 +11,7 @@ from text import render as render_text
 from filters import recolor, replace_color, outline
 import palette
 from comps.skill import Skill
-from skills import get_skill_text, get_skill_color
+from skills import get_skill_text
 
 from lib.lerp import lerp
 from easing.expo import ease_out
@@ -31,7 +31,7 @@ class SkillContext(Context):
     super().__init__(parent)
     ctx.on_close = on_close
     ctx.bar = Bar()
-    ctx.options = [s for s in parent.hero.skills if s.kind != "passive"] or [None]
+    ctx.options = parent.hero.get_active_skills()
     ctx.offsets = {}
     ctx.cursor = None
     ctx.cursor_anim = SineAnim(60)
@@ -201,7 +201,7 @@ class SkillContext(Context):
       else:
         alpha = 0x5f
       square = Surface((TILE_SIZE - 1, TILE_SIZE - 1), pygame.SRCALPHA)
-      color = get_skill_color(skill)
+      color = skill.color
       pygame.draw.rect(square, (*color, alpha), square.get_rect())
       for cell in neighbors:
         x, y = scale_up(cell)

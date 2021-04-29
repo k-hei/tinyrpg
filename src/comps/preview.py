@@ -37,18 +37,18 @@ class Preview:
     preview.y = 0
     preview.width = -1
     preview.height = -1
-    preview.hp = actor.hp
-    preview.hp_drawn = actor.hp
+    preview.hp = actor.get_hp()
+    preview.hp_drawn = preview.hp
     preview.offset = (0, 0)
     preview.anim = None
 
   def update(preview):
-    if preview.sprite is None or preview.hp != preview.actor.hp:
+    if preview.sprite is None or preview.hp != preview.actor.get_hp():
       preview.sprite = preview.render()
-      if preview.actor.hp < preview.hp_drawn:
+      if preview.actor.get_hp() < preview.hp_drawn:
         preview.anim = FlinchAnim(duration=10)
-      preview.hp = max(preview.actor.hp, preview.hp - preview.actor.hp_max / DEPLETE_SPEED)
-    preview.hp_drawn = preview.actor.hp
+      preview.hp = max(preview.actor.get_hp(), preview.hp - preview.actor.get_hp_max() / DEPLETE_SPEED)
+    preview.hp_drawn = preview.actor.get_hp()
 
     if preview.anim is None:
       return
@@ -64,7 +64,7 @@ class Preview:
       if anim.done:
         offset = (0, 0)
         preview.anim = None
-      if anim.done and preview.actor.hp == 0:
+      if anim.done and preview.actor.get_hp() == 0:
         preview.anim = FlickerAnim(duration=30, target=preview)
     elif type(anim) is FlickerAnim:
       anim.update()
@@ -74,7 +74,7 @@ class Preview:
     assets = use_assets()
     base = assets.sprites["portrait_enemy"]
     portrait = None
-    portrait_id = "portrait_" + actor.name.lower()
+    portrait_id = "portrait_" + actor.get_name().lower()
     if portrait_id in assets.sprites:
       portrait = assets.sprites[portrait_id]
     hp_tag = assets.sprites["tag_hp"]
@@ -82,8 +82,8 @@ class Preview:
     bar_x = HP_OFFSET_X + hp_tag.get_width() + 1
     bar_y = HP_OFFSET_Y + hp_tag.get_height() - bar.get_height()
     bar_width = (bar.get_width() - BAR_PADDING_X * 2)
-    bar_bg_width = bar_width * preview.hp / actor.hp_max
-    bar_fg_width = bar_width * actor.hp / actor.hp_max
+    bar_bg_width = bar_width * preview.hp / actor.get_hp_max()
+    bar_fg_width = bar_width * actor.get_hp() / actor.get_hp_max()
     bar_bg_rect = Rect(
       bar_x + BAR_PADDING_X,
       bar_y + BAR_PADDING_Y,

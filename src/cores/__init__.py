@@ -3,7 +3,7 @@ from functools import reduce
 from operator import add
 
 class Core:
-  def __init__(core, name, faction, hp, st, en, skills):
+  def __init__(core, name, faction, hp=0, st=0, en=0, skills=[]):
     core.name = name
     core.faction = faction
     core.hp = hp
@@ -14,7 +14,7 @@ class Core:
     core.dead = False
 
   def get_skill_hp(core):
-    passive_hps = [s.hp for s in core.skills if s.kind == "passive"]
+    passive_hps = [s.hp for s in core.skills if type(s).__name__ == "WeaponSkill"]
     return reduce(add, passive_hps) if passive_hps else 0
 
   def get_hp(core):
@@ -36,3 +36,8 @@ class Core:
     else:
       revive_hp = core.get_hp_max() * hp_factor
     core.set_hp(revive_hp)
+
+  def allied(a, b):
+    return (a.faction == b.faction
+      or a.faction == "player" and b.faction == "ally"
+      or a.faction == "ally" and b.faction == "player")
