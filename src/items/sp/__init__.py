@@ -10,7 +10,7 @@ class SpItem(Item):
   def use(item, ctx):
     game = ctx.parent
     if game.sp < game.sp_max:
-      game.sp += min(game.sp_max, game.sp + item.sp)
+      game.sp = min(game.sp_max, game.sp + item.sp)
       return True, "Restored " + str(item.sp) + " SP."
     else:
       return False, "Your stamina is already full!"

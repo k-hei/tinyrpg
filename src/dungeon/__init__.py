@@ -269,17 +269,19 @@ class DungeonContext(Context):
     if enemy.is_dead() or enemy.stepped or enemy.idle or enemy.ailment == "sleep":
       return False
 
-    hero = game.hero
-    ally = game.ally
-    rooms = [r for r in game.floor.rooms if enemy.cell in r.get_cells()]
-    if len(rooms) == 0:
-      return False
+    if not enemy.aggro:
+      hero = game.hero
+      ally = game.ally
+      rooms = [r for r in game.floor.rooms if enemy.cell in r.get_cells()]
+      if len(rooms) == 0:
+        return False
 
-    room = rooms[0]
-    room_cells = room.get_cells() + room.get_border()
-    if hero.cell not in room_cells:
-      return False
+      room = rooms[0]
+      room_cells = room.get_cells() + room.get_border()
+      if hero.cell not in room_cells:
+        return False
 
+    enemy.aggro = True
     return enemy.step(game)
 
   def find_closest_enemy(game, actor):

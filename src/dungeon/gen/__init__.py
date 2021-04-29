@@ -382,7 +382,7 @@ def dungeon(size, seed=None):
       return dungeon(size)
 
   room_borders = []
-  for room in rooms:
+  for room in rooms + features:
     room_borders.extend(room.get_border())
 
   maze_cells = []
@@ -422,8 +422,6 @@ def dungeon(size, seed=None):
       minirooms.append(miniroom)
       for cell in miniroom.get_cells():
         stage.set_tile_at(cell, Stage.FLOOR)
-
-  print("This floor has {} minirooms".format(len(minirooms)))
 
   # draw doors
   secret_rooms = []

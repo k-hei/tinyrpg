@@ -27,6 +27,7 @@ class DungeonActor(DungeonElement):
     actor.ailment = None
     actor.ailment_turns = 0
     actor.counter = False
+    actor.aggro = False
     actor.idle = False
     actor.rare = False
     actor.facing = (1, 0)
