@@ -91,22 +91,24 @@ class DungeonContext(Context):
     game.sp_meter = SpMeter()
     game.minimap = Minimap(parent=game)
     game.previews = Previews()
-    # game.update_skills()
     game.create_floor()
+    if config.DEBUG:
+      game.handle_minimap()
 
   def get_floor_no(game):
     return len(game.floors) + 1
 
   def create_floor(game):
     floor_no = game.get_floor_no()
-    if floor_no == config.TOP_FLOOR:
-      floor = gen.top_floor()
-    elif floor_no == 3:
-      floor = gen.giant_room((19, 19))
-    elif floor_no == 1:
-      floor = gen.dungeon(config.FLOOR_SIZE, config.SEED)
-    else:
-      floor = gen.dungeon(config.FLOOR_SIZE)
+    floor = gen.debug_floor(seed=config.SEED)
+    # if floor_no == config.TOP_FLOOR:
+    #   floor = gen.top_floor()
+    # elif floor_no == 3:
+    #   floor = gen.giant_room((19, 19))
+    # elif floor_no == 1:
+    #   floor = gen.dungeon(config.FLOOR_SIZE, config.SEED)
+    # else:
+    #   floor = gen.dungeon(config.FLOOR_SIZE)
 
     hero = game.hero
     ally = game.ally
@@ -328,7 +330,7 @@ class DungeonContext(Context):
     game.key_requires_reset[key] = False
 
   def handle_keydown(game, key):
-    if game.anims or game.log.anim or game.hud.anims:
+    if not config.DEBUG and (game.anims or game.log.anim or game.hud.anims):
       return False
 
     # debug functionality
@@ -338,6 +340,8 @@ class DungeonContext(Context):
         return game.toggle_lights()
       if key == pygame.K_s:
         return print(game.floor.seed)
+      if key == pygame.K_d:
+        return game.handle_debug()
 
     if game.child:
       return game.child.handle_keydown(key)
@@ -687,19 +691,26 @@ class DungeonContext(Context):
     if game.child is None:
       game.log.exit()
       game.hud.exit()
+      game.previews.exit()
       game.sp_meter.exit()
       game.child = MinimapContext(
         parent=game,
         minimap=game.minimap,
         on_close=lambda _: (
           game.hud.enter(),
+          game.previews.enter(),
           game.sp_meter.enter(),
           game.refresh_fov()
         )
       )
 
   def handle_debug(game):
-    game.memory[game.floors.index(game.floor)] = (game.floor, game.floor.get_cells())
+    config.DEBUG = not config.DEBUG
+    if config.DEBUG:
+      game.handle_minimap()
+    elif type(game.child) is MinimapContext:
+      game.child.exit()
+    print("Debug mode switched {}".format("on" if config.DEBUG else "off"))
 
   def move(game, actor, delta, run=False, on_end=None):
     actor_x, actor_y = actor.cell
@@ -1010,7 +1021,7 @@ class DungeonContext(Context):
 
     game.camera.update(game)
 
-    if not game.minimap.is_focused():
+    if not config.DEBUG and not game.minimap.is_focused():
       game.floor.draw(surface, game)
 
     for group in game.anims:
@@ -1022,9 +1033,7 @@ class DungeonContext(Context):
       if len(group) == 0:
         game.anims.remove(group)
 
-    # is_playing_enter_transit = len(game.parent.transits) and type(game.parent.transits[0]) is DissolveOut
-    # if not is_playing_enter_transit:
-    if not game.child or game.log.anim and not game.log.active:
+    if not config.DEBUG and (not game.child or game.log.anim and not game.log.active):
       game.log.draw(surface)
 
     animating = (
@@ -1035,7 +1044,10 @@ class DungeonContext(Context):
     if game.child and not animating:
       game.child.draw(surface)
 
-    game.hud.draw(surface, game)
-    game.sp_meter.draw(surface, game.parent)
-    game.previews.draw(surface, game)
+    if config.DEBUG:
+      game.minimap.anims = []
+    else:
+      game.hud.draw(surface, game)
+      game.sp_meter.draw(surface, game.parent)
+      game.previews.draw(surface, game)
     game.minimap.draw(surface)

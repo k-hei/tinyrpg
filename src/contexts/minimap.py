@@ -7,7 +7,6 @@ class MinimapContext(Context):
     super().__init__(parent)
     ctx.on_close = on_close
     ctx.minimap = minimap
-    ctx.anims = []
     ctx.enter()
 
   def enter(ctx):

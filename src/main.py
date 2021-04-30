@@ -52,19 +52,19 @@ new_game()
 def handle_keydown(key):
   keyboard.handle_keydown(key)
   tapping = keyboard.get_pressed(key) == 1
-  ctrl = (keyboard.get_pressed(pygame.K_LCTRL)
+  ctrl = tapping and (keyboard.get_pressed(pygame.K_LCTRL)
       or keyboard.get_pressed(pygame.K_RCTRL))
-  shift = (keyboard.get_pressed(pygame.K_LSHIFT)
+  shift = tapping and (keyboard.get_pressed(pygame.K_LSHIFT)
       or keyboard.get_pressed(pygame.K_RSHIFT))
-  if key == pygame.K_MINUS and ctrl and tapping:
+  if key == pygame.K_MINUS and ctrl:
     resize(window_scale - 1)
-  elif key == pygame.K_EQUALS and ctrl and tapping:
+  elif key == pygame.K_EQUALS and ctrl:
     resize(window_scale + 1)
-  elif key == pygame.K_f and ctrl and tapping:
+  elif key == pygame.K_f and ctrl:
     toggle_fullscreen()
-  elif key == pygame.K_r and ctrl and shift and tapping:
+  elif key == pygame.K_r and ctrl and shift:
     new_game()
-  elif key == pygame.K_r and ctrl and tapping:
+  elif key == pygame.K_r and ctrl:
     game.reset()
   else:
     game.handle_keydown(key)

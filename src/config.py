@@ -1,7 +1,8 @@
-DEBUG = False
 SEED = None
+
+DEBUG = True
 TOP_FLOOR = 5
-MAX_LOOPS = 3
+MAX_LOOPS = 0
 FLOOR_SIZE = (33, 33)
 
 FPS = 60

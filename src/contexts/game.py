@@ -32,7 +32,7 @@ from skills.ailment.somnus import Somnus
 class GameContext(Context):
   def __init__(ctx):
     super().__init__()
-    ctx.transits = [DissolveOut(config.WINDOW_SIZE)]
+    ctx.transits = [DissolveOut(config.WINDOW_SIZE)] if config.DEBUG else []
     ctx.inventory = Inventory((2, 4), [
       Ruby(), Sapphire(), Emerald(), Amethyst()
     ])
@@ -110,7 +110,7 @@ class GameContext(Context):
     ctx.transits.append(DissolveOut(config.WINDOW_SIZE, on_end))
 
   def handle_keydown(ctx, key):
-    if len(ctx.transits):
+    if ctx.transits:
       return False
     return super().handle_keydown(key)
 

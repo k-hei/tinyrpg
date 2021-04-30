@@ -1,7 +1,9 @@
+from dungeon.features import Feature
 from lib.cell import is_adjacent, neighbors
 
-class Maze:
+class Maze(Feature):
   def __init__(maze, cells):
+    super().__init__()
     maze.cells = cells
 
   def get_cells(maze):
@@ -10,6 +12,7 @@ class Maze:
   def get_edges(maze):
     edges = []
     for cell in maze.cells:
+      x, y = cell
       for neighbor in neighbors(cell):
         if not neighbor in edges + maze.cells:
           edges.append(neighbor)
