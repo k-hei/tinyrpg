@@ -65,7 +65,7 @@ class Skill:
       return assets.sprites["icon_skull"]
     elif skill.kind == "field":
       return assets.sprites["icon_skill"]
-    elif skill.kind == "passive":
+    elif skill.kind == "armor":
       return assets.sprites["icon_heartplus"]
 
     return None

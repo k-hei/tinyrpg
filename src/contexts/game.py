@@ -23,12 +23,11 @@ from items.ailment.amethyst import Amethyst
 from skills import get_skill_order
 from skills.weapon import Weapon
 from skills.weapon.stick import Stick
-# from skills.armor.hpup import HpUp
+from skills.armor.hpup import HpUp
 from skills.attack.blitzritter import Blitzritter
-# from skills.support.counter import Counter
-# from skills.support.sana import Sana
-# from skills.ailment.somnus import Somnus
-# from skills.field.detectmana import DetectMana
+from skills.support.counter import Counter
+from skills.support.sana import Sana
+from skills.ailment.somnus import Somnus
 
 class GameContext(Context):
   def __init__(ctx):
@@ -45,10 +44,9 @@ class GameContext(Context):
     ctx.skill_pool = [
       Stick,
       Blitzritter,
-      # Somnus,
-      # Sana,
-      # DetectMana,
-      # HpUp,
+      Somnus,
+      Sana,
+      HpUp,
     ]
     ctx.skill_builds = {}
     ctx.selected_skills = {}
@@ -57,8 +55,8 @@ class GameContext(Context):
       (Blitzritter, (1, 0))
     ])
     ctx.load_build(ctx.ally, [
-      # (Somnus, (0, 0)),
-      # (DetectMana, (1, 0))
+      (Somnus, (0, 0)),
+      (Sana, (1, 0)),
     ])
     ctx.monster_kills = {}
     ctx.debug = False

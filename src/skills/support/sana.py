@@ -7,7 +7,7 @@ import palette
 import random
 
 from dungeon.actors import DungeonActor
-from dungeon.actors.mage import Mage
+from cores.mage import Mage
 
 class Sana(SupportSkill):
   name = "Sana"

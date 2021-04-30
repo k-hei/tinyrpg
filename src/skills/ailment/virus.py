@@ -1,5 +1,5 @@
 import math
-from skills import Skill
+from skills.ailment import AilmentSkill
 from anims.bounce import BounceAnim
 from anims.flinch import FlinchAnim
 from anims.pause import PauseAnim
@@ -9,7 +9,7 @@ from lib.cell import is_adjacent
 
 ATTACK_DURATION = 12
 
-class Virus(Skill):
+class Virus(AilmentSkill):
   name: str = "Virus"
   desc: str = "Poisons adjacent targets"
   element: str = "dark"

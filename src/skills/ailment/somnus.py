@@ -1,12 +1,12 @@
-from skills import Skill
+from skills.ailment import AilmentSkill
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from config import ATTACK_DURATION
 
 from dungeon.actors import DungeonActor
-from dungeon.actors.mage import Mage
+from cores.mage import Mage
 
-class Somnus(Skill):
+class Somnus(AilmentSkill):
   name = "Somnus"
   kind = "ailment"
   element = "dark"
@@ -27,7 +27,7 @@ class Somnus(Skill):
     def on_attack_end():
       if target_elem:
         target_elem.ailment = "sleep"
-        if type(target_elem) is Actor and target_elem.idle:
+        if type(target_elem) is DungeonActor and target_elem.idle:
           target_elem.activate()
         result = (target_elem.token(), " fell asleep!")
       else:

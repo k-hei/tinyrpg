@@ -96,7 +96,7 @@ class SkillContext(Context):
     options = ctx.options
     game = ctx.parent
     hero = ctx.actor
-    skills = [s for s in hero.get_skills() if s.kind != "passive"]
+    skills = hero.get_active_skills()
     old_skill = ctx.skill
     if old_skill is None:
       return

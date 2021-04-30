@@ -102,7 +102,7 @@ class CustomContext(Context):
   def is_skill_used(menu, skill):
     for char, build in menu.builds.items():
       for s, _ in build:
-        if type(s) is type(skill):
+        if s is skill:
           return True
     return False
 

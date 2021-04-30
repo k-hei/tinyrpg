@@ -474,7 +474,7 @@ class DungeonContext(Context):
           hero.regen()
         if not ally.is_dead() and not ally.ailment == "sleep":
           ally.regen()
-      game.parent.sp = max(0, game.parent.sp - 1 / 100)
+      game.parent.deplete_sp(1 / 100)
 
     moved = game.move(hero, delta, run, on_move)
     if moved:
