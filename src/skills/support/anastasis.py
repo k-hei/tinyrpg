@@ -1,5 +1,5 @@
 from config import ATTACK_DURATION
-from skills import Skill
+from skills.support import SupportSkill
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from comps.damage import DamageValue
@@ -9,11 +9,10 @@ import random
 from dungeon.actors import DungeonActor
 from dungeon.actors.mage import Mage
 
-class Anastasis(Skill):
-  name = "Anastatis"
-  kind = "support"
-  element = None
+class Anastasis(SupportSkill):
+  name = "Anastasis"
   desc = "Restores HP slightly"
+  element = None
   cost = 12
   users = (Mage,)
   blocks = (

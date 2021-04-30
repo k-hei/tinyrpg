@@ -1,21 +1,17 @@
-from dataclasses import dataclass
-from skills.weapon import WeaponSkill
+from skills.weapon.rare import RareWeapon
 from cores import Core
 from cores.knight import Knight
 from assets import load as use_assets
 from palette import PINK
 
-@dataclass
-class Mjolnir(WeaponSkill):
-  name: str = "Mjolnir"
-  desc: str = "A legendary hammer."
-  element: str = "axe"
-  rare: bool = True
-  color: tuple = PINK
-  cost: int = 3
-  st: int = 16
-  users: tuple[Core] = (Knight,)
-  blocks: tuple = (
+class Mjolnir(RareWeapon):
+  name = "Mjolnir"
+  desc = "A legendary hammer."
+  element = "axe"
+  cost = 3
+  st = 16
+  users = (Knight,)
+  blocks = (
     (0, 0),
     (0, 1),
     (1, 0),

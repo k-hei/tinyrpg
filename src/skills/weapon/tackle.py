@@ -1,8 +1,6 @@
-from dataclasses import dataclass
-from skills.weapon import WeaponSkill
+from skills.weapon import Weapon
 
-@dataclass
-class Tackle(WeaponSkill):
-  name: str = "Tackle"
-  desc: str = "Smashes targets with brute force"
-  element: str = "beast"
+class Tackle(Weapon):
+  name = "Tackle"
+  desc = "Smashes targets with brute force"
+  element = "beast"

@@ -4,7 +4,6 @@ from filters import recolor, outline, replace_color
 from pygame import Rect
 import pygame
 import palette
-from skills import get_skill_color
 
 class Skill:
   PADDING_X = 6

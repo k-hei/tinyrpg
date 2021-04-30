@@ -1,16 +1,14 @@
-from dataclasses import dataclass
-from skills.weapon import WeaponSkill
+from skills.weapon import Weapon
 from cores.knight import Knight
 
-@dataclass
-class Stick(WeaponSkill):
-  name: str = "Stick"
-  desc: str = "A makeshift weapon"
-  element: str = "lance"
-  cost: int = 1
-  st: int = 2
-  users: tuple = (Knight,)
-  blocks: tuple = (
+class Stick(Weapon):
+  name = "Stick"
+  desc = "A makeshift weapon"
+  element = "lance"
+  cost = 1
+  st = 2
+  users = (Knight,)
+  blocks = (
     (0, 0),
     (1, 0)
   )

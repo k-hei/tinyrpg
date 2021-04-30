@@ -5,8 +5,8 @@ from filters import replace_color
 import palette
 
 class Knight(Actor):
-  def __init__(knight):
-    super().__init__()
+  def __init__(knight, core):
+    super().__init__(core)
 
   def render(knight):
     sprites = use_assets().sprites

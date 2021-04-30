@@ -1,4 +1,4 @@
-from skills import Skill
+from skills.attack import AttackSkill
 from config import ATTACK_DURATION, TILE_SIZE
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
@@ -9,13 +9,11 @@ from dungeon.actors.knight import Knight
 from comps.vfx import Vfx
 import random
 
-class Blitzritter(Skill):
+class Blitzritter(AttackSkill):
   name = "Blitzritter"
-  kind = "attack"
-  element = "lance"
   desc = "Pierces two squares ahead"
+  element = "lance"
   cost = 4
-  radius = 2
   range_type = "linear"
   range_min = 1
   range_max = 2

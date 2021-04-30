@@ -6,9 +6,8 @@ from dungeon.actors.mage import Mage
 
 class DetectMana(Skill):
   name = "DetectMana"
-  kind = "field"
-  element = None
   desc = "Reveals hidden passages"
+  kind = "field"
   cost = 1
   range_min = 0
   range_max = 0
@@ -27,7 +26,7 @@ class DetectMana(Skill):
           game.log.print("You sense a hidden passageway here!")
           camera.focus(cell)
           game.anims.append([PauseAnim(
-            duration=75,
+            duration=120,
             on_end=on_end
           )])
           break

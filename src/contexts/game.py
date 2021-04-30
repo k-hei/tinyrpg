@@ -21,7 +21,7 @@ from items.ailment.antidote import Antidote
 from items.ailment.amethyst import Amethyst
 
 from skills import get_skill_order
-from skills.weapon import WeaponSkill
+from skills.weapon import Weapon
 from skills.weapon.stick import Stick
 # from skills.armor.hpup import HpUp
 # from skills.attack.blitzritter import Blitzritter
@@ -43,7 +43,7 @@ class GameContext(Context):
     ctx.ally = Mage()
     ctx.new_skills = []
     ctx.skill_pool = [
-      Stick(),
+      Stick,
       # Blitzritter,
       # Somnus,
       # Sana,
@@ -51,8 +51,9 @@ class GameContext(Context):
       # HpUp,
     ]
     ctx.skill_builds = {}
+    ctx.selected_skills = {}
     ctx.load_build(ctx.hero, [
-      (Stick(), (0, 0)),
+      (Stick, (0, 0)),
       # (Blitzritter, (1, 0))
     ])
     ctx.load_build(ctx.ally, [
@@ -80,6 +81,12 @@ class GameContext(Context):
       ctx.monster_kills[target_type] += 1
     else:
       ctx.monster_kills[target_type] = 1
+
+  def get_skill(ctx, actor):
+    return ctx.selected_skills[actor]
+
+  def set_skill(ctx, actor, skill):
+    ctx.selected_skills[actor] = skill
 
   def learn_skill(ctx, skill):
     if not skill in ctx.skill_pool:

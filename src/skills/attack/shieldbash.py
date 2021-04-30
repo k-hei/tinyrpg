@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import math
 
-from skills import Skill
+from skills.attack import AttackSkill
 from dungeon.actors import DungeonActor
 from dungeon.actors.knight import Knight
 from dungeon.props import Prop
@@ -11,14 +11,13 @@ from anims.pause import PauseAnim
 from anims.flicker import FlickerAnim
 from config import ATTACK_DURATION, MOVE_DURATION
 
-class ShieldBash(Skill):
-  name: str = "ShieldBash"
-  desc: str = "Pushes target one square"
-  kind: str = "attack"
-  element: str = "shield"
-  cost: int = 2
-  users: tuple = (Knight,)
-  blocks: tuple = (
+class ShieldBash(AttackSkill):
+  name = "ShieldBash"
+  desc = "Pushes target one square"
+  element = "shield"
+  cost = 2
+  users = (Knight,)
+  blocks = (
     (1, 0),
     (0, 1),
     (1, 1),

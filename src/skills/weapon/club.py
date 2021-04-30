@@ -1,17 +1,15 @@
-from dataclasses import dataclass
-from skills.weapon import WeaponSkill
+from skills.weapon import Weapon
 from cores import Core
 from cores.knight import Knight
 from assets import load as use_assets
 
-@dataclass
-class Club(WeaponSkill):
-  name: str = "Club"
-  desc: str = "A makeshift weapon."
-  element: str = "axe"
-  st: int = 2
-  users: tuple[Core] = (Knight,)
-  blocks: tuple[tuple[int, int]] = (
+class Club(Weapon):
+  name = "Club"
+  desc = "A makeshift weapon."
+  element = "axe"
+  st = 2
+  users = (Knight,)
+  blocks = (
     (0, 0),
     (1, 0),
   )

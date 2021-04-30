@@ -5,8 +5,8 @@ from filters import replace_color
 import palette
 
 class Mage(Actor):
-  def __init__(mage):
-    super().__init__()
+  def __init__(mage, core):
+    super().__init__(core)
 
   def render(mage):
     sprites = use_assets().sprites

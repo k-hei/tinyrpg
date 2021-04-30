@@ -1,5 +1,6 @@
 from math import pi, sin
 from assets import load as use_assets
+from cores import Core
 from town.actors.npc import Npc
 from pygame import Surface, Rect
 
@@ -13,7 +14,7 @@ FLOAT_AMP = 2
 
 class Genie(Npc):
   def __init__(genie, name=None, message=None):
-    super().__init__(name, message)
+    super().__init__(Core(name, faction="ally"), message)
     genie.renders = 0
 
   def render(genie):

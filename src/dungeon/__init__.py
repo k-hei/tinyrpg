@@ -30,7 +30,7 @@ from dungeon.actors.npc import NPC
 from dungeon.props.chest import Chest
 from dungeon.props.soul import Soul
 
-from skills.weapon import WeaponSkill
+from skills.weapon import Weapon
 
 from anims.activate import ActivateAnim
 from anims.attack import AttackAnim
@@ -515,7 +515,7 @@ class DungeonContext(Context):
                 on_end=chest.open
               )
             ])
-            if isinstance(item, WeaponSkill):
+            if isinstance(item, Weapon):
               game.learn_skill(item)
             else:
               game.parent.inventory.append(item)
@@ -626,7 +626,10 @@ class DungeonContext(Context):
       game.log.exit()
       game.child = SkillContext(
         parent=game,
+        actor=game.hero,
+        selected_skill=game.parent.get_skill(game.hero),
         on_close=lambda skill: (
+          game.parent.set_skill(game.hero, skill),
           game.use_skill(game.hero, skill) if skill else game.refresh_fov()
         )
       )
@@ -911,7 +914,7 @@ class DungeonContext(Context):
     camera = game.camera
     if actor.get_faction() == "player":
       game.deplete_sp(skill.cost)
-    if type(skill).__name__ == "WeaponSkill":
+    if skill.kind == "weapon":
       actor_x, actor_y = actor.cell
       facing_x, facing_y = actor.facing
       target_cell = (actor_x + facing_x, actor_y + facing_y)
@@ -931,7 +934,7 @@ class DungeonContext(Context):
       else:
         game.log.print("But nothing happened...")
     else:
-      game.log.print(actor.token(), " uses ", skill.token())
+      game.log.print(actor.token(), " uses ", skill().token())
       target_cell = skill.effect(actor, game, on_end=lambda: (
         camera.blur(),
         actor is game.hero and game.step(),

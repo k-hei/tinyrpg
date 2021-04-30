@@ -14,7 +14,7 @@ class Core:
     core.dead = False
 
   def get_skill_hp(core):
-    passive_hps = [s.hp for s in core.skills if type(s).__name__ == "WeaponSkill"]
+    passive_hps = [s.hp for s in core.skills if s.kind == "armor"]
     return reduce(add, passive_hps) if passive_hps else 0
 
   def get_hp(core):

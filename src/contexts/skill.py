@@ -11,7 +11,6 @@ from text import render as render_text
 from filters import recolor, replace_color, outline
 import palette
 from comps.skill import Skill
-from skills import get_skill_text
 
 from lib.lerp import lerp
 from easing.expo import ease_out
@@ -27,11 +26,13 @@ OFFSET = 4
 SPACING = 10
 
 class SkillContext(Context):
-  def __init__(ctx, parent, on_close=None):
+  def __init__(ctx, parent, actor, skill_selected, on_close=None):
     super().__init__(parent)
+    ctx.actor = actor
+    ctx.skill = skill_selected
     ctx.on_close = on_close
     ctx.bar = Bar()
-    ctx.options = parent.hero.get_active_skills()
+    ctx.options = actor.get_active_skills()
     ctx.offsets = {}
     ctx.cursor = None
     ctx.cursor_anim = SineAnim(60)
@@ -39,14 +40,14 @@ class SkillContext(Context):
     ctx.exiting = False
     ctx.confirmed = False
     ctx.enter()
-    ctx.select_skill(parent.skill_selected[parent.hero])
-    enemy = parent.find_closest_visible_enemy(parent.hero)
+    ctx.print_skill(skill_selected)
+    enemy = parent.find_closest_visible_enemy(actor)
     if enemy:
-      parent.hero.face(enemy.cell)
+      actor.face(enemy.cell)
 
-  def select_skill(ctx, skill=None):
+  def print_skill(ctx, skill=None):
     if skill:
-      ctx.bar.print(get_skill_text(skill))
+      ctx.bar.print(skill().text())
     else:
       ctx.bar.print("No active skills equipped.")
 
@@ -82,35 +83,34 @@ class SkillContext(Context):
 
   def handle_turn(ctx, delta):
     game = ctx.parent
-    hero = game.hero
+    hero = ctx.actor
     floor = game.floor
-    skill = game.skill_selected[hero]
+    skill = game.skill
     hero_x, hero_y = hero.cell
     delta_x, delta_y = delta
     target_cell = (hero_x + delta_x, hero_y + delta_y)
     hero.facing = delta
-    if ctx.bar.message != get_skill_text(skill):
-      ctx.select_skill()
+    if ctx.bar.message != skill().text():
+      ctx.print_skill()
 
   def handle_select(ctx, reverse=False):
     options = ctx.options
     game = ctx.parent
     hero = game.hero
     skills = [s for s in hero.skills if s.kind != "passive"]
-    old_skill = game.skill_selected[hero]
+    old_skill = game.skill
     if old_skill is None:
       return
     index = skills.index(old_skill)
     new_skill = skills[(index + 1) % len(skills)]
     if old_skill != new_skill:
-      ctx.select_skill(new_skill)
+      ctx.print_skill(new_skill)
       ctx.anims.append(TweenAnim(duration=12, target=options))
-    game.skill_selected[hero] = new_skill
+    game.skill = new_skill
 
   def handle_confirm(ctx):
     game = ctx.parent
-    hero = game.hero
-    skill = game.skill_selected[hero]
+    skill = game.skill
     if skill is None:
       return
     if skill.cost > game.parent.sp:
@@ -163,7 +163,7 @@ class SkillContext(Context):
     hero = game.hero
     floor = game.floor
     camera = game.camera
-    skill = game.skill_selected[hero]
+    skill = game.skill
 
     camera_x, camera_y = camera.pos
     facing_x, facing_y = hero.facing

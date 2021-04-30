@@ -1,8 +1,7 @@
 import random
 from dungeon.element import DungeonElement
 from cores import Core
-from skills.weapon import WeaponSkill
-from skills.armor import ArmorSkill
+from skills.weapon import Weapon
 
 import palette
 from assets import load as use_assets
@@ -39,11 +38,11 @@ class DungeonActor(DungeonElement):
   def get_hp_max(actor): return actor.core.get_hp_max()
   def set_hp(actor, hp): actor.core.set_hp(hp)
   def get_skills(actor): return actor.core.skills
-  def get_active_skills(actor): return [s for s in actor.core.skills if not isinstance(s, ArmorSkill)]
+  def get_active_skills(actor): return [s for s in actor.core.skills if s.kind != "armor"]
   def is_dead(actor): return actor.core.dead
 
   def load_weapon(actor):
-    return next((s for s in actor.core.skills if isinstance(s, WeaponSkill)), None)
+    return next((s for s in actor.core.skills if isinstance(s, Weapon)), None)
 
   def allied(actor, target):
     if target is None or not isinstance(target, DungeonActor):

@@ -34,8 +34,8 @@ SPAWN_RIGHT_FACING = -1
 class TownContext(Context):
   def __init__(town, parent, returning=False):
     super().__init__(parent)
-    town.hero = Knight() if type(parent.hero) is KnightCore else Mage()
-    town.ally = Knight() if type(parent.ally) is KnightCore else Mage()
+    town.hero = (Knight if type(parent.hero) is KnightCore else Mage)(parent.hero)
+    town.ally = (Knight if type(parent.ally) is KnightCore else Mage)(parent.ally)
     town.areas = [CentralArea(), OutskirtsArea()]
     town.area = town.areas[1]
     town.area_change = 0
@@ -153,7 +153,7 @@ class TownContext(Context):
     if actor is None:
       return
 
-    script = map(lambda page: (actor.name, page), actor.message)
+    script = map(lambda page: (actor.core.name, page), actor.message)
     script = tuple(script)
     town.child = DialogueContext(parent=town, script=script)
 

@@ -1,14 +1,13 @@
-from skills import Skill
+from skills.support import SupportSkill
 from anims.pause import PauseAnim
 from dungeon.actors.knight import Knight
 
 ATTACK_DURATION = 12
 
-class Counter(Skill):
+class Counter(SupportSkill):
   name = "Counter"
-  kind = "support"
-  element = "shield"
   desc = "Reflects phys damage"
+  element = "shield"
   cost = 6
   range_min = 0
   range_max = 0

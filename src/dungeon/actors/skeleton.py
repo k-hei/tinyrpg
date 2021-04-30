@@ -7,7 +7,7 @@ from lib.cell import is_adjacent
 import random
 
 class Skeleton(DungeonActor):
-  skill = ShieldBash()
+  skill = ShieldBash
 
   def __init__(skeleton):
     super().__init__(Core(
@@ -16,7 +16,7 @@ class Skeleton(DungeonActor):
       hp=35,
       st=14,
       en=9,
-      skills=[ Club(), ShieldBash() ]
+      skills=[ Club, ShieldBash ]
     ))
 
   def step(actor, game):
@@ -27,7 +27,7 @@ class Skeleton(DungeonActor):
     if is_adjacent(actor.cell, enemy.cell):
       if random.randint(1, 2) == 1:
         actor.face(enemy.cell)
-        game.use_skill(actor, ShieldBash())
+        game.use_skill(actor, ShieldBash)
       else:
         game.attack(actor, enemy)
     else:

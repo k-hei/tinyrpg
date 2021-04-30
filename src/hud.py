@@ -113,7 +113,7 @@ class Hud:
     return sprite
 
   def draw(panel, surface, ctx):
-    panel.update(ctx.hero, ctx.ally)
+    panel.update(ctx.hero.core, ctx.ally.core)
     sprite = panel.sprite
     hidden_x, hidden_y = Hud.MARGIN_LEFT, -sprite.get_height()
     corner_x, corner_y = Hud.MARGIN_LEFT, Hud.MARGIN_TOP

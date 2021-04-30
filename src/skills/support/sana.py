@@ -1,5 +1,5 @@
 from config import ATTACK_DURATION
-from skills import Skill
+from skills.support import SupportSkill
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from comps.damage import DamageValue
@@ -9,10 +9,8 @@ import random
 from dungeon.actors import DungeonActor
 from dungeon.actors.mage import Mage
 
-class Sana(Skill):
+class Sana(SupportSkill):
   name = "Sana"
-  kind = "support"
-  element = None
   desc = "Restores HP slightly"
   cost = 3
   range_min = 0

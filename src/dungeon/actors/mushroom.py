@@ -16,7 +16,7 @@ class Mushroom(DungeonActor):
       hp=27,
       st=14,
       en=8,
-      skills=[ Tackle(), Virus() ]
+      skills=[ Tackle, Virus ]
     ))
 
   def step(actor, game):
@@ -26,7 +26,7 @@ class Mushroom(DungeonActor):
 
     if is_adjacent(actor.cell, enemy.cell):
       if random.randint(1, 5) == 1:
-        game.use_skill(actor, Virus())
+        game.use_skill(actor, Virus)
       else:
         game.attack(actor, enemy)
     else:
