@@ -8,8 +8,11 @@ class Skill:
   desc = "No description given."
   kind = None
   element = None
-  rare = False
   cost = 1
+  range_type = "linear"
+  range_min = 1
+  range_max = 1
+  range_radius = 0
   users = ()
   blocks = ((0, 0),)
   color = BLACK

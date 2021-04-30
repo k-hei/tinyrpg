@@ -26,10 +26,10 @@ OFFSET = 4
 SPACING = 10
 
 class SkillContext(Context):
-  def __init__(ctx, parent, actor, skill_selected, on_close=None):
+  def __init__(ctx, parent, actor, selected_skill, on_close=None):
     super().__init__(parent)
     ctx.actor = actor
-    ctx.skill = skill_selected
+    ctx.skill = selected_skill
     ctx.on_close = on_close
     ctx.bar = Bar()
     ctx.options = actor.get_active_skills()
@@ -40,7 +40,7 @@ class SkillContext(Context):
     ctx.exiting = False
     ctx.confirmed = False
     ctx.enter()
-    ctx.print_skill(skill_selected)
+    ctx.print_skill(selected_skill)
     enemy = parent.find_closest_visible_enemy(actor)
     if enemy:
       actor.face(enemy.cell)
@@ -84,21 +84,20 @@ class SkillContext(Context):
   def handle_turn(ctx, delta):
     game = ctx.parent
     hero = ctx.actor
-    floor = game.floor
-    skill = game.skill
+    skill = ctx.skill
     hero_x, hero_y = hero.cell
     delta_x, delta_y = delta
     target_cell = (hero_x + delta_x, hero_y + delta_y)
     hero.facing = delta
-    if ctx.bar.message != skill().text():
+    if skill and ctx.bar.message != skill().text():
       ctx.print_skill()
 
   def handle_select(ctx, reverse=False):
     options = ctx.options
     game = ctx.parent
-    hero = game.hero
-    skills = [s for s in hero.skills if s.kind != "passive"]
-    old_skill = game.skill
+    hero = ctx.actor
+    skills = [s for s in hero.get_skills() if s.kind != "passive"]
+    old_skill = ctx.skill
     if old_skill is None:
       return
     index = skills.index(old_skill)
@@ -106,11 +105,11 @@ class SkillContext(Context):
     if old_skill != new_skill:
       ctx.print_skill(new_skill)
       ctx.anims.append(TweenAnim(duration=12, target=options))
-    game.skill = new_skill
+    ctx.skill = new_skill
 
   def handle_confirm(ctx):
     game = ctx.parent
-    skill = game.skill
+    skill = ctx.skill
     if skill is None:
       return
     if skill.cost > game.parent.sp:
@@ -160,10 +159,10 @@ class SkillContext(Context):
   def draw(ctx, surface):
     assets = use_assets()
     game = ctx.parent
-    hero = game.hero
+    skill = ctx.skill
+    hero = ctx.actor
     floor = game.floor
     camera = game.camera
-    skill = game.skill
 
     camera_x, camera_y = camera.pos
     facing_x, facing_y = hero.facing
@@ -171,7 +170,10 @@ class SkillContext(Context):
     neighbors, cursor = find_skill_targets(skill, hero, floor)
 
     if cursor not in neighbors:
-      cursor = neighbors[0]
+      if neighbors:
+        cursor = neighbors[0]
+      else:
+        cursor = hero.cell
 
     camera_speed = 8
     if skill and skill.range_max == math.inf:
@@ -335,6 +337,8 @@ def find_skill_targets(skill, user, floor):
   user_x, user_y = user.cell
   facing_x, facing_y = user.facing
   cursor = (user_x + facing_x, user_y + facing_y)
+  if skill is None:
+    return targets, cursor
   if skill.range_type == "radial" or skill.range_type == "linear" and skill.range_max == 1:
     if skill.range_min == 0:
       targets.append((user_x, user_y))

@@ -86,7 +86,7 @@ class CustomContext(Context):
   def update_bar(menu):
     skill = menu.get_selected_skill()
     if skill:
-      menu.bar.print(skill.desc)
+      menu.bar.print(skill().text())
     else:
       menu.bar.print("Your skill pool is currently empty.")
 
@@ -319,7 +319,7 @@ class CustomContext(Context):
     if not entering and menu.char_drawn != menu.char:
       if not menu.anims:
         menu.anims.append([])
-      for skill in skills:
+      for skill in menu.get_char_skills(menu.char_drawn):
         menu.anims[0].append(ExitAnim(
           duration=6,
           target=skill

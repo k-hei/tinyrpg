@@ -94,9 +94,10 @@ class GameContext(Context):
       ctx.skill_pool.append(skill)
       ctx.skill_pool.sort(key=get_skill_order)
 
-  def load_build(ctx, char, build):
-    ctx.skill_builds[char] = build
-    char.skills = [skill for skill, cell in build]
+  def load_build(ctx, actor, build):
+    ctx.skill_builds[actor] = build
+    actor.skills = [skill for skill, cell in build]
+    ctx.set_skill(actor, actor.skills[0] if actor.skills else None)
 
   def update_skills(ctx):
     ctx.hero.skills = [skill for skill, cell in ctx.skill_builds[ctx.hero]]

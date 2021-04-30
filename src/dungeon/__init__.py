@@ -627,9 +627,9 @@ class DungeonContext(Context):
       game.child = SkillContext(
         parent=game,
         actor=game.hero,
-        selected_skill=game.parent.get_skill(game.hero),
+        selected_skill=game.parent.get_skill(game.hero.core),
         on_close=lambda skill: (
-          game.parent.set_skill(game.hero, skill),
+          game.parent.set_skill(game.hero.core, skill),
           game.use_skill(game.hero, skill) if skill else game.refresh_fov()
         )
       )
