@@ -95,11 +95,12 @@ class GameContext(Context):
   def load_build(ctx, actor, build):
     ctx.skill_builds[actor] = build
     actor.skills = [skill for skill, cell in build]
-    ctx.set_skill(actor, actor.skills[0] if actor.skills else None)
+    active_skills = actor.get_active_skills()
+    ctx.set_skill(actor, active_skills[0] if active_skills else None)
 
   def update_skills(ctx):
-    ctx.hero.skills = [skill for skill, cell in ctx.skill_builds[ctx.hero]]
-    ctx.ally.skills = [skill for skill, cell in ctx.skill_builds[ctx.ally]]
+    ctx.load_build(ctx.hero, ctx.skill_builds[ctx.hero])
+    ctx.load_build(ctx.ally, ctx.skill_builds[ctx.ally])
 
   def deplete_sp(ctx, amount):
     ctx.sp = max(0, ctx.sp - amount)

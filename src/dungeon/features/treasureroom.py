@@ -11,7 +11,7 @@ weapons = (Caladbolg, Longinus, Mjolnir)
 class TreasureRoom(Feature, Room):
   def __init__(feature):
     super().__init__()
-    feature.actors = [ Chest(random.choice(weapons)(), rare=True) ]
+    feature.actors = [ Chest(random.choice(weapons), rare=True) ]
     feature.rooms = [ (0, 0, 7, 7) ]
     feature.shape = [
       "#     #",

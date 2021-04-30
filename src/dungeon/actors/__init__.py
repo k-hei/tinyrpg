@@ -38,7 +38,7 @@ class DungeonActor(DungeonElement):
   def get_hp_max(actor): return actor.core.get_hp_max()
   def set_hp(actor, hp): actor.core.set_hp(hp)
   def get_skills(actor): return actor.core.skills
-  def get_active_skills(actor): return [s for s in actor.core.skills if s.kind != "armor"]
+  def get_active_skills(actor): return actor.core.get_active_skills()
   def is_dead(actor): return actor.core.dead
 
   def load_weapon(actor):

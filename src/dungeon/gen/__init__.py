@@ -394,7 +394,7 @@ def dungeon(size, seed=None):
     for cell in node.get_cells():
       stage.set_tile_at(cell, Stage.FLOOR)
 
-  minirooms = []
+  mini_rooms = []
   choices = maze_cells.copy()
   while choices:
     maze_cell = random.choice(choices)
@@ -413,14 +413,14 @@ def dungeon(size, seed=None):
     if random.randint(1, 2) == 1:
       cell_y -= room_height - 1
 
-    miniroom = Room(room_size, maze_cell)
-    for cell in miniroom.get_cells() + miniroom.get_border():
+    mini_room = Room(room_size, maze_cell)
+    for cell in mini_room.get_cells() + mini_room.get_border():
       if (cell in room_borders
       or cell not in maze_cells and stage.get_tile_at(cell) is not Stage.WALL):
         break
     else:
-      minirooms.append(miniroom)
-      for cell in miniroom.get_cells():
+      mini_rooms.append(mini_room)
+      for cell in mini_room.get_cells():
         stage.set_tile_at(cell, Stage.FLOOR)
 
   # draw doors
@@ -514,6 +514,19 @@ def dungeon(size, seed=None):
   stage.set_tile_at(stage.stairs, Stage.STAIRS_UP)
   if exit_room in normal_rooms:
     normal_rooms.remove(exit_room)
+
+  mini_room_cells = []
+  for mini_room in mini_rooms:
+    mini_room_cells.extend(mini_room.get_cells())
+
+  wanderers = len(mini_room_cells) // 8
+  print(len(mini_room_cells), wanderers)
+  while wanderers and len(mini_room_cells):
+    cell = random.choice(mini_room_cells)
+    mini_room_cells.remove(cell)
+    enemy = gen_enemy(floor)
+    stage.spawn_elem(enemy, cell)
+    wanderers -= 1
 
   for room in normal_rooms:
     room_left, room_top = room.cell

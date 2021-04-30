@@ -15,8 +15,8 @@ from filters import recolor, replace_color
 from text import render as render_text
 from transits.dissolve import DissolveOut
 
-import dungeon.fov
 import dungeon.gen
+from dungeon.fov import shadowcast
 from dungeon.camera import Camera
 from dungeon.stage import Stage
 
@@ -30,6 +30,7 @@ from dungeon.actors.npc import NPC
 from dungeon.props.chest import Chest
 from dungeon.props.soul import Soul
 
+from items import Item
 from skills.weapon import Weapon
 
 from anims.activate import ActivateAnim
@@ -144,7 +145,7 @@ class DungeonContext(Context):
   def refresh_fov(game, moving=False):
     hero = game.hero
     floor = game.floor
-    visible_cells = dungeon.fov.shadowcast(floor, hero.cell, DungeonContext.VISION_RANGE)
+    visible_cells = shadowcast(floor, hero.cell, DungeonContext.VISION_RANGE)
 
     door = None
     if moving:
@@ -272,13 +273,16 @@ class DungeonContext(Context):
     if not enemy.aggro:
       hero = game.hero
       ally = game.ally
-      rooms = [r for r in game.floor.rooms if enemy.cell in r.get_cells()]
-      if len(rooms) == 0:
-        return False
-
-      room = rooms[0]
-      room_cells = room.get_cells() + room.get_border()
-      if hero.cell not in room_cells:
+      floor = game.floor
+      rooms = [r for r in floor.rooms if enemy.cell in r.get_cells()]
+      if rooms:
+        room = rooms[0]
+        if hero.cell not in room.get_cells() + room.get_border():
+          return False
+      elif manhattan(enemy.cell, hero.cell) <= DungeonContext.VISION_RANGE:
+        if hero.cell not in shadowcast(floor, enemy.cell, DungeonContext.VISION_RANGE):
+          return False
+      else:
         return False
 
     enemy.aggro = True
@@ -515,12 +519,13 @@ class DungeonContext(Context):
                 on_end=chest.open
               )
             ])
-            if isinstance(item, Weapon):
+            game.log.print("You open the lamp")
+            if not isinstance(item, Item) and issubclass(item, Weapon):
               game.learn_skill(item)
+              game.log.print("Obtained ", item().token(), ".")
             else:
               game.parent.inventory.append(item)
-            game.log.print("You open the lamp")
-            game.log.print("Received ", item.token(), ".")
+              game.log.print("Obtained ", item.token(), ".")
             acted = True
           else:
             game.log.print("Your inventory is already full!")

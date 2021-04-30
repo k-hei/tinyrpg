@@ -1,5 +1,6 @@
 from dungeon.actors import DungeonActor
 from cores import Core
+from skills.weapon.tackle import Tackle
 from dungeon.props.chest import Chest
 from assets import load as use_assets
 from anims.activate import ActivateAnim
@@ -13,7 +14,8 @@ class Mimic(DungeonActor):
       faction="enemy",
       hp=23,
       st=13,
-      en=6
+      en=6,
+      skills=[Tackle]
     ))
     mimic.idle = True
     mimic.opened = False

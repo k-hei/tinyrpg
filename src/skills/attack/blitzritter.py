@@ -35,6 +35,7 @@ class Blitzritter(AttackSkill):
     far_cell = (hero_x + delta_x * 2, hero_y + delta_y * 2)
     target_a = floor.get_elem_at(near_cell)
     target_b = floor.get_elem_at(far_cell)
+    print(target_a, target_b)
 
     if not isinstance(target_a, DungeonActor):
       target_a = None
@@ -74,7 +75,7 @@ class Blitzritter(AttackSkill):
 
     def find_damage(target):
       en = target.core.en if not target.ailment == "sleep" else 0
-      return int((user.core.st) * 1.25 - en) + random.randint(-2, 2)
+      return int((user.core.st + user.weapon.st) * 1.25 - en) + random.randint(-2, 2)
 
     def end_pause():
       if target_a and target_b:

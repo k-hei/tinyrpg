@@ -13,10 +13,6 @@ class Core:
     core.skills = skills
     core.dead = False
 
-  def get_skill_hp(core):
-    passive_hps = [s.hp for s in core.skills if s.kind == "armor"]
-    return reduce(add, passive_hps) if passive_hps else 0
-
   def get_hp(core):
     return core.hp + core.get_skill_hp()
 
@@ -25,6 +21,13 @@ class Core:
 
   def set_hp(core, hp):
     core.hp = hp - core.get_skill_hp()
+
+  def get_skill_hp(core):
+    passive_hps = [s.hp for s in core.skills if s.kind == "armor"]
+    return reduce(add, passive_hps) if passive_hps else 0
+
+  def get_active_skills(core):
+    return [s for s in core.skills if s.kind != "armor"]
 
   def kill(core):
     core.set_hp(0)
