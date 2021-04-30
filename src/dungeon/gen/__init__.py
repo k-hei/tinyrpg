@@ -118,7 +118,7 @@ class Floor:
         neighbor.cell = None
     if edges:
       door = random.choice(edges)
-      floor.draw_door(door, target=node)
+      floor.draw_door(door, target_room=node)
       floor.place(neighbor)
       floor.tree.connect(node, neighbor, door)
       return True
@@ -161,12 +161,23 @@ class Floor:
         floor.place(maze)
 
   def gen_loops(floor):
-    pass
+    tree = floor.tree
+    graph = floor.graph
+    stage = floor.stage
+    ends = [n for n in tree.ends() if isinstance(n, Room)]
+    for end in ends:
+      center = end.get_center()
+      stage.set_tile_at(end.get_center(), Stage.STAIRS_DOWN)
+    end = random.choice(ends)
+    stage.set_tile_at(end.get_center(), Stage.STAIRS_UP)
+    print(end)
+    neighbors = [n for n in graph.neighbors(end) if isinstance(n, Room) and n not in tree.neighbors(end)]
+    print(neighbors)
 
-  def draw_door(floor, cell, target=None):
+  def draw_door(floor, cell, tile=Stage.DOOR, target_room=None):
     x, y = cell
     stage = floor.stage
-    stage.set_tile_at(cell, stage.DOOR)
+    stage.set_tile_at(cell, tile)
     doorway_offset = 1
     if (stage.get_tile_at((x - 1, y)) is stage.WALL
     and stage.get_tile_at((x + 1, y)) is stage.WALL):
@@ -178,11 +189,11 @@ class Floor:
       and stage.get_tile_at((x + 1, y + 1)) is stage.WALL):
         doorway_offset = 1
       stage.set_tile_at((x, y + doorway_offset), stage.DOOR_WAY)
-      if target:
-        _, target_y = target.get_center()
+      if target_room:
+        _, target_y = target_room.get_center()
         if doorway_offset * (target_y - y) > 0:
           stage.set_tile_at(cell, stage.DOOR_WAY)
-          stage.set_tile_at((x, y + doorway_offset), stage.DOOR)
+          stage.set_tile_at((x, y + doorway_offset), tile)
 
   def connect(floor):
     graph = floor.graph
@@ -253,6 +264,7 @@ def debug_floor(seed=None):
   if seed is None:
     seed = random.getrandbits(32)
   random.seed(seed)
+  tree = floor.tree
   stage = floor.stage
   stage.seed = seed
 
@@ -260,7 +272,7 @@ def debug_floor(seed=None):
   exit_room = floor.gen_room()
   features = [arena, exit_room]
   floor.gen_place(arena)
-  floor.tree.add(exit_room)
+  tree.add(exit_room)
   if not floor.gen_neighbor(arena, exit_room):
     print("fatal: Failed to place exit room")
     return debug_floor()
@@ -272,17 +284,23 @@ def debug_floor(seed=None):
   if not floor.span(start=arena):
     print("fatal: Failed to satisfy feature degree constraints")
     return debug_floor()
-  floor.gen_loops()
   floor.fill_ends()
+  # floor.gen_loops()
   floor.fill_isolated()
 
-  for (n1, n2), doors in floor.tree.conns.items():
-    target = n1 if isinstance(n1, Room) else n2 if isinstance(n2, Room) else None
+  for (n1, n2), doors in tree.conns.items():
+    room = n1 if isinstance(n1, Room) else n2 if isinstance(n2, Room) else None
     for door in doors:
-      floor.draw_door(door, target)
+      floor.draw_door(door, target_room=room)
 
+  def distance(r1, r2):
+    return tree.distance(r1, r2) * 100 + manhattan(r1.get_center(), r2.get_center())
+  farthest_room = sorted(rooms, key=lambda r: distance(r, exit_room))[-1]
+  # entry_room = random.choice(rooms)
+  # print(tree.distance(entry_room, exit_room))
+  # print(tree.path(entry_room, exit_room))
+  stage.entrance = farthest_room.get_center()
   stage.rooms = rooms + features
-  stage.entrance = random.choice(rooms).get_center()
   return stage
 
 def gen_enemy(floor):

@@ -1,13 +1,21 @@
+from math import inf as infinity
+
 class Graph:
-  def __init__(graph):
-    graph.nodes = []
-    graph.edges = []
+  def __init__(graph, nodes=None, edges=None):
+    graph.nodes = nodes or []
+    graph.edges = edges or []
 
   def order(graph):
     return len(graph.nodes)
 
   def size(graph):
     return len(graph.edges)
+
+  def ends(graph):
+    return [n for n in graph.nodes if graph.degree(n) == 1]
+
+  def copy(graph):
+    return Graph(graph.nodes.copy(), graph.edges.copy())
 
   def degree(graph, node):
     return len(graph.neighbors(node))
@@ -42,3 +50,30 @@ class Graph:
       graph.edges.remove((node1, node2))
     if (node2, node1) in graph.edges:
       graph.edges.remove((node2, node1))
+
+  def distance(graph, start, goal):
+    if start is goal:
+      return 0
+    distance = infinity
+    for neighbor in graph.neighbors(start):
+      subgraph = graph.copy()
+      subgraph.remove(start)
+      d = 1 + subgraph.distance(neighbor, goal)
+      if d < distance:
+        distance = d
+    return distance
+
+  def path(graph, start, goal):
+    if start is goal:
+      return [start]
+    path = []
+    for neighbor in graph.neighbors(start):
+      subgraph = graph.copy()
+      subgraph.remove(start)
+      subpath = subgraph.path(neighbor, goal)
+      if not subpath:
+        continue
+      subpath = [start] + subpath
+      if not path or len(subpath) < len(path):
+        path += subpath
+    return path
