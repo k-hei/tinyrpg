@@ -775,7 +775,7 @@ class DungeonContext(Context):
     if damage is None:
       modifier = actor.weapon.st if actor.weapon else 0
       damage = DungeonActor.find_damage(actor, target, modifier)
-      game.log.print(actor.token(), " uses ", actor.weapon.token())
+      game.log.print(actor.token(), " uses ", actor.weapon().token())
     def connect():
       if on_connect:
         on_connect()
@@ -913,7 +913,7 @@ class DungeonContext(Context):
   def use_skill(game, actor, skill):
     camera = game.camera
     if actor.get_faction() == "player":
-      game.deplete_sp(skill.cost)
+      game.parent.deplete_sp(skill.cost)
     if skill.kind == "weapon":
       actor_x, actor_y = actor.cell
       facing_x, facing_y = actor.facing

@@ -16,7 +16,7 @@ class Eye(DungeonActor):
       hp=20,
       st=12,
       en=7,
-      skills=[ Tackle() ]
+      skills=[ Tackle ]
     ))
 
   def render(eye, anims):

@@ -24,7 +24,7 @@ from skills import get_skill_order
 from skills.weapon import Weapon
 from skills.weapon.stick import Stick
 # from skills.armor.hpup import HpUp
-# from skills.attack.blitzritter import Blitzritter
+from skills.attack.blitzritter import Blitzritter
 # from skills.support.counter import Counter
 # from skills.support.sana import Sana
 # from skills.ailment.somnus import Somnus
@@ -44,7 +44,7 @@ class GameContext(Context):
     ctx.new_skills = []
     ctx.skill_pool = [
       Stick,
-      # Blitzritter,
+      Blitzritter,
       # Somnus,
       # Sana,
       # DetectMana,
@@ -54,7 +54,7 @@ class GameContext(Context):
     ctx.selected_skills = {}
     ctx.load_build(ctx.hero, [
       (Stick, (0, 0)),
-      # (Blitzritter, (1, 0))
+      (Blitzritter, (1, 0))
     ])
     ctx.load_build(ctx.ally, [
       # (Somnus, (0, 0)),

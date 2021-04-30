@@ -42,7 +42,7 @@ class DungeonActor(DungeonElement):
   def is_dead(actor): return actor.core.dead
 
   def load_weapon(actor):
-    return next((s for s in actor.core.skills if isinstance(s, Weapon)), None)
+    return next((s for s in actor.core.skills if s.kind == "weapon"), None)
 
   def allied(actor, target):
     if target is None or not isinstance(target, DungeonActor):

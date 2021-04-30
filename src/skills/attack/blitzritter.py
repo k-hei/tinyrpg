@@ -5,7 +5,7 @@ from anims.pause import PauseAnim
 from anims.attack import AttackAnim
 from anims.frame import FrameAnim
 from dungeon.actors import DungeonActor
-from dungeon.actors.knight import Knight
+from cores.knight import Knight
 from comps.vfx import Vfx
 import random
 
@@ -73,8 +73,8 @@ class Blitzritter(AttackSkill):
       ])
 
     def find_damage(target):
-      en = target.en if not target.ailment == "sleep" else 0
-      return int(user.st * 1.25 - en) + random.randint(-2, 2)
+      en = target.core.en if not target.ailment == "sleep" else 0
+      return int((user.core.st) * 1.25 - en) + random.randint(-2, 2)
 
     def end_pause():
       if target_a and target_b:

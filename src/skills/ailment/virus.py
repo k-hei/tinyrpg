@@ -1,5 +1,4 @@
 import math
-from dataclasses import dataclass
 from skills import Skill
 from anims.bounce import BounceAnim
 from anims.flinch import FlinchAnim
@@ -10,7 +9,6 @@ from lib.cell import is_adjacent
 
 ATTACK_DURATION = 12
 
-@dataclass
 class Virus(Skill):
   name: str = "Virus"
   desc: str = "Poisons adjacent targets"
@@ -23,7 +21,7 @@ class Virus(Skill):
     (1, 1),
   )
 
-  def effect(skill, user, game, on_end=None):
+  def effect(user, game, on_end=None):
     targets = [e for e in game.floor.elems if (
       isinstance(e, DungeonActor)
       and not e.is_dead()
