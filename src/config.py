@@ -1,5 +1,4 @@
 SEED = None
-
 DEBUG = True
 TOP_FLOOR = 5
 MAX_LOOPS = 0

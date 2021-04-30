@@ -59,6 +59,7 @@ class GameContext(Context):
       (Sana, (1, 0)),
     ])
     ctx.monster_kills = {}
+    ctx.seeds = []
     ctx.debug = False
 
   def reset(ctx):

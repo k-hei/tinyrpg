@@ -1,6 +1,6 @@
-from dungeon.features.rectroom import RectRoom
+from dungeon.features.room import Room
 
-class SpecialRoom(RectRoom):
+class SpecialRoom(Room):
   def __init__(room):
     super().__init__(room.get_size())
 

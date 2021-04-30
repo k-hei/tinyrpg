@@ -84,6 +84,7 @@ class DungeonContext(Context):
     game.vfx = []
     game.numbers = []
     game.key_requires_reset = {}
+    game.seeds = []
     game.lights = config.DEBUG
     game.log = Log()
     game.camera = Camera(config.WINDOW_SIZE)
@@ -101,6 +102,7 @@ class DungeonContext(Context):
   def create_floor(game):
     floor_no = game.get_floor_no()
     floor = gen.debug_floor(seed=config.SEED)
+    game.parent.seeds.append(floor.seed)
     # if floor_no == config.TOP_FLOOR:
     #   floor = gen.top_floor()
     # elif floor_no == 3:
@@ -334,10 +336,14 @@ class DungeonContext(Context):
       return False
 
     # debug functionality
-    if keyboard.get_pressed(key) == 1 and keyboard.get_pressed(pygame.K_LCTRL):
+    ctrl = keyboard.get_pressed(pygame.K_LCTRL) or keyboard.get_pressed(pygame.K_RCTRL)
+    shift = keyboard.get_pressed(pygame.K_LSHIFT) or keyboard.get_pressed(pygame.K_RSHIFT)
+    if keyboard.get_pressed(key) == 1 and ctrl:
       game.key_requires_reset[key] = True
       if key == pygame.K_ESCAPE:
         return game.toggle_lights()
+      if key == pygame.K_s and shift:
+        return print(game.parent.seeds)
       if key == pygame.K_s:
         return print(game.floor.seed)
       if key == pygame.K_d:

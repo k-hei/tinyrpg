@@ -1,34 +1,25 @@
-class FloorGraph:
+from lib.graph import Graph
+
+class FloorGraph(Graph):
   def __init__(graph):
-    graph.nodes = []
-    graph.edges = []
+    super().__init__()
     graph.conns = {}
 
-  def order(graph):
-    return len(graph.nodes)
+  def connect(graph, node1, node2, conn):
+    edge = (node1, node2)
+    graph.edges.append(edge)
+    if edge not in graph.conns:
+      graph.conns[edge] = [conn]
+    else:
+      graph.conns[edge].append(conn)
 
-  def size(graph):
-    return len(graph.edges)
-
-  def degree(graph, node):
-    return len(graph.neighbors(node))
-
-  def add(graph, node):
-    graph.nodes.append(node)
-
-  def remove(graph, node):
-    for neighbor in graph.neighbors(node):
-      graph.disconnect(node, neighbor)
-    graph.nodes.remove(node)
-
-  def neighbors(graph, node):
-    neighbors = set()
-    for n1, n2 in graph.edges:
-      if n1 is node:
-        neighbors.add(n2)
-      elif n2 is node:
-        neighbors.add(n1)
-    return tuple(neighbors)
+  def disconnect(graph, node1, node2=None):
+    super().disconnect(node1, node2)
+    if node2:
+      if (node1, node2) in graph.conns:
+        del graph.conns[(node1, node2)]
+      if (node2, node1) in graph.conns:
+        del graph.conns[(node2, node1)]
 
   def connectors(graph, node1, node2):
     connectors = []
@@ -39,24 +30,6 @@ class FloorGraph:
 
   def connectees(graph, conn):
     return graph.conns[conn]
-
-  def connect(graph, node1, node2, conn):
-    edge = (node1, node2)
-    graph.edges.append(edge)
-    if edge not in graph.conns:
-      graph.conns[edge] = [conn]
-    else:
-      graph.conns[edge].append(conn)
-
-  def disconnect(graph, node1, node2):
-    if (node1, node2) in graph.edges:
-      graph.edges.remove((node1, node2))
-    if (node2, node1) in graph.edges:
-      graph.edges.remove((node2, node1))
-    if (node1, node2) in graph.conns:
-      del graph.conns[(node1, node2)]
-    if (node2, node1) in graph.conns:
-      del graph.conns[(node2, node1)]
 
   def split(graph, conn):
     def flood_fill(graph, node):
