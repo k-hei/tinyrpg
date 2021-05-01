@@ -3,9 +3,10 @@ import random
 import pygame
 from pygame import Rect
 import palette
+from palette import GREEN, CYAN
 
 import config
-from config import WINDOW_SIZE, VISION_RANGE
+from config import WINDOW_SIZE, VISION_RANGE, MOVE_DURATION, RUN_DURATION
 
 import keyboard
 from keyboard import ARROW_DELTAS, key_times
@@ -61,8 +62,6 @@ from contexts.minimap import MinimapContext
 from contexts.skill import SkillContext
 
 class DungeonContext(Context):
-  MOVE_DURATION = 16
-  RUN_DURATION = 12
   ATTACK_DURATION = 12
   FLINCH_DURATION = 25
   FLINCH_PAUSE_DURATION = 60
@@ -81,6 +80,7 @@ class DungeonContext(Context):
     game.room = None
     game.room_entrances = {}
     game.rooms_entered = []
+    game.oasis_used = False
     game.memory = []
     game.anims = []
     game.vfx = []
@@ -164,11 +164,14 @@ class DungeonContext(Context):
     door = None
     if moving:
       rooms = [room for room in floor.rooms if hero.cell in room.get_cells() + room.get_border()]
-      old_room = game.room
       if len(rooms) == 1:
         room = rooms[0]
       else:
         room = next((room for room in rooms if room is not game.room), None)
+
+      if room != game.room:
+        game.oasis_used = False
+
       game.room = room
       if room and room not in game.room_entrances:
         game.room_entrances[room] = hero.cell
@@ -196,6 +199,7 @@ class DungeonContext(Context):
       visible_cells = floor.get_cells()
     hero.visible_cells = visible_cells
 
+    # update visited cells
     visited_cells = next((cells for floor, cells in game.memory if floor is game.floor), None)
     for cell in visible_cells:
       if cell not in visited_cells:
@@ -429,7 +433,9 @@ class DungeonContext(Context):
         return False
       if target_elem and not target_elem.solid:
         target_elem.effect(game)
-      if target_tile is Stage.STAIRS_UP:
+      if target_tile is Stage.OASIS:
+        game.use_oasis()
+      elif target_tile is Stage.STAIRS_UP:
         game.log.print("There's a staircase going up here.")
       elif target_tile is Stage.STAIRS_DOWN:
         if game.floors.index(floor):
@@ -737,7 +743,7 @@ class DungeonContext(Context):
     and (target_elem is None
       or not target_elem.solid
       or actor is game.hero and target_elem is game.ally and not game.ally.ailment == "sleep")):
-      duration = DungeonContext.RUN_DURATION if run else DungeonContext.MOVE_DURATION
+      duration = RUN_DURATION if run else MOVE_DURATION
       move_anim = MoveAnim(
         duration=duration,
         target=actor,
@@ -1056,6 +1062,31 @@ class DungeonContext(Context):
   def toggle_lights(game):
     game.lights = not game.lights
     game.refresh_fov()
+
+  def use_oasis(game):
+    if game.oasis_used:
+      return
+    game.oasis_used = True
+
+    hero = game.hero
+    game.numbers.append(DamageValue(hero.get_hp_max(), (hero.cell[0], hero.cell[1] - 0.25), GREEN))
+    game.numbers.append(DamageValue(game.get_sp_max(), hero.cell, CYAN))
+
+    ally = game.ally
+    game.numbers.append(DamageValue(ally.get_hp_max(), (ally.cell[0], ally.cell[1] - 0.25), GREEN))
+    game.numbers.append(DamageValue(game.get_sp_max(), ally.cell, CYAN))
+
+    hero.regen(hero.get_hp_max())
+    ally.regen(ally.get_hp_max())
+    game.parent.regen_sp()
+    game.log.print("You use the oasis")
+    game.log.print("The party's HP and SP has been restored.")
+
+  def get_sp(game):
+    return game.parent.get_sp()
+
+  def get_sp_max(game):
+    return game.parent.get_sp_max()
 
   def get_visible_cells(game, actor=None):
     return (actor or game.hero).visible_cells

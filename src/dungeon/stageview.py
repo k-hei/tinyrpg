@@ -236,6 +236,7 @@ class StageView:
   def render_vfx(view, vfx, camera):
     sprites = []
     assets = use_assets()
+    camera = camera.get_rect()
     for fx in vfx:
       x, y = fx.pos
       if x < camera.left or y < camera.top or x >= camera.right or y >= camera.bottom:

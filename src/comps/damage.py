@@ -53,7 +53,7 @@ class DamageValue:
     value.width = 0
     value.time = 0
     value.numbers = []
-    for i, char in enumerate(number):
+    for i, char in enumerate(str(number)):
       number = DamageNumber(value=char, x=i, color=color)
       value.numbers.append(number)
       value.width += number.sprite.get_width()

@@ -1,4 +1,4 @@
-import config
+from config import WINDOW_SIZE, DEBUG
 from contexts import Context
 from dungeon import DungeonContext
 from town import TownContext
@@ -32,7 +32,7 @@ from skills.ailment.somnus import Somnus
 class GameContext(Context):
   def __init__(ctx):
     super().__init__()
-    ctx.transits = [DissolveOut(config.WINDOW_SIZE)] if config.DEBUG else []
+    ctx.transits = [DissolveOut(WINDOW_SIZE)] if not DEBUG else []
     ctx.inventory = Inventory((2, 4), [
       Ruby(), Sapphire(), Emerald(), Amethyst()
     ])
@@ -103,12 +103,27 @@ class GameContext(Context):
     ctx.load_build(ctx.hero, ctx.skill_builds[ctx.hero])
     ctx.load_build(ctx.ally, ctx.skill_builds[ctx.ally])
 
-  def deplete_sp(ctx, amount):
+  def get_sp(ctx):
+    return ctx.sp
+
+  def get_sp_max(ctx):
+    return ctx.sp_max
+
+  def regen_sp(ctx, amount=None):
+    if amount is None:
+      ctx.sp = ctx.sp_max
+      return
+    ctx.sp = min(ctx.sp_max, ctx.sp + amount)
+
+  def deplete_sp(ctx, amount=None):
+    if amount is None:
+      ctx.sp = 0
+      return
     ctx.sp = max(0, ctx.sp - amount)
 
   def dissolve(ctx, on_clear, on_end=None):
-    ctx.transits.append(DissolveIn(config.WINDOW_SIZE, on_clear))
-    ctx.transits.append(DissolveOut(config.WINDOW_SIZE, on_end))
+    ctx.transits.append(DissolveIn(WINDOW_SIZE, on_clear))
+    ctx.transits.append(DissolveOut(WINDOW_SIZE, on_end))
 
   def handle_keydown(ctx, key):
     if ctx.transits:
