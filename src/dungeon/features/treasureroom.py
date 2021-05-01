@@ -1,5 +1,5 @@
 import random
-from dungeon.features.room import Room
+from dungeon.features.specialroom import SpecialRoom
 from dungeon.props.chest import Chest
 from skills.weapon.caladbolg import Caladbolg
 from skills.weapon.longinus import Longinus
@@ -7,10 +7,9 @@ from skills.weapon.mjolnir import Mjolnir
 
 weapons = (Caladbolg, Longinus, Mjolnir)
 
-class TreasureRoom(Room):
+class TreasureRoom(SpecialRoom):
   def __init__(room):
-    super().__init__()
-    room.actors = [ Chest(random.choice(weapons), rare=True) ]
+    room.actors = [ Chest(random.choice(weapons)) ]
     room.shape = [
       "#     #",
       "   0   ",
@@ -20,16 +19,7 @@ class TreasureRoom(Room):
       "   .   ",
       "#  .  #"
     ]
-
-  def get_cells(room):
-    cells = super().get_cells()
-    corners = {
-      (0, 0),
-      (0, room.get_height() - 1),
-      (room.get_width() - 1, 0),
-      (room.get_width() - 1, room.get_height() - 1),
-    }
-    return [c for c in cells if c not in corners]
+    super().__init__(degree=1)
 
   def get_edges(room):
     x, y = room.cell or (0, 0)

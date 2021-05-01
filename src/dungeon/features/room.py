@@ -2,9 +2,10 @@ from dungeon.features import Feature
 from lib.cell import add
 
 class Room(Feature):
-  def __init__(room, size):
+  def __init__(room, size, degree=0):
     super().__init__()
     room.size = size
+    room.degree = degree
     room.cell = None
 
   def get_width(room):
@@ -40,19 +41,19 @@ class Room(Feature):
     left, top = room.cell
     right = left + room_width
     bottom = top + room_height
-
     edges = []
     for x in range(left, right):
       edges.append((x, top - 2))
       edges.append((x, top - 1))
       edges.append((x, bottom))
       edges.append((x, bottom + 1))
-
     for y in range(top, bottom):
       edges.append((left - 1, y))
       edges.append((right, y))
-
     return edges
+
+  def get_exits(room):
+    return room.get_edges()
 
   def get_border(room):
     left, top = room.cell
