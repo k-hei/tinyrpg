@@ -1,6 +1,7 @@
 class Feature:
-  def __init__(feature):
-    feature.degree = 0
+  def __init__(feature, degree=0, secret=False):
+    feature.degree = degree
+    feature.secret = secret
 
   def place(feature, stage):
     for cell in feature.get_cells():

@@ -16,8 +16,7 @@ class BattleRoom(SpecialRoom):
       "...   .",
       "......."
     ]
-    super().__init__()
-    feature.degree = 2
+    super().__init__(degree=2)
 
   def get_edges(feature):
     x, y = feature.cell or (0, 0)

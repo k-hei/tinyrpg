@@ -1,8 +1,8 @@
 from dungeon.features.room import Room
 
 class SpecialRoom(Room):
-  def __init__(room, degree=0):
-    super().__init__(room.get_size(), degree)
+  def __init__(room, degree=0, secret=False):
+    super().__init__(room.get_size(), degree, secret)
 
   def get_width(room):
     return len(room.shape[0]) if room.shape else 0

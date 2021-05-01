@@ -19,7 +19,7 @@ class TreasureRoom(SpecialRoom):
       "   .   ",
       "#  .  #"
     ]
-    super().__init__(degree=1)
+    super().__init__(degree=1, secret=True)
 
   def get_edges(room):
     x, y = room.cell or (0, 0)

@@ -119,7 +119,7 @@ class Floor:
         neighbor.cell = None
     if overlap:
       door = random.choice(overlap)
-      floor.draw_door(door, target_room=node)
+      floor.draw_door(door, room=node)
       floor.place(neighbor)
       floor.tree.connect(node, neighbor, door)
       return True
@@ -175,7 +175,7 @@ class Floor:
     neighbors = [n for n in graph.neighbors(end) if isinstance(n, Room) and n not in tree.neighbors(end)]
     print(neighbors)
 
-  def draw_door(floor, cell, tile=Stage.DOOR, target_room=None):
+  def draw_door(floor, cell, tile=Stage.DOOR, room=None):
     x, y = cell
     stage = floor.stage
     stage.set_tile_at(cell, tile)
@@ -190,8 +190,8 @@ class Floor:
       and stage.get_tile_at((x + 1, y + 1)) is stage.WALL):
         doorway_offset = 1
       stage.set_tile_at((x, y + doorway_offset), stage.DOOR_WAY)
-      if target_room:
-        _, target_y = target_room.get_center()
+      if room:
+        _, target_y = room.get_center()
         if doorway_offset * (target_y - y) > 0:
           stage.set_tile_at(cell, stage.DOOR_WAY)
           stage.set_tile_at((x, y + doorway_offset), tile)
@@ -222,9 +222,9 @@ class Floor:
       tree.add(node)
       neighbors = graph.neighbors(node)
       neighbors = [n for n in neighbors if tree.degree(n) == 0]
-      if not neighbors and tree.degree(node) < node.degree:
-        return False
       if not neighbors:
+        if tree.degree(node) < node.degree:
+          return False
         queue.pop()
         continue
       for neighbor in neighbors:
@@ -270,6 +270,10 @@ class Floor:
       graph.disconnect(node)
     graph.nodes = tree.nodes
 
+def debug(message):
+  if config.DEBUG:
+    print(message)
+
 def debug_floor(seed=None):
   floor = Floor((27, 27))
   if seed is None:
@@ -288,11 +292,11 @@ def debug_floor(seed=None):
   floor.gen_place(treasure_room)
 
   if not floor.gen_neighbor(arena, exit_room):
-    print("fatal: Failed to place exit room")
+    debug("fatal: Failed to place exit room")
     return debug_floor()
 
   if not floor.gen_neighbor(arena, puzzle_room):
-    print("fatal: Failed to place puzzle room")
+    debug("fatal: Failed to place puzzle room")
     return debug_floor()
 
   tree.add(exit_room) # mark as dead end
@@ -302,21 +306,33 @@ def debug_floor(seed=None):
   floor.gen_mazes()
 
   if not floor.connect():
-    print("fatal: Unconnected feature")
+    debug("fatal: Failed to connect feature graph")
     return debug_floor()
 
   if not floor.span(start=puzzle_room):
-    print("fatal: Failed to satisfy feature degree constraints")
+    debug("fatal: Failed to satisfy feature degree constraints")
     return debug_floor()
 
   floor.fill_ends()
+
+  secrets = [n for n in tree.nodes if n.secret]
+  for node in secrets:
+    neighbors = tree.neighbors(node)
+    if len(neighbors) == 1 and type(neighbors[0]) is Maze:
+      maze = neighbors[0]
+      door = tree.connectors(node, maze)[0]
+      if [e for e in maze.get_ends() if is_adjacent(e, door)]:
+        debug("fatal: Hidden room connected to dead end")
+        return debug_floor()
+
   # floor.gen_loops()
   floor.fill_isolated()
 
   for (n1, n2), doors in tree.conns.items():
     room = n1 if isinstance(n1, Room) else n2 if isinstance(n2, Room) else None
     for door in doors:
-      floor.draw_door(door, target_room=room)
+      tile = stage.DOOR_HIDDEN if n1.secret or n2.secret else stage.DOOR
+      floor.draw_door(door, tile, room)
 
   # def distance(r1, r2):
   #   return tree.distance(r1, r2) * 100 + manhattan(r1.get_center(), r2.get_center())
