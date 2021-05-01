@@ -29,7 +29,7 @@ from dungeon.actors.npc import NPC
 
 from dungeon.props.chest import Chest
 from dungeon.props.soul import Soul
-from dungeon.view import View
+import dungeon.view as view
 
 from items import Item
 from skills.weapon import Weapon
@@ -1029,7 +1029,7 @@ class DungeonContext(Context):
     game.camera.update(game)
 
     if not config.DEBUG and not game.minimap.is_focused():
-      View.draw(game.floor, surface, game)
+      view.draw(game.floor, surface, game)
 
     for group in game.anims:
       for anim in group:

@@ -148,6 +148,7 @@ sprite_paths = {
   "block": "block",
   "wall_base": "wall-base",
   "wall_edge": "wall-edge",
+  "wall_corner": "wall-corner",
   "wall_link": "wall-link",
   "wall_torch": "wall-torch",
   "town": "town",

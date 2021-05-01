@@ -2,6 +2,7 @@ from assets import load as use_assets
 from filters import recolor, outline
 from text import render as render_text
 from lib.lerp import lerp
+from sprite import Sprite
 import config
 import pygame
 
@@ -57,28 +58,32 @@ class DamageValue:
       value.numbers.append(number)
       value.width += number.sprite.get_width()
 
-  def draw(value, surface, camera):
-    camera_x, camera_y = camera
+  def render(value):
+    sprites = []
     col, row = value.cell
-    x = (col + 0.5) * config.TILE_SIZE - round(camera_x) - value.width // 2
-    y = row * config.TILE_SIZE - round(camera_y) - 8
+    x = (col + 0.5) * config.TILE_SIZE - value.width // 2
+    y = row * config.TILE_SIZE - 8
     value.time += 1
     for i, number in enumerate(value.numbers):
       number.update()
-      sprite = number.sprite
-      number_width = sprite.get_width()
-      number_height = sprite.get_height()
+      image = number.sprite
+      number_width = image.get_width()
+      number_height = image.get_height()
       if number.time >= 68:
         t = (number.time - 68) / 7
-        sprite = pygame.transform.scale(sprite, (
+        image = pygame.transform.scale(image, (
           int(number_width * lerp(1, 0, t)),
           int(number_height * lerp(1, 3, t))
         ))
       if number.time >= 0 and (value.time < 60 or value.time % 2):
-        surface.blit(sprite, (
-          x + number_width // 2 - sprite.get_width() // 2,
-          y + number.y + number_height // 2 - sprite.get_height() // 2
+        number_x = x + number_width // 2, image.get_width() // 2
+        number_y = y + number.y + number_height // 2 - image.get_height() // 2
+        sprites.append(Sprite(
+          image=image,
+          pos=(number_x, number_y),
+          layer="numbers"
         ))
       x += number_width - 2
       if number.done and i == len(value.numbers) - 1:
         value.done = True
+    return sprites
