@@ -5,18 +5,10 @@ class OasisRoom(Room):
     super().__init__((5, 7), degree=1, secret=secret)
 
   def get_cells(room):
-    x, y = room.cell or (0, 0)
-    width, height = room.size
-    corners = [
-      (x, y),
-      (x + width - 1, y),
-      (x, y + height - 1),
-      (x + width - 1, y + height - 1),
-    ]
-    cells = super().get_cells()
-    for c in corners:
-      cells.remove(c)
-    return cells
+    return [c for c in super().get_cells() if c not in room.get_corners()]
+
+  def get_border(room):
+    return super().get_border() + room.get_corners()
 
   def get_edges(room):
     x, y = room.cell or (0, 0)

@@ -84,7 +84,7 @@ class Floor:
   def gen_rooms(floor, features=[]):
     rooms = []
     features = features.copy()
-    attempts = 3
+    attempts = config.MAX_ROOM_FAILS
     while attempts:
       room = features[-1] if features else floor.gen_room()
       if floor.gen_place(room):
@@ -175,6 +175,71 @@ class Floor:
     print(end)
     neighbors = [n for n in graph.neighbors(end) if isinstance(n, Room) and n not in tree.neighbors(end)]
     print(neighbors)
+
+  def gen_minirooms(floor):
+    graph = floor.graph
+    stage = floor.stage
+
+    mazes = []
+    rooms = []
+    for node in graph.nodes:
+      if type(node) is Maze:
+        mazes.append(node)
+      else:
+        rooms.append(node)
+
+    room_borders = []
+    for room in rooms:
+      room_borders += room.get_border()
+
+    maze_cells = []
+    for maze in mazes:
+      maze_cells += maze.get_cells()
+
+    mini_rooms = []
+    def place_room(cell, vertical=False, align_right=False, align_bottom=False):
+      major_axis = random.randint(2, 6)
+      if vertical:
+        room_size = (2, major_axis)
+      else:
+        room_size = (major_axis, 2)
+
+      room_width, room_height = room_size
+      cell_x, cell_y = cell
+      if align_right:
+        cell_x -= room_width - 1
+      if align_bottom:
+        cell_y -= room_height - 1
+
+      mini_room = Room(room_size)
+      mini_room.cell = (cell_x, cell_y)
+      for cell in mini_room.get_cells() + mini_room.get_border():
+        if (cell in room_borders
+        or cell not in maze_cells and stage.get_tile_at(cell) is not stage.WALL):
+          break
+      else:
+        mini_rooms.append(mini_room)
+        return True
+      return False
+
+    choices = maze_cells.copy()
+    while choices:
+      cell = random.choice(choices)
+      choices.remove(cell)
+      if place_room(cell, 0, 0, 0): continue
+      if place_room(cell, 0, 0, 1): continue
+      if place_room(cell, 0, 1, 0): continue
+      if place_room(cell, 0, 1, 1): continue
+      if place_room(cell, 1, 0, 0): continue
+      if place_room(cell, 1, 0, 1): continue
+      if place_room(cell, 1, 1, 0): continue
+      if place_room(cell, 1, 1, 1): continue
+
+    for room in mini_rooms:
+      corners = room.get_corners()
+      for cell in room.get_cells():
+        if cell not in corners or random.randint(1, 2) == 1:
+          stage.set_tile_at(cell, stage.FLOOR)
 
   def draw_door(floor, cell, tile=Stage.DOOR, room=None):
     x, y = cell
@@ -276,10 +341,10 @@ class Floor:
 
 def debug(message):
   if config.DEBUG:
-    print(message)
+    print("[DEBUG] {}".format(message))
 
 def debug_floor(seed=None):
-  floor = Floor((27, 27))
+  floor = Floor(config.FLOOR_SIZE)
   if seed is None:
     seed = random.getrandbits(32)
   random.seed(seed)
@@ -298,11 +363,11 @@ def debug_floor(seed=None):
   floor.gen_place(oasis_room)
 
   if not floor.gen_neighbor(arena, exit_room):
-    debug("fatal: Failed to place exit room")
+    debug("Failed to place exit room")
     return debug_floor()
 
   if not floor.gen_neighbor(arena, puzzle_room):
-    debug("fatal: Failed to place puzzle room")
+    debug("Failed to place puzzle room")
     return debug_floor()
 
   tree.add(exit_room) # mark as dead end
@@ -312,11 +377,11 @@ def debug_floor(seed=None):
   floor.gen_mazes()
 
   if not floor.connect():
-    debug("fatal: Failed to connect feature graph")
+    debug("Failed to connect feature graph")
     return debug_floor()
 
   if not floor.span(start=puzzle_room):
-    debug("fatal: Failed to satisfy feature degree constraints")
+    debug("Failed to satisfy feature degree constraints")
     return debug_floor()
 
   floor.fill_ends()
@@ -329,23 +394,33 @@ def debug_floor(seed=None):
       maze = neighbors[0]
       door = tree.connectors(node, maze)[0]
       if [e for e in maze.get_ends() if is_adjacent(e, door)]:
-        debug("fatal: Hidden room connected to dead end")
+        debug("Hidden room connected to dead end")
         return debug_floor()
 
+  floor.gen_minirooms()
+
   # draw doors
-  for (n1, n2), doors in tree.conns.items():
+  doors = []
+  for (n1, n2), conns in tree.conns.items():
     room = n1 if isinstance(n1, Room) else n2 if isinstance(n2, Room) else None
-    for door in doors:
+    for door in conns:
       tile = stage.DOOR_HIDDEN if n1.secret or n2.secret else stage.DOOR
       floor.draw_door(door, tile, room)
+    doors += conns
 
   for cell in oasis_room.get_cells():
     stage.set_tile_at(cell, Stage.STAIRS_DOWN)
 
-  # def distance(r1, r2):
-  #   return tree.distance(r1, r2) * 100 + manhattan(r1.get_center(), r2.get_center())
-  # entry_room = sorted(rooms, key=lambda r: distance(r, exit_room))[-1]
   rooms = [n for n in tree.nodes if type(n) is Room and n not in features]
+
+  for room in rooms:
+    corners = [c for c in room.get_corners() if not [
+      d for d in doors if manhattan(c, d) <= 2]]
+    corner_count = random.randrange(0, len(corners))
+    for i in range(corner_count):
+      corner = random.choice(corners)
+      stage.set_tile_at(corner, stage.WALL)
+
   entry_room = random.choice(rooms)
   stage.entrance = entry_room.get_center()
   stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)

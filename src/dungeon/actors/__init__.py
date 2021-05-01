@@ -140,7 +140,7 @@ class DungeonActor(DungeonElement):
         return None
     else:
       if actor.ailment == "poison":
-        new_color = palette.GREEN_DARK
+        new_color = palette.PURPLE
       elif actor.core.faction == "player":
         new_color = palette.BLUE
       elif actor.core.faction == "ally":

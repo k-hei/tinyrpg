@@ -51,6 +51,16 @@ class Room(Feature):
       edges.append((right, y))
     return edges
 
+  def get_corners(room):
+    x, y = room.cell or (0, 0)
+    width, height = room.size
+    return [
+      (x, y),
+      (x + width - 1, y),
+      (x, y + height - 1),
+      (x + width - 1, y + height - 1),
+    ]
+
   def get_exits(room):
     return room.get_edges()
 
