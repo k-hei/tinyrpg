@@ -730,17 +730,26 @@ class DungeonContext(Context):
     and target_elem is game.ally
     and not game.ally.ailment == "sleep"):
       duration = DungeonContext.RUN_DURATION if run else DungeonContext.MOVE_DURATION
-      anim = MoveAnim(
+      move_anim = MoveAnim(
         duration=duration,
         target=actor,
         src_cell=actor.cell,
         dest_cell=target_cell,
         on_end=on_end
       )
-      if game.anims and actor.allied(target_elem):
-        game.anims[0].append(anim)
+      for group in game.anims:
+        for anim in group:
+          if (type(anim) is MoveAnim
+          # and actor.allied(anim.target)
+          and isinstance(anim.target, DungeonActor)):
+            group.append(move_anim)
+            break
+          else:
+            anim = None
+        if anim:
+          break
       else:
-        game.anims.append([anim])
+        game.anims.append([move_anim])
       actor.cell = target_cell
       return True
     else:

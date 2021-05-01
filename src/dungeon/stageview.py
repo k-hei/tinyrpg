@@ -214,7 +214,7 @@ class StageView:
 
     for anim_group in anims:
       for anim in anim_group:
-        if anim.done:
+        if not anim or anim.done:
           anim_group.remove(anim)
         elif anim.target and anim.target not in visible_elems:
           anim_group.remove(anim)
