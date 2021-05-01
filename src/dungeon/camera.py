@@ -1,3 +1,4 @@
+from pygame import Rect
 import config
 import math
 from anims.move import MoveAnim
@@ -12,6 +13,17 @@ class Camera:
     camera.cell = None
     camera.flag = None
     camera.speed = None
+
+  def get_pos(camera):
+    return camera.pos
+
+  def get_size(camera):
+    return camera.size
+
+  def get_rect(camera):
+    x, y = camera.get_pos()
+    width, height = camera.get_size()
+    return Rect(x, y, width, height)
 
   def reset(camera):
     camera.pos = None

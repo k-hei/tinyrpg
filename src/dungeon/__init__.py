@@ -5,6 +5,8 @@ from pygame import Rect
 import palette
 
 import config
+from config import WINDOW_SIZE, VISION_RANGE
+
 import keyboard
 from keyboard import ARROW_DELTAS, key_times
 
@@ -19,6 +21,7 @@ import dungeon.gen
 from dungeon.fov import shadowcast
 from dungeon.camera import Camera
 from dungeon.stage import Stage
+from dungeon.stageview import StageView
 
 from dungeon.actors import DungeonActor
 from dungeon.actors.eye import Eye
@@ -29,7 +32,6 @@ from dungeon.actors.npc import NPC
 
 from dungeon.props.chest import Chest
 from dungeon.props.soul import Soul
-import dungeon.view as view
 
 from items import Item
 from skills.weapon import Weapon
@@ -69,7 +71,6 @@ class DungeonContext(Context):
   PAUSE_ITEM_DURATION = 30
   PAUSE_DEATH_DURATION = 45
   AWAKEN_DURATION = 45
-  VISION_RANGE = 3.5
 
   def __init__(game, parent):
     super().__init__(parent)
@@ -86,10 +87,10 @@ class DungeonContext(Context):
     game.numbers = []
     game.key_requires_reset = {}
     game.seeds = []
-    game.lights = config.DEBUG
-    game.tile_surface = None
+    game.lights = False # config.DEBUG
+    game.floor_view = StageView(WINDOW_SIZE)
+    game.camera = Camera(WINDOW_SIZE)
     game.log = Log()
-    game.camera = Camera(config.WINDOW_SIZE)
     game.hud = Hud()
     game.sp_meter = SpMeter()
     game.minimap = Minimap(parent=game)
@@ -103,7 +104,7 @@ class DungeonContext(Context):
 
   def create_floor(game):
     floor_no = game.get_floor_no()
-    floor = gen.debug_floor(seed=config.SEED)
+    floor = gen.gen_floor(seed=config.SEED)
     game.parent.seeds.append(floor.seed)
     # if floor_no == config.TOP_FLOOR:
     #   floor = gen.top_floor()
@@ -144,15 +145,15 @@ class DungeonContext(Context):
     game.floor = floor
     game.floors.append(game.floor)
     game.memory.append((game.floor, []))
-    game.refresh_fov(moving=True)
     game.rooms_entered.append(game.room)
     game.camera.blur()
-    game.tile_surface = None
+    game.camera.update(game)
+    game.refresh_fov(moving=True)
 
   def refresh_fov(game, moving=False):
     hero = game.hero
     floor = game.floor
-    visible_cells = shadowcast(floor, hero.cell, DungeonContext.VISION_RANGE)
+    visible_cells = shadowcast(floor, hero.cell, VISION_RANGE)
 
     door = None
     if moving:
@@ -214,6 +215,8 @@ class DungeonContext(Context):
       camera.focus((mid_x, mid_y))
     else:
       camera.blur()
+
+    game.redraw_tiles()
 
   def step(game, run=False):
     if not game.ally.stepped:
@@ -286,8 +289,8 @@ class DungeonContext(Context):
         room = rooms[0]
         if hero.cell not in room.get_cells() + room.get_border():
           return False
-      elif manhattan(enemy.cell, hero.cell) <= DungeonContext.VISION_RANGE:
-        if hero.cell not in shadowcast(floor, enemy.cell, DungeonContext.VISION_RANGE):
+      elif manhattan(enemy.cell, hero.cell) <= VISION_RANGE:
+        if hero.cell not in shadowcast(floor, enemy.cell, VISION_RANGE):
           return False
       else:
         return False
@@ -559,17 +562,12 @@ class DungeonContext(Context):
             ))
           )
         ))
-      elif target_tile is Stage.DOOR:
-        game.floor.set_tile_at(target_cell, Stage.DOOR_OPEN)
-        game.step(run)
-        game.refresh_fov()
-      elif target_tile is Stage.DOOR_HIDDEN:
-        game.log.print("Discovered a hidden door!")
-        game.floor.set_tile_at(target_cell, Stage.DOOR_OPEN)
-        game.step(run)
-        game.refresh_fov()
-      elif target_tile is Stage.DOOR_LOCKED:
-        game.log.print("The door is locked...")
+      elif (target_tile is Stage.DOOR
+      or target_tile is Stage.DOOR_HIDDEN
+      or target_tile is Stage.DOOR_LOCKED):
+        if game.open_door(target_cell):
+          game.step(run)
+          game.refresh_fov()
     return moved
 
   def handle_attack(game, target):
@@ -793,6 +791,26 @@ class DungeonContext(Context):
       return game.move(actor, (delta_x, delta_y), run, on_end=game.refresh_fov)
     else:
       return False
+
+  def open_door(game, cell):
+    floor = game.floor
+    tile = floor.get_tile_at(cell)
+
+    if tile is Stage.DOOR:
+      game.floor.set_tile_at(cell, Stage.DOOR_OPEN)
+      return True
+
+    if tile is Stage.DOOR_HIDDEN:
+      game.log.print("Discovered a hidden door!")
+      game.floor.set_tile_at(cell, Stage.DOOR_OPEN)
+      return True
+
+    if tile is Stage.DOOR_LOCKED:
+      game.log.print("The door is locked...")
+      return False
+
+  def redraw_tiles(game):
+    game.floor_view.redraw_tiles(game.floor, game.camera, game.get_visible_cells(), game.get_visited_cells())
 
   def attack(game, actor, target, damage=None, on_connect=None, on_end=None):
     if actor.weapon is None:
@@ -1022,16 +1040,22 @@ class DungeonContext(Context):
     game.lights = not game.lights
     game.refresh_fov()
 
+  def get_visible_cells(game, actor=None):
+    return (actor or game.hero).visible_cells
+
+  def get_visited_cells(game, floor=None):
+    floor = floor or game.floor
+    return next((cells for f, cells in game.memory if f is floor), None)
+
   def draw(game, surface):
     assets = load_assets()
     surface.fill(0x000000)
     window_width = surface.get_width()
     window_height = surface.get_height()
-
     game.camera.update(game)
 
     if not config.DEBUG and not game.minimap.is_focused():
-      game.tile_surface = view.draw(game.floor, surface, game, game.tile_surface)
+      game.tile_surface = game.floor_view.draw(surface, game)
 
     for group in game.anims:
       for anim in group:

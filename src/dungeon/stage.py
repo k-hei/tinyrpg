@@ -34,7 +34,7 @@ class Stage:
     stage.facings = {}
 
   def fill(stage, data):
-    (width, height) = stage.size
+    width, height = stage.size
     for i in range(width * height):
       stage.data[i] = data
 

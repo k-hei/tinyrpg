@@ -7,3 +7,6 @@ class Sprite:
   pos: tuple[int, int]
   layer: str
   offset: int = 0
+
+  def draw(sprite, surface):
+    surface.blit(sprite.image, sprite.pos)

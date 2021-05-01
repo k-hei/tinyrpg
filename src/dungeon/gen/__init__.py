@@ -366,7 +366,18 @@ def debug(message):
   if config.DEBUG:
     print("[DEBUG] {}".format(message))
 
-def debug_floor(seed=None):
+def gen_debug(seed=None):
+  floor = Floor((13, 13))
+  room = Room((11, 11))
+  room.cell = (1, 1)
+  stage = floor.stage
+  stage.seed = seed
+  stage.fill(stage.WALL)
+  floor.place(room)
+  stage.entrance = room.get_center()
+  return stage
+
+def gen_floor(seed=None):
   floor = Floor(config.FLOOR_SIZE)
   if seed is None:
     seed = random.getrandbits(32)
@@ -389,11 +400,11 @@ def debug_floor(seed=None):
 
   if not floor.gen_neighbor(arena, exit_room):
     debug("Failed to place exit room")
-    return debug_floor()
+    return gen_floor()
 
   if not floor.gen_neighbor(arena, puzzle_room):
     debug("Failed to place puzzle room")
-    return debug_floor()
+    return gen_floor()
 
   tree.add(exit_room) # mark as dead end
   stage.set_tile_at(exit_room.get_center(), Stage.STAIRS_UP)
@@ -403,11 +414,11 @@ def debug_floor(seed=None):
 
   if not floor.connect():
     debug("Failed to connect feature graph")
-    return debug_floor()
+    return gen_floor()
 
   if not floor.span(start=puzzle_room):
     debug("Failed to satisfy feature degree constraints")
-    return debug_floor()
+    return gen_floor()
 
   floor.gen_loops()
   floor.fill_ends()
@@ -421,7 +432,7 @@ def debug_floor(seed=None):
       door = tree.connectors(node, maze)[0]
       if [e for e in maze.get_ends() if is_adjacent(e, door)]:
         debug("Hidden room connected to dead end")
-        return debug_floor()
+        return gen_floor()
 
   floor.gen_minirooms()
 
