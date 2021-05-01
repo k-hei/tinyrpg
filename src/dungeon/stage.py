@@ -22,7 +22,7 @@ class Stage:
   OASIS_EDGE = Tile(solid=True, opaque=False)
 
   def __init__(stage, size):
-    (width, height) = size
+    width, height = size
     stage.size = size
     stage.data = [Stage.FLOOR] * (width * height)
     stage.elems = []
@@ -37,6 +37,14 @@ class Stage:
     (width, height) = stage.size
     for i in range(width * height):
       stage.data[i] = data
+
+  def get_width(stage):
+    width, _ = stage.size
+    return width
+
+  def get_height(stage):
+    _, height = stage.size
+    return height
 
   def get_cells(stage):
     width, height = stage.size

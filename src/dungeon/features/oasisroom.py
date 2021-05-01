@@ -45,9 +45,31 @@ class OasisRoom(SpecialRoom):
         char = room.shape[row][col]
         if SpecialRoom.parse_char(char) is Stage.FLOOR:
           cells.append(cell)
+
     for i in range(3):
-      x, y = choice(cells)
+      cell = choice(cells)
+      cells.remove(cell)
+      x, y = cell
       image = sprites["oasis_palm"]
       sprite_x = x * TILE_SIZE
       sprite_y = (y + 1) * TILE_SIZE - image.get_height()
-      stage.decors.append(Sprite(image=image, pos=(sprite_x, sprite_y), layer="elems"))
+      stage.decors.append(Sprite(
+        image=image,
+        pos=(sprite_x, sprite_y),
+        offset=-1,
+        layer="elems"
+      ))
+
+    for i in range(8):
+      cell = choice(cells)
+      cells.remove(cell)
+      x, y = cell
+      image = sprites["oasis_grass"]
+      sprite_x = x * TILE_SIZE
+      sprite_y = y * TILE_SIZE
+      stage.decors.append(Sprite(
+        image=image,
+        pos=(sprite_x, sprite_y),
+        offset=-1,
+        layer="tiles"
+      ))

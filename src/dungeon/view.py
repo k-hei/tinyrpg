@@ -28,32 +28,54 @@ LAYER_ORDER = ["tiles", "elems", "vfx", "numbers", "ui"]
 def order(sprite):
   sprite_x, sprite_y = sprite.pos
   y = sprite_y + sprite.image.get_height()
-  return LAYER_ORDER.index(sprite.layer) * 1000 + y
+  return LAYER_ORDER.index(sprite.layer) * 1000 + y + sprite.offset
 
-def draw(stage, surface, ctx):
+def draw(stage, surface, ctx, tile_surface=None):
   visible_cells = ctx.hero.visible_cells
   visited_cells = next((cells for floor, cells in ctx.memory if floor is ctx.floor), None)
 
-  camera_x, camera_y = ctx.camera.pos
+  camera = ctx.camera
+  camera_x, camera_y = camera.pos
+  camera_x = round(camera_x)
+  camera_y = round(camera_y)
   rect = Rect(
-    (round(camera_x), round(camera_y)),
+    (camera_x, camera_y),
     (surface.get_width(), surface.get_height())
   )
 
   sprites = []
-  sprites += render_tiles(stage, rect, visible_cells, visited_cells)
+  if tile_surface is None:
+    sprites += render_tiles(stage)
   sprites += render_elems(stage, rect, visible_cells, ctx.anims, ctx.vfx)
   sprites += render_vfx(stage, rect, ctx.vfx)
   sprites += render_numbers(stage, ctx.numbers)
   sprites += stage.decors
-
   sprites.sort(key=order)
+
+  if tile_surface is None:
+    tiles = [s for s in sprites if s.layer == "tiles"]
+    stage_width = stage.get_width() * TILE_SIZE
+    stage_height = stage.get_height() * TILE_SIZE
+    tile_surface = Surface((stage_width, stage_height)).convert_alpha()
+    for tile in tiles:
+      draw_sprite(tile, tile_surface)
+    tile_surface = replace_color(tile_surface, palette.WHITE, palette.SAFFRON)
+  surface.blit(tile_surface, (-camera_x, -camera_y))
+
   for sprite in sprites:
-    image = sprite.image
-    x, y = sprite.pos
-    x += -round(camera_x)
-    y += -round(camera_y)
-    surface.blit(sprite.image, (x, y))
+    if sprite.layer == "tiles":
+      continue
+    draw_sprite(sprite, surface, camera.pos)
+
+  return tile_surface
+
+def draw_sprite(sprite, surface, camera_pos=(0, 0)):
+  camera_x, camera_y = camera_pos
+  image = sprite.image
+  x, y = sprite.pos
+  x -= camera_x
+  y -= camera_y
+  surface.blit(sprite.image, (x, y))
 
 def render_numbers(stage, numbers):
   sprites = []
@@ -85,9 +107,6 @@ def render_vfx(stage, rect, vfx):
   return sprites
 
 def render_elems(stage, rect, visible_cells, anims, vfx):
-  if visible_cells is None:
-    visible_cells = stage.get_cells()
-
   sprites = []
   visible_elems = [e for e in stage.elems if e.cell in visible_cells]
   for elem in visible_elems:
@@ -112,12 +131,6 @@ def render_elems(stage, rect, visible_cells, anims, vfx):
 def render_elem(stage, rect, elem, anims, vfx):
   sprites = []
   assets = use_assets()
-  facing_x, facing_y = (0, 0)
-  if elem in stage.facings:
-    facing_x, facing_y = stage.facings[elem]
-    new_facing_x, _ = elem.facing
-    if new_facing_x != 0:
-      facing_x = new_facing_x
 
   col, row = elem.cell
   sprite_x = col * TILE_SIZE
@@ -129,10 +142,15 @@ def render_elem(stage, rect, elem, anims, vfx):
     return []
 
   image = elem.render(anims)
-
   scale_x = 1
   scale_y = 1
   scale_origin = "center"
+  facing_x, facing_y = (0, 0)
+  if elem in stage.facings:
+    facing_x, facing_y = stage.facings[elem]
+    new_facing_x, _ = elem.facing
+    if new_facing_x != 0:
+      facing_x = new_facing_x
 
   if type(elem) is Soul:
     elem.update(vfx)
@@ -221,28 +239,31 @@ def render_elem(stage, rect, elem, anims, vfx):
 
   return sprites
 
-def render_tiles(stage, rect, visible_cells=None, visited_cells=[]):
+def render_tiles(stage, visible_cells=None, visited_cells=None, rect=None):
   sprites = []
 
   if visible_cells is None:
     visible_cells = stage.get_cells()
 
+  if visited_cells is None:
+    visited_cells = stage.get_cells()
+
   for cell in visited_cells:
     col, row = cell
     x = col * TILE_SIZE
     y = row * TILE_SIZE
-    if (x + TILE_SIZE < rect.left
+    if rect and (
+    x + TILE_SIZE < rect.left
     or y + TILE_SIZE < rect.top
     or x >= rect.right
     or y >= rect.bottom):
       continue
+    tile = stage.get_tile_at(cell)
     image = render_tile(stage, cell, visited_cells)
     if image is None:
       continue
     if cell not in visible_cells:
       image = replace_color(image, palette.WHITE, palette.GOLD_DARK)
-    else:
-      image = replace_color(image, palette.WHITE, palette.SAFFRON)
     sprites.append(Sprite(image=image, pos=(x, y), layer="tiles"))
 
   return sprites

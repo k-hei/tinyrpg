@@ -87,6 +87,7 @@ class DungeonContext(Context):
     game.key_requires_reset = {}
     game.seeds = []
     game.lights = config.DEBUG
+    game.tile_surface = None
     game.log = Log()
     game.camera = Camera(config.WINDOW_SIZE)
     game.hud = Hud()
@@ -146,6 +147,7 @@ class DungeonContext(Context):
     game.refresh_fov(moving=True)
     game.rooms_entered.append(game.room)
     game.camera.blur()
+    game.tile_surface = None
 
   def refresh_fov(game, moving=False):
     hero = game.hero
@@ -1029,7 +1031,7 @@ class DungeonContext(Context):
     game.camera.update(game)
 
     if not config.DEBUG and not game.minimap.is_focused():
-      view.draw(game.floor, surface, game)
+      game.tile_surface = view.draw(game.floor, surface, game, game.tile_surface)
 
     for group in game.anims:
       for anim in group:
