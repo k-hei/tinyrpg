@@ -53,7 +53,8 @@ class StageView:
     if not image:
       return
     color = WHITE
-    if stage.get_tile_at(cell) is not stage.OASIS:
+    if (stage.get_tile_at(cell) is not stage.OASIS
+    and stage.get_tile_at(cell) is not stage.OASIS_STAIRS):
       color = COLOR_TILE
       image = replace_color(image, WHITE, color)
     image_darken = replace_color(image, color, darken(color))
@@ -327,9 +328,11 @@ def render_tile(stage, cell, visited_cells=[]):
     sprite_name = "floor"
   elif tile is stage.COFFIN:
     sprite_name = "coffin"
+  elif tile is stage.OASIS_STAIRS:
+    sprite_name = "oasis_stairs"
   elif tile is stage.OASIS:
     return render_oasis(stage, cell)
-  return assets.sprites[sprite_name] if sprite_name is not None else None
+  return assets.sprites[sprite_name] if sprite_name else None
 
 def render_wall(stage, cell, visited_cells=[]):
   assets = use_assets()
@@ -430,13 +433,16 @@ def render_wall(stage, cell, visited_cells=[]):
 def render_oasis(stage, cell):
   sprites = use_assets().sprites
   x, y = cell
-  o = lambda x, y: stage.get_tile_at((x, y)) is stage.OASIS
+  o = lambda x, y: (
+    stage.get_tile_at((x, y)) is stage.OASIS
+    or stage.get_tile_at((x, y)) is stage.OASIS_STAIRS
+  )
   if o(x, y - 1) and o(x, y + 1) and not o(x - 1, y):
     return sprites["oasis_edge"]
   elif o(x, y - 1) and o(x, y + 1) and not o(x + 1, y):
     return flip(sprites["oasis_edge"], True, False)
   if o(x - 1, y) and o(x + 1, y) and not o(x, y - 1):
-    return sprites["oasis_stairs"]
+    return rotate(sprites["oasis_edge"], -90)
   elif o(x - 1, y) and o(x + 1, y) and not o(x, y + 1):
     return sprites["oasis_edge_bottom"]
   elif o(x + 1, y) and o(x, y + 1) and not o(x - 1, y - 1):

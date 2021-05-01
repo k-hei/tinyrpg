@@ -84,7 +84,7 @@ class OasisRoom(SpecialRoom):
       for col in range(room.get_width()):
         cell = (col + x, row + y)
         char = room.shape[row][col]
-        if SpecialRoom.parse_char(char) is stage.OASIS and char != "V":
+        if SpecialRoom.parse_char(char) is stage.OASIS:
           oasis_cells.append(cell)
 
     for i in range(3):
@@ -105,10 +105,11 @@ class OasisRoom(SpecialRoom):
       if (stage.get_tile_at((x + 1, y)) is stage.OASIS
       and stage.get_tile_at((x, y + 1)) is stage.OASIS):
         corners.append((1, 1))
-      corner_x, corner_y = choice(corners)
-      sprite_x = x * TILE_SIZE + corner_x * 16
-      sprite_y = y * TILE_SIZE + corner_y * 16
-      stage.decors.append(Sprite(
-        image=image,
-        pos=(sprite_x, sprite_y)
-      ))
+      if corners:
+        corner_x, corner_y = choice(corners)
+        sprite_x = x * TILE_SIZE + corner_x * 16
+        sprite_y = y * TILE_SIZE + corner_y * 16
+        stage.decors.append(Sprite(
+          image=image,
+          pos=(sprite_x, sprite_y)
+        ))

@@ -729,12 +729,14 @@ class DungeonContext(Context):
     target_cell = (actor_x + delta_x, actor_y + delta_y)
     target_tile = game.floor.get_tile_at(target_cell)
     target_elem = game.floor.get_elem_at(target_cell)
+    origin_tile = game.floor.get_tile_at(actor.cell)
+    origin_elev = origin_tile.elev
     actor.facing = delta
-    if target_tile and not target_tile.solid and (
-    (target_elem is None or not target_elem.solid)
-    or actor is game.hero
-    and target_elem is game.ally
-    and not game.ally.ailment == "sleep"):
+    if (target_tile and not target_tile.solid
+    and abs(target_tile.elev - origin_tile.elev) < 1
+    and (target_elem is None
+      or not target_elem.solid
+      or actor is game.hero and target_elem is game.ally and not game.ally.ailment == "sleep")):
       duration = DungeonContext.RUN_DURATION if run else DungeonContext.MOVE_DURATION
       move_anim = MoveAnim(
         duration=duration,

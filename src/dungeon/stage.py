@@ -4,6 +4,7 @@ from dataclasses import dataclass
 class Tile:
   solid: bool
   opaque: bool
+  elev: float = 0.0
 
 class Stage:
   FLOOR = Tile(solid=False, opaque=False)
@@ -18,8 +19,8 @@ class Stage:
   STAIRS_DOWN = Tile(solid=False, opaque=False)
   MONSTER_DEN = Tile(solid=False, opaque=False)
   COFFIN = Tile(solid=True, opaque=True)
-  OASIS = Tile(solid=False, opaque=False)
-  OASIS_EDGE = Tile(solid=True, opaque=False)
+  OASIS = Tile(solid=False, opaque=False, elev=-1.0)
+  OASIS_STAIRS = Tile(solid=False, opaque=False, elev=-0.5)
 
   def __init__(stage, size):
     width, height = size
