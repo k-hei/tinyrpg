@@ -1,4 +1,5 @@
 import random
+from random import randint, randrange, choice
 from lib.cell import is_odd, add, is_adjacent, manhattan
 
 import config
@@ -7,6 +8,7 @@ from dungeon.stage import Stage
 from dungeon.gen.floorgraph import FloorGraph
 from dungeon.features.maze import Maze
 from dungeon.features.room import Room
+from dungeon.features.exitroom import ExitRoom
 from dungeon.features.vertroom import VerticalRoom
 from dungeon.features.specialroom import SpecialRoom
 from dungeon.features.battleroom import BattleRoom
@@ -96,14 +98,14 @@ class Floor:
     return rooms
 
   def gen_room(floor, kind=Room):
-    room_width = random.choice(possible_widths)
-    room_height = random.choice(possible_heights)
+    room_width = choice(possible_widths)
+    room_height = choice(possible_heights)
     return kind((room_width, room_height))
 
   def gen_place(floor, feature):
     valid_slots = feature.filter_slots(floor.slots)
     if valid_slots:
-      feature.cell = random.choice(valid_slots)
+      feature.cell = choice(valid_slots)
       floor.place(feature)
       return True
     else:
@@ -113,13 +115,13 @@ class Floor:
     valid_slots = neighbor.filter_slots(floor.slots)
     overlap = []
     while valid_slots and not overlap:
-      neighbor.cell = random.choice(valid_slots)
+      neighbor.cell = choice(valid_slots)
       overlap = tuple(set(node.get_edges()) & set(neighbor.get_exits()))
       if not overlap:
         valid_slots.remove(neighbor.cell)
         neighbor.cell = None
     if overlap:
-      door = random.choice(overlap)
+      door = choice(overlap)
       floor.draw_door(door, room=node)
       floor.place(neighbor)
       floor.tree.connect(node, neighbor, door)
@@ -131,7 +133,7 @@ class Floor:
     mazes = []
     slots = floor.slots.copy()
     while slots:
-      slot = random.choice(slots)
+      slot = choice(slots)
       slots.remove(slot)
       cells = [slot]
       stack = [slot]
@@ -142,7 +144,7 @@ class Floor:
           or abs(sy - y) == 3 and x == sx
         )]
         if neighbors:
-          neighbor = random.choice(neighbors)
+          neighbor = choice(neighbors)
           neighbor_x, neighbor_y = neighbor
           while x != neighbor_x:
             x += 1 if x < neighbor_x else -1
@@ -162,19 +164,36 @@ class Floor:
       for maze in mazes:
         floor.place(maze)
 
-  def gen_loops(floor):
+  def gen_loop(floor):
     tree = floor.tree
     graph = floor.graph
     stage = floor.stage
-    ends = [n for n in tree.ends() if isinstance(n, Room)]
-    for end in ends:
-      center = end.get_center()
-      stage.set_tile_at(end.get_center(), Stage.STAIRS_DOWN)
-    end = random.choice(ends)
-    stage.set_tile_at(end.get_center(), Stage.STAIRS_UP)
-    print(end)
-    neighbors = [n for n in graph.neighbors(end) if isinstance(n, Room) and n not in tree.neighbors(end)]
-    print(neighbors)
+    ends = [n for n in tree.ends() if type(n) is Room or not isinstance(n, Room)]
+    if not ends:
+      return False
+    node = choice(ends)
+    neighbors = [n for n in graph.neighbors(node) if (
+      (type(n) is Room or not isinstance(n, Room))
+      and n not in tree.neighbors(node)
+      and (
+        type(n) is Maze and tree.degree(n) == 1
+        or tree.distance(node, n) > 2
+      )
+    )]
+    if neighbors:
+      neighbor = choice(neighbors)
+      print(type(node).__name__, type(neighbor).__name__, tree.distance(node, neighbor))
+      connectors = graph.connectors(node, neighbor)
+      connector = choice(connectors)
+      tree.connect(node, neighbor, connector)
+      return True
+    else:
+      return False
+
+  def gen_loops(floor):
+    success = True
+    while success:
+      success = floor.gen_loop()
 
   def gen_minirooms(floor):
     graph = floor.graph
@@ -198,7 +217,7 @@ class Floor:
 
     mini_rooms = []
     def place_room(cell, vertical=False, align_right=False, align_bottom=False):
-      major_axis = random.randint(2, 6)
+      major_axis = randint(2, 6)
       if vertical:
         room_size = (2, major_axis)
       else:
@@ -224,7 +243,7 @@ class Floor:
 
     choices = maze_cells.copy()
     while choices:
-      cell = random.choice(choices)
+      cell = choice(choices)
       choices.remove(cell)
       if place_room(cell, 0, 0, 0): continue
       if place_room(cell, 0, 0, 1): continue
@@ -238,7 +257,7 @@ class Floor:
     for room in mini_rooms:
       corners = room.get_corners()
       for cell in room.get_cells():
-        if cell not in corners or random.randint(1, 2) == 1:
+        if cell not in corners or randint(1, 2) == 1:
           stage.set_tile_at(cell, stage.FLOOR)
 
   def draw_door(floor, cell, tile=Stage.DOOR, room=None):
@@ -256,7 +275,7 @@ class Floor:
       and stage.get_tile_at((x + 1, y + 1)) is stage.WALL):
         doorway_offset = 1
       stage.set_tile_at((x, y + doorway_offset), stage.DOOR_WAY)
-      if room:
+      if room and doorway_offset != -1:
         _, target_y = room.get_center()
         if doorway_offset * (target_y - y) > 0:
           stage.set_tile_at(cell, stage.DOOR_WAY)
@@ -281,7 +300,7 @@ class Floor:
     graph = floor.graph
     tree = floor.tree
     if start is None:
-      start = random.choice(graph.nodes)
+      start = choice(graph.nodes)
     queue = [start]
     while queue:
       node = queue[-1]
@@ -295,7 +314,7 @@ class Floor:
         continue
       for neighbor in neighbors:
         connectors = graph.connectors(node, neighbor)
-        connector = random.choice(connectors)
+        connector = choice(connectors)
         tree.connect(node, neighbor, connector)
         queue.append(neighbor)
         if node.degree:
@@ -303,6 +322,9 @@ class Floor:
             break
           if tree.degree(node) > node.degree:
             return False
+      if type(node) is Maze:
+        queue.remove(node)
+        queue.insert(0, node)
     return True
 
   def fill_ends(floor):
@@ -353,10 +375,10 @@ def debug_floor(seed=None):
   stage.seed = seed
 
   arena = BattleRoom()
-  exit_room = Room((3, 4))
+  exit_room = ExitRoom()
   oasis_room = OasisRoom()
   treasure_room = TreasureRoom()
-  puzzle_room = VerticalRoom((5, 4), degree=2)
+  puzzle_room = VerticalRoom((5, 4))
   features = [arena, exit_room, puzzle_room, treasure_room, oasis_room]
   floor.gen_place(arena)
   floor.gen_place(treasure_room)
@@ -384,6 +406,7 @@ def debug_floor(seed=None):
     debug("Failed to satisfy feature degree constraints")
     return debug_floor()
 
+  floor.gen_loops()
   floor.fill_ends()
   floor.fill_isolated()
 
@@ -408,20 +431,19 @@ def debug_floor(seed=None):
       floor.draw_door(door, tile, room)
     doors += conns
 
-  for cell in oasis_room.get_cells():
-    stage.set_tile_at(cell, Stage.STAIRS_DOWN)
-
   rooms = [n for n in tree.nodes if type(n) is Room and n not in features]
 
+  # draw corners
   for room in rooms:
     corners = [c for c in room.get_corners() if not [
       d for d in doors if manhattan(c, d) <= 2]]
-    corner_count = random.randrange(0, len(corners))
-    for i in range(corner_count):
-      corner = random.choice(corners)
-      stage.set_tile_at(corner, stage.WALL)
+    if corners:
+      corner_count = randrange(0, len(corners))
+      for i in range(corner_count):
+        corner = choice(corners)
+        stage.set_tile_at(corner, stage.WALL)
 
-  entry_room = random.choice(rooms)
+  entry_room = choice(rooms)
   stage.entrance = entry_room.get_center()
   stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
   stage.rooms = rooms + features
@@ -429,14 +451,14 @@ def debug_floor(seed=None):
 
 def gen_enemy(floor):
   if floor == 1:
-    return random.choices((Eye, Mushroom), (5, 1))[0]()
+    return choices((Eye, Mushroom), (5, 1))[0]()
   elif floor == 2:
-    return random.choices((Eye, Mushroom), (3, 1))[0]()
+    return choices((Eye, Mushroom), (3, 1))[0]()
   else:
-    return random.choices((Eye, Mushroom, Skeleton), (2, 2, 1))[0]()
+    return choices((Eye, Mushroom, Skeleton), (2, 2, 1))[0]()
 
 def gen_item():
-  return random.choices(
+  return choices(
     (Potion, Ankh, Cheese, Bread, Fish, Antidote, Emerald),
     (     3,    1,      4,     3,    1,        3,       1)
   )[0]()

@@ -1,8 +1,17 @@
-from dungeon.features.room import Room
+from dungeon.features.specialroom import SpecialRoom
 
-class OasisRoom(Room):
+class OasisRoom(SpecialRoom):
   def __init__(room, secret=False):
-    super().__init__((5, 7), degree=1, secret=secret)
+    room.shape = [
+      "#...#",
+      ".....",
+      ".>>>.",
+      ".>>>.",
+      ".>>>.",
+      ".....",
+      "#...#"
+    ]
+    super().__init__(degree=1, secret=secret)
 
   def get_cells(room):
     return [c for c in super().get_cells() if c not in room.get_corners()]

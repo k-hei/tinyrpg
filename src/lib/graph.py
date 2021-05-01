@@ -26,7 +26,8 @@ class Graph:
 
   def remove(graph, node):
     graph.disconnect(node)
-    graph.nodes.remove(node)
+    if node in graph.nodes:
+      graph.nodes.remove(node)
 
   def neighbors(graph, node):
     neighbors = set()

@@ -21,11 +21,16 @@ class FloorGraph(Graph):
       if (node2, node1) in graph.conns:
         del graph.conns[(node2, node1)]
 
-  def connectors(graph, node1, node2):
+  def connectors(graph, node1, node2=None):
     connectors = []
-    for edge, cs in graph.conns.items():
-      if edge == (node1, node2) or edge == (node2, node1):
-        connectors += cs
+    if not node2:
+      for (n1, n2), cs in graph.conns.items():
+        if n1 is node1 or n2 is node1:
+          connectors += cs
+    else:
+      for edge, cs in graph.conns.items():
+        if edge == (node1, node2) or edge == (node2, node1):
+          connectors += cs
     return connectors
 
   def connectees(graph, conn):
