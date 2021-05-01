@@ -1,4 +1,4 @@
-import math
+from math import ceil, sin, pi
 from pygame import Surface, Rect
 from assets import load as use_assets
 from anims.tween import TweenAnim
@@ -6,7 +6,7 @@ from easing.expo import ease_out
 from lib.lerp import lerp
 from comps.hud import render_numbers
 from filters import recolor, replace_color
-import palette
+from palette import RED, WHITE, BLUE
 
 MARGIN = 12
 PADDING_X = 3
@@ -54,30 +54,36 @@ class SpMeter:
       meter.sp_drawn += delta
 
     if delta == -SPEED_DEPLETE and meter.draws % 2:
-      fill_sprite = recolor(fill_sprite, palette.WHITE)
+      fill_sprite = recolor(fill_sprite, WHITE)
 
     bg_sprite = None
-    if delta > 0 and meter.draws % 2:
-      bg_sprite = recolor(fill_sprite, palette.WHITE)
+    if delta > 0:
+      alpha = sin(meter.draws % 30 / 30 * 2 * pi) * 0x7F + 0x7F
+      bg_sprite = replace_color(fill_sprite, BLUE, (*WHITE, alpha))
       bg_y = bg_sprite.get_height() * (1 - sp_pct)
       bg_sprite = bg_sprite.subsurface(Rect(
-        (0, math.ceil(bg_y)),
-        (bg_sprite.get_width(), bg_sprite.get_height() - math.ceil(bg_y))
+        (0, ceil(bg_y)),
+        (bg_sprite.get_width(), bg_sprite.get_height() - ceil(bg_y))
       ))
 
-    if sp_pct < 1:
+    if meter.sp_drawn < 1:
       fill_y = fill_sprite.get_height() * (1 - meter.sp_drawn)
       fill_sprite = fill_sprite.subsurface(Rect(
-        (0, math.ceil(fill_y)),
-        (fill_sprite.get_width(), fill_sprite.get_height() - math.ceil(fill_y))
+        (0, ceil(fill_y)),
+        (fill_sprite.get_width(), fill_sprite.get_height() - ceil(fill_y))
       ))
 
-    numbers_sprite = render_numbers(int(meter.sp_drawn * ctx.sp_max), ctx.sp_max)
+    sp = meter.sp_drawn * ctx.sp_max
+    if ceil(sp) == ctx.sp_max:
+      sp = ctx.sp_max
+    elif int(sp) == 0:
+      sp = 0
+    numbers_sprite = render_numbers(sp, ctx.sp_max)
     numbers_x = 0
     numbers_y = meter_sprite.get_height() // 2 - numbers_sprite.get_height() // 2 + NUMBERS_OFFSET
 
     if ctx.sp == 0:
-      tag_sprite = replace_color(tag_sprite, palette.BLUE, palette.RED)
+      tag_sprite = replace_color(tag_sprite, BLUE, RED)
 
     sprite = Surface((
       meter_sprite.get_width() + numbers_sprite.get_width() - NUMBERS_OVERLAP,
@@ -88,8 +94,8 @@ class SpMeter:
     meter_y = 0
     sprite.blit(meter_sprite, (meter_x, meter_y))
     if bg_sprite:
-      sprite.blit(bg_sprite, (meter_x + PADDING_X, meter_y + PADDING_Y + math.ceil(bg_y)))
-    sprite.blit(fill_sprite, (meter_x + PADDING_X, meter_y + PADDING_Y + math.ceil(fill_y)))
+      sprite.blit(bg_sprite, (meter_x + PADDING_X, meter_y + PADDING_Y + ceil(bg_y)))
+    sprite.blit(fill_sprite, (meter_x + PADDING_X, meter_y + PADDING_Y + ceil(fill_y)))
     sprite.blit(numbers_sprite, (numbers_x, numbers_y))
     sprite.blit(tag_sprite, (
       meter_x + meter_sprite.get_width() - tag_sprite.get_width(),

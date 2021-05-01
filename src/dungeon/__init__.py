@@ -504,7 +504,9 @@ class DungeonContext(Context):
           hero.regen()
         if not ally.is_dead() and not ally.ailment == "sleep":
           ally.regen()
-      game.parent.deplete_sp(1 / 100)
+
+      if target_tile is not Stage.OASIS:
+        game.parent.deplete_sp(1 / 100)
 
     moved = game.move(hero, delta, run, on_move)
     if moved:
@@ -1068,12 +1070,16 @@ class DungeonContext(Context):
       return
     game.oasis_used = True
 
+    def offset_y(cell, delta):
+      x, y = cell
+      return (x, y + delta)
+
     hero = game.hero
-    game.numbers.append(DamageValue(hero.get_hp_max(), (hero.cell[0], hero.cell[1] - 0.25), GREEN))
+    game.numbers.append(DamageValue(hero.get_hp_max(), offset_y(hero.cell, -0.25), GREEN))
     game.numbers.append(DamageValue(game.get_sp_max(), hero.cell, CYAN))
 
     ally = game.ally
-    game.numbers.append(DamageValue(ally.get_hp_max(), (ally.cell[0], ally.cell[1] - 0.25), GREEN))
+    game.numbers.append(DamageValue(ally.get_hp_max(), offset_y(ally.cell, -0.25), GREEN))
     game.numbers.append(DamageValue(game.get_sp_max(), ally.cell, CYAN))
 
     hero.regen(hero.get_hp_max())
@@ -1081,6 +1087,7 @@ class DungeonContext(Context):
     game.parent.regen_sp()
     game.log.print("You use the oasis")
     game.log.print("The party's HP and SP has been restored.")
+    game.anims.append([PauseAnim(duration=240)])
 
   def get_sp(game):
     return game.parent.get_sp()

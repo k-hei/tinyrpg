@@ -460,7 +460,7 @@ def gen_floor(seed=None):
   entry_room = oasis_room
 
   center_x, center_y = entry_room.get_center()
-  stage.entrance = (center_x, center_y + 3)
+  stage.entrance = (center_x, center_y - 3)
   # stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
   stage.rooms = rooms + features
   return stage
