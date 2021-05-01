@@ -42,6 +42,19 @@ class StageView:
     view.tile_cache = {}
     view.facings = {}
 
+  def redraw_tile(view, stage, cell, visited_cells):
+    col, row = cell
+    start_x, start_y = view.tile_offset
+    image = render_tile(stage, cell, visited_cells)
+    if not image:
+      return
+    image = replace_color(image, WHITE, COLOR_WALL)
+    image_darken = replace_color(image, COLOR_WALL, darken(COLOR_WALL))
+    view.tile_cache[cell] = image_darken
+    x = (col - start_x) * TILE_SIZE
+    y = (row - start_y) * TILE_SIZE
+    view.tile_surface.blit(image, (x, y))
+
   def redraw_tiles(view, stage, camera, visible_cells, visited_cells):
     sprites = []
     camera = camera.get_rect()
@@ -49,31 +62,18 @@ class StageView:
     start_y = camera.top // TILE_SIZE - 1
     end_x = ceil(camera.right / TILE_SIZE) + 1
     end_y = ceil(camera.bottom / TILE_SIZE) + 1
+    view.tile_offset = (start_x, start_y)
+    view.tile_surface.fill(BLACK)
     for row in range(start_y, end_y + 1):
       for col in range(start_x, end_x + 1):
         cell = (col, row)
         if cell in visible_cells:
-          image = render_tile(stage, cell, visited_cells)
-          if not image:
-            continue
-          image = replace_color(image, WHITE, COLOR_WALL)
-          image_darken = replace_color(image, COLOR_WALL, darken(COLOR_WALL))
-          view.tile_cache[cell] = image_darken
+          view.redraw_tile(stage, cell, visited_cells)
         elif cell in view.tile_cache:
           image = view.tile_cache[cell]
-        else:
-          continue
-        x = (col - start_x) * TILE_SIZE
-        y = (row - start_y) * TILE_SIZE
-        sprites.append(Sprite(
-          image=image,
-          pos=(x, y),
-          layer="tiles"
-        ))
-    view.tile_surface.fill(BLACK)
-    view.tile_offset = (start_x, start_y)
-    for sprite in sprites:
-      view.tile_surface.blit(sprite.image, sprite.pos)
+          x = (col - start_x) * TILE_SIZE
+          y = (row - start_y) * TILE_SIZE
+          view.tile_surface.blit(image, (x, y))
 
   def draw_tiles(view, surface, camera):
     camera = camera.get_rect()
@@ -187,13 +187,15 @@ class StageView:
 
     return sprites
 
-  def render_elems(view, elems, camera, visible_cells, anims, vfx):
+  def render_elems(view, elems, hero, camera, visible_cells, anims, vfx):
     sprites = []
     camera = camera.get_rect()
-    def is_visible(cell):
-      if cell not in visible_cells:
+    def is_visible(elem):
+      if elem is hero:
+        return True
+      if elem.cell not in visible_cells:
         return False
-      x, y = cell
+      x, y = elem.cell
       x *= TILE_SIZE
       y *= TILE_SIZE
       if (x + TILE_SIZE < camera.left
@@ -202,7 +204,7 @@ class StageView:
       or y > camera.bottom):
         return False
       return True
-    visible_elems = [e for e in elems if is_visible(e.cell)]
+    visible_elems = [e for e in elems if is_visible(e)]
     for elem in visible_elems:
       sprites += view.render_elem(elem, anims, vfx)
 
@@ -272,10 +274,11 @@ class StageView:
     anims = ctx.anims
     vfx = ctx.vfx
     numbers = ctx.numbers
+    hero = ctx.hero
     stage = ctx.floor
     elems = stage.elems
     sprites = [*stage.decors]
-    sprites += view.render_elems(elems, camera, visible_cells, anims, vfx)
+    sprites += view.render_elems(elems, hero, camera, visible_cells, anims, vfx)
     sprites += view.render_vfx(vfx, camera)
     sprites += view.render_numbers(numbers, camera)
     sprites.sort(key=StageView.order)

@@ -150,6 +150,12 @@ class DungeonContext(Context):
     game.camera.update(game)
     game.refresh_fov(moving=True)
 
+  def set_tile_at(game, cell, tile):
+    floor = game.floor
+    floor_view = game.floor_view
+    floor.set_tile_at(cell, tile)
+    floor_view.redraw_tile(floor, cell, game.get_visited_cells())
+
   def refresh_fov(game, moving=False):
     hero = game.hero
     floor = game.floor
@@ -179,7 +185,7 @@ class DungeonContext(Context):
         game.rooms_entered.append(room)
         game.camera.focus(door, speed=8)
         game.anims.append([
-          PauseAnim(90, on_end=lambda: floor.set_tile_at(door, Stage.DOOR_LOCKED)),
+          PauseAnim(90, on_end=lambda: game.set_tile_at(door, Stage.DOOR_LOCKED)),
           PauseAnim(105, on_end=game.camera.blur),
           PauseAnim(45)
         ])
@@ -737,23 +743,23 @@ class DungeonContext(Context):
         dest_cell=target_cell,
         on_end=on_end
       )
-      for group in game.anims:
-        for anim in group:
-          if (type(anim) is MoveAnim
-          # and actor.allied(anim.target)
-          and isinstance(anim.target, DungeonActor)):
-            group.append(move_anim)
-            break
-          else:
-            anim = None
-        if anim:
-          break
+      move_group = game.find_move_group()
+      if move_group:
+        move_group.append(move_anim)
       else:
         game.anims.append([move_anim])
       actor.cell = target_cell
       return True
     else:
       return False
+
+  def find_move_group(game):
+    for group in game.anims:
+      for anim in group:
+        if (type(anim) is MoveAnim
+        # and actor.allied(anim.target)
+        and isinstance(anim.target, DungeonActor)):
+          return group
 
   def move_to(game, actor, cell, run=False):
     if actor.cell == cell:
