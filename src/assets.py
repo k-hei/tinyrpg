@@ -151,7 +151,8 @@ sprite_paths = {
   "wall_link": "wall-link",
   "wall_torch": "wall-torch",
   "town": "town",
-  "tower": "tower"
+  "tower": "tower",
+  "tileset": "tileset"
 }
 
 def load_sprite(sprite_name, path, sprites):
@@ -169,6 +170,8 @@ def load_sprite(sprite_name, path, sprites):
 
   cell_width = 0
   cell_height = 0
+  offset_x = 0
+  offset_y = 0
   cols = 0
   rows = 0
   for key, value in metadata.items():
@@ -176,6 +179,10 @@ def load_sprite(sprite_name, path, sprites):
       cell_width = value
     elif key == "cell_height":
       cell_height = value
+    elif key == "offset_x":
+      offset_x = value
+    elif key == "offset_y":
+      offset_y = value
     elif key == "order":
       cols = len(value[0])
       rows = len(value)
@@ -183,8 +190,12 @@ def load_sprite(sprite_name, path, sprites):
         for col in range(cols):
           key = value[row][col]
           if key == "": continue
-          rect = Rect(col * cell_width, row * cell_height, cell_width, cell_height)
-          sprites[key] = sprite.subsurface(rect)
+          sprites[key] = sprite.subsurface(Rect(
+            col * cell_width + offset_x,
+            row * cell_height + offset_y,
+            cell_width,
+            cell_height
+          ))
     elif type(value) is list:
       rect = Rect(*value)
       sprites[key] = sprite.subsurface(rect)

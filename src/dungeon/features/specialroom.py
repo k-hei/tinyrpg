@@ -22,6 +22,8 @@ class SpecialRoom(Room):
       if char == "*": return stage.DOOR_HIDDEN
       if char == ">": return stage.STAIRS_DOWN
       if char == "<": return stage.STAIRS_UP
+      if char == "=": return stage.COFFIN
+      if char == "O": return stage.OASIS
       return stage.FLOOR
 
     x, y = room.cell or (0, 0)

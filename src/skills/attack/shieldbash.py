@@ -41,12 +41,12 @@ class ShieldBash(AttackSkill):
       nudge_tile = floor.get_tile_at(nudge_cell)
       nudge_actor = floor.get_elem_at(nudge_cell)
       will_nudge = (
-        (not nudge_tile.solid or nudge_tile.pit)
+        (not nudge_tile.solid or nudge_tile is floor.PIT)
         and nudge_actor is None
       )
 
       def on_move():
-        if nudge_tile.pit:
+        if nudge_tile is floor.PIT:
           game.log.print(target_elem.token(), " tumbles into the chasm below!")
         else:
           game.log.print(target_elem.token(), " is reeling.")

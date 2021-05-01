@@ -5,9 +5,9 @@ class OasisRoom(SpecialRoom):
     room.shape = [
       "#...#",
       ".....",
-      ".>>>.",
-      ".>>>.",
-      ".>>>.",
+      ".OOO.",
+      ".OOO.",
+      ".OOO.",
       ".....",
       "#...#"
     ]

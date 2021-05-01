@@ -1,5 +1,5 @@
 import random
-from random import randint, randrange, choice
+from random import randint, randrange, choice, choices
 from lib.cell import is_odd, add, is_adjacent, manhattan
 
 import config
@@ -14,6 +14,7 @@ from dungeon.features.specialroom import SpecialRoom
 from dungeon.features.battleroom import BattleRoom
 from dungeon.features.treasureroom import TreasureRoom
 from dungeon.features.oasisroom import OasisRoom
+from dungeon.features.coffinroom import CoffinRoom
 
 from dungeon.actors.knight import Knight
 from dungeon.actors.mage import Mage
@@ -377,12 +378,14 @@ def debug_floor(seed=None):
   arena = BattleRoom()
   exit_room = ExitRoom()
   oasis_room = OasisRoom()
+  coffin_room = CoffinRoom()
   treasure_room = TreasureRoom()
   puzzle_room = VerticalRoom((5, 4))
-  features = [arena, exit_room, puzzle_room, treasure_room, oasis_room]
+  features = [arena, exit_room, puzzle_room, treasure_room, oasis_room, coffin_room]
   floor.gen_place(arena)
   floor.gen_place(treasure_room)
   floor.gen_place(oasis_room)
+  floor.gen_place(coffin_room)
 
   if not floor.gen_neighbor(arena, exit_room):
     debug("Failed to place exit room")
@@ -443,8 +446,10 @@ def debug_floor(seed=None):
         corner = choice(corners)
         stage.set_tile_at(corner, stage.WALL)
 
-  entry_room = choice(rooms)
-  stage.entrance = entry_room.get_center()
+  entry_room = oasis_room
+
+  center_x, center_y = entry_room.get_center()
+  stage.entrance = (center_x, center_y + 5)
   stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
   stage.rooms = rooms + features
   return stage
