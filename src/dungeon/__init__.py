@@ -216,8 +216,6 @@ class DungeonContext(Context):
     else:
       camera.blur()
 
-    game.redraw_tiles()
-
   def step(game, run=False):
     if not game.ally.stepped:
       game.step_ally(game.ally)
@@ -796,18 +794,20 @@ class DungeonContext(Context):
     floor = game.floor
     tile = floor.get_tile_at(cell)
 
+    opened = False
+
     if tile is Stage.DOOR:
-      game.floor.set_tile_at(cell, Stage.DOOR_OPEN)
-      return True
-
-    if tile is Stage.DOOR_HIDDEN:
+      opened = True
+    elif tile is Stage.DOOR_HIDDEN:
       game.log.print("Discovered a hidden door!")
-      game.floor.set_tile_at(cell, Stage.DOOR_OPEN)
-      return True
-
-    if tile is Stage.DOOR_LOCKED:
+      opened = True
+    elif tile is Stage.DOOR_LOCKED:
       game.log.print("The door is locked...")
-      return False
+
+    if opened:
+      game.floor.set_tile_at(cell, Stage.DOOR_OPEN)
+      game.redraw_tiles()
+    return opened
 
   def redraw_tiles(game):
     game.floor_view.redraw_tiles(game.floor, game.camera, game.get_visible_cells(), game.get_visited_cells())
@@ -1047,12 +1047,20 @@ class DungeonContext(Context):
     floor = floor or game.floor
     return next((cells for f, cells in game.memory if f is floor), None)
 
+  def update_camera(game):
+    old_x, old_y = game.camera.get_pos()
+    game.camera.update(game)
+    new_x, new_y = game.camera.get_pos()
+    if round(new_x - old_x) or round(new_y - old_y):
+      game.redraw_tiles()
+
   def draw(game, surface):
     assets = load_assets()
     surface.fill(0x000000)
     window_width = surface.get_width()
     window_height = surface.get_height()
-    game.camera.update(game)
+
+    game.update_camera()
 
     if not config.DEBUG and not game.minimap.is_focused():
       game.tile_surface = game.floor_view.draw(surface, game)

@@ -1,11 +1,15 @@
-from pygame import Rect
-import config
 import math
+from pygame import Rect
+from config import TILE_SIZE
 from anims.move import MoveAnim
+from anims.tween import TweenAnim
+from easing.expo import ease_out
+from lib.lerp import lerp
 
 class Camera:
   MAX_RADIUS_X = 3
   MAX_RADIUS_Y = 2
+  MOVE_DURATION = 15
 
   def __init__(camera, size):
     camera.size = size
@@ -13,6 +17,7 @@ class Camera:
     camera.cell = None
     camera.flag = None
     camera.speed = None
+    camera.anims = []
 
   def get_pos(camera):
     return camera.pos
@@ -28,7 +33,21 @@ class Camera:
   def reset(camera):
     camera.pos = None
 
+  def upscale(camera, cell):
+    width, height = camera.get_size()
+    x, y = cell
+    return (
+      (x + 0.5) * TILE_SIZE - width / 2,
+      (y + 0.5) * TILE_SIZE - height / 2
+    )
+
   def focus(camera, cell, speed=None):
+    if camera.flag:
+      return
+    # camera.anims.append(TweenAnim(
+    #   duration=Camera.MOVE_DURATION,
+    #   target=(camera.pos, camera.upscale(cell))
+    # ))
     camera.flag = cell
     camera.speed = speed
 
@@ -62,10 +81,9 @@ class Camera:
       room = game.room
       focus_x, focus_y = room.get_center()
       camera_speed = 8
-      for anim in anims:
-        if anim.target is hero and type(anim) is MoveAnim and not anim.done:
-          hero_x, hero_y = anim.cur_cell
-          break
+      move_anim = next((a for a in anims if not a.done and a.target is hero and type(a) is MoveAnim), None)
+      if move_anim:
+        hero_x, hero_y = move_anim.cur_cell
 
       room_halfwidth = room.get_width() // 2 + 1
       room_halfheight = room.get_height() // 2 + 1
@@ -87,17 +105,27 @@ class Camera:
         else:
           focus_y = hero_y
     else:
-      for anim in anims:
-        if anim.target is hero and type(anim) is MoveAnim and not anim.done:
-          focus_x, focus_y = anim.cur_cell
-          break
+      move_anim = next((a for a in anims if not a.done and a.target is hero and type(a) is MoveAnim), None)
+      if move_anim:
+        focus_x, focus_y = move_anim.cur_cell
 
-    camera_speed = camera.speed or camera_speed
-    camera_x = (focus_x + 0.5) * config.TILE_SIZE - view_width / 2
-    camera_y = (focus_y + 0.5) * config.TILE_SIZE - view_height / 2
-    if camera.pos:
-      old_camera_x, old_camera_y = camera.pos
-      camera_x = old_camera_x + (camera_x - old_camera_x) / camera_speed
-      camera_y = old_camera_y + (camera_y - old_camera_y) / camera_speed
+    camera_anim = camera.anims[0] if camera.anims else None
+    if camera_anim:
+      t = ease_out(camera_anim.update())
+      start, end = camera_anim.target
+      start_x, start_y = start
+      end_x, end_y = end
+      camera_x = lerp(start_x, end_x, t)
+      camera_y = lerp(start_y, end_y, t)
+      focus_x, focus_y = camera.flag
+      if camera_anim.done:
+        camera.anims.remove(camera_anim)
+    else:
+      camera_x, camera_y = camera.upscale((focus_x, focus_y))
+      if camera.pos:
+        old_camera_x, old_camera_y = camera.pos
+        camera_speed = camera.speed or camera_speed
+        camera_x = old_camera_x + (camera_x - old_camera_x) / camera_speed
+        camera_y = old_camera_y + (camera_y - old_camera_y) / camera_speed
     camera.pos = (camera_x, camera_y)
     camera.cell = (focus_x, focus_y)

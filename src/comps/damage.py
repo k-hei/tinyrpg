@@ -76,7 +76,7 @@ class DamageValue:
           int(number_height * lerp(1, 3, t))
         ))
       if number.time >= 0 and (value.time < 60 or value.time % 2):
-        number_x = x + number_width // 2, image.get_width() // 2
+        number_x = x + number_width // 2 - image.get_width() // 2
         number_y = y + number.y + number_height // 2 - image.get_height() // 2
         sprites.append(Sprite(
           image=image,

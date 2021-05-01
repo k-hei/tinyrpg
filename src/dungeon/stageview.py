@@ -1,3 +1,4 @@
+import sys
 from math import ceil
 from pygame import Surface, Rect
 from pygame.transform import rotate, flip, scale
@@ -254,10 +255,15 @@ class StageView:
   def draw_sprites(view, surface, sprites, camera):
     camera_x, camera_y = camera.pos
     for sprite in sprites:
-      sprite_x, sprite_y = sprite.pos
-      sprite_x -= camera_x
-      sprite_y -= camera_y
-      surface.blit(sprite.image, (sprite_x, sprite_y))
+      try:
+        sprite_x, sprite_y = sprite.pos
+        sprite_x -= camera_x
+        sprite_y -= camera_y
+        surface.blit(sprite.image, (sprite_x, sprite_y))
+      except:
+        print("[DEBUG] Failed to draw sprite of layer '{}'".format(sprite.layer),
+          "and pos '{}':".format(sprite.pos),
+          sys.exc_info()[0].with_traceback())
 
   def draw(view, surface, ctx):
     visible_cells = ctx.hero.visible_cells
