@@ -5,8 +5,9 @@ from pygame import Surface
 class Sprite:
   image: Surface
   pos: tuple[int, int]
-  layer: str
   offset: int = 0
+  layer: str = None
+  tile: bool = False
 
   def draw(sprite, surface):
     surface.blit(sprite.image, sprite.pos)

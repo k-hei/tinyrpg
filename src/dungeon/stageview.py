@@ -5,7 +5,7 @@ from pygame.transform import rotate, flip, scale
 
 from assets import load as use_assets
 from filters import replace_color
-from palette import BLACK, WHITE, COLOR_WALL, darken
+from palette import BLACK, WHITE, COLOR_TILE, darken
 from config import ITEM_OFFSET, TILE_SIZE, DEBUG
 from sprite import Sprite
 from lib.lerp import lerp
@@ -29,7 +29,11 @@ class StageView:
 
   def order(sprite):
     sprite_x, sprite_y = sprite.pos
-    depth = StageView.LAYERS.index(sprite.layer) * 1000
+    try:
+      depth = StageView.LAYERS.index(sprite.layer)
+    except ValueError:
+      depth = 0
+    depth *= 1000
     y = sprite_y + sprite.image.get_height() + sprite.offset
     return depth + y
 
@@ -48,8 +52,11 @@ class StageView:
     image = render_tile(stage, cell, visited_cells)
     if not image:
       return
-    image = replace_color(image, WHITE, COLOR_WALL)
-    image_darken = replace_color(image, COLOR_WALL, darken(COLOR_WALL))
+    color = WHITE
+    if stage.get_tile_at(cell) is not stage.OASIS:
+      color = COLOR_TILE
+      image = replace_color(image, WHITE, color)
+    image_darken = replace_color(image, color, darken(color))
     view.tile_cache[cell] = image_darken
     x = (col - start_x) * TILE_SIZE
     y = (row - start_y) * TILE_SIZE
@@ -257,15 +264,12 @@ class StageView:
   def draw_sprites(view, surface, sprites, camera):
     camera_x, camera_y = camera.pos
     for sprite in sprites:
-      try:
-        sprite_x, sprite_y = sprite.pos
-        sprite_x -= camera_x
-        sprite_y -= camera_y
-        surface.blit(sprite.image, (sprite_x, sprite_y))
-      except:
-        print("[DEBUG] Failed to draw sprite of layer '{}'".format(sprite.layer),
-          "and pos '{}':".format(sprite.pos),
-          sys.exc_info()[0].with_traceback())
+      if sprite.tile:
+        sprite.image = replace_color(sprite.image, WHITE, COLOR_TILE)
+      sprite_x, sprite_y = sprite.pos
+      sprite_x -= camera_x
+      sprite_y -= camera_y
+      surface.blit(sprite.image, (sprite_x, sprite_y))
 
   def draw(view, surface, ctx):
     visible_cells = ctx.hero.visible_cells

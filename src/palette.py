@@ -19,7 +19,7 @@ PINK = (0xDB, 0x4E, 0xDF)
 PINK_DARK = (0x76, 0x1B, 0xA6)
 SAFFRON = (0xA9, 0x73, 0x52)
 
-COLOR_WALL = SAFFRON
+COLOR_TILE = SAFFRON
 
 def darken(color):
   if color == WHITE: return GRAY
