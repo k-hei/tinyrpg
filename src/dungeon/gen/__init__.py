@@ -11,6 +11,7 @@ from dungeon.features.vertroom import VerticalRoom
 from dungeon.features.specialroom import SpecialRoom
 from dungeon.features.battleroom import BattleRoom
 from dungeon.features.treasureroom import TreasureRoom
+from dungeon.features.oasisroom import OasisRoom
 
 from dungeon.actors.knight import Knight
 from dungeon.actors.mage import Mage
@@ -66,9 +67,9 @@ class Floor:
 
   def place(floor, feature):
     feature.place(floor.stage)
-    for cell in feature.get_cells():
-      if cell in floor.slots:
-        floor.slots.remove(cell)
+    for slot in feature.get_slots():
+      if slot in floor.slots:
+        floor.slots.remove(slot)
     floor.graph.add(feature)
 
   def gen_slots(size):
@@ -232,8 +233,11 @@ class Floor:
         connector = random.choice(connectors)
         tree.connect(node, neighbor, connector)
         queue.append(neighbor)
-        if node.degree and tree.degree(node) >= node.degree:
-          break
+        if node.degree:
+          if tree.degree(node) == node.degree:
+            break
+          if tree.degree(node) > node.degree:
+            return False
     return True
 
   def fill_ends(floor):
@@ -285,11 +289,13 @@ def debug_floor(seed=None):
 
   arena = BattleRoom()
   exit_room = Room((3, 4))
+  oasis_room = OasisRoom()
   treasure_room = TreasureRoom()
   puzzle_room = VerticalRoom((5, 4), degree=2)
-  features = [arena, exit_room, puzzle_room, treasure_room]
+  features = [arena, exit_room, puzzle_room, treasure_room, oasis_room]
   floor.gen_place(arena)
   floor.gen_place(treasure_room)
+  floor.gen_place(oasis_room)
 
   if not floor.gen_neighbor(arena, exit_room):
     debug("fatal: Failed to place exit room")
@@ -314,6 +320,7 @@ def debug_floor(seed=None):
     return debug_floor()
 
   floor.fill_ends()
+  floor.fill_isolated()
 
   secrets = [n for n in tree.nodes if n.secret]
   for node in secrets:
@@ -325,14 +332,15 @@ def debug_floor(seed=None):
         debug("fatal: Hidden room connected to dead end")
         return debug_floor()
 
-  # floor.gen_loops()
-  floor.fill_isolated()
-
+  # draw doors
   for (n1, n2), doors in tree.conns.items():
     room = n1 if isinstance(n1, Room) else n2 if isinstance(n2, Room) else None
     for door in doors:
       tile = stage.DOOR_HIDDEN if n1.secret or n2.secret else stage.DOOR
       floor.draw_door(door, tile, room)
+
+  for cell in oasis_room.get_cells():
+    stage.set_tile_at(cell, Stage.STAIRS_DOWN)
 
   # def distance(r1, r2):
   #   return tree.distance(r1, r2) * 100 + manhattan(r1.get_center(), r2.get_center())
@@ -340,6 +348,7 @@ def debug_floor(seed=None):
   rooms = [n for n in tree.nodes if type(n) is Room and n not in features]
   entry_room = random.choice(rooms)
   stage.entrance = entry_room.get_center()
+  stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
   stage.rooms = rooms + features
   return stage
 

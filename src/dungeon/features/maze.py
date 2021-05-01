@@ -20,3 +20,6 @@ class Maze(Feature):
 
   def get_ends(maze):
     return [c for c in maze.cells if len([o for o in maze.cells if is_adjacent(o, c)]) <= 1]
+
+  def get_slots(maze):
+    return [(x, y) for (x, y) in maze.cells if x % 2 == 1 and y % 3 == 1]

@@ -71,11 +71,19 @@ class Room(Feature):
 
     return edges
 
+  def get_slots(room, cell=None):
+    room_x, room_y = cell or room.cell or (0, 0)
+    slots = []
+    for y in range(room.get_height()):
+      for x in range(room.get_width()):
+        col, row = x + room_x, y + room_y
+        if col % 2 == 1 and row % 3 == 1:
+          slots.append((col, row))
+    return slots
+
   def validate(room, cell, slots):
-    cells = [add(c, cell) for c in room.get_cells()]
-    cells = [(x, y) for x, y in cells if x % 2 == 1 and y % 3 == 1]
-    for cell in cells:
-      if cell not in slots:
+    for slot in room.get_slots(cell):
+      if slot not in slots:
         return False
     return True
 

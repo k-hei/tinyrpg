@@ -18,7 +18,7 @@ class Log:
   MARGIN_LEFT = 12
   MARGIN_BOTTOM = 8
   ENTER_DURATION = 15
-  EXIT_DURATION = 7
+  EXIT_DURATION = 5
   HANG_DURATION = 180
   FONT_NAME = "roman"
   LINE_SPACING = 4
@@ -173,7 +173,7 @@ class Log:
       if type(anim) == EnterAnim:
         log.y = y * ease_out(t)
       elif type(anim) == ExitAnim:
-        log.y = y * ease_in(1 - t)
+        log.y = y * (1 - t)
       if anim.done:
         log.anim = None
       if anim.done and not log.active:
