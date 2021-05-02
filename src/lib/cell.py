@@ -6,6 +6,21 @@ def manhattan(a, b):
 def is_adjacent(a, b):
   return manhattan(a, b) == 1
 
+def normal(a, b):
+  x1, y1 = a
+  x2, y2 = b
+  dx, dy = x2 - x1, y2 - y1
+  nx, ny = 0, 0
+  if dx < 0:
+    nx = -1
+  elif dx > 0:
+    nx = 1
+  elif dy < 0:
+    ny = -1
+  elif dy > 0:
+    ny = 1
+  return nx, ny
+
 def add(a, b):
   x1, y1 = a
   x2, y2 = b

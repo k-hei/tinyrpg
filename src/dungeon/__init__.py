@@ -6,12 +6,12 @@ import palette
 from palette import GREEN, CYAN
 
 import config
-from config import WINDOW_SIZE, VISION_RANGE, MOVE_DURATION, RUN_DURATION
+from config import WINDOW_SIZE, VISION_RANGE, MOVE_DURATION, RUN_DURATION, JUMP_DURATION
 
 import keyboard
 from keyboard import ARROW_DELTAS, key_times
 
-from lib.cell import is_adjacent, manhattan
+from lib.cell import is_adjacent, manhattan, normal
 
 from assets import load as load_assets
 from filters import recolor, replace_color
@@ -46,6 +46,7 @@ from anims.item import ItemAnim
 from anims.flicker import FlickerAnim
 from anims.flinch import FlinchAnim
 from anims.move import MoveAnim
+from anims.jump import JumpAnim
 from anims.pause import PauseAnim
 
 from comps.damage import DamageValue
@@ -271,20 +272,27 @@ class DungeonContext(Context):
       enemy = adjacent_enemies[0]
       game.attack(ally, enemy)
       ally.stepped = True
-    elif old_hero_cell and is_adjacent(ally.cell, old_hero_cell):
+    elif old_hero_cell and (
+      is_adjacent(ally.cell, old_hero_cell)
+      or manhattan(ally.cell, old_hero_cell) == 2 and game.is_pit_between(ally.cell, old_hero_cell)
+    ):
       ally_x, ally_y = ally.cell
       old_x, old_y = old_hero_cell
       ally_delta = (old_x - ally_x, old_y - ally_y)
-      ally.stepped = game.move(ally, ally_delta, run)
+      jump = game.is_pit_between(ally.cell, old_hero_cell)
+      game.move(actor=ally, delta=ally_delta, run=run, jump=jump)
     elif visible_enemies and not is_adjacent(ally.cell, hero.cell):
       visible_enemies.sort(key=lambda e: e.get_hp())
       enemy = visible_enemies[0]
       ally.stepped = game.move_to(ally, enemy.cell)
     elif not is_adjacent(ally.cell, hero.cell):
       ally.stepped = game.move_to(ally, hero.cell, run)
-    if ally.stepped and len(game.anims) >= 2:
-      game.anims[-2].append(game.anims.pop()[0])
-    ally.stepped = True
+
+  def is_pit_between(game, a, b):
+    ax, ay = a
+    nx, ny = normal(a, b)
+    target_cell = (ax + nx, ay + ny)
+    return game.floor.get_tile_at(target_cell) is Stage.PIT
 
   def step_enemy(game, enemy):
     if enemy.is_dead() or enemy.stepped or enemy.idle or enemy.ailment == "sleep":
@@ -513,14 +521,14 @@ class DungeonContext(Context):
       if target_tile is not Stage.OASIS:
         game.parent.deplete_sp(1 / 100)
 
-    moved = game.move(hero, delta, run, on_move)
+    moved = game.move(actor=hero, delta=delta, run=run, on_end=on_move)
     if moved:
       game.step_ally(game.ally, run, old_cell)
       acted = True
     elif isinstance(target_elem, DungeonActor) and not hero.allied(target_elem):
       acted = game.handle_attack(target_elem)
     elif target_tile is Stage.PIT:
-      acted = game.jump_pit(hero, run, end_move)
+      moved = game.jump_pit(hero, run, on_move)
     else:
       game.anims.append([
         AttackAnim(
@@ -603,24 +611,13 @@ class DungeonContext(Context):
     return moved
 
   def jump_pit(game, actor, run=False, on_end=None):
-    actor_x, actor_y = actor.cell
     facing_x, facing_y = actor.facing
-    target_cell = (actor_x + facing_x * 2, actor_y + facing_y * 2)
-    duration = RUN_DURATION if run else MOVE_DURATION
-    move_anim = MoveAnim(
-      duration=duration,
-      target=actor,
-      src_cell=actor.cell,
-      dest_cell=target_cell,
-      on_end=on_end
-    )
-    move_group = game.find_move_group()
-    if move_group:
-      move_group.append(move_anim)
-    else:
-      game.anims.append([move_anim])
-    actor.cell = target_cell
-    return True
+    delta = (facing_x * 2, facing_y * 2)
+    old_cell = actor.cell
+    moved = game.move(actor=actor, delta=delta, run=run, jump=True, on_end=on_end)
+    if moved and actor is game.hero:
+      game.step_ally(game.ally, run, old_cell)
+    return moved
 
   def handle_attack(game, target):
     hero = game.hero
@@ -771,7 +768,7 @@ class DungeonContext(Context):
       game.child.exit()
     print("Debug mode switched {}".format("on" if config.DEBUG else "off"))
 
-  def move(game, actor, delta, run=False, on_end=None):
+  def move(game, actor, delta, run=False, jump=False, on_end=None):
     actor_x, actor_y = actor.cell
     delta_x, delta_y = delta
     target_cell = (actor_x + delta_x, actor_y + delta_y)
@@ -779,7 +776,9 @@ class DungeonContext(Context):
     target_elem = game.floor.get_elem_at(target_cell)
     origin_tile = game.floor.get_tile_at(actor.cell)
     origin_elev = origin_tile.elev
-    actor.facing = delta
+    facing_x = -1 if delta_x < 0 else 1 if delta_x > 0 else 0
+    facing_y = -1 if delta_y < 0 else 1 if delta_y > 0 else 0
+    actor.facing = (facing_x, facing_y)
     if (target_tile and not target_tile.solid
     and abs(target_tile.elev - origin_tile.elev) < 1
     and (target_elem is None
@@ -787,7 +786,8 @@ class DungeonContext(Context):
       or actor is game.hero and target_elem is game.ally and not game.ally.ailment == "sleep"
     )):
       duration = RUN_DURATION if run else MOVE_DURATION
-      move_anim = MoveAnim(
+      anim_kind = JumpAnim if jump else MoveAnim
+      move_anim = anim_kind(
         duration=duration,
         target=actor,
         src_cell=actor.cell,
@@ -807,7 +807,7 @@ class DungeonContext(Context):
   def find_move_group(game):
     for group in game.anims:
       for anim in group:
-        if (type(anim) is MoveAnim
+        if (isinstance(anim, MoveAnim)
         # and actor.allied(anim.target)
         and isinstance(anim.target, DungeonActor)):
           return group
@@ -852,7 +852,7 @@ class DungeonContext(Context):
         delta_x = select_x()
 
     if delta_x or delta_y:
-      return game.move(actor, (delta_x, delta_y), run, on_end=game.refresh_fov)
+      return game.move(actor=actor, delta=(delta_x, delta_y), run=run, on_end=game.refresh_fov)
     else:
       return False
 

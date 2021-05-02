@@ -1,6 +1,7 @@
 from dungeon.actors import DungeonActor
 from assets import load as use_assets
 from anims.move import MoveAnim
+from anims.jump import JumpAnim
 from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
@@ -25,6 +26,12 @@ class Mage(DungeonActor):
         elif anim.time % (anim.duration // 2) >= anim.duration // 4:
           sprite = sprites["mage_walk"]
           break
+      elif type(anim) is JumpAnim:
+        if mage.facing == (0, 1):
+          sprite = sprites["mage_walkdown"]
+        else:
+          sprite = sprites["mage_walk"]
+        break
       elif (type(anim) is AttackAnim
       and anim.time < anim.duration // 2):
         if mage.facing == (0, 1):

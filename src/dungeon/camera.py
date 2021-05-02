@@ -45,10 +45,6 @@ class Camera:
   def focus(camera, cell, speed=None):
     if camera.flag:
       return
-    # camera.anims.append(TweenAnim(
-    #   duration=Camera.MOVE_DURATION,
-    #   target=(camera.pos, camera.upscale(cell))
-    # ))
     camera.flag = cell
     camera.speed = speed
 
@@ -106,7 +102,11 @@ class Camera:
         else:
           focus_y = hero_y
     else:
-      move_anim = next((a for a in anims if not a.done and a.target is hero and type(a) is MoveAnim), None)
+      move_anim = next((a for a in anims if (
+        not a.done
+        and a.target is hero
+        and isinstance(a, MoveAnim)
+      )), None)
       if move_anim:
         focus_x, focus_y = move_anim.cur_cell
 

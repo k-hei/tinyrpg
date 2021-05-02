@@ -15,6 +15,7 @@ from dungeon.props.chest import Chest
 from dungeon.props.soul import Soul
 
 from anims.move import MoveAnim
+from anims.jump import JumpAnim
 from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
@@ -140,7 +141,8 @@ class StageView:
         scale_x = lerp(1, 0, t)
         scale_y = lerp(1, 3, t)
 
-      if type(anim) in (AttackAnim, MoveAnim):
+      if type(anim) in (AttackAnim, MoveAnim, JumpAnim):
+        offset_y = 0
         src_x, src_y = anim.src_cell
         dest_x, dest_y = anim.dest_cell
         if dest_x < src_x:
@@ -148,8 +150,10 @@ class StageView:
         elif dest_x > src_x:
           facing_y = 1
         col, row = anim.cur_cell
+        if type(anim) is JumpAnim:
+          offset_y = anim.offset
         sprite_x = col * TILE_SIZE
-        sprite_y = row * TILE_SIZE
+        sprite_y = row * TILE_SIZE + offset_y
 
       if anim.done:
         anim_group.remove(anim)
@@ -160,7 +164,7 @@ class StageView:
       for anim in group:
         if anims.index(group) == 0:
           continue
-        if anim.target is elem and type(anim) is MoveAnim:
+        if anim.target is elem and isinstance(anim, MoveAnim):
           col, row = anim.src_cell
           sprite_x = col * TILE_SIZE
           sprite_y = row * TILE_SIZE
