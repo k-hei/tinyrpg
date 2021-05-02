@@ -26,6 +26,7 @@ from dungeon.actors.mimic import Mimic
 from dungeon.actors.npc import NPC
 
 from dungeon.props.chest import Chest
+from dungeon.props.coffin import Coffin
 from dungeon.props.soul import Soul
 
 from items.hp.potion import Potion
@@ -377,9 +378,8 @@ def gen_debug(seed=None):
   floor.place(room)
   stage.entrance = room.get_center()
 
-  soldier = Soldier()
-  soldier.inflict_ailment("sleep")
-  stage.spawn_elem(soldier, (stage.entrance[0], stage.entrance[1] + 2))
+  stage.spawn_elem(Coffin(), (stage.entrance[0] - 2, stage.entrance[1]))
+  stage.set_tile_at((stage.entrance[0] + 2, stage.entrance[1]), stage.PIT)
   return stage
 
 def gen_floor(seed=None):

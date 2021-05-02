@@ -1,4 +1,5 @@
 import math
+import pygame
 from pygame import Rect
 from config import TILE_SIZE
 from anims.move import MoveAnim

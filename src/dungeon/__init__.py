@@ -33,6 +33,7 @@ from dungeon.actors.npc import NPC
 
 from dungeon.props.chest import Chest
 from dungeon.props.soul import Soul
+from dungeon.props.coffin import Coffin
 
 from items import Item
 from skills.weapon import Weapon
@@ -149,6 +150,7 @@ class DungeonContext(Context):
     game.camera.blur()
     game.camera.update(game)
     game.refresh_fov(moving=True)
+    game.redraw_tiles()
 
   def set_tile_at(game, cell, tile):
     floor = game.floor
@@ -431,6 +433,7 @@ class DungeonContext(Context):
     def on_move():
       if not moved:
         return False
+
       if target_elem and not target_elem.solid:
         target_elem.effect(game)
       if target_tile is Stage.OASIS:
@@ -472,6 +475,7 @@ class DungeonContext(Context):
           )
         ])
 
+      # if not make_sound(1 / 10)
       is_waking_up = False
       if game.room:
         room = game.room
@@ -495,16 +499,17 @@ class DungeonContext(Context):
                 )
               )
             ])
-
       if not is_waking_up:
         end_move()
 
+      # regen hp
       if game.parent.sp:
         if not hero.is_dead() and not hero.ailment == "sleep":
           hero.regen()
         if not ally.is_dead() and not ally.ailment == "sleep":
           ally.regen()
 
+      # deplete sp
       if target_tile is not Stage.OASIS:
         game.parent.deplete_sp(1 / 100)
 
@@ -514,6 +519,8 @@ class DungeonContext(Context):
       acted = True
     elif isinstance(target_elem, DungeonActor) and not hero.allied(target_elem):
       acted = game.handle_attack(target_elem)
+    elif target_tile is Stage.PIT:
+      acted = game.jump_pit(hero, run, end_move)
     else:
       game.anims.append([
         AttackAnim(
@@ -534,6 +541,19 @@ class DungeonContext(Context):
           npc.message = npc.messages[1]
         else:
           npc.message = npc.messages[0]
+
+        npc = target_elem
+        game.log.clear()
+        message = npc.message
+        game.log.print(npc.name + ": " + message[0])
+        for i in range(1, len(message)):
+          game.log.print(message[i])
+        if npc.message == npc.messages[0]:
+          npc.message = npc.messages[1]
+        else:
+          npc.message = npc.messages[0]
+      elif type(target_elem) is Coffin:
+        target_elem.effect(game)
       elif type(target_elem) is Chest:
         chest = target_elem
         item = chest.contents
@@ -581,6 +601,26 @@ class DungeonContext(Context):
           game.step(run)
           game.refresh_fov()
     return moved
+
+  def jump_pit(game, actor, run=False, on_end=None):
+    actor_x, actor_y = actor.cell
+    facing_x, facing_y = actor.facing
+    target_cell = (actor_x + facing_x * 2, actor_y + facing_y * 2)
+    duration = RUN_DURATION if run else MOVE_DURATION
+    move_anim = MoveAnim(
+      duration=duration,
+      target=actor,
+      src_cell=actor.cell,
+      dest_cell=target_cell,
+      on_end=on_end
+    )
+    move_group = game.find_move_group()
+    if move_group:
+      move_group.append(move_anim)
+    else:
+      game.anims.append([move_anim])
+    actor.cell = target_cell
+    return True
 
   def handle_attack(game, target):
     hero = game.hero
@@ -744,7 +784,8 @@ class DungeonContext(Context):
     and abs(target_tile.elev - origin_tile.elev) < 1
     and (target_elem is None
       or not target_elem.solid
-      or actor is game.hero and target_elem is game.ally and not game.ally.ailment == "sleep")):
+      or actor is game.hero and target_elem is game.ally and not game.ally.ailment == "sleep"
+    )):
       duration = RUN_DURATION if run else MOVE_DURATION
       move_anim = MoveAnim(
         duration=duration,

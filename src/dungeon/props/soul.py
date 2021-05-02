@@ -4,7 +4,7 @@ from anims.frame import FrameAnim
 from anims.pause import PauseAnim
 from filters import replace_color
 from comps.skill import Skill
-from comps.vfx import Vfx
+from vfx import Vfx
 import palette
 import random
 import math

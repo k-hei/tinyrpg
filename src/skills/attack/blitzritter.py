@@ -6,7 +6,7 @@ from anims.attack import AttackAnim
 from anims.frame import FrameAnim
 from dungeon.actors import DungeonActor
 from cores.knight import Knight
-from comps.vfx import Vfx
+from vfx import Vfx
 import random
 
 class Blitzritter(AttackSkill):
