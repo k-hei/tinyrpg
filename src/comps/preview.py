@@ -3,7 +3,7 @@ import pygame
 from pygame import Surface, Rect
 from assets import load as use_assets
 from filters import replace_color
-import palette
+from palette import RED, WHITE, GOLD, PURPLE, GRAY
 
 from anims import Anim
 from anims.tween import TweenAnim
@@ -99,26 +99,24 @@ class Preview:
     anim = preview.anim
     if type(anim) is FlinchAnim:
       if anim.time <= 2:
-        portrait = portrait and replace_color(portrait, palette.WHITE, palette.RED)
+        portrait = portrait and replace_color(portrait, WHITE, RED)
     if type(anim) is FlickerAnim:
       if anim.time % 4 >= 2 or anim.done:
-        portrait = portrait and replace_color(portrait, palette.WHITE, palette.GRAY)
+        portrait = portrait and replace_color(portrait, WHITE, GRAY)
     elif actor.ailment == "sleep":
-      portrait = portrait and replace_color(portrait, palette.WHITE, palette.PURPLE)
+      portrait = portrait and replace_color(portrait, WHITE, PURPLE)
     elif actor.rare:
-      portrait = portrait and replace_color(portrait, palette.WHITE, palette.GOLD)
+      portrait = portrait and replace_color(portrait, WHITE, GOLD)
     surface_width = bar_x + bar.get_width()
     surface_height = HP_OFFSET_Y + hp_tag.get_height()
-    surface = Surface((surface_width, surface_height))
-    surface.set_colorkey(0xFF00FF)
-    surface.fill(0xFF00FF)
+    surface = Surface((surface_width, surface_height)).convert_alpha()
     surface.blit(base, (0, 0))
     if portrait is not None:
       surface.blit(portrait, (PORTRAIT_X, PORTRAIT_Y))
     surface.blit(hp_tag, (HP_OFFSET_X, HP_OFFSET_Y))
     surface.blit(bar, (bar_x, bar_y))
-    pygame.draw.rect(surface, palette.RED, bar_bg_rect)
-    pygame.draw.rect(surface, 0xFFFFFF, bar_fg_rect)
+    pygame.draw.rect(surface, RED, bar_bg_rect)
+    pygame.draw.rect(surface, WHITE, bar_fg_rect)
     return surface
 
   def draw(preview, window):

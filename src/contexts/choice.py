@@ -6,7 +6,7 @@ from text import render as render_text
 from contexts import Context
 from keyboard import key_times
 from filters import recolor, replace_color
-import palette
+from palette import BLACK, WHITE, YELLOW
 
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
@@ -88,7 +88,7 @@ class ChoiceContext(Context):
   def render(ctx):
     assets = use_assets()
     font = assets.fonts["smallcaps"]
-    cursor = replace_color(assets.sprites["cursor"], palette.WHITE, palette.YELLOW)
+    cursor = replace_color(assets.sprites["cursor"], WHITE, YELLOW)
 
     INNER_WIDTH = max(*map(lambda c: len(c), ctx.choices)) * (font.char_width + font.char_spacing)
     INNER_HEIGHT = max(0, len(ctx.choices) * (font.char_height + SPACING) - SPACING)
@@ -115,9 +115,9 @@ class ChoiceContext(Context):
     box_height *= t
 
     surface = pygame.Surface((box_width, box_height))
-    pygame.draw.rect(surface, 0x000000, Rect(0, 0, box_width, box_height))
-    pygame.draw.rect(surface, 0xFFFFFF, Rect(1, 1, box_width - 2, box_height - 2))
-    pygame.draw.rect(surface, 0x000000, Rect(4, 4, box_width - 8, box_height - 8))
+    pygame.draw.rect(surface, BLACK, Rect(0, 0, box_width, box_height))
+    pygame.draw.rect(surface, WHITE, Rect(1, 1, box_width - 2, box_height - 2))
+    pygame.draw.rect(surface, BLACK, Rect(4, 4, box_width - 8, box_height - 8))
 
     # only render text if not animating
     if not ctx.anims:
@@ -125,9 +125,9 @@ class ChoiceContext(Context):
       x = BORDER_WIDTH + PADDING + cursor.get_width() + CURSOR_PADDING
       y = BORDER_WIDTH + PADDING
       for choice in ctx.choices:
-        color = palette.WHITE
+        color = WHITE
         if choice == ctx.choices[ctx.index]:
-          color = palette.YELLOW
+          color = YELLOW
         text = recolor(render_text(choice.upper(), font), color)
         surface.blit(text, (x, y))
         y += text.get_height() + SPACING

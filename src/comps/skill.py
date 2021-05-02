@@ -3,7 +3,7 @@ from text import render as render_text
 from filters import recolor, outline, replace_color
 from pygame import Rect
 import pygame
-import palette
+from palette import BLACK, WHITE, GRAY, darken
 
 class Skill:
   PADDING_X = 6
@@ -14,15 +14,15 @@ class Skill:
     assets = use_assets()
     icon = Skill.get_icon(skill)
     icon_bgcolor = skill.color
-    icon_bgcolor = icon_bgcolor if selected else palette.darken(icon_bgcolor)
-    text_color = (0xFF, 0xFF, 0xFF) if selected else (0x7F, 0x7F, 0x7F)
+    icon_bgcolor = icon_bgcolor if selected else darken(icon_bgcolor)
+    text_color = WHITE if selected else GRAY
     font = assets.fonts["standard"]
     sprite = assets.sprites["skill"]
 
-    icon = recolor(icon, (0xFF, 0xFF, 0xFF))
-    icon = outline(icon, (0x00, 0x00, 0x00))
+    icon = recolor(icon, WHITE)
+    icon = outline(icon, BLACK)
     text = render_text(skill.name, font)
-    text = recolor(text, palette.WHITE)
+    text = recolor(text, WHITE)
 
     surface = sprite.copy()
     pygame.draw.rect(surface, icon_bgcolor, Rect(3, 4, 16, 11))
@@ -32,7 +32,7 @@ class Skill:
       Skill.PADDING_X + icon.get_width() + Skill.ICON_MARGIN,
       Skill.PADDING_Y + 1
     ))
-    surface = replace_color(surface, palette.WHITE, text_color)
+    surface = replace_color(surface, WHITE, text_color)
     return surface
 
   def get_icon(skill):

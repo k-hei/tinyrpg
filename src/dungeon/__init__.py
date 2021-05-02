@@ -1111,7 +1111,7 @@ class DungeonContext(Context):
 
   def draw(game, surface):
     assets = load_assets()
-    surface.fill(0x000000)
+    surface.fill(0)
     window_width = surface.get_width()
     window_height = surface.get_height()
 

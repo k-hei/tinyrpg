@@ -6,7 +6,7 @@ from filters import replace_color, recolor, outline
 from text import render as render_text
 import pygame
 from pygame import Rect
-import palette
+from palette import BLACK, WHITE, GRAY, GRAY_DARK, YELLOW, YELLOW_DARK, BLUE, BLUE_DARK, darken
 import keyboard
 from comps.piece import Piece
 
@@ -241,14 +241,14 @@ class CustomContext(Context):
     knight = assets.sprites["circle_knight"]
     mage = assets.sprites["circle_mage"]
     if type(menu.char) is Knight:
-      mage = replace_color(mage, palette.WHITE, palette.GRAY)
-      mage = replace_color(mage, palette.BLUE, palette.BLUE_DARK)
+      mage = replace_color(mage, WHITE, GRAY)
+      mage = replace_color(mage, BLUE, BLUE_DARK)
     elif type(menu.char) is Mage:
-      knight = replace_color(knight, palette.WHITE, palette.GRAY)
-      knight = replace_color(knight, palette.BLUE, palette.BLUE_DARK)
+      knight = replace_color(knight, WHITE, GRAY)
+      knight = replace_color(knight, BLUE, BLUE_DARK)
     deck = assets.sprites["deck"]
     tab = assets.sprites["deck_tab"]
-    tab_inactive = replace_color(tab, palette.WHITE, palette.GRAY)
+    tab_inactive = replace_color(tab, WHITE, GRAY)
     skills = menu.get_char_skills()
     if skills:
       skill = Skill.render(skills[0])
@@ -260,9 +260,7 @@ class CustomContext(Context):
     surface = pygame.Surface((
       deck.get_width() + SPACING_X + skill.get_width() + SKILL_NUDGE_LEFT,
       deck_y + deck.get_height() + 1 + SKILL_SPACING + arrow.get_height()
-    ))
-    surface.set_colorkey(0xFF00FF)
-    surface.fill(0xFF00FF)
+    )).convert_alpha()
 
     knight_scaled = knight
     knight_anim = menu.anims and next((a for a in menu.anims[0] if a.target == "Knight"), None)
@@ -386,7 +384,7 @@ class CustomContext(Context):
         for col in range(grid_height):
           x = col * Piece.BLOCK_SIZE + grid_x
           y = row * Piece.BLOCK_SIZE + grid_y
-          pygame.draw.rect(surface, palette.GRAY_DARK, Rect(
+          pygame.draw.rect(surface, GRAY_DARK, Rect(
             x, y,
             Piece.BLOCK_SIZE - 1, Piece.BLOCK_SIZE - 1
           ), 1)
@@ -458,7 +456,7 @@ class CustomContext(Context):
 
     if not entering:
       text = render_text("SKILL", assets.fonts["smallcaps"])
-      text = recolor(text, palette.YELLOW)
+      text = recolor(text, YELLOW)
       text = outline(text, (0, 0, 0))
       x = deck.get_width() + SPACING_X
       y = deck_y - text.get_height() - SKILL_SPACING - 1
@@ -513,7 +511,7 @@ class CustomContext(Context):
           sprite.get_width() - Skill.PADDING_X * 2,
           sprite.get_height() - Skill.PADDING_Y * 2
         ))
-        sprite = replace_color(sprite, palette.WHITE, palette.YELLOW)
+        sprite = replace_color(sprite, WHITE, YELLOW)
         sprite.blit(subspr, (Skill.PADDING_X, Skill.PADDING_Y))
         x += SKILL_NUDGE_LEFT
 
@@ -521,18 +519,18 @@ class CustomContext(Context):
         if menu.is_skill_used(skill):
           color = skill.color
           subspr = sprite.subsurface(Rect(3, 3, sprite.get_width() - 6, sprite.get_height() - 6))
-          subspr = replace_color(subspr, color, palette.darken(color))
-          subspr = replace_color(subspr, palette.WHITE, palette.GRAY)
+          subspr = replace_color(subspr, color, darken(color))
+          subspr = replace_color(subspr, WHITE, GRAY)
           sprite.blit(subspr, (3, 3))
           surface.blit(sprite, (x, y))
           if not entering:
             text = render_text("ON", assets.fonts["smallcaps"])
-            text = recolor(text, palette.YELLOW)
+            text = recolor(text, YELLOW)
             text = outline(text, (0, 0, 0))
             badges.append((text, x + sprite.get_width() - text.get_width() - 6, y + sprite.get_height() - 6))
         elif skill in menu.new_skills and not entering:
           text = render_text("NEW", assets.fonts["smallcaps"])
-          text = recolor(text, palette.YELLOW if menu.renders % 60 >= 30 else palette.YELLOW_DARK)
+          text = recolor(text, YELLOW if menu.renders % 60 >= 30 else YELLOW_DARK)
           text = outline(text, (0, 0, 0))
           badges.append((text, x + sprite.get_width() - text.get_width() - 6, y + sprite.get_height() - 6))
 

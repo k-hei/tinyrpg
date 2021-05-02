@@ -5,8 +5,6 @@ from filters import recolor, outline, shadow
 from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in
 
-COLOR_KEY = (0xFF, 0x00, 0xFF)
-
 class EnterAnim(TweenAnim): pass
 class ExitAnim(TweenAnim): pass
 

@@ -68,9 +68,7 @@ class Hud:
 
     width = sprite_hud.get_width()
     height = sprite_hud.get_height()
-    sprite = Surface((width, height))
-    sprite.fill(0xFF00FF)
-    sprite.set_colorkey(0xFF00FF)
+    sprite = Surface((width, height)).convert_alpha()
     sprite.blit(sprite_hud, (0, 0))
 
     if (type(hero).__name__ == "Knight" and type(anim) is not SwitchOutAnim

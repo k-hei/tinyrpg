@@ -3,7 +3,7 @@ import random
 import pygame
 from pygame import Surface, Rect, PixelArray
 
-import palette
+from palette import BLACK, WHITE, BLUE, RED, CYAN, GRAY
 from assets import load as use_assets
 from filters import replace_color, recolor, outline
 from text import render_char, render as render_text, find_width as find_text_width
@@ -115,9 +115,7 @@ class Hud:
     assets = use_assets()
     width = assets.sprites["hud"].get_width() + 1
     height = assets.sprites["hud"].get_height()
-    sprite = Surface((width, height))
-    sprite.fill(0xFF00FF)
-    sprite.set_colorkey(0xFF00FF)
+    sprite = Surface((width, height)).convert_alpha()
     sprite.blit(assets.sprites["hud"], (0, 0))
 
     if (type(hero) is Knight and type(anim) is not SwitchOutAnim
@@ -130,11 +128,11 @@ class Hud:
       ally_portrait = assets.sprites["circ16_knight"]
 
     if hero.dead:
-      hero_portrait = replace_color(hero_portrait, palette.WHITE, palette.BLACK)
-      hero_portrait = replace_color(hero_portrait, palette.BLUE, palette.RED)
+      hero_portrait = replace_color(hero_portrait, WHITE, BLACK)
+      hero_portrait = replace_color(hero_portrait, BLUE, RED)
     if ally.dead:
-      ally_portrait = replace_color(ally_portrait, palette.WHITE, palette.BLACK)
-      ally_portrait = replace_color(ally_portrait, palette.BLUE, palette.RED)
+      ally_portrait = replace_color(ally_portrait, WHITE, BLACK)
+      ally_portrait = replace_color(ally_portrait, BLUE, RED)
 
     hero_scaled = hero_portrait
     ally_scaled = ally_portrait
@@ -163,17 +161,17 @@ class Hud:
     sprite.blit(hp_text, (HP_VALUE_X, HP_VALUE_Y))
 
     if hero.get_hp() <= panel.hp_hero:
-      draw_bar(sprite, panel.hp_hero / hero.get_hp_max(), (HP_BAR_X, HP_BAR_Y1), palette.RED)
+      draw_bar(sprite, panel.hp_hero / hero.get_hp_max(), (HP_BAR_X, HP_BAR_Y1), RED)
       draw_bar(sprite, hero.get_hp() / hero.get_hp_max(), (HP_BAR_X, HP_BAR_Y1))
     else:
-      draw_bar(sprite, hero.get_hp() / hero.get_hp_max(), (HP_BAR_X, HP_BAR_Y1), palette.CYAN)
+      draw_bar(sprite, hero.get_hp() / hero.get_hp_max(), (HP_BAR_X, HP_BAR_Y1), CYAN)
       draw_bar(sprite, panel.hp_hero / hero.get_hp_max(), (HP_BAR_X, HP_BAR_Y1))
 
     if ally.get_hp() <= panel.hp_ally:
-      draw_bar(sprite, panel.hp_ally / ally.get_hp_max(), (HP_BAR_X, HP_BAR_Y2), palette.RED)
+      draw_bar(sprite, panel.hp_ally / ally.get_hp_max(), (HP_BAR_X, HP_BAR_Y2), RED)
       draw_bar(sprite, ally.get_hp() / ally.get_hp_max(), (HP_BAR_X, HP_BAR_Y2))
     else:
-      draw_bar(sprite, ally.get_hp() / ally.get_hp_max(), (HP_BAR_X, HP_BAR_Y2), palette.CYAN)
+      draw_bar(sprite, ally.get_hp() / ally.get_hp_max(), (HP_BAR_X, HP_BAR_Y2), CYAN)
       draw_bar(sprite, panel.hp_ally / ally.get_hp_max(), (HP_BAR_X, HP_BAR_Y2))
 
 
@@ -218,7 +216,7 @@ class Hud:
       return
     surface.blit(sprite, (x, y))
 
-def draw_bar(surface, pct, pos, color=palette.WHITE):
+def draw_bar(surface, pct, pos, color=WHITE):
   x, y = pos
   pygame.draw.rect(surface, color, Rect(
     (x, y),
@@ -257,7 +255,7 @@ def render_numbers(hp, hp_max, crit_threshold=0):
 
   if gray:
     pixels = PixelArray(sprite_firstno)
-    pixels.replace(palette.WHITE, palette.GRAY)
+    pixels.replace(WHITE, GRAY)
     pixels.close()
   sprite.blit(sprite_firstno, (0, 0))
 
@@ -267,14 +265,14 @@ def render_numbers(hp, hp_max, crit_threshold=0):
     number = render_char(char, assets.fonts["numbers13"]).convert_alpha()
     if hp <= crit_threshold:
       pixels = PixelArray(number)
-      pixels.replace(palette.BLACK, palette.RED)
+      pixels.replace(BLACK, RED)
       pixels.close()
     sprite.blit(number, (x, HP_VALUE_Y))
     x += number.get_width() - 2
 
   sprite.blit(sprite_slash, (x, HP_MAX_Y))
 
-  sprite_hpmax = outline(sprite_hpmax, palette.BLACK)
-  sprite_hpmax = outline(sprite_hpmax, palette.WHITE)
+  sprite_hpmax = outline(sprite_hpmax, BLACK)
+  sprite_hpmax = outline(sprite_hpmax, WHITE)
   sprite.blit(sprite_hpmax, (HP_MAX_X, HP_MAX_Y))
   return sprite

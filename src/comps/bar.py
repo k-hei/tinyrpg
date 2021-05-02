@@ -3,6 +3,7 @@ from pygame import Surface, Rect
 from assets import load as use_assets
 from text import render as render_text
 from filters import recolor
+from palette import WHITE
 
 from anims.tween import TweenAnim
 from easing.expo import ease_out
@@ -40,7 +41,7 @@ class Bar:
       bar.surface = assets.sprites["statusbar"].copy()
       content = bar.message[0:bar.index]
       text = render_text(content, assets.fonts["standard"])
-      message = recolor(text, (0xFF, 0xFF, 0xFF))
+      message = recolor(text, WHITE)
       bar.surface.blit(message, (Bar.PADDING_X, Bar.PADDING_Y))
     return bar.surface
 

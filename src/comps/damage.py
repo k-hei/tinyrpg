@@ -5,6 +5,7 @@ from lib.lerp import lerp
 from sprite import Sprite
 import config
 import pygame
+from palette import WHITE, BLACK
 
 class DamageNumber:
   INITIAL_VELOCITY = -2
@@ -42,8 +43,8 @@ class DamageNumber:
     assets = use_assets()
     font = assets.fonts["smallcaps"]
     sprite = render_text(number.value, font)
-    sprite = recolor(sprite, number.color or (0xFF, 0xFF, 0xFF))
-    sprite = outline(sprite, (0x00, 0x00, 0x00))
+    sprite = recolor(sprite, number.color or WHITE)
+    sprite = outline(sprite, BLACK)
     return sprite
 
 class DamageValue:

@@ -93,7 +93,7 @@ class InventoryDescription:
             box.index += 1
         char = message[box.index]
         token = message.get_token_at(box.index) if type(message) is Message else None
-        color = token and token.color or 0x000000
+        color = token and token.color or 0
         sprite_char = font_content.render(char, color)
         box.surface.blit(sprite_char, (cursor_x, cursor_y))
         cursor_x += sprite_char.get_width()

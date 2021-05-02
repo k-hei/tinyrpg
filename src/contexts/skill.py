@@ -9,7 +9,7 @@ from config import TILE_SIZE
 from assets import load as use_assets
 from text import render as render_text
 from filters import recolor, replace_color, outline
-import palette
+from palette import BLACK, WHITE, GRAY, YELLOW
 from comps.skill import Skill
 
 from lib.lerp import lerp
@@ -274,7 +274,7 @@ class SkillContext(Context):
       else:
         sprite = assets.sprites["skill"].copy()
         text = render_text("[ N/A ]", assets.fonts["smallcaps"])
-        text = recolor(text, palette.WHITE)
+        text = recolor(text, WHITE)
         sprite.blit(text, (
           sprite.get_width() // 2 - text.get_width() // 2,
           sprite.get_height() // 2 - text.get_height() // 2 - 1
@@ -294,12 +294,12 @@ class SkillContext(Context):
         y = lerp(old_y, new_y, t)
         if option is skill:
           value = lerp(0x7F, 0xFF, t)
-          sprite = replace_color(sprite, palette.WHITE, (value, value, value))
+          sprite = replace_color(sprite, WHITE, (value, value, value))
 
       anim = next((anim for anim in ctx.anims if anim.target == i), None)
       if anim:
         sprite = assets.sprites["skill"]
-        sprite = replace_color(sprite, palette.WHITE, palette.GRAY)
+        sprite = replace_color(sprite, WHITE, GRAY)
         t = max(0, anim.time / anim.duration)
         if ctx.exiting:
           t = 1 - t
@@ -323,8 +323,8 @@ class SkillContext(Context):
     first_anim = next((anim for anim in ctx.anims if anim.target == 0), None)
     if not ctx.exiting and not first_anim:
       title = render_text("SKILL", assets.fonts["smallcaps"])
-      title = recolor(title, (0xFF, 0xFF, 0x00))
-      title = outline(title, (0x00, 0x00, 0x00))
+      title = recolor(title, YELLOW)
+      title = outline(title, BLACK)
       x = MARGIN + Skill.PADDING_X
       y = surface.get_height()
       y += -MARGIN - ctx.bar.surface.get_height()

@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from typing import Dict
 from pygame import Surface, Rect
-
-COLOR_KEY = (255, 0, 255)
+from palette import WHITE
 
 @dataclass
 class Font:
@@ -27,7 +26,7 @@ class Ttf:
   def size(ttf, text=""):
     return ttf.font.size(text)
 
-  def render(ttf, text, color=(0xFF, 0xFF, 0xFF)):
+  def render(ttf, text, color=WHITE):
     return ttf.font.render(text, False, color)
 
 def find_width(content: str, font: Font) -> int:
@@ -46,9 +45,7 @@ def find_width(content: str, font: Font) -> int:
 def render(content: str, font: Font) -> Surface:
   width = find_width(content, font)
   height = font.cell_height
-  surface = Surface((width, height))
-  surface.fill(COLOR_KEY)
-  surface.set_colorkey(COLOR_KEY)
+  surface = Surface((width, height)).convert_alpha()
   x = 0
   for char in content:
     if char == " ":
