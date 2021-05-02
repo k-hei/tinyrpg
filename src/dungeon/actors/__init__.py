@@ -5,7 +5,7 @@ from skills.weapon import Weapon
 
 import palette
 from assets import load as use_assets
-from filters import replace_color
+from filters import replace_color, darken
 from anims.awaken import AwakenAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
@@ -150,9 +150,8 @@ class DungeonActor(DungeonElement):
       elif actor.core.faction == "enemy":
         new_color = palette.RED
     if asleep:
-      new_color = palette.darken(new_color)
-      sprite = replace_color(sprite, palette.WHITE, palette.GRAY)
-    if new_color:
+      sprite = darken(sprite)
+    elif new_color:
       sprite = replace_color(sprite, palette.BLACK, new_color)
     return sprite
 

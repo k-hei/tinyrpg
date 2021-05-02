@@ -3,7 +3,7 @@ import palette
 
 def darken(surface):
   width, height = surface.get_size()
-  surface = Surface((width, height)).convert_alpha()
+  surface = surface.copy()
   pixels = PixelArray(surface)
   for y in range(height):
     for x in range(width):

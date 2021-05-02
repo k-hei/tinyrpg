@@ -104,7 +104,7 @@ class DungeonContext(Context):
 
   def create_floor(game):
     floor_no = game.get_floor_no()
-    floor = gen.gen_floor(seed=config.SEED)
+    floor = gen.gen_debug(seed=config.SEED)
     game.parent.seeds.append(floor.seed)
     # if floor_no == config.TOP_FLOOR:
     #   floor = gen.top_floor()
@@ -897,7 +897,7 @@ class DungeonContext(Context):
           game.floor.set_tile_at((trap_x - 2, trap_y), Stage.DOOR_OPEN)
         if on_end:
           on_end()
-      elif game.room in game.rooms_entered and not game.find_room_enemies():
+      elif game.room and game.room in game.rooms_entered and not game.find_room_enemies():
         game.floor.set_tile_at(game.room_entrances[game.room], Stage.DOOR_OPEN)
         if on_end:
           on_end()

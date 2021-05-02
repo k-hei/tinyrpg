@@ -376,6 +376,10 @@ def gen_debug(seed=None):
   stage.fill(stage.WALL)
   floor.place(room)
   stage.entrance = room.get_center()
+
+  soldier = Soldier()
+  soldier.inflict_ailment("sleep")
+  stage.spawn_elem(soldier, (stage.entrance[0], stage.entrance[1] + 2))
   return stage
 
 def gen_floor(seed=None):
@@ -461,7 +465,6 @@ def gen_floor(seed=None):
   entry_room = coffin_room
   center_x, center_y = entry_room.get_center()
   stage.entrance = (center_x, center_y - 3)
-  stage.spawn_elem(Soldier(), (center_x, center_y + 3))
   # stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
   stage.rooms = rooms + features
   return stage
