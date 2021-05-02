@@ -21,6 +21,7 @@ from dungeon.actors.mage import Mage
 from dungeon.actors.eye import Eye
 from dungeon.actors.mushroom import Mushroom
 from dungeon.actors.skeleton import Skeleton
+from dungeon.actors.soldier import Soldier
 from dungeon.actors.mimic import Mimic
 from dungeon.actors.npc import NPC
 
@@ -460,6 +461,7 @@ def gen_floor(seed=None):
   entry_room = coffin_room
   center_x, center_y = entry_room.get_center()
   stage.entrance = (center_x, center_y - 3)
+  stage.spawn_elem(Soldier(), (center_x, center_y + 3))
   # stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
   stage.rooms = rooms + features
   return stage

@@ -118,7 +118,7 @@ class Log:
           log.row += 1
           log.cursor_x = 0
           return log.render()
-      char_sprite = font.render(char, token.color or (0, 0, 0))
+      char_sprite = font.render(char, token.color or 0)
       log.lines[-1].blit(char_sprite, (log.cursor_x, 0))
       for row, line in enumerate(log.lines):
         log.surface.blit(line, (0, row * line_height))

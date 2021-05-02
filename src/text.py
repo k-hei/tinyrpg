@@ -27,7 +27,10 @@ class Ttf:
     return ttf.font.size(text)
 
   def render(ttf, text, color=WHITE):
-    return ttf.font.render(text, False, color)
+    b = color & 255
+    g = (color >> 8) & 255
+    r = (color >> 16) & 255
+    return ttf.font.render(text, False, (r, g, b))
 
 def find_width(content: str, font: Font) -> int:
   text_width = 0

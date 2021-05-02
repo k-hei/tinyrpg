@@ -153,7 +153,8 @@ sprite_paths = {
   "wall_torch": "wall-torch",
   "town": "town",
   "tower": "tower",
-  "tileset": "tileset"
+  "tileset": "tileset",
+  "soldier": "soldier"
 }
 
 def load_sprite(sprite_name, path, sprites):

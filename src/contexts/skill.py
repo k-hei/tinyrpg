@@ -204,7 +204,7 @@ class SkillContext(Context):
         alpha = 0x5f
       square = Surface((TILE_SIZE - 1, TILE_SIZE - 1), pygame.SRCALPHA)
       color = skill.color
-      pygame.draw.rect(square, (*color, alpha), square.get_rect())
+      pygame.draw.rect(square, color & 0xFFFFFF | int(alpha) << 24, square.get_rect())
       for cell in neighbors:
         x, y = scale_up(cell)
         surface.blit(square, (x, y))
