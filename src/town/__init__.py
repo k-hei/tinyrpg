@@ -164,13 +164,16 @@ class TownContext(Context):
 
   def handle_custom(town):
     town.hud.exit()
+    game = town.parent
     def on_close(_):
-      town.child = None
-      town.parent.child = town
-      town.parent.update_skills()
+      game.update_skills()
       town.hud.enter()
     town.child = CustomContext(
-      parent=town.parent,
+      parent=town,
+      pool=game.skill_pool,
+      new_skills=game.new_skills,
+      builds=game.skill_builds,
+      chars=(game.hero, game.ally),
       on_close=on_close
     )
 
@@ -183,10 +186,10 @@ class TownContext(Context):
     if town.area_change:
       ally.move(town.area_change)
 
-    for sprite, pos in town.area.render(hero):
-      if sprite is sprite_talkbubble and town.child:
+    for sprite in town.area.render(hero):
+      if sprite.image is sprite_talkbubble and town.child:
         continue
-      surface.blit(sprite, pos)
+      surface.blit(sprite.image, sprite.pos)
 
     if town.child:
       town.child.draw(surface)

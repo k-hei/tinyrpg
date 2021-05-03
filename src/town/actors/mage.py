@@ -2,7 +2,7 @@ from config import MOVE_DURATION
 from town.actors import Actor
 from assets import load as use_assets
 from filters import replace_color
-import palette
+from palette import BLACK, BLUE
 
 class Mage(Actor):
   def __init__(mage, core):
@@ -10,9 +10,10 @@ class Mage(Actor):
 
   def render(mage):
     sprites = use_assets().sprites
-    sprite = sprites["mage"]
+    image = sprites["mage"]
     if mage.walks:
       if mage.walks % (MOVE_DURATION // 2) < MOVE_DURATION // 4:
-        sprite = sprites["mage_walk"]
-    sprite = replace_color(sprite, palette.BLACK, palette.BLUE)
-    return super().render(sprite)
+        image = sprites["mage_walk"]
+    image = replace_color(image, BLACK, BLUE)
+    mage.sprite.image = image
+    return super().render()

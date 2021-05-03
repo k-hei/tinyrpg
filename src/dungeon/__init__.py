@@ -1075,11 +1075,7 @@ class DungeonContext(Context):
     ally = game.ally
     if ally.is_dead():
       ally.revive()
-      cell = add(hero.cell, (-1, 0))
-      if ally not in floor.elems:
-        floor.spawn_elem(ally, cell)
-      else:
-        ally.cell = cell
+      floor.spawn_elem(ally, add(hero.cell, (-1, 0)))
 
     game.numbers.append(DamageValue(hero.get_hp_max(), add(hero.cell, (0, -0.25)), GREEN))
     game.numbers.append(DamageValue(game.get_sp_max(), hero.cell, CYAN))

@@ -89,7 +89,8 @@ class Stage:
     return None
 
   def spawn_elem(stage, elem, cell=None):
-    stage.elems.append(elem)
+    if elem not in stage.elems:
+      stage.elems.append(elem)
     if cell:
       elem.cell = cell
 

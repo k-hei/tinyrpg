@@ -21,8 +21,8 @@ class Genie(Npc):
 
   def render(genie):
     sprite_genie = use_assets().sprites["genie"]
-    sprite = Surface((32, 32)).convert_alpha()
-    sprite.blit(sprite_genie.subsurface(Rect(0, 0, 32, RIPPLE_START)), (0, 0))
+    image = Surface(sprite_genie.get_size()).convert_alpha()
+    image.blit(sprite_genie.subsurface(Rect(0, 0, 32, RIPPLE_START)), (0, 0))
     for y in range(RIPPLE_START, RIPPLE_END):
       i = y - RIPPLE_START
       p = i / RIPPLE_EXTENT
@@ -30,9 +30,10 @@ class Genie(Npc):
       t = t + p * RIPPLE_PERIOD
       t = (t % (RIPPLE_PERIOD / RIPPLE_WAVES) / RIPPLE_PERIOD) * RIPPLE_WAVES
       x = sin(t * 2 * pi) * ease_out(p) * RIPPLE_AMP
-      sprite.blit(sprite_genie.subsurface(Rect(0, y, 32, 1)), (x, y))
-    sprite, _, _ = super().render(sprite)
-    x = 0
+      image.blit(sprite_genie.subsurface(Rect(0, y, 32, 1)), (x, y))
+    genie.sprite.image = image
+    super().render()
     y = sin(genie.renders % FLOAT_PERIOD / FLOAT_PERIOD * 2 * pi) * FLOAT_AMP
+    genie.sprite.pos = (0, y)
     genie.renders += 1
-    return (sprite, x, y)
+    return genie.sprite

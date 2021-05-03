@@ -1,6 +1,6 @@
-import pygame
-import config
-import palette
+from pygame.transform import flip
+from config import TILE_SIZE, WINDOW_WIDTH
+from sprite import Sprite
 
 class Actor:
   SPEED = 1.5
@@ -10,6 +10,7 @@ class Actor:
     actor.x = 0
     actor.facing = 1
     actor.walks = 0
+    actor.sprite = Sprite()
 
   def move(actor, delta):
     if actor.facing != delta:
@@ -17,16 +18,16 @@ class Actor:
       actor.walks = 0
     actor.x += Actor.SPEED * delta
     actor.walks += 1
-    if actor.x <= -config.TILE_SIZE // 2:
-      actor.x = -config.TILE_SIZE // 2
-    if actor.x >= config.WINDOW_WIDTH + config.TILE_SIZE // 2:
-      actor.x = config.WINDOW_WIDTH + config.TILE_SIZE // 2
+    if actor.x <= -TILE_SIZE // 2:
+      actor.x = -TILE_SIZE // 2
+    if actor.x >= WINDOW_WIDTH + TILE_SIZE // 2:
+      actor.x = WINDOW_WIDTH + TILE_SIZE // 2
 
   def stop_move(actor):
     actor.walks = 0
 
   def follow(actor, target):
-    target_x = target.x - config.TILE_SIZE * target.facing
+    target_x = target.x - TILE_SIZE * target.facing
     if target_x < actor.x:
       actor.move(-1)
     elif target_x > actor.x:
@@ -36,7 +37,7 @@ class Actor:
     if abs(target_x - actor.x) <= Actor.SPEED:
       actor.x = target_x
 
-  def render(actor, sprite):
+  def render(actor):
     if actor.facing == -1:
-      sprite = pygame.transform.flip(sprite, True, False)
-    return (sprite, 0, 0)
+      actor.sprite.image = flip(actor.sprite.image, True, False)
+    return actor.sprite

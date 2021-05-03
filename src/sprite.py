@@ -3,19 +3,17 @@ from pygame import Surface
 
 @dataclass
 class Sprite:
-  image: Surface
-  pos: tuple[int, int]
+  image: Surface = None
+  pos: tuple[int, int] = (0, 0)
   offset: int = 0
   layer: str = None
-  tile: bool = False
 
   def copy(sprite):
     return Sprite(
       image=sprite.image,
       pos=sprite.pos,
       offset=sprite.offset,
-      layer=sprite.layer,
-      tile=sprite.tile
+      layer=sprite.layer
     )
 
   def draw(sprite, surface):

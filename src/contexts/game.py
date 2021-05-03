@@ -34,7 +34,8 @@ class GameContext(Context):
     super().__init__()
     ctx.transits = [DissolveOut(WINDOW_SIZE)] if not DEBUG else []
     ctx.inventory = Inventory((2, 4), [
-      Ruby(), Sapphire(), Emerald(), Amethyst()
+      Ruby(), Sapphire(),
+      Emerald(), Amethyst()
     ])
     ctx.sp_max = 50
     ctx.sp = ctx.sp_max // 2

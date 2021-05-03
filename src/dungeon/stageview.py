@@ -292,8 +292,6 @@ class StageView:
   def draw_sprites(view, surface, sprites, camera):
     camera_x, camera_y = camera.pos
     for sprite in sprites:
-      if sprite.tile:
-        sprite.image = replace_color(sprite.image, WHITE, COLOR_TILE)
       sprite_x, sprite_y = sprite.pos
       sprite_x -= camera_x
       sprite_y -= camera_y
