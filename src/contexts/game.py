@@ -25,6 +25,7 @@ from skills.weapon import Weapon
 from skills.weapon.stick import Stick
 from skills.armor.hpup import HpUp
 from skills.attack.blitzritter import Blitzritter
+from skills.magic.ignis import Ignis
 from skills.support.counter import Counter
 from skills.support.sana import Sana
 from skills.ailment.somnus import Somnus
@@ -48,6 +49,7 @@ class GameContext(Context):
       Blitzritter,
       Somnus,
       Sana,
+      Ignis,
       HpUp,
     ]
     ctx.skill_builds = {}

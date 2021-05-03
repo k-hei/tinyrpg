@@ -177,9 +177,9 @@ class SkillContext(Context):
 
     camera_speed = 8
     if skill and skill.range_max == math.inf:
-      camera.focus(cursor, 16)
+      camera.focus(cursor, speed=16, force=True)
     else:
-      camera.focus(cursor, 8)
+      camera.focus(cursor, speed=8, force=True)
 
     def scale_up(cell):
       col, row = cell

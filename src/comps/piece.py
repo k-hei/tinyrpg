@@ -109,7 +109,7 @@ class Piece:
       elif e: sprite = assets.sprites["block_e"]
       elif w: sprite = assets.sprites["block_w"]
       elif s: sprite = assets.sprites["block_s"]
-      sprite = replace_color(sprite, 0xFF0000FF, color)
+      sprite = replace_color(sprite, 0xFFFF0000, color)
       surface.blit(sprite, (x, y))
 
     if icon_pos:

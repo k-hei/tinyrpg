@@ -42,8 +42,8 @@ class Camera:
       (y + 0.5) * TILE_SIZE - height / 2
     )
 
-  def focus(camera, cell, speed=None):
-    if camera.flag:
+  def focus(camera, cell, speed=None, force=False):
+    if camera.flag and not force:
       return
     camera.flag = cell
     camera.speed = speed
