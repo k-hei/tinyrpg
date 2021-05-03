@@ -149,10 +149,10 @@ class DungeonActor(DungeonElement):
         new_color = palette.GOLD_DARK
       elif actor.core.faction == "enemy":
         new_color = palette.RED
+    if new_color:
+      sprite = replace_color(sprite, palette.BLACK, new_color)
     if asleep:
       sprite = darken(sprite)
-    elif new_color:
-      sprite = replace_color(sprite, palette.BLACK, new_color)
     return sprite
 
   def color(actor):

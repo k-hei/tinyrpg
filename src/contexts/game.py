@@ -37,7 +37,7 @@ class GameContext(Context):
       Ruby(), Sapphire(), Emerald(), Amethyst()
     ])
     ctx.sp_max = 50
-    ctx.sp = 0 # ctx.sp_max // 2
+    ctx.sp = ctx.sp_max // 2
     ctx.gold = 0
     ctx.hero = Knight()
     ctx.ally = Mage()
