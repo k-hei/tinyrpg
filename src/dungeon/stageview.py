@@ -13,6 +13,7 @@ from lib.lerp import lerp
 from dungeon.actors import DungeonActor
 from dungeon.props.chest import Chest
 from dungeon.props.soul import Soul
+from dungeon.props.palm import Palm
 
 from anims.move import MoveAnim
 from anims.jump import JumpAnim
@@ -124,11 +125,14 @@ class StageView:
       if new_facing_x != 0:
         facing_x = new_facing_x
 
+    # TODO: generalize these use cases into their respective render functions
     if type(elem) is Soul:
       elem.update(vfx)
       pos_x, pos_y = elem.pos
       sprite_x += pos_x
       sprite_y += pos_y
+    if type(elem) is Palm:
+      scale_origin = "bottom"
 
     item = None
     anim_group = anims[0] if anims else []

@@ -4,5 +4,5 @@ class Prop(DungeonElement):
   def __init__(prop, solid=True):
     super().__init__(solid)
 
-  def effect(prop):
+  def effect(prop, game):
     pass
