@@ -3,6 +3,7 @@ from random import randint, randrange, choice, choices
 from lib.cell import is_odd, add, is_adjacent, manhattan
 
 import config
+from config import ROOM_WIDTHS, ROOM_HEIGHTS
 
 from dungeon.stage import Stage
 from dungeon.gen.floorgraph import FloorGraph
@@ -15,6 +16,7 @@ from dungeon.features.battleroom import BattleRoom
 from dungeon.features.treasureroom import TreasureRoom
 from dungeon.features.oasisroom import OasisRoom
 from dungeon.features.coffinroom import CoffinRoom
+from dungeon.features.pitroom import PitRoom
 
 from dungeon.actors.knight import Knight
 from dungeon.actors.mage import Mage
@@ -38,9 +40,6 @@ from items.sp.fish import Fish
 from items.dungeon.balloon import Balloon
 from items.dungeon.emerald import Emerald
 from items.ailment.antidote import Antidote
-
-possible_widths = (3, 5, 7)
-possible_heights = (4, 7)
 
 def cells(size):
   cells = []
@@ -101,8 +100,8 @@ class Floor:
     return rooms
 
   def gen_room(floor, kind=Room):
-    room_width = choice(possible_widths)
-    room_height = choice(possible_heights)
+    room_width = choice(ROOM_WIDTHS)
+    room_height = choice(ROOM_HEIGHTS)
     return kind((room_width, room_height))
 
   def gen_place(floor, feature):
@@ -185,7 +184,6 @@ class Floor:
     )]
     if neighbors:
       neighbor = choice(neighbors)
-      print(type(node).__name__, type(neighbor).__name__, tree.distance(node, neighbor))
       connectors = graph.connectors(node, neighbor)
       connector = choice(connectors)
       tree.connect(node, neighbor, connector)
@@ -396,12 +394,14 @@ def gen_floor(seed=None):
   oasis_room = OasisRoom()
   coffin_room = CoffinRoom()
   treasure_room = TreasureRoom()
+  pit_room = PitRoom()
   puzzle_room = VerticalRoom((5, 4))
   features = [arena, exit_room, puzzle_room, treasure_room, oasis_room, coffin_room]
   floor.gen_place(arena)
   floor.gen_place(treasure_room)
   floor.gen_place(oasis_room)
   floor.gen_place(coffin_room)
+  floor.gen_place(pit_room)
 
   if not floor.gen_neighbor(arena, exit_room):
     debug("Failed to place exit room")
@@ -462,10 +462,10 @@ def gen_floor(seed=None):
         corner = choice(corners)
         stage.set_tile_at(corner, stage.WALL)
 
-  entry_room = coffin_room
+  entry_room = choice(rooms)
   center_x, center_y = entry_room.get_center()
-  stage.entrance = (center_x, center_y - 3)
-  # stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
+  stage.entrance = (center_x, center_y)
+  stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
   stage.rooms = rooms + features
   return stage
 

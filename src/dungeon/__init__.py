@@ -106,7 +106,7 @@ class DungeonContext(Context):
 
   def create_floor(game):
     floor_no = game.get_floor_no()
-    floor = gen.gen_debug(seed=config.SEED)
+    floor = gen.gen_floor(seed=config.SEED)
     game.parent.seeds.append(floor.seed)
     # if floor_no == config.TOP_FLOOR:
     #   floor = gen.top_floor()
@@ -786,6 +786,7 @@ class DungeonContext(Context):
       or actor is game.hero and target_elem is game.ally and not game.ally.ailment == "sleep"
     )):
       duration = RUN_DURATION if run else MOVE_DURATION
+      duration = duration * 1.5 if jump else duration
       anim_kind = JumpAnim if jump else MoveAnim
       move_anim = anim_kind(
         duration=duration,
@@ -799,6 +800,8 @@ class DungeonContext(Context):
         move_group.append(move_anim)
       else:
         game.anims.append([move_anim])
+      if jump:
+        game.anims.append([PauseAnim(duration=30)])
       actor.cell = target_cell
       return True
     else:
