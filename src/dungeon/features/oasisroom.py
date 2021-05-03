@@ -1,6 +1,7 @@
 from dungeon.features.specialroom import SpecialRoom
 from dungeon.stage import Stage
 from dungeon.decor import Decor
+from dungeon.props.palm import Palm
 from assets import load as use_assets
 from sprite import Sprite
 from config import TILE_SIZE
@@ -49,22 +50,10 @@ class OasisRoom(SpecialRoom):
         if SpecialRoom.parse_char(char) is stage.FLOOR:
           floor_cells.append(cell)
 
-    for i in range(3):
+    for i in range(randint(2, 3)):
       cell = choice(floor_cells)
       floor_cells.remove(cell)
-      x, y = cell
-      image = sprites["oasis_palm"]
-      sprite_x = x * TILE_SIZE
-      sprite_y = (y + 1) * TILE_SIZE - image.get_height()
-      stage.decors.append(Decor(
-        cell=cell,
-        sprite=Sprite(
-          image=image,
-          pos=(sprite_x, sprite_y),
-          offset=-1,
-          layer="elems"
-        )
-      ))
+      stage.spawn_elem(Palm(), cell)
 
     for i in range(8):
       cell = choice(floor_cells)

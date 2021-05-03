@@ -136,8 +136,6 @@ class DungeonActor(DungeonElement):
         asleep = True
       elif type(anim) is FlinchAnim and anim.time <= 2:
         return None
-      elif type(anim) is FlickerAnim and not anim.visible:
-        return None
     else:
       if actor.ailment == "poison":
         new_color = palette.PURPLE

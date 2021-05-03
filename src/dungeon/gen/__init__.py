@@ -414,8 +414,8 @@ def gen_floor(seed=None):
 
   features = [
     [arena, exit_room, puzzle_room],
-    [pit_room],
-    [treasure_room],
+    # [pit_room],
+    # [treasure_room],
     [oasis_room],
     [coffin_room],
   ]
@@ -485,10 +485,10 @@ def gen_floor(seed=None):
         corner = choice(corners)
         stage.set_tile_at(corner, stage.WALL)
 
-  entry_room = choice(empty_rooms)
+  entry_room = oasis_room # choice(empty_rooms)
   center_x, center_y = entry_room.get_center()
-  stage.entrance = (center_x, center_y)
-  stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
+  stage.entrance = (center_x, center_y - 3)
+  # stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
   stage.rooms = empty_rooms + feature_list
   return stage
 

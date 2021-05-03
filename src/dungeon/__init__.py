@@ -6,7 +6,7 @@ import palette
 from palette import GREEN, CYAN
 
 import config
-from config import WINDOW_SIZE, VISION_RANGE, MOVE_DURATION, RUN_DURATION, JUMP_DURATION
+from config import WINDOW_SIZE, VISION_RANGE, MOVE_DURATION, RUN_DURATION, JUMP_DURATION, FLICKER_DURATION
 
 import keyboard
 from keyboard import ARROW_DELTAS, key_times
@@ -34,6 +34,7 @@ from dungeon.actors.npc import NPC
 from dungeon.props.chest import Chest
 from dungeon.props.soul import Soul
 from dungeon.props.coffin import Coffin
+from dungeon.props.palm import Palm
 
 from items import Item
 from skills.weapon import Weapon
@@ -67,7 +68,6 @@ class DungeonContext(Context):
   ATTACK_DURATION = 12
   FLINCH_DURATION = 25
   FLINCH_PAUSE_DURATION = 60
-  FLICKER_DURATION = 30
   PAUSE_DURATION = 15
   PAUSE_ITEM_DURATION = 30
   PAUSE_DEATH_DURATION = 45
@@ -951,7 +951,7 @@ class DungeonContext(Context):
     else:
       game.log.print(target.token(), " is defeated.")
     game.anims[0].append(FlickerAnim(
-      duration=DungeonContext.FLICKER_DURATION,
+      duration=FLICKER_DURATION,
       target=target,
       on_end=remove
     ))
@@ -1055,6 +1055,45 @@ class DungeonContext(Context):
       if target_cell:
         camera.focus(target_cell)
 
+  def use_oasis(game):
+    if game.oasis_used:
+      return
+    game.oasis_used = True
+
+    game.log.print("You use the oasis")
+    palm = next((e for e in game.floor.elems if type(e) is Palm), None)
+    if not palm:
+      game.anims.append([PauseAnim(
+        duration=120,
+        on_end=lambda: game.log.print("But nothing happened...")
+      )])
+      return
+
+    palm.vanish(game)
+
+    def offset_y(cell, delta):
+      x, y = cell
+      return (x, y + delta)
+
+    hero = game.hero
+    game.numbers.append(DamageValue(hero.get_hp_max(), offset_y(hero.cell, -0.25), GREEN))
+    game.numbers.append(DamageValue(game.get_sp_max(), hero.cell, CYAN))
+
+    ally = game.ally
+    game.numbers.append(DamageValue(ally.get_hp_max(), offset_y(ally.cell, -0.25), GREEN))
+    game.numbers.append(DamageValue(game.get_sp_max(), ally.cell, CYAN))
+
+    hero.regen(hero.get_hp_max())
+    hero.dispel_ailment()
+    if ally.is_dead():
+      ally.revive(1)
+    else:
+      ally.regen(ally.get_hp_max())
+    ally.dispel_ailment()
+    game.parent.regen_sp()
+    game.log.print("The party's HP and SP has been restored.")
+    game.anims.append([PauseAnim(duration=240)])
+
   def learn_skill(game, skill):
     game.parent.learn_skill(skill)
 
@@ -1108,30 +1147,6 @@ class DungeonContext(Context):
   def toggle_lights(game):
     game.lights = not game.lights
     game.refresh_fov()
-
-  def use_oasis(game):
-    if game.oasis_used:
-      return
-    game.oasis_used = True
-
-    def offset_y(cell, delta):
-      x, y = cell
-      return (x, y + delta)
-
-    hero = game.hero
-    game.numbers.append(DamageValue(hero.get_hp_max(), offset_y(hero.cell, -0.25), GREEN))
-    game.numbers.append(DamageValue(game.get_sp_max(), hero.cell, CYAN))
-
-    ally = game.ally
-    game.numbers.append(DamageValue(ally.get_hp_max(), offset_y(ally.cell, -0.25), GREEN))
-    game.numbers.append(DamageValue(game.get_sp_max(), ally.cell, CYAN))
-
-    hero.regen(hero.get_hp_max())
-    ally.regen(ally.get_hp_max())
-    game.parent.regen_sp()
-    game.log.print("You use the oasis")
-    game.log.print("The party's HP and SP has been restored.")
-    game.anims.append([PauseAnim(duration=240)])
 
   def get_sp(game):
     return game.parent.get_sp()
