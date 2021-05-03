@@ -39,6 +39,7 @@ class Core:
     else:
       revive_hp = core.get_hp_max() * hp_factor
     core.set_hp(revive_hp)
+    core.dead = False
 
   def allied(a, b):
     return (a.faction == b.faction
