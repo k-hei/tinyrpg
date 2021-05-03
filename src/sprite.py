@@ -9,5 +9,14 @@ class Sprite:
   layer: str = None
   tile: bool = False
 
+  def copy(sprite):
+    return Sprite(
+      image=sprite.image,
+      pos=sprite.pos,
+      offset=sprite.offset,
+      layer=sprite.layer,
+      tile=sprite.tile
+    )
+
   def draw(sprite, surface):
     surface.blit(sprite.image, sprite.pos)

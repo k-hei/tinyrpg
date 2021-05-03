@@ -4,8 +4,8 @@ from pygame import Surface, Rect
 from pygame.transform import rotate, flip, scale
 
 from assets import load as use_assets
-from filters import replace_color
-from palette import BLACK, WHITE, COLOR_TILE, darken
+from filters import replace_color, darken
+from palette import BLACK, WHITE, COLOR_TILE, darken_color
 from config import ITEM_OFFSET, TILE_SIZE, DEBUG
 from sprite import Sprite
 from lib.lerp import lerp
@@ -58,7 +58,7 @@ class StageView:
     and stage.get_tile_at(cell) is not stage.OASIS_STAIRS):
       color = COLOR_TILE
       image = replace_color(image, WHITE, color)
-    image_darken = replace_color(image, color, darken(color))
+    image_darken = replace_color(image, color, darken_color(color))
     view.tile_cache[cell] = image_darken
     x = (col - start_x) * TILE_SIZE
     y = (row - start_y) * TILE_SIZE
@@ -199,6 +199,18 @@ class StageView:
 
     return sprites
 
+  def render_decors(view, decors, camera, visible_cells, visited_cells):
+    sprites = []
+    for decor in decors:
+      if decor.cell not in visited_cells:
+        continue
+      sprite = decor.sprite
+      if decor.cell not in visible_cells:
+        sprite = sprite.copy()
+        sprite.image = darken(sprite.image)
+      sprites.append(sprite)
+    return sprites
+
   def render_elems(view, elems, hero, camera, visible_cells, anims, vfx):
     sprites = []
     camera = camera.get_rect()
@@ -287,7 +299,9 @@ class StageView:
     hero = ctx.hero
     stage = ctx.floor
     elems = stage.elems
-    sprites = [*stage.decors]
+    decors = stage.decors
+    sprites = []
+    sprites += view.render_decors(decors, camera, visible_cells, visited_cells)
     sprites += view.render_elems(elems, hero, camera, visible_cells, anims, vfx)
     sprites += view.render_vfx(vfx, camera)
     sprites += view.render_numbers(numbers, camera)

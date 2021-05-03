@@ -6,7 +6,7 @@ from filters import replace_color, recolor, outline
 from text import render as render_text
 import pygame
 from pygame import Rect
-from palette import BLACK, WHITE, GRAY, GRAY_DARK, YELLOW, YELLOW_DARK, BLUE, BLUE_DARK, darken
+from palette import BLACK, WHITE, GRAY, GRAY_DARK, YELLOW, YELLOW_DARK, BLUE, BLUE_DARK, darken_color
 import keyboard
 from comps.piece import Piece
 
@@ -519,7 +519,7 @@ class CustomContext(Context):
         if menu.is_skill_used(skill):
           color = skill.color
           subspr = sprite.subsurface(Rect(3, 3, sprite.get_width() - 6, sprite.get_height() - 6))
-          subspr = replace_color(subspr, color, darken(color))
+          subspr = replace_color(subspr, color, darken_color(color))
           subspr = replace_color(subspr, WHITE, GRAY)
           sprite.blit(subspr, (3, 3))
           surface.blit(sprite, (x, y))

@@ -3,7 +3,7 @@ from text import render as render_text
 from filters import recolor, outline, replace_color
 from pygame import Rect
 import pygame
-from palette import BLACK, WHITE, GRAY, darken
+from palette import BLACK, WHITE, GRAY, darken_color
 
 class Skill:
   PADDING_X = 6
@@ -14,7 +14,7 @@ class Skill:
     assets = use_assets()
     icon = Skill.get_icon(skill)
     icon_bgcolor = skill.color
-    icon_bgcolor = icon_bgcolor if selected else darken(icon_bgcolor)
+    icon_bgcolor = icon_bgcolor if selected else darken_color(icon_bgcolor)
     text_color = WHITE if selected else GRAY
     font = assets.fonts["standard"]
     sprite = assets.sprites["skill"]

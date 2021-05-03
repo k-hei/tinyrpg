@@ -21,7 +21,7 @@ SAFFRON = 0xFFA97352
 
 COLOR_TILE = SAFFRON
 
-def darken(color):
+def darken_color(color):
   if color == WHITE: return GRAY
   elif color == RED: return RED_DARK
   elif color == PURPLE: return PURPLE_DARK

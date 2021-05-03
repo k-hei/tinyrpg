@@ -1,9 +1,12 @@
 from dungeon.features.specialroom import SpecialRoom
 from dungeon.stage import Stage
+from dungeon.decor import Decor
 from assets import load as use_assets
 from sprite import Sprite
 from config import TILE_SIZE
 from random import randint, choice
+from palette import WHITE, COLOR_TILE
+from filters import replace_color
 
 class OasisRoom(SpecialRoom):
   def __init__(room, secret=False):
@@ -53,29 +56,33 @@ class OasisRoom(SpecialRoom):
       image = sprites["oasis_palm"]
       sprite_x = x * TILE_SIZE
       sprite_y = (y + 1) * TILE_SIZE - image.get_height()
-      stage.decors.append(Sprite(
-        image=image,
-        pos=(sprite_x, sprite_y),
-        offset=-1,
-        layer="elems",
-        tile=True
+      stage.decors.append(Decor(
+        cell=cell,
+        sprite=Sprite(
+          image=image,
+          pos=(sprite_x, sprite_y),
+          offset=-1,
+          layer="elems"
+        )
       ))
 
     for i in range(8):
       cell = choice(floor_cells)
       floor_cells.remove(cell)
       x, y = cell
-      image = sprites["oasis_grass"]
+      image = replace_color(sprites["oasis_grass"], WHITE, COLOR_TILE)
       for j in range(2):
         for k in range(2):
           if randint(1, 5) == 1:
             sprite_x = x * TILE_SIZE + j * 16
             sprite_y = y * TILE_SIZE + k * 16
-            stage.decors.append(Sprite(
-              image=image,
-              pos=(sprite_x, sprite_y),
-              offset=-1,
-              tile=True
+            stage.decors.append(Decor(
+              cell=cell,
+              sprite=Sprite(
+                image=image,
+                pos=(sprite_x, sprite_y),
+                offset=-1
+              )
             ))
 
     x, y = room.cell or (0, 0)
@@ -109,7 +116,10 @@ class OasisRoom(SpecialRoom):
         corner_x, corner_y = choice(corners)
         sprite_x = x * TILE_SIZE + corner_x * 16
         sprite_y = y * TILE_SIZE + corner_y * 16
-        stage.decors.append(Sprite(
-          image=image,
-          pos=(sprite_x, sprite_y)
+        stage.decors.append(Decor(
+          cell=cell,
+          sprite=Sprite(
+            image=image,
+            pos=(sprite_x, sprite_y)
+          )
         ))

@@ -8,7 +8,7 @@ def darken(surface):
   for y in range(height):
     for x in range(width):
       if pixels[x, y] == 0: continue
-      pixels[x, y] = palette.darken(pixels[x, y])
+      pixels[x, y] = palette.darken_color(pixels[x, y])
   return surface
 
 def recolor(surface, color):
