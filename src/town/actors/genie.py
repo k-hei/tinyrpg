@@ -1,14 +1,16 @@
 from math import pi, sin
+from pygame import Surface, Rect
+from easing.expo import ease_out
 from assets import load as use_assets
 from cores import Core
 from town.actors.npc import Npc
-from pygame import Surface, Rect
 
-RIPPLE_PERIOD = 120
+RIPPLE_PERIOD = 90
+RIPPLE_WAVES = 2
 RIPPLE_START = 20
 RIPPLE_END = 32
 RIPPLE_EXTENT = RIPPLE_END - RIPPLE_START
-RIPPLE_AMP = 6
+RIPPLE_AMP = 4
 FLOAT_PERIOD = 180
 FLOAT_AMP = 2
 
@@ -23,9 +25,11 @@ class Genie(Npc):
     sprite.blit(sprite_genie.subsurface(Rect(0, 0, 32, RIPPLE_START)), (0, 0))
     for y in range(RIPPLE_START, RIPPLE_END):
       i = y - RIPPLE_START
-      t = genie.renders + i / RIPPLE_EXTENT * RIPPLE_PERIOD
-      t = t % RIPPLE_PERIOD / RIPPLE_PERIOD
-      x = sin(t * 2 * pi) * i / RIPPLE_EXTENT * RIPPLE_AMP
+      p = i / RIPPLE_EXTENT
+      t = genie.renders
+      t = t + p * RIPPLE_PERIOD
+      t = (t % (RIPPLE_PERIOD / RIPPLE_WAVES) / RIPPLE_PERIOD) * RIPPLE_WAVES
+      x = sin(t * 2 * pi) * ease_out(p) * RIPPLE_AMP
       sprite.blit(sprite_genie.subsurface(Rect(0, y, 32, 1)), (x, y))
     sprite, _, _ = super().render(sprite)
     x = 0

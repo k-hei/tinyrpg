@@ -55,10 +55,13 @@ class StageView:
       return
     color = WHITE
     if (stage.get_tile_at(cell) is not stage.OASIS
-    and stage.get_tile_at(cell) is not stage.OASIS_STAIRS):
+    and stage.get_tile_at(cell) is not stage.OASIS_STAIRS
+    and stage.get_tile_at(cell) is not stage.FLOOR):
       color = COLOR_TILE
       image = replace_color(image, WHITE, color)
-    image_darken = replace_color(image, color, darken_color(color))
+    image_darken = image
+    if stage.get_tile_at(cell) is not stage.FLOOR:
+      image_darken = replace_color(image, color, darken_color(color))
     view.tile_cache[cell] = image_darken
     x = (col - start_x) * TILE_SIZE
     y = (row - start_y) * TILE_SIZE
@@ -323,7 +326,7 @@ def render_tile(stage, cell, visited_cells=[]):
   if tile is stage.WALL or tile is stage.DOOR_HIDDEN or (
   tile is stage.DOOR_WAY and tile_below is stage.DOOR_HIDDEN):
     if tile_below is stage.FLOOR or tile_below is stage.PIT:
-      if x % (3 + y % 2) == 0:
+      if x % (3 + y % 2) == 0 or tile is stage.DOOR_HIDDEN:
         sprite_name = "wall_torch"
       else:
         sprite_name = "wall_base"
