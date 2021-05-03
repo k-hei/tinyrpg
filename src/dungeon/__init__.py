@@ -89,7 +89,7 @@ class DungeonContext(Context):
     game.numbers = []
     game.key_requires_reset = {}
     game.seeds = []
-    game.lights = False # config.DEBUG
+    game.lights = config.DEBUG
     game.floor_view = StageView(WINDOW_SIZE)
     game.camera = Camera(WINDOW_SIZE)
     game.log = Log()

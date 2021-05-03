@@ -15,4 +15,9 @@ class PitRoom(SpecialRoom):
 
   def get_edges(room):
     edges = super().get_edges()
-    return [(x, y) for (x, y) in edges if x % 2 == 1 and y % 2 == 1]
+    room_x, room_y = room.cell or (0, 0)
+    room_width, room_height = room.size
+    return [(x, y) for (x, y) in edges if (
+      (y == room_y - 1 or y == room_y + room_height - 1) and x % 2 == 1
+      or (x == room_x - 1 or x == room_x + room_width - 1) and y % 2 == 1
+    )]
