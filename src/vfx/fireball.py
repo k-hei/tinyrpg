@@ -17,7 +17,7 @@ class Fireball(Vfx):
   accel = 1 / 5
   turn_speed = pi / 8
 
-  def __init__(fx, start_pos, target_pos, delay=0):
+  def __init__(fx, start_pos, target_pos, delay=0, on_end=None):
     super().__init__(None, start_pos)
     fx.start_pos = start_pos
     fx.pos = start_pos
@@ -26,12 +26,13 @@ class Fireball(Vfx):
     fx.angle = fx.start_angle + pi * random() * 0.5 + pi * 0.75
     fx.target_angle = None
     fx.dist = 16 + 16 * random()
+    fx.color = RED
     fx.anims = [
       DriftAnim(duration=10, delay=delay),
       PauseAnim(duration=30),
       HomeAnim()
     ]
-    fx.color = RED
+    fx.on_end=on_end
     fx.done = False
 
   def update(fx):
@@ -43,6 +44,8 @@ class Fireball(Vfx):
       fx.anims.remove(anim)
       if len(fx.anims) == 0:
         fx.done = True
+        if fx.on_end:
+          fx.on_end()
     if type(anim) is DriftAnim:
       t = ease_out(t)
       start_x, start_y = fx.start_pos
