@@ -6,7 +6,7 @@ from anims.flinch import FlinchAnim
 from anims.pause import PauseAnim
 
 class Anim:
-  def __init__(anim, duration, on_end=None):
+  def __init__(anim, duration=None, on_end=None):
     anim.done = False
     anim.time = 0
     anim.duration = duration

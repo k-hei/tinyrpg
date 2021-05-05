@@ -414,7 +414,7 @@ def gen_floor(seed=None):
 
   features = [
     [arena, exit_room, puzzle_room],
-    # [pit_room],
+    [pit_room],
     # [treasure_room],
     [oasis_room],
     [coffin_room],

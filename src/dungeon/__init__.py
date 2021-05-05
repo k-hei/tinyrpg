@@ -693,9 +693,9 @@ class DungeonContext(Context):
         parent=game,
         actor=game.hero,
         selected_skill=game.parent.get_skill(game.hero.core),
-        on_close=lambda skill: (
+        on_close=lambda skill, dest: (
           skill and game.parent.set_skill(game.hero.core, skill),
-          game.use_skill(game.hero, skill) if skill else game.refresh_fov()
+          game.use_skill(game.hero, skill, dest) if skill else game.refresh_fov()
         )
       )
 
@@ -1022,7 +1022,7 @@ class DungeonContext(Context):
     else:
       return False, message
 
-  def use_skill(game, actor, skill):
+  def use_skill(game, actor, skill, dest):
     camera = game.camera
     if actor.get_faction() == "player":
       game.parent.deplete_sp(skill.cost)
@@ -1047,7 +1047,7 @@ class DungeonContext(Context):
         game.log.print("But nothing happened...")
     else:
       game.log.print(actor.token(), " uses ", skill().token())
-      target_cell = skill.effect(actor, game, on_end=lambda: (
+      target_cell = skill.effect(actor, dest, game, on_end=lambda: (
         camera.blur(),
         actor is game.hero and game.step(),
         game.refresh_fov()

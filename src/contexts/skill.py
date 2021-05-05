@@ -34,6 +34,7 @@ class SkillContext(Context):
     ctx.bar = Bar()
     ctx.options = actor.get_active_skills()
     ctx.offsets = {}
+    ctx.dest = None
     ctx.cursor = None
     ctx.cursor_anim = SineAnim(60)
     ctx.anims = []
@@ -110,12 +111,13 @@ class SkillContext(Context):
   def handle_confirm(ctx):
     game = ctx.parent
     skill = ctx.skill
+    dest = ctx.dest
     if skill is None:
       return
     if skill.cost > game.parent.sp:
       ctx.bar.print("You don't have enough SP!")
     else:
-      ctx.exit(skill)
+      ctx.exit(skill, dest)
 
   def enter(ctx):
     ctx.bar.enter()
@@ -128,10 +130,12 @@ class SkillContext(Context):
       ))
       index += 1
 
-  def exit(ctx, skill=None):
+  def exit(ctx, skill=None, dest=None):
     def close():
       ctx.parent.camera.blur()
-      ctx.close(skill)
+      ctx.parent.child = None
+      if ctx.on_close:
+        ctx.on_close(skill, dest)
 
     ctx.exiting = True
     index = 0
@@ -174,6 +178,7 @@ class SkillContext(Context):
         cursor = neighbors[0]
       else:
         cursor = hero.cell
+    ctx.dest = cursor
 
     camera_speed = 8
     if skill and skill.range_max == math.inf:

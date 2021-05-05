@@ -21,7 +21,7 @@ class Virus(AilmentSkill):
     (1, 1),
   )
 
-  def effect(user, game, on_end=None):
+  def effect(user, dest, game, on_end=None):
     targets = [e for e in game.floor.elems if (
       isinstance(e, DungeonActor)
       and not e.is_dead()

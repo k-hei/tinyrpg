@@ -20,12 +20,15 @@ class Ignis(MagicSkill):
     (1, 0),
   )
 
-  def effect(user, game, on_end=None):
-    game.log.print("But nothing happened...")
-    # game.vfx.append()
-    col, row = user.cell
-    x, y = col * TILE_SIZE, row * TILE_SIZE
-    Fireball(
-      start=(x, y),
-      target=(0, 0)
-    )
+  def effect(user, dest, game, on_end=None):
+    user_col, user_row = user.cell
+    dest_col, dest_row = dest
+    start = user_col * TILE_SIZE, user_row * TILE_SIZE
+    target = dest_col * TILE_SIZE, dest_row * TILE_SIZE
+    for i in range(6):
+      delay = i * 7
+      fireball = Fireball(start, target, delay)
+      game.vfx.append(fireball)
+    mid_x = (dest_col + user_col) / 2
+    mid_y = (dest_row + user_row) / 2
+    return (mid_x, mid_y)

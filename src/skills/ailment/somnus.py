@@ -18,7 +18,7 @@ class Somnus(AilmentSkill):
     (0, 1),
   )
 
-  def effect(user, game, on_end=None):
+  def effect(user, dest, game, on_end=None):
     source_cell = user.cell
     hero_x, hero_y = source_cell
     delta_x, delta_y = user.facing

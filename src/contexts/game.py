@@ -59,7 +59,8 @@ class GameContext(Context):
       (Blitzritter, (1, 0))
     ])
     ctx.load_build(ctx.ally, [
-      (Somnus, (0, 0)),
+      (Ignis, (0, 0)),
+      (Somnus, (0, 1)),
       (Sana, (1, 0)),
     ])
     ctx.monster_kills = {}

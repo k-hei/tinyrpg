@@ -10,7 +10,9 @@ from palette import WHITE, BLACK
 class DamageNumber:
   INITIAL_VELOCITY = -2
   GRAVITY = 0.2
-  DURATION = 75
+  DURATION = 120
+  PINCH_DURATION = 7
+  BLINK_DURATION = DURATION - PINCH_DURATION
   STAGGER = 10
   BOUNCE = 0
 
@@ -70,8 +72,8 @@ class DamageValue:
       image = number.sprite
       number_width = image.get_width()
       number_height = image.get_height()
-      if number.time >= 68:
-        t = (number.time - 68) / 7
+      if number.time >= DamageNumber.BLINK_DURATION:
+        t = (number.time - DamageNumber.BLINK_DURATION) / DamageNumber.PINCH_DURATION
         image = pygame.transform.scale(image, (
           int(number_width * lerp(1, 0, t)),
           int(number_height * lerp(1, 3, t))
