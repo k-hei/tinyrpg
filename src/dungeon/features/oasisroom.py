@@ -59,7 +59,7 @@ class OasisRoom(SpecialRoom):
       cell = choice(floor_cells)
       floor_cells.remove(cell)
       x, y = cell
-      image = replace_color(sprites["oasis_grass"], WHITE, COLOR_TILE)
+      image = replace_color(sprites["oasis_grass"], WHITE, 0xff3a827e)
       for j in range(2):
         for k in range(2):
           if randint(1, 5) == 1:
@@ -70,7 +70,8 @@ class OasisRoom(SpecialRoom):
               sprite=Sprite(
                 image=image,
                 pos=(sprite_x, sprite_y),
-                offset=-1
+                offset=1,
+                layer="elems"
               )
             ))
 

@@ -25,7 +25,8 @@ from dungeon.actors.mushroom import Mushroom
 from dungeon.actors.skeleton import Skeleton
 from dungeon.actors.soldier import Soldier
 from dungeon.actors.mimic import Mimic
-from dungeon.actors.npc import NPC
+from dungeon.actors.npc import Npc
+from dungeon.actors.genie import Genie
 
 from dungeon.props.chest import Chest
 from dungeon.props.coffin import Coffin
@@ -485,11 +486,18 @@ def gen_floor(seed=None):
         corner = choice(corners)
         stage.set_tile_at(corner, stage.WALL)
 
-  entry_room = coffin_room # oasis_room # choice(empty_rooms)
+  entry_room = oasis_room # choice(empty_rooms)
   center_x, center_y = entry_room.get_center()
-  stage.entrance = (center_x, center_y - 1)
+  stage.entrance = (center_x, center_y + 2)
   # stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
   stage.rooms = empty_rooms + feature_list
+
+  genie = Genie(name="Joshin", script=(
+    ("Joshin", "Pee pee poo poo"),
+    ("Minxia", "He has such a way with words")
+  ))
+  stage.spawn_elem(genie, (center_x, center_y - 3))
+
   return stage
 
 def gen_enemy(floor):

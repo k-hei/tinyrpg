@@ -2,7 +2,7 @@ from math import pi, sin
 from pygame import Surface, Rect
 from easing.expo import ease_out
 from assets import load as use_assets
-from cores import Core
+from cores.genie import Genie as GenieCore
 from town.actors.npc import Npc
 
 RIPPLE_PERIOD = 90
@@ -16,24 +16,8 @@ FLOAT_AMP = 2
 
 class Genie(Npc):
   def __init__(genie, name=None, message=None):
-    super().__init__(Core(name, faction="ally"), message)
-    genie.renders = 0
+    super().__init__(GenieCore(name), message)
 
   def render(genie):
-    sprite_genie = use_assets().sprites["genie"]
-    image = Surface(sprite_genie.get_size()).convert_alpha()
-    image.blit(sprite_genie.subsurface(Rect(0, 0, 32, RIPPLE_START)), (0, 0))
-    for y in range(RIPPLE_START, RIPPLE_END):
-      i = y - RIPPLE_START
-      p = i / RIPPLE_EXTENT
-      t = genie.renders
-      t = t + p * RIPPLE_PERIOD
-      t = (t % (RIPPLE_PERIOD / RIPPLE_WAVES) / RIPPLE_PERIOD) * RIPPLE_WAVES
-      x = sin(t * 2 * pi) * ease_out(p) * RIPPLE_AMP
-      image.blit(sprite_genie.subsurface(Rect(0, y, 32, 1)), (x, y))
-    genie.sprite.image = image
-    super().render()
-    y = sin(genie.renders % FLOAT_PERIOD / FLOAT_PERIOD * 2 * pi) * FLOAT_AMP
-    genie.sprite.pos = (0, y)
-    genie.renders += 1
-    return genie.sprite
+    genie.sprite = genie.core.render()
+    return super().render()

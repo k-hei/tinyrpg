@@ -29,7 +29,7 @@ from dungeon.actors.eye import Eye
 from dungeon.actors.knight import Knight
 from dungeon.actors.mage import Mage
 from dungeon.actors.mimic import Mimic
-from dungeon.actors.npc import NPC
+from dungeon.actors.npc import Npc
 
 from dungeon.props.chest import Chest
 from dungeon.props.soul import Soul
@@ -63,6 +63,7 @@ from contexts.examine import ExamineContext
 from contexts.inventory import InventoryContext
 from contexts.minimap import MinimapContext
 from contexts.skill import SkillContext
+from contexts.dialogue import DialogueContext
 
 class DungeonContext(Context):
   ATTACK_DURATION = 12
@@ -538,28 +539,8 @@ class DungeonContext(Context):
           dest_cell=target_cell
         )
       ])
-      if type(target_elem) is NPC:
-        npc = target_elem
-        game.log.clear()
-        message = npc.message
-        game.log.print(npc.name + ": " + message[0])
-        for i in range(1, len(message)):
-          game.log.print(message[i])
-        if npc.message == npc.messages[0]:
-          npc.message = npc.messages[1]
-        else:
-          npc.message = npc.messages[0]
-
-        npc = target_elem
-        game.log.clear()
-        message = npc.message
-        game.log.print(npc.name + ": " + message[0])
-        for i in range(1, len(message)):
-          game.log.print(message[i])
-        if npc.message == npc.messages[0]:
-          npc.message = npc.messages[1]
-        else:
-          npc.message = npc.messages[0]
+      if isinstance(target_elem, Npc):
+        game.handle_talk()
       elif type(target_elem) is Coffin:
         target_elem.effect(game)
       elif type(target_elem) is Chest:
@@ -767,6 +748,32 @@ class DungeonContext(Context):
     elif type(game.child) is MinimapContext:
       game.child.exit()
     print("Debug mode switched {}".format("on" if config.DEBUG else "off"))
+
+  def handle_talk(game):
+    hero = game.hero
+    hero_x, hero_y = hero.cell
+    facing_x, facing_y = hero.facing
+    target_cell = (hero_x + facing_x, hero_y + facing_y)
+    target = next((e for e in game.floor.elems if (
+      e.cell == target_cell
+      and isinstance(e, Npc)
+    )), None)
+    if target is None:
+      return
+    game.hud.exit()
+    game.sp_meter.exit()
+    game.previews.exit()
+    game.minimap.exit()
+    game.child = DialogueContext(
+      parent=game,
+      script=target.script,
+      on_close=lambda _: (
+        game.hud.enter(),
+        game.sp_meter.enter(),
+        game.previews.enter(),
+        game.minimap.enter()
+      )
+    )
 
   def move(game, actor, delta, run=False, jump=False, on_end=None):
     actor_x, actor_y = actor.cell

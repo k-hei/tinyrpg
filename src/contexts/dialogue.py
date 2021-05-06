@@ -7,19 +7,21 @@ from comps.log import Log
 from assets import load as use_assets
 
 class DialogueContext(Context):
-  def __init__(ctx, parent, script):
-    super().__init__(parent)
+  def __init__(ctx, parent, script, on_close=None):
+    super().__init__(parent, on_close)
     ctx.script = script
     ctx.index = 0
+    ctx.name = None
     ctx.log = Log(autohide=False)
     ctx.print()
 
   def print(ctx):
+    ctx.log.clear()
     name, page = ctx.script[ctx.index]
-    if ctx.index == 0:
+    if name != ctx.name:
+      ctx.name = name
       ctx.log.print(name.upper() + ": " + page)
     else:
-      ctx.log.clear()
       ctx.log.print(page)
 
   def handle_keydown(ctx, key):

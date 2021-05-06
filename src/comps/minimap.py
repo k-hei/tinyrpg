@@ -6,8 +6,10 @@ from dungeon.actors.knight import Knight
 from dungeon.actors import DungeonActor
 from dungeon.actors.mage import Mage
 from dungeon.actors.mimic import Mimic
+from dungeon.actors.npc import Npc
 from dungeon.props.chest import Chest
 import palette
+from palette import GREEN, GREEN_DARK
 from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in_out
 from lib.lerp import lerp
@@ -129,6 +131,8 @@ class Minimap:
           color = 0x990000
         else:
           color = 0xFF0000 if minimap.time % 60 >= 30 else 0x990000
+      elif isinstance(elem, Npc) and cell in visible_cells:
+        color = GREEN if minimap.time % 60 >= 30 else GREEN_DARK
       elif type(elem) is Chest and elem.rare:
         if elem.opened:
           color = 0x7F007F

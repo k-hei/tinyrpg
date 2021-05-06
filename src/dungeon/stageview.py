@@ -193,7 +193,19 @@ class StageView:
 
     if isinstance(elem, DungeonActor):
       view.facings[elem] = (facing_x, facing_y)
-    if image:
+
+    if type(image) is Sprite:
+      sprite = image
+      image = sprite.image
+      offset_x, offset_y = sprite.pos
+      x = sprite_x + TILE_SIZE // 2 - image.get_width() // 2 + offset_x
+      y = sprite_y + TILE_SIZE // 2 - image.get_height() // 2 + offset_y
+      sprites.append(Sprite(
+        image=image,
+        pos=(x, y),
+        layer="elems"
+      ))
+    elif image:
       if facing_x == -1:
         image = flip(image, True, False)
       scaled_image = image
