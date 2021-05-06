@@ -1,3 +1,4 @@
+from random import randint
 from skills.magic import MagicSkill
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
@@ -11,7 +12,7 @@ class Ignis(MagicSkill):
   kind = "magic"
   element = "fire"
   desc = "Burns target with flame"
-  cost = 2
+  cost = 4
   range_max = 4
   users = (Mage,)
   blocks = (
@@ -29,18 +30,19 @@ class Ignis(MagicSkill):
     target = game.floor.get_elem_at(dest)
     target = target if isinstance(target, DungeonActor) else None
 
-    on_end = lambda: (
+    flinch = lambda: (
       game.flinch(
         target=target,
-        damage=20,
-        delayed=True
+        damage=16 + randint(-2, 2),
+        delayed=True,
+        on_end=on_end
       )
     )
 
     for i in range(Ignis.SALVO_SIZE):
       delay = i * Ignis.SALVO_STAGGER
       fireball = Fireball(start_pos, target_pos, delay, on_end=(
-        on_end if target and i == Ignis.SALVO_SIZE - 1 else None
+        flinch if target and i == Ignis.SALVO_SIZE - 1 else None
       ))
       game.vfx.append(fireball)
 
