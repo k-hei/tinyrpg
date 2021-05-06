@@ -88,7 +88,7 @@ class OasisRoom(SpecialRoom):
       cell = choice(oasis_cells)
       oasis_cells.remove(cell)
       x, y = cell
-      image = sprites["oasis_wave"]
+      image = sprites["oasis_wave"] if randint(1, 2) == 1 else sprites["oasis_waves"]
       corners = []
       if (stage.get_tile_at((x - 1, y)) is stage.OASIS
       and stage.get_tile_at((x, y - 1)) is stage.OASIS):
@@ -102,14 +102,15 @@ class OasisRoom(SpecialRoom):
       if (stage.get_tile_at((x + 1, y)) is stage.OASIS
       and stage.get_tile_at((x, y + 1)) is stage.OASIS):
         corners.append((1, 1))
-      if corners:
-        corner_x, corner_y = choice(corners)
-        sprite_x = x * TILE_SIZE + corner_x * 16
-        sprite_y = y * TILE_SIZE + corner_y * 16
-        stage.decors.append(Decor(
-          cell=cell,
-          sprite=Sprite(
-            image=image,
-            pos=(sprite_x, sprite_y)
-          )
-        ))
+      if not corners:
+        continue
+      corner_x, corner_y = choice(corners)
+      sprite_x = x * TILE_SIZE + corner_x * 16
+      sprite_y = y * TILE_SIZE + corner_y * 16
+      stage.decors.append(Decor(
+        cell=cell,
+        sprite=Sprite(
+          image=image,
+          pos=(sprite_x, sprite_y)
+        )
+      ))
