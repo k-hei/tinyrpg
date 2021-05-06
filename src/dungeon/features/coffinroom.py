@@ -1,7 +1,8 @@
-from random import choice
+from random import randint, choice
 from config import ROOM_WIDTHS, ROOM_HEIGHTS
 from dungeon.features.room import Room
 from dungeon.props.coffin import Coffin
+from items.gold import Gold
 
 class CoffinRoom(Room):
   def __init__(room, *args, **kwargs):
@@ -19,4 +20,7 @@ class CoffinRoom(Room):
         cell = (col, row)
         stage.set_tile_at(cell, stage.FLOOR)
         if x % 2 == 1 and y % 2 == 1:
-          stage.spawn_elem(Coffin(), cell)
+          item = None
+          if randint(1, 2) == 1:
+            item = Gold(amount=randint(10, 50))
+          stage.spawn_elem(Coffin(item), cell)

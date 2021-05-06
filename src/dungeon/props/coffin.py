@@ -3,6 +3,8 @@ from assets import load as use_assets
 from config import TILE_SIZE
 from palette import WHITE, COLOR_TILE
 from filters import replace_color
+from anims.item import ItemAnim
+from random import randint
 import vfx
 
 class Coffin(Prop):
@@ -12,10 +14,15 @@ class Coffin(Prop):
     coffin.opened = False
 
   def effect(coffin, game):
+    if coffin.contents:
+      game.anims.append([
+        ItemAnim(
+          duration=30,
+          target=coffin,
+          item=coffin.contents
+        )
+      ])
     coffin.open()
-    # x, y = coffin.cell
-    # x, y = x * TILE_SIZE, y * TILE_SIZE
-    # game.vfx.append(CoffinLid(pos=(x, y)))
 
   def open(coffin):
     contents = coffin.contents
