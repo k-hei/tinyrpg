@@ -1,0 +1,14 @@
+{
+  "name": "floornos",
+  "cell_width": 6,
+  "cell_height": 8,
+  "char_width": 6,
+  "char_height": 8,
+  "char_spacing": 1,
+  "word_spacing": 3,
+  "line_spacing": 2,
+  "cols": 7,
+  "rows": 1,
+  "order": "1234567",
+  "exceptions": {}
+}

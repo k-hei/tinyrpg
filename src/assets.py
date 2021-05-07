@@ -154,7 +154,8 @@ sprite_paths = {
   "town": "town",
   "tower": "tower",
   "tileset": "tileset",
-  "soldier": "soldier"
+  "soldier": "soldier",
+  "floorno": "floorno"
 }
 
 def load_sprite(sprite_name, path, sprites):
@@ -225,6 +226,7 @@ def load():
   fonts["smallcaps"] = load_font("smallcaps")
   fonts["numbers13"] = load_font("numbers13")
   fonts["numbers16"] = load_font("numbers16")
+  fonts["floornos"] = load_font("floornos")
 
   ttf = {}
   ttf["english"] = load_ttf("PCPaintEnglishSmall")

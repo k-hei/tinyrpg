@@ -56,6 +56,7 @@ from comps.log import Log, Message, Token
 from comps.minimap import Minimap
 from comps.previews import Previews
 from comps.spmeter import SpMeter
+from comps.floorno import FloorNo
 
 from contexts import Context
 from contexts.custom import CustomContext
@@ -98,6 +99,7 @@ class DungeonContext(Context):
     game.sp_meter = SpMeter()
     game.minimap = Minimap(parent=game)
     game.previews = Previews()
+    game.floor_box = FloorNo()
     game.create_floor()
     if config.DEBUG:
       game.handle_minimap()
@@ -659,24 +661,34 @@ class DungeonContext(Context):
   def handle_floorchange(game, direction):
     game.log.exit()
     game.hud.exit()
+    game.sp_meter.exit()
+    game.floornos.exit()
     game.parent.dissolve(
       on_clear=lambda: (
         game.camera.reset(),
         game.change_floors(direction)
       ),
-      on_end=game.hud.enter
+      on_end=lambda: (
+        game.hud.enter(),
+        game.sp_meter.enter(),
+        game.floornos.enter()
+      )
     )
 
   def handle_skill(game):
     if game.child is None:
       game.log.exit()
+      game.floornos.exit()
       game.child = SkillContext(
         parent=game,
         actor=game.hero,
         selected_skill=game.parent.get_skill(game.hero.core),
         on_close=lambda skill, dest: (
-          skill and game.parent.set_skill(game.hero.core, skill),
-          game.use_skill(game.hero, skill, dest) if skill else game.refresh_fov()
+          game.floornos.enter(),
+          skill and (
+            game.parent.set_skill(game.hero.core, skill),
+            game.use_skill(game.hero, skill, dest)
+          ) or game.refresh_fov()
         )
       )
 
@@ -693,6 +705,7 @@ class DungeonContext(Context):
       game.log.exit()
       game.hud.exit()
       game.sp_meter.exit()
+      game.floornos.exit()
       game.previews.exit()
       game.minimap.exit()
       game.child = CustomContext(
@@ -705,6 +718,7 @@ class DungeonContext(Context):
           game.update_skills(),
           game.hud.enter(),
           game.sp_meter.enter(),
+          game.floornos.enter(),
           game.previews.enter(),
           game.minimap.enter()
         )
@@ -715,11 +729,13 @@ class DungeonContext(Context):
       game.log.exit()
       game.hud.exit()
       game.sp_meter.exit()
+      game.floornos.exit()
       game.child = ExamineContext(
         parent=game,
         on_close=lambda _: (
           game.hud.enter(),
           game.sp_meter.enter(),
+          game.floornos.enter(),
           game.refresh_fov()
         )
       )
@@ -730,6 +746,7 @@ class DungeonContext(Context):
       game.hud.exit()
       game.previews.exit()
       game.sp_meter.exit()
+      game.floornos.exit()
       game.child = MinimapContext(
         parent=game,
         minimap=game.minimap,
@@ -737,6 +754,7 @@ class DungeonContext(Context):
           game.hud.enter(),
           game.previews.enter(),
           game.sp_meter.enter(),
+          game.floornos.enter(),
           game.refresh_fov()
         )
       )
@@ -764,6 +782,7 @@ class DungeonContext(Context):
     game.sp_meter.exit()
     game.previews.exit()
     game.minimap.exit()
+    game.floornos.exit()
     game.child = DialogueContext(
       parent=game,
       script=target.script,
@@ -771,7 +790,8 @@ class DungeonContext(Context):
         game.hud.enter(),
         game.sp_meter.enter(),
         game.previews.enter(),
-        game.minimap.enter()
+        game.minimap.enter(),
+        game.floornos.enter()
       )
     )
 
@@ -1207,6 +1227,7 @@ class DungeonContext(Context):
       game.minimap.anims = []
     else:
       game.hud.draw(surface, game)
-      game.sp_meter.draw(surface, game.parent)
       game.previews.draw(surface, game)
+      game.sp_meter.draw(surface, game.parent)
+      game.floor_box.draw(surface, game)
     game.minimap.draw(surface)

@@ -8,7 +8,8 @@ from comps.hud import render_numbers
 from filters import recolor, replace_color
 from palette import RED, WHITE, BLUE
 
-MARGIN = 12
+MARGIN_X = 12
+MARGIN_Y = 32
 PADDING_X = 3
 PADDING_Y = 4
 TAG_X = 16
@@ -108,8 +109,8 @@ class SpMeter:
   def draw(meter, surface, ctx):
     sprite = meter.render(ctx)
     hidden_x = surface.get_width()
-    hidden_y = surface.get_height() - sprite.get_height() - MARGIN
-    corner_x = hidden_x - sprite.get_width() - MARGIN
+    hidden_y = surface.get_height() - sprite.get_height() - MARGIN_Y
+    corner_x = hidden_x - sprite.get_width() - MARGIN_X
     corner_y = hidden_y
     anim = meter.anims[0] if meter.anims else None
     if anim:
