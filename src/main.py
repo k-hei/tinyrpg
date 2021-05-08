@@ -45,7 +45,7 @@ def new_game():
 resize(window_scale)
 surface = Surface(WINDOW_SIZE)
 pygame.key.set_repeat(1000 // config.FPS)
-assets.load()
+assets.load("assets/")
 keyboard.init()
 new_game()
 

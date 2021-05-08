@@ -662,7 +662,7 @@ class DungeonContext(Context):
     game.log.exit()
     game.hud.exit()
     game.sp_meter.exit()
-    game.floornos.exit()
+    game.floor_box.exit()
     game.parent.dissolve(
       on_clear=lambda: (
         game.camera.reset(),
@@ -671,20 +671,20 @@ class DungeonContext(Context):
       on_end=lambda: (
         game.hud.enter(),
         game.sp_meter.enter(),
-        game.floornos.enter()
+        game.floor_box.enter()
       )
     )
 
   def handle_skill(game):
     if game.child is None:
       game.log.exit()
-      game.floornos.exit()
+      game.floor_box.exit()
       game.child = SkillContext(
         parent=game,
         actor=game.hero,
         selected_skill=game.parent.get_skill(game.hero.core),
         on_close=lambda skill, dest: (
-          game.floornos.enter(),
+          game.floor_box.enter(),
           skill and (
             game.parent.set_skill(game.hero.core, skill),
             game.use_skill(game.hero, skill, dest)
@@ -705,7 +705,7 @@ class DungeonContext(Context):
       game.log.exit()
       game.hud.exit()
       game.sp_meter.exit()
-      game.floornos.exit()
+      game.floor_box.exit()
       game.previews.exit()
       game.minimap.exit()
       game.child = CustomContext(
@@ -718,7 +718,7 @@ class DungeonContext(Context):
           game.update_skills(),
           game.hud.enter(),
           game.sp_meter.enter(),
-          game.floornos.enter(),
+          game.floor_box.enter(),
           game.previews.enter(),
           game.minimap.enter()
         )
@@ -729,13 +729,13 @@ class DungeonContext(Context):
       game.log.exit()
       game.hud.exit()
       game.sp_meter.exit()
-      game.floornos.exit()
+      game.floor_box.exit()
       game.child = ExamineContext(
         parent=game,
         on_close=lambda _: (
           game.hud.enter(),
           game.sp_meter.enter(),
-          game.floornos.enter(),
+          game.floor_box.enter(),
           game.refresh_fov()
         )
       )
@@ -746,7 +746,7 @@ class DungeonContext(Context):
       game.hud.exit()
       game.previews.exit()
       game.sp_meter.exit()
-      game.floornos.exit()
+      game.floor_box.exit()
       game.child = MinimapContext(
         parent=game,
         minimap=game.minimap,
@@ -754,7 +754,7 @@ class DungeonContext(Context):
           game.hud.enter(),
           game.previews.enter(),
           game.sp_meter.enter(),
-          game.floornos.enter(),
+          game.floor_box.enter(),
           game.refresh_fov()
         )
       )
@@ -782,7 +782,7 @@ class DungeonContext(Context):
     game.sp_meter.exit()
     game.previews.exit()
     game.minimap.exit()
-    game.floornos.exit()
+    game.floor_box.exit()
     game.child = DialogueContext(
       parent=game,
       script=target.script,
@@ -791,7 +791,7 @@ class DungeonContext(Context):
         game.sp_meter.enter(),
         game.previews.enter(),
         game.minimap.enter(),
-        game.floornos.enter()
+        game.floor_box.enter()
       )
     )
 
