@@ -14,7 +14,8 @@ ENTER_DURATION = 15
 EXIT_DURATION = 7
 
 class FloorNo:
-  def __init__(ctx):
+  def __init__(ctx, parent):
+    ctx.parent = parent
     ctx.active = False
     ctx.anim = None
     ctx.enter()
@@ -35,7 +36,8 @@ class FloorNo:
     image.blit(text, (TEXT_X, TEXT_Y))
     return image
 
-  def draw(ctx, surface, game):
+  def draw(ctx, surface):
+    game = ctx.parent
     image = ctx.render(game)
     hidden_x = surface.get_width()
     hidden_y = surface.get_height() - image.get_height() - MARGIN_Y

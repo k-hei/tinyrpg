@@ -21,7 +21,8 @@ SPACING = 4
 LOG_HEIGHT = 48
 
 class Previews:
-  def __init__(self):
+  def __init__(self, parent):
+    self.parent = parent
     self.previews = []
     self.enemies = []
     self.anims = []
@@ -33,7 +34,8 @@ class Previews:
   def exit(self):
     self.active = False
 
-  def draw(self, surface, game):
+  def draw(self, surface):
+    game = self.parent
     hero = game.hero
     floor = game.floor
     enemies = [e for e in floor.elems if (

@@ -57,7 +57,8 @@ class Hud:
   MARGIN_LEFT = 8
   MARGIN_TOP = 8
 
-  def __init__(panel):
+  def __init__(panel, parent):
+    panel.parent = parent
     panel.sprite = None
     panel.active = True
     panel.anims = []
@@ -177,7 +178,8 @@ class Hud:
 
     return sprite
 
-  def draw(panel, surface, ctx):
+  def draw(panel, surface):
+    ctx = panel.parent
     panel.update(ctx.hero.core, ctx.ally.core)
     sprite = panel.sprite
     hidden_x, hidden_y = Hud.MARGIN_LEFT, -sprite.get_height()

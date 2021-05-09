@@ -22,7 +22,8 @@ SPEED_DEPLETE = 1 / 500
 SPEED_RESTORE = 1 / 250
 
 class SpMeter:
-  def __init__(meter):
+  def __init__(meter, parent):
+    meter.parent = parent
     meter.active = False
     meter.sp_drawn = None
     meter.draws = 0
@@ -37,11 +38,12 @@ class SpMeter:
     meter.active = False
     meter.anims.append(TweenAnim(duration=EXIT_DURATION))
 
-  def render(meter, ctx):
+  def render(meter):
     assets = use_assets()
     meter_sprite = assets.sprites["sp_meter"]
     tag_sprite = assets.sprites["sp_tag"]
     fill_sprite = assets.sprites["sp_fill"]
+    ctx = meter.parent
     fill_y = 0
     delta = 0
     sp_pct = min(1, ctx.sp / (ctx.sp_max or 1))
@@ -106,8 +108,8 @@ class SpMeter:
     meter.draws += 1
     return sprite
 
-  def draw(meter, surface, ctx):
-    sprite = meter.render(ctx)
+  def draw(meter, surface):
+    sprite = meter.render()
     hidden_x = surface.get_width()
     hidden_y = surface.get_height() - sprite.get_height() - MARGIN_Y
     corner_x = hidden_x - sprite.get_width() - MARGIN_X

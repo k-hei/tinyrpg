@@ -95,11 +95,15 @@ class DungeonContext(Context):
     game.floor_view = StageView(WINDOW_SIZE)
     game.camera = Camera(WINDOW_SIZE)
     game.log = Log()
-    game.hud = Hud()
-    game.sp_meter = SpMeter()
     game.minimap = Minimap(parent=game)
-    game.previews = Previews()
-    game.floor_box = FloorNo()
+    game.comps = [
+      game.log,
+      game.minimap,
+      Hud(parent=game),
+      Previews(parent=game),
+      FloorNo(parent=game),
+      SpMeter(parent=game.parent)
+    ]
     game.create_floor()
     if config.DEBUG:
       game.handle_minimap()
@@ -359,7 +363,7 @@ class DungeonContext(Context):
     game.key_requires_reset[key] = False
 
   def handle_keydown(game, key):
-    if not config.DEBUG and (game.anims or game.log.anim or game.hud.anims):
+    if not config.DEBUG and game.anims:
       return False
 
     # debug functionality
@@ -407,7 +411,7 @@ class DungeonContext(Context):
     if game.hero.is_dead() or game.hero.ailment == "sleep":
       return False
 
-    if key == pygame.K_ESCAPE or key == pygame.K_BACKSPACE:
+    if key == pygame.K_BACKSPACE:
       return game.handle_inventory()
 
     if key == pygame.K_BACKSLASH or key == pygame.K_BACKQUOTE:
@@ -421,7 +425,7 @@ class DungeonContext(Context):
       else:
         return game.handle_skill()
 
-    return False
+    return None
 
   def handle_move(game, delta, run=False):
     hero = game.hero
@@ -1049,7 +1053,7 @@ class DungeonContext(Context):
     else:
       return False, message
 
-  def use_skill(game, actor, skill, dest):
+  def use_skill(game, actor, skill, dest=None):
     camera = game.camera
     if actor.get_faction() == "player":
       game.parent.deplete_sp(skill.cost)
@@ -1200,8 +1204,8 @@ class DungeonContext(Context):
 
     game.update_camera()
 
-    if not config.DEBUG and not game.minimap.is_focused():
-      game.tile_surface = game.floor_view.draw(surface, game)
+    # if not config.DEBUG and not game.minimap.is_focused():
+    game.tile_surface = game.floor_view.draw(surface, game)
 
     for group in game.anims:
       for anim in group:
@@ -1212,22 +1216,25 @@ class DungeonContext(Context):
       if len(group) == 0:
         game.anims.remove(group)
 
-    if not config.DEBUG and (not game.child or game.log.anim and not game.log.active):
-      game.log.draw(surface)
+    # if not config.DEBUG and (not game.child or game.log.anim and not game.log.active):
+    #   game.log.draw(surface)
 
-    animating = (
-      game.log.anim and not game.log.active
-      or game.hud.anims
-      or game.previews.anims
-    )
+    animating = False # (
+    #   game.log.anim and not game.log.active
+    #   or game.hud.anims
+    #   or game.previews.anims
+    # )
     if game.child and not animating:
       game.child.draw(surface)
 
-    if config.DEBUG:
-      game.minimap.anims = []
-    else:
-      game.hud.draw(surface, game)
-      game.previews.draw(surface, game)
-      game.sp_meter.draw(surface, game.parent)
-      game.floor_box.draw(surface, game)
-    game.minimap.draw(surface)
+    # if config.DEBUG:
+    #   game.minimap.anims = []
+    # else:
+    #   game.hud.draw(surface, game)
+    #   game.previews.draw(surface, game)
+    #   game.sp_meter.draw(surface, game.parent)
+    #   game.floor_box.draw(surface, game)
+    # game.minimap.draw(surface)
+
+    for comp in game.comps:
+      comp.draw(surface)

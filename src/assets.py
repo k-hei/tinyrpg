@@ -66,8 +66,8 @@ def load_pngfont(key, path):
   metadata = json.loads(open(join(path, key) + ".json", "r").read())
   return Font(typeface, **metadata)
 
-def load_ttf(key, path):
-  font = pygame.font.Font(join(path, key) + ".ttf", 8)
+def load_ttf(key, size, path):
+  font = pygame.font.Font(join(path, key) + ".ttf", size)
   return Ttf(font)
 
 def load(path=None):
@@ -89,8 +89,9 @@ def load(path=None):
       pngfonts[item_name] = load_pngfont(item_name, join(path, "pngfont"))
 
   ttf = {}
-  ttf["english"] = load_ttf("PCPaintEnglishSmall", join(path, "ttf"))
-  ttf["roman"] = load_ttf("PCPaintRomanSmall", join(path, "ttf"))
+  ttf["english"] = load_ttf("PCPaintEnglishSmall", 8, join(path, "ttf"))
+  ttf["roman"] = load_ttf("PCPaintRomanSmall", 8, join(path, "ttf"))
+  ttf["special"] = load_ttf("PCPaintSpecialMedium", 12, join(path, "ttf"))
 
   assets = Assets(
     sprites=sprites,

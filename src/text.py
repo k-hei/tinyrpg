@@ -30,7 +30,10 @@ class Ttf:
     b = color & 255
     g = (color >> 8) & 255
     r = (color >> 16) & 255
-    return ttf.font.render(text, False, (r, g, b))
+    width, height = ttf.size(text)
+    surface = Surface((width, height)).convert_alpha()
+    surface.blit(ttf.font.render(text, False, (r, g, b)), (0, 0))
+    return surface
 
 def find_width(content: str, font: Font) -> int:
   text_width = 0

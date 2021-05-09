@@ -1,8 +1,12 @@
+import pygame
+
 from config import WINDOW_SIZE, DEBUG
 from contexts import Context
 from dungeon import DungeonContext
 from town import TownContext
+from contexts.pause import PauseContext
 from transits.dissolve import DissolveIn, DissolveOut
+import keyboard
 
 from cores.knight import Knight
 from cores.mage import Mage
@@ -133,7 +137,11 @@ class GameContext(Context):
   def handle_keydown(ctx, key):
     if ctx.transits:
       return False
-    return super().handle_keydown(key)
+    if super().handle_keydown(key) != None:
+      return
+    if keyboard.get_pressed(key) == 1:
+      if key == pygame.K_ESCAPE:
+        return ctx.child.open(PauseContext())
 
   def draw(ctx, surface):
     super().draw(surface)
