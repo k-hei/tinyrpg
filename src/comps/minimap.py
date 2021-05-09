@@ -166,6 +166,11 @@ class Minimap:
       elif tile is Stage.PIT:
         if cell in visible_cells:
           color = 0x000000
+      elif tile is Stage.FLOOR_ELEV or tile is Stage.WALL_ELEV or tile is Stage.STAIRS:
+        if cell in visible_cells:
+          color = 0x4D4D4D
+        else:
+          color = 0x242424
       else:
         if cell in visible_cells:
           color = 0x333333

@@ -17,6 +17,7 @@ from dungeon.features.treasureroom import TreasureRoom
 from dungeon.features.oasisroom import OasisRoom
 from dungeon.features.coffinroom import CoffinRoom
 from dungeon.features.pitroom import PitRoom
+from dungeon.features.elevroom import ElevRoom
 
 from dungeon.actors.knight import Knight
 from dungeon.actors.mage import Mage
@@ -412,13 +413,15 @@ def gen_floor(seed=None):
   oasis_room = OasisRoom()
   coffin_room = CoffinRoom()
   pit_room = PitRoom()
+  elev_room = ElevRoom()
 
   features = [
     [arena, exit_room, puzzle_room],
-    [pit_room],
+    # [pit_room],
+    [elev_room],
     # [treasure_room],
-    [oasis_room],
-    [coffin_room],
+    # [oasis_room],
+    # [coffin_room],
   ]
 
   if not gen_features(floor, features):
@@ -486,17 +489,18 @@ def gen_floor(seed=None):
         corner = choice(corners)
         stage.set_tile_at(corner, stage.WALL)
 
-  entry_room = oasis_room # choice(empty_rooms)
+  entry_room = elev_room # choice(empty_rooms)
   center_x, center_y = entry_room.get_center()
   stage.entrance = (center_x, center_y + 2)
   # stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
   stage.rooms = empty_rooms + feature_list
 
+  oasis_x, oasis_y = oasis_room.get_center()
   genie = Genie(name="Joshin", script=(
     ("Joshin", "Pee pee poo poo"),
     ("Minxia", "He has such a way with words")
   ))
-  stage.spawn_elem(genie, (center_x, center_y - 3))
+  stage.spawn_elem(genie, (oasis_x, oasis_y - 3))
 
   return stage
 

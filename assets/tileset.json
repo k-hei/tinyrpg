@@ -4,12 +4,12 @@
   "offset_x": 16,
   "offset_y": 0,
   "order": [
-    ["",            "",   "door_puzzle",   "door_puzzle_opening",    "door_puzzle_open",                "wall",          "wall_alt"],
-    ["",            "",   "door_battle",   "door_battle_opening",    "door_battle_open",         "wall_battle",   "wall_battle_alt"],
-    ["",    "orn_tris", "door_treasure", "door_treasure_opening",  "door_treasure_open",                    "",                  ""],
-    ["",      "coffin",   "door_beetle",      "door_beetle_turn", "door_beetle_opening",    "door_beetle_open",                  ""],
-    ["", "coffin_open",         "floor",            "push_track",   "push_track_corner",    "oasis_corner_top",      "oasis_stairs"],
-    ["",  "coffin_lid",   "push_target",                      "",          "push_steps", "oasis_corner_bottom", "oasis_edge_bottom"]
+    ["",            "",   "door_puzzle",   "door_puzzle_opening",    "door_puzzle_open",                "wall",          "wall_alt",    "wall_top"],
+    ["",            "",   "door_battle",   "door_battle_opening",    "door_battle_open",         "wall_battle",   "wall_battle_alt", "wall_bottom"],
+    ["",    "orn_tris", "door_treasure", "door_treasure_opening",  "door_treasure_open",                    "",                  "",            ""],
+    ["",      "coffin",   "door_beetle",      "door_beetle_turn", "door_beetle_opening",    "door_beetle_open",                  "",            ""],
+    ["", "coffin_open",         "floor",            "push_track",   "push_track_corner",    "oasis_corner_top",      "oasis_stairs",      "stairs"],
+    ["",  "coffin_lid",   "push_target",                      "",          "push_steps", "oasis_corner_bottom", "oasis_edge_bottom",            ""]
   ],
   "sand_pile": [48, 192, 32, 32],
   "sand_pile_side": [16, 160, 32, 48],

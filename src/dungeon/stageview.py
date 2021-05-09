@@ -344,19 +344,35 @@ def render_tile(stage, cell, visited_cells=[]):
   tile = stage.get_tile_at(cell)
   tile_above = stage.get_tile_at((x, y - 1))
   tile_below = stage.get_tile_at((x, y + 1))
+  tile_base = stage.get_tile_at((x, y + 2))
   tile_nw = stage.get_tile_at((x - 1, y - 1))
   tile_ne = stage.get_tile_at((x + 1, y - 1))
   tile_sw = stage.get_tile_at((x - 1, y + 1))
   tile_se = stage.get_tile_at((x + 1, y + 1))
   if tile is stage.WALL or tile is stage.DOOR_HIDDEN or (
   tile is stage.DOOR_WAY and tile_below is stage.DOOR_HIDDEN):
-    if tile_below is stage.FLOOR or tile_below is stage.PIT:
+    room = next((r for r in stage.rooms if cell in r.get_cells() + r.get_border()), None)
+    elev = 0
+    if room:
+      for c in room.get_cells():
+        if stage.get_tile_at(c) is stage.FLOOR_ELEV:
+          elev = 1
+          break
+    if tile_below is stage.FLOOR or tile_below is stage.PIT or tile_below is stage.FLOOR_ELEV:
       if x % (3 + y % 2) == 0 or tile is stage.DOOR_HIDDEN:
         sprite_name = "wall_torch"
       else:
-        sprite_name = "wall_base"
+        sprite_name = "wall_bottom"
+    elif tile_base is stage.FLOOR and elev == 1:
+      sprite_name = "wall_top"
     else:
       return render_wall(stage, cell, visited_cells)
+  elif tile is stage.FLOOR_ELEV:
+    sprite_name = "floor_elev"
+  elif tile is stage.WALL_ELEV:
+    sprite_name = "wall_elev"
+  elif tile is stage.STAIRS:
+    sprite_name = "stairs"
   elif tile is stage.STAIRS_UP:
     sprite_name = "stairs_up"
   elif tile is stage.STAIRS_DOWN:
@@ -379,6 +395,12 @@ def render_tile(stage, cell, visited_cells=[]):
     sprite_name = "oasis_stairs"
   elif tile is stage.OASIS:
     return render_oasis(stage, cell)
+
+  if "floor_elev" not in assets.sprites:
+    assets.sprites["floor_elev"] = replace_color(assets.sprites["floor"], 0xFF404040, 0xFF7D7D7D)
+  if "wall_elev" not in assets.sprites:
+    assets.sprites["wall_elev"] = replace_color(assets.sprites["wall_base"], 0xFFFFFFFF, 0xFF7D7D7D)
+
   return assets.sprites[sprite_name] if sprite_name else None
 
 def render_wall(stage, cell, visited_cells=[]):
@@ -469,10 +491,10 @@ def render_wall(stage, cell, visited_cells=[]):
   or is_door(x, y + 1) and (not is_wall(x + 1, y) or not is_wall(x + 1, y + 1))):
     sprite.blit(corner_se, (0, 0))
 
-  if is_wall(x - 1, y) and (not is_wall(x, y + 2) and not is_door(x, y + 2) or is_door(x, y + 1) and is_wall(x - 1, y + 1)):
+  if is_wall(x - 1, y) and is_wall(x - 1, y + 1) and (not is_wall(x, y + 2) and not is_door(x, y + 2) or is_door(x, y + 1)):
     sprite.blit(rotate(link, 90), (0, 0))
 
-  if is_wall(x + 1, y) and (not is_wall(x, y + 2) and not is_door(x, y + 2) or is_door(x, y + 1) and is_wall(x + 1, y + 1)):
+  if is_wall(x + 1, y) and is_wall(x + 1, y + 1) and (not is_wall(x, y + 2) and not is_door(x, y + 2) or is_door(x, y + 1)):
     sprite.blit(rotate(flip(link, True, False), -90), (0, 0))
 
   return sprite

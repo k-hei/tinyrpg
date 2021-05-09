@@ -13,9 +13,10 @@ class SpecialRoom(Room):
     if char == "*": return Stage.DOOR_HIDDEN
     if char == ">": return Stage.STAIRS_DOWN
     if char == "<": return Stage.STAIRS_UP
-    if char == "=": return Stage.COFFIN
+    if char == "=": return Stage.STAIRS
     if char == "O": return Stage.OASIS
     if char == "V": return Stage.OASIS_STAIRS
+    if char == "·": return Stage.FLOOR_ELEV
     return Stage.FLOOR
 
   def get_width(room):
@@ -35,6 +36,9 @@ class SpecialRoom(Room):
         cell = (col + x, row + y)
         char = room.shape[row][col]
         tile = SpecialRoom.parse_char(char)
+        if (tile is stage.FLOOR_ELEV
+        and SpecialRoom.parse_char(room.shape[row + 1][col]) is stage.FLOOR):
+          tile = stage.WALL_ELEV
         stage.set_tile_at(cell, tile)
         try:
           actor_id = int(char)

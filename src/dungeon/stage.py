@@ -9,6 +9,9 @@ class Tile:
 class Stage:
   FLOOR = Tile(solid=False, opaque=False)
   WALL = Tile(solid=True, opaque=True)
+  FLOOR_ELEV = Tile(solid=False, opaque=False, elev=1.0)
+  WALL_ELEV = Tile(solid=True, opaque=False)
+  STAIRS = Tile(solid=False, opaque=False, elev=0.5)
   PIT = Tile(solid=True, opaque=False)
   DOOR = Tile(solid=True, opaque=True)
   DOOR_OPEN = Tile(solid=False, opaque=False)
