@@ -32,7 +32,6 @@ class ChoiceContext(Context):
     ctx.on_choose = on_choose
     ctx.on_close = on_close
     ctx.anims = []
-    ctx.enter()
 
   def enter(ctx):
     ctx.anims.append(TweenAnim(

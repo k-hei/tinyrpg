@@ -38,8 +38,8 @@ DURATION_CHAREXIT = 6
 STAGGER_CHAREXIT = 2
 
 class InventoryContext(Context):
-  def __init__(ctx, parent, inventory, on_close=None):
-    super().__init__(parent)
+  def __init__(ctx, inventory, on_close=None):
+    super().__init__()
     ctx.data = inventory
     ctx.grid_size =  (inventory.cols, inventory.rows)
     ctx.on_close = on_close
@@ -49,10 +49,9 @@ class InventoryContext(Context):
     ctx.active = True
     ctx.anims = []
     ctx.box = InventoryDescription()
-    ctx.select()
-    ctx.enter()
 
   def enter(ctx, on_end=None):
+    ctx.select()
     ctx.active = True
     ctx.box.enter()
     ctx.anims.append(TweenAnim(duration=DURATION_BELTENTER, target="belt"))

@@ -1,15 +1,20 @@
 import pygame
 from contexts import Context
 from comps.minimap import Minimap
+from comps.hud import Hud
+from comps.previews import Previews
+from comps.spmeter import SpMeter
+from comps.floorno import FloorNo
 
 class MinimapContext(Context):
-  def __init__(ctx, parent, minimap, on_close=None):
-    super().__init__(parent)
-    ctx.on_close = on_close
+  effects = [Hud, Previews, SpMeter, FloorNo]
+
+  def __init__(ctx, minimap, on_close=None):
+    super().__init__(on_close=on_close)
     ctx.minimap = minimap
-    ctx.enter()
 
   def enter(ctx):
+    print("enter")
     ctx.minimap.expand()
 
   def exit(ctx):

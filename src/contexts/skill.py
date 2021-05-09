@@ -26,8 +26,8 @@ OFFSET = 4
 SPACING = 10
 
 class SkillContext(Context):
-  def __init__(ctx, parent, actor, selected_skill, on_close=None):
-    super().__init__(parent)
+  def __init__(ctx, actor, selected_skill, on_close=None):
+    super().__init__()
     ctx.actor = actor
     ctx.skill = selected_skill
     ctx.on_close = on_close
@@ -40,11 +40,6 @@ class SkillContext(Context):
     ctx.anims = []
     ctx.exiting = False
     ctx.confirmed = False
-    ctx.enter()
-    ctx.print_skill(selected_skill)
-    enemy = parent.find_closest_visible_enemy(actor)
-    if enemy:
-      actor.face(enemy.cell)
 
   def print_skill(ctx, skill=None):
     if skill:
@@ -129,6 +124,10 @@ class SkillContext(Context):
         target=index
       ))
       index += 1
+    ctx.print_skill(ctx.skill)
+    enemy = ctx.parent.find_closest_visible_enemy(ctx.actor)
+    if enemy:
+      ctx.actor.face(enemy.cell)
 
   def exit(ctx, skill=None, dest=None):
     def close():

@@ -27,15 +27,12 @@ BLACKOUT_FRAMES = 3
 class EnterAnim(TweenAnim):
   def __init__(anim):
     super().__init__(duration=ENTER_DURATION)
-
 class ExitAnim(TweenAnim):
   def __init__(anim):
     super().__init__(duration=EXIT_DURATION)
-
 class ExpandAnim(TweenAnim):
   def __init__(anim):
     super().__init__(duration=EXPAND_DURATION)
-
 class ShrinkAnim(TweenAnim):
   def __init__(anim):
     super().__init__(duration=SHRINK_DURATION)

@@ -3,12 +3,19 @@ import pygame
 import config
 import keyboard
 from contexts import Context
-from comps.log import Log
 from assets import load as use_assets
+from comps.log import Log
+from comps.hud import Hud
+from comps.previews import Previews
+from comps.minimap import Minimap
+from comps.spmeter import SpMeter
+from comps.floorno import FloorNo
 
 class DialogueContext(Context):
-  def __init__(ctx, parent, script, on_close=None):
-    super().__init__(parent, on_close)
+  effects = [Hud, Previews, Minimap, SpMeter, FloorNo]
+
+  def __init__(ctx, script, on_close=None):
+    super().__init__(on_close=on_close)
     ctx.script = script
     ctx.index = 0
     ctx.name = None

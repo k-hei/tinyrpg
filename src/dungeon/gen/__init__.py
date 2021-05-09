@@ -495,12 +495,11 @@ def gen_floor(seed=None):
   # stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
   stage.rooms = empty_rooms + feature_list
 
-  oasis_x, oasis_y = oasis_room.get_center()
   genie = Genie(name="Joshin", script=(
     ("Joshin", "Pee pee poo poo"),
     ("Minxia", "He has such a way with words")
   ))
-  stage.spawn_elem(genie, (oasis_x, oasis_y - 3))
+  stage.spawn_elem(genie, (center_x - 2, center_y - 3))
 
   return stage
 

@@ -664,104 +664,52 @@ class DungeonContext(Context):
 
   def handle_floorchange(game, direction):
     game.log.exit()
-    game.hud.exit()
-    game.sp_meter.exit()
-    game.floor_box.exit()
     game.parent.dissolve(
       on_clear=lambda: (
         game.camera.reset(),
         game.change_floors(direction)
-      ),
-      on_end=lambda: (
-        game.hud.enter(),
-        game.sp_meter.enter(),
-        game.floor_box.enter()
       )
     )
 
   def handle_skill(game):
-    if game.child is None:
-      game.log.exit()
-      game.floor_box.exit()
-      game.child = SkillContext(
-        parent=game,
-        actor=game.hero,
-        selected_skill=game.parent.get_skill(game.hero.core),
-        on_close=lambda skill, dest: (
-          game.floor_box.enter(),
-          skill and (
-            game.parent.set_skill(game.hero.core, skill),
-            game.use_skill(game.hero, skill, dest)
-          ) or game.refresh_fov()
-        )
+    game.log.exit()
+    game.open(SkillContext(
+      actor=game.hero,
+      selected_skill=game.parent.get_skill(game.hero.core),
+      on_close=lambda skill, dest: (
+        skill and (
+          game.parent.set_skill(game.hero.core, skill),
+          game.use_skill(game.hero, skill, dest)
+        ) or game.refresh_fov()
       )
+    ))
 
   def handle_inventory(game):
-    if game.child is None:
-      game.log.exit()
-      game.child = InventoryContext(
-        parent=game,
-        inventory=game.parent.inventory
-      )
+    game.log.exit()
+    game.open(InventoryContext(inventory=game.parent.inventory))
 
   def handle_custom(game):
-    if game.child is None:
-      game.log.exit()
-      game.hud.exit()
-      game.sp_meter.exit()
-      game.floor_box.exit()
-      game.previews.exit()
-      game.minimap.exit()
-      game.child = CustomContext(
-        parent=game,
-        pool=game.parent.skill_pool,
-        new_skills=game.parent.new_skills,
-        builds=game.parent.skill_builds,
-        chars=(game.hero.core, game.ally.core),
-        on_close=lambda _: (
-          game.update_skills(),
-          game.hud.enter(),
-          game.sp_meter.enter(),
-          game.floor_box.enter(),
-          game.previews.enter(),
-          game.minimap.enter()
-        )
-      )
+    game.log.exit()
+    game.open(CustomContext(
+      pool=game.parent.skill_pool,
+      new_skills=game.parent.new_skills,
+      builds=game.parent.skill_builds,
+      chars=(game.hero.core, game.ally.core),
+      on_close=lambda _: game.update_skills
+    ))
 
   def handle_examine(game):
-    if game.child is None:
-      game.log.exit()
-      game.hud.exit()
-      game.sp_meter.exit()
-      game.floor_box.exit()
-      game.child = ExamineContext(
-        parent=game,
-        on_close=lambda _: (
-          game.hud.enter(),
-          game.sp_meter.enter(),
-          game.floor_box.enter(),
-          game.refresh_fov()
-        )
-      )
+    game.log.exit()
+    game.open(ExamineContext(
+      on_close=lambda _: game.refresh_fov
+    ))
 
   def handle_minimap(game):
-    if game.child is None:
-      game.log.exit()
-      game.hud.exit()
-      game.previews.exit()
-      game.sp_meter.exit()
-      game.floor_box.exit()
-      game.child = MinimapContext(
-        parent=game,
-        minimap=game.minimap,
-        on_close=lambda _: (
-          game.hud.enter(),
-          game.previews.enter(),
-          game.sp_meter.enter(),
-          game.floor_box.enter(),
-          game.refresh_fov()
-        )
-      )
+    game.log.exit()
+    game.open(MinimapContext(
+      minimap=game.minimap,
+      on_close=lambda _: game.refresh_fov
+    ))
 
   def handle_debug(game):
     config.DEBUG = not config.DEBUG
@@ -782,22 +730,8 @@ class DungeonContext(Context):
     )), None)
     if target is None:
       return
-    game.hud.exit()
-    game.sp_meter.exit()
-    game.previews.exit()
-    game.minimap.exit()
-    game.floor_box.exit()
-    game.child = DialogueContext(
-      parent=game,
-      script=target.script,
-      on_close=lambda _: (
-        game.hud.enter(),
-        game.sp_meter.enter(),
-        game.previews.enter(),
-        game.minimap.enter(),
-        game.floor_box.enter()
-      )
-    )
+    game.log.exit()
+    game.open(DialogueContext(script=target.script))
 
   def move(game, actor, delta, run=False, jump=False, on_end=None):
     actor_x, actor_y = actor.cell

@@ -9,6 +9,11 @@ from pygame import Rect
 from palette import BLACK, WHITE, GRAY, GRAY_DARK, YELLOW, YELLOW_DARK, BLUE, BLUE_DARK, darken_color
 import keyboard
 from comps.piece import Piece
+from comps.hud import Hud
+from comps.previews import Previews
+from comps.minimap import Minimap
+from comps.spmeter import SpMeter
+from comps.floorno import FloorNo
 
 from cores.knight import Knight
 from cores.mage import Mage
@@ -38,8 +43,10 @@ class CallAnim(PieceAnim): pass
 class RecallAnim(PieceAnim): pass
 
 class CustomContext(Context):
-  def __init__(menu, parent, pool, new_skills, builds, chars, on_close=None):
-    super().__init__(parent)
+  effects = [Hud, Previews, Minimap, SpMeter, FloorNo]
+
+  def __init__(menu, pool, new_skills, builds, chars, on_close=None):
+    super().__init__()
     menu.pool = pool
     menu.new_skills = new_skills
     menu.builds = builds
@@ -59,7 +66,6 @@ class CustomContext(Context):
     menu.anims = []
     menu.renders = 0
     menu.bar = Bar()
-    menu.enter()
 
   def enter(menu):
     menu.bar.enter()

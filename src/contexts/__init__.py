@@ -16,6 +16,12 @@ class Context:
       return ctx.child.handle_keyup(key)
     return False
 
+  def enter(ctx):
+    pass
+
+  def exit(ctx):
+    pass
+
   def open(ctx, child):
     ctx.child = child
     child.parent = ctx
@@ -23,6 +29,7 @@ class Context:
       for comp in ctx.comps:
         if isinstance(comp, kind):
           comp.exit()
+    ctx.child.enter()
     return True
 
   def close(ctx, data=None):
