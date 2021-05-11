@@ -5,8 +5,8 @@ from pygame.transform import flip
 import keyboard
 from contexts import Context
 from assets import load as use_assets
-from filters import outline, recolor
-from palette import WHITE, BLUE
+from filters import outline, recolor, replace_color
+from palette import WHITE, BLUE, BLACK, GOLD
 from comps.hud import Hud
 from comps.previews import Previews
 from comps.minimap import Minimap
@@ -16,6 +16,7 @@ from comps.floorno import FloorNo
 MARGIN_X = 48
 MARGIN_Y = 48
 SPACING = 4
+GOLD_SPACING = 4
 HAND_SPACING = 4
 HUD_MARGIN = 8
 
@@ -39,6 +40,19 @@ class PauseContext(Context):
     tint = Surface(surface.get_size(), pygame.SRCALPHA)
     tint.fill(0x7F000000)
     surface.blit(tint, (0, 0))
+
+    # gold
+    gold_image = assets.sprites["item_gold"]
+    gold_image = replace_color(gold_image, BLACK, GOLD)
+    gold_x = MARGIN_X
+    gold_y = surface.get_height() - MARGIN_Y
+    surface.blit(gold_image, (gold_x, gold_y))
+
+    gold_amount = ctx.parent.get_gold()
+    gold_text = assets.ttf["english"].render("{}G".format(gold_amount))
+    gold_x += gold_image.get_width() + GOLD_SPACING
+    gold_y += gold_image.get_height() // 2 - gold_text.get_height() // 2
+    surface.blit(gold_text, (gold_x, gold_y))
 
     # choices
     choices_width = 0

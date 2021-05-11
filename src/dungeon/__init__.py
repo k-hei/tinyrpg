@@ -1110,6 +1110,9 @@ class DungeonContext(Context):
     game.lights = not game.lights
     game.refresh_fov()
 
+  def get_gold(game):
+    return game.parent.get_gold()
+
   def get_sp(game):
     return game.parent.get_sp()
 

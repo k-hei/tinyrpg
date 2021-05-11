@@ -14,7 +14,6 @@ class MinimapContext(Context):
     ctx.minimap = minimap
 
   def enter(ctx):
-    print("enter")
     ctx.minimap.expand()
 
   def exit(ctx):

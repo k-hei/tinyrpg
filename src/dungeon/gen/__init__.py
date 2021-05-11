@@ -71,8 +71,7 @@ class Floor:
     floor.graph = FloorGraph()
     floor.tree = FloorGraph()
 
-  def place(floor, feature):
-    feature.place(floor.stage)
+  def mark(floor, feature):
     for slot in feature.get_slots():
       if slot in floor.slots:
         floor.slots.remove(slot)
@@ -107,7 +106,7 @@ class Floor:
     valid_slots = feature.filter_slots(floor.slots)
     if valid_slots:
       feature.cell = choice(valid_slots)
-      floor.place(feature)
+      floor.mark(feature)
       return True
     else:
       return False
@@ -124,7 +123,7 @@ class Floor:
     if overlap:
       door = choice(tuple(overlap))
       floor.draw_door(door, room=node)
-      floor.place(neighbor)
+      floor.mark(neighbor)
       floor.tree.connect(node, neighbor, door)
       return True
     else:
@@ -163,7 +162,7 @@ class Floor:
           slot = None
       mazes.append(Maze(cells))
       for maze in mazes:
-        floor.place(maze)
+        floor.mark(maze)
 
   def gen_loop(floor):
     tree = floor.tree
@@ -376,7 +375,7 @@ def gen_debug(seed=None):
   stage = floor.stage
   stage.seed = seed
   stage.fill(stage.WALL)
-  floor.place(room)
+  floor.mark(room)
   stage.entrance = room.get_center()
 
   stage.spawn_elem(Coffin(), (stage.entrance[0] - 2, stage.entrance[1]))
@@ -462,6 +461,9 @@ def gen_floor(seed=None):
       if [e for e in maze.get_ends() if is_adjacent(e, door)]:
         debug("Hidden room connected to dead end")
         return gen_floor()
+
+  for feature in graph.nodes:
+    feature.place(floor.stage)
 
   floor.gen_minirooms()
 

@@ -44,7 +44,7 @@ class GameContext(Context):
     ])
     ctx.sp_max = 50
     ctx.sp = ctx.sp_max // 2
-    ctx.gold = 0
+    ctx.gold = 500
     ctx.hero = Knight()
     ctx.ally = Mage()
     ctx.new_skills = []
@@ -111,6 +111,9 @@ class GameContext(Context):
   def update_skills(ctx):
     ctx.load_build(ctx.hero, ctx.skill_builds[ctx.hero])
     ctx.load_build(ctx.ally, ctx.skill_builds[ctx.ally])
+
+  def get_gold(ctx):
+    return ctx.gold
 
   def get_sp(ctx):
     return ctx.sp
