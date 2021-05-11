@@ -10,10 +10,10 @@ from filters import replace_color
 class ElevRoom(SpecialRoom):
   def __init__(room, secret=False):
     room.shape = [
-      "···####",
-      "···....",
-      "·=·....",
-      "·=·....",
+      "·····##",
+      "····-..",
+      "····-..",
+      "·=··...",
       ".......",
       ".......",
       "......."

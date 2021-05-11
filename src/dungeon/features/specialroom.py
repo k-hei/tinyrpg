@@ -9,11 +9,11 @@ class SpecialRoom(Room):
     if char == "#": return Stage.WALL
     if char == " ": return Stage.PIT
     if char == "+": return Stage.DOOR
-    if char == "-": return Stage.DOOR_LOCKED
     if char == "*": return Stage.DOOR_HIDDEN
     if char == ">": return Stage.STAIRS_DOWN
     if char == "<": return Stage.STAIRS_UP
-    if char == "=": return Stage.STAIRS
+    if char == "-": return Stage.STAIRS
+    if char == "=": return Stage.LADDER
     if char == "O": return Stage.OASIS
     if char == "V": return Stage.OASIS_STAIRS
     if char == "·": return Stage.FLOOR_ELEV
