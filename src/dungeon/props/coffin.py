@@ -4,6 +4,7 @@ from config import TILE_SIZE
 from palette import WHITE, COLOR_TILE
 from filters import replace_color
 from anims.item import ItemAnim
+from items.gold import Gold
 from random import randint
 import vfx
 
@@ -15,6 +16,10 @@ class Coffin(Prop):
 
   def effect(coffin, game):
     if coffin.contents:
+      if type(coffin.contents) is Gold:
+        gold = coffin.contents
+        game.change_gold(gold.amount)
+        game.log.print("Received {} gold.".format(gold.amount))
       game.anims.append([
         ItemAnim(
           duration=30,

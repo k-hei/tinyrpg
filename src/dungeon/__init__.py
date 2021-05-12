@@ -1113,6 +1113,9 @@ class DungeonContext(Context):
   def get_gold(game):
     return game.parent.get_gold()
 
+  def change_gold(game, amount):
+    return game.parent.change_gold(amount)
+
   def get_sp(game):
     return game.parent.get_sp()
 

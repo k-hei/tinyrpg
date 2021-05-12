@@ -115,6 +115,9 @@ class GameContext(Context):
   def get_gold(ctx):
     return ctx.gold
 
+  def change_gold(ctx, amount):
+    ctx.gold += amount
+
   def get_sp(ctx):
     return ctx.sp
 
@@ -144,7 +147,11 @@ class GameContext(Context):
       return
     if keyboard.get_pressed(key) == 1:
       if key == pygame.K_ESCAPE:
-        return ctx.child.open(PauseContext())
+        return ctx.handle_pause()
+
+  def handle_pause(ctx):
+    ctx.child.log.exit()
+    ctx.child.open(PauseContext())
 
   def draw(ctx, surface):
     super().draw(surface)

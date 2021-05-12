@@ -420,7 +420,7 @@ def gen_floor(seed=None):
     [elev_room],
     # [treasure_room],
     # [oasis_room],
-    # [coffin_room],
+    [coffin_room],
   ]
 
   if not gen_features(floor, features):
@@ -491,7 +491,7 @@ def gen_floor(seed=None):
         corner = choice(corners)
         stage.set_tile_at(corner, stage.WALL)
 
-  entry_room = elev_room # choice(empty_rooms)
+  entry_room = coffin_room # choice(empty_rooms)
   center_x, center_y = entry_room.get_center()
   stage.entrance = (center_x, center_y + 2)
   # stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
