@@ -1,3 +1,4 @@
+from copy import deepcopy
 import pygame
 import keyboard
 import assets
@@ -26,8 +27,18 @@ class App(Context):
     app.rescale(WINDOW_SCALE_INIT)
     app.render()
     assets.load(ASSETS_PATH)
+    app.open(child)
+
+  def open(app, child=None):
+    if child is None:
+      child = app.child_init
     if child:
-      app.open(child)
+      app.child_init = child
+      child = deepcopy(child)
+      super().open(child)
+
+  def reload(app):
+    app.open()
 
   def loop(app):
     clock = pygame.time.Clock()
@@ -81,11 +92,13 @@ class App(Context):
     ) and tapping
 
     if key == pygame.K_MINUS and ctrl:
-      app.rescale(app.scale - 1)
-    elif key == pygame.K_EQUALS and ctrl:
-      app.rescale(app.scale + 1)
-    elif app.child:
-      app.child.handle_keydown(key)
+      return app.rescale(app.scale - 1)
+    if key == pygame.K_EQUALS and ctrl:
+      return app.rescale(app.scale + 1)
+    if key == pygame.K_r and ctrl:
+      return app.reload()
+    if app.child:
+      return app.child.handle_keydown(key)
 
   def handle_keyup(app, key):
     keyboard.handle_keyup(key)
