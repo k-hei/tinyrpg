@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from math import cos, pi
 
 import pygame
 from pygame import Surface, SRCALPHA
@@ -11,6 +12,7 @@ from palette import BLACK, WHITE, GRAY, BLUE
 from filters import replace_color, darken
 from cores.knight import KnightCore
 from anims.walk import WalkAnim
+from comps.log import Log
 
 SPACING_FACTOR = 2
 TITLE_SPACING = 16
@@ -44,12 +46,13 @@ class NameEntryContext(Context):
     ctx.name = "" # default_name
     ctx.cursor = (0, 0)
     ctx.cursor_cell = (0, 0)
-    ctx.cursor_time = 0
     ctx.char = KnightCore()
     ctx.char.facing = (0, 1)
     ctx.char.anims.append(WalkAnim(period=30, vertical=True))
     ctx.cache = Cache()
     ctx.draws = 0
+    ctx.time_move = 0
+    ctx.time_input = 0
 
   def is_cell_valid(ctx, cell):
     col, row = cell
@@ -74,7 +77,7 @@ class NameEntryContext(Context):
     target_cell = (target_col, target_row)
     if ctx.is_cell_valid(target_cell):
       ctx.cursor_cell = target_cell
-      ctx.cursor_time = ctx.draws
+      ctx.time_move = ctx.draws
       return True
     else:
       return False
@@ -85,6 +88,7 @@ class NameEntryContext(Context):
     ctx.name += ctx.get_selected_char()
     if len(ctx.name) == 1:
       ctx.cache.banner = _render_banner(WINDOW_SIZE, ctx.name)
+    ctx.time_input = ctx.draws
     return True
 
   def handle_delete(ctx):
@@ -93,6 +97,7 @@ class NameEntryContext(Context):
     ctx.name = ctx.name[:-1]
     if len(ctx.name) == 0:
       ctx.cache.banner = _render_banner(WINDOW_SIZE, ctx.name)
+    ctx.time_input = ctx.draws
     return True
 
   def handle_keydown(ctx, key):
@@ -129,7 +134,7 @@ class NameEntryContext(Context):
     y = surface.get_height() - BANNER_MARGIN - ctx.cache.banner.get_height()
     surface.blit(ctx.cache.banner, (0, y))
 
-    chargroup_image = _render_chargroup(ctx.char, ctx.name)
+    chargroup_image = _render_chargroup(ctx.char, ctx.name, ctx.draws - ctx.time_input)
     x = surface.get_width() // 2 - chargroup_image.get_width() // 2
     y = 40
     surface.blit(chargroup_image, (x, y))
@@ -157,7 +162,7 @@ class NameEntryContext(Context):
     cursor_y += (cursor_row * cell_size - cursor_y) / 4
     ctx.cursor = (cursor_x, cursor_y)
 
-    if (ctx.draws - ctx.cursor_time) % 50 < 25:
+    if (ctx.draws - ctx.time_move) % 50 < 25:
       cursor_image = assets.sprites["cursor_char0"]
     else:
       cursor_image = assets.sprites["cursor_char1"]
@@ -167,7 +172,7 @@ class NameEntryContext(Context):
 
     ctx.draws += 1
 
-def _render_name(name):
+def _render_name(name, draws):
   assets = use_assets()
   font = assets.ttf[FONT_NAME]
   font_size = font.get_size()
@@ -176,15 +181,31 @@ def _render_name(name):
     font_size
   ), SRCALPHA)
   for i in range(MAX_NAME_LENGTH):
-    char = name[i] if i < len(name) else "-"
-    color = GRAY if char == "-" else WHITE
+    if i == len(name):
+      char = "_"
+      t = draws % 60 / 60
+      a = (cos(2 * pi * t) + 1) / 2 + 1 / 4
+      if a >= 2 / 3:
+        color = WHITE
+      elif a >= 1 / 3:
+        color = GRAY
+      else:
+        char = " "
+    elif i < len(name):
+      char = name[i]
+      color = WHITE
+    else:
+      char = "-"
+      color = GRAY
+    if char == " ":
+      continue
     char_image = font.render(char, color)
     surface.blit(char_image, (i * (font_size + NAME_LETTER_SPACING), 0))
   return surface
 
-def _render_chargroup(char, name):
+def _render_chargroup(char, name, draws):
   char_image = char.render().image
-  name_image = _render_name(name)
+  name_image = _render_name(name, draws)
   surface = Surface((
     char_image.get_width() + CHAR_MARGIN + name_image.get_width(),
     char_image.get_height()
