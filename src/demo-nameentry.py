@@ -1,5 +1,5 @@
-from contexts.nameentry import NameEntryContext
 from app import App
+from contexts.nameentry import NameEntryContext
 
 menu = NameEntryContext(default_name="Yorgen")
 demo = App("name entry demo")

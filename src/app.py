@@ -35,6 +35,8 @@ class App(Context):
       clock.tick(FPS)
       keyboard.update()
       app.handle_events()
+      if app.child:
+        app.child.update()
       app.render()
 
   def rescale(app, new_scale):
@@ -82,6 +84,8 @@ class App(Context):
       app.rescale(app.scale - 1)
     elif key == pygame.K_EQUALS and ctrl:
       app.rescale(app.scale + 1)
+    elif app.child:
+      app.child.handle_keydown(key)
 
   def handle_keyup(app, key):
     keyboard.handle_keyup(key)
