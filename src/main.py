@@ -9,7 +9,7 @@ from contexts.game import GameContext
 
 WINDOW_TITLE = "tinyrpg"
 WINDOW_SIZE = (config.WINDOW_WIDTH, config.WINDOW_HEIGHT)
-window_scale = config.SCALE_INIT
+window_scale = config.WINDOW_SCALE_INIT
 fullscreen = False
 
 pygame.init()
@@ -19,7 +19,7 @@ window_size_scaled = None
 game = None
 
 def resize(new_scale):
-  if new_scale < 1 or new_scale > config.SCALE_MAX:
+  if new_scale < 1 or new_scale > config.WINDOW_SCALE_MAX:
     return False
   global window_scale, window_size_scaled, display
   window_scale = new_scale

@@ -23,6 +23,9 @@ class Ttf:
   def __init__(ttf, font):
     ttf.font = font
 
+  def get_size(ttf):
+    return ttf.font.get_height()
+
   def size(ttf, text=""):
     return ttf.font.size(text)
 

@@ -2,9 +2,10 @@ class Context:
   effects = []
 
   def __init__(ctx, parent=None, on_close=None):
-    ctx.child = None
-    ctx.parent = parent
     ctx.on_close = on_close
+    ctx.parent = parent
+    ctx.child = None
+    ctx.comps = []
 
   def handle_keydown(ctx, key):
     if ctx.child:
