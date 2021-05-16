@@ -22,14 +22,15 @@ ENTER_DURATION = 8
 EXIT_DURATION = 6
 
 class ChoiceContext(Context):
-  def __init__(ctx, choices, on_close=None):
+  def __init__(ctx, choices, on_choose=None, on_close=None):
     super().__init__(on_close=on_close)
     ctx.choices = choices
+    ctx.on_choose = on_choose
     ctx.index = next((i for i, c in enumerate(choices) if c.default), 0)
     ctx.cursor = (BORDER_WIDTH + PADDING, SineAnim(30))
     ctx.chosen = False
     ctx.exiting = False
-    ctx.time = 0
+    ctx.draws = 0
     ctx.anims = []
 
   def enter(ctx):
@@ -80,7 +81,10 @@ class ChoiceContext(Context):
 
   def handle_choose(ctx):
     choice = ctx.choices[ctx.index]
-    choice.on_choose(ctx.choose)
+    if ctx.on_choose:
+      ctx.on_choose(choice, ctx.choose)
+    else:
+      ctx.choose()
 
   def handle_close(ctx):
     ctx.exit()
@@ -146,8 +150,12 @@ class ChoiceContext(Context):
         target_y = BORDER_WIDTH + PADDING + ctx.index * (SPACING + font.char_height + 1)
         if not cursor_anim:
           x += anim.update() * 1.0625
-        y += (target_y - y) / 4
+        if anim.time == 1:
+          y = target_y
+        else:
+          y += (target_y - y) / 4
         ctx.cursor = (y, anim)
         surface.blit(cursor, (x, y))
 
+    ctx.draws += 1
     return surface

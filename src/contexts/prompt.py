@@ -1,18 +1,19 @@
+from dataclasses import dataclass
 import pygame
 from contexts import Context
 from contexts.choice import ChoiceContext
 from comps.log import Log
 
+@dataclass
 class Choice:
-  def __init__(choice, text, on_choose=None, default=False):
-    choice.text = text
-    choice.on_choose = on_choose or (lambda _: None)
-    choice.default = default
+  text: str
+  default: bool = False
 
 class PromptContext(Context):
-  def __init__(ctx, text, choices):
+  def __init__(ctx, text, choices, on_choose=None):
     super().__init__()
     ctx.choices = choices
+    ctx.on_choose = on_choose
     ctx.log = Log(autohide=False)
     ctx.log.print(text, on_end=ctx.open)
 
@@ -20,7 +21,9 @@ class PromptContext(Context):
     ctx.log.exit(on_end=ctx.close)
 
   def open(ctx):
-    super().open(ChoiceContext(ctx.choices, on_close=ctx.exit))
+    super().open(ChoiceContext(ctx.choices,
+      on_choose=ctx.on_choose,
+      on_close=ctx.exit))
 
   def draw(ctx, surface):
     ctx.log.draw(surface)
