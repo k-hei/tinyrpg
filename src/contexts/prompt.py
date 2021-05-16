@@ -34,6 +34,6 @@ class PromptContext(Context):
     ctx.log.draw(surface)
     if ctx.child:
       panel = ctx.child.render()
-      log_x = ctx.log.x + ctx.log.surface.get_width() // 2 + 16
-      log_y = surface.get_height() - ctx.log.y - 32
+      log_x = ctx.log.x + ctx.log.surface.get_width() // 2 - panel.get_width() + 80
+      log_y = surface.get_height() - ctx.log.y - panel.get_height() + 8
       surface.blit(panel, (log_x, log_y))

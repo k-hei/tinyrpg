@@ -16,8 +16,9 @@ from lib.lerp import lerp
 
 BORDER_WIDTH = 5
 PADDING = 8
+PADDING_RIGHT = 16
 CURSOR_PADDING = 6
-SPACING = 6
+CHOICE_SPACING = 6
 ENTER_DURATION = 8
 EXIT_DURATION = 6
 
@@ -99,13 +100,13 @@ class ChoiceContext(Context):
 
   def render(ctx):
     assets = use_assets()
-    font = assets.fonts["smallcaps"]
+    font = assets.ttf["roman"]
     cursor = replace_color(assets.sprites["cursor"], WHITE, YELLOW)
 
-    choice_lengths = map(lambda c: len(c.text), ctx.choices)
-    INNER_WIDTH = max(*choice_lengths) * (font.char_width + font.char_spacing)
-    INNER_HEIGHT = max(0, len(ctx.choices) * (font.char_height + SPACING) - SPACING)
-    box_width = BORDER_WIDTH + PADDING + cursor.get_width() + CURSOR_PADDING + INNER_WIDTH + PADDING + BORDER_WIDTH
+    choice_widths = map(lambda c: font.width(c.text), ctx.choices)
+    INNER_WIDTH = max(*choice_widths)
+    INNER_HEIGHT = max(0, len(ctx.choices) * (font.height() + CHOICE_SPACING) - CHOICE_SPACING)
+    box_width = BORDER_WIDTH + PADDING + cursor.get_width() + CURSOR_PADDING + INNER_WIDTH + PADDING_RIGHT + BORDER_WIDTH
     box_height = BORDER_WIDTH + PADDING + INNER_HEIGHT + PADDING + BORDER_WIDTH
 
     t = 1
@@ -146,16 +147,16 @@ class ChoiceContext(Context):
           color = YELLOW
           # if cursor_anim and not cursor_anim.visible:
           #   visible = False
-        text = recolor(render_text(choice.text.upper(), font), color)
+        text = font.render(choice.text, color)
         if visible:
           surface.blit(text, (x, y))
-        y += text.get_height() + SPACING
+        y += text.get_height() + CHOICE_SPACING
 
       # draw cursor
       if not cursor_anim or cursor_anim.visible:
         x = BORDER_WIDTH + PADDING
         y, anim = ctx.cursor
-        target_y = BORDER_WIDTH + PADDING + ctx.index * (SPACING + font.char_height + 1)
+        target_y = BORDER_WIDTH + PADDING + ctx.index * (CHOICE_SPACING + font.height() + 1)
         if not cursor_anim:
           x += anim.update() * 1.0625
         if anim.time == 1:

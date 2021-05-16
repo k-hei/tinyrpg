@@ -29,6 +29,14 @@ class Ttf:
   def size(ttf, text=""):
     return ttf.font.size(text)
 
+  def width(ttf, text=""):
+    width, _ = ttf.font.size(text)
+    return width
+
+  def height(ttf, text=""):
+    _, height = ttf.font.size(text)
+    return height
+
   def render(ttf, text, color=WHITE):
     b = color & 255
     g = (color >> 8) & 255
