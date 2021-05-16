@@ -159,6 +159,7 @@ class NameEntryContext(Context):
   def __init__(ctx, default_name="", on_close=None):
     super().__init__(on_close=on_close)
     ctx.name = default_name
+    ctx.name_init = ctx.name
     ctx.cursor = (0, 0)
     ctx.cursor_cell = (0, 0)
     ctx.char = KnightCore()
@@ -207,13 +208,15 @@ class NameEntryContext(Context):
           )
         ]
 
-  def exit(ctx):
+  def exit(ctx, name=None):
+    if name is None:
+      name = ctx.name
     ctx.exiting = True
     ctx.anims.append(ExitAnim(
       duration=ctx.EXIT_DURATION,
       delay=60,
       target=ctx,
-      on_end=lambda: ctx.close(ctx.name.strip())
+      on_end=lambda: ctx.close(name.strip())
     ))
     for row, line in enumerate(ctx.matrix):
       for col in range(MATRIX_DEADCOL):
@@ -304,6 +307,23 @@ class NameEntryContext(Context):
     )))
     return True
 
+  def handle_cancel(ctx):
+    ctx.banner.exit()
+    ctx.open(PromptContext((
+      "Cancel name entry?"
+    ), (
+      Choice(text="Yes"),
+      Choice(text="No", default=True)
+    ), on_choose=lambda choice, close: (
+      choice.text == "Yes" and close(chosen=True)
+      or choice.text == "No" and close(chosen=False)
+    ), on_close=lambda choice: (
+      (choice is None or choice.text == "No")
+        and ctx.banner.enter()
+      or choice.text == "Yes" and ctx.exit(ctx.name_init)
+    )))
+    return True
+
   def handle_keydown(ctx, key):
     if ctx.anims:
       return
@@ -326,6 +346,8 @@ class NameEntryContext(Context):
       return ctx.handle_delete()
     if key == pygame.K_RETURN:
       return ctx.handle_confirm()
+    if key == pygame.K_ESCAPE:
+      return ctx.handle_cancel()
 
   def draw(ctx, surface):
     if not ctx.anims and ctx.exiting:

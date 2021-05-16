@@ -23,6 +23,7 @@ class CentralArea(Area):
         ("Doshin", lambda: (
           "Oho! So your name is ", town.hero.core.token(), "."
         )),
+        ("Doshin", ". . ."),
         ("Doshin", "...Well, it's something.")
       )
     ))
