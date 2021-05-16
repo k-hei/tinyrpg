@@ -663,7 +663,8 @@ class DungeonContext(Context):
     game.descend()
 
   def handle_floorchange(game, direction):
-    game.log.exit()
+    for comp in game.comps:
+      comp.exit()
     game.parent.dissolve(
       on_clear=lambda: (
         game.camera.reset(),
@@ -1100,10 +1101,8 @@ class DungeonContext(Context):
     return True
 
   def leave_dungeon(game):
-    game.log.exit()
-    game.hud.exit()
-    game.sp_meter.exit()
-    game.minimap.exit()
+    for comp in game.comps:
+      comp.exit()
     game.parent.dissolve(on_clear=lambda: game.parent.goto_town(returning=True))
 
   def toggle_lights(game):

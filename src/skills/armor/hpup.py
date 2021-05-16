@@ -1,6 +1,6 @@
 from skills.armor import Armor
 from cores import Core
-from cores.knight import Knight
+from cores.knight import KnightCore as Knight
 from cores.mage import Mage
 
 class HpUp(Armor):

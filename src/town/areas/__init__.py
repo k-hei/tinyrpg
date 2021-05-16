@@ -3,7 +3,6 @@ from filters import stroke
 from palette import WHITE
 from config import TILE_SIZE
 from sprite import Sprite
-
 from town.actors.npc import Npc
 
 class Area:
@@ -23,7 +22,7 @@ class Area:
       y = Area.ACTOR_Y - 1 + offset_y
       if isinstance(actor, Npc):
         y -= TILE_SIZE // 2
-      if isinstance(actor, Npc) and actor.message and hero and can_talk(hero, actor):
+      if hero and can_talk(hero, actor):
         bubble_x = x + TILE_SIZE * 0.75
         bubble_y = y - TILE_SIZE * 0.25
         nodes.append(Sprite(
@@ -37,5 +36,9 @@ class Area:
     return nodes
 
 def can_talk(hero, actor):
+  if (not isinstance(actor, Npc)
+  or not actor.messages
+  or actor.core.faction == "player"):
+    return False
   dist_x = actor.x - hero.x
   return abs(dist_x) < TILE_SIZE * 1.5 and dist_x * hero.facing > 0

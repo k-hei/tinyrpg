@@ -8,7 +8,7 @@ from assets import load as use_assets
 from filters import replace_color, recolor, outline
 from text import render_char, render as render_text, find_width as find_text_width
 
-from cores.knight import Knight
+from cores.knight import KnightCore
 from cores.mage import Mage
 
 from anims import Anim

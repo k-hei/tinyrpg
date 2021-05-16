@@ -1,6 +1,6 @@
 from skills.weapon.rare import RareWeapon
 from cores import Core
-from cores.knight import Knight
+from cores.knight import KnightCore
 from assets import load as use_assets
 
 class Caladbolg(RareWeapon):
@@ -9,7 +9,7 @@ class Caladbolg(RareWeapon):
   element = "sword"
   cost = 2
   st = 14
-  users = (Knight,)
+  users = (KnightCore,)
   blocks = (
     (1, 0),
     (1, 1),

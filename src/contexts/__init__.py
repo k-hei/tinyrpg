@@ -23,7 +23,7 @@ class Context:
   def exit(ctx):
     pass
 
-  def open(ctx, child):
+  def open(ctx, child, on_close=None):
     ctx.child = child
     child.parent = ctx
     for kind in ctx.child.effects:
@@ -31,6 +31,12 @@ class Context:
         if isinstance(comp, kind):
           comp.exit()
     ctx.child.enter()
+    if on_close:
+      on_close_old = child.on_close
+      def close(data=None):
+        on_close_old(data)
+        on_close(data)
+      child.on_close = close
     return True
 
   def close(ctx, data=None):

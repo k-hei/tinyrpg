@@ -59,6 +59,7 @@ class Banner:
       delay=delay,
       on_end=on_end
     )
+    return True
 
   def exit(banner, on_end=None):
     banner.exiting = True
@@ -150,7 +151,7 @@ class Cache:
   surface: Surface = None
 
 class NameEntryContext(Context):
-  ENTER_DURATION = 30
+  ENTER_DURATION = 20
   EXIT_DURATION = 10
   matrix = MATRIX
 
@@ -162,7 +163,7 @@ class NameEntryContext(Context):
     ctx.char = KnightCore()
     ctx.char.facing = (0, 1)
     ctx.char.anims.append(WalkAnim(period=30, vertical=True))
-    ctx.banner = Banner()
+    ctx.banner = Banner(default_name != "")
     ctx.cache = Cache()
     ctx.anims = []
     ctx.draws = 0
@@ -171,6 +172,7 @@ class NameEntryContext(Context):
     ctx.time_input = 0
 
   def enter(ctx):
+    ctx.exiting = False
     ctx.banner.enter(delay=75)
     ctx.anims.append(EnterAnim(duration=ctx.ENTER_DURATION, target=ctx))
     for row, line in enumerate(ctx.matrix):
@@ -195,7 +197,7 @@ class NameEntryContext(Context):
     ctx.anims.append(ExitAnim(
       duration=ctx.EXIT_DURATION,
       target=ctx,
-      on_end=lambda: ctx.close(ctx.name)
+      on_end=lambda: ctx.close(ctx.name.strip())
     ))
 
   def is_cell_valid(ctx, cell):
@@ -255,7 +257,7 @@ class NameEntryContext(Context):
     ctx.banner.exit()
     ctx.open(PromptContext((
       "The character's name is ",
-      Token(text=ctx.name.strip(), color=BLUE),
+      Token(text=ctx.name.strip().upper(), color=BLUE),
       ". Is this OK?"
     ), (
       Choice(text="Yes"),
@@ -277,11 +279,13 @@ class NameEntryContext(Context):
     if ctx.child:
       return ctx.child.handle_keydown(key)
 
-    if key in keyboard.ARROW_DELTAS:
+    key_time = keyboard.get_pressed(key)
+    if (key in keyboard.ARROW_DELTAS
+    and (key_time == 1 or key_time > 30 and key_time % 2)):
       delta = keyboard.ARROW_DELTAS[key]
       return ctx.handle_move(delta)
 
-    if keyboard.get_pressed(key) > 1:
+    if key_time > 1:
       return
 
     if key == pygame.K_SPACE:
@@ -290,9 +294,6 @@ class NameEntryContext(Context):
       return ctx.handle_delete()
     if key == pygame.K_RETURN:
       return ctx.handle_confirm()
-
-  def update(ctx):
-    ctx.char.update()
 
   def draw(ctx, surface):
     if not ctx.anims and ctx.exiting:
@@ -318,6 +319,7 @@ class NameEntryContext(Context):
     y = surface.get_height() - BANNER_MARGIN - banner_image.get_height()
     ctx.cache.surface.blit(banner_image, (0, y))
 
+    ctx.char.update()
     chargroup_time = ctx.draws - ctx.time_input
     cursor_anim = next((a for a in ctx.anims if a.target == "cursor"), None)
     if ctx.child or ctx.anims and not cursor_anim:

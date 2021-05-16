@@ -26,6 +26,7 @@ class App(Context):
     app.surface = pygame.Surface(app.size)
     app.surface.fill(0)
     app.rescale(WINDOW_SCALE_INIT)
+    pygame.key.set_repeat(1000 // FPS)
     pygame.display.flip()
     assets.load(ASSETS_PATH)
     if app.child:
@@ -40,15 +41,7 @@ class App(Context):
     if child:
       app.child_init = child
       child = deepcopy(child)
-      if child.on_close is None:
-        child.on_close = app.close
-      else:
-        on_close = child.on_close
-        def close(data=None):
-          on_close(data)
-          app.close()
-        child.on_close = close
-      super().open(child)
+      super().open(child, on_close=app.close)
 
   def close(app, data=None):
     app.done = True
@@ -119,3 +112,5 @@ class App(Context):
 
   def handle_keyup(app, key):
     keyboard.handle_keyup(key)
+    if app.child:
+      return app.child.handle_keyup(key)

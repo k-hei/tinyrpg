@@ -22,9 +22,16 @@ class DialogueContext(Context):
     ctx.log = Log(autohide=False)
     ctx.print()
 
-  def print(ctx):
+  def print(ctx, item=None):
+    if item is None:
+      item = ctx.script[min(len(ctx.script) - 1, ctx.index)]
+    if isinstance(item, Context):
+      ctx.log.exit()
+      return ctx.open(item, on_close=lambda _: ctx.handle_next())
     ctx.log.clear()
-    name, page = ctx.script[ctx.index]
+    name, page = item
+    if callable(page):
+      page = page()
     if name != ctx.name:
       ctx.name = name
       ctx.log.print(name.upper() + ": " + page)
@@ -32,6 +39,8 @@ class DialogueContext(Context):
       ctx.log.print(page)
 
   def handle_keydown(ctx, key):
+    if ctx.child:
+      return ctx.child.handle_keydown(key)
     if keyboard.get_pressed(key) != 1:
       return
     if key in (pygame.K_SPACE, pygame.K_RETURN):
@@ -42,9 +51,8 @@ class DialogueContext(Context):
       return ctx.log.skip()
     ctx.index += 1
     if ctx.index == len(ctx.script):
-      ctx.log.exit(on_end=ctx.close)
-    else:
-      ctx.print()
+      return ctx.log.exit(on_end=ctx.close)
+    ctx.print()
 
   def draw(ctx, surface):
     assets = use_assets()
@@ -53,7 +61,7 @@ class DialogueContext(Context):
     sprite = ctx.log.box
     if sprite:
       x = config.WINDOW_WIDTH // 2 - sprite.get_width() // 2
-      y = surface.get_height() + ctx.log.y
+      y = surface.get_height() - ctx.log.y
       surface.blit(sprite, (x, y))
       if ctx.log.clean:
         t = ctx.log.clean % 30 / 30
@@ -61,3 +69,4 @@ class DialogueContext(Context):
         x += -sprite_arrow.get_width() + sprite.get_width() - Log.PADDING_X - 8
         y += -sprite_arrow.get_height() + sprite.get_height() - Log.PADDING_Y + 4 + offset
         surface.blit(sprite_arrow, (x, y))
+    super().draw(surface)

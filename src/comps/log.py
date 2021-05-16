@@ -136,7 +136,6 @@ class Log:
         log.clean = 1
         if log.on_end:
           log.on_end()
-          log.on_end = None
 
     target_row = log.row
     if target_row >= Log.ROW_COUNT - 1 and target_row == len(log.lines) - 1:
@@ -169,7 +168,7 @@ class Log:
     sprite = log.render()
     if sprite is None:
       return
-    y = -sprite.get_height() - Log.MARGIN_BOTTOM
+    y = sprite.get_height() + Log.MARGIN_BOTTOM
     if log.anim:
       anim = log.anim
       t = anim.update()
@@ -192,15 +191,10 @@ class Log:
     if log.box is None:
       return
     if log.align == "left":
-      surface.blit(log.box, (
-        Log.MARGIN_LEFT,
-        surface.get_height() + log.y
-      ))
+      log.x = Log.MARGIN_LEFT
     elif log.align == "center":
-      surface.blit(log.box, (
-        surface.get_width() // 2 - log.box.get_width() // 2,
-        surface.get_height() + log.y
-      ))
+      log.x = surface.get_width() // 2 - log.box.get_width() // 2
+    surface.blit(log.box, (log.x, surface.get_height() - log.y))
 
 def expand_tokens(tokens):
   result = []

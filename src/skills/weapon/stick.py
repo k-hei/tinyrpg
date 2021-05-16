@@ -1,5 +1,5 @@
 from skills.weapon import Weapon
-from cores.knight import Knight
+from cores.knight import KnightCore
 
 class Stick(Weapon):
   name = "Stick"
@@ -7,7 +7,7 @@ class Stick(Weapon):
   element = "lance"
   cost = 1
   st = 2
-  users = (Knight,)
+  users = (KnightCore,)
   blocks = (
     (0, 0),
     (1, 0)

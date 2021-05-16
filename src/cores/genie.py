@@ -4,6 +4,8 @@ from easing.expo import ease_out
 from assets import load as use_assets
 from cores import Core
 from sprite import Sprite
+from filters import replace_color
+from palette import BLACK, GOLD
 
 RIPPLE_PERIOD = 90
 RIPPLE_WAVES = 2
@@ -33,7 +35,7 @@ class Genie(Core):
       x = sin(t * 2 * pi) * ease_out(p) * RIPPLE_AMP
       image.blit(sprite_genie.subsurface(Rect(0, y, 32, 1)), (x, y))
     y = sin(genie.renders % FLOAT_PERIOD / FLOAT_PERIOD * 2 * pi) * FLOAT_AMP
-    genie.sprite.image = image
+    genie.sprite.image = replace_color(image, BLACK, GOLD)
     genie.sprite.pos = (0, y)
     genie.renders += 1
     return genie.sprite

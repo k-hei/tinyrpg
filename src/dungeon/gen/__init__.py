@@ -493,7 +493,7 @@ def gen_floor(seed=None):
 
   entry_room = coffin_room # choice(empty_rooms)
   center_x, center_y = entry_room.get_center()
-  stage.entrance = (center_x, center_y + 2)
+  stage.entrance = (center_x, center_y + 1)
   # stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
   stage.rooms = empty_rooms + feature_list
 
@@ -501,7 +501,8 @@ def gen_floor(seed=None):
     ("Joshin", "Pee pee poo poo"),
     ("Minxia", "He has such a way with words")
   ))
-  stage.spawn_elem(genie, (center_x - 2, center_y - 3))
+  stage.spawn_elem(genie, (center_x, center_y - 3))
+  stage.spawn_elem(Soldier(), (center_x, center_y + 3))
 
   return stage
 

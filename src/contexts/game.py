@@ -8,7 +8,7 @@ from contexts.pause import PauseContext
 from transits.dissolve import DissolveIn, DissolveOut
 import keyboard
 
-from cores.knight import Knight
+from cores.knight import KnightCore as Knight
 from cores.mage import Mage
 
 from inventory import Inventory
@@ -35,7 +35,7 @@ from skills.support.sana import Sana
 from skills.ailment.somnus import Somnus
 
 class GameContext(Context):
-  def __init__(ctx):
+  def __init__(ctx, start_in_dungeon=False):
     super().__init__()
     ctx.transits = [DissolveOut(WINDOW_SIZE)] if not DEBUG else []
     ctx.inventory = Inventory((2, 4), [
@@ -70,6 +70,10 @@ class GameContext(Context):
     ctx.monster_kills = {}
     ctx.seeds = []
     ctx.debug = False
+    if start_in_dungeon:
+      ctx.goto_dungeon()
+    else:
+      ctx.goto_town()
 
   def reset(ctx):
     if type(ctx.child) is DungeonContext:
@@ -145,7 +149,7 @@ class GameContext(Context):
       return False
     if super().handle_keydown(key) != None:
       return
-    if keyboard.get_pressed(key) == 1:
+    if keyboard.get_pressed(key) == 1 and not ctx.child.child:
       if key == pygame.K_ESCAPE:
         return ctx.handle_pause()
 

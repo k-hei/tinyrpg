@@ -3,8 +3,9 @@ from functools import reduce
 from operator import add
 from pygame import Surface
 from pygame.transform import flip
-from palette import BLACK, RED, GREEN, BLUE
+from palette import BLACK, RED, GREEN, BLUE, GOLD_DARK
 from filters import replace_color
+from comps.log import Token
 
 class Core:
   def __init__(core, name, faction, hp=0, st=0, en=0, skills=[]):
@@ -18,6 +19,9 @@ class Core:
     core.dead = False
     core.facing = (1, 0)
     core.anims = []
+
+  def rename(core, name):
+    core.name = name
 
   def get_hp(core):
     return core.hp + core.get_skill_hp()
@@ -51,6 +55,13 @@ class Core:
     return (a.faction == b.faction
       or a.faction == "player" and b.faction == "ally"
       or a.faction == "ally" and b.faction == "player")
+
+  def color(core):
+    if core.faction == "player": return BLUE
+    if core.faction == "enemy": return RED
+
+  def token(core):
+    return Token(text=core.name.upper(), color=core.color())
 
   def update(core):
     for anim in core.anims:

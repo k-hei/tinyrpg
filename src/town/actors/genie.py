@@ -15,8 +15,8 @@ FLOAT_PERIOD = 180
 FLOAT_AMP = 2
 
 class Genie(Npc):
-  def __init__(genie, name=None, message=None):
-    super().__init__(GenieCore(name), message)
+  def __init__(genie, name=None, messages=None):
+    super().__init__(GenieCore(name), messages)
 
   def render(genie):
     genie.sprite = genie.core.render()

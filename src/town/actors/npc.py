@@ -1,6 +1,7 @@
 from town.actors import Actor
 
 class Npc(Actor):
-  def __init__(npc, core, message=None):
+  def __init__(npc, core, messages=None):
     super().__init__(core)
-    npc.message = message
+    npc.messages = messages
+    npc.message_index = 1

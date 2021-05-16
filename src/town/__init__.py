@@ -10,7 +10,7 @@ from contexts.inventory import InventoryContext
 from contexts.dialogue import DialogueContext
 from contexts.custom import CustomContext
 
-from cores.knight import Knight as KnightCore
+from cores.knight import KnightCore
 from cores.mage import Mage as MageCore
 from town.actors.knight import Knight
 from town.actors.mage import Mage
@@ -36,11 +36,12 @@ class TownContext(Context):
     super().__init__(parent)
     town.hero = (Knight if type(parent.hero) is KnightCore else Mage)(parent.hero)
     town.ally = (Knight if type(parent.ally) is KnightCore else Mage)(parent.ally)
-    town.areas = [CentralArea(), OutskirtsArea()]
+    town.areas = [CentralArea(town), OutskirtsArea()]
     town.area = town.areas[0]
     town.area_change = 0
     town.genie_anim = SineAnim(90)
     town.hud = Hud()
+    town.comps = [town.hud]
     town.spawn(returning)
 
   def spawn(town, returning):
@@ -101,6 +102,7 @@ class TownContext(Context):
     if (hero.x >= OutskirtsArea.TOWER_X + config.TILE_SIZE // 2
     and type(town.area) is OutskirtsArea):
       town.handle_areachange(1)
+    return True
 
   def handle_movestop(town):
     hero = town.hero
@@ -142,7 +144,7 @@ class TownContext(Context):
     town.area.actors.append(town.hero) # we can alleviate this by sorting actor render order instead of altering the array (which is kind of the same thing)
 
   def handle_inventory(town):
-    town.child = InventoryContext(parent=town, inventory=town.parent.inventory)
+    town.open(InventoryContext(inventory=town.parent.inventory))
 
   def use_item(town, item):
     return (False, "You can't use that here!")
@@ -153,29 +155,29 @@ class TownContext(Context):
     if actor is None:
       return
 
-    script = map(lambda page: (actor.core.name, page), actor.message)
-    script = tuple(script)
-    town.child = DialogueContext(parent=town, script=script)
+    message = actor.messages[actor.message_index]
+    actor.message_index = (actor.message_index + 1) % len(actor.messages)
+    town.open(DialogueContext(script=message))
 
     # TODO: actor.face method
     dist_x = hero.x - actor.x
     facing = dist_x / abs(dist_x)
     actor.facing = facing
+    return True
 
   def handle_custom(town):
     town.hud.exit()
     game = town.parent
-    def on_close(_):
-      game.update_skills()
-      town.hud.enter()
-    town.child = CustomContext(
-      parent=town,
+    town.open(CustomContext(
       pool=game.skill_pool,
       new_skills=game.new_skills,
       builds=game.skill_builds,
       chars=(game.hero, game.ally),
-      on_close=on_close
-    )
+      on_close=lambda: (
+        game.update_skills(),
+        town.hud.enter()
+      )
+    ))
 
   def draw(town, surface):
     assets = use_assets()
@@ -192,6 +194,7 @@ class TownContext(Context):
       surface.blit(sprite.image, sprite.pos)
 
     if town.child:
+      if town.child.child and town.hud.active:
+        town.hud.exit()
       town.child.draw(surface)
-
     town.hud.draw(surface, town)

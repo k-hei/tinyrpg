@@ -5,7 +5,7 @@ from anims.pause import PauseAnim
 from anims.attack import AttackAnim
 from anims.frame import FrameAnim
 from dungeon.actors import DungeonActor
-from cores.knight import Knight
+from cores.knight import KnightCore as Knight
 from vfx import Vfx
 import random
 
