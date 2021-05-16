@@ -28,7 +28,7 @@ class ChoiceContext(Context):
     ctx.on_choose = on_choose
     ctx.index = next((i for i, c in enumerate(choices) if c.default), 0)
     ctx.cursor = (BORDER_WIDTH + PADDING, SineAnim(30))
-    ctx.chosen = False
+    ctx.choice = None
     ctx.exiting = False
     ctx.draws = 0
     ctx.anims = []
@@ -47,8 +47,13 @@ class ChoiceContext(Context):
       on_end=ctx.close
     ))
 
+  def close(ctx):
+    ctx.parent.child = None
+    if ctx.on_close:
+      ctx.on_close(ctx.choice)
+
   def handle_keydown(ctx, key):
-    if ctx.anims or ctx.chosen:
+    if ctx.anims or ctx.choice:
       return False
 
     if key == pygame.K_UP or key == pygame.K_w:
@@ -71,13 +76,16 @@ class ChoiceContext(Context):
     if new_index >= 0 and new_index < len(ctx.choices):
       ctx.index = new_index
 
-  def choose(ctx):
-    ctx.chosen = True
-    ctx.anims.append(FlickerAnim(
-      duration=45,
-      target="cursor",
-      on_end=ctx.exit
-    ))
+  def choose(ctx, chosen=False):
+    if chosen:
+      ctx.choice = ctx.choices[ctx.index]
+      ctx.anims.append(FlickerAnim(
+        duration=45,
+        target="cursor",
+        on_end=ctx.exit
+      ))
+    else:
+      ctx.exit()
 
   def handle_choose(ctx):
     choice = ctx.choices[ctx.index]
@@ -136,8 +144,8 @@ class ChoiceContext(Context):
         color = WHITE
         if choice is ctx.choices[ctx.index]:
           color = YELLOW
-          if cursor_anim and not cursor_anim.visible:
-            visible = False
+          # if cursor_anim and not cursor_anim.visible:
+          #   visible = False
         text = recolor(render_text(choice.text.upper(), font), color)
         if visible:
           surface.blit(text, (x, y))

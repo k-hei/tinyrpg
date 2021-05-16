@@ -1,7 +1,6 @@
 from contexts.app import App
 from contexts.nameentry import NameEntryContext
 
-menu = NameEntryContext()
-demo = App("name entry demo")
-demo.init(menu)
-demo.loop()
+App(title="name entry demo",
+  context=NameEntryContext(on_close=lambda name: print(name))
+).init()

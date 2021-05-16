@@ -40,10 +40,17 @@ class App(Context):
     if child:
       app.child_init = child
       child = deepcopy(child)
-      child.on_close = app.close
+      if child.on_close is None:
+        child.on_close = app.close
+      else:
+        on_close = child.on_close
+        def close(data=None):
+          on_close(data)
+          app.close()
+        child.on_close = close
       super().open(child)
 
-  def close(app):
+  def close(app, data=None):
     app.done = True
 
   def reload(app):

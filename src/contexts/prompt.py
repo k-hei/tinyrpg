@@ -10,20 +10,25 @@ class Choice:
   default: bool = False
 
 class PromptContext(Context):
-  def __init__(ctx, text, choices, on_choose=None):
-    super().__init__()
+  def __init__(ctx, message, choices, on_choose=None, on_close=None):
+    super().__init__(on_close=on_close)
     ctx.choices = choices
     ctx.on_choose = on_choose
     ctx.log = Log(autohide=False)
-    ctx.log.print(text, on_end=ctx.open)
+    ctx.log.print(message, on_end=ctx.open)
 
-  def exit(ctx):
-    ctx.log.exit(on_end=ctx.close)
+  def exit(ctx, choice):
+    ctx.log.exit(on_end=lambda: ctx.close(choice))
 
   def open(ctx):
     super().open(ChoiceContext(ctx.choices,
       on_choose=ctx.on_choose,
       on_close=ctx.exit))
+
+  def close(ctx, choice):
+    ctx.parent.child = None
+    if ctx.on_close:
+      ctx.on_close(choice)
 
   def draw(ctx, surface):
     ctx.log.draw(surface)

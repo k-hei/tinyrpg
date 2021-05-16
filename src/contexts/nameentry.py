@@ -6,12 +6,13 @@ from pygame import Surface, Rect, SRCALPHA
 
 import keyboard
 from contexts import Context
-from config import WINDOW_SIZE
+from contexts.prompt import PromptContext, Choice
+from config import WINDOW_WIDTH, WINDOW_SIZE
 from assets import load as use_assets
 from palette import BLACK, WHITE, GRAY, BLUE
 from filters import replace_color, darken
 from cores.knight import KnightCore
-from comps.log import Log, Token
+from comps.log import Token
 from anims.walk import WalkAnim
 from anims.tween import TweenAnim
 from anims.flicker import FlickerAnim
@@ -37,47 +38,165 @@ BANNER_MARGIN = 12
 BANNER_ITEM_ICON_SPACING = 4
 BANNER_ITEM_SPACING = 12
 
+class EnterAnim(TweenAnim): pass
+class ExitAnim(TweenAnim): pass
+
+class Banner:
+  ENTER_DURATION = 7
+  EXIT_DURATION = 4
+
+  def __init__(banner, state_init=False):
+    banner.state_target = state_init
+    banner.state = banner.state_target
+    banner.anim = None
+    banner.exiting = False
+    banner.surface = None
+
+  def enter(banner, delay=0, on_end=None):
+    banner.exiting = False
+    banner.anim = EnterAnim(
+      duration=banner.ENTER_DURATION,
+      delay=delay,
+      on_end=on_end
+    )
+
+  def exit(banner, on_end=None):
+    banner.exiting = True
+    banner.anim = ExitAnim(duration=banner.EXIT_DURATION, on_end=on_end)
+
+  def set_state(banner, state=None):
+    if state is None:
+      state = banner.state_target
+    banner.state = state
+
+  def change_state(banner, state_target):
+    banner.state_target = state_target
+    if banner.anim is None and banner.state != banner.state_target:
+      banner.exit(on_end=lambda: (
+        banner.enter(on_end=lambda: (
+          banner.set_state()
+        ))
+      ))
+
+  def update(banner):
+    if banner.anim:
+      anim = banner.anim
+      if anim.done:
+        banner.anim = None
+      anim.update()
+    banner.surface = banner.render()
+
+  def render(banner):
+    assets = use_assets()
+    font = assets.ttf[FONT_NAME]
+
+    banner_width = WINDOW_WIDTH
+    banner_height = font.get_size() + BANNER_PADDING_Y * 2
+    banner_image = Surface((banner_width, banner_height), SRCALPHA)
+
+    if banner.anim:
+      t = banner.anim.pos
+      if type(banner.anim) is ExitAnim:
+        t = 1 - t
+      height = banner_height * t
+      banner_image.fill(0)
+      pygame.draw.rect(banner_image, BLACK, Rect(
+        (0, banner_height // 2 - height // 2),
+        (banner_width, height)
+      ))
+      return banner_image
+
+    if banner.exiting:
+      return banner_image
+
+    banner_image.fill(BLACK)
+    if banner.state == False:
+      text_image = font.render("Please enter a name.")
+      x = banner_width // 2 - text_image.get_width() // 2
+      y = banner_height // 2 - text_image.get_height() // 2
+      banner_image.blit(text_image, (x, y))
+    elif banner.state == True:
+      can_confirm = True
+      confirm_color = WHITE if can_confirm else GRAY
+      confirm_image = font.render("Confirm", confirm_color)
+      x = banner_image.get_width() - BANNER_PADDING_X - confirm_image.get_width()
+      y = BANNER_PADDING_Y
+      banner_image.blit(confirm_image, (x, y))
+
+      start_image = assets.sprites["button_start"]
+      start_image = replace_color(start_image, BLACK, BLUE)
+      if not can_confirm:
+        start_image = darken(start_image)
+      x += -BANNER_ITEM_ICON_SPACING - start_image.get_width()
+      y += confirm_image.get_height() / 2 -  start_image.get_height() / 2
+      banner_image.blit(start_image, (x, y))
+
+      delete_image = font.render("Delete")
+      x += -BANNER_ITEM_SPACING - delete_image.get_width()
+      y = BANNER_PADDING_Y
+      banner_image.blit(delete_image, (x, y))
+
+      b_image = assets.sprites["button_b"]
+      b_image = replace_color(b_image, BLACK, BLUE)
+      x += -BANNER_ITEM_ICON_SPACING - b_image.get_width()
+      y += delete_image.get_height() / 2 -  b_image.get_height() / 2
+      banner_image.blit(b_image, (x, y))
+
+    return banner_image
+
 @dataclass
 class Cache:
   bg: Surface = None
-  banner: Surface = None
   surface: Surface = None
 
 class NameEntryContext(Context):
+  ENTER_DURATION = 30
+  EXIT_DURATION = 10
   matrix = MATRIX
 
-  def __init__(ctx, default_name=""):
+  def __init__(ctx, default_name="", on_close=None):
+    super().__init__(on_close=on_close)
     ctx.name = default_name
     ctx.cursor = (0, 0)
     ctx.cursor_cell = (0, 0)
     ctx.char = KnightCore()
     ctx.char.facing = (0, 1)
     ctx.char.anims.append(WalkAnim(period=30, vertical=True))
-    ctx.anims = []
-    ctx.log = Log(autohide=False)
+    ctx.banner = Banner()
     ctx.cache = Cache()
+    ctx.anims = []
     ctx.draws = 0
+    ctx.exiting = False
     ctx.time_move = 0
     ctx.time_input = 0
 
   def enter(ctx):
-    ctx.anims.append(TweenAnim(duration=30, target=ctx))
+    ctx.banner.enter(delay=75)
+    ctx.anims.append(EnterAnim(duration=ctx.ENTER_DURATION, target=ctx))
     for row, line in enumerate(ctx.matrix):
       for col in range(MATRIX_DEADCOL):
         char = line[col]
         delay = (row * MATRIX_DEADCOL + col) * 2 + 15
         ctx.anims += [
-          TweenAnim(
+          EnterAnim(
             duration=10,
             delay=delay,
             target=(col, row)
           ),
-          TweenAnim(
+          EnterAnim(
             duration=10,
             delay=delay,
             target=(col + MATRIX_DEADCOL + 1, row)
           )
         ]
+
+  def exit(ctx):
+    ctx.exiting = True
+    ctx.anims.append(ExitAnim(
+      duration=ctx.EXIT_DURATION,
+      target=ctx,
+      on_end=lambda: ctx.close(ctx.name)
+    ))
 
   def is_cell_valid(ctx, cell):
     col, row = cell
@@ -117,35 +236,46 @@ class NameEntryContext(Context):
       return False
     ctx.name += ctx.get_char_at()
     if len(ctx.name) == 1:
-      ctx.cache.banner = _render_banner(WINDOW_SIZE, ctx.is_name_valid())
+      ctx.banner.change_state(True)
     ctx.time_move = ctx.draws
     ctx.time_input = ctx.draws
-    ctx.anims.append(FlickerAnim(duration=15, target="cursor"))
+    ctx.anims.append(FlickerAnim(duration=3, target="cursor"))
     return True
 
   def handle_delete(ctx):
     if len(ctx.name) == 0:
       return False
     ctx.name = ctx.name[:-1]
-    if len(ctx.name) == 0:
-      ctx.cache.banner = _render_banner(WINDOW_SIZE, ctx.is_name_valid())
     ctx.time_input = ctx.draws
     return True
 
   def handle_confirm(ctx):
     if not ctx.is_name_valid():
       return False
-    ctx.log.clear()
-    ctx.log.print((
-      "Your character's name is ",
+    ctx.banner.exit()
+    ctx.open(PromptContext((
+      "The character's name is ",
       Token(text=ctx.name.strip(), color=BLUE),
       ". Is this OK?"
-    ))
+    ), (
+      Choice(text="Yes"),
+      Choice(text="No", default=True)
+    ), on_choose=lambda choice, close: (
+      choice.text == "Yes" and close(chosen=True)
+      or choice.text == "No" and close(chosen=False)
+    ), on_close=lambda choice: (
+      (choice is None or choice.text == "No")
+        and ctx.banner.enter()
+      or choice.text == "Yes" and ctx.exit()
+    )))
     return True
 
   def handle_keydown(ctx, key):
     if ctx.anims:
       return
+
+    if ctx.child:
+      return ctx.child.handle_keydown(key)
 
     if key in keyboard.ARROW_DELTAS:
       delta = keyboard.ARROW_DELTAS[key]
@@ -165,6 +295,9 @@ class NameEntryContext(Context):
     ctx.char.update()
 
   def draw(ctx, surface):
+    if not ctx.anims and ctx.exiting:
+      return
+
     assets = use_assets()
     font = assets.ttf[FONT_NAME]
     font_size = font.get_size()
@@ -180,14 +313,14 @@ class NameEntryContext(Context):
     x = -t * tile_size
     ctx.cache.surface.blit(ctx.cache.bg, (x, x))
 
-    if ctx.cache.banner is None:
-      ctx.cache.banner = _render_banner(surface.get_size(), ctx.is_name_valid())
-    y = surface.get_height() - BANNER_MARGIN - ctx.cache.banner.get_height()
-    ctx.cache.surface.blit(ctx.cache.banner, (0, y))
+    ctx.banner.update()
+    banner_image = ctx.banner.surface
+    y = surface.get_height() - BANNER_MARGIN - banner_image.get_height()
+    ctx.cache.surface.blit(banner_image, (0, y))
 
     chargroup_time = ctx.draws - ctx.time_input
     cursor_anim = next((a for a in ctx.anims if a.target == "cursor"), None)
-    if ctx.anims and not cursor_anim:
+    if ctx.child or ctx.anims and not cursor_anim:
       chargroup_time = -1
     chargroup_image = _render_chargroup(ctx.char, ctx.name, chargroup_time)
     x = surface.get_width() // 2 - chargroup_image.get_width() // 2
@@ -199,7 +332,7 @@ class NameEntryContext(Context):
     rows = len(ctx.matrix)
     char_surface = Surface((
       cols * cell_size - font_size // 2,
-      rows * cell_size - font_size // 2
+      rows * cell_size - font_size // 2 + 8
     ), SRCALPHA)
     for row, line in enumerate(ctx.matrix):
       for col, char in enumerate(line):
@@ -216,9 +349,9 @@ class NameEntryContext(Context):
             char_color = None
         if char_color:
           char_image = font.render(char, char_color)
-          char_surface.blit(char_image, (x, y))
+          char_surface.blit(char_image, (x, y + 8))
     x = surface.get_width() // 2 - char_surface.get_width() // 2
-    y = surface.get_height() // 2 - char_surface.get_height() // 2 + 16
+    y = surface.get_height() // 2 - char_surface.get_height() // 2 + 8
     ctx.cache.surface.blit(char_surface, (x, y))
 
     cursor_col, cursor_row = ctx.cursor_cell
@@ -228,7 +361,7 @@ class NameEntryContext(Context):
     ctx.cursor = (cursor_x, cursor_y)
 
     cursor_anim = next((a for a in ctx.anims if a.target == "cursor"), None)
-    if not ctx.anims or cursor_anim:
+    if not ctx.child and (not ctx.anims or cursor_anim):
       time_move = ctx.draws - ctx.time_move
       if time_move % 50 < 25:
         cursor_image = assets.sprites["cursor_char0"]
@@ -238,7 +371,7 @@ class NameEntryContext(Context):
         cursor_image = None
       if cursor_image:
         x += cursor_x + font_size // 2 - cursor_image.get_width() // 2
-        y += cursor_y + font_size // 2 - cursor_image.get_height() // 2
+        y += cursor_y + font_size // 2 - cursor_image.get_height() // 2 + 8
         ctx.cache.surface.blit(cursor_image, (x, y))
 
     surface_clip = ctx.cache.surface
@@ -248,14 +381,18 @@ class NameEntryContext(Context):
         ctx.anims.remove(anim)
       anim.update()
       if anim.target is ctx:
-        t = ease_out(anim.pos)
+        t = anim.pos
+        if type(anim) is EnterAnim:
+          t = ease_out(t)
+        elif type(anim) is ExitAnim:
+          t = 1 - t
         height = surface.get_height() * t
         y = surface.get_height() // 2 - height // 2
         surface_rect = Rect((0, y), (surface.get_width(), height))
 
     surface.blit(ctx.cache.surface, (0, surface_rect.top), area=surface_rect)
-    if not ctx.anims:
-      ctx.log.draw(surface)
+    if ctx.child:
+      ctx.child.draw(surface)
 
     ctx.draws += 1
 
@@ -317,38 +454,3 @@ def _render_bg(size):
       y = row * tile_height
       tile_surface.blit(tile_image, (x, y))
   return tile_surface
-
-def _render_banner(size, can_confirm=True):
-  width, height = size
-  assets = use_assets()
-  font = assets.ttf[FONT_NAME]
-
-  banner_image = Surface((width, font.get_size() + BANNER_PADDING_Y * 2))
-  banner_image.fill(BLACK)
-
-  confirm_color = WHITE if can_confirm else GRAY
-  confirm_image = font.render("Confirm", confirm_color)
-  x = banner_image.get_width() - BANNER_PADDING_X - confirm_image.get_width()
-  y = BANNER_PADDING_Y
-  banner_image.blit(confirm_image, (x, y))
-
-  start_image = assets.sprites["button_start"]
-  start_image = replace_color(start_image, BLACK, BLUE)
-  if not can_confirm:
-    start_image = darken(start_image)
-  x += -BANNER_ITEM_ICON_SPACING - start_image.get_width()
-  y += confirm_image.get_height() / 2 -  start_image.get_height() / 2
-  banner_image.blit(start_image, (x, y))
-
-  delete_image = font.render("Delete")
-  x += -BANNER_ITEM_SPACING - delete_image.get_width()
-  y = BANNER_PADDING_Y
-  banner_image.blit(delete_image, (x, y))
-
-  b_image = assets.sprites["button_b"]
-  b_image = replace_color(b_image, BLACK, BLUE)
-  x += -BANNER_ITEM_ICON_SPACING - b_image.get_width()
-  y += delete_image.get_height() / 2 -  b_image.get_height() / 2
-  banner_image.blit(b_image, (x, y))
-
-  return banner_image
