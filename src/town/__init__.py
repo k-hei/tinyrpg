@@ -155,16 +155,16 @@ class TownContext(Context):
     if actor is None:
       return
 
+    # TODO: actor.face method
+    old_facing = actor.facing
+    new_facing = (hero.x - actor.x) / abs(hero.x - actor.x)
+    actor.face(new_facing)
+
     message = actor.messages[actor.message_index]
     actor.message_index = (actor.message_index + 1) % len(actor.messages)
     if callable(message):
       message = message(town)
-    town.open(DialogueContext(script=message))
-
-    # TODO: actor.face method
-    dist_x = hero.x - actor.x
-    facing = dist_x / abs(dist_x)
-    actor.facing = facing
+    town.open(DialogueContext(script=message, on_close=lambda: actor.face(old_facing)))
     return True
 
   def handle_custom(town):

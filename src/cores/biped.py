@@ -23,9 +23,9 @@ class BipedCore(Core):
       if type(anim) is WalkAnim:
         if actor.facing == (0, 1):
           if anim.frame_index % 2:
-            sprite_id = actor.sprites.walk_down
+            sprite_id = actor.sprites.walk_down or actor.sprites.walk_right
           else:
-            sprite_id = actor.sprites.face_down
+            sprite_id = actor.sprites.face_down or actor.sprites.face_right
           if anim.frame_index >= 2:
             flip_x = True
         else:
@@ -36,7 +36,7 @@ class BipedCore(Core):
         break
     else:
       if actor.facing == (0, 1):
-        sprite_id = actor.sprites.face_down
+        sprite_id = actor.sprites.face_down or actor.sprites.face_right
       else:
         sprite_id = actor.sprites.face_right
     image = sprites[sprite_id] if sprite_id else None

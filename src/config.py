@@ -7,6 +7,10 @@ FLOOR_SIZE = (27, 27)
 ROOM_WIDTHS = (3, 5, 7)
 ROOM_HEIGHTS = (4, 7)
 
+KNIGHT_NAME = "Yorgen"
+MAGE_NAME = "Minxia"
+ROGUE_NAME = "Fray"
+
 FPS = 60
 TILE_SIZE = 32
 ITEM_OFFSET = 20

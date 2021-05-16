@@ -37,6 +37,9 @@ class Actor:
     if abs(target_x - actor.x) <= Actor.SPEED:
       actor.x = target_x
 
+  def face(actor, facing):
+    actor.facing = facing
+
   def render(actor):
     if actor.facing == -1:
       actor.sprite.image = flip(actor.sprite.image, True, False)
