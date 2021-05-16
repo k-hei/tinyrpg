@@ -9,33 +9,42 @@ from config import (
 )
 
 class App(Context):
-  def __init__(app, name):
-    app.name = name
+  def __init__(app, title="Untitled", context=None):
+    app.title = title
+    app.child = context
+    app.child_init = context
     app.size = WINDOW_SIZE
     app.size_scaled = (0, 0)
     app.scale = 0
-    app.child = None
     app.surface = None
     app.display = None
     app.done = False
 
-  def init(app, child=None):
+  def init(app):
     pygame.init()
-    pygame.display.set_caption(app.name)
+    pygame.display.set_caption(app.title)
     app.surface = pygame.Surface(app.size)
     app.surface.fill(0)
     app.rescale(WINDOW_SCALE_INIT)
-    app.render()
+    pygame.display.flip()
     assets.load(ASSETS_PATH)
-    app.open(child)
+    if app.child:
+      app.open()
+      app.loop()
 
   def open(app, child=None):
+    if app.child_init is None:
+      app.child_init = child
     if child is None:
       child = app.child_init
     if child:
       app.child_init = child
       child = deepcopy(child)
+      child.on_close = app.close
       super().open(child)
+
+  def close(app):
+    app.done = True
 
   def reload(app):
     app.open()

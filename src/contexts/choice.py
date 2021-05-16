@@ -10,6 +10,7 @@ from palette import BLACK, WHITE, YELLOW
 
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
+from anims.flicker import FlickerAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
 
@@ -21,16 +22,14 @@ ENTER_DURATION = 8
 EXIT_DURATION = 6
 
 class ChoiceContext(Context):
-  def __init__(ctx, parent, choices, on_choose, on_close=None):
-    super().__init__(parent)
+  def __init__(ctx, choices, on_close=None):
+    super().__init__(on_close=on_close)
     ctx.choices = choices
     ctx.index = 0
     ctx.cursor = (BORDER_WIDTH + PADDING, SineAnim(30))
     ctx.chosen = False
     ctx.exiting = False
     ctx.time = 0
-    ctx.on_choose = on_choose
-    ctx.on_close = on_close
     ctx.anims = []
 
   def enter(ctx):
@@ -71,25 +70,28 @@ class ChoiceContext(Context):
     if new_index >= 0 and new_index < len(ctx.choices):
       ctx.index = new_index
 
+  def choose(ctx):
+    ctx.chosen = True
+    ctx.anims.append(FlickerAnim(
+      duration=45,
+      target="cursor",
+      on_end=ctx.exit
+    ))
+
   def handle_choose(ctx):
     choice = ctx.choices[ctx.index]
-    if ctx.on_choose(choice):
-      ctx.chosen = True
-      ctx.exit()
+    choice.on_choose(ctx.choose)
 
   def handle_close(ctx):
     ctx.exit()
-
-  def close(ctx):
-    ctx.parent.child = None
-    if ctx.on_close: ctx.on_close()
 
   def render(ctx):
     assets = use_assets()
     font = assets.fonts["smallcaps"]
     cursor = replace_color(assets.sprites["cursor"], WHITE, YELLOW)
 
-    INNER_WIDTH = max(*map(lambda c: len(c), ctx.choices)) * (font.char_width + font.char_spacing)
+    choice_lengths = map(lambda c: len(c.text), ctx.choices)
+    INNER_WIDTH = max(*choice_lengths) * (font.char_width + font.char_spacing)
     INNER_HEIGHT = max(0, len(ctx.choices) * (font.char_height + SPACING) - SPACING)
     box_width = BORDER_WIDTH + PADDING + cursor.get_width() + CURSOR_PADDING + INNER_WIDTH + PADDING + BORDER_WIDTH
     box_height = BORDER_WIDTH + PADDING + INNER_HEIGHT + PADDING + BORDER_WIDTH
@@ -99,8 +101,9 @@ class ChoiceContext(Context):
       if anim.done:
         ctx.anims.remove(anim)
         continue
+      anim.update()
       if anim.target is ctx:
-        t = anim.update()
+        t = anim.pos
         if ctx.exiting:
           t = 1 - t
         else:
@@ -119,25 +122,32 @@ class ChoiceContext(Context):
     pygame.draw.rect(surface, BLACK, Rect(4, 4, box_width - 8, box_height - 8))
 
     # only render text if not animating
-    if not ctx.anims:
+    cursor_anim = next((a for a in ctx.anims if a.target is "cursor"), None)
+    if not ctx.anims or cursor_anim:
       # draw text
       x = BORDER_WIDTH + PADDING + cursor.get_width() + CURSOR_PADDING
       y = BORDER_WIDTH + PADDING
       for choice in ctx.choices:
+        visible = True
         color = WHITE
-        if choice == ctx.choices[ctx.index]:
+        if choice is ctx.choices[ctx.index]:
           color = YELLOW
-        text = recolor(render_text(choice.upper(), font), color)
-        surface.blit(text, (x, y))
+          if cursor_anim and not cursor_anim.visible:
+            visible = False
+        text = recolor(render_text(choice.text.upper(), font), color)
+        if visible:
+          surface.blit(text, (x, y))
         y += text.get_height() + SPACING
 
       # draw cursor
-      x = BORDER_WIDTH + PADDING
-      y, anim = ctx.cursor
-      target_y = BORDER_WIDTH + PADDING + ctx.index * (SPACING + font.char_height + 1)
-      x += anim.update() * 1.0625
-      y += (target_y - y) / 4
-      ctx.cursor = (y, anim)
-      surface.blit(cursor, (x, y))
+      if not cursor_anim or cursor_anim.visible:
+        x = BORDER_WIDTH + PADDING
+        y, anim = ctx.cursor
+        target_y = BORDER_WIDTH + PADDING + ctx.index * (SPACING + font.char_height + 1)
+        if not cursor_anim:
+          x += anim.update() * 1.0625
+        y += (target_y - y) / 4
+        ctx.cursor = (y, anim)
+        surface.blit(cursor, (x, y))
 
     return surface

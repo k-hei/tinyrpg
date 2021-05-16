@@ -40,8 +40,14 @@ class Context:
         if isinstance(comp, kind):
           comp.enter()
     if ctx.on_close:
-      ctx.on_close(data)
+      if data is None:
+        ctx.on_close()
+      else:
+        ctx.on_close(data)
     return True
+
+  def update(ctx):
+    pass
 
   def draw(ctx, surface):
     if ctx.child:
