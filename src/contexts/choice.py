@@ -25,7 +25,7 @@ class ChoiceContext(Context):
   def __init__(ctx, choices, on_close=None):
     super().__init__(on_close=on_close)
     ctx.choices = choices
-    ctx.index = 0
+    ctx.index = next((i for i, c in enumerate(choices) if c.default), 0)
     ctx.cursor = (BORDER_WIDTH + PADDING, SineAnim(30))
     ctx.chosen = False
     ctx.exiting = False
@@ -122,7 +122,7 @@ class ChoiceContext(Context):
     pygame.draw.rect(surface, BLACK, Rect(4, 4, box_width - 8, box_height - 8))
 
     # only render text if not animating
-    cursor_anim = next((a for a in ctx.anims if a.target is "cursor"), None)
+    cursor_anim = next((a for a in ctx.anims if a.target == "cursor"), None)
     if not ctx.anims or cursor_anim:
       # draw text
       x = BORDER_WIDTH + PADDING + cursor.get_width() + CURSOR_PADDING
