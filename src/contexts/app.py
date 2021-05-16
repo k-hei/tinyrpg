@@ -65,6 +65,7 @@ class App(Context):
     return True
 
   def render(app):
+    app.surface.fill(0)
     app.draw(app.surface)
     app.display.blit(pygame.transform.scale(app.surface, app.size_scaled), (0, 0))
     pygame.display.flip()

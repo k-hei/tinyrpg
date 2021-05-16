@@ -21,8 +21,9 @@ class Log:
   FONT_NAME = "roman"
   LINE_SPACING = 4
 
-  def __init__(log, autohide=True):
+  def __init__(log, autohide=True, align="center"):
     log.autohide = autohide
+    log.align = align
     log.messages = []
     log.lines = []
     log.index = 0
@@ -37,8 +38,8 @@ class Log:
     log.anim = None
     log.on_end = None
 
-  def print(log, *tokens):
-    message = Message(*tokens)
+  def print(log, tokens, on_end=None):
+    message = Message(tokens)
     print(str(message))
     if not log.active and log.anim is None:
       log.enter()
@@ -49,6 +50,7 @@ class Log:
       log.cursor_x = 0
     log.messages.append(message)
     log.clean = 0
+    log.on_end = on_end
 
   def enter(log):
     if not log.active:
@@ -132,6 +134,9 @@ class Log:
         log.cursor_x = 0
       else:
         log.clean = 1
+        if log.on_end:
+          log.on_end()
+          log.on_end = None
 
     target_row = log.row
     if target_row >= Log.ROW_COUNT - 1 and target_row == len(log.lines) - 1:
@@ -177,8 +182,6 @@ class Log:
       if anim.done and not log.active:
         log.surface = None
         log.box = None
-        if log.on_end:
-          log.on_end()
     elif log.active:
       log.y = y
     else:
@@ -188,24 +191,30 @@ class Log:
     log.update()
     if log.box is None:
       return
-    surface.blit(log.box, (
-      Log.MARGIN_LEFT,
-      surface.get_height() + log.y
-    ))
+    if log.align == "left":
+      surface.blit(log.box, (
+        Log.MARGIN_LEFT,
+        surface.get_height() + log.y
+      ))
+    elif log.align == "center":
+      surface.blit(log.box, (
+        surface.get_width() // 2 - log.box.get_width() // 2,
+        surface.get_height() + log.y
+      ))
 
 def expand_tokens(tokens):
   result = []
   for token in tokens:
     if type(token) is tuple:
       result.extend(expand_tokens(token))
-    elif type(token) is str:
+    elif type(token) is str and token:
       result.append(Token(token))
     elif type(token) is Token:
       result.append(token)
   return result
 
 class Message:
-  def __init__(message, *data):
+  def __init__(message, data):
     message.tokens = expand_tokens(data)
 
   def __len__(message):
