@@ -14,6 +14,7 @@ from cores.knight import KnightCore
 from comps.log import Log, Token
 from anims.walk import WalkAnim
 from anims.tween import TweenAnim
+from anims.flicker import FlickerAnim
 from easing.expo import ease_out
 
 SPACING_FACTOR = 2
@@ -62,12 +63,21 @@ class NameEntryContext(Context):
   def enter(ctx):
     ctx.anims.append(TweenAnim(duration=30, target=ctx))
     for row, line in enumerate(ctx.matrix):
-      for col, char in enumerate(line):
-        ctx.anims.append(TweenAnim(
-          duration=5,
-          delay=row * len(ctx.matrix[0]) + col + 15,
-          target=(col, row)
-        ))
+      for col in range(MATRIX_DEADCOL):
+        char = line[col]
+        delay = (row * MATRIX_DEADCOL + col) * 2 + 15
+        ctx.anims += [
+          TweenAnim(
+            duration=10,
+            delay=delay,
+            target=(col, row)
+          ),
+          TweenAnim(
+            duration=10,
+            delay=delay,
+            target=(col + MATRIX_DEADCOL + 1, row)
+          )
+        ]
 
   def is_cell_valid(ctx, cell):
     col, row = cell
@@ -110,6 +120,7 @@ class NameEntryContext(Context):
       ctx.cache.banner = _render_banner(WINDOW_SIZE, ctx.is_name_valid())
     ctx.time_move = ctx.draws
     ctx.time_input = ctx.draws
+    ctx.anims.append(FlickerAnim(duration=15, target="cursor"))
     return True
 
   def handle_delete(ctx):
@@ -118,7 +129,7 @@ class NameEntryContext(Context):
     ctx.name = ctx.name[:-1]
     if len(ctx.name) == 0:
       ctx.cache.banner = _render_banner(WINDOW_SIZE, ctx.is_name_valid())
-    # ctx.time_input = ctx.draws
+    ctx.time_input = ctx.draws
     return True
 
   def handle_confirm(ctx):
@@ -133,6 +144,9 @@ class NameEntryContext(Context):
     return True
 
   def handle_keydown(ctx, key):
+    if ctx.anims:
+      return
+
     if key in keyboard.ARROW_DELTAS:
       delta = keyboard.ARROW_DELTAS[key]
       return ctx.handle_move(delta)
@@ -172,7 +186,8 @@ class NameEntryContext(Context):
     ctx.cache.surface.blit(ctx.cache.banner, (0, y))
 
     chargroup_time = ctx.draws - ctx.time_input
-    if ctx.anims:
+    cursor_anim = next((a for a in ctx.anims if a.target == "cursor"), None)
+    if ctx.anims and not cursor_anim:
       chargroup_time = -1
     chargroup_image = _render_chargroup(ctx.char, ctx.name, chargroup_time)
     x = surface.get_width() // 2 - chargroup_image.get_width() // 2
@@ -192,15 +207,15 @@ class NameEntryContext(Context):
         y = row * cell_size
         char_color = WHITE
         char_anim = next((a for a in ctx.anims if a.target == (col, row)), None)
-        char_image = font.render(char, char_color)
         if char_anim:
           if char_anim.pos:
             t = ease_out(char_anim.pos)
             y = y - 8 + t * 8
             char_color = GRAY
           else:
-            char_image = None
-        if char_image:
+            char_color = None
+        if char_color:
+          char_image = font.render(char, char_color)
           char_surface.blit(char_image, (x, y))
     x = surface.get_width() // 2 - char_surface.get_width() // 2
     y = surface.get_height() // 2 - char_surface.get_height() // 2 + 16
@@ -212,14 +227,14 @@ class NameEntryContext(Context):
     cursor_y += (cursor_row * cell_size - cursor_y) / 4
     ctx.cursor = (cursor_x, cursor_y)
 
-    if not ctx.anims:
+    cursor_anim = next((a for a in ctx.anims if a.target == "cursor"), None)
+    if not ctx.anims or cursor_anim:
       time_move = ctx.draws - ctx.time_move
       if time_move % 50 < 25:
         cursor_image = assets.sprites["cursor_char0"]
       else:
         cursor_image = assets.sprites["cursor_char1"]
-      time_input = ctx.draws - ctx.time_input
-      if time_input < 15 and time_input // 2 % 2:
+      if cursor_anim and not cursor_anim.visible:
         cursor_image = None
       if cursor_image:
         x += cursor_x + font_size // 2 - cursor_image.get_width() // 2
