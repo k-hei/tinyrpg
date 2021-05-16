@@ -5,14 +5,14 @@ import keyboard
 from contexts import Context
 from assets import load as use_assets
 from comps.log import Log
-from comps.hud import Hud
-from comps.previews import Previews
-from comps.minimap import Minimap
-from comps.spmeter import SpMeter
-from comps.floorno import FloorNo
+from hud import Hud
+# from comps.previews import Previews
+# from comps.minimap import Minimap
+# from comps.spmeter import SpMeter
+# from comps.floorno import FloorNo
 
 class DialogueContext(Context):
-  effects = [Hud, Previews, Minimap, SpMeter, FloorNo]
+  effects = [Hud] # , Previews, Minimap, SpMeter, FloorNo]
 
   def __init__(ctx, script, on_close=None):
     super().__init__(on_close=on_close)
@@ -29,10 +29,13 @@ class DialogueContext(Context):
       ctx.log.exit()
       return ctx.open(item, on_close=lambda _: ctx.handle_next())
     ctx.log.clear()
-    name, page = item
+    if type(item) is tuple:
+      name, page = item
+    else:
+      name, page = None, item
     if callable(page):
       page = page()
-    if name != ctx.name:
+    if name and name != ctx.name:
       ctx.name = name
       ctx.log.print(name.upper() + ": " + page)
     else:

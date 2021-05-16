@@ -7,6 +7,7 @@ from pygame import Surface, Rect, SRCALPHA
 import keyboard
 from contexts import Context
 from contexts.prompt import PromptContext, Choice
+from contexts.dialogue import DialogueContext
 from config import WINDOW_WIDTH, WINDOW_SIZE
 from assets import load as use_assets
 from palette import BLACK, WHITE, GRAY, BLUE
@@ -49,11 +50,11 @@ class Banner:
     banner.state_target = state_init
     banner.state = banner.state_target
     banner.anim = None
-    banner.exiting = False
+    banner.active = False
     banner.surface = None
 
   def enter(banner, delay=0, on_end=None):
-    banner.exiting = False
+    banner.active = True
     banner.anim = EnterAnim(
       duration=banner.ENTER_DURATION,
       delay=delay,
@@ -62,7 +63,7 @@ class Banner:
     return True
 
   def exit(banner, on_end=None):
-    banner.exiting = True
+    banner.active = False
     banner.anim = ExitAnim(duration=banner.EXIT_DURATION, on_end=on_end)
 
   def set_state(banner, state=None):
@@ -107,7 +108,7 @@ class Banner:
       ))
       return banner_image
 
-    if banner.exiting:
+    if not banner.active:
       return banner_image
 
     banner_image.fill(BLACK)
@@ -163,7 +164,7 @@ class NameEntryContext(Context):
     ctx.char = KnightCore()
     ctx.char.facing = (0, 1)
     ctx.char.anims.append(WalkAnim(period=30, vertical=True))
-    ctx.banner = Banner(default_name != "")
+    ctx.banner = Banner(True)
     ctx.cache = Cache()
     ctx.anims = []
     ctx.draws = 0
@@ -173,12 +174,25 @@ class NameEntryContext(Context):
 
   def enter(ctx):
     ctx.exiting = False
-    ctx.banner.enter(delay=75)
     ctx.anims.append(EnterAnim(duration=ctx.ENTER_DURATION, target=ctx))
+    noop = lambda: None
+    def on_enter():
+      ctx.open(DialogueContext(script=[
+        "Names may be 1-{} characters in length.".format(MAX_NAME_LENGTH),
+        "Please enter a name for this character."
+      ], on_close=ctx.banner.enter))
+
+    ctx.anims.append(EnterAnim(
+      duration=25,
+      delay=60,
+      target="name"
+    ))
+
     for row, line in enumerate(ctx.matrix):
       for col in range(MATRIX_DEADCOL):
         char = line[col]
         delay = (row * MATRIX_DEADCOL + col) * 2 + 15
+        is_last = col == MATRIX_DEADCOL - 1 and row == len(ctx.matrix) - 1
         ctx.anims += [
           EnterAnim(
             duration=10,
@@ -188,7 +202,8 @@ class NameEntryContext(Context):
           EnterAnim(
             duration=10,
             delay=delay,
-            target=(col + MATRIX_DEADCOL + 1, row)
+            target=(col + MATRIX_DEADCOL + 1, row),
+            on_end=on_enter if is_last else noop
           )
         ]
 
@@ -196,9 +211,26 @@ class NameEntryContext(Context):
     ctx.exiting = True
     ctx.anims.append(ExitAnim(
       duration=ctx.EXIT_DURATION,
+      delay=60,
       target=ctx,
       on_end=lambda: ctx.close(ctx.name.strip())
     ))
+    for row, line in enumerate(ctx.matrix):
+      for col in range(MATRIX_DEADCOL):
+        char = line[col]
+        delay = row * 4
+        ctx.anims += [
+          ExitAnim(
+            duration=10,
+            delay=delay,
+            target=(col, row)
+          ),
+          ExitAnim(
+            duration=10,
+            delay=delay,
+            target=(col + MATRIX_DEADCOL + 1, row)
+          )
+        ]
 
   def is_cell_valid(ctx, cell):
     col, row = cell
@@ -324,7 +356,13 @@ class NameEntryContext(Context):
     cursor_anim = next((a for a in ctx.anims if a.target == "cursor"), None)
     if ctx.child or ctx.anims and not cursor_anim:
       chargroup_time = -1
-    chargroup_image = _render_chargroup(ctx.char, ctx.name, chargroup_time)
+    chargroup_name = ctx.name
+    name_anim = next((a for a in ctx.anims if a.target == "name"), None)
+    if name_anim:
+      t = name_anim.pos
+      index = int(t * len(ctx.name))
+      chargroup_name = ctx.name[:index]
+    chargroup_image = _render_chargroup(ctx.char, chargroup_name, chargroup_time)
     x = surface.get_width() // 2 - chargroup_image.get_width() // 2
     y = 40
     ctx.cache.surface.blit(chargroup_image, (x, y))
@@ -343,12 +381,19 @@ class NameEntryContext(Context):
         char_color = WHITE
         char_anim = next((a for a in ctx.anims if a.target == (col, row)), None)
         if char_anim:
-          if char_anim.pos:
-            t = ease_out(char_anim.pos)
+          if char_anim.pos or type(char_anim) is ExitAnim:
+            t = char_anim.pos
+            if type(char_anim) is EnterAnim:
+              t = ease_out(t)
+            elif type(char_anim) is ExitAnim:
+              t = 1 - t
             y = y - 8 + t * 8
-            char_color = GRAY
+            if char_anim.pos:
+              char_color = GRAY
           else:
             char_color = None
+        elif ctx.exiting:
+          char_color = None
         if char_color:
           char_image = font.render(char, char_color)
           char_surface.blit(char_image, (x, y + 8))
