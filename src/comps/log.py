@@ -41,7 +41,7 @@ class Log:
   def print(log, tokens, on_end=None):
     message = Message(tokens)
     print(str(message))
-    if not log.active and log.anim is None:
+    if not log.active and (log.anim is None or log.anim.done):
       log.enter()
     if log.clean and log.messages:
       log.index += 1
@@ -53,9 +53,8 @@ class Log:
     log.on_end = on_end
 
   def enter(log):
-    if not log.active:
-      log.active = True
-      log.anim = EnterAnim(duration=Log.ENTER_DURATION)
+    log.active = True
+    log.anim = EnterAnim(duration=Log.ENTER_DURATION)
 
   def exit(log, on_end=None):
     if log.active:
@@ -80,6 +79,7 @@ class Log:
 
   def reset(log):
     log.clear()
+    log.box = None
 
   def skip(log):
     if log.anim:
@@ -106,6 +106,11 @@ class Log:
         log.lines.append(line)
       message = log.messages[log.index]
       char = message[log.col]
+      if char == "\n":
+        log.col += 1
+        log.row += 1
+        log.cursor_x = 0
+        return log.render()
       token = message.get_token_at(log.col)
       if log.col == 0 or char == " ":
         next_space = message.find(" ", log.col + 1)
@@ -171,16 +176,13 @@ class Log:
     y = sprite.get_height() + Log.MARGIN_BOTTOM
     if log.anim:
       anim = log.anim
+      if anim.done:
+        log.anim = None
       t = anim.update()
       if type(anim) == EnterAnim:
         log.y = y * ease_out(t)
       elif type(anim) == ExitAnim:
         log.y = y * (1 - t)
-      if anim.done:
-        log.anim = None
-      if anim.done and not log.active:
-        log.surface = None
-        log.box = None
     elif log.active:
       log.y = y
     else:

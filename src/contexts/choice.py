@@ -77,16 +77,17 @@ class ChoiceContext(Context):
     if new_index >= 0 and new_index < len(ctx.choices):
       ctx.index = new_index
 
-  def choose(ctx, chosen=False):
-    if chosen:
-      ctx.choice = ctx.choices[ctx.index]
+  def choose(ctx):
+    choice = ctx.choices[ctx.index]
+    if choice.closing:
+      ctx.exit()
+    else:
+      ctx.choice = choice
       ctx.anims.append(FlickerAnim(
         duration=45,
         target="cursor",
         on_end=ctx.exit
       ))
-    else:
-      ctx.exit()
 
   def handle_choose(ctx):
     choice = ctx.choices[ctx.index]
@@ -156,13 +157,13 @@ class ChoiceContext(Context):
       if not cursor_anim or cursor_anim.visible:
         x = BORDER_WIDTH + PADDING
         y, anim = ctx.cursor
-        target_y = BORDER_WIDTH + PADDING + ctx.index * (CHOICE_SPACING + font.height() + 1)
+        target_y = BORDER_WIDTH + PADDING + ctx.index * (CHOICE_SPACING + font.height() + 1) + 1
         if not cursor_anim:
           x += anim.update() * 1.0625
         if anim.time == 1:
           y = target_y
         else:
-          y += (target_y - y) / 4
+          y += (target_y - y) / 2
         ctx.cursor = (y, anim)
         surface.blit(cursor, (x, y))
 

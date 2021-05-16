@@ -3,6 +3,7 @@ from town.actors.rogue import Rogue
 from assets import load as use_assets
 from sprite import Sprite
 from config import ROGUE_NAME
+from contexts.prompt import PromptContext, Choice
 
 class OutskirtsArea(Area):
   TOWER_X = 224
@@ -12,10 +13,19 @@ class OutskirtsArea(Area):
     rogue = Rogue(name=ROGUE_NAME, messages=[
       lambda town: (
         (ROGUE_NAME, "Yeah, baby!"),
-        (ROGUE_NAME, "I'm gettin' hard!"),
-        (ROGUE_NAME, "So hard for you, baby!"),
-        (None, ". . . . ."),
-        (town.ally.core.name, "Let's just leave him be...")
+        PromptContext(("I'm gettin' hard!\nSo hard for you, baby!"), (
+          Choice("\"So true\""),
+          Choice("\"....\"")
+        ), on_close=lambda choice: (
+          choice.text == "\"So true\"" and (
+            (town.hero.core.name, "So true, bestie"),
+            (ROGUE_NAME, "Oh baby, yes!"),
+            (ROGUE_NAME, "Let's dance 'til the break of dawn!")
+          ) or choice.text == "\"....\"" and (
+            (town.hero.core.name, "...."),
+            (town.ally.core.name, "Let's just leave him be...")
+          )
+        ))
       )
     ])
     rogue.x = 144

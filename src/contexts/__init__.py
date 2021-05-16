@@ -32,10 +32,13 @@ class Context:
           comp.exit()
     ctx.child.enter()
     if on_close:
-      on_close_old = child.on_close
-      def close(data=None):
-        on_close(on_close_old(data))
-      child.on_close = close
+      if child.on_close:
+        on_close_old = child.on_close
+        def close(data=None):
+          on_close(on_close_old(data))
+        child.on_close = close
+      else:
+        child.on_close = on_close
     return True
 
   def close(ctx, data=None):

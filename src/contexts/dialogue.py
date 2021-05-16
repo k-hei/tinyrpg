@@ -46,11 +46,17 @@ class DialogueContext(Context):
       item = item()
     if isinstance(item, Context):
       ctx.name = None
-      ctx.log.exit()
-      return ctx.open(item, on_close=lambda next: (
+      ctx.open(item, on_close=lambda next: (
         ctx.script.extend(next),
         ctx.handle_next()
       ))
+      if ctx.child.log:
+        ctx.log.clear()
+        ctx.child.log = ctx.log
+        ctx.child.enter()
+      else:
+        ctx.log.exit()
+      return
     ctx.log.clear()
     if type(item) is tuple:
       name, page = item
@@ -60,7 +66,11 @@ class DialogueContext(Context):
       page = page()
     if name and name != ctx.name:
       ctx.name = name
-      ctx.log.print((name.upper(), ": ", page))
+      message = (name.upper(), ": ", page)
+      if not ctx.log.active:
+        ctx.log.print(message)
+      else:
+        ctx.log.exit(on_end=lambda: ctx.log.print(message))
     else:
       ctx.log.print(page)
 
@@ -101,17 +111,18 @@ class DialogueContext(Context):
     pygame.draw.rect(surface, BLACK, Rect(0, 0, surface.get_width(), bar_height))
     pygame.draw.rect(surface, BLACK, Rect(0, surface.get_height() - bar_height + 1, surface.get_width(), bar_height))
 
-    ctx.log.update()
-    sprite = ctx.log.box
-    if sprite:
-      x = config.WINDOW_WIDTH // 2 - sprite.get_width() // 2
-      y = surface.get_height() - ctx.log.y
-      surface.blit(sprite, (x, y))
-      if ctx.log.clean:
-        t = ctx.log.clean % 30 / 30
-        offset = sin(t * 2 * pi) * 1.25
-        x += -sprite_arrow.get_width() + sprite.get_width() - Log.PADDING_X - 8
-        y += -sprite_arrow.get_height() + sprite.get_height() - Log.PADDING_Y + 4 + offset
-        surface.blit(sprite_arrow, (x, y))
+    if not ctx.child or not ctx.child.log:
+      ctx.log.update()
+      sprite = ctx.log.box
+      if sprite:
+        x = config.WINDOW_WIDTH // 2 - sprite.get_width() // 2
+        y = surface.get_height() - ctx.log.y
+        surface.blit(sprite, (x, y))
+        if ctx.log.clean:
+          t = ctx.log.clean % 30 / 30
+          offset = sin(t * 2 * pi) * 1.25
+          x += -sprite_arrow.get_width() + sprite.get_width() - Log.PADDING_X - 8
+          y += -sprite_arrow.get_height() + sprite.get_height() - Log.PADDING_Y + 4 + offset
+          surface.blit(sprite_arrow, (x, y))
 
     super().draw(surface)

@@ -151,9 +151,13 @@ class TownContext(Context):
 
   def handle_talk(town):
     hero = town.hero
+    ally = town.ally
     actor = next((a for a in town.area.actors if can_talk(hero, a)), None)
     if actor is None:
       return
+
+    hero.stop_move()
+    ally.stop_move()
 
     # TODO: actor.face method
     old_facing = actor.facing

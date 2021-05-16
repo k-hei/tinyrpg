@@ -8,14 +8,19 @@ from comps.log import Log
 class Choice:
   text: str
   default: bool = False
+  closing: bool = False
 
 class PromptContext(Context):
   def __init__(ctx, message, choices, on_choose=None, on_close=None):
     super().__init__(on_close=on_close)
+    ctx.message = message
     ctx.choices = choices
     ctx.on_choose = on_choose
     ctx.log = Log(autohide=False)
-    ctx.log.print(message, on_end=ctx.open)
+    ctx.enter()
+
+  def enter(ctx):
+    ctx.log.print(ctx.message, on_end=ctx.open)
 
   def exit(ctx, choice):
     ctx.log.exit(on_end=lambda: ctx.close(choice))

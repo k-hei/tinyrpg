@@ -294,10 +294,7 @@ class NameEntryContext(Context):
       ". Is this OK?"
     ), (
       Choice(text="Yes"),
-      Choice(text="No", default=True)
-    ), on_choose=lambda choice, close: (
-      choice.text == "Yes" and close(chosen=True)
-      or choice.text == "No" and close(chosen=False)
+      Choice(text="No", default=True, closing=True)
     ), on_close=lambda choice: (
       (choice is None or choice.text == "No")
         and ctx.banner.enter()
@@ -311,10 +308,7 @@ class NameEntryContext(Context):
       "Cancel name entry?"
     ), (
       Choice(text="Yes"),
-      Choice(text="No", default=True)
-    ), on_choose=lambda choice, close: (
-      choice.text == "Yes" and close(chosen=True)
-      or choice.text == "No" and close(chosen=False)
+      Choice(text="No", default=True, closing=True)
     ), on_close=lambda choice: (
       (choice is None or choice.text == "No")
         and ctx.banner.enter()
