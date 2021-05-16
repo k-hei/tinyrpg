@@ -26,7 +26,7 @@ class DialogueContext(Context):
 
   def __init__(ctx, script, on_close=None):
     super().__init__(on_close=on_close)
-    ctx.script = script
+    ctx.script = list(script)
     ctx.index = 0
     ctx.name = None
     ctx.log = Log(autohide=False)
@@ -42,9 +42,15 @@ class DialogueContext(Context):
   def print(ctx, item=None):
     if item is None:
       item = ctx.script[min(len(ctx.script) - 1, ctx.index)]
+    if callable(item):
+      item = item()
     if isinstance(item, Context):
+      ctx.name = None
       ctx.log.exit()
-      return ctx.open(item, on_close=lambda _: ctx.handle_next())
+      return ctx.open(item, on_close=lambda next: (
+        ctx.script.extend(next),
+        ctx.handle_next()
+      ))
     ctx.log.clear()
     if type(item) is tuple:
       name, page = item
@@ -72,6 +78,8 @@ class DialogueContext(Context):
     ctx.index += 1
     if ctx.index == len(ctx.script):
       return ctx.exit()
+    if not ctx.script[ctx.index]:
+      return ctx.handle_next()
     ctx.print()
 
   def draw(ctx, surface):

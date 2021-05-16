@@ -9,6 +9,7 @@ from contexts.nameentry import NameEntryContext
 
 class CentralArea(Area):
   def __init__(area, town):
+    hero = town.hero.core
     genie = Genie(name="Doshin", messages=(
       (
         ("Doshin", "Hail, traveler!"),
@@ -17,14 +18,20 @@ class CentralArea(Area):
       (
         ("Doshin", "Hm? A name change?"),
         ("Doshin", "Awfully finnicky, aren't we?"),
-        NameEntryContext(default_name=town.hero.core.name, on_close=lambda name: (
-          town.hero.core.rename(name)
-        )),
-        ("Doshin", lambda: (
-          "Oho! So your name is ", town.hero.core.token(), "."
-        )),
-        ("Doshin", ". . ."),
-        ("Doshin", "...Well, it's something.")
+        lambda: NameEntryContext(
+          default_name=hero.name,
+          on_close=lambda name: (
+            name != hero.name and (
+              hero.rename(name),
+              ("Doshin", lambda: ("Oho! So your name is ", hero.token(), ".")),
+              ("Doshin", ". . . . ."),
+              ("Doshin", "...Well, it's certainly something.")
+            ) or (
+              ("Doshin", "Oh, changed your mind?"),
+              ("Doshin", "Well, if we ever solve our little identity crisis, you know where to find me.")
+            )
+          )
+        )
       )
     ))
     genie.x = 112

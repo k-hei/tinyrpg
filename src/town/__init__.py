@@ -37,7 +37,7 @@ class TownContext(Context):
     town.hero = (Knight if type(parent.hero) is KnightCore else Mage)(parent.hero)
     town.ally = (Knight if type(parent.ally) is KnightCore else Mage)(parent.ally)
     town.areas = [CentralArea(town), OutskirtsArea()]
-    town.area = town.areas[0]
+    town.area = town.areas[1]
     town.area_change = 0
     town.genie_anim = SineAnim(90)
     town.hud = Hud()

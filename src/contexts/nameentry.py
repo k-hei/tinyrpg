@@ -175,11 +175,12 @@ class NameEntryContext(Context):
 
   def enter(ctx):
     ctx.exiting = False
+    ctx.name_init = ctx.name
     ctx.anims.append(EnterAnim(duration=ctx.ENTER_DURATION, target=ctx))
     noop = lambda: None
     def on_enter():
       ctx.open(DialogueContext(script=[
-        "Names may be 1-{} characters in length.".format(MAX_NAME_LENGTH),
+        "Names may be 1-{} symbols in length.".format(MAX_NAME_LENGTH),
         "Please enter a name for this character."
       ], on_close=ctx.banner.enter))
 

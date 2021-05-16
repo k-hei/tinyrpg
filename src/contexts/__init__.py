@@ -34,8 +34,7 @@ class Context:
     if on_close:
       on_close_old = child.on_close
       def close(data=None):
-        on_close_old(data)
-        on_close(data)
+        on_close(on_close_old(data))
       child.on_close = close
     return True
 

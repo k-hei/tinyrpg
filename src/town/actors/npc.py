@@ -4,4 +4,4 @@ class Npc(Actor):
   def __init__(npc, core, messages=None):
     super().__init__(core)
     npc.messages = messages
-    npc.message_index = 1
+    npc.message_index = 0
