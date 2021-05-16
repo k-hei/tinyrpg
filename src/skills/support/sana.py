@@ -7,7 +7,7 @@ import palette
 import random
 
 from dungeon.actors import DungeonActor
-from cores.mage import Mage
+from cores.mage import MageCore
 
 class Sana(SupportSkill):
   name = "Sana"
@@ -15,7 +15,7 @@ class Sana(SupportSkill):
   cost = 3
   range_min = 0
   range_max = 1
-  users = (Mage,)
+  users = (MageCore,)
   blocks = (
     (1, 0),
     (0, 1),

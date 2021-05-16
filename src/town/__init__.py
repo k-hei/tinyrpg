@@ -11,7 +11,7 @@ from contexts.dialogue import DialogueContext
 from contexts.custom import CustomContext
 
 from cores.knight import KnightCore
-from cores.mage import Mage as MageCore
+from cores.mage import MageCore
 from town.actors.knight import Knight
 from town.actors.mage import Mage
 from town.actors.genie import Genie
@@ -36,7 +36,7 @@ class TownContext(Context):
     super().__init__(parent)
     town.hero = (Knight if type(parent.hero) is KnightCore else Mage)(parent.hero)
     town.ally = (Knight if type(parent.ally) is KnightCore else Mage)(parent.ally)
-    town.areas = [CentralArea(town), OutskirtsArea()]
+    town.areas = [CentralArea(), OutskirtsArea()]
     town.area = town.areas[1]
     town.area_change = 0
     town.genie_anim = SineAnim(90)
@@ -157,6 +157,8 @@ class TownContext(Context):
 
     message = actor.messages[actor.message_index]
     actor.message_index = (actor.message_index + 1) % len(actor.messages)
+    if callable(message):
+      message = message(town)
     town.open(DialogueContext(script=message))
 
     # TODO: actor.face method

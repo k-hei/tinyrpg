@@ -9,7 +9,7 @@ from transits.dissolve import DissolveIn, DissolveOut
 import keyboard
 
 from cores.knight import KnightCore as Knight
-from cores.mage import Mage
+from cores.mage import MageCore as Mage
 
 from inventory import Inventory
 from items.hp.potion import Potion

@@ -5,6 +5,9 @@ import palette
 from assets import load as use_assets
 from filters import replace_color
 
+from cores.knight import KnightCore
+from cores.mage import MageCore
+
 from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in
 from lib.lerp import lerp
@@ -71,12 +74,12 @@ class Hud:
     sprite = Surface((width, height)).convert_alpha()
     sprite.blit(sprite_hud, (0, 0))
 
-    if (type(hero).__name__ == "KnightCore" and type(anim) is not SwitchOutAnim
-    or type(hero).__name__ == "Mage" and type(anim) is SwitchOutAnim):
+    if (type(hero) is KnightCore and type(anim) is not SwitchOutAnim
+    or type(hero) is MageCore and type(anim) is SwitchOutAnim):
       hero_portrait = assets.sprites["circle_knight"]
       ally_portrait = assets.sprites["circ16_mage"]
-    if (type(hero).__name__ == "Mage" and type(anim) is not SwitchOutAnim
-    or type(hero).__name__ == "KnightCore" and type(anim) is SwitchOutAnim):
+    if (type(hero) is MageCore and type(anim) is not SwitchOutAnim
+    or type(hero) is KnightCore and type(anim) is SwitchOutAnim):
       hero_portrait = assets.sprites["circle_mage"]
       ally_portrait = assets.sprites["circ16_knight"]
 

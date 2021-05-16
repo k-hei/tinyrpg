@@ -4,7 +4,7 @@ from anims.pause import PauseAnim
 from config import ATTACK_DURATION
 
 from dungeon.actors import DungeonActor
-from cores.mage import Mage
+from cores.mage import MageCore
 
 class Somnus(AilmentSkill):
   name = "Somnus"
@@ -12,7 +12,7 @@ class Somnus(AilmentSkill):
   element = "dark"
   desc = "Lulls target to sleep"
   cost = 4
-  users = (Mage,)
+  users = (MageCore,)
   blocks = (
     (0, 0),
     (0, 1),

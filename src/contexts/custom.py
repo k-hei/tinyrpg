@@ -16,7 +16,7 @@ from comps.spmeter import SpMeter
 from comps.floorno import FloorNo
 
 from cores.knight import KnightCore as Knight
-from cores.mage import Mage
+from cores.mage import MageCore as Mage
 
 from anims import Anim
 from anims.tween import TweenAnim

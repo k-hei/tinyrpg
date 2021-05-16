@@ -12,7 +12,6 @@ from config import WINDOW_WIDTH, WINDOW_SIZE
 from assets import load as use_assets
 from palette import BLACK, WHITE, GRAY, BLUE
 from filters import replace_color, darken
-from cores.knight import KnightCore
 from comps.log import Token
 from anims.walk import WalkAnim
 from anims.tween import TweenAnim
@@ -156,13 +155,12 @@ class NameEntryContext(Context):
   EXIT_DURATION = 10
   matrix = MATRIX
 
-  def __init__(ctx, default_name="", on_close=None):
+  def __init__(ctx, char, on_close=None):
     super().__init__(on_close=on_close)
-    ctx.name = default_name
-    ctx.name_init = ctx.name
+    ctx.name = char.name
     ctx.cursor = (0, 0)
     ctx.cursor_cell = (0, 0)
-    ctx.char = KnightCore()
+    ctx.char = char
     ctx.char.facing = (0, 1)
     ctx.char.anims.append(WalkAnim(period=30, vertical=True))
     ctx.banner = Banner(True)
@@ -175,7 +173,6 @@ class NameEntryContext(Context):
 
   def enter(ctx):
     ctx.exiting = False
-    ctx.name_init = ctx.name
     ctx.anims.append(EnterAnim(duration=ctx.ENTER_DURATION, target=ctx))
     noop = lambda: None
     def on_enter():
@@ -321,7 +318,7 @@ class NameEntryContext(Context):
     ), on_close=lambda choice: (
       (choice is None or choice.text == "No")
         and ctx.banner.enter()
-      or choice.text == "Yes" and ctx.exit(ctx.name_init)
+      or choice.text == "Yes" and ctx.exit(ctx.char.name)
     )))
     return True
 

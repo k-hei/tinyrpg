@@ -9,7 +9,7 @@ from filters import replace_color, recolor, outline
 from text import render_char, render as render_text, find_width as find_text_width
 
 from cores.knight import KnightCore
-from cores.mage import Mage
+from cores.mage import MageCore
 
 from anims import Anim
 from anims.tween import TweenAnim
@@ -120,10 +120,10 @@ class Hud:
     sprite.blit(assets.sprites["hud"], (0, 0))
 
     if (type(hero) is Knight and type(anim) is not SwitchOutAnim
-    or type(hero) is Mage and type(anim) is SwitchOutAnim):
+    or type(hero) is MageCore and type(anim) is SwitchOutAnim):
       hero_portrait = assets.sprites["circle_knight"]
       ally_portrait = assets.sprites["circ16_mage"]
-    if (type(hero) is Mage and type(anim) is not SwitchOutAnim
+    if (type(hero) is MageCore and type(anim) is not SwitchOutAnim
     or type(hero) is Knight and type(anim) is SwitchOutAnim):
       hero_portrait = assets.sprites["circle_mage"]
       ally_portrait = assets.sprites["circ16_knight"]

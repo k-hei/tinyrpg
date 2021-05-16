@@ -1,9 +1,16 @@
-from cores import Core
+from cores.biped import BipedCore, SpriteMap
 
-class Mage(Core):
-  def __init__(mage, skills=[]):
+class MageCore(BipedCore):
+  sprites = SpriteMap(
+    face_right="mage",
+    walk_right="mage_walk",
+    face_down="mage_down",
+    walk_down="mage_walkdown"
+  )
+
+  def __init__(mage, name="Mage", skills=[]):
     super().__init__(
-      name="Mage",
+      name=name,
       faction="player",
       hp=17,
       st=14,

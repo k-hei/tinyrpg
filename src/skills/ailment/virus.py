@@ -4,7 +4,7 @@ from anims.bounce import BounceAnim
 from anims.flinch import FlinchAnim
 from anims.pause import PauseAnim
 from dungeon.actors import DungeonActor
-from cores.mage import Mage
+from cores.mage import MageCore
 from lib.cell import is_adjacent
 
 ATTACK_DURATION = 12
@@ -14,7 +14,7 @@ class Virus(AilmentSkill):
   desc: str = "Poisons adjacent targets"
   element: str = "dark"
   cost: int = 4
-  users: tuple = (Mage,)
+  users: tuple = (MageCore,)
   blocks: tuple = (
     (0, 0),
     (1, 0),

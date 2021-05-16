@@ -60,7 +60,7 @@ class DialogueContext(Context):
       page = page()
     if name and name != ctx.name:
       ctx.name = name
-      ctx.log.print(name.upper() + ": " + page)
+      ctx.log.print((name.upper(), ": ", page))
     else:
       ctx.log.print(page)
 

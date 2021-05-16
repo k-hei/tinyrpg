@@ -8,27 +8,26 @@ from sprite import Sprite
 from contexts.nameentry import NameEntryContext
 
 class CentralArea(Area):
-  def __init__(area, town):
-    hero = town.hero.core
+  def __init__(area):
     genie = Genie(name="Doshin", messages=(
       (
         ("Doshin", "Hail, traveler!"),
         ("Doshin", "How fares the exploration?")
       ),
-      (
+      lambda town: (
         ("Doshin", "Hm? A name change?"),
         ("Doshin", "Awfully finnicky, aren't we?"),
         lambda: NameEntryContext(
-          default_name=hero.name,
+          char=town.hero.core,
           on_close=lambda name: (
-            name != hero.name and (
-              hero.rename(name),
-              ("Doshin", lambda: ("Oho! So your name is ", hero.token(), ".")),
+            name != town.hero.core.name and (
+              town.hero.core.rename(name),
+              ("Doshin", lambda: ("Oho! So your name is ", town.hero.core.token(), ".")),
               ("Doshin", ". . . . ."),
               ("Doshin", "...Well, it's certainly something.")
             ) or (
               ("Doshin", "Oh, changed your mind?"),
-              ("Doshin", "Well, if we ever solve our little identity crisis, you know where to find me.")
+              ("Doshin", "Well, if we ever figure out our little identity crisis, you know where to find me.")
             )
           )
         )
