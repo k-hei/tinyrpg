@@ -17,7 +17,6 @@ class PromptContext(Context):
     ctx.choices = choices
     ctx.on_choose = on_choose
     ctx.log = Log(autohide=False)
-    ctx.enter()
 
   def enter(ctx):
     ctx.log.print(ctx.message, on_end=ctx.open)

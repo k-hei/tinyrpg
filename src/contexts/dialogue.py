@@ -50,7 +50,7 @@ class DialogueContext(Context):
         ctx.script.extend(next),
         ctx.handle_next()
       ))
-      if ctx.child.log:
+      if "log" in dir(ctx.child):
         ctx.log.clear()
         ctx.child.log = ctx.log
         ctx.child.enter()
@@ -111,7 +111,7 @@ class DialogueContext(Context):
     pygame.draw.rect(surface, BLACK, Rect(0, 0, surface.get_width(), bar_height))
     pygame.draw.rect(surface, BLACK, Rect(0, surface.get_height() - bar_height + 1, surface.get_width(), bar_height))
 
-    if not ctx.child or not ctx.child.log:
+    if not ctx.child or not "log" in dir(ctx.child):
       ctx.log.update()
       sprite = ctx.log.box
       if sprite:
