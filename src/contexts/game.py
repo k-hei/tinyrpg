@@ -65,7 +65,7 @@ class GameContext(Context):
     ctx.load_build(ctx.ally, [
       (Ignis, (0, 0)),
       (Somnus, (0, 1)),
-      (Sana, (1, 0)),
+      (Sana, (1, 1)),
     ])
     ctx.monster_kills = {}
     ctx.seeds = []

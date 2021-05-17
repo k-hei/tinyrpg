@@ -239,7 +239,7 @@ class CustomContext(Context):
         menu.handle_select_piece()
 
       if key == pygame.K_ESCAPE or key == pygame.K_BACKSPACE:
-        menu.close()
+        return menu.close()
 
   def render(menu):
     assets = use_assets()
