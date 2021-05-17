@@ -23,7 +23,8 @@ class OutskirtsArea(Area):
             (ROGUE_NAME, "Let's dance 'til the break of dawn!")
           ) or choice.text == "\"....\"" and (
             (town.hero.core.name, "...."),
-            (town.ally.core.name, "Let's just leave him be...")
+            town.ally and (town.ally.core.name, "Let's just leave him be...")
+              or (ROGUE_NAME, "You're no fun, you know that?")
           )
         ))
       )

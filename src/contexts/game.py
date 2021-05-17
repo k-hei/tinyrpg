@@ -8,9 +8,6 @@ from contexts.pause import PauseContext
 from transits.dissolve import DissolveIn, DissolveOut
 import keyboard
 
-from cores.knight import KnightCore as Knight
-from cores.mage import MageCore as Mage
-
 from inventory import Inventory
 from items.hp.potion import Potion
 from items.hp.ankh import Ankh
@@ -35,7 +32,7 @@ from skills.support.sana import Sana
 from skills.ailment.somnus import Somnus
 
 class GameContext(Context):
-  def __init__(ctx, start_in_dungeon=False):
+  def __init__(ctx, hero, ally=None, start_in_dungeon=False):
     super().__init__()
     ctx.transits = [DissolveOut(WINDOW_SIZE)] if not DEBUG else []
     ctx.inventory = Inventory((2, 4), [
@@ -45,8 +42,8 @@ class GameContext(Context):
     ctx.sp_max = 50
     ctx.sp = ctx.sp_max // 2
     ctx.gold = 500
-    ctx.hero = Knight()
-    ctx.ally = Mage()
+    ctx.hero = hero
+    ctx.ally = ally
     ctx.new_skills = []
     ctx.skill_pool = [
       Stick,
@@ -62,18 +59,18 @@ class GameContext(Context):
       (Stick, (0, 0)),
       (Blitzritter, (1, 0))
     ])
-    ctx.load_build(ctx.ally, [
-      (Ignis, (0, 0)),
-      (Somnus, (0, 1)),
-      (Sana, (1, 1)),
-    ])
+    # ctx.load_build(ctx.ally, [
+    #   (Ignis, (0, 0)),
+    #   (Somnus, (0, 1)),
+    #   (Sana, (1, 1)),
+    # ])
     ctx.monster_kills = {}
     ctx.seeds = []
     ctx.debug = False
     if start_in_dungeon:
       ctx.goto_dungeon()
     else:
-      ctx.goto_town()
+      ctx.goto_town(returning=True)
 
   def reset(ctx):
     if type(ctx.child) is DungeonContext:
@@ -159,7 +156,7 @@ class GameContext(Context):
 
   def draw(ctx, surface):
     super().draw(surface)
-    if len(ctx.transits):
+    if ctx.transits:
       transit = ctx.transits[0]
       transit.update()
       transit.draw(surface)

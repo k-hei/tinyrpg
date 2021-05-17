@@ -42,6 +42,7 @@ class Hud:
     panel.anims = []
     panel.anims_drawn = 0
     panel.hero = None
+    panel.ally = None
     panel.enter()
 
   def enter(panel):
@@ -55,38 +56,50 @@ class Hud:
   def update(panel, hero, ally):
     if (panel.sprite is None
     or panel.anims_drawn
-    or hero != panel.hero):
+    or hero != panel.hero
+    or ally != panel.ally):
       if hero != panel.hero:
         if panel.hero is not None:
           panel.anims.append(SwitchOutAnim())
           panel.anims.append(SwitchInAnim())
         panel.hero = hero
+      if ally != panel.ally:
+        panel.ally = ally
       anim = panel.anims[0] if panel.anims else None
       panel.anims_drawn = len(panel.anims)
       panel.sprite = panel.render(hero, ally, anim)
 
   def render(panel, hero, ally, anim=None):
     assets = use_assets()
-    sprite_hud = assets.sprites["hud_town"]
+    sprite_hud = (ally
+      and assets.sprites["hud_town"]
+      or assets.sprites["hud_circle"])
 
     width = sprite_hud.get_width()
     height = sprite_hud.get_height()
     sprite = Surface((width, height)).convert_alpha()
     sprite.blit(sprite_hud, (0, 0))
 
+    hero_portrait = None
     if (type(hero) is KnightCore and type(anim) is not SwitchOutAnim
     or type(hero) is MageCore and type(anim) is SwitchOutAnim):
       hero_portrait = assets.sprites["circle_knight"]
-      ally_portrait = assets.sprites["circ16_mage"]
     if (type(hero) is MageCore and type(anim) is not SwitchOutAnim
     or type(hero) is KnightCore and type(anim) is SwitchOutAnim):
       hero_portrait = assets.sprites["circle_mage"]
+
+    ally_portrait = None
+    if (type(ally) is KnightCore and type(anim) is not SwitchOutAnim
+    or type(ally) is MageCore and type(anim) is SwitchOutAnim):
       ally_portrait = assets.sprites["circ16_knight"]
+    if (type(ally) is MageCore and type(anim) is not SwitchOutAnim
+    or type(ally) is KnightCore and type(anim) is SwitchOutAnim):
+      ally_portrait = assets.sprites["circ16_mage"]
 
     if hero.dead:
       hero_portrait = replace_color(hero_portrait, palette.WHITE, palette.BLACK)
       hero_portrait = replace_color(hero_portrait, palette.BLUE, palette.RED)
-    if ally.dead:
+    if ally and ally.dead:
       ally_portrait = replace_color(ally_portrait, palette.WHITE, palette.BLACK)
       ally_portrait = replace_color(ally_portrait, palette.BLUE, palette.RED)
 
@@ -96,25 +109,27 @@ class Hud:
       t = anim.pos
       if type(anim) is SwitchInAnim:
         t = 1 - ease_out(t)
-      ally_width = lerp(ally_portrait.get_width(), 0, t)
-      ally_height = lerp(ally_portrait.get_height(), 0, t)
       hero_width = lerp(hero_portrait.get_width(), 0, t)
       hero_height = hero_portrait.get_height()
-      ally_scaled = pygame.transform.scale(ally_portrait, (int(ally_width), int(ally_height)))
       hero_scaled = pygame.transform.scale(hero_portrait, (int(hero_width), int(hero_height)))
+      if ally:
+        ally_width = lerp(ally_portrait.get_width(), 0, t)
+        ally_height = lerp(ally_portrait.get_height(), 0, t)
+        ally_scaled = pygame.transform.scale(ally_portrait, (int(ally_width), int(ally_height)))
 
     sprite.blit(hero_scaled, (
       hero_portrait.get_width() // 2 - hero_scaled.get_width() // 2,
       hero_portrait.get_height() // 2 - hero_scaled.get_height() // 2
     ))
-    sprite.blit(ally_scaled, (
-      CIRC16_X + ally_portrait.get_width() // 2 - ally_scaled.get_width() // 2,
-      CIRC16_Y + ally_portrait.get_height() // 2 - ally_scaled.get_height() // 2
-    ))
+    if ally:
+      sprite.blit(ally_scaled, (
+        CIRC16_X + ally_portrait.get_width() // 2 - ally_scaled.get_width() // 2,
+        CIRC16_Y + ally_portrait.get_height() // 2 - ally_scaled.get_height() // 2
+      ))
     return sprite
 
   def draw(panel, surface, ctx):
-    panel.update(ctx.hero.core, ctx.ally.core)
+    panel.update(ctx.hero.core, ctx.ally and ctx.ally.core)
     sprite = panel.sprite
     hidden_x, hidden_y = Hud.MARGIN_LEFT, -sprite.get_height()
     corner_x, corner_y = Hud.MARGIN_LEFT, Hud.MARGIN_TOP

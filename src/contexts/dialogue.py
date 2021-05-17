@@ -44,6 +44,8 @@ class DialogueContext(Context):
       item = ctx.script[min(len(ctx.script) - 1, ctx.index)]
     if callable(item):
       item = item()
+    if item is None:
+      return ctx.handle_next()
     if isinstance(item, Context):
       ctx.name = None
       ctx.open(item, on_close=lambda next: (
@@ -75,6 +77,8 @@ class DialogueContext(Context):
       ctx.log.print(page)
 
   def handle_keydown(ctx, key):
+    if ctx.anim:
+      return
     if ctx.child:
       return ctx.child.handle_keydown(key)
     if keyboard.get_pressed(key) != 1:
@@ -88,8 +92,6 @@ class DialogueContext(Context):
     ctx.index += 1
     if ctx.index == len(ctx.script):
       return ctx.exit()
-    if not ctx.script[ctx.index]:
-      return ctx.handle_next()
     ctx.print()
 
   def draw(ctx, surface):

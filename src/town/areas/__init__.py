@@ -19,12 +19,10 @@ class Area:
       sprite = actor.render()
       offset_x, offset_y = sprite.pos
       x = actor.x - TILE_SIZE // 2 + offset_x
-      y = Area.ACTOR_Y - 1 + offset_y
-      if isinstance(actor, Npc):
-        y -= TILE_SIZE // 2
+      y = actor.y + Area.ACTOR_Y - 1 + offset_y
       if hero and can_talk(hero, actor):
         bubble_x = x + TILE_SIZE * 0.75
-        bubble_y = y - TILE_SIZE * 0.25
+        bubble_y = y - TILE_SIZE // 2 + 4
         nodes.append(Sprite(
           image=sprite_talkbubble,
           pos=(bubble_x, bubble_y)

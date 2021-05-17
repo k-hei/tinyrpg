@@ -8,9 +8,13 @@ class Actor:
   def __init__(actor, core):
     actor.core = core
     actor.x = 0
+    actor.y = 0
     actor.facing = 1
     actor.walks = 0
     actor.sprite = Sprite()
+
+  def get_name(actor):
+    return actor.core.name
 
   def move(actor, delta):
     if actor.facing != delta:
@@ -36,6 +40,10 @@ class Actor:
       actor.stop_move()
     if abs(target_x - actor.x) <= Actor.SPEED:
       actor.x = target_x
+    if target.y < actor.y:
+      actor.y -= 1
+    elif target.y > actor.y:
+      actor.y += 1
 
   def face(actor, facing):
     actor.facing = facing

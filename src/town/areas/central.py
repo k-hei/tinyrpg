@@ -1,14 +1,17 @@
 from town.areas import Area
 from town.actors.genie import Genie
+from town.actors.magenpc import MageNpc
 
 from assets import load as use_assets
 from config import TILE_SIZE
 from sprite import Sprite
 
 from contexts.nameentry import NameEntryContext
+from contexts.prompt import PromptContext, Choice
 
 class CentralArea(Area):
   def __init__(area):
+    super().__init__()
     genie = Genie(name="Doshin", messages=(
       (
         ("Doshin", "Hail, traveler!"),
@@ -33,9 +36,30 @@ class CentralArea(Area):
         )
       )
     ))
-    genie.x = 112
+    genie.x = 144
     genie.facing = 1
-    area.actors = [genie]
+    area.actors.append(genie)
+
+    mage = MageNpc(messages=[
+      lambda town: [
+        PromptContext((mage.get_name().upper(), ": ", "Are you ready yet?"), (
+          Choice("\"Let's go!\""),
+          Choice("\"Not yet...\"")
+        ), on_close=lambda choice: (
+          choice.text == "\"Let's go!\"" and (
+            (town.hero.get_name(), "Let's get going!"),
+            (mage.get_name(), "Jeez, about time..."),
+            lambda: town.recruit(town.talkee)
+          ) or choice.text == "\"Not yet...\"" and (
+            (town.hero.get_name(), "Give me a second..."),
+            (mage.get_name(), "You know I don't have all day, right?")
+          )
+        ))
+      ]
+    ])
+    mage.x = 32
+    mage.facing = 1
+    area.actors.append(mage)
 
   def render(area, hero):
     nodes = super().render(hero)

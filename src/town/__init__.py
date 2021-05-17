@@ -3,7 +3,6 @@ import keyboard
 
 from assets import load as use_assets
 from hud import Hud
-from anims.sine import SineAnim
 
 from contexts import Context
 from contexts.inventory import InventoryContext
@@ -34,31 +33,39 @@ SPAWN_RIGHT_FACING = -1
 class TownContext(Context):
   def __init__(town, parent, returning=False):
     super().__init__(parent)
-    town.hero = (Knight if type(parent.hero) is KnightCore else Mage)(parent.hero)
-    town.ally = (Knight if type(parent.ally) is KnightCore else Mage)(parent.ally)
+    town.hero = manifest(parent.hero)
+    town.ally = manifest(parent.ally)
     town.areas = [CentralArea(), OutskirtsArea()]
     town.area = town.areas[1]
     town.area_change = 0
-    town.genie_anim = SineAnim(90)
+    town.talkee = None
     town.hud = Hud()
     town.comps = [town.hud]
     town.spawn(returning)
+    town.hud.anims = []
+    town.hud.active = False
+    town.parent.transits[0].on_end = town.hud.enter
 
   def spawn(town, returning):
     hero = town.hero
-    ally = town.ally
     if returning:
       hero.x = SPAWN_RIGHT
       hero.facing = SPAWN_RIGHT_FACING
-      ally.x = hero.x
-      ally.facing = hero.facing
     else:
       hero.x = SPAWN_LEFT
       hero.facing = SPAWN_LEFT_FACING
+    town.area.actors.append(hero)
+
+    ally = town.ally
+    if ally is None:
+      return
+    if returning:
+      ally.x = hero.x
+      ally.facing = hero.facing
+    else:
       ally.x = hero.x - config.TILE_SIZE
       ally.facing = hero.facing
     town.area.actors.append(ally)
-    town.area.actors.append(hero)
 
   def handle_keydown(town, key):
     if town.parent.transits:
@@ -90,8 +97,6 @@ class TownContext(Context):
 
   def handle_move(town, delta):
     hero = town.hero
-    ally = town.ally
-    ally.follow(hero)
     hero.move(delta)
     if (hero.x <= -config.TILE_SIZE // 2
     and town.areas.index(town.area) - 1 >= 0):
@@ -102,13 +107,17 @@ class TownContext(Context):
     if (hero.x >= OutskirtsArea.TOWER_X + config.TILE_SIZE // 2
     and type(town.area) is OutskirtsArea):
       town.handle_areachange(1)
+    ally = town.ally
+    if ally:
+      ally.follow(hero)
     return True
 
   def handle_movestop(town):
     hero = town.hero
-    ally = town.ally
     hero.stop_move()
-    ally.stop_move()
+    ally = town.ally
+    if ally:
+      ally.stop_move()
 
   def handle_areachange(town, delta):
     town.area_change = delta
@@ -126,22 +135,26 @@ class TownContext(Context):
     town.area_change = 0
     town.area = town.areas[town.areas.index(town.area) + delta]
     hero = town.hero
-    ally = town.ally
     if delta == -1:
       hero.x = config.WINDOW_WIDTH - config.TILE_SIZE
     elif delta == 1:
       hero.x = config.TILE_SIZE
-    ally.x = hero.x - config.TILE_SIZE * hero.facing
-    ally.stop_move()
-    prev_area.actors.remove(ally)
-    town.area.actors.append(ally)
+    ally = town.ally
+    if ally:
+      ally.x = hero.x - config.TILE_SIZE * hero.facing
+      ally.stop_move()
+      prev_area.actors.remove(ally)
+      town.area.actors.append(ally)
     prev_area.actors.remove(hero)
     town.area.actors.append(hero)
 
   def handle_swap(town):
+    if not town.ally:
+      return False
     town.hero, town.ally = town.ally, town.hero
     town.area.actors.remove(town.hero) # HACK: move hero to front
     town.area.actors.append(town.hero) # we can alleviate this by sorting actor render order instead of altering the array (which is kind of the same thing)
+    return True
 
   def handle_inventory(town):
     town.open(InventoryContext(inventory=town.parent.inventory))
@@ -151,39 +164,58 @@ class TownContext(Context):
 
   def handle_talk(town):
     hero = town.hero
-    ally = town.ally
     actor = next((a for a in town.area.actors if can_talk(hero, a)), None)
     if actor is None:
       return
+    town.talkee = actor
 
     hero.stop_move()
-    ally.stop_move()
+    ally = town.ally
+    if ally:
+      ally.stop_move()
 
     # TODO: actor.face method
     old_facing = actor.facing
     new_facing = (hero.x - actor.x) / abs(hero.x - actor.x)
     actor.face(new_facing)
 
-    message = actor.messages[actor.message_index]
-    actor.message_index = (actor.message_index + 1) % len(actor.messages)
+    messages = actor.messages
+    message = messages[actor.message_index]
+    actor.message_index = (actor.message_index + 1) % len(messages)
     if callable(message):
       message = message(town)
-    town.open(DialogueContext(script=message, on_close=lambda: actor.face(old_facing)))
+    def stop_talk():
+      actor.face(old_facing)
+      town.talkee = None
+    town.open(DialogueContext(script=message, on_close=stop_talk))
     return True
 
   def handle_custom(town):
     town.hud.exit()
     game = town.parent
+    chars = [game.hero]
+    if game.ally:
+      chars.append(game.ally)
     town.open(CustomContext(
       pool=game.skill_pool,
       new_skills=game.new_skills,
       builds=game.skill_builds,
-      chars=(game.hero, game.ally),
+      chars=chars,
       on_close=lambda: (
         game.update_skills(),
         town.hud.enter()
       )
     ))
+
+  def recruit(town, actor):
+    game = town.parent
+    game.ally = actor.core
+    town.ally = manifest(actor.core)
+    if actor in town.area.actors:
+      town.area.actors.remove(actor)
+    town.ally.x = actor.x
+    town.ally.y = actor.y
+    town.area.actors.insert(town.area.actors.index(town.hero), town.ally)
 
   def draw(town, surface):
     assets = use_assets()
@@ -191,7 +223,7 @@ class TownContext(Context):
 
     hero = town.hero
     ally = town.ally
-    if town.area_change:
+    if ally and town.area_change:
       ally.move(town.area_change)
 
     for sprite in town.area.render(hero):
@@ -204,3 +236,11 @@ class TownContext(Context):
         town.hud.exit()
       town.child.draw(surface)
     town.hud.draw(surface, town)
+
+def manifest(core):
+  if type(core) is KnightCore:
+    return Knight(core)
+  elif type(core) is MageCore:
+    return Mage(core)
+  else:
+    return None
