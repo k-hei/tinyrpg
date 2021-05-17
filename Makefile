@@ -1,6 +1,9 @@
 all:
 	python3 src/main.py
 
+demo-town:
+	python3 src/demo-town.py
+
 clean:
 	rm -rf build dist main.spec
 

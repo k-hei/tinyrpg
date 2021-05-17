@@ -1,0 +1,7 @@
+{
+  "knight":          [ 0,  0, 32, 32],
+  "knight_walk":     [32,  0, 32, 32],
+  "knight_down":     [ 0, 32, 32, 32],
+  "knight_walkdown": [32, 32, 32, 32],
+  "knight_flinch":   [64,  0, 32, 32]
+}
