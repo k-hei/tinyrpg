@@ -105,7 +105,7 @@ class DungeonContext(Context):
     game.seeds = []
     game.lights = config.DEBUG
     game.camera = Camera(WINDOW_SIZE)
-    game.log = Log()
+    game.log = Log(align="left")
     game.minimap = Minimap(parent=game)
     game.comps = []
 
@@ -711,12 +711,15 @@ class DungeonContext(Context):
 
   def handle_custom(game):
     game.log.exit()
+    chars = [game.hero.core]
+    if game.ally:
+      chars.append(game.ally.core)
     game.open(CustomContext(
       pool=game.parent.skill_pool,
       new_skills=game.parent.new_skills,
       builds=game.parent.skill_builds,
-      chars=(game.hero.core, game.ally.core),
-      on_close=lambda _: game.update_skills
+      chars=chars,
+      on_close=game.update_skills
     ))
 
   def handle_examine(game):
@@ -1060,23 +1063,25 @@ class DungeonContext(Context):
     palm.vanish(game)
 
     hero = game.hero
-    ally = game.ally
-    if ally.is_dead():
-      ally.revive()
-      floor.spawn_elem(ally, add(hero.cell, (-1, 0)))
-
+    hero.regen(hero.get_hp_max())
+    hero.dispel_ailment()
     game.numbers.append(DamageValue(hero.get_hp_max(), add(hero.cell, (0, -0.25)), GREEN))
     game.numbers.append(DamageValue(game.get_sp_max(), hero.cell, CYAN))
 
-    game.numbers.append(DamageValue(ally.get_hp_max(), add(ally.cell, (0, -0.25)), GREEN))
-    game.numbers.append(DamageValue(game.get_sp_max(), ally.cell, CYAN))
+    ally = game.ally
+    if ally:
+      if ally.is_dead():
+        ally.revive()
+        floor.spawn_elem(ally, add(hero.cell, (-1, 0)))
+      game.numbers.append(DamageValue(ally.get_hp_max(), add(ally.cell, (0, -0.25)), GREEN))
+      game.numbers.append(DamageValue(game.get_sp_max(), ally.cell, CYAN))
+      ally.regen(ally.get_hp_max())
+      ally.dispel_ailment()
+      game.log.print("The party's HP and SP has been restored.")
+    else:
+      game.log.print("Your HP and SP has been restored.")
 
-    hero.regen(hero.get_hp_max())
-    ally.regen(ally.get_hp_max())
-    hero.dispel_ailment()
-    ally.dispel_ailment()
     game.parent.regen_sp()
-    game.log.print("The party's HP and SP has been restored.")
     game.anims.append([PauseAnim(duration=240)])
 
   def learn_skill(game, skill):
@@ -1085,7 +1090,8 @@ class DungeonContext(Context):
   def update_skills(game):
     game.parent.update_skills()
     game.hero.weapon = game.hero.load_weapon()
-    game.ally.weapon = game.ally.load_weapon()
+    if game.ally:
+      game.ally.weapon = game.ally.load_weapon()
 
   def ascend(game):
     game.handle_floorchange(1)

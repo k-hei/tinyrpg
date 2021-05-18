@@ -1,6 +1,7 @@
 from town.areas import Area
 from town.actors.genie import Genie
 from town.actors.magenpc import MageNpc
+from cores.mage import MageCore
 
 from assets import load as use_assets
 from config import TILE_SIZE
@@ -12,6 +13,8 @@ from contexts.prompt import PromptContext, Choice
 class CentralArea(Area):
   def __init__(area):
     super().__init__()
+
+  def init(area, town):
     genie = Genie(name="Doshin", messages=(
       (
         ("Doshin", "Hail, traveler!"),
@@ -40,26 +43,28 @@ class CentralArea(Area):
     genie.facing = 1
     area.actors.append(genie)
 
-    mage = MageNpc(messages=[
-      lambda town: [
-        PromptContext((mage.get_name().upper(), ": ", "Are you ready yet?"), (
-          Choice("\"Let's go!\""),
-          Choice("\"Not yet...\"")
-        ), on_close=lambda choice: (
-          choice.text == "\"Let's go!\"" and (
-            (town.hero.get_name(), "Let's get going!"),
-            (mage.get_name(), "Jeez, about time..."),
-            lambda: town.recruit(town.talkee)
-          ) or choice.text == "\"Not yet...\"" and (
-            (town.hero.get_name(), "Give me a second..."),
-            (mage.get_name(), "You know I don't have all day, right?")
-          )
-        ))
-      ]
-    ])
-    mage.x = 112
-    mage.facing = 1
-    area.actors.append(mage)
+    if (not town.ally
+    or type(town.hero.core) is not MageCore and type(town.ally.core) is not MageCore):
+      mage = MageNpc(messages=[
+        lambda town: [
+          PromptContext((mage.get_name().upper(), ": ", "Are you ready yet?"), (
+            Choice("\"Let's go!\""),
+            Choice("\"Not yet...\"")
+          ), on_close=lambda choice: (
+            choice.text == "\"Let's go!\"" and (
+              (town.hero.get_name(), "Let's get going!"),
+              (mage.get_name(), "Jeez, about time..."),
+              lambda: town.recruit(town.talkee)
+            ) or choice.text == "\"Not yet...\"" and (
+              (town.hero.get_name(), "Give me a second..."),
+              (mage.get_name(), "You know I don't have all day, right?")
+            )
+          ))
+        ]
+      ])
+      mage.x = 112
+      mage.facing = 1
+      area.actors.append(mage)
 
   def render(area, hero):
     nodes = super().render(hero)

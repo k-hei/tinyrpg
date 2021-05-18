@@ -4,5 +4,5 @@ from town import TownContext
 from cores.knight import KnightCore
 
 App(title="town demo",
-  context=GameContext(TownContext(), KnightCore())
+  context=GameContext(TownContext(returning=True), KnightCore())
 ).init()

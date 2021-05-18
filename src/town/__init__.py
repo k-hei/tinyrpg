@@ -9,6 +9,8 @@ from contexts.inventory import InventoryContext
 from contexts.dialogue import DialogueContext
 from contexts.custom import CustomContext
 
+from transits.dissolve import DissolveOut
+
 from cores.knight import KnightCore
 from cores.mage import MageCore
 from town.actors.knight import Knight
@@ -33,18 +35,28 @@ SPAWN_RIGHT_FACING = -1
 class TownContext(Context):
   def __init__(town, returning=False):
     super().__init__()
-    town.hero = manifest(parent.hero)
-    town.ally = manifest(parent.ally)
+    town.returning = returning
+    town.hero = None
+    town.ally = None
     town.areas = [CentralArea(), OutskirtsArea()]
-    town.area = town.areas[0]
+    town.area = town.areas[1]
     town.area_change = 0
     town.talkee = None
     town.hud = Hud()
     town.comps = [town.hud]
-    town.spawn(returning)
     town.hud.anims = []
-    town.hud.active = False
-    town.parent.transits[0].on_end = town.hud.enter
+
+  def init(town):
+    parent = town.parent
+    town.hero = manifest(parent.hero)
+    town.ally = manifest(parent.ally)
+    town.spawn(town.returning)
+    transit = next((t for t in parent.transits if type(t) is DissolveOut), None)
+    if transit:
+      town.hud.active = False
+      transit.on_end = town.hud.enter
+    for area in town.areas:
+      area.init(town)
 
   def spawn(town, returning):
     hero = town.hero
@@ -216,6 +228,7 @@ class TownContext(Context):
     town.ally.x = actor.x
     town.ally.y = actor.y
     town.ally.facing = actor.facing
+    town.ally.core.faction = "player"
     town.area.actors.insert(town.area.actors.index(town.hero), town.ally)
 
   def draw(town, surface):

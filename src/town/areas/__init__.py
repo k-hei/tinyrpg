@@ -11,6 +11,9 @@ class Area:
   def __init__(area):
     area.actors = []
 
+  def init(area, town):
+    pass
+
   def render(area, hero=None):
     assets = use_assets()
     sprite_talkbubble = assets.sprites["bubble_talk"]

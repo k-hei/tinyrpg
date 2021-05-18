@@ -33,7 +33,7 @@ class Soul(Prop):
 
   def obtain(soul, game):
     game.learn_skill(soul.skill)
-    game.log.print("Obtained skill \"" + soul.skill.name + "\"!")
+    game.log.print(("Obtained skill ", soul.skill().token(), "!"))
     game.log.print("Equip it with the CUSTOM menu (press 'B').")
     game.floor.elems.remove(soul)
 
@@ -59,7 +59,8 @@ class Soul(Prop):
       start_y = y + norm_y * 16
       vel_x = norm_x * random.random() * 2
       vel_y = norm_y * random.random() * 2
-      kind = random.choice(("spark", "smallspark"))
+      kind = "spark"
+      # kind = random.choice(("spark", "smallspark"))
       game.vfx.append(Vfx(
         kind=kind,
         pos=(start_x, start_y),
@@ -102,7 +103,8 @@ class Soul(Prop):
         col, row = soul.cell
         x = col * config.TILE_SIZE + pos_x + random.random()
         y = row * config.TILE_SIZE + pos_y + random.random() + 2
-        kind = random.choice(("spark", "smallspark"))
+        kind = "spark"
+        # kind = random.choice(("spark", "smallspark"))
         vfx.append(Vfx(
           kind=kind,
           pos=(x, y),
@@ -122,7 +124,7 @@ class Soul(Prop):
     delay = Soul.ANIM_PERIOD // Soul.ANIM_FRAMES
     frame = soul.time % Soul.ANIM_PERIOD // delay
     frame = min(Soul.ANIM_FRAMES - 1, frame)
-    sprite = sprites["soul" + str(frame)]
+    sprite = sprites["fx_soul" + str(frame)]
     if soul.skill:
       color = soul.skill.color
       sprite = replace_color(sprite, palette.BLACK, color)

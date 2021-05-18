@@ -1,3 +1,4 @@
+# dungeon generation
 SEED = None
 DEBUG = False
 TOP_FLOOR = 5
@@ -7,11 +8,9 @@ FLOOR_SIZE = (27, 27)
 ROOM_WIDTHS = (3, 5, 7)
 ROOM_HEIGHTS = (4, 7)
 
-KNIGHT_NAME = "Yorgen"
-MAGE_NAME = "Minxia"
-ROGUE_NAME = "Fray"
-
+# game settings
 FPS = 60
+VISION_RANGE = 3.5
 TILE_SIZE = 32
 ITEM_OFFSET = 20
 WINDOW_WIDTH = 256
@@ -21,9 +20,14 @@ WINDOW_SCALE_INIT = 2
 WINDOW_SCALE_MAX = 6
 ASSETS_PATH = "assets/"
 
+# names
+KNIGHT_NAME = "Yorgen"
+MAGE_NAME = "Minxia"
+ROGUE_NAME = "Fray"
+
+# animations
 MOVE_DURATION = 16
 RUN_DURATION = 12
 JUMP_DURATION = 12
 ATTACK_DURATION = 12
 FLICKER_DURATION = 60
-VISION_RANGE = 3.5

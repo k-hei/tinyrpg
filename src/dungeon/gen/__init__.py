@@ -43,6 +43,8 @@ from items.dungeon.balloon import Balloon
 from items.dungeon.emerald import Emerald
 from items.ailment.antidote import Antidote
 
+from skills.support.counter import Counter
+
 def cells(size):
   cells = []
   width, height = size
@@ -416,10 +418,10 @@ def gen_floor(seed=None):
 
   features = [
     [arena, exit_room, puzzle_room],
-    # [pit_room],
-    [elev_room],
-    # [treasure_room],
-    # [oasis_room],
+    [pit_room],
+    # [elev_room],
+    [treasure_room],
+    [oasis_room],
     [coffin_room],
   ]
 
@@ -491,19 +493,24 @@ def gen_floor(seed=None):
         corner = choice(corners)
         stage.set_tile_at(corner, stage.WALL)
 
-  entry_room = coffin_room # choice(empty_rooms)
+  entry_room = choice(empty_rooms)
   center_x, center_y = entry_room.get_center()
   stage.entrance = (center_x, center_y + 1)
-  # stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
+  stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
   stage.rooms = empty_rooms + feature_list
 
   genie = Genie(name="Joshin", script=(
     ("Joshin", "Pee pee poo poo"),
     ("Minxia", "He has such a way with words")
   ))
-  stage.spawn_elem(genie, (center_x, center_y - 3))
-  # stage.spawn_elem(Soldier(), (center_x, center_y + 3))
+  corner = next((c for c in entry_room.get_corners() if (
+    stage.get_tile_at(c) is stage.FLOOR
+    and not [d for d in doors if manhattan(d, c) <= 2]
+  )), None)
+  if corner:
+    stage.spawn_elem(genie, corner)
 
+  stage.spawn_elem(Soul(Counter), (center_x, center_y - 1))
   return stage
 
 def gen_enemy(floor):

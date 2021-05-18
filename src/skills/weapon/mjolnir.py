@@ -19,4 +19,4 @@ class Mjolnir(RareWeapon):
   )
 
   def render():
-    return use_assets().sprites["icon16_axe"]
+    return use_assets().sprites["icon16_hammer"]

@@ -7,6 +7,12 @@ demo-dungeon:
 demo-town:
 	python3 src/demo-town.py
 
+demo-nameentry:
+	python3 src/demo-nameentry.py
+
+demo-prompt:
+	python3 src/demo-prompt.py
+
 clean:
 	rm -rf build dist main.spec
 

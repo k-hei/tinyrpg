@@ -160,6 +160,8 @@ class CustomContext(Context):
     menu.cursor = (0, 0)
 
   def handle_swap_char(menu):
+    if len(menu.chars) == 1:
+      return False
     if menu.char is menu.chars[0]:
       menu.char = menu.chars[1]
     elif menu.char is menu.chars[1]:
@@ -168,6 +170,7 @@ class CustomContext(Context):
     menu.index = 0
     menu.offset = 0
     menu.update_bar()
+    return True
 
   def handle_move_index(menu, delta):
     skills = menu.get_char_skills()

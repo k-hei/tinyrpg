@@ -32,7 +32,7 @@ class OutskirtsArea(Area):
     ])
     rogue.x = 144
     rogue.facing = 1
-    area.actors = [rogue]
+    area.actors.append(rogue)
 
   def render(area, hero):
     assets = use_assets()

@@ -60,11 +60,11 @@ class GameContext(Context):
       (Stick, (0, 0)),
       (Blitzritter, (1, 0))
     ])
-    # ctx.load_build(ctx.ally, [
-    #   (Ignis, (0, 0)),
-    #   (Somnus, (0, 1)),
-    #   (Sana, (1, 1)),
-    # ])
+    ctx.load_build(ctx.ally, [
+      (Ignis, (0, 0)),
+      (Somnus, (0, 1)),
+      (Sana, (1, 1)),
+    ])
     ctx.monster_kills = {}
     ctx.seeds = []
     ctx.debug = False
@@ -102,6 +102,7 @@ class GameContext(Context):
       ctx.new_skills.append(skill)
       ctx.skill_pool.append(skill)
       ctx.skill_pool.sort(key=get_skill_order)
+      print(ctx.skill_pool)
 
   def load_build(ctx, actor, build):
     ctx.skill_builds[actor] = build
@@ -111,7 +112,8 @@ class GameContext(Context):
 
   def update_skills(ctx):
     ctx.load_build(ctx.hero, ctx.skill_builds[ctx.hero])
-    ctx.load_build(ctx.ally, ctx.skill_builds[ctx.ally])
+    if ctx.ally:
+      ctx.load_build(ctx.ally, ctx.skill_builds[ctx.ally])
 
   def get_gold(ctx):
     return ctx.gold

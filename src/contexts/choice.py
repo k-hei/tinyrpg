@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import pygame
 from pygame import Surface, Rect
 
@@ -21,6 +22,12 @@ CURSOR_PADDING = 6
 CHOICE_SPACING = 6
 ENTER_DURATION = 8
 EXIT_DURATION = 6
+
+@dataclass
+class Choice:
+  text: str
+  default: bool = False
+  closing: bool = False
 
 class ChoiceContext(Context):
   def __init__(ctx, choices, on_choose=None, on_close=None):

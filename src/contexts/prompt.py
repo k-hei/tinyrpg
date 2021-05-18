@@ -1,14 +1,7 @@
-from dataclasses import dataclass
 import pygame
 from contexts import Context
-from contexts.choice import ChoiceContext
+from contexts.choice import ChoiceContext, Choice
 from comps.log import Log
-
-@dataclass
-class Choice:
-  text: str
-  default: bool = False
-  closing: bool = False
 
 class PromptContext(Context):
   def __init__(ctx, message, choices, on_choose=None, on_close=None):

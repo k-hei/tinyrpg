@@ -3,7 +3,7 @@ import pygame
 from pygame import Surface, Rect
 
 from contexts import Context
-from contexts.choice import ChoiceContext
+from contexts.choice import ChoiceContext, Choice
 from comps.hud import Hud
 from comps.invdesc import InventoryDescription
 from assets import load as use_assets
@@ -173,14 +173,13 @@ class InventoryContext(Context):
       ctx.select(target_item)
 
   def handle_choose(ctx):
-    ctx.child = ChoiceContext(
-      parent=ctx,
-      choices=("Use", "Discard"),
-      on_choose=lambda choice: (
-        choice == "Use" and ctx.use() or
-        choice == "Discard" and ctx.discard()
-      )
-    )
+    ctx.open(ChoiceContext(choices=[
+      Choice(text="Use"),
+      Choice(text="Discard")
+    ], on_choose=lambda choice, close: (
+      choice.text == "Use" and ctx.use()
+      or choice.text == "Discard" and ctx.discard()
+    )))
 
   def draw(ctx, surface):
     assets = use_assets()
