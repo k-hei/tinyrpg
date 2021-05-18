@@ -102,7 +102,6 @@ class GameContext(Context):
       ctx.new_skills.append(skill)
       ctx.skill_pool.append(skill)
       ctx.skill_pool.sort(key=get_skill_order)
-      print(ctx.skill_pool)
 
   def load_build(ctx, actor, build):
     ctx.skill_builds[actor] = build

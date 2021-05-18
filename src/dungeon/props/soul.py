@@ -59,8 +59,7 @@ class Soul(Prop):
       start_y = y + norm_y * 16
       vel_x = norm_x * random.random() * 2
       vel_y = norm_y * random.random() * 2
-      kind = "spark"
-      # kind = random.choice(("spark", "smallspark"))
+      kind = random.choice(("spark", "smallspark"))
       game.vfx.append(Vfx(
         kind=kind,
         pos=(start_x, start_y),
@@ -103,8 +102,7 @@ class Soul(Prop):
         col, row = soul.cell
         x = col * config.TILE_SIZE + pos_x + random.random()
         y = row * config.TILE_SIZE + pos_y + random.random() + 2
-        kind = "spark"
-        # kind = random.choice(("spark", "smallspark"))
+        kind = random.choice(("spark", "smallspark"))
         vfx.append(Vfx(
           kind=kind,
           pos=(x, y),

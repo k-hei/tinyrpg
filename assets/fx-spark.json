@@ -1,0 +1,9 @@
+{
+  "fx_spark0": [ 0, 0, 8, 8],
+  "fx_spark1": [ 8, 0, 8, 8],
+  "fx_spark2": [16, 0, 8, 8],
+  "fx_spark3": [24, 0, 8, 8],
+  "fx_smallspark0": [ 8, 0, 8, 8],
+  "fx_smallspark1": [16, 0, 8, 8],
+  "fx_smallspark2": [24, 0, 8, 8]
+}
