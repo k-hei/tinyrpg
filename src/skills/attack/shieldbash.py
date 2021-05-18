@@ -47,9 +47,9 @@ class ShieldBash(AttackSkill):
 
       def on_move():
         if nudge_tile is floor.PIT:
-          game.log.print(target_elem.token(), " tumbles into the chasm below!")
+          game.log.print((target_elem.token(), " tumbles into the chasm below!"))
         else:
-          game.log.print(target_elem.token(), " is reeling.")
+          game.log.print((target_elem.token(), " is reeling."))
 
       def on_connect():
         if will_nudge:

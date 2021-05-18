@@ -15,16 +15,17 @@ class OutskirtsArea(Area):
         (ROGUE_NAME, "Yeah, baby!"),
         PromptContext(("I'm gettin' hard!\nSo hard for you, baby!"), (
           Choice("\"So true\""),
-          Choice("\"....\"")
+          Choice("\"What?\"")
         ), on_close=lambda choice: (
           choice.text == "\"So true\"" and (
             (town.hero.core.name, "So true, bestie"),
             (ROGUE_NAME, "Oh baby, yes!"),
             (ROGUE_NAME, "Let's dance 'til the break of dawn!")
-          ) or choice.text == "\"....\"" and (
-            (town.hero.core.name, "...."),
-            town.ally and (town.ally.core.name, "Let's just leave him be...")
-              or (ROGUE_NAME, "You're no fun, you know that?")
+          ) or choice.text == "\"What?\"" and (
+            (town.hero.core.name, "What the hell are you talking about?"),
+            (town.ally
+              and (town.ally.core.name, "Let's just leave him be...")
+              or (ROGUE_NAME, "You're no fun, you know that?"))
           )
         ))
       )

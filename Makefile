@@ -1,6 +1,9 @@
 all:
 	python3 src/main.py
 
+demo-dungeon:
+	python3 src/demo-dungeon.py
+
 demo-town:
 	python3 src/demo-town.py
 

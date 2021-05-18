@@ -23,9 +23,13 @@ class Context:
   def exit(ctx):
     pass
 
+  def init(ctx):
+    pass
+
   def open(ctx, child, on_close=None):
     ctx.child = child
     child.parent = ctx
+    child.init()
     for kind in ctx.child.effects:
       for comp in ctx.comps:
         if isinstance(comp, kind):

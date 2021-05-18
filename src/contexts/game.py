@@ -32,8 +32,11 @@ from skills.support.sana import Sana
 from skills.ailment.somnus import Somnus
 
 class GameContext(Context):
-  def __init__(ctx, hero, ally=None, start_in_dungeon=False):
+  def __init__(ctx, zone, hero, ally=None):
     super().__init__()
+    ctx.child = zone
+    ctx.hero = hero
+    ctx.ally = ally
     ctx.transits = [DissolveOut(WINDOW_SIZE)] if not DEBUG else []
     ctx.inventory = Inventory((2, 4), [
       Ruby(), Sapphire(),
@@ -42,8 +45,6 @@ class GameContext(Context):
     ctx.sp_max = 50
     ctx.sp = ctx.sp_max // 2
     ctx.gold = 500
-    ctx.hero = hero
-    ctx.ally = ally
     ctx.new_skills = []
     ctx.skill_pool = [
       Stick,
@@ -67,10 +68,9 @@ class GameContext(Context):
     ctx.monster_kills = {}
     ctx.seeds = []
     ctx.debug = False
-    if start_in_dungeon:
-      ctx.goto_dungeon()
-    else:
-      ctx.goto_town(returning=True)
+
+  def init(ctx):
+    ctx.open(ctx.child)
 
   def reset(ctx):
     if type(ctx.child) is DungeonContext:
@@ -79,10 +79,10 @@ class GameContext(Context):
       ctx.goto_town()
 
   def goto_dungeon(ctx):
-    ctx.child = DungeonContext(parent=ctx)
+    ctx.open(DungeonContext())
 
   def goto_town(ctx, returning=False):
-    ctx.child = TownContext(parent=ctx, returning=returning)
+    ctx.open(TownContext(returning=returning))
 
   def record_kill(ctx, target):
     target_type = type(target)

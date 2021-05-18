@@ -21,8 +21,8 @@ class Area:
       x = actor.x - TILE_SIZE // 2 + offset_x
       y = actor.y + Area.ACTOR_Y - 1 + offset_y
       if hero and can_talk(hero, actor):
-        bubble_x = x + TILE_SIZE * 0.75
-        bubble_y = y - TILE_SIZE // 2 + 4
+        bubble_x = x + TILE_SIZE * 0.75 + 4
+        bubble_y = y - TILE_SIZE * 0.25
         nodes.append(Sprite(
           image=sprite_talkbubble,
           pos=(bubble_x, bubble_y)

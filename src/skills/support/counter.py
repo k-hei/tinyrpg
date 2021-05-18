@@ -20,7 +20,7 @@ class Counter(SupportSkill):
 
   def effect(user, game, on_end=None):
     user.counter = 2
-    game.log.print(user.token(), " stands ready.")
+    game.log.print((user.token(), " stands ready."))
     game.anims.append([PauseAnim(
       duration=30,
       on_end=on_end

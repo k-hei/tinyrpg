@@ -502,7 +502,7 @@ def gen_floor(seed=None):
     ("Minxia", "He has such a way with words")
   ))
   stage.spawn_elem(genie, (center_x, center_y - 3))
-  stage.spawn_elem(Soldier(), (center_x, center_y + 3))
+  # stage.spawn_elem(Soldier(), (center_x, center_y + 3))
 
   return stage
 

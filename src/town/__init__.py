@@ -31,12 +31,12 @@ SPAWN_RIGHT = OutskirtsArea.TOWER_X - config.TILE_SIZE // 2
 SPAWN_RIGHT_FACING = -1
 
 class TownContext(Context):
-  def __init__(town, parent, returning=False):
-    super().__init__(parent)
+  def __init__(town, returning=False):
+    super().__init__()
     town.hero = manifest(parent.hero)
     town.ally = manifest(parent.ally)
     town.areas = [CentralArea(), OutskirtsArea()]
-    town.area = town.areas[1]
+    town.area = town.areas[0]
     town.area_change = 0
     town.talkee = None
     town.hud = Hud()
@@ -215,6 +215,7 @@ class TownContext(Context):
       town.area.actors.remove(actor)
     town.ally.x = actor.x
     town.ally.y = actor.y
+    town.ally.facing = actor.facing
     town.area.actors.insert(town.area.actors.index(town.hero), town.ally)
 
   def draw(town, surface):

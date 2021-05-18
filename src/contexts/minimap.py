@@ -25,7 +25,8 @@ class MinimapContext(Context):
       return False
 
     if key == pygame.K_BACKSPACE or key == pygame.K_ESCAPE:
-      ctx.handle_close()
+      return ctx.handle_close()
 
   def handle_close(ctx):
     ctx.exit()
+    return True

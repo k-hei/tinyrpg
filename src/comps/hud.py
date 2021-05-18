@@ -64,6 +64,7 @@ class Hud:
     panel.anims = []
     panel.anims_drawn = 0
     panel.hero = None
+    panel.ally = None
     panel.hp_hero = math.inf
     panel.hp_ally = math.inf
     panel.hp_hero_drawn = math.inf
@@ -83,34 +84,45 @@ class Hud:
     if (panel.sprite is None
     or panel.anims_drawn
     or hero != panel.hero
+    or ally != panel.ally
     or hero.get_hp() != panel.hp_hero
-    or ally.get_hp() != panel.hp_ally):
+    or ally and ally.get_hp() != panel.hp_ally):
       if hero != panel.hero:
         if panel.hero is not None:
           panel.anims.append(SwitchOutAnim())
           panel.anims.append(SwitchInAnim())
         panel.hero = hero
         panel.hp_hero = hero.get_hp()
+      if ally != panel.ally:
+        panel.ally = ally
         panel.hp_ally = ally.get_hp()
-      elif hero.get_hp() < panel.hp_hero_drawn or ally.get_hp() < panel.hp_ally_drawn:
-        panel.anims.append(FlinchAnim())
+      elif (hero.get_hp() < panel.hp_hero_drawn
+      or ally and ally.get_hp() < panel.hp_ally_drawn):
+        flinching = False
         if panel.hp_hero == math.inf:
           panel.hp_hero = hero.get_hp_max()
-        if panel.hp_ally == math.inf:
+        else:
+          flinching = True
+        if ally and panel.hp_ally == math.inf:
           panel.hp_ally = ally.get_hp_max()
+        else:
+          flinching = False
+        if flinching:
+          panel.anims.append(FlinchAnim())
       anim = panel.anims[0] if panel.anims else None
       panel.anims_drawn = len(panel.anims)
       if anim is None and panel.hp_hero > hero.get_hp():
         panel.hp_hero = max(hero.get_hp(), panel.hp_hero - hero.get_hp_max() / SPEED_DEPLETE)
       if anim is None and panel.hp_hero < hero.get_hp():
         panel.hp_hero = min(hero.get_hp(), panel.hp_hero + hero.get_hp_max() / SPEED_RESTORE)
-      if anim is None and panel.hp_ally > ally.get_hp():
+      if anim is None and ally and panel.hp_ally > ally.get_hp():
         panel.hp_ally = max(ally.get_hp(), panel.hp_ally - ally.get_hp_max() / SPEED_DEPLETE)
-      if anim is None and panel.hp_ally < ally.get_hp():
+      if anim is None and ally and panel.hp_ally < ally.get_hp():
         panel.hp_ally = min(ally.get_hp(), panel.hp_ally + ally.get_hp_max() / SPEED_RESTORE)
       panel.sprite = panel.render(hero, ally, anim)
     panel.hp_hero_drawn = hero.get_hp()
-    panel.hp_ally_drawn = ally.get_hp()
+    if ally:
+      panel.hp_ally_drawn = ally.get_hp()
 
   def render(panel, hero, ally, anim=None):
     assets = use_assets()
@@ -119,19 +131,26 @@ class Hud:
     sprite = Surface((width, height)).convert_alpha()
     sprite.blit(assets.sprites["hud"], (0, 0))
 
-    if (type(hero) is Knight and type(anim) is not SwitchOutAnim
+    hero_portrait = None
+    if (type(hero) is KnightCore and type(anim) is not SwitchOutAnim
     or type(hero) is MageCore and type(anim) is SwitchOutAnim):
       hero_portrait = assets.sprites["circle_knight"]
-      ally_portrait = assets.sprites["circ16_mage"]
     if (type(hero) is MageCore and type(anim) is not SwitchOutAnim
-    or type(hero) is Knight and type(anim) is SwitchOutAnim):
+    or type(hero) is KnightCore and type(anim) is SwitchOutAnim):
       hero_portrait = assets.sprites["circle_mage"]
+
+    ally_portrait = None
+    if (type(ally) is KnightCore and type(anim) is not SwitchOutAnim
+    or type(ally) is MageCore and type(anim) is SwitchOutAnim):
       ally_portrait = assets.sprites["circ16_knight"]
+    if (type(ally) is MageCore and type(anim) is not SwitchOutAnim
+    or type(ally) is KnightCore and type(anim) is SwitchOutAnim):
+      ally_portrait = assets.sprites["circ16_mage"]
 
     if hero.dead:
       hero_portrait = replace_color(hero_portrait, WHITE, BLACK)
       hero_portrait = replace_color(hero_portrait, BLUE, RED)
-    if ally.dead:
+    if ally and ally.dead:
       ally_portrait = replace_color(ally_portrait, WHITE, BLACK)
       ally_portrait = replace_color(ally_portrait, BLUE, RED)
 
@@ -141,21 +160,23 @@ class Hud:
       t = anim.pos
       if type(anim) is SwitchInAnim:
         t = 1 - ease_out(t)
-      ally_width = lerp(ally_portrait.get_width(), 0, t)
-      ally_height = lerp(ally_portrait.get_height(), 0, t)
       hero_width = lerp(hero_portrait.get_width(), 0, t)
       hero_height = hero_portrait.get_height()
-      ally_scaled = pygame.transform.scale(ally_portrait, (int(ally_width), int(ally_height)))
       hero_scaled = pygame.transform.scale(hero_portrait, (int(hero_width), int(hero_height)))
+      if ally:
+        ally_width = lerp(ally_portrait.get_width(), 0, t)
+        ally_height = lerp(ally_portrait.get_height(), 0, t)
+        ally_scaled = pygame.transform.scale(ally_portrait, (int(ally_width), int(ally_height)))
 
     sprite.blit(hero_scaled, (
       hero_portrait.get_width() // 2 - hero_scaled.get_width() // 2,
       hero_portrait.get_height() // 2 - hero_scaled.get_height() // 2
     ))
-    sprite.blit(ally_scaled, (
-      CIRC16_X + ally_portrait.get_width() // 2 - ally_scaled.get_width() // 2,
-      CIRC16_Y + ally_portrait.get_height() // 2 - ally_scaled.get_height() // 2
-    ))
+    if ally:
+      sprite.blit(ally_scaled, (
+        CIRC16_X + ally_portrait.get_width() // 2 - ally_scaled.get_width() // 2,
+        CIRC16_Y + ally_portrait.get_height() // 2 - ally_scaled.get_height() // 2
+      ))
     sprite.blit(assets.sprites["hp"], (HP_X, HP_Y))
 
     hp_text = render_numbers(hero.get_hp(), hero.get_hp_max(), HP_CRITICAL)
@@ -168,19 +189,20 @@ class Hud:
       draw_bar(sprite, hero.get_hp() / hero.get_hp_max(), (HP_BAR_X, HP_BAR_Y1), CYAN)
       draw_bar(sprite, panel.hp_hero / hero.get_hp_max(), (HP_BAR_X, HP_BAR_Y1))
 
-    if ally.get_hp() <= panel.hp_ally:
-      draw_bar(sprite, panel.hp_ally / ally.get_hp_max(), (HP_BAR_X, HP_BAR_Y2), RED)
-      draw_bar(sprite, ally.get_hp() / ally.get_hp_max(), (HP_BAR_X, HP_BAR_Y2))
-    else:
-      draw_bar(sprite, ally.get_hp() / ally.get_hp_max(), (HP_BAR_X, HP_BAR_Y2), CYAN)
-      draw_bar(sprite, panel.hp_ally / ally.get_hp_max(), (HP_BAR_X, HP_BAR_Y2))
+    if ally:
+      if ally.get_hp() <= panel.hp_ally:
+        draw_bar(sprite, panel.hp_ally / ally.get_hp_max(), (HP_BAR_X, HP_BAR_Y2), RED)
+        draw_bar(sprite, ally.get_hp() / ally.get_hp_max(), (HP_BAR_X, HP_BAR_Y2))
+      else:
+        draw_bar(sprite, ally.get_hp() / ally.get_hp_max(), (HP_BAR_X, HP_BAR_Y2), CYAN)
+        draw_bar(sprite, panel.hp_ally / ally.get_hp_max(), (HP_BAR_X, HP_BAR_Y2))
 
 
     return sprite
 
   def draw(panel, surface):
     ctx = panel.parent
-    panel.update(ctx.hero.core, ctx.ally.core)
+    panel.update(ctx.hero.core, ctx.ally and ctx.ally.core)
     sprite = panel.sprite
     hidden_x, hidden_y = Hud.MARGIN_LEFT, -sprite.get_height()
     corner_x, corner_y = Hud.MARGIN_LEFT, Hud.MARGIN_TOP

@@ -36,7 +36,7 @@ class CentralArea(Area):
         )
       )
     ))
-    genie.x = 144
+    genie.x = 32
     genie.facing = 1
     area.actors.append(genie)
 
@@ -57,7 +57,7 @@ class CentralArea(Area):
         ))
       ]
     ])
-    mage.x = 32
+    mage.x = 112
     mage.facing = 1
     area.actors.append(mage)
 
