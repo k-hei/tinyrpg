@@ -3,5 +3,8 @@
   "mage_walk":     [32,  0, 32, 32],
   "mage_down":     [ 0, 32, 32, 32],
   "mage_walkdown": [32, 32, 32, 32],
+  "mage_up":       [ 0, 64, 32, 32],
+  "mage_walkup0":  [32, 64, 32, 32],
+  "mage_walkup1":  [64, 64, 32, 32],
   "mage_flinch":   [64,  0, 32, 32]
 }

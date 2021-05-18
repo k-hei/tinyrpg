@@ -499,11 +499,17 @@ def gen_floor(seed=None):
         corner = choice(corners)
         stage.set_tile_at(corner, stage.WALL)
 
-  entry_room = choice(empty_rooms)
+  stage.rooms = empty_rooms + feature_list
+  empty_leaves = [n for n in empty_rooms if tree.degree(n) == 1]
+  entry_room = choice(empty_leaves)
+  empty_rooms.remove(entry_room)
   center_x, center_y = entry_room.get_center()
   stage.entrance = (center_x, center_y + 1)
   stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
-  stage.rooms = empty_rooms + feature_list
+
+  key_room = choice(empty_rooms)
+  empty_rooms.remove(key_room)
+  stage.spawn_elem(Chest(Potion), key_room.get_center())
 
   genie = Genie(name="Joshin", script=(
     ("Joshin", "Pee pee poo poo"),

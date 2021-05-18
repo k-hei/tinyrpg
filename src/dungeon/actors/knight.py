@@ -16,6 +16,14 @@ class Knight(DungeonActor):
     anim_group = [a for a in anims[0] if a.target is knight] if anims else []
     for anim in anim_group:
       if type(anim) is MoveAnim:
+        if knight.facing == (0, -1):
+          sprite = [
+            sprites["knight_up"],
+            sprites["knight_walkup0"],
+            sprites["knight_up"],
+            sprites["knight_walkup1"]
+          ][anim.time % anim.duration // (anim.duration // 4)]
+          break
         if knight.facing == (0, 1):
           sprite = sprites["knight_down"]
           if anim.time % (anim.duration // 2) >= anim.duration // 4:
@@ -27,13 +35,17 @@ class Knight(DungeonActor):
           sprite = sprites["knight_walk"]
           break
       elif type(anim) is JumpAnim:
-        if knight.facing == (0, 1):
+        if knight.facing == (0, -1):
+          sprite = sprites["knight_walkup"]
+        elif knight.facing == (0, 1):
           sprite = sprites["knight_walkdown"]
         else:
           sprite = sprites["knight_walk"]
         break
       elif type(anim) is AttackAnim and anim.time < anim.duration // 2:
-        if knight.facing == (0, 1):
+        if knight.facing == (0, -1):
+          sprite = sprites["knight_up"]
+        elif knight.facing == (0, 1):
           sprite = sprites["knight_down"]
         else:
           sprite = sprites["knight"]
@@ -42,7 +54,9 @@ class Knight(DungeonActor):
         sprite = sprites["knight_flinch"]
         break
     else:
-      if knight.facing == (0, 1):
+      if knight.facing == (0, -1):
+        sprite = sprites["knight_up"]
+      elif knight.facing == (0, 1):
         sprite = sprites["knight_down"]
       else:
         sprite = sprites["knight"]

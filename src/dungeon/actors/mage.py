@@ -16,7 +16,15 @@ class Mage(DungeonActor):
     anim_group = [a for a in anims[0] if a.target is mage] if anims else []
     for anim in anim_group:
       if type(anim) is MoveAnim:
-        if mage.facing == (0, 1):
+        if mage.facing == (0, -1):
+          sprite = [
+            sprites["mage_up"],
+            sprites["mage_walkup0"],
+            sprites["mage_up"],
+            sprites["mage_walkup1"]
+          ][anim.time % anim.duration // (anim.duration // 4)]
+          break
+        elif mage.facing == (0, 1):
           sprite = sprites["mage_down"]
           if anim.time % (anim.duration // 2) >= anim.duration // 4:
             sprite = sprites["mage_walkdown"]
@@ -27,14 +35,18 @@ class Mage(DungeonActor):
           sprite = sprites["mage_walk"]
           break
       elif type(anim) is JumpAnim:
-        if mage.facing == (0, 1):
+        if mage.facing == (0, -1):
+          sprite = sprites["mage_walkup"]
+        elif mage.facing == (0, 1):
           sprite = sprites["mage_walkdown"]
         else:
           sprite = sprites["mage_walk"]
         break
       elif (type(anim) is AttackAnim
       and anim.time < anim.duration // 2):
-        if mage.facing == (0, 1):
+        if mage.facing == (0, -1):
+          sprite = sprites["mage_walkup"]
+        elif mage.facing == (0, 1):
           sprite = sprites["mage_walkdown"]
         else:
           sprite = sprites["mage_walk"]
@@ -43,7 +55,9 @@ class Mage(DungeonActor):
         sprite = sprites["mage_flinch"]
         break
     else:
-      if mage.facing == (0, 1):
+      if mage.facing == (0, -1):
+        sprite = sprites["mage_up"]
+      elif mage.facing == (0, 1):
         sprite = sprites["mage_down"]
       else:
         sprite = sprites["mage"]

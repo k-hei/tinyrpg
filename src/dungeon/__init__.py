@@ -596,7 +596,7 @@ class DungeonContext(Context):
               game.log.print(("Obtained ", item().token(), "."))
             else:
               game.parent.inventory.append(item)
-              game.log.print(("Obtained ", item.token(), "."))
+              game.log.print(("Obtained ", item().token(), "."))
             acted = True
           else:
             game.log.print("Your inventory is already full!")

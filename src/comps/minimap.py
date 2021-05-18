@@ -8,8 +8,9 @@ from dungeon.actors.mage import Mage
 from dungeon.actors.mimic import Mimic
 from dungeon.actors.npc import Npc
 from dungeon.props.chest import Chest
+from dungeon.props.soul import Soul
 import palette
-from palette import GREEN, GREEN_DARK
+from palette import GREEN, GREEN_DARK, PURPLE, PURPLE_DARK
 from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in_out
 from lib.lerp import lerp
@@ -129,6 +130,8 @@ class Minimap:
           color = 0x990000
         else:
           color = 0xFF0000 if minimap.time % 60 >= 30 else 0x990000
+      elif isinstance(elem, Soul) and cell in visible_cells:
+        color = PURPLE if minimap.time % 60 >= 30 else PURPLE_DARK
       elif isinstance(elem, Npc) and cell in visible_cells:
         color = GREEN if minimap.time % 60 >= 30 else GREEN_DARK
       elif type(elem) is Chest and elem.rare:
@@ -146,17 +149,17 @@ class Minimap:
         if cell in visible_cells:
           color = 0x00CCFF
         else:
-          color = 0x003399
+          color = 0x0066CC
       elif tile is Stage.DOOR:
         if cell in visible_cells:
           color = 0x0066CC
         else:
-          color = 0x00CCCC
+          color = 0x0033CC
       elif tile is Stage.DOOR_OPEN:
         if cell in visible_cells:
-          color = 0x333333
+          color = 0x003399
         else:
-          color = 0x333333
+          color = 0x003399
       elif tile is Stage.STAIRS_UP:
         color = 0x00FF00 if minimap.time % 60 >= 30 else 0x007F00
       elif tile is Stage.STAIRS_DOWN:
