@@ -41,6 +41,7 @@ class Minimap:
   SIZE_INIT = (16, 16)
   SCALE_INIT = 3
   SCALE_EXPAND = 5
+  BLACKOUT_DELAY = 120
 
   def __init__(minimap, parent):
     minimap.parent = parent
@@ -143,14 +144,14 @@ class Minimap:
       elif tile is Stage.WALL or tile is Stage.DOOR_HIDDEN or tile is Stage.DOOR_LOCKED or (
       tile is Stage.DOOR_WAY and (tile_above is Stage.DOOR_HIDDEN or tile_below is Stage.DOOR_HIDDEN)):
         if cell in visible_cells:
-          color = 0xFFFFFF
+          color = 0x00CCFF
         else:
-          color = 0x7F7F7F
+          color = 0x003399
       elif tile is Stage.DOOR:
         if cell in visible_cells:
-          color = 0x7F7F7F
+          color = 0x0066CC
         else:
-          color = 0x333333
+          color = 0x00CCCC
       elif tile is Stage.DOOR_OPEN:
         if cell in visible_cells:
           color = 0x333333
@@ -162,7 +163,7 @@ class Minimap:
         color = 0x007F00
       elif tile is Stage.PIT:
         if cell in visible_cells:
-          color = 0x000000
+          color = 0x000033
       elif tile is Stage.FLOOR_ELEV or tile is Stage.WALL_ELEV or tile is Stage.STAIRS:
         if cell in visible_cells:
           color = 0x4D4D4D
@@ -170,9 +171,9 @@ class Minimap:
           color = 0x242424
       else:
         if cell in visible_cells:
-          color = 0x333333
+          color = 0x003399
         else:
-          color = 0x000000
+          color = 0x000066
       if color is not None:
         pixels[x, y] = color
 

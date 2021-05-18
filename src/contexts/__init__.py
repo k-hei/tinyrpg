@@ -29,12 +29,12 @@ class Context:
   def open(ctx, child, on_close=None):
     ctx.child = child
     child.parent = ctx
-    child.init()
     for kind in ctx.child.effects:
       for comp in ctx.comps:
         if isinstance(comp, kind):
           comp.exit()
     ctx.child.enter()
+    child.init()
     if on_close:
       if child.on_close:
         on_close_old = child.on_close

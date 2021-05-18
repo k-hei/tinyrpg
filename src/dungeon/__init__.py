@@ -86,13 +86,15 @@ class DungeonContext(Context):
   PAUSE_DEATH_DURATION = 45
   AWAKEN_DURATION = 45
 
-  def __init__(game):
+  def __init__(game, debug=False):
     super().__init__()
+    game.debug = debug
     game.hero = None
     game.ally = None
     game.floors = []
     game.floor = None
     game.floor_view = None
+    game.floor_cells = None
     game.room = None
     game.room_entrances = {}
     game.rooms_entered = []
@@ -103,7 +105,7 @@ class DungeonContext(Context):
     game.numbers = []
     game.key_requires_reset = {}
     game.seeds = []
-    game.lights = config.DEBUG
+    game.lights = False
     game.camera = Camera(WINDOW_SIZE)
     game.log = Log(align="left")
     game.minimap = Minimap(parent=game)
@@ -123,6 +125,12 @@ class DungeonContext(Context):
       SpMeter(parent=game.parent)
     ]
     game.create_floor()
+    if game.debug:
+      game.lights = True
+      game.floor_cells = game.floor.get_visible_cells()
+      game.parent.transits = []
+      game.handle_minimap(lock=True)
+      game.refresh_fov()
 
   def get_floor_no(game):
     return len(game.floors) + 1
@@ -224,7 +232,7 @@ class DungeonContext(Context):
     if game.room:
       visible_cells += game.room.get_cells() + game.room.get_border()
     if game.lights:
-      visible_cells = floor.get_cells()
+      visible_cells = game.floor_cells
     hero.visible_cells = visible_cells
 
     # update visited cells
@@ -728,11 +736,12 @@ class DungeonContext(Context):
       on_close=lambda _: game.refresh_fov
     ))
 
-  def handle_minimap(game):
+  def handle_minimap(game, lock=False):
     game.log.exit()
     game.open(MinimapContext(
       minimap=game.minimap,
-      on_close=lambda: game.refresh_fov
+      lock=lock,
+      on_close=game.refresh_fov
     ))
 
   def handle_debug(game):
@@ -1174,8 +1183,8 @@ class DungeonContext(Context):
 
     game.update_camera()
 
-    # if not config.DEBUG and not game.minimap.is_focused():
-    game.tile_surface = game.floor_view.draw(surface, game)
+    if not game.debug and not game.minimap.is_focused():
+      game.tile_surface = game.floor_view.draw(surface, game)
 
     for group in game.anims:
       for anim in group:
@@ -1197,14 +1206,8 @@ class DungeonContext(Context):
     if game.child and not animating:
       game.child.draw(surface)
 
-    # if config.DEBUG:
-    #   game.minimap.anims = []
-    # else:
-    #   game.hud.draw(surface, game)
-    #   game.previews.draw(surface, game)
-    #   game.sp_meter.draw(surface, game.parent)
-    #   game.floor_box.draw(surface, game)
-    # game.minimap.draw(surface)
-
-    for comp in game.comps:
-      comp.draw(surface)
+    if game.debug:
+      game.minimap.draw(surface)
+    else:
+      for comp in game.comps:
+        comp.draw(surface)

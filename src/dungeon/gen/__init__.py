@@ -124,7 +124,6 @@ class Floor:
         neighbor.cell = None
     if overlap:
       door = choice(tuple(overlap))
-      floor.draw_door(door, room=node)
       floor.mark(neighbor)
       floor.tree.connect(node, neighbor, door)
       return True
@@ -418,11 +417,11 @@ def gen_floor(seed=None):
 
   features = [
     [arena, exit_room, puzzle_room],
-    [pit_room],
+    # [pit_room],
     # [elev_room],
     [treasure_room],
     [oasis_room],
-    [coffin_room],
+    # [coffin_room],
   ]
 
   if not gen_features(floor, features):
@@ -472,11 +471,18 @@ def gen_floor(seed=None):
   # draw doors
   doors = []
   for (n1, n2), conns in tree.conns.items():
-    room = n1 if isinstance(n1, Room) else n2 if isinstance(n2, Room) else None
+    if isinstance(n1, Room):
+      room = n1
+    elif isinstance(n2, Room):
+      room = n2
+    else:
+      room = None
     for door in conns:
+      if door in doors:
+        continue
       tile = stage.DOOR_HIDDEN if n1.secret or n2.secret else stage.DOOR
       floor.draw_door(door, tile, room)
-    doors += conns
+      doors.append(door)
 
   empty_rooms = [r for r in empty_rooms if r in tree.nodes]
   if not empty_rooms:

@@ -7,6 +7,9 @@ demo-dungeon:
 demo-town:
 	python3 src/demo-town.py
 
+demo-gen:
+	python3 src/demo-gen.py
+
 demo-nameentry:
 	python3 src/demo-nameentry.py
 

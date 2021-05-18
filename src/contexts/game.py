@@ -45,6 +45,9 @@ class GameContext(Context):
     ctx.sp_max = 50
     ctx.sp = ctx.sp_max // 2
     ctx.gold = 500
+    ctx.monster_kills = {}
+    ctx.seeds = []
+    ctx.debug = False
     ctx.new_skills = []
     ctx.skill_pool = [
       Stick,
@@ -60,14 +63,12 @@ class GameContext(Context):
       (Stick, (0, 0)),
       (Blitzritter, (1, 0))
     ])
-    ctx.load_build(ctx.ally, [
-      (Ignis, (0, 0)),
-      (Somnus, (0, 1)),
-      (Sana, (1, 1)),
-    ])
-    ctx.monster_kills = {}
-    ctx.seeds = []
-    ctx.debug = False
+    if ctx.ally:
+      ctx.load_build(ctx.ally, [
+        (Ignis, (0, 0)),
+        (Somnus, (0, 1)),
+        (Sana, (1, 1)),
+      ])
 
   def init(ctx):
     ctx.open(ctx.child)

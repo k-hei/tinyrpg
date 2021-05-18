@@ -9,19 +9,26 @@ from comps.floorno import FloorNo
 class MinimapContext(Context):
   effects = [Hud, Previews, SpMeter, FloorNo]
 
-  def __init__(ctx, minimap, on_close=None):
+  def __init__(ctx, minimap, lock=False, on_close=None):
     super().__init__(on_close=on_close)
     ctx.minimap = minimap
+    ctx.lock = lock
 
   def enter(ctx):
-    ctx.minimap.expand()
+    minimap = ctx.minimap
+    if ctx.lock:
+      minimap.anims = []
+      minimap.active = True
+      minimap.expanded = minimap.BLACKOUT_DELAY
+    else:
+      minimap.expand()
 
   def exit(ctx):
     ctx.minimap.shrink()
     ctx.close()
 
   def handle_keydown(ctx, key):
-    if ctx.minimap.anims:
+    if ctx.minimap.anims or ctx.lock:
       return False
 
     if key == pygame.K_BACKSPACE or key == pygame.K_ESCAPE:
