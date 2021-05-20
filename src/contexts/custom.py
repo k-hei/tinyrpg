@@ -195,15 +195,17 @@ class CustomContext(Context):
       menu.anims.append([CallAnim(duration=7, target=(skill, (0, 0)))])
       return
     menu.arrange = True
-    other = menu.chars[0] if menu.char is menu.chars[1] else menu.chars[1]
+    other = None
+    if len(menu.chars) == 2:
+      other = menu.chars[0] if menu.char is menu.chars[1] else menu.chars[1]
     char_skills = [skill for skill, cell in menu.builds[menu.char]]
-    other_skills = [skill for skill, cell in menu.builds[other]]
+    other_skills = [skill for skill, cell in menu.builds[other]] if other else []
     if skill in char_skills:
       index = char_skills.index(skill)
       build = menu.builds[menu.char]
       _, cell = build.pop(index)
       menu.cursor = cell
-    elif skill in other_skills:
+    elif other_skills and skill in other_skills:
       index = other_skills.index(skill)
       build = menu.builds[other]
       build.pop(index)
