@@ -1,8 +1,7 @@
 from contexts.app import App
 from contexts.game import GameContext
-from town import TownContext
-from cores.knight import KnightCore
+import savedata
 
 App(title="town demo",
-  context=GameContext(TownContext(returning=True), KnightCore())
+  context=GameContext(savedata.load("src/data.json"))
 ).init()

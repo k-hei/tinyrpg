@@ -1,74 +1,72 @@
 import pygame
-
+import keyboard
 from config import WINDOW_SIZE, DEBUG
 from contexts import Context
-from dungeon import DungeonContext
-from town import TownContext
 from contexts.pause import PauseContext
+from dungeon.context import DungeonContext
+from town import TownContext
 from transits.dissolve import DissolveIn, DissolveOut
-import keyboard
-
+from cores.knight import KnightCore
+from cores.mage import MageCore
 from inventory import Inventory
-from items.hp.potion import Potion
-from items.hp.ankh import Ankh
-from items.hp.ruby import Ruby
-from items.hp.elixir import Elixir
-from items.sp.bread import Bread
-from items.sp.fish import Fish
-from items.sp.sapphire import Sapphire
-from items.dungeon.emerald import Emerald
-from items.dungeon.balloon import Balloon
-from items.ailment.antidote import Antidote
-from items.ailment.amethyst import Amethyst
-
 from skills import get_skill_order
-from skills.weapon import Weapon
-from skills.weapon.stick import Stick
-from skills.armor.hpup import HpUp
-from skills.attack.blitzritter import Blitzritter
-from skills.magic.ignis import Ignis
-from skills.support.counter import Counter
-from skills.support.sana import Sana
-from skills.ailment.somnus import Somnus
+from savedata.resolve import resolve_item, resolve_skill
+
+def resolve_place(place):
+  if place == "dungeon": return DungeonContext()
+  if place == "town": return TownContext()
+
+def resolve_char(char):
+  if char == "knight": return KnightCore()
+  if char == "mage": return MageCore()
 
 class GameContext(Context):
-  def __init__(ctx, zone, hero, ally=None):
+  def __init__(ctx, savedata):
     super().__init__()
-    ctx.child = zone
-    ctx.hero = hero
-    ctx.ally = ally
     ctx.transits = [DissolveOut(WINDOW_SIZE)] if not DEBUG else []
-    ctx.inventory = Inventory((2, 4), [
-      Ruby(), Sapphire(),
-      Emerald(), Amethyst()
-    ])
-    ctx.sp_max = 50
-    ctx.sp = ctx.sp_max // 2
-    ctx.gold = 500
+    ctx.hero = None
+    ctx.ally = None
+    ctx.gold = 0
+    ctx.sp_max = 40
+    ctx.sp = ctx.sp_max
+    ctx.inventory = Inventory((2, 4))
     ctx.monster_kills = {}
-    ctx.seeds = []
-    ctx.debug = False
     ctx.new_skills = []
-    ctx.skill_pool = [
-      Stick,
-      Blitzritter,
-      Somnus,
-      Sana,
-      Ignis,
-      HpUp,
-    ]
+    ctx.skill_pool = []
     ctx.skill_builds = {}
     ctx.selected_skills = {}
-    ctx.load_build(ctx.hero, [
-      (Stick, (0, 0)),
-      (Blitzritter, (1, 0))
-    ])
+    ctx.seeds = []
+    ctx.debug = False
+    if savedata:
+      ctx.load(savedata)
+
+  def load(ctx, savedata):
+    ctx.child = resolve_place(savedata.place)
+    ctx.sp = savedata.sp
+    ctx.gold = savedata.gold
+    ctx.inventory.items = list(map(resolve_item, savedata.items))
+    ctx.skill_pool = list(map(resolve_skill, savedata.skills))
+
+    hero, ally = savedata.party[0], None
+    if len(savedata.party) == 2:
+      hero, ally = savedata.party
+    ctx.hero = resolve_char(hero)
+    ctx.ally = resolve_char(ally)
+
+    hero_data = savedata.chars[hero]
+    ctx.hero.hp = hero_data["hp"]
+    ctx.skill_builds[ctx.hero] = []
+    for skill, cell in hero_data["skills"].items():
+      piece = (resolve_skill(skill), cell)
+      ctx.skill_builds[ctx.hero].append(piece)
+
     if ctx.ally:
-      ctx.load_build(ctx.ally, [
-        (Ignis, (0, 0)),
-        (Somnus, (0, 1)),
-        (Sana, (1, 1)),
-      ])
+      ally_data = savedata.chars[ally]
+      ctx.ally.hp = ally_data["hp"]
+      ctx.skill_builds[ctx.ally] = []
+      for skill, cell in ally_data["skills"].items():
+        piece = (resolve_skill(skill), cell)
+        ctx.skill_builds[ctx.ally].append(piece)
 
   def init(ctx):
     ctx.open(ctx.child)

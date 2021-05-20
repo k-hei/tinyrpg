@@ -18,7 +18,7 @@ from filters import recolor, replace_color
 from text import render as render_text
 from transits.dissolve import DissolveOut
 
-import dungeon.gen
+import dungeon.gen as gen
 from dungeon.fov import shadowcast
 from dungeon.camera import Camera
 from dungeon.stage import Stage
@@ -70,12 +70,8 @@ from contexts.skill import SkillContext
 from contexts.dialogue import DialogueContext
 
 def manifest(core):
-  if type(core) is KnightCore:
-    return Knight(core)
-  elif type(core) is MageCore:
-    return Mage(core)
-  else:
-    return None
+  if type(core) is KnightCore: return Knight(core)
+  if type(core) is MageCore: return Mage(core)
 
 class DungeonContext(Context):
   ATTACK_DURATION = 12
