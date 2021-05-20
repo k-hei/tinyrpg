@@ -23,6 +23,7 @@ def resolve_char(char):
 class GameContext(Context):
   def __init__(ctx, savedata):
     super().__init__()
+    ctx.savedata = savedata
     ctx.transits = [DissolveOut(WINDOW_SIZE)] if not DEBUG else []
     ctx.hero = None
     ctx.ally = None
@@ -40,8 +41,9 @@ class GameContext(Context):
     if savedata:
       ctx.load(savedata)
 
-  def load(ctx, savedata):
-    ctx.child = resolve_place(savedata.place)
+  def load(ctx, savedata=None):
+    if savedata is None:
+      savedata = ctx.savedata
     ctx.sp = savedata.sp
     ctx.gold = savedata.gold
     ctx.inventory.items = list(map(resolve_item, savedata.items))
@@ -68,8 +70,7 @@ class GameContext(Context):
         piece = (resolve_skill(skill), cell)
         ctx.skill_builds[ctx.ally].append(piece)
 
-  def init(ctx):
-    ctx.open(ctx.child)
+    ctx.open(resolve_place(savedata.place))
 
   def reset(ctx):
     if type(ctx.child) is DungeonContext:

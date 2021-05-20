@@ -30,9 +30,10 @@ class Choice:
   closing: bool = False
 
 class ChoiceContext(Context):
-  def __init__(ctx, choices, on_choose=None, on_close=None):
+  def __init__(ctx, choices, required=False, on_choose=None, on_close=None):
     super().__init__(on_close=on_close)
     ctx.choices = choices
+    ctx.required = required
     ctx.on_choose = on_choose
     ctx.index = next((i for i, c in enumerate(choices) if c.default), 0)
     ctx.cursor = (BORDER_WIDTH + PADDING, SineAnim(30))
@@ -64,19 +65,19 @@ class ChoiceContext(Context):
     if ctx.anims or ctx.choice:
       return False
 
-    if key == pygame.K_UP or key == pygame.K_w:
-      ctx.handle_move(-1)
-    elif key == pygame.K_DOWN or key == pygame.K_s:
-      ctx.handle_move(1)
-
     if key not in key_times or key_times[key] != 1:
       return False
 
+    if key == pygame.K_UP or key == pygame.K_w:
+      return ctx.handle_move(-1)
+    elif key == pygame.K_DOWN or key == pygame.K_s:
+      return ctx.handle_move(1)
+
     if key == pygame.K_RETURN or key == pygame.K_SPACE:
-      ctx.handle_choose()
+      return ctx.handle_choose()
 
     if key == pygame.K_BACKSPACE or key == pygame.K_ESCAPE:
-      ctx.handle_close()
+      return ctx.handle_close()
 
   def handle_move(ctx, delta):
     old_index = ctx.index
@@ -98,13 +99,14 @@ class ChoiceContext(Context):
 
   def handle_choose(ctx):
     choice = ctx.choices[ctx.index]
-    if ctx.on_choose:
-      ctx.on_choose(choice, ctx.choose)
-    else:
+    if not ctx.on_choose or ctx.on_choose(choice):
       ctx.choose()
 
   def handle_close(ctx):
+    if ctx.required:
+      return False
     ctx.exit()
+    return True
 
   def render(ctx):
     assets = use_assets()
@@ -164,7 +166,7 @@ class ChoiceContext(Context):
       if not cursor_anim or cursor_anim.visible:
         x = BORDER_WIDTH + PADDING
         y, anim = ctx.cursor
-        target_y = BORDER_WIDTH + PADDING + ctx.index * (CHOICE_SPACING + font.height() + 1) + 1
+        target_y = BORDER_WIDTH + PADDING + ctx.index * (CHOICE_SPACING + font.height() + 0.25) + 1
         if not cursor_anim:
           x += anim.update() * 1.0625
         if anim.time == 1:

@@ -4,10 +4,11 @@ from contexts.choice import ChoiceContext, Choice
 from comps.log import Log
 
 class PromptContext(Context):
-  def __init__(ctx, message, choices, on_choose=None, on_close=None):
+  def __init__(ctx, message, choices, required=False, on_choose=None, on_close=None):
     super().__init__(on_close=on_close)
     ctx.message = message
     ctx.choices = choices
+    ctx.required = required
     ctx.on_choose = on_choose
     ctx.log = Log(autohide=False)
 
@@ -19,6 +20,7 @@ class PromptContext(Context):
 
   def open(ctx):
     super().open(ChoiceContext(ctx.choices,
+      required=ctx.required,
       on_choose=ctx.on_choose,
       on_close=ctx.exit))
 

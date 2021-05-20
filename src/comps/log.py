@@ -112,8 +112,10 @@ class Log:
         log.cursor_x = 0
         return log.render()
       token = message.get_token_at(log.col)
-      if log.col == 0 or char == " ":
+      if log.col == 0 or char in (" ", "\n"):
         next_space = message.find(" ", log.col + 1)
+        if next_space == -1:
+          next_space = message.find("\n", log.col + 1)
         if next_space == -1:
           word = message[log.col+1:]
         else:
