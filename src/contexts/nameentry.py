@@ -174,19 +174,11 @@ class NameEntryContext(Context):
   def enter(ctx):
     ctx.exiting = False
     ctx.anims.append(EnterAnim(duration=ctx.ENTER_DURATION, target=ctx))
-    noop = lambda: None
-    def on_enter():
-      ctx.open(DialogueContext(script=[
-        "Names may be 1-{} symbols in length.".format(MAX_NAME_LENGTH),
-        "Please enter a name for this character."
-      ], on_close=ctx.banner.enter))
-
     ctx.anims.append(EnterAnim(
       duration=25,
       delay=60,
       target="name"
     ))
-
     for row, line in enumerate(ctx.matrix):
       for col in range(MATRIX_DEADCOL):
         char = line[col]
@@ -201,10 +193,15 @@ class NameEntryContext(Context):
           EnterAnim(
             duration=10,
             delay=delay,
-            target=(col + MATRIX_DEADCOL + 1, row),
-            on_end=on_enter if is_last else noop
+            target=(col + MATRIX_DEADCOL + 1, row)
           )
         ]
+    ctx.anims[-1].on_end = lambda: ctx.open(
+      DialogueContext(script=[
+        "Names may be 1-{} symbols in length.".format(MAX_NAME_LENGTH),
+        "Please enter a name for this character."
+      ], on_close=ctx.banner.enter)
+    )
 
   def exit(ctx, name=None):
     if name is None:

@@ -183,6 +183,9 @@ class LoadContext(Context):
         delay=i * 7,
         target=slot
       ))
+    ctx.anims[-1].on_end = lambda: ctx.open(
+      DialogueContext(script=["Please select a file to load."], lite=True)
+    )
 
   def handle_move(ctx, delta):
     old_index = ctx.index
@@ -202,8 +205,8 @@ class LoadContext(Context):
       Choice("No", closing=True)
     ], on_close=lambda choice:
       choice.text == "Yes" and ctx.open(DialogueContext(
-        lite=True,
         script=["Save data loaded successfully."],
+        lite=True,
         on_close=lambda: ctx.get_root().dissolve(on_clear=lambda: ctx.close(savedata))
       ))
     ))
