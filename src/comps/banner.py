@@ -1,9 +1,14 @@
 from dataclasses import dataclass
-from pygame import Surface, SRCALPHA
+import pygame
+from pygame import Surface, Rect, SRCALPHA
 from assets import load as use_assets
 from config import WINDOW_WIDTH
 from palette import BLACK, BLUE
 from filters import replace_color
+from anims.tween import TweenAnim
+
+class EnterAnim(TweenAnim): pass
+class ExitAnim(TweenAnim): pass
 
 @dataclass
 class BannerControls:
@@ -52,11 +57,33 @@ class Banner:
     BannerControls(**controls)
     banner.controls = controls
     banner.surface = None
+    banner.anim = None
+    banner.active = False
 
   def init(banner):
     banner.surface = Banner.render(**banner.controls)
 
+  def enter(banner):
+    banner.anim = TweenAnim(duration=6)
+    banner.active = True
+
+  def exit(banner):
+    banner.anim = TweenAnim(duration=4)
+    banner.active = False
+
   def draw(banner, surface):
     banner_image = banner.surface
     y = surface.get_height() - banner.MARGIN - banner_image.get_height()
-    surface.blit(banner_image, (0, y))
+    anim = banner.anim
+    if anim:
+      if anim.done:
+        banner.anim = None
+      anim.update()
+      t = anim.pos
+      if type(anim) is ExitAnim:
+        t = 1 - t
+      height = banner_image.get_height() * t
+      y += banner_image.get_height() // 2 - height // 2
+      pygame.draw.rect(surface, BLACK, Rect(0, y, WINDOW_WIDTH, height))
+    elif banner.active:
+      surface.blit(banner_image, (0, y))
