@@ -1,6 +1,6 @@
 from contexts.app import App
 from contexts.game import GameContext
-from dungeon import DungeonContext
+from dungeon.context import DungeonContext
 from cores.knight import KnightCore
 from cores.mage import MageCore
 

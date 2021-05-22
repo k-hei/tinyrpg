@@ -1,0 +1,62 @@
+from dataclasses import dataclass
+from pygame import Surface, SRCALPHA
+from assets import load as use_assets
+from config import WINDOW_WIDTH
+from palette import BLACK, BLUE
+from filters import replace_color
+
+@dataclass
+class BannerControls:
+  a: str = None
+  b: str = None
+  x: str = None
+  y: str = None
+  l: str = None
+  r: str = None
+  select: str = None
+  start: str = None
+
+class Banner:
+  PADDING_X = 16
+  PADDING_Y = 6
+  MARGIN = 12
+  SPACING_TEXT = 5
+  SPACING_ICON = 12
+  FONT_NAME = "english"
+
+  def render(**controls):
+    assets = use_assets()
+    font = assets.ttf[Banner.FONT_NAME]
+
+    banner_width = WINDOW_WIDTH
+    banner_height = font.get_size() + Banner.PADDING_Y * 2
+    banner_image = Surface((banner_width, banner_height), SRCALPHA)
+    banner_image.fill(BLACK)
+
+    x = banner_width - Banner.PADDING_X
+    for button, action in reversed(controls.items()):
+      text_image = font.render(action)
+      x -= text_image.get_width()
+      y = Banner.PADDING_Y
+      banner_image.blit(text_image, (x, y))
+      icon_image = assets.sprites["button-" + button]
+      icon_image = replace_color(icon_image, BLACK, BLUE)
+      x -= Banner.SPACING_TEXT + icon_image.get_width()
+      y = banner_height // 2 - icon_image.get_height() // 2 - 1
+      banner_image.blit(icon_image, (x, y))
+      x -= Banner.SPACING_ICON
+
+    return banner_image
+
+  def __init__(banner, **controls):
+    BannerControls(**controls)
+    banner.controls = controls
+    banner.surface = None
+
+  def init(banner):
+    banner.surface = Banner.render(**banner.controls)
+
+  def draw(banner, surface):
+    banner_image = banner.surface
+    y = surface.get_height() - banner.MARGIN - banner_image.get_height()
+    surface.blit(banner_image, (0, y))

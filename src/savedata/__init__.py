@@ -7,6 +7,7 @@ from skills import Skill
 class SaveData:
   place: str
   sp: int
+  time: int
   gold: int
   items: list[Item]
   skills: list[Skill]
@@ -18,7 +19,6 @@ def load(path):
     data = json.loads(open(path, "r").read())
     return SaveData(**data)
   except OSError:
-    print("Failed to load data at \"{}\"".format(path))
     return None
 
 def save(path, data):

@@ -34,3 +34,4 @@ class Bg:
     t = bg.time % bg.PERIOD / bg.PERIOD
     x = -t * tile_size
     surface.blit(bg.surface, (x, x))
+    bg.update()

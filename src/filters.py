@@ -1,4 +1,4 @@
-from pygame import Surface, PixelArray
+from pygame import Surface, PixelArray, SRCALPHA
 import palette
 
 def darken(surface):
@@ -31,7 +31,7 @@ def replace_color(surface, old_color, new_color):
 
 def outline(surface, color):
   width, height = surface.get_size()
-  new_surface = Surface((width + 2, height + 2)).convert_alpha()
+  new_surface = Surface((width + 2, height + 2), SRCALPHA)
   recolored_surface = recolor(surface, color)
   for y in range(3):
     for x in range(3):
@@ -43,7 +43,7 @@ def outline(surface, color):
 
 def stroke(surface, color):
   width, height = surface.get_size()
-  new_surface = Surface((width + 2, height + 2)).convert_alpha()
+  new_surface = Surface((width + 2, height + 2), SRCALPHA)
   recolored_surface = recolor(surface, color)
   new_surface.blit(recolored_surface, (0, 1))
   new_surface.blit(recolored_surface, (1, 0))
@@ -54,10 +54,18 @@ def stroke(surface, color):
 
 def shadow(surface, color):
   width, height = surface.get_size()
-  new_surface = Surface((width + 1, height + 1)).convert_alpha()
+  new_surface = Surface((width + 1, height + 1), SRCALPHA)
   recolored_surface = recolor(surface, color)
   new_surface.blit(recolored_surface, (1, 0))
   new_surface.blit(recolored_surface, (1, 1))
   new_surface.blit(recolored_surface, (0, 1))
+  new_surface.blit(surface, (0, 0))
+  return new_surface
+
+def shadow_lite(surface, color):
+  width, height = surface.get_size()
+  new_surface = Surface((width + 1, height + 1), SRCALPHA)
+  recolored_surface = recolor(surface, color)
+  new_surface.blit(recolored_surface, (1, 1))
   new_surface.blit(surface, (0, 0))
   return new_surface
