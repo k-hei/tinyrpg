@@ -7,47 +7,55 @@ from assets import load as use_assets
 from config import TILE_SIZE
 from sprite import Sprite
 
-from contexts.nameentry import NameEntryContext
 from contexts.prompt import PromptContext, Choice
+from contexts.nameentry import NameEntryContext
+from contexts.load import LoadContext
 
 class CentralArea(Area):
   def __init__(area):
     super().__init__()
 
   def init(area, town):
-    genie = Genie(name="Doshin", messages=[
-      lambda town: [
-        ("Doshin", "Hail, traveler!"),
-        PromptContext("How fares the exploration?", (
+    prompt = lambda: PromptContext("How fares the exploration?", (
+      Choice("Manage data"),
+      Choice("Change name"),
+      Choice("Nothing")
+    ), required=True, on_close=lambda choice: (
+      choice.text == "Manage data" and [
+        lambda: PromptContext("What would you like to do?", (
           Choice("Load data"),
           Choice("Save data"),
-          Choice("Change name"),
           Choice("Nothing")
         ), required=True, on_close=lambda choice: (
           choice.text == "Load data" and [
-            (None, "Save data loaded successfully."),
-            lambda: town.parent.dissolve(on_clear=town.parent.load)
+            lambda: LoadContext(on_close=lambda savedata: savedata and town.parent.load(savedata))
           ] or choice.text == "Save data" and [
             ("Doshin", "Sorry, we're still working on this feature!")
-          ] or choice.text == "Change name" and [
-            ("Doshin", "Hm? A name change?"),
-            ("Doshin", "Awfully finnicky, aren't we?"),
-            lambda: NameEntryContext(
-              char=town.hero.core,
-              on_close=lambda name: (
-                name != town.hero.core.name and (
-                  town.hero.core.rename(name),
-                  ("Doshin", lambda: ("Oho! So your name is ", town.hero.core.token(), ".")),
-                  ("Doshin", ". . . . ."),
-                  ("Doshin", "...Well, it's certainly something.")
-                ) or (
-                  ("Doshin", "Oh, changed your mind?"),
-                  ("Doshin", "Well, if we ever figure out our little identity crisis, you know where to find me.")
-                )
-              )
-            )
-          ] or choice.text == "Nothing" and []
+          ] or choice.text == "Nothing" and [prompt]
         ))
+      ] or choice.text == "Change name" and [
+        ("Doshin", "Hm? A name change?"),
+        ("Doshin", "Awfully finnicky, aren't we?"),
+        lambda: NameEntryContext(
+          char=town.hero.core,
+          on_close=lambda name: (
+            name != town.hero.core.name and (
+              town.hero.core.rename(name),
+              ("Doshin", lambda: ("Oho! So your name is ", town.hero.core.token(), ".")),
+              ("Doshin", ". . . . ."),
+              ("Doshin", "...Well, it's certainly something.")
+            ) or (
+              ("Doshin", "Oh, changed your mind?"),
+              ("Doshin", "Well, if we ever figure out our little identity crisis, you know where to find me.")
+            )
+          )
+        )
+      ] or choice.text == "Nothing" and []
+    ))
+    genie = Genie(name="Doshin", messages=[
+      lambda town: [
+        ("Doshin", "Hail, traveler!"),
+        prompt
       ]
     ])
     genie.x = 32

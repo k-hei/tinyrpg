@@ -44,7 +44,7 @@ class Banner:
       x -= text_image.get_width()
       y = Banner.PADDING_Y
       banner_image.blit(text_image, (x, y))
-      icon_image = assets.sprites["button-" + button]
+      icon_image = assets.sprites["button_" + button]
       icon_image = replace_color(icon_image, BLACK, BLUE)
       x -= Banner.SPACING_TEXT + icon_image.get_width()
       y = banner_height // 2 - icon_image.get_height() // 2 - 1

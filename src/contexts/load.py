@@ -5,8 +5,10 @@ from pygame import Surface, Rect, SRCALPHA
 from pygame.transform import flip, scale
 from contexts import Context
 from contexts.prompt import PromptContext, Choice
+from contexts.dialogue import DialogueContext
 from comps.bg import Bg
 from comps.banner import Banner
+from comps.log import Log
 from config import WINDOW_SIZE
 from assets import load as use_assets
 from palette import BLACK, WHITE, GOLD, BLUE, YELLOW
@@ -135,8 +137,8 @@ class LoadContext(Context):
   HAND_PERIOD = 30
   HAND_AMP = 2
 
-  def __init__(ctx):
-    super().__init__()
+  def __init__(ctx, on_close=None):
+    super().__init__(on_close=on_close)
     ctx.index = 0
     ctx.slots = [
       Slot(1, savedata.load("src/data0.json")),
@@ -175,6 +177,12 @@ class LoadContext(Context):
         delay=i * 2,
         target=i
       ))
+    for i, slot in enumerate(ctx.slots):
+      ctx.anims.append(EnterAnim(
+        duration=30,
+        delay=i * 7,
+        target=slot
+      ))
 
   def handle_move(ctx, delta):
     old_index = ctx.index
@@ -186,12 +194,19 @@ class LoadContext(Context):
       return False
 
   def handle_load(ctx):
-    if ctx.slots[ctx.index].data is None:
+    savedata = ctx.slots[ctx.index].data
+    if savedata is None:
       return False
     ctx.open(PromptContext("Load this file?", [
       Choice("Yes"),
       Choice("No", closing=True)
-    ]))
+    ], on_close=lambda choice:
+      choice.text == "Yes" and ctx.open(DialogueContext(
+        lite=True,
+        script=["Save data loaded successfully."],
+        on_close=lambda: ctx.get_root().dissolve(on_clear=lambda: ctx.close(savedata))
+      ))
+    ))
 
   def handle_delete(ctx):
     if ctx.slots[ctx.index].data is None:
@@ -242,10 +257,19 @@ class LoadContext(Context):
     slot_y = ctx.SLOT_Y
 
     for i, slot in enumerate(ctx.slots):
-      slot_image = slot.render()
+      slot_image = slot.cache_surface
+      slot_anim = next((a for a in ctx.anims if a.target is slot), None)
+      from_x = -slot_image.get_width()
+      to_x = slot_x
+      if slot_anim:
+        t = slot_anim.pos
+        t = ease_out(t)
+        x = lerp(from_x, to_x, t)
+      else:
+        x = to_x
       if i != ctx.index:
         slot_image = darken(slot_image)
-      surface_clip.blit(slot_image, (slot_x, slot_y))
+      surface_clip.blit(slot_image, (x, slot_y))
       slot_y += slot_image.get_height() + ctx.SLOT_SPACING
 
     titlebg_anim = next((a for a in ctx.anims if a.target == "TitleBg"), None)
@@ -280,7 +304,8 @@ class LoadContext(Context):
     else:
       ctx.hand_y += (hand_y - ctx.hand_y) / 4
 
-    if not char_anims and ctx.child is None:
+    anims = [a for a in ctx.anims if type(a) is not TitleEnterAnim]
+    if not anims and ctx.child is None and not ctx.get_root().transits:
       surface_clip.blit(hand_image, (hand_x, ctx.hand_y))
       if not ctx.banner.active:
         ctx.banner.enter()

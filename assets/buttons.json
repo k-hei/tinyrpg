@@ -1,8 +1,8 @@
 {
-  "button-a":      [ 0,  0, 11, 13],
-  "button-b":      [11,  0, 11, 13],
-  "button-x":      [22,  0, 11, 13],
-  "button-y":      [33,  0, 11, 13],
-  "button-select": [ 0, 13, 29, 13],
-  "button-start":  [ 0, 26, 25, 13]
+  "button_a":      [ 0,  0, 11, 13],
+  "button_b":      [11,  0, 11, 13],
+  "button_x":      [22,  0, 11, 13],
+  "button_y":      [33,  0, 11, 13],
+  "button_select": [ 0, 13, 29, 13],
+  "button_start":  [ 0, 26, 25, 13]
 }

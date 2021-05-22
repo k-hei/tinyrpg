@@ -3,6 +3,7 @@ import pygame
 import keyboard
 import assets
 from contexts import Context
+from transits.dissolve import DissolveIn, DissolveOut
 from config import (
   FPS, WINDOW_SIZE, WINDOW_SCALE_INIT, WINDOW_SCALE_MAX,
   ASSETS_PATH
@@ -10,6 +11,7 @@ from config import (
 
 class App(Context):
   def __init__(app, title="Untitled", context=None):
+    super().__init__()
     app.title = title
     app.child = context
     app.child_init = context
@@ -18,6 +20,7 @@ class App(Context):
     app.scale = 0
     app.surface = None
     app.display = None
+    app.transits = []
     app.done = False
 
   def init(app):
@@ -44,6 +47,7 @@ class App(Context):
       super().open(child, on_close=app.close)
 
   def close(app, data=None):
+    print(data)
     app.done = True
 
   def reload(app):
@@ -76,8 +80,29 @@ class App(Context):
   def render(app):
     app.surface.fill(0)
     app.draw(app.surface)
+    if app.transits:
+      transit = app.transits[0]
+      if transit.done:
+        app.transits.remove(transit)
+      transit.update()
+      transit.draw(app.surface)
     app.display.blit(pygame.transform.scale(app.surface, app.size_scaled), (0, 0))
     pygame.display.flip()
+
+  def dissolve(ctx, on_clear, on_end=None):
+    ctx.transits.append(DissolveIn(WINDOW_SIZE, on_clear))
+    ctx.transits.append(DissolveOut(WINDOW_SIZE, on_end))
+
+  def print_contexts(ctx):
+    contexts = []
+    root = ctx
+    while ctx.child:
+      contexts.append(ctx)
+      ctx = ctx.child
+    if ctx is not root:
+      contexts.append(ctx)
+    print(contexts)
+    return True
 
   def handle_events(app):
     for event in pygame.event.get():
@@ -95,18 +120,24 @@ class App(Context):
     ctrl = (
       keyboard.get_pressed(pygame.K_LCTRL)
       or keyboard.get_pressed(pygame.K_RCTRL)
-    ) and tapping
-    shift = (
-      keyboard.get_pressed(pygame.K_LSHIFT)
-      or keyboard.get_pressed(pygame.K_RSHIFT)
-    ) and tapping
+    )
 
     if key == pygame.K_MINUS and ctrl:
-      return app.rescale(app.scale - 1)
+      if tapping:
+        app.rescale(app.scale - 1)
+      return
     if key == pygame.K_EQUALS and ctrl:
-      return app.rescale(app.scale + 1)
+      if tapping:
+        app.rescale(app.scale + 1)
+      return
     if key == pygame.K_r and ctrl:
-      return app.reload()
+      if tapping:
+        app.reload()
+      return
+    if key == pygame.K_a and ctrl:
+      if tapping:
+        app.print_contexts()
+      return
     if app.child:
       return app.child.handle_keydown(key)
 

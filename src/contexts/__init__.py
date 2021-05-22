@@ -7,6 +7,12 @@ class Context:
     ctx.child = None
     ctx.comps = []
 
+  def get_root(ctx):
+    if ctx.parent:
+      return ctx.parent.get_root()
+    else:
+      return ctx
+
   def handle_keydown(ctx, key):
     if ctx.child:
       return ctx.child.handle_keydown(key)
@@ -59,7 +65,8 @@ class Context:
     return True
 
   def update(ctx):
-    pass
+    if ctx.child:
+      ctx.child.update()
 
   def draw(ctx, surface):
     if ctx.child:

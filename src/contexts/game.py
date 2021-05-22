@@ -38,12 +38,14 @@ class GameContext(Context):
     ctx.selected_skills = {}
     ctx.seeds = []
     ctx.debug = False
-    if savedata:
-      ctx.load(savedata)
+
+  def init(ctx):
+    ctx.load()
 
   def load(ctx, savedata=None):
     if savedata is None:
       savedata = ctx.savedata
+
     ctx.sp = savedata.sp
     ctx.gold = savedata.gold
     ctx.inventory.items = list(map(resolve_item, savedata.items))

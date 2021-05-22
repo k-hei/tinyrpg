@@ -24,20 +24,28 @@ class DialogueContext(Context):
   BAR_ENTER_DURATION = 15
   BAR_EXIT_DURATION = 7
 
-  def __init__(ctx, script, on_close=None):
+  def __init__(ctx, script, lite=False, on_close=None):
     super().__init__(on_close=on_close)
     ctx.script = list(script)
+    ctx.lite = lite
     ctx.index = 0
     ctx.name = None
     ctx.log = Log(autohide=False)
+    ctx.anim = None
     ctx.enter()
 
   def enter(ctx):
-    ctx.anim = EnterAnim(duration=ctx.BAR_ENTER_DURATION, on_end=ctx.print)
+    if ctx.lite:
+      ctx.print()
+    else:
+      ctx.anim = EnterAnim(duration=ctx.BAR_ENTER_DURATION, on_end=ctx.print)
 
   def exit(ctx):
-    ctx.anim = ExitAnim(duration=ctx.BAR_EXIT_DURATION, on_end=ctx.close)
-    ctx.log.exit()
+    if ctx.lite:
+      ctx.log.exit(on_end=ctx.close)
+    else:
+      ctx.anim = ExitAnim(duration=ctx.BAR_EXIT_DURATION, on_end=ctx.close)
+      ctx.log.exit()
 
   def print(ctx, item=None):
     if item is None:
@@ -49,7 +57,7 @@ class DialogueContext(Context):
     if isinstance(item, Context):
       ctx.name = None
       ctx.open(item, on_close=lambda next: (
-        ctx.script.extend(next),
+        next and ctx.script.extend(next),
         ctx.handle_next()
       ))
       if "log" in dir(ctx.child):
@@ -110,8 +118,9 @@ class DialogueContext(Context):
       elif type(anim) is ExitAnim:
         t = 1 - t
       bar_height *= t
-    pygame.draw.rect(surface, BLACK, Rect(0, 0, surface.get_width(), bar_height))
-    pygame.draw.rect(surface, BLACK, Rect(0, surface.get_height() - bar_height + 1, surface.get_width(), bar_height))
+    if not ctx.lite:
+      pygame.draw.rect(surface, BLACK, Rect(0, 0, surface.get_width(), bar_height))
+      pygame.draw.rect(surface, BLACK, Rect(0, surface.get_height() - bar_height + 1, surface.get_width(), bar_height))
 
     if not ctx.child or not "log" in dir(ctx.child):
       ctx.log.update()
