@@ -129,7 +129,7 @@ class DungeonContext(Context):
       game.refresh_fov()
 
   def get_floor_no(game):
-    return len(game.floors) + 1
+    return next((i for i, f in enumerate(game.floors) if f is game.floor), 0) + 1
 
   def create_floor(game):
     floor_no = game.get_floor_no()

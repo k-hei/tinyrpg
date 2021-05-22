@@ -175,9 +175,12 @@ class InventoryContext(Context):
   def handle_choose(ctx):
     ctx.open(ChoiceContext(choices=[
       Choice(text="Use"),
-      Choice(text="Discard")
-    ], on_close=lambda choice: (
+      Choice(text="Discard", closing=True)
+    ], on_choose=lambda choice: (
       choice.text == "Use" and ctx.use()
+      or choice.text == "Discard" and True
+    ), on_close=lambda choice: (
+      choice is None and True
       or choice.text == "Discard" and ctx.discard()
     )))
 

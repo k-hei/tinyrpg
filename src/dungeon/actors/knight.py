@@ -25,11 +25,12 @@ class Knight(DungeonActor):
           ][anim.time % anim.duration // (anim.duration // 4)]
           break
         if knight.facing == (0, 1):
-          sprite = sprites["knight_down"]
-          if anim.time % (anim.duration // 2) >= anim.duration // 4:
-            sprite = sprites["knight_walkdown"]
-          if anim.time % anim.duration >= anim.duration // 2:
-            sprite = pygame.transform.flip(sprite, True, False)
+          sprite = [
+            sprites["knight_down"],
+            sprites["knight_walkdown0"],
+            sprites["knight_down"],
+            sprites["knight_walkdown1"]
+          ][anim.time % anim.duration // (anim.duration // 4)]
           break
         elif anim.time % (anim.duration // 2) >= anim.duration // 4:
           sprite = sprites["knight_walk"]

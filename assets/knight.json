@@ -1,10 +1,13 @@
 {
-  "knight":          [ 0,  0, 32, 32],
-  "knight_walk":     [32,  0, 32, 32],
-  "knight_down":     [ 0, 32, 32, 32],
-  "knight_walkdown": [32, 32, 32, 32],
-  "knight_up":       [ 0, 64, 32, 32],
-  "knight_walkup0":  [32, 64, 32, 32],
-  "knight_walkup1":  [64, 64, 32, 32],
-  "knight_flinch":   [64,  0, 32, 32]
+  "knight":           [ 0,  0, 32, 32],
+  "knight_walk":      [32,  0, 32, 32],
+  "knight_down":      [ 0, 32, 32, 32],
+  "knight_walkdown":  [32, 32, 32, 32],
+  "knight_walkdown0": [32, 32, 32, 32],
+  "knight_walkdown1": [64, 32, 32, 32],
+  "knight_up":        [ 0, 64, 32, 32],
+  "knight_walkup":    [32, 64, 32, 32],
+  "knight_walkup0":   [32, 64, 32, 32],
+  "knight_walkup1":   [64, 64, 32, 32],
+  "knight_flinch":    [64,  0, 32, 32]
 }

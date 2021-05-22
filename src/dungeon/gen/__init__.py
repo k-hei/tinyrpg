@@ -41,6 +41,7 @@ from items.sp.bread import Bread
 from items.sp.fish import Fish
 from items.dungeon.balloon import Balloon
 from items.dungeon.emerald import Emerald
+from items.dungeon.key import Key
 from items.ailment.antidote import Antidote
 
 from skills.support.counter import Counter
@@ -513,7 +514,7 @@ def gen_floor(seed=None):
 
   key_room = choice(empty_rooms)
   empty_rooms.remove(key_room)
-  stage.spawn_elem(Chest(Potion), key_room.get_center())
+  stage.spawn_elem(Chest(Key), key_room.get_center())
 
   genie = Genie(name="Joshin", script=(
     ("Joshin", "Pee pee poo poo"),

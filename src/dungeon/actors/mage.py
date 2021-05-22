@@ -25,11 +25,12 @@ class Mage(DungeonActor):
           ][anim.time % anim.duration // (anim.duration // 4)]
           break
         elif mage.facing == (0, 1):
-          sprite = sprites["mage_down"]
-          if anim.time % (anim.duration // 2) >= anim.duration // 4:
-            sprite = sprites["mage_walkdown"]
-          if anim.time % anim.duration >= anim.duration // 2:
-            sprite = pygame.transform.flip(sprite, True, False)
+          sprite = [
+            sprites["mage_down"],
+            sprites["mage_walkdown0"],
+            sprites["mage_down"],
+            sprites["mage_walkdown1"]
+          ][anim.time % anim.duration // (anim.duration // 4)]
           break
         elif anim.time % (anim.duration // 2) >= anim.duration // 4:
           sprite = sprites["mage_walk"]

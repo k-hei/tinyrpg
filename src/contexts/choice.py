@@ -49,7 +49,6 @@ class ChoiceContext(Context):
     ))
 
   def exit(ctx):
-    print("exit")
     ctx.exiting = True
     ctx.anims.append(TweenAnim(
       duration=EXIT_DURATION,
@@ -88,10 +87,10 @@ class ChoiceContext(Context):
 
   def choose(ctx):
     choice = ctx.choices[ctx.index]
+    ctx.choice = choice
     if choice.closing:
       ctx.exit()
     else:
-      ctx.choice = choice
       ctx.anims.append(FlickerAnim(
         duration=45,
         target="cursor",
