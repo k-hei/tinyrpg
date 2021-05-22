@@ -18,5 +18,5 @@ class Caladbolg(RareWeapon):
     (2, 1),
   )
 
-  def render():
+  def render(item=None):
     return use_assets().sprites["icon16_sword"]

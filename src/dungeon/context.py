@@ -582,7 +582,7 @@ class DungeonContext(Context):
               ChestAnim(
                 duration=30,
                 target=chest,
-                item=item,
+                item=item(),
                 on_end=chest.open
               )
             ])
@@ -998,24 +998,25 @@ class DungeonContext(Context):
       ))
 
   def use_item(game, item):
-    success, message = item.use(game)
+    game.anims.append([
+      ItemAnim(
+        duration=30,
+        target=game.hero,
+        item=item()
+      ),
+      PauseAnim(
+        duration=60,
+        on_end=game.step
+      ),
+    ])
+    success, message = item.use(item, game)
     if success:
-      game.log.print(("Used ", item.token()))
+      game.log.print(("Used ", item.token(item)))
       game.log.print(message)
       game.parent.inventory.items.remove(item)
-      game.anims.append([
-        ItemAnim(
-          duration=30,
-          target=game.hero,
-          item=item
-        ),
-        PauseAnim(
-          duration=60,
-          on_end=game.step
-        ),
-      ])
       return True, None
     else:
+      game.anims.pop()
       return False, message
 
   def use_skill(game, actor, skill, dest=None):

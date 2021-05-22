@@ -176,7 +176,7 @@ class InventoryContext(Context):
     ctx.open(ChoiceContext(choices=[
       Choice(text="Use"),
       Choice(text="Discard")
-    ], on_choose=lambda choice, close: (
+    ], on_close=lambda choice: (
       choice.text == "Use" and ctx.use()
       or choice.text == "Discard" and ctx.discard()
     )))
@@ -279,7 +279,7 @@ class InventoryContext(Context):
         surface.blit(sprite, (x, y))
         item = ctx.get_item_at(cell)
         if item and not anim:
-          surface.blit(item.render(), (x, y))
+          surface.blit(item().render(), (x, y))
 
     # cursor
     cursor_col, cursor_row = ctx.cursor
@@ -300,8 +300,9 @@ class InventoryContext(Context):
     if type(ctx.child) is ChoiceContext:
       start_x = cursor_x
       target_x = cursor_x + tile_width + 4
-      if ctx.child.anims:
-        t = ctx.child.anims[0].pos
+      anim = next((a for a in ctx.child.anims if type(a) is TweenAnim), None)
+      if anim:
+        t = anim.pos
         if not ctx.child.exiting:
           t = ease_out(t)
         else:

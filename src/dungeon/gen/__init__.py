@@ -501,6 +501,10 @@ def gen_floor(seed=None):
 
   stage.rooms = empty_rooms + feature_list
   empty_leaves = [n for n in empty_rooms if tree.degree(n) == 1]
+  if not empty_leaves:
+    debug("No empty leaves to spawn at")
+    return gen_floor()
+
   entry_room = choice(empty_leaves)
   empty_rooms.remove(entry_room)
   center_x, center_y = entry_room.get_center()

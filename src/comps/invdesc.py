@@ -33,7 +33,7 @@ class InventoryDescription:
   def print(box, data):
     box.clear()
     if type(data) is str or type(data) is tuple:
-      box.message = Message(*data)
+      box.message = Message(data)
     else:
       box.message = data
 

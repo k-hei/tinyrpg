@@ -49,6 +49,7 @@ class ChoiceContext(Context):
     ))
 
   def exit(ctx):
+    print("exit")
     ctx.exiting = True
     ctx.anims.append(TweenAnim(
       duration=EXIT_DURATION,

@@ -18,5 +18,5 @@ class Longinus(RareWeapon):
     (1, 2)
   )
 
-  def render():
+  def render(item=None):
     return use_assets().sprites["icon16_lance"]

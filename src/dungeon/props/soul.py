@@ -4,9 +4,10 @@ from anims.frame import FrameAnim
 from anims.pause import PauseAnim
 from filters import replace_color
 from comps.skill import Skill
+from contexts.dialogue import DialogueContext
 from vfx import Vfx
+from random import random, randint, randrange, choice
 import palette
-import random
 import math
 import config
 
@@ -23,7 +24,7 @@ class Soul(Prop):
   def __init__(soul, skill=None):
     super().__init__(solid=False)
     soul.skill = skill
-    soul.time = random.randrange(0, Soul.ANIM_SWIVEL_PERIOD)
+    soul.time = randrange(0, Soul.ANIM_SWIVEL_PERIOD)
     soul.obtaining = False
     soul.pos = (0, 0)
     soul.norm = (0, 0)
@@ -32,10 +33,17 @@ class Soul(Prop):
     soul.on_end = None
 
   def obtain(soul, game):
-    game.learn_skill(soul.skill)
-    game.log.print(("Obtained skill ", soul.skill().token(), "!"))
-    game.log.print("Equip it with the CUSTOM menu (press 'B').")
     game.floor.elems.remove(soul)
+    game.learn_skill(soul.skill)
+    game.open(
+      DialogueContext(
+        lite=True,
+        script=[
+          (None, ("Obtained skill ", soul.skill().token(), "!")),
+          "Equip it with the CUSTOM menu (press 'B')."
+        ]
+      )
+    )
 
   def burst(soul, game):
     col, row = soul.cell
@@ -52,27 +60,27 @@ class Soul(Prop):
     ))
     r = 0
     while r < 2 * math.pi:
-      r += math.pi / 4 * random.random()
+      r += math.pi / 4 * random()
       norm_x = math.cos(r)
       norm_y = math.sin(r)
       start_x = x + norm_x * 16
       start_y = y + norm_y * 16
-      vel_x = norm_x * random.random() * 2
-      vel_y = norm_y * random.random() * 2
-      kind = random.choice(("spark", "smallspark"))
+      vel_x = norm_x * random() * 2
+      vel_y = norm_y * random() * 2
+      kind = choice(("spark", "smallspark"))
       game.vfx.append(Vfx(
         kind=kind,
         pos=(start_x, start_y),
         vel=(vel_x, vel_y),
         color=soul.skill.color,
         anim=FrameAnim(
-          duration=random.randint(15, 45),
+          duration=randint(15, 45),
           frame_count=3
         )
       ))
 
   def effect(soul, game):
-    r = 2 * math.pi * random.random()
+    r = 2 * math.pi * random()
     soul.norm = (math.cos(r), math.sin(r))
     soul.vel = Soul.BOUNCE_AMP
     soul.obtaining = soul.time
@@ -81,6 +89,8 @@ class Soul(Prop):
       soul.obtain(game)
     )
     game.anims.append([ PauseAnim(duration=180) ])
+    if game.log.active:
+      game.log.exit()
 
   def update(soul, vfx):
     soul.time += 1
@@ -98,11 +108,11 @@ class Soul(Prop):
       ty = soul.time % Soul.ANIM_FLOAT_PERIOD / Soul.ANIM_FLOAT_PERIOD
       pos_x = math.cos(math.pi * 2 * tx) * Soul.ANIM_SWIVEL_AMP
       pos_y = math.sin(math.pi * 2 * ty) * Soul.ANIM_FLOAT_AMP
-      if soul.time % random.randint(30, 45) == 0:
+      if soul.time % randint(30, 45) == 0:
         col, row = soul.cell
-        x = col * config.TILE_SIZE + pos_x + random.random()
-        y = row * config.TILE_SIZE + pos_y + random.random() + 2
-        kind = random.choice(("spark", "smallspark"))
+        x = col * config.TILE_SIZE + pos_x + random()
+        y = row * config.TILE_SIZE + pos_y + random() + 2
+        kind = choice(("spark", "smallspark"))
         vfx.append(Vfx(
           kind=kind,
           pos=(x, y),
@@ -117,8 +127,8 @@ class Soul(Prop):
 
   def render(soul, anims):
     sprites = use_assets().sprites
-    if not soul.obtaining and soul.time % 2:
-      return None
+    # if not soul.obtaining and soul.time % 2:
+    #   return None
     delay = Soul.ANIM_PERIOD // Soul.ANIM_FRAMES
     frame = soul.time % Soul.ANIM_PERIOD // delay
     frame = min(Soul.ANIM_FRAMES - 1, frame)
