@@ -132,6 +132,9 @@ class DungeonContext(Context):
   def get_floor_no(game):
     return next((i for i, f in enumerate(game.floors) if f is game.floor), 0) + 1
 
+  def get_inventory(game):
+    return game.parent.inventory.items
+
   def create_floor(game):
     floor_no = game.get_floor_no()
     floor = gen.gen_floor(seed=config.SEED)

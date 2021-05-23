@@ -88,6 +88,12 @@ class Stage:
       return False
     return True
 
+  def is_cell_opaque(stage, cell):
+    if stage.get_tile_at(cell).opaque:
+      return True
+    elem = stage.get_elem_at(cell)
+    return elem and elem.opaque
+
   def get_elem_at(stage, cell):
     return next((e for e in stage.elems if e.cell == cell), None)
 

@@ -31,6 +31,8 @@ from dungeon.actors.genie import Genie
 
 from dungeon.props.chest import Chest
 from dungeon.props.door import Door
+from dungeon.props.battledoor import BattleDoor
+from dungeon.props.treasuredoor import TreasureDoor
 from dungeon.props.coffin import Coffin
 from dungeon.props.soul import Soul
 
@@ -286,7 +288,13 @@ class Floor:
     if doorway_cell:
       stage.set_tile_at(doorway_cell, stage.DOOR_WAY)
     stage.set_tile_at(door_cell, stage.FLOOR) # tile)
-    stage.spawn_elem(Door(), door_cell)
+    if type(room) is BattleRoom:
+      door = BattleDoor()
+    elif type(room) is TreasureRoom:
+      door = TreasureDoor()
+    else:
+      door = Door()
+    stage.spawn_elem(door, door_cell)
 
   def connect(floor):
     graph = floor.graph
@@ -478,7 +486,11 @@ def gen_floor(seed=None):
   # draw doors
   doors = []
   for (n1, n2), conns in tree.conns.items():
-    if isinstance(n1, Room):
+    if n1.secret or tree.degree(n1) == 1:
+      room = n1
+    elif n2.secret or tree.degree(n2) == 1:
+      room = n2
+    elif isinstance(n1, Room):
       room = n1
     elif isinstance(n2, Room):
       room = n2

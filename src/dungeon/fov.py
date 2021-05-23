@@ -40,7 +40,7 @@ def cast_octant(stage, start, vision, octant):
       if not visible:
         continue
       cells.append(cell)
-      if not stage.get_tile_at(cell).opaque:
+      if not stage.is_cell_opaque(cell):
         continue
       index = 0
       while index < len(shadows):

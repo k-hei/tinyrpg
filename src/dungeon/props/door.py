@@ -1,14 +1,27 @@
+from dataclasses import dataclass
 from dungeon.props import Prop
 from assets import load as use_assets
 from anims.frame import FrameAnim
 from palette import WHITE, SAFFRON
 from filters import replace_color
 
+@dataclass
+class SpriteMap:
+  closed: str
+  opened: str
+  opening_frames: list[str]
+
 class DoorAnim(FrameAnim): pass
 
 class Door(Prop):
+  sprites = SpriteMap(
+    closed="door_puzzle",
+    opened="door_puzzle_open",
+    opening_frames=["door_puzzle", "door_puzzle_opening", "door_puzzle_open"]
+  )
+
   def __init__(door):
-    super().__init__()
+    super().__init__(solid=True, opaque=True)
     door.opened = False
 
   def effect(door, game):
@@ -17,7 +30,7 @@ class Door(Prop):
       anim_group = [
         DoorAnim(
           duration=30,
-          frames=["door_puzzle", "door_puzzle_opening", "door_puzzle_open"],
+          frames=door.sprites.opening_frames,
           target=door
         )
       ]
@@ -44,8 +57,8 @@ class Door(Prop):
         break
     else:
       if door.opened and not will_open:
-        sprite = sprites["door_puzzle_open"]
+        sprite = sprites[door.sprites.opened]
       else:
-        sprite = sprites["door_puzzle"]
+        sprite = sprites[door.sprites.closed]
     sprite = replace_color(sprite, WHITE, SAFFRON)
     return sprite
