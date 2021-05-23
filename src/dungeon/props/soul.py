@@ -55,7 +55,7 @@ class Soul(Prop):
       color=soul.skill.color,
       anim=FrameAnim(
         duration=15,
-        frame_count=5
+        frames=["fx_burst0", "fx_burst1", "fx_burst2", "fx_burst3", "fx_burst4"]
       )
     ))
     r = 0
@@ -75,7 +75,11 @@ class Soul(Prop):
         color=soul.skill.color,
         anim=FrameAnim(
           duration=randint(15, 45),
-          frame_count=3
+          frames=[
+            "fx_{}0".format(kind),
+            "fx_{}1".format(kind),
+            "fx_{}2".format(kind)
+          ]
         )
       ))
 
@@ -120,7 +124,11 @@ class Soul(Prop):
           color=soul.skill.color,
           anim=FrameAnim(
             duration=60,
-            frame_count=3
+            frames=[
+              "fx_{}0".format(kind),
+              "fx_{}1".format(kind),
+              "fx_{}2".format(kind)
+            ]
           )
         ))
     soul.pos = (pos_x, pos_y)

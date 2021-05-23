@@ -53,13 +53,22 @@ class Blitzritter(AttackSkill):
       far_y = far_row * TILE_SIZE
       far_pos = (far_x, far_y)
 
+      impact_frames = [
+        "fx_impact0",
+        "fx_impact1",
+        "fx_impact2",
+        "fx_impact3",
+        "fx_impact4",
+        "fx_impact5",
+        "fx_impact6"
+      ]
       game.vfx.extend([
         Vfx(
           kind="impact",
           pos=near_pos,
           anim=FrameAnim(
             duration=20,
-            frame_count=7
+            frames=impact_frames
           )
         ),
         Vfx(
@@ -68,7 +77,7 @@ class Blitzritter(AttackSkill):
           anim=FrameAnim(
             duration=20,
             delay=10,
-            frame_count=7
+            frames=impact_frames
           )
         )
       ])

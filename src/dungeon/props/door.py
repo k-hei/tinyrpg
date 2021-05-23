@@ -14,7 +14,13 @@ class Door(Prop):
   def effect(door, game):
     if not door.opened:
       door.open()
-      anim_group = [DoorAnim(duration=30, frame_count=3, target=door)]
+      anim_group = [
+        DoorAnim(
+          duration=30,
+          frames=["door_puzzle", "door_puzzle_opening", "door_puzzle_open"],
+          target=door
+        )
+      ]
       if len(game.anims):
         game.anims[-1] += anim_group
       else:
@@ -34,12 +40,7 @@ class Door(Prop):
     anim_group = [a for a in anims[0] if a.target is door] if anims else []
     for anim in anim_group:
       if type(anim) is DoorAnim:
-        sprite_id = [
-          "door_puzzle",
-          "door_puzzle_opening",
-          "door_puzzle_open"
-        ][anim.frame]
-        sprite = sprites[sprite_id]
+        sprite = sprites[anim.frame]
         break
     else:
       if door.opened and not will_open:

@@ -1,33 +1,18 @@
-import math
+from anims import Anim
 
-class FrameAnim:
-  def __init__(anim, duration, frame_count, delay=0, target=None, on_start=None, on_end=None):
-    anim.duration = duration
-    anim.frame_count = frame_count
-    anim.delay = delay
-    anim.target = target
-    anim.on_start = on_start
-    anim.on_end = on_end
-    anim.frame = 0
-    anim.done = False
-    anim.time = -delay
+class FrameAnim(Anim):
+  def __init__(anim, duration, frames, delay=0, target=None, on_start=None, on_end=None):
+    super().__init__(duration, delay, target, on_start, on_end)
+    anim.frames = frames
+    anim.frame = frames[0]
 
   def update(anim):
+    time = super().update()
     if anim.done:
-      return -1
-    if anim.time == 0:
-      if anim.on_start:
-        anim.on_start()
-    anim.time += 1
-    if anim.time == anim.duration:
-      anim.done = True
-      if anim.on_end:
-        anim.on_end()
-    if anim.time < 0:
-      return -1
+      return anim.frames[-1]
     t = anim.time / anim.duration
-    delay = anim.duration // anim.frame_count
-    frame = anim.time // delay
-    frame = min(anim.frame_count - 1, frame)
+    frame_duration = anim.duration / len(anim.frames)
+    frame_index = int(anim.time / frame_duration)
+    frame = anim.frames[frame_index]
     anim.frame = frame
     return frame

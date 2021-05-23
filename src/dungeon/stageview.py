@@ -285,7 +285,7 @@ class StageView:
         frame = fx.update()
         if frame == -1:
           continue
-        image = assets.sprites["fx_" + fx.kind + str(frame)]
+        image = assets.sprites[frame]
         if fx.color:
           image = replace_color(image, BLACK, fx.color)
       else:
