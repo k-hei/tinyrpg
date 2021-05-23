@@ -34,6 +34,7 @@ from dungeon.actors.npc import Npc
 from cores.knight import KnightCore
 from cores.mage import MageCore
 
+from dungeon.props import Prop
 from dungeon.props.chest import Chest
 from dungeon.props.soul import Soul
 from dungeon.props.coffin import Coffin
@@ -600,6 +601,8 @@ class DungeonContext(Context):
           game.log.print("There's nothing left to take...")
         game.step(run)
         game.refresh_fov()
+      elif isinstance(target_elem, Prop):
+        target_elem.effect(game)
       elif isinstance(target_elem, DungeonActor) and target_elem.ailment == "sleep" and hero.allied(target_elem):
         game.log.exit()
         game.anims[0].append(PauseAnim(

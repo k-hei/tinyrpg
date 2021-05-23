@@ -14,6 +14,7 @@ from dungeon.actors import DungeonActor
 from dungeon.props.chest import Chest
 from dungeon.props.soul import Soul
 from dungeon.props.palm import Palm
+from dungeon.props.door import Door
 
 from anims.move import MoveAnim
 from anims.jump import JumpAnim
@@ -358,7 +359,8 @@ def render_tile(stage, cell, visited_cells=[]):
         if stage.get_tile_at(c) is stage.FLOOR_ELEV:
           elev = 1
           break
-    if tile_below is stage.FLOOR or tile_below is stage.PIT or tile_below is stage.FLOOR_ELEV:
+    if ((tile_below is stage.FLOOR or tile_below is stage.PIT or tile_below is stage.FLOOR_ELEV)
+    and not isinstance(stage.get_elem_at((x, y + 1)), Door)):
       if x % (3 + y % 2) == 0 or tile is stage.DOOR_HIDDEN:
         sprite_name = "wall_torch"
       else:
@@ -419,6 +421,7 @@ def render_wall(stage, cell, visited_cells=[]):
     stage.get_tile_at((x, y)) is stage.DOOR
     or stage.get_tile_at((x, y)) is stage.DOOR_OPEN
     or stage.get_tile_at((x, y)) is stage.DOOR_LOCKED
+    or isinstance(stage.get_elem_at((x, y)), Door)
   )
 
   sprite = Surface((TILE_SIZE, TILE_SIZE)).convert_alpha()

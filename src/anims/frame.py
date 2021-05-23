@@ -8,6 +8,7 @@ class FrameAnim:
     anim.target = target
     anim.on_start = on_start
     anim.on_end = on_end
+    anim.frame = 0
     anim.done = False
     anim.time = -delay
 
@@ -28,4 +29,5 @@ class FrameAnim:
     delay = anim.duration // anim.frame_count
     frame = anim.time // delay
     frame = min(anim.frame_count - 1, frame)
+    anim.frame = frame
     return frame

@@ -30,6 +30,7 @@ from dungeon.actors.npc import Npc
 from dungeon.actors.genie import Genie
 
 from dungeon.props.chest import Chest
+from dungeon.props.door import Door
 from dungeon.props.coffin import Coffin
 from dungeon.props.soul import Soul
 
@@ -264,7 +265,8 @@ class Floor:
   def draw_door(floor, cell, tile=Stage.DOOR, room=None):
     x, y = cell
     stage = floor.stage
-    stage.set_tile_at(cell, tile)
+    door_cell = cell
+    doorway_cell = None
     doorway_offset = 1
     if (stage.get_tile_at((x - 1, y)) is stage.WALL
     and stage.get_tile_at((x + 1, y)) is stage.WALL):
@@ -275,12 +277,16 @@ class Floor:
       elif (stage.get_tile_at((x - 1, y + 1)) is stage.WALL
       and stage.get_tile_at((x + 1, y + 1)) is stage.WALL):
         doorway_offset = 1
-      stage.set_tile_at((x, y + doorway_offset), stage.DOOR_WAY)
+      doorway_cell = (x, y + doorway_offset)
       if room and doorway_offset != -1:
         _, target_y = room.get_center()
         if doorway_offset * (target_y - y) > 0:
-          stage.set_tile_at(cell, stage.DOOR_WAY)
-          stage.set_tile_at((x, y + doorway_offset), tile)
+          doorway_cell = cell
+          door_cell = (x, y + doorway_offset)
+    if doorway_cell:
+      stage.set_tile_at(doorway_cell, stage.DOOR_WAY)
+    stage.set_tile_at(door_cell, stage.FLOOR) # tile)
+    stage.spawn_elem(Door(), door_cell)
 
   def connect(floor):
     graph = floor.graph

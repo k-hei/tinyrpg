@@ -84,7 +84,7 @@ class Minimap:
     sprite_height = lerp(start_height, end_height, t)
     sprite_scale = lerp(start_scale, end_scale, t)
 
-    # requires: game.hero, game.floor, game.memory
+    # requires: game.hero, game.floor, game.memory?
     game = minimap.parent
     hero = game.hero
     start_x, start_y = hero.cell
