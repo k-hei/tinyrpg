@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from pygame import Surface
+from pygame.transform import flip
 
 @dataclass
 class Sprite:
@@ -19,4 +20,8 @@ class Sprite:
     )
 
   def draw(sprite, surface):
-    surface.blit(sprite.image, sprite.pos)
+    image = sprite.image
+    flip_x, flip_y = sprite.flip
+    if flip_x or flip_y:
+      image = flip(image, flip_x, flip_y)
+    surface.blit(image, sprite.pos)

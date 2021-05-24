@@ -1,4 +1,5 @@
 {
-  "town_outskirts": [416, 0, 256, 224],
-  "town_central": [0, 0, 416, 224]
+  "town_outskirts": [672, 0, 256, 224],
+  "town_central": [256, 0, 416, 224],
+  "town_clearing": [0, 0, 256, 224]
 }

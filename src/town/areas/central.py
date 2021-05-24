@@ -1,4 +1,4 @@
-from town.areas import Area
+from town.areas import Area, AreaLink
 from town.actors.genie import Genie
 from town.actors.magenpc import MageNpc
 from cores.mage import MageCore
@@ -62,7 +62,7 @@ class CentralArea(Area):
       ]
     ])
     genie.x = 32
-    genie.facing = 1
+    genie.facing = (1, 0)
     area.actors.append(genie)
 
     if (not town.ally
@@ -85,10 +85,12 @@ class CentralArea(Area):
         ]
       ])
       mage.x = 224
-      mage.facing = 1
+      mage.facing = (1, 0)
       area.actors.append(mage)
 
-    area.exits = [272]
+    area.links = [
+      AreaLink(x=272, direction=(0, -1), target_area="ClearingArea", target_x=112)
+    ]
 
   def render(area, hero):
     nodes = super().render(hero)

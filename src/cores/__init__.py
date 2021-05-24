@@ -78,11 +78,4 @@ class Core:
     elif core.faction == "enemy":
       COLOR = RED
     sprite.image = replace_color(sprite.image, BLACK, COLOR)
-
-    # flip
-    facing_x, facing_y = core.facing
-    if (facing_x == -1 and not sprite.flip[0]
-    or sprite.flip[0] and facing_x != -1):
-      sprite.image = flip(sprite.image, True, False)
-
     return sprite

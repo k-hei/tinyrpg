@@ -89,7 +89,7 @@ class App(Context):
     app.display.blit(pygame.transform.scale(app.surface, app.size_scaled), (0, 0))
     pygame.display.flip()
 
-  def dissolve(ctx, on_clear, on_end=None):
+  def dissolve(ctx, on_clear=None, on_end=None):
     ctx.transits.append(DissolveIn(WINDOW_SIZE, on_clear))
     ctx.transits.append(DissolveOut(WINDOW_SIZE, on_end))
 

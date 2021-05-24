@@ -1,4 +1,5 @@
 from math import sin, pi
+from dataclasses import dataclass
 from assets import load as use_assets
 from filters import stroke, replace_color
 from palette import BLACK, WHITE, BLUE
@@ -12,25 +13,35 @@ def can_talk(hero, actor):
   or actor.core.faction == "player"):
     return False
   dist_x = actor.x - hero.x
-  return abs(dist_x) < TILE_SIZE * 1.5 and dist_x * hero.facing > 0
+  facing_x, _ = hero.facing
+  return abs(dist_x) < TILE_SIZE * 1.5 and dist_x * facing_x > 0
 
-def get_nearby_exits(hero, exits):
-  for x in exits:
-    dist_x = x - hero.x
+def find_nearby_link(hero, links):
+  for link in links:
+    dist_x = link.x - hero.x
     if abs(dist_x) < TILE_SIZE:
-      return x
+      return link
 
 ARROW_PERIOD = 45
 ARROW_BOUNCE = 2
+
+@dataclass
+class AreaLink:
+  x: int
+  direction: tuple[int, int]
+  target_area: str
+  target_x: int
 
 class Area:
   bg_id = None
   width = WINDOW_WIDTH
   ACTOR_Y = 128
+  HORIZON_Y = -40
+  TRANSIT_Y = -16
 
   def __init__(area):
     area.actors = []
-    area.exits = []
+    area.links = []
     area.draws = 0
 
   def init(area, town):
@@ -50,7 +61,7 @@ class Area:
       image=bg_image,
       pos=(bg_x, 0)
     ))
-    arrow_image = assets.sprites["arrow_up"]
+    arrow_image = assets.sprites["link_up"]
     bubble_image = assets.sprites["bubble_talk"]
     for actor in area.actors:
       sprite = actor.render()
@@ -64,9 +75,9 @@ class Area:
           image=bubble_image,
           pos=(bubble_x + bg_x, bubble_y)
         ))
-      arrow_x = get_nearby_exits(hero, area.exits)
-      if hero and arrow_x:
-        arrow_x = arrow_x - TILE_SIZE // 2
+      link = find_nearby_link(hero, area.links)
+      if hero and link:
+        arrow_x = link.x - TILE_SIZE // 2
         arrow_y = Area.ACTOR_Y + TILE_SIZE * 1.25
         arrow_y += sin(area.draws % ARROW_PERIOD / ARROW_PERIOD * 2 * pi) * ARROW_BOUNCE
         arrow_image = replace_color(arrow_image, BLACK, BLUE)
@@ -76,7 +87,8 @@ class Area:
         ))
       nodes.append(Sprite(
         image=stroke(sprite.image, WHITE),
-        pos=(x + bg_x, y)
+        pos=(x + bg_x, y),
+        flip=sprite.flip
       ))
     area.draws += 1
     return nodes
