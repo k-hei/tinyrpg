@@ -17,7 +17,7 @@ class OutskirtsArea(Area):
         PromptContext(("I'm gettin' hard!\nSo hard for you, baby!"), (
           Choice("\"So true\""),
           Choice("\"What?\"")
-        ), on_close=lambda choice: (
+        ), required=True, on_close=lambda choice: (
           choice.text == "\"So true\"" and (
             (town.hero.core.name, "So true, bestie"),
             (ROGUE_NAME, "Oh baby, yes!"),

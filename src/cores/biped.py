@@ -21,19 +21,19 @@ class BipedCore(Core):
     sprite_id = None
     flip_x = False
     flip_y = False
+    facing_x, facing_y = actor.facing
     for anim in actor.anims:
       if type(anim) is WalkAnim:
-        if actor.facing == (0, 1):
-          walk_cycle = actor.sprites.walk_down
-        elif actor.facing == (0, -1):
-          walk_cycle = actor.sprites.walk_up
-        elif actor.facing == (1, 0):
-          walk_cycle = actor.sprites.walk_right
-        elif actor.facing == (-1, 0):
+        if facing_x < 0:
           walk_cycle = actor.sprites.walk_right
           flip_x = True
-        sprite_idx = int(anim.time % anim.period / anim.period * 4)
-        sprite_id = walk_cycle[sprite_idx]
+        elif facing_x > 0:
+          walk_cycle = actor.sprites.walk_right
+        elif facing_y < 0:
+          walk_cycle = actor.sprites.walk_up
+        elif facing_y > 0:
+          walk_cycle = actor.sprites.walk_down
+        sprite_id = walk_cycle[anim.frame_index]
         break
     else:
       if actor.facing == (0, 1):

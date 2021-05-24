@@ -6,5 +6,4 @@ class Knight(Actor):
     super().__init__(core)
 
   def render(knight):
-    knight.sprite = knight.core.render()
-    return super().render()
+    return knight.core.render()

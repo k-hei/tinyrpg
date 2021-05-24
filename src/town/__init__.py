@@ -25,8 +25,9 @@ from town.areas.central import CentralArea
 from town.areas.clearing import ClearingArea
 
 from config import TILE_SIZE
-from filters import stroke
-import palette
+from anims import Anim
+
+class FollowAnim(Anim): pass
 
 SPAWN_LEFT = 64
 SPAWN_LEFT_FACING = (1, 0)
@@ -50,7 +51,7 @@ class TownContext(Context):
     town.talkee = None
     town.hud = Hud()
     town.comps = [town.hud]
-    town.hud.anims = []
+    town.anims = []
 
   def init(town):
     parent = town.parent
@@ -59,6 +60,7 @@ class TownContext(Context):
     town.spawn(town.returning)
     transit = next((t for t in parent.transits if type(t) is DissolveOut), None)
     if transit:
+      town.hud.anims = []
       town.hud.active = False
       transit.on_end = town.hud.enter
     for zone in town.zones:
@@ -87,7 +89,7 @@ class TownContext(Context):
     town.area.actors.append(ally)
 
   def handle_keydown(town, key):
-    if town.get_root().transits or town.area_change or town.area_link:
+    if town.get_root().transits or town.anims or town.area_change or town.area_link:
       return
     if town.child:
       return town.child.handle_keydown(key)
@@ -155,7 +157,8 @@ class TownContext(Context):
       ally.stop_move()
 
   def handle_areachange(town, delta=0, link=None):
-    town.hud.exit()
+    if town.hud.active:
+      town.hud.exit()
     town.area_change = delta
     if link:
       town.get_root().dissolve(
@@ -205,7 +208,7 @@ class TownContext(Context):
     if ally:
       ally.x = hero.x - TILE_SIZE * facing_x
       ally.y = 0
-      ally.facing = hero.facing
+      ally.face(hero.facing)
       ally.stop_move()
       prev_area.actors.remove(ally)
       town.area.actors.append(ally)
@@ -238,10 +241,8 @@ class TownContext(Context):
     if ally:
       ally.stop_move()
 
-    # TODO: actor.face method
     old_facing = actor.facing
-    new_facing = ((hero.x - actor.x) / abs(hero.x - actor.x), old_facing[1])
-    actor.face(new_facing)
+    actor.face(hero)
 
     messages = actor.messages
     message = messages[actor.message_index]
@@ -282,31 +283,41 @@ class TownContext(Context):
     town.ally.facing = actor.facing
     town.ally.core.faction = "player"
     town.area.actors.insert(town.area.actors.index(town.hero), town.ally)
+    town.anims.append(FollowAnim(target=town.ally))
 
   def update(town):
     hero = town.hero
     ally = town.ally
-    if town.area_link:
-      link = town.area_link
-      if hero.x != link.x:
-        hero.move_to((link.x, hero.y))
-      else:
-        if link.direction == (0, -1):
-          TARGET_HORIZON = Area.HORIZON_NORTH
-          EVENT_HORIZON = Area.TRANSIT_NORTH
-        elif link.direction == (0, 1):
-          TARGET_HORIZON = Area.HORIZON_SOUTH
-          EVENT_HORIZON = Area.TRANSIT_SOUTH
-        if abs(hero.y) >= abs(EVENT_HORIZON) and not town.get_root().transits:
-          town.handle_areachange(link=town.area_link)
-        if hero.y != TARGET_HORIZON:
-          hero.move_to((link.x, TARGET_HORIZON))
-    elif town.area_change:
-      hero.move((town.area_change, 0))
-      if ally: ally.move((town.area_change, 0))
+    for anim in town.anims:
+      if type(anim) is FollowAnim:
+        done = anim.target.follow(town.hero, free=True)
+        if done:
+          anim.target.face(town.hero)
+          town.anims.remove(anim)
+        break
+    else:
+      if town.area_link:
+        link = town.area_link
+        if hero.x != link.x:
+          hero.move_to((link.x, hero.y))
+        else:
+          if link.direction == (0, -1):
+            TARGET_HORIZON = Area.HORIZON_NORTH
+            EVENT_HORIZON = Area.TRANSIT_NORTH
+          elif link.direction == (0, 1):
+            TARGET_HORIZON = Area.HORIZON_SOUTH
+            EVENT_HORIZON = Area.TRANSIT_SOUTH
+          if abs(hero.y) >= abs(EVENT_HORIZON) and not town.get_root().transits:
+            town.handle_areachange(link=town.area_link)
+          if hero.y != TARGET_HORIZON:
+            hero.move_to((link.x, TARGET_HORIZON))
+        if ally: ally.follow(hero)
+      elif town.area_change:
+        hero.move((town.area_change, 0))
+        if ally: ally.move((town.area_change, 0))
 
   def draw(town, surface):
-    can_mark = not town.child and not town.area_link
+    can_mark = not town.child and not town.anims and not town.area_link
     for sprite in town.area.render(town.hero, can_mark):
       sprite.draw(surface)
 

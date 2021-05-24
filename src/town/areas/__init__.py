@@ -66,7 +66,8 @@ class Area:
     arrowup_image = assets.sprites["link_north"]
     arrowdown_image = assets.sprites["link_south"]
     bubble_image = assets.sprites["bubble_talk"]
-    for actor in area.actors:
+    actors = sorted(area.actors, key=lambda actor: actor.y)
+    for actor in actors:
       sprite = actor.render()
       offset_x, offset_y = sprite.pos
       x = actor.x - TILE_SIZE // 2 + offset_x

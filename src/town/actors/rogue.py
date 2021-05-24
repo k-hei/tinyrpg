@@ -17,5 +17,7 @@ class Rogue(Npc):
       or sprites["rogue_walk"])
     image = replace_color(image, BLACK, GREEN)
     rogue.sprite = Sprite(image=image)
+    if rogue.facing == (-1, 0):
+      rogue.sprite.flip = (True, False)
     rogue.draws += 1
     return super().render()

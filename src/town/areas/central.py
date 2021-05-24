@@ -69,7 +69,7 @@ class CentralArea(Area):
           PromptContext((mage.get_name().upper(), ": ", "Are you ready yet?"), (
             Choice("\"Let's go!\""),
             Choice("\"Not yet...\"")
-          ), on_close=lambda choice: (
+          ), required=True, on_close=lambda choice: (
             choice.text == "\"Let's go!\"" and (
               (town.hero.get_name(), "Let's get going!"),
               (mage.get_name(), "Jeez, about time..."),
