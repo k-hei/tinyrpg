@@ -44,6 +44,7 @@ class Area:
   def __init__(area):
     area.actors = []
     area.links = []
+    area.camera = None
     area.draws = 0
 
   def init(area, town):
@@ -59,6 +60,11 @@ class Area:
       bg_x = 0
     if bg_x < -area.width + WINDOW_WIDTH:
       bg_x = -area.width + WINDOW_WIDTH
+    if area.camera == None:
+      area.camera = bg_x
+    else:
+      area.camera += (bg_x - area.camera) / 4
+    bg_x = area.camera
     nodes.append(Sprite(
       image=bg_image,
       pos=(bg_x, 0)
