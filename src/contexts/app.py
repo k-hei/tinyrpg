@@ -18,6 +18,7 @@ class App(Context):
     app.size = WINDOW_SIZE
     app.size_scaled = (0, 0)
     app.scale = 0
+    app.fps = FPS
     app.surface = None
     app.display = None
     app.transits = []
@@ -56,7 +57,7 @@ class App(Context):
   def loop(app):
     clock = pygame.time.Clock()
     while not app.done:
-      clock.tick(FPS)
+      clock.tick(app.fps)
       keyboard.update()
       app.handle_events()
       if app.child:
@@ -89,20 +90,27 @@ class App(Context):
     app.display.blit(pygame.transform.scale(app.surface, app.size_scaled), (0, 0))
     pygame.display.flip()
 
-  def dissolve(ctx, on_clear=None, on_end=None):
-    ctx.transits.append(DissolveIn(WINDOW_SIZE, on_clear))
-    ctx.transits.append(DissolveOut(WINDOW_SIZE, on_end))
+  def dissolve(app, on_clear=None, on_end=None):
+    app.transits.append(DissolveIn(WINDOW_SIZE, on_clear))
+    app.transits.append(DissolveOut(WINDOW_SIZE, on_end))
 
-  def print_contexts(ctx):
+  def print_contexts(app):
     contexts = []
-    root = ctx
+    ctx = app
     while ctx.child:
       contexts.append(ctx)
       ctx = ctx.child
-    if ctx is not root:
+    if ctx is not app:
       contexts.append(ctx)
     print(contexts)
     return True
+
+  def toggle_fps(app):
+    if app.fps != FPS // 4:
+      app.fps = FPS // 4
+    else:
+      app.fps = FPS
+    pygame.key.set_repeat(1000 // app.fps)
 
   def handle_events(app):
     for event in pygame.event.get():
@@ -123,20 +131,19 @@ class App(Context):
     )
 
     if key == pygame.K_MINUS and ctrl:
-      if tapping:
-        app.rescale(app.scale - 1)
+      if tapping: app.rescale(app.scale - 1)
       return
     if key == pygame.K_EQUALS and ctrl:
-      if tapping:
-        app.rescale(app.scale + 1)
+      if tapping: app.rescale(app.scale + 1)
       return
     if key == pygame.K_r and ctrl:
-      if tapping:
-        app.reload()
+      if tapping: app.reload()
       return
     if key == pygame.K_a and ctrl:
-      if tapping:
-        app.print_contexts()
+      if tapping: app.print_contexts()
+      return
+    if key == pygame.K_f and ctrl:
+      if tapping: app.toggle_fps()
       return
     if app.child:
       return app.child.handle_keydown(key)

@@ -1,0 +1,8 @@
+{
+  "circle_knight": [ 0,  0, 37, 37],
+  "circle_mage":   [37,  0, 37, 37],
+  "circle_rogue":  [74,  0, 37, 37],
+  "circ16_knight": [ 0, 37, 18, 21],
+  "circ16_mage":   [18, 37, 18, 21],
+  "circ16_rogue":  [36, 37, 18, 21]
+}

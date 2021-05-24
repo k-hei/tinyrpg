@@ -47,14 +47,14 @@ class Actor:
     near_x = abs(target_x - actor.x) < Actor.XSPEED
     near_y = (abs(target_y - actor.y) < Actor.YSPEED_NORTH and target_y < actor.y
       or abs(target_y - actor.y) < Actor.YSPEED_SOUTH and target_y > actor.y)
-    if target_y < actor.y:
-      delta_y = -1
-    elif target_y > actor.y:
-      delta_y = 1
     if target_x < actor.x:
       delta_x = -1
     elif target_x > actor.x:
       delta_x = 1
+    if target_y < actor.y:
+      delta_y = -1
+    elif target_y > actor.y:
+      delta_y = 1
     if delta_x or delta_y:
       actor.move((delta_x, delta_y))
     if near_x:
@@ -66,8 +66,6 @@ class Actor:
   def follow(actor, target, free=False):
     facing_x, facing_y = target.facing
     target_x, target_y = target.x, target.y
-    if actor.x == target_x and actor.y == target_y:
-      return True
     if not free and target_x != actor.x:
       target_y = actor.y
       facing_y = 0
@@ -75,11 +73,13 @@ class Actor:
       target_x = target.x - TILE_SIZE * facing_x
     elif facing_y:
       target_y = target.y - TILE_SIZE // 2 * facing_y
+    if actor.x == target_x and actor.y == target_y:
+      return True
     return actor.move_to((target_x, target_y))
 
   def face(actor, facing):
     if isinstance(facing, Actor):
-      facing = ((facing.x - actor.x) // abs(facing.x - actor.x), actor.facing[1])
+      facing = ((facing.x - actor.x) // (abs(facing.x - actor.x) or 1), actor.facing[1])
       return actor.face(facing)
     actor.facing = facing
     actor.core.facing = facing

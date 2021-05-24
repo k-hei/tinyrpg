@@ -1,5 +1,6 @@
 import pygame
 from pygame import Surface
+from pygame.transform import scale
 
 import palette
 from assets import load as use_assets
@@ -7,6 +8,7 @@ from filters import replace_color
 
 from cores.knight import KnightCore
 from cores.mage import MageCore
+from cores.rogue import RogueCore
 
 from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in
@@ -82,19 +84,25 @@ class Hud:
 
     hero_portrait = None
     if (type(hero) is KnightCore and type(anim) is not SwitchOutAnim
-    or type(hero) is MageCore and type(anim) is SwitchOutAnim):
+    or type(ally) is KnightCore and type(anim) is SwitchOutAnim):
       hero_portrait = assets.sprites["circle_knight"]
     if (type(hero) is MageCore and type(anim) is not SwitchOutAnim
-    or type(hero) is KnightCore and type(anim) is SwitchOutAnim):
+    or type(ally) is MageCore and type(anim) is SwitchOutAnim):
       hero_portrait = assets.sprites["circle_mage"]
+    if (type(hero) is RogueCore and type(anim) is not SwitchOutAnim
+    or type(ally) is RogueCore and type(anim) is SwitchOutAnim):
+      hero_portrait = assets.sprites["circle_rogue"]
 
     ally_portrait = None
     if (type(ally) is KnightCore and type(anim) is not SwitchOutAnim
-    or type(ally) is MageCore and type(anim) is SwitchOutAnim):
+    or type(hero) is KnightCore and type(anim) is SwitchOutAnim):
       ally_portrait = assets.sprites["circ16_knight"]
     if (type(ally) is MageCore and type(anim) is not SwitchOutAnim
-    or type(ally) is KnightCore and type(anim) is SwitchOutAnim):
+    or type(hero) is MageCore and type(anim) is SwitchOutAnim):
       ally_portrait = assets.sprites["circ16_mage"]
+    if (type(ally) is RogueCore and type(anim) is not SwitchOutAnim
+    or type(hero) is RogueCore and type(anim) is SwitchOutAnim):
+      ally_portrait = assets.sprites["circ16_rogue"]
 
     if hero.dead:
       hero_portrait = replace_color(hero_portrait, palette.WHITE, palette.BLACK)
@@ -111,11 +119,11 @@ class Hud:
         t = 1 - ease_out(t)
       hero_width = lerp(hero_portrait.get_width(), 0, t)
       hero_height = hero_portrait.get_height()
-      hero_scaled = pygame.transform.scale(hero_portrait, (int(hero_width), int(hero_height)))
+      hero_scaled = scale(hero_portrait, (int(hero_width), int(hero_height)))
       if ally:
         ally_width = lerp(ally_portrait.get_width(), 0, t)
         ally_height = lerp(ally_portrait.get_height(), 0, t)
-        ally_scaled = pygame.transform.scale(ally_portrait, (int(ally_width), int(ally_height)))
+        ally_scaled = scale(ally_portrait, (int(ally_width), int(ally_height)))
 
     sprite.blit(hero_scaled, (
       hero_portrait.get_width() // 2 - hero_scaled.get_width() // 2,

@@ -14,8 +14,10 @@ from transits.dissolve import DissolveOut
 
 from cores.knight import KnightCore
 from cores.mage import MageCore
+from cores.rogue import RogueCore
 from town.actors.knight import Knight
 from town.actors.mage import Mage
+from town.actors.rogue import Rogue
 from town.actors.genie import Genie
 from town.actors.npc import Npc
 
@@ -280,7 +282,6 @@ class TownContext(Context):
       town.area.actors.remove(actor)
     town.ally.x = actor.x
     town.ally.y = actor.y
-    town.ally.facing = actor.facing
     town.ally.core.faction = "player"
     town.area.actors.insert(town.area.actors.index(town.hero), town.ally)
     town.anims.append(FollowAnim(target=town.ally))
@@ -292,6 +293,7 @@ class TownContext(Context):
       if type(anim) is FollowAnim:
         done = anim.target.follow(town.hero, free=True)
         if done:
+          anim.target.stop_move()
           anim.target.face(town.hero)
           town.anims.remove(anim)
         break
@@ -328,9 +330,6 @@ class TownContext(Context):
     town.hud.draw(surface, town)
 
 def manifest(core):
-  if type(core) is KnightCore:
-    return Knight(core)
-  elif type(core) is MageCore:
-    return Mage(core)
-  else:
-    return None
+  if type(core) is KnightCore: return Knight(core)
+  if type(core) is MageCore: return Mage(core)
+  if type(core) is RogueCore: return Rogue(core)

@@ -1,4 +1,13 @@
 {
-  "rogue": [0, 0, 32, 32],
-  "rogue_walk": [32, 0, 32, 32]
+  "rogue":           [ 0,  0, 32, 32],
+  "rogue_walk":      [32,  0, 32, 32],
+  "rogue_down":      [ 0, 32, 32, 32],
+  "rogue_walkdown":  [32, 32, 32, 32],
+  "rogue_walkdown0": [32, 32, 32, 32],
+  "rogue_walkdown1": [64, 32, 32, 32],
+  "rogue_up":        [ 0, 64, 32, 32],
+  "rogue_walkup":    [32, 64, 32, 32],
+  "rogue_walkup0":   [32, 64, 32, 32],
+  "rogue_walkup1":   [64, 64, 32, 32],
+  "rogue_flinch":    [64,  0, 32, 32]
 }
