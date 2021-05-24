@@ -96,7 +96,9 @@ class TownContext(Context):
     if key in (pygame.K_RIGHT, pygame.K_d):
       return town.handle_move((1, 0))
     if key in (pygame.K_UP, pygame.K_w):
-      return town.handle_zmove()
+      return town.handle_zmove((0, -1))
+    if key in (pygame.K_DOWN, pygame.K_s):
+      return town.handle_zmove((0, 1))
     if keyboard.get_pressed(key) > 1:
       return
     if key in (pygame.K_RETURN, pygame.K_SPACE):
@@ -137,9 +139,9 @@ class TownContext(Context):
       ally.follow(hero)
     return True
 
-  def handle_zmove(town):
+  def handle_zmove(town, delta):
     link = find_nearby_link(town.hero, town.area.links)
-    if link is None:
+    if link is None or link.direction != delta:
       return False
     town.area_link = link
     town.hud.exit()
@@ -288,20 +290,24 @@ class TownContext(Context):
       link = town.area_link
       if hero.x != link.x:
         hero.move_to((link.x, hero.y))
-      elif hero.y > Area.HORIZON_Y:
-        hero.move_to((link.x, Area.HORIZON_Y))
-      if hero.y <= Area.TRANSIT_Y and not town.get_root().transits:
-        town.handle_areachange(link=town.area_link)
+      else:
+        if link.direction == (0, -1):
+          TARGET_HORIZON = Area.HORIZON_NORTH
+          EVENT_HORIZON = Area.TRANSIT_NORTH
+        elif link.direction == (0, 1):
+          TARGET_HORIZON = Area.HORIZON_SOUTH
+          EVENT_HORIZON = Area.TRANSIT_SOUTH
+        if abs(hero.y) >= abs(EVENT_HORIZON) and not town.get_root().transits:
+          town.handle_areachange(link=town.area_link)
+        if hero.y != TARGET_HORIZON:
+          hero.move_to((link.x, TARGET_HORIZON))
     elif town.area_change:
       hero.move((town.area_change, 0))
       if ally: ally.move((town.area_change, 0))
 
   def draw(town, surface):
-    assets = use_assets()
-    bubble_image = assets.sprites["bubble_talk"]
-    for sprite in town.area.render(town.hero):
-      if sprite.image is bubble_image and town.child:
-        continue
+    can_mark = not town.child and not town.area_link
+    for sprite in town.area.render(town.hero, can_mark):
       sprite.draw(surface)
 
     if town.child:

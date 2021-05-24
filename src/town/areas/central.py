@@ -14,9 +14,6 @@ from contexts.load import LoadContext
 class CentralArea(Area):
   bg_id = "town_central"
 
-  def __init__(area):
-    super().__init__()
-
   def init(area, town):
     super().init(town)
     prompt = lambda: PromptContext("How fares the exploration?", (
@@ -89,11 +86,11 @@ class CentralArea(Area):
       area.actors.append(mage)
 
     area.links = [
-      AreaLink(x=272, direction=(0, -1), target_area="ClearingArea", target_x=112)
+      AreaLink(x=272, direction=(0, -1), target_area="ClearingArea", target_x=96)
     ]
 
-  def render(area, hero):
-    nodes = super().render(hero)
+  def render(area, hero, can_mark=True):
+    nodes = super().render(hero, can_mark)
     for i, sprite in enumerate(nodes):
       if i == 0:
         continue

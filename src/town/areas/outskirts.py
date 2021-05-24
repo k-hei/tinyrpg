@@ -35,11 +35,11 @@ class OutskirtsArea(Area):
     rogue.facing = (1, 0)
     area.actors.append(rogue)
 
-  def render(area, hero):
+  def render(area, hero, can_mark=True):
     assets = use_assets()
     sprite_bg = assets.sprites["town_outskirts"]
     sprite_tower = assets.sprites["tower"]
-    nodes = super().render(hero)
+    nodes = super().render(hero, can_mark)
     nodes.append(Sprite(
       image=sprite_tower,
       pos=(OutskirtsArea.TOWER_X, Area.ACTOR_Y - 16)

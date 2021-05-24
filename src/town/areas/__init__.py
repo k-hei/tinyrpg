@@ -36,8 +36,10 @@ class Area:
   bg_id = None
   width = WINDOW_WIDTH
   ACTOR_Y = 128
-  HORIZON_Y = -40
-  TRANSIT_Y = -16
+  HORIZON_NORTH = -40
+  TRANSIT_NORTH = -20
+  HORIZON_SOUTH = 60
+  TRANSIT_SOUTH = 30
 
   def __init__(area):
     area.actors = []
@@ -48,7 +50,7 @@ class Area:
     assets = use_assets()
     area.width = assets.sprites[area.bg_id].get_width()
 
-  def render(area, hero):
+  def render(area, hero, can_mark=True):
     nodes = []
     assets = use_assets()
     bg_image = assets.sprites[area.bg_id]
@@ -61,14 +63,15 @@ class Area:
       image=bg_image,
       pos=(bg_x, 0)
     ))
-    arrow_image = assets.sprites["link_up"]
+    arrowup_image = assets.sprites["link_north"]
+    arrowdown_image = assets.sprites["link_south"]
     bubble_image = assets.sprites["bubble_talk"]
     for actor in area.actors:
       sprite = actor.render()
       offset_x, offset_y = sprite.pos
       x = actor.x - TILE_SIZE // 2 + offset_x
       y = actor.y + Area.ACTOR_Y - 1 + offset_y
-      if hero and can_talk(hero, actor):
+      if hero and can_mark and can_talk(hero, actor):
         bubble_x = x + TILE_SIZE * 0.75 + 4
         bubble_y = y - TILE_SIZE * 0.25
         nodes.append(Sprite(
@@ -76,10 +79,11 @@ class Area:
           pos=(bubble_x + bg_x, bubble_y)
         ))
       link = find_nearby_link(hero, area.links)
-      if hero and link:
+      if hero and can_mark and link:
         arrow_x = link.x - TILE_SIZE // 2
         arrow_y = Area.ACTOR_Y + TILE_SIZE * 1.25
         arrow_y += sin(area.draws % ARROW_PERIOD / ARROW_PERIOD * 2 * pi) * ARROW_BOUNCE
+        arrow_image = arrowup_image if link.direction == (0, -1) else arrowdown_image
         arrow_image = replace_color(arrow_image, BLACK, BLUE)
         nodes.append(Sprite(
           image=arrow_image,

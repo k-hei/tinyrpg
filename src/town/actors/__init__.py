@@ -1,11 +1,12 @@
 from pygame.transform import flip
-from config import TILE_SIZE, WINDOW_WIDTH
+from config import TILE_SIZE, WINDOW_WIDTH, MOVE_DURATION
 from sprite import Sprite
 from anims.walk import WalkAnim
 
 class Actor:
   XSPEED = 1.5
-  YSPEED = 0.75
+  YSPEED_NORTH = 0.5
+  YSPEED_SOUTH = 0.75
 
   def __init__(actor, core):
     actor.core = core
@@ -22,12 +23,14 @@ class Actor:
     delta_x, delta_y = delta
     if delta_x:
       actor.x += Actor.XSPEED * delta_x
-    elif delta_y:
-      actor.y += Actor.YSPEED * delta_y
+    elif delta_y == -1:
+      actor.y -= Actor.YSPEED_NORTH
+    elif delta_y == 1:
+      actor.y += Actor.YSPEED_SOUTH
     if actor.facing != delta or actor.anim is None:
       actor.facing = delta
       actor.core.facing = delta
-      actor.anim = WalkAnim()
+      actor.anim = WalkAnim(period=(MOVE_DURATION if delta_x else 30))
       actor.core.anims.append(actor.anim)
     actor.anim.update()
 
@@ -38,7 +41,9 @@ class Actor:
 
   def move_to(actor, target):
     target_x, target_y = target
-    if abs(target_y - actor.y) <= Actor.YSPEED:
+    if (abs(target_y - actor.y) <= Actor.YSPEED_NORTH and target_y < actor.y
+    or abs(target_y - actor.y) <= Actor.YSPEED_SOUTH and target_y > actor.y
+    ):
       actor.y = target_y
     elif target_y < actor.y:
       actor.move((0, -1))
