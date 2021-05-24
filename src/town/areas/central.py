@@ -4,7 +4,7 @@ from town.actors.magenpc import MageNpc
 from cores.mage import MageCore
 
 from assets import load as use_assets
-from config import TILE_SIZE
+from config import TILE_SIZE, WINDOW_WIDTH
 from sprite import Sprite
 
 from contexts.prompt import PromptContext, Choice
@@ -12,20 +12,23 @@ from contexts.nameentry import NameEntryContext
 from contexts.load import LoadContext
 
 class CentralArea(Area):
+  bg_id = "town_central"
+
   def __init__(area):
     super().__init__()
 
   def init(area, town):
+    super().init(town)
     prompt = lambda: PromptContext("How fares the exploration?", (
-      Choice("Manage data"),
+      Choice("Manage data", closing=True),
       Choice("Change name"),
-      Choice("Nothing")
+      Choice("Nothing", closing=True)
     ), required=True, on_close=lambda choice: (
       choice.text == "Manage data" and [
         lambda: PromptContext("What would you like to do?", (
           Choice("Load data"),
           Choice("Save data"),
-          Choice("Nothing")
+          Choice("Nothing", closing=True)
         ), required=True, on_close=lambda choice: (
           choice.text == "Load data" and [
             lambda: LoadContext(on_close=lambda savedata: savedata and town.parent.load(savedata))
@@ -81,19 +84,17 @@ class CentralArea(Area):
           ))
         ]
       ])
-      mage.x = 112
+      mage.x = 224
       mage.facing = 1
       area.actors.append(mage)
+
+    area.exits = [272]
 
   def render(area, hero):
     nodes = super().render(hero)
     for i, sprite in enumerate(nodes):
+      if i == 0:
+        continue
       x, y = sprite.pos
       sprite.pos = (x, y - TILE_SIZE // 4)
-    assets = use_assets()
-    sprite_bg = assets.sprites["town_central"]
-    nodes.insert(0, Sprite(
-      image=sprite_bg,
-      pos=(0, 0)
-    ))
     return nodes

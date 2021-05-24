@@ -22,14 +22,13 @@ from town.areas import Area, can_talk
 from town.areas.central import CentralArea
 from town.areas.outskirts import OutskirtsArea
 
+from config import TILE_SIZE
 from filters import stroke
 import palette
 
-import config
-
 SPAWN_LEFT = 64
 SPAWN_LEFT_FACING = 1
-SPAWN_RIGHT = OutskirtsArea.TOWER_X - config.TILE_SIZE // 2
+SPAWN_RIGHT = OutskirtsArea.TOWER_X - TILE_SIZE // 2
 SPAWN_RIGHT_FACING = -1
 
 class TownContext(Context):
@@ -75,7 +74,7 @@ class TownContext(Context):
       ally.x = hero.x
       ally.facing = hero.facing
     else:
-      ally.x = hero.x - config.TILE_SIZE
+      ally.x = hero.x - TILE_SIZE
       ally.facing = hero.facing
     town.area.actors.append(ally)
 
@@ -110,13 +109,17 @@ class TownContext(Context):
   def handle_move(town, delta):
     hero = town.hero
     hero.move(delta)
-    if (hero.x <= -config.TILE_SIZE // 2
+    if hero.x <= -TILE_SIZE // 2 and hero.facing < 0:
+      hero.x = -TILE_SIZE // 2
+    if hero.x >= town.area.width + TILE_SIZE // 2 and hero.facing > 0:
+      hero.x = town.area.width + TILE_SIZE // 2
+    if (hero.x <= -TILE_SIZE // 2
     and town.areas.index(town.area) - 1 >= 0):
       town.handle_areachange(-1)
-    if (hero.x >= config.WINDOW_WIDTH + config.TILE_SIZE // 2
+    if (hero.x >= town.area.width + TILE_SIZE // 2
     and town.areas.index(town.area) + 1 < len(town.areas)):
       town.handle_areachange(1)
-    if (hero.x >= OutskirtsArea.TOWER_X + config.TILE_SIZE // 2
+    if (hero.x >= OutskirtsArea.TOWER_X + TILE_SIZE // 2
     and type(town.area) is OutskirtsArea):
       town.handle_areachange(1)
     ally = town.ally
@@ -148,12 +151,12 @@ class TownContext(Context):
     town.area = town.areas[town.areas.index(town.area) + delta]
     hero = town.hero
     if delta == -1:
-      hero.x = config.WINDOW_WIDTH - config.TILE_SIZE
+      hero.x = town.area.width - TILE_SIZE
     elif delta == 1:
-      hero.x = config.TILE_SIZE
+      hero.x = TILE_SIZE
     ally = town.ally
     if ally:
-      ally.x = hero.x - config.TILE_SIZE * hero.facing
+      ally.x = hero.x - TILE_SIZE * hero.facing
       ally.stop_move()
       prev_area.actors.remove(ally)
       town.area.actors.append(ally)

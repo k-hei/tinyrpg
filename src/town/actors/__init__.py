@@ -22,10 +22,6 @@ class Actor:
       actor.walks = 0
     actor.x += Actor.SPEED * delta
     actor.walks += 1
-    if actor.x <= -TILE_SIZE // 2:
-      actor.x = -TILE_SIZE // 2
-    if actor.x >= WINDOW_WIDTH + TILE_SIZE // 2:
-      actor.x = WINDOW_WIDTH + TILE_SIZE // 2
 
   def stop_move(actor):
     actor.walks = 0
