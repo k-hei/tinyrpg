@@ -14,7 +14,7 @@ from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in
 from lib.lerp import lerp
 
-CIRC16_X = 28
+CIRC16_X = 29
 CIRC16_Y = 26
 ENTER_DURATION = 15
 EXIT_DURATION = 8

@@ -20,10 +20,23 @@ WINDOW_SCALE_INIT = 2
 WINDOW_SCALE_MAX = 6
 ASSETS_PATH = "assets/"
 
-# names
+# defaults
 KNIGHT_NAME = "Yorgen"
+KNIGHT_HP = 23
+KNIGHT_BUILD = {
+  "Stick": (0, 0),
+  "Blitzritter": (1, 0)
+}
+
 MAGE_NAME = "Minxia"
+MAGE_HP = 16
+MAGE_BUILD = {
+  "Ignis": (1, 0),
+  "Somnus": (0, 0)
+}
+
 ROGUE_NAME = "Fray"
+ROGUE_HP = 19
 
 # animations
 MOVE_DURATION = 16

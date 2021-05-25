@@ -1,5 +1,5 @@
 from cores.biped import BipedCore, SpriteMap
-from config import ROGUE_NAME
+from config import ROGUE_NAME, ROGUE_HP
 
 class RogueCore(BipedCore):
   sprites = SpriteMap(
@@ -15,7 +15,7 @@ class RogueCore(BipedCore):
     super().__init__(
       name=name,
       faction="player",
-      hp=17,
+      hp=ROGUE_HP,
       st=14,
       en=7,
       skills=skills

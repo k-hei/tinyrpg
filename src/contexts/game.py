@@ -8,8 +8,10 @@ from town import TownContext
 from transits.dissolve import DissolveIn, DissolveOut
 from cores.knight import KnightCore
 from cores.mage import MageCore
+from cores.rogue import RogueCore
 from inventory import Inventory
 from skills import get_skill_order
+from savedata import SaveData
 from savedata.resolve import resolve_item, resolve_skill
 
 def resolve_place(place):
@@ -19,6 +21,12 @@ def resolve_place(place):
 def resolve_char(char):
   if char == "knight": return KnightCore()
   if char == "mage": return MageCore()
+  if char == "rogue": return RogueCore()
+
+def encode_char(char):
+  if type(char) is KnightCore: return "knight"
+  if type(char) is MageCore: return "mage"
+  if type(char) is RogueCore: return "rogue"
 
 class GameContext(Context):
   def __init__(ctx, savedata):
@@ -30,6 +38,7 @@ class GameContext(Context):
     ctx.gold = 0
     ctx.sp_max = 40
     ctx.sp = ctx.sp_max
+    ctx.time = 0
     ctx.inventory = Inventory((2, 4))
     ctx.monster_kills = {}
     ctx.new_skills = []
@@ -47,6 +56,7 @@ class GameContext(Context):
       savedata = ctx.savedata
 
     ctx.sp = savedata.sp
+    ctx.time = savedata.time
     ctx.gold = savedata.gold
     ctx.inventory.items = list(map(resolve_item, savedata.items))
     ctx.skill_pool = list(map(resolve_skill, savedata.skills))
@@ -58,21 +68,43 @@ class GameContext(Context):
     ctx.ally = resolve_char(ally)
 
     hero_data = savedata.chars[hero]
-    ctx.hero.hp = hero_data["hp"]
     ctx.skill_builds[ctx.hero] = []
-    for skill, cell in hero_data["skills"].items():
+    for skill, cell in hero_data.items():
       piece = (resolve_skill(skill), cell)
       ctx.skill_builds[ctx.hero].append(piece)
 
     if ctx.ally:
       ally_data = savedata.chars[ally]
-      ctx.ally.hp = ally_data["hp"]
       ctx.skill_builds[ctx.ally] = []
-      for skill, cell in ally_data["skills"].items():
+      for skill, cell in ally_data.items():
         piece = (resolve_skill(skill), cell)
         ctx.skill_builds[ctx.ally].append(piece)
 
     ctx.open(resolve_place(savedata.place))
+
+  def save(ctx):
+    encode = lambda x: type(x).__name__
+    items = list(map(encode, ctx.inventory.items))
+    skills = list(map(encode, ctx.skill_pool))
+    party = [encode_char(ctx.hero)]
+    if ctx.ally:
+      party.append(encode_char(ctx.ally))
+    chars = {}
+    for char, pieces in ctx.skill_builds.items():
+      build = {}
+      for skill, cell in pieces:
+        build[encode(skill)] = list(cell)
+      chars[encode_char(char)] = build
+    return SaveData(
+      place="town",
+      sp=ctx.sp,
+      time=int(ctx.time),
+      gold=ctx.gold,
+      items=items,
+      skills=skills,
+      party=party,
+      chars=chars
+    )
 
   def reset(ctx):
     if type(ctx.child) is DungeonContext:
@@ -156,6 +188,10 @@ class GameContext(Context):
   def handle_pause(ctx):
     ctx.child.log.exit()
     ctx.child.open(PauseContext())
+
+  def update(ctx):
+    super().update()
+    ctx.time += 1 / ctx.get_root().fps
 
   def draw(ctx, surface):
     super().draw(surface)

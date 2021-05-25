@@ -3,7 +3,7 @@ from config import MOVE_DURATION
 from anims import Anim
 
 class WalkAnim(Anim):
-  def __init__(anim, period=MOVE_DURATION, vertical=False):
+  def __init__(anim, period=MOVE_DURATION, vertical=True):
     super().__init__(duration=inf)
     anim.period = period
     anim.vertical = vertical

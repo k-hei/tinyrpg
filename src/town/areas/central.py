@@ -10,6 +10,7 @@ from sprite import Sprite
 from contexts.prompt import PromptContext, Choice
 from contexts.nameentry import NameEntryContext
 from contexts.load import LoadContext
+from contexts.save import SaveContext
 
 class CentralArea(Area):
   bg_id = "town_central"
@@ -28,10 +29,18 @@ class CentralArea(Area):
           Choice("Nothing", closing=True)
         ), required=True, on_close=lambda choice: (
           choice.text == "Load data" and [
-            lambda: LoadContext(on_close=lambda savedata: savedata and town.parent.load(savedata))
+            lambda: LoadContext(
+              on_close=lambda data: (
+                data and town.parent.load(data)
+                or [prompt]
+              )
+            )
           ] or choice.text == "Save data" and [
-            ("Doshin", "Sorry, we're still working on this feature!")
-          ] or choice.text == "Nothing" and [prompt]
+            lambda: SaveContext(
+              data=town.parent.save(),
+              on_close=lambda _: [prompt]
+            )
+           ] or choice.text == "Nothing" and [prompt]
         ))
       ] or choice.text == "Change name" and [
         ("Doshin", "Hm? A name change?"),
@@ -81,7 +90,7 @@ class CentralArea(Area):
           ))
         ]
       ])
-      mage.x = 224
+      mage.x = 304
       mage.facing = (1, 0)
       area.actors.append(mage)
 

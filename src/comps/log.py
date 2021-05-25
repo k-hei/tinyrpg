@@ -66,6 +66,8 @@ class Log:
           on_end and on_end()
         )
       )
+    elif on_end:
+      on_end()
 
   def clear(log):
     log.messages = []

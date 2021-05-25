@@ -57,7 +57,7 @@ class DialogueContext(Context):
     if isinstance(item, Context):
       ctx.name = None
       ctx.open(item, on_close=lambda next: (
-        next and ctx.script.extend(next),
+        next and type(next) is not bool and ctx.script.extend(next),
         ctx.handle_next()
       ))
       if "log" in dir(ctx.child):
@@ -98,7 +98,7 @@ class DialogueContext(Context):
     if not ctx.log.clean:
       return ctx.log.skip()
     ctx.index += 1
-    if ctx.index == len(ctx.script):
+    if ctx.index >= len(ctx.script):
       return ctx.exit()
     ctx.print()
 

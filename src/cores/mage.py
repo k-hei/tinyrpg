@@ -1,5 +1,5 @@
 from cores.biped import BipedCore, SpriteMap
-from config import MAGE_NAME
+from config import MAGE_NAME, MAGE_HP
 
 class MageCore(BipedCore):
   sprites = SpriteMap(
@@ -15,7 +15,7 @@ class MageCore(BipedCore):
     super().__init__(
       name=name,
       faction="player",
-      hp=17,
+      hp=MAGE_HP,
       st=14,
       en=7,
       skills=skills

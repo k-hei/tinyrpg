@@ -287,6 +287,7 @@ class TownContext(Context):
     town.anims.append(FollowAnim(target=town.ally))
 
   def update(town):
+    super().update()
     hero = town.hero
     ally = town.ally
     for anim in town.anims:
