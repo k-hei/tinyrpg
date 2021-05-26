@@ -300,6 +300,8 @@ class TownContext(Context):
     super().update()
     hero = town.hero
     ally = town.ally
+    for actor in town.area.actors:
+      actor.update()
     for anim in town.anims:
       if type(anim) is MoveAnim:
         actor, dest = anim.target

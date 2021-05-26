@@ -28,11 +28,11 @@ class Rogue(Npc):
       ]
     ])
 
+  def update(rogue):
+    super().update()
+    if not rogue.anim and rogue.core.faction == "ally":
+      rogue.anim = WalkAnim(period=30)
+      rogue.core.anims.append(rogue.anim)
+
   def render(rogue):
-    anim = len(rogue.core.anims) and rogue.core.anims[0]
-    if rogue.core.faction == "ally":
-      if anim:
-        anim.update()
-      else:
-        rogue.core.anims.append(WalkAnim(period=30))
     return rogue.core.render()

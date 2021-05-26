@@ -19,6 +19,10 @@ class Actor:
   def get_name(actor):
     return actor.core.name
 
+  def update(actor):
+    if actor.anim:
+      actor.anim.update()
+
   def move(actor, delta):
     delta_x, delta_y = delta
     if delta_x:
@@ -32,7 +36,6 @@ class Actor:
       actor.core.facing = delta
       actor.anim = WalkAnim(period=(MOVE_DURATION if delta_x else 30))
       actor.core.anims = [actor.anim]
-    actor.anim.update()
 
   def stop_move(actor):
     actor.core.anims = []
