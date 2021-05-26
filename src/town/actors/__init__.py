@@ -63,16 +63,21 @@ class Actor:
       actor.y = target_y
     return False
 
+  def get_follow_pos(actor):
+    facing_x, facing_y = actor.facing
+    target_x, target_y = actor.x, actor.y
+    if facing_x:
+      target_x = actor.x - TILE_SIZE * facing_x
+    elif facing_y:
+      target_y = actor.y - TILE_SIZE // 2 * facing_y
+    return (target_x, target_y)
+
   def follow(actor, target, free=False):
     facing_x, facing_y = target.facing
-    target_x, target_y = target.x, target.y
+    target_x, target_y = target.get_follow_pos()
     if not free and target_x != actor.x:
       target_y = actor.y
       facing_y = 0
-    if facing_x:
-      target_x = target.x - TILE_SIZE * facing_x
-    elif facing_y:
-      target_y = target.y - TILE_SIZE // 2 * facing_y
     if actor.x == target_x and actor.y == target_y:
       return True
     return actor.move_to((target_x, target_y))

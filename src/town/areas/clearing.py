@@ -8,12 +8,8 @@ class ClearingArea(Area):
   def init(area, town):
     super().init(town)
     rat = Rat(name="Rascal", messages=[
-      lambda town: [
-        (rat.get_name(), "Fuck you")
-      ],
-      lambda town: [
-        (rat.get_name(), "Whore")
-      ]
+      lambda town: [(rat.get_name(), "Fuck you")],
+      lambda town: [(rat.get_name(), "Whore")]
     ])
     rat.x = 160
     area.actors.append(rat)

@@ -29,12 +29,22 @@ from town.areas.clearing import ClearingArea
 from config import TILE_SIZE, KNIGHT_BUILD, MAGE_BUILD, ROGUE_BUILD
 from anims import Anim
 
-class FollowAnim(Anim): pass
+class MoveAnim(Anim): pass
 
 SPAWN_LEFT = 64
 SPAWN_LEFT_FACING = (1, 0)
 SPAWN_RIGHT = OutskirtsArea.TOWER_X - TILE_SIZE // 2
 SPAWN_RIGHT_FACING = (-1, 0)
+
+def resolve_char(core):
+  if type(core) is KnightCore: return Knight(core)
+  if type(core) is MageCore: return Mage(core)
+  if type(core) is RogueCore: return Rogue(core)
+
+def resolve_build(core):
+  if type(core) is KnightCore: return KNIGHT_BUILD
+  if type(core) is MageCore: return MAGE_BUILD
+  if type(core) is RogueCore: return ROGUE_BUILD
 
 class TownContext(Context):
   def __init__(town, returning=False):
@@ -57,8 +67,8 @@ class TownContext(Context):
 
   def init(town):
     parent = town.parent
-    town.hero = manifest(parent.hero)
-    town.ally = manifest(parent.ally)
+    town.hero = resolve_char(parent.hero)
+    town.ally = resolve_char(parent.ally)
     town.spawn(town.returning)
     transit = next((t for t in parent.transits if type(t) is DissolveOut), None)
     if transit:
@@ -275,51 +285,51 @@ class TownContext(Context):
     ))
 
   def recruit(town, actor):
+    if town.ally:
+      town.ally.core.faction = "ally"
+      town.anims.append(MoveAnim(target=(town.ally, (actor.x, actor.y))))
     game = town.parent
     game.ally = actor.core
-    town.ally = manifest(actor.core)
-    if actor in town.area.actors:
-      town.area.actors.remove(actor)
-    actor.core.faction = "player"
-    town.ally.x = actor.x
-    town.ally.y = actor.y
-    town.area.actors.insert(town.area.actors.index(town.hero), town.ally)
+    town.ally = actor
+    town.ally.core.faction = "player"
     if actor.core not in town.parent.skill_builds:
       town.parent.skill_builds[actor.core] = resolve_build(actor.core)
-    town.anims.append(FollowAnim(target=town.ally))
+    town.anims.append(MoveAnim(target=(town.ally, town.hero.get_follow_pos())))
 
   def update(town):
     super().update()
     hero = town.hero
     ally = town.ally
     for anim in town.anims:
-      if type(anim) is FollowAnim:
-        done = anim.target.follow(town.hero, free=True)
+      if type(anim) is MoveAnim:
+        actor, dest = anim.target
+        done = actor.move_to(dest)
         if done:
-          anim.target.stop_move()
-          anim.target.face(town.hero)
+          actor.stop_move()
+          if dest == town.hero.get_follow_pos():
+            actor.face(town.hero)
           town.anims.remove(anim)
-        break
-    else:
-      if town.area_link:
-        link = town.area_link
-        if hero.x != link.x:
-          hero.move_to((link.x, hero.y))
-        else:
-          if link.direction == (0, -1):
-            TARGET_HORIZON = Area.HORIZON_NORTH
-            EVENT_HORIZON = Area.TRANSIT_NORTH
-          elif link.direction == (0, 1):
-            TARGET_HORIZON = Area.HORIZON_SOUTH
-            EVENT_HORIZON = Area.TRANSIT_SOUTH
-          if abs(hero.y) >= abs(EVENT_HORIZON) and not town.get_root().transits:
-            town.handle_areachange(link=town.area_link)
-          if hero.y != TARGET_HORIZON:
-            hero.move_to((link.x, TARGET_HORIZON))
-        if ally: ally.follow(hero)
-      elif town.area_change:
-        hero.move((town.area_change, 0))
-        if ally: ally.move((town.area_change, 0))
+    if town.anims:
+      return
+    if town.area_link:
+      link = town.area_link
+      if hero.x != link.x:
+        hero.move_to((link.x, hero.y))
+      else:
+        if link.direction == (0, -1):
+          TARGET_HORIZON = Area.HORIZON_NORTH
+          EVENT_HORIZON = Area.TRANSIT_NORTH
+        elif link.direction == (0, 1):
+          TARGET_HORIZON = Area.HORIZON_SOUTH
+          EVENT_HORIZON = Area.TRANSIT_SOUTH
+        if abs(hero.y) >= abs(EVENT_HORIZON) and not town.get_root().transits:
+          town.handle_areachange(link=town.area_link)
+        if hero.y != TARGET_HORIZON:
+          hero.move_to((link.x, TARGET_HORIZON))
+      if ally: ally.follow(hero)
+    elif town.area_change:
+      hero.move((town.area_change, 0))
+      if ally: ally.move((town.area_change, 0))
 
   def draw(town, surface):
     can_mark = not town.child and not town.anims and not town.area_link
@@ -331,13 +341,3 @@ class TownContext(Context):
         town.hud.exit()
       town.child.draw(surface)
     town.hud.draw(surface, town)
-
-def manifest(core):
-  if type(core) is KnightCore: return Knight(core)
-  if type(core) is MageCore: return Mage(core)
-  if type(core) is RogueCore: return Rogue(core)
-
-def resolve_build(core):
-  if type(core) is KnightCore: return KNIGHT_BUILD
-  if type(core) is MageCore: return MAGE_BUILD
-  if type(core) is RogueCore: return ROGUE_BUILD

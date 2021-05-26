@@ -1,6 +1,6 @@
 from town.areas import Area, AreaLink
 from town.actors.genie import Genie
-from town.actors.magenpc import MageNpc
+from town.actors.mage import Mage
 from cores.mage import MageCore
 
 from assets import load as use_assets
@@ -73,23 +73,7 @@ class CentralArea(Area):
 
     if (not town.ally
     or type(town.hero.core) is not MageCore and type(town.ally.core) is not MageCore):
-      mage = MageNpc(messages=[
-        lambda town: [
-          PromptContext((mage.get_name().upper(), ": ", "Are you ready yet?"), (
-            Choice("\"Let's go!\""),
-            Choice("\"Not yet...\"")
-          ), required=True, on_close=lambda choice: (
-            choice.text == "\"Let's go!\"" and (
-              (town.hero.get_name(), "Let's get going!"),
-              (mage.get_name(), "Jeez, about time..."),
-              lambda: town.recruit(town.talkee)
-            ) or choice.text == "\"Not yet...\"" and (
-              (town.hero.get_name(), "Give me a second..."),
-              (mage.get_name(), "You know I don't have all day, right?")
-            )
-          ))
-        ]
-      ])
+      mage = Mage()
       mage.x = 304
       mage.facing = (1, 0)
       area.actors.append(mage)
