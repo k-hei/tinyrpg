@@ -14,12 +14,13 @@ def can_talk(hero, actor):
     return False
   dist_x = actor.x - hero.x
   facing_x, _ = hero.facing
-  return abs(dist_x) < TILE_SIZE * 1.5 and dist_x * facing_x > 0
+  return abs(dist_x) < TILE_SIZE * 1.5 and dist_x * facing_x >= 0
 
 def find_nearby_link(hero, links):
   for link in links:
     dist_x = link.x - hero.x
-    if abs(dist_x) < TILE_SIZE:
+    facing_x, _ = hero.facing
+    if abs(dist_x) < TILE_SIZE and dist_x * facing_x >= 0:
       return link
 
 ARROW_PERIOD = 45

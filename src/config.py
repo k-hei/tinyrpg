@@ -37,6 +37,7 @@ MAGE_BUILD = {
 
 ROGUE_NAME = "Fray"
 ROGUE_HP = 19
+ROGUE_BUILD = {}
 
 # animations
 MOVE_DURATION = 16

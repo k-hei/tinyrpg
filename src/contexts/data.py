@@ -99,11 +99,28 @@ class Slot:
     else:
       knight_image = assets.sprites["circ16_knight"]
       mage_image = assets.sprites["circ16_mage"]
-      surface.blit(knight_image, (slot.ICON_X, slot.ICON_Y + slot.LABEL_OVERLAP))
+      rogue_image = assets.sprites["circ16_rogue"]
+      x = slot.ICON_X
+      y = slot.ICON_Y + slot.LABEL_OVERLAP
+
+      if "knight" in slot.data.chars:
+        if "knight" not in slot.data.party:
+          knight_image = darken(knight_image)
+        surface.blit(knight_image, (x, y))
+        x += knight_image.get_width() + slot.ICON_SPACING
+
       if "mage" in slot.data.chars:
         if "mage" not in slot.data.party:
           mage_image = darken(mage_image)
-        surface.blit(mage_image, (slot.ICON_X + knight_image.get_width() + slot.ICON_SPACING, slot.ICON_Y + slot.LABEL_OVERLAP))
+        surface.blit(mage_image, (x, y))
+        x += mage_image.get_width() + slot.ICON_SPACING
+
+      if "rogue" in slot.data.chars:
+        if "rogue" not in slot.data.party:
+          rogue_image = darken(rogue_image)
+        surface.blit(rogue_image, (x, y))
+        x += rogue_image.get_width() + slot.ICON_SPACING
+
       surface.blit(assets.ttf["english"].render("Dungeon 2F"), (slot.ICON_X, slot.TIME_Y + slot.TEXT_Y + slot.LABEL_OVERLAP))
       gold_image = assets.sprites["item_gold"].copy()
       gold_image = replace_color(gold_image, BLACK, GOLD)

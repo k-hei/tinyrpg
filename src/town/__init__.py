@@ -26,7 +26,7 @@ from town.areas.outskirts import OutskirtsArea
 from town.areas.central import CentralArea
 from town.areas.clearing import ClearingArea
 
-from config import TILE_SIZE
+from config import TILE_SIZE, KNIGHT_BUILD, MAGE_BUILD, ROGUE_BUILD
 from anims import Anim
 
 class FollowAnim(Anim): pass
@@ -77,18 +77,17 @@ class TownContext(Context):
     else:
       hero.x = SPAWN_LEFT
       hero.facing = SPAWN_LEFT_FACING
-    town.area.actors.append(hero)
 
     ally = town.ally
-    if ally is None:
-      return
-    if returning:
-      ally.x = hero.x
-      ally.facing = hero.facing
-    else:
-      ally.x = hero.x - TILE_SIZE
-      ally.facing = hero.facing
-    town.area.actors.append(ally)
+    if ally:
+      if returning:
+        ally.x = hero.x
+        ally.facing = hero.facing
+      else:
+        ally.x = hero.x - TILE_SIZE
+        ally.facing = hero.facing
+      town.area.actors.append(ally)
+    town.area.actors.append(hero)
 
   def handle_keydown(town, key):
     if town.get_root().transits or town.anims or town.area_change or town.area_link:
@@ -221,6 +220,7 @@ class TownContext(Context):
     if not town.ally:
       return False
     town.hero, town.ally = town.ally, town.hero
+    town.parent.hero, town.parent.ally = town.parent.ally, town.parent.hero
     town.area.actors.remove(town.hero) # HACK: move hero to front
     town.area.actors.append(town.hero) # we can alleviate this by sorting actor render order instead of altering the array (which is kind of the same thing)
     return True
@@ -280,10 +280,12 @@ class TownContext(Context):
     town.ally = manifest(actor.core)
     if actor in town.area.actors:
       town.area.actors.remove(actor)
+    actor.core.faction = "player"
     town.ally.x = actor.x
     town.ally.y = actor.y
-    town.ally.core.faction = "player"
     town.area.actors.insert(town.area.actors.index(town.hero), town.ally)
+    if actor.core not in town.parent.skill_builds:
+      town.parent.skill_builds[actor.core] = resolve_build(actor.core)
     town.anims.append(FollowAnim(target=town.ally))
 
   def update(town):
@@ -334,3 +336,8 @@ def manifest(core):
   if type(core) is KnightCore: return Knight(core)
   if type(core) is MageCore: return Mage(core)
   if type(core) is RogueCore: return Rogue(core)
+
+def resolve_build(core):
+  if type(core) is KnightCore: return KNIGHT_BUILD
+  if type(core) is MageCore: return MAGE_BUILD
+  if type(core) is RogueCore: return ROGUE_BUILD

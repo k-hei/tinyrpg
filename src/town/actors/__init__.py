@@ -5,7 +5,7 @@ from anims.walk import WalkAnim
 
 class Actor:
   XSPEED = 1.5
-  YSPEED_NORTH = 0.5
+  YSPEED_NORTH = 0.65
   YSPEED_SOUTH = 0.75
 
   def __init__(actor, core):

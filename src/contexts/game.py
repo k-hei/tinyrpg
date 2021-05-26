@@ -83,7 +83,7 @@ class GameContext(Context):
     ctx.open(resolve_place(savedata.place))
 
   def save(ctx):
-    encode = lambda x: type(x).__name__
+    encode = lambda x: x.__name__
     items = list(map(encode, ctx.inventory.items))
     skills = list(map(encode, ctx.skill_pool))
     party = [encode_char(ctx.hero)]
