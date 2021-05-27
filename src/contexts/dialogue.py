@@ -32,7 +32,6 @@ class DialogueContext(Context):
     ctx.name = None
     ctx.log = Log(autohide=False)
     ctx.anim = None
-    ctx.enter()
 
   def enter(ctx):
     if ctx.lite:

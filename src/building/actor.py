@@ -1,16 +1,21 @@
+from math import sqrt
 from anims.walk import WalkAnim
 from pygame import Rect
 from config import TILE_SIZE
 from filters import outline
 from palette import WHITE
 
+TALK_RADIUS = TILE_SIZE * 1.5
+
 class Actor:
   speed = 1.5
 
-  def __init__(actor, core, cell=None, facing=None, color=None, moving=False, move_period=30):
+  def __init__(actor, core, cell=None, facing=None, color=None, moving=False, move_period=30, is_shopkeep=False, message=None):
     actor.core = core
     actor.core.color = color
     actor.move_period = move_period
+    actor.is_shopkeep = is_shopkeep
+    actor.message = message
     actor.pos = (0, 0)
     actor.anim = None
     if cell:
@@ -29,8 +34,28 @@ class Actor:
     top = y
     return Rect(left, top, width, height)
 
+  def get_name(actor):
+    return actor.core.name
+
+  def get_facing(actor):
+    return actor.core.facing
+
   def face(actor, facing):
-    actor.core.facing = facing
+    if type(facing) is tuple:
+      actor.core.facing = facing
+      return
+    if actor.pos == facing.pos:
+      return actor.face((0, 1))
+    target_x, target_y = facing.pos
+    actor_x, actor_y = actor.pos
+    dist_x = target_x - actor_x
+    dist_y = target_y - actor_y
+    dist = sqrt(dist_x * dist_x + dist_y * dist_y)
+    norm_x = dist_x / dist
+    norm_y = dist_y / dist
+    facing_x = round(norm_x)
+    facing_y = round(norm_y)
+    actor.face((facing_x, facing_y))
 
   def move(actor, delta):
     delta_x, delta_y = delta
@@ -49,6 +74,24 @@ class Actor:
   def stop_move(actor):
     actor.anim = None
     actor.core.anims = []
+
+  def next_message(actor):
+    return actor.message
+
+  def can_talk(actor, target):
+    if not target.message:
+      return False
+    actor_x, actor_y = actor.pos
+    target_x, target_y = target.pos
+    dist_x = target_x - actor_x
+    dist_y = target_y - actor_y
+    facing_x, facing_y = actor.get_facing()
+    in_range = (sqrt(dist_x * dist_x + dist_y * dist_y) < TALK_RADIUS
+      or target.is_shopkeep
+        and abs(dist_x) < TILE_SIZE // 2
+        and dist_y == -TILE_SIZE * 2
+        and facing_y == -1)
+    return in_range and dist_x * facing_x >= 0 and dist_y * facing_y >= 0
 
   def update(actor):
     if actor.anim:
