@@ -1,6 +1,6 @@
 from contexts import Context
 from assets import load as use_assets
-from building.stage import Stage
+from building.stage import Stage, Tile
 from building.actor import Actor
 from cores.knight import KnightCore
 from cores.mage import MageCore
@@ -18,14 +18,14 @@ class BuildingContext(Context):
     ctx.shopkeep.move_duration = 45
     ctx.shopkeep.start_move()
     ctx.actors = [ctx.hero, ctx.shopkeep]
-    ctx.stage = Stage([
-      [1, 1, 1, 1, 1, 1, 1, 1],
-      [1, 0, 1, 0, 0, 0, 0, 1],
-      [1, 0, 1, 1, 1, 1, 0, 1],
-      [1, 0, 0, 0, 0, 0, 0, 1],
-      [1, 0, 0, 0, 0, 0, 0, 1],
-      [1, 0, 0, 0, 0, 0, 0, 1],
-      [1, 1, 1, 1, 1, 1, 1, 1]
+    ctx.stage = Stage.parse([
+      "########",
+      "#.#....#",
+      "#.####.#",
+      "#.''''.#",
+      "#......#",
+      "#......#",
+      "########",
     ])
 
   def handle_keydown(ctx, key):
@@ -43,33 +43,39 @@ class BuildingContext(Context):
 
   def collide(ctx, actor, delta):
     delta_x, delta_y = delta
+    stage = ctx.stage
     rect = actor.get_rect()
     col_w = rect.left // TILE_SIZE
     row_n = rect.top // TILE_SIZE
     col_e = (rect.right - 1) // TILE_SIZE
     row_s = (rect.bottom - 1) // TILE_SIZE
+    tile_nw = stage.get_tile_at((col_w, row_n))
+    tile_ne = stage.get_tile_at((col_e, row_n))
+    tile_sw = stage.get_tile_at((col_w, row_s))
+    tile_se = stage.get_tile_at((col_e, row_s))
+    above_half = rect.top < (row_n + 0.5) * TILE_SIZE
     if delta_x < 0:
-      tile_nw = ctx.stage.get_tile_at((col_w, row_n))
-      tile_sw = ctx.stage.get_tile_at((col_w, row_s))
-      if tile_nw or tile_sw:
+      if ((Tile.is_solid(tile_nw) or Tile.is_solid(tile_sw))
+      or (Tile.is_halfsolid(tile_nw) or Tile.is_halfsolid(tile_sw))
+      and above_half):
         rect.left = (col_w + 1) * TILE_SIZE
         actor.pos = rect.midtop
     elif delta_x > 0:
-      tile_ne = ctx.stage.get_tile_at((col_e, row_n))
-      tile_se = ctx.stage.get_tile_at((col_e, row_s))
-      if tile_ne or tile_se:
+      if ((Tile.is_solid(tile_ne) or Tile.is_solid(tile_se))
+      or (Tile.is_halfsolid(tile_ne) or Tile.is_halfsolid(tile_se))
+      and above_half):
         rect.right = col_e * TILE_SIZE
         actor.pos = rect.midtop
     if delta_y < 0:
-      tile_nw = ctx.stage.get_tile_at((col_w, row_n))
-      tile_ne = ctx.stage.get_tile_at((col_e, row_n))
-      if tile_nw or tile_ne:
+      if Tile.is_solid(tile_nw) or Tile.is_solid(tile_ne):
         rect.top = (row_n + 1) * TILE_SIZE
         actor.pos = rect.midtop
+      elif ((Tile.is_halfsolid(tile_nw) or Tile.is_halfsolid(tile_ne))
+      and above_half):
+        rect.top = (row_n + 0.5) * TILE_SIZE
+        actor.pos = rect.midtop
     elif delta_y > 0:
-      tile_sw = ctx.stage.get_tile_at((col_w, row_s))
-      tile_se = ctx.stage.get_tile_at((col_e, row_s))
-      if tile_sw or tile_se:
+      if Tile.is_solid(tile_sw) or Tile.is_solid(tile_se):
         rect.bottom = row_s * TILE_SIZE
         actor.pos = rect.midtop
 
