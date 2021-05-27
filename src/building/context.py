@@ -60,6 +60,9 @@ class BuildingContext(Context):
     delta_x, delta_y = delta
     stage = ctx.stage
     rect = actor.get_rect()
+    init_center = rect.center
+    other_rects = [a.get_rect() for a in ctx.actors if a is not actor]
+    other_rect = next((r for r in other_rects if r.colliderect(rect)), None)
     col_w = rect.left // TILE_SIZE
     row_n = rect.top // TILE_SIZE
     col_e = (rect.right - 1) // TILE_SIZE
@@ -74,25 +77,31 @@ class BuildingContext(Context):
       or (Tile.is_halfsolid(tile_nw) or Tile.is_halfsolid(tile_sw))
       and above_half):
         rect.left = (col_w + 1) * TILE_SIZE
-        actor.pos = rect.midtop
+      elif other_rect:
+        rect.left = other_rect.right
     elif delta_x > 0:
       if ((Tile.is_solid(tile_ne) or Tile.is_solid(tile_se))
       or (Tile.is_halfsolid(tile_ne) or Tile.is_halfsolid(tile_se))
       and above_half):
         rect.right = col_e * TILE_SIZE
-        actor.pos = rect.midtop
+      elif other_rect:
+        rect.right = other_rect.left
     if delta_y < 0:
       if Tile.is_solid(tile_nw) or Tile.is_solid(tile_ne):
         rect.top = (row_n + 1) * TILE_SIZE
-        actor.pos = rect.midtop
       elif ((Tile.is_halfsolid(tile_nw) or Tile.is_halfsolid(tile_ne))
       and above_half):
         rect.top = (row_n + 0.5) * TILE_SIZE
-        actor.pos = rect.midtop
+        return
+      elif other_rect:
+        rect.top = other_rect.bottom
     elif delta_y > 0:
       if Tile.is_solid(tile_sw) or Tile.is_solid(tile_se):
         rect.bottom = row_s * TILE_SIZE
-        actor.pos = rect.midtop
+      elif other_rect:
+        rect.bottom = other_rect.top
+    if rect.center != init_center:
+      actor.pos = rect.midtop
 
   def handle_stopmove(ctx):
     ctx.hero.stop_move()
@@ -105,6 +114,6 @@ class BuildingContext(Context):
   def draw(ctx, surface):
     sprites = use_assets().sprites
     surface.blit(sprites["shop"], (0, 0))
-    actors = sorted(ctx.actors, key=lambda actor: actor.pos[1] + 1 if actor is ctx.hero else actor.pos[1])
+    actors = sorted(ctx.actors, key=lambda actor: actor.pos[1] - 1 if actor is ctx.hero else actor.pos[1])
     for actor in actors:
       actor.render().draw(surface)
