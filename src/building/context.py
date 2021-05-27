@@ -4,20 +4,16 @@ from building.stage import Stage, Tile
 from building.actor import Actor
 from cores.knight import KnightCore
 from cores.mage import MageCore
+from cores.rogue import RogueCore
 from anims.walk import WalkAnim
 from filters import replace_color
-from palette import BLACK, BLUE, ORANGE
+from palette import BLACK, BLUE, GREEN, ORANGE
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
 import keyboard
 
 class BuildingContext(Context):
   def __init__(ctx):
     super().__init__()
-    ctx.hero = Actor(core=MageCore(), cell=(2, 5), facing=(0, -1))
-    ctx.shopkeep = Actor(core=KnightCore(), cell=(4, 1), facing=(0, 1), color=ORANGE)
-    ctx.shopkeep.move_duration = 45
-    ctx.shopkeep.start_move()
-    ctx.actors = [ctx.hero, ctx.shopkeep]
     ctx.stage = Stage.parse([
       "########",
       "#.#....#",
@@ -27,6 +23,25 @@ class BuildingContext(Context):
       "#......#",
       "########",
     ])
+    ctx.actors = [
+      Actor(core=MageCore(), cell=(2, 5), facing=(0, -1)),
+      Actor(
+        core=RogueCore(),
+        cell=(6, 5),
+        facing=(-1, 0),
+        color=GREEN,
+        moving=True
+      ),
+      Actor(
+        core=KnightCore(),
+        cell=(4, 1),
+        facing=(0, 1),
+        color=ORANGE,
+        moving=True,
+        move_period=45
+      )
+    ]
+    ctx.hero = ctx.actors[0]
 
   def handle_keydown(ctx, key):
     if key in keyboard.ARROW_DELTAS:
@@ -90,5 +105,6 @@ class BuildingContext(Context):
   def draw(ctx, surface):
     sprites = use_assets().sprites
     surface.blit(sprites["shop"], (0, 0))
-    for actor in ctx.actors:
+    actors = sorted(ctx.actors, key=lambda actor: actor.pos[1] + 1 if actor is ctx.hero else actor.pos[1])
+    for actor in actors:
       actor.render().draw(surface)

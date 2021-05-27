@@ -1,22 +1,25 @@
 from anims.walk import WalkAnim
 from pygame import Rect
 from config import TILE_SIZE
+from filters import outline
+from palette import WHITE
 
 class Actor:
   speed = 1.5
-  move_duration = 30
 
-  def __init__(actor, core, cell=None, facing=None, color=None):
+  def __init__(actor, core, cell=None, facing=None, color=None, moving=False, move_period=30):
     actor.core = core
+    actor.core.color = color
+    actor.move_period = move_period
     actor.pos = (0, 0)
     actor.anim = None
-    if cell is not None:
+    if cell:
       col, row = cell
       actor.pos = ((col + 0.5) * TILE_SIZE, (row + 0.5) * TILE_SIZE)
-    if facing is not None:
+    if facing:
       actor.face(facing)
-    if color:
-      actor.core.color = color
+    if moving:
+      actor.start_move()
 
   def get_rect(actor):
     x, y = actor.pos
@@ -40,7 +43,7 @@ class Actor:
       actor.start_move()
 
   def start_move(actor):
-    actor.anim = WalkAnim(period=actor.move_duration)
+    actor.anim = WalkAnim(period=actor.move_period)
     actor.core.anims = [actor.anim]
 
   def stop_move(actor):
@@ -53,6 +56,8 @@ class Actor:
 
   def render(actor):
     sprite = actor.core.render()
-    sprite.pos = actor.get_rect().midtop
+    sprite.image = outline(sprite.image, WHITE)
     sprite.origin = ("center", "center")
+    x, y = actor.get_rect().midtop
+    sprite.pos = (x, y - 1)
     return sprite
