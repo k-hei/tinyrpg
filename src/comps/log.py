@@ -21,9 +21,10 @@ class Log:
   FONT_NAME = "roman"
   LINE_SPACING = 4
 
-  def __init__(log, autohide=True, align="center"):
+  def __init__(log, autohide=True, align="center", side="bottom"):
     log.autohide = autohide
     log.align = align
+    log.side = side
     log.messages = []
     log.lines = []
     log.index = 0
@@ -200,7 +201,14 @@ class Log:
       log.x = Log.MARGIN_LEFT
     elif log.align == "center":
       log.x = surface.get_width() // 2 - log.box.get_width() // 2
-    surface.blit(log.box, (log.x, surface.get_height() - log.y))
+    x = log.x
+    y = log.y
+    if log.side == "top":
+      y = log.y - log.box.get_height()
+    elif log.side == "bottom":
+      y = surface.get_height() - log.y
+    surface.blit(log.box, (x, y))
+    return (x, y)
 
 def expand_tokens(tokens):
   result = []

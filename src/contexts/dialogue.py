@@ -7,6 +7,7 @@ from contexts import Context
 from assets import load as use_assets
 from comps.log import Log
 from hud import Hud
+from collections.abc import Iterable
 from palette import BLACK
 from anims.tween import TweenAnim
 from easing.expo import ease_out
@@ -24,13 +25,14 @@ class DialogueContext(Context):
   BAR_ENTER_DURATION = 15
   BAR_EXIT_DURATION = 7
 
-  def __init__(ctx, script, lite=False, on_close=None):
+  def __init__(ctx, script, lite=False, side="bottom", on_close=None):
     super().__init__(on_close=on_close)
     ctx.script = list(script)
     ctx.lite = lite
+    ctx.side = side
     ctx.index = 0
     ctx.name = None
-    ctx.log = Log(autohide=False)
+    ctx.log = Log(autohide=False, side=side)
     ctx.anim = None
 
   def enter(ctx):
@@ -56,7 +58,7 @@ class DialogueContext(Context):
     if isinstance(item, Context):
       ctx.name = None
       ctx.open(item, on_close=lambda next: (
-        next and type(next) is not bool and ctx.script.extend(next),
+        next and isinstance(next, Iterable) and ctx.script.extend(next),
         ctx.handle_next()
       ))
       if "log" in dir(ctx.child):
@@ -122,12 +124,10 @@ class DialogueContext(Context):
       pygame.draw.rect(surface, BLACK, Rect(0, surface.get_height() - bar_height + 1, surface.get_width(), bar_height))
 
     if not ctx.child or not "log" in dir(ctx.child):
-      ctx.log.update()
-      sprite = ctx.log.box
-      if sprite:
-        x = config.WINDOW_WIDTH // 2 - sprite.get_width() // 2
-        y = surface.get_height() - ctx.log.y
-        surface.blit(sprite, (x, y))
+      pos = ctx.log.draw(surface)
+      if pos:
+        x, y = pos
+        sprite = ctx.log.box
         if ctx.log.clean:
           t = ctx.log.clean % 30 / 30
           offset = sin(t * 2 * pi) * 1.25

@@ -1,6 +1,7 @@
 import pygame
 from contexts import Context
 from contexts.dialogue import DialogueContext
+from contexts.prompt import PromptContext, Choice
 from assets import load as use_assets
 from building.stage import Stage, Tile
 from building.actor import Actor
@@ -33,7 +34,12 @@ class BuildingContext(Context):
         cell=(6, 5),
         facing=(1, 0),
         color=GREEN,
-        moving=True
+        moving=True,
+        message=lambda talkee, ctx: [
+          (talkee.get_name(), "You know what I can't get enough of?"),
+          (talkee.get_name(), "BBWs."),
+          (talkee.get_name(), "Big beautiful wings.....")
+        ]
       ),
       Actor(
         core=KnightCore(name="Arthur"),
@@ -43,9 +49,21 @@ class BuildingContext(Context):
         moving=True,
         move_period=45,
         is_shopkeep=True,
-        message=lambda talkee, ctx: [
-          (talkee.get_name(), "How can I help you?")
-        ]
+        message=lambda talkee, ctx: (
+          ctx.hero.get_rect().centery > talkee.get_rect().centery and [
+            PromptContext(
+              message="{}: How can I help you?".format(talkee.get_name().upper()),
+              choices=[
+                Choice("Buy items"),
+                Choice("Sell items"),
+                Choice("Nothing", closing=True)
+              ]
+            )
+          ] or [
+            (talkee.get_name(), "Aha nooo, we can'tttt"),
+            (talkee.get_name(), "Not during business hours...")
+          ]
+        )
       )
     ]
     ctx.hero = ctx.actors[0]
@@ -129,9 +147,14 @@ class BuildingContext(Context):
     message = talkee.next_message()
     if callable(message):
       message = message(talkee, ctx)
+    if talkee.get_rect().centery >= WINDOW_WIDTH // 2:
+      log_side = "top"
+    else:
+      log_side = "bottom"
     ctx.open(DialogueContext(
       script=message,
       lite=True,
+      side=log_side,
       on_close=lambda: talkee.face(old_facing),
     ))
     return True
