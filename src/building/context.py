@@ -49,14 +49,24 @@ class BuildingContext(Context):
         is_shopkeep=True,
         message=lambda talkee, ctx: (
           ctx.hero.get_rect().centery > talkee.get_rect().centery and [
-            PromptContext(
+            shop := PromptContext(
               message="{}: How can I help you?".format(talkee.get_name().upper()),
               choices=[
                 Choice("Buy items"),
                 Choice("Sell items"),
                 Choice("Nothing", closing=True)
-              ]
-            )
+              ],
+              required=True,
+              on_close=lambda choice: (
+                choice and choice.text == "Buy items" and [
+                  "This feature isn't implemented yet...",
+                  shop
+                ] or choice and choice.text == "Sell items" and [
+                  "This feature isn't implemented yet...",
+                  shop
+                ]
+              )
+            ),
           ] or [
             (talkee.get_name(), "Aha nooo, we can'tttt"),
             (talkee.get_name(), "Not during business hours...")
@@ -66,11 +76,12 @@ class BuildingContext(Context):
     })
     ctx.elem = None
     ctx.anims = []
+    ctx.link_direction = None
 
   def handle_keydown(ctx, key):
     if ctx.child:
       return ctx.child.handle_keydown(key)
-    if ctx.anims:
+    if ctx.anims or ctx.link_direction:
       return None
     if key in keyboard.ARROW_DELTAS:
       delta = keyboard.ARROW_DELTAS[key]
@@ -108,6 +119,7 @@ class BuildingContext(Context):
     if delta_x < 0:
       if rect.centerx < 0:
         rect.centerx = 0
+        ctx.handle_areachange((-1, 0))
       elif ((Tile.is_solid(tile_nw) or Tile.is_solid(tile_sw))
       or (Tile.is_halfsolid(tile_nw) or Tile.is_halfsolid(tile_sw))
       and above_half):
@@ -117,6 +129,7 @@ class BuildingContext(Context):
     elif delta_x > 0:
       if rect.centerx > WINDOW_WIDTH:
         rect.centerx = WINDOW_WIDTH
+        ctx.handle_areachange((1, 0))
       elif ((Tile.is_solid(tile_ne) or Tile.is_solid(tile_se))
       or (Tile.is_halfsolid(tile_ne) or Tile.is_halfsolid(tile_se))
       and above_half):
@@ -127,6 +140,7 @@ class BuildingContext(Context):
     if delta_y < 0:
       if rect.top < 0:
         rect.top = 0
+        ctx.handle_areachange((0, -1))
       elif Tile.is_solid(tile_nw) or Tile.is_solid(tile_ne):
         rect.top = (row_n + 1) * TILE_SIZE
       elif ((Tile.is_halfsolid(tile_nw) or Tile.is_halfsolid(tile_ne))
@@ -137,6 +151,7 @@ class BuildingContext(Context):
     elif delta_y > 0:
       if rect.top > WINDOW_HEIGHT:
         rect.top = WINDOW_HEIGHT
+        ctx.handle_areachange((0, 1))
       elif Tile.is_solid(tile_sw) or Tile.is_solid(tile_se):
         rect.bottom = row_s * TILE_SIZE
       elif elem:
@@ -176,8 +191,14 @@ class BuildingContext(Context):
     ))
     return True
 
+  def handle_areachange(ctx, delta):
+    ctx.link_direction = delta
+    ctx.get_root().dissolve(on_clear=ctx.close)
+
   def update(ctx):
     super().update()
+    if ctx.link_direction:
+      ctx.hero.move(ctx.link_direction)
     for elem in ctx.stage.elems:
       elem.update()
     for anim in ctx.anims:

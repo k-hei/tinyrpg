@@ -21,10 +21,11 @@ class Log:
   FONT_NAME = "roman"
   LINE_SPACING = 4
 
-  def __init__(log, autohide=True, align="center", side="bottom"):
+  def __init__(log, autohide=True, align="center", side="bottom", silent=False):
     log.autohide = autohide
     log.align = align
     log.side = side
+    log.silent = silent
     log.messages = []
     log.lines = []
     log.index = 0
@@ -41,7 +42,8 @@ class Log:
 
   def print(log, tokens, on_end=None):
     message = Message(tokens)
-    print(str(message))
+    if not log.silent:
+      print(str(message))
     if not log.active and (log.anim is None or log.anim.done):
       log.enter()
     if log.clean and log.messages:

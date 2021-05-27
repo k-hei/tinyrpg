@@ -56,17 +56,24 @@ class DialogueContext(Context):
     if item is None:
       return ctx.handle_next()
     if isinstance(item, Context):
-      ctx.name = None
-      ctx.open(item, on_close=lambda next: (
-        next and isinstance(next, Iterable) and ctx.script.extend(next),
-        ctx.handle_next()
-      ))
-      if "log" in dir(ctx.child):
-        ctx.log.clear()
-        ctx.child.log = ctx.log
-        ctx.child.enter()
+      def print():
+        ctx.name = None
+        ctx.open(item, on_close=lambda next: (
+          next and isinstance(next, Iterable) and ctx.script.extend(next),
+          ctx.handle_next()
+        ))
+        if "log" in dir(ctx.child):
+          ctx.log.clear()
+          ctx.child.log = ctx.log
+          ctx.log.silent = True
+          ctx.child.enter()
+          ctx.log.silent = False
+        else:
+          ctx.log.exit()
+      if ctx.name:
+        print()
       else:
-        ctx.log.exit()
+        ctx.log.exit(on_end=print)
       return
     ctx.log.clear()
     if type(item) is tuple:
