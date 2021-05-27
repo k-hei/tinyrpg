@@ -1,16 +1,18 @@
 from math import sqrt
-from anims.walk import WalkAnim
 from pygame import Rect
+from building.element import Element
+from anims.walk import WalkAnim
 from config import TILE_SIZE
 from filters import outline
 from palette import WHITE
 
 TALK_RADIUS = TILE_SIZE * 1.5
 
-class Actor:
+class Actor(Element):
   speed = 1.5
 
   def __init__(actor, core, cell=None, facing=None, color=None, moving=False, move_period=30, is_shopkeep=False, message=None):
+    super().__init__()
     actor.core = core
     actor.core.color = color
     actor.move_period = move_period
@@ -79,7 +81,7 @@ class Actor:
     return actor.message
 
   def can_talk(actor, target):
-    if not target.message:
+    if actor is target or not isinstance(target, Actor) or not target.message:
       return False
     actor_x, actor_y = actor.pos
     target_x, target_y = target.pos

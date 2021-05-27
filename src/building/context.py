@@ -8,9 +8,7 @@ from building.actor import Actor
 from cores.knight import KnightCore
 from cores.mage import MageCore
 from cores.rogue import RogueCore
-from anims.walk import WalkAnim
-from filters import replace_color
-from palette import BLACK, BLUE, GREEN, ORANGE
+from palette import GREEN, ORANGE
 from sprite import Sprite
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
 import keyboard
@@ -18,18 +16,18 @@ import keyboard
 class BuildingContext(Context):
   def __init__(ctx):
     super().__init__()
+    ctx.hero = Actor(core=MageCore(), cell=(2, 5), facing=(0, -1))
     ctx.stage = Stage.parse([
-      "########",
-      "#.#....#",
+      "###+####",
+      "#.#.2..#",
       "#.####.#",
       "#.''''.#",
       "#......#",
-      "#......#",
-      "########",
-    ])
-    ctx.actors = [
-      Actor(core=MageCore(), cell=(2, 5), facing=(0, -1)),
-      Actor(
+      "#.0...1#",
+      "##+#####",
+    ], {
+      "0": ctx.hero,
+      "1": Actor(
         core=RogueCore(),
         cell=(6, 5),
         facing=(1, 0),
@@ -41,7 +39,7 @@ class BuildingContext(Context):
           (talkee.get_name(), "Big beautiful wings.....")
         ]
       ),
-      Actor(
+      "2": Actor(
         core=KnightCore(name="Arthur"),
         cell=(4, 1),
         facing=(0, 1),
@@ -65,12 +63,15 @@ class BuildingContext(Context):
           ]
         )
       )
-    ]
-    ctx.hero = ctx.actors[0]
+    })
+    ctx.elem = None
+    ctx.anims = []
 
   def handle_keydown(ctx, key):
     if ctx.child:
       return ctx.child.handle_keydown(key)
+    if ctx.anims:
+      return None
     if key in keyboard.ARROW_DELTAS:
       delta = keyboard.ARROW_DELTAS[key]
       return ctx.handle_move(delta)
@@ -92,8 +93,10 @@ class BuildingContext(Context):
     stage = ctx.stage
     rect = actor.get_rect()
     init_center = rect.center
-    other_rects = [a.get_rect() for a in ctx.actors if a is not actor]
-    other_rect = next((r for r in other_rects if r.colliderect(rect)), None)
+    elem_rects = [(e, e.get_rect()) for e in ctx.stage.elems if e is not actor and e.solid]
+    elem, elem_rect = next(((e, r) for (e, r) in elem_rects if r.colliderect(rect)), (None, None))
+    col = rect.centerx // TILE_SIZE
+    row = rect.centery // TILE_SIZE
     col_w = rect.left // TILE_SIZE
     row_n = rect.top // TILE_SIZE
     col_e = (rect.right - 1) // TILE_SIZE
@@ -101,6 +104,7 @@ class BuildingContext(Context):
     tile_nw = stage.get_tile_at((col_w, row_n))
     tile_ne = stage.get_tile_at((col_e, row_n))
     tile_sw = stage.get_tile_at((col_w, row_s))
+    tile_s = stage.get_tile_at((col, row_s))
     tile_se = stage.get_tile_at((col_e, row_s))
     above_half = rect.top < (row_n + 0.5) * TILE_SIZE
     if delta_x < 0:
@@ -108,37 +112,44 @@ class BuildingContext(Context):
       or (Tile.is_halfsolid(tile_nw) or Tile.is_halfsolid(tile_sw))
       and above_half):
         rect.left = (col_w + 1) * TILE_SIZE
-      elif other_rect:
-        rect.left = other_rect.right
+      elif elem:
+        rect.left = elem_rect.right
     elif delta_x > 0:
       if ((Tile.is_solid(tile_ne) or Tile.is_solid(tile_se))
       or (Tile.is_halfsolid(tile_ne) or Tile.is_halfsolid(tile_se))
       and above_half):
         rect.right = col_e * TILE_SIZE
-      elif other_rect:
-        rect.right = other_rect.left
+      elif elem:
+        rect.right = elem_rect.left
     if delta_y < 0:
       if Tile.is_solid(tile_nw) or Tile.is_solid(tile_ne):
         rect.top = (row_n + 1) * TILE_SIZE
       elif ((Tile.is_halfsolid(tile_nw) or Tile.is_halfsolid(tile_ne))
       and above_half):
         rect.top = (row_n + 0.5) * TILE_SIZE
-      elif other_rect:
-        rect.top = other_rect.bottom
+      elif elem:
+        rect.top = elem_rect.bottom
     elif delta_y > 0:
       if Tile.is_solid(tile_sw) or Tile.is_solid(tile_se):
         rect.bottom = row_s * TILE_SIZE
-      elif other_rect:
-        rect.bottom = other_rect.top
+        if Tile.is_door(tile_s):
+          stage.set_tile_at((col, row_s), Stage.DOOR_OPEN)
+      elif elem:
+        rect.bottom = elem_rect.top
+    if elem:
+      ctx.elem = elem
+      elem.effect(ctx)
     if rect.center != init_center:
       actor.pos = rect.midtop
 
   def handle_stopmove(ctx):
     ctx.hero.stop_move()
+    if ctx.elem:
+      ctx.elem.reset_effect()
 
   def handle_talk(ctx):
     hero = ctx.hero
-    talkee = next((a for a in ctx.actors if hero.can_talk(a)), None)
+    talkee = next((a for a in ctx.stage.elems if hero.can_talk(a)), None)
     if talkee is None:
       return False
     hero.stop_move()
@@ -161,25 +172,37 @@ class BuildingContext(Context):
 
   def update(ctx):
     super().update()
-    for actor in ctx.actors:
-      actor.update()
+    for elem in ctx.stage.elems:
+      elem.update()
+    for anim in ctx.anims:
+      if anim.done:
+        ctx.anims.remove(anim)
+      anim.update()
 
   def draw(ctx, surface):
     assets = use_assets()
     hero = ctx.hero
     surface.blit(assets.sprites["shop"], (0, 0))
     sprites = []
-    actors = sorted(ctx.actors, key=lambda actor: actor.pos[1] - 1 if actor is hero else actor.pos[1])
-    for actor in actors:
-      if not ctx.child and actor is not hero and hero.can_talk(actor):
-        bubble_x, bubble_y = actor.get_rect().topright
+    def zsort(elem):
+      _, y = elem.pos
+      z = y
+      if elem is hero:
+        z -= 1
+      if not elem.solid:
+        z -= WINDOW_HEIGHT
+      return z
+    elems = sorted(ctx.stage.elems, key=zsort)
+    for elem in elems:
+      if not ctx.child and hero.can_talk(elem):
+        bubble_x, bubble_y = elem.get_rect().topright
         bubble_y -= TILE_SIZE // 4
         sprites.append(Sprite(
           image=assets.sprites["bubble_talk"],
           pos=(bubble_x, bubble_y),
           origin=("left", "bottom")
         ))
-      actor.render().draw(surface)
+      elem.render().draw(surface)
     for sprite in sprites:
       sprite.draw(surface)
     if ctx.child:
