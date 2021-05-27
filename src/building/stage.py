@@ -9,7 +9,7 @@ class Tile:
   door: bool = False
 
   def is_solid(tile):
-    return not tile or tile.solid
+    return tile and tile.solid
 
   def is_halfsolid(tile):
     return tile and tile.halfsolid

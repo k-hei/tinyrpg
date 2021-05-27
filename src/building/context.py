@@ -95,8 +95,6 @@ class BuildingContext(Context):
     init_center = rect.center
     elem_rects = [(e, e.get_rect()) for e in ctx.stage.elems if e is not actor and e.solid]
     elem, elem_rect = next(((e, r) for (e, r) in elem_rects if r.colliderect(rect)), (None, None))
-    col = rect.centerx // TILE_SIZE
-    row = rect.centery // TILE_SIZE
     col_w = rect.left // TILE_SIZE
     row_n = rect.top // TILE_SIZE
     col_e = (rect.right - 1) // TILE_SIZE
@@ -104,25 +102,32 @@ class BuildingContext(Context):
     tile_nw = stage.get_tile_at((col_w, row_n))
     tile_ne = stage.get_tile_at((col_e, row_n))
     tile_sw = stage.get_tile_at((col_w, row_s))
-    tile_s = stage.get_tile_at((col, row_s))
     tile_se = stage.get_tile_at((col_e, row_s))
     above_half = rect.top < (row_n + 0.5) * TILE_SIZE
+
     if delta_x < 0:
-      if ((Tile.is_solid(tile_nw) or Tile.is_solid(tile_sw))
+      if rect.centerx < 0:
+        rect.centerx = 0
+      elif ((Tile.is_solid(tile_nw) or Tile.is_solid(tile_sw))
       or (Tile.is_halfsolid(tile_nw) or Tile.is_halfsolid(tile_sw))
       and above_half):
         rect.left = (col_w + 1) * TILE_SIZE
       elif elem:
         rect.left = elem_rect.right
     elif delta_x > 0:
-      if ((Tile.is_solid(tile_ne) or Tile.is_solid(tile_se))
+      if rect.centerx > WINDOW_WIDTH:
+        rect.centerx = WINDOW_WIDTH
+      elif ((Tile.is_solid(tile_ne) or Tile.is_solid(tile_se))
       or (Tile.is_halfsolid(tile_ne) or Tile.is_halfsolid(tile_se))
       and above_half):
         rect.right = col_e * TILE_SIZE
       elif elem:
         rect.right = elem_rect.left
+
     if delta_y < 0:
-      if Tile.is_solid(tile_nw) or Tile.is_solid(tile_ne):
+      if rect.top < 0:
+        rect.top = 0
+      elif Tile.is_solid(tile_nw) or Tile.is_solid(tile_ne):
         rect.top = (row_n + 1) * TILE_SIZE
       elif ((Tile.is_halfsolid(tile_nw) or Tile.is_halfsolid(tile_ne))
       and above_half):
@@ -130,12 +135,13 @@ class BuildingContext(Context):
       elif elem:
         rect.top = elem_rect.bottom
     elif delta_y > 0:
-      if Tile.is_solid(tile_sw) or Tile.is_solid(tile_se):
+      if rect.top > WINDOW_HEIGHT:
+        rect.top = WINDOW_HEIGHT
+      elif Tile.is_solid(tile_sw) or Tile.is_solid(tile_se):
         rect.bottom = row_s * TILE_SIZE
-        if Tile.is_door(tile_s):
-          stage.set_tile_at((col, row_s), Stage.DOOR_OPEN)
       elif elem:
         rect.bottom = elem_rect.top
+
     if elem:
       ctx.elem = elem
       elem.effect(ctx)
