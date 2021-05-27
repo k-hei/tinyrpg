@@ -83,19 +83,18 @@ class TownContext(Context):
     hero = town.hero
     if returning:
       hero.x = SPAWN_RIGHT
-      hero.facing = SPAWN_RIGHT_FACING
+      hero.face(SPAWN_RIGHT_FACING)
     else:
       hero.x = SPAWN_LEFT
-      hero.facing = SPAWN_LEFT_FACING
+      hero.face(SPAWN_LEFT_FACING)
 
     ally = town.ally
     if ally:
       if returning:
         ally.x = hero.x
-        ally.facing = hero.facing
       else:
         ally.x = hero.x - TILE_SIZE
-        ally.facing = hero.facing
+      ally.face(hero.facing)
       town.area.actors.append(ally)
     town.area.actors.append(hero)
 

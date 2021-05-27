@@ -79,7 +79,8 @@ class CentralArea(Area):
       area.actors.append(mage)
 
     area.links = [
-      AreaLink(x=272, direction=(0, -1), target_area="ClearingArea", target_x=96)
+      AreaLink(x=272, direction=(0, -1), target_area="ClearingArea", target_x=96),
+      AreaLink(x=192, direction=(0, -1), target_area="ClearingArea", target_x=96)
     ]
 
   def render(area, hero, can_mark=True):

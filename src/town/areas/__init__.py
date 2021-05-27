@@ -73,7 +73,7 @@ class Area:
     arrowup_image = assets.sprites["link_north"]
     arrowdown_image = assets.sprites["link_south"]
     bubble_image = assets.sprites["bubble_talk"]
-    actors = sorted(area.actors, key=lambda actor: actor.y if actor is not hero else 100)
+    actors = sorted(area.actors, key=lambda actor: actor.y + 1 if actor is hero else actor.y)
     for actor in actors:
       sprite = actor.render()
       offset_x, offset_y = sprite.pos

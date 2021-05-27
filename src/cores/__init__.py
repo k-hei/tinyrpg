@@ -19,6 +19,7 @@ class Core:
     core.dead = False
     core.facing = (1, 0)
     core.anims = []
+    core.color = None
 
   def rename(core, name):
     core.name = name
@@ -71,7 +72,9 @@ class Core:
 
   def render(core, sprite):
     # recolor
-    if core.faction == "player":
+    if core.color:
+      COLOR = core.color
+    elif core.faction == "player":
       COLOR = BLUE
     elif core.faction == "ally":
       COLOR = GREEN

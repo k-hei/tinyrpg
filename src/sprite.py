@@ -7,6 +7,7 @@ class Sprite:
   image: Surface = None
   pos: tuple[int, int] = (0, 0)
   flip: tuple[bool, bool] = (False, False)
+  origin: tuple[str, str] = ("top", "left")
   offset: int = 0
   layer: str = None
 
@@ -24,4 +25,12 @@ class Sprite:
     flip_x, flip_y = sprite.flip
     if flip_x or flip_y:
       image = flip(image, flip_x, flip_y)
-    surface.blit(image, sprite.pos)
+    x, y = sprite.pos
+    origin_x, origin_y = sprite.origin
+    if origin_x == "center":
+      x -= image.get_width() // 2
+    if origin_y == "center":
+      y -= image.get_height() // 2
+    if origin_y == "bottom":
+      y -= image.get_height()
+    surface.blit(image, (x, y))
