@@ -18,7 +18,7 @@ class ArrangeAnim(TweenAnim): pass
 
 MARGIN = 8
 SPACING = 4
-LOG_HEIGHT = 48
+LOG_HEIGHT = 72
 
 class Previews:
   def __init__(self, parent):

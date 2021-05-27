@@ -79,7 +79,7 @@ class GameContext(Context):
       for skill, cell in ally_data.items():
         piece = (resolve_skill(skill), cell)
         ctx.skill_builds[ctx.ally].append(piece)
-
+    ctx.update_skills()
     ctx.open(resolve_place(savedata.place))
 
   def save(ctx):
@@ -126,7 +126,7 @@ class GameContext(Context):
       ctx.monster_kills[target_type] = 1
 
   def get_skill(ctx, actor):
-    return ctx.selected_skills[actor]
+    return ctx.selected_skills[actor] if actor in ctx.selected_skills else None
 
   def set_skill(ctx, actor, skill):
     ctx.selected_skills[actor] = skill

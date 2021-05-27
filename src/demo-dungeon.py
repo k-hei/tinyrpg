@@ -13,11 +13,8 @@ App(title="dungeon demo",
     party=["knight"],
     chars={
       "knight": {
-        "hp": 23,
-        "skills": {
-          "Stick": (0, 0),
-          "Blitzritter": (1, 0)
-        }
+        "Stick": (0, 0),
+        "Blitzritter": (1, 0)
       }
     }
   ))

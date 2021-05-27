@@ -82,6 +82,7 @@ class CustomContext(Context):
         target=skill
       ))
     build = menu.builds[menu.char]
+    print(build)
     for i, (skill, cell) in enumerate(build):
       menu.anims[0].append(PlaceAnim(
         duration=ANIM_PLACE_DURATION,

@@ -91,11 +91,11 @@ class Blitzritter(AttackSkill):
         return game.flinch(
           target=target_a,
           damage=find_damage(target_a),
-          on_end=lambda: (game.flinch(
+          on_end=lambda: game.flinch(
             target=target_b,
             damage=find_damage(target_b),
             on_end=on_end
-          ))
+          )
         )
       target = target_a or target_b
       game.flinch(

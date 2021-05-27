@@ -196,9 +196,14 @@ class DungeonContext(Context):
     floor = game.floor
     visible_cells = shadowcast(floor, hero.cell, VISION_RANGE)
 
+    def is_within_room(room, cell):
+      _, room_y = room.cell
+      room_cells = room.get_cells() + room.get_border()
+      return hero.cell in [(x, y) for (x, y) in room_cells if y != room_y - 2]
+
     door = None
     if moving:
-      rooms = [room for room in floor.rooms if hero.cell in room.get_cells() + room.get_border()]
+      rooms = [room for room in floor.rooms if is_within_room(room, hero.cell)]
       if len(rooms) == 1:
         room = rooms[0]
       else:
@@ -210,24 +215,6 @@ class DungeonContext(Context):
       game.room = room
       if room and room not in game.room_entrances:
         game.room_entrances[room] = hero.cell
-
-      # if (room
-      # and room in game.room_entrances
-      # and room not in game.rooms_entered
-      # and manhattan(hero.cell, game.room_entrances[room]) == 2
-      # and [e for e in game.floor.elems if (
-      #   e.cell in room.get_cells()
-      #   and isinstance(e, DungeonActor)
-      #   and not hero.allied(e)
-      # )]):
-      #   door = game.room_entrances[room]
-      #   game.rooms_entered.append(room)
-      #   game.camera.focus(door, speed=8)
-      #   game.anims.append([
-      #     PauseAnim(90, on_end=lambda: game.set_tile_at(door, Stage.DOOR_LOCKED)),
-      #     PauseAnim(105, on_end=game.camera.blur),
-      #     PauseAnim(45)
-      #   ])
 
     if game.room:
       visible_cells += game.room.get_cells() + game.room.get_border()
@@ -249,7 +236,7 @@ class DungeonContext(Context):
     nearby_enemies = [e for e in game.floor.elems if (
       isinstance(e, DungeonActor)
       and not hero.allied(e)
-      and manhattan(hero.cell, e.cell) <= 1
+      and manhattan(hero.cell, e.cell) == 1
       and (type(e) is not Mimic or not e.idle)
     )]
     if nearby_enemies:
@@ -969,9 +956,6 @@ class DungeonContext(Context):
     def respond():
       if target.is_dead() or game.floor.get_tile_at(target.cell) is Stage.PIT:
         game.kill(target, on_end)
-      elif is_adjacent(target.cell, target.cell):
-        # pause before performing step
-        return game.anims[0].append(PauseAnim(duration=DungeonContext.PAUSE_DURATION, on_end=end))
       else:
         end()
 

@@ -22,7 +22,7 @@ class TreasureDoor(Door):
       return
     inventory = game.get_inventory()
     if Key in inventory:
-      game.open(PromptContext(("Use the ", Key().token(), " and enter?"), [
+      game.open(PromptContext(("Use the ", Key().token(), "?"), [
         Choice("Yes"),
         Choice("No", default=True, closing=True)
       ], on_close=lambda choice: (
