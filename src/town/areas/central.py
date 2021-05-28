@@ -14,6 +14,11 @@ from contexts.save import SaveContext
 
 class CentralArea(Area):
   bg_id = "town_central"
+  links = {
+    "right": AreaLink(x=416, direction=(1, 0)),
+    "alley": AreaLink(x=272, direction=(0, -1)),
+    "door_heart": AreaLink(x=192, direction=(0, -1)),
+  }
 
   def init(area, town):
     super().init(town)
@@ -77,11 +82,6 @@ class CentralArea(Area):
       mage.x = 304
       mage.facing = (1, 0)
       area.actors.append(mage)
-
-    area.links = [
-      AreaLink(x=272, direction=(0, -1), target_area="ClearingArea", target_x=96),
-      AreaLink(x=192, direction=(0, -1), target_area="ClearingArea", target_x=96)
-    ]
 
   def render(area, hero, can_mark=True):
     nodes = super().render(hero, can_mark)

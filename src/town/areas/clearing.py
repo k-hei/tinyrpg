@@ -4,6 +4,9 @@ from config import TILE_SIZE
 
 class ClearingArea(Area):
   bg_id = "town_clearing"
+  links = {
+    "alley": AreaLink(x=96, direction=(0, 1)),
+  }
 
   def init(area, town):
     super().init(town)
@@ -13,9 +16,6 @@ class ClearingArea(Area):
     ])
     rat.x = 160
     area.actors.append(rat)
-    area.links = [
-      AreaLink(x=96, direction=(0, 1), target_area="CentralArea", target_x=272)
-    ]
 
   def render(area, hero, can_mark=True):
     nodes = super().render(hero, can_mark)

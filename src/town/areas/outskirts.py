@@ -1,4 +1,4 @@
-from town.areas import Area
+from town.areas import Area, AreaLink
 from town.actors.rogue import Rogue
 from cores.rogue import RogueCore
 from assets import load as use_assets
@@ -9,6 +9,9 @@ from contexts.prompt import PromptContext, Choice
 class OutskirtsArea(Area):
   bg_id = "town_outskirts"
   TOWER_X = 224
+  links = {
+    "left": AreaLink(x=0, direction=(-1, 0)),
+  }
 
   def init(area, town):
     super().init(town)

@@ -38,6 +38,13 @@ class Graph:
         neighbors.add(n1)
     return tuple(neighbors)
 
+  def tail(graph, head):
+    for n1, n2 in graph.edges:
+      if n1 is head:
+        return n2
+      if n2 is head:
+        return n1
+
   def connect(graph, node1, node2):
     edge = (node1, node2)
     graph.edges.append(edge)

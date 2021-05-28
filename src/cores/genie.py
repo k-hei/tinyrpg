@@ -5,7 +5,7 @@ from assets import load as use_assets
 from cores import Core
 from sprite import Sprite
 from filters import replace_color
-from palette import BLACK, GOLD
+from palette import BLACK, ORANGE
 
 RIPPLE_PERIOD = 90
 RIPPLE_WAVES = 2
@@ -23,9 +23,9 @@ class Genie(Core):
     genie.renders = 0
 
   def render(genie):
-    sprite_genie = use_assets().sprites["genie"]
-    image = Surface(sprite_genie.get_size()).convert_alpha()
-    image.blit(sprite_genie.subsurface(Rect(0, 0, 32, RIPPLE_START)), (0, 0))
+    genie_image = use_assets().sprites["genie"]
+    image = Surface(genie_image.get_size()).convert_alpha()
+    image.blit(genie_image.subsurface(Rect(0, 0, 32, RIPPLE_START)), (0, 0))
     for y in range(RIPPLE_START, RIPPLE_END):
       i = y - RIPPLE_START
       p = i / RIPPLE_EXTENT
@@ -33,9 +33,13 @@ class Genie(Core):
       t = t + p * RIPPLE_PERIOD
       t = (t % (RIPPLE_PERIOD / RIPPLE_WAVES) / RIPPLE_PERIOD) * RIPPLE_WAVES
       x = sin(t * 2 * pi) * ease_out(p) * RIPPLE_AMP
-      image.blit(sprite_genie.subsurface(Rect(0, y, 32, 1)), (x, y))
+      image.blit(genie_image.subsurface(Rect(0, y, 32, 1)), (x, y))
     y = sin(genie.renders % FLOAT_PERIOD / FLOAT_PERIOD * 2 * pi) * FLOAT_AMP
-    genie.sprite.image = replace_color(image, BLACK, GOLD)
+    genie.sprite.image = replace_color(image, BLACK, ORANGE)
     genie.sprite.pos = (0, y)
+    flip_x, _ = genie.sprite.flip
+    if genie.facing == (-1, 0) != flip_x:
+      flip_x = genie.facing == (-1, 0)
+      genie.sprite.flip = (flip_x, False)
     genie.renders += 1
     return genie.sprite

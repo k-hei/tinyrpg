@@ -17,10 +17,10 @@ def can_talk(hero, actor):
   return abs(dist_x) < TILE_SIZE * 1.5 and dist_x * facing_x >= 0
 
 def find_nearby_link(hero, links):
-  for link in links:
+  for link in links.values():
     dist_x = link.x - hero.x
-    facing_x, _ = hero.facing
-    if abs(dist_x) < TILE_SIZE and dist_x * facing_x >= 0:
+    _, direction_y = link.direction
+    if abs(dist_x) < TILE_SIZE // 2 and direction_y :
       return link
 
 ARROW_PERIOD = 45
@@ -30,8 +30,6 @@ ARROW_BOUNCE = 2
 class AreaLink:
   x: int
   direction: tuple[int, int]
-  target_area: str
-  target_x: int
 
 class Area:
   bg_id = None
@@ -44,7 +42,6 @@ class Area:
 
   def __init__(area):
     area.actors = []
-    area.links = []
     area.camera = None
     area.draws = 0
 

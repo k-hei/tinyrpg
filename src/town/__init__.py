@@ -21,6 +21,7 @@ from town.actors.rogue import Rogue
 from town.actors.genie import Genie
 from town.actors.npc import Npc
 
+from town.graph import TownGraph
 from town.areas import Area, can_talk, find_nearby_link
 from town.areas.outskirts import OutskirtsArea
 from town.areas.central import CentralArea
@@ -52,12 +53,15 @@ class TownContext(Context):
     town.returning = returning
     town.hero = None
     town.ally = None
-    town.zones = [
-      [ClearingArea()],
-      [CentralArea(), OutskirtsArea()]
-    ]
-    town.zone = town.zones[1]
-    town.area = town.zone[1]
+    town.graph = TownGraph(
+      nodes=[OutskirtsArea, CentralArea, ClearingArea],
+      edges=[
+        (OutskirtsArea.links["left"], CentralArea.links["right"]),
+        # (CentralArea.links["door"], ShopArea.links["entrance"]),
+        (CentralArea.links["alley"], ClearingArea.links["alley"]),
+      ]
+    )
+    town.area = OutskirtsArea()
     town.area_change = None
     town.area_link = None
     town.talkee = None
@@ -75,11 +79,10 @@ class TownContext(Context):
       town.hud.anims = []
       town.hud.active = False
       transit.on_end = town.hud.enter
-    for zone in town.zones:
-      for area in zone:
-        area.init(town)
 
   def spawn(town, returning):
+    town.area.init(town)
+
     hero = town.hero
     if returning:
       hero.x = SPAWN_RIGHT
@@ -132,20 +135,19 @@ class TownContext(Context):
 
   def handle_move(town, delta):
     hero = town.hero
+    old_x = hero.x
     hero.move(delta)
-    if (hero.x < 0
-    and town.zone.index(town.area) - 1 >= 0):
-      town.handle_areachange(delta=-1)
-    if (hero.x > town.area.width
-    and town.zone.index(town.area) + 1 < len(town.zone)):
-      town.handle_areachange(delta=1)
-    if (hero.x >= OutskirtsArea.TOWER_X + TILE_SIZE // 2
-    and type(town.area) is OutskirtsArea):
-      town.handle_areachange(delta=1)
-    if hero.x < 0 and hero.facing[0] < 0:
-      hero.x = 0
-    if hero.x > town.area.width and hero.facing[0] > 0:
-      hero.x = town.area.width
+    for link in town.area.links.values():
+      if (old_x < link.x and hero.x >= link.x and link.direction == (1, 0)
+      or old_x > link.x and hero.x <= link.x and link.direction == (-1, 0)):
+        town.handle_areachange(link)
+        break
+    else:
+      facing_x, _ = hero.facing
+      if hero.x < 0 and facing_x < 0:
+        hero.x = 0
+      if hero.x > town.area.width and facing_x > 0:
+        hero.x = town.area.width
     ally = town.ally
     if ally:
       ally.follow(hero)
@@ -153,7 +155,7 @@ class TownContext(Context):
 
   def handle_zmove(town, delta):
     link = find_nearby_link(town.hero, town.area.links)
-    if link is None or link.direction != delta:
+    if link is None or link.direction != delta or town.graph.tail(link) is None:
       return False
     town.area_link = link
     town.hud.exit()
@@ -166,54 +168,28 @@ class TownContext(Context):
     if ally:
       ally.stop_move()
 
-  def handle_areachange(town, delta=0, link=None):
-    if town.hud.active:
-      town.hud.exit()
-    town.area_change = delta
-    if link:
-      town.get_root().dissolve(
-        on_clear=lambda: town.follow_link(link),
-        on_end=town.hud.enter
-      )
-    elif delta:
-      if type(town.area) is OutskirtsArea and delta == 1:
-        town.get_root().dissolve(on_clear=town.parent.goto_dungeon)
-      else:
-        next_area = town.zone[town.zone.index(town.area) + delta]
-        town.get_root().dissolve(
-          on_clear=lambda: town.change_areas(
-            area=next_area,
-            delta=delta
-          ),
-          on_end=town.hud.enter
-        )
+  def handle_areachange(town, link):
+    town.area_change = link.direction
+    town.get_root().dissolve(on_clear=lambda: town.follow_link(link))
 
   def follow_link(town, link):
-    for zone in town.zones:
-      area = next((a for a in zone if type(a).__name__ == link.target_area), None)
-      if area:
-        town.zone = zone
-        next_area = area
-        town.change_areas(area=next_area, link=link)
-        break
+    dest_link = town.graph.tail(head=link)
+    if dest_link:
+      dest_area = town.graph.link_area(link=dest_link)
+      if dest_area:
+        town.change_areas(area=dest_area, link=dest_link)
 
-  def change_areas(town, area, delta=0, link=None):
+  def change_areas(town, area, link):
     prev_area = town.area
-    town.area = area
+    town.area = area()
+    town.area.init(town)
     town.area_change = None
     town.area_link = None
     hero = town.hero
     hero.stop_move()
-    facing_x, _ = hero.facing
-    if link:
-      hero.x = link.target_x
-      hero.y = 0
-      facing_x = -1 if hero.x > town.area.width // 2 else 1
-      hero.face((facing_x, 0))
-    elif delta == -1:
-      hero.x = town.area.width - TILE_SIZE
-    elif delta == 1:
-      hero.x = TILE_SIZE
+    hero.x = link.x
+    hero.y = 0
+    hero.face((-1 if hero.x > town.area.width // 2 else 1, 0))
     ally = town.ally
     if ally:
       ally.x = hero.x - TILE_SIZE * facing_x
@@ -329,8 +305,8 @@ class TownContext(Context):
           hero.move_to((link.x, TARGET_HORIZON))
       if ally: ally.follow(hero)
     elif town.area_change:
-      hero.move((town.area_change, 0))
-      if ally: ally.move((town.area_change, 0))
+      hero.move(town.area_change)
+      if ally: ally.move(town.area_change)
 
   def draw(town, surface):
     can_mark = not town.child and not town.anims and not town.area_link
