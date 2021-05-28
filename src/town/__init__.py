@@ -78,7 +78,6 @@ class TownContext(Context):
     if transit:
       town.hud.anims = []
       town.hud.active = False
-      transit.on_end = town.hud.enter
 
   def spawn(town, returning):
     town.area.init(town)
@@ -158,7 +157,6 @@ class TownContext(Context):
     if link is None or link.direction != delta or town.graph.tail(link) is None:
       return False
     town.area_link = link
-    town.hud.exit()
     return True
 
   def handle_movestop(town):
@@ -243,7 +241,6 @@ class TownContext(Context):
     return True
 
   def handle_custom(town):
-    town.hud.exit()
     game = town.parent
     chars = [game.hero]
     if game.ally:
@@ -254,8 +251,7 @@ class TownContext(Context):
       builds=game.skill_builds,
       chars=chars,
       on_close=lambda: (
-        game.update_skills(),
-        town.hud.enter()
+        game.update_skills()
       )
     ))
 
@@ -309,12 +305,20 @@ class TownContext(Context):
       if ally: ally.move(town.area_change)
 
   def draw(town, surface):
-    can_mark = not town.child and not town.anims and not town.area_link
+    can_mark = (not town.child
+    and not town.anims
+    and not town.area_link
+    and not town.get_root().transits)
     for sprite in town.area.render(town.hero, can_mark):
       sprite.draw(surface)
 
-    if town.child:
-      if town.child.child and town.hud.active:
+    if can_mark:
+      if not town.hud.active:
+        town.hud.enter()
+    else:
+      if town.hud.active:
         town.hud.exit()
+
+    if town.child:
       town.child.draw(surface)
     town.hud.draw(surface, town)
