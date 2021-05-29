@@ -4,6 +4,7 @@ from assets import load as use_assets
 from anims.frame import FrameAnim
 from palette import WHITE, SAFFRON
 from filters import replace_color
+from sprite import Sprite
 
 @dataclass
 class SpriteMap:
@@ -53,12 +54,15 @@ class Door(Prop):
     anim_group = [a for a in anims[0] if a.target is door] if anims else []
     for anim in anim_group:
       if type(anim) is DoorAnim:
-        sprite = sprites[anim.frame]
+        image = sprites[anim.frame]
         break
     else:
       if door.opened and not will_open:
-        sprite = sprites[door.sprites.opened]
+        image = sprites[door.sprites.opened]
       else:
-        sprite = sprites[door.sprites.closed]
-    sprite = replace_color(sprite, WHITE, SAFFRON)
-    return sprite
+        image = sprites[door.sprites.closed]
+    image = replace_color(image, WHITE, SAFFRON)
+    return Sprite(
+      image=image,
+      layer="tiles"
+    )

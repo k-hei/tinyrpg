@@ -198,13 +198,14 @@ class StageView:
     if type(image) is Sprite:
       sprite = image
       image = sprite.image
+      layer = sprite.layer
       offset_x, offset_y = sprite.pos
       x = sprite_x + TILE_SIZE // 2 - image.get_width() // 2 + offset_x
       y = sprite_y + TILE_SIZE // 2 - image.get_height() // 2 + offset_y
       sprites.append(Sprite(
         image=image,
         pos=(x, y),
-        layer="elems"
+        layer=layer
       ))
     elif image:
       if facing_x == -1:

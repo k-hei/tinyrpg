@@ -35,6 +35,6 @@ class TreasureDoor(Door):
       game.log.print("The door is locked...")
 
   def render(door, anims):
-    image = super().render(anims)
-    image = replace_color(image, SAFFRON, GOLD)
-    return image
+    sprite = super().render(anims)
+    sprite.image = replace_color(sprite.image, SAFFRON, GOLD)
+    return sprite
