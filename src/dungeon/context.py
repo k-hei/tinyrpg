@@ -1,5 +1,5 @@
 import math
-import random
+from random import random, randint, choice
 import pygame
 from pygame import Rect
 import palette
@@ -347,7 +347,7 @@ class DungeonContext(Context):
     if len(enemies) == 0:
       return None
     if len(enemies) > 1:
-      enemies.sort(key=lambda e: manhattan(e.cell, actor.cell) + random.random() / 2)
+      enemies.sort(key=lambda e: manhattan(e.cell, actor.cell) + random() / 2)
     return enemies[0]
 
   def find_closest_visible_enemy(game, actor):
@@ -486,11 +486,11 @@ class DungeonContext(Context):
             and manhattan(c, hero.cell) > 2
           )]
           for i in range(monsters):
-            cell = random.choice(cells)
+            cell = choice(cells)
             enemy = Eye()
             floor.spawn_elem(enemy, cell)
             cells.remove(cell)
-            if random.randint(0, 9):
+            if randint(0, 9):
               enemy.ailment = "sleep"
 
         game.anims.append([
@@ -511,7 +511,7 @@ class DungeonContext(Context):
         room = game.room
         room_elems = [a for a in [floor.get_elem_at(cell) for cell in room.get_cells()] if a]
         enemies = [e for e in room_elems if isinstance(e, DungeonActor) and not hero.allied(e)]
-        enemy = next((e for e in enemies if e.ailment == "sleep" and random.randint(1, 10) == 1), None)
+        enemy = next((e for e in enemies if e.ailment == "sleep" and randint(1, 10) == 1), None)
         if enemy:
           enemy.wake_up()
           if game.camera.is_cell_visible(enemy.cell):
@@ -614,6 +614,9 @@ class DungeonContext(Context):
           game.step(run)
           game.refresh_fov()
     return moved
+
+  def obtain(game, item):
+    game.parent.obtain(item)
 
   def jump_pit(game, actor, run=False, on_end=None):
     facing_x, facing_y = actor.facing
@@ -834,7 +837,7 @@ class DungeonContext(Context):
       else:
         return 0
 
-    if random.randint(0, 1):
+    if randint(0, 1):
       delta_x = select_x()
       if not delta_x:
         delta_y = select_y()
@@ -909,12 +912,14 @@ class DungeonContext(Context):
     def remove():
       if not hero.allied(target):
         game.parent.record_kill(target)
-        if type(target).skill and target.rare:
-          skill = type(target).skill
+        enemy_skill = type(target).skill
+        enemy_drops = type(target).drops
+        if enemy_skill and target.rare:
+          skill = enemy_skill
           if skill not in game.parent.skill_pool:
             game.floor.spawn_elem(Soul(skill), target.cell)
-        elif type(target).drops:
-          drop = type(target).drops[0]
+        elif enemy_drops:
+          drop = choice(enemy_drops)
           game.floor.spawn_elem(Bag(item=drop), target.cell)
       target.kill()
       game.floor.elems.remove(target)

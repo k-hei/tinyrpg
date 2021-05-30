@@ -4,5 +4,5 @@ from items.sp import SpItem
 @dataclass
 class Fish(SpItem):
   name: str = "Fish"
-  desc: str = "Restores 20 SP."
+  desc: str = "Restores\n20 SP."
   sp: int = 20

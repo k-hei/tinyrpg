@@ -5,7 +5,8 @@ from lib.lerp import lerp
 from assets import load as use_assets
 from comps.log import Message, Token
 
-PADDING_X = 12
+PADDING_LEFT = 12
+PADDING_RIGHT = 12
 PADDING_Y = 10
 TITLE_SPACING = 5
 WORD_SPACING = 8
@@ -65,7 +66,7 @@ class InventoryDescription:
     elif box.active and box.message:
       if box.surface is None:
         box.surface = Surface((
-          surface.get_width() - PADDING_X * 2,
+          surface.get_width() - PADDING_LEFT - PADDING_RIGHT,
           surface.get_height() - PADDING_Y * 2
         )).convert_alpha()
 
@@ -79,8 +80,15 @@ class InventoryDescription:
 
       if box.index < len(message):
         cursor_x, cursor_y = box.cursor
-        if box.index == 0 or message[box.index] == " ":
+        char = message[box.index]
+        if char == "\n":
+          cursor_x = 0
+          cursor_y += font_content.height() + LINE_SPACING
+          box.index += 1
+        if box.index == 0 or char in (" ", "\n"):
           next_space = message.find(" ", box.index + 1)
+          if next_space == -1:
+            next_space = message.find("\n", box.index + 1)
           if next_space == -1:
             word = message[box.index+1:]
           else:
@@ -101,10 +109,10 @@ class InventoryDescription:
         box.cursor = (cursor_x, cursor_y)
 
       if sprite_title:
-        surface.blit(sprite_title, (PADDING_X, PADDING_Y))
-        surface.blit(box.surface, (PADDING_X, PADDING_Y + sprite_title.get_height() + TITLE_SPACING))
+        surface.blit(sprite_title, (PADDING_LEFT, PADDING_Y))
+        surface.blit(box.surface, (PADDING_LEFT, PADDING_Y + sprite_title.get_height() + TITLE_SPACING))
       else:
-        surface.blit(box.surface, (PADDING_X, PADDING_Y))
+        surface.blit(box.surface, (PADDING_LEFT, PADDING_Y))
       return surface
     elif box.active:
       return surface

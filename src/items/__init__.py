@@ -10,14 +10,16 @@ class Item:
   desc: str
   value: int = 0
   sprite: str = None
-  color: tuple[int, int, int] = BLACK
+  color: int = BLACK
 
   def token(item):
     return Token(item.name, item.color)
 
   def render(item):
+    sprites = use_assets().sprites
     sprite_name = item.sprite or item.name.lower()
-    sprite = use_assets().sprites["item_" + sprite_name]
+    sprite_key = "item_" + sprite_name
+    sprite = sprites[sprite_key if sprite_key in sprites else "item_orb"]
     if item.color == BLACK:
       return sprite
     else:

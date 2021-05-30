@@ -4,7 +4,7 @@ from items.sp import SpItem
 @dataclass
 class Sapphire(SpItem):
   name: str = "Sapphire"
-  desc: str = "Restores full SP."
+  desc: str = "Restores\nfull SP."
   sprite: str = "gem"
 
   def use(elixir, ctx):

@@ -4,5 +4,5 @@ from items.hp import HpItem
 @dataclass
 class Potion(HpItem):
   name: str = "Potion"
-  desc: str = "Restores 20 HP."
+  desc: str = "Restores\n20 HP."
   hp: int = 20

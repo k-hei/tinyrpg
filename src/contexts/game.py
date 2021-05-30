@@ -118,6 +118,9 @@ class GameContext(Context):
   def goto_town(ctx, returning=False):
     ctx.open(TownContext(returning=returning))
 
+  def obtain(ctx, item):
+    ctx.inventory.items.append(item)
+
   def record_kill(ctx, target):
     target_type = type(target)
     if target_type in ctx.monster_kills:

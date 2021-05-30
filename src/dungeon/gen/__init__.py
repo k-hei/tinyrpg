@@ -47,6 +47,7 @@ from items.dungeon.balloon import Balloon
 from items.dungeon.emerald import Emerald
 from items.dungeon.key import Key
 from items.ailment.antidote import Antidote
+from items.materials.angeltears import AngelTears
 
 from skills.support.counter import Counter
 
@@ -555,7 +556,8 @@ def gen_floor(seed=None):
     stage.spawn_elem(genie, corner)
 
   # stage.spawn_elem(Soul(Counter), (center_x, center_y - 1))
-  stage.spawn_elem(Bag(None), (center_x, center_y - 1))
+  # stage.spawn_elem(Bag(AngelTears), (center_x, center_y - 1))
+  stage.spawn_elem(Mushroom(), (center_x, center_y - 1))
   return stage
 
 def gen_enemy(floor):

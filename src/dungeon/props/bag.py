@@ -41,6 +41,7 @@ class Bag(Prop):
     )])
     game.log.print("You open the bag")
     if bag.item:
+      game.obtain(bag.item)
       game.log.print(("Received ", bag.item().token(), "."))
     else:
       game.log.print("But there was nothing inside...")
