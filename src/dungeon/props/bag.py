@@ -1,6 +1,7 @@
 from dungeon.props import Prop
 from assets import load as use_assets
 from sprite import Sprite
+from anims.flicker import FlickerAnim
 
 class BagAnim:
   jump = 2
@@ -32,6 +33,18 @@ class Bag(Prop):
     bag.item = item
     bag.anim = BagAnim()
 
+  def effect(bag, game):
+    game.anims.append([FlickerAnim(
+      duration=30,
+      target=bag,
+      on_end=lambda: game.floor.remove_elem(bag)
+    )])
+    game.log.print("You open the bag")
+    if bag.item:
+      game.log.print(("Received ", bag.item().token(), "."))
+    else:
+      game.log.print("But there was nothing inside...")
+
   def render(bag, anims):
     sprites = use_assets().sprites
     bag_image = sprites["bag" if bag.anim.bounces else "bag_float"]
@@ -39,6 +52,6 @@ class Bag(Prop):
     return Sprite(
       image=bag_image,
       pos=(0, bag.anim.y),
-      offset=-1,
+      offset=1,
       layer="elems"
     )
