@@ -126,10 +126,11 @@ class Hud:
 
   def render(panel, hero, ally, anim=None):
     assets = use_assets()
-    width = assets.sprites["hud"].get_width() + 1
-    height = assets.sprites["hud"].get_height()
+    hud_image = assets.sprites["hud"] if ally else assets.sprites["hud_single"]
+    width = hud_image.get_width() + 1
+    height = hud_image.get_height()
     sprite = Surface((width, height)).convert_alpha()
-    sprite.blit(assets.sprites["hud"], (0, 0))
+    sprite.blit(hud_image, (0, 0))
 
     hero_portrait = None
     if (type(hero) is KnightCore and type(anim) is not SwitchOutAnim
