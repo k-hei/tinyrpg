@@ -922,15 +922,14 @@ class DungeonContext(Context):
             on_end and on_end()
           )
         ))
-      elif game.floor.find_tile(Stage.MONSTER_DEN):
-        trap = game.floor.find_tile(Stage.MONSTER_DEN)
-        if trap and not [e for e in game.floor.elems if isinstance(e, DungeonActor) and hero.allied(e)]:
-          trap_x, trap_y = trap
-          game.floor.set_tile_at((trap_x - 2, trap_y), Stage.DOOR_OPEN)
-        if on_end:
-          on_end()
-      elif game.room and game.room in game.rooms_entered and not game.find_room_enemies():
-        game.floor.set_tile_at(game.room_entrances[game.room], Stage.DOOR_OPEN)
+      else:
+        if game.floor.find_tile(Stage.MONSTER_DEN):
+          trap = game.floor.find_tile(Stage.MONSTER_DEN)
+          if trap and not [e for e in game.floor.elems if isinstance(e, DungeonActor) and hero.allied(e)]:
+            trap_x, trap_y = trap
+            game.floor.set_tile_at((trap_x - 2, trap_y), Stage.DOOR_OPEN)
+        elif game.room and game.room in game.rooms_entered and not game.find_room_enemies():
+          game.floor.set_tile_at(game.room_entrances[game.room], Stage.DOOR_OPEN)
         if on_end:
           on_end()
 
@@ -946,8 +945,8 @@ class DungeonContext(Context):
 
   def flinch(game, target, damage, direction=None, delayed=False, on_end=None):
     was_asleep = target.ailment == "sleep"
-    end = lambda: on_end and on_end()
-    if target.is_dead(): end()
+    if target.is_dead() and on_end:
+      on_end()
 
     def awaken():
       game.log.print((target.token(), " woke up!"))
@@ -956,8 +955,8 @@ class DungeonContext(Context):
     def respond():
       if target.is_dead() or game.floor.get_tile_at(target.cell) is Stage.PIT:
         game.kill(target, on_end)
-      else:
-        end()
+      elif on_end:
+          on_end()
 
     flinch = FlinchAnim(
       duration=DungeonContext.FLINCH_DURATION,
