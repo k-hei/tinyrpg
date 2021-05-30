@@ -1,6 +1,6 @@
 import random
 import pygame
-from pygame import Surface, Rect
+from pygame import Surface, Rect, SRCALPHA
 
 from contexts import Context
 from contexts.choice import ChoiceContext, Choice
@@ -9,7 +9,7 @@ from comps.invdesc import InventoryDescription
 from assets import load as use_assets
 from filters import replace_color
 from keyboard import key_times, ARROW_DELTAS
-import palette
+from palette import BLACK, WHITE, GRAY, BLUE
 
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
@@ -38,6 +38,8 @@ DURATION_CHAREXIT = 6
 STAGGER_CHAREXIT = 2
 
 class InventoryContext(Context):
+  tabs = ["consumables", "materials", "equipment"]
+
   def __init__(ctx, inventory, on_close=None):
     super().__init__()
     ctx.data = inventory
@@ -46,6 +48,7 @@ class InventoryContext(Context):
     ctx.on_animate = None
     ctx.cursor = (0, 0)
     ctx.cursor_anim = SineAnim(period=30)
+    ctx.tab = 0
     ctx.active = True
     ctx.anims = []
     ctx.box = InventoryDescription()
@@ -157,6 +160,9 @@ class InventoryContext(Context):
       delta = ARROW_DELTAS[key]
       ctx.handle_move(delta)
 
+    if key == pygame.K_TAB:
+      ctx.handle_tab()
+
     if key == pygame.K_RETURN or key == pygame.K_SPACE:
       ctx.handle_choose()
 
@@ -171,6 +177,10 @@ class InventoryContext(Context):
     if target_item:
       ctx.cursor = target_cell
       ctx.select(target_item)
+
+  def handle_tab(ctx):
+    ctx.tab += 1
+    ctx.tab %= len(ctx.tabs)
 
   def handle_choose(ctx):
     ctx.open(ChoiceContext(choices=[
@@ -284,12 +294,35 @@ class InventoryContext(Context):
         if item and not anim:
           surface.blit(item().render(), (x, y))
 
+    # tabs
+    x = cells_x + tile_width * cols
+    y = cells_y
+    for i, tab in enumerate(ctx.tabs):
+      tabend_image = assets.sprites["item_tabend"]
+      icon_image = assets.sprites["icon_" + tab]
+      text_image = assets.sprites[tab] if i == ctx.tab else None
+      text_width = text_image.get_width() if text_image else 0
+      inner_width = icon_image.get_width() + text_width
+      tab_image = Surface((inner_width + (14 if text_width else 9), 16), SRCALPHA)
+      pygame.draw.rect(tab_image, BLACK, Rect((0, 0),
+        (tab_image.get_width() - 1, tab_image.get_height() - 1)))
+      tab_image.blit(tabend_image, (tab_image.get_width() - tabend_image.get_width(), 0))
+      tab_image.blit(icon_image, (3, 3))
+      if text_image:
+        tab_image.blit(text_image, (
+          3 + icon_image.get_width() + 4,
+          tab_image.get_height() / 2 - text_image.get_height() / 2 - 1))
+      if i != ctx.tab:
+        tab_image = replace_color(tab_image, WHITE, GRAY)
+      surface.blit(tab_image, (x, y))
+      y += tab_image.get_height() + 1
+
     # cursor
     cursor_col, cursor_row = ctx.cursor
-    cursor_color = palette.BLUE if ctx.cursor_anim.time % 2 or type(ctx.child) is ChoiceContext else palette.WHITE
     cursor_x = cells_x + tile_width * cursor_col
     cursor_y = cells_y + tile_height * cursor_row
-    if not ctx.anims:
+    cursor_color = BLUE if ctx.cursor_anim.time % 2 or type(ctx.child) is ChoiceContext else WHITE
+    if not ctx.anims and ctx.data.items:
       pygame.draw.rect(surface, cursor_color, Rect(cursor_x, cursor_y, tile_width, tile_height), width=1)
 
     # description box
@@ -315,6 +348,6 @@ class InventoryContext(Context):
         x = target_x
       y = cells_y
       surface.blit(ctx.child.render(), (x, y))
-    elif not ctx.anims:
+    elif not ctx.anims and ctx.data.items:
       hand_x = cursor_x + tile_width - 3 + ctx.cursor_anim.update() * 2
       surface.blit(sprite_hand, (hand_x, cursor_y))
