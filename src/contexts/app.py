@@ -106,8 +106,8 @@ class App(Context):
     return True
 
   def toggle_fps(app):
-    if app.fps != FPS // 4:
-      app.fps = FPS // 4
+    if app.fps != 1:
+      app.fps = 1
     else:
       app.fps = FPS
     pygame.key.set_repeat(1000 // app.fps)

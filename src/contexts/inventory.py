@@ -8,6 +8,7 @@ from comps.hud import Hud
 from comps.invdesc import InventoryDescription
 from assets import load as use_assets
 from filters import replace_color
+import keyboard
 from keyboard import key_times, ARROW_DELTAS
 from palette import BLACK, WHITE, GRAY, BLUE
 
@@ -38,6 +39,9 @@ DURATION_CHARENTER = ENTER_DURATION
 STAGGER_CHARENTER = 4
 DURATION_CHAREXIT = 6
 STAGGER_CHAREXIT = 2
+
+class SelectAnim(TweenAnim): blocking = False
+class DeselectAnim(TweenAnim): blocking = False
 
 class InventoryContext(Context):
   tabs = ["consumables", "materials", "equipment"]
@@ -87,9 +91,9 @@ class InventoryContext(Context):
         ))
     for i, tab in enumerate(ctx.tabs):
       if i == ctx.tab:
-        duration = 25
-      else:
         duration = 15
+      else:
+        duration = 10
       ctx.anims.append(TweenAnim(
         duration=duration,
         delay=rows * ENTER_STAGGER + i * 8,
@@ -122,12 +126,12 @@ class InventoryContext(Context):
         ))
     for i, tab in enumerate(ctx.tabs):
       if i == ctx.tab:
-        duration = 15
-      else:
         duration = 8
+      else:
+        duration = 6
       ctx.anims.append(TweenAnim(
         duration=duration,
-        delay=i * 5,
+        delay=i * 4,
         target=tab
       ))
 
@@ -178,13 +182,13 @@ class InventoryContext(Context):
     return col >= 0 and col < cols and row >= 0 and row < rows
 
   def handle_keydown(ctx, key):
-    if ctx.anims:
+    if next((a for a in ctx.anims if a.blocking), None):
       return False
 
     if ctx.child:
       return ctx.child.handle_keydown(key)
 
-    if key not in key_times or key_times[key] != 1:
+    if keyboard.get_pressed(key) > 1:
       return False
 
     if key in ARROW_DELTAS:
@@ -192,7 +196,10 @@ class InventoryContext(Context):
       ctx.handle_move(delta)
 
     if key == pygame.K_TAB:
-      ctx.handle_tab()
+      if keyboard.get_pressed(pygame.K_LSHIFT) or keyboard.get_pressed(pygame.K_RSHIFT):
+        ctx.handle_tab(delta=-1)
+      else:
+        ctx.handle_tab(delta=1)
 
     if key == pygame.K_RETURN or key == pygame.K_SPACE:
       ctx.handle_choose()
@@ -209,10 +216,31 @@ class InventoryContext(Context):
       ctx.cursor = target_cell
       ctx.select(target_item)
 
-  def handle_tab(ctx):
-    ctx.tab += 1
-    ctx.tab %= len(ctx.tabs)
-    ctx.update_items()
+  def handle_tab(ctx, delta=1):
+    old_tab = ctx.tab
+    new_tab = old_tab + delta
+    if new_tab < 0:
+      new_tab = len(ctx.tabs) - 1
+    elif new_tab >= len(ctx.tabs):
+      new_tab = 0
+    if old_tab != new_tab:
+      ctx.tab = new_tab
+      ctx.update_items()
+      ctx.anims.append(DeselectAnim(
+        duration=12,
+        target=ctx.tabs[old_tab]
+      ))
+      ctx.anims.append(SelectAnim(
+        duration=8,
+        target=ctx.tabs[new_tab]
+      ))
+      cols, _ = ctx.grid_size
+      for i, item in enumerate(ctx.items):
+        ctx.anims.append(SelectAnim(
+          duration=4,
+          delay=i,
+          target=(i % cols, i // cols)
+        ))
 
   def update_items(ctx):
     ctx.items = InventoryContext.filter_items(ctx.data.items, ctx.tabs[ctx.tab])
@@ -314,7 +342,7 @@ class InventoryContext(Context):
         else:
           sprite = sprite_tile
         anim = next((a for a in ctx.anims if a.target == cell), None)
-        if anim:
+        if anim and type(anim) is not SelectAnim:
           if ctx.active:
             continue
           else:
@@ -338,37 +366,41 @@ class InventoryContext(Context):
       tab_image = assets.sprites["item_tab"]
       tabend_image = assets.sprites["item_tabend"]
       icon_image = assets.sprites["icon_" + tab]
-      text_image = assets.sprites[tab] if i == ctx.tab else None
-      text_width = text_image.get_width() if text_image else 0
-      inner_width = icon_image.get_width() + text_width
-      true_width = inner_width + (14 if text_width else 9)
-      tab_width = true_width
       tab_anim = next((a for a in ctx.anims if a.target == tab), None)
+      text_image = assets.sprites[tab] if (i == ctx.tab or type(tab_anim) is DeselectAnim or type(tab_anim) is SelectAnim) else None
+      text_width = text_image.get_width() if text_image else 0
+      min_width = icon_image.get_width()
+      max_width = min_width + 3 + text_width
+      inner_width = max_width if text_width else min_width
+      true_width = inner_width + 9
+      tab_width = true_width
       if tab_anim:
         t = tab_anim.pos
         if ctx.active:
           t = ease_out(t)
         else:
           t = 1 - t
-        tab_width *= t
+        if type(tab_anim) is SelectAnim:
+          tab_width = lerp(min_width, max_width, t) + 9
+        elif type(tab_anim) is DeselectAnim:
+          tab_width = lerp(max_width, min_width, t) + 9
+        else:
+          tab_width *= t
       elif not ctx.active:
         tab_width = 0
       if tab_width:
         tab_image = Surface((tab_width, 16), SRCALPHA)
         pygame.draw.rect(tab_image, BLACK, Rect((0, 0),
-          (tab_image.get_width() - 1, tab_image.get_height() - 1)))
-        tab_image.blit(tabend_image, (tab_image.get_width() - tabend_image.get_width(), 0))
+          (tab_width - 1, tab_image.get_height() - 1)))
         tab_image.blit(icon_image, (3, 3))
         if text_image:
           tab_image.blit(text_image, (
-            3 + icon_image.get_width() + 4,
+            3 + icon_image.get_width() + 3,
             tab_image.get_height() / 2 - text_image.get_height() / 2 - 1))
+        tab_image.blit(tabend_image, (tab_width - tabend_image.get_width(), 0))
         if i != ctx.tab:
           tab_image = replace_color(tab_image, WHITE, GRAY)
-        surface.blit(tab_image, (x, y), area=Rect(
-          (true_width - tab_width, 0),
-          (tab_width, tab_image.get_height())
-        ))
+        surface.blit(tab_image, (x, y))
       y += tab_image.get_height() + 1
 
     # cursor
