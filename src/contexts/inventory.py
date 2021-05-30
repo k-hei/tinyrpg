@@ -84,6 +84,16 @@ class InventoryContext(Context):
           delay=ENTER_STAGGER * index,
           target=(col, row)
         ))
+    for i, tab in enumerate(ctx.tabs):
+      if i == ctx.tab:
+        duration = 25
+      else:
+        duration = 15
+      ctx.anims.append(TweenAnim(
+        duration=duration,
+        delay=rows * ENTER_STAGGER + i * 8,
+        target=tab
+      ))
 
   def exit(ctx):
     ctx.active = False
@@ -109,6 +119,16 @@ class InventoryContext(Context):
           delay=EXIT_STAGGER * index,
           target=(col, row)
         ))
+    for i, tab in enumerate(ctx.tabs):
+      if i == ctx.tab:
+        duration = 15
+      else:
+        duration = 8
+      ctx.anims.append(TweenAnim(
+        duration=duration,
+        delay=i * 5,
+        target=tab
+      ))
 
   def remove_anim(ctx, anim):
     if anim in ctx.anims:
@@ -314,23 +334,40 @@ class InventoryContext(Context):
     x = cells_x + tile_width * cols
     y = cells_y
     for i, tab in enumerate(ctx.tabs):
+      tab_image = assets.sprites["item_tab"]
       tabend_image = assets.sprites["item_tabend"]
       icon_image = assets.sprites["icon_" + tab]
       text_image = assets.sprites[tab] if i == ctx.tab else None
       text_width = text_image.get_width() if text_image else 0
       inner_width = icon_image.get_width() + text_width
-      tab_image = Surface((inner_width + (14 if text_width else 9), 16), SRCALPHA)
-      pygame.draw.rect(tab_image, BLACK, Rect((0, 0),
-        (tab_image.get_width() - 1, tab_image.get_height() - 1)))
-      tab_image.blit(tabend_image, (tab_image.get_width() - tabend_image.get_width(), 0))
-      tab_image.blit(icon_image, (3, 3))
-      if text_image:
-        tab_image.blit(text_image, (
-          3 + icon_image.get_width() + 4,
-          tab_image.get_height() / 2 - text_image.get_height() / 2 - 1))
-      if i != ctx.tab:
-        tab_image = replace_color(tab_image, WHITE, GRAY)
-      surface.blit(tab_image, (x, y))
+      true_width = inner_width + (14 if text_width else 9)
+      tab_width = true_width
+      tab_anim = next((a for a in ctx.anims if a.target == tab), None)
+      if tab_anim:
+        t = tab_anim.pos
+        if ctx.active:
+          t = ease_out(t)
+        else:
+          t = 1 - t
+        tab_width *= t
+      elif not ctx.active:
+        tab_width = 0
+      if tab_width:
+        tab_image = Surface((tab_width, 16), SRCALPHA)
+        pygame.draw.rect(tab_image, BLACK, Rect((0, 0),
+          (tab_image.get_width() - 1, tab_image.get_height() - 1)))
+        tab_image.blit(tabend_image, (tab_image.get_width() - tabend_image.get_width(), 0))
+        tab_image.blit(icon_image, (3, 3))
+        if text_image:
+          tab_image.blit(text_image, (
+            3 + icon_image.get_width() + 4,
+            tab_image.get_height() / 2 - text_image.get_height() / 2 - 1))
+        if i != ctx.tab:
+          tab_image = replace_color(tab_image, WHITE, GRAY)
+        surface.blit(tab_image, (x, y), area=Rect(
+          (true_width - tab_width, 0),
+          (tab_width, tab_image.get_height())
+        ))
       y += tab_image.get_height() + 1
 
     # cursor
