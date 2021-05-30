@@ -43,8 +43,8 @@ class Stage:
     if char == "'": return Stage.HALF_WALL, None
     if char == "+": return Stage.FLOOR, Door()
 
-  def __init__(stage, matrix=[]):
-    stage.matrix = matrix
+  def __init__(stage, matrix=None):
+    stage.matrix = matrix or []
     stage.elems = []
 
   def get_width(stage):
@@ -62,10 +62,8 @@ class Stage:
     return x >= 0 and y >= 0 and x < width and y < height
 
   def get_tile_at(stage, cell):
-    if not stage.contains(cell):
-      return None
     x, y = cell
-    return stage.matrix[y][x]
+    return stage.matrix[y][x] if stage.contains(cell) else None
 
   def set_tile_at(stage, cell, tile):
     if not stage.contains(cell):

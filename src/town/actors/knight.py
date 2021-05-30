@@ -1,6 +1,7 @@
 from town.actors.npc import Npc
 from contexts.prompt import PromptContext, Choice
 from cores.knight import KnightCore
+from filters import darken
 
 class Knight(Npc):
   def __init__(knight, core=KnightCore()):
@@ -20,4 +21,7 @@ class Knight(Npc):
     knight.y = 0
 
   def render(knight):
-    return knight.core.render()
+    sprite = knight.core.render()
+    if knight.indoors:
+      sprite.image = darken(sprite.image)
+    return sprite

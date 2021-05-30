@@ -9,6 +9,7 @@ from contexts import Context
 from contexts.inventory import InventoryContext
 from contexts.dialogue import DialogueContext
 from contexts.custom import CustomContext
+from building.context import BuildingContext
 
 from transits.dissolve import DissolveOut
 
@@ -22,7 +23,7 @@ from town.actors.genie import Genie
 from town.actors.npc import Npc
 
 from town.graph import TownGraph
-from town.areas import Area, can_talk, find_nearby_link
+from town.areas import Area, AreaLink, can_talk, find_nearby_link
 from town.areas.outskirts import OutskirtsArea
 from town.areas.central import CentralArea
 from town.areas.clearing import ClearingArea
@@ -57,8 +58,8 @@ class TownContext(Context):
       nodes=[OutskirtsArea, CentralArea, ClearingArea],
       edges=[
         (OutskirtsArea.links["left"], CentralArea.links["right"]),
-        # (CentralArea.links["door"], ShopArea.links["entrance"]),
         (CentralArea.links["alley"], ClearingArea.links["alley"]),
+        (CentralArea.links["door_heart"], BuildingContext),
       ]
     )
     town.area = OutskirtsArea()
@@ -171,11 +172,19 @@ class TownContext(Context):
     town.get_root().dissolve(on_clear=lambda: town.follow_link(link))
 
   def follow_link(town, link):
-    dest_link = town.graph.tail(head=link)
-    if dest_link:
-      dest_area = town.graph.link_area(link=dest_link)
-      if dest_area:
-        town.change_areas(area=dest_area, link=dest_link)
+    dest_item = town.graph.tail(head=link)
+    if dest_item:
+      if not isinstance(dest_item, AreaLink) and issubclass(dest_item, Context):
+        town.open(dest_item())
+        town.area_change = None
+        town.area_link = None
+        town.hero.stop_move()
+        town.hero.face((0, 1))
+        town.hero.y = 0
+        town.hero.indoors = False
+      else:
+        dest_area = town.graph.link_area(link=dest_item)
+        town.change_areas(area=dest_area, link=dest_item)
 
   def change_areas(town, area, link):
     prev_area = town.area
@@ -297,6 +306,9 @@ class TownContext(Context):
           EVENT_HORIZON = Area.TRANSIT_SOUTH
         if abs(hero.y) >= abs(EVENT_HORIZON) and not town.get_root().transits:
           town.handle_areachange(link=town.area_link)
+          tail = town.graph.tail(town.area_link)
+          if not isinstance(tail, AreaLink) and issubclass(tail, Context):
+            town.hero.indoors = True
         if hero.y != TARGET_HORIZON:
           hero.move_to((link.x, TARGET_HORIZON))
       if ally: ally.follow(hero)

@@ -34,3 +34,11 @@ class Sprite:
     if origin_y == "bottom":
       y -= image.get_height()
     surface.blit(image, (x, y))
+
+  def depth(sprite, layers):
+    _, y = sprite.pos
+    try:
+      depth = layers.index(sprite.layer)
+    except ValueError:
+      depth = 0
+    return depth * 1000 + y + sprite.image.get_height() + sprite.offset

@@ -6,6 +6,7 @@ from anims.walk import WalkAnim
 class Actor:
   XSPEED = 1.5
   YSPEED_NORTH = 0.65
+  YSPEED_NORTH_SLOW = 0.325
   YSPEED_SOUTH = 0.75
 
   def __init__(actor, core):
@@ -15,6 +16,7 @@ class Actor:
     actor.facing = (1, 0)
     actor.anim = None
     actor.sprite = Sprite()
+    actor.indoors = False
 
   def get_name(actor):
     return actor.core.name
@@ -28,7 +30,10 @@ class Actor:
     if delta_x:
       actor.x += Actor.XSPEED * delta_x
     if delta_y == -1:
-      actor.y -= Actor.YSPEED_NORTH
+      if actor.indoors:
+        actor.y -= Actor.YSPEED_NORTH_SLOW
+      else:
+        actor.y -= Actor.YSPEED_NORTH
     elif delta_y == 1:
       actor.y += Actor.YSPEED_SOUTH
     if actor.facing != delta or actor.anim is None:

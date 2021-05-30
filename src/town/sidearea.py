@@ -1,0 +1,2 @@
+class SideAreaContext(Context):
+  pass

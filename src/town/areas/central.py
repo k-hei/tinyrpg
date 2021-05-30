@@ -84,10 +84,26 @@ class CentralArea(Area):
       area.actors.append(mage)
 
   def render(area, hero, can_mark=True):
-    nodes = super().render(hero, can_mark)
-    for i, sprite in enumerate(nodes):
+    assets = use_assets()
+    sprites = super().render(hero, can_mark)
+    for i, sprite in enumerate(sprites):
       if i == 0:
         continue
       x, y = sprite.pos
       sprite.pos = (x, y - TILE_SIZE // 4)
-    return nodes
+    sprites += [
+      Sprite(
+        image=assets.sprites["door_open"],
+        pos=(area.links["door_heart"].x + area.camera, Area.ACTOR_Y - TILE_SIZE),
+        origin=("center", "top"),
+        layer="tiles"
+      ),
+      Sprite(
+        image=assets.sprites["roof"],
+        pos=(area.links["door_heart"].x + area.camera, Area.ACTOR_Y - TILE_SIZE),
+        origin=("center", "bottom"),
+        layer="fg"
+      )
+    ]
+    sprites.sort(key=lambda sprite: sprite.depth(["bg", "tiles", "elems", "fg", "markers"]))
+    return sprites

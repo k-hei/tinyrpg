@@ -2,7 +2,7 @@ from math import sin, pi
 from dataclasses import dataclass
 from assets import load as use_assets
 from filters import stroke, replace_color
-from palette import BLACK, WHITE, BLUE
+from palette import BLACK, WHITE, GRAY, BLUE
 from config import TILE_SIZE, WINDOW_WIDTH
 from sprite import Sprite
 from town.actors.npc import Npc
@@ -20,7 +20,7 @@ def find_nearby_link(hero, links):
   for link in links.values():
     dist_x = link.x - hero.x
     _, direction_y = link.direction
-    if abs(dist_x) < TILE_SIZE // 2 and direction_y :
+    if abs(dist_x) < TILE_SIZE // 2 and direction_y:
       return link
 
 ARROW_PERIOD = 45
@@ -65,7 +65,8 @@ class Area:
     bg_x = area.camera
     nodes.append(Sprite(
       image=bg_image,
-      pos=(bg_x, 0)
+      pos=(bg_x, 0),
+      layer="bg"
     ))
     arrowup_image = assets.sprites["link_north"]
     arrowdown_image = assets.sprites["link_south"]
@@ -81,7 +82,8 @@ class Area:
         bubble_y = y - TILE_SIZE * 0.25
         nodes.append(Sprite(
           image=bubble_image,
-          pos=(bubble_x + bg_x, bubble_y)
+          pos=(bubble_x + bg_x, bubble_y),
+          layer="markers"
         ))
       link = find_nearby_link(hero, area.links)
       if hero and can_mark and link:
@@ -92,12 +94,14 @@ class Area:
         arrow_image = replace_color(arrow_image, BLACK, BLUE)
         nodes.append(Sprite(
           image=arrow_image,
-          pos=(arrow_x + bg_x, arrow_y)
+          pos=(arrow_x + bg_x, arrow_y),
+          layer="markers"
         ))
       nodes.append(Sprite(
-        image=stroke(sprite.image, WHITE),
+        image=stroke(sprite.image, GRAY if actor.indoors else WHITE),
         pos=(x + bg_x, y),
-        flip=sprite.flip
+        flip=sprite.flip,
+        layer="elems"
       ))
     area.draws += 1
     return nodes
