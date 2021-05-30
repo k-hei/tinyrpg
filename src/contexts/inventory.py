@@ -50,8 +50,10 @@ class InventoryContext(Context):
     else:
       return []
 
-  def __init__(ctx, inventory, on_close=None):
+  def __init__(ctx, inventory, has_ally=False, on_close=None):
     super().__init__(on_close=on_close)
+    ctx.data = inventory
+    ctx.has_ally = has_ally
     ctx.on_animate = None
     ctx.tab = 0
     ctx.cursor = (0, 0)
@@ -59,9 +61,8 @@ class InventoryContext(Context):
     ctx.active = True
     ctx.anims = []
     ctx.box = InventoryDescription()
-    ctx.data = inventory
+    ctx.grid_size = (inventory.cols, inventory.rows)
     ctx.items = []
-    ctx.grid_size =  (inventory.cols, inventory.rows)
     ctx.update_items()
 
   def enter(ctx, on_end=None):
@@ -235,7 +236,7 @@ class InventoryContext(Context):
     window_width = surface.get_width()
     window_height = surface.get_height()
 
-    sprite_hud = assets.sprites["hud"]
+    sprite_hud = assets.sprites["hud" if ctx.has_ally else "hud_single"]
     sprite_belt = assets.sprites["belt"]
     sprite_hand = assets.sprites["hand"]
     sprite_circle = assets.sprites["circle_knight"]
