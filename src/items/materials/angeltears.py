@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 from items.materials import MaterialItem
+from palette import BLUE
 
 @dataclass
 class AngelTears(MaterialItem):
   name: str = "AngelTears"
   desc: str = "Divine sorrow given form."
   value: int = 5
+  color: int = BLUE

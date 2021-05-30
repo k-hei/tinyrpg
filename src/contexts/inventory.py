@@ -16,6 +16,8 @@ from anims.sine import SineAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
 
+from items.materials import MaterialItem
+
 SPACING = 4
 MARGIN = 8
 DESC_PADDING_X = 12
@@ -40,18 +42,27 @@ STAGGER_CHAREXIT = 2
 class InventoryContext(Context):
   tabs = ["consumables", "materials", "equipment"]
 
+  def filter_items(items, tab):
+    if tab == "consumables":
+      return [i for i in items if not issubclass(i, MaterialItem)]
+    elif tab == "materials":
+      return [i for i in items if issubclass(i, MaterialItem)]
+    else:
+      return []
+
   def __init__(ctx, inventory, on_close=None):
-    super().__init__()
-    ctx.data = inventory
-    ctx.grid_size =  (inventory.cols, inventory.rows)
-    ctx.on_close = on_close
+    super().__init__(on_close=on_close)
     ctx.on_animate = None
+    ctx.tab = 0
     ctx.cursor = (0, 0)
     ctx.cursor_anim = SineAnim(period=30)
-    ctx.tab = 0
     ctx.active = True
     ctx.anims = []
     ctx.box = InventoryDescription()
+    ctx.data = inventory
+    ctx.items = []
+    ctx.grid_size =  (inventory.cols, inventory.rows)
+    ctx.update_items()
 
   def enter(ctx, on_end=None):
     ctx.select()
@@ -106,13 +117,12 @@ class InventoryContext(Context):
       ctx.on_animate()
 
   def get_item_at(ctx, cell):
-    inventory = ctx.data
     cols, rows = ctx.grid_size
     col, row = cell
     index = row * cols + col
-    if index >= len(inventory.items) or not ctx.contains(cell):
+    if index >= len(ctx.items) or not ctx.contains(cell):
       return None
-    return inventory.items[index]
+    return ctx.items[index]
 
   def get_selected_item(ctx):
     return ctx.get_item_at(ctx.cursor)
@@ -123,7 +133,7 @@ class InventoryContext(Context):
     if item:
       ctx.box.print(item)
     else:
-      ctx.box.print("Your pack is empty.")
+      ctx.box.print("You have no items in this category.")
 
   def use(ctx):
     item = ctx.get_selected_item()
@@ -138,7 +148,7 @@ class InventoryContext(Context):
   def discard(ctx):
     item = ctx.get_selected_item()
     ctx.data.items.remove(item)
-    ctx.select()
+    ctx.update_items()
     return True
 
   def contains(ctx, cell):
@@ -181,6 +191,12 @@ class InventoryContext(Context):
   def handle_tab(ctx):
     ctx.tab += 1
     ctx.tab %= len(ctx.tabs)
+    ctx.update_items()
+
+  def update_items(ctx):
+    ctx.items = InventoryContext.filter_items(ctx.data.items, ctx.tabs[ctx.tab])
+    ctx.cursor = (0, 0)
+    ctx.select()
 
   def handle_choose(ctx):
     ctx.open(ChoiceContext(choices=[
@@ -322,7 +338,7 @@ class InventoryContext(Context):
     cursor_x = cells_x + tile_width * cursor_col
     cursor_y = cells_y + tile_height * cursor_row
     cursor_color = BLUE if ctx.cursor_anim.time % 2 or type(ctx.child) is ChoiceContext else WHITE
-    if not ctx.anims and ctx.data.items:
+    if not ctx.anims and ctx.items:
       pygame.draw.rect(surface, cursor_color, Rect(cursor_x, cursor_y, tile_width, tile_height), width=1)
 
     # description box
@@ -348,6 +364,6 @@ class InventoryContext(Context):
         x = target_x
       y = cells_y
       surface.blit(ctx.child.render(), (x, y))
-    elif not ctx.anims and ctx.data.items:
+    elif not ctx.anims and ctx.items:
       hand_x = cursor_x + tile_width - 3 + ctx.cursor_anim.update() * 2
       surface.blit(sprite_hand, (hand_x, cursor_y))
