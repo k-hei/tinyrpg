@@ -36,6 +36,7 @@ from cores.mage import MageCore
 
 from dungeon.props import Prop
 from dungeon.props.chest import Chest
+from dungeon.props.bag import Bag
 from dungeon.props.soul import Soul
 from dungeon.props.coffin import Coffin
 from dungeon.props.palm import Palm
@@ -906,12 +907,15 @@ class DungeonContext(Context):
   def kill(game, target, on_end=None):
     hero = game.hero
     def remove():
-      if not hero.allied(target) and type(target).skill:
+      if not hero.allied(target):
         game.parent.record_kill(target)
-        if target.rare:
+        if type(target).skill and target.rare:
           skill = type(target).skill
           if skill not in game.parent.skill_pool:
             game.floor.spawn_elem(Soul(skill), target.cell)
+        elif type(target).drops:
+          drop = type(target).drops[0]
+          game.floor.spawn_elem(Bag(item=drop), target.cell)
       target.kill()
       game.floor.elems.remove(target)
       if target is hero:

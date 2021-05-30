@@ -30,6 +30,7 @@ from dungeon.actors.npc import Npc
 from dungeon.actors.genie import Genie
 
 from dungeon.props.chest import Chest
+from dungeon.props.bag import Bag
 from dungeon.props.door import Door
 from dungeon.props.battledoor import BattleDoor
 from dungeon.props.treasuredoor import TreasureDoor
@@ -553,7 +554,8 @@ def gen_floor(seed=None):
   if corner:
     stage.spawn_elem(genie, corner)
 
-  stage.spawn_elem(Soul(Counter), (center_x, center_y - 1))
+  # stage.spawn_elem(Soul(Counter), (center_x, center_y - 1))
+  stage.spawn_elem(Bag(None), (center_x, center_y - 1))
   return stage
 
 def gen_enemy(floor):

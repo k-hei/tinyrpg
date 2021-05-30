@@ -5,7 +5,7 @@ from palette import PURPLE
 
 @dataclass
 class AilmentItem(Item):
-  color: tuple[int, int, int] = PURPLE
+  color: int = PURPLE
   ailment: str = ""
 
   def use(item, game):

@@ -7,8 +7,11 @@ from anims.attack import AttackAnim
 from anims.awaken import AwakenAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
+from items.materials.angeltears import AngelTears
 
 class Eye(DungeonActor):
+  drops = [AngelTears]
+
   def __init__(eye):
     super().__init__(Core(
       name="Eyeball",

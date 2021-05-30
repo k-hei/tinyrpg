@@ -16,6 +16,7 @@ class DungeonActor(DungeonElement):
   POISON_DURATION = 5
   POISON_STRENGTH = 1 / 6
   skill = None
+  drops = []
 
   def __init__(actor, core):
     super().__init__(solid=True)

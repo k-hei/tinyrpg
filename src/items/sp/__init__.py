@@ -4,7 +4,7 @@ from palette import BLUE
 
 @dataclass
 class SpItem(Item):
-  color: tuple[int, int, int] = BLUE
+  color: int = BLUE
   sp: int = 0
 
   def use(item, ctx):

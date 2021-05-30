@@ -8,6 +8,7 @@ from palette import BLACK
 class Item:
   name: str
   desc: str
+  value: int = 0
   sprite: str = None
   color: tuple[int, int, int] = BLACK
 

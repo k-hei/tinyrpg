@@ -5,7 +5,7 @@ from palette import GREEN
 
 @dataclass
 class DungeonItem(Item):
-  color: tuple[int, int, int] = GREEN
+  color: int = GREEN
   effect: str = None
   PAUSE_DURATION: int = 240
 

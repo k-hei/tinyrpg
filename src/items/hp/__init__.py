@@ -4,7 +4,7 @@ from palette import RED
 
 @dataclass
 class HpItem(Item):
-  color: tuple[int, int, int] = RED
+  color: int = RED
   hp: int = 0
 
   def use(item, game):
