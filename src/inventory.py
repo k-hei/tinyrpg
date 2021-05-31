@@ -1,4 +1,6 @@
 class Inventory:
+  tabs = ["consumables", "materials", "equipment"]
+
   def __init__(inv, size, items=[]):
     cols, rows = size
     inv.cols = cols

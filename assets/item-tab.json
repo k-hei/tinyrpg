@@ -1,10 +1,14 @@
 {
-  "item_tab": [0, 0, 16, 13],
-  "item_tabend": [13, 0, 3, 13],
-  "icon_consumables": [16, 0, 7, 7],
-  "icon_materials": [23, 0, 7, 7],
-  "icon_equipment": [30, 0, 7, 7],
-  "consumables": [0, 13, 62, 5],
-  "materials": [0, 18, 45, 5],
-  "equipment": [0, 23, 49, 5]
+  "item_tab": [0, 0, 16, 16],
+  "item_tab_l": [0, 0, 8, 16],
+  "item_tab_m": [4, 0, 8, 16],
+  "item_tab_r": [8, 0, 8, 16],
+  "item_tab_h": [16, 0, 16, 13],
+  "item_tabend": [29, 0, 3, 13],
+  "icon_consumables": [32, 0, 7, 7],
+  "icon_materials": [39, 0, 7, 7],
+  "icon_equipment": [46, 0, 7, 7],
+  "consumables": [0, 16, 62, 5],
+  "materials": [0, 21, 45, 5],
+  "equipment": [0, 26, 49, 5]
 }

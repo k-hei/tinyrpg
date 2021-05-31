@@ -363,7 +363,7 @@ class InventoryContext(Context):
     x = cells_x + tile_width * cols
     y = cells_y
     for i, tab in enumerate(ctx.tabs):
-      tab_image = assets.sprites["item_tab"]
+      tab_image = assets.sprites["item_tab_h"]
       tabend_image = assets.sprites["item_tabend"]
       icon_image = assets.sprites["icon_" + tab]
       tab_anim = next((a for a in ctx.anims if a.target == tab), None)
