@@ -52,11 +52,19 @@ class SellContext(Context):
       return
 
     if key == pygame.K_TAB:
-      ctx.handle_tab()
+      if (keyboard.get_pressed(pygame.K_LSHIFT)
+      or keyboard.get_pressed(pygame.K_RSHIFT)):
+        ctx.handle_tab(-1)
+      else:
+        ctx.handle_tab(1)
 
-  def handle_tab(ctx):
+  def handle_tab(ctx, delta=1):
     old_tab = ctx.tab
-    new_tab = (old_tab + 1) % len(Inventory.tabs)
+    new_tab = old_tab + delta
+    if new_tab >= len(Inventory.tabs):
+      new_tab = 0
+    elif new_tab < 0:
+      new_tab = len(Inventory.tabs) - 1
     if new_tab == old_tab:
       return False
     ctx.tab = new_tab
@@ -74,7 +82,6 @@ class SellContext(Context):
     sprites = use_assets().sprites
     surface.fill(WHITE)
 
-    # for anim in ctx.anims:
     if ctx.anims:
       anim = ctx.anims[0]
       if anim.done:
