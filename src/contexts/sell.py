@@ -170,7 +170,7 @@ class BagList:
       else:
         anim.update()
 
-  def render(bag, selection=[]):
+  def render(bag, tab=None, selection=[]):
     bag.update()
     assets = use_assets()
     x = 4
@@ -193,7 +193,7 @@ class BagList:
           icon_image = item.render(item)
 
           name = item.name[:item_anim.time] if item_anim else item.name
-          text_color = GOLD if i in selection else WHITE
+          text_color = GOLD if (tab, i) in selection else WHITE
           text_image = assets.ttf["english"].render(name, text_color)
           bag.surface.blit(icon_image, (x, y))
 
@@ -366,7 +366,7 @@ class SellContext(Context):
     return True
 
   def handle_select(ctx):
-    node = ctx.cursor
+    node = (ctx.tablist.selection(), ctx.cursor)
     if node in ctx.selection:
       ctx.selection.remove(node)
       return False
@@ -422,7 +422,7 @@ class SellContext(Context):
     ))
 
     tabs_image = ctx.tablist.render()
-    items_image = ctx.itembox.render(ctx.selection)
+    items_image = ctx.itembox.render(ctx.tablist.selection(), ctx.selection)
     menu_x = surface.get_width() - items_image.get_width() - MARGIN
     menu_y = surface.get_height() - items_image.get_height() - tabs_image.get_height() - 24
     surface.blit(tabs_image, (menu_x, menu_y))
