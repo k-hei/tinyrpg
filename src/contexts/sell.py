@@ -300,10 +300,14 @@ class SellContext(Context):
     if (key_time == 1
     or key_time > 30 and key_time % 2
     ):
-      if key == pygame.K_UP:
+      if key in (pygame.K_UP, pygame.K_w):
         return ctx.handle_move(-1)
-      if key == pygame.K_DOWN:
+      if key in (pygame.K_DOWN, pygame.K_s):
         return ctx.handle_move(1)
+      if key in (pygame.K_LEFT, pygame.K_a):
+        return ctx.handle_move(-5)
+      if key in (pygame.K_RIGHT, pygame.K_d):
+        return ctx.handle_move(5)
       if key == pygame.K_SPACE and not key in ctx.requires_release:
         control = next((c for c in ctx.controls if c.value == "Multi"), None)
         control.press("X")
