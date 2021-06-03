@@ -270,12 +270,15 @@ class TextBox:
     box.size = size
 
 class SellContext(Context):
+  class CursorAnim(Anim): blocking = False
+  class DescAnim(Anim): blocking = False
+
   def __init__(ctx, items):
     super().__init__()
     ctx.items = items
     ctx.cursor = 0
     ctx.cursor_drawn = 0
-    ctx.cursor_anim = Anim()
+    ctx.anims = []
     ctx.hero = KnightCore()
     ctx.hud = Hud()
     ctx.tablist = BagTabs(Inventory.tabs)
@@ -284,8 +287,12 @@ class SellContext(Context):
       Control(key=("X"), value="Multi"),
       Control(key=("L", "R"), value="Tab")
     ]
+    ctx.reset_cursor()
 
   def handle_keydown(ctx, key):
+    if next((a for a in ctx.anims if a.blocking), None) or ctx.tablist.anims:
+      return
+
     key_time = keyboard.get_pressed(key)
     if (key_time == 1
     or key_time > 30 and key_time % 2
@@ -325,6 +332,7 @@ class SellContext(Context):
     ctx.itembox.load(items)
     ctx.cursor = 0
     ctx.cursor_drawn = None
+    ctx.anims = []
     return True
 
   def handle_move(ctx, delta):
@@ -339,17 +347,22 @@ class SellContext(Context):
     if new_index == old_index:
       return False
     ctx.cursor = new_index
+    next((a for a in ctx.anims if type(a) is ctx.DescAnim), None).time = 0
     return True
 
   def reset_cursor(ctx):
     ctx.cursor = 0
     ctx.cursor_drawn = 0
+    ctx.anims = [
+      ctx.CursorAnim(),
+      ctx.DescAnim()
+    ]
 
   def update(ctx):
+    for anim in ctx.anims:
+      anim.update()
     if ctx.cursor_drawn != None:
       ctx.cursor_drawn += (ctx.cursor - ctx.cursor_drawn) / 4
-      if round(ctx.cursor_drawn * 10) / 10 == ctx.cursor:
-        ctx.cursor_anim.update()
 
   def draw(ctx, surface):
     assets = use_assets()
@@ -401,7 +414,8 @@ class SellContext(Context):
     descbox_height = surface.get_height() - menu_y - tabs_image.get_height() - hud_image.get_height() - MARGIN * 2
     descbox_image = Box.render((descbox_width, descbox_height))
     item = ctx.itembox.items and ctx.itembox.items[ctx.cursor]
-    if item:
+    desc_anim = next((a for a in ctx.anims if type(a) is ctx.DescAnim), None)
+    if item and desc_anim:
       title_image = assets.ttf["english"].render(item.name, item.color)
       descbox_image.blit(title_image, (8, 8))
       PADDING = 8
@@ -410,7 +424,7 @@ class SellContext(Context):
       desc_y = 21
       desc_right = descbox_image.get_width() - PADDING
       prev_space = 0
-      for i, char in enumerate(item.desc):
+      for i, char in enumerate(item.desc[:desc_anim.time]):
         if prev_space == 0 or char in (" ", "\n"):
           prev_space = i + 1
           next_space = item.desc.find(" ", prev_space)
@@ -432,10 +446,12 @@ class SellContext(Context):
     surface.blit(descbox_image, (descbox_x, descbox_y))
 
     if ctx.itembox.items and ctx.cursor_drawn != None:
+      cursor_anim = next((a for a in ctx.anims if type(a) is ctx.CursorAnim), None)
       hand_image = assets.sprites["hand"]
       hand_image = flip(hand_image, True, False)
       hand_x = menu_x - 24
-      hand_x += sin(ctx.cursor_anim.time % 30 / 30 * 2 * pi) * 2
+      if cursor_anim:
+        hand_x += sin(cursor_anim.time % 30 / 30 * 2 * pi) * 2
       hand_y = menu_y + tabs_image.get_height() + 4
       hand_y += ctx.cursor_drawn * 18
       surface.blit(hand_image, (hand_x, hand_y))
