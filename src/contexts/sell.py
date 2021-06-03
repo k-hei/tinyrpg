@@ -417,8 +417,8 @@ class SellContext(Context):
     desc_anim = next((a for a in ctx.anims if type(a) is ctx.DescAnim), None)
     if item and desc_anim:
       title_image = assets.ttf["english"].render(item.name, item.color)
-      descbox_image.blit(title_image, (8, 8))
       PADDING = 8
+      descbox_image.blit(title_image, (PADDING, PADDING))
       desc_font = assets.ttf["roman"]
       desc_x = PADDING
       desc_y = 21
@@ -440,6 +440,13 @@ class SellContext(Context):
         char_image = assets.ttf["roman"].render(char)
         descbox_image.blit(char_image, (desc_x, desc_y))
         desc_x += char_image.get_width()
+      count_image = assets.ttf["english"].render("No. owned")
+      count_x = PADDING
+      count_y = descbox_image.get_height() - count_image.get_height() - PADDING
+      descbox_image.blit(count_image, (count_x, count_y))
+      value = len([i for i in ctx.itembox.items if i is item])
+      value_image = assets.ttf["roman"].render(str(value))
+      descbox_image.blit(value_image, (count_x + count_image.get_width() + 6, count_y))
 
     descbox_x = MARGIN
     descbox_y = hud_y - MARGIN - descbox_height
