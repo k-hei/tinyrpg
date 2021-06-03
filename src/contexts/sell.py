@@ -50,6 +50,11 @@ class BagTabs:
     tablist.anims = []
     tablist.surface = None
 
+  def selection(tablist, index=None):
+    if index is None:
+      index = tablist.index
+    return tablist.names[index]
+
   def _select(tablist, delta):
     old_index = tablist.index
     new_index = old_index + delta
@@ -61,7 +66,7 @@ class BagTabs:
       return tablist.names[old_index]
     tablist.index = new_index
     tablist.anims.append(DeselectAnim(
-      duration=8,
+      duration=6,
       target=tablist.names[old_index]
     ))
     tablist.anims.append(SelectAnim(
@@ -71,10 +76,10 @@ class BagTabs:
     return tablist.names[new_index]
 
   def select_prev(tablist):
-    tablist._select(-1)
+    return tablist._select(-1)
 
   def select_next(tablist):
-    tablist._select(1)
+    return tablist._select(1)
 
   def update(tablist):
     if tablist.anims:
@@ -132,16 +137,67 @@ class BagTabs:
       tablist.surface.blit(tab_image, (x, 0))
     return tablist.surface
 
+class BagList:
+  def __init__(bag, size, items=None):
+    bag.load(items)
+    bag.anim = None
+    bag.surface = None
+    bag.box = None
+
+  def load(bag, items):
+    bag.items = items
+
+  def render(bag):
+    assets = use_assets()
+    x = 8
+    y = 3
+    if bag.box is None:
+      bag.box = Box.render((160, 96))
+    if bag.surface is None:
+      bag.surface = Surface(bag.box.get_size())
+    bag.surface.blit(bag.box, (0, 0))
+    if bag.items:
+      for i in range(5):
+        if i < len(bag.items):
+          item = bag.items[i]
+          icon_image = item.render(item)
+          text_image = assets.ttf["english"].render(item.name)
+          bag.surface.blit(icon_image, (x, y))
+
+          text_x = x + icon_image.get_width() + 4
+          text_y = y + icon_image.get_height() // 2 - text_image.get_height() // 2
+          bag.surface.blit(text_image, (text_x, text_y))
+
+          price_image = assets.ttf["roman"].render(str(item.value // 2))
+          price_x = bag.box.get_width() - price_image.get_width() - 12
+          price_y = text_y
+          bag.surface.blit(price_image, (price_x, price_y))
+
+          coin_image = assets.sprites["coin"]
+          coin_image = replace_color(coin_image, BLACK, GOLD)
+          coin_x = price_x - coin_image.get_width() - 3
+          coin_y = y + icon_image.get_height() // 2 - coin_image.get_height() // 2 - 1
+          bag.surface.blit(coin_image, (coin_x, coin_y))
+
+        pygame.draw.rect(bag.surface, GRAY_DARK, Rect(
+          (x + 16 + 4, y + 15),
+          (bag.box.get_width() - x - 32, 1)
+        ))
+        y += 16 + 2
+    else:
+      text_image = assets.ttf["roman"].render("[ No items ]")
+      x = bag.box.get_width() // 2 - text_image.get_width() // 2
+      y = bag.box.get_height() // 2 - text_image.get_height() // 2
+      bag.surface.blit(text_image, (x, y))
+    return bag.surface
+
 class SellContext(Context):
   def __init__(ctx, items):
     super().__init__()
     ctx.items = items
     ctx.cursor = 0
-    ctx.cache_box = None
-    ctx.tabs = BagTabs(Inventory.tabs)
-
-  def init(ctx):
-    ctx.cache_box = Box.render((160, 96))
+    ctx.tablist = BagTabs(Inventory.tabs)
+    ctx.itembox = BagList((144, 96), items=filter_items(items, ctx.tablist.selection()))
 
   def handle_keydown(ctx, key):
     if keyboard.get_pressed(key) > 1:
@@ -150,51 +206,29 @@ class SellContext(Context):
     if key == pygame.K_TAB:
       if (keyboard.get_pressed(pygame.K_LSHIFT)
       or keyboard.get_pressed(pygame.K_RSHIFT)):
-        return ctx.tabs.select_prev()
+        return ctx.handle_tab(delta=-1)
       else:
-        return ctx.tabs.select_next()
+        return ctx.handle_tab(delta=1)
+
+  def handle_tab(ctx, delta=1):
+    if delta == -1:
+      tab = ctx.tablist.select_prev()
+    elif delta == 1:
+      tab = ctx.tablist.select_next()
+    else:
+      return False
+    items = filter_items(ctx.items, tab)
+    ctx.itembox.load(items)
+    return True
 
   def draw(ctx, surface):
     assets = use_assets()
     sprites = assets.sprites
     surface.fill(WHITE)
 
-    surface.blit(ctx.tabs.render(), (0, 0))
-    surface.blit(ctx.cache_box, (0, 16))
-
-    x = 8
-    y = 19
-    items = filter_items(ctx.items, Inventory.tabs[ctx.tabs.index])
-    if items:
-      for i in range(5):
-        if i < len(items):
-          item = items[i]
-          icon_image = item.render(item)
-          text_image = assets.ttf["english"].render(item.name)
-          surface.blit(icon_image, (x, y))
-
-          text_x = x + icon_image.get_width() + 4
-          text_y = y + icon_image.get_height() // 2 - text_image.get_height() // 2
-          surface.blit(text_image, (text_x, text_y))
-
-          price_image = assets.ttf["roman"].render(str(item.value // 2))
-          price_x = ctx.cache_box.get_width() - price_image.get_width() - 12
-          price_y = text_y
-          surface.blit(price_image, (price_x, price_y))
-
-          coin_image = sprites["coin"]
-          coin_image = replace_color(coin_image, BLACK, GOLD)
-          coin_x = price_x - coin_image.get_width() - 3
-          coin_y = y + icon_image.get_height() // 2 - coin_image.get_height() // 2 - 1
-          surface.blit(coin_image, (coin_x, coin_y))
-
-        pygame.draw.rect(surface, GRAY_DARK, Rect(
-          (x + 16 + 4, y + 15),
-          (ctx.cache_box.get_width() - x - 32, 1)
-        ))
-        y += 16 + 2
-    else:
-      text_image = assets.ttf["roman"].render("[ No items ]")
-      x = ctx.cache_box.get_width() // 2 - text_image.get_width() // 2
-      y = 16 + ctx.cache_box.get_height() // 2 - text_image.get_height() // 2
-      surface.blit(text_image, (x, y))
+    tabs_image = ctx.tablist.render()
+    items_image = ctx.itembox.render()
+    x = surface.get_width() - items_image.get_width() - 4
+    y = surface.get_height() - items_image.get_height() - tabs_image.get_height() - 4
+    surface.blit(tabs_image, (x, y))
+    surface.blit(items_image, (x, y + 16))
