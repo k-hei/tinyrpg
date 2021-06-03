@@ -7,3 +7,4 @@ class Amethyst(AilmentItem):
   desc: str = "Dispels all ailments."
   sprite: str = "gem"
   ailment: str = "any"
+  value: int = 100

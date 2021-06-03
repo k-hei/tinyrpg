@@ -145,6 +145,8 @@ class BagTabs:
     return tablist.surface
 
 class BagList:
+  MAX_VISIBLE_ITEMS = 5
+
   def __init__(bag, size, items=None):
     bag.size = size
     bag.anims = []
@@ -170,7 +172,7 @@ class BagList:
       else:
         anim.update()
 
-  def render(bag, tab=None, selection=[]):
+  def render(bag, scroll=0, tab=None, selection=[]):
     bag.update()
     assets = use_assets()
     x = 4
@@ -186,10 +188,10 @@ class BagList:
       y = bag.box.get_height() // 2 - text_image.get_height() // 2
       bag.surface.blit(text_image, (x, y))
     elif bag.items is not None:
-      for i in range(min(5, len(bag.items))):
-        item = bag.items[i]
+      for i in range(scroll, scroll + BagList.MAX_VISIBLE_ITEMS):
+        item = bag.items[i] if i < len(bag.items) else None
         item_anim = next((a for a in bag.anims if a.target == i), None)
-        if not item_anim or item_anim.time > 0:
+        if item and (not item_anim or item_anim.time > 0):
           icon_image = item.render(item)
 
           name = item.name[:item_anim.time] if item_anim else item.name
@@ -279,6 +281,7 @@ class SellContext(Context):
     ctx.items = items
     ctx.cursor = 0
     ctx.cursor_drawn = 0
+    ctx.scroll = 0
     ctx.selection = []
     ctx.anims = []
     ctx.requires_release = {}
@@ -311,8 +314,7 @@ class SellContext(Context):
       if key == pygame.K_SPACE and not key in ctx.requires_release:
         control = next((c for c in ctx.controls if c.value == "Multi"), None)
         control.press("X")
-        ctx.handle_select()
-        if not ctx.handle_move(1):
+        if not ctx.handle_select() or not ctx.handle_move(1):
           ctx.requires_release[key] = True
         return True
 
@@ -352,6 +354,13 @@ class SellContext(Context):
     if new_index == old_index:
       return False
     ctx.cursor = new_index
+    if abs(delta) == 1 or ctx.scroll + delta < 0:
+      if ctx.cursor < ctx.scroll:
+        ctx.scroll = ctx.cursor
+      if ctx.cursor >= ctx.scroll + BagList.MAX_VISIBLE_ITEMS:
+        ctx.scroll = ctx.cursor - BagList.MAX_VISIBLE_ITEMS + 1
+    elif ctx.scroll + delta < max_index:
+      ctx.scroll += delta
     next((a for a in ctx.anims if type(a) is ctx.DescAnim), None).time = 0
     return True
 
@@ -366,6 +375,7 @@ class SellContext(Context):
     ctx.itembox.load(items)
     ctx.cursor = 0
     ctx.cursor_drawn = None
+    ctx.scroll = 0
     ctx.anims = []
     return True
 
@@ -383,6 +393,7 @@ class SellContext(Context):
   def reset_cursor(ctx):
     ctx.cursor = 0
     ctx.cursor_drawn = 0
+    ctx.scroll = 0
     ctx.anims = [
       ctx.CursorAnim(),
       ctx.DescAnim()
@@ -392,7 +403,7 @@ class SellContext(Context):
     for anim in ctx.anims:
       anim.update()
     if ctx.cursor_drawn != None:
-      ctx.cursor_drawn += (ctx.cursor - ctx.cursor_drawn) / 4
+      ctx.cursor_drawn += (ctx.cursor - ctx.scroll - ctx.cursor_drawn) / 4
 
   def draw(ctx, surface):
     assets = use_assets()
@@ -443,7 +454,11 @@ class SellContext(Context):
       surface.blit(select_image, (gold_x + 2, gold_y - select_image.get_height() - 1))
 
     tabs_image = ctx.tablist.render()
-    items_image = ctx.itembox.render(ctx.tablist.selection(), ctx.selection)
+    items_image = ctx.itembox.render(
+      scroll=ctx.scroll,
+      tab=ctx.tablist.selection(),
+      selection=ctx.selection
+    )
     menu_x = surface.get_width() - items_image.get_width() - MARGIN
     menu_y = surface.get_height() - items_image.get_height() - tabs_image.get_height() - 24
     surface.blit(tabs_image, (menu_x, menu_y))
