@@ -216,6 +216,38 @@ class BagList:
         y += 16 + 2
     return bag.surface
 
+class Control:
+  def __init__(control, key, value):
+    control.key = key
+    control.value = value
+    control.surface = None
+
+  def render(control):
+    if control.surface:
+      return control.surface
+    assets = use_assets()
+    font = assets.ttf["roman"]
+    nodes = []
+    x = 0
+    for key in control.key:
+      icon_image = assets.sprites["button_" + key.lower()]
+      icon_image = replace_color(icon_image, BLACK, BLUE)
+      nodes.append((icon_image, x))
+      x += icon_image.get_width() + 2
+    x += 2
+    text_image = font.render(control.value)
+    nodes.append((text_image, x))
+    surface_width = x + text_image.get_width()
+    surface_height = icon_image.get_height()
+    if control.surface is None:
+      control.surface = Surface((surface_width, surface_height), SRCALPHA)
+    else:
+      control.surface.fill(0)
+    for image, x in nodes:
+      y = surface_height // 2 - image.get_height() // 2
+      control.surface.blit(image, (x, y))
+    return control.surface
+
 class SellContext(Context):
   def __init__(ctx, items):
     super().__init__()
@@ -225,6 +257,10 @@ class SellContext(Context):
     ctx.hud = Hud()
     ctx.tablist = BagTabs(Inventory.tabs)
     ctx.itembox = BagList((148, 96), items=filter_items(items, ctx.tablist.selection()))
+    ctx.controls = [
+      Control(key=("X"), value="Multi"),
+      Control(key=("L", "R"), value="Tab")
+    ]
 
   def handle_keydown(ctx, key):
     if keyboard.get_pressed(key) > 1:
@@ -281,3 +317,12 @@ class SellContext(Context):
     card_x = menu_x + items_image.get_width() - card_image.get_width()
     card_y = menu_y - card_image.get_height() + tabs_image.get_height() - 1
     surface.blit(card_image, (card_x, card_y))
+
+    controls_x = surface.get_width() - 8
+    controls_y = surface.get_height() - 12
+    for control in ctx.controls:
+      control_image = control.render()
+      control_x = controls_x - control_image.get_width()
+      control_y = controls_y - control_image.get_height() // 2
+      surface.blit(control_image, (control_x, control_y))
+      controls_x = control_x - 8

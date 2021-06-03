@@ -3,6 +3,8 @@
   "button_b":      [11,  0, 11, 13],
   "button_x":      [22,  0, 11, 13],
   "button_y":      [33,  0, 11, 13],
-  "button_select": [ 0, 13, 29, 13],
-  "button_start":  [ 0, 26, 25, 13]
+  "button_l":      [ 0, 13, 13, 13],
+  "button_r":      [ 0, 26, 13, 13],
+  "button_select": [13, 13, 29, 13],
+  "button_start":  [13, 26, 25, 13]
 }
