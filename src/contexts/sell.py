@@ -1,7 +1,7 @@
 from contexts import Context
 import pygame
 from pygame import Surface, Rect, SRCALPHA
-from palette import BLACK, WHITE, GRAY, GRAY_DARK, GOLD
+from palette import BLACK, WHITE, GRAY, GRAY_DARK, BLUE, GOLD
 from filters import replace_color
 from assets import load as use_assets
 from inventory import Inventory
@@ -144,10 +144,11 @@ class BagTabs:
 
 class BagList:
   def __init__(bag, size, items=None):
-    bag.load(items or [])
+    bag.size = size
     bag.anims = []
     bag.surface = None
     bag.box = None
+    bag.load(items or [])
 
   def load(bag, items):
     bag.items = items
@@ -170,10 +171,10 @@ class BagList:
   def render(bag):
     bag.update()
     assets = use_assets()
-    x = 8
+    x = 4
     y = 3
     if bag.box is None:
-      bag.box = Box.render((160, 96))
+      bag.box = Box.render(bag.size)
     if bag.surface is None:
       bag.surface = Surface(bag.box.get_size())
     bag.surface.blit(bag.box, (0, 0))
@@ -223,7 +224,7 @@ class SellContext(Context):
     ctx.hero = KnightCore()
     ctx.hud = Hud()
     ctx.tablist = BagTabs(Inventory.tabs)
-    ctx.itembox = BagList((144, 96), items=filter_items(items, ctx.tablist.selection()))
+    ctx.itembox = BagList((148, 96), items=filter_items(items, ctx.tablist.selection()))
 
   def handle_keydown(ctx, key):
     if keyboard.get_pressed(key) > 1:
@@ -273,4 +274,10 @@ class SellContext(Context):
     menu_x = surface.get_width() - items_image.get_width() - 4
     menu_y = surface.get_height() - items_image.get_height() - tabs_image.get_height() - 24
     surface.blit(tabs_image, (menu_x, menu_y))
-    surface.blit(items_image, (menu_x, menu_y + 16))
+    surface.blit(items_image, (menu_x, menu_y + tabs_image.get_height()))
+
+    card_image = assets.sprites["card_sell"]
+    card_image = replace_color(card_image, BLACK, BLUE)
+    card_x = menu_x + items_image.get_width() - card_image.get_width()
+    card_y = menu_y - card_image.get_height() + tabs_image.get_height() - 1
+    surface.blit(card_image, (card_x, card_y))
