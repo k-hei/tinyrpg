@@ -122,7 +122,7 @@ class BagTabs:
         part_width = part_image.get_width()
         for j in range(tab_width // part_width - 2):
           tab_image.blit(part_image, (part_width * (j + 1), 0))
-        tab_image.blit(part_image, (tab_width - part_width * 2, 0))
+        tab_image.blit(part_image, (tab_width - part_width * 2 + 1, 0))
         tab_image.blit(sprites["item_tab_l"], (0, 0))
         tab_image.blit(sprites["item_tab_r"], (tab_width - part_width, 0))
       else:
@@ -265,6 +265,10 @@ class Control:
       control.surface.blit(image, (x, y))
     return control.surface
 
+class TextBox:
+  def __init__(box, size):
+    box.size = size
+
 class SellContext(Context):
   def __init__(ctx, items):
     super().__init__()
@@ -319,6 +323,7 @@ class SellContext(Context):
       return False
     items = filter_items(ctx.items, tab)
     ctx.itembox.load(items)
+    ctx.cursor = 0
     ctx.cursor_drawn = None
     return True
 
@@ -351,19 +356,21 @@ class SellContext(Context):
     surface.fill(WHITE)
     pygame.draw.rect(surface, BLACK, Rect(0, 112, 256, 112))
 
+    MARGIN = 2
+
     tagbg_image = assets.sprites["shop_tag"]
     tagbg_x = surface.get_width() - tagbg_image.get_width()
     tagbg_y = 0
     surface.blit(tagbg_image, (tagbg_x, tagbg_y))
 
     tagtext_image = assets.sprites["general_store"]
-    tagtext_x = surface.get_width() - tagtext_image.get_width() - 4
+    tagtext_x = surface.get_width() - tagtext_image.get_width() - MARGIN
     tagtext_y = tagbg_y + tagbg_image.get_height() // 2 - tagtext_image.get_height() // 2
     surface.blit(tagtext_image, (tagtext_x, tagtext_y))
 
     hud_image = ctx.hud.update(ctx.hero)
-    hud_x = 4
-    hud_y = surface.get_height() - hud_image.get_height() - 4
+    hud_x = MARGIN
+    hud_y = surface.get_height() - hud_image.get_height() - MARGIN
     surface.blit(hud_image, (hud_x, hud_y))
 
     gold_image = assets.sprites["item_gold"]
@@ -379,7 +386,7 @@ class SellContext(Context):
 
     tabs_image = ctx.tablist.render()
     items_image = ctx.itembox.render()
-    menu_x = surface.get_width() - items_image.get_width() - 4
+    menu_x = surface.get_width() - items_image.get_width() - MARGIN
     menu_y = surface.get_height() - items_image.get_height() - tabs_image.get_height() - 24
     surface.blit(tabs_image, (menu_x, menu_y))
     surface.blit(items_image, (menu_x, menu_y + tabs_image.get_height()))
@@ -390,12 +397,39 @@ class SellContext(Context):
     card_y = menu_y - card_image.get_height() + tabs_image.get_height() - 1
     surface.blit(card_image, (card_x, card_y))
 
-    desc_width = surface.get_width() - items_image.get_width() - 4 * 3
-    desc_height = surface.get_height() - menu_y - tabs_image.get_height() - hud_image.get_height() - 4 * 2
-    desc_image = Box.render((desc_width, desc_height))
-    desc_x = 4
-    desc_y = menu_y + tabs_image.get_height()
-    surface.blit(desc_image, (desc_x, desc_y))
+    descbox_width = surface.get_width() - items_image.get_width() - MARGIN * 3
+    descbox_height = surface.get_height() - menu_y - tabs_image.get_height() - hud_image.get_height() - MARGIN * 2
+    descbox_image = Box.render((descbox_width, descbox_height))
+    item = ctx.itembox.items and ctx.itembox.items[ctx.cursor]
+    if item:
+      title_image = assets.ttf["english"].render(item.name, item.color)
+      descbox_image.blit(title_image, (8, 8))
+      PADDING = 8
+      desc_font = assets.ttf["roman"]
+      desc_x = PADDING
+      desc_y = 21
+      desc_right = descbox_image.get_width() - PADDING
+      prev_space = 0
+      for i, char in enumerate(item.desc):
+        if prev_space == 0 or char in (" ", "\n"):
+          prev_space = i + 1
+          next_space = item.desc.find(" ", prev_space)
+          if next_space == -1:
+            next_space = item.desc.find("\n", prev_space)
+          if next_space == -1:
+            next_space = len(item.desc)
+          word = item.desc[prev_space:next_space]
+          if char == "\n" or desc_x + desc_font.width(word) > desc_right:
+            desc_x = PADDING
+            desc_y += desc_font.height() + 3
+            continue
+        char_image = assets.ttf["roman"].render(char)
+        descbox_image.blit(char_image, (desc_x, desc_y))
+        desc_x += char_image.get_width()
+
+    descbox_x = MARGIN
+    descbox_y = hud_y - MARGIN - descbox_height
+    surface.blit(descbox_image, (descbox_x, descbox_y))
 
     if ctx.itembox.items and ctx.cursor_drawn != None:
       hand_image = assets.sprites["hand"]
