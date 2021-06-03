@@ -55,7 +55,7 @@ class Hud:
     panel.active = False
     panel.anims.append(ExitAnim())
 
-  def update(panel, hero, ally):
+  def update(panel, hero, ally=None):
     if (panel.sprite is None
     or panel.anims_drawn
     or hero != panel.hero
@@ -70,6 +70,7 @@ class Hud:
       anim = panel.anims[0] if panel.anims else None
       panel.anims_drawn = len(panel.anims)
       panel.sprite = panel.render(hero, ally, anim)
+    return panel.sprite
 
   def render(panel, hero, ally, anim=None):
     assets = use_assets()

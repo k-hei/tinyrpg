@@ -6,10 +6,13 @@ from filters import replace_color
 from assets import load as use_assets
 from inventory import Inventory
 import keyboard
+from cores.knight import KnightCore
+from anims import Anim
 from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
 from items.materials import MaterialItem
+from hud import Hud
 
 class SelectAnim(TweenAnim): blocking = False
 class DeselectAnim(TweenAnim): blocking = False
@@ -48,6 +51,7 @@ class BagTabs:
     tablist.names = names
     tablist.index = 0
     tablist.anims = []
+    tablist.on_anim = None
     tablist.surface = None
 
   def selection(tablist, index=None):
@@ -55,7 +59,7 @@ class BagTabs:
       index = tablist.index
     return tablist.names[index]
 
-  def _select(tablist, delta):
+  def _select(tablist, delta, on_end=None):
     old_index = tablist.index
     new_index = old_index + delta
     if new_index >= len(tablist.names):
@@ -71,15 +75,16 @@ class BagTabs:
     ))
     tablist.anims.append(SelectAnim(
       duration=8,
-      target=tablist.names[new_index]
+      target=tablist.names[new_index],
+      on_end=on_end
     ))
     return tablist.names[new_index]
 
-  def select_prev(tablist):
-    return tablist._select(-1)
+  def select_prev(tablist, on_end=None):
+    return tablist._select(-1, on_end)
 
-  def select_next(tablist):
-    return tablist._select(1)
+  def select_next(tablist, on_end=None):
+    return tablist._select(1, on_end)
 
   def update(tablist):
     if tablist.anims:
@@ -139,15 +144,31 @@ class BagTabs:
 
 class BagList:
   def __init__(bag, size, items=None):
-    bag.load(items)
-    bag.anim = None
+    bag.load(items or [])
+    bag.anims = []
     bag.surface = None
     bag.box = None
 
   def load(bag, items):
     bag.items = items
+    bag.anims = []
+    if items:
+      for i, item in enumerate(items):
+        bag.anims.append(Anim(
+          duration=len(item.name),
+          delay=i * 2,
+          target=i
+        ))
+
+  def update(bag):
+    for anim in bag.anims:
+      if anim.done:
+        bag.anims.remove(anim)
+      else:
+        anim.update()
 
   def render(bag):
+    bag.update()
     assets = use_assets()
     x = 8
     y = 3
@@ -156,12 +177,20 @@ class BagList:
     if bag.surface is None:
       bag.surface = Surface(bag.box.get_size())
     bag.surface.blit(bag.box, (0, 0))
-    if bag.items:
-      for i in range(5):
-        if i < len(bag.items):
-          item = bag.items[i]
+    if bag.items == []:
+      text_image = assets.ttf["roman"].render("[ No items ]")
+      x = bag.box.get_width() // 2 - text_image.get_width() // 2
+      y = bag.box.get_height() // 2 - text_image.get_height() // 2
+      bag.surface.blit(text_image, (x, y))
+    elif bag.items is not None:
+      for i in range(min(5, len(bag.items))):
+        item = bag.items[i]
+        item_anim = next((a for a in bag.anims if a.target == i), None)
+        if not item_anim or item_anim.time > 0:
           icon_image = item.render(item)
-          text_image = assets.ttf["english"].render(item.name)
+
+          name = item.name[:item_anim.time] if item_anim else item.name
+          text_image = assets.ttf["english"].render(name)
           bag.surface.blit(icon_image, (x, y))
 
           text_x = x + icon_image.get_width() + 4
@@ -184,11 +213,6 @@ class BagList:
           (bag.box.get_width() - x - 32, 1)
         ))
         y += 16 + 2
-    else:
-      text_image = assets.ttf["roman"].render("[ No items ]")
-      x = bag.box.get_width() // 2 - text_image.get_width() // 2
-      y = bag.box.get_height() // 2 - text_image.get_height() // 2
-      bag.surface.blit(text_image, (x, y))
     return bag.surface
 
 class SellContext(Context):
@@ -196,6 +220,8 @@ class SellContext(Context):
     super().__init__()
     ctx.items = items
     ctx.cursor = 0
+    ctx.hero = KnightCore()
+    ctx.hud = Hud()
     ctx.tablist = BagTabs(Inventory.tabs)
     ctx.itembox = BagList((144, 96), items=filter_items(items, ctx.tablist.selection()))
 
@@ -225,10 +251,16 @@ class SellContext(Context):
     assets = use_assets()
     sprites = assets.sprites
     surface.fill(WHITE)
+    pygame.draw.rect(surface, BLACK, Rect(0, 112, 256, 112))
+
+    hud_image = ctx.hud.update(ctx.hero)
+    hud_x = 4
+    hud_y = surface.get_height() - hud_image.get_height() - 4
+    surface.blit(hud_image, (hud_x, hud_y))
 
     tabs_image = ctx.tablist.render()
     items_image = ctx.itembox.render()
-    x = surface.get_width() - items_image.get_width() - 4
-    y = surface.get_height() - items_image.get_height() - tabs_image.get_height() - 4
-    surface.blit(tabs_image, (x, y))
-    surface.blit(items_image, (x, y + 16))
+    menu_x = surface.get_width() - items_image.get_width() - 4
+    menu_y = surface.get_height() - items_image.get_height() - tabs_image.get_height() - 24
+    surface.blit(tabs_image, (menu_x, menu_y))
+    surface.blit(items_image, (menu_x, menu_y + 16))
