@@ -6,5 +6,5 @@ from palette import BLUE
 class AngelTears(MaterialItem):
   name: str = "AngelTears"
   desc: str = "Divine sorrow given form."
-  value: int = 5
+  value: int = 9
   color: int = BLUE

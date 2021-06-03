@@ -6,5 +6,5 @@ from palette import PURPLE
 class ToxicFerrule(MaterialItem):
   name: str = "ToxicFerrule"
   desc: str = "Head of a toxic beast."
-  value: int = 13
+  value: int = 26
   color: int = PURPLE

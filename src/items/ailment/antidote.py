@@ -6,3 +6,4 @@ class Antidote(AilmentItem):
   name: str = "Antidote"
   desc: str = "Cures poison."
   ailment: str = "poison"
+  value: int = 20

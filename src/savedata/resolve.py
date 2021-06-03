@@ -4,10 +4,13 @@ from items.sp.bread import Bread
 from items.sp.cheese import Cheese
 from items.sp.sapphire import Sapphire
 from items.sp.fish import Fish
+from items.materials.angeltears import AngelTears
+from items.materials.toxicferrule import ToxicFerrule
 from items.hp.ankh import Ankh
 from items.hp.ruby import Ruby
 from items.hp.elixir import Elixir
 from items.hp.potion import Potion
+from items.dungeon.key import Key
 from items.dungeon.emerald import Emerald
 from items.dungeon.balloon import Balloon
 from skills.ailment.virus import Virus
@@ -39,10 +42,13 @@ def resolve_item(key):
   if key == "Cheese": return Cheese
   if key == "Sapphire": return Sapphire
   if key == "Fish": return Fish
+  if key == "AngelTears": return AngelTears
+  if key == "ToxicFerrule": return ToxicFerrule
   if key == "Ankh": return Ankh
   if key == "Ruby": return Ruby
   if key == "Elixir": return Elixir
   if key == "Potion": return Potion
+  if key == "Key": return Key
   if key == "Emerald": return Emerald
   if key == "Balloon": return Balloon
   return None

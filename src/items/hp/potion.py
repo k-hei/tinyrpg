@@ -6,3 +6,4 @@ class Potion(HpItem):
   name: str = "Potion"
   desc: str = "Restores\n20 HP."
   hp: int = 20
+  value: int = 25

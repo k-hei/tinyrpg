@@ -6,3 +6,4 @@ class Fish(SpItem):
   name: str = "Fish"
   desc: str = "Restores\n20 SP."
   sp: int = 20
+  value: int = 15

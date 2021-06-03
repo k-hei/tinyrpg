@@ -8,6 +8,7 @@ class Emerald(DungeonItem):
   desc: str = "Returns to town."
   sprite: str = "gem"
   effect: str = "leave_dungeon"
+  value: int = 80
 
   def use(emerald, game):
     game.anims.append([
