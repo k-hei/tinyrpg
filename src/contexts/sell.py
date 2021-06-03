@@ -170,7 +170,7 @@ class BagList:
       else:
         anim.update()
 
-  def render(bag):
+  def render(bag, selection=[]):
     bag.update()
     assets = use_assets()
     x = 4
@@ -193,7 +193,8 @@ class BagList:
           icon_image = item.render(item)
 
           name = item.name[:item_anim.time] if item_anim else item.name
-          text_image = assets.ttf["english"].render(name)
+          text_color = GOLD if i in selection else WHITE
+          text_image = assets.ttf["english"].render(name, text_color)
           bag.surface.blit(icon_image, (x, y))
 
           text_x = x + icon_image.get_width() + 4
@@ -278,7 +279,9 @@ class SellContext(Context):
     ctx.items = items
     ctx.cursor = 0
     ctx.cursor_drawn = 0
+    ctx.selection = []
     ctx.anims = []
+    ctx.requires_release = {}
     ctx.hero = KnightCore()
     ctx.hud = Hud()
     ctx.tablist = BagTabs(Inventory.tabs)
@@ -299,14 +302,21 @@ class SellContext(Context):
     ):
       if key == pygame.K_UP:
         return ctx.handle_move(-1)
-      elif key == pygame.K_DOWN:
+      if key == pygame.K_DOWN:
         return ctx.handle_move(1)
+      if key == pygame.K_SPACE and not key in ctx.requires_release:
+        control = next((c for c in ctx.controls if c.value == "Multi"), None)
+        control.press("X")
+        ctx.handle_select()
+        if not ctx.handle_move(1):
+          ctx.requires_release[key] = True
+        return True
 
     if key_time > 1:
       return
 
     if key == pygame.K_TAB:
-      control = next((c for c in ctx.controls if c.key == ("L", "R")), None)
+      control = next((c for c in ctx.controls if c.value == "Tab"), None)
       if (keyboard.get_pressed(pygame.K_LSHIFT)
       or keyboard.get_pressed(pygame.K_RSHIFT)):
         control.press("L")
@@ -317,23 +327,14 @@ class SellContext(Context):
 
   def handle_keyup(ctx, key):
     if key == pygame.K_TAB:
-      control = next((c for c in ctx.controls if c.key == ("L", "R")), None)
+      control = next((c for c in ctx.controls if c.value == "Tab"), None)
       control.release("L")
       control.release("R")
-
-  def handle_tab(ctx, delta=1):
-    if delta == -1:
-      tab = ctx.tablist.select_prev(on_end=ctx.reset_cursor)
-    elif delta == 1:
-      tab = ctx.tablist.select_next(on_end=ctx.reset_cursor)
-    else:
-      return False
-    items = filter_items(ctx.items, tab)
-    ctx.itembox.load(items)
-    ctx.cursor = 0
-    ctx.cursor_drawn = None
-    ctx.anims = []
-    return True
+    elif key == pygame.K_SPACE:
+      control = next((c for c in ctx.controls if c.value == "Multi"), None)
+      control.release("X")
+      if key in ctx.requires_release:
+        del ctx.requires_release[key]
 
   def handle_move(ctx, delta):
     old_index = ctx.cursor
@@ -349,6 +350,29 @@ class SellContext(Context):
     ctx.cursor = new_index
     next((a for a in ctx.anims if type(a) is ctx.DescAnim), None).time = 0
     return True
+
+  def handle_tab(ctx, delta=1):
+    if delta == -1:
+      tab = ctx.tablist.select_prev(on_end=ctx.reset_cursor)
+    elif delta == 1:
+      tab = ctx.tablist.select_next(on_end=ctx.reset_cursor)
+    else:
+      return False
+    items = filter_items(ctx.items, tab)
+    ctx.itembox.load(items)
+    ctx.cursor = 0
+    ctx.cursor_drawn = None
+    ctx.anims = []
+    return True
+
+  def handle_select(ctx):
+    node = ctx.cursor
+    if node in ctx.selection:
+      ctx.selection.remove(node)
+      return False
+    else:
+      ctx.selection.append(node)
+      return True
 
   def reset_cursor(ctx):
     ctx.cursor = 0
@@ -398,7 +422,7 @@ class SellContext(Context):
     ))
 
     tabs_image = ctx.tablist.render()
-    items_image = ctx.itembox.render()
+    items_image = ctx.itembox.render(ctx.selection)
     menu_x = surface.get_width() - items_image.get_width() - MARGIN
     menu_y = surface.get_height() - items_image.get_height() - tabs_image.get_height() - 24
     surface.blit(tabs_image, (menu_x, menu_y))
