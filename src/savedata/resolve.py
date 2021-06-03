@@ -5,7 +5,7 @@ from items.sp.cheese import Cheese
 from items.sp.sapphire import Sapphire
 from items.sp.fish import Fish
 from items.materials.angeltears import AngelTears
-from items.materials.toxicferrule import ToxicFerrule
+from items.materials.redferrule import RedFerrule
 from items.hp.ankh import Ankh
 from items.hp.ruby import Ruby
 from items.hp.elixir import Elixir
@@ -43,7 +43,7 @@ def resolve_item(key):
   if key == "Sapphire": return Sapphire
   if key == "Fish": return Fish
   if key == "AngelTears": return AngelTears
-  if key == "ToxicFerrule": return ToxicFerrule
+  if key == "RedFerrule": return RedFerrule
   if key == "Ankh": return Ankh
   if key == "Ruby": return Ruby
   if key == "Elixir": return Elixir

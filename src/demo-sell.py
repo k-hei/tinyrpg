@@ -14,7 +14,7 @@ App(
       "AngelTears",
       "AngelTears",
       "AngelTears",
-      "ToxicFerrule"
+      "RedFerrule"
     ]))
   )
 ).init()

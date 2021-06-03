@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from items.materials import MaterialItem
-from palette import PURPLE
+from palette import RED
 
 @dataclass
-class ToxicFerrule(MaterialItem):
-  name: str = "ToxicFerrule"
+class RedFerrule(MaterialItem):
+  name: str = "RedFerrule"
   desc: str = "Head of a toxic beast."
   value: int = 26
-  color: int = PURPLE
+  color: int = RED

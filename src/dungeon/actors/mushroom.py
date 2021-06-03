@@ -5,11 +5,11 @@ from skills.ailment.virus import Virus
 from skills.weapon.tackle import Tackle
 from lib.cell import is_adjacent
 import random
-from items.materials.toxicferrule import ToxicFerrule
+from items.materials.redferrule import RedFerrule
 
 class Mushroom(DungeonActor):
   skill = Virus
-  drops = [ToxicFerrule]
+  drops = [RedFerrule]
 
   def __init__(mushroom):
     super().__init__(Core(

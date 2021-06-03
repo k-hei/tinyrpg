@@ -201,7 +201,7 @@ class BagList:
           text_y = y + icon_image.get_height() // 2 - text_image.get_height() // 2
           bag.surface.blit(text_image, (text_x, text_y))
 
-          price_image = assets.ttf["roman"].render(str(item.value // 2))
+          price_image = assets.ttf["roman"].render(str(item.value // 2), text_color)
           price_x = bag.box.get_width() - price_image.get_width() - 12
           price_y = text_y
           bag.surface.blit(price_image, (price_x, price_y))
@@ -366,6 +366,8 @@ class SellContext(Context):
     return True
 
   def handle_select(ctx):
+    if not ctx.itembox.items:
+      return False
     node = (ctx.tablist.selection(), ctx.cursor)
     if node in ctx.selection:
       ctx.selection.remove(node)
@@ -412,14 +414,29 @@ class SellContext(Context):
 
     gold_image = assets.sprites["item_gold"]
     gold_image = replace_color(gold_image, BLACK, GOLD)
-    text_image = assets.ttf["roman"].render("500")
-    gold_x = hud_x + hud_image.get_width() + 4
-    gold_y = hud_y + hud_image.get_height() - gold_image.get_height()
+    gold_x = hud_x + hud_image.get_width() + 2
+    gold_y = hud_y + hud_image.get_height() - gold_image.get_height() - 2
     surface.blit(gold_image, (gold_x, gold_y))
-    surface.blit(text_image, (
-      gold_x + gold_image.get_width() + 3,
-      gold_y + gold_image.get_height() // 2 - text_image.get_height() // 2
-    ))
+
+    goldtext_font = assets.ttf["roman"]
+    goldtext_image = goldtext_font.render("500")
+    goldtext_x = gold_x + gold_image.get_width() + 3
+    goldtext_y = gold_y + gold_image.get_height() // 2 - goldtext_image.get_height() // 2
+    surface.blit(goldtext_image, (goldtext_x, goldtext_y))
+
+    surplus = 0
+    for tab, i in ctx.selection:
+      items = filter_items(ctx.items, tab)
+      item = items[i]
+      surplus += item.value // 2
+    if surplus:
+      surplus_image = goldtext_font.render("(+{})".format(surplus), GOLD)
+      surface.blit(surplus_image, (goldtext_x + goldtext_image.get_width(), goldtext_y))
+      select_image = goldtext_font.render("{count} item{s}".format(
+        count=len(ctx.selection),
+        s="s" if len(ctx.selection) != 1 else ""
+      ), GOLD)
+      surface.blit(select_image, (gold_x + 2, gold_y - select_image.get_height() - 1))
 
     tabs_image = ctx.tablist.render()
     items_image = ctx.itembox.render(ctx.tablist.selection(), ctx.selection)
@@ -479,6 +496,7 @@ class SellContext(Context):
     if ctx.itembox.items and ctx.cursor_drawn != None:
       cursor_anim = next((a for a in ctx.anims if type(a) is ctx.CursorAnim), None)
       hand_image = assets.sprites["hand"]
+      hand_image = replace_color(hand_image, BLACK, BLUE)
       hand_image = flip(hand_image, True, False)
       hand_x = menu_x - 24
       if cursor_anim:
