@@ -221,17 +221,32 @@ class Control:
     control.key = key
     control.value = value
     control.surface = None
+    control.dirty = True
+    control.pressed = {}
+    for key in control.key:
+      control.pressed[key] = False
+
+  def press(control, key):
+    if not control.pressed[key]:
+      control.pressed[key] = True
+      control.dirty = True
+
+  def release(control, key):
+    if control.pressed[key]:
+      control.pressed[key] = False
+      control.dirty = True
 
   def render(control):
-    if control.surface:
+    if control.surface and not control.dirty:
       return control.surface
     assets = use_assets()
     font = assets.ttf["roman"]
     nodes = []
     x = 0
     for key in control.key:
+      icon_color = GOLD if control.pressed[key] else BLUE
       icon_image = assets.sprites["button_" + key.lower()]
-      icon_image = replace_color(icon_image, BLACK, BLUE)
+      icon_image = replace_color(icon_image, BLACK, icon_color)
       nodes.append((icon_image, x))
       x += icon_image.get_width() + 2
     x += 2
@@ -267,11 +282,20 @@ class SellContext(Context):
       return
 
     if key == pygame.K_TAB:
+      control = next((c for c in ctx.controls if c.key == ("L", "R")), None)
       if (keyboard.get_pressed(pygame.K_LSHIFT)
       or keyboard.get_pressed(pygame.K_RSHIFT)):
+        control.press("L")
         return ctx.handle_tab(delta=-1)
       else:
+        control.press("R")
         return ctx.handle_tab(delta=1)
+
+  def handle_keyup(ctx, key):
+    if key == pygame.K_TAB:
+      control = next((c for c in ctx.controls if c.key == ("L", "R")), None)
+      control.release("L")
+      control.release("R")
 
   def handle_tab(ctx, delta=1):
     if delta == -1:
