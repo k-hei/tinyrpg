@@ -1,6 +1,8 @@
-from contexts import Context
+from math import sin, pi
 import pygame
 from pygame import Surface, Rect, SRCALPHA
+from pygame.transform import flip
+from contexts import Context
 from palette import BLACK, WHITE, GRAY, GRAY_DARK, BLUE, GOLD
 from filters import replace_color
 from assets import load as use_assets
@@ -268,6 +270,8 @@ class SellContext(Context):
     super().__init__()
     ctx.items = items
     ctx.cursor = 0
+    ctx.cursor_drawn = 0
+    ctx.cursor_anim = Anim()
     ctx.hero = KnightCore()
     ctx.hud = Hud()
     ctx.tablist = BagTabs(Inventory.tabs)
@@ -278,7 +282,16 @@ class SellContext(Context):
     ]
 
   def handle_keydown(ctx, key):
-    if keyboard.get_pressed(key) > 1:
+    key_time = keyboard.get_pressed(key)
+    if (key_time == 1
+    or key_time > 30 and key_time % 2
+    ):
+      if key == pygame.K_UP:
+        return ctx.handle_move(-1)
+      elif key == pygame.K_DOWN:
+        return ctx.handle_move(1)
+
+    if key_time > 1:
       return
 
     if key == pygame.K_TAB:
@@ -299,14 +312,39 @@ class SellContext(Context):
 
   def handle_tab(ctx, delta=1):
     if delta == -1:
-      tab = ctx.tablist.select_prev()
+      tab = ctx.tablist.select_prev(on_end=ctx.reset_cursor)
     elif delta == 1:
-      tab = ctx.tablist.select_next()
+      tab = ctx.tablist.select_next(on_end=ctx.reset_cursor)
     else:
       return False
     items = filter_items(ctx.items, tab)
     ctx.itembox.load(items)
+    ctx.cursor_drawn = None
     return True
+
+  def handle_move(ctx, delta):
+    old_index = ctx.cursor
+    new_index = old_index + delta
+    min_index = 0
+    max_index = len(ctx.itembox.items) - 1
+    if new_index < min_index:
+      new_index = min_index
+    if new_index > max_index:
+      new_index = max_index
+    if new_index == old_index:
+      return False
+    ctx.cursor = new_index
+    return True
+
+  def reset_cursor(ctx):
+    ctx.cursor = 0
+    ctx.cursor_drawn = 0
+
+  def update(ctx):
+    if ctx.cursor_drawn != None:
+      ctx.cursor_drawn += (ctx.cursor - ctx.cursor_drawn) / 4
+      if round(ctx.cursor_drawn * 10) / 10 == ctx.cursor:
+        ctx.cursor_anim.update()
 
   def draw(ctx, surface):
     assets = use_assets()
@@ -358,6 +396,15 @@ class SellContext(Context):
     desc_x = 4
     desc_y = menu_y + tabs_image.get_height()
     surface.blit(desc_image, (desc_x, desc_y))
+
+    if ctx.itembox.items and ctx.cursor_drawn != None:
+      hand_image = assets.sprites["hand"]
+      hand_image = flip(hand_image, True, False)
+      hand_x = menu_x - 24
+      hand_x += sin(ctx.cursor_anim.time % 30 / 30 * 2 * pi) * 2
+      hand_y = menu_y + tabs_image.get_height() + 4
+      hand_y += ctx.cursor_drawn * 18
+      surface.blit(hand_image, (hand_x, hand_y))
 
     controls_x = surface.get_width() - 8
     controls_y = surface.get_height() - 12
