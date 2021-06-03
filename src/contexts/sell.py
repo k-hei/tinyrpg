@@ -313,6 +313,16 @@ class SellContext(Context):
     surface.fill(WHITE)
     pygame.draw.rect(surface, BLACK, Rect(0, 112, 256, 112))
 
+    tagbg_image = assets.sprites["shop_tag"]
+    tagbg_x = surface.get_width() - tagbg_image.get_width()
+    tagbg_y = 0
+    surface.blit(tagbg_image, (tagbg_x, tagbg_y))
+
+    tagtext_image = assets.sprites["general_store"]
+    tagtext_x = surface.get_width() - tagtext_image.get_width() - 4
+    tagtext_y = tagbg_y + tagbg_image.get_height() // 2 - tagtext_image.get_height() // 2
+    surface.blit(tagtext_image, (tagtext_x, tagtext_y))
+
     hud_image = ctx.hud.update(ctx.hero)
     hud_x = 4
     hud_y = surface.get_height() - hud_image.get_height() - 4
@@ -341,6 +351,13 @@ class SellContext(Context):
     card_x = menu_x + items_image.get_width() - card_image.get_width()
     card_y = menu_y - card_image.get_height() + tabs_image.get_height() - 1
     surface.blit(card_image, (card_x, card_y))
+
+    desc_width = surface.get_width() - items_image.get_width() - 4 * 3
+    desc_height = surface.get_height() - menu_y - tabs_image.get_height() - hud_image.get_height() - 4 * 2
+    desc_image = Box.render((desc_width, desc_height))
+    desc_x = 4
+    desc_y = menu_y + tabs_image.get_height()
+    surface.blit(desc_image, (desc_x, desc_y))
 
     controls_x = surface.get_width() - 8
     controls_y = surface.get_height() - 12
