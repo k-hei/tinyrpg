@@ -249,7 +249,6 @@ class SellContext(Context):
 
   def draw(ctx, surface):
     assets = use_assets()
-    sprites = assets.sprites
     surface.fill(WHITE)
     pygame.draw.rect(surface, BLACK, Rect(0, 112, 256, 112))
 
@@ -257,6 +256,17 @@ class SellContext(Context):
     hud_x = 4
     hud_y = surface.get_height() - hud_image.get_height() - 4
     surface.blit(hud_image, (hud_x, hud_y))
+
+    gold_image = assets.sprites["item_gold"]
+    gold_image = replace_color(gold_image, BLACK, GOLD)
+    text_image = assets.ttf["roman"].render("500")
+    gold_x = hud_x + hud_image.get_width() + 4
+    gold_y = hud_y + hud_image.get_height() - gold_image.get_height()
+    surface.blit(gold_image, (gold_x, gold_y))
+    surface.blit(text_image, (
+      gold_x + gold_image.get_width() + 3,
+      gold_y + gold_image.get_height() // 2 - text_image.get_height() // 2
+    ))
 
     tabs_image = ctx.tablist.render()
     items_image = ctx.itembox.render()
