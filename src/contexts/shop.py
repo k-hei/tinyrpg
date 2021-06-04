@@ -9,6 +9,12 @@ from assets import load as use_assets
 from filters import replace_color, darken
 from palette import BLACK, WHITE, RED, BLUE, GOLD
 import keyboard
+from anims.tween import TweenAnim
+from easing.expo import ease_out
+from lib.lerp import lerp
+
+class SelectAnim(TweenAnim): blocking = False
+class DeselectAnim(TweenAnim): blocking = False
 
 class ShopContext(Context):
   def __init__(ctx):
@@ -17,6 +23,7 @@ class ShopContext(Context):
     ctx.options = ["buy", "sell", "exit"]
     ctx.hero = KnightCore()
     ctx.hud = Hud()
+    ctx.anims = []
     ctx.controls = [
       Control(key=("X"), value="Menu")
     ]
@@ -42,9 +49,26 @@ class ShopContext(Context):
     if new_index == old_index:
       return False
     ctx.option_index = new_index
+    ctx.anims.append(DeselectAnim(
+      duration=8,
+      target=old_index
+    ))
+    ctx.anims.append(SelectAnim(
+      duration=12,
+      target=new_index
+    ))
     return True
 
+  def update(ctx):
+    for anim in ctx.anims:
+      if anim.done:
+        ctx.anims.remove(anim)
+      else:
+        anim.update()
+
   def draw(ctx, surface):
+    ctx.update()
+
     assets = use_assets()
     surface.fill(WHITE)
     pygame.draw.rect(surface, BLACK, Rect(0, 112, 256, 112))
@@ -90,7 +114,15 @@ class ShopContext(Context):
       card_color = RED if option == "exit" else BLUE
       card_image = assets.sprites["card_" + option]
       card_image = replace_color(card_image, old_color=BLACK, new_color=card_color)
-      if i == ctx.option_index:
+      card_anim = next((a for a in ctx.anims if a.target == i), None)
+      if card_anim:
+        t = card_anim.pos
+        if type(card_anim) is SelectAnim:
+          t = ease_out(t)
+        elif type(card_anim) is DeselectAnim:
+          t = 1 - t
+        card_y -= CARD_LIFT * t
+      elif i == ctx.option_index:
         card_y -= CARD_LIFT
       else:
         card_image = darken(card_image)
