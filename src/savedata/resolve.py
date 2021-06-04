@@ -4,6 +4,7 @@ from items.sp.bread import Bread
 from items.sp.cheese import Cheese
 from items.sp.sapphire import Sapphire
 from items.sp.fish import Fish
+from items.materials.diamond import Diamond
 from items.materials.angeltears import AngelTears
 from items.materials.redferrule import RedFerrule
 from items.hp.ankh import Ankh
@@ -53,6 +54,7 @@ def resolve_item(key):
   if key == "Cheese": return Cheese
   if key == "Sapphire": return Sapphire
   if key == "Fish": return Fish
+  if key == "Diamond": return Diamond
   if key == "AngelTears": return AngelTears
   if key == "RedFerrule": return RedFerrule
   if key == "Ankh": return Ankh
@@ -89,5 +91,6 @@ def resolve_skill(key):
   if key == "HpUp": return HpUp
 
 def resolve_material(material):
+  if material is Diamond: return None
   if material is AngelTears: return Eye
   if material is RedFerrule: return Mushroom

@@ -16,7 +16,8 @@ App(
       "Amethyst",
       "AngelTears",
       "AngelTears",
-      "RedFerrule"
+      "RedFerrule",
+      "Diamond"
     ]))
   )
 ).init()

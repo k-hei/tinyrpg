@@ -509,7 +509,7 @@ class SellContext(Context):
       label_y = descbox_image.get_height() - label_image.get_height() - PADDING
       descbox_image.blit(label_image, (label_x, label_y))
       value = (issubclass(item, MaterialItem)
-        and (resolve_material(item) and resolve_material(item).__name__.upper())
+        and (resolve_material(item) and resolve_material(item).__name__.upper() or "N/A")
         or len([i for i in ctx.itembox.items if i is item]))
       value_text = str(value)
       value_image = assets.ttf["roman"].render(value_text)
