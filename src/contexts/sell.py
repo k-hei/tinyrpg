@@ -174,6 +174,7 @@ class BagList:
         anim.update()
 
   def render(bag, scroll=0, tab=None, selection=[]):
+    scroll_max = max(0, len(bag.items) - BagList.MAX_VISIBLE_ITEMS) if bag.items else 0
     bag.update()
     assets = use_assets()
     x = 4
@@ -189,6 +190,21 @@ class BagList:
       y = bag.box.get_height() // 2 - text_image.get_height() // 2
       bag.surface.blit(text_image, (x, y))
     elif bag.items is not None:
+      track_width = 2
+      track_height = bag.box.get_height() - 6 * 2
+      track_x = bag.box.get_width() - track_width - 6
+      track_y = 7
+      pygame.draw.rect(bag.surface, GRAY_DARK, Rect(
+        (track_x, track_y),
+        (track_width, track_height)
+      ))
+      bar_height = BagList.MAX_VISIBLE_ITEMS / len(bag.items) * track_height
+      if bar_height < track_height:
+        bar_y = min(1, scroll / (scroll_max or 1)) * (track_height - bar_height)
+        pygame.draw.rect(bag.surface, WHITE, Rect(
+          (track_x, track_y + bar_y),
+          (track_width, bar_height)
+        ))
       for i in range(scroll, scroll + BagList.MAX_VISIBLE_ITEMS):
         item = bag.items[i] if i < len(bag.items) else None
         item_anim = next((a for a in bag.anims if a.target == i), None)
@@ -332,6 +348,9 @@ class SellContext(Context):
         control.press("R")
         return ctx.handle_tab(delta=1)
 
+    if key in (pygame.K_BACKSPACE, pygame.K_ESCAPE):
+      return ctx.handle_clear()
+
   def handle_keyup(ctx, key):
     if key == pygame.K_TAB:
       control = next((c for c in ctx.controls if c.value == "Tab"), None)
@@ -390,6 +409,10 @@ class SellContext(Context):
     else:
       ctx.selection.append(node)
       return True
+
+  def handle_clear(ctx):
+    ctx.selection = []
+    return True
 
   def reset_cursor(ctx):
     ctx.cursor = 0
@@ -521,8 +544,9 @@ class SellContext(Context):
 
     if ctx.itembox.items and ctx.cursor_drawn != None:
       cursor_anim = next((a for a in ctx.anims if type(a) is ctx.CursorAnim), None)
+      hand_color = GOLD if ctx.selection else BLUE
       hand_image = assets.sprites["hand"]
-      hand_image = replace_color(hand_image, BLACK, BLUE)
+      hand_image = replace_color(hand_image, BLACK, hand_color)
       hand_image = flip(hand_image, True, False)
       hand_x = menu_x - 24
       if cursor_anim:
