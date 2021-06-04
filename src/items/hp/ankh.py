@@ -6,6 +6,7 @@ import lib.cell as cell
 class Ankh(HpItem):
   name: str = "Ankh"
   desc: str = "Revives ally with 50% HP."
+  value: int = 80
 
   def use(ankh, game):
     hero = game.hero

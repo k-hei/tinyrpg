@@ -174,7 +174,6 @@ class BagList:
         anim.update()
 
   def render(bag, scroll=0, tab=None, selection=[]):
-    scroll_max = max(0, len(bag.items) - BagList.MAX_VISIBLE_ITEMS) if bag.items else 0
     bag.update()
     assets = use_assets()
     x = 4
@@ -200,12 +199,14 @@ class BagList:
       ))
       bar_height = BagList.MAX_VISIBLE_ITEMS / len(bag.items) * track_height
       if bar_height < track_height:
+        scroll_max = max(0, len(bag.items) - BagList.MAX_VISIBLE_ITEMS)
         bar_y = min(1, scroll / (scroll_max or 1)) * (track_height - bar_height)
         pygame.draw.rect(bag.surface, WHITE, Rect(
           (track_x, track_y + bar_y),
           (track_width, bar_height)
         ))
-      for i in range(scroll, scroll + BagList.MAX_VISIBLE_ITEMS):
+      y += (round(scroll) - scroll) * 18
+      for i in range(round(scroll), round(scroll) + BagList.MAX_VISIBLE_ITEMS):
         item = bag.items[i] if i < len(bag.items) else None
         item_anim = next((a for a in bag.anims if a.target == i), None)
         if item and (not item_anim or item_anim.time > 0):
@@ -299,6 +300,7 @@ class SellContext(Context):
     ctx.cursor = 0
     ctx.cursor_drawn = 0
     ctx.scroll = 0
+    ctx.scroll_drawn = 0
     ctx.selection = []
     ctx.anims = []
     ctx.requires_release = {}
@@ -396,6 +398,7 @@ class SellContext(Context):
     ctx.cursor = 0
     ctx.cursor_drawn = None
     ctx.scroll = 0
+    ctx.scroll_drawn = 0
     ctx.anims = []
     return True
 
@@ -418,6 +421,7 @@ class SellContext(Context):
     ctx.cursor = 0
     ctx.cursor_drawn = 0
     ctx.scroll = 0
+    ctx.scroll_drawn = 0
     ctx.anims = [
       ctx.CursorAnim(),
       ctx.DescAnim()
@@ -426,6 +430,7 @@ class SellContext(Context):
   def update(ctx):
     for anim in ctx.anims:
       anim.update()
+    ctx.scroll_drawn += (ctx.scroll - ctx.scroll_drawn) / 4
     if ctx.cursor_drawn != None:
       ctx.cursor_drawn += (ctx.cursor - ctx.scroll - ctx.cursor_drawn) / 4
 
@@ -479,7 +484,7 @@ class SellContext(Context):
 
     tabs_image = ctx.tablist.render()
     items_image = ctx.itembox.render(
-      scroll=ctx.scroll,
+      scroll=ctx.scroll_drawn,
       tab=ctx.tablist.selection(),
       selection=ctx.selection
     )
@@ -519,7 +524,7 @@ class SellContext(Context):
           word = item.desc[prev_space:next_space]
           if char == "\n" or desc_x + desc_font.width(word) > desc_right:
             desc_x = PADDING
-            desc_y += desc_font.height() + 3
+            desc_y += desc_font.height() + 4
             continue
         char_image = assets.ttf["roman"].render(char)
         descbox_image.blit(char_image, (desc_x, desc_y))

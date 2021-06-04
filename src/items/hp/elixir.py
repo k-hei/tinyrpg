@@ -5,6 +5,7 @@ from items.hp import HpItem
 class Elixir(HpItem):
   name: str = "Elixir"
   desc: str = "Restores full HP and SP."
+  value: int = 100
 
   def use(elixir, ctx):
     game = ctx.parent

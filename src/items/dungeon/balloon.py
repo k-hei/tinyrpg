@@ -8,6 +8,7 @@ class Balloon(DungeonItem):
   name: str = "Balloon"
   desc: str = "Ascends to next floor."
   effect: str = "ascend"
+  value: int = 40
 
   def use(balloon, game):
     if game.get_floor_no() < config.TOP_FLOOR:
