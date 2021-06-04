@@ -3,6 +3,7 @@ import pygame
 from pygame import Surface, Rect, SRCALPHA
 from pygame.transform import flip
 from contexts import Context
+from comps.control import Control
 from palette import BLACK, WHITE, GRAY, GRAY_DARK, BLUE, GOLD
 from filters import replace_color
 from assets import load as use_assets
@@ -238,53 +239,6 @@ class BagList:
         ))
         y += 16 + 2
     return bag.surface
-
-class Control:
-  def __init__(control, key, value):
-    control.key = key
-    control.value = value
-    control.surface = None
-    control.dirty = True
-    control.pressed = {}
-    for key in control.key:
-      control.pressed[key] = False
-
-  def press(control, key):
-    if not control.pressed[key]:
-      control.pressed[key] = True
-      control.dirty = True
-
-  def release(control, key):
-    if control.pressed[key]:
-      control.pressed[key] = False
-      control.dirty = True
-
-  def render(control):
-    if control.surface and not control.dirty:
-      return control.surface
-    assets = use_assets()
-    font = assets.ttf["roman"]
-    nodes = []
-    x = 0
-    for key in control.key:
-      icon_color = GOLD if control.pressed[key] else BLUE
-      icon_image = assets.sprites["button_" + key.lower()]
-      icon_image = replace_color(icon_image, BLACK, icon_color)
-      nodes.append((icon_image, x))
-      x += icon_image.get_width() + 2
-    x += 2
-    text_image = font.render(control.value)
-    nodes.append((text_image, x))
-    surface_width = x + text_image.get_width()
-    surface_height = icon_image.get_height()
-    if control.surface is None:
-      control.surface = Surface((surface_width, surface_height), SRCALPHA)
-    else:
-      control.surface.fill(0)
-    for image, x in nodes:
-      y = surface_height // 2 - image.get_height() // 2
-      control.surface.blit(image, (x, y))
-    return control.surface
 
 class TextBox:
   def __init__(box, size):
