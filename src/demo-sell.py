@@ -16,7 +16,6 @@ App(
       "Amethyst",
       "AngelTears",
       "AngelTears",
-      "AngelTears",
       "RedFerrule"
     ]))
   )

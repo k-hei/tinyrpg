@@ -19,6 +19,7 @@ from skills.ailment.exoculo import Exoculo
 from skills.weapon.tackle import Tackle
 from skills.weapon.stick import Stick
 from skills.weapon.club import Club
+from skills.weapon.rare import RareWeapon
 from skills.weapon.longinus import Longinus
 from skills.weapon.caladbolg import Caladbolg
 from skills.weapon.mjolnir import Mjolnir
@@ -34,6 +35,16 @@ from skills.field.detectmana import DetectMana
 from skills.support.anastasis import Anastasis
 from skills.support.counter import Counter
 from skills.support.sana import Sana
+from skills.armor.hpup import HpUp
+from dungeon.actors.genie import Genie
+from dungeon.actors.npc import Npc
+from dungeon.actors.skeleton import Skeleton
+from dungeon.actors.mage import Mage
+from dungeon.actors.eye import Eye
+from dungeon.actors.mimic import Mimic
+from dungeon.actors.knight import Knight
+from dungeon.actors.mushroom import Mushroom
+from dungeon.actors.soldier import Soldier
 
 def resolve_item(key):
   if key == "Antidote": return Antidote
@@ -51,7 +62,6 @@ def resolve_item(key):
   if key == "Key": return Key
   if key == "Emerald": return Emerald
   if key == "Balloon": return Balloon
-  return None
 
 def resolve_skill(key):
   if key == "Virus": return Virus
@@ -60,6 +70,7 @@ def resolve_skill(key):
   if key == "Tackle": return Tackle
   if key == "Stick": return Stick
   if key == "Club": return Club
+  if key == "RareWeapon": return RareWeapon
   if key == "Longinus": return Longinus
   if key == "Caladbolg": return Caladbolg
   if key == "Mjolnir": return Mjolnir
@@ -75,4 +86,8 @@ def resolve_skill(key):
   if key == "Anastasis": return Anastasis
   if key == "Counter": return Counter
   if key == "Sana": return Sana
-  return None
+  if key == "HpUp": return HpUp
+
+def resolve_material(material):
+  if material is AngelTears: return Eye
+  if material is RedFerrule: return Mushroom

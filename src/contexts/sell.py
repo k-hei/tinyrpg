@@ -15,6 +15,7 @@ from easing.expo import ease_out
 from lib.lerp import lerp
 from items.materials import MaterialItem
 from hud import Hud
+from savedata.resolve import resolve_material
 
 class SelectAnim(TweenAnim): blocking = False
 class DeselectAnim(TweenAnim): blocking = False
@@ -500,13 +501,19 @@ class SellContext(Context):
         char_image = assets.ttf["roman"].render(char)
         descbox_image.blit(char_image, (desc_x, desc_y))
         desc_x += char_image.get_width()
-      count_image = assets.ttf["english"].render("No. owned")
-      count_x = PADDING
-      count_y = descbox_image.get_height() - count_image.get_height() - PADDING
-      descbox_image.blit(count_image, (count_x, count_y))
-      value = len([i for i in ctx.itembox.items if i is item])
-      value_image = assets.ttf["roman"].render(str(value))
-      descbox_image.blit(value_image, (count_x + count_image.get_width() + 6, count_y))
+      label_text = (issubclass(item, MaterialItem)
+        and "Via"
+        or "No. owned")
+      label_image = assets.ttf["english"].render(label_text)
+      label_x = PADDING
+      label_y = descbox_image.get_height() - label_image.get_height() - PADDING
+      descbox_image.blit(label_image, (label_x, label_y))
+      value = (issubclass(item, MaterialItem)
+        and (resolve_material(item) and resolve_material(item).__name__.upper())
+        or len([i for i in ctx.itembox.items if i is item]))
+      value_text = str(value)
+      value_image = assets.ttf["roman"].render(value_text)
+      descbox_image.blit(value_image, (label_x + label_image.get_width() + 5, label_y))
 
     descbox_x = MARGIN
     descbox_y = hud_y - MARGIN - descbox_height
