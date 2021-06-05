@@ -1,7 +1,7 @@
-from math import sin, pi
+from math import sin, cos, pi
 import pygame
 from pygame import Rect
-from pygame.transform import rotate
+from pygame.transform import rotate, scale
 from contexts import Context
 from contexts.sell import SellContext
 from cores.knight import KnightCore
@@ -24,8 +24,8 @@ class TwirlAnim(TweenAnim): blocking = False
 class ShopContext(Context):
   def __init__(ctx):
     super().__init__()
-    ctx.option_index = 0
     ctx.options = ["buy", "sell", "exit"]
+    ctx.option_index = 0
     ctx.hand_index = 0
     ctx.hero = KnightCore()
     ctx.hud = Hud()
@@ -42,6 +42,8 @@ class ShopContext(Context):
       return ctx.handle_move(-1)
     if key in (pygame.K_RIGHT, pygame.K_d):
       return ctx.handle_move(1)
+    if key in (pygame.K_SPACE, pygame.K_RETURN):
+      return ctx.handle_select()
 
   def handle_move(ctx, delta):
     old_index = ctx.option_index
@@ -64,6 +66,12 @@ class ShopContext(Context):
       target=new_index
     ))
     return True
+
+  def handle_select(ctx):
+    ctx.anims.append(TwirlAnim(
+      duration=20,
+      target=ctx.option_index
+    ))
 
   def update(ctx):
     ctx.hand_index += (ctx.option_index - ctx.hand_index) / 4
@@ -110,29 +118,44 @@ class ShopContext(Context):
     CARD_MARGIN = 8
     CARD_SPACING = 2
     CARD_LIFT = 4
-    card_width = assets.sprites["card_buy"].get_width()
-    cards_x = surface.get_width() - (card_width + CARD_SPACING) * len(ctx.options) + CARD_SPACING - CARD_MARGIN
+    CARD_WIDTH = assets.sprites["card_back"].get_width()
+    CARD_HEIGHT = assets.sprites["card_back"].get_height()
+    cards_x = surface.get_width() - (CARD_WIDTH + CARD_SPACING) * len(ctx.options) + CARD_SPACING - CARD_MARGIN
     cards_y = 96
     card_x = cards_x
     for i, option in enumerate(ctx.options):
       card_y = cards_y
       card_color = RED if option == "exit" else BLUE
       card_image = assets.sprites["card_" + option]
-      card_image = replace_color(card_image, old_color=BLACK, new_color=card_color)
       card_anim = next((a for a in ctx.anims if a.target == i), None)
+      card_width = card_image.get_width()
+      t = None
       if card_anim:
         t = card_anim.pos
         if type(card_anim) is SelectAnim:
           t = ease_out(t)
+          card_y -= CARD_LIFT * t
         elif type(card_anim) is DeselectAnim:
           t = 1 - t
-        card_y -= CARD_LIFT * t
-      elif i == ctx.option_index:
-        card_y -= CARD_LIFT
-      else:
-        card_image = darken(card_image)
-      surface.blit(card_image, (card_x, card_y))
-      card_x += card_image.get_width() + CARD_SPACING
+          card_y -= CARD_LIFT * t
+        elif type(card_anim) is TwirlAnim:
+          w = cos(t * 2 * pi)
+          if w < 0:
+            card_image = assets.sprites["card_back"]
+          card_width *= abs(w)
+      if card_image:
+        scaled_image = replace_color(card_image, old_color=BLACK, new_color=card_color)
+        if i != ctx.option_index:
+          scaled_image = darken(scaled_image)
+        elif card_y == cards_y:
+          card_y -= CARD_LIFT
+        if card_width != CARD_WIDTH:
+          scaled_image = scale(scaled_image, (int(card_width), card_image.get_height()))
+        surface.blit(scaled_image, (
+          card_x + card_image.get_width() // 2 - card_width // 2,
+          card_y
+        ))
+      card_x += CARD_WIDTH + CARD_SPACING
 
     title_image = assets.ttf["english_large"].render("General Store")
     title_x = surface.get_width() - title_image.get_width() - CARD_MARGIN
@@ -143,10 +166,10 @@ class ShopContext(Context):
     hand_image = assets.sprites["hand"]
     hand_image = rotate(hand_image, -90)
     hand_x = cards_x
-    hand_x += card_image.get_width() // 2 - hand_image.get_width() // 2
-    hand_x += (card_image.get_width() + CARD_SPACING) * ctx.hand_index
+    hand_x += CARD_WIDTH // 2 - hand_image.get_width() // 2
+    hand_x += (CARD_WIDTH + CARD_SPACING) * ctx.hand_index
     hand_y = cards_y
-    hand_y += card_image.get_height() - 12
+    hand_y += CARD_HEIGHT - 12
     hand_y += sin(hand_anim.time % 30 / 30 * 2 * pi) * 2
     surface.blit(hand_image, (hand_x, hand_y))
 
