@@ -4,7 +4,7 @@ from pygame import Surface, Rect, SRCALPHA
 from pygame.transform import flip
 from contexts import Context
 from comps.control import Control
-from palette import BLACK, WHITE, GRAY, GRAY_DARK, BLUE, GOLD
+from palette import BLACK, WHITE, GRAY, GRAY_DARK, BLUE, GOLD, CYAN
 from filters import replace_color
 from assets import load as use_assets
 from inventory import Inventory
@@ -214,7 +214,7 @@ class BagList:
           icon_image = item.render(item)
 
           name = item.name[:item_anim.time] if item_anim else item.name
-          text_color = GOLD if (tab, i) in selection else WHITE
+          text_color = CYAN if (tab, i) in selection else WHITE
           text_image = assets.ttf["english"].render(name, text_color)
           bag.surface.blit(icon_image, (x, y))
 
@@ -428,12 +428,12 @@ class SellContext(Context):
       item = items[i]
       surplus += item.value // 2
     if surplus:
-      surplus_image = goldtext_font.render("(+{})".format(surplus), GOLD)
+      surplus_image = goldtext_font.render("(+{})".format(surplus), CYAN)
       surface.blit(surplus_image, (goldtext_x + goldtext_image.get_width(), goldtext_y))
       select_image = goldtext_font.render("{count} item{s}".format(
         count=len(ctx.selection),
         s="s" if len(ctx.selection) != 1 else ""
-      ), GOLD)
+      ), CYAN)
       surface.blit(select_image, (gold_x + 2, gold_y - select_image.get_height() - 1))
 
     tabs_image = ctx.tablist.render()
@@ -491,7 +491,7 @@ class SellContext(Context):
       label_y = descbox_image.get_height() - label_image.get_height() - PADDING
       descbox_image.blit(label_image, (label_x, label_y))
       value = (issubclass(item, MaterialItem)
-        and (resolve_material(item) and resolve_material(item).__name__.upper() or "N/A")
+        and (resolve_material(item) and resolve_material(item).__name__ or "N/A")
         or len([i for i in ctx.itembox.items if i is item]))
       value_text = str(value)
       value_image = assets.ttf["roman"].render(value_text)

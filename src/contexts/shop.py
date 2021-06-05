@@ -1,5 +1,7 @@
+from math import sin, pi
 import pygame
 from pygame import Rect
+from pygame.transform import rotate
 from contexts import Context
 from contexts.sell import SellContext
 from cores.knight import KnightCore
@@ -9,21 +11,25 @@ from assets import load as use_assets
 from filters import replace_color, darken
 from palette import BLACK, WHITE, RED, BLUE, GOLD
 import keyboard
+from anims import Anim
 from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
 
+class CursorAnim(Anim): blocking = False
 class SelectAnim(TweenAnim): blocking = False
 class DeselectAnim(TweenAnim): blocking = False
+class TwirlAnim(TweenAnim): blocking = False
 
 class ShopContext(Context):
   def __init__(ctx):
     super().__init__()
     ctx.option_index = 0
     ctx.options = ["buy", "sell", "exit"]
+    ctx.hand_index = 0
     ctx.hero = KnightCore()
     ctx.hud = Hud()
-    ctx.anims = []
+    ctx.anims = [CursorAnim()]
     ctx.controls = [
       Control(key=("X"), value="Menu")
     ]
@@ -60,6 +66,7 @@ class ShopContext(Context):
     return True
 
   def update(ctx):
+    ctx.hand_index += (ctx.option_index - ctx.hand_index) / 4
     for anim in ctx.anims:
       if anim.done:
         ctx.anims.remove(anim)
@@ -67,23 +74,21 @@ class ShopContext(Context):
         anim.update()
 
   def draw(ctx, surface):
-    ctx.update()
-
     assets = use_assets()
     surface.fill(WHITE)
     pygame.draw.rect(surface, BLACK, Rect(0, 112, 256, 112))
 
     MARGIN = 2
 
-    tagbg_image = assets.sprites["shop_tag"]
-    tagbg_x = surface.get_width() - tagbg_image.get_width()
-    tagbg_y = 0
-    surface.blit(tagbg_image, (tagbg_x, tagbg_y))
+    # tagbg_image = assets.sprites["shop_tag"]
+    # tagbg_x = surface.get_width() - tagbg_image.get_width()
+    # tagbg_y = 0
+    # surface.blit(tagbg_image, (tagbg_x, tagbg_y))
 
-    tagtext_image = assets.sprites["general_store"]
-    tagtext_x = surface.get_width() - tagtext_image.get_width() - 2
-    tagtext_y = tagbg_y + tagbg_image.get_height() // 2 - tagtext_image.get_height() // 2
-    surface.blit(tagtext_image, (tagtext_x, tagtext_y))
+    # tagtext_image = assets.sprites["general_store"]
+    # tagtext_x = surface.get_width() - tagtext_image.get_width() - 2
+    # tagtext_y = tagbg_y + tagbg_image.get_height() // 2 - tagtext_image.get_height() // 2
+    # surface.blit(tagtext_image, (tagtext_x, tagtext_y))
 
     hud_image = ctx.hud.update(ctx.hero)
     hud_x = MARGIN
@@ -102,7 +107,7 @@ class ShopContext(Context):
     goldtext_y = gold_y + gold_image.get_height() // 2 - goldtext_image.get_height() // 2
     surface.blit(goldtext_image, (goldtext_x, goldtext_y))
 
-    CARD_MARGIN = 16
+    CARD_MARGIN = 8
     CARD_SPACING = 2
     CARD_LIFT = 4
     card_width = assets.sprites["card_buy"].get_width()
@@ -129,11 +134,32 @@ class ShopContext(Context):
       surface.blit(card_image, (card_x, card_y))
       card_x += card_image.get_width() + CARD_SPACING
 
-    controls_x = surface.get_width() - 8
-    controls_y = surface.get_height() - 12
-    for control in ctx.controls:
-      control_image = control.render()
-      control_x = controls_x - control_image.get_width()
-      control_y = controls_y - control_image.get_height() // 2
-      surface.blit(control_image, (control_x, control_y))
-      controls_x = control_x - 8
+    title_image = assets.ttf["english_large"].render("General Store")
+    title_x = surface.get_width() - title_image.get_width() - CARD_MARGIN
+    title_y = surface.get_height() - title_image.get_height() - 7
+    surface.blit(title_image, (title_x, title_y))
+
+    hand_anim = next((a for a in ctx.anims if type(a) is CursorAnim), None)
+    hand_image = assets.sprites["hand"]
+    hand_image = rotate(hand_image, -90)
+    hand_x = cards_x
+    hand_x += card_image.get_width() // 2 - hand_image.get_width() // 2
+    hand_x += (card_image.get_width() + CARD_SPACING) * ctx.hand_index
+    hand_y = cards_y
+    hand_y += card_image.get_height() - 12
+    hand_y += sin(hand_anim.time % 30 / 30 * 2 * pi) * 2
+    surface.blit(hand_image, (hand_x, hand_y))
+
+    # subtitle_text = assets.ttf["roman"].render("Exchange money for goods and services")
+    # subtitle_x = title_x + title_text.get_width() - subtitle_text.get_width()
+    # subtitle_y = title_y - title_text.get_height() + 4
+    # surface.blit(subtitle_text, (subtitle_x, subtitle_y))
+
+    # controls_x = surface.get_width() - 8
+    # controls_y = surface.get_height() - 12
+    # for control in ctx.controls:
+    #   control_image = control.render()
+    #   control_x = controls_x - control_image.get_width()
+    #   control_y = controls_y - control_image.get_height() // 2
+    #   surface.blit(control_image, (control_x, control_y))
+    #   controls_x = control_x - 8
