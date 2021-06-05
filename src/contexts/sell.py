@@ -20,6 +20,7 @@ from savedata.resolve import resolve_material
 
 class SelectAnim(TweenAnim): blocking = False
 class DeselectAnim(TweenAnim): blocking = False
+class CardAnim(TweenAnim): blocking = True
 
 def filter_items(items, tab):
   return list(filter(lambda item: (
@@ -247,10 +248,14 @@ class TextBox:
 class SellContext(Context):
   class CursorAnim(Anim): blocking = False
   class DescAnim(Anim): blocking = False
+  class DescEnterAnim(TweenAnim): blocking = True
+  class ItemListAnim(TweenAnim): blocking = True
+  class CardAnim(TweenAnim): blocking = True
 
-  def __init__(ctx, items):
+  def __init__(ctx, items, card_pos=None):
     super().__init__()
     ctx.items = items
+    ctx.card_pos = card_pos
     ctx.cursor = 0
     ctx.cursor_drawn = 0
     ctx.scroll = 0
@@ -267,6 +272,15 @@ class SellContext(Context):
       Control(key=("L", "R"), value="Tab")
     ]
     ctx.reset_cursor()
+
+  def enter(ctx):
+    ctx.anims.append(ctx.DescEnterAnim(duration=25, delay=5))
+    ctx.anims.append(ctx.ItemListAnim(duration=25, delay=5))
+    if ctx.card_pos:
+      ctx.anims.append(ctx.CardAnim(
+        duration=30,
+        target=ctx.card_pos
+      ))
 
   def handle_keydown(ctx, key):
     if next((a for a in ctx.anims if a.blocking), None) or ctx.tablist.anims:
@@ -383,7 +397,10 @@ class SellContext(Context):
 
   def update(ctx):
     for anim in ctx.anims:
-      anim.update()
+      if anim.done:
+        ctx.anims.remove(anim)
+      else:
+        anim.update()
     ctx.scroll_drawn += (ctx.scroll - ctx.scroll_drawn) / 4
     if ctx.cursor_drawn != None:
       ctx.cursor_drawn += (ctx.cursor - ctx.scroll - ctx.cursor_drawn) / 4
@@ -436,6 +453,15 @@ class SellContext(Context):
       ), CYAN)
       surface.blit(select_image, (gold_x + 2, gold_y - select_image.get_height() - 1))
 
+    controls_x = surface.get_width() - 8
+    controls_y = surface.get_height() - 12
+    for control in ctx.controls:
+      control_image = control.render()
+      control_x = controls_x - control_image.get_width()
+      control_y = controls_y - control_image.get_height() // 2
+      surface.blit(control_image, (control_x, control_y))
+      controls_x = control_x - 8
+
     tabs_image = ctx.tablist.render()
     items_image = ctx.itembox.render(
       scroll=ctx.scroll_drawn,
@@ -444,14 +470,13 @@ class SellContext(Context):
     )
     menu_x = surface.get_width() - items_image.get_width() - MARGIN
     menu_y = surface.get_height() - items_image.get_height() - tabs_image.get_height() - 24
-    surface.blit(tabs_image, (menu_x, menu_y))
-    surface.blit(items_image, (menu_x, menu_y + tabs_image.get_height()))
-
-    card_image = assets.sprites["card_sell"]
-    card_image = replace_color(card_image, BLACK, BLUE)
-    card_x = menu_x + items_image.get_width() - card_image.get_width()
-    card_y = menu_y - card_image.get_height() + tabs_image.get_height() - 1
-    surface.blit(card_image, (card_x, card_y))
+    menu_ytrue = menu_y
+    menu_anim = next((a for a in ctx.anims if type(a) is ctx.ItemListAnim), None)
+    if menu_anim:
+      t = ease_out(menu_anim.pos)
+      menu_ytrue = lerp(surface.get_height(), menu_y, t)
+    surface.blit(tabs_image, (menu_x, menu_ytrue))
+    surface.blit(items_image, (menu_x, menu_ytrue + tabs_image.get_height()))
 
     descbox_width = surface.get_width() - items_image.get_width() - MARGIN * 3
     descbox_height = surface.get_height() - menu_y - tabs_image.get_height() - hud_image.get_height() - MARGIN * 2
@@ -497,13 +522,31 @@ class SellContext(Context):
       value_image = assets.ttf["roman"].render(value_text)
       descbox_image.blit(value_image, (label_x + label_image.get_width() + 5, label_y))
 
+    descbox_anim = next((a for a in ctx.anims if type(a) is ctx.DescEnterAnim), None)
     descbox_x = MARGIN
     descbox_y = hud_y - MARGIN - descbox_height
+    if descbox_anim:
+      t = ease_out(descbox_anim.pos)
+      descbox_x = lerp(-descbox_image.get_width(), descbox_x, t)
     surface.blit(descbox_image, (descbox_x, descbox_y))
 
-    if ctx.itembox.items and ctx.cursor_drawn != None:
+    card_image = assets.sprites["card_sell"]
+    card_image = replace_color(card_image, BLACK, BLUE)
+    card_x = menu_x + items_image.get_width() - card_image.get_width()
+    card_y = menu_y - card_image.get_height() + tabs_image.get_height() - 1
+    card_anim = next((a for a in ctx.anims if type(a) is ctx.CardAnim), None)
+    if card_anim:
+      t = card_anim.pos
+      t = ease_out(t)
+      start_x, start_y = card_anim.target
+      target_x, target_y = (card_x, card_y)
+      card_x = lerp(start_x, target_x, t)
+      card_y = lerp(start_y, target_y, t)
+    surface.blit(card_image, (card_x, card_y))
+
+    if ctx.itembox.items and ctx.cursor_drawn != None and not next((a for a in ctx.anims if a.blocking), None):
       cursor_anim = next((a for a in ctx.anims if type(a) is ctx.CursorAnim), None)
-      hand_color = GOLD if ctx.selection else BLUE
+      hand_color = CYAN if ctx.selection else BLACK
       hand_image = assets.sprites["hand"]
       hand_image = replace_color(hand_image, BLACK, hand_color)
       hand_image = flip(hand_image, True, False)
@@ -513,12 +556,3 @@ class SellContext(Context):
       hand_y = menu_y + tabs_image.get_height() + 4
       hand_y += ctx.cursor_drawn * 18
       surface.blit(hand_image, (hand_x, hand_y))
-
-    controls_x = surface.get_width() - 8
-    controls_y = surface.get_height() - 12
-    for control in ctx.controls:
-      control_image = control.render()
-      control_x = controls_x - control_image.get_width()
-      control_y = controls_y - control_image.get_height() // 2
-      surface.blit(control_image, (control_x, control_y))
-      controls_x = control_x - 8

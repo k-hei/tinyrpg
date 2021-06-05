@@ -6,6 +6,7 @@ from contexts import Context
 from contexts.sell import SellContext
 from cores.knight import KnightCore
 from comps.control import Control
+from comps.card import Card
 from hud import Hud
 from assets import load as use_assets
 from filters import replace_color, darken
@@ -19,14 +20,16 @@ from lib.lerp import lerp
 class CursorAnim(Anim): blocking = False
 class SelectAnim(TweenAnim): blocking = False
 class DeselectAnim(TweenAnim): blocking = False
-class TwirlAnim(TweenAnim): blocking = False
+class TwirlAnim(TweenAnim): pass
 
 class ShopContext(Context):
-  def __init__(ctx):
+  def __init__(ctx, items):
     super().__init__()
-    ctx.options = ["buy", "sell", "exit"]
-    ctx.option_index = 0
+    ctx.items = items
+    ctx.cards = [Card("buy"), Card("sell"), Card("exit", color=RED)]
+    ctx.card_index = 0
     ctx.hand_index = 0
+    ctx.card_pos = {}
     ctx.hero = KnightCore()
     ctx.hud = Hud()
     ctx.anims = [CursorAnim()]
@@ -35,6 +38,12 @@ class ShopContext(Context):
     ]
 
   def handle_keydown(ctx, key):
+    if ctx.child:
+      return ctx.child.handle_keydown(key)
+
+    if next((a for a in ctx.anims if a.blocking), None):
+      return False
+
     if keyboard.get_pressed(key) > 1:
       return
 
@@ -46,17 +55,17 @@ class ShopContext(Context):
       return ctx.handle_select()
 
   def handle_move(ctx, delta):
-    old_index = ctx.option_index
+    old_index = ctx.card_index
     new_index = old_index + delta
     min_index = 0
-    max_index = len(ctx.options) - 1
+    max_index = len(ctx.cards) - 1
     if new_index < min_index:
       new_index = min_index
     if new_index > max_index:
       new_index = max_index
     if new_index == old_index:
       return False
-    ctx.option_index = new_index
+    ctx.card_index = new_index
     ctx.anims.append(DeselectAnim(
       duration=8,
       target=old_index
@@ -68,13 +77,27 @@ class ShopContext(Context):
     return True
 
   def handle_select(ctx):
+    option = ctx.cards[ctx.card_index]
     ctx.anims.append(TwirlAnim(
       duration=20,
-      target=ctx.option_index
+      target=ctx.card_index,
+      on_end=lambda: (
+        option == "buy" and True
+        or option == "sell" and ctx.handle_sell()
+        or option == "exit" and True
+      )
+    ))
+
+  def handle_sell(ctx):
+    option = ctx.cards[ctx.card_index]
+    ctx.open(SellContext(
+      items=ctx.items,
+      card_pos=ctx.card_pos[option]
     ))
 
   def update(ctx):
-    ctx.hand_index += (ctx.option_index - ctx.hand_index) / 4
+    super().update()
+    ctx.hand_index += (ctx.card_index - ctx.hand_index) / 4
     for anim in ctx.anims:
       if anim.done:
         ctx.anims.remove(anim)
@@ -120,42 +143,11 @@ class ShopContext(Context):
     CARD_LIFT = 4
     CARD_WIDTH = assets.sprites["card_back"].get_width()
     CARD_HEIGHT = assets.sprites["card_back"].get_height()
-    cards_x = surface.get_width() - (CARD_WIDTH + CARD_SPACING) * len(ctx.options) + CARD_SPACING - CARD_MARGIN
-    cards_y = 96
-    card_x = cards_x
-    for i, option in enumerate(ctx.options):
-      card_y = cards_y
-      card_color = RED if option == "exit" else BLUE
-      card_image = assets.sprites["card_" + option]
-      card_anim = next((a for a in ctx.anims if a.target == i), None)
-      card_width = card_image.get_width()
-      t = None
-      if card_anim:
-        t = card_anim.pos
-        if type(card_anim) is SelectAnim:
-          t = ease_out(t)
-          card_y -= CARD_LIFT * t
-        elif type(card_anim) is DeselectAnim:
-          t = 1 - t
-          card_y -= CARD_LIFT * t
-        elif type(card_anim) is TwirlAnim:
-          w = cos(t * 2 * pi)
-          if w < 0:
-            card_image = assets.sprites["card_back"]
-          card_width *= abs(w)
-      if card_image:
-        scaled_image = replace_color(card_image, old_color=BLACK, new_color=card_color)
-        if i != ctx.option_index:
-          scaled_image = darken(scaled_image)
-        elif card_y == cards_y:
-          card_y -= CARD_LIFT
-        if card_width != CARD_WIDTH:
-          scaled_image = scale(scaled_image, (int(card_width), card_image.get_height()))
-        surface.blit(scaled_image, (
-          card_x + card_image.get_width() // 2 - card_width // 2,
-          card_y
-        ))
-      card_x += CARD_WIDTH + CARD_SPACING
+    cards_x = 40
+    cards_y = 120
+    for i, card in enumerate(ctx.cards):
+      card_sprite = card.render()
+      card_sprite.draw(surface, (cards_x + (CARD_WIDTH + 2) * i, cards_y))
 
     title_image = assets.ttf["english_large"].render("General Store")
     title_x = surface.get_width() - title_image.get_width() - CARD_MARGIN
@@ -166,10 +158,10 @@ class ShopContext(Context):
     hand_image = assets.sprites["hand"]
     hand_image = rotate(hand_image, -90)
     hand_x = cards_x
-    hand_x += CARD_WIDTH // 2 - hand_image.get_width() // 2
+    hand_x -= hand_image.get_width() // 2
     hand_x += (CARD_WIDTH + CARD_SPACING) * ctx.hand_index
     hand_y = cards_y
-    hand_y += CARD_HEIGHT - 12
+    hand_y += CARD_HEIGHT // 2
     hand_y += sin(hand_anim.time % 30 / 30 * 2 * pi) * 2
     surface.blit(hand_image, (hand_x, hand_y))
 
@@ -186,3 +178,6 @@ class ShopContext(Context):
     #   control_y = controls_y - control_image.get_height() // 2
     #   surface.blit(control_image, (control_x, control_y))
     #   controls_x = control_x - 8
+
+    if ctx.child:
+      ctx.child.draw(surface)

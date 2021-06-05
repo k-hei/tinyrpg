@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 from pygame import Surface
-from pygame.transform import flip
+from pygame.transform import flip, scale
 
 @dataclass
 class Sprite:
   image: Surface = None
   pos: tuple[int, int] = (0, 0)
+  size: tuple[int, int] = None
   flip: tuple[bool, bool] = (False, False)
   origin: tuple[str, str] = ("top", "left")
   offset: int = 0
@@ -15,25 +16,32 @@ class Sprite:
     return Sprite(
       image=sprite.image,
       pos=sprite.pos,
+      size=sprite.size,
       flip=sprite.flip,
       offset=sprite.offset,
       layer=sprite.layer
     )
 
-  def draw(sprite, surface):
+  def draw(sprite, surface, offset=(0, 0)):
     image = sprite.image
     flip_x, flip_y = sprite.flip
     if flip_x or flip_y:
       image = flip(image, flip_x, flip_y)
+    if sprite.size:
+      width, height = sprite.size
+      scaled_image = scale(image, (int(width), int(height)))
+    else:
+      scaled_image = image
     x, y = sprite.pos
+    offset_x, offset_y = offset
     origin_x, origin_y = sprite.origin
     if origin_x == "center":
-      x -= image.get_width() // 2
+      x -= scaled_image.get_width() // 2
     if origin_y == "center":
-      y -= image.get_height() // 2
+      y -= scaled_image.get_height() // 2
     if origin_y == "bottom":
-      y -= image.get_height()
-    surface.blit(image, (x, y))
+      y -= scaled_image.get_height()
+    surface.blit(scaled_image, (x + offset_x, y + offset_y))
 
   def depth(sprite, layers):
     _, y = sprite.pos

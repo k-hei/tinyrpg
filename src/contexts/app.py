@@ -10,12 +10,12 @@ from config import (
 )
 
 class App(Context):
-  def __init__(app, title="Untitled", context=None):
+  def __init__(app, size=WINDOW_SIZE, title="Untitled", context=None):
     super().__init__()
     app.title = title
     app.child = context
     app.child_init = context
-    app.size = WINDOW_SIZE
+    app.size = size
     app.size_scaled = (0, 0)
     app.scale = 0
     app.fps = FPS
