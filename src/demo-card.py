@@ -7,20 +7,27 @@ from assets import load as use_assets
 from palette import RED
 from sprite import Sprite
 from filters import darken
+from anims.tween import TweenAnim
+from easing.expo import ease_out
 import keyboard
 
+CARD_LIFT = 4
 CARD_SPACING = 2
+
+class SelectAnim(TweenAnim): pass
+class DeselectAnim(TweenAnim): pass
 
 class CardContext(Context):
   def __init__(ctx):
     super().__init__()
-    ctx.surface = None
     ctx.card_index = 0
     ctx.cards = [
       Card("buy"),
       Card("sell"),
       Card("exit", color=RED)
     ]
+    ctx.anims = []
+    ctx.surface = None
 
   def card(ctx):
     return ctx.cards[ctx.card_index]
@@ -37,25 +44,54 @@ class CardContext(Context):
       ctx.card().spin()
 
   def handle_move(ctx, delta):
-    ctx.card_index += delta
-    if ctx.card_index < 0:
-      ctx.card_index = 0
-    if ctx.card_index > len(ctx.cards) - 1:
-      ctx.card_index = len(ctx.cards) - 1
+    old_index = ctx.card_index
+    new_index = old_index + delta
+    min_index = 0
+    max_index = len(ctx.cards) - 1
+    if new_index < min_index:
+      new_index = min_index
+    if new_index > max_index:
+      new_index = max_index
+    if new_index == old_index:
+      return
+    ctx.anims.append(DeselectAnim(duration=6, target=ctx.card()))
+    ctx.card_index = new_index
+    ctx.anims.append(SelectAnim(duration=9, target=ctx.card()))
+
+  def update(ctx):
+    for anim in ctx.anims:
+      if anim.done:
+        ctx.anims.remove(anim)
+      else:
+        anim.update()
 
   def render(ctx):
     sprites = use_assets().sprites
     card_template = sprites["card_back"]
     ctx.surface = Surface((
       len(ctx.cards) * (card_template.get_width() + CARD_SPACING) - CARD_SPACING,
-      card_template.get_height()
+      card_template.get_height() + CARD_LIFT
     ))
     card_x = 0
     for card in ctx.cards:
       card_sprite = card.render()
+      card_anim = next((a for a in ctx.anims if a.target is card), None)
+      card_y = 0
+      if card_anim:
+        t = card_anim.pos
+        if type(card_anim) is SelectAnim:
+          t = ease_out(t)
+        elif type(card_anim) is DeselectAnim:
+          t = 1 - t
+        card_y = CARD_LIFT * t
       if card is not ctx.card():
         card_sprite.image = darken(card_sprite.image)
-      card_sprite.draw(ctx.surface, (card_x, 0), origin=("left", "top"))
+      elif card_anim is None:
+        card_y = CARD_LIFT
+      card_sprite.draw(ctx.surface,
+        offset=(card_x, ctx.surface.get_height() - card_y),
+        origin=("left", "bottom")
+      )
       card_x += card_template.get_width() + CARD_SPACING
     return ctx.surface
 
@@ -68,6 +104,6 @@ class CardContext(Context):
 
 App(
   title="card demo",
-  size=(100, 48),
+  size=(100, 52),
   context=CardContext()
 ).init()

@@ -50,6 +50,8 @@ class Sprite:
         x += image.get_width() // 2
       if origin_y == "top":
         y += image.get_height() // 2
+      elif origin_y == "bottom":
+        y -= image.get_height() // 2
 
     offset_x, offset_y = offset
     surface.blit(scaled_image, (x + offset_x, y + offset_y))
