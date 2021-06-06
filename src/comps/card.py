@@ -11,8 +11,6 @@ from filters import replace_color, darken
 class SpinAnim(TweenAnim): pass
 class FlipAnim(TweenAnim): pass
 
-LIFT_HEIGHT = 4
-
 class Card:
   def __init__(card, name, color=BLUE):
     card.name = name
@@ -20,8 +18,8 @@ class Card:
     card.anims = []
     card.surface = None
 
-  def spin(card):
-    card.anims.append(SpinAnim(duration=20))
+  def spin(card, on_end=None):
+    card.anims.append(SpinAnim(duration=20, on_end=on_end))
 
   def update(card):
     for anim in card.anims:

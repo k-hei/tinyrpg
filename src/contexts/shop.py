@@ -3,6 +3,7 @@ import pygame
 from pygame import Rect
 from pygame.transform import rotate, scale
 from contexts import Context
+from contexts.cardgroup import CardContext
 from contexts.sell import SellContext
 from cores.knight import KnightCore
 from comps.control import Control
@@ -26,9 +27,6 @@ class ShopContext(Context):
   def __init__(ctx, items):
     super().__init__()
     ctx.items = items
-    ctx.cards = [Card("buy"), Card("sell"), Card("exit", color=RED)]
-    ctx.card_index = 0
-    ctx.hand_index = 0
     ctx.card_pos = {}
     ctx.hero = KnightCore()
     ctx.hud = Hud()
@@ -36,68 +34,22 @@ class ShopContext(Context):
     ctx.controls = [
       Control(key=("X"), value="Menu")
     ]
+    ctx.open(CardContext(on_choose=ctx.handle_choose))
 
-  def handle_keydown(ctx, key):
-    if ctx.child:
-      return ctx.child.handle_keydown(key)
+  def handle_choose(ctx, card):
+    if card.name == "buy": return
+    if card.name == "sell": ctx.handle_sell(card)
+    if card.name == "exit": return
 
-    if next((a for a in ctx.anims if a.blocking), None):
-      return False
-
-    if keyboard.get_pressed(key) > 1:
-      return
-
-    if key in (pygame.K_LEFT, pygame.K_a):
-      return ctx.handle_move(-1)
-    if key in (pygame.K_RIGHT, pygame.K_d):
-      return ctx.handle_move(1)
-    if key in (pygame.K_SPACE, pygame.K_RETURN):
-      return ctx.handle_select()
-
-  def handle_move(ctx, delta):
-    old_index = ctx.card_index
-    new_index = old_index + delta
-    min_index = 0
-    max_index = len(ctx.cards) - 1
-    if new_index < min_index:
-      new_index = min_index
-    if new_index > max_index:
-      new_index = max_index
-    if new_index == old_index:
-      return False
-    ctx.card_index = new_index
-    ctx.anims.append(DeselectAnim(
-      duration=8,
-      target=old_index
-    ))
-    ctx.anims.append(SelectAnim(
-      duration=12,
-      target=new_index
-    ))
-    return True
-
-  def handle_select(ctx):
-    option = ctx.cards[ctx.card_index]
-    ctx.anims.append(TwirlAnim(
-      duration=20,
-      target=ctx.card_index,
-      on_end=lambda: (
-        option == "buy" and True
-        or option == "sell" and ctx.handle_sell()
-        or option == "exit" and True
-      )
-    ))
-
-  def handle_sell(ctx):
-    option = ctx.cards[ctx.card_index]
+  def handle_sell(ctx, card):
     ctx.open(SellContext(
       items=ctx.items,
-      card_pos=ctx.card_pos[option]
+      card=card
     ))
 
   def update(ctx):
     super().update()
-    ctx.hand_index += (ctx.card_index - ctx.hand_index) / 4
+    # ctx.hand_index += (ctx.card_index - ctx.hand_index) / 4
     for anim in ctx.anims:
       if anim.done:
         ctx.anims.remove(anim)
@@ -110,16 +62,6 @@ class ShopContext(Context):
     pygame.draw.rect(surface, BLACK, Rect(0, 112, 256, 112))
 
     MARGIN = 2
-
-    # tagbg_image = assets.sprites["shop_tag"]
-    # tagbg_x = surface.get_width() - tagbg_image.get_width()
-    # tagbg_y = 0
-    # surface.blit(tagbg_image, (tagbg_x, tagbg_y))
-
-    # tagtext_image = assets.sprites["general_store"]
-    # tagtext_x = surface.get_width() - tagtext_image.get_width() - 2
-    # tagtext_y = tagbg_y + tagbg_image.get_height() // 2 - tagtext_image.get_height() // 2
-    # surface.blit(tagtext_image, (tagtext_x, tagtext_y))
 
     hud_image = ctx.hud.update(ctx.hero)
     hud_x = MARGIN
@@ -138,37 +80,34 @@ class ShopContext(Context):
     goldtext_y = gold_y + gold_image.get_height() // 2 - goldtext_image.get_height() // 2
     surface.blit(goldtext_image, (goldtext_x, goldtext_y))
 
-    CARD_MARGIN = 8
-    CARD_SPACING = 2
-    CARD_LIFT = 4
-    CARD_WIDTH = assets.sprites["card_back"].get_width()
-    CARD_HEIGHT = assets.sprites["card_back"].get_height()
-    cards_x = 40
-    cards_y = 120
-    for i, card in enumerate(ctx.cards):
-      card_sprite = card.render()
-      card_sprite.draw(surface, (cards_x + (CARD_WIDTH + 2) * i, cards_y))
-
     title_image = assets.ttf["english_large"].render("General Store")
-    title_x = surface.get_width() - title_image.get_width() - CARD_MARGIN
+    title_x = surface.get_width() - title_image.get_width() - 8
     title_y = surface.get_height() - title_image.get_height() - 7
     surface.blit(title_image, (title_x, title_y))
 
-    hand_anim = next((a for a in ctx.anims if type(a) is CursorAnim), None)
-    hand_image = assets.sprites["hand"]
-    hand_image = rotate(hand_image, -90)
-    hand_x = cards_x
-    hand_x -= hand_image.get_width() // 2
-    hand_x += (CARD_WIDTH + CARD_SPACING) * ctx.hand_index
-    hand_y = cards_y
-    hand_y += CARD_HEIGHT // 2
-    hand_y += sin(hand_anim.time % 30 / 30 * 2 * pi) * 2
-    surface.blit(hand_image, (hand_x, hand_y))
+    subtitle_image = assets.ttf["roman"].render("An explorer's paradise")
+    subtitle_x = title_x + title_image.get_width() - subtitle_image.get_width()
+    subtitle_y = title_y - title_image.get_height() + 2
+    surface.blit(subtitle_image, (subtitle_x, subtitle_y))
 
-    # subtitle_text = assets.ttf["roman"].render("Exchange money for goods and services")
-    # subtitle_x = title_x + title_text.get_width() - subtitle_text.get_width()
-    # subtitle_y = title_y - title_text.get_height() + 4
-    # surface.blit(subtitle_text, (subtitle_x, subtitle_y))
+    cards_x = 24
+    cards_y = 96
+
+    if type(ctx.child) is CardContext:
+      surface.blit(ctx.child.render(), (cards_x, cards_y))
+    elif ctx.child:
+      ctx.child.draw(surface)
+
+    # hand_anim = next((a for a in ctx.anims if type(a) is CursorAnim), None)
+    # hand_image = assets.sprites["hand"]
+    # hand_image = rotate(hand_image, -90)
+    # hand_x = cards_x
+    # hand_x -= hand_image.get_width() // 2
+    # hand_x += (32 + 2) * ctx.hand_index
+    # hand_y = cards_y
+    # hand_y += 48 // 2
+    # hand_y += sin(hand_anim.time % 30 / 30 * 2 * pi) * 2
+    # surface.blit(hand_image, (hand_x, hand_y))
 
     # controls_x = surface.get_width() - 8
     # controls_y = surface.get_height() - 12
@@ -178,6 +117,3 @@ class ShopContext(Context):
     #   control_y = controls_y - control_image.get_height() // 2
     #   surface.blit(control_image, (control_x, control_y))
     #   controls_x = control_x - 8
-
-    if ctx.child:
-      ctx.child.draw(surface)

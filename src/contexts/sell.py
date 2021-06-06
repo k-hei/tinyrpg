@@ -252,10 +252,10 @@ class SellContext(Context):
   class ItemListAnim(TweenAnim): blocking = True
   class CardAnim(TweenAnim): blocking = True
 
-  def __init__(ctx, items, card_pos=None):
+  def __init__(ctx, items, card=None):
     super().__init__()
     ctx.items = items
-    ctx.card_pos = card_pos
+    ctx.card = card
     ctx.cursor = 0
     ctx.cursor_drawn = 0
     ctx.scroll = 0
@@ -276,10 +276,10 @@ class SellContext(Context):
   def enter(ctx):
     ctx.anims.append(ctx.DescEnterAnim(duration=25, delay=5))
     ctx.anims.append(ctx.ItemListAnim(duration=25, delay=5))
-    if ctx.card_pos:
+    if ctx.card:
       ctx.anims.append(ctx.CardAnim(
         duration=30,
-        target=ctx.card_pos
+        target=ctx.card
       ))
 
   def handle_keydown(ctx, key):
@@ -538,7 +538,7 @@ class SellContext(Context):
     if card_anim:
       t = card_anim.pos
       t = ease_out(t)
-      start_x, start_y = card_anim.target
+      start_x, start_y = (0, 0)
       target_x, target_y = (card_x, card_y)
       card_x = lerp(start_x, target_x, t)
       card_y = lerp(start_y, target_y, t)
