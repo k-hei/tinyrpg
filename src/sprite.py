@@ -23,6 +23,11 @@ class Sprite:
       layer=sprite.layer
     )
 
+  def move(sprite, offset):
+    x, y = sprite.pos
+    offset_x, offset_y = offset
+    sprite.pos = (x + offset_x, y + offset_y)
+
   def draw(sprite, surface, offset=(0, 0), origin=None):
     image = sprite.image
     flip_x, flip_y = sprite.flip

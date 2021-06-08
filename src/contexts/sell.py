@@ -274,12 +274,12 @@ class SellContext(Context):
     ctx.reset_cursor()
 
   def enter(ctx):
-    ctx.anims.append(ctx.DescEnterAnim(duration=25, delay=5))
-    ctx.anims.append(ctx.ItemListAnim(duration=25, delay=5))
+    ctx.anims.append(ctx.DescEnterAnim(duration=25, delay=25))
+    ctx.anims.append(ctx.ItemListAnim(duration=25, delay=25))
     if ctx.card:
       ctx.anims.append(ctx.CardAnim(
         duration=30,
-        target=ctx.card
+        target=ctx.card.sprite.pos
       ))
 
   def handle_keydown(ctx, key):
@@ -532,17 +532,20 @@ class SellContext(Context):
 
     card_image = assets.sprites["card_sell"]
     card_image = replace_color(card_image, BLACK, BLUE)
-    card_x = menu_x + items_image.get_width() - card_image.get_width()
-    card_y = menu_y - card_image.get_height() + tabs_image.get_height() - 1
+    card_x = menu_x + items_image.get_width() - card_image.get_width() // 2
+    card_y = menu_y + tabs_image.get_height() - card_image.get_height() // 2 - 1
     card_anim = next((a for a in ctx.anims if type(a) is ctx.CardAnim), None)
     if card_anim:
       t = card_anim.pos
       t = ease_out(t)
-      start_x, start_y = (0, 0)
+      start_x, start_y = card_anim.target
       target_x, target_y = (card_x, card_y)
       card_x = lerp(start_x, target_x, t)
       card_y = lerp(start_y, target_y, t)
-    surface.blit(card_image, (card_x, card_y))
+    surface.blit(card_image, (
+      card_x - card_image.get_width() // 2,
+      card_y - card_image.get_height() // 2
+    ))
 
     if ctx.itembox.items and ctx.cursor_drawn != None and not next((a for a in ctx.anims if a.blocking), None):
       cursor_anim = next((a for a in ctx.anims if type(a) is ctx.CursorAnim), None)

@@ -17,6 +17,7 @@ class Card:
     card.color = color
     card.anims = []
     card.surface = None
+    card.sprite = None
 
   def spin(card, on_end=None):
     card.anims.append(SpinAnim(duration=20, on_end=on_end))
@@ -48,9 +49,10 @@ class Card:
           card_image = sprites["card_back"]
         card_width *= abs(w)
     card_image = replace_color(card_image, BLACK, card.color)
-    return Sprite(
+    card.sprite = Sprite(
       image=card_image,
       pos=(0, card_y),
       size=(card_width, card_height),
       origin=("center", "center")
     )
+    return card.sprite

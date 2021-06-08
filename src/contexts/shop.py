@@ -91,10 +91,13 @@ class ShopContext(Context):
     surface.blit(subtitle_image, (subtitle_x, subtitle_y))
 
     cards_x = 24
-    cards_y = 96
+    cards_y = 112
 
     if type(ctx.child) is CardContext:
-      surface.blit(ctx.child.render(), (cards_x, cards_y))
+      sprites = ctx.child.view()
+      for sprite in sprites:
+        sprite.move((cards_x, cards_y))
+        sprite.draw(surface)
     elif ctx.child:
       ctx.child.draw(surface)
 

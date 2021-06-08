@@ -72,9 +72,10 @@ class CardContext(Context):
       else:
         anim.update()
 
-  def render(ctx):
-    sprites = use_assets().sprites
-    card_template = sprites["card_back"]
+  def view(ctx):
+    sprites = []
+    assets = use_assets().sprites
+    card_template = assets["card_back"]
     if ctx.surface:
       ctx.surface.fill(0)
     else:
@@ -82,7 +83,7 @@ class CardContext(Context):
         len(ctx.cards) * (card_template.get_width() + CARD_SPACING) - CARD_SPACING,
         card_template.get_height() + CARD_LIFT
       ), SRCALPHA)
-    card_x = 0
+    card_x = card_template.get_width() // 2
     for card in ctx.cards:
       card_sprite = card.render()
       card_anim = next((a for a in ctx.anims if a.target is card), None)
@@ -98,12 +99,10 @@ class CardContext(Context):
         card_sprite.image = darken(card_sprite.image)
       elif card_anim is None:
         card_y = CARD_LIFT
-      card_sprite.draw(ctx.surface,
-        offset=(card_x, ctx.surface.get_height() - card_y),
-        origin=("left", "bottom")
-      )
+      card_sprite.move((card_x, -card_y))
+      sprites.append(card_sprite)
       card_x += card_template.get_width() + CARD_SPACING
-    return ctx.surface
+    return sprites
 
   def draw(ctx, surface):
     Sprite(
