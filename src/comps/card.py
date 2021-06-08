@@ -19,8 +19,11 @@ class Card:
     card.surface = None
     card.sprite = None
 
-  def spin(card, on_end=None):
-    card.anims.append(SpinAnim(duration=20, on_end=on_end))
+  def spin(card, duration=20, on_end=None):
+    card.anims.append(SpinAnim(
+      duration=duration,
+      on_end=on_end
+    ))
 
   def update(card):
     for anim in card.anims:

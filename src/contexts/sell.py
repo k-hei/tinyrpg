@@ -277,6 +277,7 @@ class SellContext(Context):
     ctx.anims.append(ctx.DescEnterAnim(duration=25, delay=25))
     ctx.anims.append(ctx.ItemListAnim(duration=25, delay=25))
     if ctx.card:
+      ctx.card.spin(duration=30)
       ctx.anims.append(ctx.CardAnim(
         duration=30,
         target=ctx.card.sprite.pos
@@ -530,8 +531,7 @@ class SellContext(Context):
       descbox_x = lerp(-descbox_image.get_width(), descbox_x, t)
     surface.blit(descbox_image, (descbox_x, descbox_y))
 
-    card_image = assets.sprites["card_sell"]
-    card_image = replace_color(card_image, BLACK, BLUE)
+    card_image = assets.sprites["card_back"]
     card_x = menu_x + items_image.get_width() - card_image.get_width() // 2
     card_y = menu_y + tabs_image.get_height() - card_image.get_height() // 2 - 1
     card_anim = next((a for a in ctx.anims if type(a) is ctx.CardAnim), None)
@@ -542,10 +542,9 @@ class SellContext(Context):
       target_x, target_y = (card_x, card_y)
       card_x = lerp(start_x, target_x, t)
       card_y = lerp(start_y, target_y, t)
-    surface.blit(card_image, (
-      card_x - card_image.get_width() // 2,
-      card_y - card_image.get_height() // 2
-    ))
+    card_sprite = ctx.card.render()
+    card_sprite.pos = (card_x, card_y)
+    card_sprite.draw(surface)
 
     if ctx.itembox.items and ctx.cursor_drawn != None and not next((a for a in ctx.anims if a.blocking), None):
       cursor_anim = next((a for a in ctx.anims if type(a) is ctx.CursorAnim), None)
