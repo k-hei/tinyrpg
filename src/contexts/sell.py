@@ -4,6 +4,8 @@ from pygame import Surface, Rect, SRCALPHA
 from pygame.transform import flip
 from contexts import Context
 from comps.control import Control
+from comps.card import Card
+from comps.textbox import Textbox
 from palette import BLACK, WHITE, GRAY, GRAY_DARK, BLUE, GOLD, CYAN
 from filters import replace_color
 from assets import load as use_assets
@@ -148,7 +150,7 @@ class BagTabs:
     return tablist.surface
 
 class BagList:
-  MAX_VISIBLE_ITEMS = 5
+  MAX_VISIBLE_ITEMS = 4
 
   def __init__(bag, size, items=None):
     bag.size = size
@@ -255,7 +257,7 @@ class SellContext(Context):
   def __init__(ctx, items, card=None):
     super().__init__()
     ctx.items = items
-    ctx.card = card
+    ctx.card = card or Card("sell")
     ctx.cursor = 0
     ctx.cursor_drawn = 0
     ctx.scroll = 0
@@ -266,7 +268,8 @@ class SellContext(Context):
     ctx.hero = KnightCore()
     ctx.hud = Hud()
     ctx.tablist = BagTabs(Inventory.tabs)
-    ctx.itembox = BagList((148, 96), items=filter_items(items, ctx.tablist.selection()))
+    ctx.itembox = BagList((148, 76), items=filter_items(items, ctx.tablist.selection()))
+    ctx.textbox = Textbox((80, 72))
     ctx.controls = [
       Control(key=("X"), value="Multi"),
       Control(key=("L", "R"), value="Tab")
@@ -278,10 +281,12 @@ class SellContext(Context):
     ctx.anims.append(ctx.ItemListAnim(duration=25, delay=25))
     if ctx.card:
       ctx.card.spin(duration=30)
-      ctx.anims.append(ctx.CardAnim(
-        duration=30,
-        target=ctx.card.sprite.pos
-      ))
+      if ctx.card.sprite:
+        ctx.anims.append(ctx.CardAnim(
+          duration=30,
+          target=ctx.card.sprite.pos
+        ))
+    ctx.textbox.print("MIRA: What do we have here today?")
 
   def handle_keydown(ctx, key):
     if next((a for a in ctx.anims if a.blocking), None) or ctx.tablist.anims:
@@ -409,7 +414,7 @@ class SellContext(Context):
   def draw(ctx, surface):
     assets = use_assets()
     surface.fill(WHITE)
-    pygame.draw.rect(surface, BLACK, Rect(0, 112, 256, 112))
+    pygame.draw.rect(surface, BLACK, Rect(0, 116, 256, 108))
 
     MARGIN = 2
 
@@ -480,7 +485,7 @@ class SellContext(Context):
     surface.blit(items_image, (menu_x, menu_ytrue + tabs_image.get_height()))
 
     descbox_width = surface.get_width() - items_image.get_width() - MARGIN * 3
-    descbox_height = surface.get_height() - menu_y - tabs_image.get_height() - hud_image.get_height() - MARGIN * 2
+    descbox_height = surface.get_height() - menu_y - hud_image.get_height() - MARGIN * 2
     descbox_image = Box.render((descbox_width, descbox_height))
     item = ctx.itembox.items and ctx.itembox.items[ctx.cursor]
     desc_anim = next((a for a in ctx.anims if type(a) is ctx.DescAnim), None)
@@ -530,6 +535,10 @@ class SellContext(Context):
       t = ease_out(descbox_anim.pos)
       descbox_x = lerp(-descbox_image.get_width(), descbox_x, t)
     surface.blit(descbox_image, (descbox_x, descbox_y))
+
+    bubble_image = assets.sprites["bubble_shop"]
+    surface.blit(bubble_image, (0, 0))
+    surface.blit(ctx.textbox.render(), (15, 24))
 
     card_image = assets.sprites["card_back"]
     card_x = menu_x + items_image.get_width() - card_image.get_width() // 2

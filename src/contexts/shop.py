@@ -27,7 +27,6 @@ class ShopContext(Context):
   def __init__(ctx, items):
     super().__init__()
     ctx.items = items
-    ctx.card_pos = {}
     ctx.hero = KnightCore()
     ctx.hud = Hud()
     ctx.anims = [CursorAnim()]
