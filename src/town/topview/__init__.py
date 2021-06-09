@@ -1,87 +1,39 @@
 import pygame
 from contexts import Context
 from contexts.dialogue import DialogueContext
-from contexts.prompt import PromptContext, Choice
 from assets import load as use_assets
 from town.topview.stage import Stage, Tile
 from town.topview.actor import Actor
-from cores.knight import KnightCore
-from cores.mage import MageCore
-from cores.rogue import RogueCore
-from palette import GREEN, ORANGE
 from sprite import Sprite
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
 import keyboard
 
-class BuildingContext(Context):
-  def __init__(ctx, hero=None):
+def insert_value(mapping, key, value):
+  keys = mapping.keys()
+  values = [value if v == key else v for k, v in mapping.items()]
+  return dict(zip(keys, values))
+
+class TopViewContext(Context):
+  def __init__(ctx, area, hero):
     super().__init__()
-    ctx.hero = Actor(core=hero or MageCore(), cell=(2, 5), facing=(0, -1))
-    ctx.stage = Stage.parse([
-      "###+####",
-      "#.#.2..#",
-      "#.####.#",
-      "#.''''.#",
-      "#......#",
-      "#.0...1#",
-      "##+#####",
-    ], {
-      "0": ctx.hero,
-      "1": Actor(
-        core=RogueCore(),
-        cell=(6, 5),
-        facing=(1, 0),
-        color=GREEN,
-        moving=True,
-        message=lambda talkee, ctx: [
-          (talkee.get_name(), "You know what I can't get enough of?"),
-          (talkee.get_name(), "BBWs."),
-          (talkee.get_name(), "Big beautiful wings.....")
-        ]
-      ),
-      "2": Actor(
-        core=KnightCore(name="Arthur"),
-        cell=(4, 1),
-        facing=(0, 1),
-        color=ORANGE,
-        moving=True,
-        move_period=45,
-        is_shopkeep=True,
-        message=lambda talkee, ctx: (
-          ctx.hero.get_rect().centery > talkee.get_rect().centery and [
-            shop := PromptContext(
-              message="{}: How can I help you?".format(talkee.get_name().upper()),
-              choices=[
-                Choice("Buy items"),
-                Choice("Sell items"),
-                Choice("Nothing", closing=True)
-              ],
-              required=True,
-              on_close=lambda choice: (
-                choice and choice.text == "Buy items" and [
-                  "This feature isn't implemented yet...",
-                  shop
-                ] or choice and choice.text == "Sell items" and [
-                  "This feature isn't implemented yet...",
-                  shop
-                ]
-              )
-            ),
-          ] or [
-            (talkee.get_name(), "Aha nooo, we can'tttt"),
-            (talkee.get_name(), "Not during business hours...")
-          ]
-        )
+    ctx.area = area
+    ctx.hero = Actor(core=hero, cell=(2, 5), facing=(0, -1))
+    ctx.stage = Stage.parse(
+      layout=area.layout,
+      elems=insert_value(
+        mapping=area.actors,
+        key="hero",
+        value=ctx.hero
       )
-    })
+    )
     ctx.elem = None
+    ctx.link = None
     ctx.anims = []
-    ctx.link_direction = None
 
   def handle_keydown(ctx, key):
     if ctx.child:
       return ctx.child.handle_keydown(key)
-    if ctx.anims or ctx.link_direction:
+    if ctx.anims or ctx.link:
       return None
     if key in keyboard.ARROW_DELTAS:
       delta = keyboard.ARROW_DELTAS[key]
@@ -192,13 +144,13 @@ class BuildingContext(Context):
     return True
 
   def handle_areachange(ctx, delta):
-    ctx.link_direction = delta
+    ctx.link = delta
     ctx.get_root().dissolve(on_clear=ctx.close)
 
   def update(ctx):
     super().update()
-    if ctx.link_direction:
-      ctx.hero.move(ctx.link_direction)
+    if ctx.link:
+      ctx.hero.move(ctx.link)
     for elem in ctx.stage.elems:
       elem.update()
     for anim in ctx.anims:
@@ -209,7 +161,7 @@ class BuildingContext(Context):
   def draw(ctx, surface):
     assets = use_assets()
     hero = ctx.hero
-    surface.blit(assets.sprites["shop"], (0, 0))
+    surface.blit(assets.sprites[ctx.area.bg_id], (0, 0))
     sprites = []
     def zsort(elem):
       _, y = elem.pos

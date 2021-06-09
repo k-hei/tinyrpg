@@ -9,7 +9,7 @@ from contexts import Context
 from contexts.inventory import InventoryContext
 from contexts.dialogue import DialogueContext
 from contexts.custom import CustomContext
-from town.topview import BuildingContext
+from town.topview import TopViewContext
 
 from transits.dissolve import DissolveOut
 
@@ -55,11 +55,11 @@ class TownContext(Context):
     town.hero = None
     town.ally = None
     town.graph = TownGraph(
-      nodes=[OutskirtsArea, CentralArea, ClearingArea],
+      nodes=[OutskirtsArea, CentralArea, ClearingArea, ShopArea],
       edges=[
         (OutskirtsArea.links["left"], CentralArea.links["right"]),
         (CentralArea.links["alley"], ClearingArea.links["alley"]),
-        (CentralArea.links["door_heart"], BuildingContext),
+        (CentralArea.links["door_heart"], ShopArea.links["entrance"]),
       ]
     )
     town.area = OutskirtsArea()

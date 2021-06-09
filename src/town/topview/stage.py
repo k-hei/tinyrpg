@@ -17,14 +17,19 @@ class Tile:
   def is_door(tile):
     return tile and tile.door
 
+@dataclass
+class Link:
+  cell: tuple[int, int]
+  direction: tuple[int, int]
+
 class Stage:
   FLOOR = Tile(solid=False)
   WALL = Tile(solid=True)
   HALF_WALL = Tile(halfsolid=True)
 
-  def parse(data, elems):
+  def parse(layout, elems):
     stage = Stage()
-    for y, row in enumerate(data):
+    for y, row in enumerate(layout):
       stage.matrix.append([])
       for x, char in enumerate(row):
         if char in elems:
