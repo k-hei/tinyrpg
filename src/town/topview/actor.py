@@ -1,6 +1,6 @@
 from math import sqrt
 from pygame import Rect
-from building.element import Element
+from town.topview.element import Element
 from anims.walk import WalkAnim
 from config import TILE_SIZE
 from filters import outline

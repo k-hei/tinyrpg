@@ -9,7 +9,7 @@ from contexts import Context
 from contexts.inventory import InventoryContext
 from contexts.dialogue import DialogueContext
 from contexts.custom import CustomContext
-from building.context import BuildingContext
+from town.topview import BuildingContext
 
 from transits.dissolve import DissolveOut
 

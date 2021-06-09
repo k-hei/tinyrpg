@@ -1,4 +1,4 @@
-from building.element import Element
+from town.topview.element import Element
 from sprite import Sprite
 from assets import load as use_assets
 from anims.pause import PauseAnim

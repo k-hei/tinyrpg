@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from config import TILE_SIZE
-from building.door import Door
+from town.topview.door import Door
 
 @dataclass
 class Tile:

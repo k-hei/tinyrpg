@@ -3,8 +3,8 @@ from contexts import Context
 from contexts.dialogue import DialogueContext
 from contexts.prompt import PromptContext, Choice
 from assets import load as use_assets
-from building.stage import Stage, Tile
-from building.actor import Actor
+from town.topview.stage import Stage, Tile
+from town.topview.actor import Actor
 from cores.knight import KnightCore
 from cores.mage import MageCore
 from cores.rogue import RogueCore
@@ -14,9 +14,9 @@ from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
 import keyboard
 
 class BuildingContext(Context):
-  def __init__(ctx):
+  def __init__(ctx, hero=None):
     super().__init__()
-    ctx.hero = Actor(core=MageCore(), cell=(2, 5), facing=(0, -1))
+    ctx.hero = Actor(core=hero or MageCore(), cell=(2, 5), facing=(0, -1))
     ctx.stage = Stage.parse([
       "###+####",
       "#.#.2..#",

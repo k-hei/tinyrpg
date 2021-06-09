@@ -1,5 +1,5 @@
 from contexts.app import App
-from building.context import BuildingContext
+from town.topview import BuildingContext
 
 App(title="building interior demo",
   context=BuildingContext()
