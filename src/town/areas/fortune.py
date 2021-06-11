@@ -1,42 +1,28 @@
 from town.topview.stage import Stage, Link
 from town.topview.actor import Actor
 from contexts.prompt import PromptContext, Choice
-from cores.knight import KnightCore
+from cores.mage import MageCore
 from cores.rogue import RogueCore
 from palette import ORANGE, GREEN
 
-class ShopArea(Stage):
-  bg_id = "shop"
+class FortuneArea(Stage):
+  bg_id = "fortune"
   links = {
-    "entrance": Link(cell=(4.5, 6), direction=(0, 1)),
-    "backdoor": Link(cell=(3, 0), direction=(0, -1))
+    "entrance": Link(cell=(2, 6), direction=(0, 1))
   }
   layout = [
-    "###+####",
-    "#.#.2..#",
-    "#.####.#",
-    "#.''''.#",
+    "########",
+    "########",
+    "#...1..#",
+    "#..##..#",
     "#......#",
-    "#.0...1#",
-    "##+#####",
+    "#...0..#",
+    "########",
   ]
   elems = {
     "0": "hero",
     "1": Actor(
-      core=RogueCore(),
-      cell=(6, 5),
-      facing=(1, 0),
-      color=GREEN,
-      moving=True,
-      message=lambda talkee, ctx: [
-        (talkee.get_name(), "You know what I can't get enough of?"),
-        (talkee.get_name(), "BBWs."),
-        (talkee.get_name(), "Big beautiful wings.....")
-      ]
-    ),
-    "2": Actor(
-      core=KnightCore(name="Arthur"),
-      cell=(4, 1),
+      core=MageCore(name="Mira"),
       facing=(0, 1),
       color=ORANGE,
       moving=True,

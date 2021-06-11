@@ -21,7 +21,7 @@ class TopViewContext(Context):
     ctx.stage = Stage.parse(
       layout=area.layout,
       elems=insert_value(
-        mapping=area.actors,
+        mapping=area.elems,
         key="hero",
         value=ctx.hero
       )
