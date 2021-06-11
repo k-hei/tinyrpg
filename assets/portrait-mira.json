@@ -1,0 +1,9 @@
+{
+  "mira":               [  0,   0, 160, 128],
+  "mira_eyes":          [  0, 128,  34,  25],
+  "mira_eyes_closing":  [ 34, 128,  34,  25],
+  "mira_eyes_closed":   [ 68, 128,  34,  25],
+  "mira_mouth":         [102, 128,  18,  11],
+  "mira_mouth_opening": [120, 128,  18,  11],
+  "mira_mouth_open":    [138, 128,  18,  11]
+}
