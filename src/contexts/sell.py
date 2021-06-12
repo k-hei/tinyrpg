@@ -337,11 +337,11 @@ class SellContext(Context):
         control.press("R")
         return ctx.handle_tab(delta=1)
 
-    if key == pygame.K_BACKSPACE:
-      return ctx.handle_clear()
-
-    if key == pygame.K_ESCAPE:
-      return ctx.handle_close()
+    if key in (pygame.K_BACKSPACE, pygame.K_ESCAPE):
+      if ctx.selection:
+        return ctx.handle_clear()
+      else:
+        return ctx.handle_close()
 
   def handle_keyup(ctx, key):
     if key == pygame.K_TAB:
@@ -462,7 +462,7 @@ class SellContext(Context):
         pos=(tag_x, tag_y)
       ))
 
-    hud_image = ctx.hud.update(ctx.hero, ctx.hero)
+    hud_image = ctx.hud.sprite
     hud_x = MARGIN
     hud_y = WINDOW_HEIGHT - hud_image.get_height() - MARGIN
 

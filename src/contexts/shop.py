@@ -27,6 +27,7 @@ class CursorAnim(Anim): blocking = False
 class BackgroundEnterAnim(TweenAnim): blocking = True
 class BackgroundSlideupAnim(TweenAnim): blocking = True
 class PortraitEnterAnim(TweenAnim): blocking = True
+class HudEnterAnim(TweenAnim): blocking = True
 
 class TitleAnim(TweenAnim): blocking = True
 class TitleEnterAnim(TitleAnim): pass
@@ -56,7 +57,7 @@ class ShopContext(Context):
   title = "Fortune House"
   subtitle = "Destiny written in starlight"
 
-  def __init__(ctx, items):
+  def __init__(ctx, items, hud=None):
     super().__init__()
     ctx.items = items
     ctx.hero = KnightCore()
@@ -68,7 +69,7 @@ class ShopContext(Context):
     ctx.message_index = 0
     ctx.blurring = False
     ctx.textbox = TextBox((96, 32), color=WHITE)
-    ctx.hud = Hud()
+    ctx.hud = hud or Hud()
     ctx.anims = [CursorAnim()]
     ctx.bubble = TextBubble(width=96, pos=(128, 40))
     ctx.controls = [
@@ -77,6 +78,7 @@ class ShopContext(Context):
 
   def enter(ctx):
     ctx.anims += [
+      HudEnterAnim(duration=20),
       BackgroundSlideupAnim(duration=15),
       BackgroundEnterAnim(duration=15, delay=10),
       PortraitEnterAnim(duration=20, delay=40, on_end=ctx.focus),
@@ -194,9 +196,15 @@ class ShopContext(Context):
 
     ctx.bubble.draw(surface)
 
-    hud_image = ctx.hud.update(ctx.hero, ctx.hero)
+    hud_image = ctx.hud.update(ctx.hero)
     hud_x = MARGIN
     hud_y = surface.get_height() - hud_image.get_height() - MARGIN
+    hud_anim = next((a for a in ctx.anims if type(a) is HudEnterAnim), None)
+    if hud_anim:
+      t = hud_anim.pos
+      t = ease_out(t)
+      hud_x = lerp(8, hud_x, t)
+      hud_y = lerp(8, hud_y, t)
     surface.blit(hud_image, (hud_x, hud_y))
 
     if (not ctx.child

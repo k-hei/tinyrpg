@@ -1,6 +1,8 @@
 import pygame
 from contexts import Context
 from contexts.dialogue import DialogueContext
+from contexts.shop import ShopContext
+from hud import Hud
 from assets import load as use_assets
 from town.topview.stage import Stage, Tile
 from town.topview.actor import Actor
@@ -26,6 +28,7 @@ class TopViewContext(Context):
         value=ctx.hero
       )
     )
+    ctx.hud = Hud()
     ctx.elem = None
     ctx.link = None
     ctx.anims = []
@@ -44,6 +47,8 @@ class TopViewContext(Context):
       return ctx.handle_talk()
 
   def handle_keyup(ctx, key):
+    if ctx.child:
+      return ctx.child.handle_keyup(key)
     if key in keyboard.ARROW_DELTAS:
       ctx.handle_stopmove()
 
@@ -184,5 +189,12 @@ class TopViewContext(Context):
       elem.render().draw(surface)
     for sprite in sprites:
       sprite.draw(surface)
+
+    if not ctx.child or type(ctx.child.child) is not ShopContext:
+      hud_image = ctx.hud.update(ctx.hero.core)
+      hud_x = 8
+      hud_y = 8
+      surface.blit(hud_image, (hud_x, hud_y))
+
     if ctx.child:
       ctx.child.draw(surface)
