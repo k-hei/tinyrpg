@@ -91,9 +91,12 @@ class CardContext(Context):
     ctx.anims.append(SelectAnim(duration=9, target=ctx.card()))
 
   def handle_choose(ctx):
-    ctx.chosen = True
     card = ctx.card()
-    card.spin(on_end=lambda: ctx.on_choose(card))
+    ctx.chosen = True
+    def end():
+      ctx.chosen = False
+      ctx.on_choose(card)
+    card.spin(on_end=end)
 
   def update(ctx):
     for anim in ctx.anims:
