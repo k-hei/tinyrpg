@@ -147,17 +147,6 @@ class ShopContext(Context):
     elif ctx.child:
       ctx.child.draw(surface)
 
-    # hand_anim = next((a for a in ctx.anims if type(a) is CursorAnim), None)
-    # hand_image = assets.sprites["hand"]
-    # hand_image = rotate(hand_image, -90)
-    # hand_x = cards_x
-    # hand_x -= hand_image.get_width() // 2
-    # hand_x += (32 + 2) * ctx.hand_index
-    # hand_y = cards_y
-    # hand_y += 48 // 2
-    # hand_y += sin(hand_anim.time % 30 / 30 * 2 * pi) * 2
-    # surface.blit(hand_image, (hand_x, hand_y))
-
     # controls_x = surface.get_width() - 8
     # controls_y = surface.get_height() - 12
     # for control in ctx.controls:

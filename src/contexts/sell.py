@@ -248,6 +248,7 @@ class SellContext(Context):
   class DescAnim(Anim): blocking = False
   class DescEnterAnim(TweenAnim): blocking = True
   class ItemListAnim(TweenAnim): blocking = True
+  class TagEnterAnim(TweenAnim): blocking = True
   class CardAnim(TweenAnim): blocking = True
 
   def __init__(ctx, items, bubble=None, portrait=None, card=None):
@@ -274,6 +275,7 @@ class SellContext(Context):
     ctx.reset_cursor()
 
   def enter(ctx):
+    ctx.anims.append(ctx.TagEnterAnim(duration=10, delay=25))
     ctx.anims.append(ctx.DescEnterAnim(duration=25, delay=25))
     ctx.anims.append(ctx.ItemListAnim(duration=25, delay=25))
     if ctx.card:
@@ -415,15 +417,19 @@ class SellContext(Context):
 
     MARGIN = 2
 
-    tagbg_image = assets.sprites["shop_tag"]
-    tagbg_x = surface.get_width() - tagbg_image.get_width()
-    tagbg_y = 0
-    surface.blit(tagbg_image, (tagbg_x, tagbg_y))
-
     tagtext_image = assets.sprites["fortune_house"]
-    tagtext_x = surface.get_width() - tagtext_image.get_width() - MARGIN
-    tagtext_y = tagbg_y + tagbg_image.get_height() // 2 - tagtext_image.get_height() // 2
-    surface.blit(tagtext_image, (tagtext_x, tagtext_y))
+    tag_image = assets.sprites["shop_tag"].copy()
+    tag_image.blit(tagtext_image, (
+      tag_image.get_width() - tagtext_image.get_width() - 2,
+      2
+    ))
+
+    tag_x = surface.get_width() - tag_image.get_width()
+    tag_y = 0
+    tag_anim = next((a for a in ctx.anims if type(a) is SellContext.TagEnterAnim), None)
+    if tag_anim:
+      tag_y = lerp(-tag_image.get_height(), 0, tag_anim.pos)
+    surface.blit(tag_image, (tag_x, tag_y))
 
     hud_image = ctx.hud.update(ctx.hero)
     hud_x = MARGIN
