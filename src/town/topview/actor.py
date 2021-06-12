@@ -101,7 +101,7 @@ class Actor(Element):
 
   def render(actor):
     sprite = actor.core.render()
-    sprite.image = outline(sprite.image, WHITE)
+    # sprite.image = outline(sprite.image, WHITE)
     sprite.origin = ("center", "center")
     x, y = actor.get_rect().midtop
     sprite.pos = (x, y - 1)

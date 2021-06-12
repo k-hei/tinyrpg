@@ -3,6 +3,7 @@ import pygame
 from pygame import Surface, Rect, SRCALPHA
 from pygame.transform import flip
 from contexts import Context
+from comps.box import Box
 from comps.control import Control
 from comps.card import Card
 from comps.textbubble import TextBubble
@@ -32,28 +33,6 @@ def filter_items(items, tab):
     or tab == "materials" and issubclass(item, MaterialItem)
     or tab == "equipment" and False
   ), items))
-
-class Box:
-  TILE_SIZE = 8
-
-  def render(size):
-    sprites = use_assets().sprites
-    surface = Surface(size)
-    surface.fill(BLACK)
-    width, height = size
-    cols = width // Box.TILE_SIZE
-    rows = height // Box.TILE_SIZE
-    for row in range(rows):
-      surface.blit(sprites["item_tile_w"], (0, row * Box.TILE_SIZE))
-      surface.blit(sprites["item_tile_e"], (width - Box.TILE_SIZE, row * Box.TILE_SIZE))
-    surface.blit(sprites["item_tile_nw"], (0, 0))
-    surface.blit(sprites["item_tile_sw"], (0, height - Box.TILE_SIZE))
-    surface.blit(sprites["item_tile_ne"], (width - Box.TILE_SIZE, 0))
-    surface.blit(sprites["item_tile_se"], (width - Box.TILE_SIZE, height - Box.TILE_SIZE))
-    return surface
-
-  def __init__(box, size):
-    box.size = size
 
 class BagTabs:
   def __init__(tablist, names):
@@ -264,11 +243,12 @@ class SellContext(Context):
   class GoldEnterAnim(GoldAnim): pass
   class GoldExitAnim(GoldAnim): pass
 
-  def __init__(ctx, items, bubble=None, portrait=None, card=None, on_close=None):
+  def __init__(ctx, items, bubble=None, portrait=None, hud=None, card=None, on_close=None):
     super().__init__(on_close=on_close)
     ctx.items = items
     ctx.bubble = bubble or TextBubble(width=96, pos=(128, 40))
     ctx.portrait = portrait
+    ctx.hud = hud
     ctx.card = card or Card("sell")
     ctx.card_pos = card and card.sprite.pos
     ctx.cursor = 0
@@ -281,7 +261,6 @@ class SellContext(Context):
     ctx.exiting = False
     ctx.requires_release = {}
     ctx.hero = KnightCore()
-    ctx.hud = Hud()
     ctx.tablist = BagTabs(Inventory.tabs)
     ctx.itembox = BagList((148, 76), items=filter_items(items, ctx.tablist.selection()))
     ctx.controls = [
@@ -483,7 +462,7 @@ class SellContext(Context):
         pos=(tag_x, tag_y)
       ))
 
-    hud_image = ctx.hud.update(ctx.hero)
+    hud_image = ctx.hud.update(ctx.hero, ctx.hero)
     hud_x = MARGIN
     hud_y = WINDOW_HEIGHT - hud_image.get_height() - MARGIN
 

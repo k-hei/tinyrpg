@@ -50,8 +50,11 @@ class TextBox:
     box.surface = None
 
   def print(box, token, on_end=None):
+    message = Message(token)
+    if box.message and str(message) == str(box.message):
+      return
     box.clear()
-    box.message = Message(token)
+    box.message = message
     box.on_print = on_end
 
   def clear(box):

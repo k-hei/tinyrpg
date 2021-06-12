@@ -3,10 +3,12 @@ import pygame
 from pygame import Rect
 from pygame.transform import rotate, scale
 from contexts import Context
-from contexts.cardgroup import CardContext
+from contexts.cardgroup import CardContext, CARD_BUY, CARD_SELL, CARD_EXIT
 from contexts.sell import SellContext
 from cores.knight import KnightCore
+from comps.box import Box
 from comps.control import Control
+from comps.textbox import TextBox
 from comps.textbubble import TextBubble
 from comps.card import Card
 from hud import Hud
@@ -35,6 +37,10 @@ class SubtitleAnim(TweenAnim): blocking = True
 class SubtitleEnterAnim(SubtitleAnim): pass
 class SubtitleSlideAnim(SubtitleAnim): pass
 
+class BoxAnim(TweenAnim): blocking = True
+class BoxEnterAnim(BoxAnim): pass
+class BoxExitAnim(BoxAnim): pass
+
 def animate_text(anim, text, period, stagger=1, delay=0):
   anims = []
   for i, char in enumerate(text):
@@ -59,8 +65,8 @@ class ShopContext(Context):
       "MIRA: Need anything else...?"
     ]
     ctx.message_index = 0
-    ctx.title_exiting = False
-    ctx.subtitle_exiting = False
+    ctx.blurring = False
+    ctx.textbox = TextBox((96, 32), color=WHITE)
     ctx.hud = Hud()
     ctx.anims = [CursorAnim()]
     ctx.bubble = TextBubble(width=96, pos=(128, 40))
@@ -70,15 +76,12 @@ class ShopContext(Context):
 
   def enter(ctx):
     ctx.anims += [
-      *animate_text(anim=TitleEnterAnim, text=ctx.title, period=5, stagger=3, delay=135),
-      *animate_text(anim=SubtitleEnterAnim, text=ctx.subtitle, period=3, stagger=1, delay=90),
-      SubtitleSlideAnim(duration=15, delay=len(ctx.subtitle) + 95),
       BackgroundEnterAnim(duration=15, delay=5),
-      PortraitEnterAnim(
-        duration=20,
-        delay=30,
-        on_end=ctx.focus
-      )
+      PortraitEnterAnim(duration=20, delay=30, on_end=ctx.focus),
+      *animate_text(anim=SubtitleEnterAnim, text=ctx.subtitle, period=3, stagger=1, delay=75),
+      SubtitleSlideAnim(duration=15, delay=len(ctx.subtitle) + 80),
+      *animate_text(anim=TitleEnterAnim, text=ctx.title, period=5, stagger=3, delay=120),
+      BoxEnterAnim(duration=20, delay=90)
     ]
 
   def message(ctx):
@@ -93,30 +96,49 @@ class ShopContext(Context):
     ctx.bubble.print(ctx.message(), on_end=lambda: (
       portrait.stop_talk(),
       ctx.child is None and ctx.open(
-        CardContext(pos=(16, 144), on_choose=ctx.handle_choose)
+        CardContext(
+          pos=(16, 144),
+          on_select=lambda card: (
+            card.name == CARD_BUY and ctx.textbox.print("Buy recovery and support items.")
+            or card.name == CARD_SELL and ctx.textbox.print("Trade in items for gold.")
+            or card.name == CARD_EXIT and ctx.textbox.print("Leave the shop.")
+          ),
+          on_choose=ctx.handle_choose
+        )
       )
     ))
     ctx.next_message()
     if ctx.child:
       ctx.child.focus()
-      ctx.anims.append(TitleSlideinAnim(duration=12))
-      ctx.title_exiting = False
+      ctx.textbox.clear()
+      ctx.blurring = False
+      ctx.anims += [
+        TitleSlideinAnim(duration=12),
+        BoxEnterAnim(duration=20)
+      ]
 
   def handle_choose(ctx, card):
     if card.name == "buy": return
-    if card.name == "sell": ctx.handle_sell(card)
-    if card.name == "exit": return
+    if card.name == "sell": return ctx.handle_sell(card)
+    if card.name == "exit": return ctx.handle_close()
 
   def handle_sell(ctx, card):
-    ctx.anims.append(TitleSlideoutAnim(duration=7))
-    ctx.title_exiting = True
+    ctx.blurring = True
+    ctx.anims += [
+      TitleSlideoutAnim(duration=7),
+      BoxExitAnim(duration=7)
+    ]
     ctx.child.open(SellContext(
       items=ctx.items,
       bubble=ctx.bubble,
       portrait=ctx.portraits[0],
+      hud=ctx.hud,
       card=card,
       on_close=ctx.focus
     ))
+
+  def handle_close(ctx):
+    return ctx.close("")
 
   def update(ctx):
     super().update()
@@ -164,7 +186,7 @@ class ShopContext(Context):
 
     ctx.bubble.draw(surface)
 
-    hud_image = ctx.hud.update(ctx.hero)
+    hud_image = ctx.hud.update(ctx.hero, ctx.hero)
     hud_x = MARGIN
     hud_y = surface.get_height() - hud_image.get_height() - MARGIN
     surface.blit(hud_image, (hud_x, hud_y))
@@ -190,7 +212,7 @@ class ShopContext(Context):
         if type(title_anim) is TitleSlideoutAnim:
           t = 1 - t
         title_y = lerp(from_y, to_y, t)
-      if title_anim or not ctx.title_exiting:
+      if title_anim or not ctx.blurring:
         char_x = title_x
         char_y = title_y
         for i, char in enumerate(title_text):
@@ -218,7 +240,7 @@ class ShopContext(Context):
         if type(subtitle_anim) is SubtitleSlideAnim:
           t = ease_out(t)
           subtitle_y = lerp(surface.get_height() - subtitle_height - 7, subtitle_y, t)
-      if subtitle_anim or not ctx.subtitle_exiting:
+      if subtitle_anim or title_anim or not ctx.blurring:
         char_x = subtitle_x
         char_y = subtitle_y
         for i, char in enumerate(subtitle_text):
@@ -234,6 +256,22 @@ class ShopContext(Context):
           char_image = subtitle_font.render(char, char_color)
           surface.blit(char_image, (char_x + char_offset, char_y + char_offset))
           char_x += char_image.get_width()
+
+    box_image = Box.render((116, 48))
+    box_x = 128
+    box_y = 120
+    box_anim = next((a for a in ctx.anims if isinstance(a, BoxAnim)), None)
+    if box_anim:
+      t = box_anim.pos
+      if type(box_anim) is BoxEnterAnim:
+        t = ease_out(t)
+      elif type(box_anim) is BoxExitAnim:
+        t = 1 - t
+      box_x = lerp(surface.get_width(), box_x, t)
+    if box_anim or not ctx.blurring:
+      surface.blit(Box.render((116, 48)), (box_x, box_y))
+      if not box_anim:
+        surface.blit(ctx.textbox.render(), (box_x + 10, box_y + 8))
 
     if type(ctx.child) is CardContext:
       sprites = ctx.child.view()

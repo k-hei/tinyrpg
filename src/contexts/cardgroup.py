@@ -25,9 +25,10 @@ class ChooseAnim(TweenAnim): blocking = False
 class UnchooseAnim(TweenAnim): blocking = True
 
 class CardContext(Context):
-  def __init__(ctx, pos, on_choose=None):
+  def __init__(ctx, pos, on_select=None, on_choose=None):
     super().__init__()
     ctx.pos = pos
+    ctx.on_select = on_select
     ctx.on_choose = on_choose
     ctx.cards = [
       Card(CARD_BUY, flipped=True, color=BLUE),
@@ -38,6 +39,7 @@ class CardContext(Context):
     ctx.hand_index = 0
     ctx.chosen = False
     ctx.anims = []
+    ctx.on_animate = None
     ctx.ticks = 0
 
   def card(ctx):
@@ -69,6 +71,7 @@ class CardContext(Context):
       delay=SLIDE_TOTAL_DURATION,
       target=ctx.card()
     ))
+    ctx.on_animate = lambda: ctx.on_select(ctx.card())
 
   def handle_keydown(ctx, key):
     if ctx.child:
@@ -102,6 +105,8 @@ class CardContext(Context):
     ctx.anims.append(DeselectAnim(duration=6, target=ctx.card()))
     ctx.card_index = new_index
     ctx.anims.append(SelectAnim(duration=9, target=ctx.card()))
+    if ctx.on_select:
+      ctx.on_select(ctx.card())
 
   def handle_choose(ctx):
     card = ctx.card()
@@ -119,6 +124,10 @@ class CardContext(Context):
     for anim in ctx.anims:
       if anim.done:
         ctx.anims.remove(anim)
+        if (anim.blocking
+        and not next((a for a in ctx.anims if a.blocking), None)
+        and ctx.on_animate):
+          ctx.on_animate()
       else:
         anim.update()
     ctx.hand_index += (ctx.card_index - ctx.hand_index) / 4
