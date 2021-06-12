@@ -24,6 +24,16 @@ from portraits.mira import MiraPortrait
 class CursorAnim(Anim): blocking = False
 class BackgroundEnterAnim(TweenAnim): blocking = True
 class PortraitEnterAnim(TweenAnim): blocking = True
+class TitleCharEnterAnim(TweenAnim): blocking = True
+def TitleEnterAnim(text):
+  anims = []
+  for i, char in enumerate(text):
+    anims.append(TitleCharEnterAnim(
+      duration=5,
+      delay=i * 3,
+      target=i
+    ))
+  return anims
 
 class ShopContext(Context):
   def __init__(ctx, items):
@@ -45,6 +55,7 @@ class ShopContext(Context):
 
   def enter(ctx):
     ctx.anims += [
+      *TitleEnterAnim("Fortune House"),
       BackgroundEnterAnim(duration=15, delay=5),
       PortraitEnterAnim(
         duration=20,
@@ -137,15 +148,32 @@ class ShopContext(Context):
     hud_y = surface.get_height() - hud_image.get_height() - MARGIN
     surface.blit(hud_image, (hud_x, hud_y))
 
-    if ctx.child and ctx.child.child is None:
-      title_image = assets.ttf["english_large"].render("Fortune House")
-      title_x = surface.get_width() - title_image.get_width() - 8
-      title_y = surface.get_height() - title_image.get_height() - 7
-      surface.blit(title_image, (title_x, title_y))
+    if not ctx.child or ctx.child.child is None:
+      title_text = "Fortune House"
+      title_font = assets.ttf["english_large"]
+      title_width, title_height = title_font.size(title_text)
+      title_x = surface.get_width() - title_width - 8
+      title_y = surface.get_height() - title_height - 7
+      char_x = title_x
+      char_y = title_y
+      for i, char in enumerate(title_text):
+        char_anim = next((a for a in ctx.anims if type(a) is TitleCharEnterAnim and a.target == i), None)
+        if char_anim:
+          t = char_anim.pos
+          c = int(0xFF * t)
+          char_offset = (1 - ease_out(t)) * 12
+          char_color = (c << 16) + (c << 8) + c
+        else:
+          char_offset = 0
+          char_color = WHITE
+        char_image = title_font.render(char, char_color)
+        surface.blit(char_image, (char_x + char_offset, char_y + char_offset))
+        char_x += char_image.get_width()
 
-      subtitle_image = assets.ttf["roman"].render("Destiny written in starlight")
-      subtitle_x = title_x + title_image.get_width() - subtitle_image.get_width()
-      subtitle_y = title_y - title_image.get_height() + 2
+      subtitle_font = assets.ttf["roman"]
+      subtitle_image = subtitle_font.render("Destiny written in starlight")
+      subtitle_x = title_x + title_width - subtitle_image.get_width()
+      subtitle_y = title_y - title_height + 2
       surface.blit(subtitle_image, (subtitle_x, subtitle_y))
 
     if type(ctx.child) is CardContext:

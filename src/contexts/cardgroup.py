@@ -21,7 +21,7 @@ CARD_SPACING = 2
 class SelectAnim(TweenAnim): blocking = False
 class DeselectAnim(TweenAnim): blocking = False
 class SlideAnim(TweenAnim): blocking = True
-class ChooseAnim(TweenAnim): blocking = True
+class ChooseAnim(TweenAnim): blocking = False
 class UnchooseAnim(TweenAnim): blocking = True
 
 class CardContext(Context):

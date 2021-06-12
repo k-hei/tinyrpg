@@ -5,7 +5,8 @@ import assets
 from contexts import Context
 from transits.dissolve import DissolveIn, DissolveOut
 from config import (
-  FPS, WINDOW_SIZE, WINDOW_SCALE_INIT, WINDOW_SCALE_MAX,
+  FPS, FPS_SLOW,
+  WINDOW_SIZE, WINDOW_SCALE_INIT, WINDOW_SCALE_MAX,
   ASSETS_PATH
 )
 
@@ -106,8 +107,8 @@ class App(Context):
     return True
 
   def toggle_fps(app):
-    if app.fps != 1:
-      app.fps = 1
+    if app.fps != FPS_SLOW:
+      app.fps = FPS_SLOW
     else:
       app.fps = FPS
     pygame.key.set_repeat(1000 // app.fps)
