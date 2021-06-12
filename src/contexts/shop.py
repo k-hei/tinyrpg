@@ -24,9 +24,17 @@ from portraits.mira import MiraPortrait
 class CursorAnim(Anim): blocking = False
 class BackgroundEnterAnim(TweenAnim): blocking = True
 class PortraitEnterAnim(TweenAnim): blocking = True
-class TitleEnterAnim(TweenAnim): blocking = True
-class SubtitleEnterAnim(TweenAnim): blocking = True
-class SubtitleSlideAnim(TweenAnim): blocking = True
+
+class TitleAnim(TweenAnim): blocking = True
+class TitleEnterAnim(TitleAnim): pass
+class TitleSlideAnim(TitleAnim): pass
+class TitleSlideinAnim(TitleSlideAnim): pass
+class TitleSlideoutAnim(TitleSlideAnim): pass
+
+class SubtitleAnim(TweenAnim): blocking = True
+class SubtitleEnterAnim(SubtitleAnim): pass
+class SubtitleSlideAnim(SubtitleAnim): pass
+
 def animate_text(anim, text, period, stagger=1, delay=0):
   anims = []
   for i, char in enumerate(text):
@@ -51,6 +59,8 @@ class ShopContext(Context):
       "MIRA: Need anything else...?"
     ]
     ctx.message_index = 0
+    ctx.title_exiting = False
+    ctx.subtitle_exiting = False
     ctx.hud = Hud()
     ctx.anims = [CursorAnim()]
     ctx.bubble = TextBubble(width=96, pos=(128, 40))
@@ -89,6 +99,8 @@ class ShopContext(Context):
     ctx.next_message()
     if ctx.child:
       ctx.child.focus()
+      ctx.anims.append(TitleSlideinAnim(duration=12))
+      ctx.title_exiting = False
 
   def handle_choose(ctx, card):
     if card.name == "buy": return
@@ -96,6 +108,8 @@ class ShopContext(Context):
     if card.name == "exit": return
 
   def handle_sell(ctx, card):
+    ctx.anims.append(TitleSlideoutAnim(duration=7))
+    ctx.title_exiting = True
     ctx.child.open(SellContext(
       items=ctx.items,
       bubble=ctx.bubble,
@@ -155,27 +169,43 @@ class ShopContext(Context):
     hud_y = surface.get_height() - hud_image.get_height() - MARGIN
     surface.blit(hud_image, (hud_x, hud_y))
 
-    if not ctx.child or ctx.child.child is None:
+    if (not ctx.child
+    or ctx.child.child is None
+    or next((a for a in ctx.anims if (
+      isinstance(a, TitleAnim)
+      or isinstance(a, SubtitleAnim)
+    )), None)):
       title_text = ctx.title
       title_font = assets.ttf["english_large"]
       title_width, title_height = title_font.size(title_text)
       title_x = surface.get_width() - title_width - 8
       title_y = surface.get_height() - title_height - 7
-      char_x = title_x
-      char_y = title_y
-      for i, char in enumerate(title_text):
-        char_anim = next((a for a in ctx.anims if type(a) is TitleEnterAnim and a.target == i), None)
-        if char_anim:
-          t = char_anim.pos
-          c = int(0xFF * t)
-          char_offset = (1 - ease_out(t)) * 12
-          char_color = (c << 16) + (c << 8) + c
-        else:
-          char_offset = 0
-          char_color = WHITE
-        char_image = title_font.render(char, char_color)
-        surface.blit(char_image, (char_x + char_offset, char_y + char_offset))
-        char_x += char_image.get_width()
+      title_anim = next((a for a in ctx.anims if isinstance(a, TitleSlideAnim)), None)
+      if title_anim:
+        t = title_anim.pos
+        from_y = title_y + 48
+        to_y = title_y
+        if type(title_anim) is TitleSlideinAnim:
+          t = ease_out(t)
+        if type(title_anim) is TitleSlideoutAnim:
+          t = 1 - t
+        title_y = lerp(from_y, to_y, t)
+      if title_anim or not ctx.title_exiting:
+        char_x = title_x
+        char_y = title_y
+        for i, char in enumerate(title_text):
+          char_anim = next((a for a in ctx.anims if type(a) is TitleEnterAnim and a.target == i), None)
+          if char_anim:
+            t = char_anim.pos
+            c = int(0xFF * t)
+            char_offset = (1 - ease_out(t)) * 12
+            char_color = (c << 16) + (c << 8) + c
+          else:
+            char_offset = 0
+            char_color = WHITE
+          char_image = title_font.render(char, char_color)
+          surface.blit(char_image, (char_x + char_offset, char_y + char_offset))
+          char_x += char_image.get_width()
 
       subtitle_text = ctx.subtitle
       subtitle_font = assets.ttf["roman"]
@@ -185,23 +215,25 @@ class ShopContext(Context):
       subtitle_anim = next((a for a in ctx.anims if type(a) is SubtitleSlideAnim), None)
       if subtitle_anim:
         t = subtitle_anim.pos
-        t = ease_out(t)
-        subtitle_y = lerp(surface.get_height() - subtitle_height - 7, subtitle_y, t)
-      char_x = subtitle_x
-      char_y = subtitle_y
-      for i, char in enumerate(subtitle_text):
-        char_anim = next((a for a in ctx.anims if type(a) is SubtitleEnterAnim and a.target == i), None)
-        if char_anim:
-          t = char_anim.pos
-          c = int(0xFF * t)
-          char_offset = (1 - ease_out(t)) * 12
-          char_color = (c << 16) + (c << 8) + c
-        else:
-          char_offset = 0
-          char_color = WHITE
-        char_image = subtitle_font.render(char, char_color)
-        surface.blit(char_image, (char_x + char_offset, char_y + char_offset))
-        char_x += char_image.get_width()
+        if type(subtitle_anim) is SubtitleSlideAnim:
+          t = ease_out(t)
+          subtitle_y = lerp(surface.get_height() - subtitle_height - 7, subtitle_y, t)
+      if subtitle_anim or not ctx.subtitle_exiting:
+        char_x = subtitle_x
+        char_y = subtitle_y
+        for i, char in enumerate(subtitle_text):
+          char_anim = next((a for a in ctx.anims if type(a) is SubtitleEnterAnim and a.target == i), None)
+          if char_anim:
+            t = char_anim.pos
+            c = int(0xFF * t)
+            char_offset = (1 - ease_out(t)) * 12
+            char_color = (c << 16) + (c << 8) + c
+          else:
+            char_offset = 0
+            char_color = WHITE
+          char_image = subtitle_font.render(char, char_color)
+          surface.blit(char_image, (char_x + char_offset, char_y + char_offset))
+          char_x += char_image.get_width()
 
     if type(ctx.child) is CardContext:
       sprites = ctx.child.view()

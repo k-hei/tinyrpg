@@ -74,16 +74,18 @@ class MiraPortrait(Portrait):
     mouth_frame = talk_anim.frame if talk_anim else "mira_mouth"
     surface.blit(assets[mouth_frame], MiraPortrait.MOUTH_POS)
 
+    ticks = portrait.ticks // 2 * 2
+
     BALL_WIDTH = 43
     BALL_HEIGHT = 17
     BALL_X = surface.get_width() - BALL_WIDTH
     BALL_Y = surface.get_height() - BALL_HEIGHT
     pygame.draw.rect(surface, BLUE_DARK, Rect(BALL_X, BALL_Y, BALL_WIDTH, BALL_HEIGHT))
     for i in range(BALL_WIDTH):
-      swing = sin(portrait.ticks % 600 / 600 * 2 * pi)
-      amplitude = (sin(portrait.ticks % 240 / 240 * 2 * pi) + 1) / 2
+      swing = sin(ticks % 600 / 600 * 2 * pi)
+      amplitude = (sin(ticks % 240 / 240 * 2 * pi) + 1) / 2
       amplitude = lerp(3, 9, amplitude)
-      height = (sin((portrait.ticks % 90 / 90 * 2 + swing + i / BALL_WIDTH) * 2 * pi) + 1) / 2
+      height = (sin((ticks % 90 / 90 * 2 + swing + i / BALL_WIDTH) * 2 * pi) + 1) / 2
       height *= amplitude
       pygame.draw.rect(surface, BLUE_DARK, Rect(
         (BALL_X + i, BALL_Y - int(height)),
@@ -94,10 +96,10 @@ class MiraPortrait(Portrait):
     BALL_Y = surface.get_height() - BALL_HEIGHT
     pygame.draw.rect(surface, BLUE, Rect(BALL_X, BALL_Y, BALL_WIDTH, BALL_HEIGHT))
     for i in range(BALL_WIDTH):
-      swing = cos(portrait.ticks % 600 / 600 * 2 * pi)
-      amplitude = (cos(portrait.ticks % 240 / 240 * 2 * pi) + 1) / 2
+      swing = cos(ticks % 600 / 600 * 2 * pi)
+      amplitude = (cos(ticks % 240 / 240 * 2 * pi) + 1) / 2
       amplitude = lerp(3, 9, amplitude)
-      height = (cos((portrait.ticks % 90 / 90 * 2 + swing + (BALL_WIDTH - i) / BALL_WIDTH) * 2 * pi) + 1) / 2
+      height = (cos((ticks % 90 / 90 * 2 + swing + (BALL_WIDTH - i) / BALL_WIDTH) * 2 * pi) + 1) / 2
       height *= amplitude
       pygame.draw.rect(surface, BLUE, Rect(
         (BALL_X + i, BALL_Y - int(height)),
