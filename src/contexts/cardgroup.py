@@ -1,13 +1,16 @@
 import pygame
 from pygame import Surface, SRCALPHA
 from contexts import Context
-from comps.card import Card
+from comps.card import Card, CARD_BUY, CARD_SELL, CARD_EXIT
 from assets import load as use_assets
-from palette import RED
+from palette import RED, BLUE
 from sprite import Sprite
 from filters import darken
 from anims.tween import TweenAnim
 from easing.expo import ease_out
+from lib.lerp import lerp
+from config import WINDOW_WIDTH, WINDOW_HEIGHT
+from functools import partial
 import keyboard
 
 CARD_LIFT = 4
@@ -15,22 +18,43 @@ CARD_SPACING = 2
 
 class SelectAnim(TweenAnim): pass
 class DeselectAnim(TweenAnim): pass
+class SlideAnim(TweenAnim): pass
 
 class CardContext(Context):
-  def __init__(ctx, on_choose=None):
+  def __init__(ctx, pos, on_choose=None):
     super().__init__()
+    ctx.pos = pos
     ctx.on_choose = on_choose
     ctx.card_index = 0
     ctx.cards = [
-      Card("buy"),
-      Card("sell"),
-      Card("exit", color=RED)
+      Card(CARD_BUY, flipped=True, color=BLUE),
+      Card(CARD_SELL, flipped=True, color=BLUE),
+      Card(CARD_EXIT, flipped=True, color=RED)
     ]
     ctx.anims = []
     ctx.surface = None
 
   def card(ctx):
     return ctx.cards[ctx.card_index]
+
+  def enter(ctx):
+    SLIDE_DURATION = 5
+    SLIDE_TOTAL_DURATION = len(ctx.cards) * SLIDE_DURATION
+    animate = lambda i, card: (
+      ctx.anims.append(SlideAnim(
+        duration=10,
+        delay=i * SLIDE_DURATION,
+        target=card,
+        on_end=partial(card.flip, delay=SLIDE_DURATION)
+      ))
+    )
+    for i, card in enumerate(ctx.cards):
+      animate(i, card)
+    ctx.anims.append(SelectAnim(
+      duration=9,
+      delay=SLIDE_TOTAL_DURATION,
+      target=ctx.card()
+    ))
 
   def handle_keydown(ctx, key):
     if next((c for c in ctx.cards if c.anims), None):
@@ -83,25 +107,34 @@ class CardContext(Context):
         len(ctx.cards) * (card_template.get_width() + CARD_SPACING) - CARD_SPACING,
         card_template.get_height() + CARD_LIFT
       ), SRCALPHA)
-    card_x = card_template.get_width() // 2
+    cards_x, cards_y = ctx.pos
+    x = card_template.get_width() // 2
     for card in ctx.cards:
       card_sprite = card.render()
       card_anim = next((a for a in ctx.anims if a.target is card), None)
-      card_y = 0
+      card_x = cards_x + x
+      card_y = cards_y
       if card_anim:
         t = card_anim.pos
         if type(card_anim) is SelectAnim:
           t = ease_out(t)
+          card_y -= CARD_LIFT * t
         elif type(card_anim) is DeselectAnim:
           t = 1 - t
-        card_y = CARD_LIFT * t
+          card_y -= CARD_LIFT * t
+        elif type(card_anim) is SlideAnim:
+          t = ease_out(t)
+          from_x = WINDOW_WIDTH - 4 - card_template.get_width() // 2
+          from_y = 4 + card_template.get_height() // 2
+          card_x = lerp(from_x, card_x, t)
+          card_y = lerp(from_y, card_y, t)
       if card is not ctx.card():
         card_sprite.image = darken(card_sprite.image)
-      elif card_anim is None:
-        card_y = CARD_LIFT
-      card_sprite.move((card_x, -card_y))
-      sprites.append(card_sprite)
-      card_x += card_template.get_width() + CARD_SPACING
+      elif not ctx.anims:
+        card_y -= CARD_LIFT
+      card_sprite.move((card_x, card_y))
+      sprites.insert(0, card_sprite)
+      x += card_template.get_width() + CARD_SPACING
     return sprites
 
   def draw(ctx, surface):

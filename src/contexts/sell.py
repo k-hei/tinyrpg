@@ -269,7 +269,7 @@ class SellContext(Context):
     ctx.hud = Hud()
     ctx.tablist = BagTabs(Inventory.tabs)
     ctx.itembox = BagList((148, 76), items=filter_items(items, ctx.tablist.selection()))
-    ctx.textbox = Textbox((80, 72))
+    ctx.textbox = Textbox((96, 72))
     ctx.controls = [
       Control(key=("X"), value="Multi"),
       Control(key=("L", "R"), value="Tab")
@@ -280,10 +280,11 @@ class SellContext(Context):
     ctx.anims.append(ctx.DescEnterAnim(duration=25, delay=25))
     ctx.anims.append(ctx.ItemListAnim(duration=25, delay=25))
     if ctx.card:
-      ctx.card.spin(duration=30)
+      # ctx.card.spin(duration=30)
       if ctx.card.sprite:
         ctx.anims.append(ctx.CardAnim(
           duration=30,
+          delay=5,
           target=ctx.card.sprite.pos
         ))
     ctx.textbox.print("MIRA: What do we have here today?")
@@ -413,8 +414,6 @@ class SellContext(Context):
 
   def draw(ctx, surface):
     assets = use_assets()
-    surface.fill(WHITE)
-    pygame.draw.rect(surface, BLACK, Rect(0, 116, 256, 108))
 
     MARGIN = 2
 
@@ -423,7 +422,7 @@ class SellContext(Context):
     tagbg_y = 0
     surface.blit(tagbg_image, (tagbg_x, tagbg_y))
 
-    tagtext_image = assets.sprites["general_store"]
+    tagtext_image = assets.sprites["fortune_house"]
     tagtext_x = surface.get_width() - tagtext_image.get_width() - MARGIN
     tagtext_y = tagbg_y + tagbg_image.get_height() // 2 - tagtext_image.get_height() // 2
     surface.blit(tagtext_image, (tagtext_x, tagtext_y))
@@ -431,13 +430,11 @@ class SellContext(Context):
     hud_image = ctx.hud.update(ctx.hero)
     hud_x = MARGIN
     hud_y = surface.get_height() - hud_image.get_height() - MARGIN
-    surface.blit(hud_image, (hud_x, hud_y))
 
     gold_image = assets.sprites["item_gold"]
     gold_image = replace_color(gold_image, BLACK, GOLD)
     gold_x = hud_x + hud_image.get_width() + 2
     gold_y = hud_y + hud_image.get_height() - gold_image.get_height() - 2
-    surface.blit(gold_image, (gold_x, gold_y))
 
     goldtext_font = assets.ttf["roman"]
     goldtext_image = goldtext_font.render("500")
@@ -538,7 +535,7 @@ class SellContext(Context):
 
     bubble_image = assets.sprites["bubble_shop"]
     surface.blit(bubble_image, (0, 0))
-    surface.blit(ctx.textbox.render(), (15, 24))
+    surface.blit(ctx.textbox.render(), (15, 21))
 
     card_image = assets.sprites["card_back"]
     card_x = menu_x + items_image.get_width() - card_image.get_width() // 2

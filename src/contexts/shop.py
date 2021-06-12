@@ -7,6 +7,7 @@ from contexts.cardgroup import CardContext
 from contexts.sell import SellContext
 from cores.knight import KnightCore
 from comps.control import Control
+from comps.textbox import Textbox
 from comps.card import Card
 from hud import Hud
 from assets import load as use_assets
@@ -17,6 +18,7 @@ from anims import Anim
 from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
+from portraits.mira import MiraPortrait
 
 class CursorAnim(Anim): blocking = False
 class SelectAnim(TweenAnim): blocking = False
@@ -28,12 +30,17 @@ class ShopContext(Context):
     super().__init__()
     ctx.items = items
     ctx.hero = KnightCore()
+    ctx.portraits = [MiraPortrait()]
     ctx.hud = Hud()
     ctx.anims = [CursorAnim()]
+    ctx.textbox = Textbox((100, 72))
     ctx.controls = [
       Control(key=("X"), value="Menu")
     ]
-    ctx.open(CardContext(on_choose=ctx.handle_choose))
+    ctx.open(CardContext(pos=(16, 144), on_choose=ctx.handle_choose))
+
+  def init(ctx):
+    ctx.textbox.print("MIRA: What can I do you for?")
 
   def handle_choose(ctx, card):
     if card.name == "buy": return
@@ -58,9 +65,22 @@ class ShopContext(Context):
   def draw(ctx, surface):
     assets = use_assets()
     surface.fill(WHITE)
-    pygame.draw.rect(surface, BLACK, Rect(0, 112, 256, 112))
+    pygame.draw.rect(surface, BLACK, Rect(0, 0, 256, 224))
+
+    bg_image = assets.sprites["fortune_bg"]
+    surface.blit(bg_image, (0, 128 - bg_image.get_height()))
+
+    for portrait in ctx.portraits:
+      portrait_image = portrait.render()
+      portrait_x = surface.get_width() - portrait_image.get_width()
+      portrait_y = 0
+      surface.blit(portrait_image, (portrait_x, portrait_y))
 
     MARGIN = 2
+
+    bubble_image = assets.sprites["bubble_shop"]
+    surface.blit(bubble_image, (0, 0))
+    surface.blit(ctx.textbox.render(), (13, 26))
 
     hud_image = ctx.hud.update(ctx.hero)
     hud_x = MARGIN
@@ -79,23 +99,20 @@ class ShopContext(Context):
     goldtext_y = gold_y + gold_image.get_height() // 2 - goldtext_image.get_height() // 2
     surface.blit(goldtext_image, (goldtext_x, goldtext_y))
 
-    title_image = assets.ttf["english_large"].render("General Store")
-    title_x = surface.get_width() - title_image.get_width() - 8
-    title_y = surface.get_height() - title_image.get_height() - 7
-    surface.blit(title_image, (title_x, title_y))
+    if type(ctx.child) is CardContext:
+      title_image = assets.ttf["english_large"].render("Fortune House")
+      title_x = surface.get_width() - title_image.get_width() - 8
+      title_y = surface.get_height() - title_image.get_height() - 7
+      surface.blit(title_image, (title_x, title_y))
 
-    subtitle_image = assets.ttf["roman"].render("An explorer's paradise")
-    subtitle_x = title_x + title_image.get_width() - subtitle_image.get_width()
-    subtitle_y = title_y - title_image.get_height() + 2
-    surface.blit(subtitle_image, (subtitle_x, subtitle_y))
-
-    cards_x = 24
-    cards_y = 112
+      subtitle_image = assets.ttf["roman"].render("Destiny written in starlight")
+      subtitle_x = title_x + title_image.get_width() - subtitle_image.get_width()
+      subtitle_y = title_y - title_image.get_height() + 2
+      surface.blit(subtitle_image, (subtitle_x, subtitle_y))
 
     if type(ctx.child) is CardContext:
       sprites = ctx.child.view()
       for sprite in sprites:
-        sprite.move((cards_x, cards_y))
         sprite.draw(surface)
     elif ctx.child:
       ctx.child.draw(surface)
