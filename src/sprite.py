@@ -43,20 +43,20 @@ class Sprite:
 
     origin_x, origin_y = sprite.origin
     if origin_x == "center":
-      x -= scaled_image.get_width() // 2
+      x -= scaled_image.get_width() / 2
     if origin_y == "center":
-      y -= scaled_image.get_height() // 2
+      y -= scaled_image.get_height() / 2
     if origin_y == "bottom":
       y -= scaled_image.get_height()
 
     if origin:
       origin_x, origin_y = origin
       if origin_x == "left":
-        x += image.get_width() // 2
+        x += image.get_width() / 2
       if origin_y == "top":
-        y += image.get_height() // 2
+        y += image.get_height() / 2
       elif origin_y == "bottom":
-        y -= image.get_height() // 2
+        y -= image.get_height() / 2
 
     offset_x, offset_y = offset
     surface.blit(scaled_image, (x + offset_x, y + offset_y))

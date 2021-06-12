@@ -53,6 +53,7 @@ class ShopContext(Context):
     portrait = ctx.portraits[0]
     portrait.start_talk(),
     ctx.bubble.print("MIRA: What can I do you for?", on_end=portrait.stop_talk)
+    ctx.child.focus()
 
   def handle_choose(ctx, card):
     if card.name == "buy": return

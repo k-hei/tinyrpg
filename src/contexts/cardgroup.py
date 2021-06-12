@@ -41,6 +41,11 @@ class CardContext(Context):
   def card(ctx):
     return ctx.cards[ctx.card_index]
 
+  def focus(ctx):
+    for card in ctx.cards:
+      if card.exiting:
+        card.enter()
+
   def enter(ctx):
     SLIDE_DURATION = 5
     SLIDE_TOTAL_DURATION = len(ctx.cards) * SLIDE_DURATION
@@ -99,6 +104,9 @@ class CardContext(Context):
       ctx.chosen = False
       ctx.on_choose(card)
     card.spin(on_end=end)
+    for c in ctx.cards:
+      if c is not card:
+        c.exit()
 
   def update(ctx):
     super().update()
@@ -120,29 +128,30 @@ class CardContext(Context):
     x = card_template.get_width() // 2
     for card in ctx.cards:
       card_sprite = card.render()
-      card_anim = next((a for a in ctx.anims if a.target is card), None)
-      card_x = cards_x + x
-      card_y = cards_y
-      if card_anim:
-        t = card_anim.pos
-        if type(card_anim) is SelectAnim:
-          t = ease_out(t)
-          card_y -= CARD_LIFT * t
-        elif type(card_anim) is DeselectAnim:
-          t = 1 - t
-          card_y -= CARD_LIFT * t
-        elif type(card_anim) is SlideAnim:
-          t = ease_out(t)
-          from_x = WINDOW_WIDTH - 4 - card_template.get_width() // 2
-          from_y = 4 + card_template.get_height() // 2
-          card_x = lerp(from_x, card_x, t)
-          card_y = lerp(from_y, card_y, t)
-      if card is not ctx.card():
-        card_sprite.image = darken(card_sprite.image)
-      elif not ctx.anims:
-        card_y -= CARD_LIFT
-      card_sprite.move((card_x, card_y))
-      sprites.insert(0, card_sprite)
+      if card_sprite:
+        card_anim = next((a for a in ctx.anims if a.target is card), None)
+        card_x = cards_x + x
+        card_y = cards_y
+        if card_anim:
+          t = card_anim.pos
+          if type(card_anim) is SelectAnim:
+            t = ease_out(t)
+            card_y -= CARD_LIFT * t
+          elif type(card_anim) is DeselectAnim:
+            t = 1 - t
+            card_y -= CARD_LIFT * t
+          elif type(card_anim) is SlideAnim:
+            t = ease_out(t)
+            from_x = WINDOW_WIDTH - 4 - card_template.get_width() // 2
+            from_y = 4 + card_template.get_height() // 2
+            card_x = lerp(from_x, card_x, t)
+            card_y = lerp(from_y, card_y, t)
+        if card is not ctx.card():
+          card_sprite.image = darken(card_sprite.image)
+        elif not ctx.anims:
+          card_y -= CARD_LIFT
+        card_sprite.move((card_x, card_y))
+        sprites.insert(0, card_sprite)
       x += card_template.get_width() + CARD_SPACING
     if (not next((a for a in ctx.anims if a.blocking), None)
     and not (ctx.chosen and ctx.ticks % 2)):
