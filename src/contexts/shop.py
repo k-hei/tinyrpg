@@ -25,6 +25,7 @@ from portraits.mira import MiraPortrait
 
 class CursorAnim(Anim): blocking = False
 class BackgroundEnterAnim(TweenAnim): blocking = True
+class BackgroundSlideupAnim(TweenAnim): blocking = True
 class PortraitEnterAnim(TweenAnim): blocking = True
 
 class TitleAnim(TweenAnim): blocking = True
@@ -76,8 +77,9 @@ class ShopContext(Context):
 
   def enter(ctx):
     ctx.anims += [
-      BackgroundEnterAnim(duration=15, delay=5),
-      PortraitEnterAnim(duration=20, delay=30, on_end=ctx.focus),
+      BackgroundSlideupAnim(duration=15),
+      BackgroundEnterAnim(duration=15, delay=10),
+      PortraitEnterAnim(duration=20, delay=40, on_end=ctx.focus),
       *animate_text(anim=SubtitleEnterAnim, text=ctx.subtitle, period=3, stagger=1, delay=75),
       SubtitleSlideAnim(duration=15, delay=len(ctx.subtitle) + 80),
       *animate_text(anim=TitleEnterAnim, text=ctx.title, period=5, stagger=3, delay=120),
@@ -150,8 +152,14 @@ class ShopContext(Context):
 
   def draw(ctx, surface):
     assets = use_assets()
-    surface.fill(WHITE)
-    pygame.draw.rect(surface, BLACK, Rect(0, 0, 256, 224))
+
+    bg_y = 0
+    bg_anim = next((a for a in ctx.anims if type(a) is BackgroundSlideupAnim), None)
+    if bg_anim:
+      t = bg_anim.pos
+      t = ease_out(t)
+      bg_y = lerp(surface.get_height(), bg_y, t)
+    pygame.draw.rect(surface, BLACK, Rect(0, bg_y, 256, 224 - bg_y))
 
     bg_image = assets.sprites["fortune_bg"]
     bg_image = replace_color(bg_image, WHITE, BLUE_DARK)
