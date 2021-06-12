@@ -5,7 +5,7 @@ from pygame.transform import flip
 from contexts import Context
 from comps.control import Control
 from comps.card import Card
-from comps.textbox import Textbox
+from comps.textbubble import TextBubble
 from palette import BLACK, WHITE, GRAY, GRAY_DARK, BLUE, GOLD, CYAN
 from filters import replace_color
 from assets import load as use_assets
@@ -243,10 +243,6 @@ class BagList:
         y += 16 + 2
     return bag.surface
 
-class TextBox:
-  def __init__(box, size):
-    box.size = size
-
 class SellContext(Context):
   class CursorAnim(Anim): blocking = False
   class DescAnim(Anim): blocking = False
@@ -254,9 +250,10 @@ class SellContext(Context):
   class ItemListAnim(TweenAnim): blocking = True
   class CardAnim(TweenAnim): blocking = True
 
-  def __init__(ctx, items, card=None):
+  def __init__(ctx, items, bubble=None, card=None):
     super().__init__()
     ctx.items = items
+    ctx.bubble = bubble or TextBubble(width=96, pos=(128, 40))
     ctx.card = card or Card("sell")
     ctx.cursor = 0
     ctx.cursor_drawn = 0
@@ -269,7 +266,6 @@ class SellContext(Context):
     ctx.hud = Hud()
     ctx.tablist = BagTabs(Inventory.tabs)
     ctx.itembox = BagList((148, 76), items=filter_items(items, ctx.tablist.selection()))
-    ctx.textbox = Textbox((96, 72))
     ctx.controls = [
       Control(key=("X"), value="Multi"),
       Control(key=("L", "R"), value="Tab")
@@ -287,7 +283,7 @@ class SellContext(Context):
           delay=5,
           target=ctx.card.sprite.pos
         ))
-    ctx.textbox.print("MIRA: Got something to sell me?")
+    ctx.bubble.print("MIRA: Got something to sell me?")
 
   def handle_keydown(ctx, key):
     if next((a for a in ctx.anims if a.blocking), None) or ctx.tablist.anims:
@@ -533,10 +529,6 @@ class SellContext(Context):
       t = ease_out(descbox_anim.pos)
       descbox_x = lerp(-descbox_image.get_width(), descbox_x, t)
     surface.blit(descbox_image, (descbox_x, descbox_y))
-
-    bubble_image = assets.sprites["bubble_shop"]
-    surface.blit(bubble_image, (0, 0))
-    surface.blit(ctx.textbox.render(), (15, 21))
 
     card_image = assets.sprites["card_back"]
     card_x = menu_x + items_image.get_width() - card_image.get_width() // 2

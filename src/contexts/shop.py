@@ -7,7 +7,7 @@ from contexts.cardgroup import CardContext
 from contexts.sell import SellContext
 from cores.knight import KnightCore
 from comps.control import Control
-from comps.textbox import Textbox
+from comps.textbubble import TextBubble
 from comps.card import Card
 from hud import Hud
 from assets import load as use_assets
@@ -33,19 +33,20 @@ class ShopContext(Context):
     ctx.portraits = [MiraPortrait()]
     ctx.hud = Hud()
     ctx.anims = [CursorAnim()]
-    ctx.textbox = Textbox((100, 72))
+    ctx.bubble = TextBubble(width=96, pos=(128, 40))
     ctx.controls = [
       Control(key=("X"), value="Menu")
     ]
     ctx.open(CardContext(pos=(16, 144), on_choose=ctx.handle_choose))
 
-  def init(ctx):
-    ctx.textbox.print("MIRA: What can I do you for?")
-
   def enter(ctx):
     ctx.anims += [
       BackgroundEnterAnim(duration=15),
-      PortraitEnterAnim(duration=20, delay=10)
+      PortraitEnterAnim(
+        duration=20,
+        delay=10,
+        on_end=lambda: ctx.bubble.print("MIRA: What can I do you for?")
+      )
     ]
 
   def handle_choose(ctx, card):
@@ -56,6 +57,7 @@ class ShopContext(Context):
   def handle_sell(ctx, card):
     ctx.open(SellContext(
       items=ctx.items,
+      bubble=ctx.bubble,
       card=card
     ))
 
@@ -94,10 +96,7 @@ class ShopContext(Context):
 
     MARGIN = 2
 
-    if not portrait_anim:
-      bubble_image = assets.sprites["bubble_shop"]
-      surface.blit(bubble_image, (0, 0))
-      surface.blit(ctx.textbox.render(), (13, 26))
+    ctx.bubble.draw(surface)
 
     hud_image = ctx.hud.update(ctx.hero)
     hud_x = MARGIN
