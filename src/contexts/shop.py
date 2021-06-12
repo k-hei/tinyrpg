@@ -12,7 +12,7 @@ from comps.card import Card
 from hud import Hud
 from assets import load as use_assets
 from filters import replace_color, darken
-from palette import BLACK, WHITE, RED, BLUE, GOLD
+from palette import BLACK, WHITE, RED, BLUE, BLUE_DARK, GOLD
 import keyboard
 from anims import Anim
 from anims.tween import TweenAnim
@@ -81,6 +81,7 @@ class ShopContext(Context):
     pygame.draw.rect(surface, BLACK, Rect(0, 0, 256, 224))
 
     bg_image = assets.sprites["fortune_bg"]
+    bg_image = replace_color(bg_image, WHITE, BLUE_DARK)
     bg_anim = next((a for a in ctx.anims if type(a) is BackgroundEnterAnim), None)
     if bg_anim:
       t = bg_anim.pos
