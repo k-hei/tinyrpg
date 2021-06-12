@@ -135,7 +135,12 @@ class TextBubble:
       elif type(bubble_anim) is TextBubble.ResizeAnim:
         t = ease_out(t)
         bubble_height = lerp(bubble_height, bubble_anim.target, t)
-    bubble_image = Bubble.render((bubble_width, bubble_height))
+      bubble_widthoffset = 0
+      bubble_heightoffset = 0
+    else:
+      bubble_widthoffset = sin(bubble.ticks % 90 / 90 * 2 * pi) * 2
+      bubble_heightoffset = cos(bubble.ticks % 90 / 90 * 2 * pi) * 2
+    bubble_image = Bubble.render((bubble_width + bubble_widthoffset, bubble_height + bubble_heightoffset))
     bubble_x, bubble_y = bubbletail_x, bubbletail_y
     bubble_x += -bubble_image.get_width() + 2
     bubble_y += bubbletail_image.get_height() // 2 - bubble_image.get_height() // 2
@@ -146,6 +151,6 @@ class TextBubble:
     surface.blit(bubbletail_image, (bubbletail_x + bubble_xoffset, bubbletail_y + bubble_yoffset + bubbletail_offset))
 
     text_image = bubble.textbox.render()
-    text_x = bubble_x + TextBubble.PADDING_X
-    text_y = bubble_y + TextBubble.PADDING_Y
+    text_x = bubble_x + TextBubble.PADDING_X + bubble_widthoffset
+    text_y = bubble_y + TextBubble.PADDING_Y + bubble_heightoffset // 2
     surface.blit(text_image, (text_x, text_y))
