@@ -94,26 +94,27 @@ class ShopContext(Context):
 
     MARGIN = 2
 
-    bubble_image = assets.sprites["bubble_shop"]
-    surface.blit(bubble_image, (0, 0))
-    surface.blit(ctx.textbox.render(), (13, 26))
+    if not portrait_anim:
+      bubble_image = assets.sprites["bubble_shop"]
+      surface.blit(bubble_image, (0, 0))
+      surface.blit(ctx.textbox.render(), (13, 26))
 
     hud_image = ctx.hud.update(ctx.hero)
     hud_x = MARGIN
     hud_y = surface.get_height() - hud_image.get_height() - MARGIN
     surface.blit(hud_image, (hud_x, hud_y))
 
-    gold_image = assets.sprites["item_gold"]
-    gold_image = replace_color(gold_image, BLACK, GOLD)
-    gold_x = hud_x + hud_image.get_width() + 2
-    gold_y = hud_y + hud_image.get_height() - gold_image.get_height() - 2
-    surface.blit(gold_image, (gold_x, gold_y))
+    # gold_image = assets.sprites["item_gold"]
+    # gold_image = replace_color(gold_image, BLACK, GOLD)
+    # gold_x = hud_x + hud_image.get_width() + 2
+    # gold_y = hud_y + hud_image.get_height() - gold_image.get_height() - 2
+    # surface.blit(gold_image, (gold_x, gold_y))
 
-    goldtext_font = assets.ttf["roman"]
-    goldtext_image = goldtext_font.render("500")
-    goldtext_x = gold_x + gold_image.get_width() + 3
-    goldtext_y = gold_y + gold_image.get_height() // 2 - goldtext_image.get_height() // 2
-    surface.blit(goldtext_image, (goldtext_x, goldtext_y))
+    # goldtext_font = assets.ttf["roman"]
+    # goldtext_image = goldtext_font.render("500")
+    # goldtext_x = gold_x + gold_image.get_width() + 3
+    # goldtext_y = gold_y + gold_image.get_height() // 2 - goldtext_image.get_height() // 2
+    # surface.blit(goldtext_image, (goldtext_x, goldtext_y))
 
     if type(ctx.child) is CardContext:
       title_image = assets.ttf["english_large"].render("Fortune House")

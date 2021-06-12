@@ -435,6 +435,7 @@ class SellContext(Context):
     gold_image = replace_color(gold_image, BLACK, GOLD)
     gold_x = hud_x + hud_image.get_width() + 2
     gold_y = hud_y + hud_image.get_height() - gold_image.get_height() - 2
+    surface.blit(gold_image, (gold_x, gold_y))
 
     goldtext_font = assets.ttf["roman"]
     goldtext_image = goldtext_font.render("500")
