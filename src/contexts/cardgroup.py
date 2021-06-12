@@ -36,7 +36,6 @@ class CardContext(Context):
     ctx.hand_index = 0
     ctx.chosen = False
     ctx.anims = []
-    ctx.surface = None
     ctx.ticks = 0
 
   def card(ctx):
@@ -62,6 +61,9 @@ class CardContext(Context):
     ))
 
   def handle_keydown(ctx, key):
+    if ctx.child:
+      return ctx.child.handle_keydown(key)
+
     if next((c for c in ctx.cards if c.anims), None):
       return False
 
@@ -99,6 +101,7 @@ class CardContext(Context):
     card.spin(on_end=end)
 
   def update(ctx):
+    super().update()
     for anim in ctx.anims:
       if anim.done:
         ctx.anims.remove(anim)
@@ -108,16 +111,11 @@ class CardContext(Context):
     ctx.ticks += 1
 
   def view(ctx):
+    if ctx.child:
+      return ctx.child.view()
     sprites = []
     assets = use_assets().sprites
     card_template = assets["card_back"]
-    if ctx.surface:
-      ctx.surface.fill(0)
-    else:
-      ctx.surface = Surface((
-        len(ctx.cards) * (card_template.get_width() + CARD_SPACING) - CARD_SPACING,
-        card_template.get_height() + CARD_LIFT
-      ), SRCALPHA)
     cards_x, cards_y = ctx.pos
     x = card_template.get_width() // 2
     for card in ctx.cards:

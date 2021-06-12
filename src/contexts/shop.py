@@ -59,7 +59,7 @@ class ShopContext(Context):
     if card.name == "exit": return
 
   def handle_sell(ctx, card):
-    ctx.open(SellContext(
+    ctx.child.open(SellContext(
       items=ctx.items,
       bubble=ctx.bubble,
       portrait=ctx.portraits[0],
@@ -68,7 +68,6 @@ class ShopContext(Context):
 
   def update(ctx):
     super().update()
-    # ctx.hand_index += (ctx.card_index - ctx.hand_index) / 4
     for anim in ctx.anims:
       if anim.done:
         ctx.anims.remove(anim)
@@ -118,19 +117,7 @@ class ShopContext(Context):
     hud_y = surface.get_height() - hud_image.get_height() - MARGIN
     surface.blit(hud_image, (hud_x, hud_y))
 
-    # gold_image = assets.sprites["item_gold"]
-    # gold_image = replace_color(gold_image, BLACK, GOLD)
-    # gold_x = hud_x + hud_image.get_width() + 2
-    # gold_y = hud_y + hud_image.get_height() - gold_image.get_height() - 2
-    # surface.blit(gold_image, (gold_x, gold_y))
-
-    # goldtext_font = assets.ttf["roman"]
-    # goldtext_image = goldtext_font.render("500")
-    # goldtext_x = gold_x + gold_image.get_width() + 3
-    # goldtext_y = gold_y + gold_image.get_height() // 2 - goldtext_image.get_height() // 2
-    # surface.blit(goldtext_image, (goldtext_x, goldtext_y))
-
-    if type(ctx.child) is CardContext:
+    if ctx.child.child is None:
       title_image = assets.ttf["english_large"].render("Fortune House")
       title_x = surface.get_width() - title_image.get_width() - 8
       title_y = surface.get_height() - title_image.get_height() - 7
@@ -147,12 +134,3 @@ class ShopContext(Context):
         sprite.draw(surface)
     elif ctx.child:
       ctx.child.draw(surface)
-
-    # controls_x = surface.get_width() - 8
-    # controls_y = surface.get_height() - 12
-    # for control in ctx.controls:
-    #   control_image = control.render()
-    #   control_x = controls_x - control_image.get_width()
-    #   control_y = controls_y - control_image.get_height() // 2
-    #   surface.blit(control_image, (control_x, control_y))
-    #   controls_x = control_x - 8

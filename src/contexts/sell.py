@@ -19,6 +19,8 @@ from lib.lerp import lerp
 from items.materials import MaterialItem
 from hud import Hud
 from savedata.resolve import resolve_material
+from config import WINDOW_WIDTH, WINDOW_HEIGHT
+from sprite import Sprite
 
 class SelectAnim(TweenAnim): blocking = False
 class DeselectAnim(TweenAnim): blocking = False
@@ -276,8 +278,8 @@ class SellContext(Context):
 
   def enter(ctx):
     ctx.anims.append(ctx.TagEnterAnim(duration=10, delay=25))
-    ctx.anims.append(ctx.DescEnterAnim(duration=25, delay=25))
-    ctx.anims.append(ctx.ItemListAnim(duration=25, delay=25))
+    ctx.anims.append(ctx.DescEnterAnim(duration=20, delay=25))
+    ctx.anims.append(ctx.ItemListAnim(duration=20, delay=25))
     if ctx.card:
       # ctx.card.spin(duration=30)
       if ctx.card.sprite:
@@ -412,7 +414,8 @@ class SellContext(Context):
     if ctx.cursor_drawn != None:
       ctx.cursor_drawn += (ctx.cursor - ctx.scroll - ctx.cursor_drawn) / 4
 
-  def draw(ctx, surface):
+  def view(ctx):
+    sprites = []
     assets = use_assets()
 
     MARGIN = 2
@@ -424,28 +427,37 @@ class SellContext(Context):
       2
     ))
 
-    tag_x = surface.get_width() - tag_image.get_width()
+    tag_x = WINDOW_WIDTH - tag_image.get_width()
     tag_y = 0
     tag_anim = next((a for a in ctx.anims if type(a) is SellContext.TagEnterAnim), None)
     if tag_anim:
       tag_y = lerp(-tag_image.get_height(), 0, tag_anim.pos)
-    surface.blit(tag_image, (tag_x, tag_y))
+    sprites.append(Sprite(
+      image=tag_image,
+      pos=(tag_x, tag_y)
+    ))
 
     hud_image = ctx.hud.update(ctx.hero)
     hud_x = MARGIN
-    hud_y = surface.get_height() - hud_image.get_height() - MARGIN
+    hud_y = WINDOW_HEIGHT - hud_image.get_height() - MARGIN
 
     gold_image = assets.sprites["item_gold"]
     gold_image = replace_color(gold_image, BLACK, GOLD)
     gold_x = hud_x + hud_image.get_width() + 2
     gold_y = hud_y + hud_image.get_height() - gold_image.get_height() - 2
-    surface.blit(gold_image, (gold_x, gold_y))
+    sprites.append(Sprite(
+      image=gold_image,
+      pos=(gold_x, gold_y)
+    ))
 
     goldtext_font = assets.ttf["roman"]
     goldtext_image = goldtext_font.render("500")
     goldtext_x = gold_x + gold_image.get_width() + 3
     goldtext_y = gold_y + gold_image.get_height() // 2 - goldtext_image.get_height() // 2
-    surface.blit(goldtext_image, (goldtext_x, goldtext_y))
+    sprites.append(Sprite(
+      image=goldtext_image,
+      pos=(goldtext_x, goldtext_y)
+    ))
 
     surplus = 0
     for tab, i in ctx.selection:
@@ -454,20 +466,35 @@ class SellContext(Context):
       surplus += item.value // 2
     if surplus:
       surplus_image = goldtext_font.render("(+{})".format(surplus), CYAN)
-      surface.blit(surplus_image, (goldtext_x + goldtext_image.get_width(), goldtext_y))
+      sprites.append(Sprite(
+        image=surplus_image,
+        pos=(
+          goldtext_x + goldtext_image.get_width(),
+          goldtext_y
+        )
+      ))
       select_image = goldtext_font.render("{count} item{s}".format(
         count=len(ctx.selection),
         s="s" if len(ctx.selection) != 1 else ""
       ), CYAN)
-      surface.blit(select_image, (gold_x + 2, gold_y - select_image.get_height() - 1))
+      sprites.append(Sprite(
+        image=select_image,
+        pos=(
+          gold_x + 2,
+          gold_y - select_image.get_height() - 1
+        )
+      ))
 
-    controls_x = surface.get_width() - 8
-    controls_y = surface.get_height() - 12
+    controls_x = WINDOW_WIDTH - 8
+    controls_y = WINDOW_HEIGHT - 12
     for control in ctx.controls:
       control_image = control.render()
       control_x = controls_x - control_image.get_width()
       control_y = controls_y - control_image.get_height() // 2
-      surface.blit(control_image, (control_x, control_y))
+      sprites.append(Sprite(
+        image=control_image,
+        pos=(control_x, control_y)
+      ))
       controls_x = control_x - 8
 
     tabs_image = ctx.tablist.render()
@@ -476,18 +503,27 @@ class SellContext(Context):
       tab=ctx.tablist.selection(),
       selection=ctx.selection
     )
-    menu_x = surface.get_width() - items_image.get_width() - MARGIN
-    menu_y = surface.get_height() - items_image.get_height() - tabs_image.get_height() - 24
+    menu_x = WINDOW_WIDTH - items_image.get_width() - MARGIN
+    menu_y = WINDOW_HEIGHT - items_image.get_height() - tabs_image.get_height() - 24
     menu_ytrue = menu_y
     menu_anim = next((a for a in ctx.anims if type(a) is ctx.ItemListAnim), None)
     if menu_anim:
-      t = ease_out(menu_anim.pos)
-      menu_ytrue = lerp(surface.get_height(), menu_y, t)
-    surface.blit(tabs_image, (menu_x, menu_ytrue))
-    surface.blit(items_image, (menu_x, menu_ytrue + tabs_image.get_height()))
+      t = menu_anim.pos
+      t = ease_out(t)
+      menu_ytrue = lerp(WINDOW_HEIGHT, menu_y, t)
+    sprites += [
+      Sprite(
+        image=tabs_image,
+        pos=(menu_x, menu_ytrue)
+      ),
+      Sprite(
+        image=items_image,
+        pos=(menu_x, menu_ytrue + tabs_image.get_height())
+      )
+    ]
 
-    descbox_width = surface.get_width() - items_image.get_width() - MARGIN * 3
-    descbox_height = surface.get_height() - menu_y - hud_image.get_height() - MARGIN * 2
+    descbox_width = WINDOW_WIDTH - items_image.get_width() - MARGIN * 3
+    descbox_height = WINDOW_HEIGHT - menu_y - hud_image.get_height() - MARGIN * 2
     descbox_image = Box.render((descbox_width, descbox_height))
     item = ctx.itembox.items and ctx.itembox.items[ctx.cursor]
     desc_anim = next((a for a in ctx.anims if type(a) is ctx.DescAnim), None)
@@ -534,9 +570,13 @@ class SellContext(Context):
     descbox_x = MARGIN
     descbox_y = hud_y - MARGIN - descbox_height
     if descbox_anim:
-      t = ease_out(descbox_anim.pos)
+      t = descbox_anim.pos
+      t = ease_out(t)
       descbox_x = lerp(-descbox_image.get_width(), descbox_x, t)
-    surface.blit(descbox_image, (descbox_x, descbox_y))
+    sprites.append(Sprite(
+      image=descbox_image,
+      pos=(descbox_x, descbox_y)
+    ))
 
     card_image = assets.sprites["card_back"]
     card_x = menu_x + items_image.get_width() - card_image.get_width() // 2
@@ -551,7 +591,7 @@ class SellContext(Context):
       card_y = lerp(start_y, target_y, t)
     card_sprite = ctx.card.render()
     card_sprite.pos = (card_x, card_y)
-    card_sprite.draw(surface)
+    sprites.append(card_sprite)
 
     if ctx.itembox.items and ctx.cursor_drawn != None and not next((a for a in ctx.anims if a.blocking), None):
       cursor_anim = next((a for a in ctx.anims if type(a) is ctx.CursorAnim), None)
@@ -564,4 +604,9 @@ class SellContext(Context):
         hand_x += sin(cursor_anim.time % 30 / 30 * 2 * pi) * 2
       hand_y = menu_y + tabs_image.get_height() + 4
       hand_y += ctx.cursor_drawn * 18
-      surface.blit(hand_image, (hand_x, hand_y))
+      sprites.append(Sprite(
+        image=hand_image,
+        pos=(hand_x, hand_y)
+      ))
+
+    return sprites
