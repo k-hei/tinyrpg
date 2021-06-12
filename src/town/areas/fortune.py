@@ -31,7 +31,7 @@ class FortuneArea(Stage):
       move_period=45,
       is_shopkeep=True,
       message=lambda talkee, ctx: [
-        "{}: How can I help you?".format(talkee.get_name().upper()),
+        "{}: Welcome....".format(talkee.get_name().upper()),
         lambda: ShopContext(
           hud=ctx.hud,
           items=list(map(resolve_item, [

@@ -295,10 +295,11 @@ class SellContext(Context):
       SellContext.DescExitAnim(duration=7),
       SellContext.ListExitAnim(duration=7),
       SellContext.CardExitAnim(
-        duration=15,
+        duration=20,
         target=ctx.card_pos
       )
     ]
+    ctx.card.spin(duration=20)
     ctx.on_animate = ctx.close
 
   def handle_keydown(ctx, key):
@@ -307,8 +308,7 @@ class SellContext(Context):
 
     key_time = keyboard.get_pressed(key)
     if (key_time == 1
-    or key_time > 30 and key_time % 2
-    ):
+    or key_time > 30 and key_time % 2):
       if key in (pygame.K_UP, pygame.K_w):
         return ctx.handle_move(-1)
       if key in (pygame.K_DOWN, pygame.K_s):

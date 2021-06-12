@@ -81,7 +81,7 @@ class ShopContext(Context):
       HudEnterAnim(duration=20),
       BackgroundSlideupAnim(duration=15),
       BackgroundEnterAnim(duration=15, delay=10),
-      PortraitEnterAnim(duration=20, delay=40, on_end=ctx.focus),
+      PortraitEnterAnim(duration=20, delay=30, on_end=ctx.focus),
       *animate_text(anim=SubtitleEnterAnim, text=ctx.subtitle, period=3, stagger=1, delay=75),
       SubtitleSlideAnim(duration=15, delay=len(ctx.subtitle) + 80),
       *animate_text(anim=TitleEnterAnim, text=ctx.title, period=5, stagger=3, delay=120),
@@ -124,7 +124,7 @@ class ShopContext(Context):
   def handle_choose(ctx, card):
     if card.name == "buy": return
     if card.name == "sell": return ctx.handle_sell(card)
-    if card.name == "exit": return ctx.handle_close()
+    if card.name == "exit": return ctx.handle_exit()
 
   def handle_sell(ctx, card):
     ctx.blurring = True
@@ -141,8 +141,8 @@ class ShopContext(Context):
       on_close=ctx.focus
     ))
 
-  def handle_close(ctx):
-    return ctx.close("")
+  def handle_exit(ctx):
+    return ctx.close(None)
 
   def update(ctx):
     super().update()

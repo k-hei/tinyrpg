@@ -55,17 +55,14 @@ class Context:
         child.on_close = on_close
     return True
 
-  def close(ctx, data=None):
+  def close(ctx, *args):
     ctx.parent.child = None
     for kind in ctx.effects:
       for comp in ctx.parent.comps:
         if isinstance(comp, kind):
           comp.enter()
     if ctx.on_close:
-      if data is None:
-        ctx.on_close()
-      else:
-        ctx.on_close(data)
+      ctx.on_close(*args)
     return True
 
   def update(ctx):
