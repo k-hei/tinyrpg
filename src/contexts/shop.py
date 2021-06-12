@@ -24,18 +24,23 @@ from portraits.mira import MiraPortrait
 class CursorAnim(Anim): blocking = False
 class BackgroundEnterAnim(TweenAnim): blocking = True
 class PortraitEnterAnim(TweenAnim): blocking = True
-class TitleCharEnterAnim(TweenAnim): blocking = True
-def TitleEnterAnim(text):
+class TitleEnterAnim(TweenAnim): blocking = True
+class SubtitleEnterAnim(TweenAnim): blocking = True
+class SubtitleSlideAnim(TweenAnim): blocking = True
+def animate_text(anim, text, period, stagger=1, delay=0):
   anims = []
   for i, char in enumerate(text):
-    anims.append(TitleCharEnterAnim(
-      duration=5,
-      delay=i * 3,
+    anims.append(anim(
+      duration=period,
+      delay=i * stagger + delay,
       target=i
     ))
   return anims
 
 class ShopContext(Context):
+  title = "Fortune House"
+  subtitle = "Destiny written in starlight"
+
   def __init__(ctx, items):
     super().__init__()
     ctx.items = items
@@ -55,7 +60,9 @@ class ShopContext(Context):
 
   def enter(ctx):
     ctx.anims += [
-      *TitleEnterAnim("Fortune House"),
+      *animate_text(anim=TitleEnterAnim, text=ctx.title, period=5, stagger=3, delay=135),
+      *animate_text(anim=SubtitleEnterAnim, text=ctx.subtitle, period=3, stagger=1, delay=90),
+      SubtitleSlideAnim(duration=15, delay=len(ctx.subtitle) + 95),
       BackgroundEnterAnim(duration=15, delay=5),
       PortraitEnterAnim(
         duration=20,
@@ -149,7 +156,7 @@ class ShopContext(Context):
     surface.blit(hud_image, (hud_x, hud_y))
 
     if not ctx.child or ctx.child.child is None:
-      title_text = "Fortune House"
+      title_text = ctx.title
       title_font = assets.ttf["english_large"]
       title_width, title_height = title_font.size(title_text)
       title_x = surface.get_width() - title_width - 8
@@ -157,7 +164,7 @@ class ShopContext(Context):
       char_x = title_x
       char_y = title_y
       for i, char in enumerate(title_text):
-        char_anim = next((a for a in ctx.anims if type(a) is TitleCharEnterAnim and a.target == i), None)
+        char_anim = next((a for a in ctx.anims if type(a) is TitleEnterAnim and a.target == i), None)
         if char_anim:
           t = char_anim.pos
           c = int(0xFF * t)
@@ -170,11 +177,31 @@ class ShopContext(Context):
         surface.blit(char_image, (char_x + char_offset, char_y + char_offset))
         char_x += char_image.get_width()
 
+      subtitle_text = ctx.subtitle
       subtitle_font = assets.ttf["roman"]
-      subtitle_image = subtitle_font.render("Destiny written in starlight")
-      subtitle_x = title_x + title_width - subtitle_image.get_width()
+      subtitle_width, subtitle_height = subtitle_font.size(subtitle_text)
+      subtitle_x = title_x + title_width - subtitle_width
       subtitle_y = title_y - title_height + 2
-      surface.blit(subtitle_image, (subtitle_x, subtitle_y))
+      subtitle_anim = next((a for a in ctx.anims if type(a) is SubtitleSlideAnim), None)
+      if subtitle_anim:
+        t = subtitle_anim.pos
+        t = ease_out(t)
+        subtitle_y = lerp(surface.get_height() - subtitle_height - 7, subtitle_y, t)
+      char_x = subtitle_x
+      char_y = subtitle_y
+      for i, char in enumerate(subtitle_text):
+        char_anim = next((a for a in ctx.anims if type(a) is SubtitleEnterAnim and a.target == i), None)
+        if char_anim:
+          t = char_anim.pos
+          c = int(0xFF * t)
+          char_offset = (1 - ease_out(t)) * 12
+          char_color = (c << 16) + (c << 8) + c
+        else:
+          char_offset = 0
+          char_color = WHITE
+        char_image = subtitle_font.render(char, char_color)
+        surface.blit(char_image, (char_x + char_offset, char_y + char_offset))
+        char_x += char_image.get_width()
 
     if type(ctx.child) is CardContext:
       sprites = ctx.child.view()
