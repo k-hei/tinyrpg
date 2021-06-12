@@ -11,18 +11,15 @@ TALK_RADIUS = TILE_SIZE * 1.5
 class Actor(Element):
   speed = 1.5
 
-  def __init__(actor, core, cell=None, facing=None, color=None, moving=False, move_period=30, is_shopkeep=False, message=None):
+  def __init__(actor, core, pos=None, facing=None, color=None, moving=False, move_period=30, is_shopkeep=False, message=None):
     super().__init__()
     actor.core = core
     actor.core.color = color
     actor.move_period = move_period
     actor.is_shopkeep = is_shopkeep
     actor.message = message
-    actor.pos = (0, 0)
+    actor.pos = pos
     actor.anim = None
-    if cell:
-      col, row = cell
-      actor.pos = ((col + 0.5) * TILE_SIZE, (row + 0.5) * TILE_SIZE)
     if facing:
       actor.face(facing)
     if moving:
@@ -91,7 +88,7 @@ class Actor(Element):
     in_range = (sqrt(dist_x * dist_x + dist_y * dist_y) < TALK_RADIUS
       or target.is_shopkeep
         and abs(dist_x) < TILE_SIZE // 2
-        and dist_y == -TILE_SIZE * 2
+        and dist_y == -TILE_SIZE * 1.5
         and facing_y == -1)
     return in_range and dist_x * facing_x >= 0 and dist_y * facing_y >= 0
 

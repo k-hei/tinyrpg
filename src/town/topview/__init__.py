@@ -19,15 +19,8 @@ class TopViewContext(Context):
   def __init__(ctx, area, hero):
     super().__init__()
     ctx.area = area
-    ctx.hero = Actor(core=hero, cell=(2, 5), facing=(0, -1))
-    ctx.stage = Stage.parse(
-      layout=area.layout,
-      elems=insert_value(
-        mapping=area.elems,
-        key="hero",
-        value=ctx.hero
-      )
-    )
+    ctx.hero = Actor(core=hero, facing=(0, -1))
+    ctx.stage = area(ctx.hero)
     ctx.hud = Hud()
     ctx.elem = None
     ctx.link = None
@@ -63,15 +56,15 @@ class TopViewContext(Context):
     init_center = rect.center
     elem_rects = [(e, e.get_rect()) for e in ctx.stage.elems if e is not actor and e.solid]
     elem, elem_rect = next(((e, r) for (e, r) in elem_rects if r.colliderect(rect)), (None, None))
-    col_w = rect.left // TILE_SIZE
-    row_n = rect.top // TILE_SIZE
-    col_e = (rect.right - 1) // TILE_SIZE
-    row_s = (rect.bottom - 1) // TILE_SIZE
+    col_w = rect.left // ctx.stage.scale
+    row_n = rect.top // ctx.stage.scale
+    col_e = (rect.right - 1) // ctx.stage.scale
+    row_s = (rect.bottom - 1) // ctx.stage.scale
     tile_nw = stage.get_tile_at((col_w, row_n))
     tile_ne = stage.get_tile_at((col_e, row_n))
     tile_sw = stage.get_tile_at((col_w, row_s))
     tile_se = stage.get_tile_at((col_e, row_s))
-    above_half = rect.top < (row_n + 0.5) * TILE_SIZE
+    above_half = rect.top < (row_n + 0.5) * ctx.stage.scale
 
     if delta_x < 0:
       if rect.centerx < 0:
@@ -80,7 +73,7 @@ class TopViewContext(Context):
       elif ((Tile.is_solid(tile_nw) or Tile.is_solid(tile_sw))
       or (Tile.is_halfsolid(tile_nw) or Tile.is_halfsolid(tile_sw))
       and above_half):
-        rect.left = (col_w + 1) * TILE_SIZE
+        rect.left = (col_w + 1) * ctx.stage.scale
       elif elem:
         rect.left = elem_rect.right
     elif delta_x > 0:
@@ -90,7 +83,7 @@ class TopViewContext(Context):
       elif ((Tile.is_solid(tile_ne) or Tile.is_solid(tile_se))
       or (Tile.is_halfsolid(tile_ne) or Tile.is_halfsolid(tile_se))
       and above_half):
-        rect.right = col_e * TILE_SIZE
+        rect.right = col_e * ctx.stage.scale
       elif elem:
         rect.right = elem_rect.left
 
@@ -99,10 +92,10 @@ class TopViewContext(Context):
         rect.top = 0
         ctx.handle_areachange((0, -1))
       elif Tile.is_solid(tile_nw) or Tile.is_solid(tile_ne):
-        rect.top = (row_n + 1) * TILE_SIZE
+        rect.top = (row_n + 1) * ctx.stage.scale
       elif ((Tile.is_halfsolid(tile_nw) or Tile.is_halfsolid(tile_ne))
       and above_half):
-        rect.top = (row_n + 0.5) * TILE_SIZE
+        rect.top = (row_n + 0.5) * ctx.stage.scale
       elif elem:
         rect.top = elem_rect.bottom
     elif delta_y > 0:
@@ -110,7 +103,7 @@ class TopViewContext(Context):
         rect.top = WINDOW_HEIGHT
         ctx.handle_areachange((0, 1))
       elif Tile.is_solid(tile_sw) or Tile.is_solid(tile_se):
-        rect.bottom = row_s * TILE_SIZE
+        rect.bottom = row_s * ctx.stage.scale
       elif elem:
         rect.bottom = elem_rect.top
 
@@ -173,8 +166,6 @@ class TopViewContext(Context):
       z = y
       if elem is hero:
         z -= 1
-      if not elem.solid:
-        z -= WINDOW_HEIGHT
       return z
     elems = sorted(ctx.stage.elems, key=zsort)
     for elem in elems:
