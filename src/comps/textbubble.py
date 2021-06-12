@@ -80,7 +80,7 @@ class TextBubble:
       bubble.height = height
       on_end and on_end()
     bubble.anims.append(TextBubble.ResizeAnim(
-      duration=15,
+      duration=10,
       target=height,
       on_end=end
     ))

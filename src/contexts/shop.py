@@ -142,7 +142,12 @@ class ShopContext(Context):
     ))
 
   def handle_exit(ctx):
-    return ctx.close(None)
+    portrait = ctx.portraits[0]
+    portrait.start_talk()
+    ctx.bubble.print("MIRA: See you soon...", on_end=lambda: (
+      ctx.anims.append(Anim(duration=30, on_end=lambda: ctx.close(None))),
+      portrait.stop_talk()
+    ))
 
   def update(ctx):
     super().update()
