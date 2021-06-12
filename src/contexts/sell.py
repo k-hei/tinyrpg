@@ -287,7 +287,7 @@ class SellContext(Context):
           delay=5,
           target=ctx.card.sprite.pos
         ))
-    ctx.textbox.print("MIRA: What do we have here today?")
+    ctx.textbox.print("MIRA: Got something to sell me?")
 
   def handle_keydown(ctx, key):
     if next((a for a in ctx.anims if a.blocking), None) or ctx.tablist.anims:

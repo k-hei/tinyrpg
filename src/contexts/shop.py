@@ -17,13 +17,13 @@ import keyboard
 from anims import Anim
 from anims.tween import TweenAnim
 from easing.expo import ease_out
+from easing.circ import ease_out as ease_out_circ
 from lib.lerp import lerp
 from portraits.mira import MiraPortrait
 
 class CursorAnim(Anim): blocking = False
-class SelectAnim(TweenAnim): blocking = False
-class DeselectAnim(TweenAnim): blocking = False
-class TwirlAnim(TweenAnim): pass
+class BackgroundEnterAnim(TweenAnim): blocking = True
+class PortraitEnterAnim(TweenAnim): blocking = True
 
 class ShopContext(Context):
   def __init__(ctx, items):
@@ -41,6 +41,12 @@ class ShopContext(Context):
 
   def init(ctx):
     ctx.textbox.print("MIRA: What can I do you for?")
+
+  def enter(ctx):
+    ctx.anims += [
+      BackgroundEnterAnim(duration=15),
+      PortraitEnterAnim(duration=20, delay=10)
+    ]
 
   def handle_choose(ctx, card):
     if card.name == "buy": return
@@ -68,12 +74,22 @@ class ShopContext(Context):
     pygame.draw.rect(surface, BLACK, Rect(0, 0, 256, 224))
 
     bg_image = assets.sprites["fortune_bg"]
-    surface.blit(bg_image, (0, 128 - bg_image.get_height()))
+    bg_anim = next((a for a in ctx.anims if type(a) is BackgroundEnterAnim), None)
+    if bg_anim:
+      t = ease_out(bg_anim.pos)
+      bg_width = bg_image.get_width()
+      bg_height = int(bg_image.get_height() * t)
+      bg_image = scale(bg_image, (bg_width, bg_height))
+    surface.blit(bg_image, (0, 128 / 2 - bg_image.get_height() / 2))
 
     for portrait in ctx.portraits:
       portrait_image = portrait.render()
       portrait_x = surface.get_width() - portrait_image.get_width()
       portrait_y = 0
+      portrait_anim = next((a for a in ctx.anims if type(a) is PortraitEnterAnim), None)
+      if portrait_anim:
+        t = ease_out_circ(portrait_anim.pos)
+        portrait_x = lerp(surface.get_width(), portrait_x, t)
       surface.blit(portrait_image, (portrait_x, portrait_y))
 
     MARGIN = 2
