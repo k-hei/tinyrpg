@@ -248,10 +248,18 @@ class BagList:
 class SellContext(Context):
   class CursorAnim(Anim): blocking = False
   class DescAnim(Anim): blocking = False
-  class DescEnterAnim(TweenAnim): blocking = True
-  class ItemListAnim(TweenAnim): blocking = True
-  class TagEnterAnim(TweenAnim): blocking = True
+  class DescMoveAnim(TweenAnim): blocking = True
+  class DescEnterAnim(DescMoveAnim): pass
+  class DescExitAnim(DescMoveAnim): pass
+  class ListMoveAnim(TweenAnim): blocking = True
+  class ListEnterAnim(ListMoveAnim): pass
+  class ListExitAnim(ListMoveAnim): pass
+  class TagMoveAnim(TweenAnim): blocking = True
+  class TagEnterAnim(TagMoveAnim): pass
+  class TagExitAnim(TagMoveAnim): pass
   class CardAnim(TweenAnim): blocking = True
+  class CardEnterAnim(CardAnim): pass
+  class CardExitAnim(CardAnim): pass
 
   def __init__(ctx, items, bubble=None, portrait=None, card=None, on_close=None):
     super().__init__(on_close=on_close)
@@ -259,12 +267,15 @@ class SellContext(Context):
     ctx.bubble = bubble or TextBubble(width=96, pos=(128, 40))
     ctx.portrait = portrait
     ctx.card = card or Card("sell")
+    ctx.card_pos = card and card.sprite.pos
     ctx.cursor = 0
     ctx.cursor_drawn = 0
     ctx.scroll = 0
     ctx.scroll_drawn = 0
     ctx.selection = []
     ctx.anims = []
+    ctx.on_animate = None
+    ctx.exiting = False
     ctx.requires_release = {}
     ctx.hero = KnightCore()
     ctx.hud = Hud()
@@ -277,13 +288,13 @@ class SellContext(Context):
     ctx.reset_cursor()
 
   def enter(ctx):
-    ctx.anims.append(ctx.TagEnterAnim(duration=10, delay=25))
-    ctx.anims.append(ctx.DescEnterAnim(duration=20, delay=25))
-    ctx.anims.append(ctx.ItemListAnim(duration=20, delay=25))
+    ctx.anims.append(SellContext.TagEnterAnim(duration=10, delay=25))
+    ctx.anims.append(SellContext.DescEnterAnim(duration=20, delay=25))
+    ctx.anims.append(SellContext.ListEnterAnim(duration=20, delay=25))
     if ctx.card:
       # ctx.card.spin(duration=30)
       if ctx.card.sprite:
-        ctx.anims.append(ctx.CardAnim(
+        ctx.anims.append(SellContext.CardEnterAnim(
           duration=30,
           delay=5,
           target=ctx.card.sprite.pos
@@ -292,7 +303,17 @@ class SellContext(Context):
     ctx.bubble.print("MIRA: Got something to sell me?", on_end=ctx.portrait.stop_talk)
 
   def exit(ctx, on_end=None):
-    ctx.close()
+    ctx.exiting = True
+    ctx.anims += [
+      SellContext.DescExitAnim(duration=7),
+      SellContext.ListExitAnim(duration=7),
+      SellContext.TagExitAnim(duration=7),
+      SellContext.CardExitAnim(
+        duration=15,
+        target=ctx.card_pos
+      )
+    ]
+    ctx.on_animate = ctx.close
 
   def handle_keydown(ctx, key):
     if next((a for a in ctx.anims if a.blocking), None) or ctx.tablist.anims:
@@ -417,6 +438,11 @@ class SellContext(Context):
     for anim in ctx.anims:
       if anim.done:
         ctx.anims.remove(anim)
+        if (anim.blocking
+        and not next((a for a in ctx.anims if a.blocking), None)
+        and ctx.on_animate):
+          ctx.on_animate()
+          ctx.on_animate = None
       else:
         anim.update()
     ctx.scroll_drawn += (ctx.scroll - ctx.scroll_drawn) / 4
@@ -438,13 +464,17 @@ class SellContext(Context):
 
     tag_x = WINDOW_WIDTH - tag_image.get_width()
     tag_y = 0
-    tag_anim = next((a for a in ctx.anims if type(a) is SellContext.TagEnterAnim), None)
+    tag_anim = next((a for a in ctx.anims if isinstance(a, SellContext.TagMoveAnim)), None)
     if tag_anim:
-      tag_y = lerp(-tag_image.get_height(), 0, tag_anim.pos)
-    sprites.append(Sprite(
-      image=tag_image,
-      pos=(tag_x, tag_y)
-    ))
+      t = tag_anim.pos
+      if type(tag_anim) is SellContext.TagExitAnim:
+        t = 1 - t
+      tag_y = lerp(-tag_image.get_height(), 0, t)
+    if tag_anim or not ctx.exiting:
+      sprites.append(Sprite(
+        image=tag_image,
+        pos=(tag_x, tag_y)
+      ))
 
     hud_image = ctx.hud.update(ctx.hero)
     hud_x = MARGIN
@@ -515,21 +545,25 @@ class SellContext(Context):
     menu_x = WINDOW_WIDTH - items_image.get_width() - MARGIN
     menu_y = WINDOW_HEIGHT - items_image.get_height() - tabs_image.get_height() - 24
     menu_ytrue = menu_y
-    menu_anim = next((a for a in ctx.anims if type(a) is ctx.ItemListAnim), None)
+    menu_anim = next((a for a in ctx.anims if isinstance(a, SellContext.ListMoveAnim)), None)
     if menu_anim:
       t = menu_anim.pos
-      t = ease_out(t)
+      if type(menu_anim) is SellContext.ListEnterAnim:
+        t = ease_out(t)
+      elif type(menu_anim) is SellContext.ListExitAnim:
+        t = 1 - t
       menu_ytrue = lerp(WINDOW_HEIGHT, menu_y, t)
-    sprites += [
-      Sprite(
-        image=tabs_image,
-        pos=(menu_x, menu_ytrue)
-      ),
-      Sprite(
-        image=items_image,
-        pos=(menu_x, menu_ytrue + tabs_image.get_height())
-      )
-    ]
+    if menu_anim or not ctx.exiting:
+      sprites += [
+        Sprite(
+          image=tabs_image,
+          pos=(menu_x, menu_ytrue)
+        ),
+        Sprite(
+          image=items_image,
+          pos=(menu_x, menu_ytrue + tabs_image.get_height())
+        )
+      ]
 
     descbox_width = WINDOW_WIDTH - items_image.get_width() - MARGIN * 3
     descbox_height = WINDOW_HEIGHT - menu_y - hud_image.get_height() - MARGIN * 2
@@ -575,29 +609,36 @@ class SellContext(Context):
       value_image = assets.ttf["roman"].render(value_text)
       descbox_image.blit(value_image, (label_x + label_image.get_width() + 5, label_y))
 
-    descbox_anim = next((a for a in ctx.anims if type(a) is ctx.DescEnterAnim), None)
+    descbox_anim = next((a for a in ctx.anims if isinstance(a, SellContext.DescMoveAnim)), None)
     descbox_x = MARGIN
     descbox_y = hud_y - MARGIN - descbox_height
     if descbox_anim:
       t = descbox_anim.pos
-      t = ease_out(t)
+      if type(descbox_anim) is SellContext.DescEnterAnim:
+        t = ease_out(t)
+      elif type(descbox_anim) is SellContext.DescExitAnim:
+        t = 1 - t
       descbox_x = lerp(-descbox_image.get_width(), descbox_x, t)
-    sprites.append(Sprite(
-      image=descbox_image,
-      pos=(descbox_x, descbox_y)
-    ))
+    if descbox_anim or not ctx.exiting:
+      sprites.append(Sprite(
+        image=descbox_image,
+        pos=(descbox_x, descbox_y)
+      ))
 
     card_image = assets.sprites["card_back"]
     card_x = menu_x + items_image.get_width() - card_image.get_width() // 2
     card_y = menu_y + tabs_image.get_height() - card_image.get_height() // 2 - 1
-    card_anim = next((a for a in ctx.anims if type(a) is ctx.CardAnim), None)
+    card_anim = next((a for a in ctx.anims if isinstance(a, SellContext.CardAnim)), None)
     if card_anim:
       t = card_anim.pos
-      t = ease_out(t)
-      start_x, start_y = card_anim.target
-      target_x, target_y = (card_x, card_y)
-      card_x = lerp(start_x, target_x, t)
-      card_y = lerp(start_y, target_y, t)
+      if type(card_anim) is SellContext.CardEnterAnim:
+        t = ease_out(t)
+      elif type(card_anim) is SellContext.CardExitAnim:
+        t = 1 - ease_out(t)
+      from_x, from_y = card_anim.target
+      to_x, to_y = (card_x, card_y)
+      card_x = lerp(from_x, to_x, t)
+      card_y = lerp(from_y, to_y, t)
     card_sprite = ctx.card.render()
     card_sprite.pos = (card_x, card_y)
     sprites.append(card_sprite)
