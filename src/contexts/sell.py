@@ -260,6 +260,9 @@ class SellContext(Context):
   class CardAnim(TweenAnim): blocking = True
   class CardEnterAnim(CardAnim): pass
   class CardExitAnim(CardAnim): pass
+  class GoldAnim(TweenAnim): blocking = True
+  class GoldEnterAnim(GoldAnim): pass
+  class GoldExitAnim(GoldAnim): pass
 
   def __init__(ctx, items, bubble=None, portrait=None, card=None, on_close=None):
     super().__init__(on_close=on_close)
@@ -288,9 +291,12 @@ class SellContext(Context):
     ctx.reset_cursor()
 
   def enter(ctx):
-    ctx.anims.append(SellContext.TagEnterAnim(duration=10, delay=25))
-    ctx.anims.append(SellContext.DescEnterAnim(duration=20, delay=25))
-    ctx.anims.append(SellContext.ListEnterAnim(duration=20, delay=25))
+    ctx.anims += [
+      SellContext.TagEnterAnim(duration=10, delay=40),
+      SellContext.GoldEnterAnim(duration=10, delay=40),
+      SellContext.DescEnterAnim(duration=20, delay=25),
+      SellContext.ListEnterAnim(duration=20, delay=25),
+    ]
     if ctx.card:
       # ctx.card.spin(duration=30)
       if ctx.card.sprite:
@@ -305,9 +311,10 @@ class SellContext(Context):
   def exit(ctx, on_end=None):
     ctx.exiting = True
     ctx.anims += [
+      SellContext.TagExitAnim(duration=7),
+      SellContext.GoldExitAnim(duration=7),
       SellContext.DescExitAnim(duration=7),
       SellContext.ListExitAnim(duration=7),
-      SellContext.TagExitAnim(duration=7),
       SellContext.CardExitAnim(
         duration=15,
         target=ctx.card_pos
@@ -484,57 +491,48 @@ class SellContext(Context):
     gold_image = replace_color(gold_image, BLACK, GOLD)
     gold_x = hud_x + hud_image.get_width() + 2
     gold_y = hud_y + hud_image.get_height() - gold_image.get_height() - 2
-    sprites.append(Sprite(
-      image=gold_image,
-      pos=(gold_x, gold_y)
-    ))
-
-    goldtext_font = assets.ttf["roman"]
-    goldtext_image = goldtext_font.render("500")
-    goldtext_x = gold_x + gold_image.get_width() + 3
-    goldtext_y = gold_y + gold_image.get_height() // 2 - goldtext_image.get_height() // 2
-    sprites.append(Sprite(
-      image=goldtext_image,
-      pos=(goldtext_x, goldtext_y)
-    ))
-
-    surplus = 0
-    for tab, i in ctx.selection:
-      items = filter_items(ctx.items, tab)
-      item = items[i]
-      surplus += item.value // 2
-    if surplus:
-      surplus_image = goldtext_font.render("(+{})".format(surplus), CYAN)
-      sprites.append(Sprite(
-        image=surplus_image,
-        pos=(
-          goldtext_x + goldtext_image.get_width(),
-          goldtext_y
-        )
-      ))
-      select_image = goldtext_font.render("{count} item{s}".format(
-        count=len(ctx.selection),
-        s="s" if len(ctx.selection) != 1 else ""
-      ), CYAN)
-      sprites.append(Sprite(
-        image=select_image,
-        pos=(
-          gold_x + 2,
-          gold_y - select_image.get_height() - 1
-        )
-      ))
-
-    controls_x = WINDOW_WIDTH - 8
-    controls_y = WINDOW_HEIGHT - 12
-    for control in ctx.controls:
-      control_image = control.render()
-      control_x = controls_x - control_image.get_width()
-      control_y = controls_y - control_image.get_height() // 2
-      sprites.append(Sprite(
-        image=control_image,
-        pos=(control_x, control_y)
-      ))
-      controls_x = control_x - 8
+    gold_anim = next((a for a in ctx.anims if isinstance(a, SellContext.GoldAnim)), None)
+    if gold_anim:
+      t = gold_anim.pos
+      if type(gold_anim) is SellContext.GoldEnterAnim:
+        t = ease_out(t)
+      elif type(gold_anim) is SellContext.GoldExitAnim:
+        t = 1 - t
+      gold_y = lerp(WINDOW_HEIGHT, gold_y, t)
+    if gold_anim or not ctx.exiting:
+      goldtext_font = assets.ttf["roman"]
+      goldtext_image = goldtext_font.render("500")
+      goldtext_x = gold_x + gold_image.get_width() + 3
+      goldtext_y = gold_y + gold_image.get_height() // 2 - goldtext_image.get_height() // 2
+      sprites += [
+        Sprite(image=gold_image, pos=(gold_x, gold_y)),
+        Sprite(image=goldtext_image, pos=(goldtext_x, goldtext_y))
+      ]
+      surplus = 0
+      for tab, i in ctx.selection:
+        items = filter_items(ctx.items, tab)
+        item = items[i]
+        surplus += item.value // 2
+      if surplus:
+        surplus_image = goldtext_font.render("(+{})".format(surplus), CYAN)
+        sprites.append(Sprite(
+          image=surplus_image,
+          pos=(
+            goldtext_x + goldtext_image.get_width(),
+            goldtext_y
+          )
+        ))
+        select_image = goldtext_font.render("{count} item{s}".format(
+          count=len(ctx.selection),
+          s="s" if len(ctx.selection) != 1 else ""
+        ), CYAN)
+        sprites.append(Sprite(
+          image=select_image,
+          pos=(
+            gold_x + 2,
+            gold_y - select_image.get_height() - 1
+          )
+        ))
 
     tabs_image = ctx.tablist.render()
     items_image = ctx.itembox.render(
@@ -544,7 +542,7 @@ class SellContext(Context):
     )
     menu_x = WINDOW_WIDTH - items_image.get_width() - MARGIN
     menu_y = WINDOW_HEIGHT - items_image.get_height() - tabs_image.get_height() - 24
-    menu_ytrue = menu_y
+    menu_anim_y = menu_y
     menu_anim = next((a for a in ctx.anims if isinstance(a, SellContext.ListMoveAnim)), None)
     if menu_anim:
       t = menu_anim.pos
@@ -552,18 +550,31 @@ class SellContext(Context):
         t = ease_out(t)
       elif type(menu_anim) is SellContext.ListExitAnim:
         t = 1 - t
-      menu_ytrue = lerp(WINDOW_HEIGHT, menu_y, t)
+      menu_anim_y = lerp(WINDOW_HEIGHT, menu_y, t)
     if menu_anim or not ctx.exiting:
       sprites += [
         Sprite(
           image=tabs_image,
-          pos=(menu_x, menu_ytrue)
+          pos=(menu_x, menu_anim_y)
         ),
         Sprite(
           image=items_image,
-          pos=(menu_x, menu_ytrue + tabs_image.get_height())
+          pos=(menu_x, menu_anim_y + tabs_image.get_height())
         )
       ]
+
+    controls_x = WINDOW_WIDTH - 8
+    controls_y = WINDOW_HEIGHT - 12
+    if menu_anim_y < controls_y and (menu_anim or not ctx.exiting):
+      for control in ctx.controls:
+        control_image = control.render()
+        control_x = controls_x - control_image.get_width()
+        control_y = controls_y - control_image.get_height() // 2
+        sprites.insert(0, Sprite(
+          image=control_image,
+          pos=(control_x, control_y)
+        ))
+        controls_x = control_x - 8
 
     descbox_width = WINDOW_WIDTH - items_image.get_width() - MARGIN * 3
     descbox_height = WINDOW_HEIGHT - menu_y - hud_image.get_height() - MARGIN * 2

@@ -31,29 +31,46 @@ class ShopContext(Context):
     ctx.items = items
     ctx.hero = KnightCore()
     ctx.portraits = [MiraPortrait()]
+    ctx.messages = [
+      "MIRA: What can I do you for...?",
+      "MIRA: Need anything else...?"
+    ]
+    ctx.message_index = 0
     ctx.hud = Hud()
     ctx.anims = [CursorAnim()]
     ctx.bubble = TextBubble(width=96, pos=(128, 40))
     ctx.controls = [
       Control(key=("X"), value="Menu")
     ]
-    ctx.open(CardContext(pos=(16, 144), on_choose=ctx.handle_choose))
 
   def enter(ctx):
     ctx.anims += [
-      BackgroundEnterAnim(duration=15),
+      BackgroundEnterAnim(duration=15, delay=5),
       PortraitEnterAnim(
         duration=20,
-        delay=10,
+        delay=30,
         on_end=ctx.focus
       )
     ]
 
+  def message(ctx):
+    return ctx.messages[ctx.message_index]
+
+  def next_message(ctx):
+    ctx.message_index = min(ctx.message_index + 1, len(ctx.messages) - 1)
+
   def focus(ctx):
     portrait = ctx.portraits[0]
-    portrait.start_talk(),
-    ctx.bubble.print("MIRA: What can I do you for?", on_end=portrait.stop_talk)
-    ctx.child.focus()
+    portrait.start_talk()
+    ctx.bubble.print(ctx.message(), on_end=lambda: (
+      portrait.stop_talk(),
+      ctx.child is None and ctx.open(
+        CardContext(pos=(16, 144), on_choose=ctx.handle_choose)
+      )
+    ))
+    ctx.next_message()
+    if ctx.child:
+      ctx.child.focus()
 
   def handle_choose(ctx, card):
     if card.name == "buy": return
@@ -120,7 +137,7 @@ class ShopContext(Context):
     hud_y = surface.get_height() - hud_image.get_height() - MARGIN
     surface.blit(hud_image, (hud_x, hud_y))
 
-    if ctx.child.child is None:
+    if ctx.child and ctx.child.child is None:
       title_image = assets.ttf["english_large"].render("Fortune House")
       title_x = surface.get_width() - title_image.get_width() - 8
       title_y = surface.get_height() - title_image.get_height() - 7

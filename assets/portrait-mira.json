@@ -6,6 +6,6 @@
   "mira_mouth":         [102, 128,  18,  11],
   "mira_mouth_opening": [120, 128,  18,  11],
   "mira_mouth_open":    [138, 128,  18,  11],
-  "mira_hand":          [102, 139,  44,  22],
-  "mira_shine":         [147, 139,  13,  12]
+  "mira_hand":          [102, 139,  25,  22],
+  "mira_shine":         [145, 139,  15,  14]
 }

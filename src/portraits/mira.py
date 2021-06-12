@@ -109,7 +109,7 @@ class MiraPortrait(Portrait):
 
     hand_image = assets["mira_hand"]
     surface.blit(hand_image, (
-      surface.get_width() - hand_image.get_width(),
+      surface.get_width() - hand_image.get_width() - 19,
       surface.get_height() - hand_image.get_height()
     ))
     return surface

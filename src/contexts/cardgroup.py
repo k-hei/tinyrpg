@@ -21,6 +21,8 @@ CARD_SPACING = 2
 class SelectAnim(TweenAnim): blocking = False
 class DeselectAnim(TweenAnim): blocking = False
 class SlideAnim(TweenAnim): blocking = True
+class ChooseAnim(TweenAnim): blocking = True
+class UnchooseAnim(TweenAnim): blocking = True
 
 class CardContext(Context):
   def __init__(ctx, pos, on_choose=None):
@@ -42,9 +44,12 @@ class CardContext(Context):
     return ctx.cards[ctx.card_index]
 
   def focus(ctx):
+    ctx.chosen = False
     for card in ctx.cards:
       if card.exiting:
         card.enter()
+      else:
+        ctx.anims.append(UnchooseAnim(duration=20, target=card))
 
   def enter(ctx):
     SLIDE_DURATION = 5
@@ -69,7 +74,8 @@ class CardContext(Context):
     if ctx.child:
       return ctx.child.handle_keydown(key)
 
-    if next((c for c in ctx.cards if c.anims), None):
+    if (next((c for c in ctx.cards if c.anims), None)
+    or next((a for a in ctx.anims if a.blocking), None)):
       return False
 
     if keyboard.get_pressed(key) > 1:
@@ -101,9 +107,9 @@ class CardContext(Context):
     card = ctx.card()
     ctx.chosen = True
     def end():
-      ctx.chosen = False
       ctx.on_choose(card)
     card.spin(on_end=end)
+    ctx.anims.append(ChooseAnim(duration=20, target=card))
     for c in ctx.cards:
       if c is not card:
         c.exit()
@@ -140,6 +146,12 @@ class CardContext(Context):
           elif type(card_anim) is DeselectAnim:
             t = 1 - t
             card_y -= CARD_LIFT * t
+          elif type(card_anim) is ChooseAnim:
+            t = ease_out(t)
+            card_y -= CARD_LIFT + CARD_LIFT * 2 * t
+          elif type(card_anim) is UnchooseAnim:
+            t = 1 - t
+            card_y -= CARD_LIFT + CARD_LIFT * 2 * t
           elif type(card_anim) is SlideAnim:
             t = ease_out(t)
             from_x = WINDOW_WIDTH - 4 - card_template.get_width() // 2
@@ -148,8 +160,10 @@ class CardContext(Context):
             card_y = lerp(from_y, card_y, t)
         if card is not ctx.card():
           card_sprite.image = darken(card_sprite.image)
-        elif not ctx.anims:
+        elif not ctx.anims and not ctx.chosen:
           card_y -= CARD_LIFT
+        elif not ctx.anims and ctx.chosen:
+          card_y -= CARD_LIFT * 3
         card_sprite.move((card_x, card_y))
         sprites.insert(0, card_sprite)
       x += card_template.get_width() + CARD_SPACING
