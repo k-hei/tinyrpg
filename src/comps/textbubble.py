@@ -1,3 +1,4 @@
+from math import sin, cos, pi
 from pygame import Surface, SRCALPHA
 from pygame.transform import scale
 from assets import load as use_assets
@@ -66,6 +67,7 @@ class TextBubble:
     bubble.pos = pos
     bubble.textbox = None
     bubble.anims = []
+    bubble.ticks = 0
 
   def enter(bubble, on_end=None):
     bubble.anims.append(TextBubble.EnterAnim(
@@ -83,21 +85,22 @@ class TextBubble:
       on_end=end
     ))
 
-  def print(bubble, token):
+  def print(bubble, token, on_end=None):
     textbox_width = bubble.width - TextBubble.PADDING_X * 2
     textbox_height = TextBox.height(token, textbox_width)
     entering = bubble.textbox is None
     resizing = not entering and textbox_height != bubble.height - TextBubble.PADDING_Y * 2
+    start_print = lambda: bubble.textbox.print(token, on_end=on_end)
     if entering or resizing:
       bubble.textbox = TextBox((textbox_width, textbox_height))
       bubble_height = textbox_height + TextBubble.PADDING_Y * 2
       if entering:
         bubble.height = bubble_height
-        bubble.enter(on_end=lambda: bubble.textbox.print(token))
+        bubble.enter(on_end=start_print)
       elif resizing:
-        bubble.resize(bubble_height, on_end=lambda: bubble.textbox.print(token))
+        bubble.resize(bubble_height, on_end=start_print)
     else:
-      bubble.textbox.print(token)
+      start_print()
 
   def update(bubble):
     for anim in bubble.anims:
@@ -105,6 +108,7 @@ class TextBubble:
         bubble.anims.remove(anim)
       else:
         anim.update()
+    bubble.ticks += 1
 
   def draw(bubble, surface):
     if bubble.textbox is None:
@@ -117,6 +121,7 @@ class TextBubble:
     bubbletail_image = sprites["bubble_tail"]
     bubbletail_x -= bubbletail_image.get_width()
     bubbletail_y -= bubbletail_image.get_height() // 2
+    bubbletail_offset = cos(bubble.ticks % 75 / 75 * 2 * pi)
 
     bubble_width = bubble.width
     bubble_height = bubble.height
@@ -134,9 +139,11 @@ class TextBubble:
     bubble_x, bubble_y = bubbletail_x, bubbletail_y
     bubble_x += -bubble_image.get_width() + 2
     bubble_y += bubbletail_image.get_height() // 2 - bubble_image.get_height() // 2
+    bubble_xoffset = sin(bubble.ticks % 150 / 150 * 2 * pi) * 3
+    bubble_yoffset = sin(bubble.ticks % 75 / 75 * 2 * pi) * 1.5
 
-    surface.blit(bubble_image, (bubble_x, bubble_y))
-    surface.blit(bubbletail_image, (bubbletail_x, bubbletail_y))
+    surface.blit(bubble_image, (bubble_x + bubble_xoffset, bubble_y + bubble_yoffset))
+    surface.blit(bubbletail_image, (bubbletail_x + bubble_xoffset, bubbletail_y + bubble_yoffset + bubbletail_offset))
 
     text_image = bubble.textbox.render()
     text_x = bubble_x + TextBubble.PADDING_X

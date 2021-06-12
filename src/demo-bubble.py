@@ -25,9 +25,6 @@ class BubbleContext(Context):
     ctx.message_index = (ctx.message_index + 1) % len(ctx.messages)
     ctx.bubble.print(ctx.message())
 
-  def update(ctx):
-    ctx.bubble.update()
-
   def draw(ctx, surface):
     ctx.bubble.draw(surface)
 

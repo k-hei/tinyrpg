@@ -44,13 +44,15 @@ class TextBox:
     box.font = font or TextBox.font
     box.color = color
     box.message = None
+    box.on_print = None
     box.index = 0
     box.cursor = (0, 0)
     box.surface = None
 
-  def print(box, token):
+  def print(box, token, on_end=None):
     box.clear()
     box.message = Message(token)
+    box.on_print = on_end
 
   def clear(box):
     box.index = 0
@@ -93,4 +95,6 @@ class TextBox:
       cursor_x += char_image.get_width()
       box.index += 1
       box.cursor = (cursor_x, cursor_y)
+    if box.index == len(box.message) and box.on_print:
+      box.on_print()
     return box.surface

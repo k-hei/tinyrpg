@@ -250,10 +250,11 @@ class SellContext(Context):
   class ItemListAnim(TweenAnim): blocking = True
   class CardAnim(TweenAnim): blocking = True
 
-  def __init__(ctx, items, bubble=None, card=None):
+  def __init__(ctx, items, bubble=None, portrait=None, card=None):
     super().__init__()
     ctx.items = items
     ctx.bubble = bubble or TextBubble(width=96, pos=(128, 40))
+    ctx.portrait = portrait
     ctx.card = card or Card("sell")
     ctx.cursor = 0
     ctx.cursor_drawn = 0
@@ -283,7 +284,8 @@ class SellContext(Context):
           delay=5,
           target=ctx.card.sprite.pos
         ))
-    ctx.bubble.print("MIRA: Got something to sell me?")
+    ctx.portrait.start_talk()
+    ctx.bubble.print("MIRA: Got something to sell me?", on_end=ctx.portrait.stop_talk)
 
   def handle_keydown(ctx, key):
     if next((a for a in ctx.anims if a.blocking), None) or ctx.tablist.anims:

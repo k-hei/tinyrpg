@@ -40,12 +40,16 @@ class ShopContext(Context):
     ctx.open(CardContext(pos=(16, 144), on_choose=ctx.handle_choose))
 
   def enter(ctx):
+    portrait = ctx.portraits[0]
     ctx.anims += [
       BackgroundEnterAnim(duration=15),
       PortraitEnterAnim(
         duration=20,
         delay=10,
-        on_end=lambda: ctx.bubble.print("MIRA: What can I do you for?")
+        on_end=lambda: (
+          portrait.start_talk(),
+          ctx.bubble.print("MIRA: What can I do you for?", on_end=portrait.stop_talk)
+        )
       )
     ]
 
@@ -58,6 +62,7 @@ class ShopContext(Context):
     ctx.open(SellContext(
       items=ctx.items,
       bubble=ctx.bubble,
+      portrait=ctx.portraits[0],
       card=card
     ))
 
@@ -78,11 +83,20 @@ class ShopContext(Context):
     bg_image = assets.sprites["fortune_bg"]
     bg_anim = next((a for a in ctx.anims if type(a) is BackgroundEnterAnim), None)
     if bg_anim:
-      t = ease_out(bg_anim.pos)
-      bg_width = bg_image.get_width()
-      bg_height = int(bg_image.get_height() * t)
+      t = bg_anim.pos
+      if t < 0.5:
+        t = t / 0.5
+        bg_width = int(bg_image.get_width() * t)
+        bg_height = 4
+      else:
+        t = (t - 0.5) / 0.5
+        bg_width = bg_image.get_width()
+        bg_height = int(bg_image.get_height() * t)
       bg_image = scale(bg_image, (bg_width, bg_height))
-    surface.blit(bg_image, (0, 128 / 2 - bg_image.get_height() / 2))
+    surface.blit(bg_image, (
+      surface.get_width() / 2 - bg_image.get_width() / 2,
+      128 / 2 - bg_image.get_height() / 2
+    ))
 
     for portrait in ctx.portraits:
       portrait_image = portrait.render()
