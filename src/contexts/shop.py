@@ -40,18 +40,19 @@ class ShopContext(Context):
     ctx.open(CardContext(pos=(16, 144), on_choose=ctx.handle_choose))
 
   def enter(ctx):
-    portrait = ctx.portraits[0]
     ctx.anims += [
       BackgroundEnterAnim(duration=15),
       PortraitEnterAnim(
         duration=20,
         delay=10,
-        on_end=lambda: (
-          portrait.start_talk(),
-          ctx.bubble.print("MIRA: What can I do you for?", on_end=portrait.stop_talk)
-        )
+        on_end=ctx.focus
       )
     ]
+
+  def focus(ctx):
+    portrait = ctx.portraits[0]
+    portrait.start_talk(),
+    ctx.bubble.print("MIRA: What can I do you for?", on_end=portrait.stop_talk)
 
   def handle_choose(ctx, card):
     if card.name == "buy": return
@@ -63,7 +64,8 @@ class ShopContext(Context):
       items=ctx.items,
       bubble=ctx.bubble,
       portrait=ctx.portraits[0],
-      card=card
+      card=card,
+      on_close=ctx.focus
     ))
 
   def update(ctx):

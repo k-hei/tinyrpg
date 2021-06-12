@@ -253,8 +253,8 @@ class SellContext(Context):
   class TagEnterAnim(TweenAnim): blocking = True
   class CardAnim(TweenAnim): blocking = True
 
-  def __init__(ctx, items, bubble=None, portrait=None, card=None):
-    super().__init__()
+  def __init__(ctx, items, bubble=None, portrait=None, card=None, on_close=None):
+    super().__init__(on_close=on_close)
     ctx.items = items
     ctx.bubble = bubble or TextBubble(width=96, pos=(128, 40))
     ctx.portrait = portrait
@@ -290,6 +290,9 @@ class SellContext(Context):
         ))
     ctx.portrait.start_talk()
     ctx.bubble.print("MIRA: Got something to sell me?", on_end=ctx.portrait.stop_talk)
+
+  def exit(ctx, on_end=None):
+    ctx.close()
 
   def handle_keydown(ctx, key):
     if next((a for a in ctx.anims if a.blocking), None) or ctx.tablist.anims:
@@ -327,8 +330,11 @@ class SellContext(Context):
         control.press("R")
         return ctx.handle_tab(delta=1)
 
-    if key in (pygame.K_BACKSPACE, pygame.K_ESCAPE):
+    if key == pygame.K_BACKSPACE:
       return ctx.handle_clear()
+
+    if key == pygame.K_ESCAPE:
+      return ctx.handle_close()
 
   def handle_keyup(ctx, key):
     if key == pygame.K_TAB:
@@ -393,6 +399,9 @@ class SellContext(Context):
   def handle_clear(ctx):
     ctx.selection = []
     return True
+
+  def handle_close(ctx):
+    return ctx.exit(on_end=ctx.close)
 
   def reset_cursor(ctx):
     ctx.cursor = 0
