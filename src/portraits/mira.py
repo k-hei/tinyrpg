@@ -1,10 +1,16 @@
+from math import sin, pi
+import pygame
+from pygame import Rect
 from portraits import Portrait
 from assets import load as use_assets
 from anims.frame import FrameAnim
+from palette import BLUE
+from lib.lerp import lerp
 
 class MiraPortrait(Portrait):
   EYES_POS = (52, 38)
   MOUTH_POS = (61, 59)
+  SHINE_POS = (144, 96)
   BLINK_INTERVAL = 150
   BLINK_DURATION = 16
   BLINK_FRAMES = ["mira_eyes", "mira_eyes_closing", "mira_eyes_closed", "mira_eyes_closing"]
@@ -58,14 +64,39 @@ class MiraPortrait(Portrait):
   def render(portrait):
     portrait.update()
     assets = use_assets().sprites
-    image = assets["mira"].copy()
+    surface = assets["mira"].copy()
 
     blink_anim = next((a for a in portrait.anims if type(a) is MiraPortrait.BlinkAnim), None)
     eyes_frame = blink_anim.frame if blink_anim else "mira_eyes"
-    image.blit(assets[eyes_frame], MiraPortrait.EYES_POS)
+    surface.blit(assets[eyes_frame], MiraPortrait.EYES_POS)
 
     talk_anim = next((a for a in portrait.anims if type(a) is MiraPortrait.TalkAnim), None)
     mouth_frame = talk_anim.frame if talk_anim else "mira_mouth"
-    image.blit(assets[mouth_frame], MiraPortrait.MOUTH_POS)
+    surface.blit(assets[mouth_frame], MiraPortrait.MOUTH_POS)
 
-    return image
+    BALL_WIDTH = 43
+    BALL_HEIGHT = 13
+    BALL_X = surface.get_width() - BALL_WIDTH
+    BALL_Y = surface.get_height() - BALL_HEIGHT
+    pygame.draw.rect(surface, BLUE, Rect(BALL_X, BALL_Y, BALL_WIDTH, BALL_HEIGHT))
+
+    for i in range(BALL_WIDTH):
+      swing = sin(portrait.ticks % 600 / 600 * 2 * pi)
+      amplitude = (sin(portrait.ticks % 240 / 240 * 2 * pi) + 1) / 2
+      amplitude = lerp(3, 9, amplitude)
+      height = (sin((portrait.ticks % 90 / 90 * 2 + swing + i / BALL_WIDTH) * 2 * pi) + 1) / 2
+      height *= amplitude
+      pygame.draw.rect(surface, BLUE, Rect(
+        (BALL_X + i, BALL_Y - int(height)),
+        (1, int(height))
+      ))
+
+    shine_image = assets["mira_shine"]
+    surface.blit(shine_image, MiraPortrait.SHINE_POS)
+
+    hand_image = assets["mira_hand"]
+    surface.blit(hand_image, (
+      surface.get_width() - hand_image.get_width(),
+      surface.get_height() - hand_image.get_height()
+    ))
+    return surface
