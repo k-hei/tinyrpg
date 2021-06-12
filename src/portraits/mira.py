@@ -1,10 +1,10 @@
-from math import sin, pi
+from math import sin, cos, pi
 import pygame
 from pygame import Rect
 from portraits import Portrait
 from assets import load as use_assets
 from anims.frame import FrameAnim
-from palette import BLUE_DARK
+from palette import BLUE, BLUE_DARK
 from lib.lerp import lerp
 
 class MiraPortrait(Portrait):
@@ -75,11 +75,10 @@ class MiraPortrait(Portrait):
     surface.blit(assets[mouth_frame], MiraPortrait.MOUTH_POS)
 
     BALL_WIDTH = 43
-    BALL_HEIGHT = 13
+    BALL_HEIGHT = 17
     BALL_X = surface.get_width() - BALL_WIDTH
     BALL_Y = surface.get_height() - BALL_HEIGHT
     pygame.draw.rect(surface, BLUE_DARK, Rect(BALL_X, BALL_Y, BALL_WIDTH, BALL_HEIGHT))
-
     for i in range(BALL_WIDTH):
       swing = sin(portrait.ticks % 600 / 600 * 2 * pi)
       amplitude = (sin(portrait.ticks % 240 / 240 * 2 * pi) + 1) / 2
@@ -87,6 +86,20 @@ class MiraPortrait(Portrait):
       height = (sin((portrait.ticks % 90 / 90 * 2 + swing + i / BALL_WIDTH) * 2 * pi) + 1) / 2
       height *= amplitude
       pygame.draw.rect(surface, BLUE_DARK, Rect(
+        (BALL_X + i, BALL_Y - int(height)),
+        (1, int(height))
+      ))
+
+    BALL_HEIGHT //= 2
+    BALL_Y = surface.get_height() - BALL_HEIGHT
+    pygame.draw.rect(surface, BLUE, Rect(BALL_X, BALL_Y, BALL_WIDTH, BALL_HEIGHT))
+    for i in range(BALL_WIDTH):
+      swing = cos(portrait.ticks % 600 / 600 * 2 * pi)
+      amplitude = (cos(portrait.ticks % 240 / 240 * 2 * pi) + 1) / 2
+      amplitude = lerp(3, 9, amplitude)
+      height = (cos((portrait.ticks % 90 / 90 * 2 + swing + (BALL_WIDTH - i) / BALL_WIDTH) * 2 * pi) + 1) / 2
+      height *= amplitude
+      pygame.draw.rect(surface, BLUE, Rect(
         (BALL_X + i, BALL_Y - int(height)),
         (1, int(height))
       ))
