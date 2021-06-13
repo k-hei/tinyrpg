@@ -92,7 +92,12 @@ class App(Context):
     pygame.display.flip()
 
   def dissolve(app, on_clear=None, on_end=None):
-    app.transits.append(DissolveIn(WINDOW_SIZE, on_clear))
+    app.transits += [
+      DissolveIn(WINDOW_SIZE, on_clear),
+      DissolveOut(WINDOW_SIZE, on_end),
+    ]
+
+  def dissolve_out(app, on_end=None):
     app.transits.append(DissolveOut(WINDOW_SIZE, on_end))
 
   def print_contexts(app):

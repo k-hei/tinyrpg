@@ -7,6 +7,9 @@ from assets import load as use_assets
 from town.topview.stage import Stage, Tile
 from town.topview.actor import Actor
 from sprite import Sprite
+from anims.tween import TweenAnim
+from easing.expo import ease_out
+from lib.lerp import lerp
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
 import keyboard
 
@@ -16,6 +19,10 @@ def insert_value(mapping, key, value):
   return dict(zip(keys, values))
 
 class TopViewContext(Context):
+  class HudAnim(TweenAnim):
+    def __init__(anim):
+      super().__init__(duration=45)
+
   def __init__(ctx, area, hero):
     super().__init__()
     ctx.area = area
@@ -154,7 +161,8 @@ class TopViewContext(Context):
     for anim in ctx.anims:
       if anim.done:
         ctx.anims.remove(anim)
-      anim.update()
+      else:
+        anim.update()
 
   def draw(ctx, surface):
     assets = use_assets()
@@ -185,6 +193,12 @@ class TopViewContext(Context):
       hud_image = ctx.hud.update(ctx.hero.core)
       hud_x = 8
       hud_y = 8
+      hud_anim = next((a for a in ctx.anims if type(a) is TopViewContext.HudAnim), None)
+      if hud_anim:
+        t = hud_anim.pos
+        t = ease_out(t)
+        hud_x = lerp(2, hud_x, t)
+        hud_y = lerp(surface.get_height() - 2 - hud_image.get_height(), hud_y, t)
       surface.blit(hud_image, (hud_x, hud_y))
 
     if ctx.child:

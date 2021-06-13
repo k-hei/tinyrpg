@@ -100,4 +100,5 @@ class TextBox:
       box.cursor = (cursor_x, cursor_y)
     if box.index == len(box.message) and box.on_print:
       box.on_print()
+      box.on_print = None
     return box.surface

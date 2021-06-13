@@ -11,6 +11,7 @@ from filters import replace_color, darken
 
 class EnterAnim(TweenAnim): pass
 class ExitAnim(TweenAnim): pass
+class WarpAnim(TweenAnim): pass
 class SpinAnim(TweenAnim): pass
 class FlipAnim(TweenAnim): pass
 
@@ -44,6 +45,10 @@ class Card:
   def exit(card, duration=10, delay=0, on_end=None):
     card.exiting = True
     card.anims.append(ExitAnim(duration=duration, delay=delay, on_end=on_end))
+
+  def warp(card, duration=8, delay=0, on_end=None):
+    card.exiting = True
+    card.anims.append(WarpAnim(duration=duration, delay=delay, on_end=on_end))
 
   def update(card):
     for anim in card.anims:
@@ -81,6 +86,9 @@ class Card:
           t = (t - 0.5) * 2
           card_width *= 1 - t
           card_height = 4
+      if type(card_anim) is WarpAnim:
+        card_width *= lerp(1, 0, t)
+        card_height *= lerp(1, 2, t)
     if not card_anim and card.exiting:
       return None
     card_image = replace_color(card_image, BLACK, card.color)

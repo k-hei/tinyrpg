@@ -24,10 +24,16 @@ from lib.lerp import lerp
 from portraits.mira import MiraPortrait
 
 class CursorAnim(Anim): blocking = False
-class BackgroundEnterAnim(TweenAnim): blocking = True
-class BackgroundSlideupAnim(TweenAnim): blocking = True
-class PortraitEnterAnim(TweenAnim): blocking = True
 class HudEnterAnim(TweenAnim): blocking = True
+
+class BackgroundAnim(TweenAnim): blocking = True
+class BackgroundEnterAnim(BackgroundAnim): pass
+class BackgroundExitAnim(BackgroundAnim): pass
+class BackgroundSlideupAnim(TweenAnim): blocking = True
+
+class PortraitAnim(TweenAnim): blocking = True
+class PortraitEnterAnim(PortraitAnim): pass
+class PortraitExitAnim(PortraitAnim): pass
 
 class TitleAnim(TweenAnim): blocking = True
 class TitleEnterAnim(TitleAnim): pass
@@ -68,9 +74,11 @@ class ShopContext(Context):
     ]
     ctx.message_index = 0
     ctx.blurring = False
+    ctx.exiting = False
     ctx.textbox = TextBox((96, 32), color=WHITE)
     ctx.hud = hud or Hud()
     ctx.anims = [CursorAnim()]
+    ctx.on_animate = None
     ctx.bubble = TextBubble(width=96, pos=(128, 40))
     ctx.controls = [
       Control(key=("X"), value="Menu")
@@ -89,7 +97,16 @@ class ShopContext(Context):
     ]
 
   def exit(ctx):
-    ctx.bubble.exit(on_end=ctx.close)
+    ctx.exiting = True
+    ctx.bubble.exit()
+    ctx.child.exit()
+    ctx.anims += [
+      BackgroundExitAnim(duration=15),
+      PortraitExitAnim(duration=8, delay=15),
+      BoxExitAnim(duration=8),
+      TitleSlideoutAnim(duration=8),
+    ]
+    ctx.on_animate = lambda: ctx.close(None)
 
   def message(ctx):
     return ctx.messages[ctx.message_index]
@@ -157,25 +174,35 @@ class ShopContext(Context):
     for anim in ctx.anims:
       if anim.done:
         ctx.anims.remove(anim)
+        if (anim.blocking
+        and not next((a for a in ctx.anims if a.blocking), None)
+        and ctx.on_animate):
+          ctx.on_animate()
       else:
         anim.update()
 
   def draw(ctx, surface):
     assets = use_assets()
 
+
     bg_y = 0
     bg_anim = next((a for a in ctx.anims if type(a) is BackgroundSlideupAnim), None)
     if bg_anim:
       t = bg_anim.pos
-      t = ease_out(t)
-      bg_y = lerp(surface.get_height(), bg_y, t)
-    pygame.draw.rect(surface, BLACK, Rect(0, bg_y, 256, 224 - bg_y))
+      bg_y = lerp(bg_y, surface.get_height(), t)
+      surface_contents = surface.copy()
+      surface.fill(BLACK)
+      surface.blit(surface_contents, (0, bg_y))
+    else:
+      surface.fill(BLACK)
 
     bg_image = assets.sprites["fortune_bg"]
     bg_image = replace_color(bg_image, WHITE, BLUE_DARK)
-    bg_anim = next((a for a in ctx.anims if type(a) is BackgroundEnterAnim), None)
+    bg_anim = next((a for a in ctx.anims if isinstance(a, BackgroundAnim)), None)
     if bg_anim:
       t = bg_anim.pos
+      if type(bg_anim) is BackgroundExitAnim:
+        t = 1 - t
       if t < 0.5:
         t = t / 0.5
         bg_width = int(bg_image.get_width() * t)
@@ -185,20 +212,26 @@ class ShopContext(Context):
         bg_width = bg_image.get_width()
         bg_height = int(bg_image.get_height() * t)
       bg_image = scale(bg_image, (bg_width, bg_height))
-    surface.blit(bg_image, (
-      surface.get_width() / 2 - bg_image.get_width() / 2,
-      128 / 2 - bg_image.get_height() / 2
-    ))
+    if bg_anim or not ctx.exiting:
+      surface.blit(bg_image, (
+        surface.get_width() / 2 - bg_image.get_width() / 2,
+        128 / 2 - bg_image.get_height() / 2
+      ))
 
     for portrait in ctx.portraits:
       portrait_image = portrait.render()
       portrait_x = surface.get_width() - portrait_image.get_width()
       portrait_y = 0
-      portrait_anim = next((a for a in ctx.anims if type(a) is PortraitEnterAnim), None)
+      portrait_anim = next((a for a in ctx.anims if isinstance(a, PortraitAnim)), None)
       if portrait_anim:
-        t = ease_out_circ(portrait_anim.pos)
+        t = portrait_anim.pos
+        if type(portrait_anim) is PortraitEnterAnim:
+          t = ease_out_circ(t)
+        elif type(portrait_anim) is PortraitExitAnim:
+          t = 1 - t
         portrait_x = lerp(surface.get_width(), portrait_x, t)
-      surface.blit(portrait_image, (portrait_x, portrait_y))
+      if portrait_anim or not ctx.exiting:
+        surface.blit(portrait_image, (portrait_x, portrait_y))
 
     MARGIN = 2
 
@@ -215,12 +248,13 @@ class ShopContext(Context):
       hud_y = lerp(8, hud_y, t)
     surface.blit(hud_image, (hud_x, hud_y))
 
-    if (not ctx.child
-    or ctx.child.child is None
-    or next((a for a in ctx.anims if (
+    title_anim = next((a for a in ctx.anims if (
       isinstance(a, TitleAnim)
       or isinstance(a, SubtitleAnim)
-    )), None)):
+    )), None)
+    if (title_anim
+    or not ctx.exiting
+    and (not ctx.child or ctx.child.child is None)):
       title_text = ctx.title
       title_font = assets.ttf["english_large"]
       title_width, title_height = title_font.size(title_text)
@@ -292,7 +326,7 @@ class ShopContext(Context):
       elif type(box_anim) is BoxExitAnim:
         t = 1 - t
       box_x = lerp(surface.get_width(), box_x, t)
-    if box_anim or not ctx.blurring:
+    if box_anim or not ctx.blurring and not ctx.exiting:
       surface.blit(Box.render((116, 48)), (box_x, box_y))
       if not box_anim:
         surface.blit(ctx.textbox.render(), (box_x + 10, box_y + 8))

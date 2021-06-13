@@ -38,6 +38,7 @@ class CardContext(Context):
     ctx.card_index = 0
     ctx.hand_index = 0
     ctx.chosen = False
+    ctx.exiting = False
     ctx.anims = []
     ctx.on_animate = None
     ctx.ticks = 0
@@ -72,6 +73,12 @@ class CardContext(Context):
       target=ctx.card()
     ))
     ctx.on_animate = lambda: ctx.on_select(ctx.card())
+
+  def exit(ctx):
+    ctx.exiting = True
+    for card in ctx.cards:
+      if not card.exiting:
+        card.warp()
 
   def handle_keydown(ctx, key):
     if ctx.child:
@@ -177,7 +184,8 @@ class CardContext(Context):
         sprites.insert(0, card_sprite)
       x += card_template.get_width() + CARD_SPACING
     if (not next((a for a in ctx.anims if a.blocking), None)
-    and not (ctx.chosen and ctx.ticks % 2)):
+    and not (ctx.chosen and ctx.ticks % 2)
+    and not ctx.exiting):
       hand_image = rotate(assets["hand"], -90)
       hand_x = cards_x + ctx.hand_index * (card_template.get_width() + CARD_SPACING) + card_template.get_width() / 2
       hand_y = cards_y + card_template.get_height() / 2 + 5

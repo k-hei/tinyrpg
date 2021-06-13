@@ -68,6 +68,7 @@ class TextBubble:
     bubble.pos = pos
     bubble.textbox = None
     bubble.anims = []
+    bubble.exiting = False
     bubble.ticks = 0
 
   def enter(bubble, on_end=None):
@@ -76,6 +77,7 @@ class TextBubble:
     )
 
   def exit(bubble, on_end=None):
+    bubble.exiting = True
     bubble.textbox.clear()
     bubble.anims.append(
       TextBubble.ExitAnim(duration=8, on_end=on_end)
@@ -157,11 +159,11 @@ class TextBubble:
     bubble_xoffset = sin(bubble.ticks % 150 / 150 * 2 * pi) * 3
     bubble_yoffset = sin(bubble.ticks % 75 / 75 * 2 * pi) * 1.5
 
-    surface.blit(bubble_image, (bubble_x + bubble_xoffset, bubble_y + bubble_yoffset))
-    if bubble_width and bubble_height:
-      surface.blit(bubbletail_image, (bubbletail_x + bubble_xoffset, bubbletail_y + bubble_yoffset + bubbletail_offset))
-
-    text_image = bubble.textbox.render()
-    text_x = bubble_x + TextBubble.PADDING_X + bubble_widthoffset
-    text_y = bubble_y + TextBubble.PADDING_Y + bubble_heightoffset // 2
-    surface.blit(text_image, (text_x, text_y))
+    if bubble_anim or not bubble.exiting:
+      surface.blit(bubble_image, (bubble_x + bubble_xoffset, bubble_y + bubble_yoffset))
+      if bubble_width and bubble_height:
+        surface.blit(bubbletail_image, (bubbletail_x + bubble_xoffset, bubbletail_y + bubble_yoffset + bubbletail_offset))
+      text_image = bubble.textbox.render()
+      text_x = bubble_x + TextBubble.PADDING_X + bubble_widthoffset
+      text_y = bubble_y + TextBubble.PADDING_Y + bubble_heightoffset // 2
+      surface.blit(text_image, (text_x, text_y))

@@ -1,6 +1,8 @@
 from math import inf
 
 class Anim:
+  blocking = False
+
   def __init__(anim, duration=inf, delay=0, target=None, on_start=None, on_end=None):
     anim.duration = duration
     anim.time = -delay

@@ -69,7 +69,9 @@ class FortuneArea(Stage):
               "RedFerrule",
               "Diamond"
             ]))
-          )
+          ),
+          lambda: ctx.anims.append(ctx.HudAnim()),
+          lambda: ctx.get_root().dissolve_out()
         ]
       ),
       "2": FortuneDesk()
