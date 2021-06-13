@@ -7,6 +7,7 @@ from comps.log import Message
 from easing.circ import ease_out
 from anims.tween import TweenAnim
 from lib.lerp import lerp
+from sprite import Sprite
 
 class Bubble:
   def render(size):
@@ -118,15 +119,15 @@ class TextBubble:
         anim.update()
     bubble.ticks += 1
 
-  def draw(bubble, surface):
+  def view(bubble, sprites):
     if bubble.textbox is None:
       return
 
     bubble.update()
-    sprites = use_assets().sprites
+    assets = use_assets().sprites
 
     bubbletail_x, bubbletail_y = bubble.pos
-    bubbletail_image = sprites["bubble_tail"]
+    bubbletail_image = assets["bubble_tail"]
     bubbletail_x -= bubbletail_image.get_width()
     bubbletail_y -= bubbletail_image.get_height() // 2
     bubbletail_offset = cos(bubble.ticks % 75 / 75 * 2 * pi)
@@ -160,10 +161,19 @@ class TextBubble:
     bubble_yoffset = sin(bubble.ticks % 75 / 75 * 2 * pi) * 1.5
 
     if bubble_anim or not bubble.exiting:
-      surface.blit(bubble_image, (bubble_x + bubble_xoffset, bubble_y + bubble_yoffset))
+      sprites.append(Sprite(
+        image=bubble_image,
+        pos=(bubble_x + bubble_xoffset, bubble_y + bubble_yoffset)
+      ))
       if bubble_width and bubble_height:
-        surface.blit(bubbletail_image, (bubbletail_x + bubble_xoffset, bubbletail_y + bubble_yoffset + bubbletail_offset))
+        sprites.append(Sprite(
+          image=bubbletail_image,
+          pos=(bubbletail_x + bubble_xoffset, bubbletail_y + bubble_yoffset + bubbletail_offset)
+        ))
       text_image = bubble.textbox.render()
       text_x = bubble_x + TextBubble.PADDING_X + bubble_widthoffset
       text_y = bubble_y + TextBubble.PADDING_Y + bubble_heightoffset // 2
-      surface.blit(text_image, (text_x, text_y))
+      sprites.append(Sprite(
+        image=text_image,
+        pos=(text_x, text_y)
+      ))

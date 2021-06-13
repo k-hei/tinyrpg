@@ -1,7 +1,8 @@
 from math import pi, sin
 import pygame
-from pygame import Rect
+from pygame import Rect, Surface
 import config
+from config import WINDOW_WIDTH, WINDOW_HEIGHT
 import keyboard
 from contexts import Context
 from assets import load as use_assets
@@ -11,6 +12,7 @@ from collections.abc import Iterable
 from palette import BLACK
 from anims.tween import TweenAnim
 from easing.expo import ease_out
+from sprite import Sprite
 # from comps.previews import Previews
 # from comps.minimap import Minimap
 # from comps.spmeter import SpMeter
@@ -110,7 +112,7 @@ class DialogueContext(Context):
       return ctx.exit()
     ctx.print()
 
-  def draw(ctx, surface):
+  def view(ctx, sprites):
     assets = use_assets()
     sprite_arrow = assets.sprites["arrow_dialogue"]
 
@@ -127,11 +129,17 @@ class DialogueContext(Context):
         t = 1 - t
       bar_height *= t
     if not ctx.lite:
-      pygame.draw.rect(surface, BLACK, Rect(0, 0, surface.get_width(), bar_height))
-      pygame.draw.rect(surface, BLACK, Rect(0, surface.get_height() - bar_height + 1, surface.get_width(), bar_height))
+      bar_top = Surface((WINDOW_WIDTH, bar_height))
+      bar_top.fill(BLACK)
+      bar_bottom = Surface((WINDOW_WIDTH, bar_height))
+      bar_bottom.fill(BLACK)
+      sprites += [
+        Sprite(image=bar_top, pos=(0, 0)),
+        Sprite(image=bar_bottom, pos=(0, WINDOW_HEIGHT - bar_height + 1))
+      ]
 
     if not ctx.child or not "log" in dir(ctx.child):
-      pos = ctx.log.draw(surface)
+      pos = ctx.log.view(sprites)
       if pos:
         x, y = pos
         sprite = ctx.log.box
@@ -140,6 +148,10 @@ class DialogueContext(Context):
           offset = sin(t * 2 * pi) * 1.25
           x += -sprite_arrow.get_width() + sprite.get_width() - Log.PADDING_X - 8
           y += -sprite_arrow.get_height() + sprite.get_height() - Log.PADDING_Y + 4 + offset
-          surface.blit(sprite_arrow, (x, y))
+          sprites.append(Sprite(
+            image=sprite_arrow,
+            pos=(x, y)
+          ))
 
-    super().draw(surface)
+    if ctx.child:
+      ctx.child.view(sprites)

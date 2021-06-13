@@ -46,5 +46,9 @@ class BipedCore(Core):
         sprite_id = actor.sprites.face_right
         flip_x = True
     image = sprites[sprite_id] if sprite_id else None
-    sprite = Sprite(image, flip=(flip_x, flip_y)) if image else None
+    sprite = Sprite(
+      image=image,
+      flip=(flip_x, flip_y),
+      layer="elems"
+    ) if image else None
     return super().render(sprite)

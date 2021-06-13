@@ -435,8 +435,7 @@ class SellContext(Context):
     if ctx.cursor_drawn != None:
       ctx.cursor_drawn += (ctx.cursor - ctx.scroll - ctx.cursor_drawn) / 4
 
-  def view(ctx):
-    sprites = []
+  def view(ctx, sprites):
     assets = use_assets()
 
     MARGIN = 2

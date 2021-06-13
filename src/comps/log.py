@@ -4,6 +4,8 @@ from text import render as render_text, find_width as find_text_width
 from filters import recolor, outline, shadow
 from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in
+from config import WINDOW_WIDTH, WINDOW_HEIGHT
+from sprite import Sprite
 
 class EnterAnim(TweenAnim): pass
 class ExitAnim(TweenAnim): pass
@@ -195,21 +197,25 @@ class Log:
     else:
       log.y = 0
 
-  def draw(log, surface):
+  def view(log, sprites):
     log.update()
     if log.box is None:
       return
     if log.align == "left":
       log.x = Log.MARGIN_LEFT
     elif log.align == "center":
-      log.x = surface.get_width() // 2 - log.box.get_width() // 2
+      log.x = WINDOW_WIDTH // 2 - log.box.get_width() // 2
     x = log.x
     y = log.y
     if log.side == "top":
       y = log.y - log.box.get_height()
     elif log.side == "bottom":
-      y = surface.get_height() - log.y
-    surface.blit(log.box, (x, y))
+      y = WINDOW_HEIGHT - log.y
+    sprites.append(Sprite(
+      image=log.box,
+      pos=(x, y),
+      layer="hud"
+    ))
     return (x, y)
 
 def expand_tokens(tokens):

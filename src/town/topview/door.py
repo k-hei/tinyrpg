@@ -30,7 +30,7 @@ class Door(Element):
     door.opened = True
     door.solid = False
 
-  def render(door):
+  def view(door):
     sprites = use_assets().sprites
     door_image = door.opened and sprites["door_open"] or sprites["door"]
-    return Sprite(image=door_image, pos=door.pos, origin=("center", "center"))
+    return [Sprite(image=door_image, pos=door.pos, origin=("center", "center"))]

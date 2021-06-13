@@ -22,6 +22,8 @@ from easing.expo import ease_out
 from easing.circ import ease_out as ease_out_circ
 from lib.lerp import lerp
 from portraits.mira import MiraPortrait
+from config import WINDOW_WIDTH, WINDOW_HEIGHT
+from sprite import Sprite
 
 class CursorAnim(Anim): blocking = False
 class HudEnterAnim(TweenAnim): blocking = True
@@ -181,20 +183,17 @@ class ShopContext(Context):
       else:
         anim.update()
 
-  def draw(ctx, surface):
+  def view(ctx, sprites):
     assets = use_assets()
 
-
-    bg_y = 0
     bg_anim = next((a for a in ctx.anims if type(a) is BackgroundSlideupAnim), None)
     if bg_anim:
       t = bg_anim.pos
-      bg_y = lerp(bg_y, surface.get_height(), t)
-      surface_contents = surface.copy()
-      surface.fill(BLACK)
-      surface.blit(surface_contents, (0, bg_y))
+      bg_y = WINDOW_HEIGHT * t
+      for sprite in sprites:
+        sprite.move((0, bg_y))
     else:
-      surface.fill(BLACK)
+      sprites.clear()
 
     bg_image = assets.sprites["fortune_bg"]
     bg_image = replace_color(bg_image, WHITE, BLUE_DARK)
@@ -213,14 +212,17 @@ class ShopContext(Context):
         bg_height = int(bg_image.get_height() * t)
       bg_image = scale(bg_image, (bg_width, bg_height))
     if bg_anim or not ctx.exiting:
-      surface.blit(bg_image, (
-        surface.get_width() / 2 - bg_image.get_width() / 2,
-        128 / 2 - bg_image.get_height() / 2
+      sprites.append(Sprite(
+        image=bg_image,
+        pos=(
+          WINDOW_WIDTH / 2 - bg_image.get_width() / 2,
+          128 / 2 - bg_image.get_height() / 2
+        )
       ))
 
     for portrait in ctx.portraits:
       portrait_image = portrait.render()
-      portrait_x = surface.get_width() - portrait_image.get_width()
+      portrait_x = WINDOW_WIDTH - portrait_image.get_width()
       portrait_y = 0
       portrait_anim = next((a for a in ctx.anims if isinstance(a, PortraitAnim)), None)
       if portrait_anim:
@@ -229,24 +231,29 @@ class ShopContext(Context):
           t = ease_out_circ(t)
         elif type(portrait_anim) is PortraitExitAnim:
           t = 1 - t
-        portrait_x = lerp(surface.get_width(), portrait_x, t)
+        portrait_x = lerp(WINDOW_WIDTH, portrait_x, t)
       if portrait_anim or not ctx.exiting:
-        surface.blit(portrait_image, (portrait_x, portrait_y))
+        sprites.append(Sprite(
+          image=portrait_image,
+          pos=(portrait_x, portrait_y)
+        ))
 
     MARGIN = 2
-
-    ctx.bubble.draw(surface)
+    ctx.bubble.view(sprites)
 
     hud_image = ctx.hud.update(ctx.hero)
     hud_x = MARGIN
-    hud_y = surface.get_height() - hud_image.get_height() - MARGIN
+    hud_y = WINDOW_HEIGHT - hud_image.get_height() - MARGIN
     hud_anim = next((a for a in ctx.anims if type(a) is HudEnterAnim), None)
     if hud_anim:
       t = hud_anim.pos
       t = ease_out(t)
       hud_x = lerp(8, hud_x, t)
       hud_y = lerp(8, hud_y, t)
-    surface.blit(hud_image, (hud_x, hud_y))
+    sprites.append(Sprite(
+      image=hud_image,
+      pos=(hud_x, hud_y)
+    ))
 
     title_anim = next((a for a in ctx.anims if (
       isinstance(a, TitleAnim)
@@ -258,8 +265,8 @@ class ShopContext(Context):
       title_text = ctx.title
       title_font = assets.ttf["english_large"]
       title_width, title_height = title_font.size(title_text)
-      title_x = surface.get_width() - title_width - 8
-      title_y = surface.get_height() - title_height - 7
+      title_x = WINDOW_WIDTH - title_width - 8
+      title_y = WINDOW_HEIGHT - title_height - 7
       title_anim = next((a for a in ctx.anims if isinstance(a, TitleSlideAnim)), None)
       if title_anim:
         t = title_anim.pos
@@ -284,7 +291,10 @@ class ShopContext(Context):
             char_offset = 0
             char_color = WHITE
           char_image = title_font.render(char, char_color)
-          surface.blit(char_image, (char_x + char_offset, char_y + char_offset))
+          sprites.append(Sprite(
+            image=char_image,
+            pos=(char_x + char_offset, char_y + char_offset)
+          ))
           char_x += char_image.get_width()
 
       subtitle_text = ctx.subtitle
@@ -297,7 +307,7 @@ class ShopContext(Context):
         t = subtitle_anim.pos
         if type(subtitle_anim) is SubtitleSlideAnim:
           t = ease_out(t)
-          subtitle_y = lerp(surface.get_height() - subtitle_height - 7, subtitle_y, t)
+          subtitle_y = lerp(WINDOW_HEIGHT - subtitle_height - 7, subtitle_y, t)
       if subtitle_anim or title_anim or not ctx.blurring:
         char_x = subtitle_x
         char_y = subtitle_y
@@ -312,7 +322,10 @@ class ShopContext(Context):
             char_offset = 0
             char_color = WHITE
           char_image = subtitle_font.render(char, char_color)
-          surface.blit(char_image, (char_x + char_offset, char_y + char_offset))
+          sprites.append(Sprite(
+            image=char_image,
+            pos=(char_x + char_offset, char_y + char_offset)
+          ))
           char_x += char_image.get_width()
 
     box_image = Box.render((116, 48))
@@ -325,15 +338,17 @@ class ShopContext(Context):
         t = ease_out(t)
       elif type(box_anim) is BoxExitAnim:
         t = 1 - t
-      box_x = lerp(surface.get_width(), box_x, t)
+      box_x = lerp(WINDOW_WIDTH, box_x, t)
     if box_anim or not ctx.blurring and not ctx.exiting:
-      surface.blit(Box.render((116, 48)), (box_x, box_y))
+      sprites.append(Sprite(
+        image=Box.render((116, 48)),
+        pos=(box_x, box_y)
+      ))
       if not box_anim:
-        surface.blit(ctx.textbox.render(), (box_x + 10, box_y + 8))
+        sprites.append(Sprite(
+          image=ctx.textbox.render(),
+          pos=(box_x + 10, box_y + 8)
+        ))
 
-    if type(ctx.child) is CardContext:
-      sprites = ctx.child.view()
-      for sprite in sprites:
-        sprite.draw(surface)
-    elif ctx.child:
-      ctx.child.draw(surface)
+    if ctx.child:
+      ctx.child.view(sprites)

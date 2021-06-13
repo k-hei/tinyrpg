@@ -63,7 +63,7 @@ class App(Context):
       app.handle_events()
       if app.child:
         app.child.update()
-      app.render()
+      app.redraw()
 
   def rescale(app, new_scale):
     if (new_scale == app.scale
@@ -79,15 +79,21 @@ class App(Context):
     app.display = pygame.display.set_mode(app.size_scaled)
     return True
 
-  def render(app):
-    app.surface.fill(0)
-    app.draw(app.surface)
+  def redraw(app):
+    sprites = []
+    app.view(sprites)
     if app.transits:
       transit = app.transits[0]
       if transit.done:
         app.transits.remove(transit)
-      transit.update()
-      transit.draw(app.surface)
+      else:
+        transit.update()
+      transit.view(sprites)
+    app.surface.fill(0)
+    layers = ["bg", "elems", "markers", "transits", "hud"]
+    sprites.sort(key=lambda sprite: 1 if sprite.layer == "hud" else 0)
+    for sprite in sprites:
+      sprite.draw(app.surface)
     app.display.blit(pygame.transform.scale(app.surface, app.size_scaled), (0, 0))
     pygame.display.flip()
 

@@ -9,13 +9,14 @@ class FortuneDesk(Element):
   def __init__(desk, solid=False):
     super().__init__(solid=solid)
 
-  def render(desk):
+  def view(desk):
     desk_image = use_assets().sprites["fortune_desk"]
     desk_image = replace_color(desk_image, WHITE, ORANGE)
     desk_sprite = Sprite(
       image=desk_image,
       pos=desk.pos,
-      origin=("left", "bottom")
+      origin=("left", "bottom"),
+      layer="elems"
     )
     desk_sprite.move((-TILE_SIZE / 2, TILE_SIZE / 2))
-    return desk_sprite
+    return [desk_sprite]

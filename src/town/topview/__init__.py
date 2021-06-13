@@ -164,11 +164,14 @@ class TopViewContext(Context):
       else:
         anim.update()
 
-  def draw(ctx, surface):
+  def view(ctx, sprites):
     assets = use_assets()
     hero = ctx.hero
-    surface.blit(assets.sprites[ctx.area.bg_id], (0, 0))
-    sprites = []
+    sprites.append(Sprite(
+      image=assets.sprites[ctx.area.bg_id],
+      pos=(0, 0),
+      layer="bg"
+    ))
     def zsort(elem):
       _, y = elem.pos
       z = y
@@ -183,11 +186,10 @@ class TopViewContext(Context):
         sprites.append(Sprite(
           image=assets.sprites["bubble_talk"],
           pos=(bubble_x, bubble_y),
-          origin=("left", "bottom")
+          origin=("left", "bottom"),
+          layer="markers"
         ))
-      elem.render().draw(surface)
-    for sprite in sprites:
-      sprite.draw(surface)
+      sprites += elem.view()
 
     if not ctx.child or type(ctx.child.child) is not ShopContext:
       hud_image = ctx.hud.update(ctx.hero.core)
@@ -198,8 +200,12 @@ class TopViewContext(Context):
         t = hud_anim.pos
         t = ease_out(t)
         hud_x = lerp(2, hud_x, t)
-        hud_y = lerp(surface.get_height() - 2 - hud_image.get_height(), hud_y, t)
-      surface.blit(hud_image, (hud_x, hud_y))
+        hud_y = lerp(WINDOW_HEIGHT - 2 - hud_image.get_height(), hud_y, t)
+      sprites.append(Sprite(
+        image=hud_image,
+        pos=(hud_x, hud_y),
+        layer="hud"
+      ))
 
     if ctx.child:
-      ctx.child.draw(surface)
+      ctx.child.view(sprites)

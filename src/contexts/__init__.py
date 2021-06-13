@@ -69,13 +69,9 @@ class Context:
     if ctx.child:
       ctx.child.update()
 
-  def view(ctx):
-    surface = Surface(WINDOW_SIZE, SRCALPHA)
-    ctx.draw(surface)
-    return [Sprite(
-      image=surface,
-      pos=(0, 0)
-    )]
+  def view(ctx, sprites):
+    if ctx.child:
+      ctx.child.view(sprites)
 
   def draw(ctx, surface):
     if ctx.child:

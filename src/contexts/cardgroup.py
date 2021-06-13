@@ -85,7 +85,8 @@ class CardContext(Context):
       return ctx.child.handle_keydown(key)
 
     if (next((c for c in ctx.cards if c.anims), None)
-    or next((a for a in ctx.anims if a.blocking), None)):
+    or next((a for a in ctx.anims if a.blocking), None)
+    or ctx.chosen):
       return False
 
     if keyboard.get_pressed(key) > 1:
@@ -140,12 +141,12 @@ class CardContext(Context):
     ctx.hand_index += (ctx.card_index - ctx.hand_index) / 4
     ctx.ticks += 1
 
-  def view(ctx):
+  def view(ctx, sprites):
     if ctx.child:
-      return ctx.child.view()
-    sprites = []
+      return ctx.child.view(sprites)
     assets = use_assets().sprites
     card_template = assets["card_back"]
+    card_sprites = []
     cards_x, cards_y = ctx.pos
     x = card_template.get_width() // 2
     for card in ctx.cards:
@@ -181,10 +182,12 @@ class CardContext(Context):
         elif not ctx.anims and ctx.chosen:
           card_y -= CARD_LIFT * 3
         card_sprite.move((card_x, card_y))
-        sprites.insert(0, card_sprite)
+        card_sprites.insert(0, card_sprite)
       x += card_template.get_width() + CARD_SPACING
+    sprites += card_sprites
     if (not next((a for a in ctx.anims if a.blocking), None)
     and not (ctx.chosen and ctx.ticks % 2)
+    and not (ctx.chosen and not ctx.card().anims)
     and not ctx.exiting):
       hand_image = rotate(assets["hand"], -90)
       hand_x = cards_x + ctx.hand_index * (card_template.get_width() + CARD_SPACING) + card_template.get_width() / 2
@@ -196,7 +199,6 @@ class CardContext(Context):
         pos=(hand_x, hand_y),
         origin=("center", "center")
       ))
-    return sprites
 
   def draw(ctx, surface):
     Sprite(

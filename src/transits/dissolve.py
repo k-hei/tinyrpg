@@ -1,5 +1,6 @@
 import math
-from pygame import Surface, PixelArray
+from pygame import Surface, PixelArray, SRCALPHA
+from sprite import Sprite
 
 # a node is a diamond. has form (x, y, t) where t is the size based on renders
 # stack holds the newest nodes
@@ -159,6 +160,15 @@ class DissolveOut:
 
       transit.stack = new_stack
     transit.time += 1
+
+  def view(transit, sprites):
+    surface = Surface(transit.size, SRCALPHA)
+    transit.draw(surface)
+    sprites.append(Sprite(
+      image=surface,
+      pos=(0, 0),
+      layer="transits"
+    ))
 
   def draw(transit, surface):
     start = DIAMOND_RADIUS // 2
