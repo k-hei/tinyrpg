@@ -18,12 +18,19 @@ class BubbleContext(Context):
     ctx.bubble.print(ctx.message())
 
   def handle_keydown(ctx, key):
-    if key == pygame.K_SPACE and keyboard.get_pressed(key) == 1:
+    if keyboard.get_pressed(key) > 1:
+      return
+    if key == pygame.K_SPACE:
       return ctx.handle_next()
+    if key == pygame.K_ESCAPE:
+      return ctx.handle_exit()
 
   def handle_next(ctx):
     ctx.message_index = (ctx.message_index + 1) % len(ctx.messages)
     ctx.bubble.print(ctx.message())
+
+  def handle_exit(ctx):
+    ctx.bubble.exit(on_end=ctx.close)
 
   def draw(ctx, surface):
     ctx.bubble.draw(surface)

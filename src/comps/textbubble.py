@@ -59,6 +59,7 @@ class TextBubble:
   PADDING_Y = 16
 
   class EnterAnim(TweenAnim): pass
+  class ExitAnim(TweenAnim): pass
   class ResizeAnim(TweenAnim): pass
 
   def __init__(bubble, width, pos):
@@ -70,10 +71,15 @@ class TextBubble:
     bubble.ticks = 0
 
   def enter(bubble, on_end=None):
-    bubble.anims.append(TextBubble.EnterAnim(
-      duration=15,
-      on_end=on_end
-    ))
+    bubble.anims.append(
+      TextBubble.EnterAnim(duration=15, on_end=on_end)
+    )
+
+  def exit(bubble, on_end=None):
+    bubble.textbox.clear()
+    bubble.anims.append(
+      TextBubble.ExitAnim(duration=8, on_end=on_end)
+    )
 
   def resize(bubble, height, on_end=None):
     def end():
@@ -132,6 +138,10 @@ class TextBubble:
         t = ease_out(t)
         bubble_width *= t
         bubble_height *= t
+      elif type(bubble_anim) is TextBubble.ExitAnim:
+        t = 1 - t
+        bubble_width *= t
+        bubble_height *= t
       elif type(bubble_anim) is TextBubble.ResizeAnim:
         t = ease_out(t)
         bubble_height = lerp(bubble_height, bubble_anim.target, t)
@@ -148,7 +158,8 @@ class TextBubble:
     bubble_yoffset = sin(bubble.ticks % 75 / 75 * 2 * pi) * 1.5
 
     surface.blit(bubble_image, (bubble_x + bubble_xoffset, bubble_y + bubble_yoffset))
-    surface.blit(bubbletail_image, (bubbletail_x + bubble_xoffset, bubbletail_y + bubble_yoffset + bubbletail_offset))
+    if bubble_width and bubble_height:
+      surface.blit(bubbletail_image, (bubbletail_x + bubble_xoffset, bubbletail_y + bubble_yoffset + bubbletail_offset))
 
     text_image = bubble.textbox.render()
     text_x = bubble_x + TextBubble.PADDING_X + bubble_widthoffset

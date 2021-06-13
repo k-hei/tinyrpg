@@ -88,6 +88,9 @@ class ShopContext(Context):
       BoxEnterAnim(duration=20, delay=90)
     ]
 
+  def exit(ctx):
+    ctx.bubble.exit(on_end=ctx.close)
+
   def message(ctx):
     return ctx.messages[ctx.message_index]
 
@@ -145,7 +148,7 @@ class ShopContext(Context):
     portrait = ctx.portraits[0]
     portrait.start_talk()
     ctx.bubble.print("MIRA: See you soon...", on_end=lambda: (
-      ctx.anims.append(Anim(duration=30, on_end=lambda: ctx.close(None))),
+      ctx.anims.append(Anim(duration=30, on_end=ctx.exit)),
       portrait.stop_talk()
     ))
 
