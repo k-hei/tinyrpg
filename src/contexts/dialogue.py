@@ -150,7 +150,8 @@ class DialogueContext(Context):
           y += -sprite_arrow.get_height() + sprite.get_height() - Log.PADDING_Y + 4 + offset
           sprites.append(Sprite(
             image=sprite_arrow,
-            pos=(x, y)
+            pos=(x, y),
+            layer="hud"
           ))
 
     if ctx.child:

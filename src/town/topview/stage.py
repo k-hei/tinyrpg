@@ -44,6 +44,8 @@ class Stage:
           elem = elems[char]
           if callable(elem):
             elem = elem()
+          if elem is None:
+            raise TypeError("Attempted to spawn NoneType element at ({x}, {y})".format(x, y))
           stage.spawn_elem_at((x, y), elem)
         else:
           tile = Stage.parse_char(char)

@@ -3,18 +3,20 @@ from sprite import Sprite
 from assets import load as use_assets
 from anims.pause import PauseAnim
 from filters import replace_color
-from palette import WHITE, BLUE_DARK
+from palette import WHITE, BLACK
 
 class Door(Element):
   EFFECT_DELAY = 20
   OPEN_DELAY = 20
+  PALETTE = (BLACK, WHITE)
   spawn_offset = (8, 8)
   rect_offset = (-16, -16)
 
-  def __init__(door):
+  def __init__(door, palette=None):
     super().__init__()
     door.opened = False
     door.effect_delay = Door.EFFECT_DELAY
+    door.palette = palette or Door.PALETTE
 
   def reset_effect(door):
     if not door.opened:
@@ -37,7 +39,10 @@ class Door(Element):
   def view(door, sprites):
     assets = use_assets().sprites
     door_image = door.opened and assets["door_open"] or assets["door"]
-    door_image = replace_color(door_image, WHITE, BLUE_DARK)
+    if door.palette[0] != Door.PALETTE[0]:
+      door_image = replace_color(door_image, Door.PALETTE[0], door.palette[0])
+    if door.palette[1] != Door.PALETTE[1]:
+      door_image = replace_color(door_image, Door.PALETTE[1], door.palette[1])
     sprites.append(Sprite(
       image=door_image,
       pos=door.pos,

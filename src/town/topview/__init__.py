@@ -188,6 +188,8 @@ class TopViewContext(Context):
     elems = sorted(ctx.stage.elems, key=zsort)
     elem_sprites = []
     for elem in elems:
+      if elem.pos is None:
+        continue
       if not ctx.child and hero.can_talk(elem):
         bubble_x, bubble_y = elem.get_rect().topright
         bubble_y -= TILE_SIZE // 4

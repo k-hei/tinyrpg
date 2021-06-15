@@ -3,7 +3,7 @@ from town.topview import TopViewContext
 from town.areas.fortune import FortuneArea
 from cores.knight import KnightCore
 
-App(title="town top-down view demo",
+App(title="fortune house demo",
   context=TopViewContext(
     area=FortuneArea,
     hero=KnightCore()

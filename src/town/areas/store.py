@@ -8,10 +8,10 @@ from contexts.shop import ShopContext
 from cores.mira import MiraCore
 from cores.rogue import RogueCore
 from savedata.resolve import resolve_item
-from palette import BLACK, ORANGE, BLUE_DARK
+from palette import ORANGE, WHITE
 
-class FortuneArea(Stage):
-  bg_id = "fortune"
+class StoreArea(Stage):
+  bg_id = "store"
   scale = 16
   links = {
     "entrance": Link(cell=(2, 6), direction=(0, 1))
@@ -24,11 +24,11 @@ class FortuneArea(Stage):
     "###..........###",
     "###....1.....###",
     "###..........###",
-    "###...2####..###",
+    "###..........###",
     "###..........###",
     "##............##",
     "##.....0......##",
-    "##....|..|....##",
+    "##............##",
     "#######+.#######",
     "#######..#######",
   ]
@@ -75,7 +75,5 @@ class FortuneArea(Stage):
           lambda: ctx.get_root().dissolve_out()
         ]
       ),
-      "2": FortuneDesk,
-      "|": FortuneStand,
-      "+": lambda: Door(palette=(BLACK, BLUE_DARK))
+      "+": lambda: Door(palette=(0xFFE6A8A8, WHITE))
     })
