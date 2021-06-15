@@ -5,7 +5,7 @@ from town.topview.fortunestand import FortuneStand
 from town.topview.fortunedesk import FortuneDesk
 from contexts.prompt import PromptContext, Choice
 from contexts.shop import ShopContext
-from cores.mage import MageCore
+from cores.mira import MiraCore
 from cores.rogue import RogueCore
 from savedata.resolve import resolve_item
 from palette import ORANGE, GREEN
@@ -37,7 +37,7 @@ class FortuneArea(Stage):
     super().__init__(stage.layout, {
       "0": hero,
       "1": Actor(
-        core=MageCore(name="Mira"),
+        core=MiraCore(),
         facing=(0, 1),
         color=ORANGE,
         moving=True,

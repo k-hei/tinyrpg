@@ -8,14 +8,15 @@ from palette import BLUE, BLUE_DARK
 from lib.lerp import lerp
 
 class MiraPortrait(Portrait):
+  FRAME_PREFIX = "portrait_mira"
   EYES_POS = (52, 38)
   MOUTH_POS = (61, 59)
   SHINE_POS = (144, 96)
   BLINK_INTERVAL = 150
   BLINK_DURATION = 16
-  BLINK_FRAMES = ["mira_eyes", "mira_eyes_closing", "mira_eyes_closed", "mira_eyes_closing"]
+  BLINK_FRAMES = [FRAME_PREFIX + "_eyes", FRAME_PREFIX + "_eyes_closing", FRAME_PREFIX + "_eyes_closed", FRAME_PREFIX + "_eyes_closing"]
   TALK_DURATION = 16
-  TALK_FRAMES = ["mira_mouth", "mira_mouth_opening", "mira_mouth_open", "mira_mouth_opening"]
+  TALK_FRAMES = [FRAME_PREFIX + "_mouth", FRAME_PREFIX + "_mouth_opening", FRAME_PREFIX + "_mouth_open", FRAME_PREFIX + "_mouth_opening"]
 
   class BlinkAnim(FrameAnim):
     def __init__(anim, *args, **kwargs):
@@ -64,14 +65,14 @@ class MiraPortrait(Portrait):
   def render(portrait):
     portrait.update()
     assets = use_assets().sprites
-    surface = assets["mira"].copy()
+    surface = assets[portrait.FRAME_PREFIX + ""].copy()
 
     blink_anim = next((a for a in portrait.anims if type(a) is MiraPortrait.BlinkAnim), None)
-    eyes_frame = blink_anim.frame if blink_anim else "mira_eyes"
+    eyes_frame = blink_anim.frame if blink_anim else portrait.FRAME_PREFIX + "_eyes"
     surface.blit(assets[eyes_frame], MiraPortrait.EYES_POS)
 
     talk_anim = next((a for a in portrait.anims if type(a) is MiraPortrait.TalkAnim), None)
-    mouth_frame = talk_anim.frame if talk_anim else "mira_mouth"
+    mouth_frame = talk_anim.frame if talk_anim else portrait.FRAME_PREFIX + "_mouth"
     surface.blit(assets[mouth_frame], MiraPortrait.MOUTH_POS)
 
     ticks = portrait.ticks // 2 * 2
@@ -106,10 +107,10 @@ class MiraPortrait(Portrait):
         (1, int(height))
       ))
 
-    shine_image = assets["mira_shine"]
+    shine_image = assets[portrait.FRAME_PREFIX + "_shine"]
     surface.blit(shine_image, MiraPortrait.SHINE_POS)
 
-    hand_image = assets["mira_hand"]
+    hand_image = assets[portrait.FRAME_PREFIX + "_hand"]
     surface.blit(hand_image, (
       surface.get_width() - hand_image.get_width() - 19,
       surface.get_height() - hand_image.get_height()

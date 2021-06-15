@@ -1,11 +1,11 @@
 {
-  "mira":               [  0,   0, 160, 128],
-  "mira_eyes":          [  0, 128,  34,  25],
-  "mira_eyes_closing":  [ 34, 128,  34,  25],
-  "mira_eyes_closed":   [ 68, 128,  34,  25],
-  "mira_mouth":         [102, 128,  18,  11],
-  "mira_mouth_opening": [120, 128,  18,  11],
-  "mira_mouth_open":    [138, 128,  18,  11],
-  "mira_hand":          [102, 139,  25,  22],
-  "mira_shine":         [145, 139,  15,  14]
+  "portrait_mira":               [  0,   0, 160, 128],
+  "portrait_mira_eyes":          [  0, 128,  34,  25],
+  "portrait_mira_eyes_closing":  [ 34, 128,  34,  25],
+  "portrait_mira_eyes_closed":   [ 68, 128,  34,  25],
+  "portrait_mira_mouth":         [102, 128,  18,  11],
+  "portrait_mira_mouth_opening": [120, 128,  18,  11],
+  "portrait_mira_mouth_open":    [138, 128,  18,  11],
+  "portrait_mira_hand":          [102, 139,  25,  22],
+  "portrait_mira_shine":         [145, 139,  15,  14]
 }
