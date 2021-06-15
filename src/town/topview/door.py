@@ -2,10 +2,14 @@ from town.topview.element import Element
 from sprite import Sprite
 from assets import load as use_assets
 from anims.pause import PauseAnim
+from filters import replace_color
+from palette import WHITE, BLUE_DARK
 
 class Door(Element):
   EFFECT_DELAY = 20
   OPEN_DELAY = 20
+  spawn_offset = (8, 8)
+  rect_offset = (-16, -16)
 
   def __init__(door):
     super().__init__()
@@ -30,7 +34,13 @@ class Door(Element):
     door.opened = True
     door.solid = False
 
-  def view(door):
-    sprites = use_assets().sprites
-    door_image = door.opened and sprites["door_open"] or sprites["door"]
-    return [Sprite(image=door_image, pos=door.pos, origin=("center", "center"))]
+  def view(door, sprites):
+    assets = use_assets().sprites
+    door_image = door.opened and assets["door_open"] or assets["door"]
+    door_image = replace_color(door_image, WHITE, BLUE_DARK)
+    sprites.append(Sprite(
+      image=door_image,
+      pos=door.pos,
+      origin=("center", "center"),
+      layer="bg"
+    ))

@@ -1,4 +1,5 @@
 {
   "fortune": [0, 0, 256, 224],
-  "fortune_desk": [0, 224, 80, 48]
+  "fortune_desk": [0, 224, 80, 48],
+  "fortune_stand": [80, 224, 16, 48]
 }

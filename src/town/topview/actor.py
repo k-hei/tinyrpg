@@ -10,6 +10,7 @@ TALK_RADIUS = TILE_SIZE * 1.5
 
 class Actor(Element):
   speed = 1.5
+  spawn_offset = (8, 8)
 
   def __init__(actor, core, pos=None, facing=None, color=None, moving=False, move_period=30, is_shopkeep=False, message=None):
     super().__init__()
@@ -96,10 +97,10 @@ class Actor(Element):
     if actor.anim:
       actor.anim.update()
 
-  def view(actor):
+  def view(actor, sprites):
     sprite = actor.core.render()
     # sprite.image = outline(sprite.image, WHITE)
     sprite.origin = ("center", "center")
     x, y = actor.get_rect().midtop
     sprite.pos = (x, y - 1)
-    return [sprite]
+    sprites.append(sprite)

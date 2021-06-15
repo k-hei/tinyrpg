@@ -29,27 +29,25 @@ class Stage:
   scale = 32
 
   def parse_char(char):
-    if char == ".": return Stage.FLOOR, None
-    if char == "#": return Stage.WALL, None
-    if char == "'": return Stage.HALF_WALL, None
-    if char == "+": return Stage.FLOOR, Door()
+    if char == ".": return Stage.FLOOR
+    if char == "#": return Stage.WALL
+    if char == "'": return Stage.HALF_WALL
 
-  def __init__(stage, matrix=None):
-    stage.matrix = matrix or []
+  def __init__(stage, layout, elems):
+    stage.matrix = []
     stage.elems = []
-
-  def use(stage, layout, elems):
     for y, row in enumerate(layout):
       stage.matrix.append([])
       for x, char in enumerate(row):
         if char in elems:
-          elem = elems[char]
           tile = Stage.FLOOR
-        else:
-          tile, elem = Stage.parse_char(char)
-        stage.matrix[y].append(tile)
-        if elem:
+          elem = elems[char]
+          if callable(elem):
+            elem = elem()
           stage.spawn_elem_at((x, y), elem)
+        else:
+          tile = Stage.parse_char(char)
+        stage.matrix[y].append(tile)
 
   def get_width(stage):
     return len(stage.matrix[0]) if len(stage.matrix) else 0
@@ -77,8 +75,8 @@ class Stage:
 
   def spawn_elem_at(stage, cell, elem):
     x, y = cell
-    elem.pos = (
-      x * stage.scale + TILE_SIZE // 2,
-      y * stage.scale + TILE_SIZE // 2
-    )
+    elem.spawn((
+      (x + 0.5) * stage.scale,
+      (y + 0.5) * stage.scale
+    ))
     stage.elems.append(elem)

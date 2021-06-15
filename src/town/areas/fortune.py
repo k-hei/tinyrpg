@@ -1,5 +1,7 @@
 from town.topview.stage import Stage, Link
 from town.topview.actor import Actor
+from town.topview.door import Door
+from town.topview.fortunestand import FortuneStand
 from town.topview.fortunedesk import FortuneDesk
 from contexts.prompt import PromptContext, Choice
 from contexts.shop import ShopContext
@@ -21,19 +23,18 @@ class FortuneArea(Stage):
     "################",
     "###..........###",
     "###....1.....###",
-    "###...2......###",
-    "###...#####..###",
+    "###..........###",
+    "###...2####..###",
     "###..........###",
     "##............##",
     "##.....0......##",
-    "##....#..#....##",
-    "################",
-    "################",
+    "##....|..|....##",
+    "#######+.#######",
+    "#######..#######",
   ]
 
   def __init__(stage, hero):
-    super().__init__()
-    stage.use(stage.layout, {
+    super().__init__(stage.layout, {
       "0": hero,
       "1": Actor(
         core=MageCore(name="Mira"),
@@ -74,5 +75,7 @@ class FortuneArea(Stage):
           lambda: ctx.get_root().dissolve_out()
         ]
       ),
-      "2": FortuneDesk()
+      "2": FortuneDesk,
+      "|": FortuneStand,
+      "+": Door
     })

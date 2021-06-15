@@ -6,10 +6,12 @@ from filters import replace_color
 from palette import WHITE, ORANGE
 
 class FortuneDesk(Element):
-  def __init__(desk, solid=False):
-    super().__init__(solid=solid)
+  size = (80, 16)
+  spawn_offset = (0, 0)
+  rect_offset = (-8, -8)
+  draw_offset = (-8, 8)
 
-  def view(desk):
+  def view(desk, sprites):
     desk_image = use_assets().sprites["fortune_desk"]
     desk_image = replace_color(desk_image, WHITE, ORANGE)
     desk_sprite = Sprite(
@@ -18,5 +20,5 @@ class FortuneDesk(Element):
       origin=("left", "bottom"),
       layer="elems"
     )
-    desk_sprite.move((-TILE_SIZE / 2, TILE_SIZE / 2))
-    return [desk_sprite]
+    desk_sprite.move(desk.draw_offset)
+    sprites.append(desk_sprite)
