@@ -299,7 +299,7 @@ class SellContext(Context):
         target=ctx.card_pos
       )
     ]
-    ctx.card.spin(duration=20)
+    ctx.card.spin(duration=10)
     ctx.on_animate = ctx.close
 
   def handle_keydown(ctx, key):

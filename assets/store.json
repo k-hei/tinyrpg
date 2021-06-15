@@ -1,0 +1,9 @@
+{
+  "store_bg":           [  0,   0, 256, 224],
+  "store_fg":           [256,   0, 256, 224],
+  "store_planter":      [  0, 224,  16,  32],
+  "store_potionstock":  [ 16, 224,  32,  32],
+  "store_breadstock":   [ 48, 224,  32,  32],
+  "store_cheesestock":  [ 80, 224,  32,  32],
+  "store_counter":      [112, 224, 128,  96]
+}

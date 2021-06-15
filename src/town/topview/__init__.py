@@ -179,6 +179,12 @@ class TopViewContext(Context):
       pos=(0, 0),
       layer="bg"
     ))
+    if ctx.area.fg_id:
+      sprites.append(Sprite(
+        image=assets.sprites[ctx.area.fg_id],
+        pos=(0, 0),
+        layer="bg"
+      ))
     def zsort(elem):
       _, y = elem.pos
       z = y
@@ -203,12 +209,12 @@ class TopViewContext(Context):
       if ctx.debug and not ctx.child:
         elem_sprites += debug_elem_view(elem)
 
-    elem_sprites.sort(key=lambda sprite: (
+    sprites += elem_sprites
+    sprites.sort(key=lambda sprite: (
       0 if sprite.layer == "bg"
       else 2 if sprite.layer == "markers"
       else 1
     ))
-    sprites += elem_sprites
 
     if not ctx.child or type(ctx.child.child) is not ShopContext:
       hud_image = ctx.hud.update(ctx.hero.core)
