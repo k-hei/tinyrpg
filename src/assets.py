@@ -80,7 +80,10 @@ def load(path=None):
     if isfile(join(path, f)):
       item_name, item_ext = splitext(f)
       if item_ext == ".png":
-        load_sprite(item_name, path, sprites)
+        try:
+          load_sprite(item_name, path, sprites)
+        except:
+          print("Failed to load {}".format(item_name))
 
   pngfonts = {}
   for f in listdir(join(path, "pngfont")):

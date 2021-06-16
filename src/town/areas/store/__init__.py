@@ -48,7 +48,7 @@ class StoreArea(Stage):
         move_period=45,
         is_shopkeep=True,
         message=lambda talkee, ctx: [
-          "{}: Welcome...".format(talkee.get_name().upper()),
+          "{}: Ever get a rebar stuck up your ass?".format(talkee.get_name().upper()),
           lambda: ShopContext(
             hud=ctx.hud,
             items=list(map(resolve_item, [
@@ -87,7 +87,7 @@ class StoreArea(Stage):
         move_period=40,
         is_shopkeep=True,
         message=lambda talkee, ctx: [
-          "{}: Welcome...".format(talkee.get_name().upper()),
+          "{}: Welcome!".format(talkee.get_name().upper()),
           lambda: ShopContext(
             hud=ctx.hud,
             items=list(map(resolve_item, [

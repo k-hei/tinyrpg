@@ -52,20 +52,10 @@ class MiraPortrait(Portrait):
     if talk_anim:
       portrait.anims.remove(talk_anim)
 
-  def update(portrait):
-    for anim in portrait.anims:
-      if anim.done:
-        portrait.anims.remove(anim)
-      else:
-        anim.update()
-    portrait.ticks += 1
-    if portrait.ticks % MiraPortrait.BLINK_INTERVAL == 0:
-      portrait.blink()
-
   def render(portrait):
     portrait.update()
     assets = use_assets().sprites
-    surface = assets[portrait.FRAME_PREFIX + ""].copy()
+    surface = assets[portrait.FRAME_PREFIX].copy()
 
     blink_anim = next((a for a in portrait.anims if type(a) is MiraPortrait.BlinkAnim), None)
     eyes_frame = blink_anim.frame if blink_anim else portrait.FRAME_PREFIX + "_eyes"

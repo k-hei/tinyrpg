@@ -14,7 +14,7 @@ from comps.card import Card
 from hud import Hud
 from assets import load as use_assets
 from filters import replace_color, darken
-from palette import BLACK, WHITE, RED, BLUE, BLUE_DARK, GOLD
+from palette import BLACK, WHITE, RED, BLUE, BLUE_DARK, GOLD, ORANGE
 import keyboard
 from anims import Anim
 from anims.tween import TweenAnim
@@ -62,18 +62,17 @@ def animate_text(anim, text, period, stagger=1, delay=0):
   return anims
 
 class ShopContext(Context):
-  title = "Fortune House"
-  subtitle = "Destiny written in starlight"
 
-  def __init__(ctx, items, hud=None):
+  def __init__(ctx, title, subtitle, messages, portraits, items, bg_image, bg_color=None, hud=None):
     super().__init__()
+    ctx.title = title
+    ctx.subtitle = subtitle
+    ctx.portraits = portraits
     ctx.items = items
     ctx.hero = KnightCore()
-    ctx.portraits = [MiraPortrait()]
-    ctx.messages = [
-      "MIRA: What can I do you for...?",
-      "MIRA: Need anything else...?"
-    ]
+    ctx.bg_image = bg_image
+    ctx.bg_color = WHITE
+    ctx.messages = messages
     ctx.message_index = 0
     ctx.blurring = False
     ctx.exiting = False
@@ -195,8 +194,8 @@ class ShopContext(Context):
     else:
       sprites.clear()
 
-    bg_image = assets.sprites["fortune_bg"]
-    bg_image = replace_color(bg_image, WHITE, BLUE_DARK)
+    bg_image = assets.sprites[ctx.bg_image]
+    bg_image = replace_color(bg_image, WHITE, ctx.bg_color)
     bg_anim = next((a for a in ctx.anims if isinstance(a, BackgroundAnim)), None)
     if bg_anim:
       t = bg_anim.pos
@@ -234,7 +233,7 @@ class ShopContext(Context):
         portrait_x = lerp(WINDOW_WIDTH, portrait_x, t)
       if portrait_anim or not ctx.exiting:
         sprites.append(Sprite(
-          image=portrait_image,
+          image=replace_color(assets.sprites["portrait_husband"], WHITE, ORANGE),
           pos=(portrait_x, portrait_y)
         ))
 
