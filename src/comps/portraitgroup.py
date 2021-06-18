@@ -40,7 +40,7 @@ class PortraitGroup:
 
   def __init__(group, portraits):
     group.portraits = portraits
-    group.portraits_init = portraits.copy()
+    group.portraits_init = list(portraits)
     group.cycling = False
     group.anims = []
     group.anims_xs = {}
@@ -73,18 +73,25 @@ class PortraitGroup:
     group.cycling = True
 
   def stop_cycle(group):
-    portraits_images = list(map(lambda portrait: portrait.render(), group.portraits))
-    from_xs = PortraitGroup.get_portraits_xs(portraits_images, group.cycling)
+    portrait_imagemap = dict(map(lambda portrait: (portrait, portrait.render()), group.portraits))
+    portrait_images = portrait_imagemap.values()
+    from_xs = dict(zip(
+      group.portraits,
+      PortraitGroup.get_portraits_xs(portrait_images, group.cycling)
+    ))
     group.cycling = False
-    group.portraits = group.portraits_init
-    to_xs = PortraitGroup.get_portraits_xs(portraits_images, group.cycling)
-    xs = list(zip(from_xs, to_xs))
+    group.portraits = list(group.portraits_init)
+    portrait_images = list(map(lambda portrait: portrait_imagemap[portrait], group.portraits))
+    to_xs = dict(zip(
+      group.portraits,
+      PortraitGroup.get_portraits_xs(portrait_images, cycling=False)
+    ))
     for i, portrait in enumerate(group.portraits):
       group.anims.append(CycleAnim(
         duration=15,
         target=portrait
       ))
-      group.anims_xs[portrait] = xs[i]
+      group.anims_xs[portrait] = (from_xs[portrait], to_xs[portrait])
 
   def update(group):
     for anim in group.anims:
