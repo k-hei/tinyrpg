@@ -10,6 +10,8 @@ from contexts.prompt import PromptContext, Choice
 from contexts.shop import ShopContext
 from cores.husband import HusbandCore
 from cores.wife import WifeCore
+from portraits.husband import HusbandPortrait
+from portraits.wife import WifePortrait
 from savedata.resolve import resolve_item
 from palette import ORANGE, WHITE
 
@@ -38,6 +40,36 @@ class StoreArea(Stage):
   ]
 
   def __init__(stage, hero):
+    shop = ShopContext(
+      title="General Store",
+      subtitle="All your exploration needs",
+      messages=["THAG: How can I help you?", "THAG: Anything else?"],
+      bg_image="store_bg",
+      portraits=[HusbandPortrait(), WifePortrait()],
+      items=list(map(resolve_item, [
+        "Potion",
+        "Potion",
+        "Ankh",
+        "Elixir",
+        "Cheese",
+        "Cheese",
+        "Cheese",
+        "Bread",
+        "Fish",
+        "Fish",
+        "Balloon",
+        "Emerald",
+        "Antidote",
+        "Antidote",
+        "Antidote",
+        "Antidote",
+        "Amethyst",
+        "AngelTears",
+        "AngelTears",
+        "RedFerrule",
+        "Diamond"
+      ]))
+    )
     super().__init__(stage.layout, {
       "0": hero,
       "1": Actor(
@@ -49,32 +81,7 @@ class StoreArea(Stage):
         is_shopkeep=True,
         message=lambda talkee, ctx: [
           "{}: Ever get a rebar stuck up your ass?".format(talkee.get_name().upper()),
-          lambda: ShopContext(
-            hud=ctx.hud,
-            items=list(map(resolve_item, [
-              "Potion",
-              "Potion",
-              "Ankh",
-              "Elixir",
-              "Cheese",
-              "Cheese",
-              "Cheese",
-              "Bread",
-              "Fish",
-              "Fish",
-              "Balloon",
-              "Emerald",
-              "Antidote",
-              "Antidote",
-              "Antidote",
-              "Antidote",
-              "Amethyst",
-              "AngelTears",
-              "AngelTears",
-              "RedFerrule",
-              "Diamond"
-            ]))
-          ),
+          shop,
           lambda: ctx.anims.append(ctx.HudAnim()),
           lambda: ctx.get_root().dissolve_out()
         ]
@@ -88,32 +95,7 @@ class StoreArea(Stage):
         is_shopkeep=True,
         message=lambda talkee, ctx: [
           "{}: Welcome!".format(talkee.get_name().upper()),
-          lambda: ShopContext(
-            hud=ctx.hud,
-            items=list(map(resolve_item, [
-              "Potion",
-              "Potion",
-              "Ankh",
-              "Elixir",
-              "Cheese",
-              "Cheese",
-              "Cheese",
-              "Bread",
-              "Fish",
-              "Fish",
-              "Balloon",
-              "Emerald",
-              "Antidote",
-              "Antidote",
-              "Antidote",
-              "Antidote",
-              "Amethyst",
-              "AngelTears",
-              "AngelTears",
-              "RedFerrule",
-              "Diamond"
-            ]))
-          ),
+          shop,
           lambda: ctx.anims.append(ctx.HudAnim()),
           lambda: ctx.get_root().dissolve_out()
         ]

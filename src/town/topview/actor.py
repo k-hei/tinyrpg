@@ -6,7 +6,7 @@ from config import TILE_SIZE
 from filters import outline
 from palette import WHITE
 
-TALK_RADIUS = TILE_SIZE * 1.5
+TALK_RADIUS = TILE_SIZE
 
 class Actor(Element):
   speed = 1.5
@@ -89,7 +89,7 @@ class Actor(Element):
     in_range = (sqrt(dist_x * dist_x + dist_y * dist_y) < TALK_RADIUS
       or target.is_shopkeep
         and abs(dist_x) < TILE_SIZE // 2
-        and dist_y == -TILE_SIZE * 1.5
+        and dist_y == -TILE_SIZE
         and facing_y == -1)
     return in_range and dist_x * facing_x >= 0 and dist_y * facing_y >= 0
 

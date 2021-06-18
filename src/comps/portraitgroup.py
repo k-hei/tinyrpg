@@ -10,7 +10,7 @@ class EnterAnim(TweenAnim): pass
 class CycleAnim(TweenAnim): pass
 
 PORTRAIT_OVERLAP = 64
-OFFSET_STATIC = 16
+OFFSET_STATIC = 32
 OFFSET_CYCLING = 64
 
 def cycle_list(items, delta=1):
@@ -20,7 +20,6 @@ def cycle_list(items, delta=1):
     items.append(items.pop(0))
 
 class PortraitGroup:
-
   def get_portraits_width(images):
     width = 0
     x = 0
@@ -45,14 +44,16 @@ class PortraitGroup:
     group.cycling = False
     group.anims = []
     group.anims_xs = {}
+    group.on_animate = None
 
-  def enter(group):
+  def enter(group, on_end=None):
     for i, portrait in enumerate(group.portraits):
       group.anims.append(EnterAnim(
         duration=30,
         delay=i * 15,
         target=portrait
       ))
+    group.on_animate = on_end
 
   def cycle(group):
     portraits_images = list(map(lambda portrait: portrait.render(), group.portraits))
@@ -89,6 +90,9 @@ class PortraitGroup:
     for anim in group.anims:
       if anim.done:
         group.anims.remove(anim)
+        if not group.anims and group.on_animate:
+          group.on_animate()
+          group.on_animate = None
       else:
         anim.update()
 

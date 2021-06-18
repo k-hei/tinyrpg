@@ -11,6 +11,7 @@ from comps.control import Control
 from comps.textbox import TextBox
 from comps.textbubble import TextBubble
 from comps.card import Card
+from comps.portraitgroup import PortraitGroup
 from hud import Hud
 from assets import load as use_assets
 from filters import replace_color, darken
@@ -62,12 +63,11 @@ def animate_text(anim, text, period, stagger=1, delay=0):
   return anims
 
 class ShopContext(Context):
-
   def __init__(ctx, title, subtitle, messages, portraits, items, bg_image, bg_color=None, hud=None):
     super().__init__()
     ctx.title = title
     ctx.subtitle = subtitle
-    ctx.portraits = portraits
+    ctx.portraits = PortraitGroup(portraits)
     ctx.items = items
     ctx.hero = KnightCore()
     ctx.bg_image = bg_image
@@ -80,7 +80,7 @@ class ShopContext(Context):
     ctx.hud = hud or Hud()
     ctx.anims = [CursorAnim()]
     ctx.on_animate = None
-    ctx.bubble = TextBubble(width=96, pos=(128, 40))
+    ctx.bubble = TextBubble(width=96, pos=(112, 40))
     ctx.controls = [
       Control(key=("X"), value="Menu")
     ]
@@ -90,12 +90,12 @@ class ShopContext(Context):
       HudEnterAnim(duration=20),
       BackgroundSlideupAnim(duration=15),
       BackgroundEnterAnim(duration=15, delay=10),
-      PortraitEnterAnim(duration=20, delay=30, on_end=ctx.focus),
       *animate_text(anim=SubtitleEnterAnim, text=ctx.subtitle, period=3, stagger=1, delay=75),
       SubtitleSlideAnim(duration=15, delay=len(ctx.subtitle) + 80),
       *animate_text(anim=TitleEnterAnim, text=ctx.title, period=5, stagger=3, delay=120),
       BoxEnterAnim(duration=20, delay=90)
     ]
+    ctx.portraits.enter(on_end=ctx.focus)
 
   def exit(ctx):
     ctx.exiting = True
@@ -116,7 +116,7 @@ class ShopContext(Context):
     ctx.message_index = min(ctx.message_index + 1, len(ctx.messages) - 1)
 
   def focus(ctx):
-    portrait = ctx.portraits[0]
+    portrait = ctx.portraits.portraits[0]
     portrait.start_talk()
     ctx.bubble.print(ctx.message(), on_end=lambda: (
       portrait.stop_talk(),
@@ -156,14 +156,14 @@ class ShopContext(Context):
     ctx.child.open(SellContext(
       items=ctx.items,
       bubble=ctx.bubble,
-      portrait=ctx.portraits[0],
+      portrait=ctx.portraits.portraits[0],
       hud=ctx.hud,
       card=card,
       on_close=ctx.focus
     ))
 
   def handle_exit(ctx):
-    portrait = ctx.portraits[0]
+    portrait = ctx.portraits.portraits[0]
     portrait.start_talk()
     ctx.bubble.print("MIRA: Come again...", on_end=lambda: (
       ctx.anims.append(Anim(duration=45, on_end=ctx.exit)),
@@ -172,6 +172,7 @@ class ShopContext(Context):
 
   def update(ctx):
     super().update()
+    ctx.portraits.update()
     for anim in ctx.anims:
       if anim.done:
         ctx.anims.remove(anim)
@@ -219,23 +220,7 @@ class ShopContext(Context):
         )
       ))
 
-    for portrait in ctx.portraits:
-      portrait_image = portrait.render()
-      portrait_x = WINDOW_WIDTH - portrait_image.get_width()
-      portrait_y = 0
-      portrait_anim = next((a for a in ctx.anims if isinstance(a, PortraitAnim)), None)
-      if portrait_anim:
-        t = portrait_anim.pos
-        if type(portrait_anim) is PortraitEnterAnim:
-          t = ease_out_circ(t)
-        elif type(portrait_anim) is PortraitExitAnim:
-          t = 1 - t
-        portrait_x = lerp(WINDOW_WIDTH, portrait_x, t)
-      if portrait_anim or not ctx.exiting:
-        sprites.append(Sprite(
-          image=replace_color(assets.sprites["portrait_husband"], WHITE, ORANGE),
-          pos=(portrait_x, portrait_y)
-        ))
+    ctx.portraits.view(sprites)
 
     MARGIN = 2
     ctx.bubble.view(sprites)
