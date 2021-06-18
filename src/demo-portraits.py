@@ -11,9 +11,19 @@ class PortraitsContext(Context):
     super().__init__()
     ctx.group = PortraitGroup(portraits)
 
+  def enter(ctx):
+    ctx.group.enter()
+
+  def update(ctx):
+    ctx.group.update()
+
   def handle_keydown(ctx, key):
-    if key == pygame.K_SPACE and keyboard.get_pressed(key) == 1:
-      ctx.group.cycle()
+    if ctx.group.anims or keyboard.get_pressed(key) > 1:
+      return
+    if key == pygame.K_TAB:
+      return ctx.group.cycle()
+    if key == pygame.K_ESCAPE:
+      return ctx.group.stop_cycle()
 
   def view(ctx, sprites):
     ctx.group.view(sprites)

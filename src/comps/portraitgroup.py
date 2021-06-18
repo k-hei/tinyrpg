@@ -1,39 +1,125 @@
 from sprite import Sprite
 from config import WINDOW_WIDTH
 from filters import darken as darken_image
+from anims.tween import TweenAnim
+from lib.lerp import lerp
+from easing.circ import ease_out
+from easing.expo import ease_in_out
+
+class EnterAnim(TweenAnim): pass
+class CycleAnim(TweenAnim): pass
+
+PORTRAIT_OVERLAP = 64
+OFFSET_STATIC = 16
+OFFSET_CYCLING = 64
+
+def cycle_list(items, delta=1):
+  if delta == 1:
+    items.insert(0, items.pop())
+  elif delta == -1:
+    items.append(items.pop(0))
 
 class PortraitGroup:
+
+  def get_portraits_width(images):
+    width = 0
+    x = 0
+    for image in images:
+      width = x + image.get_width()
+      x += image.get_width() - PORTRAIT_OVERLAP
+    return width
+
+  def get_portraits_xs(images, cycling=False):
+    width = PortraitGroup.get_portraits_width(images)
+    xs = []
+    x = 0
+    offset = OFFSET_CYCLING if cycling else OFFSET_STATIC
+    for image in images:
+      xs.append(x + WINDOW_WIDTH - width + offset)
+      x += image.get_width() - PORTRAIT_OVERLAP
+    return xs
+
   def __init__(group, portraits):
     group.portraits = portraits
-    group.portrait_index = None
+    group.portraits_init = portraits.copy()
+    group.cycling = False
+    group.anims = []
+    group.anims_xs = {}
+
+  def enter(group):
+    for i, portrait in enumerate(group.portraits):
+      group.anims.append(EnterAnim(
+        duration=30,
+        delay=i * 15,
+        target=portrait
+      ))
 
   def cycle(group):
-    if group.portrait_index is None:
-      group.portrait_index = 0
-    else:
-      group.portrait_index = (group.portrait_index + 1) % len(group.portraits)
+    portraits_images = list(map(lambda portrait: portrait.render(), group.portraits))
+    from_xs = PortraitGroup.get_portraits_xs(portraits_images, cycling=group.cycling)
+    cycle_list(portraits_images)
+    cycle_list(group.portraits)
+    to_xs = PortraitGroup.get_portraits_xs(portraits_images, cycling=True)
+    cycle_list(to_xs)
+    xs = list(zip(from_xs, to_xs))
+    cycle_list(xs)
+    for i, portrait in enumerate(group.portraits):
+      group.anims.append(CycleAnim(
+        duration=15,
+        target=portrait
+      ))
+      group.anims_xs[portrait] = xs[i]
+    group.cycling = True
+
+  def stop_cycle(group):
+    portraits_images = list(map(lambda portrait: portrait.render(), group.portraits))
+    from_xs = PortraitGroup.get_portraits_xs(portraits_images, group.cycling)
+    group.cycling = False
+    group.portraits = group.portraits_init
+    to_xs = PortraitGroup.get_portraits_xs(portraits_images, group.cycling)
+    xs = list(zip(from_xs, to_xs))
+    for i, portrait in enumerate(group.portraits):
+      group.anims.append(CycleAnim(
+        duration=15,
+        target=portrait
+      ))
+      group.anims_xs[portrait] = xs[i]
+
+  def update(group):
+    for anim in group.anims:
+      if anim.done:
+        group.anims.remove(anim)
+      else:
+        anim.update()
 
   def view(group, sprites):
-    portrait_sprites = []
     selection_sprites = []
-    x = 0
-    width = 0
+    portraits_sprites = []
+    portraits_images = list(map(lambda portrait: portrait.render(), group.portraits))
+    portraits_xs = PortraitGroup.get_portraits_xs(portraits_images, group.cycling)
+
     for i, portrait in enumerate(group.portraits):
-      portrait_image = portrait.render()
-      if group.portrait_index is not None and group.portrait_index != i:
+      portrait_image = portraits_images[i]
+      if group.cycling and i != 0:
         portrait_image = darken_image(portrait_image)
+      portrait_anim = next((a for a in group.anims if a.target is portrait), None)
+      portrait_x = portraits_xs[i]
+      if type(portrait_anim) is EnterAnim:
+        t = portrait_anim.pos
+        t = ease_out(t)
+        portrait_x = lerp(WINDOW_WIDTH, portrait_x, t)
+      elif type(portrait_anim) is CycleAnim:
+        t = portrait_anim.pos
+        t = ease_in_out(t)
+        from_x, to_x = group.anims_xs[portrait]
+        portrait_x = lerp(from_x, to_x, t)
       portrait_sprite = Sprite(
         image=portrait_image,
-        pos=(x, 128),
+        pos=(portrait_x, 128),
         origin=("left", "bottom")
       )
-      if group.portrait_index == i:
+      if group.cycling and i == 0:
         selection_sprites.append(portrait_sprite)
       else:
-        portrait_sprites.append(portrait_sprite)
-      portrait_width = portrait_image.get_width()
-      width = x + portrait_width
-      x += portrait_width - 64
-    for sprite in portrait_sprites + selection_sprites:
-      sprite.move((WINDOW_WIDTH - width + 16, 0))
-    sprites += portrait_sprites + selection_sprites
+        portraits_sprites.append(portrait_sprite)
+    sprites += portraits_sprites + selection_sprites

@@ -1,5 +1,5 @@
 {
-  "store_bg":           [  0,   0, 256, 224],
+  "store_tiles":           [  0,   0, 256, 224],
   "store_fg":           [256,   0, 256, 224],
   "store_planter":      [  0, 224,  16,  32],
   "store_potionstock":  [ 16, 224,  32,  32],

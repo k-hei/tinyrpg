@@ -14,7 +14,7 @@ from savedata.resolve import resolve_item
 from palette import ORANGE, WHITE
 
 class StoreArea(Stage):
-  bg_id = "store_bg"
+  bg_id = "store_tiles"
   fg_id = "store_fg"
   scale = 16
   links = {
