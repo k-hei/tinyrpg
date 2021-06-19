@@ -6,6 +6,7 @@ from town.areas.store.potionstock import PotionStock
 from town.areas.store.breadstock import BreadStock
 from town.areas.store.cheesestock import CheeseStock
 from town.areas.store.counter import Counter
+from town.areas.store.context import StoreContext
 from contexts.prompt import PromptContext, Choice
 from contexts.shop import ShopContext, ShopCard
 from cores.husband import HusbandCore
@@ -40,49 +41,7 @@ class StoreArea(Stage):
   ]
 
   def __init__(stage, hero):
-    shop = lambda: ShopContext(
-      title="General Store",
-      subtitle="All your exploration needs",
-      messages={
-        "home": "THAG: How can I help you?",
-        "home_again": "THAG: Will that be all for today?",
-        "sell": {
-          "home": "SYLVIA: Got something to sell me?",
-          "thanks": "SYLVIA: Thanks!"
-        },
-        "exit": "SYLVIA: See you soon!"
-      },
-      bg="store_bg",
-      portraits=[HusbandPortrait(), WifePortrait()],
-      cards=[
-        ShopCard(name="buy", text="Buy recovery and support items.", portrait=HusbandPortrait),
-        ShopCard(name="sell", text="Trade in items for gold.", portrait=WifePortrait),
-        ShopCard(name="exit", text="Leave the shop.")
-      ],
-      items=list(map(resolve_item, [
-        "Potion",
-        "Potion",
-        "Ankh",
-        "Elixir",
-        "Cheese",
-        "Cheese",
-        "Cheese",
-        "Bread",
-        "Fish",
-        "Fish",
-        "Balloon",
-        "Emerald",
-        "Antidote",
-        "Antidote",
-        "Antidote",
-        "Antidote",
-        "Amethyst",
-        "AngelTears",
-        "AngelTears",
-        "RedFerrule",
-        "Diamond"
-      ]))
-    )
+    shop = lambda: StoreContext(items=[])
     super().__init__(stage.layout, {
       "0": hero,
       "1": Actor(
