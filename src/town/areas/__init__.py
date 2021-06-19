@@ -49,11 +49,25 @@ class Area:
     assets = use_assets()
     area.width = assets.sprites[area.bg_id].get_width()
 
+  def view(area, sprites, hero):
+    assets = use_assets().sprites
+    bg_image = assets[area.bg]
+    area.width = bg_image.get_width()
+    hero_x, _ = hero.pos
+    bg_x = max(0, min(area.width - WINDOW_WIDTH, hero_x - WINDOW_WIDTH / 2))
+    sprites.append(Sprite(
+      image=bg_image,
+      pos=(-bg_x, 0)
+    ))
+    return bg_x
+
   def render(area, hero, can_mark=True):
     nodes = []
     assets = use_assets()
     bg_image = assets.sprites[area.bg_id]
-    bg_x = -hero.x + WINDOW_WIDTH / 2
+    area.width = bg_image.get_width()
+    hero_x, _ = hero.pos
+    bg_x = -hero_x + WINDOW_WIDTH / 2
     if bg_x > 0:
       bg_x = 0
     if bg_x < -area.width + WINDOW_WIDTH:

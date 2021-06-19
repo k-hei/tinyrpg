@@ -100,8 +100,8 @@ class ShopContext(Context):
       BackgroundSlideupAnim(duration=15),
       BackgroundEnterAnim(duration=15, delay=10),
       *animate_text(anim=SubtitleEnterAnim, text=ctx.subtitle, period=3, stagger=1, delay=15),
-      SubtitleSlideAnim(duration=15, delay=len(ctx.subtitle) + 30),
-      *animate_text(anim=TitleEnterAnim, text=ctx.title, period=5, stagger=3, delay=60),
+      SubtitleSlideAnim(duration=15, delay=len(ctx.subtitle) + 10),
+      *animate_text(anim=TitleEnterAnim, text=ctx.title, period=5, stagger=3, delay=45),
       BoxEnterAnim(duration=20, delay=90)
     ]
     ctx.portraits.enter(on_end=ctx.focus)

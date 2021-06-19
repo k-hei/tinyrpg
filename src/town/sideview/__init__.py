@@ -2,11 +2,14 @@ import pygame
 from contexts import Context
 from town.sideview.actor import Actor
 from cores.knight import KnightCore
+from assets import load as use_assets
+from sprite import Sprite
 
 class SideViewContext(Context):
-  def __init__(ctx, hero=None):
+  def __init__(ctx, area, party=[]):
     super().__init__()
-    ctx.hero = Actor(core=hero or KnightCore())
+    ctx.area = area
+    ctx.hero = Actor(core=party and party[0] or KnightCore())
     ctx.link = None
 
   def init(ctx):
@@ -28,7 +31,8 @@ class SideViewContext(Context):
   def update(ctx):
     ctx.hero.update()
 
-  def draw(ctx, surface):
-    hero_sprite = ctx.hero.view()
-    hero_sprite.move((0, 128))
-    hero_sprite.draw(surface)
+  def view(ctx, sprites):
+    bg_x = ctx.area.view(sprites, ctx.hero)
+    hero_sprite = ctx.hero.view()[0]
+    hero_sprite.move((-bg_x, 128))
+    sprites.append(hero_sprite)

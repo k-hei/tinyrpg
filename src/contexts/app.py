@@ -34,6 +34,7 @@ class App(Context):
     pygame.key.set_repeat(1000 // FPS)
     pygame.display.flip()
     assets.load(ASSETS_PATH)
+    app.clock = pygame.time.Clock()
     if app.child:
       app.open()
       app.loop()
@@ -56,14 +57,22 @@ class App(Context):
     app.open()
 
   def loop(app):
-    clock = pygame.time.Clock()
     while not app.done:
-      clock.tick(app.fps)
-      keyboard.update()
-      app.handle_events()
-      if app.child:
-        app.child.update()
       app.redraw()
+      app.update()
+
+  def update(app):
+    app.clock.tick(app.fps)
+    keyboard.update()
+    app.handle_events()
+    if app.child:
+      app.child.update()
+    if app.transits:
+      transit = app.transits[0]
+      if transit.done:
+        app.transits.remove(transit)
+      else:
+        transit.update()
 
   def rescale(app, new_scale):
     if (new_scale == app.scale
@@ -84,14 +93,9 @@ class App(Context):
     app.view(sprites)
     if app.transits:
       transit = app.transits[0]
-      if transit.done:
-        app.transits.remove(transit)
-      else:
-        transit.update()
       transit.view(sprites)
-    app.surface.fill(0)
-    layers = ["bg", "elems", "markers", "transits", "hud"]
     sprites.sort(key=lambda sprite: 1 if sprite.layer == "hud" else 0)
+    app.surface.fill(0)
     for sprite in sprites:
       sprite.draw(app.surface)
     app.display.blit(pygame.transform.scale(app.surface, app.size_scaled), (0, 0))

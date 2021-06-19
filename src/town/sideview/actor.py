@@ -66,4 +66,4 @@ class Actor:
     sprite.image = outline(sprite.image, WHITE)
     sprite.pos = actor.pos
     sprite.origin = ("center", "center")
-    return sprite
+    return [sprite]

@@ -62,6 +62,13 @@ class Stage:
   def get_size(stage):
     return (stage.get_width(), stage.get_height())
 
+  def get_cells(stage):
+    cells = []
+    for y in range(stage.get_height()):
+      for x in range(stage.get_width()):
+        cells.append((x, y))
+    return cells
+
   def contains(stage, cell):
     x, y = cell
     width, height = stage.get_size()

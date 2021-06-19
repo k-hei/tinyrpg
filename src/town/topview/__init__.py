@@ -208,8 +208,13 @@ class TopViewContext(Context):
       elem.view(elem_sprites)
       if ctx.debug and not ctx.child:
         elem_sprites += debug_elem_view(elem)
-
     sprites += elem_sprites
+
+    if ctx.debug and not ctx.child:
+      for cell in ctx.stage.get_cells():
+        if ctx.stage.get_tile_at(cell).solid:
+          sprites += debug_tile_view(cell, ctx.stage.scale)
+
     sprites.sort(key=lambda sprite: (
       0 if sprite.layer == "bg"
       else 2 if sprite.layer == "markers"
@@ -259,4 +264,12 @@ def debug_elem_view(elem):
     Sprite(image=box_surface, pos=elem_rect.topleft, layer="hud"),
     # Sprite(image=spawn_circle, pos=elem.spawn_pos, layer="hud", origin=("center", "center")),
     Sprite(image=pos_circle, pos=elem.pos, layer="hud", origin=("center", "center")),
+  ]
+
+def debug_tile_view(cell, scale):
+  col, row = cell
+  box_surface = Surface((scale, scale), SRCALPHA)
+  box_surface.fill(0x7F0000FF)
+  return [
+    Sprite(image=box_surface, pos=(col * scale, row * scale), layer="hud")
   ]
