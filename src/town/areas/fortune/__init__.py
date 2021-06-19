@@ -3,6 +3,7 @@ from town.topview.actor import Actor
 from town.topview.door import Door
 from town.topview.fortunestand import FortuneStand
 from town.topview.fortunedesk import FortuneDesk
+from town.areas.fortune.context import FortuneContext
 from contexts.prompt import PromptContext, Choice
 from contexts.shop import ShopContext
 from cores.mira import MiraCore
@@ -45,32 +46,7 @@ class FortuneArea(Stage):
         is_shopkeep=True,
         message=lambda talkee, ctx: [
           "{}: Welcome...".format(talkee.get_name().upper()),
-          lambda: ShopContext(
-            hud=ctx.hud,
-            items=list(map(resolve_item, [
-              "Potion",
-              "Potion",
-              "Ankh",
-              "Elixir",
-              "Cheese",
-              "Cheese",
-              "Cheese",
-              "Bread",
-              "Fish",
-              "Fish",
-              "Balloon",
-              "Emerald",
-              "Antidote",
-              "Antidote",
-              "Antidote",
-              "Antidote",
-              "Amethyst",
-              "AngelTears",
-              "AngelTears",
-              "RedFerrule",
-              "Diamond"
-            ]))
-          ),
+          lambda: FortuneContext(),
           lambda: ctx.anims.append(ctx.HudAnim()),
           lambda: ctx.get_root().dissolve_out()
         ]

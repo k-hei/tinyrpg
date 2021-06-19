@@ -1,6 +1,7 @@
 from cores.biped import BipedCore, SpriteMap
 
 class MiraCore(BipedCore):
+  name = "Mira"
   sprites = SpriteMap(
     face_right="mira",
     face_down="mira",
@@ -10,8 +11,8 @@ class MiraCore(BipedCore):
     walk_up=("mira_walk", "mira", "mira_walk", "mira")
   )
 
-  def __init__(mira, name="Mira"):
+  def __init__(mira, name=None):
     super().__init__(
-      name=name,
+      name=name or MiraCore.name,
       faction="ally"
     )

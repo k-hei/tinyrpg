@@ -71,7 +71,7 @@ def animate_text(anim, text, period, stagger=1, delay=0):
   return anims
 
 class ShopContext(Context):
-  def __init__(ctx, title, subtitle, messages, portraits, cards, items, bg, bg_color=None, hud=None):
+  def __init__(ctx, title, subtitle, messages, portraits, cards, items, bg_name, bg_color=WHITE, hud=None):
     super().__init__()
     ctx.title = title
     ctx.subtitle = subtitle
@@ -79,8 +79,8 @@ class ShopContext(Context):
     ctx.cards = cards
     ctx.items = items
     ctx.hero = KnightCore()
-    ctx.bg = bg
-    ctx.bg_color = WHITE
+    ctx.bg_name = bg_name
+    ctx.bg_color = bg_color
     ctx.messages = messages
     ctx.focuses = 0
     ctx.blurring = False
@@ -206,7 +206,7 @@ class ShopContext(Context):
     else:
       sprites.clear()
 
-    bg_image = assets.sprites[ctx.bg]
+    bg_image = assets.sprites[ctx.bg_name]
     bg_image = replace_color(bg_image, WHITE, ctx.bg_color)
     bg_anim = next((a for a in ctx.anims if isinstance(a, BackgroundAnim)), None)
     if bg_anim:

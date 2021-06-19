@@ -32,7 +32,7 @@ class PortraitGroup:
     width = PortraitGroup.get_portraits_width(images)
     xs = []
     x = 0
-    offset = OFFSET_CYCLING if cycling else OFFSET_STATIC
+    offset = (OFFSET_CYCLING if cycling else OFFSET_STATIC) if len(images) > 1 else 0
     for image in images:
       xs.append(x + WINDOW_WIDTH - width + offset)
       x += image.get_width() - PORTRAIT_OVERLAP
