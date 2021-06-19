@@ -109,6 +109,7 @@ class ShopContext(Context):
   def exit(ctx):
     ctx.exiting = True
     ctx.bubble.exit()
+    ctx.portraits.exit()
     ctx.child.exit()
     ctx.anims += [
       BackgroundExitAnim(duration=15),

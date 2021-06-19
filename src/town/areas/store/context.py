@@ -18,7 +18,7 @@ class StoreContext(ShopContext):
         },
         "exit": Wife.name.upper() + ": See you soon!"
       },
-      bg="store_bg",
+      bg_name="store_bg",
       portraits=[HusbandPortrait(), WifePortrait()],
       cards=[
         ShopCard(name="buy", text="Buy recovery and support items.", portrait=HusbandPortrait),

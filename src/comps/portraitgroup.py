@@ -7,6 +7,7 @@ from easing.circ import ease_out
 from easing.expo import ease_in_out
 
 class EnterAnim(TweenAnim): pass
+class ExitAnim(TweenAnim): pass
 class CycleAnim(TweenAnim): pass
 
 PORTRAIT_OVERLAP = 64
@@ -42,6 +43,7 @@ class PortraitGroup:
     group.portraits = portraits
     group.portraits_init = list(portraits)
     group.cycling = False
+    group.exiting = False
     group.anims = []
     group.anims_xs = {}
     group.on_animate = None
@@ -54,6 +56,16 @@ class PortraitGroup:
         target=portrait
       ))
     group.on_animate = on_end
+
+  def exit(group, on_end=None):
+    for i, portrait in enumerate(reversed(group.portraits)):
+      group.anims.append(ExitAnim(
+        duration=10,
+        delay=i * 4,
+        target=portrait
+      ))
+    group.on_animate = on_end
+    group.exiting = True
 
   def cycle(group):
     portraits_images = list(map(lambda portrait: portrait.render(), group.portraits))
@@ -119,11 +131,16 @@ class PortraitGroup:
         t = portrait_anim.pos
         t = ease_out(t)
         portrait_x = lerp(WINDOW_WIDTH, portrait_x, t)
+      elif type(portrait_anim) is ExitAnim:
+        t = portrait_anim.pos
+        portrait_x = lerp(portrait_x, WINDOW_WIDTH, t)
       elif type(portrait_anim) is CycleAnim:
         t = portrait_anim.pos
         t = ease_in_out(t)
         from_x, to_x = group.anims_xs[portrait]
         portrait_x = lerp(from_x, to_x, t)
+      elif group.exiting:
+        continue
       portrait_sprite = Sprite(
         image=portrait_image,
         pos=(portrait_x, 128),
