@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from math import sin, cos, pi
 import pygame
 from pygame import Rect
@@ -22,6 +23,7 @@ from anims.tween import TweenAnim
 from easing.expo import ease_out
 from easing.circ import ease_out as ease_out_circ
 from lib.lerp import lerp
+from portraits import Portrait
 from portraits.mira import MiraPortrait
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 from sprite import Sprite
@@ -52,6 +54,12 @@ class BoxAnim(TweenAnim): blocking = True
 class BoxEnterAnim(BoxAnim): pass
 class BoxExitAnim(BoxAnim): pass
 
+@dataclass
+class ShopCard:
+  name: str
+  text: str
+  portrait: Portrait = None
+
 def animate_text(anim, text, period, stagger=1, delay=0):
   anims = []
   for i, char in enumerate(text):
@@ -63,24 +71,25 @@ def animate_text(anim, text, period, stagger=1, delay=0):
   return anims
 
 class ShopContext(Context):
-  def __init__(ctx, title, subtitle, messages, portraits, items, bg_image, bg_color=None, hud=None):
+  def __init__(ctx, title, subtitle, messages, portraits, cards, items, bg, bg_color=None, hud=None):
     super().__init__()
     ctx.title = title
     ctx.subtitle = subtitle
     ctx.portraits = PortraitGroup(portraits)
+    ctx.cards = cards
     ctx.items = items
     ctx.hero = KnightCore()
-    ctx.bg_image = bg_image
+    ctx.bg = bg
     ctx.bg_color = WHITE
     ctx.messages = messages
-    ctx.message_index = 0
+    ctx.focuses = 0
     ctx.blurring = False
     ctx.exiting = False
     ctx.textbox = TextBox((96, 32), color=WHITE)
     ctx.hud = hud or Hud()
     ctx.anims = [CursorAnim()]
     ctx.on_animate = None
-    ctx.bubble = TextBubble(width=96, pos=(112, 40))
+    ctx.bubble = TextBubble(width=104, pos=(112, 40))
     ctx.controls = [
       Control(key=("X"), value="Menu")
     ]
@@ -90,9 +99,9 @@ class ShopContext(Context):
       HudEnterAnim(duration=20),
       BackgroundSlideupAnim(duration=15),
       BackgroundEnterAnim(duration=15, delay=10),
-      *animate_text(anim=SubtitleEnterAnim, text=ctx.subtitle, period=3, stagger=1, delay=75),
-      SubtitleSlideAnim(duration=15, delay=len(ctx.subtitle) + 80),
-      *animate_text(anim=TitleEnterAnim, text=ctx.title, period=5, stagger=3, delay=120),
+      *animate_text(anim=SubtitleEnterAnim, text=ctx.subtitle, period=3, stagger=1, delay=15),
+      SubtitleSlideAnim(duration=15, delay=len(ctx.subtitle) + 30),
+      *animate_text(anim=TitleEnterAnim, text=ctx.title, period=5, stagger=3, delay=60),
       BoxEnterAnim(duration=20, delay=90)
     ]
     ctx.portraits.enter(on_end=ctx.focus)
@@ -109,30 +118,26 @@ class ShopContext(Context):
     ]
     ctx.on_animate = lambda: ctx.close(None)
 
-  def message(ctx):
-    return ctx.messages[ctx.message_index]
-
-  def next_message(ctx):
-    ctx.message_index = min(ctx.message_index + 1, len(ctx.messages) - 1)
-
   def focus(ctx):
     portrait = ctx.portraits.portraits[0]
     portrait.start_talk()
-    ctx.bubble.print(ctx.message(), on_end=lambda: (
+    message = (ctx.focuses == 0
+      and ctx.messages["home"]
+      or ctx.messages["home_again"])
+    ctx.bubble.print(message, on_end=lambda: (
       portrait.stop_talk(),
       ctx.child is None and ctx.open(
         CardContext(
+          cards=map(lambda data: data.name, ctx.cards),
           pos=(16, 144),
           on_select=lambda card: (
-            card.name == CARD_BUY and ctx.textbox.print("Buy recovery and support items.")
-            or card.name == CARD_SELL and ctx.textbox.print("Trade in items for gold.")
-            or card.name == CARD_EXIT and ctx.textbox.print("Leave the shop.")
+            text := next((c.text for c in ctx.cards if c.name == card.name), None),
+            text and ctx.textbox.print(text)
           ),
           on_choose=ctx.handle_choose
         )
       )
     ))
-    ctx.next_message()
     if ctx.child:
       ctx.child.focus()
       ctx.textbox.clear()
@@ -141,12 +146,13 @@ class ShopContext(Context):
         TitleSlideinAnim(duration=12),
         BoxEnterAnim(duration=20)
       ]
+    ctx.focuses += 1
 
   def handle_choose(ctx, card):
+    if card.name == "exit": return ctx.handle_exit()
     ctx.portraits.cycle()
     if card.name == "buy": return
     if card.name == "sell": return ctx.handle_sell(card)
-    if card.name == "exit": return ctx.handle_exit()
 
   def handle_sell(ctx, card):
     ctx.blurring = True
@@ -158,6 +164,7 @@ class ShopContext(Context):
       items=ctx.items,
       bubble=ctx.bubble,
       portrait=ctx.portraits.portraits[0],
+      messages=ctx.messages["sell"],
       hud=ctx.hud,
       card=card,
       on_close=lambda: (
@@ -169,7 +176,7 @@ class ShopContext(Context):
   def handle_exit(ctx):
     portrait = ctx.portraits.portraits[0]
     portrait.start_talk()
-    ctx.bubble.print("MIRA: Come again...", on_end=lambda: (
+    ctx.bubble.print(ctx.messages["exit"], on_end=lambda: (
       ctx.anims.append(Anim(duration=45, on_end=ctx.exit)),
       portrait.stop_talk()
     ))
@@ -199,7 +206,7 @@ class ShopContext(Context):
     else:
       sprites.clear()
 
-    bg_image = assets.sprites[ctx.bg_image]
+    bg_image = assets.sprites[ctx.bg]
     bg_image = replace_color(bg_image, WHITE, ctx.bg_color)
     bg_anim = next((a for a in ctx.anims if isinstance(a, BackgroundAnim)), None)
     if bg_anim:
@@ -276,14 +283,19 @@ class ShopContext(Context):
             char_offset = (1 - ease_out(t)) * 12
             char_color = (c << 16) + (c << 8) + c
           else:
+            c = 255
             char_offset = 0
             char_color = WHITE
-          char_image = title_font.render(char, char_color)
-          sprites.append(Sprite(
-            image=char_image,
-            pos=(char_x + char_offset, char_y + char_offset)
-          ))
-          char_x += char_image.get_width()
+          if c:
+            char_image = title_font.render(char, char_color)
+            char_width = char_image.get_width()
+            sprites.append(Sprite(
+              image=char_image,
+              pos=(char_x + char_offset, char_y + char_offset)
+            ))
+          else:
+            char_width = title_font.width(char)
+          char_x += char_width
 
       subtitle_text = ctx.subtitle
       subtitle_font = assets.ttf["roman"]
@@ -307,14 +319,19 @@ class ShopContext(Context):
             char_offset = (1 - ease_out(t)) * 12
             char_color = (c << 16) + (c << 8) + c
           else:
+            c = 255
             char_offset = 0
             char_color = WHITE
-          char_image = subtitle_font.render(char, char_color)
-          sprites.append(Sprite(
-            image=char_image,
-            pos=(char_x + char_offset, char_y + char_offset)
-          ))
-          char_x += char_image.get_width()
+          if c:
+            char_image = subtitle_font.render(char, char_color)
+            char_width = char_image.get_width()
+            sprites.append(Sprite(
+              image=char_image,
+              pos=(char_x + char_offset, char_y + char_offset)
+            ))
+          else:
+            char_width = title_font.width(char)
+          char_x += char_width
 
     box_image = Box.render((116, 48))
     box_x = 128

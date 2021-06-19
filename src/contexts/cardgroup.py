@@ -17,6 +17,11 @@ import keyboard
 
 CARD_LIFT = 4
 CARD_SPACING = 2
+CARD_COLORS = {
+  CARD_BUY: BLUE,
+  CARD_SELL: BLUE,
+  CARD_EXIT: RED
+}
 
 class SelectAnim(TweenAnim): blocking = False
 class DeselectAnim(TweenAnim): blocking = False
@@ -26,16 +31,16 @@ class ChooseAnim(TweenAnim): blocking = False
 class UnchooseAnim(TweenAnim): blocking = True
 
 class CardContext(Context):
-  def __init__(ctx, pos, on_select=None, on_choose=None):
+  def __init__(ctx, pos, cards, on_select=None, on_choose=None):
     super().__init__()
     ctx.pos = pos
     ctx.on_select = on_select
     ctx.on_choose = on_choose
-    ctx.cards = [
-      Card(CARD_BUY, flipped=True, color=BLUE),
-      Card(CARD_SELL, flipped=True, color=BLUE),
-      Card(CARD_EXIT, flipped=True, color=RED)
-    ]
+    ctx.cards = list(map(lambda card_name: Card(
+      name=card_name,
+      flipped=True,
+      color=CARD_COLORS[card_name]
+    ), cards))
     ctx.card_index = 0
     ctx.hand_index = 0
     ctx.chosen = False

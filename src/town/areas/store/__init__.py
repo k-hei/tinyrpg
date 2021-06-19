@@ -7,7 +7,7 @@ from town.areas.store.breadstock import BreadStock
 from town.areas.store.cheesestock import CheeseStock
 from town.areas.store.counter import Counter
 from contexts.prompt import PromptContext, Choice
-from contexts.shop import ShopContext
+from contexts.shop import ShopContext, ShopCard
 from cores.husband import HusbandCore
 from cores.wife import WifeCore
 from portraits.husband import HusbandPortrait
@@ -40,12 +40,25 @@ class StoreArea(Stage):
   ]
 
   def __init__(stage, hero):
-    shop = ShopContext(
+    shop = lambda: ShopContext(
       title="General Store",
       subtitle="All your exploration needs",
-      messages=["THAG: How can I help you?", "THAG: Anything else?"],
-      bg_image="store_bg",
+      messages={
+        "home": "THAG: How can I help you?",
+        "home_again": "THAG: Will that be all for today?",
+        "sell": {
+          "home": "SYLVIA: Got something to sell me?",
+          "thanks": "SYLVIA: Thanks!"
+        },
+        "exit": "SYLVIA: See you soon!"
+      },
+      bg="store_bg",
       portraits=[HusbandPortrait(), WifePortrait()],
+      cards=[
+        ShopCard(name="buy", text="Buy recovery and support items.", portrait=HusbandPortrait),
+        ShopCard(name="sell", text="Trade in items for gold.", portrait=WifePortrait),
+        ShopCard(name="exit", text="Leave the shop.")
+      ],
       items=list(map(resolve_item, [
         "Potion",
         "Potion",

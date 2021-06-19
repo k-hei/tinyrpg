@@ -243,9 +243,10 @@ class SellContext(Context):
   class GoldEnterAnim(GoldAnim): pass
   class GoldExitAnim(GoldAnim): pass
 
-  def __init__(ctx, items, bubble=None, portrait=None, hud=None, card=None, on_close=None):
+  def __init__(ctx, items, messages, bubble=None, portrait=None, hud=None, card=None, on_close=None):
     super().__init__(on_close=on_close)
     ctx.items = items
+    ctx.messages = messages
     ctx.bubble = bubble or TextBubble(width=96, pos=(128, 40))
     ctx.portrait = portrait
     ctx.hud = hud
@@ -285,7 +286,7 @@ class SellContext(Context):
           target=ctx.card.sprite.pos
         ))
     ctx.portrait.start_talk()
-    ctx.bubble.print("MIRA: Got something to sell me?", on_end=ctx.portrait.stop_talk)
+    ctx.bubble.print(ctx.messages["home"], on_end=ctx.portrait.stop_talk)
 
   def exit(ctx, on_end=None):
     ctx.exiting = True
