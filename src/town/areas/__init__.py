@@ -13,6 +13,7 @@ class AreaLink:
 
 class Area:
   ACTOR_Y = 128
+  NPC_Y = 120
   HORIZON_NORTH = -40
   TRANSIT_NORTH = -20
   HORIZON_SOUTH = 60
@@ -32,7 +33,7 @@ class Area:
     area.actors.append(actor)
     actor.pos = pos
 
-  def view(area, hero):
+  def view(area, hero, link):
     sprites = []
     assets = use_assets().sprites
     bg_image = assets[area.bg]
@@ -45,8 +46,26 @@ class Area:
     ))
     for actor in sorted(area.actors, key=lambda actor: 1 if actor is hero else 0):
       for sprite in actor.view():
-        y = 128 if actor.get_faction() == "player" else 120
+        y = Area.ACTOR_Y if actor.get_faction() == "player" else Area.NPC_Y
         sprite.move((area.camera, y))
         sprite.target = actor
         sprites.append(sprite)
+    if link:
+      link_name = next((link_name for link_name, l in area.links.items() if l is link), None)
+      if link_name and link_name.startswith("door"):
+        sprites += [
+          Sprite(
+            image=assets["door_open"],
+            pos=(link.x + area.camera, Area.ACTOR_Y - TILE_SIZE),
+            origin=("center", "top"),
+            layer="tiles"
+          ),
+          Sprite(
+            image=assets["roof"],
+            pos=(link.x + area.camera, Area.ACTOR_Y - TILE_SIZE),
+            origin=("center", "bottom"),
+            layer="fg"
+          )
+        ]
+    sprites.sort(key=lambda sprite: sprite.depth(["bg", "tiles", "elems", "fg", "markers"]))
     return sprites

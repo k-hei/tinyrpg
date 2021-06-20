@@ -54,6 +54,33 @@ class Actor:
     if not actor.core.anims:
       actor.start_move()
 
+  def move_to(actor, target):
+    actor_x, actor_y = actor.pos
+    target_x, target_y = target
+    if actor_x == target_x and actor_y == target_y:
+      actor.stop_move()
+      return True
+    delta_x, delta_y = 0, 0
+    if actor_x > target_x:
+      delta_x = -1
+    elif actor_x < target_x:
+      delta_x = 1
+    if actor_y > target_y:
+      delta_y = -1
+    elif actor_y < target_y:
+      delta_y = 1
+    if delta_x or delta_y:
+      actor.move((delta_x, delta_y))
+    actor_x, actor_y = actor.pos
+    near_x = abs(target_x - actor_x) < Actor.XSPEED
+    near_y = (abs(target_y - actor_y) < Actor.YSPEED_NORTH and target_y < actor_y
+      or abs(target_y - actor_y) < Actor.YSPEED_SOUTH and target_y > actor_y)
+    if near_x:
+      actor.pos = (target_x, actor_y)
+    if near_y:
+      actor.pos = (actor_x, target_y)
+    return False
+
   def start_move(actor):
     actor.anim = WalkAnim(period=Actor.MOVE_DURATION)
     actor.core.anims = [actor.anim]

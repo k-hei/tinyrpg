@@ -2,6 +2,7 @@ from math import sin, pi
 import pygame
 from contexts import Context
 from contexts.dialogue import DialogueContext
+from town.areas import Area
 from town.sideview.actor import Actor
 from cores.knight import KnightCore
 from assets import load as use_assets
@@ -9,6 +10,7 @@ from sprite import Sprite
 from config import TILE_SIZE
 from filters import replace_color
 from palette import BLACK, BLUE
+import keyboard
 
 def can_talk(hero, actor):
   if (not actor.get_message()
@@ -54,7 +56,14 @@ class SideViewContext(Context):
     ctx.area.spawn(ctx.hero, (64, 0))
 
   def handle_move(ctx, delta):
-    ctx.hero.move((delta, 0))
+    return ctx.hero.move((delta, 0))
+
+  def handle_zmove(ctx):
+    if link := ctx.nearby_link:
+      ctx.link = link
+      return True
+    else:
+      return False
 
   def handle_talk(ctx):
     ctx.nearby_npc and print(type(ctx.nearby_npc.core).__name__)
@@ -76,29 +85,50 @@ class SideViewContext(Context):
     return True
 
   def handle_keydown(ctx, key):
+    if ctx.link:
+      return False
     if ctx.child:
       return ctx.child.handle_keydown(key)
+    if key in (pygame.K_UP, pygame.K_w):
+      return ctx.handle_zmove()
+    if key in (pygame.K_SPACE, pygame.K_RETURN):
+      return ctx.handle_talk()
+    if keyboard.get_pressed(key) == 1:
+      return
     if key in (pygame.K_LEFT, pygame.K_a):
       return ctx.handle_move(-1)
     if key in (pygame.K_RIGHT, pygame.K_d):
       return ctx.handle_move(1)
-    if key in (pygame.K_SPACE, pygame.K_RETURN):
-      return ctx.handle_talk()
 
   def handle_keyup(ctx, key):
     if key in (pygame.K_LEFT, pygame.K_a, pygame.K_RIGHT, pygame.K_d):
       return ctx.hero.stop_move()
 
   def update(ctx):
-    ctx.nearby_link = find_nearby_link(ctx.hero, ctx.area.links)
-    ctx.nearby_npc = find_nearby_npc(ctx.hero, ctx.area.actors) if ctx.nearby_link is None else None
-    ctx.hero.update()
+    hero = ctx.hero
+    hero.update()
+    if link := ctx.link:
+      hero_x, hero_y = hero.pos
+      if hero_x != link.x:
+        hero.move_to((link.x, hero_y))
+      else:
+        if link.direction == (0, -1):
+          TARGET_HORIZON = Area.HORIZON_NORTH
+          EVENT_HORIZON = Area.TRANSIT_NORTH
+        elif link.direction == (0, 1):
+          TARGET_HORIZON = Area.HORIZON_SOUTH
+          EVENT_HORIZON = Area.TRANSIT_SOUTH
+        if hero_y != TARGET_HORIZON:
+          hero.move_to((link.x, TARGET_HORIZON))
+    elif not ctx.child:
+      ctx.nearby_link = find_nearby_link(ctx.hero, ctx.area.links)
+      ctx.nearby_npc = find_nearby_npc(ctx.hero, ctx.area.actors) if ctx.nearby_link is None else None
     ctx.time += 1
 
   def view(ctx):
     sprites = []
     assets = use_assets().sprites
-    sprites += ctx.area.view(ctx.hero)
+    sprites += ctx.area.view(ctx.hero, ctx.link)
     if ctx.child:
       sprites += ctx.child.view()
     elif link := ctx.nearby_link:
