@@ -11,6 +11,7 @@ class Sprite:
   origin: tuple[str, str] = ("top", "left")
   offset: int = 0
   layer: str = None
+  target: any = None
 
   def copy(sprite):
     return Sprite(
@@ -20,7 +21,8 @@ class Sprite:
       flip=sprite.flip,
       origin=sprite.origin,
       offset=sprite.offset,
-      layer=sprite.layer
+      layer=sprite.layer,
+      target=sprite.target
     )
 
   def move(sprite, offset):

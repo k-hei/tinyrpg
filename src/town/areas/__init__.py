@@ -5,16 +5,6 @@ from filters import stroke, replace_color
 from palette import BLACK, WHITE, GRAY, BLUE
 from config import TILE_SIZE, WINDOW_WIDTH
 from sprite import Sprite
-from town.actors.npc import Npc
-
-def can_talk(hero, actor):
-  if (not isinstance(actor, Npc)
-  or not actor.messages
-  or actor.core.faction == "player"):
-    return False
-  dist_x = actor.x - hero.x
-  facing_x, _ = hero.facing
-  return abs(dist_x) < TILE_SIZE * 1.5 and dist_x * facing_x >= 0
 
 @dataclass
 class AreaLink:
@@ -57,5 +47,6 @@ class Area:
       for sprite in actor.view():
         y = 128 if actor.get_faction() == "player" else 120
         sprite.move((area.camera, y))
+        sprite.target = actor
         sprites.append(sprite)
     return sprites

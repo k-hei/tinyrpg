@@ -18,6 +18,21 @@ class MageCore(BipedCore):
       hp=MAGE_HP,
       st=14,
       en=7,
+      message=lambda town: [
+        PromptContext((mage.get_name().upper(), ": ", "Are you ready yet?"), (
+          Choice("\"Let's go!\""),
+          Choice("\"Maybe later...\"")
+        ), required=True, on_close=lambda choice: (
+          choice.text == "\"Let's go!\"" and (
+            (town.hero.get_name(), "Let's get going!"),
+            (mage.get_name(), "Jeez, about time..."),
+            lambda: town.recruit(town.talkee)
+          ) or choice.text == "\"Maybe later...\"" and (
+            (town.hero.get_name(), "Give me a second..."),
+            (mage.get_name(), "You know I don't have all day, right?")
+          )
+        ))
+      ],
       *args,
       **kwargs
     )

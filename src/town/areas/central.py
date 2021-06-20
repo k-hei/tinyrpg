@@ -66,18 +66,16 @@ class CentralArea(Area):
         )
       ] or choice.text == "Nothing" and []
     ))
-    area.spawn(Actor(
-      core=Genie(
-        name="Doshin",
-        facing=(1, 0)
-        ),
+    area.spawn(Actor(core=Genie(
+      name="Doshin",
+      facing=(1, 0),
       message=[
         lambda ctx: [
           ("Doshin", "Hail, traveler!"),
           prompt
         ]
       ]
-    ), (32, 0))
+    )), (32, 0))
 
     area.spawn(Actor(core=Mage(
       faction="ally",

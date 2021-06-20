@@ -94,14 +94,14 @@ class DissolveIn:
             transit.on_end()
     transit.time += 1
 
-  def view(transit, sprites):
+  def view(transit):
     surface = Surface(transit.size, SRCALPHA)
     transit.draw(surface)
-    sprites.append(Sprite(
+    return [Sprite(
       image=surface,
       pos=(0, 0),
       layer="transits"
-    ))
+    )]
 
   def draw(transit, surface):
     for node in transit.nodes:

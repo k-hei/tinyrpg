@@ -1,5 +1,6 @@
 from copy import deepcopy
 import pygame
+from pygame.transform import scale
 import keyboard
 import assets
 from contexts import Context
@@ -90,15 +91,15 @@ class App(Context):
 
   def redraw(app):
     sprites = []
-    app.view(sprites)
+    sprites += app.view()
     if app.transits:
       transit = app.transits[0]
-      transit.view(sprites)
+      sprites += transit.view()
     sprites.sort(key=lambda sprite: 1 if sprite.layer == "hud" else 0)
     app.surface.fill(0)
     for sprite in sprites:
       sprite.draw(app.surface)
-    app.display.blit(pygame.transform.scale(app.surface, app.size_scaled), (0, 0))
+    app.display.blit(scale(app.surface, app.size_scaled), (0, 0))
     pygame.display.flip()
 
   def dissolve(app, on_clear=None, on_end=None):

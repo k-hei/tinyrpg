@@ -8,12 +8,11 @@ class Actor:
   YSPEED_SOUTH = 0.75
   MOVE_DURATION = 20
 
-  def __init__(actor, core, color=None, facing=None, message=None):
+  def __init__(actor, core, color=None, facing=None):
     actor.pos = None
     actor.core = core
     actor.core.color = color
     actor.facing = facing
-    actor.message = message
     actor.anim = None
 
   def get_name(actor):
@@ -24,6 +23,9 @@ class Actor:
 
   def get_facing(actor):
     return actor.core.facing
+
+  def get_message(actor):
+    return actor.core.message
 
   def face(actor, facing):
     if type(facing) is tuple:
