@@ -5,7 +5,7 @@ from sprite import Sprite
 class Planter(Element):
   size = (16, 16)
 
-  def view(planter, sprites):
+  def view(planter):
     planter_image = use_assets().sprites["store_planter"]
     planter_sprite = Sprite(
       image=planter_image,
@@ -14,4 +14,4 @@ class Planter(Element):
       layer="elems"
     )
     planter_sprite.move((0, 8))
-    sprites.append(planter_sprite)
+    return [planter_sprite]

@@ -51,7 +51,8 @@ class App(Context):
       super().open(child, on_close=app.close)
 
   def close(app, data=None):
-    print(data)
+    if data is not None:
+      print(data)
     app.done = True
 
   def reload(app):

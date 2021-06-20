@@ -2,7 +2,8 @@ from math import sin, pi
 import pygame
 from contexts import Context
 from contexts.dialogue import DialogueContext
-from town.areas import Area
+from town.graph import TownGraph
+from town.sideview.stage import Area
 from town.sideview.actor import Actor
 from cores.knight import KnightCore
 from assets import load as use_assets
@@ -40,7 +41,7 @@ ARROW_BOUNCE = 2
 class SideViewContext(Context):
   def __init__(ctx, area, party=[]):
     super().__init__()
-    ctx.area = area
+    ctx.area = area()
     ctx.hero = Actor(core=party and party[0] or KnightCore())
     ctx.link = None
     ctx.talkee = None
@@ -54,6 +55,9 @@ class SideViewContext(Context):
 
   def spawn(ctx):
     ctx.area.spawn(ctx.hero, (64, 0))
+
+  def get_graph(ctx):
+    return ctx.parent.graph if "graph" in dir(ctx.parent) else None
 
   def handle_move(ctx, delta):
     return ctx.hero.move((delta, 0))
@@ -104,6 +108,18 @@ class SideViewContext(Context):
     if key in (pygame.K_LEFT, pygame.K_a, pygame.K_RIGHT, pygame.K_d):
       return ctx.hero.stop_move()
 
+  def follow_link(ctx, link):
+    def change_areas():
+      if graph := ctx.get_graph():
+        dest_item = graph.tail(head=link)
+        if dest_item:
+          dest_area = graph.link_area(link=dest_item)
+          print(dest_area)
+          ctx.parent.load_area(dest_area)
+      else:
+        ctx.close()
+    ctx.get_root().dissolve(on_clear=change_areas)
+
   def update(ctx):
     hero = ctx.hero
     hero.update()
@@ -120,6 +136,8 @@ class SideViewContext(Context):
           EVENT_HORIZON = Area.TRANSIT_SOUTH
         if hero_y != TARGET_HORIZON:
           hero.move_to((link.x, TARGET_HORIZON))
+        if abs(hero_y) >= abs(EVENT_HORIZON) and not ctx.get_root().transits:
+          ctx.follow_link(ctx.link)
     elif not ctx.child:
       ctx.nearby_link = find_nearby_link(ctx.hero, ctx.area.links)
       ctx.nearby_npc = find_nearby_npc(ctx.hero, ctx.area.actors) if ctx.nearby_link is None else None

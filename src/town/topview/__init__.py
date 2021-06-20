@@ -13,6 +13,7 @@ from easing.expo import ease_out
 from lib.lerp import lerp
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
 import keyboard
+from cores.knight import KnightCore
 
 def insert_value(mapping, key, value):
   keys = mapping.keys()
@@ -24,10 +25,10 @@ class TopViewContext(Context):
     def __init__(anim):
       super().__init__(duration=45)
 
-  def __init__(ctx, area, hero):
+  def __init__(ctx, area, party=[KnightCore()]):
     super().__init__()
     ctx.area = area
-    ctx.hero = Actor(core=hero, facing=(0, -1))
+    ctx.hero = Actor(core=party[0], facing=(0, -1))
     ctx.stage = area(ctx.hero)
     ctx.hud = Hud()
     ctx.elem = None
@@ -171,7 +172,8 @@ class TopViewContext(Context):
       else:
         anim.update()
 
-  def view(ctx, sprites):
+  def view(ctx):
+    sprites = []
     assets = use_assets()
     hero = ctx.hero
     sprites.append(Sprite(
@@ -192,23 +194,21 @@ class TopViewContext(Context):
         z -= 1
       return z
     elems = sorted(ctx.stage.elems, key=zsort)
-    elem_sprites = []
     for elem in elems:
       if elem.pos is None:
         continue
       if not ctx.child and hero.can_talk(elem):
         bubble_x, bubble_y = elem.get_rect().topright
         bubble_y -= TILE_SIZE // 4
-        elem_sprites.append(Sprite(
+        sprites.append(Sprite(
           image=assets.sprites["bubble_talk"],
           pos=(bubble_x, bubble_y),
           origin=("left", "bottom"),
           layer="markers"
         ))
-      elem.view(elem_sprites)
+      sprites += elem.view()
       if ctx.debug and not ctx.child:
-        elem_sprites += debug_elem_view(elem)
-    sprites += elem_sprites
+        sprites += debug_elem_view(elem)
 
     if ctx.debug and not ctx.child:
       for cell in ctx.stage.get_cells():
@@ -238,7 +238,9 @@ class TopViewContext(Context):
       ))
 
     if ctx.child:
-      ctx.child.view(sprites)
+      sprites += ctx.child.view()
+
+    return sprites
 
 def debug_elem_view(elem):
   RED = 0x7FFF0000

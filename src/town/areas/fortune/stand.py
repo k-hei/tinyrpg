@@ -8,7 +8,7 @@ from palette import WHITE, BLUE_DARK
 class FortuneStand(Element):
   size = (16, 16)
 
-  def view(stand, sprites):
+  def view(stand):
     stand_image = use_assets().sprites["fortune_stand"]
     stand_image = replace_color(stand_image, WHITE, BLUE_DARK)
     stand_sprite = Sprite(
@@ -18,4 +18,4 @@ class FortuneStand(Element):
       layer="elems"
     )
     stand_sprite.move((0, TILE_SIZE / 4))
-    sprites.append(stand_sprite)
+    return [stand_sprite]

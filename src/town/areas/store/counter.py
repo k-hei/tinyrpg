@@ -6,7 +6,7 @@ class Counter(Element):
   size = (32, 16)
   rect_offset = (-24, -8)
 
-  def view(stock, sprites):
+  def view(stock):
     stock_image = use_assets().sprites["store_counter"]
     stock_sprite = Sprite(
       image=stock_image,
@@ -15,4 +15,4 @@ class Counter(Element):
       layer="elems"
     )
     stock_sprite.move((-56, 24))
-    sprites.append(stock_sprite)
+    return [stock_sprite]

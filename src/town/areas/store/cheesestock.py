@@ -6,7 +6,7 @@ class CheeseStock(Element):
   size = (32, 16)
   rect_offset = (-8, -8)
 
-  def view(stock, sprites):
+  def view(stock):
     stock_image = use_assets().sprites["store_cheesestock"]
     stock_sprite = Sprite(
       image=stock_image,
@@ -15,4 +15,4 @@ class CheeseStock(Element):
       layer="elems"
     )
     stock_sprite.move((8, 8))
-    sprites.append(stock_sprite)
+    return [stock_sprite]

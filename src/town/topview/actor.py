@@ -97,10 +97,11 @@ class Actor(Element):
     if actor.anim:
       actor.anim.update()
 
-  def view(actor, sprites):
-    sprite = actor.core.render()
+  def view(actor):
+    actor_sprites = actor.core.view()
+    actor_sprite = actor_sprites[0]
     # sprite.image = outline(sprite.image, WHITE)
-    sprite.origin = ("center", "center")
+    actor_sprite.origin = ("center", "center")
     x, y = actor.get_rect().midtop
-    sprite.pos = (x, y - 1)
-    sprites.append(sprite)
+    actor_sprite.pos = (x, y - 1)
+    return actor_sprites

@@ -36,16 +36,16 @@ class Door(Element):
     door.opened = True
     door.solid = False
 
-  def view(door, sprites):
+  def view(door):
     assets = use_assets().sprites
     door_image = door.opened and assets["door_open"] or assets["door"]
     if door.palette[0] != Door.PALETTE[0]:
       door_image = replace_color(door_image, Door.PALETTE[0], door.palette[0])
     if door.palette[1] != Door.PALETTE[1]:
       door_image = replace_color(door_image, Door.PALETTE[1], door.palette[1])
-    sprites.append(Sprite(
+    return [Sprite(
       image=door_image,
       pos=door.pos,
       origin=("center", "center"),
       layer="bg"
-    ))
+    )]

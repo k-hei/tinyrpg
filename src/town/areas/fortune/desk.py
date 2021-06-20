@@ -11,7 +11,7 @@ class FortuneDesk(Element):
   rect_offset = (-8, -8)
   draw_offset = (-8, 8)
 
-  def view(desk, sprites):
+  def view(desk):
     desk_image = use_assets().sprites["fortune_desk"]
     desk_image = replace_color(desk_image, WHITE, ORANGE)
     desk_sprite = Sprite(
@@ -21,4 +21,4 @@ class FortuneDesk(Element):
       layer="elems"
     )
     desk_sprite.move(desk.draw_offset)
-    sprites.append(desk_sprite)
+    return [desk_sprite]

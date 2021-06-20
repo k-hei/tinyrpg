@@ -1,8 +1,8 @@
 from town.topview.stage import Stage, Link
 from town.topview.actor import Actor
 from town.topview.door import Door
-from town.topview.fortunestand import FortuneStand
-from town.topview.fortunedesk import FortuneDesk
+from town.areas.fortune.stand import FortuneStand
+from town.areas.fortune.desk import FortuneDesk
 from town.areas.fortune.context import FortuneContext
 from contexts.prompt import PromptContext, Choice
 from contexts.shop import ShopContext

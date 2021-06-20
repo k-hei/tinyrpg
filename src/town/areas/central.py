@@ -1,4 +1,4 @@
-from town.areas import Area, AreaLink
+from town.sideview.stage import Area, AreaLink
 from town.sideview.actor import Actor
 from cores.genie import Genie
 from cores.mage import MageCore as Mage

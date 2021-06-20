@@ -1,7 +1,7 @@
 from contexts.app import App
-from contexts.game import GameContext
+from town import TownContext
 import savedata
 
 App(title="town demo",
-  context=GameContext(savedata.load("src/data0.json"))
+  context=TownContext()
 ).init()
