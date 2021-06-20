@@ -69,11 +69,9 @@ class CentralArea(Area):
     area.spawn(Actor(core=Genie(
       name="Doshin",
       facing=(1, 0),
-      message=[
-        lambda ctx: [
-          ("Doshin", "Hail, traveler!"),
-          prompt
-        ]
+      message=lambda ctx: [
+        ("Doshin", "Hail, traveler!"),
+        prompt
       ]
     )), (32, 0))
 

@@ -197,10 +197,11 @@ class Log:
     else:
       log.y = 0
 
-  def view(log, sprites):
+  def view(log):
+    sprites = []
     log.update()
     if log.box is None:
-      return
+      return []
     if log.align == "left":
       log.x = Log.MARGIN_LEFT
     elif log.align == "center":
@@ -211,12 +212,12 @@ class Log:
       y = log.y - log.box.get_height()
     elif log.side == "bottom":
       y = WINDOW_HEIGHT - log.y
-    sprites.append(Sprite(
+    sprites = [Sprite(
       image=log.box,
       pos=(x, y),
       layer="hud"
-    ))
-    return (x, y)
+    )]
+    return sprites
 
 def expand_tokens(tokens):
   result = []

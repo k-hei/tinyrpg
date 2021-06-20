@@ -2,6 +2,8 @@ import pygame
 from contexts import Context
 from contexts.choice import ChoiceContext, Choice
 from comps.log import Log
+from config import WINDOW_HEIGHT
+from sprite import Sprite
 
 class PromptContext(Context):
   def __init__(ctx, message, choices, required=False, on_choose=None, on_close=None):
@@ -29,10 +31,16 @@ class PromptContext(Context):
     if ctx.on_close:
       ctx.on_close(choice)
 
-  def draw(ctx, surface):
-    ctx.log.draw(surface)
+  def view(ctx):
+    sprites = []
+    sprites += ctx.log.view()
     if ctx.child:
       panel = ctx.child.render()
-      log_x = ctx.log.x + ctx.log.surface.get_width() // 2 - panel.get_width() + 80
-      log_y = surface.get_height() - ctx.log.y - panel.get_height() + 8
-      surface.blit(panel, (log_x, log_y))
+      panel_x = ctx.log.x + ctx.log.surface.get_width() // 2 - panel.get_width() + 80
+      panel_y = WINDOW_HEIGHT - ctx.log.y - panel.get_height() + 8
+      sprites += [Sprite(
+        image=panel,
+        pos=(panel_x, panel_y),
+        layer="hud"
+      )]
+    return sprites

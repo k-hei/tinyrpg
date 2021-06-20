@@ -112,7 +112,8 @@ class DialogueContext(Context):
       return ctx.exit()
     ctx.print()
 
-  def view(ctx, sprites):
+  def view(ctx):
+    sprites = []
     assets = use_assets()
     sprite_arrow = assets.sprites["arrow_dialogue"]
 
@@ -139,20 +140,25 @@ class DialogueContext(Context):
       ]
 
     if not ctx.child or not "log" in dir(ctx.child):
-      pos = ctx.log.view(sprites)
-      if pos:
-        x, y = pos
-        sprite = ctx.log.box
-        if ctx.log.clean:
-          t = ctx.log.clean % 30 / 30
-          offset = sin(t * 2 * pi) * 1.25
-          x += -sprite_arrow.get_width() + sprite.get_width() - Log.PADDING_X - 8
-          y += -sprite_arrow.get_height() + sprite.get_height() - Log.PADDING_Y + 4 + offset
-          sprites.append(Sprite(
-            image=sprite_arrow,
-            pos=(x, y),
-            layer="hud"
-          ))
+      log_sprites = ctx.log.view()
+      if log_sprites:
+        sprites += log_sprites
+        log_pos = log_sprites[0].pos
+        if log_pos:
+          x, y = log_pos
+          sprite = ctx.log.box
+          if ctx.log.clean:
+            t = ctx.log.clean % 30 / 30
+            offset = sin(t * 2 * pi) * 1.25
+            x += -sprite_arrow.get_width() + sprite.get_width() - Log.PADDING_X - 8
+            y += -sprite_arrow.get_height() + sprite.get_height() - Log.PADDING_Y + 4 + offset
+            sprites += [Sprite(
+              image=sprite_arrow,
+              pos=(x, y),
+              layer="hud"
+            )]
 
     if ctx.child:
-      ctx.child.view(sprites)
+      sprites += ctx.child.view()
+
+    return sprites

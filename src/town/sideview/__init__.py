@@ -1,6 +1,7 @@
 from math import sin, pi
 import pygame
 from contexts import Context
+from contexts.dialogue import DialogueContext
 from town.sideview.actor import Actor
 from cores.knight import KnightCore
 from assets import load as use_assets
@@ -40,6 +41,9 @@ class SideViewContext(Context):
     ctx.area = area
     ctx.hero = Actor(core=party and party[0] or KnightCore())
     ctx.link = None
+    ctx.talkee = None
+    ctx.nearby_link = None
+    ctx.nearby_npc = None
     ctx.time = 0
 
   def init(ctx):
@@ -49,17 +53,45 @@ class SideViewContext(Context):
   def spawn(ctx):
     ctx.area.spawn(ctx.hero, (64, 0))
 
+  def handle_move(ctx, delta):
+    ctx.hero.move((delta, 0))
+
+  def handle_talk(ctx):
+    ctx.nearby_npc and print(type(ctx.nearby_npc.core).__name__)
+    if ctx.nearby_npc is None:
+      return False
+    ctx.talkee = ctx.nearby_npc
+    talkee = ctx.nearby_npc
+    hero = ctx.hero
+    hero.stop_move()
+    old_facing = talkee.get_facing()
+    talkee.face(hero)
+    message = talkee.get_message()
+    if callable(message):
+      message = message(ctx)
+    def stop_talk():
+      talkee.face(old_facing)
+      ctx.talkee = None
+    ctx.open(DialogueContext(script=message, on_close=stop_talk))
+    return True
+
   def handle_keydown(ctx, key):
+    if ctx.child:
+      return ctx.child.handle_keydown(key)
     if key in (pygame.K_LEFT, pygame.K_a):
-      return ctx.hero.move((-1, 0))
+      return ctx.handle_move(-1)
     if key in (pygame.K_RIGHT, pygame.K_d):
-      return ctx.hero.move((1, 0))
+      return ctx.handle_move(1)
+    if key in (pygame.K_SPACE, pygame.K_RETURN):
+      return ctx.handle_talk()
 
   def handle_keyup(ctx, key):
     if key in (pygame.K_LEFT, pygame.K_a, pygame.K_RIGHT, pygame.K_d):
       return ctx.hero.stop_move()
 
   def update(ctx):
+    ctx.nearby_link = find_nearby_link(ctx.hero, ctx.area.links)
+    ctx.nearby_npc = find_nearby_npc(ctx.hero, ctx.area.actors) if ctx.nearby_link is None else None
     ctx.hero.update()
     ctx.time += 1
 
@@ -67,20 +99,9 @@ class SideViewContext(Context):
     sprites = []
     assets = use_assets().sprites
     sprites += ctx.area.view(ctx.hero)
-    npc = find_nearby_npc(ctx.hero, ctx.area.actors)
-    link = find_nearby_link(ctx.hero, ctx.area.links)
-    if npc:
-      npc_sprite = next((s for s in sprites if s.target is npc), None)
-      npc_x, npc_y = npc_sprite.pos
-      bubble_image = assets["bubble_talk"]
-      bubble_x = npc_x + TILE_SIZE * 0.25
-      bubble_y = npc_y - TILE_SIZE * 0.75
-      sprites.append(Sprite(
-        image=bubble_image,
-        pos=(bubble_x, bubble_y),
-        layer="markers"
-      ))
-    elif link and (link.direction == (0, -1) or link.direction == (0, 1)):
+    if ctx.child:
+      sprites += ctx.child.view()
+    elif link := ctx.nearby_link:
       arrow_image = (link.direction == (0, -1)
         and assets["link_north"]
         or assets["link_south"]
@@ -93,4 +114,15 @@ class SideViewContext(Context):
         origin=("center", "center"),
         layer="markers"
       )]
+    elif npc := ctx.nearby_npc:
+      npc_sprite = next((s for s in sprites if s.target is npc), None)
+      npc_x, npc_y = npc_sprite.pos
+      bubble_image = assets["bubble_talk"]
+      bubble_x = npc_x + TILE_SIZE * 0.25
+      bubble_y = npc_y - TILE_SIZE * 0.75
+      sprites.append(Sprite(
+        image=bubble_image,
+        pos=(bubble_x, bubble_y),
+        layer="markers"
+      ))
     return sprites
