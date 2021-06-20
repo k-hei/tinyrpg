@@ -25,7 +25,7 @@ class TopViewContext(Context):
     def __init__(anim):
       super().__init__(duration=45)
 
-  def __init__(ctx, area, party=[KnightCore()]):
+  def __init__(ctx, area, party=[KnightCore()], link=None):
     super().__init__()
     ctx.area = area
     ctx.hero = Actor(core=party[0], facing=(0, -1))
@@ -156,9 +156,22 @@ class TopViewContext(Context):
     ))
     return True
 
+  def get_graph(ctx):
+    return ctx.parent.graph if "graph" in dir(ctx.parent) else None
+
   def handle_areachange(ctx, delta):
     ctx.link = delta
-    ctx.get_root().dissolve(on_clear=ctx.close)
+    ctx.get_root().dissolve(on_clear=lambda: ctx.change_areas(ctx.area.links["entrance"]))
+
+  def change_areas(ctx, link):
+    if graph := ctx.get_graph():
+      dest_link = graph.tail(head=link)
+      if dest_link:
+        dest_area = graph.link_area(link=dest_link)
+        ctx.hero.stop_move()
+        ctx.parent.load_area(dest_area, dest_link)
+    else:
+      ctx.close()
 
   def update(ctx):
     super().update()

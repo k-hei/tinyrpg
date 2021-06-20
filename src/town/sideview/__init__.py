@@ -39,10 +39,11 @@ ARROW_PERIOD = 45
 ARROW_BOUNCE = 2
 
 class SideViewContext(Context):
-  def __init__(ctx, area, party=[]):
+  def __init__(ctx, area, party=[], link=None):
     super().__init__()
     ctx.area = area()
     ctx.hero = Actor(core=party and party[0] or KnightCore())
+    ctx.spawn = link.x if link else 64
     ctx.link = None
     ctx.talkee = None
     ctx.nearby_link = None
@@ -50,14 +51,8 @@ class SideViewContext(Context):
     ctx.time = 0
 
   def init(ctx):
-    ctx.spawn()
+    ctx.area.spawn(ctx.hero, (ctx.spawn, 0))
     ctx.area.init(ctx)
-
-  def spawn(ctx):
-    ctx.area.spawn(ctx.hero, (64, 0))
-
-  def get_graph(ctx):
-    return ctx.parent.graph if "graph" in dir(ctx.parent) else None
 
   def handle_move(ctx, delta):
     return ctx.hero.move((delta, 0))
@@ -108,17 +103,21 @@ class SideViewContext(Context):
     if key in (pygame.K_LEFT, pygame.K_a, pygame.K_RIGHT, pygame.K_d):
       return ctx.hero.stop_move()
 
+  def get_graph(ctx):
+    return ctx.parent.graph if "graph" in dir(ctx.parent) else None
+
   def follow_link(ctx, link):
-    def change_areas():
-      if graph := ctx.get_graph():
-        dest_item = graph.tail(head=link)
-        if dest_item:
-          dest_area = graph.link_area(link=dest_item)
-          print(dest_area)
-          ctx.parent.load_area(dest_area)
-      else:
-        ctx.close()
-    ctx.get_root().dissolve(on_clear=change_areas)
+    ctx.get_root().dissolve(on_clear=lambda: ctx.change_areas(link))
+
+  def change_areas(ctx, link):
+    if graph := ctx.get_graph():
+      dest_link = graph.tail(head=link)
+      if dest_link:
+        dest_area = graph.link_area(link=dest_link)
+        ctx.hero.stop_move()
+        ctx.parent.load_area(dest_area, dest_link)
+    else:
+      ctx.close()
 
   def update(ctx):
     hero = ctx.hero

@@ -23,9 +23,9 @@ class TownContext(Context):
   def init(ctx):
     ctx.load_area(ctx.area)
 
-  def load_area(ctx, area):
+  def load_area(ctx, area, link=None):
     if issubclass(area, SideViewArea):
-      child = SideViewContext(area, ctx.party)
+      child = SideViewContext(area, ctx.party, link)
     elif issubclass(area, TopViewArea):
-      child = TopViewContext(area, ctx.party)
+      child = TopViewContext(area, ctx.party, link)
     ctx.open(child)
