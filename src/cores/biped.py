@@ -16,7 +16,7 @@ class SpriteMap:
 class BipedCore(Core):
   sprites = SpriteMap()
 
-  def render(actor):
+  def view(actor):
     sprites = use_assets().sprites
     sprite_id = None
     flip_x = False
@@ -51,4 +51,4 @@ class BipedCore(Core):
       flip=(flip_x, flip_y),
       layer="elems"
     ) if image else None
-    return super().render(sprite)
+    return super().view([sprite])

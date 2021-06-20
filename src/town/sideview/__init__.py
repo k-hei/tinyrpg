@@ -14,9 +14,10 @@ class SideViewContext(Context):
 
   def init(ctx):
     ctx.spawn()
+    ctx.area.init(ctx)
 
   def spawn(ctx):
-    ctx.hero.pos = (32, 0)
+    ctx.area.spawn(ctx.hero, (32, 0))
 
   def handle_keydown(ctx, key):
     if key in (pygame.K_LEFT, pygame.K_a):
@@ -32,7 +33,4 @@ class SideViewContext(Context):
     ctx.hero.update()
 
   def view(ctx, sprites):
-    bg_x = ctx.area.view(sprites, ctx.hero)
-    hero_sprite = ctx.hero.view()[0]
-    hero_sprite.move((-bg_x, 128))
-    sprites.append(hero_sprite)
+    ctx.area.view(sprites, ctx.hero)

@@ -70,8 +70,7 @@ class Core:
         core.anims.remove(anim)
       anim.update()
 
-  def render(core, sprite):
-    # recolor
+  def view(core, sprites):
     if core.color:
       COLOR = core.color
     elif core.faction == "player":
@@ -80,5 +79,6 @@ class Core:
       COLOR = GREEN
     elif core.faction == "enemy":
       COLOR = RED
+    sprite = sprites[0]
     sprite.image = replace_color(sprite.image, BLACK, COLOR)
-    return sprite
+    return sprites

@@ -22,7 +22,7 @@ class Genie(Core):
     genie.sprite = Sprite()
     genie.renders = 0
 
-  def render(genie):
+  def view(genie):
     genie_image = use_assets().sprites["genie"]
     image = Surface(genie_image.get_size()).convert_alpha()
     image.blit(genie_image.subsurface(Rect(0, 0, 32, RIPPLE_START)), (0, 0))
@@ -42,4 +42,4 @@ class Genie(Core):
       flip_x = genie.facing == (-1, 0)
       genie.sprite.flip = (flip_x, False)
     genie.renders += 1
-    return genie.sprite
+    return [genie.sprite]

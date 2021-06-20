@@ -19,6 +19,9 @@ class Actor:
   def get_name(actor):
     return actor.core.name
 
+  def get_faction(actor):
+    return actor.core.faction
+
   def get_facing(actor):
     return actor.core.facing
 
@@ -62,8 +65,9 @@ class Actor:
       actor.anim.update()
 
   def view(actor):
-    sprite = actor.core.render()
-    sprite.image = outline(sprite.image, WHITE)
-    sprite.pos = actor.pos
-    sprite.origin = ("center", "center")
-    return [sprite]
+    actor_sprites = actor.core.view()
+    actor_sprite = actor_sprites[0]
+    actor_sprite.image = outline(actor_sprite.image, WHITE)
+    actor_sprite.move(actor.pos)
+    actor_sprite.origin = ("center", "center")
+    return actor_sprites
