@@ -11,12 +11,13 @@ class MageCore(BipedCore):
     walk_up=("mage_walkup0", "mage_up", "mage_walkup1", "mage_up")
   )
 
-  def __init__(mage, name=MAGE_NAME, skills=[]):
+  def __init__(mage, name=MAGE_NAME, faction="ally", *args, **kwargs):
     super().__init__(
       name=name,
-      faction="player",
+      faction=faction,
       hp=MAGE_HP,
       st=14,
       en=7,
-      skills=skills
+      *args,
+      **kwargs
     )

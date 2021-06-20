@@ -8,16 +8,16 @@ from filters import replace_color
 from comps.log import Token
 
 class Core:
-  def __init__(core, name, faction, hp=0, st=0, en=0, skills=[]):
+  def __init__(core, name, faction, facing=(1, 0), hp=0, st=0, en=0, skills=[]):
     core.name = name
     core.faction = faction
+    core.facing = facing
     core.hp = hp
     core.hp_max = hp
     core.st = st
     core.en = en
     core.skills = skills
     core.dead = False
-    core.facing = (1, 0)
     core.anims = []
     core.color = None
 

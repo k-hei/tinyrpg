@@ -17,8 +17,8 @@ FLOAT_PERIOD = 180
 FLOAT_AMP = 2
 
 class Genie(Core):
-  def __init__(genie, name):
-    super().__init__(name=name, faction="ally")
+  def __init__(genie, name, *args, **kwargs):
+    super().__init__(name=name, faction="ally", *args, **kwargs)
     genie.sprite = Sprite()
     genie.renders = 0
 

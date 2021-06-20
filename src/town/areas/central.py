@@ -1,7 +1,7 @@
 from town.areas import Area, AreaLink
 from town.sideview.actor import Actor
 from cores.genie import Genie
-from cores.mage import MageCore
+from cores.mage import MageCore as Mage
 
 from assets import load as use_assets
 from config import TILE_SIZE, WINDOW_WIDTH
@@ -66,19 +66,20 @@ class CentralArea(Area):
         )
       ] or choice.text == "Nothing" and []
     ))
-    genie = Actor(
-      core=Genie(name="Doshin"),
+    area.spawn(Actor(
+      core=Genie(
+        name="Doshin",
+        facing=(1, 0)
+        ),
       message=[
         lambda ctx: [
           ("Doshin", "Hail, traveler!"),
           prompt
         ]
       ]
-    )
-    genie.facing = (1, 0)
-    area.spawn(genie, (32, 0))
+    ), (32, 0))
 
-    mage = Actor(core=MageCore())
-    mage.core.faction = "ally"
-    mage.facing = (1, 0)
-    area.spawn(mage, (304, 0))
+    area.spawn(Actor(core=Mage(
+      faction="ally",
+      facing=(1, 0)
+    )), (304, 0))
