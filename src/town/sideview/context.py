@@ -57,7 +57,14 @@ class SideViewContext(Context):
     ctx.area.init(ctx)
 
   def handle_move(ctx, delta):
-    return ctx.hero.move((delta, 0))
+    hero = ctx.hero
+    hero.move((delta, 0))
+    hero_x, hero_y = hero.pos
+    if hero_x < 0:
+      hero.pos = (0, hero_y)
+    elif hero_x > ctx.area.width:
+      hero.pos = (ctx.area.width, hero_y)
+    return True
 
   def handle_zmove(ctx, delta):
     link = ctx.nearby_link
