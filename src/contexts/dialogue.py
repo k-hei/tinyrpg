@@ -157,8 +157,4 @@ class DialogueContext(Context):
               pos=(x, y),
               layer="hud"
             )]
-
-    if ctx.child:
-      sprites += ctx.child.view()
-
-    return sprites
+    return sprites + super().view()

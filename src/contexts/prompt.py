@@ -43,4 +43,4 @@ class PromptContext(Context):
         pos=(panel_x, panel_y),
         layer="hud"
       )]
-    return sprites
+    return sprites + super().view()

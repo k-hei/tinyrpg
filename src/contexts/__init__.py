@@ -70,10 +70,7 @@ class Context:
       ctx.child.update()
 
   def view(ctx):
-    sprites = []
-    if ctx.child:
-      sprites += ctx.child.view()
-    return sprites
+    return ctx.child.view() if ctx.child else []
 
   def draw(ctx, surface):
     if ctx.child:

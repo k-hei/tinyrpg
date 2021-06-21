@@ -77,7 +77,6 @@ class SideViewContext(Context):
       return False
 
   def handle_talk(ctx):
-    ctx.nearby_npc and print(type(ctx.nearby_npc.core).__name__)
     if ctx.nearby_npc is None:
       return False
     ctx.talkee = ctx.nearby_npc
@@ -100,18 +99,18 @@ class SideViewContext(Context):
       return ctx.child.handle_keydown(key)
     if ctx.link or ctx.get_root().transits:
       return False
+    if key in (pygame.K_LEFT, pygame.K_a):
+      return ctx.handle_move(-1)
+    if key in (pygame.K_RIGHT, pygame.K_d):
+      return ctx.handle_move(1)
+    if keyboard.get_pressed(key) > 1:
+      return
     if key in (pygame.K_UP, pygame.K_w):
       return ctx.handle_zmove(-1)
     if key in (pygame.K_DOWN, pygame.K_s):
       return ctx.handle_zmove(1)
     if key in (pygame.K_SPACE, pygame.K_RETURN):
       return ctx.handle_talk()
-    if keyboard.get_pressed(key) == 1:
-      return
-    if key in (pygame.K_LEFT, pygame.K_a):
-      return ctx.handle_move(-1)
-    if key in (pygame.K_RIGHT, pygame.K_d):
-      return ctx.handle_move(1)
 
   def handle_keyup(ctx, key):
     if key in (pygame.K_LEFT, pygame.K_a, pygame.K_RIGHT, pygame.K_d):
@@ -143,6 +142,7 @@ class SideViewContext(Context):
       ctx.close()
 
   def update(ctx):
+    super().update()
     hero = ctx.hero
     hero.update()
     if link := ctx.link:
@@ -172,8 +172,6 @@ class SideViewContext(Context):
     sprites = []
     assets = use_assets()
     sprites += ctx.area.view(ctx.hero, ctx.link)
-    if ctx.child:
-      sprites += ctx.child.view()
     if ctx.child or ctx.link:
       if ctx.hud.active:
         ctx.hud.exit()
@@ -212,4 +210,4 @@ class SideViewContext(Context):
         layer="markers"
       ))
     sprites += ctx.hud.view()
-    return sprites
+    return sprites + super().view()

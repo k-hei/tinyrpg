@@ -1,3 +1,4 @@
+from copy import deepcopy
 from dataclasses import dataclass
 from math import cos, pi
 
@@ -161,7 +162,7 @@ class NameEntryContext(Context):
     ctx.name = char.name
     ctx.cursor = (0, 0)
     ctx.cursor_cell = (0, 0)
-    ctx.char = char
+    ctx.char = deepcopy(char)
     ctx.char.facing = (0, 1)
     ctx.char.anims.append(WalkAnim(period=30))
     ctx.banner = Banner(True)
@@ -454,13 +455,12 @@ class NameEntryContext(Context):
     sprites.append(Sprite(
       image=ctx.cache.surface,
       pos=(0, surface_rect.top),
-      size=(WINDOW_WIDTH, surface_rect.height)
+      size=(WINDOW_WIDTH, surface_rect.height),
+      layer="hud"
     ))
-    if ctx.child:
-      sprites += ctx.child.view()
 
     ctx.draws += 1
-    return sprites
+    return sprites + super().view()
 
 def _render_name(name, draws):
   assets = use_assets()

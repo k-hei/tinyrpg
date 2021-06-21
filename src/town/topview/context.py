@@ -279,10 +279,7 @@ class TopViewContext(Context):
         layer="markers"
       ))
 
-    if ctx.child:
-      sprites += ctx.child.view()
-
-    return sprites
+    return sprites + super().view()
 
 def debug_elem_view(elem):
   RED = 0x7FFF0000

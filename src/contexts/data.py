@@ -19,6 +19,8 @@ from easing.expo import ease_out
 from lib.lerp import lerp
 import savedata
 import keyboard
+from sprite import Sprite
+from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
 
 def view_time(secs):
   mins = secs // 60
@@ -301,13 +303,14 @@ class DataContext(Context):
         slot.update()
     ctx.time += 1
 
-  def draw(ctx, surface):
+  def view(ctx):
+    sprites = []
     assets = use_assets()
     surface_clip = ctx.cache_surface
     surface_clip.fill(0)
     ctx.bg.draw(surface_clip)
     slot_image = assets.sprites["slot"]
-    slot_x = surface.get_width() // 2 - slot_image.get_width() // 2
+    slot_x = WINDOW_WIDTH // 2 - slot_image.get_width() // 2
     slot_y = ctx.SLOT_Y
 
     for i, slot in enumerate(ctx.slots):
@@ -367,7 +370,7 @@ class DataContext(Context):
       ctx.banner.exit()
     ctx.banner.draw(surface_clip)
 
-    surface_rect = surface.get_rect()
+    surface_rect = Rect((0, 0), WINDOW_SIZE)
     ctx_anim = next((a for a in ctx.anims if a.target is ctx), None)
     if ctx_anim:
       t = ctx_anim.pos
@@ -375,9 +378,13 @@ class DataContext(Context):
         t = ease_out(t)
       elif type(ctx_anim) is ExitAnim:
         t = 1 - t
-      height = surface.get_height() * t
-      y = surface.get_height() // 2 - height // 2
-      surface_rect = Rect((0, y), (surface.get_width(), height))
-    surface.blit(surface_clip, (0, surface_rect.top), area=surface_rect)
-    if ctx.child:
-      ctx.child.draw(surface)
+      height = WINDOW_HEIGHT * t
+      y = WINDOW_HEIGHT // 2 - height // 2
+      surface_rect = Rect((0, y), (WINDOW_WIDTH, height))
+    sprites.append(Sprite(
+      image=surface_clip,
+      pos=(0, surface_rect.top),
+      size=surface_rect.size,
+      layer="hud"
+    ))
+    return sprites + super().view()
