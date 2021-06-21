@@ -87,7 +87,7 @@ class ShopContext(Context):
     ctx.blurring = False
     ctx.exiting = False
     ctx.textbox = TextBox((96, 32), color=WHITE)
-    ctx.hud = hud or Hud()
+    ctx.hud = hud or Hud([Knight()])
     ctx.anims = [CursorAnim()]
     ctx.on_animate = None
     ctx.bubble = TextBubble(width=104, pos=(112, 40))
@@ -202,7 +202,7 @@ class ShopContext(Context):
     MARGIN = 2
     sprites = []
 
-    hud_image = ctx.hud.update(ctx.hero)
+    hud_image = ctx.hud.update()
     hud_x = MARGIN
     hud_y = WINDOW_HEIGHT - hud_image.get_height() - MARGIN
     hud_anim = next((a for a in ctx.anims if type(a) is HudEnterAnim), None)

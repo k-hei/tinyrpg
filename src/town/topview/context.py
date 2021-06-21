@@ -30,7 +30,7 @@ class TopViewContext(Context):
     ctx.area = area
     ctx.hero = Actor(core=party[0], facing=(0, -1))
     ctx.stage = area(ctx.hero)
-    ctx.hud = Hud()
+    ctx.hud = Hud(party)
     ctx.elem = None
     ctx.link = None
     ctx.anims = []
@@ -39,7 +39,7 @@ class TopViewContext(Context):
   def handle_keydown(ctx, key):
     if ctx.child:
       return ctx.child.handle_keydown(key)
-    if ctx.anims or ctx.link:
+    if ctx.anims or ctx.link or ctx.get_root().transits:
       return None
     if key in keyboard.ARROW_DELTAS:
       delta = keyboard.ARROW_DELTAS[key]
@@ -234,21 +234,27 @@ class TopViewContext(Context):
       else 1
     ))
 
-    if not ctx.child or not isinstance(ctx.child.child, ShopContext):
-      hud_image = ctx.hud.update(ctx.hero.core)
-      hud_x = 8
-      hud_y = 8
-      hud_anim = next((a for a in ctx.anims if type(a) is TopViewContext.HudAnim), None)
-      if hud_anim:
-        t = hud_anim.pos
-        t = ease_out(t)
-        hud_x = lerp(2, hud_x, t)
-        hud_y = lerp(WINDOW_HEIGHT - 2 - hud_image.get_height(), hud_y, t)
-      sprites.append(Sprite(
-        image=hud_image,
-        pos=(hud_x, hud_y),
-        layer="hud"
-      ))
+    if ctx.link and ctx.hud.active:
+      ctx.hud.exit()
+
+    if (ctx.hud.active or ctx.hud.anims) and (not ctx.child or not isinstance(ctx.child.child, ShopContext)):
+      if ctx.hud.anims:
+        sprites += ctx.hud.view()
+      else:
+        hud_image = ctx.hud.update()
+        hud_x = 8
+        hud_y = 8
+        hud_anim = next((a for a in ctx.anims if type(a) is TopViewContext.HudAnim), None)
+        if hud_anim:
+          t = hud_anim.pos
+          t = ease_out(t)
+          hud_x = lerp(2, hud_x, t)
+          hud_y = lerp(WINDOW_HEIGHT - 2 - hud_image.get_height(), hud_y, t)
+        sprites.append(Sprite(
+          image=hud_image,
+          pos=(hud_x, hud_y),
+          layer="hud"
+        ))
 
     if ctx.child:
       sprites += ctx.child.view()

@@ -5,6 +5,7 @@ from pygame.transform import scale
 import palette
 from assets import load as use_assets
 from filters import replace_color
+from sprite import Sprite
 
 from cores.knight import Knight
 from cores.mage import Mage
@@ -38,41 +39,44 @@ class Hud:
   MARGIN_LEFT = 8
   MARGIN_TOP = 8
 
-  def __init__(panel):
-    panel.sprite = None
-    panel.active = True
-    panel.anims = []
-    panel.anims_drawn = 0
-    panel.hero = None
-    panel.ally = None
-    panel.enter()
+  def __init__(hud, party):
+    hud.party = party
+    hud.image = None
+    hud.active = True
+    hud.anims = []
+    hud.anims_drawn = 0
+    hud.hero = None
+    hud.ally = None
+    hud.enter()
 
-  def enter(panel):
-    panel.active = True
-    panel.anims.append(EnterAnim())
+  def enter(hud):
+    hud.active = True
+    hud.anims.append(EnterAnim())
 
-  def exit(panel):
-    panel.active = False
-    panel.anims.append(ExitAnim())
+  def exit(hud):
+    hud.active = False
+    hud.anims.append(ExitAnim())
 
-  def update(panel, hero, ally=None):
-    if (panel.sprite is None
-    or panel.anims_drawn
-    or hero != panel.hero
-    or ally != panel.ally):
-      if hero != panel.hero:
-        if panel.hero is not None:
-          panel.anims.append(SwitchOutAnim())
-          panel.anims.append(SwitchInAnim())
-        panel.hero = hero
-      if ally != panel.ally:
-        panel.ally = ally
-      anim = panel.anims[0] if panel.anims else None
-      panel.anims_drawn = len(panel.anims)
-      panel.sprite = panel.render(hero, ally, anim)
-    return panel.sprite
+  def update(hud):
+    hero = hud.party[0]
+    ally = hud.party[1] if len(hud.party) == 2 else None
+    if (hud.image is None
+    or hud.anims_drawn
+    or hero != hud.hero
+    or ally != hud.ally):
+      if hero != hud.hero:
+        if hud.hero is not None:
+          hud.anims.append(SwitchOutAnim())
+          hud.anims.append(SwitchInAnim())
+        hud.hero = hero
+      if ally != hud.ally:
+        hud.ally = ally
+      anim = hud.anims[0] if hud.anims else None
+      hud.anims_drawn = len(hud.anims)
+      hud.image = hud.render(hero, ally, anim)
+    return hud.image
 
-  def render(panel, hero, ally, anim=None):
+  def render(hud, hero, ally, anim=None):
     assets = use_assets()
     sprite_hud = (ally
       and assets.sprites["hud_town"]
@@ -137,12 +141,12 @@ class Hud:
       ))
     return sprite
 
-  def draw(panel, surface, ctx):
-    panel.update(ctx.hero.core, ctx.ally and ctx.ally.core)
-    sprite = panel.sprite
-    hidden_x, hidden_y = Hud.MARGIN_LEFT, -sprite.get_height()
+  def view(hud):
+    hud.update()
+    hud_image = hud.image
+    hidden_x, hidden_y = Hud.MARGIN_LEFT, -hud_image.get_height()
     corner_x, corner_y = Hud.MARGIN_LEFT, Hud.MARGIN_TOP
-    anim = panel.anims[0] if panel.anims else None
+    anim = hud.anims[0] if hud.anims else None
     if anim:
       t = anim.update()
       if type(anim) is EnterAnim:
@@ -153,18 +157,22 @@ class Hud:
         start_x, start_y = corner_x, corner_y
         target_x, target_y = hidden_x, hidden_y
       else:
-        x = corner_x
-        y = corner_y
+        hud_x = corner_x
+        hud_y = corner_y
 
       if type(anim) is EnterAnim or type(anim) is ExitAnim:
-        x = lerp(start_x, target_x, t)
-        y = lerp(start_y, target_y, t)
+        hud_x = lerp(start_x, target_x, t)
+        hud_y = lerp(start_y, target_y, t)
 
       if anim.done:
-        panel.anims.pop(0)
-    elif panel.active:
-      x = corner_x
-      y = corner_y
+        hud.anims.pop(0)
+    elif hud.active:
+      hud_x = corner_x
+      hud_y = corner_y
     else:
-      return
-    surface.blit(sprite, (x, y))
+      return []
+    return [Sprite(
+      image=hud_image,
+      pos=(hud_x, hud_y),
+      layer="hud"
+    )]
