@@ -115,7 +115,8 @@ class PortraitGroup:
       else:
         anim.update()
 
-  def view(group, sprites):
+  def view(group):
+    sprites = []
     selection_sprites = []
     portraits_sprites = []
     portraits_images = list(map(lambda portrait: portrait.render(), group.portraits))
@@ -151,3 +152,4 @@ class PortraitGroup:
       else:
         portraits_sprites.append(portrait_sprite)
     sprites += portraits_sprites + selection_sprites
+    return sprites

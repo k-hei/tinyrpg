@@ -26,12 +26,12 @@ def can_talk(hero, actor):
 def find_nearby_npc(hero, actors):
   return next((a for a in actors if can_talk(hero, a)), None)
 
-def find_nearby_link(hero, links):
+def find_nearby_link(hero, links, graph=None):
   hero_x, _ = hero.pos
   for link in links.values():
     dist_x = link.x - hero_x
     _, direction_y = link.direction
-    if abs(dist_x) < TILE_SIZE // 2 and direction_y:
+    if abs(dist_x) < TILE_SIZE // 2 and direction_y and not (graph and graph.tail(head=link) is None):
       return link
 
 ARROW_Y = 168
@@ -39,7 +39,7 @@ ARROW_PERIOD = 45
 ARROW_BOUNCE = 2
 
 class SideViewContext(Context):
-  def __init__(ctx, area, party=[], link=None):
+  def __init__(ctx, area, graph, party=[], link=None):
     super().__init__()
     ctx.area = area()
     ctx.hero = Actor(core=party and party[0] or KnightCore())
@@ -138,7 +138,7 @@ class SideViewContext(Context):
         if abs(hero_y) >= abs(EVENT_HORIZON) and not ctx.get_root().transits:
           ctx.follow_link(ctx.link)
     elif not ctx.child:
-      ctx.nearby_link = find_nearby_link(ctx.hero, ctx.area.links)
+      ctx.nearby_link = find_nearby_link(ctx.hero, type(ctx.area).links, ctx.get_graph())
       ctx.nearby_npc = find_nearby_npc(ctx.hero, ctx.area.actors) if ctx.nearby_link is None else None
     ctx.time += 1
 

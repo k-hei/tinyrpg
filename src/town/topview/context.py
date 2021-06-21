@@ -234,7 +234,7 @@ class TopViewContext(Context):
       else 1
     ))
 
-    if not ctx.child or type(ctx.child.child) is not ShopContext:
+    if not ctx.child or not isinstance(ctx.child.child, ShopContext):
       hud_image = ctx.hud.update(ctx.hero.core)
       hud_x = 8
       hud_y = 8

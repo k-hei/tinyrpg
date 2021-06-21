@@ -23,15 +23,15 @@ class PortraitContext(Context):
     if key == pygame.K_SPACE:
       return ctx.portrait.start_talk() if not ctx.portrait.talking else ctx.portrait.stop_talk()
 
-  def view(ctx, sprites):
+  def view(ctx):
     surface = Surface(WINDOW_SIZE)
     surface.fill(WHITE)
     portrait = ctx.portrait.render()
     surface.blit(portrait, (0, 0))
-    sprites.append(Sprite(
+    return [Sprite(
       image=surface,
       pos=(0, 0)
-    ))
+    )]
 
 App(
   size=WINDOW_SIZE,

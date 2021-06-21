@@ -119,11 +119,12 @@ class TextBubble:
         anim.update()
     bubble.ticks += 1
 
-  def view(bubble, sprites):
+  def view(bubble):
     if bubble.textbox is None:
-      return
+      return []
 
     bubble.update()
+    sprites = []
     assets = use_assets().sprites
 
     bubbletail_x, bubbletail_y = bubble.pos
@@ -177,3 +178,5 @@ class TextBubble:
         image=text_image,
         pos=(text_x, text_y)
       ))
+
+    return sprites

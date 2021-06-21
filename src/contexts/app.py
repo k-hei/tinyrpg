@@ -1,4 +1,5 @@
-from copy import deepcopy
+import os
+import sys
 import pygame
 from pygame.transform import scale
 import keyboard
@@ -16,7 +17,6 @@ class App(Context):
     super().__init__()
     app.title = title
     app.child = context
-    app.child_init = context
     app.size = size
     app.size_scaled = (0, 0)
     app.scale = 0
@@ -40,15 +40,8 @@ class App(Context):
       app.open()
       app.loop()
 
-  def open(app, child=None):
-    if app.child_init is None:
-      app.child_init = child
-    if child is None:
-      child = app.child_init
-    if child:
-      app.child_init = child
-      child = deepcopy(child)
-      super().open(child, on_close=app.close)
+  def open(app):
+    super().open(app.child, on_close=app.close)
 
   def close(app, data=None):
     if data is not None:
@@ -56,7 +49,7 @@ class App(Context):
     app.done = True
 
   def reload(app):
-    app.open()
+    os.execl(sys.executable, sys.executable, *sys.argv)
 
   def loop(app):
     while not app.done:
@@ -108,6 +101,9 @@ class App(Context):
       DissolveIn(WINDOW_SIZE, on_clear),
       DissolveOut(WINDOW_SIZE, on_end),
     ]
+
+  def dissolve_in(app, on_end=None):
+    app.transits.append(DissolveIn(WINDOW_SIZE, on_end))
 
   def dissolve_out(app, on_end=None):
     app.transits.append(DissolveOut(WINDOW_SIZE, on_end))

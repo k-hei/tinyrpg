@@ -17,11 +17,13 @@ class CentralArea(Area):
   links = {
     "right": AreaLink(x=416, direction=(1, 0)),
     "alley": AreaLink(x=272, direction=(0, -1)),
+    "door_triangle": AreaLink(x=64, direction=(0, -1)),
     "door_heart": AreaLink(x=192, direction=(0, -1)),
   }
 
   def init(area, ctx):
     super().init(ctx)
+
     area.spawn(Actor(core=Genie(
       name="Doshin",
       facing=(1, 0),

@@ -147,9 +147,10 @@ class CardContext(Context):
     ctx.hand_index += (ctx.card_index - ctx.hand_index) / 4
     ctx.ticks += 1
 
-  def view(ctx, sprites):
+  def view(ctx):
     if ctx.child:
-      return ctx.child.view(sprites)
+      return ctx.child.view()
+    sprites = []
     assets = use_assets().sprites
     card_template = assets["card_back"]
     card_sprites = []
@@ -205,6 +206,7 @@ class CardContext(Context):
         pos=(hand_x, hand_y),
         origin=("center", "center")
       ))
+    return sprites
 
   def draw(ctx, surface):
     Sprite(

@@ -40,9 +40,9 @@ class Graph:
 
   def tail(graph, head):
     for n1, n2 in graph.edges:
-      if n1 == head:
+      if n1 is head:
         return n2
-      if n2 == head:
+      if n2 is head:
         return n1
 
   def connect(graph, node1, node2):

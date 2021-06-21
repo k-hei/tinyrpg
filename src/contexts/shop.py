@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from math import sin, cos, pi
 import pygame
-from pygame import Rect
+from pygame import Rect, Surface
 from pygame.transform import rotate, scale
 from contexts import Context
 from contexts.cardgroup import CardContext, CARD_BUY, CARD_SELL, CARD_EXIT
@@ -95,16 +95,18 @@ class ShopContext(Context):
     ]
 
   def enter(ctx):
-    ctx.anims += [
-      HudEnterAnim(duration=20),
-      BackgroundSlideupAnim(duration=15),
-      BackgroundEnterAnim(duration=15, delay=10),
-      *animate_text(anim=SubtitleEnterAnim, text=ctx.subtitle, period=3, stagger=1, delay=15),
-      SubtitleSlideAnim(duration=15, delay=len(ctx.subtitle) + 10),
-      *animate_text(anim=TitleEnterAnim, text=ctx.title, period=5, stagger=3, delay=45),
-      BoxEnterAnim(duration=20, delay=90)
-    ]
-    ctx.portraits.enter(on_end=ctx.focus)
+    ctx.get_root().dissolve_in(on_end=lambda: (
+      ctx.anims.extend([
+        HudEnterAnim(duration=20),
+        BackgroundSlideupAnim(duration=15),
+        BackgroundEnterAnim(duration=15, delay=10),
+        *animate_text(anim=SubtitleEnterAnim, text=ctx.subtitle, period=3, stagger=1, delay=15),
+        SubtitleSlideAnim(duration=15, delay=len(ctx.subtitle) + 10),
+        *animate_text(anim=TitleEnterAnim, text=ctx.title, period=5, stagger=3, delay=45),
+        BoxEnterAnim(duration=20, delay=90)
+      ]),
+      ctx.portraits.enter(on_end=ctx.focus)
+    ))
 
   def exit(ctx):
     ctx.exiting = True
@@ -195,7 +197,11 @@ class ShopContext(Context):
       else:
         anim.update()
 
-  def view(ctx, sprites):
+  def view(ctx):
+    if ctx.get_root().transits:
+      return []
+
+    sprites = []
     assets = use_assets()
 
     bg_anim = next((a for a in ctx.anims if type(a) is BackgroundSlideupAnim), None)
@@ -205,7 +211,12 @@ class ShopContext(Context):
       for sprite in sprites:
         sprite.move((0, bg_y))
     else:
-      sprites.clear()
+      bg_image = Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
+      bg_image.fill(BLACK)
+      sprites.append(Sprite(
+        image=bg_image,
+        pos=(0, 0)
+      ))
 
     bg_image = assets.sprites[ctx.bg_name]
     bg_image = replace_color(bg_image, WHITE, ctx.bg_color)
@@ -232,10 +243,10 @@ class ShopContext(Context):
         )
       ))
 
-    ctx.portraits.view(sprites)
+    sprites += ctx.portraits.view()
 
     MARGIN = 2
-    ctx.bubble.view(sprites)
+    sprites += ctx.bubble.view()
 
     hud_image = ctx.hud.update(ctx.hero)
     hud_x = MARGIN
@@ -357,4 +368,6 @@ class ShopContext(Context):
         ))
 
     if ctx.child:
-      ctx.child.view(sprites)
+      sprites += ctx.child.view()
+
+    return sprites
