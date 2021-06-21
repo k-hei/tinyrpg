@@ -1,4 +1,4 @@
-from filters import outline
+from filters import outline, darken
 from palette import WHITE
 from anims.walk import WalkAnim
 
@@ -7,6 +7,7 @@ class Actor:
   YSPEED_NORTH = 0.65
   YSPEED_SOUTH = 0.75
   MOVE_DURATION = 20
+  INDOORS_HORIZON = -18
 
   def __init__(actor, core, color=None, facing=None):
     actor.pos = None
@@ -46,7 +47,10 @@ class Actor:
     if delta_x:
       actor_x += Actor.XSPEED * delta_x
     if delta_y == -1:
-      actor_y -= Actor.YSPEED_NORTH
+      if actor_y < Actor.INDOORS_HORIZON:
+        actor_y -= Actor.YSPEED_NORTH / 2
+      else:
+        actor_y -= Actor.YSPEED_NORTH
     elif delta_y == 1:
       actor_y += Actor.YSPEED_SOUTH
     actor.pos = (actor_x, actor_y)
@@ -97,6 +101,9 @@ class Actor:
     actor_sprites = actor.core.view()
     actor_sprite = actor_sprites[0]
     actor_sprite.image = outline(actor_sprite.image, WHITE)
+    _, actor_y = actor.pos
+    if actor_y < Actor.INDOORS_HORIZON:
+      actor_sprite.image = darken(actor_sprite.image)
     actor_sprite.move(actor.pos)
     actor_sprite.origin = ("center", "center")
     return actor_sprites
