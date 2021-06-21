@@ -13,6 +13,7 @@ from contexts.load import LoadContext
 from contexts.save import SaveContext
 
 class CentralArea(Area):
+  name = "Town Square"
   bg = "town_central"
   links = {
     "right": AreaLink(x=416, direction=(1, 0)),

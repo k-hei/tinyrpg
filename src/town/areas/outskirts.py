@@ -5,8 +5,9 @@ from config import ROGUE_NAME
 from contexts.prompt import PromptContext, Choice
 
 class OutskirtsArea(Area):
-  bg = "town_outskirts"
+  name = "Outskirts"
   TOWER_X = 224
+  bg = "town_outskirts"
   links = {
     "left": AreaLink(x=0, direction=(-1, 0)),
   }

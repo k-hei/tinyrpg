@@ -4,6 +4,7 @@ from cores.rat import Rat
 from config import TILE_SIZE
 
 class ClearingArea(Area):
+  name = "Alleyway"
   bg = "town_clearing"
   links = {
     "alley": AreaLink(x=96, direction=(0, 1)),

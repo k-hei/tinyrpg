@@ -27,8 +27,8 @@ class Stage:
   WALL = Tile(solid=True)
   HALF_WALL = Tile(halfsolid=True)
   scale = 32
-  fg_id = ""
-  bg_id = ""
+  bg = ""
+  fg = ""
 
   def parse_char(char):
     if char == ".": return Stage.FLOOR

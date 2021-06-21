@@ -102,8 +102,6 @@ class Actor:
     actor_sprite = actor_sprites[0]
     actor_sprite.image = outline(actor_sprite.image, WHITE)
     _, actor_y = actor.pos
-    if actor_y < Actor.INDOORS_HORIZON:
-      actor_sprite.image = darken(actor_sprite.image)
     actor_sprite.move(actor.pos)
     actor_sprite.origin = ("center", "center")
     return actor_sprites

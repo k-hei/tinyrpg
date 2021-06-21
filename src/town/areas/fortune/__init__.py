@@ -12,7 +12,8 @@ from savedata.resolve import resolve_item
 from palette import BLACK, ORANGE, BLUE_DARK
 
 class FortuneArea(Stage):
-  bg_id = "fortune"
+  name = "Fortune House"
+  bg = "fortune"
   scale = 16
   links = {
     "entrance": Link(cell=(2, 6), direction=(0, 1))

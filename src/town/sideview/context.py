@@ -9,9 +9,9 @@ from cores.knight import Knight
 from hud import Hud
 from assets import load as use_assets
 from sprite import Sprite
-from config import TILE_SIZE
-from filters import replace_color
-from palette import BLACK, BLUE
+from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
+from filters import replace_color, outline
+from palette import BLACK, WHITE, BLUE
 import keyboard
 
 def can_talk(hero, actor):
@@ -170,7 +170,7 @@ class SideViewContext(Context):
 
   def view(ctx):
     sprites = []
-    assets = use_assets().sprites
+    assets = use_assets()
     sprites += ctx.area.view(ctx.hero, ctx.link)
     if ctx.child:
       sprites += ctx.child.view()
@@ -179,8 +179,8 @@ class SideViewContext(Context):
         ctx.hud.exit()
     elif link := ctx.nearby_link:
       arrow_image = (link.direction == (0, -1)
-        and assets["link_north"]
-        or assets["link_south"]
+        and assets.sprites["link_north"]
+        or assets.sprites["link_south"]
       )
       arrow_image = replace_color(arrow_image, BLACK, BLUE)
       arrow_y = ARROW_Y + sin(ctx.time % ARROW_PERIOD / ARROW_PERIOD * 2 * pi) * ARROW_BOUNCE
@@ -193,12 +193,22 @@ class SideViewContext(Context):
     elif npc := ctx.nearby_npc:
       npc_sprite = next((s for s in sprites if s.target is npc), None)
       npc_x, npc_y = npc_sprite.pos
-      bubble_image = assets["bubble_talk"]
+      bubble_image = assets.sprites["bubble_talk"]
       bubble_x = npc_x + TILE_SIZE * 0.25
       bubble_y = npc_y - TILE_SIZE * 0.75
       sprites.append(Sprite(
         image=bubble_image,
         pos=(bubble_x, bubble_y),
+        layer="markers"
+      ))
+    if ctx.time < 120:
+      label_image = assets.ttf["roman"].render(ctx.area.name, WHITE)
+      label_image = outline(label_image, BLACK)
+      label_image = outline(label_image, WHITE)
+      sprites.append(Sprite(
+        image=label_image,
+        pos=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 4),
+        origin=("center", "center"),
         layer="markers"
       ))
     sprites += ctx.hud.view()

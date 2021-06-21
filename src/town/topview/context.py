@@ -12,6 +12,8 @@ from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
+from filters import outline
+from palette import BLACK, WHITE
 import keyboard
 from cores.knight import Knight
 
@@ -35,6 +37,7 @@ class TopViewContext(Context):
     ctx.link = None
     ctx.anims = []
     ctx.debug = False
+    ctx.time = 0
 
   def handle_keydown(ctx, key):
     if ctx.child:
@@ -184,19 +187,20 @@ class TopViewContext(Context):
         ctx.anims.remove(anim)
       else:
         anim.update()
+    ctx.time += 1
 
   def view(ctx):
     sprites = []
     assets = use_assets()
     hero = ctx.hero
     sprites.append(Sprite(
-      image=assets.sprites[ctx.area.bg_id],
+      image=assets.sprites[ctx.area.bg],
       pos=(0, 0),
       layer="bg"
     ))
-    if ctx.area.fg_id:
+    if ctx.area.fg:
       sprites.append(Sprite(
-        image=assets.sprites[ctx.area.fg_id],
+        image=assets.sprites[ctx.area.fg],
         pos=(0, 0),
         layer="bg"
       ))
@@ -255,6 +259,17 @@ class TopViewContext(Context):
           pos=(hud_x, hud_y),
           layer="hud"
         ))
+
+    if ctx.time < 120:
+      label_image = assets.ttf["roman"].render(ctx.area.name, WHITE)
+      label_image = outline(label_image, BLACK)
+      label_image = outline(label_image, WHITE)
+      sprites.append(Sprite(
+        image=label_image,
+        pos=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 4),
+        origin=("center", "center"),
+        layer="markers"
+      ))
 
     if ctx.child:
       sprites += ctx.child.view()
