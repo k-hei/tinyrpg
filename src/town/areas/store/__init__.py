@@ -9,8 +9,9 @@ from town.areas.store.counter import Counter
 from town.areas.store.context import StoreContext
 from contexts.prompt import PromptContext, Choice
 from contexts.shop import ShopContext, ShopCard
-from cores.husband import HusbandCore
-from cores.wife import WifeCore
+from cores.husband import Husband
+from cores.wife import Wife
+from cores.rogue import Rogue
 from portraits.husband import HusbandPortrait
 from portraits.wife import WifePortrait
 from savedata.resolve import resolve_item
@@ -36,7 +37,7 @@ class StoreArea(Stage):
     "#.............##",
     "#.............##",
     "#Y..B#.0..P#..##",
-    "#.............##",
+    "#3............##",
     "#######+.#######",
     "#######..#######",
   ]
@@ -46,7 +47,7 @@ class StoreArea(Stage):
     super().__init__(stage.layout, {
       "0": hero,
       "1": Actor(
-        core=HusbandCore(),
+        core=Husband(),
         facing=(0, 1),
         color=ORANGE,
         moving=True,
@@ -60,7 +61,7 @@ class StoreArea(Stage):
         ]
       ),
       "2": Actor(
-        core=WifeCore(),
+        core=Wife(),
         facing=(0, 1),
         color=ORANGE,
         moving=True,
@@ -71,6 +72,19 @@ class StoreArea(Stage):
           shop,
           lambda: ctx.anims.append(ctx.HudAnim()),
           lambda: ctx.get_root().dissolve_out()
+        ]
+      ),
+      "3": Actor(
+        core=Rogue(),
+        facing=(-1, 0),
+        moving=True,
+        move_period=30,
+        is_shopkeep=True,
+        spawn_offset=(0, -8),
+        message=lambda talkee, ctx: [
+          (talkee.get_name(), "You know what I can't get enough of?"),
+          (talkee.get_name(), "BBWs."),
+          (talkee.get_name(), "Big beautiful wings..."),
         ]
       ),
       "Y": Planter,

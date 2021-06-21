@@ -1,6 +1,6 @@
 from contexts.shop import ShopContext, ShopCard
-from cores.husband import HusbandCore as Husband
-from cores.wife import WifeCore as Wife
+from cores.husband import Husband as Husband
+from cores.wife import Wife as Wife
 from portraits.husband import HusbandPortrait
 from portraits.wife import WifePortrait
 

@@ -1,6 +1,6 @@
 from cores.biped import BipedCore, SpriteMap
 
-class WifeCore(BipedCore):
+class Wife(BipedCore):
   name = "Sylvia"
   sprites = SpriteMap(
     face_right="wife",
@@ -13,6 +13,6 @@ class WifeCore(BipedCore):
 
   def __init__(wife, name=None):
     super().__init__(
-      name=name or WifeCore.name,
+      name=name or Wife.name,
       faction="ally"
     )

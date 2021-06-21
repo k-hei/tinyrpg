@@ -238,8 +238,12 @@ class TopViewContext(Context):
       else 1
     ))
 
-    if ctx.link and ctx.hud.active:
-      ctx.hud.exit()
+    if ctx.link or (ctx.child and not isinstance(ctx.child.child, ShopContext)):
+      if ctx.hud.active:
+        ctx.hud.exit()
+    else:
+      if not ctx.hud.active:
+        ctx.hud.enter()
 
     if (ctx.hud.active or ctx.hud.anims) and (not ctx.child or not isinstance(ctx.child.child, ShopContext)):
       if ctx.hud.anims:

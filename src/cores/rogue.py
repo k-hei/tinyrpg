@@ -14,7 +14,6 @@ class Rogue(BipedCore):
   def __init__(rogue, name=ROGUE_NAME, skills=[]):
     super().__init__(
       name=name,
-      faction="player",
       hp=ROGUE_HP,
       st=14,
       en=7,
