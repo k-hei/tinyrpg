@@ -3,8 +3,6 @@ from pygame import Rect
 from town.topview.element import Element
 from anims.walk import WalkAnim
 from config import TILE_SIZE
-from filters import outline
-from palette import WHITE
 
 TALK_RADIUS = TILE_SIZE
 
@@ -101,7 +99,6 @@ class Actor(Element):
   def view(actor):
     actor_sprites = actor.core.view()
     actor_sprite = actor_sprites[0]
-    # sprite.image = outline(sprite.image, WHITE)
     actor_sprite.origin = ("center", "center")
     x, y = actor.get_rect().midtop
     actor_sprite.pos = (x, y - 1)

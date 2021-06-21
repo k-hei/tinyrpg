@@ -29,6 +29,7 @@ class Stage:
   scale = 32
   bg = ""
   fg = ""
+  dark = False
 
   def parse_char(char):
     if char == ".": return Stage.FLOOR

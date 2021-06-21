@@ -14,6 +14,7 @@ from palette import BLACK, ORANGE, BLUE_DARK
 class FortuneArea(Stage):
   name = "Fortune House"
   bg = "fortune"
+  dark = True
   scale = 16
   links = {
     "entrance": Link(cell=(2, 6), direction=(0, 1))

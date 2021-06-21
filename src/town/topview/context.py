@@ -223,7 +223,11 @@ class TopViewContext(Context):
           origin=("left", "bottom"),
           layer="markers"
         ))
-      sprites += elem.view()
+      elem_sprites = elem.view()
+      elem_sprite = elem_sprites and elem_sprites[0]
+      if elem_sprite and not ctx.stage.dark:
+        elem_sprite.image = outline(elem_sprite.image, WHITE)
+      sprites += elem_sprites
       if ctx.debug and not ctx.child:
         sprites += debug_elem_view(elem)
 
