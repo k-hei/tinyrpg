@@ -2,6 +2,7 @@ from contexts import Context
 from town.graph import TownGraph
 from town.areas.central import CentralArea
 from town.areas.clearing import ClearingArea
+from town.areas.outskirts import OutskirtsArea
 from town.areas.store import StoreArea
 from town.areas.fortune import FortuneArea
 from town.sideview.context import SideViewContext
@@ -16,11 +17,12 @@ class TownContext(Context):
     ctx.party = party or [Knight(facing=(0, 1))]
     ctx.area = ClearingArea
     ctx.graph = TownGraph(
-      nodes=[CentralArea, ClearingArea, FortuneArea, StoreArea],
+      nodes=[CentralArea, ClearingArea, OutskirtsArea, FortuneArea, StoreArea],
       edges=[
         (CentralArea.links["door_triangle"], StoreArea.links["entrance"]),
         (CentralArea.links["door_heart"], FortuneArea.links["entrance"]),
         (CentralArea.links["alley"], ClearingArea.links["alley"]),
+        (CentralArea.links["right"], OutskirtsArea.links["left"]),
       ]
     )
 

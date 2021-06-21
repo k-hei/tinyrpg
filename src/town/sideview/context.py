@@ -35,7 +35,7 @@ def find_nearby_link(hero, links, graph=None):
     if abs(dist_x) < TILE_SIZE // 2 and direction_y and not (graph and graph.tail(head=link) is None):
       return link
 
-ARROW_Y = 168
+ARROW_Y = Area.ACTOR_Y + 40
 ARROW_PERIOD = 45
 ARROW_BOUNCE = 2
 
@@ -61,9 +61,11 @@ class SideViewContext(Context):
     hero.move((delta, 0))
     hero_x, hero_y = hero.pos
     if hero_x < 0:
-      hero.pos = (0, hero_y)
+      if "left" not in ctx.area.links or not ctx.use_link(ctx.area.links["left"]):
+        hero.pos = (0, hero_y)
     elif hero_x > ctx.area.width:
-      hero.pos = (ctx.area.width, hero_y)
+      if "right" not in ctx.area.links or not ctx.use_link(ctx.area.links["right"]):
+        hero.pos = (ctx.area.width, hero_y)
     return True
 
   def handle_zmove(ctx, delta):
@@ -118,6 +120,15 @@ class SideViewContext(Context):
   def get_graph(ctx):
     return ctx.parent.graph if "graph" in dir(ctx.parent) else None
 
+  def use_link(ctx, link):
+    graph = ctx.get_graph()
+    if graph is None or graph.tail(head=link) is None:
+      return False
+    ctx.link = link
+    if link.direction == (1, 0) or link.direction == (-1, 0):
+      ctx.follow_link(ctx.link)
+    return True
+
   def follow_link(ctx, link):
     ctx.get_root().dissolve(on_clear=lambda: ctx.change_areas(link))
 
@@ -136,21 +147,24 @@ class SideViewContext(Context):
     hero.update()
     if link := ctx.link:
       hero_x, hero_y = hero.pos
-      if hero_x != link.x:
-        hero.move_to((link.x, hero_y))
+      if link.direction == (-1, 0) or link.direction == (1, 0):
+        hero.move(link.direction)
       else:
-        if link.direction == (0, -1):
-          TARGET_HORIZON = Area.HORIZON_NORTH
-          EVENT_HORIZON = Area.TRANSIT_NORTH
-        elif link.direction == (0, 1):
-          TARGET_HORIZON = Area.HORIZON_SOUTH
-          EVENT_HORIZON = Area.TRANSIT_SOUTH
-        if hero_y != TARGET_HORIZON:
-          hero.move_to((link.x, TARGET_HORIZON))
-        if abs(hero_y) >= abs(EVENT_HORIZON) and not ctx.get_root().transits:
-          ctx.follow_link(ctx.link)
+        if hero_x != link.x:
+          hero.move_to((link.x, hero_y))
+        else:
+          if link.direction == (0, -1):
+            TARGET_HORIZON = Area.HORIZON_NORTH
+            EVENT_HORIZON = Area.TRANSIT_NORTH
+          elif link.direction == (0, 1):
+            TARGET_HORIZON = Area.HORIZON_SOUTH
+            EVENT_HORIZON = Area.TRANSIT_SOUTH
+          if hero_y != TARGET_HORIZON:
+            hero.move_to((link.x, TARGET_HORIZON))
+          if abs(hero_y) >= abs(EVENT_HORIZON) and not ctx.get_root().transits:
+            ctx.follow_link(ctx.link)
     elif not ctx.child:
-      ctx.nearby_link = find_nearby_link(ctx.hero, type(ctx.area).links, ctx.get_graph())
+      ctx.nearby_link = find_nearby_link(ctx.hero, ctx.area.links, ctx.get_graph())
       ctx.nearby_npc = find_nearby_npc(ctx.hero, ctx.area.actors) if ctx.nearby_link is None else None
     ctx.time += 1
 

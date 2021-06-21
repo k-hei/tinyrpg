@@ -12,7 +12,7 @@ class AreaLink:
   direction: tuple[int, int]
 
 class Area:
-  ACTOR_Y = 128
+  ACTOR_Y = 136
   NPC_Y = 120
   HORIZON_NORTH = -40
   TRANSIT_NORTH = -20
