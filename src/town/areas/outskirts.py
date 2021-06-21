@@ -1,6 +1,6 @@
 from town.areas import Area, AreaLink
 from town.actors.rogue import Rogue
-from cores.rogue import RogueCore
+from cores.rogue import Rogue
 from assets import load as use_assets
 from sprite import Sprite
 from config import ROGUE_NAME
@@ -16,7 +16,7 @@ class OutskirtsArea(Area):
   def init(area, town):
     super().init(town)
     if (not town.ally
-    or type(town.hero.core) is not RogueCore and type(town.ally.core) is not RogueCore):
+    or type(town.hero.core) is not Rogue and type(town.ally.core) is not Rogue):
       rogue = Rogue()
       rogue.x = 144
       rogue.facing = (1, 0)

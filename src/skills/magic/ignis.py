@@ -2,7 +2,7 @@ from random import randint
 from skills.magic import MagicSkill
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
-from cores.mage import MageCore
+from cores.mage import Mage
 from vfx.fireball import Fireball
 from config import TILE_SIZE, ATTACK_DURATION
 from dungeon.actors import DungeonActor
@@ -14,7 +14,7 @@ class Ignis(MagicSkill):
   desc = "Burns target with flame"
   cost = 4
   range_max = 4
-  users = (MageCore,)
+  users = (Mage,)
   blocks = (
     (0, 0),
     (1, 0),

@@ -8,8 +8,8 @@ from assets import load as use_assets
 from filters import replace_color, recolor, outline
 from text import render_char, render as render_text, find_width as find_text_width
 
-from cores.knight import KnightCore
-from cores.mage import MageCore
+from cores.knight import Knight
+from cores.mage import Mage
 
 from anims import Anim
 from anims.tween import TweenAnim
@@ -133,19 +133,19 @@ class Hud:
     sprite.blit(hud_image, (0, 0))
 
     hero_portrait = None
-    if (type(hero) is KnightCore and type(anim) is not SwitchOutAnim
-    or type(hero) is MageCore and type(anim) is SwitchOutAnim):
+    if (type(hero) is Knight and type(anim) is not SwitchOutAnim
+    or type(hero) is Mage and type(anim) is SwitchOutAnim):
       hero_portrait = assets.sprites["circle_knight"]
-    if (type(hero) is MageCore and type(anim) is not SwitchOutAnim
-    or type(hero) is KnightCore and type(anim) is SwitchOutAnim):
+    if (type(hero) is Mage and type(anim) is not SwitchOutAnim
+    or type(hero) is Knight and type(anim) is SwitchOutAnim):
       hero_portrait = assets.sprites["circle_mage"]
 
     ally_portrait = None
-    if (type(ally) is KnightCore and type(anim) is not SwitchOutAnim
-    or type(ally) is MageCore and type(anim) is SwitchOutAnim):
+    if (type(ally) is Knight and type(anim) is not SwitchOutAnim
+    or type(ally) is Mage and type(anim) is SwitchOutAnim):
       ally_portrait = assets.sprites["circ16_knight"]
-    if (type(ally) is MageCore and type(anim) is not SwitchOutAnim
-    or type(ally) is KnightCore and type(anim) is SwitchOutAnim):
+    if (type(ally) is Mage and type(anim) is not SwitchOutAnim
+    or type(ally) is Knight and type(anim) is SwitchOutAnim):
       ally_portrait = assets.sprites["circ16_mage"]
 
     if hero.dead:

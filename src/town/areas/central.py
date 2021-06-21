@@ -1,7 +1,7 @@
 from town.sideview.stage import Area, AreaLink
 from town.sideview.actor import Actor
 from cores.genie import Genie
-from cores.mage import MageCore as Mage
+from cores.mage import Mage as Mage
 
 from assets import load as use_assets
 from config import TILE_SIZE, WINDOW_WIDTH

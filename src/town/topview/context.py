@@ -13,7 +13,7 @@ from easing.expo import ease_out
 from lib.lerp import lerp
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
 import keyboard
-from cores.knight import KnightCore
+from cores.knight import Knight
 
 def insert_value(mapping, key, value):
   keys = mapping.keys()
@@ -25,7 +25,7 @@ class TopViewContext(Context):
     def __init__(anim):
       super().__init__(duration=45)
 
-  def __init__(ctx, area, party=[KnightCore()], link=None):
+  def __init__(ctx, area, party=[Knight()], link=None):
     super().__init__()
     ctx.area = area
     ctx.hero = Actor(core=party[0], facing=(0, -1))

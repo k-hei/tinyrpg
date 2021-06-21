@@ -1,7 +1,7 @@
 from cores.biped import BipedCore, SpriteMap
 from config import ROGUE_NAME, ROGUE_HP
 
-class RogueCore(BipedCore):
+class Rogue(BipedCore):
   sprites = SpriteMap(
     face_right="rogue",
     face_down="rogue_down",

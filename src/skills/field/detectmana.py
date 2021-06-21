@@ -2,7 +2,7 @@ from skills import Skill
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from dungeon.stage import Stage
-from cores.mage import MageCore
+from cores.mage import Mage
 
 class DetectMana(Skill):
   name = "DetectMana"
@@ -11,7 +11,7 @@ class DetectMana(Skill):
   cost = 1
   range_min = 0
   range_max = 0
-  users = (MageCore,)
+  users = (Mage,)
   blocks = (
     (0, 0),
   )

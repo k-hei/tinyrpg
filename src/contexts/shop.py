@@ -6,7 +6,7 @@ from pygame.transform import rotate, scale
 from contexts import Context
 from contexts.cardgroup import CardContext, CARD_BUY, CARD_SELL, CARD_EXIT
 from contexts.sell import SellContext
-from cores.knight import KnightCore
+from cores.knight import Knight
 from comps.box import Box
 from comps.control import Control
 from comps.textbox import TextBox
@@ -79,7 +79,7 @@ class ShopContext(Context):
     ctx.portraits = PortraitGroup(portraits)
     ctx.cards = cards
     ctx.items = items
-    ctx.hero = KnightCore()
+    ctx.hero = Knight()
     ctx.bg_name = bg_name
     ctx.bg_color = bg_color
     ctx.messages = messages

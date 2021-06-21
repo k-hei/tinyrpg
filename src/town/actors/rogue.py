@@ -1,11 +1,11 @@
 from town.actors.npc import Npc
 from contexts.prompt import PromptContext, Choice
-from cores.rogue import RogueCore
+from cores.rogue import Rogue
 from anims.walk import WalkAnim
 import pygame
 
 class Rogue(Npc):
-  def __init__(rogue, core=RogueCore()):
+  def __init__(rogue, core=Rogue()):
     super().__init__(core=core, messages=[
       lambda town: [
         (rogue.get_name(), "Yeah, baby!"),

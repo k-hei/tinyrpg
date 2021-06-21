@@ -1,10 +1,10 @@
 from town.actors.npc import Npc
 from contexts.prompt import PromptContext, Choice
-from cores.knight import KnightCore
+from cores.knight import Knight
 from filters import darken
 
 class Knight(Npc):
-  def __init__(knight, core=KnightCore()):
+  def __init__(knight, core=Knight()):
     super().__init__(core=core, messages=[
       lambda town: [
         PromptContext((knight.get_name().upper(), ": ", "I HATE THE PHARAOH! I HATE THE PHARAOH!"), (

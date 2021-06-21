@@ -5,7 +5,7 @@ from contexts.dialogue import DialogueContext
 from town.graph import TownGraph
 from town.sideview.stage import Area
 from town.sideview.actor import Actor
-from cores.knight import KnightCore
+from cores.knight import Knight
 from assets import load as use_assets
 from sprite import Sprite
 from config import TILE_SIZE
@@ -42,7 +42,7 @@ class SideViewContext(Context):
   def __init__(ctx, area, graph, party=[], link=None):
     super().__init__()
     ctx.area = area()
-    ctx.hero = Actor(core=party and party[0] or KnightCore())
+    ctx.hero = Actor(core=party and party[0] or Knight())
     ctx.spawn = link.x if link else 64
     ctx.link = None
     ctx.talkee = None
@@ -57,8 +57,9 @@ class SideViewContext(Context):
   def handle_move(ctx, delta):
     return ctx.hero.move((delta, 0))
 
-  def handle_zmove(ctx):
-    if link := ctx.nearby_link:
+  def handle_zmove(ctx, delta):
+    link = ctx.nearby_link
+    if link and link.direction[1] == delta:
       ctx.link = link
       return True
     else:
@@ -89,7 +90,9 @@ class SideViewContext(Context):
     if ctx.child:
       return ctx.child.handle_keydown(key)
     if key in (pygame.K_UP, pygame.K_w):
-      return ctx.handle_zmove()
+      return ctx.handle_zmove(-1)
+    if key in (pygame.K_DOWN, pygame.K_s):
+      return ctx.handle_zmove(1)
     if key in (pygame.K_SPACE, pygame.K_RETURN):
       return ctx.handle_talk()
     if keyboard.get_pressed(key) == 1:
@@ -148,28 +151,29 @@ class SideViewContext(Context):
     sprites += ctx.area.view(ctx.hero, ctx.link)
     if ctx.child:
       sprites += ctx.child.view()
-    elif link := ctx.nearby_link:
-      arrow_image = (link.direction == (0, -1)
-        and assets["link_north"]
-        or assets["link_south"]
-      )
-      arrow_image = replace_color(arrow_image, BLACK, BLUE)
-      arrow_y = ARROW_Y + sin(ctx.time % ARROW_PERIOD / ARROW_PERIOD * 2 * pi) * ARROW_BOUNCE
-      sprites += [Sprite(
-        image=arrow_image,
-        pos=(link.x + ctx.area.camera, arrow_y),
-        origin=("center", "center"),
-        layer="markers"
-      )]
-    elif npc := ctx.nearby_npc:
-      npc_sprite = next((s for s in sprites if s.target is npc), None)
-      npc_x, npc_y = npc_sprite.pos
-      bubble_image = assets["bubble_talk"]
-      bubble_x = npc_x + TILE_SIZE * 0.25
-      bubble_y = npc_y - TILE_SIZE * 0.75
-      sprites.append(Sprite(
-        image=bubble_image,
-        pos=(bubble_x, bubble_y),
-        layer="markers"
-      ))
+    elif not ctx.link:
+      if link := ctx.nearby_link:
+        arrow_image = (link.direction == (0, -1)
+          and assets["link_north"]
+          or assets["link_south"]
+        )
+        arrow_image = replace_color(arrow_image, BLACK, BLUE)
+        arrow_y = ARROW_Y + sin(ctx.time % ARROW_PERIOD / ARROW_PERIOD * 2 * pi) * ARROW_BOUNCE
+        sprites += [Sprite(
+          image=arrow_image,
+          pos=(link.x + ctx.area.camera, arrow_y),
+          origin=("center", "center"),
+          layer="markers"
+        )]
+      elif npc := ctx.nearby_npc:
+        npc_sprite = next((s for s in sprites if s.target is npc), None)
+        npc_x, npc_y = npc_sprite.pos
+        bubble_image = assets["bubble_talk"]
+        bubble_x = npc_x + TILE_SIZE * 0.25
+        bubble_y = npc_y - TILE_SIZE * 0.75
+        sprites.append(Sprite(
+          image=bubble_image,
+          pos=(bubble_x, bubble_y),
+          layer="markers"
+        ))
     return sprites

@@ -12,7 +12,7 @@ from filters import replace_color
 from assets import load as use_assets
 from inventory import Inventory
 import keyboard
-from cores.knight import KnightCore
+from cores.knight import Knight
 from anims import Anim
 from anims.tween import TweenAnim
 from easing.expo import ease_out
@@ -261,7 +261,7 @@ class SellContext(Context):
     ctx.on_animate = None
     ctx.exiting = False
     ctx.requires_release = {}
-    ctx.hero = KnightCore()
+    ctx.hero = Knight()
     ctx.tablist = BagTabs(Inventory.tabs)
     ctx.itembox = BagList((148, 76), items=filter_items(items, ctx.tablist.selection()))
     ctx.controls = [

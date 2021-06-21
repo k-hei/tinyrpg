@@ -1,7 +1,7 @@
 from cores.biped import BipedCore, SpriteMap
 from config import KNIGHT_NAME, KNIGHT_HP
 
-class KnightCore(BipedCore):
+class Knight(BipedCore):
   sprites = SpriteMap(
     face_right="knight",
     face_down="knight_down",
@@ -11,12 +11,13 @@ class KnightCore(BipedCore):
     walk_up=("knight_walkup0", "knight_up", "knight_walkup1", "knight_up")
   )
 
-  def __init__(knight, name=KNIGHT_NAME, skills=[]):
+  def __init__(knight, name=KNIGHT_NAME, *args, **kwargs):
     super().__init__(
       name=name,
       faction="player",
       hp=KNIGHT_HP,
       st=15,
       en=9,
-      skills=skills
+      *args,
+      **kwargs
     )

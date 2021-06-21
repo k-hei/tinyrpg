@@ -6,9 +6,9 @@ from contexts.pause import PauseContext
 from dungeon.context import DungeonContext
 from town import TownContext
 from transits.dissolve import DissolveIn, DissolveOut
-from cores.knight import KnightCore
-from cores.mage import MageCore
-from cores.rogue import RogueCore
+from cores.knight import Knight
+from cores.mage import Mage
+from cores.rogue import Rogue
 from inventory import Inventory
 from skills import get_skill_order
 from savedata import SaveData
@@ -19,14 +19,14 @@ def resolve_place(place):
   if place == "town": return TownContext()
 
 def resolve_char(char):
-  if char == "knight": return KnightCore()
-  if char == "mage": return MageCore()
-  if char == "rogue": return RogueCore()
+  if char == "knight": return Knight()
+  if char == "mage": return Mage()
+  if char == "rogue": return Rogue()
 
 def encode_char(char):
-  if type(char) is KnightCore: return "knight"
-  if type(char) is MageCore: return "mage"
-  if type(char) is RogueCore: return "rogue"
+  if type(char) is Knight: return "knight"
+  if type(char) is Mage: return "mage"
+  if type(char) is Rogue: return "rogue"
 
 class GameContext(Context):
   def __init__(ctx, savedata):

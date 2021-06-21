@@ -31,8 +31,8 @@ from dungeon.actors.mage import Mage
 from dungeon.actors.mimic import Mimic
 from dungeon.actors.npc import Npc
 
-from cores.knight import KnightCore
-from cores.mage import MageCore
+from cores.knight import Knight
+from cores.mage import Mage
 
 from dungeon.props import Prop
 from dungeon.props.chest import Chest
@@ -72,8 +72,8 @@ from contexts.skill import SkillContext
 from contexts.dialogue import DialogueContext
 
 def manifest(core):
-  if type(core) is KnightCore: return Knight(core)
-  if type(core) is MageCore: return Mage(core)
+  if type(core) is Knight: return Knight(core)
+  if type(core) is Mage: return Mage(core)
 
 class DungeonContext(Context):
   ATTACK_DURATION = 12

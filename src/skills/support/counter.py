@@ -1,6 +1,6 @@
 from skills.support import SupportSkill
 from anims.pause import PauseAnim
-from cores.knight import KnightCore
+from cores.knight import Knight
 
 ATTACK_DURATION = 12
 
@@ -11,7 +11,7 @@ class Counter(SupportSkill):
   cost = 6
   range_min = 0
   range_max = 0
-  users = (KnightCore,)
+  users = (Knight,)
   blocks = (
     (0, 0),
     (0, 1)

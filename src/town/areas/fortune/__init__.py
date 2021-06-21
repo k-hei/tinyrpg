@@ -7,7 +7,7 @@ from town.areas.fortune.context import FortuneContext
 from contexts.prompt import PromptContext, Choice
 from contexts.shop import ShopContext
 from cores.mira import MiraCore
-from cores.rogue import RogueCore
+from cores.rogue import Rogue
 from savedata.resolve import resolve_item
 from palette import BLACK, ORANGE, BLUE_DARK
 

@@ -1,6 +1,6 @@
 from skills.weapon.rare import RareWeapon
 from cores import Core
-from cores.knight import KnightCore
+from cores.knight import Knight
 from assets import load as use_assets
 from palette import PINK
 
@@ -10,7 +10,7 @@ class Longinus(RareWeapon):
   element = "lance"
   cost = 2
   st = 11
-  users = (KnightCore,)
+  users = (Knight,)
   blocks = (
     (0, 2),
     (1, 0),

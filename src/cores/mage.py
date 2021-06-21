@@ -2,7 +2,7 @@ from cores.biped import BipedCore, SpriteMap
 from config import MAGE_NAME, MAGE_HP
 from contexts.prompt import PromptContext, Choice
 
-class MageCore(BipedCore):
+class Mage(BipedCore):
   sprites = SpriteMap(
     face_right="mage",
     face_down="mage_down",

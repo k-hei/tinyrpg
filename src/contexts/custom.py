@@ -15,8 +15,8 @@ from comps.minimap import Minimap
 from comps.spmeter import SpMeter
 from comps.floorno import FloorNo
 
-from cores.knight import KnightCore as Knight
-from cores.mage import MageCore as Mage
+from cores.knight import Knight as Knight
+from cores.mage import Mage as Mage
 
 from anims import Anim
 from anims.tween import TweenAnim
