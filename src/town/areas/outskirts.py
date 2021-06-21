@@ -12,13 +12,13 @@ class OutskirtsArea(Area):
     "left": AreaLink(x=0, direction=(-1, 0)),
   }
 
-  def render(area, hero, can_mark=True):
+  def view(area, hero, link):
+    sprites = super().view(hero, link)
     assets = use_assets()
     sprite_bg = assets.sprites["town_outskirts"]
     sprite_tower = assets.sprites["tower"]
-    sprites = super().render(hero)
     sprites.append(Sprite(
       image=sprite_tower,
-      pos=(OutskirtsArea.TOWER_X, Area.ACTOR_Y - 16)
+      pos=(OutskirtsArea.TOWER_X, Area.ACTOR_Y - 32)
     ))
     return sprites

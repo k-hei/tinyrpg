@@ -15,7 +15,7 @@ class TownContext(Context):
   def __init__(ctx, party=[]):
     super().__init__()
     ctx.party = party or [Knight(facing=(0, 1))]
-    ctx.area = ClearingArea
+    ctx.area = OutskirtsArea
     ctx.graph = TownGraph(
       nodes=[CentralArea, ClearingArea, OutskirtsArea, FortuneArea, StoreArea],
       edges=[
