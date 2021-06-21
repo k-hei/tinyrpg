@@ -3,7 +3,7 @@ from town.sideview.actor import Actor
 from cores.genie import Genie
 from assets import load as use_assets
 from sprite import Sprite
-from config import ROGUE_NAME
+from config import TILE_SIZE
 from contexts.prompt import PromptContext, Choice
 from contexts.load import LoadContext
 from contexts.save import SaveContext
@@ -21,7 +21,7 @@ class OutskirtsArea(Area):
     super().init(ctx)
     area.spawn(Actor(core=Genie(
       name="Doshin",
-      facing=(1, 0),
+      facing=(-1, 0),
       message=lambda ctx: [
         ("Doshin", "Hail, traveler!"),
         prompt := lambda: PromptContext("How fares the exploration?", (
@@ -38,13 +38,13 @@ class OutskirtsArea(Area):
               choice.text == "Load data" and [
                 lambda: LoadContext(
                   on_close=lambda data: (
-                    data and ctx.parent.load(data)
+                    data and ctx.get_root().child.load(data)
                     or [prompt]
                   )
                 )
               ] or choice.text == "Save data" and [
                 lambda: SaveContext(
-                  data=ctx.parent.save(),
+                  data=ctx.get_root().child.save(),
                   on_close=lambda _: [prompt]
                 )
               ] or choice.text == "Nothing" and [prompt]
@@ -78,6 +78,6 @@ class OutskirtsArea(Area):
     sprite_tower = assets.sprites["tower"]
     sprites.append(Sprite(
       image=sprite_tower,
-      pos=(OutskirtsArea.TOWER_X, Area.ACTOR_Y - 32)
+      pos=(OutskirtsArea.TOWER_X, Area.ACTOR_Y - TILE_SIZE)
     ))
     return sprites

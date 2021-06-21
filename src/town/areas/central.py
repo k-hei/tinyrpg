@@ -26,4 +26,4 @@ class CentralArea(Area):
     area.spawn(Actor(core=Mage(
       faction="ally",
       facing=(1, 0)
-    )), (32, 0))
+    )), (112, 0))

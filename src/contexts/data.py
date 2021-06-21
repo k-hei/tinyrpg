@@ -384,7 +384,6 @@ class DataContext(Context):
     sprites.append(Sprite(
       image=surface_clip,
       pos=(0, surface_rect.top),
-      size=surface_rect.size,
-      layer="hud"
+      size=surface_rect.size
     ))
     return sprites + super().view()

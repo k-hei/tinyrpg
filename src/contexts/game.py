@@ -5,7 +5,6 @@ from contexts import Context
 from contexts.pause import PauseContext
 from dungeon.context import DungeonContext
 from town import TownContext
-from transits.dissolve import DissolveIn, DissolveOut
 from cores.knight import Knight
 from cores.mage import Mage
 from cores.rogue import Rogue
@@ -32,7 +31,6 @@ class GameContext(Context):
   def __init__(ctx, savedata):
     super().__init__()
     ctx.savedata = savedata
-    ctx.transits = [DissolveOut(WINDOW_SIZE)] if not DEBUG else []
     ctx.hero = None
     ctx.ally = None
     ctx.gold = 0
@@ -175,13 +173,7 @@ class GameContext(Context):
       return
     ctx.sp = max(0, ctx.sp - amount)
 
-  def dissolve(ctx, on_clear, on_end=None):
-    ctx.transits.append(DissolveIn(WINDOW_SIZE, on_clear))
-    ctx.transits.append(DissolveOut(WINDOW_SIZE, on_end))
-
   def handle_keydown(ctx, key):
-    if ctx.transits:
-      return False
     if super().handle_keydown(key) != None:
       return
     if keyboard.get_pressed(key) == 1 and not ctx.child.child:
@@ -195,12 +187,3 @@ class GameContext(Context):
   def update(ctx):
     super().update()
     ctx.time += 1 / ctx.get_root().fps
-
-  def draw(ctx, surface):
-    super().draw(surface)
-    if ctx.transits:
-      transit = ctx.transits[0]
-      transit.update()
-      transit.draw(surface)
-      if transit.done:
-        ctx.transits.remove(transit)
