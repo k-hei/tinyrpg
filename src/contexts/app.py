@@ -88,13 +88,16 @@ class App(Context):
     sprites += app.view()
     if app.transits:
       transit = app.transits[0]
-      sprites += transit.view()
+      sprites += transit.view(sprites)
     sprites.sort(key=lambda sprite: 1 if sprite.layer == "hud" else 0)
     app.surface.fill(0)
     for sprite in sprites:
       sprite.draw(app.surface)
     app.display.blit(scale(app.surface, app.size_scaled), (0, 0))
     pygame.display.flip()
+
+  def transition(app, transit):
+    app.transits.append(transit)
 
   def dissolve(app, on_clear=None, on_end=None):
     app.transits += [

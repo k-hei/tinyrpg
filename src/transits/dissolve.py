@@ -94,7 +94,7 @@ class DissolveIn:
             transit.on_end()
     transit.time += 1
 
-  def view(transit):
+  def view(transit, sprites=None):
     surface = Surface(transit.size, SRCALPHA)
     transit.draw(surface)
     return [Sprite(
@@ -170,7 +170,7 @@ class DissolveOut:
       transit.stack = new_stack
     transit.time += 1
 
-  def view(transit):
+  def view(transit, sprites=None):
     surface = Surface(transit.size, SRCALPHA)
     transit.draw(surface)
     return [Sprite(

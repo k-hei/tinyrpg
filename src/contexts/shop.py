@@ -27,6 +27,7 @@ from portraits import Portrait
 from portraits.mira import MiraPortrait
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 from sprite import Sprite
+from transits.slide import SlideDown
 
 class CursorAnim(Anim): blocking = False
 class HudEnterAnim(TweenAnim): blocking = True
@@ -95,9 +96,9 @@ class ShopContext(Context):
     ]
 
   def enter(ctx):
-    ctx.get_root().dissolve_in(on_end=lambda: (
+    ctx.anims.append(HudEnterAnim(duration=20))
+    ctx.get_root().transition(SlideDown(on_end=lambda: (
       ctx.anims.extend([
-        HudEnterAnim(duration=20),
         BackgroundSlideupAnim(duration=15),
         BackgroundEnterAnim(duration=15, delay=10),
         *animate_text(anim=SubtitleEnterAnim, text=ctx.subtitle, period=3, stagger=1, delay=15),
@@ -106,7 +107,7 @@ class ShopContext(Context):
         BoxEnterAnim(duration=20, delay=90)
       ]),
       ctx.portraits.enter(on_end=ctx.focus)
-    ))
+    )))
 
   def exit(ctx):
     ctx.exiting = True
@@ -198,25 +199,35 @@ class ShopContext(Context):
         anim.update()
 
   def view(ctx):
-    if ctx.get_root().transits:
-      return []
-
+    MARGIN = 2
     sprites = []
+
+    hud_image = ctx.hud.update(ctx.hero)
+    hud_x = MARGIN
+    hud_y = WINDOW_HEIGHT - hud_image.get_height() - MARGIN
+    hud_anim = next((a for a in ctx.anims if type(a) is HudEnterAnim), None)
+    if hud_anim:
+      t = hud_anim.pos
+      t = ease_out(t)
+      hud_x = lerp(8, hud_x, t)
+      hud_y = lerp(8, hud_y, t)
+    sprites.append(Sprite(
+      image=hud_image,
+      pos=(hud_x, hud_y),
+      layer="hud"
+    ))
+
+    if ctx.get_root().transits:
+      return sprites
+
     assets = use_assets()
 
-    bg_anim = next((a for a in ctx.anims if type(a) is BackgroundSlideupAnim), None)
-    if bg_anim:
-      t = bg_anim.pos
-      bg_y = WINDOW_HEIGHT * t
-      for sprite in sprites:
-        sprite.move((0, bg_y))
-    else:
-      bg_image = Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
-      bg_image.fill(BLACK)
-      sprites.append(Sprite(
-        image=bg_image,
-        pos=(0, 0)
-      ))
+    bg_image = Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
+    bg_image.fill(BLACK)
+    sprites.append(Sprite(
+      image=bg_image,
+      pos=(0, 0)
+    ))
 
     bg_image = assets.sprites[ctx.bg_name]
     bg_image = replace_color(bg_image, WHITE, ctx.bg_color)
@@ -244,23 +255,7 @@ class ShopContext(Context):
       ))
 
     sprites += ctx.portraits.view()
-
-    MARGIN = 2
     sprites += ctx.bubble.view()
-
-    hud_image = ctx.hud.update(ctx.hero)
-    hud_x = MARGIN
-    hud_y = WINDOW_HEIGHT - hud_image.get_height() - MARGIN
-    hud_anim = next((a for a in ctx.anims if type(a) is HudEnterAnim), None)
-    if hud_anim:
-      t = hud_anim.pos
-      t = ease_out(t)
-      hud_x = lerp(8, hud_x, t)
-      hud_y = lerp(8, hud_y, t)
-    sprites.append(Sprite(
-      image=hud_image,
-      pos=(hud_x, hud_y)
-    ))
 
     title_anim = next((a for a in ctx.anims if (
       isinstance(a, TitleAnim)
