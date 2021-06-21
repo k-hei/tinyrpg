@@ -242,21 +242,25 @@ class TopViewContext(Context):
       else 1
     ))
 
+    hud_anim = next((a for a in ctx.anims if type(a) is TopViewContext.HudAnim), None)
+    if hud_anim:
+      ctx.hud.active = True
+      ctx.hud.anims = []
+
     if ctx.link or (ctx.child and not isinstance(ctx.child.child, ShopContext)):
       if ctx.hud.active:
         ctx.hud.exit()
     else:
-      if not ctx.hud.active:
+      if not ctx.hud.active and not hud_anim:
         ctx.hud.enter()
 
-    if (ctx.hud.active or ctx.hud.anims) and (not ctx.child or not isinstance(ctx.child.child, ShopContext)):
-      if ctx.hud.anims:
+    if hud_anim or (ctx.hud.active or ctx.hud.anims) and (not ctx.child or not isinstance(ctx.child.child, ShopContext)):
+      if ctx.hud.anims and not hud_anim:
         sprites += ctx.hud.view()
       else:
         hud_image = ctx.hud.update()
         hud_x = 8
         hud_y = 8
-        hud_anim = next((a for a in ctx.anims if type(a) is TopViewContext.HudAnim), None)
         if hud_anim:
           t = hud_anim.pos
           t = ease_out(t)
@@ -271,7 +275,8 @@ class TopViewContext(Context):
     if ctx.time < 120:
       label_image = assets.ttf["roman"].render(ctx.area.name, WHITE)
       label_image = outline(label_image, BLACK)
-      label_image = outline(label_image, WHITE)
+      if not ctx.area.dark:
+        label_image = outline(label_image, WHITE)
       sprites.append(Sprite(
         image=label_image,
         pos=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 4),
