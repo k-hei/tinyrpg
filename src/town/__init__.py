@@ -12,9 +12,9 @@ from town.topview.stage import Stage as TopViewArea
 from cores.knight import Knight
 
 class TownContext(Context):
-  def __init__(ctx, party=[]):
+  def __init__(ctx, party=[Knight()]):
     super().__init__()
-    ctx.party = party or [Knight(facing=(0, 1))]
+    ctx.party = party
     ctx.area = OutskirtsArea
     ctx.graph = TownGraph(
       nodes=[CentralArea, ClearingArea, OutskirtsArea, FortuneArea, StoreArea],

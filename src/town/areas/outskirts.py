@@ -5,6 +5,9 @@ from assets import load as use_assets
 from sprite import Sprite
 from config import ROGUE_NAME
 from contexts.prompt import PromptContext, Choice
+from contexts.load import LoadContext
+from contexts.save import SaveContext
+from contexts.nameentry import NameEntryContext
 
 class OutskirtsArea(Area):
   name = "Outskirts"

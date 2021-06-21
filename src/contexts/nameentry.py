@@ -8,7 +8,7 @@ import keyboard
 from contexts import Context
 from contexts.prompt import PromptContext, Choice
 from contexts.dialogue import DialogueContext
-from config import WINDOW_WIDTH, WINDOW_SIZE
+from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
 from assets import load as use_assets
 from palette import BLACK, WHITE, GRAY, BLUE
 from filters import replace_color, darken
@@ -17,6 +17,7 @@ from anims.walk import WalkAnim
 from anims.tween import TweenAnim
 from anims.flicker import FlickerAnim
 from easing.expo import ease_out
+from sprite import Sprite
 
 SPACING_FACTOR = 2
 TITLE_SPACING = 16
@@ -162,7 +163,7 @@ class NameEntryContext(Context):
     ctx.cursor_cell = (0, 0)
     ctx.char = char
     ctx.char.facing = (0, 1)
-    ctx.char.anims.append(WalkAnim(period=30, vertical=True))
+    ctx.char.anims.append(WalkAnim(period=30))
     ctx.banner = Banner(True)
     ctx.cache = Cache()
     ctx.anims = []
@@ -338,7 +339,9 @@ class NameEntryContext(Context):
     if key == pygame.K_ESCAPE:
       return ctx.handle_cancel()
 
-  def draw(ctx, surface):
+  def view(ctx):
+    sprites = []
+
     if not ctx.anims and ctx.exiting:
       return
 
@@ -347,10 +350,10 @@ class NameEntryContext(Context):
     font_size = font.get_size()
 
     if ctx.cache.surface is None:
-      ctx.cache.surface = Surface(surface.get_size())
+      ctx.cache.surface = Surface(WINDOW_SIZE)
 
     if ctx.cache.bg is None:
-      ctx.cache.bg = _render_bg(surface.get_size())
+      ctx.cache.bg = _render_bg(WINDOW_SIZE)
     tile_size = assets.sprites["bg_tile"].get_width()
     BG_PERIOD = 90
     t = ctx.draws % BG_PERIOD / BG_PERIOD
@@ -359,7 +362,7 @@ class NameEntryContext(Context):
 
     ctx.banner.update()
     banner_image = ctx.banner.surface
-    y = surface.get_height() - BANNER_MARGIN - banner_image.get_height()
+    y = WINDOW_HEIGHT - BANNER_MARGIN - banner_image.get_height()
     ctx.cache.surface.blit(banner_image, (0, y))
 
     ctx.char.update()
@@ -374,7 +377,7 @@ class NameEntryContext(Context):
       index = int(t * len(ctx.name))
       chargroup_name = ctx.name[:index]
     chargroup_image = _render_chargroup(ctx.char, chargroup_name, chargroup_time)
-    x = surface.get_width() // 2 - chargroup_image.get_width() // 2
+    x = WINDOW_WIDTH // 2 - chargroup_image.get_width() // 2
     y = 40
     ctx.cache.surface.blit(chargroup_image, (x, y))
 
@@ -408,8 +411,8 @@ class NameEntryContext(Context):
         if char_color:
           char_image = font.render(char, char_color)
           char_surface.blit(char_image, (x, y + 8))
-    x = surface.get_width() // 2 - char_surface.get_width() // 2
-    y = surface.get_height() // 2 - char_surface.get_height() // 2 + 8
+    x = WINDOW_WIDTH // 2 - char_surface.get_width() // 2
+    y = WINDOW_HEIGHT // 2 - char_surface.get_height() // 2 + 8
     ctx.cache.surface.blit(char_surface, (x, y))
 
     cursor_col, cursor_row = ctx.cursor_cell
@@ -433,7 +436,7 @@ class NameEntryContext(Context):
         ctx.cache.surface.blit(cursor_image, (x, y))
 
     surface_clip = ctx.cache.surface
-    surface_rect = surface.get_rect()
+    surface_rect = Rect((0, 0), WINDOW_SIZE)
     for anim in ctx.anims:
       if anim.done:
         ctx.anims.remove(anim)
@@ -444,15 +447,20 @@ class NameEntryContext(Context):
           t = ease_out(t)
         elif type(anim) is ExitAnim:
           t = 1 - t
-        height = surface.get_height() * t
-        y = surface.get_height() // 2 - height // 2
-        surface_rect = Rect((0, y), (surface.get_width(), height))
+        height = WINDOW_HEIGHT * t
+        y = WINDOW_HEIGHT // 2 - height // 2
+        surface_rect = Rect((0, y), (WINDOW_WIDTH, height))
 
-    surface.blit(ctx.cache.surface, (0, surface_rect.top), area=surface_rect)
+    sprites.append(Sprite(
+      image=ctx.cache.surface,
+      pos=(0, surface_rect.top),
+      size=(WINDOW_WIDTH, surface_rect.height)
+    ))
     if ctx.child:
-      ctx.child.draw(surface)
+      sprites += ctx.child.view()
 
     ctx.draws += 1
+    return sprites
 
 def _render_name(name, draws):
   assets = use_assets()
@@ -486,7 +494,7 @@ def _render_name(name, draws):
   return surface
 
 def _render_chargroup(char, name, draws):
-  char_image = char.render().image
+  char_image = char.view()[0].image
   name_image = _render_name(name, draws)
   surface = Surface((
     char_image.get_width() + CHAR_MARGIN + name_image.get_width(),
