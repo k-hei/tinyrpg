@@ -16,6 +16,7 @@ class Actor:
     actor.core.color = color
     actor.facing = facing
     actor.anim = None
+    actor.moved = False
 
   def get_name(actor):
     return actor.core.name
@@ -58,6 +59,7 @@ class Actor:
     actor.face(delta)
     if not actor.core.anims:
       actor.start_move()
+    actor.moved = True
 
   def move_to(actor, target):
     if actor.pos == target:
@@ -100,6 +102,9 @@ class Actor:
     actor_x, actor_y = actor.pos
     target_x, target_y = target.pos
     facing_x, facing_y = target.get_facing()
+    dist_x = abs(target_x - actor_x)
+    if not actor.moved and dist_x < TILE_SIZE:
+      return False
     if not free and target_x != actor_x:
       target_y = actor_y
       facing_y = 0
