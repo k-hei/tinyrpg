@@ -10,9 +10,10 @@ from town.sideview.stage import Area as SideViewArea
 from town.topview.context import TopViewContext
 from town.topview.stage import Stage as TopViewArea
 from cores.knight import Knight
+from cores.mage import Mage
 
 class TownContext(Context):
-  def __init__(ctx, party=[Knight()]):
+  def __init__(ctx, party=[Mage(faction="player"), Knight(faction="player")]):
     super().__init__()
     ctx.party = party
     ctx.area = OutskirtsArea

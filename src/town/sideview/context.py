@@ -43,7 +43,7 @@ class SideViewContext(Context):
   def __init__(ctx, area, graph, party=[Knight()], link=None):
     super().__init__()
     ctx.area = area()
-    ctx.hero = Actor(core=party[0])
+    ctx.party = [Actor(core=core) for core in party]
     ctx.spawn = link.x if link else 64
     ctx.link = None
     ctx.talkee = None
@@ -53,11 +53,12 @@ class SideViewContext(Context):
     ctx.time = 0
 
   def init(ctx):
-    ctx.area.spawn(ctx.hero, (ctx.spawn, 0))
+    for actor in ctx.party:
+      ctx.area.spawn(actor, (ctx.spawn, 0))
     ctx.area.init(ctx)
 
   def handle_move(ctx, delta):
-    hero = ctx.hero
+    hero, *allies = ctx.party
     hero.move((delta, 0))
     hero_x, hero_y = hero.pos
     if hero_x < 0:
@@ -81,8 +82,9 @@ class SideViewContext(Context):
       return False
     ctx.talkee = ctx.nearby_npc
     talkee = ctx.nearby_npc
-    hero = ctx.hero
-    hero.stop_move()
+    for actor in ctx.party:
+      actor.stop_move()
+    hero, *_ = ctx.party
     old_facing = talkee.get_facing()
     talkee.face(hero)
     message = talkee.get_message()
@@ -114,7 +116,9 @@ class SideViewContext(Context):
 
   def handle_keyup(ctx, key):
     if key in (pygame.K_LEFT, pygame.K_a, pygame.K_RIGHT, pygame.K_d):
-      return ctx.hero.stop_move()
+      for actor in ctx.party:
+        actor.stop_move()
+      return True
 
   def get_graph(ctx):
     return ctx.parent.graph if "graph" in dir(ctx.parent) else None
@@ -136,15 +140,17 @@ class SideViewContext(Context):
       dest_link = graph.tail(head=link)
       if dest_link:
         dest_area = graph.link_area(link=dest_link)
-        ctx.hero.stop_move()
+        for actor in ctx.party:
+          actor.stop_move()
         ctx.parent.load_area(dest_area, dest_link)
     else:
       ctx.close()
 
   def update(ctx):
     super().update()
-    hero = ctx.hero
-    hero.update()
+    for actor in ctx.area.actors:
+      actor.update()
+    hero, *_ = ctx.party
     if link := ctx.link:
       hero_x, hero_y = hero.pos
       if link.direction == (-1, 0) or link.direction == (1, 0):
@@ -164,14 +170,15 @@ class SideViewContext(Context):
           if abs(hero_y) >= abs(EVENT_HORIZON) and not ctx.get_root().transits:
             ctx.follow_link(ctx.link)
     elif not ctx.child:
-      ctx.nearby_link = find_nearby_link(ctx.hero, ctx.area.links, ctx.get_graph())
-      ctx.nearby_npc = find_nearby_npc(ctx.hero, ctx.area.actors) if ctx.nearby_link is None else None
+      ctx.nearby_link = find_nearby_link(hero, ctx.area.links, ctx.get_graph())
+      ctx.nearby_npc = find_nearby_npc(hero, ctx.area.actors) if ctx.nearby_link is None else None
     ctx.time += 1
 
   def view(ctx):
     sprites = []
     assets = use_assets()
-    sprites += ctx.area.view(ctx.hero, ctx.link)
+    hero, *_ = ctx.party
+    sprites += ctx.area.view(hero, ctx.link)
     if ctx.child or ctx.link:
       if ctx.hud.active:
         ctx.hud.exit()

@@ -14,7 +14,6 @@ class Knight(BipedCore):
   def __init__(knight, name=KNIGHT_NAME, *args, **kwargs):
     super().__init__(
       name=name,
-      faction="player",
       hp=KNIGHT_HP,
       st=15,
       en=9,
