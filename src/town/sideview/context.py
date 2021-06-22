@@ -40,11 +40,11 @@ ARROW_PERIOD = 45
 ARROW_BOUNCE = 2
 
 class SideViewContext(Context):
-  def __init__(ctx, area, graph, party=[Knight()], link=None):
+  def __init__(ctx, area, graph, party=[Knight()], spawn=None):
     super().__init__()
     ctx.area = area()
     ctx.party = [Actor(core=core) for core in party]
-    ctx.spawn = link.x if link else 64
+    ctx.spawn = spawn
     ctx.link = None
     ctx.talkee = None
     ctx.nearby_link = None
@@ -53,8 +53,12 @@ class SideViewContext(Context):
     ctx.time = 0
 
   def init(ctx):
+    hero, *_ = ctx.party
+    facing_x, _ = hero.get_facing()
+    spawn_x = ctx.spawn.x if ctx.spawn else 64
     for actor in ctx.party:
-      ctx.area.spawn(actor, (ctx.spawn, 0))
+      ctx.area.spawn(actor, (spawn_x, 0))
+      spawn_x -= TILE_SIZE * facing_x
     ctx.area.init(ctx)
 
   def handle_move(ctx, delta):
@@ -63,10 +67,10 @@ class SideViewContext(Context):
     for i, ally in enumerate(allies):
       ally.follow(ctx.party[i])
     hero_x, hero_y = hero.pos
-    if hero_x < 0:
+    if hero_x < 0 and hero.get_facing() == (-1, 0):
       if "left" not in ctx.area.links or not ctx.use_link(ctx.area.links["left"]):
         hero.pos = (0, hero_y)
-    elif hero_x > ctx.area.width:
+    elif hero_x > ctx.area.width and hero.get_facing() == (1, 0):
       if "right" not in ctx.area.links or not ctx.use_link(ctx.area.links["right"]):
         hero.pos = (ctx.area.width, hero_y)
     return True
