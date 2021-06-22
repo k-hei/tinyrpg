@@ -19,6 +19,7 @@ class Actor(Element):
     actor.is_shopkeep = is_shopkeep
     actor.message = message
     actor.pos = pos
+    actor.moved = False
     actor.anim = None
     if facing:
       actor.face(facing)
@@ -65,6 +66,32 @@ class Actor(Element):
     actor.face(delta)
     if actor.anim is None:
       actor.start_move()
+    actor.moved = True
+
+  def move_to(actor, target):
+    if actor.pos == target:
+      actor.stop_move()
+      return True
+    actor_x, actor_y = actor.pos
+    target_x, target_y = target
+    delta_x, delta_y = 0, 0
+    near_x = abs(target_x - actor_x) < actor.speed
+    near_y = abs(target_y - actor_y) < actor.speed
+    if actor_x > target_x and not near_x:
+      delta_x = -1
+    elif actor_x < target_x and not near_x:
+      delta_x = 1
+    if actor_y > target_y and not near_y:
+      delta_y = -1
+    elif actor_y < target_y and not near_y:
+      delta_y = 1
+    if near_x:
+      actor.pos = (target_x, actor_y)
+    if near_y:
+      actor.pos = (actor_x, target_y)
+    if delta_x or delta_y:
+      actor.move((delta_x, delta_y))
+    return False
 
   def start_move(actor):
     actor.anim = WalkAnim(period=actor.move_period)
@@ -73,6 +100,25 @@ class Actor(Element):
   def stop_move(actor):
     actor.anim = None
     actor.core.anims = []
+
+  def follow(actor, target):
+    if actor.pos == target.pos:
+      return True
+    actor_x, actor_y = actor.pos
+    facing_x, facing_y = actor.get_facing()
+    target_x, target_y = target.pos
+    target_facing_x, target_facing_y = target.get_facing()
+    dist_x = abs(target_x - actor_x)
+    dist_y = abs(target_y - actor_y)
+    if not actor.moved and dist_x < TILE_SIZE and dist_y < TILE_SIZE:
+      return False
+    if facing_x and dist_x and not (dist_x < TILE_SIZE and dist_y > TILE_SIZE):
+      target_x = target_x - TILE_SIZE * target_facing_x
+      target_y = actor_y
+    elif facing_y and dist_y:
+      target_x = actor_x
+      target_y = target_y - TILE_SIZE * target_facing_y
+    return actor.move_to((target_x, target_y))
 
   def next_message(actor):
     return actor.message
@@ -98,6 +144,8 @@ class Actor(Element):
 
   def view(actor):
     actor_sprites = actor.core.view()
+    if not actor_sprites:
+      return []
     actor_sprite = actor_sprites[0]
     actor_sprite.origin = ("center", "center")
     x, y = actor.get_rect().midtop

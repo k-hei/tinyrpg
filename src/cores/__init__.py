@@ -72,6 +72,8 @@ class Core:
       anim.update()
 
   def view(core, sprites):
+    if not sprites:
+      return []
     if core.color:
       COLOR = core.color
     elif core.faction == "player":

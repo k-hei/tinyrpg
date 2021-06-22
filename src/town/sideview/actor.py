@@ -60,11 +60,11 @@ class Actor:
       actor.start_move()
 
   def move_to(actor, target):
-    actor_x, actor_y = actor.pos
-    target_x, target_y = target
-    if actor_x == target_x and actor_y == target_y:
+    if actor.pos == target:
       actor.stop_move()
       return True
+    actor_x, actor_y = actor.pos
+    target_x, target_y = target
     delta_x, delta_y = 0, 0
     if actor_x > target_x:
       delta_x = -1

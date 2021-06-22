@@ -36,19 +36,21 @@ class BipedCore(Core):
         sprite_id = walk_cycle[anim.frame_index]
         break
     else:
-      if actor.facing == (0, 1):
-        sprite_id = actor.sprites.face_down or actor.sprites.face_right
-      elif actor.facing == (0, -1):
-        sprite_id = actor.sprites.face_up or actor.sprites.face_right
-      elif actor.facing == (1, 0):
+      facing_x, facing_y = actor.facing
+      if facing_x == 1:
         sprite_id = actor.sprites.face_right
-      elif actor.facing == (-1, 0):
+      elif facing_x == -1:
         sprite_id = actor.sprites.face_right
         flip_x = True
+      elif facing_y == 1:
+        sprite_id = actor.sprites.face_down or actor.sprites.face_right
+      elif facing_y == -1:
+        sprite_id = actor.sprites.face_up or actor.sprites.face_right
     image = sprites[sprite_id] if sprite_id else None
     sprite = Sprite(
       image=image,
       flip=(flip_x, flip_y),
       layer="elems"
     ) if image else None
-    return super().view([sprite])
+    sprites = [sprite] if sprite else []
+    return super().view(sprites)

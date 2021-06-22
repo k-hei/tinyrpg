@@ -29,7 +29,8 @@ class Door(Element):
     if not door.effect_delay:
       door.open()
       ctx.anims.append(PauseAnim(duration=Door.OPEN_DELAY))
-      ctx.hero.stop_move()
+      hero, *_ = ctx.party
+      hero.stop_move()
     return True
 
   def open(door):

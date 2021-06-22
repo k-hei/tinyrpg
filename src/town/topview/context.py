@@ -16,6 +16,7 @@ from filters import outline
 from palette import BLACK, WHITE
 import keyboard
 from cores.knight import Knight
+from cores.mage import Mage
 
 def insert_value(mapping, key, value):
   keys = mapping.keys()
@@ -27,7 +28,7 @@ class TopViewContext(Context):
     def __init__(anim):
       super().__init__(duration=45)
 
-  def __init__(ctx, area, party=[Knight()], link=None):
+  def __init__(ctx, area, party=[Knight(faction="player"), Mage(faction="player")], link=None):
     super().__init__()
     ctx.area = area
     ctx.party = [Actor(core=c, facing=(0, -1), solid=(i == 0)) for i, c in enumerate(party)]
@@ -61,9 +62,11 @@ class TopViewContext(Context):
       ctx.handle_stopmove()
 
   def handle_move(ctx, delta):
-    hero, *_ = ctx.party
+    hero, *allies = ctx.party
     hero.move(delta)
-    ctx.collide(hero, delta)
+    if not ctx.collide(hero, delta):
+      for i, ally in enumerate(allies):
+        ally.follow(ctx.party[i])
 
   def handle_debug(ctx):
     ctx.debug = not ctx.debug
@@ -131,6 +134,9 @@ class TopViewContext(Context):
       elem.effect(ctx)
     if rect.center != init_center:
       actor.pos = rect.midtop
+      return True
+    else:
+      return False
 
   def handle_stopmove(ctx):
     for actor in ctx.party:
@@ -213,7 +219,7 @@ class TopViewContext(Context):
       _, y = elem.pos
       z = y
       if elem is hero:
-        z -= 1
+        z += 1
       return z
     elems = sorted(ctx.stage.elems, key=zsort)
     for elem in elems:
