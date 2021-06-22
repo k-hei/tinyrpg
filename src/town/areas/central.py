@@ -23,7 +23,8 @@ class CentralArea(Area):
 
   def init(area, ctx):
     super().init(ctx)
-    area.spawn(Actor(core=Mage(
-      faction="ally",
-      facing=(1, 0)
-    )), (112, 0))
+    if not next((a for a in ctx.party if type(a.core) is Mage), None):
+      area.spawn(Actor(core=Mage(
+        faction="ally",
+        facing=(1, 0)
+      )), (112, 0))
