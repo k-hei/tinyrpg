@@ -75,7 +75,7 @@ class StoreArea(Stage):
         ]
       ),
       "3": Actor(
-        core=Rogue(),
+        core=Rogue(faction="ally"),
         facing=(-1, 0),
         moving=True,
         move_period=30,

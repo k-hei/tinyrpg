@@ -11,11 +11,13 @@ class Rogue(BipedCore):
     walk_up=("rogue_walkup0", "rogue_up", "rogue_walkup1", "rogue_up")
   )
 
-  def __init__(rogue, name=ROGUE_NAME, skills=[]):
+  def __init__(rogue, name=ROGUE_NAME, faction="player", *args, **kwargs):
     super().__init__(
       name=name,
+      faction=faction,
       hp=ROGUE_HP,
       st=14,
       en=7,
-      skills=skills
+      *args,
+      **kwargs
     )

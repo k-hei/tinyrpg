@@ -13,7 +13,7 @@ from cores.knight import Knight
 from cores.mage import Mage
 
 class TownContext(Context):
-  def __init__(ctx, party=[Mage(faction="player"), Knight(faction="player")]):
+  def __init__(ctx, party=[Knight(faction="player")]):
     super().__init__()
     ctx.party = party
     ctx.area = OutskirtsArea
