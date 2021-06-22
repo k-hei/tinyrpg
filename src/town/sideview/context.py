@@ -60,6 +60,8 @@ class SideViewContext(Context):
   def handle_move(ctx, delta):
     hero, *allies = ctx.party
     hero.move((delta, 0))
+    for i, ally in enumerate(allies):
+      ally.follow(ctx.party[i])
     hero_x, hero_y = hero.pos
     if hero_x < 0:
       if "left" not in ctx.area.links or not ctx.use_link(ctx.area.links["left"]):
@@ -150,11 +152,12 @@ class SideViewContext(Context):
     super().update()
     for actor in ctx.area.actors:
       actor.update()
-    hero, *_ = ctx.party
+    hero, *allies = ctx.party
     if link := ctx.link:
       hero_x, hero_y = hero.pos
       if link.direction == (-1, 0) or link.direction == (1, 0):
-        hero.move(link.direction)
+        for actor in ctx.party:
+          actor.move(link.direction)
       else:
         if hero_x != link.x:
           hero.move_to((link.x, hero_y))
@@ -169,6 +172,8 @@ class SideViewContext(Context):
             hero.move_to((link.x, TARGET_HORIZON))
           if abs(hero_y) >= abs(EVENT_HORIZON) and not ctx.get_root().transits:
             ctx.follow_link(ctx.link)
+        for ally in allies:
+          ally.follow(hero)
     elif not ctx.child:
       ctx.nearby_link = find_nearby_link(hero, ctx.area.links, ctx.get_graph())
       ctx.nearby_npc = find_nearby_npc(hero, ctx.area.actors) if ctx.nearby_link is None else None

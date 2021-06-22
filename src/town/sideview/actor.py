@@ -1,6 +1,7 @@
 from filters import outline, darken
 from palette import WHITE
 from anims.walk import WalkAnim
+from config import TILE_SIZE
 
 class Actor:
   XSPEED = 1.5
@@ -92,6 +93,21 @@ class Actor:
   def stop_move(actor):
     actor.anim = None
     actor.core.anims = []
+
+  def follow(actor, target, free=False):
+    if actor.pos == target.pos:
+      return True
+    actor_x, actor_y = actor.pos
+    target_x, target_y = target.pos
+    facing_x, facing_y = target.get_facing()
+    if not free and target_x != actor_x:
+      target_y = actor_y
+      facing_y = 0
+    if facing_x:
+      target_x = target_x - TILE_SIZE * facing_x
+    elif facing_y:
+      target_y = target_y - TILE_SIZE // 2 * facing_y
+    return actor.move_to((target_x, target_y))
 
   def update(actor):
     if actor.anim:
