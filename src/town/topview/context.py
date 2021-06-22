@@ -30,8 +30,8 @@ class TopViewContext(Context):
   def __init__(ctx, area, party=[Knight()], link=None):
     super().__init__()
     ctx.area = area
-    ctx.hero = Actor(core=party[0], facing=(0, -1))
-    ctx.stage = area(ctx.hero)
+    ctx.party = [Actor(core=c, facing=(0, -1), solid=(i == 0)) for i, c in enumerate(party)]
+    ctx.stage = area(ctx.party)
     ctx.hud = Hud(party)
     ctx.elem = None
     ctx.link = None
@@ -61,8 +61,9 @@ class TopViewContext(Context):
       ctx.handle_stopmove()
 
   def handle_move(ctx, delta):
-    ctx.hero.move(delta)
-    ctx.collide(ctx.hero, delta)
+    hero, *_ = ctx.party
+    hero.move(delta)
+    ctx.collide(hero, delta)
 
   def handle_debug(ctx):
     ctx.debug = not ctx.debug
@@ -132,16 +133,18 @@ class TopViewContext(Context):
       actor.pos = rect.midtop
 
   def handle_stopmove(ctx):
-    ctx.hero.stop_move()
+    for actor in ctx.party:
+      actor.stop_move()
     if ctx.elem:
       ctx.elem.reset_effect()
 
   def handle_talk(ctx):
-    hero = ctx.hero
+    hero, *_ = ctx.party
     talkee = next((a for a in ctx.stage.elems if hero.can_talk(a)), None)
     if talkee is None:
       return False
-    hero.stop_move()
+    for actor in ctx.party:
+      actor.stop_move()
     old_facing = talkee.get_facing()
     talkee.face(hero)
     message = talkee.next_message()
@@ -171,7 +174,8 @@ class TopViewContext(Context):
       dest_link = graph.tail(head=link)
       if dest_link:
         dest_area = graph.link_area(link=dest_link)
-        ctx.hero.stop_move()
+        for actor in ctx.party:
+          actor.stop_move()
         ctx.parent.load_area(dest_area, dest_link)
     else:
       ctx.close()
@@ -179,7 +183,8 @@ class TopViewContext(Context):
   def update(ctx):
     super().update()
     if ctx.link:
-      ctx.hero.move(ctx.link)
+      for actor in ctx.party:
+        actor.move(ctx.link)
     for elem in ctx.stage.elems:
       elem.update()
     for anim in ctx.anims:
@@ -192,7 +197,7 @@ class TopViewContext(Context):
   def view(ctx):
     sprites = []
     assets = use_assets()
-    hero = ctx.hero
+    hero, *_ = ctx.party
     sprites.append(Sprite(
       image=assets.sprites[ctx.area.bg],
       pos=(0, 0),

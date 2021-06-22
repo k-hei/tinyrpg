@@ -10,8 +10,8 @@ class Actor(Element):
   speed = 1.5
   spawn_offset = (8, 8)
 
-  def __init__(actor, core, pos=None, facing=None, color=None, moving=False, move_period=30, spawn_offset=None, is_shopkeep=False, message=None):
-    super().__init__()
+  def __init__(actor, core, pos=None, facing=None, color=None, moving=False, move_period=30, spawn_offset=None, is_shopkeep=False, message=None, *args, **kwargs):
+    super().__init__(*args, **kwargs)
     actor.core = core
     actor.core.color = color
     actor.move_period = move_period

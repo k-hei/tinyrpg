@@ -49,7 +49,12 @@ class Stage:
             elem = elem()
           if elem is None:
             raise TypeError("Attempted to spawn NoneType element at ({x}, {y})".format(x, y))
-          stage.spawn_elem_at((x, y), elem)
+          try:
+            iter(elem)
+          except TypeError:
+            elem = (elem,)
+          for e in elem:
+            stage.spawn_elem_at((x, y), e)
         else:
           tile = Stage.parse_char(char)
         stage.matrix[y].append(tile)

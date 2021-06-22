@@ -42,10 +42,10 @@ class StoreArea(Stage):
     "#######..#######",
   ]
 
-  def __init__(stage, hero):
+  def __init__(stage, party):
     shop = lambda: StoreContext(items=[])
     super().__init__(stage.layout, {
-      "0": hero,
+      "0": party,
       "1": Actor(
         core=Husband(),
         facing=(0, 1),
