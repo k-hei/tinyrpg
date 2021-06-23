@@ -84,11 +84,11 @@ class DungeonContext(Context):
   PAUSE_DEATH_DURATION = 45
   AWAKEN_DURATION = 45
 
-  def __init__(game, debug=False):
+  def __init__(game, party, debug=False):
     super().__init__()
+    game.hero = party[0]
+    game.ally = party[1] if len(party) == 2 else None
     game.debug = debug
-    game.hero = None
-    game.ally = None
     game.floors = []
     game.floor = None
     game.floor_view = None
@@ -111,8 +111,6 @@ class DungeonContext(Context):
 
   def init(game):
     parent = game.parent
-    game.hero = manifest(parent.hero)
-    game.ally = manifest(parent.ally)
     game.floor_view = StageView(WINDOW_SIZE)
     game.comps = [
       game.log,

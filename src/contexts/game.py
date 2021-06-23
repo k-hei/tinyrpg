@@ -50,8 +50,8 @@ class GameContext(Context):
     ctx.sp = savedata.sp
     ctx.time = savedata.time
     ctx.gold = savedata.gold
-    ctx.inventory.items = list(map(resolve_item, savedata.items))
-    ctx.skill_pool = list(map(resolve_skill, savedata.skills))
+    ctx.inventory.items = [resolve_item(i) for i in savedata.items]
+    ctx.skill_pool = [resolve_skill(s) for s in savedata.skills]
     ctx.party = [resolve_char(n) for n in savedata.party]
     for i, char in enumerate(ctx.party):
       char_name = savedata.party[i]
@@ -102,7 +102,7 @@ class GameContext(Context):
       ctx.goto_town()
 
   def goto_dungeon(ctx):
-    ctx.open(DungeonContext())
+    ctx.open(DungeonContext(party=ctx.party))
 
   def goto_town(ctx, returning=False):
     ctx.open(TownContext(party=ctx.party))

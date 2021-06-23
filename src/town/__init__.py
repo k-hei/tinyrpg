@@ -33,8 +33,8 @@ class TownContext(Context):
     ctx.load_area(ctx.area)
 
   def load_area(ctx, area, link=None):
-    if issubclass(area, Context):
-      return ctx.open(area())
+    if area is DungeonContext:
+      return ctx.parent.goto_dungeon()
     if issubclass(area, SideViewArea):
       child = SideViewContext(area, ctx.graph, ctx.party, link)
     elif issubclass(area, TopViewArea):

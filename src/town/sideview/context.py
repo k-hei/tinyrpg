@@ -151,13 +151,15 @@ class SideViewContext(Context):
   def change_areas(ctx, link):
     if graph := ctx.get_graph():
       dest_item = graph.tail(head=link)
-      if isinstance(dest_item, AreaLink):
-        dest_area = graph.link_area(link=dest_item)
-        for actor in ctx.party:
-          actor.stop_move()
-        ctx.parent.load_area(dest_area, dest_item)
-      elif issubclass(dest_item, Context):
-        ctx.parent.load_area(dest_item)
+      if dest_item:
+        try:
+          if issubclass(dest_item, Context):
+            ctx.parent.load_area(dest_item)
+        except TypeError:
+          dest_area = graph.link_area(link=dest_item)
+          for actor in ctx.party:
+            actor.stop_move()
+          ctx.parent.load_area(dest_area, dest_item)
     else:
       ctx.close()
 
