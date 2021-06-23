@@ -23,6 +23,7 @@ class App(Context):
     app.fps = FPS
     app.surface = None
     app.display = None
+    app.fullscreen = False
     app.transits = []
     app.done = False
 
@@ -129,6 +130,13 @@ class App(Context):
       app.fps = FPS
     pygame.key.set_repeat(1000 // app.fps)
 
+  def toggle_fullscreen(app):
+    app.fullscreen = not app.fullscreen
+    if app.fullscreen:
+      app.display = pygame.display.set_mode(app.size_scaled, pygame.FULLSCREEN)
+    else:
+      app.display = pygame.display.set_mode(app.size_scaled)
+
   def handle_events(app):
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
@@ -148,20 +156,17 @@ class App(Context):
     )
 
     if key == pygame.K_MINUS and ctrl:
-      if tapping: app.rescale(app.scale - 1)
-      return
+      return tapping and app.rescale(app.scale - 1)
     if key == pygame.K_EQUALS and ctrl:
-      if tapping: app.rescale(app.scale + 1)
-      return
+      return tapping and app.rescale(app.scale + 1)
     if key == pygame.K_r and ctrl:
-      if tapping: app.reload()
-      return
+      return tapping and app.reload()
     if key == pygame.K_a and ctrl:
-      if tapping: app.print_contexts()
-      return
+      return tapping and app.print_contexts()
+    if key == pygame.K_BACKQUOTE and ctrl:
+      return tapping and app.toggle_fps()
     if key == pygame.K_f and ctrl:
-      if tapping: app.toggle_fps()
-      return
+      return tapping and app.toggle_fullscreen()
     if app.child:
       return app.child.handle_keydown(key)
 
