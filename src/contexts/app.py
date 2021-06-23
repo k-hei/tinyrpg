@@ -1,3 +1,4 @@
+from copy import deepcopy
 import os
 import sys
 import pygame
@@ -17,6 +18,7 @@ class App(Context):
     super().__init__()
     app.title = title
     app.child = context
+    app.child_init = deepcopy(context)
     app.size = size
     app.size_scaled = (0, 0)
     app.scale = 0
@@ -41,13 +43,16 @@ class App(Context):
       app.open()
       app.loop()
 
-  def open(app):
-    super().open(app.child, on_close=app.close)
+  def open(app, child=None):
+    super().open(child or app.child, on_close=app.close)
 
   def close(app, data=None):
     if data is not None:
       print(data)
     app.done = True
+
+  def reset(app):
+    app.open(deepcopy(app.child_init))
 
   def reload(app):
     os.execl(sys.executable, sys.executable, *sys.argv)
@@ -150,17 +155,18 @@ class App(Context):
   def handle_keydown(app, key):
     keyboard.handle_keydown(key)
     tapping = keyboard.get_pressed(key) == 1
-    ctrl = (
-      keyboard.get_pressed(pygame.K_LCTRL)
-      or keyboard.get_pressed(pygame.K_RCTRL)
-    )
-
+    ctrl = (keyboard.get_pressed(pygame.K_LCTRL)
+      or keyboard.get_pressed(pygame.K_RCTRL))
+    shift = (keyboard.get_pressed(pygame.K_LSHIFT)
+      or keyboard.get_pressed(pygame.K_RSHIFT))
     if key == pygame.K_MINUS and ctrl:
       return tapping and app.rescale(app.scale - 1)
     if key == pygame.K_EQUALS and ctrl:
       return tapping and app.rescale(app.scale + 1)
-    if key == pygame.K_r and ctrl:
+    if key == pygame.K_r and ctrl and shift:
       return tapping and app.reload()
+    if key == pygame.K_r and ctrl:
+      return tapping and app.reset()
     if key == pygame.K_a and ctrl:
       return tapping and app.print_contexts()
     if key == pygame.K_BACKQUOTE and ctrl:
