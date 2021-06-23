@@ -9,6 +9,7 @@ from town.sideview.context import SideViewContext
 from town.sideview.stage import Area as SideViewArea
 from town.topview.context import TopViewContext
 from town.topview.stage import Stage as TopViewArea
+from dungeon.context import DungeonContext
 from cores.knight import Knight
 from cores.mage import Mage
 
@@ -24,6 +25,7 @@ class TownContext(Context):
         (CentralArea.links["door_heart"], FortuneArea.links["entrance"]),
         (CentralArea.links["alley"], ClearingArea.links["alley"]),
         (CentralArea.links["right"], OutskirtsArea.links["left"]),
+        (OutskirtsArea.links["tower"], DungeonContext),
       ]
     )
 
@@ -31,6 +33,8 @@ class TownContext(Context):
     ctx.load_area(ctx.area)
 
   def load_area(ctx, area, link=None):
+    if issubclass(area, Context):
+      return ctx.open(area())
     if issubclass(area, SideViewArea):
       child = SideViewContext(area, ctx.graph, ctx.party, link)
     elif issubclass(area, TopViewArea):

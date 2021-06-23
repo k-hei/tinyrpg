@@ -3,7 +3,7 @@ import pygame
 from contexts import Context
 from contexts.dialogue import DialogueContext
 from town.graph import TownGraph
-from town.sideview.stage import Area
+from town.sideview.stage import Area, AreaLink
 from town.sideview.actor import Actor
 from cores.knight import Knight
 from hud import Hud
@@ -71,12 +71,15 @@ class SideViewContext(Context):
     for i, ally in enumerate(allies):
       ally.follow(ctx.party[i])
     hero_x, hero_y = hero.pos
+    for link_name, link in ctx.area.links.items():
+      if (link.direction == (-1, 0) and hero.get_facing() == (-1, 0) and hero_x <= link.x
+      or link.direction == (1, 0) and hero.get_facing() == (1, 0) and hero_x >= link.x):
+        if ctx.use_link(link):
+          break
     if hero_x < 0 and hero.get_facing() == (-1, 0):
-      if "left" not in ctx.area.links or not ctx.use_link(ctx.area.links["left"]):
-        hero.pos = (0, hero_y)
+      hero.pos = (0, hero_y)
     elif hero_x > ctx.area.width and hero.get_facing() == (1, 0):
-      if "right" not in ctx.area.links or not ctx.use_link(ctx.area.links["right"]):
-        hero.pos = (ctx.area.width, hero_y)
+      hero.pos = (ctx.area.width, hero_y)
     return True
 
   def handle_zmove(ctx, delta):
@@ -147,12 +150,14 @@ class SideViewContext(Context):
 
   def change_areas(ctx, link):
     if graph := ctx.get_graph():
-      dest_link = graph.tail(head=link)
-      if dest_link:
-        dest_area = graph.link_area(link=dest_link)
+      dest_item = graph.tail(head=link)
+      if isinstance(dest_item, AreaLink):
+        dest_area = graph.link_area(link=dest_item)
         for actor in ctx.party:
           actor.stop_move()
-        ctx.parent.load_area(dest_area, dest_link)
+        ctx.parent.load_area(dest_area, dest_item)
+      elif issubclass(dest_item, Context):
+        ctx.parent.load_area(dest_item)
     else:
       ctx.close()
 

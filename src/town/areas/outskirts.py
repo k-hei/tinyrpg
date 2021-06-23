@@ -15,6 +15,7 @@ class OutskirtsArea(Area):
   bg = "town_outskirts"
   links = {
     "left": AreaLink(x=0, direction=(-1, 0)),
+    "tower": AreaLink(x=TOWER_X, direction=(1, 0)),
   }
 
   def init(area, ctx):
