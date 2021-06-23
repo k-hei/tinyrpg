@@ -1,6 +1,6 @@
 import sys
 from math import ceil
-from pygame import Surface, Rect
+from pygame import Surface, Rect, SRCALPHA
 from pygame.transform import rotate, flip, scale
 
 from assets import load as use_assets
@@ -40,18 +40,18 @@ class StageView:
     y = sprite_y + sprite.image.get_height() + sprite.offset
     return depth + y
 
-  def __init__(view, size):
+  def __init__(self, size):
     width, height = size
     width += TILE_SIZE * 2
     height += TILE_SIZE * 2
-    view.tile_surface = Surface((width, height)).convert_alpha()
-    view.tile_offset = (0, 0)
-    view.tile_cache = {}
-    view.facings = {}
+    self.tile_surface = Surface((width, height), SRCALPHA)
+    self.tile_offset = (0, 0)
+    self.tile_cache = {}
+    self.facings = {}
 
-  def redraw_tile(view, stage, cell, visited_cells):
+  def redraw_tile(self, stage, cell, visited_cells):
     col, row = cell
-    start_x, start_y = view.tile_offset
+    start_x, start_y = self.tile_offset
     image = render_tile(stage, cell, visited_cells)
     if not image:
       return
@@ -64,39 +64,32 @@ class StageView:
     image_darken = image
     if stage.get_tile_at(cell) is not stage.FLOOR:
       image_darken = replace_color(image, color, darken_color(color))
-    view.tile_cache[cell] = image_darken
+    self.tile_cache[cell] = image_darken
     x = (col - start_x) * TILE_SIZE
     y = (row - start_y) * TILE_SIZE
-    view.tile_surface.blit(image, (x, y))
+    self.tile_surface.blit(image, (x, y))
 
-  def redraw_tiles(view, stage, camera, visible_cells, visited_cells):
+  def redraw_tiles(self, stage, camera, visible_cells, visited_cells):
     sprites = []
     camera = camera.get_rect()
     start_x = camera.left // TILE_SIZE - 1
     start_y = camera.top // TILE_SIZE - 1
     end_x = ceil(camera.right / TILE_SIZE) + 1
     end_y = ceil(camera.bottom / TILE_SIZE) + 1
-    view.tile_offset = (start_x, start_y)
-    view.tile_surface.fill(BLACK)
+    self.tile_offset = (start_x, start_y)
+    self.tile_surface.fill(BLACK)
     for row in range(start_y, end_y + 1):
       for col in range(start_x, end_x + 1):
         cell = (col, row)
         if cell in visible_cells:
-          view.redraw_tile(stage, cell, visited_cells)
-        elif cell in view.tile_cache:
-          image = view.tile_cache[cell]
+          self.redraw_tile(stage, cell, visited_cells)
+        elif cell in self.tile_cache:
+          image = self.tile_cache[cell]
           x = (col - start_x) * TILE_SIZE
           y = (row - start_y) * TILE_SIZE
-          view.tile_surface.blit(image, (x, y))
+          self.tile_surface.blit(image, (x, y))
 
-  def draw_tiles(view, surface, camera):
-    camera = camera.get_rect()
-    offset_x, offset_y = view.tile_offset
-    dest_x = -camera.left + offset_x * TILE_SIZE
-    dest_y = -camera.top + offset_y * TILE_SIZE
-    surface.blit(view.tile_surface, (dest_x, dest_y))
-
-  def render_decors(view, decors, camera, visible_cells, visited_cells):
+  def view_decors(self, decors, camera, visible_cells, visited_cells):
     sprites = []
     for decor in decors:
       if decor.cell not in visited_cells:
@@ -108,20 +101,27 @@ class StageView:
       sprites.append(sprite)
     return sprites
 
-  def render_elem(view, elem, anims, vfx):
+  def view_elem(self, elem, anims, vfx):
     sprites = []
     assets = use_assets()
 
     col, row = elem.cell
     sprite_x = col * TILE_SIZE
     sprite_y = row * TILE_SIZE
-    image = elem.render(anims)
+    view = elem.view(anims)
+    if isinstance(view, Surface):
+      sprite = Sprite(image=sprite, layer="elems")
+    elif view:
+      sprite = view[0]
+    else:
+      return []
+
     scale_x = 1
     scale_y = 1
     scale_origin = "center"
     facing_x, facing_y = (0, 0)
-    if elem in view.facings:
-      facing_x, facing_y = view.facings[elem]
+    if elem in self.facings:
+      facing_x, facing_y = self.facings[elem]
       new_facing_x, _ = elem.facing
       if new_facing_x != 0:
         facing_x = new_facing_x
@@ -157,7 +157,7 @@ class StageView:
 
       if type(anim) is FlickerAnim:
         if anim.visible % 2:
-          image = None
+          sprite = None
         else:
           pinch_duration = anim.duration // 4
           t = max(0, anim.time - anim.duration + pinch_duration) / pinch_duration
@@ -193,36 +193,16 @@ class StageView:
           sprite_y = row * TILE_SIZE
 
     if isinstance(elem, DungeonActor):
-      view.facings[elem] = (facing_x, facing_y)
+      self.facings[elem] = (facing_x, facing_y)
 
-    if type(image) is Sprite:
-      sprite = image
-      image = sprite.image
-      offset_x, offset_y = sprite.pos
-      x = sprite_x + TILE_SIZE // 2 - image.get_width() // 2 + offset_x
-      y = sprite_y + TILE_SIZE // 2 - image.get_height() // 2 + offset_y
-      sprites.append(Sprite(
-        image=image,
-        pos=(x, y),
-        offset=sprite.offset,
-        layer=sprite.layer
-      ))
-    elif image:
-      if facing_x == -1:
-        image = flip(image, True, False)
-      scaled_image = image
-      if scale_x != 1 or scale_y != 1:
-        scaled_image = scale(image, (
-          round(image.get_width() * scale_x),
-          round(image.get_height() * scale_y)
-        ))
-      x = sprite_x + TILE_SIZE // 2 - scaled_image.get_width() // 2
-      y = sprite_y
-      if scale_origin == "center":
-        y += TILE_SIZE // 2 - scaled_image.get_height() // 2
-      else:
-        y += TILE_SIZE - scaled_image.get_height()
-      sprites.append(Sprite(image=scaled_image, pos=(x, y), layer="elems"))
+    if not sprite:
+      return []
+
+    image = sprite.image
+    x = sprite_x + TILE_SIZE // 2 - image.get_width() // 2
+    y = sprite_y + TILE_SIZE // 2 - image.get_height() // 2
+    sprite.move((x, y))
+    sprites.append(sprite)
 
     if item:
       image, t, (col, row) = item
@@ -231,11 +211,15 @@ class StageView:
       offset = min(1, t * 3) * 6 + ITEM_OFFSET
       x = sprite_x + TILE_SIZE // 2 - image.get_width() // 2
       y = sprite_y + TILE_SIZE // 2 - image.get_height() // 2 - offset
-      sprites.append(Sprite(image=image, pos=(x, y), layer="numbers"))
+      sprites.append(Sprite(
+        image=image,
+        pos=(x, y),
+        layer="numbers"
+      ))
 
     return sprites
 
-  def render_elems(view, elems, hero, camera, visible_cells, anims, vfx):
+  def view_elems(self, elems, hero, camera, visible_cells, anims, vfx):
     sprites = []
     camera = camera.get_rect()
     def is_visible(elem):
@@ -254,7 +238,7 @@ class StageView:
       return True
     visible_elems = [e for e in elems if is_visible(e)]
     for elem in visible_elems:
-      sprites += view.render_elem(elem, anims, vfx)
+      sprites += self.view_elem(elem, anims, vfx)
 
     anim_group = anims[0] if anims else []
     for anim in anim_group:
@@ -273,7 +257,7 @@ class StageView:
 
     return sprites
 
-  def render_vfx(view, vfx, camera):
+  def view_vfx(self, vfx, camera):
     sprites = []
     assets = use_assets()
     camera = camera.get_rect()
@@ -303,7 +287,7 @@ class StageView:
       sprites.append(Sprite(image=image, pos=(x, y), layer="vfx"))
     return sprites
 
-  def render_numbers(view, numbers, camera):
+  def view_numbers(self, numbers, camera):
     sprites = []
     for number in numbers:
       sprites += number.render()
@@ -311,15 +295,19 @@ class StageView:
         numbers.remove(number)
     return sprites
 
-  def draw_sprites(view, surface, sprites, camera):
-    camera_x, camera_y = camera.pos
-    for sprite in sprites:
-      sprite_x, sprite_y = sprite.pos
-      sprite_x -= camera_x
-      sprite_y -= camera_y
-      surface.blit(sprite.image, (sprite_x, sprite_y))
+  def view_tiles(self, camera):
+    camera = camera.get_rect()
+    offset_x, offset_y = self.tile_offset
+    dest_x = -camera.left + offset_x * TILE_SIZE
+    dest_y = -camera.top + offset_y * TILE_SIZE
+    return [Sprite(
+      image=self.tile_surface,
+      pos=(dest_x, dest_y),
+      layer="tiles"
+    )]
 
-  def draw(view, surface, ctx):
+  def view(self, ctx):
+    sprites = []
     visible_cells = ctx.hero.visible_cells
     visited_cells = ctx.get_visited_cells()
     camera = ctx.camera
@@ -330,14 +318,17 @@ class StageView:
     stage = ctx.floor
     elems = stage.elems
     decors = stage.decors
-    sprites = []
-    sprites += view.render_decors(decors, camera, visible_cells, visited_cells)
-    sprites += view.render_elems(elems, hero, camera, visible_cells, anims, vfx)
-    sprites += view.render_vfx(vfx, camera)
-    sprites += view.render_numbers(numbers, camera)
+    sprites += self.view_decors(decors, camera, visible_cells, visited_cells)
+    sprites += self.view_elems(elems, hero, camera, visible_cells, anims, vfx)
+    sprites += self.view_vfx(vfx, camera)
+    sprites += self.view_numbers(numbers, camera)
+    for sprite in sprites:
+      camera_x, camera_y = camera.pos
+      camera_inv = (-camera_x, -camera_y)
+      sprite.move(camera_inv)
+    sprites += self.view_tiles(camera)
     sprites.sort(key=StageView.order)
-    view.draw_tiles(surface, camera)
-    view.draw_sprites(surface, sprites, camera)
+    return sprites
 
 def render_tile(stage, cell, visited_cells=[]):
   assets = use_assets()
@@ -425,7 +416,7 @@ def render_wall(stage, cell, visited_cells=[]):
     or isinstance(stage.get_elem_at((x, y)), Door)
   )
 
-  sprite = Surface((TILE_SIZE, TILE_SIZE)).convert_alpha()
+  sprite = Surface((TILE_SIZE, TILE_SIZE), SRCALPHA)
   sprite.fill(BLACK)
 
   edge_left = assets.sprites["wall_edge"]

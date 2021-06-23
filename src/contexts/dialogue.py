@@ -7,7 +7,7 @@ import keyboard
 from contexts import Context
 from assets import load as use_assets
 from comps.log import Log
-from hud import Hud
+from comps.hud import Hud
 from collections.abc import Iterable
 from palette import BLACK
 from anims.tween import TweenAnim

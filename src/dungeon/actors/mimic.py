@@ -34,4 +34,4 @@ class Mimic(DungeonActor):
     else:
       if mimic.idle:
         return Chest.render(mimic, anims)
-    return super().render(sprite, anims)
+    return super().render([sprite], anims)

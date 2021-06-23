@@ -1,3 +1,4 @@
+import pygame
 from dungeon.actors import DungeonActor
 from assets import load as use_assets
 from anims.move import MoveAnim
@@ -5,7 +6,7 @@ from anims.jump import JumpAnim
 from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
-import pygame
+from sprite import Sprite
 
 class Mage(DungeonActor):
   def __init__(mage, core):
@@ -62,4 +63,4 @@ class Mage(DungeonActor):
         sprite = sprites["mage_down"]
       else:
         sprite = sprites["mage"]
-    return super().render(sprite, anims)
+    return super().render([Sprite(image=sprite)], anims)

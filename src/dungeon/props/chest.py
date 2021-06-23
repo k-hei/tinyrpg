@@ -3,6 +3,7 @@ from assets import load as use_assets
 from filters import replace_color
 from anims.chest import ChestAnim
 import palette
+from sprite import Sprite
 
 class Chest(Prop):
   def __init__(chest, contents, rare=False):
@@ -17,7 +18,7 @@ class Chest(Prop):
     chest.opened = True
     return contents
 
-  def render(chest, anims):
+  def view(chest, anims):
     sprites = use_assets().sprites
     anim_group = [a for a in anims[0] if a.target is chest] if anims else []
     for anim in anim_group:

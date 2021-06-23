@@ -48,7 +48,7 @@ class Door(Prop):
     else:
       return False
 
-  def render(door, anims):
+  def view(door, anims):
     sprites = use_assets().sprites
     will_open = next((g for g in anims if next((a for a in g if a.target is door), None)), None)
     anim_group = [a for a in anims[0] if a.target is door] if anims else []
@@ -62,7 +62,7 @@ class Door(Prop):
       else:
         image = sprites[door.sprites.closed]
     image = replace_color(image, WHITE, SAFFRON)
-    return Sprite(
+    return [Sprite(
       image=image,
       layer="tiles"
-    )
+    )]

@@ -3,7 +3,7 @@ from dungeon.element import DungeonElement
 from cores import Core
 from skills.weapon import Weapon
 
-import palette
+from palette import BLACK, RED, GREEN, BLUE, PURPLE, GOLD_DARK
 from assets import load as use_assets
 from filters import replace_color, darken
 from anims.awaken import AwakenAnim
@@ -127,10 +127,12 @@ class DungeonActor(DungeonElement):
       game.move_to(actor, enemy.cell)
     return True
 
-  def render(actor, sprite, anims=[]):
+  def view(actor, sprites, anims=[]):
+    if not sprites:
+      return []
+    sprite = sprites[0]
     new_color = None
     asleep = actor.ailment == "sleep"
-    sprites = use_assets().sprites
     anim_group = [a for a in anims[0] if a.target is actor] if anims else []
     for anim in anim_group:
       if type(anim) is AwakenAnim and anim.visible:
@@ -139,25 +141,26 @@ class DungeonActor(DungeonElement):
         return None
     else:
       if actor.ailment == "poison":
-        new_color = palette.PURPLE
+        new_color = PURPLE
       elif actor.core.faction == "player":
-        new_color = palette.BLUE
+        new_color = BLUE
       elif actor.core.faction == "ally":
-        new_color = palette.GREEN
+        new_color = GREEN
       elif actor.core.faction == "enemy" and actor.rare:
-        new_color = palette.GOLD_DARK
+        new_color = GOLD_DARK
       elif actor.core.faction == "enemy":
-        new_color = palette.RED
+        new_color = RED
     if new_color:
-      sprite = replace_color(sprite, palette.BLACK, new_color)
+      sprite.image = replace_color(sprite.image, BLACK, new_color)
     if asleep:
-      sprite = darken(sprite)
-    return sprite
+      sprite.image = darken(sprite.image)
+    sprite.layer = "elems"
+    return [sprite]
 
   def color(actor):
-    if actor.core.faction == "player": return palette.BLUE
-    if actor.core.faction == "enemy" and actor.rare: return palette.GOLD_DARK
-    if actor.core.faction == "enemy": return palette.RED
+    if actor.core.faction == "player": return BLUE
+    if actor.core.faction == "enemy" and actor.rare: return GOLD_DARK
+    if actor.core.faction == "enemy": return RED
 
   def token(actor):
     return Token(text=actor.get_name().upper(), color=actor.color())

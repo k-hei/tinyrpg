@@ -14,5 +14,5 @@ class Palm(Prop):
       on_end=lambda: game.floor.elems.remove(palm)
     )])
 
-  def render(coffin, anims):
+  def view(coffin, anims):
     return use_assets().sprites["oasis_palm"]

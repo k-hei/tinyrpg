@@ -3,7 +3,7 @@ from pygame import Surface, SRCALPHA
 from contexts import Context
 from contexts.dialogue import DialogueContext
 from contexts.shop import ShopContext
-from hud import Hud
+from comps.hud import Hud
 from assets import load as use_assets
 from town.topview.stage import Stage, Tile
 from town.topview.actor import Actor

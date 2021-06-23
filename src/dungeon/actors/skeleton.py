@@ -5,6 +5,7 @@ from skills.attack.shieldbash import ShieldBash
 from skills.weapon.club import Club
 from lib.cell import is_adjacent
 import random
+from sprite import Sprite
 
 class Skeleton(DungeonActor):
   skill = ShieldBash
@@ -38,4 +39,4 @@ class Skeleton(DungeonActor):
   def render(knight, anims):
     sprites = use_assets().sprites
     sprite = sprites["skeleton"]
-    return super().render(sprite, anims)
+    return super().render([Sprite(image=sprite)], anims)

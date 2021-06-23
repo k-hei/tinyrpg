@@ -7,5 +7,5 @@ class Npc(DungeonActor):
     super().__init__(core)
     npc.script = script
 
-  def render(npc, sprite):
-    return super().render(sprite)
+  def render(npc, sprites):
+    return super().render(sprites)

@@ -6,6 +6,7 @@ from skills.weapon.tackle import Tackle
 from lib.cell import is_adjacent
 import random
 from items.materials.redferrule import RedFerrule
+from sprite import Sprite
 
 class Mushroom(DungeonActor):
   skill = Virus
@@ -36,7 +37,7 @@ class Mushroom(DungeonActor):
 
     return True
 
-  def render(mushroom, anims):
+  def view(mushroom, anims):
     sprites = use_assets().sprites
     sprite = sprites["mushroom"]
-    return super().render(sprite, anims)
+    return super().view([Sprite(image=sprite)], anims)

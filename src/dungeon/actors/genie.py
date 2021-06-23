@@ -15,7 +15,5 @@ class Genie(Npc):
     super().__init__(GenieCore(name), script)
     genie.color = color
 
-  def render(genie, anims):
-    sprite = genie.core.render()
-    sprite.image = replace_color(sprite.image, BLACK, genie.color)
-    return sprite
+  def view(genie, anims):
+    return genie.core.view()

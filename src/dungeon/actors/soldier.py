@@ -5,6 +5,7 @@ from skills.attack.blitzritter import Blitzritter
 from skills.weapon.club import Club
 from lib.cell import is_adjacent
 import random
+from sprite import Sprite
 
 class Soldier(DungeonActor):
   skill = Blitzritter
@@ -38,4 +39,4 @@ class Soldier(DungeonActor):
   def render(soldier, anims):
     sprites = use_assets().sprites
     sprite = sprites["soldier"]
-    return super().render(sprite, anims)
+    return super().render([Sprite(image=sprite)], anims)

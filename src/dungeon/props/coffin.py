@@ -35,7 +35,7 @@ class Coffin(Prop):
     coffin.opened = True
     return contents
 
-  def render(coffin, anims):
+  def view(coffin, anims):
     sprites = use_assets().sprites
     if coffin.opened:
       sprite = sprites["coffin_open"]

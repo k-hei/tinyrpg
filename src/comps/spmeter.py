@@ -7,6 +7,8 @@ from lib.lerp import lerp
 from comps.hud import render_numbers
 from filters import recolor, replace_color
 from palette import RED, WHITE, BLUE
+from sprite import Sprite
+from config import WINDOW_WIDTH, WINDOW_HEIGHT
 
 MARGIN_X = 12
 MARGIN_Y = 32
@@ -108,10 +110,10 @@ class SpMeter:
     meter.draws += 1
     return sprite
 
-  def draw(meter, surface):
+  def view(meter):
     sprite = meter.render()
-    hidden_x = surface.get_width()
-    hidden_y = surface.get_height() - sprite.get_height() - MARGIN_Y
+    hidden_x = WINDOW_WIDTH
+    hidden_y = WINDOW_HEIGHT - sprite.get_height() - MARGIN_Y
     corner_x = hidden_x - sprite.get_width() - MARGIN_X
     corner_y = hidden_y
     anim = meter.anims[0] if meter.anims else None
@@ -132,5 +134,8 @@ class SpMeter:
       x = corner_x
       y = corner_y
     else:
-      return
-    surface.blit(sprite, (x, y))
+      return []
+    return [Sprite(
+      image=sprite,
+      pos=(x, y)
+    )]

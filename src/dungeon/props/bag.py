@@ -46,13 +46,13 @@ class Bag(Prop):
     else:
       game.log.print("But there was nothing inside...")
 
-  def render(bag, anims):
+  def view(bag, anims):
     sprites = use_assets().sprites
     bag_image = sprites["bag" if bag.anim.bounces else "bag_float"]
     bag.anim.update()
-    return Sprite(
+    return [Sprite(
       image=bag_image,
       pos=(0, bag.anim.y),
       offset=1,
       layer="elems"
-    )
+    )]

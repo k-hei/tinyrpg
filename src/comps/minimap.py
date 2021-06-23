@@ -14,6 +14,8 @@ from palette import GREEN, GREEN_DARK, PURPLE, PURPLE_DARK
 from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in_out
 from lib.lerp import lerp
+from sprite import Sprite
+from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
 
 MARGIN_X = 8
 MARGIN_Y = 6
@@ -184,27 +186,28 @@ class Minimap:
     surface.blit(pygame.transform.scale(temp_surface, scaled_size), (0, 0))
     return surface
 
-  def draw(minimap, surface):
+  def view(minimap):
+    sprites = []
     if minimap.sprite is None:
       minimap.sprite = minimap.render()
       redrawn = True
     else:
       redrawn = False
 
-    corner_x = surface.get_width() - minimap.sprite.get_width() - MARGIN_X
+    corner_x = WINDOW_WIDTH - minimap.sprite.get_width() - MARGIN_X
     corner_y = MARGIN_Y
-    center_x = surface.get_width() // 2 - minimap.sprite.get_width() // 2
-    center_y = surface.get_height() // 2 - minimap.sprite.get_height() // 2
+    center_x = WINDOW_WIDTH // 2 - minimap.sprite.get_width() // 2
+    center_y = WINDOW_HEIGHT // 2 - minimap.sprite.get_height() // 2
     anim = minimap.anims[0] if minimap.anims else None
     if anim:
       t = anim.update()
       if type(anim) is EnterAnim:
         t = ease_out(t)
-        start_x, start_y = surface.get_width(), corner_y
+        start_x, start_y = WINDOW_WIDTH, corner_y
         target_x, target_y = corner_x, corner_y
       elif type(anim) is ExitAnim:
         start_x, start_y = corner_x, corner_y
-        target_x, target_y = surface.get_width(), corner_y
+        target_x, target_y = WINDOW_WIDTH, corner_y
 
       if type(anim) in (ExpandAnim, ShrinkAnim):
         t = ease_in_out(t)
@@ -213,8 +216,8 @@ class Minimap:
           minimap.sprite = minimap.render(t)
         elif type(anim) is ShrinkAnim:
           minimap.sprite = minimap.render(1 - t)
-        center_x = surface.get_width() // 2 - minimap.sprite.get_width() // 2
-        center_y = surface.get_height() // 2 - minimap.sprite.get_height() // 2
+        center_x = WINDOW_WIDTH // 2 - minimap.sprite.get_width() // 2
+        center_y = WINDOW_HEIGHT // 2 - minimap.sprite.get_height() // 2
 
       if type(anim) is ExpandAnim:
         start_x, start_y = corner_x, corner_y
@@ -234,9 +237,13 @@ class Minimap:
       if minimap.is_focused():
         t = min(1, (minimap.expanded - BLACKOUT_DELAY) / BLACKOUT_DURATION)
         alpha = min(0xFF, int(t * BLACKOUT_FRAMES) / BLACKOUT_FRAMES * 0xFF)
-        fill = Surface(surface.get_size(), pygame.SRCALPHA)
+        fill = Surface(WINDOW_SIZE, pygame.SRCALPHA)
         pygame.draw.rect(fill, (0, 0, 0, alpha), fill.get_rect())
-        surface.blit(fill, (0, 0))
+        sprites.append(Sprite(
+          image=fill,
+          pos=(0, 0),
+          layer="hud"
+        ))
     elif minimap.active:
       x = corner_x
       y = corner_y
@@ -247,4 +254,9 @@ class Minimap:
       redrawn = True
       minimap.sprite = minimap.render()
 
-    surface.blit(minimap.sprite, (x, y))
+    sprites.append(Sprite(
+      image=minimap.sprite,
+      pos=(x, y),
+      layer="hud"
+    ))
+    return sprites

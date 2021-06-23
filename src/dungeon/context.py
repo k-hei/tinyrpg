@@ -26,8 +26,8 @@ from dungeon.stageview import StageView
 
 from dungeon.actors import DungeonActor
 from dungeon.actors.eye import Eye
-from dungeon.actors.knight import Knight
-from dungeon.actors.mage import Mage
+from dungeon.actors.knight import Knight as KnightActor
+from dungeon.actors.mage import Mage as MageActor
 from dungeon.actors.mimic import Mimic
 from dungeon.actors.npc import Npc
 
@@ -72,8 +72,8 @@ from contexts.skill import SkillContext
 from contexts.dialogue import DialogueContext
 
 def manifest(core):
-  if type(core) is Knight: return Knight(core)
-  if type(core) is Mage: return Mage(core)
+  if type(core) is Knight: return KnightActor(core)
+  if type(core) is Mage: return MageActor(core)
 
 class DungeonContext(Context):
   ATTACK_DURATION = 12
@@ -86,8 +86,8 @@ class DungeonContext(Context):
 
   def __init__(game, party, debug=False):
     super().__init__()
-    game.hero = party[0]
-    game.ally = party[1] if len(party) == 2 else None
+    game.hero = manifest(party[0])
+    game.ally = manifest(party[1]) if len(party) == 2 else None
     game.debug = debug
     game.floors = []
     game.floor = None
@@ -110,12 +110,11 @@ class DungeonContext(Context):
     game.comps = []
 
   def init(game):
-    parent = game.parent
     game.floor_view = StageView(WINDOW_SIZE)
     game.comps = [
       game.log,
       game.minimap,
-      Hud(parent=game),
+      Hud(party=game.parent.party),
       Previews(parent=game),
       FloorNo(parent=game),
       SpMeter(parent=game.parent)
@@ -138,14 +137,6 @@ class DungeonContext(Context):
     floor_no = game.get_floor_no()
     floor = gen.gen_floor(seed=config.SEED)
     game.parent.seeds.append(floor.seed)
-    # if floor_no == config.TOP_FLOOR:
-    #   floor = gen.top_floor()
-    # elif floor_no == 3:
-    #   floor = gen.giant_room((19, 19))
-    # elif floor_no == 1:
-    #   floor = gen.dungeon(config.FLOOR_SIZE, config.SEED)
-    # else:
-    #   floor = gen.dungeon(config.FLOOR_SIZE)
 
     hero = game.hero
     hero.facing = (1, 0)
@@ -869,7 +860,12 @@ class DungeonContext(Context):
     return opened
 
   def redraw_tiles(game):
-    game.floor_view.redraw_tiles(game.floor, game.camera, game.get_visible_cells(), game.get_visited_cells())
+    game.floor_view.redraw_tiles(
+      stage=game.floor,
+      camera=game.camera,
+      visible_cells=game.get_visible_cells(),
+      visited_cells=game.get_visited_cells()
+    )
 
   def attack(game, actor, target, damage=None, on_connect=None, on_end=None):
     if actor.weapon is None:
@@ -1168,39 +1164,25 @@ class DungeonContext(Context):
     if round(new_x - old_x) or round(new_y - old_y):
       game.redraw_tiles()
 
-  def draw(game, surface):
-    assets = load_assets()
-    surface.fill(0)
-    window_width = surface.get_width()
-    window_height = surface.get_height()
-
+  def update(game):
     game.update_camera()
-
-    if not game.debug and not game.minimap.is_focused():
-      game.tile_surface = game.floor_view.draw(surface, game)
-
     for group in game.anims:
       for anim in group:
         if type(anim) is PauseAnim:
-          anim.update()
           if anim.done:
             group.remove(anim)
+          else:
+            anim.update()
       if len(group) == 0:
         game.anims.remove(group)
 
-    # if not config.DEBUG and (not game.child or game.log.anim and not game.log.active):
-    #   game.log.draw(surface)
-
-    animating = False # (
-    #   game.log.anim and not game.log.active
-    #   or game.hud.anims
-    #   or game.previews.anims
-    # )
-    if game.child and not animating:
-      game.child.draw(surface)
-
+  def view(game):
+    sprites = []
+    assets = load_assets()
+    sprites += game.floor_view.view(game)
     if game.debug:
-      game.minimap.draw(surface)
+      sprites += game.minimap.view()
     else:
       for comp in game.comps:
-        comp.draw(surface)
+        sprites += comp.view()
+    return sprites + super().view()

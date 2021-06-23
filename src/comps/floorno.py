@@ -5,6 +5,8 @@ from lib.lerp import lerp
 from text import render as render_text
 from filters import recolor, replace_color
 from palette import BLACK
+from sprite import Sprite
+from config import WINDOW_WIDTH, WINDOW_HEIGHT
 
 MARGIN_X = 12
 MARGIN_Y = 6
@@ -36,11 +38,11 @@ class FloorNo:
     image.blit(text, (TEXT_X, TEXT_Y))
     return image
 
-  def draw(ctx, surface):
+  def view(ctx):
     game = ctx.parent
     image = ctx.render(game)
-    hidden_x = surface.get_width()
-    hidden_y = surface.get_height() - image.get_height() - MARGIN_Y
+    hidden_x = WINDOW_WIDTH
+    hidden_y = WINDOW_HEIGHT - image.get_height() - MARGIN_Y
     corner_x = hidden_x - image.get_width() - MARGIN_X
     corner_y = hidden_y
     anim = ctx.anim
@@ -62,4 +64,7 @@ class FloorNo:
       y = corner_y
     else:
       return
-    surface.blit(image, (x, y))
+    return [Sprite(
+      image=image,
+      pos=(x, y)
+    )]

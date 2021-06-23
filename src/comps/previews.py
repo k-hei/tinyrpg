@@ -10,6 +10,8 @@ from lib.lerp import lerp
 
 from dungeon.actors import DungeonActor
 from dungeon.actors.mimic import Mimic
+from sprite import Sprite
+from config import WINDOW_WIDTH, WINDOW_HEIGHT
 
 class EnterAnim(TweenAnim): pass
 class ExitAnim(TweenAnim): pass
@@ -34,7 +36,8 @@ class Previews:
   def exit(self):
     self.active = False
 
-  def draw(self, surface):
+  def view(self):
+    sprites = []
     game = self.parent
     hero = game.hero
     floor = game.floor
@@ -53,14 +56,6 @@ class Previews:
     if len(self.enemies) < 3 and new_enemies:
       while len(self.enemies) < 3 and new_enemies:
         self.enemies.append(new_enemies.pop(0))
-    # if len(self.enemies) == 3 and adjacent_enemies:
-    #   new_enemies = [e for e in adjacent_enemies if e not in self.enemies]
-    #   if new_enemies:
-    #     farthest = sorted(self.enemies, key=lambda e: manhattan(e.cell, hero.cell), reverse=True)
-    #     for i, new_enemy in enumerate(new_enemies):
-    #       index = self.enemies.index(farthest[i])
-    #       self.enemies.pop(index)
-    #       self.enemies.insert(index, new_enemy)
 
     entering = [a for a in self.anims if type(a) is EnterAnim]
     exiting = [a for a in self.anims if type(a) is ExitAnim or type(a) is SquishAnim]
@@ -133,7 +128,6 @@ class Previews:
         preview = next((p for p in self.previews if p and p.actor is enemy), None)
         if preview is None and len(self.previews) < 3:
           preview = Preview(enemy)
-          # self.previews.insert(self.enemies.index(preview.actor), preview)
           if self.enemies.index(preview.actor) == 0:
             self.previews.insert(0, preview)
           else:
@@ -176,8 +170,6 @@ class Previews:
         self.anims.append(anim)
         arranging.append(anim)
 
-    window_width = surface.get_width()
-    window_height = surface.get_height()
     for i in range(len(self.previews)):
       preview = self.previews[i]
       if preview is None:
@@ -185,8 +177,8 @@ class Previews:
       preview.update()
       sprite = preview.render()
       offset_x, offset_y = preview.offset
-      x = window_width - preview.x + offset_x
-      y = window_height - MARGIN - LOG_HEIGHT + offset_y
+      x = WINDOW_WIDTH - preview.x + offset_x
+      y = WINDOW_HEIGHT - MARGIN - LOG_HEIGHT + offset_y
       delta = -SPACING - sprite.get_height()
       arrange_anim = arranging and preview in arranging[0].target
       if arrange_anim:
@@ -199,4 +191,8 @@ class Previews:
         sprite = pygame.transform.scale(sprite, (int(preview.width), int(preview.height)))
       x += sprite_width // 2 - sprite.get_width() // 2
       y += sprite_height // 2 - sprite.get_height() // 2
-      surface.blit(sprite, (x, y))
+      sprites.append(Sprite(
+        image=sprite,
+        pos=(x, y)
+      ))
+    return sprites

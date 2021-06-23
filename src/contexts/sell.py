@@ -18,7 +18,7 @@ from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
 from items.materials import MaterialItem
-from hud import Hud
+from comps.hud import Hud
 from savedata.resolve import resolve_material
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 from sprite import Sprite

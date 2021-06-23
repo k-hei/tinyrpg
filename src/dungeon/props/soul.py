@@ -1,3 +1,4 @@
+from math import cos, sin, pi
 from dungeon.props import Prop
 from assets import load as use_assets
 from anims.frame import FrameAnim
@@ -7,8 +8,7 @@ from comps.skill import Skill
 from contexts.dialogue import DialogueContext
 from vfx import Vfx
 from random import random, randint, randrange, choice
-import palette
-import math
+from palette import BLACK
 import config
 
 class Soul(Prop):
@@ -59,10 +59,10 @@ class Soul(Prop):
       )
     ))
     r = 0
-    while r < 2 * math.pi:
-      r += math.pi / 4 * random()
-      norm_x = math.cos(r)
-      norm_y = math.sin(r)
+    while r < 2 * pi:
+      r += pi / 4 * random()
+      norm_x = cos(r)
+      norm_y = sin(r)
       start_x = x + norm_x * 16
       start_y = y + norm_y * 16
       vel_x = norm_x * random() * 2
@@ -84,8 +84,8 @@ class Soul(Prop):
       ))
 
   def effect(soul, game):
-    r = 2 * math.pi * random()
-    soul.norm = (math.cos(r), math.sin(r))
+    r = 2 * pi * random()
+    soul.norm = (cos(r), sin(r))
     soul.vel = Soul.BOUNCE_AMP
     soul.obtaining = soul.time
     soul.on_end = lambda: (
@@ -110,8 +110,8 @@ class Soul(Prop):
     else:
       tx = soul.time % Soul.ANIM_SWIVEL_PERIOD / Soul.ANIM_SWIVEL_PERIOD
       ty = soul.time % Soul.ANIM_FLOAT_PERIOD / Soul.ANIM_FLOAT_PERIOD
-      pos_x = math.cos(math.pi * 2 * tx) * Soul.ANIM_SWIVEL_AMP
-      pos_y = math.sin(math.pi * 2 * ty) * Soul.ANIM_FLOAT_AMP
+      pos_x = cos(pi * 2 * tx) * Soul.ANIM_SWIVEL_AMP
+      pos_y = sin(pi * 2 * ty) * Soul.ANIM_FLOAT_AMP
       if soul.time % randint(30, 45) == 0:
         col, row = soul.cell
         x = col * config.TILE_SIZE + pos_x + random()
@@ -133,7 +133,7 @@ class Soul(Prop):
         ))
     soul.pos = (pos_x, pos_y)
 
-  def render(soul, anims):
+  def view(soul, anims):
     sprites = use_assets().sprites
     # if not soul.obtaining and soul.time % 2:
     #   return None
@@ -143,5 +143,5 @@ class Soul(Prop):
     sprite = sprites["fx_soul" + str(frame)]
     if soul.skill:
       color = soul.skill.color
-      sprite = replace_color(sprite, palette.BLACK, color)
+      sprite = replace_color(sprite, BLACK, color)
     return sprite

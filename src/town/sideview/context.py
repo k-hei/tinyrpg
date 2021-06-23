@@ -6,7 +6,7 @@ from town.graph import TownGraph
 from town.sideview.stage import Area, AreaLink
 from town.sideview.actor import Actor
 from cores.knight import Knight
-from hud import Hud
+from comps.hud import Hud
 from assets import load as use_assets
 from sprite import Sprite
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT

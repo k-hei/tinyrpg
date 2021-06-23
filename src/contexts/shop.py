@@ -13,7 +13,7 @@ from comps.textbox import TextBox
 from comps.textbubble import TextBubble
 from comps.card import Card
 from comps.portraitgroup import PortraitGroup
-from hud import Hud
+from comps.hud import Hud
 from assets import load as use_assets
 from filters import replace_color, darken
 from palette import BLACK, WHITE, RED, BLUE, BLUE_DARK, GOLD, ORANGE

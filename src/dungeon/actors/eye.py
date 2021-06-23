@@ -8,6 +8,7 @@ from anims.awaken import AwakenAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from items.materials.angeltears import AngelTears
+from sprite import Sprite
 
 class Eye(DungeonActor):
   drops = [AngelTears]
@@ -48,4 +49,4 @@ class Eye(DungeonActor):
         sprite = sprites["eye_attack"]
       else:
         sprite = sprites["eye"]
-    return super().render(sprite, anims)
+    return super().render([Sprite(image=sprite)], anims)
