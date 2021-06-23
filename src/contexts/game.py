@@ -13,10 +13,6 @@ from skills import get_skill_order
 from savedata import SaveData
 from savedata.resolve import resolve_item, resolve_skill
 
-def resolve_place(place):
-  if place == "dungeon": return DungeonContext()
-  if place == "town": return TownContext()
-
 def resolve_char(char):
   if char == "knight": return Knight()
   if char == "mage": return Mage()
@@ -31,8 +27,7 @@ class GameContext(Context):
   def __init__(ctx, savedata):
     super().__init__()
     ctx.savedata = savedata
-    ctx.hero = None
-    ctx.ally = None
+    ctx.party = []
     ctx.gold = 0
     ctx.sp_max = 40
     ctx.sp = ctx.sp_max
@@ -52,41 +47,30 @@ class GameContext(Context):
   def load(ctx, savedata=None):
     if savedata is None:
       savedata = ctx.savedata
-
     ctx.sp = savedata.sp
     ctx.time = savedata.time
     ctx.gold = savedata.gold
     ctx.inventory.items = list(map(resolve_item, savedata.items))
     ctx.skill_pool = list(map(resolve_skill, savedata.skills))
-
-    hero, ally = savedata.party[0], None
-    if len(savedata.party) == 2:
-      hero, ally = savedata.party
-    ctx.hero = resolve_char(hero)
-    ctx.ally = resolve_char(ally)
-
-    hero_data = savedata.chars[hero]
-    ctx.skill_builds[ctx.hero] = []
-    for skill, cell in hero_data.items():
-      piece = (resolve_skill(skill), cell)
-      ctx.skill_builds[ctx.hero].append(piece)
-
-    if ctx.ally:
-      ally_data = savedata.chars[ally]
-      ctx.skill_builds[ctx.ally] = []
-      for skill, cell in ally_data.items():
+    ctx.party = [resolve_char(n) for n in savedata.party]
+    for i, char in enumerate(ctx.party):
+      char_name = savedata.party[i]
+      char_data = savedata.chars[char_name]
+      ctx.skill_builds[char] = []
+      for skill, cell in char_data.items():
         piece = (resolve_skill(skill), cell)
-        ctx.skill_builds[ctx.ally].append(piece)
+        ctx.skill_builds[char].append(piece)
     ctx.update_skills()
-    ctx.open(resolve_place(savedata.place))
+    if savedata.place == "dungeon":
+      ctx.goto_dungeon()
+    elif savedata.place == "town":
+      ctx.goto_town()
 
   def save(ctx):
     encode = lambda x: x.__name__
     items = list(map(encode, ctx.inventory.items))
     skills = list(map(encode, ctx.skill_pool))
-    party = [encode_char(ctx.hero)]
-    if ctx.ally:
-      party.append(encode_char(ctx.ally))
+    party = [encode_char(c) for c in ctx.party]
     chars = {}
     for char, pieces in ctx.skill_builds.items():
       build = {}
@@ -104,6 +88,13 @@ class GameContext(Context):
       chars=chars
     )
 
+  def recruit(ctx, char):
+    ctx.skill_builds[char] = {}
+    if len(ctx.party) == 1:
+      ctx.party.append(char)
+    else:
+      ctx.party[1] = char
+
   def reset(ctx):
     if type(ctx.child) is DungeonContext:
       ctx.goto_dungeon()
@@ -114,7 +105,7 @@ class GameContext(Context):
     ctx.open(DungeonContext())
 
   def goto_town(ctx, returning=False):
-    ctx.open(TownContext(returning=returning))
+    ctx.open(TownContext(party=ctx.party))
 
   def obtain(ctx, item):
     ctx.inventory.items.append(item)
@@ -145,9 +136,8 @@ class GameContext(Context):
     ctx.set_skill(actor, active_skills[0] if active_skills else None)
 
   def update_skills(ctx):
-    ctx.load_build(ctx.hero, ctx.skill_builds[ctx.hero])
-    if ctx.ally:
-      ctx.load_build(ctx.ally, ctx.skill_builds[ctx.ally])
+    for core in ctx.party:
+      ctx.load_build(core, ctx.skill_builds[core])
 
   def get_gold(ctx):
     return ctx.gold

@@ -13,7 +13,7 @@ from cores.knight import Knight
 from cores.mage import Mage
 
 class TownContext(Context):
-  def __init__(ctx, party=[Knight(faction="player")]):
+  def __init__(ctx, party=[Knight()]):
     super().__init__()
     ctx.party = party
     ctx.area = OutskirtsArea
@@ -36,3 +36,10 @@ class TownContext(Context):
     elif issubclass(area, TopViewArea):
       child = TopViewContext(area, ctx.party, link)
     ctx.open(child)
+
+  def recruit(ctx, char):
+    ctx.parent.recruit(char)
+    if len(ctx.party) == 1:
+      ctx.party.append(char)
+    else:
+      ctx.party[1] = char

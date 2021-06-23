@@ -158,7 +158,12 @@ class SideViewContext(Context):
 
   def recruit(ctx, actor):
     actor.recruit()
-    ctx.party.append(actor)
+    ctx.parent.recruit(actor.core)
+    if len(ctx.party) == 1:
+      ctx.party.append(actor)
+    else:
+      # TODO: handle party replacement
+      ctx.party[1] = actor
     ctx.anims.append(FollowAnim(target=actor))
     ctx.nearby_npc = None
 
