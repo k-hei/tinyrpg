@@ -30,9 +30,12 @@ class Area:
   def init(area, ctx):
     pass
 
-  def spawn(area, actor, pos):
+  def spawn(area, actor, x):
+    y = (actor.get_faction() == "ally"
+      and Area.NPC_Y - Area.ACTOR_Y
+      or 0)
+    actor.pos = (x, y)
     area.actors.append(actor)
-    actor.pos = pos
 
   def view(area, hero, link):
     sprites = []
@@ -51,7 +54,7 @@ class Area:
       link_name = None
     for actor in sorted(area.actors, key=lambda actor: 1 if actor is hero else 0):
       for sprite in actor.view():
-        y = Area.ACTOR_Y if actor.get_faction() == "player" else Area.NPC_Y
+        y = Area.ACTOR_Y
         sprite.move((area.camera, y))
         sprite.target = actor
         _, sprite_y = sprite.pos

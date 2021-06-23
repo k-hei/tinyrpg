@@ -96,14 +96,14 @@ class Actor:
     actor.anim = None
     actor.core.anims = []
 
-  def follow(actor, target, free=False):
+  def follow(actor, target, free=False, force=False):
     if actor.pos == target.pos:
       return True
     actor_x, actor_y = actor.pos
     target_x, target_y = target.pos
     facing_x, facing_y = target.get_facing()
     dist_x = abs(target_x - actor_x)
-    if not actor.moved and dist_x < TILE_SIZE:
+    if not actor.moved and dist_x < TILE_SIZE and not force:
       return False
     if not free and target_x != actor_x:
       target_y = actor_y
@@ -113,6 +113,13 @@ class Actor:
     elif facing_y:
       target_y = target_y - TILE_SIZE // 2 * facing_y
     return actor.move_to((target_x, target_y))
+
+  def recruit(actor):
+    if actor.core.faction != "player":
+      actor.core.faction = "player"
+      return True
+    else:
+      return False
 
   def update(actor):
     if actor.anim:

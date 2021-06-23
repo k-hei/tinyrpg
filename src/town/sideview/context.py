@@ -12,7 +12,10 @@ from sprite import Sprite
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
 from filters import replace_color, outline
 from palette import BLACK, WHITE, BLUE
+from anims import Anim
 import keyboard
+
+class FollowAnim(Anim): pass
 
 def can_talk(hero, actor):
   if (not actor.get_message()
@@ -51,13 +54,14 @@ class SideViewContext(Context):
     ctx.nearby_npc = None
     ctx.hud = Hud(party)
     ctx.time = 0
+    ctx.anims = []
 
   def init(ctx):
     hero, *_ = ctx.party
     facing_x, _ = hero.get_facing()
     spawn_x = ctx.spawn.x if ctx.spawn else 64
     for actor in ctx.party:
-      ctx.area.spawn(actor, (spawn_x, 0))
+      ctx.area.spawn(actor, spawn_x)
       spawn_x -= TILE_SIZE * facing_x
     ctx.area.init(ctx)
 
@@ -105,7 +109,7 @@ class SideViewContext(Context):
   def handle_keydown(ctx, key):
     if ctx.child:
       return ctx.child.handle_keydown(key)
-    if ctx.link or ctx.get_root().transits:
+    if ctx.link or ctx.anims or ctx.get_root().transits:
       return False
     if key in (pygame.K_LEFT, pygame.K_a):
       return ctx.handle_move(-1)
@@ -152,35 +156,50 @@ class SideViewContext(Context):
     else:
       ctx.close()
 
+  def recruit(ctx, actor):
+    actor.recruit()
+    ctx.party.append(actor)
+    ctx.anims.append(FollowAnim(target=actor))
+    ctx.nearby_npc = None
+
   def update(ctx):
     super().update()
     for actor in ctx.area.actors:
       actor.update()
     hero, *allies = ctx.party
-    if link := ctx.link:
-      hero_x, hero_y = hero.pos
-      if link.direction == (-1, 0) or link.direction == (1, 0):
-        for actor in ctx.party:
-          actor.move(link.direction)
-      else:
-        if hero_x != link.x:
-          hero.move_to((link.x, hero_y))
+    for anim in ctx.anims:
+      if type(anim) is FollowAnim:
+        done = anim.target.follow(hero, free=True, force=True)
+        if done:
+          anim.target.stop_move()
+          anim.target.face(hero)
+          ctx.anims.remove(anim)
+        break
+    else:
+      if link := ctx.link:
+        hero_x, hero_y = hero.pos
+        if link.direction == (-1, 0) or link.direction == (1, 0):
+          for actor in ctx.party:
+            actor.move(link.direction)
         else:
-          if link.direction == (0, -1):
-            TARGET_HORIZON = Area.HORIZON_NORTH
-            EVENT_HORIZON = Area.TRANSIT_NORTH
-          elif link.direction == (0, 1):
-            TARGET_HORIZON = Area.HORIZON_SOUTH
-            EVENT_HORIZON = Area.TRANSIT_SOUTH
-          if hero_y != TARGET_HORIZON:
-            hero.move_to((link.x, TARGET_HORIZON))
-          if abs(hero_y) >= abs(EVENT_HORIZON) and not ctx.get_root().transits:
-            ctx.follow_link(ctx.link)
-        for ally in allies:
-          ally.follow(hero)
-    elif not ctx.child:
-      ctx.nearby_link = find_nearby_link(hero, ctx.area.links, ctx.get_graph())
-      ctx.nearby_npc = find_nearby_npc(hero, ctx.area.actors) if ctx.nearby_link is None else None
+          if hero_x != link.x:
+            hero.move_to((link.x, hero_y))
+          else:
+            if link.direction == (0, -1):
+              TARGET_HORIZON = Area.HORIZON_NORTH
+              EVENT_HORIZON = Area.TRANSIT_NORTH
+            elif link.direction == (0, 1):
+              TARGET_HORIZON = Area.HORIZON_SOUTH
+              EVENT_HORIZON = Area.TRANSIT_SOUTH
+            if hero_y != TARGET_HORIZON:
+              hero.move_to((link.x, TARGET_HORIZON))
+            if abs(hero_y) >= abs(EVENT_HORIZON) and not ctx.get_root().transits:
+              ctx.follow_link(ctx.link)
+          for ally in allies:
+            ally.follow(hero)
+      elif not ctx.child:
+        ctx.nearby_link = find_nearby_link(hero, ctx.area.links, ctx.get_graph())
+        ctx.nearby_npc = find_nearby_npc(hero, ctx.area.actors) if ctx.nearby_link is None else None
     ctx.time += 1
 
   def view(ctx):
@@ -188,10 +207,13 @@ class SideViewContext(Context):
     assets = use_assets()
     hero, *_ = ctx.party
     sprites += ctx.area.view(hero, ctx.link)
-    if ctx.child or ctx.link:
+    interrupt = ctx.child or ctx.link or ctx.anims
+    if interrupt:
       if ctx.hud.active:
         ctx.hud.exit()
-    elif link := ctx.nearby_link:
+    elif not ctx.hud.active:
+      ctx.hud.enter()
+    if not interrupt and (link := ctx.nearby_link):
       arrow_image = (link.direction == (0, -1)
         and assets.sprites["link_north"]
         or assets.sprites["link_south"]
@@ -204,7 +226,7 @@ class SideViewContext(Context):
         origin=("center", "center"),
         layer="markers"
       )]
-    elif npc := ctx.nearby_npc:
+    elif not interrupt and (npc := ctx.nearby_npc):
       npc_sprite = next((s for s in sprites if s.target is npc), None)
       npc_x, npc_y = npc_sprite.pos
       bubble_image = assets.sprites["bubble_talk"]

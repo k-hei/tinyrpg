@@ -69,7 +69,7 @@ class OutskirtsArea(Area):
           ] or choice.text == "Nothing" and []
         ))
       ]
-    )), (144, 0))
+    )), x=144)
 
   def view(area, hero, link):
     sprites = super().view(hero, link)

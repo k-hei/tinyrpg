@@ -20,16 +20,17 @@ class Mage(BipedCore):
       st=14,
       en=7,
       message=lambda ctx: [
+        (hero := ctx.party[0]) and None,
         PromptContext((name.upper(), ": ", "Are you ready yet?"), (
           Choice("\"Let's go!\""),
           Choice("\"Maybe later...\"")
         ), required=True, on_close=lambda choice: (
           choice.text == "\"Let's go!\"" and (
-            (ctx.hero.get_name(), "Let's get going!"),
+            (hero.get_name(), "Let's get going!"),
             (name, "Jeez, about time..."),
             lambda: ctx.recruit(ctx.talkee)
           ) or choice.text == "\"Maybe later...\"" and (
-            (ctx.hero.get_name(), "Give me a second..."),
+            (hero.get_name(), "Give me a second..."),
             (name, "You know I don't have all day, right?")
           )
         ))

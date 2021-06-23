@@ -17,4 +17,4 @@ class ClearingArea(Area):
       message=lambda town: [
         (rat_name, "Fuck you")
       ])
-    ), (160, 0))
+    ), x=160)
