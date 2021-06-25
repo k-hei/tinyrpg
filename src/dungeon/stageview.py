@@ -28,7 +28,7 @@ from anims.chest import ChestAnim
 from anims.item import ItemAnim
 
 class StageView:
-  LAYERS = ["tiles", "elems", "vfx", "numbers", "ui"]
+  LAYERS = ["tiles", "decors", "elems", "vfx", "numbers", "ui"]
 
   def order(sprite):
     sprite_x, sprite_y = sprite.pos
@@ -101,125 +101,22 @@ class StageView:
       sprites.append(sprite)
     return sprites
 
-  def view_elem(self, elem, anims, vfx):
-    sprites = []
-    assets = use_assets()
-
-    col, row = elem.cell
-    sprite_x = col * TILE_SIZE
-    sprite_y = row * TILE_SIZE
-    view = elem.view(anims)
-    if isinstance(view, Surface):
-      sprite = Sprite(image=sprite, layer="elems")
-    elif view:
-      sprite = view[0]
+  def view_elem(self, elem, anims):
+    try:
+      sprites = elem.view(anims)
+    except TypeError:
+      print(elem)
+      raise
+    if sprites:
+      sprite = sprites[0]
+      elem_x, elem_y = elem.cell
+      sprite.move(((elem_x + 0.5) * TILE_SIZE, (elem_y + 0.5) * TILE_SIZE))
+      sprite.origin = ("center", "center")
+      return sprites
     else:
       return []
 
-    scale_x = 1
-    scale_y = 1
-    scale_origin = "center"
-    facing_x, facing_y = (0, 0)
-    if elem in self.facings:
-      facing_x, facing_y = self.facings[elem]
-      new_facing_x, _ = elem.facing
-      if new_facing_x != 0:
-        facing_x = new_facing_x
-
-    # TODO: generalize these use cases into their respective render functions
-    if type(elem) is Soul:
-      elem.update(vfx)
-      pos_x, pos_y = elem.pos
-      sprite_x += pos_x
-      sprite_y += pos_y
-    if type(elem) is Palm:
-      scale_origin = "bottom"
-
-    item = None
-    anim_group = anims[0] if anims else []
-
-    for anim in [a for a in anim_group if a.target is elem]:
-      if type(anim) is ChestAnim or type(anim) is ItemAnim:
-        item = (
-          anim.item.render(),
-          anim.time / anim.duration,
-          elem.cell
-        )
-
-      if type(anim) is FlinchAnim:
-        offset_x, offset_y = anim.offset
-        sprite_x += offset_x
-        sprite_y += offset_y
-
-      if type(anim) is BounceAnim:
-        scale_x, scale_y = anim.scale
-        scale_origin = "bottom"
-
-      if type(anim) is FlickerAnim:
-        if anim.visible % 2:
-          sprite = None
-        else:
-          pinch_duration = anim.duration // 4
-          t = max(0, anim.time - anim.duration + pinch_duration) / pinch_duration
-          scale_x = lerp(1, 0, t)
-          scale_y = lerp(1, 3, t)
-
-      if type(anim) in (AttackAnim, MoveAnim, JumpAnim):
-        offset_y = 0
-        src_x, src_y = anim.src_cell
-        dest_x, dest_y = anim.dest_cell
-        if dest_x < src_x:
-          facing_x = -1
-        elif dest_x > src_x:
-          facing_y = 1
-        col, row = anim.cur_cell
-        if type(anim) is JumpAnim:
-          offset_y = anim.offset
-        sprite_x = col * TILE_SIZE
-        sprite_y = row * TILE_SIZE + offset_y
-
-      if anim.done:
-        anim_group.remove(anim)
-
-    # HACK: if element will move during the next animation sequence,
-    # make sure it doesn't jump ahead to the target position
-    for group in anims:
-      for anim in group:
-        if anims.index(group) == 0:
-          continue
-        if anim.target is elem and isinstance(anim, MoveAnim):
-          col, row = anim.src_cell
-          sprite_x = col * TILE_SIZE
-          sprite_y = row * TILE_SIZE
-
-    if isinstance(elem, DungeonActor):
-      self.facings[elem] = (facing_x, facing_y)
-
-    if not sprite:
-      return []
-
-    image = sprite.image
-    x = sprite_x + TILE_SIZE // 2 - image.get_width() // 2
-    y = sprite_y + TILE_SIZE // 2 - image.get_height() // 2
-    sprite.move((x, y))
-    sprites.append(sprite)
-
-    if item:
-      image, t, (col, row) = item
-      sprite_x = col * TILE_SIZE
-      sprite_y = row * TILE_SIZE
-      offset = min(1, t * 3) * 6 + ITEM_OFFSET
-      x = sprite_x + TILE_SIZE // 2 - image.get_width() // 2
-      y = sprite_y + TILE_SIZE // 2 - image.get_height() // 2 - offset
-      sprites.append(Sprite(
-        image=image,
-        pos=(x, y),
-        layer="numbers"
-      ))
-
-    return sprites
-
-  def view_elems(self, elems, hero, camera, visible_cells, anims, vfx):
+  def view_elems(self, elems, hero, camera, visible_cells, anims):
     sprites = []
     camera = camera.get_rect()
     def is_visible(elem):
@@ -238,7 +135,7 @@ class StageView:
       return True
     visible_elems = [e for e in elems if is_visible(e)]
     for elem in visible_elems:
-      sprites += self.view_elem(elem, anims, vfx)
+      sprites += self.view_elem(elem, anims)
 
     anim_group = anims[0] if anims else []
     for anim in anim_group:
@@ -319,7 +216,7 @@ class StageView:
     elems = stage.elems
     decors = stage.decors
     sprites += self.view_decors(decors, camera, visible_cells, visited_cells)
-    sprites += self.view_elems(elems, hero, camera, visible_cells, anims, vfx)
+    sprites += self.view_elems(elems, hero, camera, visible_cells, anims)
     sprites += self.view_vfx(vfx, camera)
     sprites += self.view_numbers(numbers, camera)
     for sprite in sprites:

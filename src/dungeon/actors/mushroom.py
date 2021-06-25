@@ -40,4 +40,4 @@ class Mushroom(DungeonActor):
   def view(mushroom, anims):
     sprites = use_assets().sprites
     sprite = sprites["mushroom"]
-    return super().view([Sprite(image=sprite)], anims)
+    return super().view(sprite, anims)

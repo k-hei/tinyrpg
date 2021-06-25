@@ -546,8 +546,8 @@ class DungeonContext(Context):
         AttackAnim(
           duration=DungeonContext.ATTACK_DURATION,
           target=hero,
-          src_cell=hero.cell,
-          dest_cell=target_cell
+          src=hero.cell,
+          dest=target_cell
         )
       ])
       if isinstance(target_elem, Npc):
@@ -623,8 +623,8 @@ class DungeonContext(Context):
         AttackAnim(
           duration=DungeonContext.ATTACK_DURATION,
           target=hero,
-          src_cell=hero.cell,
-          dest_cell=target.cell
+          src=hero.cell,
+          dest=target.cell
         ),
         PauseAnim(duration=15, on_end=lambda: (
           game.anims[0].append(ActivateAnim(
@@ -772,8 +772,8 @@ class DungeonContext(Context):
       move_anim = anim_kind(
         duration=duration,
         target=actor,
-        src_cell=actor.cell,
-        dest_cell=target_cell,
+        src=actor.cell,
+        dest=target_cell,
         on_end=on_end
       )
       move_group = game.find_move_group()
@@ -895,8 +895,8 @@ class DungeonContext(Context):
       AttackAnim(
         duration=DungeonContext.ATTACK_DURATION,
         target=actor,
-        src_cell=actor.cell,
-        dest_cell=target.cell,
+        src=actor.cell,
+        dest=target.cell,
         on_connect=connect
       )
     ])

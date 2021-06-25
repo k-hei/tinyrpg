@@ -24,8 +24,8 @@ class HelmSplitter(Skill):
       AttackAnim(
         duration=ATTACK_DURATION,
         target=user,
-        src_cell=user.cell,
-        dest_cell=target_cell,
+        src=user.cell,
+        dest=target_cell,
         on_end=lambda: (game.anims[0].append(PauseAnim(
           duration=45,
           on_end=lambda: (

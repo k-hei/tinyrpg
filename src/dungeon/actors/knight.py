@@ -62,4 +62,4 @@ class Knight(DungeonActor):
         sprite = assets["knight_down"]
       else:
         sprite = assets["knight"]
-    return super().view([Sprite(image=sprite)], anims)
+    return super().view(sprite, anims)

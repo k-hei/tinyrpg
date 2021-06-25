@@ -35,8 +35,8 @@ class Sprite:
     flip_x, flip_y = sprite.flip
     if flip_x or flip_y:
       image = flip(image, flip_x, flip_y)
-    if sprite.size:
-      width, height = sprite.size
+    width, height = sprite.size or (None, None)
+    if sprite.size and (width != image.get_width() or height != image.get_height()):
       scaled_image = scale(image, (int(width), int(height)))
     else:
       scaled_image = image

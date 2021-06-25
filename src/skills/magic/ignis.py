@@ -49,8 +49,8 @@ class Ignis(MagicSkill):
     game.anims.append([AttackAnim(
       duration=ATTACK_DURATION,
       target=user,
-      src_cell=user.cell,
-      dest_cell=dest
+      src=user.cell,
+      dest=dest
     )])
 
     mid_x = (dest_col + user_col) / 2

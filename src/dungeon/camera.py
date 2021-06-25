@@ -80,7 +80,7 @@ class Camera:
       camera_speed = 8
       move_anim = next((a for a in anims if not a.done and a.target is hero and type(a) is MoveAnim), None)
       if move_anim:
-        hero_x, hero_y = move_anim.cur_cell
+        hero_x, hero_y = move_anim.cell
 
       room_halfwidth = room.get_width() // 2 + 1
       room_halfheight = room.get_height() // 2 + 1
@@ -108,7 +108,7 @@ class Camera:
         and isinstance(a, MoveAnim)
       )), None)
       if move_anim:
-        focus_x, focus_y = move_anim.cur_cell
+        focus_x, focus_y = move_anim.cell
 
     camera_anim = camera.anims[0] if camera.anims else None
     if camera_anim:

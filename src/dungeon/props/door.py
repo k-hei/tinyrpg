@@ -64,5 +64,5 @@ class Door(Prop):
     image = replace_color(image, WHITE, SAFFRON)
     return [Sprite(
       image=image,
-      layer="tiles"
+      layer="decors"
     )]

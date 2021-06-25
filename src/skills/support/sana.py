@@ -51,8 +51,8 @@ class Sana(SupportSkill):
       AttackAnim(
         duration=ATTACK_DURATION,
         target=user,
-        src_cell=user.cell,
-        dest_cell=target_cell,
+        src=user.cell,
+        dest=target_cell,
         on_end=on_attack_end
       )
     ])

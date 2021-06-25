@@ -68,8 +68,8 @@ class ShieldBash(AttackSkill):
         move = MoveAnim(
           duration=MOVE_DURATION,
           target=target_elem,
-          src_cell=target_cell,
-          dest_cell=nudge_cell,
+          src=target_cell,
+          dest=nudge_cell,
           started=False,
           on_end=on_move
         )
@@ -79,8 +79,8 @@ class ShieldBash(AttackSkill):
         AttackAnim(
           duration=ATTACK_DURATION,
           target=user,
-          src_cell=user.cell,
-          dest_cell=target_cell,
+          src=user.cell,
+          dest=target_cell,
           on_end=lambda: (game.anims[0].append(PauseAnim(
             duration=45,
             on_end=lambda: (

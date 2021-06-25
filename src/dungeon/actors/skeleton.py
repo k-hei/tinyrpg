@@ -36,7 +36,7 @@ class Skeleton(DungeonActor):
 
     return True
 
-  def render(knight, anims):
+  def view(skeleton, anims):
     sprites = use_assets().sprites
     sprite = sprites["skeleton"]
-    return super().render([Sprite(image=sprite)], anims)
+    return super().view(sprite, anims)

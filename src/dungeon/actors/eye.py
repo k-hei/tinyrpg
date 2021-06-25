@@ -23,15 +23,15 @@ class Eye(DungeonActor):
       skills=[ Tackle ]
     ))
 
-  def render(eye, anims):
+  def view(eye, anims):
     sprites = use_assets().sprites
     sprite = None
     for anim_group in anims:
       for anim in [a for a in anim_group if a.target is eye]:
         if type(anim) is AwakenAnim:
-          return super().render(sprites["eye_attack"], anims)
+          return super().view(sprites["eye_attack"], anims)
     if eye.is_dead():
-      return super().render(sprites["eye_flinch"], anims)
+      return super().view(sprites["eye_flinch"], anims)
     anim_group = [a for a in anims[0] if a.target is eye] if anims else []
     for anim in anim_group:
       if type(anim) is MoveAnim:
@@ -49,4 +49,4 @@ class Eye(DungeonActor):
         sprite = sprites["eye_attack"]
       else:
         sprite = sprites["eye"]
-    return super().render([Sprite(image=sprite)], anims)
+    return super().view(sprite, anims)

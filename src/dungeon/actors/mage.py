@@ -12,7 +12,7 @@ class Mage(DungeonActor):
   def __init__(mage, core):
     super().__init__(core)
 
-  def render(mage, anims):
+  def view(mage, anims):
     sprites = use_assets().sprites
     anim_group = [a for a in anims[0] if a.target is mage] if anims else []
     for anim in anim_group:
@@ -63,4 +63,4 @@ class Mage(DungeonActor):
         sprite = sprites["mage_down"]
       else:
         sprite = sprites["mage"]
-    return super().render([Sprite(image=sprite)], anims)
+    return super().view(sprite, anims)

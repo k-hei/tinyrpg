@@ -1,4 +1,7 @@
 import random
+from pygame import Surface
+from sprite import Sprite
+
 from dungeon.element import DungeonElement
 from cores import Core
 from skills.weapon import Weapon
@@ -6,11 +9,15 @@ from skills.weapon import Weapon
 from palette import BLACK, RED, GREEN, BLUE, PURPLE, GOLD_DARK
 from assets import load as use_assets
 from filters import replace_color, darken
+from anims.move import MoveAnim
+from anims.attack import AttackAnim
 from anims.awaken import AwakenAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from lib.cell import is_adjacent, manhattan
+from lib.lerp import lerp
 from comps.log import Token
+from config import TILE_SIZE
 
 class DungeonActor(DungeonElement):
   POISON_DURATION = 5
@@ -57,9 +64,10 @@ class DungeonActor(DungeonElement):
     delta_x = dest_x - actor_x
     delta_y = dest_y - actor_y
     if abs(delta_x) >= abs(delta_y):
-      actor.facing = int(delta_x / (abs(delta_x) or 1)), 0
+      actor.facing = (int(delta_x / (abs(delta_x) or 1)), 0)
     else:
-      actor.facing = 0, int(delta_y / (abs(delta_y) or 1))
+      actor.facing = (0, int(delta_y / (abs(delta_y) or 1)))
+    actor.core.facing = actor.facing
 
   def inflict_ailment(actor, ailment):
     if ailment == actor.ailment:
@@ -127,18 +135,38 @@ class DungeonActor(DungeonElement):
       game.move_to(actor, enemy.cell)
     return True
 
-  def view(actor, sprites, anims=[]):
-    if not sprites:
+  def view(actor, sprite, anims=[]):
+    if not sprite:
       return []
-    sprite = sprites[0]
+    if type(sprite) is Surface:
+      sprite = Sprite(image=sprite)
+    if type(sprite) is list:
+      sprite = sprite[0]
+    offset_x, offset_y = (0, 0)
+    actor_width, actor_height = (TILE_SIZE, TILE_SIZE)
+    actor_cell = actor.cell
     new_color = None
     asleep = actor.ailment == "sleep"
     anim_group = [a for a in anims[0] if a.target is actor] if anims else []
     for anim in anim_group:
       if type(anim) is AwakenAnim and anim.visible:
         asleep = True
-      elif type(anim) is FlinchAnim and anim.time <= 2:
-        return None
+      elif type(anim) is MoveAnim or type(anim) is AttackAnim:
+        anim_x, anim_y = anim.cell
+        actor_x, actor_y = actor.cell
+        offset_x = (anim_x - actor_x) * TILE_SIZE
+        offset_y = (anim_y - actor_y) * TILE_SIZE
+      elif type(anim) is FlinchAnim and anim.time <= 3:
+        return []
+      elif type(anim) is FlinchAnim:
+        offset_x, offset_y = anim.offset
+      elif type(anim) is FlickerAnim and anim.time % 2:
+        return []
+      elif type(anim) is FlickerAnim:
+        pinch_duration = anim.duration // 4
+        t = max(0, anim.time - anim.duration + pinch_duration) / pinch_duration
+        actor_width *= lerp(1, 0, t)
+        actor_height *= lerp(1, 3, t)
     else:
       if actor.ailment == "poison":
         new_color = PURPLE
@@ -154,6 +182,11 @@ class DungeonActor(DungeonElement):
       sprite.image = replace_color(sprite.image, BLACK, new_color)
     if asleep:
       sprite.image = darken(sprite.image)
+    facing_x, _ = actor.facing
+    _, flip_y = sprite.flip
+    sprite.flip = (facing_x == -1, flip_y)
+    sprite.move((offset_x, offset_y))
+    sprite.size = (actor_width, actor_height)
     sprite.layer = "elems"
     return [sprite]
 
@@ -163,4 +196,4 @@ class DungeonActor(DungeonElement):
     if actor.core.faction == "enemy": return RED
 
   def token(actor):
-    return Token(text=actor.get_name().upper(), color=actor.color())
+    return Token(text=actor.get_name().upper(), color=actor.color() if callable(actor.color) else actor.color)

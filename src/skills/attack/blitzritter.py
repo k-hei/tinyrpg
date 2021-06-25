@@ -121,8 +121,8 @@ class Blitzritter(AttackSkill):
     game.anims.append([AttackAnim(
       duration=ATTACK_DURATION,
       target=user,
-      src_cell=user.cell,
-      dest_cell=near_cell,
+      src=user.cell,
+      dest=near_cell,
       on_connect=connect,
       on_end=end_bump
     )])

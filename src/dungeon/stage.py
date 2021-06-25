@@ -36,7 +36,6 @@ class Stage:
     stage.entrance = None
     stage.stairs = None
     stage.trap_sprung = False
-    stage.facings = {}
 
   def fill(stage, data):
     width, height = stage.size

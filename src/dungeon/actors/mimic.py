@@ -23,7 +23,7 @@ class Mimic(DungeonActor):
   def activate(mimic):
     mimic.idle = False
 
-  def render(mimic, anims):
+  def view(mimic, anims):
     sprites = use_assets().sprites
     sprite = sprites["chest"]
     anim_group = [a for a in anims[0] if a.target is mimic] if anims else []
@@ -34,4 +34,4 @@ class Mimic(DungeonActor):
     else:
       if mimic.idle:
         return Chest.render(mimic, anims)
-    return super().render([sprite], anims)
+    return super().view(sprite, anims)

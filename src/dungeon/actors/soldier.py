@@ -36,7 +36,7 @@ class Soldier(DungeonActor):
 
     return True
 
-  def render(soldier, anims):
+  def view(soldier, anims):
     sprites = use_assets().sprites
     sprite = sprites["soldier"]
-    return super().render([Sprite(image=sprite)], anims)
+    return super().view(sprite, anims)
