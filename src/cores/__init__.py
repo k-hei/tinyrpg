@@ -41,17 +41,31 @@ class Core:
   def get_active_skills(core):
     return [s for s in core.skills if s.kind != "armor"]
 
+  def heal(core, hp):
+    core.set_hp(min(core.get_hp_max(), core.get_hp() + hp))
+
+  def damage(core, hp):
+    core.set_hp(core.get_hp() - hp)
+    if core.get_hp() <= 0:
+      core.kill()
+
   def kill(core):
+    if core.dead:
+      return False
     core.set_hp(0)
     core.dead = True
+    return True
 
   def revive(core, hp_factor):
+    if not core.dead:
+      return False
     if hp_factor == 0:
       revive_hp = 1
     else:
       revive_hp = core.get_hp_max() * hp_factor
     core.set_hp(revive_hp)
     core.dead = False
+    return True
 
   def allied(a, b):
     return (a.faction == b.faction

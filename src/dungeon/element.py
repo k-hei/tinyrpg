@@ -4,5 +4,5 @@ class DungeonElement:
     elem.opaque = opaque
     elem.cell = None
 
-  def render(elem, sprite, anims=[]):
+  def view(elem, sprite, anims=[]):
     return sprite

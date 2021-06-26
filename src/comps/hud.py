@@ -33,7 +33,7 @@ HP_BAR_Y2 = 28
 HP_WIDTH = 26
 HP_CRITICAL = 5
 SPEED_DEPLETE = 200
-SPEED_RESTORE = 100
+SPEED_RESTORE = 300
 ENTER_DURATION = 15
 EXIT_DURATION = 6
 FLINCH_DURATION = 10
@@ -89,7 +89,9 @@ class Hud:
     if (hud.image is None
     or hud.anims
     or hero != hud.hero
-    or ally != hud.ally):
+    or ally != hud.ally
+    or hero.get_hp() != hud.hp_hero
+    or ally and ally.get_hp() != hud.hp_ally):
       if hero != hud.hero:
         if hud.hero is not None:
           hud.anims.append(SwitchOutAnim())
@@ -117,9 +119,9 @@ class Hud:
         hud.hp_hero = max(hero.get_hp(), hud.hp_hero - hero.get_hp_max() / SPEED_DEPLETE)
       if anim is None and hud.hp_hero < hero.get_hp():
         hud.hp_hero = min(hero.get_hp(), hud.hp_hero + hero.get_hp_max() / SPEED_RESTORE)
-      if anim is None and hud.hp_ally > ally.get_hp():
+      if anim is None and ally and hud.hp_ally > ally.get_hp():
         hud.hp_ally = max(ally.get_hp(), hud.hp_ally - ally.get_hp_max() / SPEED_DEPLETE)
-      if anim is None and hud.hp_ally < ally.get_hp():
+      if anim is None and ally and hud.hp_ally < ally.get_hp():
         hud.hp_ally = min(ally.get_hp(), hud.hp_ally + ally.get_hp_max() / SPEED_RESTORE)
     hud.hp_hero_drawn = hero.get_hp()
     if ally:
@@ -263,7 +265,7 @@ def render_bar(pct, color):
   surface = Surface((HP_WIDTH, 2), SRCALPHA)
   pygame.draw.rect(surface, color, Rect(
     (0, 0),
-    (HP_WIDTH // 2 * min(0.5, pct) / 0.5 - 1, 1)
+    (ceil(HP_WIDTH // 2 * min(0.5, pct) / 0.5 - 1), 1)
   ))
   if pct > 0.5:
     pygame.draw.rect(surface, color, Rect(
