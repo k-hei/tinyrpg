@@ -1,6 +1,7 @@
-from math import ceil
+from math import ceil, inf
+from random import randint
 import pygame
-from pygame import Surface, SRCALPHA
+from pygame import Rect, Surface, SRCALPHA
 from pygame.transform import scale
 
 from palette import BLACK, WHITE, BLUE, RED, CYAN, GRAY
@@ -13,6 +14,7 @@ from cores.knight import Knight
 from cores.mage import Mage
 from cores.rogue import Rogue
 
+from anims import Anim
 from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in
 from lib.lerp import lerp
@@ -28,7 +30,7 @@ HP_MAX_Y = 7
 HP_BAR_X = 52
 HP_BAR_Y1 = 18
 HP_BAR_Y2 = 28
-HP_HALFWIDTH = 13
+HP_WIDTH = 26
 HP_CRITICAL = 5
 SPEED_DEPLETE = 200
 SPEED_RESTORE = 100
@@ -50,19 +52,27 @@ class SwitchOutAnim(TweenAnim):
 class SwitchInAnim(TweenAnim):
   def __init__(anim):
     super().__init__(duration=SWITCHIN_DURATION)
+class FlinchAnim(Anim):
+  def __init__(anim):
+    super().__init__(duration=FLINCH_DURATION)
 
 class Hud:
   MARGIN_LEFT = 8
   MARGIN_TOP = 8
 
-  def __init__(hud, party):
+  def __init__(hud, party, hp=False):
     hud.party = party
+    hud.draws_hp = hp
     hud.image = None
     hud.active = True
     hud.anims = []
-    hud.anims_drawn = 0
+    hud.offset = (0, 0)
     hud.hero = None
     hud.ally = None
+    hud.hp_hero = inf
+    hud.hp_ally = inf
+    hud.hp_hero_drawn = inf
+    hud.hp_ally_drawn = inf
     hud.enter()
 
   def enter(hud):
@@ -74,10 +84,10 @@ class Hud:
     hud.anims.append(ExitAnim())
 
   def update(hud):
-    hero = hud.party[0]
-    ally = hud.party[1] if len(hud.party) == 2 else None
+    hero = hud.party[0] if len(hud.party) >= 1 else None
+    ally = hud.party[1] if len(hud.party) >= 2 else None
     if (hud.image is None
-    or hud.anims_drawn
+    or hud.anims
     or hero != hud.hero
     or ally != hud.ally):
       if hero != hud.hero:
@@ -85,22 +95,54 @@ class Hud:
           hud.anims.append(SwitchOutAnim())
           hud.anims.append(SwitchInAnim())
         hud.hero = hero
+        hud.hp_hero = hero.get_hp()
+      elif hero.get_hp() < hud.hp_hero_drawn:
+        hud.anims.append(FlinchAnim())
+        if hud.hp_hero == inf:
+          hud.hp_hero = hero.get_hp_max()
       if ally != hud.ally:
         hud.ally = ally
+        hud.hp_ally = ally.get_hp()
+      elif ally and ally.get_hp() < hud.hp_ally_drawn:
+        hud.anims.append(FlinchAnim())
+        if hud.hp_ally == inf:
+          hud.hp_ally = ally.get_hp_max()
       anim = hud.anims[0] if hud.anims else None
-      hud.anims_drawn = len(hud.anims)
-      hud.image = hud.render(hero, ally, anim)
-    return hud.image
+      if anim:
+        if anim.done:
+          hud.anims.pop(0)
+        else:
+          anim.update()
+      if anim is None and hud.hp_hero > hero.get_hp():
+        hud.hp_hero = max(hero.get_hp(), hud.hp_hero - hero.get_hp_max() / SPEED_DEPLETE)
+      if anim is None and hud.hp_hero < hero.get_hp():
+        hud.hp_hero = min(hero.get_hp(), hud.hp_hero + hero.get_hp_max() / SPEED_RESTORE)
+      if anim is None and hud.hp_ally > ally.get_hp():
+        hud.hp_ally = max(ally.get_hp(), hud.hp_ally - ally.get_hp_max() / SPEED_DEPLETE)
+      if anim is None and hud.hp_ally < ally.get_hp():
+        hud.hp_ally = min(ally.get_hp(), hud.hp_ally + ally.get_hp_max() / SPEED_RESTORE)
+    hud.hp_hero_drawn = hero.get_hp()
+    if ally:
+      hud.hp_ally_drawn = ally.get_hp()
 
-  def render(hud, hero, ally, anim=None):
+  def render(hud):
+    hero = hud.party[0] if len(hud.party) >= 1 else None
+    ally = hud.party[1] if len(hud.party) >= 2 else None
+    anim = hud.anims[0] if hud.anims else None
     assets = use_assets()
     sprite_hud = (ally
-      and assets.sprites["hud_town"]
-      or assets.sprites["hud_circle"])
+      and (hud.draws_hp
+        and assets.sprites["hud"]
+        or assets.sprites["hud_town"]
+      ) or (hud.draws_hp
+        and assets.sprites["hud_single"]
+        or assets.sprites["hud_circle"]
+      )
+    )
 
-    width = sprite_hud.get_width()
+    width = sprite_hud.get_width() + 1
     height = sprite_hud.get_height()
-    sprite = Surface((width, height)).convert_alpha()
+    sprite = Surface((width, height), SRCALPHA)
     sprite.blit(sprite_hud, (0, 0))
 
     hero_portrait = None
@@ -126,11 +168,11 @@ class Hud:
       ally_portrait = assets.sprites["circ16_rogue"]
 
     if hero.dead:
-      hero_portrait = replace_color(hero_portrait, palette.WHITE, palette.BLACK)
-      hero_portrait = replace_color(hero_portrait, palette.BLUE, palette.RED)
+      hero_portrait = replace_color(hero_portrait, WHITE, BLACK)
+      hero_portrait = replace_color(hero_portrait, BLUE, RED)
     if ally and ally.dead:
-      ally_portrait = replace_color(ally_portrait, palette.WHITE, palette.BLACK)
-      ally_portrait = replace_color(ally_portrait, palette.BLUE, palette.RED)
+      ally_portrait = replace_color(ally_portrait, WHITE, BLACK)
+      ally_portrait = replace_color(ally_portrait, BLUE, RED)
 
     hero_scaled = hero_portrait
     ally_scaled = ally_portrait
@@ -150,48 +192,85 @@ class Hud:
       hero_portrait.get_width() // 2 - hero_scaled.get_width() // 2,
       hero_portrait.get_height() // 2 - hero_scaled.get_height() // 2
     ))
+    hero_hp_pos = (HP_BAR_X, HP_BAR_Y1)
+    if hud.draws_hp and hero.get_hp() <= hud.hp_hero:
+      sprite.blit(render_bar(hud.hp_hero / hero.get_hp_max(), RED), hero_hp_pos)
+      sprite.blit(render_bar(hero.get_hp() / hero.get_hp_max(), WHITE), hero_hp_pos)
+    else:
+      sprite.blit(render_bar(hero.get_hp() / hero.get_hp_max(), CYAN), hero_hp_pos)
+      sprite.blit(render_bar(hud.hp_hero / hero.get_hp_max(), WHITE), hero_hp_pos)
+
     if ally:
       sprite.blit(ally_scaled, (
         CIRC16_X + ally_portrait.get_width() // 2 - ally_scaled.get_width() // 2,
         CIRC16_Y + ally_portrait.get_height() // 2 - ally_scaled.get_height() // 2
       ))
+      ally_hp_pos = (HP_BAR_X, HP_BAR_Y2)
+      if hud.draws_hp and ally.get_hp() <= hud.hp_ally:
+        sprite.blit(render_bar(hud.hp_ally / ally.get_hp_max(), RED), ally_hp_pos)
+        sprite.blit(render_bar(ally.get_hp() / ally.get_hp_max(), WHITE), ally_hp_pos)
+      else:
+        sprite.blit(render_bar(ally.get_hp() / ally.get_hp_max(), CYAN), ally_hp_pos)
+        sprite.blit(render_bar(hud.hp_ally / ally.get_hp_max(), WHITE), ally_hp_pos)
+
+    if hud.draws_hp:
+      sprite.blit(assets.sprites["hp"], (HP_X, HP_Y))
+      hptext_image = render_numbers(hero.get_hp(), hero.get_hp_max(), HP_CRITICAL)
+      sprite.blit(hptext_image, (HP_VALUE_X, HP_VALUE_Y))
     return sprite
 
   def view(hud):
+    hud.image = hud.render()
     hud.update()
-    hud_image = hud.image
-    hidden_x, hidden_y = Hud.MARGIN_LEFT, -hud_image.get_height()
-    corner_x, corner_y = Hud.MARGIN_LEFT, Hud.MARGIN_TOP
+    from_x, from_y = Hud.MARGIN_LEFT, -hud.image.get_height()
+    to_x, to_y = Hud.MARGIN_LEFT, Hud.MARGIN_TOP
     anim = hud.anims[0] if hud.anims else None
     if anim:
-      t = anim.update()
       if type(anim) is EnterAnim:
+        t = anim.pos
         t = ease_out(t)
-        start_x, start_y = hidden_x, hidden_y
-        target_x, target_y = corner_x, corner_y
+        start_x, start_y = from_x, from_y
+        target_x, target_y = to_x, to_y
       elif type(anim) is ExitAnim:
-        start_x, start_y = corner_x, corner_y
-        target_x, target_y = hidden_x, hidden_y
+        t = anim.pos
+        start_x, start_y = to_x, to_y
+        target_x, target_y = from_x, from_y
+      elif type(anim) is FlinchAnim:
+        offset_x, offset_y = hud.offset
+        while (offset_x, offset_y) == hud.offset:
+          offset_x = randint(-1, 1)
+          offset_y = randint(-1, 1)
+        hud_x = to_x + offset_x
+        hud_y = to_y + offset_y
       else:
-        hud_x = corner_x
-        hud_y = corner_y
-
+        hud_x = to_x
+        hud_y = to_y
       if type(anim) is EnterAnim or type(anim) is ExitAnim:
         hud_x = lerp(start_x, target_x, t)
         hud_y = lerp(start_y, target_y, t)
-
-      if anim.done:
-        hud.anims.pop(0)
     elif hud.active:
-      hud_x = corner_x
-      hud_y = corner_y
+      hud_x = to_x
+      hud_y = to_y
     else:
       return []
     return [Sprite(
-      image=hud_image,
+      image=hud.image,
       pos=(hud_x, hud_y),
       layer="hud"
     )]
+
+def render_bar(pct, color):
+  surface = Surface((HP_WIDTH, 2), SRCALPHA)
+  pygame.draw.rect(surface, color, Rect(
+    (0, 0),
+    (HP_WIDTH // 2 * min(0.5, pct) / 0.5 - 1, 1)
+  ))
+  if pct > 0.5:
+    pygame.draw.rect(surface, color, Rect(
+      (HP_WIDTH // 2 - 1, 1),
+      (HP_WIDTH // 2 * min(1, (pct - 0.5) / 0.5), 1)
+    ))
+  return surface
 
 def render_numbers(hp, hp_max, crit_threshold=0):
   assets = use_assets()
