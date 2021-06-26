@@ -1,6 +1,7 @@
 import math
 from pygame import Surface, PixelArray, SRCALPHA
 from sprite import Sprite
+from config import WINDOW_SIZE
 
 # a node is a diamond. has form (x, y, t) where t is the size based on renders
 # stack holds the newest nodes
@@ -51,9 +52,8 @@ def gen_diamonds(radius, step):
 diamonds = gen_diamonds(DIAMOND_RADIUS, SPREAD_SPEED)
 
 class DissolveIn:
-  def __init__(transit, size, on_end=None):
+  def __init__(transit, on_end=None):
     start = (DIAMOND_RADIUS // 2, DIAMOND_RADIUS // 2, 0)
-    transit.size = size
     transit.on_end = on_end
     transit.stack = [start]
     transit.nodes = [start]
@@ -64,7 +64,7 @@ class DissolveIn:
   def update(transit):
     if transit.done:
       return
-    view_width, view_height = transit.size
+    view_width, view_height = WINDOW_SIZE
     old_stack = transit.stack
     new_stack = []
     if transit.time % MULTIPLY_DELAY == 0:
@@ -95,7 +95,7 @@ class DissolveIn:
     transit.time += 1
 
   def view(transit, sprites=None):
-    surface = Surface(transit.size, SRCALPHA)
+    surface = Surface(WINDOW_SIZE, SRCALPHA)
     transit.draw(surface)
     return [Sprite(
       image=surface,
@@ -110,8 +110,7 @@ class DissolveIn:
       surface.blit(diamond, (x - t, y - t))
 
 class DissolveOut:
-  def __init__(transit, size, on_end=None):
-    transit.size = size
+  def __init__(transit, on_end=None):
     transit.on_end = on_end
     transit.stack = [(0, 0)]
     transit.nodes = []
@@ -123,7 +122,7 @@ class DissolveOut:
   def load_nodes(transit):
     transit.nodes = []
     transit.node_times = {}
-    view_width, view_height = transit.size
+    view_width, view_height = WINDOW_SIZE
     cols = view_width // DIAMOND_RADIUS + 1
     rows = view_height // DIAMOND_RADIUS + 1
     for y in range(rows):
@@ -136,7 +135,7 @@ class DissolveOut:
   def update(transit):
     if transit.done:
       return
-    view_width, view_height = transit.size
+    view_width, view_height = WINDOW_SIZE
     nodes = transit.nodes
     node_times = transit.node_times
     old_stack = transit.stack
@@ -171,7 +170,7 @@ class DissolveOut:
     transit.time += 1
 
   def view(transit, sprites=None):
-    surface = Surface(transit.size, SRCALPHA)
+    surface = Surface(WINDOW_SIZE, SRCALPHA)
     transit.draw(surface)
     return [Sprite(
       image=surface,

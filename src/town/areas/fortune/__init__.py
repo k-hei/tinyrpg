@@ -8,6 +8,7 @@ from contexts.prompt import PromptContext, Choice
 from contexts.shop import ShopContext
 from cores.mira import MiraCore
 from cores.rogue import Rogue
+from transits.dissolve import DissolveOut
 from savedata.resolve import resolve_item
 from palette import BLACK, ORANGE, BLUE_DARK
 
@@ -50,7 +51,7 @@ class FortuneArea(Stage):
           "{}: Welcome...".format(talkee.get_name().upper()),
           lambda: FortuneContext(),
           lambda: ctx.anims.append(ctx.HudAnim()),
-          lambda: ctx.get_root().dissolve_out()
+          lambda: ctx.get_root().transition(DissolveOut())
         ]
       ),
       "2": FortuneDesk,

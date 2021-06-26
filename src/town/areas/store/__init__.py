@@ -14,6 +14,7 @@ from cores.wife import Wife
 from cores.rogue import Rogue
 from portraits.husband import HusbandPortrait
 from portraits.wife import WifePortrait
+from transits.dissolve import DissolveOut
 from savedata.resolve import resolve_item
 from palette import ORANGE, WHITE
 
@@ -57,7 +58,7 @@ class StoreArea(Stage):
           "{}: Ever get a rebar stuck up your ass?".format(talkee.get_name().upper()),
           shop,
           lambda: ctx.anims.append(ctx.HudAnim()),
-          lambda: ctx.get_root().dissolve_out()
+          lambda: ctx.get_root().transition(DissolveOut())
         ]
       ),
       "2": Actor(
@@ -71,7 +72,7 @@ class StoreArea(Stage):
           "{}: Welcome!".format(talkee.get_name().upper()),
           shop,
           lambda: ctx.anims.append(ctx.HudAnim()),
-          lambda: ctx.get_root().dissolve_out()
+          lambda: ctx.get_root().transition(DissolveOut())
         ]
       ),
       "3": Actor(

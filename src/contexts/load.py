@@ -1,6 +1,7 @@
 from contexts.data import DataContext
 from contexts.dialogue import DialogueContext
 from contexts.prompt import PromptContext, Choice
+from transits.dissolve import DissolveIn, DissolveOut
 
 class LoadContext(DataContext):
   title = "LOAD DATA"
@@ -23,6 +24,9 @@ class LoadContext(DataContext):
       choice.text == "Yes" and ctx.open(DialogueContext(
         script=["Save data loaded successfully."],
         lite=True,
-        on_close=lambda: ctx.get_root().dissolve(on_clear=lambda: ctx.close(savedata))
+        on_close=lambda: ctx.get_root().transition(
+          DissolveIn(on_end=lambda: ctx.close(savedata)),
+          DissolveOut()
+        )
       ))
     ))

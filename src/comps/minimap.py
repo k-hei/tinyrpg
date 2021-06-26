@@ -248,7 +248,7 @@ class Minimap:
       x = corner_x
       y = corner_y
     else:
-      return
+      return []
 
     if not redrawn:
       redrawn = True

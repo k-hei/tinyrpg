@@ -102,20 +102,8 @@ class App(Context):
     app.display.blit(scale(app.surface, app.size_scaled), (0, 0))
     pygame.display.flip()
 
-  def transition(app, transit):
-    app.transits.append(transit)
-
-  def dissolve(app, on_clear=None, on_end=None):
-    app.transits += [
-      DissolveIn(WINDOW_SIZE, on_clear),
-      DissolveOut(WINDOW_SIZE, on_end),
-    ]
-
-  def dissolve_in(app, on_end=None):
-    app.transits.append(DissolveIn(WINDOW_SIZE, on_end))
-
-  def dissolve_out(app, on_end=None):
-    app.transits.append(DissolveOut(WINDOW_SIZE, on_end))
+  def transition(app, *transits):
+    app.transits += transits
 
   def print_contexts(app):
     contexts = []

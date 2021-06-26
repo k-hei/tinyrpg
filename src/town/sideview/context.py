@@ -12,6 +12,7 @@ from sprite import Sprite
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
 from filters import replace_color, outline
 from palette import BLACK, WHITE, BLUE
+from transits.dissolve import DissolveIn, DissolveOut
 from anims import Anim
 import keyboard
 
@@ -62,6 +63,7 @@ class SideViewContext(Context):
     spawn_x = ctx.spawn.x if ctx.spawn else 64
     for actor in ctx.party:
       ctx.area.spawn(actor, spawn_x)
+      actor.stop_move()
       spawn_x -= TILE_SIZE * facing_x
     ctx.area.init(ctx)
 
@@ -146,7 +148,10 @@ class SideViewContext(Context):
     return True
 
   def follow_link(ctx, link):
-    ctx.get_root().dissolve(on_clear=lambda: ctx.change_areas(link))
+    ctx.get_root().transition(
+      DissolveIn(on_end=lambda: ctx.change_areas(link)),
+      DissolveOut()
+    )
 
   def change_areas(ctx, link):
     if graph := ctx.get_graph():

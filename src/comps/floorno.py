@@ -63,7 +63,7 @@ class FloorNo:
       x = corner_x
       y = corner_y
     else:
-      return
+      return []
     return [Sprite(
       image=image,
       pos=(x, y)

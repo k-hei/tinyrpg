@@ -16,7 +16,7 @@ from lib.cell import add, is_adjacent, manhattan, normal
 from assets import load as load_assets
 from filters import recolor, replace_color
 from text import render as render_text
-from transits.dissolve import DissolveOut
+from transits.dissolve import DissolveIn, DissolveOut
 
 import dungeon.gen as gen
 from dungeon.fov import shadowcast
@@ -114,7 +114,7 @@ class DungeonContext(Context):
     game.comps = [
       game.log,
       game.minimap,
-      Hud(party=game.parent.party),
+      Hud(party=game.parent.party, hp=True),
       Previews(parent=game),
       FloorNo(parent=game),
       SpMeter(parent=game.parent)
@@ -675,11 +675,12 @@ class DungeonContext(Context):
   def handle_floorchange(game, direction):
     for comp in game.comps:
       comp.exit()
-    game.parent.dissolve(
-      on_clear=lambda: (
+    game.get_root().transition(
+      DissolveIn(on_end=lambda: (
         game.camera.reset(),
         game.change_floors(direction)
-      )
+      )),
+      DissolveOut()
     )
 
   def handle_skill(game):
@@ -1131,7 +1132,11 @@ class DungeonContext(Context):
   def leave_dungeon(game):
     for comp in game.comps:
       comp.exit()
-    game.parent.dissolve(on_clear=lambda: game.parent.goto_town(returning=True))
+    app = game.get_root()
+    app.transition(
+      DissolveIn(on_end=lambda: game.parent.goto_town(returning=True)),
+      DissolveOut()
+    )
 
   def toggle_lights(game):
     game.lights = not game.lights
@@ -1184,5 +1189,9 @@ class DungeonContext(Context):
       sprites += game.minimap.view()
     else:
       for comp in game.comps:
-        sprites += comp.view()
+        try:
+          sprites += comp.view()
+        except TypeError:
+          print(comp)
+          raise
     return sprites + super().view()

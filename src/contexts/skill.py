@@ -79,8 +79,8 @@ class SkillContext(Context):
 
   def handle_turn(ctx, delta):
     game = ctx.parent
-    hero = ctx.actor
     skill = ctx.skill
+    hero = ctx.actor
     hero_x, hero_y = hero.cell
     delta_x, delta_y = delta
     target_cell = (hero_x + delta_x, hero_y + delta_y)

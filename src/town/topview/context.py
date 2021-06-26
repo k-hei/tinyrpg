@@ -13,6 +13,7 @@ from easing.expo import ease_out
 from lib.lerp import lerp
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
 from filters import outline
+from transits.dissolve import DissolveIn, DissolveOut
 from palette import BLACK, WHITE
 import keyboard
 from cores.knight import Knight
@@ -173,7 +174,10 @@ class TopViewContext(Context):
 
   def handle_areachange(ctx, delta):
     ctx.link = delta
-    ctx.get_root().dissolve(on_clear=lambda: ctx.change_areas(ctx.area.links["entrance"]))
+    ctx.get_root().transition(
+      DissolveIn(on_end=lambda: ctx.change_areas(ctx.area.links["entrance"])),
+      DissolveOut()
+    )
 
   def change_areas(ctx, link):
     if graph := ctx.get_graph():
