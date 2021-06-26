@@ -50,6 +50,10 @@ class Bag(Prop):
     sprites = use_assets().sprites
     bag_image = sprites["bag" if bag.anim.bounces else "bag_float"]
     bag.anim.update()
+    if anims:
+      bag_anim = next((a for a in anims[0] if a.target is bag), None)
+      if bag_anim and type(bag_anim) is FlickerAnim and bag_anim.time % 2:
+        return []
     return [Sprite(
       image=bag_image,
       pos=(0, bag.anim.y),
