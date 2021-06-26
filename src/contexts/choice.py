@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from types import FunctionType as function
 import pygame
 from pygame import Surface, Rect
 
@@ -7,7 +8,7 @@ from text import render as render_text
 from contexts import Context
 from keyboard import key_times
 from filters import recolor, replace_color
-from palette import BLACK, WHITE, YELLOW
+from palette import BLACK, WHITE, GRAY, YELLOW
 
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
@@ -28,6 +29,10 @@ class Choice:
   text: str
   default: bool = False
   closing: bool = False
+  disabled: function = None
+
+  def is_disabled(choice):
+    return choice and choice.disabled and choice.disabled()
 
 class ChoiceContext(Context):
   def __init__(ctx, choices, required=False, on_choose=None, on_close=None):
@@ -82,6 +87,10 @@ class ChoiceContext(Context):
   def handle_move(ctx, delta):
     old_index = ctx.index
     new_index = old_index + delta
+    while (new_index >= 0
+    and new_index < len(ctx.choices)
+    and ctx.choices[new_index].is_disabled()):
+      new_index += delta
     if new_index >= 0 and new_index < len(ctx.choices):
       ctx.index = new_index
 
@@ -155,8 +164,8 @@ class ChoiceContext(Context):
         color = WHITE
         if choice is ctx.choices[ctx.index]:
           color = YELLOW
-          # if cursor_anim and not cursor_anim.visible:
-          #   visible = False
+        if choice.is_disabled():
+          color = GRAY
         text = font.render(choice.text, color)
         if visible:
           surface.blit(text, (x, y))

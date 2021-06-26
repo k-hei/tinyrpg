@@ -104,7 +104,8 @@ class Hud:
           hud.hp_hero = hero.get_hp_max()
       if ally != hud.ally:
         hud.ally = ally
-        hud.hp_ally = ally.get_hp()
+        if ally:
+          hud.hp_ally = ally.get_hp()
       elif ally and ally.get_hp() < hud.hp_ally_drawn:
         hud.anims.append(FlinchAnim())
         if hud.hp_ally == inf:
