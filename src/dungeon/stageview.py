@@ -220,7 +220,7 @@ class StageView:
     sprites += self.view_vfx(vfx, camera)
     sprites += self.view_numbers(numbers, camera)
     for sprite in sprites:
-      camera_x, camera_y = camera.pos
+      camera_x, camera_y = camera.pos or (0, 0)
       camera_inv = (-camera_x, -camera_y)
       sprite.move(camera_inv)
     sprites += self.view_tiles(camera)

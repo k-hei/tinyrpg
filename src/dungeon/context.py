@@ -1120,7 +1120,7 @@ class DungeonContext(Context):
       new_floor = game.floors[index]
       stairs_x, stairs_y = new_floor.find_tile(entry_tile)
       new_floor.spawn_elem(game.hero, (stairs_x, stairs_y))
-      if not game.ally.is_dead():
+      if game.ally and not game.ally.is_dead():
         new_floor.spawn_elem(game.ally, (stairs_x - 1, stairs_y))
       game.floor = new_floor
       game.refresh_fov(moving=True)
@@ -1164,10 +1164,14 @@ class DungeonContext(Context):
     return next((cells for f, cells in game.memory if f is floor), None)
 
   def update_camera(game):
-    old_x, old_y = game.camera.get_pos()
-    game.camera.update(game)
-    new_x, new_y = game.camera.get_pos()
-    if round(new_x - old_x) or round(new_y - old_y):
+    if game.camera.get_pos():
+      old_x, old_y = game.camera.get_pos()
+      game.camera.update(game)
+      new_x, new_y = game.camera.get_pos()
+      if round(new_x - old_x) or round(new_y - old_y):
+        game.redraw_tiles()
+    else:
+      game.camera.update(game)
       game.redraw_tiles()
 
   def update(game):
@@ -1185,7 +1189,6 @@ class DungeonContext(Context):
 
   def view(game):
     sprites = []
-    assets = load_assets()
     sprites += game.floor_view.view(game)
     if game.debug:
       sprites += game.minimap.view()

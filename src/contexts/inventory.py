@@ -11,6 +11,8 @@ from filters import replace_color
 import keyboard
 from keyboard import key_times, ARROW_DELTAS
 from palette import BLACK, WHITE, GRAY, BLUE
+from sprite import Sprite
+from config import WINDOW_WIDTH, WINDOW_HEIGHT
 
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
@@ -259,10 +261,18 @@ class InventoryContext(Context):
       or choice.text == "Discard" and ctx.discard()
     )))
 
-  def draw(ctx, surface):
+  def update(ctx):
+    for anim in ctx.anims:
+      anim.update()
+      if anim.done:
+        ctx.anims.remove(anim)
+      if not ctx.anims and not ctx.active:
+        ctx.close()
+        return
+
+  def view(ctx):
+    sprites = []
     assets = use_assets()
-    window_width = surface.get_width()
-    window_height = surface.get_height()
 
     sprite_hud = assets.sprites["hud" if ctx.has_ally else "hud_single"]
     sprite_belt = assets.sprites["belt"]
@@ -276,14 +286,6 @@ class InventoryContext(Context):
     font_content = assets.ttf["roman"]
     tile_width = sprite_tile.get_width()
     tile_height = sprite_tile.get_height()
-
-    # update anims
-    for anim in ctx.anims:
-      anim.update()
-      if anim.done:
-        ctx.anims.remove(anim)
-      if not ctx.anims and not ctx.active:
-        return ctx.close()
 
     # belt
     anim_belt = next((a for a in ctx.anims if a.target == "belt"), None)
@@ -301,9 +303,12 @@ class InventoryContext(Context):
         (belt_width, belt_height)
       ))
     if anim_belt or ctx.active:
-      surface.blit(sprite_belt, (
-        Hud.MARGIN_LEFT,
-        Hud.MARGIN_TOP + sprite_circle.get_height() // 2
+      sprites.append(Sprite(
+        image=sprite_belt,
+        pos=(
+          Hud.MARGIN_LEFT,
+          Hud.MARGIN_TOP + sprite_circle.get_height() // 2
+        )
       ))
 
     # "ITEM" letters
@@ -325,7 +330,10 @@ class InventoryContext(Context):
         if not ctx.active:
           sprite_char = None
       if sprite_char:
-        surface.blit(sprite_char, (x, y))
+        sprites.append(Sprite(
+          image=sprite_char,
+          pos=(x, y)
+        ))
       y += sprite_height + 2
 
     # grid
@@ -354,10 +362,16 @@ class InventoryContext(Context):
           continue
         x = cells_x + tile_width * col + tile_width // 2 - sprite.get_width() // 2
         y = cells_y + tile_height * row + tile_height // 2 - sprite.get_height() // 2
-        surface.blit(sprite, (x, y))
+        sprites.append(Sprite(
+          image=sprite,
+          pos=(x, y)
+        ))
         item = ctx.get_item_at(cell)
         if item and not anim:
-          surface.blit(item().render(), (x, y))
+          sprites.append(Sprite(
+            image=item().render(),
+            pos=(x, y)
+          ))
 
     # tabs
     x = cells_x + tile_width * cols
@@ -400,23 +414,35 @@ class InventoryContext(Context):
         tab_image.blit(tabend_image, (tab_width - tabend_image.get_width(), 0))
         if i != ctx.tab:
           tab_image = replace_color(tab_image, WHITE, GRAY)
-        surface.blit(tab_image, (x, y))
+        sprites.append(Sprite(
+          image=tab_image,
+          pos=(x, y)
+        ))
       y += tab_image.get_height() + 1
 
     # cursor
+    cursor_image = Surface((tile_width, tile_height), SRCALPHA)
     cursor_col, cursor_row = ctx.cursor
     cursor_x = cells_x + tile_width * cursor_col
     cursor_y = cells_y + tile_height * cursor_row
     cursor_color = BLUE if ctx.cursor_anim.time % 2 or type(ctx.child) is ChoiceContext else WHITE
     if not ctx.anims and ctx.items:
-      pygame.draw.rect(surface, cursor_color, Rect(cursor_x, cursor_y, tile_width, tile_height), width=1)
+      pygame.draw.rect(cursor_image, cursor_color, Rect(0, 0, tile_width, tile_height), width=1)
+      sprites.append(Sprite(
+        image=cursor_image,
+        pos=(cursor_x, cursor_y)
+      ))
 
     # description box
     sprite_desc = ctx.box.render()
     if sprite_desc:
       box_x = cells_x
       box_y = cells_y + tile_height * rows
-      surface.blit(sprite_desc, (box_x, box_y))
+      sprites.append(Sprite(
+        image=sprite_desc,
+        pos=(box_x, box_y),
+        layer="hud"
+      ))
 
     # choice box
     if type(ctx.child) is ChoiceContext:
@@ -433,7 +459,15 @@ class InventoryContext(Context):
       else:
         x = target_x
       y = cells_y
-      surface.blit(ctx.child.render(), (x, y))
+      sprites.append(Sprite(
+        image=ctx.child.render(),
+        pos=(x, y)
+      ))
     elif not ctx.anims and ctx.items:
       hand_x = cursor_x + tile_width - 3 + ctx.cursor_anim.update() * 2
-      surface.blit(sprite_hand, (hand_x, cursor_y))
+      sprites.append(Sprite(
+        image=sprite_hand,
+        pos=(hand_x, cursor_y)
+      ))
+
+    return sprites + super().view()
