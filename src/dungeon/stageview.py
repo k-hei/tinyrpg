@@ -102,11 +102,7 @@ class StageView:
     return sprites
 
   def view_elem(self, elem, anims):
-    try:
-      sprites = elem.view(anims)
-    except TypeError:
-      print(elem)
-      raise
+    sprites = elem.view(anims)
     if sprites:
       sprite = sprites[0]
       elem_x, elem_y = elem.cell
@@ -135,7 +131,11 @@ class StageView:
       return True
     visible_elems = [e for e in elems if is_visible(e)]
     for elem in visible_elems:
-      sprites += self.view_elem(elem, anims)
+      try:
+        sprites += self.view_elem(elem, anims)
+      except TypeError:
+        print(elem)
+        raise
 
     anim_group = anims[0] if anims else []
     for anim in anim_group:

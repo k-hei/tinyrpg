@@ -14,6 +14,7 @@ from anims.attack import AttackAnim
 from anims.awaken import AwakenAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
+from anims.bounce import BounceAnim
 from lib.cell import is_adjacent, manhattan
 from lib.lerp import lerp
 from comps.log import Token
@@ -167,6 +168,10 @@ class DungeonActor(DungeonElement):
         t = max(0, anim.time - anim.duration + pinch_duration) / pinch_duration
         actor_width *= lerp(1, 0, t)
         actor_height *= lerp(1, 3, t)
+      elif type(anim) is BounceAnim:
+        anim_xscale, anim_yscale = anim.scale
+        actor_width *= anim_xscale
+        actor_height *= anim_yscale
     else:
       if actor.ailment == "poison":
         new_color = PURPLE

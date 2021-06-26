@@ -557,7 +557,7 @@ def gen_floor(seed=None):
 
   # stage.spawn_elem(Soul(Counter), (center_x, center_y - 1))
   # stage.spawn_elem(Bag(AngelTears), (center_x, center_y - 1))
-  stage.spawn_elem(Mushroom(), (center_x, center_y - 1))
+  # stage.spawn_elem(Mushroom(), (center_x, center_y - 1))
   return stage
 
 def gen_enemy(floor):

@@ -170,7 +170,7 @@ class DungeonContext(Context):
     game.floors.append(game.floor)
     game.memory.append((game.floor, []))
     game.rooms_entered.append(game.room)
-    game.camera.blur()
+    game.camera.reset()
     game.camera.update(game)
     game.refresh_fov(moving=True)
     game.redraw_tiles()
@@ -235,7 +235,7 @@ class DungeonContext(Context):
       enemy_x, enemy_y = enemy.cell
       mid_x = (hero_x + enemy_x) / 2
       mid_y = (hero_y + enemy_y) / 2
-      camera.focus((mid_x, mid_y))
+      camera.focus((mid_x, mid_y), force=True)
     else:
       camera.blur()
 
@@ -1194,9 +1194,14 @@ class DungeonContext(Context):
       sprites += game.minimap.view()
     else:
       for comp in game.comps:
-        try:
-          sprites += comp.view()
-        except TypeError:
-          print(comp)
-          raise
+        sprites += comp.view()
+      if game.get_root().transits:
+        for comp in [c for c in game.comps if c.active]:
+          if type(comp) is not Log:
+            comp.exit()
+      else:
+        for comp in [c for c in game.comps if not c.active]:
+          if type(comp) is not Log:
+            comp.enter()
+
     return sprites + super().view()

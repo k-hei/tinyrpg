@@ -15,4 +15,4 @@ class Palm(Prop):
     )])
 
   def view(coffin, anims):
-    return use_assets().sprites["oasis_palm"]
+    return super().view(use_assets().sprites["oasis_palm"], anims)

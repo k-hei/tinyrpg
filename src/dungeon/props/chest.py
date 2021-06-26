@@ -33,4 +33,4 @@ class Chest(Prop):
         sprite = sprites["chest"]
     color = palette.PINK if chest.rare else palette.GOLD
     sprite = replace_color(sprite, palette.BLACK, color)
-    return sprite
+    return super().view(sprite, anims)

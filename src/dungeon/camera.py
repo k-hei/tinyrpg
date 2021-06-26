@@ -33,6 +33,7 @@ class Camera:
 
   def reset(camera):
     camera.pos = None
+    camera.blur()
 
   def upscale(camera, cell):
     width, height = camera.get_size()

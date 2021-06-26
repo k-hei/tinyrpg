@@ -22,7 +22,7 @@ class EnterAnim(TweenAnim): pass
 class ExitAnim(TweenAnim): pass
 
 class DialogueContext(Context):
-  effects = [Hud] # , Previews, Minimap, SpMeter, FloorNo]
+  # effects = [Hud] # , Previews, Minimap, SpMeter, FloorNo]
   BAR_HEIGHT = 24
   BAR_ENTER_DURATION = 15
   BAR_EXIT_DURATION = 7
