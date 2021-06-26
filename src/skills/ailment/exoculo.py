@@ -1,11 +1,11 @@
-from skills import Skill
+from skills.ailment import AilmentSkill
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from dungeon.actors.mage import Mage
 
 ATTACK_DURATION = 12
 
-class Exoculo(Skill):
+class Exoculo(AilmentSkill):
   name = "Exoculo"
   kind = "ailment"
   element = "dark"

@@ -5,12 +5,13 @@ import keyboard
 import math
 import pygame
 from pygame import Rect, Surface
-from config import TILE_SIZE
+from config import TILE_SIZE, WINDOW_HEIGHT
 from assets import load as use_assets
 from text import render as render_text
 from filters import recolor, replace_color, outline
 from palette import BLACK, WHITE, GRAY, YELLOW
 from comps.skill import Skill
+from sprite import Sprite
 
 from lib.lerp import lerp
 from easing.expo import ease_out
@@ -26,13 +27,13 @@ OFFSET = 4
 SPACING = 10
 
 class SkillContext(Context):
-  def __init__(ctx, actor, selected_skill, on_close=None):
+  def __init__(ctx, skills, selected_skill=None, actor=None, on_close=None):
     super().__init__()
+    ctx.skills = skills or actor.get_active_skills()
+    ctx.skill = selected_skill or skills and skills[0] or None
     ctx.actor = actor
-    ctx.skill = selected_skill
     ctx.on_close = on_close
     ctx.bar = Bar()
-    ctx.options = actor.get_active_skills()
     ctx.offsets = {}
     ctx.dest = None
     ctx.cursor = None
@@ -79,20 +80,20 @@ class SkillContext(Context):
 
   def handle_turn(ctx, delta):
     game = ctx.parent
-    skill = ctx.skill
     hero = ctx.actor
-    hero_x, hero_y = hero.cell
-    delta_x, delta_y = delta
-    target_cell = (hero_x + delta_x, hero_y + delta_y)
-    hero.facing = delta
+    if hero:
+      hero_x, hero_y = hero.cell
+      delta_x, delta_y = delta
+      target_cell = (hero_x + delta_x, hero_y + delta_y)
+      hero.facing = delta
+    skill = ctx.skill
     if skill and ctx.bar.message != skill().text():
       ctx.print_skill()
 
   def handle_select(ctx, reverse=False):
-    options = ctx.options
+    options = ctx.skills
     game = ctx.parent
-    hero = ctx.actor
-    skills = hero.get_active_skills()
+    skills = ctx.skills
     old_skill = ctx.skill
     if old_skill is None:
       return
@@ -109,7 +110,7 @@ class SkillContext(Context):
     dest = ctx.dest
     if skill is None:
       return
-    if skill.cost > game.parent.sp:
+    if game.parent and skill.cost > game.parent.sp:
       ctx.bar.print("You don't have enough SP!")
     else:
       ctx.exit(skill, dest)
@@ -117,7 +118,7 @@ class SkillContext(Context):
   def enter(ctx):
     ctx.bar.enter()
     index = 0
-    for option in ctx.options:
+    for option in ctx.skills:
       ctx.anims.append(TweenAnim(
         duration=10,
         delay=8 * index,
@@ -125,28 +126,30 @@ class SkillContext(Context):
       ))
       index += 1
     ctx.print_skill(ctx.skill)
-    enemy = ctx.parent.find_closest_visible_enemy(ctx.actor)
-    if enemy:
-      ctx.actor.face(enemy.cell)
+    if ctx.actor:
+      enemy = ctx.parent.find_closest_visible_enemy(ctx.actor)
+      if enemy:
+        ctx.actor.face(enemy.cell)
 
   def exit(ctx, skill=None, dest=None):
     def close():
-      ctx.parent.camera.blur()
-      ctx.parent.child = None
+      if "camera" in dir(ctx.parent):
+        ctx.parent.camera.blur()
+        ctx.parent.child = None
       if ctx.on_close:
         ctx.on_close(skill, dest)
 
     ctx.exiting = True
     index = 0
-    for option in ctx.options:
-      is_last = skill is None and index == len(ctx.options) - 1
+    for option in ctx.skills:
+      is_last = skill is None and index == len(ctx.skills) - 1
       ctx.anims.append(TweenAnim(
         duration=6,
         target=index,
         on_end=close if is_last else None
       ))
       index += 1
-    if len(ctx.options) == 0:
+    if len(ctx.skills) == 0:
       ctx.bar.exit(on_end=close)
     elif skill:
       ctx.confirmed = True
@@ -159,117 +162,127 @@ class SkillContext(Context):
     else:
       ctx.bar.exit()
 
-  def draw(ctx, surface):
-    assets = use_assets()
-    game = ctx.parent
-    skill = ctx.skill
-    hero = ctx.actor
-    floor = game.floor
-    camera = game.camera
-
-    camera_x, camera_y = camera.pos
-    facing_x, facing_y = hero.facing
-    hero_x, hero_y = hero.cell
-    neighbors, cursor = find_skill_targets(skill, hero, floor)
-
-    if cursor not in neighbors:
-      if neighbors:
-        cursor = neighbors[0]
-      else:
-        cursor = hero.cell
-    ctx.dest = cursor
-
-    camera_speed = 8
-    if skill and skill.range_max == math.inf:
-      camera.focus(cursor, speed=16, force=True)
-    else:
-      camera.focus(cursor, speed=8, force=True)
-
-    def scale_up(cell):
-      col, row = cell
-      x = col * TILE_SIZE - round(camera_x)
-      y = row * TILE_SIZE - round(camera_y) + 1
-      return x, y
-
+  def update(ctx):
     for anim in ctx.anims:
-      anim.update()
       if anim.done:
         ctx.anims.remove(anim)
-
-    anim = ctx.anims[0] if ctx.anims else None
-    cursor_anim = ctx.cursor_anim
-    t = cursor_anim.update()
-    if skill and not ctx.exiting and not (anim and anim.target == "cursor"):
-      if cursor_anim.time % 60 >= 40:
-        alpha = 0x7f
-      elif cursor_anim.time % 60 >= 20:
-        alpha = 0x6f
       else:
-        alpha = 0x5f
-      square = Surface((TILE_SIZE - 1, TILE_SIZE - 1), pygame.SRCALPHA)
-      color = skill.color
-      pygame.draw.rect(square, color & 0xFFFFFF | int(alpha) << 24, square.get_rect())
-      for cell in neighbors:
-        x, y = scale_up(cell)
-        surface.blit(square, (x, y))
+        anim.update()
 
-    if ctx.cursor:
-      cursor_col, cursor_row, cursor_scale = ctx.cursor
-    else:
-      cursor_col, cursor_row = hero.cell
-      cursor_scale = 0.5
+  def view(ctx):
+    sprites = []
+    assets = use_assets()
+    hero = ctx.actor
+    skill = ctx.skill
+    cursor = None
+    if hero:
+      game = ctx.parent
+      floor = game.floor
+      camera = game.camera
+      camera_x, camera_y = camera.pos
+      facing_x, facing_y = hero.facing
+      hero_x, hero_y = hero.cell
+      neighbors, cursor = find_skill_targets(skill, hero, floor)
 
-    if anim and anim.target == "cursor":
-      if anim.visible:
-        cursor_sprite = assets.sprites["cursor_cell1"]
+      if cursor not in neighbors:
+        if neighbors:
+          cursor = neighbors[0]
+        else:
+          cursor = hero.cell
+      ctx.dest = cursor
+
+      camera_speed = 8
+      if skill and skill.range_max == math.inf:
+        camera.focus(cursor, speed=16, force=True)
       else:
-        cursor_sprite = None
-      if anim.done:
-        ctx.anims.remove(anim)
-    else:
-      t = min(2, math.floor((t + 1) / 2 * 3))
-      cursor_sprite = assets.sprites["cursor_cell"]
-      if t == 1:
-        cursor_sprite = assets.sprites["cursor_cell1"]
-      elif t == 2:
-        cursor_sprite = assets.sprites["cursor_cell2"]
+        camera.focus(cursor, speed=8, force=True)
 
-    new_cursor_col, new_cursor_row = cursor
-    if ctx.exiting and not ctx.confirmed:
-      new_cursor_col, new_cursor_row = hero.cell
-      cursor_scale += -cursor_scale / 4
-    else:
-      cursor_scale += (1 - cursor_scale) / 4
-    cursor_col += (new_cursor_col - cursor_col) / 4
-    cursor_row += (new_cursor_row - cursor_row) / 4
-    cursor_x, cursor_y = scale_up((cursor_col, cursor_row))
+      def scale_up(cell):
+        col, row = cell
+        x = col * TILE_SIZE - round(camera_x)
+        y = row * TILE_SIZE - round(camera_y) + 1
+        return x, y
 
-    if cursor_sprite:
-      cursor_sprite = pygame.transform.scale(cursor_sprite, (
-        int(cursor_sprite.get_width() * cursor_scale),
-        int(cursor_sprite.get_height() * cursor_scale)
-      ))
-      surface.blit(cursor_sprite, (
-        cursor_x + TILE_SIZE // 2 - cursor_sprite.get_width() // 2 - 1,
-        cursor_y + TILE_SIZE // 2 - cursor_sprite.get_height() // 2 - 1
-      ))
-    ctx.cursor = (cursor_col, cursor_row, cursor_scale)
+    if cursor:
+      anim = ctx.anims[0] if ctx.anims else None
+      cursor_anim = ctx.cursor_anim
+      t = cursor_anim.update()
+      if skill and not ctx.exiting and not (anim and anim.target == "cursor"):
+        if cursor_anim.time % 60 >= 40:
+          alpha = 0x7f
+        elif cursor_anim.time % 60 >= 20:
+          alpha = 0x6f
+        else:
+          alpha = 0x5f
+        square = Surface((TILE_SIZE - 1, TILE_SIZE - 1), pygame.SRCALPHA)
+        color = skill.color
+        pygame.draw.rect(square, color & 0xFFFFFF | int(alpha) << 24, square.get_rect())
+        for cell in neighbors:
+          x, y = scale_up(cell)
+          sprites.append(Sprite(
+            image=square,
+            pos=(x, y)
+          ))
 
-    ctx.bar.draw(surface)
+      if ctx.cursor:
+        cursor_col, cursor_row, cursor_scale = ctx.cursor
+      else:
+        cursor_col, cursor_row = hero.cell
+        cursor_scale = 0.5
 
+      if anim and anim.target == "cursor":
+        if anim.visible:
+          cursor_sprite = assets.sprites["cursor_cell1"]
+        else:
+          cursor_sprite = None
+        if anim.done:
+          ctx.anims.remove(anim)
+      else:
+        t = min(2, math.floor((t + 1) / 2 * 3))
+        cursor_sprite = assets.sprites["cursor_cell"]
+        if t == 1:
+          cursor_sprite = assets.sprites["cursor_cell1"]
+        elif t == 2:
+          cursor_sprite = assets.sprites["cursor_cell2"]
+
+        new_cursor_col, new_cursor_row = cursor
+        if ctx.exiting and not ctx.confirmed:
+          new_cursor_col, new_cursor_row = hero.cell
+          cursor_scale += -cursor_scale / 4
+        else:
+          cursor_scale += (1 - cursor_scale) / 4
+        cursor_col += (new_cursor_col - cursor_col) / 4
+        cursor_row += (new_cursor_row - cursor_row) / 4
+        cursor_x, cursor_y = scale_up((cursor_col, cursor_row))
+
+        if cursor_sprite:
+          cursor_sprite = pygame.transform.scale(cursor_sprite, (
+            int(cursor_sprite.get_width() * cursor_scale),
+            int(cursor_sprite.get_height() * cursor_scale)
+          ))
+          sprites.append(Sprite(
+            image=cursor_sprite,
+            pos=(
+              cursor_x + TILE_SIZE // 2 - cursor_sprite.get_width() // 2 - 1,
+              cursor_y + TILE_SIZE // 2 - cursor_sprite.get_height() // 2 - 1
+            )
+          ))
+        ctx.cursor = (cursor_col, cursor_row, cursor_scale)
+
+    sprites += ctx.bar.view()
     nodes = []
-    sel_option = next((option for option in ctx.options if option is skill), None)
-    sel_index = ctx.options.index(sel_option) if sel_option in ctx.options else 0
+    sel_option = next((option for option in ctx.skills if option is skill), None)
+    sel_index = ctx.skills.index(sel_option) if sel_option in ctx.skills else 0
 
     def get_skill_pos(sprite, i):
       x = MARGIN + i * SPACING
-      y = surface.get_height()
+      y = WINDOW_HEIGHT
       y += -MARGIN - ctx.bar.surface.get_height()
       y += -OFFSET - sprite.get_height()
       y += i * -SPACING
       return (x, y)
 
-    options = ctx.options
+    options = ctx.skills
     for i in range(len(options)):
       index = (sel_index + i) % len(options)
       option = options[index]
@@ -322,7 +335,11 @@ class SkillContext(Context):
     for sprite, x, y, height in nodes:
       real_height = sprite.get_height()
       sprite = pygame.transform.scale(sprite, (sprite.get_width(), height))
-      surface.blit(sprite, (x, y + real_height / 2 - sprite.get_height() / 2))
+      sprites.append(Sprite(
+        image=sprite,
+        pos=(x, y + real_height / 2 - sprite.get_height() / 2),
+        layer="hud"
+      ))
 
     first_anim = next((anim for anim in ctx.anims if anim.target == 0), None)
     if not ctx.exiting and not first_anim:
@@ -330,11 +347,17 @@ class SkillContext(Context):
       title = recolor(title, YELLOW)
       title = outline(title, BLACK)
       x = MARGIN + Skill.PADDING_X
-      y = surface.get_height()
+      y = WINDOW_HEIGHT
       y += -MARGIN - ctx.bar.surface.get_height()
       y += -OFFSET - assets.sprites["skill"].get_height()
       y += -title.get_height() + 3
-      surface.blit(title, (x, y))
+      sprites.append(Sprite(
+        image=title,
+        pos=(x, y),
+        layer="hud"
+      ))
+
+    return sprites
 
 def find_skill_targets(skill, user, floor):
   targets = []

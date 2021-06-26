@@ -4,6 +4,8 @@ from assets import load as use_assets
 from text import render as render_text
 from filters import recolor
 from palette import WHITE
+from config import WINDOW_HEIGHT
+from sprite import Sprite
 
 from anims.tween import TweenAnim
 from easing.expo import ease_out
@@ -53,14 +55,11 @@ class Bar:
     bar.exiting = True
     bar.anim = TweenAnim(duration=Bar.EXIT_DURATION, on_end=on_end)
 
-  def draw(bar, surface):
+  def view(bar):
     assets = use_assets()
-    window_width = surface.get_width()
-    window_height = surface.get_height()
-
     sprite = bar.render()
-    start_y = window_height
-    end_y = window_height - bar.surface.get_height() - Bar.MARGIN
+    start_y = WINDOW_HEIGHT
+    end_y = WINDOW_HEIGHT - bar.surface.get_height() - Bar.MARGIN
     x = Bar.MARGIN
     y = start_y if bar.exiting else end_y
     if bar.anim:
@@ -74,4 +73,7 @@ class Bar:
         bar.anim = None
     else:
       bar.update()
-    surface.blit(bar.surface, (x, y))
+    return [Sprite(
+      image=bar.surface,
+      pos=(x, y)
+    )]

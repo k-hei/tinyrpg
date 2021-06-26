@@ -686,8 +686,9 @@ class DungeonContext(Context):
   def handle_skill(game):
     game.log.exit()
     game.open(SkillContext(
-      actor=game.hero,
+      skills=game.hero.get_active_skills(),
       selected_skill=game.parent.get_skill(game.hero.core),
+      actor=game.hero,
       on_close=lambda skill, dest: (
         skill and (
           game.parent.set_skill(game.hero.core, skill),
@@ -1170,6 +1171,7 @@ class DungeonContext(Context):
       game.redraw_tiles()
 
   def update(game):
+    super().update()
     game.update_camera()
     for group in game.anims:
       for anim in group:

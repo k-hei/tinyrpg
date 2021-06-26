@@ -46,9 +46,9 @@ class App(Context):
   def open(app, child=None):
     super().open(child or app.child, on_close=app.close)
 
-  def close(app, data=None):
-    if data is not None:
-      print(data)
+  def close(app, *data):
+    if data:
+      print(*data)
     app.done = True
 
   def reset(app):
