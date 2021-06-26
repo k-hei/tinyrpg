@@ -533,13 +533,18 @@ def gen_floor(seed=None):
   stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
 
   for room in empty_rooms:
-    enemy_count = randint(0, 3)
     valid_cells = [c for c in room.get_cells() if not [d for d in doors if manhattan(d, c) <= 2]]
-    for i in range(enemy_count):
+    enemy_count = randint(0, 3)
+    i = 0
+    while i < enemy_count and valid_cells:
       cell = choice(valid_cells)
       valid_cells.remove(cell)
       stage.spawn_elem(gen_enemy(1), cell)
+      i += 1
 
+  if not empty_rooms:
+    debug("No empty rooms to spawn key at")
+    return gen_floor()
   key_room = choice(empty_rooms)
   empty_rooms.remove(key_room)
   stage.spawn_elem(Chest(Key), key_room.get_center())

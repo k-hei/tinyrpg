@@ -193,7 +193,7 @@ class DungeonActor(DungeonElement):
     sprite.move((offset_x, offset_y))
     sprite.size = (actor_width, actor_height)
     sprite.layer = "elems"
-    return [sprite]
+    return super().view([sprite], anims)
 
   def color(actor):
     if actor.core.faction == "player": return BLUE
