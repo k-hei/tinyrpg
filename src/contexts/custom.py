@@ -14,6 +14,8 @@ from comps.previews import Previews
 from comps.minimap import Minimap
 from comps.spmeter import SpMeter
 from comps.floorno import FloorNo
+from config import WINDOW_WIDTH, WINDOW_HEIGHT
+from sprite import Sprite
 
 from cores.knight import Knight as Knight
 from cores.mage import Mage as Mage
@@ -45,12 +47,12 @@ class RecallAnim(PieceAnim): pass
 class CustomContext(Context):
   effects = [Hud, Previews, Minimap, SpMeter, FloorNo]
 
-  def __init__(menu, pool, new_skills, builds, chars, on_close=None):
+  def __init__(menu, skills, chars, builds, new_skills=[], on_close=None):
     super().__init__()
-    menu.pool = pool
-    menu.new_skills = new_skills
-    menu.builds = builds
+    menu.skills = skills
     menu.chars = chars
+    menu.builds = builds
+    menu.new_skills = new_skills
     menu.on_close = on_close
     menu.char = chars[0]
     menu.char_drawn = menu.char
@@ -100,7 +102,7 @@ class CustomContext(Context):
   def get_char_skills(menu, char=None):
     if char is None:
       char = menu.char
-    return [s for s in menu.pool if type(char) in s.users]
+    return [s for s in menu.skills if type(char) in s.users]
 
   def get_selected_skill(menu):
     skills = menu.get_char_skills()
@@ -287,18 +289,19 @@ class CustomContext(Context):
       0
     ))
 
-    mage_scaled = mage
-    mage_anim = menu.anims and next((a for a in menu.anims[0] if a.target == "Mage"), None)
-    if mage_anim:
-      t = ease_out(mage_anim.pos)
-      mage_scaled = pygame.transform.scale(mage, (
-        int(mage.get_width() * t),
-        mage.get_height()
+    if Mage in menu.chars:
+      mage_scaled = mage
+      mage_anim = menu.anims and next((a for a in menu.anims[0] if a.target == "Mage"), None)
+      if mage_anim:
+        t = ease_out(mage_anim.pos)
+        mage_scaled = pygame.transform.scale(mage, (
+          int(mage.get_width() * t),
+          mage.get_height()
+        ))
+      surface.blit(mage_scaled, (
+        knight.get_width() + SPACING_X + mage.get_width() // 2 - mage_scaled.get_width() // 2,
+        0
       ))
-    surface.blit(mage_scaled, (
-      knight.get_width() + SPACING_X + mage.get_width() // 2 - mage_scaled.get_width() // 2,
-      0
-    ))
 
     skills = menu.get_char_skills()
     skill_sel = menu.get_selected_skill()
@@ -581,13 +584,18 @@ class CustomContext(Context):
     menu.renders += 1
     return surface
 
-  def draw(menu, surface):
+  def view(menu):
+    sprites = []
     assets = use_assets()
-    sprite = menu.render()
+    menu_image = menu.render()
     bar_height = assets.sprites["statusbar"].get_height() + Bar.MARGIN * 2
     arrow_offset = assets.sprites["arrow"].get_height() + SKILL_SPACING
-    x = surface.get_width() // 2 - sprite.get_width() // 2 + SKILL_NUDGE_LEFT
-    y = (surface.get_height() - bar_height) // 2
-    y -= (sprite.get_height() - arrow_offset) // 2
-    surface.blit(sprite, (x, y))
-    menu.bar.draw(surface)
+    x = WINDOW_WIDTH // 2 - menu_image.get_width() // 2 + SKILL_NUDGE_LEFT
+    y = (WINDOW_HEIGHT - bar_height) // 2
+    y -= (menu_image.get_height() - arrow_offset) // 2
+    sprites.append(Sprite(
+      image=menu_image,
+      pos=(x, y)
+    ))
+    sprites += menu.bar.view()
+    return sprites

@@ -707,10 +707,10 @@ class DungeonContext(Context):
     if game.ally:
       chars.append(game.ally.core)
     game.open(CustomContext(
-      pool=game.parent.skill_pool,
-      new_skills=game.parent.new_skills,
-      builds=game.parent.skill_builds,
+      skills=game.parent.skill_pool,
       chars=chars,
+      builds=game.parent.skill_builds,
+      new_skills=game.parent.new_skills,
       on_close=game.update_skills
     ))
 
@@ -1195,7 +1195,7 @@ class DungeonContext(Context):
     else:
       for comp in game.comps:
         sprites += comp.view()
-      if game.get_root().transits:
+      if game.child and type(game.child) is not InventoryContext or game.get_root().transits:
         for comp in [c for c in game.comps if c.active]:
           if type(comp) is not Log:
             comp.exit()
