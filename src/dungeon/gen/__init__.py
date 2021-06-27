@@ -562,7 +562,8 @@ def gen_floor(seed=None):
   if corner:
     stage.spawn_elem(genie, corner)
 
-  stage.spawn_elem(Block(), (center_x, center_y - 1))
+  stage.spawn_elem(Block(), (center_x - 1, center_y - 1))
+  stage.set_tile_at((center_x + 1, center_y - 1), stage.PUSH_TILE)
   return stage
 
 def gen_enemy(floor):

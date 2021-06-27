@@ -291,6 +291,8 @@ def render_tile(stage, cell, visited_cells=[]):
     sprite_name = "oasis_stairs"
   elif tile is stage.OASIS:
     return render_oasis(stage, cell)
+  elif tile is stage.PUSH_TILE:
+    sprite_name = "push_tile"
 
   if "floor_elev" not in assets.sprites:
     assets.sprites["floor_elev"] = replace_color(assets.sprites["floor"], 0xFF404040, 0xFF7D7D7D)

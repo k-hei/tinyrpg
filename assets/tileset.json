@@ -9,7 +9,7 @@
     ["",    "orn_tris", "door_treasure", "door_treasure_opening",  "door_treasure_open",                    "",                  "",            ""],
     ["",      "coffin",   "door_beetle",      "door_beetle_turn", "door_beetle_opening",    "door_beetle_open",                  "",            ""],
     ["", "coffin_open",         "floor",            "push_track",   "push_track_corner",    "oasis_corner_top",      "oasis_stairs",      "stairs"],
-    ["",  "coffin_lid",   "push_target",                      "",          "push_steps", "oasis_corner_bottom", "oasis_edge_bottom",      "ladder"]
+    ["",  "coffin_lid",     "push_tile",                      "",          "push_steps", "oasis_corner_bottom", "oasis_edge_bottom",      "ladder"]
   ],
   "sand_pile": [48, 192, 32, 32],
   "sand_pile_side": [16, 160, 32, 48],
