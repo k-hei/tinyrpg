@@ -31,6 +31,7 @@ from dungeon.actors.genie import Genie
 
 from dungeon.props.chest import Chest
 from dungeon.props.bag import Bag
+from dungeon.props.block import Block
 from dungeon.props.door import Door
 from dungeon.props.battledoor import BattleDoor
 from dungeon.props.treasuredoor import TreasureDoor
@@ -526,9 +527,9 @@ def gen_floor(seed=None):
     debug("No empty leaves to spawn at")
     return gen_floor()
 
-  entry_room = oasis_room # choice(empty_leaves)
+  entry_room = choice(empty_leaves)
   center_x, center_y = entry_room.get_center()
-  stage.entrance = (center_x, center_y + 2)
+  stage.entrance = (center_x, center_y + 0)
   if entry_room in empty_rooms:
     empty_rooms.remove(entry_room)
     stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
@@ -561,9 +562,7 @@ def gen_floor(seed=None):
   if corner:
     stage.spawn_elem(genie, corner)
 
-  # stage.spawn_elem(Soul(Counter), (center_x, center_y - 1))
-  # stage.spawn_elem(Bag(AngelTears), (center_x, center_y - 1))
-  # stage.spawn_elem(Mushroom(), (center_x, center_y - 1))
+  stage.spawn_elem(Block(), (center_x, center_y - 1))
   return stage
 
 def gen_enemy(floor):

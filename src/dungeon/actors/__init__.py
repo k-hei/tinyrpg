@@ -152,7 +152,7 @@ class DungeonActor(DungeonElement):
     for anim in anim_group:
       if type(anim) is AwakenAnim and anim.visible:
         asleep = True
-      elif type(anim) is MoveAnim or type(anim) is AttackAnim:
+      elif type(anim) is AttackAnim:
         anim_x, anim_y = anim.cell
         actor_x, actor_y = actor.cell
         offset_x = (anim_x - actor_x) * TILE_SIZE
@@ -176,18 +176,6 @@ class DungeonActor(DungeonElement):
         new_color = GOLD_DARK
       elif actor.core.faction == "enemy":
         new_color = RED
-
-    # HACK: if element will move during a future animation sequence,
-    # make sure it doesn't jump ahead to the target position
-    for group in anims:
-      for anim in group:
-        if anims.index(group) == 0:
-          continue
-        if anim.target is actor and isinstance(anim, MoveAnim):
-          anim_x, anim_y = anim.src
-          actor_x, actor_y = actor.cell
-          offset_x = (anim_x - actor_x) * TILE_SIZE
-          offset_y = (anim_y - actor_y) * TILE_SIZE
 
     if new_color:
       sprite.image = replace_color(sprite.image, BLACK, new_color)

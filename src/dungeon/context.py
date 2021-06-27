@@ -542,18 +542,19 @@ class DungeonContext(Context):
     elif target_tile is Stage.PIT:
       moved = game.jump_pit(hero, run, on_move)
     else:
-      game.anims.append([
-        AttackAnim(
+      if target_elem is None or target_elem.effect(game) is None:
+        anim = AttackAnim(
           duration=DungeonContext.ATTACK_DURATION,
           target=hero,
           src=hero.cell,
           dest=target_cell
         )
-      ])
+        if game.anims:
+          game.anims[-1].append(anim)
+        else:
+          game.anims.append([anim])
       if isinstance(target_elem, Npc):
         game.handle_talk()
-      elif type(target_elem) is Coffin:
-        target_elem.effect(game)
       elif type(target_elem) is Chest:
         chest = target_elem
         item = chest.contents
@@ -581,8 +582,6 @@ class DungeonContext(Context):
           game.log.print("There's nothing left to take...")
         game.step(run)
         game.refresh_fov()
-      elif isinstance(target_elem, Prop):
-        target_elem.effect(game)
       elif isinstance(target_elem, DungeonActor) and target_elem.ailment == "sleep" and hero.allied(target_elem):
         game.log.exit()
         game.anims[0].append(PauseAnim(

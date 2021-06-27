@@ -28,17 +28,13 @@ class Door(Prop):
   def effect(door, game):
     if not door.opened:
       door.open()
-      anim_group = [
+      game.anims.append([
         DoorAnim(
           duration=30,
           frames=door.sprites.opening_frames,
           target=door
         )
-      ]
-      if len(game.anims):
-        game.anims[-1] += anim_group
-      else:
-        game.anims.append(anim_group)
+      ])
 
   def open(door):
     if not door.opened:

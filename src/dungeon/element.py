@@ -1,5 +1,6 @@
 from pygame import Surface
 from sprite import Sprite
+from anims.move import MoveAnim
 from anims.chest import ChestAnim
 from anims.item import ItemAnim
 from anims.flicker import FlickerAnim
@@ -12,6 +13,9 @@ class DungeonElement:
     elem.opaque = opaque
     elem.cell = None
 
+  def effect(elem, game):
+    pass
+
   def view(elem, sprites, anims=[]):
     if type(sprites) is Surface:
       sprites = Sprite(image=sprites, layer="elems")
@@ -20,10 +24,16 @@ class DungeonElement:
     sprite = sprites[0]
     sprite_width = sprite.image.get_width()
     sprite_height = sprite.image.get_height()
+    offset_x, offset_y = (0, 0)
     item = None
     anim_group = anims[0] if anims else []
     for anim in [a for a in anim_group if a.target is elem]:
-      if type(anim) is ChestAnim or type(anim) is ItemAnim:
+      if type(anim) is MoveAnim:
+        anim_x, anim_y = anim.cell
+        elem_x, elem_y = elem.cell
+        offset_x = (anim_x - elem_x) * TILE_SIZE
+        offset_y = (anim_y - elem_y) * TILE_SIZE
+      elif type(anim) is ChestAnim or type(anim) is ItemAnim:
         t = anim.time / anim.duration
         item_image = anim.item.render()
         item_z = min(1, t * 3) * 6 + ITEM_OFFSET
@@ -43,5 +53,19 @@ class DungeonElement:
         t = max(0, anim.time - anim.duration + pinch_duration) / pinch_duration
         sprite_width *= lerp(1, 0, t)
         sprite_height *= lerp(1, 3, t)
+
+    # HACK: if element will move during a future animation sequence,
+    # make sure it doesn't jump ahead to the target position
+    for group in anims:
+      for anim in group:
+        if anims.index(group) == 0:
+          continue
+        if anim.target is elem and isinstance(anim, MoveAnim):
+          anim_x, anim_y = anim.src
+          actor_x, actor_y = elem.cell
+          offset_x = (anim_x - actor_x) * TILE_SIZE
+          offset_y = (anim_y - actor_y) * TILE_SIZE
+
     sprite.size = (sprite_width, sprite_height)
+    sprite.move((offset_x, offset_y))
     return sprites
