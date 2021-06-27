@@ -161,13 +161,6 @@ class DungeonActor(DungeonElement):
         return []
       elif type(anim) is FlinchAnim:
         offset_x, offset_y = anim.offset
-      elif type(anim) is FlickerAnim and anim.time % 2:
-        return []
-      elif type(anim) is FlickerAnim:
-        pinch_duration = anim.duration // 4
-        t = max(0, anim.time - anim.duration + pinch_duration) / pinch_duration
-        actor_width *= lerp(1, 0, t)
-        actor_height *= lerp(1, 3, t)
       elif type(anim) is BounceAnim:
         anim_xscale, anim_yscale = anim.scale
         actor_width *= anim_xscale
