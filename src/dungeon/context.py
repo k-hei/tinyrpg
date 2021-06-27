@@ -170,9 +170,9 @@ class DungeonContext(Context):
     game.floors.append(game.floor)
     game.memory.append((game.floor, []))
     game.rooms_entered.append(game.room)
+    game.refresh_fov(moving=True)
     game.camera.reset()
     game.camera.update(game)
-    game.refresh_fov(moving=True)
     game.redraw_tiles()
 
   def set_tile_at(game, cell, tile):

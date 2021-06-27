@@ -47,6 +47,7 @@ class StageView:
     self.tile_surface = Surface((width, height), SRCALPHA)
     self.tile_offset = (0, 0)
     self.tile_cache = {}
+    self.stage = None
     self.facings = {}
 
   def redraw_tile(self, stage, cell, visited_cells):
@@ -78,6 +79,9 @@ class StageView:
     end_y = ceil(camera.bottom / TILE_SIZE) + 1
     self.tile_offset = (start_x, start_y)
     self.tile_surface.fill(BLACK)
+    if stage is not self.stage:
+      self.stage = stage
+      self.tile_cache = {}
     for row in range(start_y, end_y + 1):
       for col in range(start_x, end_x + 1):
         cell = (col, row)
