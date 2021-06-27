@@ -98,9 +98,8 @@ class StageView:
     for decor in decors:
       if decor.cell not in visited_cells:
         continue
-      sprite = decor.sprite
+      sprite = decor.sprite.copy()
       if decor.cell not in visible_cells:
-        sprite = sprite.copy()
         sprite.image = darken(sprite.image)
       sprites.append(sprite)
     return sprites

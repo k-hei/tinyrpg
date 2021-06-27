@@ -18,5 +18,6 @@ class Palm(Prop):
   def view(coffin, anims):
     return super().view(Sprite(
       image=use_assets().sprites["oasis_palm"],
-      layer="decors"
+      layer="elems",
+      offset=-16
     ), anims)

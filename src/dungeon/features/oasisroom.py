@@ -70,7 +70,7 @@ class OasisRoom(SpecialRoom):
               sprite=Sprite(
                 image=image,
                 pos=(sprite_x, sprite_y),
-                offset=1,
+                offset=32,
                 layer="elems"
               )
             ))
@@ -111,6 +111,7 @@ class OasisRoom(SpecialRoom):
         cell=cell,
         sprite=Sprite(
           image=image,
-          pos=(sprite_x, sprite_y)
+          pos=(sprite_x, sprite_y),
+          layer="decors"
         )
       ))

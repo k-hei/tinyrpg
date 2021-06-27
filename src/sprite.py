@@ -69,4 +69,4 @@ class Sprite:
       depth = layers.index(sprite.layer)
     except ValueError:
       depth = 0
-    return depth * 1000 + y + sprite.image.get_height() + sprite.offset
+    return depth * 1000 + y + sprite.offset
