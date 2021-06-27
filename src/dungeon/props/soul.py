@@ -1,14 +1,15 @@
 from math import cos, sin, pi
+from random import random, randint, randrange, choice
 from dungeon.props import Prop
 from assets import load as use_assets
 from anims.frame import FrameAnim
 from anims.pause import PauseAnim
-from filters import replace_color
+from filters import replace_color, recolor
 from comps.skill import Skill
 from contexts.dialogue import DialogueContext
 from vfx import Vfx
-from random import random, randint, randrange, choice
 from palette import BLACK
+from sprite import Sprite
 import config
 
 class Soul(Prop):
@@ -20,30 +21,30 @@ class Soul(Prop):
   ANIM_FLOAT_AMP = 4
   BOUNCE_AMP = 5
   ACCEL = 0.25
+  FRAMES = ["fx_soul0", "fx_soul1", "fx_soul2", "fx_soul3", "fx_soul4"]
 
   def __init__(soul, skill=None):
     super().__init__(solid=False)
     soul.skill = skill
-    soul.time = randrange(0, Soul.ANIM_SWIVEL_PERIOD)
     soul.obtaining = False
+    soul.anim = FrameAnim(frames=Soul.FRAMES, duration=45, loop=True)
     soul.pos = (0, 0)
     soul.norm = (0, 0)
     soul.vel = 0
     soul.vpos = 0
+    soul.vfx = []
     soul.on_end = None
 
   def obtain(soul, game):
     game.floor.elems.remove(soul)
     game.learn_skill(soul.skill)
-    game.open(
-      DialogueContext(
-        lite=True,
-        script=[
-          (None, ("Obtained skill ", soul.skill().token(), "!")),
-          "Equip it with the CUSTOM menu (press 'B')."
-        ]
-      )
-    )
+    game.open(DialogueContext(
+      lite=True,
+      script=[
+        (None, ("Obtained skill ", soul.skill().token(), "!")),
+        "Equip it with the CUSTOM menu (press 'B')."
+      ]
+    ))
 
   def burst(soul, game):
     col, row = soul.cell
@@ -87,7 +88,7 @@ class Soul(Prop):
     r = 2 * pi * random()
     soul.norm = (cos(r), sin(r))
     soul.vel = Soul.BOUNCE_AMP
-    soul.obtaining = soul.time
+    soul.obtaining = True
     soul.on_end = lambda: (
       soul.burst(game),
       soul.obtain(game)
@@ -96,8 +97,8 @@ class Soul(Prop):
     if game.log.active:
       game.log.exit()
 
-  def update(soul, vfx):
-    soul.time += 1
+  def update(soul):
+    soul.anim.update()
     pos_x, pos_y = soul.pos
     if soul.obtaining:
       norm_x, norm_y = soul.norm
@@ -108,16 +109,16 @@ class Soul(Prop):
       if soul.vpos <= 0 and soul.on_end:
         soul.on_end()
     else:
-      tx = soul.time % Soul.ANIM_SWIVEL_PERIOD / Soul.ANIM_SWIVEL_PERIOD
-      ty = soul.time % Soul.ANIM_FLOAT_PERIOD / Soul.ANIM_FLOAT_PERIOD
+      tx = soul.anim.time % Soul.ANIM_SWIVEL_PERIOD / Soul.ANIM_SWIVEL_PERIOD
+      ty = soul.anim.time % Soul.ANIM_FLOAT_PERIOD / Soul.ANIM_FLOAT_PERIOD
       pos_x = cos(pi * 2 * tx) * Soul.ANIM_SWIVEL_AMP
       pos_y = sin(pi * 2 * ty) * Soul.ANIM_FLOAT_AMP
-      if soul.time % randint(30, 45) == 0:
+      if soul.anim.time % randint(30, 45) == 0:
         col, row = soul.cell
-        x = col * config.TILE_SIZE + pos_x + random()
-        y = row * config.TILE_SIZE + pos_y + random() + 2
+        x = (col + 0.5) * config.TILE_SIZE + pos_x + random()
+        y = (row + 0.5) * config.TILE_SIZE + pos_y + random() + 8
         kind = choice(("spark", "smallspark"))
-        vfx.append(Vfx(
+        soul.vfx.append(Vfx(
           kind=kind,
           pos=(x, y),
           vel=(0, 0.25),
@@ -134,14 +135,28 @@ class Soul(Prop):
     soul.pos = (pos_x, pos_y)
 
   def view(soul, anims):
-    sprites = use_assets().sprites
-    # if not soul.obtaining and soul.time % 2:
-    #   return None
-    delay = Soul.ANIM_PERIOD // Soul.ANIM_FRAMES
-    frame = soul.time % Soul.ANIM_PERIOD // delay
-    frame = min(Soul.ANIM_FRAMES - 1, frame)
-    sprite = sprites["fx_soul" + str(frame)]
-    if soul.skill:
-      color = soul.skill.color
-      sprite = replace_color(sprite, BLACK, color)
-    return sprite
+    sprites = []
+    soul.update()
+    assets = use_assets()
+    soul_color = soul.skill.color
+    soul_image = assets.sprites[soul.anim.frame]
+    soul_image = replace_color(soul_image, BLACK, soul_color)
+    sprites.append(Sprite(
+      image=soul_image,
+      pos=soul.pos,
+      layer="vfx"
+    ))
+    for fx in soul.vfx:
+      if fx.done:
+        soul.vfx.remove(fx)
+        continue
+      fx_frame = fx.update()
+      fx_image = assets.sprites[fx_frame]
+      fx_image = recolor(fx_image, fx.color)
+      sprites.append(Sprite(
+        image=fx_image,
+        pos=fx.pos,
+        origin=("center", "center"),
+        layer="elems"
+      ))
+    return super().view(sprites, anims)

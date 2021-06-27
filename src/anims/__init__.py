@@ -3,9 +3,10 @@ from math import inf
 class Anim:
   blocking = False
 
-  def __init__(anim, duration=inf, delay=0, target=None, on_start=None, on_end=None):
+  def __init__(anim, duration=inf, delay=0, loop=False, target=None, on_start=None, on_end=None):
     anim.duration = duration
     anim.time = -delay
+    anim.loop = loop
     anim.target = target
     anim.on_start = on_start
     anim.on_end = on_end
@@ -18,7 +19,7 @@ class Anim:
       if anim.on_start:
         anim.on_start()
     anim.time += 1
-    if anim.time == anim.duration:
+    if anim.time == anim.duration and not anim.loop:
       anim.done = True
       if anim.on_end:
         anim.on_end()
