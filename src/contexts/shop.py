@@ -202,20 +202,22 @@ class ShopContext(Context):
     MARGIN = 2
     sprites = []
 
-    hud_image = ctx.hud.update()
-    hud_x = MARGIN
-    hud_y = WINDOW_HEIGHT - hud_image.get_height() - MARGIN
-    hud_anim = next((a for a in ctx.anims if type(a) is HudEnterAnim), None)
-    if hud_anim:
-      t = hud_anim.pos
-      t = ease_out(t)
-      hud_x = lerp(8, hud_x, t)
-      hud_y = lerp(8, hud_y, t)
-    sprites.append(Sprite(
-      image=hud_image,
-      pos=(hud_x, hud_y),
-      layer="hud"
-    ))
+    hud_view = ctx.hud.view()
+    if hud_view:
+      hud_image = hud_view[0].image
+      hud_x = MARGIN
+      hud_y = WINDOW_HEIGHT - hud_image.get_height() - MARGIN
+      hud_anim = next((a for a in ctx.anims if type(a) is HudEnterAnim), None)
+      if hud_anim:
+        t = hud_anim.pos
+        t = ease_out(t)
+        hud_x = lerp(8, hud_x, t)
+        hud_y = lerp(8, hud_y, t)
+      sprites.append(Sprite(
+        image=hud_image,
+        pos=(hud_x, hud_y),
+        layer="hud"
+      ))
 
     if ctx.get_root().transits:
       return sprites

@@ -4,7 +4,7 @@ from portraits.mira import MiraPortrait as OraclePortrait
 from palette import BLUE_DARK
 
 class FortuneContext(ShopContext):
-  def __init__(ctx, items=[], hud=None):
+  def __init__(ctx, *args, **kwargs):
     super().__init__(
       title="Fortune House",
       subtitle="Destiny written in starlight",
@@ -25,6 +25,6 @@ class FortuneContext(ShopContext):
         ShopCard(name="sell", text="Trade in items for gold."),
         ShopCard(name="exit", text="Leave the shop.")
       ],
-      items=items,
-      hud=hud
+      *args,
+      **kwargs
     )

@@ -463,7 +463,7 @@ class SellContext(Context):
         pos=(tag_x, tag_y)
       ))
 
-    hud_image = ctx.hud.sprite
+    hud_image = ctx.hud.image
     hud_x = MARGIN
     hud_y = WINDOW_HEIGHT - hud_image.get_height() - MARGIN
 

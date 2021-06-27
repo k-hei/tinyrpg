@@ -273,7 +273,7 @@ class TopViewContext(Context):
       if ctx.hud.anims and not hud_anim:
         sprites += ctx.hud.view()
       else:
-        hud_image = ctx.hud.update()
+        hud_image = ctx.hud.view()[0].image
         hud_x = 8
         hud_y = 8
         if hud_anim:

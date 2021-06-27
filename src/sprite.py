@@ -40,6 +40,8 @@ class Sprite:
       scaled_image = scale(image, (int(width), int(height)))
     else:
       scaled_image = image
+    if scaled_image is None:
+      return
 
     x, y = sprite.pos
 

@@ -4,6 +4,8 @@ from assets import load as use_assets
 from sprite import Sprite
 from anims.move import MoveAnim
 from anims import Anim
+from filters import replace_color
+from palette import BLACK, GREEN
 
 class SinkAnim(Anim):
   GRAVITY_ACCEL = 0.0625
@@ -81,6 +83,7 @@ class Block(Prop):
     if not anim_group:
       if block.placed:
         block_z = SinkAnim.DEPTH
+        block_image = replace_color(block_image, BLACK, GREEN)
     if block_z:
       block_image = block_image.subsurface(Rect(
         (0, 0),

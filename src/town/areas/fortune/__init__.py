@@ -49,7 +49,7 @@ class FortuneArea(Stage):
         is_shopkeep=True,
         message=lambda talkee, ctx: [
           "{}: Welcome...".format(talkee.get_name().upper()),
-          lambda: FortuneContext(),
+          lambda: FortuneContext(hud=ctx.hud),
           lambda: ctx.anims.append(ctx.HudAnim()),
           lambda: ctx.get_root().transition(DissolveOut())
         ]

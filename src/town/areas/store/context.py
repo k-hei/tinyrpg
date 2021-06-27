@@ -5,7 +5,7 @@ from portraits.husband import HusbandPortrait
 from portraits.wife import WifePortrait
 
 class StoreContext(ShopContext):
-  def __init__(ctx, items=[]):
+  def __init__(ctx, *args, **kwargs):
     super().__init__(
       title="General Store",
       subtitle="All your exploration needs",
@@ -25,5 +25,6 @@ class StoreContext(ShopContext):
         ShopCard(name="sell", text="Trade in items for gold.", portrait=WifePortrait),
         ShopCard(name="exit", text="Leave the shop.")
       ],
-      items=items
+      *args,
+      **kwargs
     )

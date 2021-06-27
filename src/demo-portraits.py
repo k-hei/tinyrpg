@@ -25,8 +25,8 @@ class PortraitsContext(Context):
     if key == pygame.K_ESCAPE:
       return ctx.group.stop_cycle()
 
-  def view(ctx, sprites):
-    ctx.group.view(sprites)
+  def view(ctx):
+    return ctx.group.view() + super().view()
 
 App(
   size=(256, 128),
