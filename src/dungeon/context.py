@@ -1197,7 +1197,8 @@ class DungeonContext(Context):
         sprites += comp.view()
       if game.child and type(game.child) is not InventoryContext or game.get_root().transits:
         for comp in [c for c in game.comps if c.active]:
-          if type(comp) is not Log:
+          if (type(comp) is not Log
+          and not (type(game.child) is MinimapContext and type(comp) is Minimap)):
             comp.exit()
       else:
         for comp in [c for c in game.comps if not c.active]:
