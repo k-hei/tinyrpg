@@ -10,7 +10,7 @@ from dungeon.actors.npc import Npc
 from dungeon.props.chest import Chest
 from dungeon.props.soul import Soul
 import palette
-from palette import GREEN, GREEN_DARK, PURPLE, PURPLE_DARK
+from palette import GREEN, GREEN_DARK, VIOLET, VIOLET_DARK
 from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in_out
 from lib.lerp import lerp
@@ -133,7 +133,7 @@ class Minimap:
         else:
           color = 0xFF0000 if minimap.time % 60 >= 30 else 0x990000
       elif isinstance(elem, Soul) and cell in visible_cells:
-        color = PURPLE if minimap.time % 60 >= 30 else PURPLE_DARK
+        color = VIOLET if minimap.time % 60 >= 30 else VIOLET_DARK
       elif isinstance(elem, Npc) and cell in visible_cells:
         color = GREEN if minimap.time % 60 >= 30 else GREEN_DARK
       elif type(elem) is Chest and elem.rare:

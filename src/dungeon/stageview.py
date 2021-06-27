@@ -5,7 +5,7 @@ from pygame.transform import rotate, flip, scale
 
 from assets import load as use_assets
 from filters import replace_color, darken
-from palette import BLACK, WHITE, COLOR_TILE, darken_color
+from palette import BLACK, WHITE, GRAY, SAFFRON_DARK, COLOR_TILE, darken_color
 from config import ITEM_OFFSET, TILE_SIZE, DEBUG
 from sprite import Sprite
 from lib.lerp import lerp
@@ -62,8 +62,10 @@ class StageView:
     and stage.get_tile_at(cell) is not stage.FLOOR):
       color = COLOR_TILE
       image = replace_color(image, WHITE, color)
-    image_darken = image
-    if stage.get_tile_at(cell) is not stage.FLOOR:
+    if stage.get_tile_at(cell) is stage.FLOOR:
+      image = replace_color(image, GRAY, SAFFRON_DARK)
+      image_darken = image
+    else:
       image_darken = replace_color(image, color, darken_color(color))
     self.tile_cache[cell] = image_darken
     x = (col - start_x) * TILE_SIZE

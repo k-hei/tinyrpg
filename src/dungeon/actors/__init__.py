@@ -6,7 +6,7 @@ from dungeon.element import DungeonElement
 from cores import Core
 from skills.weapon import Weapon
 
-from palette import BLACK, RED, GREEN, BLUE, PURPLE, GOLD_DARK
+from palette import BLACK, RED, GREEN, BLUE, VIOLET, GOLD_DARK
 from assets import load as use_assets
 from filters import replace_color, darken
 from anims.move import MoveAnim
@@ -167,7 +167,7 @@ class DungeonActor(DungeonElement):
         actor_height *= anim_yscale
     else:
       if actor.ailment == "poison":
-        new_color = PURPLE
+        new_color = VIOLET
       elif actor.core.faction == "player":
         new_color = BLUE
       elif actor.core.faction == "ally":

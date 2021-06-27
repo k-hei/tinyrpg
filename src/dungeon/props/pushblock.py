@@ -1,11 +1,12 @@
 from pygame import Rect
 from dungeon.props import Prop
+from dungeon.props.pushtile import PushTile
 from assets import load as use_assets
 from sprite import Sprite
 from anims.move import MoveAnim
 from anims import Anim
 from filters import replace_color
-from palette import BLACK, GREEN
+from palette import BLACK, WHITE, PURPLE, SAFFRON, BLUE_DARK
 
 class SinkAnim(Anim):
   GRAVITY_ACCEL = 0.0625
@@ -36,7 +37,7 @@ class SinkAnim(Anim):
         anim.done = True
     return anim.z
 
-class Block(Prop):
+class PushBlock(Prop):
   def __init__(block):
     super().__init__()
     block.placed = False
@@ -48,7 +49,7 @@ class Block(Prop):
     target_cell = (block_x + delta_x, block_y + delta_y)
     target_tile = game.floor.get_tile_at(target_cell)
     target_elem = game.floor.get_elem_at(target_cell)
-    if block.placed or target_tile is None or target_tile.solid or target_elem:
+    if block.placed or target_tile is None or target_tile.solid or target_elem and target_elem.solid:
       return None
     game.anims.append([
       MoveAnim(
@@ -64,7 +65,7 @@ class Block(Prop):
         dest=target_cell
       )
     ])
-    if target_tile is game.floor.PUSH_TILE:
+    if type(target_elem) is PushTile:
       block.placed = True
       game.anims.append([
         SinkAnim(target=block)
@@ -74,16 +75,18 @@ class Block(Prop):
     return False
 
   def view(block, anims):
-    block_image = use_assets().sprites["pushblock"]
+    assets = use_assets()
+    block_image = assets.sprites["push_block"]
     block_z = 0
     anim_group = [a for a in anims[0] if a.target is block] if anims else []
     for anim in anim_group:
       if type(anim) is SinkAnim:
         block_z = anim.z
-    if not anim_group:
-      if block.placed:
-        block_z = SinkAnim.DEPTH
-        block_image = replace_color(block_image, BLACK, GREEN)
+    if not anim_group and block.placed:
+      block_z = SinkAnim.DEPTH
+      block_image = assets.sprites["push_block_open"]
+      block_image = replace_color(block_image, WHITE, PURPLE)
+      block_image = replace_color(block_image, BLACK, BLUE_DARK)
     if block_z:
       block_image = block_image.subsurface(Rect(
         (0, 0),
@@ -92,5 +95,5 @@ class Block(Prop):
     return super().view(Sprite(
       image=block_image,
       pos=(0, 0),
-      layer="elems" if anim_group or not block.placed else "decors"
+      layer="elems" # if anim_group or not block.placed else "decors"
     ), anims)

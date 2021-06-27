@@ -3,7 +3,7 @@ import pygame
 from pygame import Surface, Rect
 from assets import load as use_assets
 from filters import replace_color
-from palette import RED, WHITE, GOLD, PURPLE, GRAY
+from palette import RED, WHITE, GOLD, VIOLET, GRAY
 
 from anims import Anim
 from anims.tween import TweenAnim
@@ -104,7 +104,7 @@ class Preview:
       if anim.time % 4 >= 2 or anim.done:
         portrait = portrait and replace_color(portrait, WHITE, GRAY)
     elif actor.ailment == "sleep":
-      portrait = portrait and replace_color(portrait, WHITE, PURPLE)
+      portrait = portrait and replace_color(portrait, WHITE, VIOLET)
     elif actor.rare:
       portrait = portrait and replace_color(portrait, WHITE, GOLD)
     surface_width = bar_x + bar.get_width()

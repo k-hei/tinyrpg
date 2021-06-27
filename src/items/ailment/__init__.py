@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from items import Item
 from assets import load as use_assets
-from palette import PURPLE
+from palette import VIOLET
 
 @dataclass
 class AilmentItem(Item):
-  color: int = PURPLE
+  color: int = VIOLET
   ailment: str = ""
 
   def use(item, game):
