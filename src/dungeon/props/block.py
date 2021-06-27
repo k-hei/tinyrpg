@@ -6,10 +6,11 @@ from anims.move import MoveAnim
 from anims import Anim
 
 class SinkAnim(Anim):
-  GRAVITY = 0.025
+  GRAVITY_ACCEL = 0.0625
+  GRAVITY_FACTOR = 1.0625
   DEPTH = 12
-  BOUNCE = 0.5
-  BOUNCES_MAX = 2
+  BOUNCE = 0.75
+  BOUNCES_MAX = 3
 
   def __init__(anim, *args, **kwargs):
     super().__init__(*args, **kwargs)
@@ -19,7 +20,10 @@ class SinkAnim(Anim):
 
   def update(anim):
     super().update()
-    anim.vel += SinkAnim.GRAVITY
+    if anim.vel <= 0 or anim.bounces:
+      anim.vel += SinkAnim.GRAVITY_ACCEL
+    else:
+      anim.vel *= SinkAnim.GRAVITY_FACTOR
     anim.z += anim.vel
     if anim.z > SinkAnim.DEPTH:
       anim.z = SinkAnim.DEPTH
