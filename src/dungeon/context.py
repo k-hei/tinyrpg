@@ -914,7 +914,7 @@ class DungeonContext(Context):
           skill = enemy_skill
           if skill not in game.parent.skill_pool:
             game.floor.spawn_elem(Soul(skill), target.cell)
-        elif enemy_drops:
+        elif enemy_drops and randint(1, 3) == 1 and not game.floor.get_elem_at(target.cell, superclass=Bag):
           drop = choice(enemy_drops)
           game.floor.spawn_elem(Bag(item=drop), target.cell)
       target.kill()

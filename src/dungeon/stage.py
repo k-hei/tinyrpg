@@ -93,8 +93,11 @@ class Stage:
     elem = stage.get_elem_at(cell)
     return elem and elem.opaque
 
-  def get_elem_at(stage, cell):
-    return next((e for e in stage.elems if e.cell == cell), None)
+  def get_elem_at(stage, cell, superclass=None):
+    return next((e for e in stage.elems if (
+      e.cell == cell
+      and (superclass is None or isinstance(e, superclass))
+    )), None)
 
   def get_tile_at(stage, cell):
     if not stage.contains(cell):

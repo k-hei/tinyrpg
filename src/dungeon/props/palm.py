@@ -2,6 +2,7 @@ from dungeon.props import Prop
 from anims.flicker import FlickerAnim
 from config import FLICKER_DURATION
 from assets import load as use_assets
+from sprite import Sprite
 
 class Palm(Prop):
   def __init__(palm):
@@ -15,4 +16,7 @@ class Palm(Prop):
     )])
 
   def view(coffin, anims):
-    return super().view(use_assets().sprites["oasis_palm"], anims)
+    return super().view(Sprite(
+      image=use_assets().sprites["oasis_palm"],
+      layer="decors"
+    ), anims)
