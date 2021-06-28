@@ -554,7 +554,8 @@ class DungeonContext(Context):
     elif target_tile is Stage.PIT:
       moved = game.jump_pit(hero, run, on_move)
     else:
-      if target_elem is None or target_elem.effect(game) is None:
+      effect_result = target_elem and target_elem.effect(game)
+      if effect_result is None:
         anim = AttackAnim(
           duration=DungeonContext.ATTACK_DURATION,
           target=hero,
@@ -565,6 +566,8 @@ class DungeonContext(Context):
           game.anims[-1].append(anim)
         else:
           game.anims.append([anim])
+      elif effect_result == True:
+        moved = True
       if isinstance(target_elem, Npc):
         game.handle_talk()
       elif type(target_elem) is Chest:

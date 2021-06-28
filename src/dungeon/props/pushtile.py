@@ -19,7 +19,7 @@ class PushTile(DungeonElement):
       pushtile = game.floor.get_elem_at(cell, superclass=PushTile)
       if pushtile:
         pushtiles.append(pushtile)
-    if len([t for t in pushtiles if t.pushed]) == len(pushtiles):
+    if not tile.completed and len([t for t in pushtiles if t.pushed]) == len(pushtiles):
       for t in pushtiles:
         tile.completed = True
       door = None

@@ -45,7 +45,7 @@ class PushBlock(Prop):
     block.cell = target_cell
     if target_elem:
       target_elem.effect(game)
-    return False
+    return True
 
   def view(block, anims):
     assets = use_assets()

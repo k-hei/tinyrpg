@@ -9,8 +9,8 @@ from skills.weapon import Weapon
 from palette import BLACK, RED, GREEN, BLUE, VIOLET, GOLD_DARK
 from assets import load as use_assets
 from filters import replace_color, darken
-from anims.move import MoveAnim
 from anims.attack import AttackAnim
+from anims.jump import JumpAnim
 from anims.awaken import AwakenAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
@@ -152,16 +152,18 @@ class DungeonActor(DungeonElement):
     for anim in anim_group:
       if type(anim) is AwakenAnim and anim.visible:
         asleep = True
-      elif type(anim) is AttackAnim:
+      if type(anim) is AttackAnim or type(anim) is JumpAnim:
         anim_x, anim_y = anim.cell
         actor_x, actor_y = actor.cell
         offset_x = (anim_x - actor_x) * TILE_SIZE
         offset_y = (anim_y - actor_y) * TILE_SIZE
-      elif type(anim) is FlinchAnim and anim.time <= 3:
+      if type(anim) is JumpAnim:
+        offset_y += anim.offset
+      if type(anim) is FlinchAnim and anim.time <= 3:
         return []
-      elif type(anim) is FlinchAnim:
+      if type(anim) is FlinchAnim:
         offset_x, offset_y = anim.offset
-      elif type(anim) is BounceAnim:
+      if type(anim) is BounceAnim:
         anim_xscale, anim_yscale = anim.scale
         actor_width *= anim_xscale
         actor_height *= anim_yscale

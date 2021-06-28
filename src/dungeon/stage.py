@@ -26,7 +26,7 @@ class Stage:
   COFFIN = Tile(solid=True, opaque=True)
   OASIS = Tile(solid=False, opaque=False, elev=-1.0)
   OASIS_STAIRS = Tile(solid=False, opaque=False, elev=-0.5)
-  TILES = [FLOOR, WALL, STAIRS_DOWN, STAIRS_UP]
+  TILES = [FLOOR, WALL, STAIRS_DOWN, STAIRS_UP, PIT, DOOR_WAY]
 
   def __init__(stage, size, data=None, elems=None):
     width, height = size
