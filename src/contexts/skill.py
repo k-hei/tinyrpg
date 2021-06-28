@@ -245,28 +245,28 @@ class SkillContext(Context):
         elif t == 2:
           cursor_sprite = assets.sprites["cursor_cell2"]
 
-        new_cursor_col, new_cursor_row = cursor
-        if ctx.exiting and not ctx.confirmed:
-          new_cursor_col, new_cursor_row = hero.cell
-          cursor_scale += -cursor_scale / 4
-        else:
-          cursor_scale += (1 - cursor_scale) / 4
-        cursor_col += (new_cursor_col - cursor_col) / 4
-        cursor_row += (new_cursor_row - cursor_row) / 4
-        cursor_x, cursor_y = scale_up((cursor_col, cursor_row))
-
-        if cursor_sprite:
-          cursor_sprite = pygame.transform.scale(cursor_sprite, (
-            int(cursor_sprite.get_width() * cursor_scale),
-            int(cursor_sprite.get_height() * cursor_scale)
-          ))
-          sprites.append(Sprite(
-            image=cursor_sprite,
-            pos=(
-              cursor_x + TILE_SIZE // 2 - cursor_sprite.get_width() // 2 - 1,
-              cursor_y + TILE_SIZE // 2 - cursor_sprite.get_height() // 2 - 1
-            )
-          ))
+      new_cursor_col, new_cursor_row = cursor
+      if ctx.exiting and not ctx.confirmed:
+        new_cursor_col, new_cursor_row = hero.cell
+        cursor_scale += -cursor_scale / 4
+      else:
+        cursor_scale += (1 - cursor_scale) / 4
+      cursor_col += (new_cursor_col - cursor_col) / 4
+      cursor_row += (new_cursor_row - cursor_row) / 4
+      cursor_x, cursor_y = scale_up((cursor_col, cursor_row))
+      if cursor_sprite:
+        cursor_sprite = pygame.transform.scale(cursor_sprite, (
+          int(cursor_sprite.get_width() * cursor_scale),
+          int(cursor_sprite.get_height() * cursor_scale)
+        ))
+        sprites.append(Sprite(
+          image=cursor_sprite,
+          pos=(
+            cursor_x + TILE_SIZE // 2 - cursor_sprite.get_width() // 2 - 1,
+            cursor_y + TILE_SIZE // 2 - cursor_sprite.get_height() // 2 - 1
+          ),
+          layer="ui"
+        ))
         ctx.cursor = (cursor_col, cursor_row, cursor_scale)
 
     sprites += ctx.bar.view()
