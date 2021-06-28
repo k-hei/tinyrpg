@@ -461,6 +461,10 @@ class DungeonContext(Context):
       if not moved:
         return False
 
+      origin_elem = game.floor.get_elem_at(old_cell)
+      if origin_elem:
+        origin_elem.aftereffect(game)
+
       if target_elem and not target_elem.solid:
         target_elem.effect(game)
       if target_tile is Stage.OASIS:

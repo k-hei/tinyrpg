@@ -16,6 +16,9 @@ class DungeonElement:
   def effect(elem, game):
     pass
 
+  def aftereffect(elem, game):
+    pass
+
   def view(elem, sprites, anims=[]):
     if type(sprites) is Surface:
       sprites = Sprite(image=sprites, layer="elems")

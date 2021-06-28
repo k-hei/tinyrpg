@@ -43,6 +43,8 @@ class PushBlock(Prop):
       ])
     hero.cell = block.cell
     block.cell = target_cell
+    if target_elem:
+      target_elem.effect(game)
     return False
 
   def view(block, anims):
