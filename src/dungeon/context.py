@@ -123,6 +123,9 @@ class DungeonContext(Context):
       FloorNo(parent=game),
       SpMeter(parent=game.parent)
     ]
+    for comp in game.comps:
+      comp.active = False
+      comp.anims = []
     if game.debug:
       game.lights = True
       game.floor_cells = game.floor.get_visible_cells()

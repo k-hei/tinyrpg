@@ -111,7 +111,7 @@ class GameContext(Context):
   def reset(ctx):
     ctx.load()
 
-  def goto_dungeon(ctx, floor):
+  def goto_dungeon(ctx, floor=None):
     ctx.open(DungeonContext(party=ctx.party, floor=floor))
 
   def goto_town(ctx, returning=False):
