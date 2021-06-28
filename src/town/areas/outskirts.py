@@ -54,11 +54,11 @@ class OutskirtsArea(Area):
             ("Doshin", "Hm? A name change?"),
             ("Doshin", "Awfully finnicky, aren't we?"),
             lambda: NameEntryContext(
-              char=ctx.hero.core,
+              char=ctx.party[0].core,
               on_close=lambda name: (
-                name != ctx.hero.core.name and (
-                  ctx.hero.core.rename(name),
-                  ("Doshin", lambda: ("Oho! So your name is ", ctx.hero.core.token(), ".")),
+                name != ctx.party[0].core.name and (
+                  ctx.party[0].core.rename(name),
+                  ("Doshin", lambda: ("Oho! So your name is ", ctx.party[0].core.token(), ".")),
                   ("Doshin", ". . . . ."),
                   ("Doshin", "...Well, it's certainly something.")
                 ) or (

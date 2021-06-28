@@ -25,8 +25,7 @@ class DungeonElement:
     if type(sprites) is Sprite:
       sprites = [sprites]
     sprite = sprites[0]
-    sprite_width = sprite.image.get_width()
-    sprite_height = sprite.image.get_height()
+    sprite_width, sprite_height = sprite.size or sprite.image.get_size()
     offset_x, offset_y = (0, 0)
     item = None
     anim_group = anims[0] if anims else []

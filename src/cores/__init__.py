@@ -72,12 +72,12 @@ class Core:
       or a.faction == "player" and b.faction == "ally"
       or a.faction == "ally" and b.faction == "player")
 
-  def color(core):
+  def get_color(core):
     if core.faction == "player": return BLUE
     if core.faction == "enemy": return RED
 
   def token(core):
-    return Token(text=core.name.upper(), color=core.color())
+    return Token(text=core.name.upper(), color=core.get_color())
 
   def update(core):
     for anim in core.anims:

@@ -167,6 +167,7 @@ class DungeonActor(DungeonElement):
         anim_xscale, anim_yscale = anim.scale
         actor_width *= anim_xscale
         actor_height *= anim_yscale
+        print(anim.scale)
     else:
       if actor.ailment == "poison":
         new_color = VIOLET
@@ -197,4 +198,4 @@ class DungeonActor(DungeonElement):
     if actor.core.faction == "enemy": return RED
 
   def token(actor):
-    return Token(text=actor.get_name().upper(), color=actor.color() if callable(actor.color) else actor.color)
+    return Token(text=actor.get_name().upper(), color=actor.color())
