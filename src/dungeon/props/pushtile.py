@@ -28,6 +28,7 @@ class PushTile(DungeonElement):
         if door:
           break
       if door:
+        door.unlock()
         game.anims.append([PauseAnim(
           duration=60,
           on_end=lambda: door.effect(game)

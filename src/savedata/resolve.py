@@ -46,6 +46,7 @@ from dungeon.props.soul import Soul
 from dungeon.props.pushblock import PushBlock
 from dungeon.props.door import Door
 from dungeon.props.pushtile import PushTile
+from dungeon.props.puzzledoor import PuzzleDoor
 from dungeon.props.chest import Chest
 from dungeon.features.oasisroom import OasisRoom
 from dungeon.features.elevroom import ElevRoom
@@ -121,6 +122,7 @@ def resolve_elem(key):
   if key == "PushBlock": return PushBlock
   if key == "Door": return Door
   if key == "PushTile": return PushTile
+  if key == "PuzzleDoor": return PuzzleDoor
   if key == "Chest": return Chest
   if key == "OasisRoom": return OasisRoom
   if key == "ElevRoom": return ElevRoom

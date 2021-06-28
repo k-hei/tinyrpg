@@ -19,12 +19,21 @@ class Door(Prop):
     opening_frames=["door_puzzle", "door_puzzle_opening", "door_puzzle_open"]
   )
 
-  def __init__(door):
+  def __init__(door, locked=False):
     super().__init__(solid=True, opaque=True)
+    door.locked = locked
     door.opened = False
 
+  def unlock(door):
+    door.locked = False
+
+  def lock(door):
+    door.locked = True
+
   def effect(door, game):
-    if not door.opened:
+    if door.locked:
+      return game.log.print("The door is locked...")
+    if not door.locked and not door.opened:
       door.open()
       game.anims.append([
         DoorAnim(
@@ -35,7 +44,7 @@ class Door(Prop):
       ])
 
   def open(door):
-    if not door.opened:
+    if not door.locked and not door.opened:
       door.opened = True
       door.solid = False
       return True
