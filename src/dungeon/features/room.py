@@ -2,10 +2,10 @@ from dungeon.features import Feature
 from lib.cell import add
 
 class Room(Feature):
-  def __init__(room, size, degree=0, secret=False):
+  def __init__(room, size, cell=None, degree=0, secret=False):
     super().__init__(degree, secret)
     room.size = size
-    room.cell = None
+    room.cell = cell
 
   def get_width(room):
     width, _ = room.get_size()

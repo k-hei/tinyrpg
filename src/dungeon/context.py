@@ -84,15 +84,15 @@ class DungeonContext(Context):
   PAUSE_DEATH_DURATION = 45
   AWAKEN_DURATION = 45
 
-  def __init__(game, party, debug=False):
+  def __init__(game, party, floor=None, debug=False):
     super().__init__()
     game.hero = manifest(party[0])
     game.ally = manifest(party[1]) if len(party) == 2 else None
     game.debug = debug
-    game.floors = []
-    game.floor = None
+    game.floor = floor
     game.floor_view = None
     game.floor_cells = None
+    game.floors = []
     game.room = None
     game.room_entrances = {}
     game.rooms_entered = []
@@ -111,6 +111,10 @@ class DungeonContext(Context):
 
   def init(game):
     game.floor_view = StageView(WINDOW_SIZE)
+    if game.floor:
+      game.use_floor(game.floor)
+    else:
+      game.create_floor()
     game.comps = [
       game.log,
       game.minimap,
@@ -119,7 +123,6 @@ class DungeonContext(Context):
       FloorNo(parent=game),
       SpMeter(parent=game.parent)
     ]
-    game.create_floor()
     if game.debug:
       game.lights = True
       game.floor_cells = game.floor.get_visible_cells()
@@ -133,11 +136,8 @@ class DungeonContext(Context):
   def get_inventory(game):
     return game.parent.inventory.items
 
-  def create_floor(game):
+  def use_floor(game, floor):
     floor_no = game.get_floor_no()
-    floor = gen.gen_floor(seed=config.SEED)
-    game.parent.seeds.append(floor.seed)
-
     hero = game.hero
     hero.facing = (1, 0)
     floor.spawn_elem(hero, floor.entrance)
@@ -174,6 +174,11 @@ class DungeonContext(Context):
     game.camera.reset()
     game.camera.update(game)
     game.redraw_tiles()
+
+  def create_floor(game):
+    floor = gen.gen_floor(seed=config.SEED)
+    game.parent.seeds.append(floor.seed)
+    game.use_floor(floor)
 
   def set_tile_at(game, cell, tile):
     floor = game.floor

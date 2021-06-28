@@ -6,7 +6,6 @@ from skills import Skill
 
 @dataclass
 class SaveData:
-  place: str
   sp: int
   time: int
   gold: int
@@ -14,14 +13,19 @@ class SaveData:
   skills: list[Skill]
   party: list[str]
   chars: dict[str, dict]
+  place: str
+  dungeon: dict[str, dict] = None
 
-def load(path):
+def load(*paths):
   try:
-    savefile = open(path, "r")
-    data = json.loads(savefile.read())
-    return SaveData(**data)
+    data = {}
+    for path in paths:
+      savefile = open(path, "r")
+      data.update(**json.loads(savefile.read()))
+      savefile.close()
   except OSError:
     return None
+  return SaveData(**data)
 
 def save(path, data):
   savefile = open(path, "w")

@@ -4,6 +4,8 @@ from config import WINDOW_SIZE, DEBUG
 from contexts import Context
 from contexts.pause import PauseContext
 from dungeon.context import DungeonContext
+from dungeon.stage import Stage
+from dungeon.features.room import Room
 from town import TownContext
 from cores.knight import Knight
 from cores.mage import Mage
@@ -61,8 +63,14 @@ class GameContext(Context):
         piece = (resolve_skill(skill), cell)
         ctx.skill_builds[char].append(piece)
     ctx.update_skills()
+    floor = None
+    if savedata.dungeon:
+      floordata = savedata.dungeon["floors"][savedata.dungeon["floor_no"] - 1]
+      floor = Stage(size=floordata["size"], data=[Stage.TILES[t] for t in floordata["data"]])
+      floor.entrance = floor.find_tile(Stage.STAIRS_DOWN)
+      floor.rooms = [Room((r["width"], r["height"]), (r["x"], r["y"])) for r in floordata["rooms"]]
     if savedata.place == "dungeon":
-      ctx.goto_dungeon()
+      ctx.goto_dungeon(floor)
     elif savedata.place == "town":
       ctx.goto_town()
 
@@ -96,13 +104,10 @@ class GameContext(Context):
       ctx.party[1] = char
 
   def reset(ctx):
-    if type(ctx.child) is DungeonContext:
-      ctx.goto_dungeon()
-    elif type(ctx.child) is TownContext:
-      ctx.goto_town()
+    ctx.load()
 
-  def goto_dungeon(ctx):
-    ctx.open(DungeonContext(party=ctx.party))
+  def goto_dungeon(ctx, floor):
+    ctx.open(DungeonContext(party=ctx.party, floor=floor))
 
   def goto_town(ctx, returning=False):
     ctx.open(TownContext(party=ctx.party))

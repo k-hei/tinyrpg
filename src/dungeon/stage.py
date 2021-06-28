@@ -26,13 +26,13 @@ class Stage:
   COFFIN = Tile(solid=True, opaque=True)
   OASIS = Tile(solid=False, opaque=False, elev=-1.0)
   OASIS_STAIRS = Tile(solid=False, opaque=False, elev=-0.5)
-  PUSH_TILE = Tile(solid=False)
+  TILES = [FLOOR, WALL, STAIRS_DOWN, STAIRS_UP]
 
-  def __init__(stage, size):
+  def __init__(stage, size, data=None, elems=None):
     width, height = size
     stage.size = size
-    stage.data = [Stage.FLOOR] * (width * height)
-    stage.elems = []
+    stage.data = data or [Stage.FLOOR] * (width * height)
+    stage.elems = elems or []
     stage.rooms = []
     stage.decors = []
     stage.entrance = None
