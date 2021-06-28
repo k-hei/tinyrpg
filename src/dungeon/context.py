@@ -41,6 +41,7 @@ from dungeon.props.soul import Soul
 from dungeon.props.coffin import Coffin
 from dungeon.props.palm import Palm
 
+from inventory import Inventory
 from items import Item
 from skills.weapon import Weapon
 
@@ -574,7 +575,7 @@ class DungeonContext(Context):
         chest = target_elem
         item = chest.contents
         if item:
-          if not game.parent.inventory.is_full():
+          if not game.parent.inventory.is_full(Inventory.tab(item)):
             game.anims.append([
               ChestAnim(
                 duration=30,

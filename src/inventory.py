@@ -1,5 +1,13 @@
+from items.materials import MaterialItem
+
 class Inventory:
   tabs = ["consumables", "materials", "equipment"]
+
+  def tab(item):
+    if issubclass(item, MaterialItem):
+      return "materials"
+    else:
+      return "consumables"
 
   def __init__(inv, size, items=[]):
     cols, rows = size
@@ -7,8 +15,11 @@ class Inventory:
     inv.rows = rows
     inv.items = items
 
-  def is_full(inv):
-    return len(inv.items) == inv.cols * inv.rows
+  def filter(inv, tab):
+    return [item for item in inv.items if Inventory.tab(item) == tab]
+
+  def is_full(inv, tab):
+    return inv.filter(tab) == inv.cols * inv.rows
 
   def append(inv, item):
     if not inv.is_full():

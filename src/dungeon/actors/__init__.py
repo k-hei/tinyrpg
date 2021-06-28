@@ -167,7 +167,6 @@ class DungeonActor(DungeonElement):
         anim_xscale, anim_yscale = anim.scale
         actor_width *= anim_xscale
         actor_height *= anim_yscale
-        print(anim.scale)
     else:
       if actor.ailment == "poison":
         new_color = VIOLET
