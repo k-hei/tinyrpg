@@ -13,7 +13,7 @@ from cores.rogue import Rogue
 from inventory import Inventory
 from skills import get_skill_order
 from savedata import SaveData
-from savedata.resolve import resolve_item, resolve_skill
+from savedata.resolve import resolve_item, resolve_skill, resolve_elem
 
 def resolve_char(char):
   if char == "knight": return Knight()
@@ -66,9 +66,14 @@ class GameContext(Context):
     floor = None
     if savedata.dungeon:
       floordata = savedata.dungeon["floors"][savedata.dungeon["floor_no"] - 1]
-      floor = Stage(size=floordata["size"], data=[Stage.TILES[t] for t in floordata["data"]])
+      floor = Stage(
+        size=floordata["size"],
+        data=[Stage.TILES[t] for t in floordata["data"]]
+      )
       floor.entrance = floor.find_tile(Stage.STAIRS_DOWN)
       floor.rooms = [Room((r["width"], r["height"]), (r["x"], r["y"])) for r in floordata["rooms"]]
+      for elem_name, elem_cell in floordata["elems"]:
+        floor.spawn_elem(resolve_elem(elem_name)(), tuple(elem_cell))
     if savedata.place == "dungeon":
       ctx.goto_dungeon(floor)
     elif savedata.place == "town":

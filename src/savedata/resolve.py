@@ -37,6 +37,27 @@ from skills.support.anastasis import Anastasis
 from skills.support.counter import Counter
 from skills.support.sana import Sana
 from skills.armor.hpup import HpUp
+from dungeon.props.bag import Bag
+from dungeon.props.treasuredoor import TreasureDoor
+from dungeon.props.palm import Palm
+from dungeon.props.battledoor import BattleDoor
+from dungeon.props.coffin import Coffin
+from dungeon.props.soul import Soul
+from dungeon.props.pushblock import PushBlock
+from dungeon.props.door import Door
+from dungeon.props.pushtile import PushTile
+from dungeon.props.chest import Chest
+from dungeon.features.oasisroom import OasisRoom
+from dungeon.features.elevroom import ElevRoom
+from dungeon.features.pitroom import PitRoom
+from dungeon.features.coffinroom import CoffinRoom
+from dungeon.features.treasureroom import TreasureRoom
+from dungeon.features.arena import BattleRoom
+from dungeon.features.maze import Maze
+from dungeon.features.vertroom import VerticalRoom
+from dungeon.features.specialroom import SpecialRoom
+from dungeon.features.exitroom import ExitRoom
+from dungeon.features.room import Room
 from dungeon.actors.genie import Genie
 from dungeon.actors.npc import Npc
 from dungeon.actors.skeleton import Skeleton
@@ -89,6 +110,38 @@ def resolve_skill(key):
   if key == "Counter": return Counter
   if key == "Sana": return Sana
   if key == "HpUp": return HpUp
+
+def resolve_elem(key):
+  if key == "Bag": return Bag
+  if key == "TreasureDoor": return TreasureDoor
+  if key == "Palm": return Palm
+  if key == "BattleDoor": return BattleDoor
+  if key == "Coffin": return Coffin
+  if key == "Soul": return Soul
+  if key == "PushBlock": return PushBlock
+  if key == "Door": return Door
+  if key == "PushTile": return PushTile
+  if key == "Chest": return Chest
+  if key == "OasisRoom": return OasisRoom
+  if key == "ElevRoom": return ElevRoom
+  if key == "PitRoom": return PitRoom
+  if key == "CoffinRoom": return CoffinRoom
+  if key == "TreasureRoom": return TreasureRoom
+  if key == "BattleRoom": return BattleRoom
+  if key == "Maze": return Maze
+  if key == "VerticalRoom": return VerticalRoom
+  if key == "SpecialRoom": return SpecialRoom
+  if key == "ExitRoom": return ExitRoom
+  if key == "Room": return Room
+  if key == "Genie": return Genie
+  if key == "Npc": return Npc
+  if key == "Skeleton": return Skeleton
+  if key == "Mage": return Mage
+  if key == "Eye": return Eye
+  if key == "Mimic": return Mimic
+  if key == "Knight": return Knight
+  if key == "Mushroom": return Mushroom
+  if key == "Soldier": return Soldier
 
 def resolve_material(material):
   if material is Diamond: return None

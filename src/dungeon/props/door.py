@@ -12,8 +12,6 @@ class SpriteMap:
   opened: str
   opening_frames: list[str]
 
-class DoorAnim(FrameAnim): pass
-
 class Door(Prop):
   sprites = SpriteMap(
     closed="door_puzzle",
@@ -62,3 +60,5 @@ class Door(Prop):
       image=image,
       layer="decors"
     )]
+
+class DoorAnim(FrameAnim): pass

@@ -2,14 +2,14 @@ from os import listdir
 from os.path import isfile, join, splitext, basename
 import re
 
-def build_tree(path, prefix=[], root=False):
+def build_tree(path, prefix=[], exclude=[], root=False):
   imports = {}
   pattern = re.compile("class (\w+)\(\w+\)")
   for item in listdir(join(path, *prefix)):
-    if item[:2] == "__": continue
+    if item[:2] == "__" or item in exclude: continue
     item_path = join(path, *prefix, item)
     if not isfile(item_path):
-      for key, val in build_tree(path, prefix + [item]).items():
+      for key, val in build_tree(path=path, prefix=prefix + [item]).items():
         imports[key] = val
     elif prefix or root:
       name, ext = splitext(item)
@@ -52,22 +52,26 @@ def build_materials(materials_path, actors_path):
 
   return materials
 
-def build_buffer(items, skills, actors, materials):
+def build_buffer(items, skills, elems, actors, materials):
   buffer = ""
   for key, path in items.items():
     buffer += "from {} import {}\n".format(path, key)
   for key, path in skills.items():
     buffer += "from {} import {}\n".format(path, key)
-  for key, path in actors.items():
-    buffer += "from dungeon.{} import {}\n".format(path, key)
+  for key, path in elems.items():
+    buffer += "from {} import {}\n".format(path, key)
 
   buffer += "\ndef resolve_item(key):\n"
   for key, path in items.items():
-    buffer += "  if key == \"{}\": return {}\n".format(key, key)
+    buffer += "  if key == \"{key}\": return {key}\n".format(key=key)
 
   buffer += "\ndef resolve_skill(key):\n"
   for key, path in skills.items():
-    buffer += "  if key == \"{}\": return {}\n".format(key, key)
+    buffer += "  if key == \"{key}\": return {key}\n".format(key=key)
+
+  buffer += "\ndef resolve_elem(key):\n"
+  for key, path in elems.items():
+    buffer += "  if key == \"{key}\": return {key}\n".format(key=key)
 
   buffer += "\ndef resolve_material(material):\n"
   for material, enemy in materials.items():
@@ -78,9 +82,10 @@ def build_buffer(items, skills, actors, materials):
 if __name__ == "__main__":
   items = build_tree("src/items")
   skills = build_tree("src/skills")
+  elems = build_tree("src/dungeon", exclude=["gen"])
   actors = build_tree("src/dungeon/actors", root=True)
   materials = build_materials("src/items/materials", "src/dungeon/actors")
-  buffer = build_buffer(items, skills, actors, materials)
+  buffer = build_buffer(items, skills, elems, actors, materials)
   print(buffer)
   output_file = open("src/savedata/resolve.py", "w")
   output_file.write(buffer)

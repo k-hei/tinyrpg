@@ -8,35 +8,6 @@ from anims import Anim
 from filters import replace_color
 from palette import BLACK, WHITE, PURPLE, SAFFRON, BLUE_DARK
 
-class SinkAnim(Anim):
-  GRAVITY_ACCEL = 0.0625
-  GRAVITY_FACTOR = 1.0625
-  DEPTH = 12
-  BOUNCE = 0.75
-  BOUNCES_MAX = 3
-
-  def __init__(anim, *args, **kwargs):
-    super().__init__(*args, **kwargs)
-    anim.z = 0
-    anim.vel = 0
-    anim.bounces = 0
-
-  def update(anim):
-    super().update()
-    if anim.vel <= 0 or anim.bounces:
-      anim.vel += SinkAnim.GRAVITY_ACCEL
-    else:
-      anim.vel *= SinkAnim.GRAVITY_FACTOR
-    anim.z += anim.vel
-    if anim.z > SinkAnim.DEPTH:
-      anim.z = SinkAnim.DEPTH
-      if anim.bounces < SinkAnim.BOUNCES_MAX:
-        anim.vel *= -SinkAnim.BOUNCE
-        anim.bounces += 1
-      else:
-        anim.done = True
-    return anim.z
-
 class PushBlock(Prop):
   def __init__(block):
     super().__init__()
@@ -87,8 +58,6 @@ class PushBlock(Prop):
       block_image = assets.sprites["push_block_open"]
       block_image = replace_color(block_image, WHITE, PURPLE)
       block_image = replace_color(block_image, BLACK, BLUE_DARK)
-    else:
-      block_image = replace_color(block_image, BLACK, SAFFRON)
     if block_z:
       block_image = block_image.subsurface(Rect(
         (0, 0),
@@ -99,3 +68,32 @@ class PushBlock(Prop):
       pos=(0, 0),
       layer="elems" # if anim_group or not block.placed else "decors"
     ), anims)
+
+class SinkAnim(Anim):
+  GRAVITY_ACCEL = 0.0625
+  GRAVITY_FACTOR = 1.0625
+  DEPTH = 12
+  BOUNCE = 0.75
+  BOUNCES_MAX = 3
+
+  def __init__(anim, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    anim.z = 0
+    anim.vel = 0
+    anim.bounces = 0
+
+  def update(anim):
+    super().update()
+    if anim.vel <= 0 or anim.bounces:
+      anim.vel += SinkAnim.GRAVITY_ACCEL
+    else:
+      anim.vel *= SinkAnim.GRAVITY_FACTOR
+    anim.z += anim.vel
+    if anim.z > SinkAnim.DEPTH:
+      anim.z = SinkAnim.DEPTH
+      if anim.bounces < SinkAnim.BOUNCES_MAX:
+        anim.vel *= -SinkAnim.BOUNCE
+        anim.bounces += 1
+      else:
+        anim.done = True
+    return anim.z

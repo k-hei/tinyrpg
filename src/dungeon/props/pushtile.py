@@ -1,7 +1,7 @@
 from dungeon.element import DungeonElement
 from assets import load as use_assets
 from filters import replace_color
-from palette import BLACK, WHITE, GRAY, PURPLE, SAFFRON, SAFFRON_DARK
+from palette import BLACK, WHITE, GRAY, PURPLE, SAFFRON, SAFFRON_DARK, BLUE_DARK
 from sprite import Sprite
 
 class PushTile(DungeonElement):
@@ -18,6 +18,7 @@ class PushTile(DungeonElement):
     tile_image = replace_color(tile_image, GRAY, SAFFRON_DARK)
     if tile.pushed:
       tile_image = replace_color(tile_image, WHITE, PURPLE)
+      tile_image = replace_color(tile_image, BLACK, BLUE_DARK)
     return super().view(Sprite(
       image=tile_image,
       layer="decors"

@@ -16,7 +16,7 @@
           1, 1, 1, 1, 1, 1, 1
         ],
         "elems": [
-          ["PuzzleDoor", [2, 1]],
+          ["Door", [3, 1]],
           ["PushTile", [2, 3]],
           ["PushTile", [4, 3]],
           ["PushBlock", [2, 5]]
