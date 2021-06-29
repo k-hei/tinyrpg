@@ -58,15 +58,11 @@ class StageView:
       return
     color = WHITE
     if (stage.get_tile_at(cell) is not stage.OASIS
-    and stage.get_tile_at(cell) is not stage.OASIS_STAIRS
-    and stage.get_tile_at(cell) is not stage.FLOOR):
+    and stage.get_tile_at(cell) is not stage.OASIS_STAIRS):
       color = COLOR_TILE
       image = replace_color(image, WHITE, color)
-    if stage.get_tile_at(cell) is stage.FLOOR:
       image = replace_color(image, GRAY, SAFFRON_DARK)
-      image_darken = image
-    else:
-      image_darken = replace_color(image, color, darken_color(color))
+    image_darken = replace_color(image, color, darken_color(color))
     self.tile_cache[cell] = image_darken
     x = (col - start_x) * TILE_SIZE
     y = (row - start_y) * TILE_SIZE
