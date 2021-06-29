@@ -72,7 +72,7 @@ def animate_text(anim, text, period, stagger=1, delay=0):
   return anims
 
 class ShopContext(Context):
-  def __init__(ctx, title, subtitle, messages, portraits, cards, items, bg_name, bg_color=WHITE, hud=None):
+  def __init__(ctx, title, subtitle, messages, portraits, cards, bg_name, bg_color=WHITE, items=[], hud=None):
     super().__init__()
     ctx.title = title
     ctx.subtitle = subtitle
