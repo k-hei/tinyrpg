@@ -53,7 +53,7 @@ class OasisRoom(SpecialRoom):
     for i in range(randint(2, 3)):
       cell = choice(floor_cells)
       floor_cells.remove(cell)
-      stage.spawn_elem(Palm(), cell)
+      stage.spawn_elem_at(cell, Palm())
 
     for i in range(8):
       cell = choice(floor_cells)

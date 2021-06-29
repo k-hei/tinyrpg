@@ -129,11 +129,10 @@ class Stage:
           return cell
     return None
 
-  def spawn_elem(stage, elem, cell=None):
+  def spawn_elem_at(stage, cell, elem):
+    elem.cell = cell
     if elem not in stage.elems:
       stage.elems.append(elem)
-    if cell:
-      elem.cell = cell
 
   def remove_elem(stage, elem):
     if elem in stage.elems:

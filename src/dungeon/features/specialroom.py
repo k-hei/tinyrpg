@@ -42,7 +42,7 @@ class SpecialRoom(Room):
         stage.set_tile_at(cell, tile)
         try:
           actor_id = int(char)
-          stage.spawn_elem(room.actors[actor_id], cell)
+          stage.spawn_elem_at(cell, room.actors[actor_id])
         except ValueError:
           actor_id = None
         if tile is stage.STAIRS_DOWN:

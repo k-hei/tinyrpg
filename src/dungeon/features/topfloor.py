@@ -37,7 +37,7 @@ def top_floor():
     Room((11, 9), (15, 18))
   ]
 
-  floor.spawn_elem(Mimic(), (20, 22))
-  floor.spawn_elem(NPC(), (4, 1))
+  floor.spawn_elem_at((20, 22), Mimic())
+  floor.spawn_elem_at((4, 1), NPC())
 
   return floor

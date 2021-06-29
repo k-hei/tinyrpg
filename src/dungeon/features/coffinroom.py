@@ -23,4 +23,4 @@ class CoffinRoom(Room):
           item = None
           if randint(1, 2) == 1:
             item = Gold(amount=randint(10, 50))
-          stage.spawn_elem(Coffin(item), cell)
+          stage.spawn_elem_at(cell, Coffin(item))

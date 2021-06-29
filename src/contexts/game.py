@@ -73,7 +73,7 @@ class GameContext(Context):
       floor.entrance = floor.find_tile(Stage.STAIRS_DOWN)
       floor.rooms = [Room((r["width"], r["height"]), (r["x"], r["y"])) for r in floordata["rooms"]]
       for elem_name, elem_cell in floordata["elems"]:
-        floor.spawn_elem(resolve_elem(elem_name)(), tuple(elem_cell))
+        floor.spawn_elem_at(tuple(elem_cell), resolve_elem(elem_name)())
     if savedata.place == "dungeon":
       ctx.goto_dungeon(floor)
     elif savedata.place == "town":

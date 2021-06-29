@@ -21,5 +21,5 @@ class Ankh(HpItem):
       return False, ("There's nowhere for ", ally.token(), " to spawn!")
 
     ally.revive(1 / 2)
-    floor.spawn_elem(ally, neighbor)
+    floor.spawn_elem_at(neighbor, ally)
     return True, (ally.token(), " was revived.")

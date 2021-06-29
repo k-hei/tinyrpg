@@ -22,13 +22,13 @@
           1, 1, 1, 1, 1, 1, 1, 1, 1
         ],
         "elems": [
-          ["PuzzleDoor", [4, 5]],
-          ["PushTile", [4, 6]],
-          ["PushTile", [7, 6]],
-          ["PushTile", [1, 6]],
-          ["PushBlock", [6, 10]],
-          ["PushBlock", [7, 11]],
-          ["PushBlock", [3, 9]]
+          [[4, 5], "PuzzleDoor"],
+          [[4, 6], "PushTile"],
+          [[7, 6], "PushTile"],
+          [[1, 6], "PushTile"],
+          [[6, 10], "PushBlock"],
+          [[7, 11], "PushBlock"],
+          [[3, 9], "PushBlock"]
         ],
         "rooms": [
           {"x": 3, "y": 1, "width": 3, "height": 3},

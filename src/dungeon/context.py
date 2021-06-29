@@ -144,13 +144,13 @@ class DungeonContext(Context):
     floor_no = game.get_floor_no()
     hero = game.hero
     hero.facing = (1, 0)
-    floor.spawn_elem(hero, floor.entrance)
+    floor.spawn_elem_at(floor.entrance, hero)
 
     ally = game.ally
     if ally and not ally.is_dead():
       x, y = floor.entrance
       ally.facing = (1, 0)
-      floor.spawn_elem(ally, (x - 1, y))
+      floor.spawn_elem_at((x - 1, y), ally)
 
     promoted = False
     enemies = [e for e in floor.elems if isinstance(e, DungeonActor) and not hero.allied(e)]
@@ -490,7 +490,7 @@ class DungeonContext(Context):
           for i in range(monsters):
             cell = choice(cells)
             enemy = Eye()
-            floor.spawn_elem(enemy, cell)
+            floor.spawn_elem_at(cell, enemy)
             cells.remove(cell)
             if randint(0, 9):
               enemy.ailment = "sleep"
@@ -928,10 +928,10 @@ class DungeonContext(Context):
         if enemy_skill and target.rare:
           skill = enemy_skill
           if skill not in game.parent.skill_pool:
-            game.floor.spawn_elem(Soul(skill), target.cell)
+            game.floor.spawn_elem_at(target.cell, Soul(skill))
         elif enemy_drops and randint(1, 3) == 1 and not game.floor.get_elem_at(target.cell, superclass=Bag):
           drop = choice(enemy_drops)
-          game.floor.spawn_elem(Bag(item=drop), target.cell)
+          game.floor.spawn_elem_at(target.cell, Bag(item=drop))
       target.kill()
       game.floor.elems.remove(target)
       if target is hero:
@@ -1087,7 +1087,7 @@ class DungeonContext(Context):
     if ally:
       if ally.is_dead():
         ally.revive()
-        floor.spawn_elem(ally, add(hero.cell, (-1, 0)))
+        floor.spawn_elem_at(add(hero.cell, (-1, 0)), ally)
       game.numbers.append(DamageValue(ally.get_hp_max(), add(ally.cell, (0, -0.25)), GREEN))
       game.numbers.append(DamageValue(game.get_sp_max(), ally.cell, CYAN))
       ally.regen(ally.get_hp_max())
@@ -1134,9 +1134,9 @@ class DungeonContext(Context):
       # go back to old floor if within bounds
       new_floor = game.floors[index]
       stairs_x, stairs_y = new_floor.find_tile(entry_tile)
-      new_floor.spawn_elem(game.hero, (stairs_x, stairs_y))
+      new_floor.spawn_elem_at((stairs_x, stairs_y), game.hero)
       if game.ally and not game.ally.is_dead():
-        new_floor.spawn_elem(game.ally, (stairs_x - 1, stairs_y))
+        new_floor.spawn_elem_at((stairs_x - 1, stairs_y), game.ally)
       game.floor = new_floor
       game.refresh_fov(moving=True)
       game.log.print((direction == 1

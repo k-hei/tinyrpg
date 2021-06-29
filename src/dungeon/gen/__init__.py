@@ -298,7 +298,7 @@ class Floor:
       door = TreasureDoor()
     else:
       door = Door()
-    stage.spawn_elem(door, door_cell)
+    stage.spawn_elem_at(door_cell, door)
 
   def connect(floor):
     graph = floor.graph
@@ -398,7 +398,7 @@ def gen_debug(seed=None):
   floor.mark(room)
   stage.entrance = room.get_center()
 
-  stage.spawn_elem(Coffin(), (stage.entrance[0] - 2, stage.entrance[1]))
+  stage.spawn_elem_at((stage.entrance[0] - 2, stage.entrance[1]), Coffin())
   stage.set_tile_at((stage.entrance[0] + 2, stage.entrance[1]), stage.PIT)
   return stage
 
@@ -542,7 +542,7 @@ def gen_floor(seed=None):
     while i < enemy_count and valid_cells:
       cell = choice(valid_cells)
       valid_cells.remove(cell)
-      stage.spawn_elem(gen_enemy(1), cell)
+      stage.spawn_elem_at(cell, gen_enemy(1))
       i += 1
 
   if not empty_rooms:
@@ -550,7 +550,7 @@ def gen_floor(seed=None):
     return gen_floor()
   key_room = choice(empty_rooms)
   empty_rooms.remove(key_room)
-  stage.spawn_elem(Chest(Key), key_room.get_center())
+  stage.spawn_elem_at(key_room.get_center(), Chest(Key))
 
   genie = Genie(name="Joshin", script=(
     ("Joshin", "Pee pee poo poo"),
@@ -561,7 +561,7 @@ def gen_floor(seed=None):
     and not [d for d in doors if manhattan(d, c) <= 2]
   )), None)
   if corner:
-    stage.spawn_elem(genie, corner)
+    stage.spawn_elem_at(corner, genie)
 
   return stage
 
