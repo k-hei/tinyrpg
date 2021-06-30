@@ -773,7 +773,7 @@ class DungeonContext(Context):
     target_tile = game.floor.get_tile_at(target_cell)
     target_elem = game.floor.get_elem_at(target_cell)
     origin_tile = game.floor.get_tile_at(actor.cell)
-    origin_elev = origin_tile.elev
+    origin_elev = origin_tile and origin_tile.elev
     facing_x = -1 if delta_x < 0 else 1 if delta_x > 0 else 0
     facing_y = -1 if delta_y < 0 else 1 if delta_y > 0 else 0
     actor.facing = (facing_x, facing_y)

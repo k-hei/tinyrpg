@@ -26,9 +26,10 @@ def encode_char(char):
   if type(char) is Rogue: return "rogue"
 
 class GameContext(Context):
-  def __init__(ctx, savedata):
+  def __init__(ctx, savedata, feature):
     super().__init__()
     ctx.savedata = savedata
+    ctx.feature = feature
     ctx.party = []
     ctx.gold = 0
     ctx.sp_max = 40
@@ -64,7 +65,10 @@ class GameContext(Context):
         ctx.skill_builds[char].append(piece)
     ctx.update_skills()
     floor = None
-    if savedata.dungeon:
+    if ctx.feature:
+      floor = ctx.feature().create_floor()
+      savedata.place = "dungeon"
+    elif savedata.dungeon:
       floordata = savedata.dungeon["floors"][savedata.dungeon["floor_no"] - 1]
       floor = Stage(
         size=floordata["size"],

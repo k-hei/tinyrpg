@@ -109,7 +109,7 @@ class Stage:
   def get_tile_at(stage, cell):
     if not stage.contains(cell):
       return None
-    width = stage.size[0]
+    width = stage.get_width()
     x, y = cell
     return stage.data[y * width + x]
 
