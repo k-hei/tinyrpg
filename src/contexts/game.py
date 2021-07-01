@@ -26,7 +26,7 @@ def encode_char(char):
   if type(char) is Rogue: return "rogue"
 
 class GameContext(Context):
-  def __init__(ctx, savedata, feature):
+  def __init__(ctx, savedata, feature=None):
     super().__init__()
     ctx.savedata = savedata
     ctx.feature = feature
@@ -76,7 +76,7 @@ class GameContext(Context):
       )
       floor.entrance = floor.find_tile(Stage.STAIRS_DOWN)
       floor.rooms = [Room((r["width"], r["height"]), (r["x"], r["y"])) for r in floordata["rooms"]]
-      for elem_name, elem_cell in floordata["elems"]:
+      for elem_cell, elem_name in floordata["elems"]:
         floor.spawn_elem_at(tuple(elem_cell), resolve_elem(elem_name)())
     if savedata.place == "dungeon":
       ctx.goto_dungeon(floor)

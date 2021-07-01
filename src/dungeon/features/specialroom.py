@@ -32,8 +32,8 @@ class SpecialRoom(Room):
   def get_size(feature):
     return (feature.get_width(), feature.get_height())
 
-  def place(feature, stage):
-    x, y = feature.cell or (0, 0)
+  def place(feature, stage, cell=None):
+    x, y = cell or feature.cell or (0, 0)
     entrance, stairs = None, None
     for row in range(feature.get_height()):
       for col in range(feature.get_width()):
@@ -59,13 +59,7 @@ class SpecialRoom(Room):
   def create_floor(feature):
     floor = Stage(size=(feature.get_width() + 2, feature.get_height() * 2))
     floor.fill(Stage.WALL)
-    for row in range(feature.get_height()):
-      for col in range(feature.get_width()):
-        char = feature.shape[row][col]
-        floor.set_tile_at((col + 1, row + 1), SpecialRoom.parse_char(char))
-    for cell, elem in feature.elems.items():
-      floor.spawn_elem_at(cell, elem)
-    feature.cell = (0, 0)
+    feature.place(floor, cell=(1, 1))
     if feature.rooms:
       for (x, y, width, height), room_type in feature.rooms.items():
         floor.rooms.append(room_type((width, height), (x, y)))

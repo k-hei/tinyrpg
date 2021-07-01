@@ -10,8 +10,8 @@ from palette import WHITE, COLOR_TILE
 from filters import replace_color
 
 class OasisRoom(SpecialRoom):
-  def __init__(room, secret=False):
-    room.shape = [
+  def __init__(room, *args, **kwargs):
+    super().__init__(degree=1, shape=choice(([
       "#...#",
       ".....",
       ".OVO.",
@@ -19,8 +19,13 @@ class OasisRoom(SpecialRoom):
       ".OOO.",
       ".....",
       "#...#"
-    ]
-    super().__init__(degree=1, secret=secret)
+    ], [
+      ".........",
+      ".........",
+      "...OOOVO.",
+      "...OOOOO.",
+      ".........",
+    ])), *args, **kwargs)
 
   def get_cells(room):
     return [c for c in super().get_cells() if c not in room.get_corners()]
@@ -38,14 +43,15 @@ class OasisRoom(SpecialRoom):
       (x + width, y + height // 2),
     ]
 
-  def place(room, stage):
+  def place(room, stage, cell=None):
     sprites = use_assets().sprites
-    super().place(stage)
-    x, y = room.cell or (0, 0)
+    super().place(stage, cell)
+    offset = cell or room.cell or (0, 0)
+    offset_x, offset_y = offset
     floor_cells = []
     for row in range(room.get_height()):
       for col in range(room.get_width()):
-        cell = (col + x, row + y)
+        cell = (col + offset_x, row + offset_y)
         char = room.shape[row][col]
         if SpecialRoom.parse_char(char) is stage.FLOOR:
           floor_cells.append(cell)
@@ -75,11 +81,10 @@ class OasisRoom(SpecialRoom):
               )
             ))
 
-    x, y = room.cell or (0, 0)
     oasis_cells = []
     for row in range(room.get_height()):
       for col in range(room.get_width()):
-        cell = (col + x, row + y)
+        cell = (col + offset_x, row + offset_y)
         char = room.shape[row][col]
         if SpecialRoom.parse_char(char) is stage.OASIS:
           oasis_cells.append(cell)

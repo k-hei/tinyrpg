@@ -405,8 +405,8 @@ def render_oasis(stage, cell):
     return sprites["oasis_edge"]
   elif o(x, y - 1) and o(x, y + 1) and not o(x + 1, y):
     return flip(sprites["oasis_edge"], True, False)
-  if o(x - 1, y) and o(x + 1, y) and not o(x, y - 1):
-    return rotate(sprites["oasis_edge"], -90)
+  elif o(x - 1, y) and o(x + 1, y) and not o(x, y - 1):
+    return sprites["oasis_edge_top"]
   elif o(x - 1, y) and o(x + 1, y) and not o(x, y + 1):
     return sprites["oasis_edge_bottom"]
   elif o(x + 1, y) and o(x, y + 1) and not o(x - 1, y - 1):
