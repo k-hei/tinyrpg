@@ -18,6 +18,7 @@ from anims.bounce import BounceAnim
 from lib.cell import is_adjacent, manhattan
 from lib.lerp import lerp
 from comps.log import Token
+from contexts.dialogue import DialogueContext
 from config import TILE_SIZE
 
 class DungeonActor(DungeonElement):
@@ -106,6 +107,32 @@ class DungeonActor(DungeonElement):
     if amount is None:
       amount = actor.get_hp_max() / 200
     actor.set_hp(min(actor.get_hp_max(), actor.get_hp() + amount))
+
+  def effect(actor, game):
+    return actor.talk(game)
+
+  def talk(actor, game):
+    message = actor.core.message
+    message = message(game) if callable(message) else message
+    if not message:
+      return
+    hero = game.hero
+    hero_x, hero_y = hero.cell
+    actor_x, actor_y = actor.cell
+    facing_x, facing_y = actor.facing
+    old_target = (actor_x + facing_x, actor_y + facing_y)
+    actor.face(hero.cell)
+    game.camera.focus(((hero_x + actor_x) / 2, (hero_y + actor_y) / 2 + 1))
+    game.talkee = actor
+    def stop_talk():
+      actor.face(old_target)
+      game.camera.blur()
+      game.talkee = None
+    game.open(DialogueContext(
+      lite=True,
+      script=message,
+      on_close=stop_talk,
+    ))
 
   def attack(actor, target, damage=None):
     if damage == None:

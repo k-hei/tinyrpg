@@ -89,6 +89,7 @@ class DungeonContext(Context):
     super().__init__()
     game.hero = manifest(party[0])
     game.ally = manifest(party[1]) if len(party) == 2 else None
+    game.party = [game.hero, game.ally] if game.ally else [game.hero]
     game.debug = debug
     game.floor = floor
     game.floor_view = None
@@ -674,6 +675,10 @@ class DungeonContext(Context):
     game.hero, game.ally = game.ally, game.hero
     game.refresh_fov(moving=True)
     return True
+
+  def recruit(game, actor):
+    game.parent.recruit(actor.core)
+    game.ally = actor
 
   def handle_ascend(game):
     if game.floor.get_tile_at(game.hero.cell) is not Stage.STAIRS_UP:

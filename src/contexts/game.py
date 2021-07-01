@@ -106,6 +106,7 @@ class GameContext(Context):
     )
 
   def recruit(ctx, char):
+    char.faction = "player"
     ctx.skill_builds[char] = {}
     if len(ctx.party) == 1:
       ctx.party.append(char)
