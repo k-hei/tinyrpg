@@ -1,13 +1,10 @@
-import random
-from dungeon.features import Feature
+from dungeon.features.specialroom import SpecialRoom
 from dungeon.actors.skeleton import Skeleton
 
-class BattleRoom(Feature):
+class ArenaRoom(SpecialRoom):
   def __init__(feature):
-    super().__init__()
-    feature.actors = (Skeleton(),)
-    feature.rooms = ((2, 0, 3, 4), (0, 5, 7, 7))
-    feature.shape = [
+    feature.actors = [Skeleton()]
+    super().__init__(degree=2, shape=[
       "##...##",
       "##.<.##",
       "##...##",
@@ -21,8 +18,8 @@ class BattleRoom(Feature):
       "  ...  ",
       "   .   ",
       "#  .  #"
-    ]
+    ], rooms=[(2, 0, 3, 4), (0, 5, 7, 7)])
 
   def get_edges(feature):
     x, y = feature.cell or (0, 0)
-    return [(x + feature.get_width() // 2, y + feature.get_height() + 1)]
+    return [(x + feature.get_width() // 2, y + feature.get_height())]

@@ -2,13 +2,19 @@ from anims import Anim
 from lib.lerp import lerp
 
 class MoveAnim(Anim):
-  def __init__(anim, src, dest, *args, **kwargs):
+  def __init__(anim, src, dest, started=True, *args, **kwargs):
     super().__init__(*args, **kwargs)
     anim.cell = src
     anim.src = src
     anim.dest = dest
+    anim.started = started
+
+  def start(anim):
+    anim.started = True
 
   def update(anim):
+    if not anim.started:
+      return anim.src
     if super().update() == -1:
       return anim.dest
     src_x, src_y = anim.src

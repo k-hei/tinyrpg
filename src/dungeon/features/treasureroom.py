@@ -10,7 +10,7 @@ weapons = (Caladbolg, Longinus, Mjolnir)
 class TreasureRoom(SpecialRoom):
   def __init__(room):
     room.actors = [ Chest(random.choice(weapons)) ]
-    room.shape = [
+    super().__init__(degree=1, secret=True, shape=[
       "#     #",
       "   0   ",
       "  ...  ",
@@ -18,8 +18,7 @@ class TreasureRoom(SpecialRoom):
       "  ...  ",
       "   .   ",
       "#  .  #"
-    ]
-    super().__init__(degree=1, secret=True)
+    ])
 
   def get_edges(room):
     x, y = room.cell or (0, 0)

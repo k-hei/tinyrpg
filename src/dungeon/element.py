@@ -51,7 +51,7 @@ class DungeonElement:
       elif type(anim) is FlickerAnim and anim.time % 2:
         return []
       elif type(anim) is FlickerAnim:
-        pinch_duration = anim.duration // 4
+        pinch_duration = anim.duration // 2
         t = max(0, anim.time - anim.duration + pinch_duration) / pinch_duration
         sprite_width *= lerp(1, 0, t)
         sprite_height *= lerp(1, 3, t)

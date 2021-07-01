@@ -2,7 +2,7 @@ from dungeon.features.specialroom import SpecialRoom
 
 class PitRoom(SpecialRoom):
   def __init__(room, secret=False):
-    room.shape = [
+    super().__init__(degree=2, secret=secret, shape=[
       ". . .",
       "     ",
       ". . .",
@@ -10,8 +10,7 @@ class PitRoom(SpecialRoom):
       ". . .",
       "     ",
       ". . ."
-    ]
-    super().__init__(degree=2, secret=secret)
+    ])
 
   def get_edges(room):
     edges = super().get_edges()
