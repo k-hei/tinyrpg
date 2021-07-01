@@ -2,12 +2,14 @@ from dungeon.features.specialroom import SpecialRoom
 from dungeon.stage import Stage
 from dungeon.decor import Decor
 from dungeon.props.palm import Palm
+from dungeon.actors.mage import Mage
 from assets import load as use_assets
 from sprite import Sprite
 from config import TILE_SIZE
 from random import randint, choice
 from palette import WHITE, COLOR_TILE
 from filters import replace_color
+from lib.cell import neighbors
 
 class OasisRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
@@ -46,8 +48,8 @@ class OasisRoom(SpecialRoom):
   def place(room, stage, cell=None):
     sprites = use_assets().sprites
     super().place(stage, cell)
-    offset = cell or room.cell or (0, 0)
-    offset_x, offset_y = offset
+    room.cell = cell or room.cell or (0, 0)
+    offset_x, offset_y = room.cell
     floor_cells = []
     for row in range(room.get_height()):
       for col in range(room.get_width()):
@@ -120,3 +122,8 @@ class OasisRoom(SpecialRoom):
           layer="decors"
         )
       ))
+    ally_cells = room.get_corners()
+    if stage.get_tile_at(ally_cells[0]) is stage.WALL:
+      ally_cells = [n for ns in [neighbors(c) for c in room.get_corners()] for n in ns if n not in room.get_border()]
+    ally_cell = choice(ally_cells)
+    stage.spawn_elem_at(ally_cell, Mage(faction="ally"))

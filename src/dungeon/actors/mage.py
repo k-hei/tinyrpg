@@ -1,5 +1,6 @@
 import pygame
 from dungeon.actors import DungeonActor
+from cores.mage import Mage as MageCore
 from assets import load as use_assets
 from anims.move import MoveAnim
 from anims.jump import JumpAnim
@@ -9,8 +10,8 @@ from anims.flicker import FlickerAnim
 from sprite import Sprite
 
 class Mage(DungeonActor):
-  def __init__(mage, core):
-    super().__init__(core)
+  def __init__(mage, core=None, *args, **kwargs):
+    super().__init__(core=core or MageCore(*args, **kwargs))
 
   def view(mage, anims):
     sprites = use_assets().sprites

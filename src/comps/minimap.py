@@ -114,14 +114,18 @@ class Minimap:
       tile = game.floor.get_tile_at(cell)
       tile_above = game.floor.get_tile_at((x, y - 1))
       tile_below = game.floor.get_tile_at((x, y + 1))
+      if x < 0 or y < 0 or x >= game.floor.get_width() or y >= game.floor.get_height():
+        continue
       x = int(x - focus_x + sprite_width // 2)
       y = int(y - focus_y + sprite_height // 2)
       if x < 0 or y < 0 or x >= sprite_width or y >= sprite_height:
         continue
       elem = game.floor.get_elem_at(cell)
       color = None
-      if type(elem) is Knight or type(elem) is Mage and cell in visible_cells:
+      if isinstance(elem, DungeonActor) and elem.get_faction() == "player" and cell in visible_cells:
         color = 0x3399FF if minimap.time % 60 >= 30 else 0x0066CC
+      elif isinstance(elem, DungeonActor) and elem.get_faction() == "ally" and cell in visible_cells:
+        color = 0x33FF99 if minimap.time % 60 >= 30 else 0x00CC66
       elif type(elem) is Mimic and cell in visible_cells:
         if elem.idle:
           color = 0xFFFF00 if minimap.time % 60 >= 30 else 0x7F7F00

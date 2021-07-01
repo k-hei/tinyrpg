@@ -67,7 +67,7 @@ class SpecialRoom(Room):
     else:
       floor.rooms.append(Room(feature.get_size(), (1, 1)))
       edge_x, edge_y = feature.get_edges()[0]
-      floor.entrance = (edge_x + 1, edge_y + 1)
+      floor.entrance = (edge_x, edge_y)
     door = Door()
     door.open()
     floor.set_tile_at(floor.entrance, Stage.FLOOR)
