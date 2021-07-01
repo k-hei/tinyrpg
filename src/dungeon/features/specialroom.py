@@ -1,6 +1,7 @@
 from dungeon.features.room import Room
 from dungeon.stage import Stage
 from dungeon.props.door import Door
+from random import choice
 
 class SpecialRoom(Room):
   def __init__(feature, shape, elems=None, rooms=None, *args, **kwargs):
@@ -33,7 +34,8 @@ class SpecialRoom(Room):
     return (feature.get_width(), feature.get_height())
 
   def place(feature, stage, cell=None):
-    x, y = cell or feature.cell or (0, 0)
+    feature.cell = cell or feature.cell or (0, 0)
+    x, y = feature.cell
     entrance, stairs = None, None
     for row in range(feature.get_height()):
       for col in range(feature.get_width()):
@@ -60,13 +62,16 @@ class SpecialRoom(Room):
     floor = Stage(size=(feature.get_width() + 2, feature.get_height() * 2))
     floor.fill(Stage.WALL)
     feature.place(floor, cell=(1, 1))
+    print(feature.get_edges())
+    print([(x, y) for (x, y) in feature.get_edges() if y >= 0 and y <= feature.get_height() + 1])
+    edge = choice([(x, y) for (x, y) in feature.get_edges() if y >= 0 and y <= feature.get_height() + 1])
     if feature.rooms:
       for (x, y, width, height), room_type in feature.rooms.items():
         floor.rooms.append(room_type((width, height), (x, y)))
-      floor.entrance = feature.get_edges()[0]
+      floor.entrance = edge
     else:
       floor.rooms.append(Room(feature.get_size(), (1, 1)))
-      edge_x, edge_y = feature.get_edges()[0]
+      edge_x, edge_y = edge
       floor.entrance = (edge_x, edge_y)
     door = Door()
     door.open()
