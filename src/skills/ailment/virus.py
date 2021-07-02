@@ -58,7 +58,7 @@ class Virus(AilmentSkill):
       duration=20,
       target=user,
       on_end=lambda: game.anims[0].append(PauseAnim(
-        duration=60,
+        duration=15,
         on_end=on_bounce
       ))
     )])

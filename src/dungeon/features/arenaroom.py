@@ -86,6 +86,7 @@ class ArenaRoom(SpecialRoom):
       reward = Chest(feature.reward)
       game.floor.spawn_elem_at(spawn_cell, reward)
       game.anims.append([DropAnim(y=WINDOW_HEIGHT / 2 + TILE_SIZE, target=reward)])
+      feature.reward = None
       return True
     else:
       return False

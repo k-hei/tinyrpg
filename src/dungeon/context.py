@@ -145,7 +145,7 @@ class DungeonContext(Context):
   def use_floor(game, floor):
     floor_no = game.get_floor_no()
     hero = game.hero
-    hero.facing = (1, 0)
+    hero.facing = (0, -1)
     floor.spawn_elem_at(floor.entrance, hero)
 
     ally = game.ally

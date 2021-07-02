@@ -9,6 +9,7 @@ from dungeon.actors.mimic import Mimic
 from dungeon.actors.npc import Npc
 from dungeon.props.chest import Chest
 from dungeon.props.soul import Soul
+from dungeon.props.door import Door
 import palette
 from palette import GREEN, GREEN_DARK, VIOLET, VIOLET_DARK
 from anims.tween import TweenAnim
@@ -153,18 +154,21 @@ class Minimap:
           color = 0x7F7F00
         else:
           color = 0xFFFF00 if minimap.time % 60 >= 30 else 0x7F7F00
-      elif tile is Stage.WALL or tile is Stage.DOOR_HIDDEN or tile is Stage.DOOR_LOCKED or (
-      tile is Stage.DOOR_WAY and (tile_above is Stage.DOOR_HIDDEN or tile_below is Stage.DOOR_HIDDEN)):
+      elif tile is Stage.WALL or tile is Stage.DOOR_HIDDEN or (
+        tile is Stage.DOOR_WAY and (tile_above is Stage.DOOR_HIDDEN or tile_below is Stage.DOOR_HIDDEN)
+      ) or (
+        isinstance(elem, Door) and elem.locked
+      ):
         if cell in visible_cells:
           color = 0x00CCFF
         else:
           color = 0x0066CC
-      elif tile is Stage.DOOR:
+      elif isinstance(elem, Door) and not elem.opened:
         if cell in visible_cells:
           color = 0x0066CC
         else:
           color = 0x0033CC
-      elif tile is Stage.DOOR_OPEN:
+      elif isinstance(elem, Door) and elem.opened:
         if cell in visible_cells:
           color = 0x003399
         else:

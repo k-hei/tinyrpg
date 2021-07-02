@@ -3,7 +3,7 @@ import math
 
 from skills.attack import AttackSkill
 from dungeon.actors import DungeonActor
-from dungeon.actors.knight import Knight
+from cores.knight import Knight
 from dungeon.props import Prop
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
@@ -16,7 +16,7 @@ class ShieldBash(AttackSkill):
   desc = "Pushes target one square"
   element = "shield"
   cost = 2
-  users = (Knight,)
+  users = [Knight]
   blocks = (
     (1, 0),
     (0, 1),
