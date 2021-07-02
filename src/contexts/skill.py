@@ -359,13 +359,26 @@ class SkillContext(Context):
 
     return sprites
 
-def find_skill_targets(skill, user, floor):
+def find_skill_targets(skill, user, floor=None):
   targets = []
   user_x, user_y = user.cell
   facing_x, facing_y = user.facing
   cursor = (user_x + facing_x, user_y + facing_y)
   if skill is None:
     return targets, cursor
+  if skill.range_type == "row":
+    if facing_x:
+      targets += [
+        (user_x + facing_x, user_y - 1),
+        (user_x + facing_x, user_y),
+        (user_x + facing_x, user_y + 1)
+      ]
+    elif facing_y:
+      targets += [
+        (user_x - 1, user_y + facing_y),
+        (user_x, user_y + facing_y),
+        (user_x + 1, user_y + facing_y)
+      ]
   if skill.range_type == "radial" or skill.range_type == "linear" and skill.range_max == 1:
     if skill.range_min == 0:
       targets.append((user_x, user_y))
@@ -380,7 +393,7 @@ def find_skill_targets(skill, user, floor):
     is_blocked = False
     r = 1
     while not is_blocked and r < skill.range_max:
-      if floor.get_tile_at(cursor).solid or floor.get_elem_at(cursor):
+      if floor and (floor.get_tile_at(cursor).solid or floor.get_elem_at(cursor)):
         is_blocked = True
       else:
         cursor_x, cursor_y = cursor

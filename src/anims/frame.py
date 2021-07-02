@@ -11,9 +11,11 @@ class FrameAnim(Anim):
     time = super().update()
     if anim.done:
       return anim.frames[-1]
+    if anim.time < 0:
+      return None
     frame_duration = anim.frame_duration or anim.duration / len(anim.frames)
     anim_duration = frame_duration * len(anim.frames)
-    frame_index = int(anim.time % anim_duration / anim_duration * len(anim.frames))
+    frame_index = int(time % anim_duration / anim_duration * len(anim.frames))
     frame = anim.frames[frame_index]
     anim.frame = frame
     return frame

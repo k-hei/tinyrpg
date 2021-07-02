@@ -150,7 +150,7 @@ class StageView:
         continue
       if fx.kind:
         frame = fx.update()
-        if frame == -1:
+        if frame == None:
           continue
         image = assets.sprites[frame]
         if fx.color:

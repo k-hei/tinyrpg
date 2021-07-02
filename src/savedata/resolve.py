@@ -27,6 +27,7 @@ from skills.weapon.mjolnir import Mjolnir
 from skills.attack.shieldbash import ShieldBash
 from skills.attack.helmsplitter import HelmSplitter
 from skills.attack.blitzritter import Blitzritter
+from skills.attack.rendinggale import RendingGale
 from skills.magic.vortex import Vortex
 from skills.magic.hirudo import Hirudo
 from skills.magic.ignis import Ignis
@@ -102,6 +103,7 @@ def resolve_skill(key):
   if key == "ShieldBash": return ShieldBash
   if key == "HelmSplitter": return HelmSplitter
   if key == "Blitzritter": return Blitzritter
+  if key == "RendingGale": return RendingGale
   if key == "Vortex": return Vortex
   if key == "Hirudo": return Hirudo
   if key == "Ignis": return Ignis

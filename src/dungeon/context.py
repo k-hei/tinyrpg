@@ -940,7 +940,10 @@ class DungeonContext(Context):
           skill = enemy_skill
           if skill not in game.parent.skill_pool:
             game.floor.spawn_elem_at(target.cell, Soul(skill))
-        elif enemy_drops and randint(1, 3) == 1 and not game.floor.get_elem_at(target.cell, superclass=Bag):
+        elif (enemy_drops
+        and randint(1, 3) == 1
+        and not game.floor.get_tile_at(target.cell) is Stage.PIT
+        and not game.floor.get_elem_at(target.cell, superclass=Bag)):
           drop = choice(enemy_drops)
           game.floor.spawn_elem_at(target.cell, Bag(item=drop))
       target.kill()
