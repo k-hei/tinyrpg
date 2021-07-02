@@ -45,12 +45,6 @@ class ShieldBash(AttackSkill):
         and nudge_actor is None
       )
 
-      def on_move():
-        if nudge_tile is floor.PIT:
-          game.log.print((target_elem.token(), " tumbles into the chasm below!"))
-        else:
-          game.log.print((target_elem.token(), " is reeling."))
-
       def on_connect():
         if will_nudge:
           move.start()
@@ -71,9 +65,12 @@ class ShieldBash(AttackSkill):
           src=target_cell,
           dest=nudge_cell,
           started=False,
-          on_end=on_move
         )
         game.anims[-1].append(move)
+        if nudge_tile is floor.PIT:
+          game.log.print((target_elem.token(), " tumbles into the chasm below!"))
+        else:
+          game.log.print((target_elem.token(), " is reeling."))
     else:
       game.anims.append([
         AttackAnim(

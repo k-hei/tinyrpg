@@ -5,6 +5,7 @@ from anims.chest import ChestAnim
 from anims.item import ItemAnim
 from anims.flicker import FlickerAnim
 from anims.warpin import WarpInAnim
+from anims.drop import DropAnim
 from lib.lerp import lerp
 from config import ITEM_OFFSET, TILE_SIZE
 
@@ -21,8 +22,11 @@ class DungeonElement:
     pass
 
   def view(elem, sprites, anims=[]):
-    will_warp = anims and next((g for g in anims if g is not anims[0] and next((a for a in g if a.target is elem and type(a) is WarpInAnim), None)), None)
-    if will_warp:
+    will_enter = anims and next((g for g in anims if g is not anims[0] and next((a for a in g if (
+      a.target is elem
+      and (type(a) is WarpInAnim or type(a) is DropAnim)
+    )), None)), None)
+    if will_enter:
       return []
     if type(sprites) is Surface:
       sprites = Sprite(image=sprites, layer="elems")
@@ -30,6 +34,7 @@ class DungeonElement:
       sprites = [sprites]
     sprite = sprites[0]
     sprite_width, sprite_height = sprite.size or sprite.image.get_size()
+    sprite_layer = sprite.layer or "elems"
     offset_x, offset_y = (0, 0)
     item = None
     anim_group = anims[0] if anims else []
@@ -63,6 +68,8 @@ class DungeonElement:
         scale_x, scale_y = anim.scale
         sprite_width *= scale_x
         sprite_height *= scale_y
+      elif type(anim) is DropAnim:
+        offset_y = -anim.y
 
     # HACK: if element will move during a future animation sequence,
     # make sure it doesn't jump ahead to the target position
@@ -77,5 +84,6 @@ class DungeonElement:
           offset_y = (anim_y - actor_y) * TILE_SIZE
 
     sprite.size = (sprite_width, sprite_height)
+    sprite.layer = sprite_layer
     sprite.move((offset_x, offset_y))
     return sprites

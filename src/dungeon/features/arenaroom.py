@@ -1,24 +1,28 @@
 from copy import deepcopy
 from random import choice
-from lib.cell import manhattan
+from lib.cell import manhattan, neighbors
 from dungeon.features.specialroom import SpecialRoom
 from dungeon.actors import DungeonActor
 from dungeon.actors.eye import Eye as Eyeball
 from dungeon.actors.mushroom import Mushroom
 from dungeon.props.door import Door
 from dungeon.props.battledoor import BattleDoor
+from dungeon.props.chest import Chest
+from items.ailment.amethyst import Amethyst
 from anims.warpin import WarpInAnim
 from anims.pause import PauseAnim
+from anims.drop import DropAnim
+from config import WINDOW_HEIGHT, TILE_SIZE
 
 class ArenaRoom(SpecialRoom):
   Door = BattleDoor
   waves = [
     [Eyeball, Eyeball],
-    # [Eyeball, Eyeball, Mushroom],
-    # [Mushroom, Mushroom],
+    [Eyeball, Eyeball, Mushroom],
+    [Mushroom, Mushroom],
   ]
 
-  def __init__(feature):
+  def __init__(feature, reward=Amethyst):
     super().__init__(degree=2, shape=[
       "   .   ",
       " ..... ",
@@ -26,6 +30,7 @@ class ArenaRoom(SpecialRoom):
       " ..... ",
       "   .   "
     ])
+    feature.reward = reward
     feature.waves = deepcopy(ArenaRoom.waves)
     feature.entered = False
 
@@ -69,6 +74,22 @@ class ArenaRoom(SpecialRoom):
   def next_wave(feature, game):
     feature.spawn_wave(game, feature.waves.pop(0))
 
+  def spawn_reward(feature, game):
+    if feature.reward is None:
+      return False
+    spawn_x, spawn_y = feature.get_center()
+    spawn_cell = (spawn_x, spawn_y)
+    spawn_neighbors = neighbors(spawn_cell)
+    while game.floor.get_elem_at(spawn_cell) and spawn_neighbors:
+      spawn_cell = spawn_neighbors.pop(0)
+    if spawn_cell:
+      reward = Chest(feature.reward)
+      game.floor.spawn_elem_at(spawn_cell, reward)
+      game.anims.append([DropAnim(y=WINDOW_HEIGHT / 2 + TILE_SIZE, target=reward)])
+      return True
+    else:
+      return False
+
   def lock(feature, game):
     for door in feature.get_doors(game.floor):
       door.handle_close(game)
@@ -96,10 +117,14 @@ class ArenaRoom(SpecialRoom):
       game.anims.append([
         PauseAnim(
           duration=30,
-          on_end=lambda: feature.unlock(game)
+          on_end=lambda: feature.on_complete(game)
         )
       ])
     return True
+
+  def on_complete(feature, game):
+    feature.unlock(game)
+    feature.spawn_reward(game)
 
   def place(feature, stage, *args, **kwargs):
     super().place(stage, *args, **kwargs)
