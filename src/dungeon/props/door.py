@@ -36,7 +36,7 @@ class Door(Prop):
     if not door.locked and not door.opened:
       door.open()
       game.anims.append([
-        DoorAnim(
+        DoorOpenAnim(
           duration=30,
           frames=door.sprites.opening_frames,
           target=door
@@ -51,18 +51,34 @@ class Door(Prop):
     else:
       return False
 
+  def close(door, game):
+    if not door.opened:
+      return False
+    door.solid = True
+    door.opened = False
+    door.locked = True
+    game.anims.append([
+      DoorCloseAnim(
+        duration=30,
+        frames=list(reversed(door.sprites.opening_frames)),
+        target=door
+      )
+    ])
+    return True
+
   def view(door, anims):
     sprites = use_assets().sprites
-    will_open = next((g for g in anims if next((a for a in g if a.target is door), None)), None)
+    will_open = next((g for g in anims if next((a for a in g if a.target is door and type(a) is DoorOpenAnim), None)), None)
+    will_close = next((g for g in anims if next((a for a in g if a.target is door and type(a) is DoorCloseAnim), None)), None)
     anim_group = [a for a in anims[0] if a.target is door] if anims else []
     for anim in anim_group:
-      if type(anim) is DoorAnim:
+      if isinstance(anim, DoorAnim):
         image = sprites[anim.frame]
         break
     else:
-      if door.opened and not will_open:
+      if door.opened or will_close:
         image = sprites[door.sprites.opened]
-      else:
+      elif not door.opened or will_open:
         image = sprites[door.sprites.closed]
     image = replace_color(image, WHITE, SAFFRON)
     return [Sprite(
@@ -71,3 +87,5 @@ class Door(Prop):
     )]
 
 class DoorAnim(FrameAnim): pass
+class DoorOpenAnim(DoorAnim): pass
+class DoorCloseAnim(DoorAnim): pass

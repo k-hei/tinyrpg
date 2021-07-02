@@ -1,7 +1,10 @@
 from dungeon.features import Feature
 from lib.cell import add
+from dungeon.props.door import Door
 
 class Room(Feature):
+  door = Door
+
   def __init__(room, size, cell=None, degree=0, secret=False):
     super().__init__(degree, secret)
     room.size = size
@@ -90,6 +93,9 @@ class Room(Feature):
         if col % 2 == 1 and row % 3 == 1:
           slots.append((col, row))
     return slots
+
+  def effect(feature, game):
+    pass
 
   def validate(room, cell, slots):
     for slot in room.get_slots(cell):

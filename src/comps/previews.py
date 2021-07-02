@@ -5,6 +5,7 @@ from lib.cell import manhattan, is_adjacent
 import pygame
 
 from anims.tween import TweenAnim
+from anims.warpin import WarpInAnim
 from easing.expo import ease_out, ease_in_out
 from lib.lerp import lerp
 
@@ -45,6 +46,7 @@ class Previews:
       isinstance(e, DungeonActor)
       and not hero.allied(e)
       and e.cell in hero.visible_cells
+      and not next((g for g in game.anims if next((a for a in g if type(a) is WarpInAnim and a.target is e), None)), None)
       and not (type(e) is Mimic and e.idle)
     )]
     enemies.sort(key=lambda e: manhattan(e.cell, hero.cell))

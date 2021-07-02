@@ -4,6 +4,7 @@ from anims.move import MoveAnim
 from anims.chest import ChestAnim
 from anims.item import ItemAnim
 from anims.flicker import FlickerAnim
+from anims.warpin import WarpInAnim
 from lib.lerp import lerp
 from config import ITEM_OFFSET, TILE_SIZE
 
@@ -55,6 +56,10 @@ class DungeonElement:
         t = max(0, anim.time - anim.duration + pinch_duration) / pinch_duration
         sprite_width *= lerp(1, 0, t)
         sprite_height *= lerp(1, 3, t)
+      elif type(anim) is WarpInAnim:
+        scale_x, scale_y = anim.scale
+        sprite_width *= scale_x
+        sprite_height *= scale_y
 
     # HACK: if element will move during a future animation sequence,
     # make sure it doesn't jump ahead to the target position

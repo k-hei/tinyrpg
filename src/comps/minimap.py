@@ -12,6 +12,7 @@ from dungeon.props.soul import Soul
 import palette
 from palette import GREEN, GREEN_DARK, VIOLET, VIOLET_DARK
 from anims.tween import TweenAnim
+from anims.warpin import WarpInAnim
 from easing.expo import ease_out, ease_in_out
 from lib.lerp import lerp
 from sprite import Sprite
@@ -121,6 +122,8 @@ class Minimap:
       if x < 0 or y < 0 or x >= sprite_width or y >= sprite_height:
         continue
       elem = game.floor.get_elem_at(cell)
+      if next((g for g in game.anims if next((a for a in g if type(a) is WarpInAnim and a.target is elem), None)), None):
+        elem = None
       color = None
       if isinstance(elem, DungeonActor) and elem.get_faction() == "player" and cell in visible_cells:
         color = 0x3399FF if minimap.time % 60 >= 30 else 0x0066CC

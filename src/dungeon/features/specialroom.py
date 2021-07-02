@@ -33,9 +33,6 @@ class SpecialRoom(Room):
   def get_size(feature):
     return (feature.get_width(), feature.get_height())
 
-  def effect(feature, game):
-    pass
-
   def place(feature, stage, cell=None):
     feature.cell = cell or feature.cell or (0, 0)
     x, y = feature.cell
@@ -71,10 +68,10 @@ class SpecialRoom(Room):
         floor.rooms.append(Room((width, height), (x + 1, y + 1)))
       floor.entrance = edge
     else:
-      floor.rooms.append(Room(feature.get_size(), (1, 1)))
+      floor.rooms.append(feature)
       edge_x, edge_y = edge
       floor.entrance = (edge_x, edge_y)
-    door = Door()
+    door = feature.Door()
     door.open()
     floor.set_tile_at(floor.entrance, Stage.FLOOR)
     floor.spawn_elem_at(floor.entrance, door)

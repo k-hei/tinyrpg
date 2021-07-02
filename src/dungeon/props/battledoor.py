@@ -10,7 +10,9 @@ class BattleDoor(Door):
 
   def effect(door, game):
     effect = super().effect
-    if not door.opened:
+    if door.locked:
+      return effect(game)
+    elif not door.opened:
       game.open(PromptContext("Open the door and enter?", [
         Choice("Yes"),
         Choice("No", default=True, closing=True)

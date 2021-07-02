@@ -96,6 +96,7 @@ class DungeonContext(Context):
     game.floor_cells = None
     game.floors = []
     game.room = None
+    game.room_within = None
     game.room_entrances = {}
     game.rooms_entered = []
     game.oasis_used = False
@@ -204,15 +205,20 @@ class DungeonContext(Context):
     door = None
     if moving:
       rooms = [room for room in floor.rooms if is_within_room(room, hero.cell)]
+      room_within = next((r for r in floor.rooms if hero.cell in r.get_cells()), None)
       if len(rooms) == 1:
         room = rooms[0]
       else:
         room = next((room for room in rooms if room is not game.room), None)
 
-      if room != game.room:
+      if room is not game.room:
         game.oasis_used = False
 
+      if room_within is not game.room_within:
+        room.effect(game)
+
       game.room = room
+      game.room_within = room_within
       if room and room not in game.room_entrances:
         game.room_entrances[room] = hero.cell
 
