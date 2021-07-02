@@ -75,5 +75,6 @@ class Bar:
       bar.update()
     return [Sprite(
       image=bar.surface,
-      pos=(x, y)
+      pos=(x, y),
+      layer="ui"
     )]

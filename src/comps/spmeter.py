@@ -137,5 +137,6 @@ class SpMeter:
       return []
     return [Sprite(
       image=sprite,
-      pos=(x, y)
+      pos=(x, y),
+      layer="hud"
     )]

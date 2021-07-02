@@ -1231,7 +1231,12 @@ class DungeonContext(Context):
       if game.child and type(game.child) is not InventoryContext or game.get_root().transits:
         for comp in [c for c in game.comps if c.active]:
           if (type(comp) is not Log
-          and not (type(game.child) is MinimapContext and type(comp) is Minimap)):
+          and not (type(game.child) is MinimapContext and type(comp) is Minimap)
+          and not (type(game.child) is SkillContext and (
+            type(comp) is Hud
+            or type(comp) is SpMeter
+            or type(comp) is Minimap
+          ))):
             comp.exit()
       else:
         for comp in [c for c in game.comps if not c.active]:
