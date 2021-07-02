@@ -84,7 +84,6 @@ class CustomContext(Context):
         target=skill
       ))
     build = menu.builds[menu.char]
-    print(build)
     for i, (skill, cell) in enumerate(build):
       menu.anims[0].append(PlaceAnim(
         duration=ANIM_PLACE_DURATION,
@@ -289,7 +288,7 @@ class CustomContext(Context):
       0
     ))
 
-    if Mage in menu.chars:
+    if next((c for c in menu.chars if type(c) is Mage), None):
       mage_scaled = mage
       mage_anim = menu.anims and next((a for a in menu.anims[0] if a.target == "Mage"), None)
       if mage_anim:

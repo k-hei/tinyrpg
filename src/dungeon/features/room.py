@@ -3,7 +3,7 @@ from lib.cell import add
 from dungeon.props.door import Door
 
 class Room(Feature):
-  door = Door
+  Door = Door
 
   def __init__(room, size, cell=None, degree=0, secret=False):
     super().__init__(degree, secret)

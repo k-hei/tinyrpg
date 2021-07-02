@@ -1,6 +1,6 @@
 import pygame
 import keyboard
-from config import WINDOW_SIZE, DEBUG
+from config import WINDOW_SIZE, DEBUG, KNIGHT_BUILD, MAGE_BUILD, ROGUE_BUILD
 from contexts import Context
 from contexts.pause import PauseContext
 from dungeon.context import DungeonContext
@@ -25,6 +25,14 @@ def encode_char(char):
   if type(char) is Mage: return "mage"
   if type(char) is Rogue: return "rogue"
 
+def resolve_default_build(char):
+  if type(char) is Knight: return KNIGHT_BUILD
+  if type(char) is Mage: return MAGE_BUILD
+  if type(char) is Rogue: return ROGUE_BUILD
+
+def decode_build(build_data):
+  return [(resolve_skill(skill_name), skill_cell) for (skill_name, skill_cell) in build_data.items()]
+
 class GameContext(Context):
   def __init__(ctx, savedata, feature=None):
     super().__init__()
@@ -40,6 +48,7 @@ class GameContext(Context):
     ctx.new_skills = []
     ctx.skill_pool = []
     ctx.skill_builds = {}
+    ctx.saved_builds = {}
     ctx.selected_skills = {}
     ctx.seeds = []
     ctx.debug = False
@@ -63,6 +72,7 @@ class GameContext(Context):
       for skill, cell in char_data.items():
         piece = (resolve_skill(skill), cell)
         ctx.skill_builds[char].append(piece)
+    ctx.saved_builds = savedata.chars
     ctx.update_skills()
     floor = None
     if ctx.feature:
@@ -107,11 +117,16 @@ class GameContext(Context):
 
   def recruit(ctx, char):
     char.faction = "player"
-    ctx.skill_builds[char] = {}
+    char_id = encode_char(char)
+    ctx.skill_builds[char] = decode_build(ctx.saved_builds[char_id] if char_id in ctx.saved_builds else resolve_default_build(char))
+    print(ctx.skill_builds[char])
     if len(ctx.party) == 1:
       ctx.party.append(char)
     else:
       ctx.party[1] = char
+
+  def swap_chars(ctx):
+    ctx.party.append(ctx.party.pop(0))
 
   def reset(ctx):
     ctx.load()
