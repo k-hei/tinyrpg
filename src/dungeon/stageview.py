@@ -284,13 +284,17 @@ def render_tile(stage, cell, visited_cells=[]):
 def render_wall(stage, cell, visited_cells=[]):
   assets = use_assets()
   x, y = cell
-  is_wall = lambda x, y: (
-    (x, y) not in visited_cells
-    or stage.get_tile_at((x, y)) is None
-    or stage.get_tile_at((x, y)) is stage.WALL
-    or stage.get_tile_at((x, y)) is stage.DOOR_HIDDEN
-    or stage.get_tile_at((x, y)) is stage.DOOR_WAY and (is_wall(x, y - 1) or is_wall(x, y + 1))
-  )
+  def is_wall(x, y):
+    door = stage.get_elem_at((x, y), superclass=Door)
+    return (
+      (x, y) not in visited_cells
+      or stage.get_tile_at((x, y)) is None
+      or stage.get_tile_at((x, y)) is stage.WALL and (
+        stage.get_tile_at((x, y + 1)) is None
+        or stage.get_tile_at((x, y + 1)) is stage.WALL
+        or stage.get_elem_at((x, y + 1), superclass=Door))
+      or stage.get_tile_at((x, y)) is stage.DOOR_HIDDEN
+    )
   is_door = lambda x, y: (
     stage.get_tile_at((x, y)) is stage.DOOR
     or stage.get_tile_at((x, y)) is stage.DOOR_OPEN
@@ -326,25 +330,41 @@ def render_wall(stage, cell, visited_cells=[]):
   edge_right = rotate(edge_left, 180)
   link = assets.sprites["wall_link"]
 
-  if not is_wall(x - 1, y) or not is_wall(x - 1, y + 1):
+  if not is_wall(x - 1, y):
     sprite.blit(edge_left, (0, 0))
     if is_wall(x, y - 1):
       sprite.blit(link, (0, 0))
-    if is_wall(x, y + 1) and (is_wall(x, y + 2) or is_door(x, y + 2)):
+    if is_wall(x, y + 1):
       sprite.blit(flip(link, False, True), (0, 0))
 
-  if not is_wall(x + 1, y) or not is_wall(x + 1, y + 1):
+  if not is_wall(x + 1, y):
     sprite.blit(edge_right, (0, 0))
     if is_wall(x, y - 1):
       sprite.blit(flip(link, True, False), (0, 0))
-    if is_wall(x, y + 1) and (is_wall(x, y + 2) or is_door(x, y + 2)):
+    if is_wall(x, y + 1):
       sprite.blit(flip(link, True, True), (0, 0))
 
   if not is_wall(x, y - 1):
     sprite.blit(edge_top, (0, 0))
 
-  if not is_wall(x, y + 2) and not is_door(x, y + 2) or is_door(x, y + 1):
+  if not is_wall(x, y + 1):
     sprite.blit(edge_bottom, (0, 0))
+
+  if (is_wall(x - 1, y) and is_wall(x, y - 1) and not is_wall(x - 1, y - 1)
+  or not is_wall(x - 1, y) and not is_wall(x, y - 1)):
+    sprite.blit(corner_nw, (0, 0))
+
+  if (is_wall(x + 1, y) and is_wall(x, y - 1) and not is_wall(x + 1, y - 1)
+  or not is_wall(x + 1, y) and not is_wall(x, y - 1)):
+    sprite.blit(corner_ne, (0, 0))
+
+  if (is_wall(x - 1, y) and is_wall(x, y + 1) and not is_wall(x - 1, y + 1)
+  or not is_wall(x - 1, y) and not is_wall(x, y + 1)):
+    sprite.blit(corner_sw, (0, 0))
+
+  if (is_wall(x + 1, y) and is_wall(x, y + 1) and not is_wall(x + 1, y + 1)
+  or not is_wall(x + 1, y) and not is_wall(x, y + 1)):
+    sprite.blit(corner_se, (0, 0))
 
   if not is_wall(x, y - 1) and is_wall(x - 1, y):
     sprite.blit(rotate(flip(link, False, True), -90), (0, 0))
@@ -352,28 +372,10 @@ def render_wall(stage, cell, visited_cells=[]):
   if not is_wall(x, y - 1) and is_wall(x + 1, y):
     sprite.blit(rotate(link, -90), (0, 0))
 
-  if (not is_wall(x - 1, y - 1) and is_wall(x - 1, y) and is_wall(x, y - 1)
-  or not is_wall(x - 1, y - 1) and not is_wall(x, y - 1) and not is_wall(x - 1, y)):
-    sprite.blit(corner_nw, (0, 0))
-
-  if (not is_wall(x + 1, y - 1) and is_wall(x + 1, y) and is_wall(x, y - 1)
-  or not is_wall(x + 1, y - 1) and not is_wall(x, y - 1) and not is_wall(x + 1, y)):
-    sprite.blit(corner_ne, (0, 0))
-
-  if ((not is_wall(x - 1, y + 2) and not is_door(x - 1, y + 2)) and is_wall(x - 1, y + 1) and is_wall(x - 1, y) and (is_wall(x, y + 2) or is_door(x, y + 2))
-  or is_wall(x, y + 1) and not is_wall(x - 1, y + 1) and not is_wall(x, y + 2) and (not is_door(x, y + 2) or is_wall(x - 1, y))
-  or is_door(x, y + 1) and (not is_wall(x - 1, y) or not is_wall(x - 1, y + 1))):
-    sprite.blit(corner_sw, (0, 0))
-
-  if ((not is_wall(x + 1, y + 2) and not is_door(x + 1, y + 2)) and is_wall(x + 1, y + 1) and is_wall(x + 1, y) and (is_wall(x, y + 2) or is_door(x, y + 2))
-  or is_wall(x, y + 1) and not is_wall(x + 1, y + 1) and not is_wall(x, y + 2) and (not is_door(x, y + 2) or is_wall(x + 1, y))
-  or is_door(x, y + 1) and (not is_wall(x + 1, y) or not is_wall(x + 1, y + 1))):
-    sprite.blit(corner_se, (0, 0))
-
-  if is_wall(x - 1, y) and is_wall(x - 1, y + 1) and (not is_wall(x, y + 2) and not is_door(x, y + 2) or is_door(x, y + 1)):
+  if is_wall(x - 1, y) and not is_wall(x, y + 1):
     sprite.blit(rotate(link, 90), (0, 0))
 
-  if is_wall(x + 1, y) and is_wall(x + 1, y + 1) and (not is_wall(x, y + 2) and not is_door(x, y + 2) or is_door(x, y + 1)):
+  if is_wall(x + 1, y) and not is_wall(x, y + 1):
     sprite.blit(rotate(flip(link, True, False), -90), (0, 0))
 
   return sprite

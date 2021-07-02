@@ -200,7 +200,10 @@ class DungeonContext(Context):
     def is_within_room(room, cell):
       _, room_y = room.cell
       room_cells = room.get_cells() + room.get_border()
-      return hero.cell in [(x, y) for (x, y) in room_cells if y != room_y - 2]
+      return hero.cell in [(x, y) for (x, y) in room_cells if (
+        y != room_y + room.get_height() + 1
+        and y != room_y - 2
+      )]
 
     door = None
     if moving:
@@ -213,6 +216,7 @@ class DungeonContext(Context):
 
       if room is not game.room:
         game.oasis_used = False
+        room.on_focus(game)
 
       if room_within is not game.room_within:
         room.effect(game)

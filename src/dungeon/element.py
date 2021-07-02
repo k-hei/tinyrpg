@@ -21,6 +21,9 @@ class DungeonElement:
   def aftereffect(elem, game):
     pass
 
+  def spawn(elem, stage, cell):
+    elem.cell = cell
+
   def view(elem, sprites, anims=[]):
     will_enter = anims and next((g for g in anims if g is not anims[0] and next((a for a in g if (
       a.target is elem

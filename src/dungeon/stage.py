@@ -130,7 +130,7 @@ class Stage:
     return None
 
   def spawn_elem_at(stage, cell, elem):
-    elem.cell = cell
+    elem.spawn(stage, cell)
     if elem not in stage.elems:
       stage.elems.append(elem)
 

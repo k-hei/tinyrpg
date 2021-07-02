@@ -77,12 +77,16 @@ class Room(Feature):
       edges.append((x, top - 2))
       edges.append((x, top - 1))
       edges.append((x, bottom))
+      edges.append((x, bottom + 1))
 
     for y in range(top, bottom):
       edges.append((left - 1, y))
       edges.append((right, y))
 
     return edges
+
+  def get_doors(room, stage):
+    return [e for e in [stage.get_elem_at(c, superclass=Door) for c in room.get_border()] if e]
 
   def get_slots(room, cell=None):
     room_x, room_y = cell or room.cell or (0, 0)
@@ -94,8 +98,12 @@ class Room(Feature):
           slots.append((col, row))
     return slots
 
-  def effect(feature, game):
+  def effect(room, game):
     pass
+
+  def on_focus(room, game):
+    for door in room.get_doors(game.floor):
+      door.focus = room.get_center()
 
   def validate(room, cell, slots):
     for slot in room.get_slots(cell):

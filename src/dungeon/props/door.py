@@ -5,6 +5,7 @@ from anims.frame import FrameAnim
 from palette import WHITE, SAFFRON
 from filters import replace_color
 from sprite import Sprite
+from config import TILE_SIZE
 
 @dataclass
 class SpriteMap:
@@ -23,6 +24,9 @@ class Door(Prop):
     super().__init__(solid=True, opaque=True)
     door.locked = locked
     door.opened = False
+    door.vertical = False
+    door.focus = None
+    door.origin = None
 
   def unlock(door):
     door.locked = False
@@ -34,6 +38,14 @@ class Door(Prop):
     if door.locked:
       return game.log.print("The door is locked...")
     door.handle_open(game)
+
+  def spawn(door, stage, cell):
+    super().spawn(stage, cell)
+    door_x, door_y = cell
+    door.origin = cell
+    if (stage.get_tile_at((door_x - 1, door_y)) is not stage.FLOOR
+    and stage.get_tile_at((door_x + 1, door_y)) is not stage.FLOOR):
+      door.vertical = True
 
   def open(door):
     door.solid = False
@@ -78,6 +90,12 @@ class Door(Prop):
     will_open = next((g for g in anims if next((a for a in g if a.target is door and type(a) is DoorOpenAnim), None)), None)
     will_close = next((g for g in anims if next((a for a in g if a.target is door and type(a) is DoorCloseAnim), None)), None)
     anim_group = [a for a in anims[0] if a.target is door] if anims else []
+    door_x, door_y = door.cell
+    focus_x, focus_y = door.focus or door.cell
+    if not door.vertical or focus_y < door_y:
+      door.cell = door.origin
+    elif door.cell == door.origin:
+      door.cell = (door_x, door_y + 1)
     for anim in anim_group:
       if isinstance(anim, DoorAnim):
         image = sprites[anim.frame]

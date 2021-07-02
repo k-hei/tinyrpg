@@ -38,13 +38,11 @@ class ArenaRoom(SpecialRoom):
     x, y = feature.cell or (0, 0)
     return [(x + feature.get_width() // 2, y + feature.get_height())]
 
-  def get_doors(feature, stage):
-    return [e for e in [stage.get_elem_at(c, superclass=Door) for c in feature.get_border()] if e]
-
   def get_enemies(feature, stage):
     return [e for e in [stage.get_elem_at(c, superclass=DungeonActor) for c in feature.get_cells()] if e and e.get_faction() == "enemy"]
 
   def effect(feature, game):
+    super().effect(game)
     return feature.on_enter(game)
 
   def spawn_wave(feature, game, wave):
