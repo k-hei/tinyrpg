@@ -98,12 +98,18 @@ class Room(Feature):
           slots.append((col, row))
     return slots
 
-  def effect(room, game):
-    pass
+  def effect(room, game): pass
+  def on_enter(room, game): pass
+  def on_exit(room, game): pass
+  def on_kill(room, game, target): pass
 
   def on_focus(room, game):
     for door in room.get_doors(game.floor):
-      door.focus = room.get_center()
+      door.focus = game.hero.cell
+
+  def on_blur(room, game):
+    for door in room.get_doors(game.floor):
+      door.focus = game.hero.cell
 
   def validate(room, cell, slots):
     for slot in room.get_slots(cell):

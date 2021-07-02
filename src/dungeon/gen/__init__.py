@@ -12,7 +12,7 @@ from dungeon.features.room import Room
 from dungeon.features.exitroom import ExitRoom
 from dungeon.features.vertroom import VerticalRoom
 from dungeon.features.specialroom import SpecialRoom
-from dungeon.features.battleroom import BattleRoom
+from dungeon.features.arenaroom import ArenaRoom
 from dungeon.features.treasureroom import TreasureRoom
 from dungeon.features.oasisroom import OasisRoom
 from dungeon.features.coffinroom import CoffinRoom
@@ -268,36 +268,21 @@ class Floor:
         if cell not in corners or randint(1, 2) == 1:
           stage.set_tile_at(cell, stage.FLOOR)
 
-  def draw_door(floor, cell, tile=Stage.DOOR, room=None):
-    x, y = cell
+  def draw_door(floor, cell, door, room=None):
     stage = floor.stage
+    x, y = cell
     door_cell = cell
     doorway_cell = None
-    doorway_offset = 1
     if (stage.get_tile_at((x - 1, y)) is stage.WALL
     and stage.get_tile_at((x + 1, y)) is stage.WALL):
-      if (stage.get_tile_at((x - 1, y - 1)) is stage.WALL
-      and stage.get_tile_at((x + 1, y - 1)) is stage.WALL
-      and stage.get_tile_at((x, y + 1)) is stage.FLOOR):
-        doorway_offset = -1
-      elif (stage.get_tile_at((x - 1, y + 1)) is stage.WALL
-      and stage.get_tile_at((x + 1, y + 1)) is stage.WALL):
-        doorway_offset = 1
-      doorway_cell = (x, y + doorway_offset)
-      if room and doorway_offset != -1:
-        _, target_y = room.get_center()
-        if doorway_offset * (target_y - y) > 0:
-          doorway_cell = cell
-          door_cell = (x, y + doorway_offset)
+      if stage.get_tile_at((x, y - 1)) is stage.WALL:
+        door_cell = (x, y - 1)
+        doorway_cell = cell
+      elif stage.get_tile_at((x, y + 1)) is stage.WALL:
+        doorway_cell = (x, y + 1)
     if doorway_cell:
       stage.set_tile_at(doorway_cell, stage.DOOR_WAY)
-    stage.set_tile_at(door_cell, stage.FLOOR) # tile)
-    if type(room) is BattleRoom:
-      door = BattleDoor()
-    elif type(room) is TreasureRoom:
-      door = TreasureDoor()
-    else:
-      door = Door()
+    stage.set_tile_at(door_cell, stage.DOOR_WAY)
     stage.spawn_elem_at(door_cell, door)
 
   def connect(floor):
@@ -425,7 +410,7 @@ def gen_floor(seed=None):
   stage = floor.stage
   stage.seed = seed
 
-  arena = BattleRoom()
+  arena = ArenaRoom()
   exit_room = ExitRoom()
   puzzle_room = VerticalRoom((5, 4))
   treasure_room = TreasureRoom()
@@ -491,21 +476,29 @@ def gen_floor(seed=None):
   doors = []
   for (n1, n2), conns in tree.conns.items():
     if n1.secret or tree.degree(n1) == 1:
-      room = n1
+      origin = n2
+      target = n1
     elif n2.secret or tree.degree(n2) == 1:
-      room = n2
+      origin = n1
+      target = n2
     elif isinstance(n1, Room):
-      room = n1
+      origin = n2
+      target = n1
     elif isinstance(n2, Room):
-      room = n2
+      origin = n1
+      target = n2
+    feature_types = [type(f) for f in (origin, target)]
+    if ArenaRoom in feature_types:
+      door = BattleDoor()
+    elif TreasureRoom in feature_types:
+      door = TreasureDoor()
     else:
-      room = None
-    for door in conns:
-      if door in doors:
+      door = Door()
+    for door_cell in conns:
+      if door_cell in doors:
         continue
-      tile = stage.DOOR_HIDDEN if n1.secret or n2.secret else stage.DOOR
-      floor.draw_door(door, tile, room)
-      doors.append(door)
+      floor.draw_door(door_cell, door, room=target)
+      doors.append(door_cell)
 
   empty_rooms = [r for r in empty_rooms if r in tree.nodes]
   if not empty_rooms:

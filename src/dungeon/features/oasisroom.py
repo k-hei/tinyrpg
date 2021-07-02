@@ -23,7 +23,6 @@ class OasisRoom(SpecialRoom):
       "#...#"
     ], [
       ".........",
-      ".........",
       "...OOOVO.",
       "...OOOOO.",
       ".........",

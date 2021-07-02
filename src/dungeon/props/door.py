@@ -91,8 +91,9 @@ class Door(Prop):
     will_close = next((g for g in anims if next((a for a in g if a.target is door and type(a) is DoorCloseAnim), None)), None)
     anim_group = [a for a in anims[0] if a.target is door] if anims else []
     door_x, door_y = door.cell
+    origin_x, origin_y = door.origin
     focus_x, focus_y = door.focus or door.cell
-    if not door.vertical or focus_y < door_y:
+    if not door.vertical or focus_y <= origin_y:
       door.cell = door.origin
     elif door.cell == door.origin:
       door.cell = (door_x, door_y + 1)

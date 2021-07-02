@@ -206,6 +206,7 @@ class DungeonContext(Context):
       )]
 
     door = None
+    new_room = None
     if moving:
       rooms = [room for room in floor.rooms if is_within_room(room, hero.cell)]
       room_within = next((r for r in floor.rooms if hero.cell in r.get_cells()), None)
@@ -216,10 +217,13 @@ class DungeonContext(Context):
 
       if room is not game.room:
         game.oasis_used = False
-        room.on_focus(game)
+        if room:
+          room.on_focus(game)
+        if game.room:
+          game.room.on_focus(game)
 
       if room_within is not game.room_within:
-        room.effect(game)
+        new_room = room_within
 
       game.room = room
       game.room_within = room_within
@@ -229,6 +233,8 @@ class DungeonContext(Context):
     if game.room:
       visible_cells += game.room.get_cells() + game.room.get_border()
     if game.lights:
+      if not game.floor_cells:
+        game.floor_cells = game.floor.get_visible_cells()
       visible_cells = game.floor_cells
     hero.visible_cells = visible_cells
 
@@ -258,6 +264,9 @@ class DungeonContext(Context):
       camera.focus((mid_x, mid_y), force=True)
     else:
       camera.blur()
+
+    if new_room:
+      new_room.effect(game)
 
   def step(game, run=False):
     ally = game.ally
@@ -403,6 +412,8 @@ class DungeonContext(Context):
         return print(game.floor.seed)
       if key == pygame.K_d:
         return game.handle_debug()
+      if key == pygame.K_p:
+        return print(game.hero.cell)
 
     if game.child:
       return game.child.handle_keydown(key)

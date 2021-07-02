@@ -17,17 +17,20 @@ from config import WINDOW_HEIGHT, TILE_SIZE
 class ArenaRoom(SpecialRoom):
   Door = BattleDoor
   waves = [
-    [Eyeball, Eyeball],
-    [Eyeball, Eyeball, Mushroom],
-    [Mushroom, Mushroom],
+    [Eyeball],
+    # [Eyeball, Eyeball],
+    # [Eyeball, Eyeball, Mushroom],
+    # [Mushroom, Mushroom],
   ]
 
   def __init__(feature, reward=Amethyst):
     super().__init__(degree=2, shape=[
       "   .   ",
+      "  ...  ",
       " ..... ",
       " ..... ",
       " ..... ",
+      "  ...  ",
       "   .   "
     ])
     feature.reward = reward
@@ -36,7 +39,11 @@ class ArenaRoom(SpecialRoom):
 
   def get_edges(feature):
     x, y = feature.cell or (0, 0)
-    return [(x + feature.get_width() // 2, y + feature.get_height())]
+    return [
+      (x + feature.get_width() // 2, y - 1),
+      (x + feature.get_width() // 2, y + feature.get_height()),
+      (x + feature.get_width() // 2, y + feature.get_height() + 1),
+    ]
 
   def get_enemies(feature, stage):
     return [e for e in [stage.get_elem_at(c, superclass=DungeonActor) for c in feature.get_cells()] if e and e.get_faction() == "enemy"]
@@ -83,7 +90,12 @@ class ArenaRoom(SpecialRoom):
     if spawn_cell:
       reward = Chest(feature.reward)
       game.floor.spawn_elem_at(spawn_cell, reward)
-      game.anims.append([DropAnim(y=WINDOW_HEIGHT / 2 + TILE_SIZE, target=reward)])
+      game.camera.focus(feature.get_center(), force=True)
+      game.anims.append([DropAnim(
+        y=WINDOW_HEIGHT / 2 + TILE_SIZE,
+        target=reward,
+        on_end=lambda: game.camera.blur()
+      )])
       feature.reward = None
       return True
     else:
@@ -102,7 +114,16 @@ class ArenaRoom(SpecialRoom):
       return False
     feature.entered = True
     feature.lock(game)
-    feature.next_wave(game)
+    game.anims.append([PauseAnim(
+      duration=10,
+      on_end=lambda: (
+        game.camera.focus(feature.get_center(), force=True),
+        game.anims.append([PauseAnim(
+          duration=25,
+          on_end=lambda: feature.next_wave(game)
+        )])
+      )
+    )])
     return True
 
   def on_kill(feature, game, actor):
@@ -123,11 +144,14 @@ class ArenaRoom(SpecialRoom):
 
   def on_complete(feature, game):
     feature.unlock(game)
-    feature.spawn_reward(game)
+    game.anims.append([PauseAnim(
+      duration=15,
+      on_end=lambda: feature.spawn_reward(game)
+    )])
 
-  def place(feature, stage, *args, **kwargs):
-    super().place(stage, *args, **kwargs)
-    feat_x, feat_y = feature.cell
-    top_edge = (feat_x + feature.get_width() // 2, feat_y - 1)
-    stage.spawn_elem_at(top_edge, BattleDoor(locked=True))
-    stage.set_tile_at(top_edge, stage.FLOOR)
+  # def place(feature, stage, *args, **kwargs):
+  #   super().place(stage, *args, **kwargs)
+    # feat_x, feat_y = feature.cell
+    # top_edge = (feat_x + feature.get_width() // 2, feat_y - 1)
+    # stage.spawn_elem_at(top_edge, BattleDoor(locked=True))
+    # stage.set_tile_at(top_edge, stage.FLOOR)
