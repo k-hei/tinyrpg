@@ -21,6 +21,9 @@ class DungeonElement:
     pass
 
   def view(elem, sprites, anims=[]):
+    will_warp = anims and next((g for g in anims if g is not anims[0] and next((a for a in g if a.target is elem and type(a) is WarpInAnim), None)), None)
+    if will_warp:
+      return []
     if type(sprites) is Surface:
       sprites = Sprite(image=sprites, layer="elems")
     if type(sprites) is Sprite:

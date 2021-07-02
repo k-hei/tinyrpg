@@ -137,22 +137,6 @@ class StageView:
       except TypeError:
         print(elem)
         raise
-
-    anim_group = anims[0] if anims else []
-    for anim in anim_group:
-      anim.update()
-      if type(anim) is PauseAnim and anim is anim_group[0]:
-        break
-
-    for anim_group in anims:
-      for anim in anim_group:
-        if not anim or anim.done:
-          anim_group.remove(anim)
-        elif anim.target and anim.target not in visible_elems:
-          anim_group.remove(anim)
-        if len(anim_group) == 0:
-          anims.remove(anim_group)
-
     return sprites
 
   def view_vfx(self, vfx, camera):

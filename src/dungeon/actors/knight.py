@@ -23,7 +23,7 @@ class Knight(DungeonActor):
             assets["knight_walkup0"],
             assets["knight_up"],
             assets["knight_walkup1"]
-          ][int(anim.time // (anim.duration / 4))]
+          ][int(anim.time // (anim.duration / 4)) % 3]
           break
         if knight.facing == (0, 1):
           sprite = [
@@ -31,7 +31,7 @@ class Knight(DungeonActor):
             assets["knight_walkdown0"],
             assets["knight_down"],
             assets["knight_walkdown1"]
-          ][int(anim.time // (anim.duration / 4))]
+          ][int(anim.time // (anim.duration / 4)) % 3]
           break
         elif anim.time % (anim.duration // 2) >= anim.duration // 4:
           sprite = assets["knight_walk"]

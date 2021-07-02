@@ -945,6 +945,8 @@ class DungeonContext(Context):
           game.floor.spawn_elem_at(target.cell, Bag(item=drop))
       target.kill()
       game.floor.elems.remove(target)
+      if game.room:
+        game.room.on_kill(game, target) # TODO: associate actors with rooms for robustness
       if target is hero:
         game.anims[0].append(PauseAnim(
           duration=DungeonContext.PAUSE_DEATH_DURATION,
@@ -1203,14 +1205,14 @@ class DungeonContext(Context):
   def update(game):
     super().update()
     game.update_camera()
-    for group in game.anims:
+    if game.anims:
+      group = game.anims[0]
       for anim in group:
-        if type(anim) is PauseAnim:
-          if anim.done:
-            group.remove(anim)
-          else:
-            anim.update()
-      if len(group) == 0:
+        if anim.done:
+          group.remove(anim)
+        else:
+          anim.update()
+      if not group:
         game.anims.remove(group)
 
   def view(game):
