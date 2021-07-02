@@ -234,7 +234,7 @@ def render_tile(stage, cell, visited_cells=[]):
           elev = 1
           break
     if ((tile_below is stage.FLOOR or tile_below is stage.PIT or tile_below is stage.FLOOR_ELEV)
-    and not isinstance(stage.get_elem_at((x, y + 1)), Door)):
+    and not stage.get_elem_at((x, y + 1), superclass=Door)):
       if x % (3 + y % 2) == 0 or tile is stage.DOOR_HIDDEN:
         sprite_name = "wall_torch"
       else:
@@ -295,7 +295,7 @@ def render_wall(stage, cell, visited_cells=[]):
     stage.get_tile_at((x, y)) is stage.DOOR
     or stage.get_tile_at((x, y)) is stage.DOOR_OPEN
     or stage.get_tile_at((x, y)) is stage.DOOR_LOCKED
-    or isinstance(stage.get_elem_at((x, y)), Door)
+    or stage.get_elem_at((x, y), superclass=Door)
   )
 
   sprite = Surface((TILE_SIZE, TILE_SIZE), SRCALPHA)
