@@ -35,7 +35,6 @@ class Blitzritter(AttackSkill):
     far_cell = (hero_x + delta_x * 2, hero_y + delta_y * 2)
     target_a = floor.get_elem_at(near_cell)
     target_b = floor.get_elem_at(far_cell)
-    print(target_a, target_b)
 
     if not isinstance(target_a, DungeonActor):
       target_a = None

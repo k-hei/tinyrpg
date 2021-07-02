@@ -22,7 +22,7 @@ class Inventory:
     return inv.filter(tab) == inv.cols * inv.rows
 
   def append(inv, item):
-    if not inv.is_full():
+    if not inv.is_full(Inventory.tab(item)):
       inv.items.append(item)
       return True
     else:
