@@ -8,13 +8,14 @@ from dungeon.actors.mushroom import Mushroom
 from dungeon.props.door import Door
 from dungeon.props.battledoor import BattleDoor
 from anims.warpin import WarpInAnim
+from anims.pause import PauseAnim
 
 class ArenaRoom(SpecialRoom):
   Door = BattleDoor
   waves = [
     [Eyeball, Eyeball],
-    [Eyeball, Eyeball, Mushroom],
-    [Mushroom, Mushroom],
+    # [Eyeball, Eyeball, Mushroom],
+    # [Mushroom, Mushroom],
   ]
 
   def __init__(feature):
@@ -70,10 +71,11 @@ class ArenaRoom(SpecialRoom):
 
   def lock(feature, game):
     for door in feature.get_doors(game.floor):
-      door.close(game)
+      door.handle_close(game)
 
   def unlock(feature, game):
-    print("unlock")
+    for door in feature.get_doors(game.floor):
+      door.handle_open(game)
 
   def on_enter(feature, game):
     if feature.entered:
@@ -84,7 +86,6 @@ class ArenaRoom(SpecialRoom):
     return True
 
   def on_kill(feature, game, actor):
-    print(feature.get_enemies(game.floor))
     if feature.get_enemies(game.floor):
       return False
     if feature.waves:
@@ -92,5 +93,17 @@ class ArenaRoom(SpecialRoom):
       for enemy in feature.get_enemies(game.floor):
         enemy.stepped = True
     else:
-      feature.unlock(game)
+      game.anims.append([
+        PauseAnim(
+          duration=30,
+          on_end=lambda: feature.unlock(game)
+        )
+      ])
     return True
+
+  def place(feature, stage, *args, **kwargs):
+    super().place(stage, *args, **kwargs)
+    feat_x, feat_y = feature.cell
+    top_edge = (feat_x + feature.get_width() // 2, feat_y - 1)
+    stage.spawn_elem_at(top_edge, BattleDoor(locked=True))
+    stage.set_tile_at(top_edge, stage.FLOOR)

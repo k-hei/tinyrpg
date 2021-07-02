@@ -33,30 +33,37 @@ class Door(Prop):
   def effect(door, game):
     if door.locked:
       return game.log.print("The door is locked...")
-    if not door.locked and not door.opened:
-      door.open()
-      game.anims.append([
-        DoorOpenAnim(
-          duration=30,
-          frames=door.sprites.opening_frames,
-          target=door
-        )
-      ])
+    door.handle_open(game)
 
   def open(door):
-    if not door.locked and not door.opened:
-      door.opened = True
-      door.solid = False
-      return True
-    else:
-      return False
+    door.solid = False
+    door.opened = True
+    door.locked = False
 
-  def close(door, game):
-    if not door.opened:
+  def handle_open(door, game):
+    if door.opened:
       return False
+    door.open()
+    anim = DoorOpenAnim(
+      duration=30,
+      frames=door.sprites.opening_frames,
+      target=door
+    )
+    if game.anims:
+      game.anims[-1].append(anim)
+    else:
+      game.anims.append([anim])
+    return True
+
+  def close(door):
     door.solid = True
     door.opened = False
     door.locked = True
+
+  def handle_close(door, game):
+    if not door.opened:
+      return False
+    door.close()
     game.anims.append([
       DoorCloseAnim(
         duration=30,

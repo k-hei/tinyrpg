@@ -79,7 +79,7 @@ def manifest(core):
 class DungeonContext(Context):
   ATTACK_DURATION = 12
   FLINCH_DURATION = 25
-  FLINCH_PAUSE_DURATION = 60
+  FLINCH_PAUSE_DURATION = 15
   PAUSE_DURATION = 15
   PAUSE_ITEM_DURATION = 30
   PAUSE_DEATH_DURATION = 45
@@ -1212,6 +1212,8 @@ class DungeonContext(Context):
           group.remove(anim)
         else:
           anim.update()
+          if type(anim) is PauseAnim:
+            break
       if not group:
         game.anims.remove(group)
 
