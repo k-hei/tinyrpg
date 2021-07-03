@@ -1,12 +1,16 @@
+from random import randint, choice
+from lib.cell import is_adjacent
+from config import ATTACK_DURATION
 from dungeon.actors import DungeonActor
 from cores import Core
 from assets import load as use_assets
 from skills.weapon.tackle import Tackle
+from skills.ailment.steal import Steal
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
-from anims.awaken import AwakenAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
+from anims.awaken import AwakenAnim
 from items.materials.angeltears import AngelTears
 from sprite import Sprite
 
@@ -22,6 +26,22 @@ class Eye(DungeonActor):
       en=7,
       skills=[ Tackle ]
     ))
+    eye.item = None
+
+  def step(eye, game):
+    enemy = game.find_closest_enemy(eye)
+    if enemy is None:
+      return False
+
+    if is_adjacent(eye.cell, enemy.cell):
+      if not eye.item and eye.rare:
+        game.use_skill(eye, Steal)
+      else:
+        game.attack(eye, enemy)
+    else:
+      game.move_to(eye, enemy.cell)
+
+    return True
 
   def view(eye, anims):
     sprites = use_assets().sprites

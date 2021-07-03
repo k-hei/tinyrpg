@@ -17,7 +17,7 @@ class Skill:
   blocks = ((0, 0),)
   color = BLACK
 
-  def effect(user, game, on_end=None):
+  def effect(user, dest, game, on_end=None):
     user_x, user_y = user.cell
     facing_x, facing_y = user.facing
     target_cell = (user_x + facing_x, user_y + facing_y)

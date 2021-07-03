@@ -79,15 +79,23 @@ class GameContext(Context):
       floor = ctx.feature().create_floor()
       savedata.place = "dungeon"
     elif savedata.dungeon:
-      floordata = savedata.dungeon["floors"][savedata.dungeon["floor_no"] - 1]
+      floor_idx = savedata.dungeon["floor_no"] - 1 if "floor_no" in savedata.dungeon else 0
+      floor_data = savedata.dungeon["floors"][floor_idx]
       floor = Stage(
-        size=floordata["size"],
-        data=[Stage.TILES[t] for t in floordata["data"]]
+        size=floor_data["size"],
+        data=[Stage.TILES[t] for t in floor_data["data"]]
       )
       floor.entrance = floor.find_tile(Stage.STAIRS_DOWN)
-      floor.rooms = [Room((r["width"], r["height"]), (r["x"], r["y"])) for r in floordata["rooms"]]
-      for elem_cell, elem_name in floordata["elems"]:
-        floor.spawn_elem_at(tuple(elem_cell), resolve_elem(elem_name)())
+      floor.rooms = [Room((r["width"], r["height"]), (r["x"], r["y"])) for r in floor_data["rooms"]]
+      for elem_cell, elem_name in floor_data["elems"]:
+        promoted = False
+        if elem_name[-1] == "+":
+          promoted = True
+          elem_name = elem_name[0:-1]
+        elem = resolve_elem(elem_name)()
+        if promoted:
+          elem.promote()
+        floor.spawn_elem_at(tuple(elem_cell), elem)
     if savedata.place == "dungeon":
       ctx.goto_dungeon(floor)
     elif savedata.place == "town":
