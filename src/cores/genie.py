@@ -35,7 +35,7 @@ class Genie(Core):
       x = sin(t * 2 * pi) * ease_out(p) * RIPPLE_AMP
       image.blit(genie_image.subsurface(Rect(0, y, 32, 1)), (x, y))
     y = sin(genie.renders % FLOAT_PERIOD / FLOAT_PERIOD * 2 * pi) * FLOAT_AMP
-    genie.sprite.image = replace_color(image, BLACK, ORANGE)
+    genie.sprite.image = replace_color(image, BLACK, genie.color or ORANGE)
     genie.sprite.pos = (0, y)
     flip_x, _ = genie.sprite.flip
     if genie.facing == (-1, 0) != flip_x:

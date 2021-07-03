@@ -98,7 +98,6 @@ class Room(Feature):
           slots.append((col, row))
     return slots
 
-  def effect(room, game): pass
   def on_enter(room, game): pass
   def on_exit(room, game): pass
   def on_kill(room, game, target): pass

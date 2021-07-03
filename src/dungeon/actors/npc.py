@@ -7,5 +7,5 @@ class Npc(DungeonActor):
     super().__init__(core)
     npc.script = script
 
-  def view(npc, sprites):
-    return super().view(sprites)
+  def view(npc, sprites, anims):
+    return super().view(sprites, anims)

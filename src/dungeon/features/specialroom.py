@@ -6,7 +6,7 @@ from random import choice
 class SpecialRoom(Room):
   def __init__(feature, shape, elems=None, rooms=None, *args, **kwargs):
     feature.shape = shape or []
-    feature.elems = elems or {}
+    feature.elems = elems or []
     feature.rooms = rooms or {}
     super().__init__(shape and (len(shape[0]), len(shape)) or (0, 0), *args, **kwargs)
 
@@ -59,6 +59,9 @@ class SpecialRoom(Room):
           entrance = cell
         elif tile is stage.STAIRS_UP:
           stairs = cell
+    for elem_cell, elem in feature.elems:
+      elem_x, elem_y = elem_cell
+      stage.spawn_elem_at((elem_x + x, elem_y + y), elem)
     stage.entrance = entrance or stage.entrance
     stage.stairs = stairs or stage.stairs
 

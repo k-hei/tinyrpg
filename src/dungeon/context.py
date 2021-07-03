@@ -267,7 +267,7 @@ class DungeonContext(Context):
       camera.blur()
 
     if new_room:
-      new_room.effect(game)
+      new_room.on_enter(game)
 
   def step(game, run=False):
     ally = game.ally

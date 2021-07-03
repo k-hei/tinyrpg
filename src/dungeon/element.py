@@ -60,7 +60,7 @@ class DungeonElement:
           origin=("center", "center"),
           layer="numbers"
         ))
-      elif type(anim) is FlickerAnim and anim.time % 2:
+      elif type(anim) is FlickerAnim and not anim.visible:
         return []
       elif type(anim) is FlickerAnim:
         pinch_duration = anim.duration // 2
