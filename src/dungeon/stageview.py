@@ -246,6 +246,12 @@ def render_tile(stage, cell, visited_cells=[]):
       sprite_name = "wall_top"
     else:
       return render_wall(stage, cell, visited_cells)
+  elif tile is stage.FLOOR_ELEV and (
+    stage.get_tile_at((x - 1, y)) is stage.FLOOR_ELEV
+    and stage.get_tile_at((x + 1, y)) is stage.FLOOR_ELEV
+    and stage.get_tile_at((x, y - 1)) is stage.FLOOR_ELEV
+    and stage.get_tile_at((x, y + 1)) is stage.FLOOR_ELEV):
+    sprite_name = "floor_fancy"
   elif tile is stage.FLOOR_ELEV:
     sprite_name = "floor_elev"
   elif tile is stage.WALL_ELEV:

@@ -812,7 +812,9 @@ class DungeonContext(Context):
     actor.facing = (facing_x, facing_y)
     if (target_tile and not target_tile.solid
     and abs(target_tile.elev - origin_tile.elev) < 1
-    and (target_tile.direction == (0, 0) or direction.normalize(delta) == direction.normalize(target_tile.direction))
+    and (target_tile.direction == (0, 0) and origin_tile.direction == (0, 0)
+      or direction.normalize(delta) == direction.normalize(origin_tile.direction)
+      or direction.normalize(delta) == direction.normalize(target_tile.direction))
     and (target_elem is None
       or not target_elem.solid
       or actor is game.hero and target_elem is game.ally and not game.ally.ailment == "sleep"

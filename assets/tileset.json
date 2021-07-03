@@ -6,7 +6,7 @@
   "order": [
     ["",            "",   "door_puzzle",   "door_puzzle_opening",    "door_puzzle_open",                "wall",          "wall_alt",    "wall_top"],
     ["",            "",   "door_battle",   "door_battle_opening",    "door_battle_open",         "wall_battle",   "wall_battle_alt", "wall_bottom"],
-    ["",    "orn_tris", "door_treasure", "door_treasure_opening",  "door_treasure_open",                    "",                  "",            ""],
+    ["",    "orn_tris", "door_treasure", "door_treasure_opening",  "door_treasure_open",         "floor_fancy",                  "",            ""],
     ["",      "coffin",   "door_beetle",      "door_beetle_turn", "door_beetle_opening",    "door_beetle_open",                  "",            ""],
     ["", "coffin_open",              "",                 "floor",           "push_tile",    "oasis_corner_top",    "oasis_edge_top",      "stairs"],
     ["",  "coffin_lid",              "",                      "",                    "", "oasis_corner_bottom", "oasis_edge_bottom",      "ladder"],
