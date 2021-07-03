@@ -5,7 +5,7 @@ from pygame.transform import rotate, flip, scale
 
 from assets import load as use_assets
 from filters import replace_color, darken
-from palette import BLACK, WHITE, GRAY, SAFFRON_DARK, COLOR_TILE, darken_color
+from palette import BLACK, WHITE, GRAY, GRAY_DARK, COLOR_TILE, darken_color
 from config import ITEM_OFFSET, TILE_SIZE, DEBUG
 from sprite import Sprite
 from lib.lerp import lerp
@@ -61,11 +61,14 @@ class StageView:
     and stage.get_tile_at(cell) is not stage.OASIS_STAIRS):
       color = COLOR_TILE
       image = replace_color(image, WHITE, color)
-      image = replace_color(image, GRAY, SAFFRON_DARK)
+      if (stage.get_tile_at(cell) is not stage.FLOOR_ELEV
+      and stage.get_tile_at(cell) is not stage.WALL_ELEV
+      and stage.get_tile_at(cell) is not stage.STAIRS_RIGHT):
+        image = replace_color(image, GRAY, GRAY_DARK)
     image_darken = replace_color(image, color, darken_color(color))
     self.tile_cache[cell] = image_darken
     x = (col - start_x) * TILE_SIZE
-    y = (row - start_y) * TILE_SIZE
+    y = ((row + 1) - start_y) * TILE_SIZE - image.get_height()
     self.tile_surface.blit(image, (x, y))
 
   def redraw_tiles(self, stage, camera, visible_cells, visited_cells):
@@ -239,7 +242,7 @@ def render_tile(stage, cell, visited_cells=[]):
         sprite_name = "wall_torch"
       else:
         sprite_name = "wall_bottom"
-    elif tile_base is stage.FLOOR and elev == 1:
+    elif (tile_base is stage.FLOOR or tile_base is stage.PIT) and elev == 1:
       sprite_name = "wall_top"
     else:
       return render_wall(stage, cell, visited_cells)
@@ -255,6 +258,8 @@ def render_tile(stage, cell, visited_cells=[]):
     sprite_name = "stairs_up"
   elif tile is stage.STAIRS_DOWN:
     sprite_name = "stairs_down"
+  elif tile is stage.STAIRS_RIGHT:
+    return flip(assets.sprites["stairs_right"], True, False)
   elif tile is stage.DOOR:
     sprite_name = "door"
   elif tile is stage.DOOR_OPEN:
@@ -275,9 +280,9 @@ def render_tile(stage, cell, visited_cells=[]):
     return render_oasis(stage, cell)
 
   if "floor_elev" not in assets.sprites:
-    assets.sprites["floor_elev"] = replace_color(assets.sprites["floor"], 0xFF404040, 0xFF7D7D7D)
+    assets.sprites["floor_elev"] = assets.sprites["floor"]
   if "wall_elev" not in assets.sprites:
-    assets.sprites["wall_elev"] = replace_color(assets.sprites["wall_base"], 0xFFFFFFFF, 0xFF7D7D7D)
+    assets.sprites["wall_elev"] = replace_color(flip(assets.sprites["wall_base"], True, False), WHITE, GRAY)
 
   return assets.sprites[sprite_name] if sprite_name else None
 

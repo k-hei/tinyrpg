@@ -9,6 +9,7 @@ from skills.weapon import Weapon
 from palette import BLACK, RED, GREEN, BLUE, VIOLET, GOLD_DARK
 from assets import load as use_assets
 from filters import replace_color, darken
+from anims.move import MoveAnim
 from anims.attack import AttackAnim
 from anims.jump import JumpAnim
 from anims.awaken import AwakenAnim
@@ -31,6 +32,8 @@ class DungeonActor(DungeonElement):
     super().__init__(solid=True)
     actor.core = core
     actor.weapon = actor.load_weapon()
+    actor.cell = None
+    actor.elev = 0
     actor.solid = True
     actor.stepped = False
     actor.ailment = None
@@ -175,6 +178,7 @@ class DungeonActor(DungeonElement):
     actor_cell = actor.cell
     new_color = None
     asleep = actor.ailment == "sleep"
+    moving = next((g for g in anims if next((a for a in g if a.target is actor and type(a) is MoveAnim), None)), None)
     anim_group = [a for a in anims[0] if a.target is actor] if anims else []
     for anim in anim_group:
       if type(anim) is AwakenAnim and anim.visible:
@@ -206,6 +210,9 @@ class DungeonActor(DungeonElement):
       elif actor.core.faction == "enemy":
         new_color = RED
 
+    split_elev = actor.elev - int(actor.elev)
+    if not moving and split_elev:
+      offset_y -= split_elev * TILE_SIZE
     if new_color:
       sprite.image = replace_color(sprite.image, BLACK, new_color)
     if asleep:

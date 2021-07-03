@@ -8,12 +8,11 @@ from anims.awaken import AwakenAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from filters import replace_color
-from palette import BLACK, GREEN
+from palette import BLACK, ORANGE
 
 class Genie(Npc):
-  def __init__(genie, name, script, color=GREEN):
-    super().__init__(GenieCore(name), script)
-    genie.color = color
+  def __init__(genie, name, script, color=ORANGE):
+    super().__init__(GenieCore(name=name, color=color), script)
 
   def view(genie, anims):
     return genie.core.view()

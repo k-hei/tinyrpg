@@ -6,6 +6,7 @@ from palette import WHITE, SAFFRON
 from filters import replace_color
 from sprite import Sprite
 from config import TILE_SIZE
+from dungeon.stage import Stage, Tile
 
 @dataclass
 class SpriteMap:
@@ -43,8 +44,10 @@ class Door(Prop):
     super().spawn(stage, cell)
     door_x, door_y = cell
     door.origin = cell
-    if (stage.get_tile_at((door_x - 1, door_y)) is not stage.FLOOR
-    and stage.get_tile_at((door_x + 1, door_y)) is not stage.FLOOR):
+    if (Tile.is_solid(stage.get_tile_at((door_x - 1, door_y)))
+    and Tile.is_solid(stage.get_tile_at((door_x + 1, door_y)))
+    and Tile.is_solid(stage.get_tile_at((door_x - 1, door_y + 1)))
+    and Tile.is_solid(stage.get_tile_at((door_x + 1, door_y + 1)))):
       door.vertical = True
 
   def open(door):

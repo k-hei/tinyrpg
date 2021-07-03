@@ -1,18 +1,23 @@
 from dataclasses import dataclass
-from dungeon.props.door import Door
+# from dungeon.props.door import Door
 
 @dataclass
 class Tile:
   solid: bool
   opaque: bool = False
   elev: float = 0.0
+  direction: tuple = (0, 0)
+
+  def is_solid(tile):
+    return tile and tile.solid
 
 class Stage:
   FLOOR = Tile(solid=False, opaque=False)
   WALL = Tile(solid=True, opaque=True)
   FLOOR_ELEV = Tile(solid=False, opaque=False, elev=1.0)
   WALL_ELEV = Tile(solid=True, opaque=False)
-  STAIRS = Tile(solid=False, opaque=False, elev=0.5)
+  STAIRS = Tile(solid=False, opaque=False, elev=0.5, direction=(0, -1))
+  STAIRS_RIGHT = Tile(solid=False, opaque=False, elev=0.5, direction=(1, 0))
   LADDER = Tile(solid=False, opaque=False, elev=0.5)
   PIT = Tile(solid=True, opaque=False)
   DOOR = Tile(solid=True, opaque=True)
@@ -103,7 +108,7 @@ class Stage:
       )), None)
     else:
       return (next((e for e in stage.elems if e.cell == cell and e.solid), None)
-        or next((e for e in stage.elems if e.cell == cell and not isinstance(e, Door)), None)
+        # or next((e for e in stage.elems if e.cell == cell and not isinstance(e, Door)), None)
         or next((e for e in stage.elems if e.cell == cell), None))
 
   def get_tile_at(stage, cell):

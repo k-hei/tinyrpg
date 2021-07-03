@@ -12,6 +12,7 @@ import keyboard
 from keyboard import ARROW_DELTAS, key_times
 
 from lib.cell import add, is_adjacent, manhattan, normal
+import lib.direction as direction
 
 from assets import load as load_assets
 from filters import recolor, replace_color
@@ -794,18 +795,24 @@ class DungeonContext(Context):
     game.open(DialogueContext(script=target.script))
 
   def move(game, actor, delta, run=False, jump=False, on_end=None):
+    origin_tile = game.floor.get_tile_at(actor.cell)
+    origin_elev = origin_tile and origin_tile.elev
     actor_x, actor_y = actor.cell
     delta_x, delta_y = delta
+    sx_tile = game.floor.get_tile_at((actor_x + delta_x, actor_y + 1))
+    if origin_elev != int(origin_elev) and delta == origin_tile.direction:
+      delta_y -= 1
+    elif sx_tile and delta == direction.invert(sx_tile.direction):
+      delta_y += 1
     target_cell = (actor_x + delta_x, actor_y + delta_y)
     target_tile = game.floor.get_tile_at(target_cell)
     target_elem = game.floor.get_elem_at(target_cell)
-    origin_tile = game.floor.get_tile_at(actor.cell)
-    origin_elev = origin_tile and origin_tile.elev
     facing_x = -1 if delta_x < 0 else 1 if delta_x > 0 else 0
     facing_y = -1 if delta_y < 0 else 1 if delta_y > 0 else 0
     actor.facing = (facing_x, facing_y)
     if (target_tile and not target_tile.solid
     and abs(target_tile.elev - origin_tile.elev) < 1
+    and (target_tile.direction == (0, 0) or direction.normalize(delta) == direction.normalize(target_tile.direction))
     and (target_elem is None
       or not target_elem.solid
       or actor is game.hero and target_elem is game.ally and not game.ally.ailment == "sleep"
@@ -813,11 +820,15 @@ class DungeonContext(Context):
       duration = RUN_DURATION if run else MOVE_DURATION
       duration = duration * 1.5 if jump else duration
       anim_kind = JumpAnim if jump else MoveAnim
+      src_x, src_y = actor.cell
+      src_cell = (src_x, src_y - (origin_tile.elev - int(origin_tile.elev)))
+      dest_x, dest_y = target_cell
+      dest_cell = (dest_x, dest_y - (target_tile.elev - int(target_tile.elev)))
       move_anim = anim_kind(
         duration=duration,
         target=actor,
-        src=actor.cell,
-        dest=target_cell,
+        src=src_cell,
+        dest=dest_cell,
         on_end=on_end
       )
       move_group = game.find_move_group()
@@ -828,6 +839,7 @@ class DungeonContext(Context):
       if jump:
         game.anims.append([PauseAnim(duration=30)])
       actor.cell = target_cell
+      actor.elev = target_tile.elev
       return True
     else:
       return False
