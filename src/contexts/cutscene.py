@@ -12,14 +12,25 @@ class ExitAnim(TweenAnim): pass
 class CutsceneContext(Context):
   BAR_HEIGHT = 24
 
-  def __init__(ctx, *args, **kwargs):
+  def __init__(ctx, script, *args, **kwargs):
     super().__init__(ctx, *args, **kwargs)
+    ctx.script = script
+    ctx.script_idx = -1
     ctx.anim = TweenAnim(duration=30)
     ctx.cache_bar = None
 
   def init(ctx):
     ctx.cache_bar = Surface((WINDOW_WIDTH, CutsceneContext.BAR_HEIGHT))
     ctx.cache_bar.fill(BLACK)
+    ctx.script = ctx.script(ctx.parent)
+    ctx.next()
+
+  def next(ctx):
+    ctx.script_idx += 1
+    if ctx.script_idx == len(ctx.script):
+      ctx.exit()
+    else:
+      ctx.script[ctx.script_idx](ctx.next)
 
   def enter(ctx):
     ctx.anim = EnterAnim(duration=15)

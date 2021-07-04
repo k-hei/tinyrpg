@@ -147,11 +147,14 @@ class StageView:
     assets = use_assets()
     camera = camera.get_rect()
     for fx in vfx:
-      x, y = fx.pos
       if fx.done:
         vfx.remove(fx)
         continue
-      if fx.kind:
+      if "view" in dir(fx):
+        fx.update()
+        sprites += fx.view()
+        continue
+      elif fx.kind:
         frame = fx.update()
         if frame == None:
           continue
@@ -162,6 +165,7 @@ class StageView:
         fx.update()
         image = assets.sprites["fx_spark0"]
         image = replace_color(image, BLACK, fx.color)
+      x, y = fx.pos
       if (x < camera.left
       or y < camera.top
       or x >= camera.right

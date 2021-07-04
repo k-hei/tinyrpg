@@ -5,6 +5,7 @@ from palette import ORANGE, GREEN, BLUE
 from anims.pause import PauseAnim
 from anims.flicker import FlickerAnim
 from contexts.cutscene import CutsceneContext
+from vfx.alertbubble import AlertBubble
 
 class GenieRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
@@ -21,6 +22,7 @@ class GenieRoom(SpecialRoom):
       ((4, 1), GenieActor(name="Brajin", script=[], color=GREEN)),
       ((3, 2), GenieActor(name="Doshin", script=[], color=ORANGE)),
     ], *args, **kwargs)
+    room.entered = False
 
   def get_edges(room):
     room_width, room_height = room.get_size()
@@ -31,49 +33,57 @@ class GenieRoom(SpecialRoom):
     ]
 
   def on_enter(room, game):
+    if room.entered:
+      return
+    room.entered = True
     genies = [e for e in [game.floor.get_elem_at(c, superclass=GenieActor) for c in room.get_cells()] if e]
-    game.open(CutsceneContext())
-    game.camera.focus((4, 2), speed=8)
-    game.anims.append([(lambda i, g: (
-      g is not genies[-1] and FlickerAnim(
-        target=g,
-        duration=30,
-        delay=60 + 20 * i,
-        on_end=lambda: game.floor.remove_elem(g)
-      ) or PauseAnim(
-        duration=60 + 20 * i + 15,
-        on_end=lambda: (
-          g.face((g.cell[0] - 1, g.cell[1])),
-          game.anims.append([PauseAnim(
+    game.open(CutsceneContext(script=lambda game: [
+      lambda next: (
+        game.camera.focus((4, 2), speed=8),
+        game.anims.append([(lambda i, g: (
+          g is not genies[-1] and FlickerAnim(
+            target=g,
             duration=30,
-            on_end=lambda: (
-              g.face((g.cell[0] + 1, g.cell[1])),
-              game.anims.append([PauseAnim(
-                duration=30,
-                on_end=lambda: game.anims.append([FlickerAnim(
-                  target=g,
-                  duration=30,
-                  on_end=lambda: (
-                    game.floor.remove_elem(g),
-                    game.anims.append([PauseAnim(
-                      duration=15,
-                      on_end=lambda: (
-                        game.camera.blur(),
-                        game.anims.append([PauseAnim(
-                          duration=15,
-                          on_end=game.child.exit
-                        )])
-                      )
-                    )])
-                  )
-                )])
-              )])
-            )
-          )])
-        )
+            delay=60 + 20 * i,
+            on_end=lambda: game.floor.remove_elem(g)
+          ) or PauseAnim(
+            duration=60 + 20 * i + 15,
+            on_end=next
+          )
+        ))(i, g) for i, g in enumerate(genies)])
+      ),
+      lambda next: (
+        game.vfx.append(AlertBubble(cell=genies[-1].cell)),
+        game.anims.append([PauseAnim(duration=15, on_end=next)])
+      ),
+      lambda next: (
+        genies[-1].face((genies[-1].cell[0] - 1, genies[-1].cell[1])),
+        game.anims.append([PauseAnim(duration=30, on_end=next)])
+      ),
+      lambda next: (
+        genies[-1].face((genies[-1].cell[0] + 1, genies[-1].cell[1])),
+        game.anims.append([PauseAnim(duration=30, on_end=next)])
+      ),
+      lambda next: game.anims.append([FlickerAnim(
+        target=genies[-1],
+        duration=30,
+        on_end=next
+      )]),
+      lambda next: (
+        game.floor.remove_elem(genies[-1]),
+        game.anims.append([PauseAnim(
+          duration=15,
+          on_end=next
+        )])
+      ),
+      lambda next: (
+        game.camera.blur(),
+        game.anims.append([PauseAnim(
+          duration=15,
+          on_end=next
+        )])
       )
-    ))(i, g) for i, g in enumerate(genies)])
-    print(game.anims[-1])
+    ]))
 
   def place(room, stage, *args, **kwargs):
     super().place(stage, *args, **kwargs)
