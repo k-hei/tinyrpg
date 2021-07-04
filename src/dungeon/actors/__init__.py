@@ -6,7 +6,7 @@ from dungeon.element import DungeonElement
 from cores import Core
 from skills.weapon import Weapon
 
-from palette import BLACK, RED, GREEN, BLUE, VIOLET, GOLD_DARK
+from palette import BLACK, RED, GREEN, BLUE, CYAN, VIOLET, GOLD_DARK
 from assets import load as use_assets
 from filters import replace_color, darken
 from anims.move import MoveAnim
@@ -167,13 +167,14 @@ class DungeonActor(DungeonElement):
   def update(actor):
     return actor.core.update()
 
-  def view(actor, sprite, anims=[]):
-    if not sprite:
+  def view(actor, sprites, anims=[]):
+    if not sprites:
       return []
-    if type(sprite) is Surface:
-      sprite = Sprite(image=sprite)
-    if type(sprite) is list:
-      sprite = sprite[0]
+    if type(sprites) is Surface:
+      sprites = [Sprite(image=sprites)]
+    if type(sprites) is list:
+      sprites = [(Sprite(image=s) if type(s) is Surface else s) for s in sprites]
+    sprite = sprites[0]
     offset_x, offset_y = (0, 0)
     actor_width, actor_height = (TILE_SIZE, TILE_SIZE)
     actor_cell = actor.cell
@@ -201,6 +202,8 @@ class DungeonActor(DungeonElement):
     else:
       if actor.ailment == "poison":
         new_color = VIOLET
+      elif actor.ailment == "freeze":
+        new_color = CYAN
       elif actor.core.faction == "player":
         new_color = BLUE
       elif actor.core.faction == "ally":
@@ -220,7 +223,7 @@ class DungeonActor(DungeonElement):
     sprite.move((offset_x, offset_y))
     sprite.size = (actor_width, actor_height)
     sprite.layer = "elems"
-    return super().view([sprite], anims)
+    return super().view(sprites, anims)
 
   def color(actor):
     if actor.core.faction == "player": return BLUE

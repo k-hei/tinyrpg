@@ -13,6 +13,8 @@ from anims.flicker import FlickerAnim
 from anims.awaken import AwakenAnim
 from items.materials.angeltears import AngelTears
 from sprite import Sprite
+from filters import replace_color
+from palette import BLACK, CYAN
 
 class Eye(DungeonActor):
   drops = [AngelTears]
@@ -50,6 +52,11 @@ class Eye(DungeonActor):
       for anim in [a for a in anim_group if a.target is eye]:
         if type(anim) is AwakenAnim:
           return super().view(sprites["eye_attack"], anims)
+    if eye.ailment == "freeze":
+      return super().view([
+        sprites["eye_flinch"],
+        Sprite(image=replace_color(sprites["ice"], BLACK, CYAN), layer="elems")
+      ], anims)
     if eye.is_dead():
       return super().view(sprites["eye_flinch"], anims)
     anim_group = [a for a in anims[0] if a.target is eye] if anims else []

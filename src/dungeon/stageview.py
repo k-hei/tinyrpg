@@ -114,10 +114,10 @@ class StageView:
     elem.update()
     sprites = elem.view(anims)
     if sprites:
-      sprite = sprites[0]
-      elem_x, elem_y = elem.cell
-      sprite.move(((elem_x + 0.5) * TILE_SIZE, (elem_y + 1) * TILE_SIZE))
-      sprite.origin = ("center", "bottom")
+      for sprite in sprites:
+        elem_x, elem_y = elem.cell
+        sprite.move(((elem_x + 0.5) * TILE_SIZE, (elem_y + 1) * TILE_SIZE))
+        sprite.origin = ("center", "bottom")
       return sprites
     else:
       return []
