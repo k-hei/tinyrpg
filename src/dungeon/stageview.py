@@ -298,6 +298,16 @@ def render_tile(stage, cell, visited_cells=[]):
     sprite_name = "door_open"
   elif tile is stage.DOOR_LOCKED:
     sprite_name = "door"
+  elif tile is stage.FLOOR and (
+    stage.get_tile_at((x - 1, y)) is stage.FLOOR
+    and stage.get_tile_at((x + 1, y)) is stage.FLOOR
+    and stage.get_tile_at((x, y - 1)) is stage.FLOOR
+    and stage.get_tile_at((x, y + 1)) is stage.FLOOR
+    and stage.get_tile_at((x - 1, y - 1)) is stage.FLOOR
+    and stage.get_tile_at((x + 1, y - 1)) is stage.FLOOR
+    and stage.get_tile_at((x - 1, y + 1)) is stage.FLOOR
+    and stage.get_tile_at((x + 1, y + 1)) is stage.FLOOR):
+    sprite_name = "floor_fancy"
   elif tile is stage.FLOOR and tile_below is not stage.DOOR:
     sprite_name = "floor"
   elif tile is stage.PIT and tile_above and tile_above is not stage.PIT:
