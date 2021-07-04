@@ -53,23 +53,28 @@ class StageView:
   def redraw_tile(self, stage, cell, visited_cells):
     col, row = cell
     start_x, start_y = self.tile_offset
-    image = render_tile(stage, cell, visited_cells)
-    if not image:
+    sprite = render_tile(stage, cell, visited_cells)
+    if type(sprite) is Sprite:
+      sprite_xoffset, sprite_yoffset = sprite.pos
+      sprite = sprite.image
+    else:
+      sprite_xoffset, sprite_yoffset = (0, 0)
+    if not sprite:
       return
     color = WHITE
     if (stage.get_tile_at(cell) is not stage.OASIS
     and stage.get_tile_at(cell) is not stage.OASIS_STAIRS):
       color = COLOR_TILE
-      image = replace_color(image, WHITE, color)
+      sprite = replace_color(sprite, WHITE, color)
       if (stage.get_tile_at(cell) is not stage.FLOOR_ELEV
       and stage.get_tile_at(cell) is not stage.WALL_ELEV
       and stage.get_tile_at(cell) is not stage.STAIRS_RIGHT):
-        image = replace_color(image, GRAY, GRAY_DARK)
-    image_darken = replace_color(image, color, darken_color(color))
-    self.tile_cache[cell] = image_darken
-    x = (col - start_x) * TILE_SIZE
-    y = ((row + 1) - start_y) * TILE_SIZE - image.get_height()
-    self.tile_surface.blit(image, (x, y))
+        sprite = replace_color(sprite, GRAY, GRAY_DARK)
+    sprite_dark = replace_color(sprite, color, darken_color(color))
+    self.tile_cache[cell] = sprite_dark
+    x = (col - start_x) * TILE_SIZE + sprite_xoffset
+    y = (row - start_y + 1) * TILE_SIZE - sprite.get_height() + sprite_yoffset
+    self.tile_surface.blit(sprite, (x, y))
 
   def redraw_tiles(self, stage, camera, visible_cells, visited_cells):
     sprites = []
@@ -231,6 +236,16 @@ def render_tile(stage, cell, visited_cells=[]):
   tile_ne = stage.get_tile_at((x + 1, y - 1))
   tile_sw = stage.get_tile_at((x - 1, y + 1))
   tile_se = stage.get_tile_at((x + 1, y + 1))
+
+  if "wall_elev" not in assets.sprites:
+    assets.sprites["wall_elev"] = replace_color(flip(assets.sprites["wall_base"], True, False), WHITE, GRAY)
+  if "floor_elev" not in assets.sprites:
+    elevfloor_image = Surface((TILE_SIZE, TILE_SIZE * 2), SRCALPHA)
+    elevfloor_image.fill(COLOR_TILE)
+    elevfloor_image.blit(assets.sprites["floor"], (0, 0))
+    elevfloor_image.blit(assets.sprites["wall_elev"], (0, TILE_SIZE))
+    assets.sprites["floor_elev"] = elevfloor_image
+
   if tile is stage.WALL or tile is stage.DOOR_HIDDEN or (
   tile is stage.DOOR_WAY and tile_below is stage.DOOR_HIDDEN):
     room = next((r for r in stage.rooms if cell in r.get_cells() + r.get_border()), None)
@@ -240,7 +255,9 @@ def render_tile(stage, cell, visited_cells=[]):
         if stage.get_tile_at(c) is stage.FLOOR_ELEV:
           elev = 1
           break
-    if ((tile_below is stage.FLOOR or tile_below is stage.PIT or tile_below is stage.FLOOR_ELEV)
+    if tile_below is stage.FLOOR_ELEV:
+      return Sprite(image=assets.sprites["wall_bottom"], pos=(0, -TILE_SIZE))
+    elif ((tile_below is stage.FLOOR or tile_below is stage.PIT)
     and not stage.get_elem_at((x, y + 1), superclass=Door)):
       if x % (3 + y % 2) == 0 or tile is stage.DOOR_HIDDEN:
         sprite_name = "wall_torch"
@@ -254,10 +271,14 @@ def render_tile(stage, cell, visited_cells=[]):
     stage.get_tile_at((x - 1, y)) is stage.FLOOR_ELEV
     and stage.get_tile_at((x + 1, y)) is stage.FLOOR_ELEV
     and stage.get_tile_at((x, y - 1)) is stage.FLOOR_ELEV
-    and stage.get_tile_at((x, y + 1)) is stage.FLOOR_ELEV):
-    sprite_name = "floor_fancy"
+    and stage.get_tile_at((x, y + 1)) is stage.FLOOR_ELEV
+    and stage.get_tile_at((x - 1, y - 1)) is stage.FLOOR_ELEV
+    and stage.get_tile_at((x + 1, y - 1)) is stage.FLOOR_ELEV
+    and stage.get_tile_at((x - 1, y + 1)) is stage.FLOOR_ELEV
+    and stage.get_tile_at((x + 1, y + 1)) is stage.FLOOR_ELEV):
+    return Sprite(image=assets.sprites["floor_fancy"], pos=(0, -TILE_SIZE))
   elif tile is stage.FLOOR_ELEV:
-    sprite_name = "floor_elev"
+    return assets.sprites["floor_elev"]
   elif tile is stage.WALL_ELEV:
     sprite_name = "wall_elev"
   elif tile is stage.LADDER:
@@ -288,11 +309,6 @@ def render_tile(stage, cell, visited_cells=[]):
     sprite_name = "oasis_stairs"
   elif tile is stage.OASIS:
     return render_oasis(stage, cell)
-
-  if "floor_elev" not in assets.sprites:
-    assets.sprites["floor_elev"] = assets.sprites["floor"]
-  if "wall_elev" not in assets.sprites:
-    assets.sprites["wall_elev"] = replace_color(flip(assets.sprites["wall_base"], True, False), WHITE, GRAY)
 
   return assets.sprites[sprite_name] if sprite_name else None
 

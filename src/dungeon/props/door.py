@@ -110,10 +110,10 @@ class Door(Prop):
       elif not door.opened or will_open:
         image = sprites[door.sprites.closed]
     image = replace_color(image, WHITE, SAFFRON)
-    return [Sprite(
+    return super().view(Sprite(
       image=image,
       layer="decors"
-    )]
+    ), anims)
 
 class DoorAnim(FrameAnim): pass
 class DoorOpenAnim(DoorAnim): pass

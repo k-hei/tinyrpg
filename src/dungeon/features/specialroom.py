@@ -43,12 +43,6 @@ class SpecialRoom(Room):
         cell = (col + x, row + y)
         char = feature.shape[row][col]
         tile = SpecialRoom.parse_char(char)
-        tile_base = SpecialRoom.parse_char(feature.shape[row + 1][col]) if row + 1 < feature.get_height() else None
-        if (tile is stage.FLOOR_ELEV
-        and (tile_base is stage.FLOOR
-          or tile_base is stage.STAIRS_RIGHT
-          or tile_base is stage.PIT)):
-          tile = stage.WALL_ELEV
         stage.set_tile_at(cell, tile)
         try:
           actor_id = int(char)

@@ -66,7 +66,7 @@ class Camera:
     hero = game.hero
     focus_x, focus_y = hero.cell
     hero_x, hero_y = hero.cell
-    hero_y -= (hero.elev - int(hero.elev))
+    hero_y -= hero.elev
 
     anims = []
     if len(game.anims):

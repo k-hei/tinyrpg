@@ -10,17 +10,17 @@ from vfx.alertbubble import AlertBubble
 class GenieRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
     super().__init__(degree=2, shape=[
-      "#·····#",
-      " ····· ",
-      " ····· ",
-      " ····· ",
-      " .../· ",
-      ".......",
-      ".......",
+      "###·###",
+      "  ·····",
+      "  ·····",
+      "  ·····",
+      "  .../·",
+      "  .....",
+      "  .....",
     ], elems=[
-      ((2, 0), GenieActor(name="Joshin", script=[], color=BLUE)),
-      ((4, 1), GenieActor(name="Brajin", script=[], color=GREEN)),
-      ((3, 2), GenieActor(name="Doshin", script=[], color=ORANGE)),
+      ((2, 1), GenieActor(name="Joshin", script=[], color=BLUE)),
+      ((4, 2), GenieActor(name="Brajin", script=[], color=GREEN)),
+      ((3, 3), GenieActor(name="Doshin", script=[], color=ORANGE)),
     ], *args, **kwargs)
     room.entered = False
 
@@ -53,7 +53,7 @@ class GenieRoom(SpecialRoom):
         ))(i, g) for i, g in enumerate(genies)])
       ),
       lambda next: (
-        game.vfx.append(AlertBubble(cell=genies[-1].cell)),
+        game.vfx.append(AlertBubble(cell=(genies[-1].cell[0], genies[-1].cell[1] - genies[-1].elev))),
         game.anims.append([PauseAnim(duration=15, on_end=next)])
       ),
       lambda next: (
@@ -90,5 +90,5 @@ class GenieRoom(SpecialRoom):
     room_width, room_height = room.get_size()
     room_x, room_y = room.cell or (0, 0)
     top_edge = (room_x + room_width // 2, room_y - 1)
-    stage.set_tile_at(top_edge, stage.DOOR_WAY)
+    stage.set_tile_at(top_edge, stage.FLOOR_ELEV)
     stage.spawn_elem_at(top_edge, Door())

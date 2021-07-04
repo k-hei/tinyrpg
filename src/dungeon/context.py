@@ -799,11 +799,6 @@ class DungeonContext(Context):
     origin_elev = origin_tile and origin_tile.elev
     actor_x, actor_y = actor.cell
     delta_x, delta_y = delta
-    sx_tile = game.floor.get_tile_at((actor_x + delta_x, actor_y + 1))
-    if origin_elev != int(origin_elev) and delta == origin_tile.direction:
-      delta_y -= 1
-    elif sx_tile and delta == direction.invert(sx_tile.direction):
-      delta_y += 1
     target_cell = (actor_x + delta_x, actor_y + delta_y)
     target_tile = game.floor.get_tile_at(target_cell)
     target_elem = game.floor.get_elem_at(target_cell)
@@ -823,9 +818,9 @@ class DungeonContext(Context):
       duration = duration * 1.5 if jump else duration
       anim_kind = JumpAnim if jump else MoveAnim
       src_x, src_y = actor.cell
-      src_cell = (src_x, src_y - (origin_tile.elev - int(origin_tile.elev)))
+      src_cell = (src_x, src_y - origin_tile.elev)
       dest_x, dest_y = target_cell
-      dest_cell = (dest_x, dest_y - (target_tile.elev - int(target_tile.elev)))
+      dest_cell = (dest_x, dest_y - target_tile.elev)
       move_anim = anim_kind(
         duration=duration,
         target=actor,

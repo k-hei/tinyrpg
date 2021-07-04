@@ -14,6 +14,7 @@ class DungeonElement:
     elem.solid = solid
     elem.opaque = opaque
     elem.cell = None
+    elem.elev = 0
 
   def effect(elem, game):
     pass
@@ -23,6 +24,7 @@ class DungeonElement:
 
   def spawn(elem, stage, cell):
     elem.cell = cell
+    elem.elev = stage.get_tile_at(cell).elev
 
   def view(elem, sprites, anims=[]):
     will_enter = anims and next((g for g in anims if g is not anims[0] and next((a for a in g if (
@@ -40,6 +42,7 @@ class DungeonElement:
     sprite_layer = sprite.layer or "elems"
     offset_x, offset_y = (0, 0)
     item = None
+    moving = next((g for g in anims if next((a for a in g if a.target is elem and type(a) is MoveAnim), None)), None)
     anim_group = anims[0] if anims else []
     for anim in [a for a in anim_group if a.target is elem]:
       if type(anim) is MoveAnim:
@@ -86,6 +89,8 @@ class DungeonElement:
           offset_x = (anim_x - actor_x) * TILE_SIZE
           offset_y = (anim_y - actor_y) * TILE_SIZE
 
+    if not moving:
+      offset_y -= elem.elev * TILE_SIZE
     sprite.size = (sprite_width, sprite_height)
     sprite.layer = sprite_layer
     sprite.move((offset_x, offset_y))

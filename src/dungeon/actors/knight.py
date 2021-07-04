@@ -1,5 +1,6 @@
 import pygame
 from dungeon.actors import DungeonActor
+from cores.knight import Knight as KnightCore
 from assets import load as use_assets
 from anims.move import MoveAnim
 from anims.jump import JumpAnim
@@ -9,8 +10,8 @@ from anims.flicker import FlickerAnim
 from sprite import Sprite
 
 class Knight(DungeonActor):
-  def __init__(knight, core):
-    super().__init__(core)
+  def __init__(knight, core=None, *args, **kwargs):
+    super().__init__(core=core or KnightCore(*args, **kwargs))
 
   def view(knight, anims):
     assets = use_assets().sprites
