@@ -1,5 +1,6 @@
-from dungeon.features import Feature
+from math import ceil
 from lib.cell import add
+from dungeon.features import Feature
 from dungeon.props.door import Door
 
 class Room(Feature):
@@ -25,8 +26,8 @@ class Room(Feature):
     width, height = room.get_size()
     x, y = room.cell or (0, 0)
     return (
-      x + width // 2,
-      y + height // 2
+      x + ceil(width / 2) - 1,
+      y + ceil(height / 2) - 1
     )
 
   def get_cells(room):

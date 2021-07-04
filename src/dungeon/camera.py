@@ -1,4 +1,4 @@
-import math
+from math import ceil
 import pygame
 from pygame import Rect
 from config import TILE_SIZE
@@ -84,8 +84,8 @@ class Camera:
       if move_anim:
         hero_x, hero_y = move_anim.cell
 
-      room_halfwidth = room.get_width() // 2 + 1
-      room_halfheight = room.get_height() // 2 + 1
+      room_halfwidth = ceil(room.get_width() / 2)
+      room_halfheight = ceil(room.get_height() / 2)
       max_radius_x = room_halfwidth - Camera.MAX_RADIUS_X
       max_radius_y = room_halfheight - Camera.MAX_RADIUS_Y
       if room.get_width() > Camera.MAX_RADIUS_X * 2 + 1:
