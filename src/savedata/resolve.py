@@ -17,10 +17,12 @@ from items.dungeon.balloon import Balloon
 from skills.ailment.virus import Virus
 from skills.ailment.somnus import Somnus
 from skills.ailment.exoculo import Exoculo
+from skills.ailment.steal import Steal
 from skills.weapon.tackle import Tackle
 from skills.weapon.stick import Stick
 from skills.weapon.club import Club
 from skills.weapon.rare import RareWeapon
+from skills.weapon.broadsword import BroadSword
 from skills.weapon.longinus import Longinus
 from skills.weapon.caladbolg import Caladbolg
 from skills.weapon.mjolnir import Mjolnir
@@ -50,8 +52,10 @@ from dungeon.props.pushtile import PushTile
 from dungeon.props.puzzledoor import PuzzleDoor
 from dungeon.props.chest import Chest
 from dungeon.features.oasisroom import OasisRoom
+from dungeon.features.guardroom import GuardRoom
 from dungeon.features.elevroom import ElevRoom
 from dungeon.features.pitroom import PitRoom
+from dungeon.features.genieroom import GenieRoom
 from dungeon.features.coffinroom import CoffinRoom
 from dungeon.features.treasureroom import TreasureRoom
 from dungeon.features.battleroom import BattleRoom
@@ -69,6 +73,7 @@ from dungeon.actors.eye import Eye
 from dungeon.actors.mimic import Mimic
 from dungeon.actors.knight import Knight
 from dungeon.actors.mushroom import Mushroom
+from dungeon.actors.guard import GuardActor
 from dungeon.actors.soldier import Soldier
 
 def resolve_item(key):
@@ -93,10 +98,12 @@ def resolve_skill(key):
   if key == "Virus": return Virus
   if key == "Somnus": return Somnus
   if key == "Exoculo": return Exoculo
+  if key == "Steal": return Steal
   if key == "Tackle": return Tackle
   if key == "Stick": return Stick
   if key == "Club": return Club
   if key == "RareWeapon": return RareWeapon
+  if key == "BroadSword": return BroadSword
   if key == "Longinus": return Longinus
   if key == "Caladbolg": return Caladbolg
   if key == "Mjolnir": return Mjolnir
@@ -128,8 +135,10 @@ def resolve_elem(key):
   if key == "PuzzleDoor": return PuzzleDoor
   if key == "Chest": return Chest
   if key == "OasisRoom": return OasisRoom
+  if key == "GuardRoom": return GuardRoom
   if key == "ElevRoom": return ElevRoom
   if key == "PitRoom": return PitRoom
+  if key == "GenieRoom": return GenieRoom
   if key == "CoffinRoom": return CoffinRoom
   if key == "TreasureRoom": return TreasureRoom
   if key == "BattleRoom": return BattleRoom
@@ -147,6 +156,7 @@ def resolve_elem(key):
   if key == "Mimic": return Mimic
   if key == "Knight": return Knight
   if key == "Mushroom": return Mushroom
+  if key == "GuardActor": return GuardActor
   if key == "Soldier": return Soldier
 
 def resolve_material(material):
