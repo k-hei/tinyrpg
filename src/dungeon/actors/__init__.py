@@ -39,7 +39,7 @@ class DungeonActor(DungeonElement):
     actor.aggro = False
     actor.idle = False
     actor.rare = False
-    actor.facing = (1, 0)
+    actor.facing = core.facing or (1, 0)
     actor.visible_cells = []
 
   def get_name(actor): return actor.core.name
@@ -112,9 +112,11 @@ class DungeonActor(DungeonElement):
     return actor.talk(game)
 
   def talk(actor, game):
+    game.talkee = actor
     message = actor.core.message
     message = message(game) if callable(message) else message
     if not message:
+      game.talkee = None
       return
     hero = game.hero
     hero_x, hero_y = hero.cell
@@ -123,7 +125,6 @@ class DungeonActor(DungeonElement):
     old_target = (actor_x + facing_x, actor_y + facing_y)
     actor.face(hero.cell)
     game.camera.focus(((hero_x + actor_x) / 2, (hero_y + actor_y) / 2 + 1))
-    game.talkee = actor
     def stop_talk():
       actor.face(old_target)
       game.camera.blur()
@@ -162,6 +163,9 @@ class DungeonActor(DungeonElement):
     else:
       game.move_to(actor, enemy.cell)
     return True
+
+  def update(actor):
+    return actor.core.update()
 
   def view(actor, sprite, anims=[]):
     if not sprite:
