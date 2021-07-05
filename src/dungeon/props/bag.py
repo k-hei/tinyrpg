@@ -2,6 +2,7 @@ from dungeon.props import Prop
 from assets import load as use_assets
 from sprite import Sprite
 from anims.flicker import FlickerAnim
+from skills import Skill
 
 class BagAnim:
   jump = 2
@@ -41,7 +42,10 @@ class Bag(Prop):
     )])
     game.log.print("You open the bag")
     if bag.item:
-      game.obtain(bag.item)
+      if issubclass(bag.item, Skill):
+        game.learn_skill(skill=bag.item)
+      else:
+        game.obtain(bag.item)
       game.log.print(("Received ", bag.item().token(), "."))
     else:
       game.log.print("But there was nothing inside...")

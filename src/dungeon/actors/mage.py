@@ -10,8 +10,11 @@ from anims.flicker import FlickerAnim
 from sprite import Sprite
 from skills import find_skill_targets
 from skills.magic.glacio import Glacio
+from skills.weapon.broadsword import BroadSword
 
 class Mage(DungeonActor):
+  drops = [BroadSword]
+
   def __init__(mage, core=None, *args, **kwargs):
     super().__init__(core=core or MageCore(skills=[Glacio], *args, **kwargs))
 
