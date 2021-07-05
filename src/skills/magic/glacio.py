@@ -17,6 +17,7 @@ class Glacio(MagicSkill):
   desc = "Freezes target with ice"
   cost = 4
   range_max = 4
+  atk = 1
   users = [Mage]
   blocks = (
     (0, 0),

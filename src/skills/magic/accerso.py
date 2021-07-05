@@ -37,14 +37,17 @@ class Accerso(MagicSkill):
       if target_cells:
         for i, cell in enumerate(target_cells):
           ally = Eye(faction="ally" if user.get_faction() == "player" else "enemy")
-          ally.stepped = True
+          # ally.stepped = True
           floor.spawn_elem_at(cell, ally)
           game.anims[0].append(WarpInAnim(
             target=ally,
             duration=15,
             delay=i * 10
           ))
-        game.log.print("Allies have appeared!")
+        if user.get_faction() == "player":
+          game.log.print("Allies have appeared!")
+        elif user.get_faction() == "enemy":
+          game.log.print("Enemies have appeared!")
         on_end and on_end()
       else:
         game.log.print("But nothing happened...")

@@ -10,26 +10,33 @@ from anims.flicker import FlickerAnim
 from sprite import Sprite
 from skills import find_skill_targets
 from skills.magic.glacio import Glacio
+from skills.magic.accerso import Accerso
 from skills.weapon.broadsword import BroadSword
 
 class Mage(DungeonActor):
   drops = [BroadSword]
 
   def __init__(mage, core=None, *args, **kwargs):
-    super().__init__(core=core or MageCore(skills=[Glacio], *args, **kwargs))
+    super().__init__(core=core or MageCore(skills=[Glacio, Accerso], *args, **kwargs))
 
   def step(mage, game):
     enemy = game.find_closest_enemy(mage)
     if enemy is None:
       return False
-    for skill in mage.core.skills:
-      target_cells = find_skill_targets(skill, mage, game.floor)
-      if enemy.cell in target_cells:
-        break
-    else:
-      return False
+
+    skill = next((s for s in mage.core.skills if s.atk and enemy.cell in find_skill_targets(s, mage, game.floor)), None)
     if skill:
-      game.use_skill(mage, skill)
+      return game.use_skill(mage, skill)
+
+    skill = next((s for s in mage.core.skills if (
+      not s.atk
+      and not (s is Accerso and [e for e in [game.floor.get_elem_at(c, superclass=DungeonActor) for c in game.room.get_cells()] if (
+        e and e is not mage
+        and e.get_faction() == mage.get_faction()
+      )])
+    )), None)
+    if skill:
+      return game.use_skill(mage, skill)
 
   def view(mage, anims):
     sprites = use_assets().sprites
