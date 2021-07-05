@@ -11,7 +11,7 @@ class Core:
   def __init__(core, name, faction="ally", facing=(1, 0), hp=0, st=0, en=0, skills=[], color=None, message=None):
     core.name = name
     core.faction = faction
-    core.facing = facing
+    core.facing = tuple(facing)
     core.hp = hp
     core.hp_max = hp
     core.st = st

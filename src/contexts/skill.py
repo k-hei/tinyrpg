@@ -11,6 +11,7 @@ from text import render as render_text
 from filters import recolor, replace_color, outline
 from palette import BLACK, WHITE, GRAY, YELLOW
 from comps.skill import Skill
+from skills import find_skill_targets
 from sprite import Sprite
 
 from lib.lerp import lerp
@@ -182,7 +183,8 @@ class SkillContext(Context):
       camera_x, camera_y = camera.pos
       facing_x, facing_y = hero.facing
       hero_x, hero_y = hero.cell
-      neighbors, cursor = find_skill_targets(skill, hero, floor)
+      neighbors = find_skill_targets(skill, hero, floor)
+      cursor = (hero_x + facing_x, hero_y + facing_y)
 
       if cursor not in neighbors:
         if neighbors:
@@ -358,49 +360,3 @@ class SkillContext(Context):
       ))
 
     return sprites
-
-def find_skill_targets(skill, user, floor=None):
-  targets = []
-  user_x, user_y = user.cell
-  facing_x, facing_y = user.facing
-  cursor = (user_x + facing_x, user_y + facing_y)
-  if skill is None:
-    return targets, cursor
-  if skill.range_type == "row":
-    if facing_x:
-      targets += [
-        (user_x + facing_x, user_y - 1),
-        (user_x + facing_x, user_y),
-        (user_x + facing_x, user_y + 1)
-      ]
-    elif facing_y:
-      targets += [
-        (user_x - 1, user_y + facing_y),
-        (user_x, user_y + facing_y),
-        (user_x + 1, user_y + facing_y)
-      ]
-  if skill.range_type == "radial" or skill.range_type == "linear" and skill.range_max == 1:
-    if skill.range_min == 0:
-      targets.append((user_x, user_y))
-    targets.extend([
-      (user_x, user_y - 1),
-      (user_x - 1, user_y),
-      (user_x + 1, user_y),
-      (user_x, user_y + 1)
-    ])
-  elif skill.range_type == "linear" and skill.range_max > 2:
-    targets.append(cursor)
-    is_blocked = False
-    r = 1
-    while not is_blocked and r < skill.range_max:
-      if floor and (floor.get_tile_at(cursor).solid or floor.get_elem_at(cursor)):
-        is_blocked = True
-      else:
-        cursor_x, cursor_y = cursor
-        cursor = (cursor_x + facing_x, cursor_y + facing_y)
-        targets.append(cursor)
-      r += 1
-  elif skill.range_type == "linear":
-    for r in range(skill.range_min, skill.range_max + 1):
-      targets.append((user_x + facing_x * r, user_y + facing_y * r))
-  return targets, cursor

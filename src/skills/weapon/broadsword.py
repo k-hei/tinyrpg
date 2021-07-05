@@ -3,7 +3,7 @@ from cores.knight import Knight
 
 class BroadSword(Weapon):
   name = "BroadSword"
-  desc = "A sword used by a hot chick."
+  desc = "A sword used by a hot chick"
   element = "sword"
   cost = 1
   st = 3
