@@ -88,7 +88,8 @@ class Stage:
     return cells
 
   def is_cell_empty(stage, cell):
-    if stage.get_tile_at(cell).solid:
+    target_tile = stage.get_tile_at(cell)
+    if not target_tile or target_tile.solid:
       return False
     if stage.get_elem_at(cell):
       return False

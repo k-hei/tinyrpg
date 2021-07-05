@@ -19,14 +19,16 @@ from palette import BLACK, CYAN
 class Eye(DungeonActor):
   drops = [AngelTears]
 
-  def __init__(eye):
+  def __init__(eye, faction="enemy", *args, **kwargs):
     super().__init__(Core(
       name="Eyeball",
-      faction="enemy",
+      faction=faction,
       hp=20,
       st=12,
       en=7,
-      skills=[ Tackle ]
+      skills=[ Tackle ],
+      *args,
+      **kwargs
     ))
     eye.item = None
 
