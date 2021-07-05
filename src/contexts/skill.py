@@ -184,7 +184,7 @@ class SkillContext(Context):
       facing_x, facing_y = hero.facing
       hero_x, hero_y = hero.cell
       neighbors = find_skill_targets(skill, hero, floor)
-      if skill.range_type == "linear":
+      if skill.range_type == "linear" and skill.range_max > 1:
         cursor = neighbors[-1] if neighbors else None
       if not cursor:
         cursor = (hero_x + facing_x, hero_y + facing_y)

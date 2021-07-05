@@ -1,3 +1,4 @@
+from random import randint, choice
 import pygame
 from dungeon.actors import DungeonActor
 from cores.mage import Mage as MageCore
@@ -24,19 +25,50 @@ class Mage(DungeonActor):
     if enemy is None:
       return False
 
+    has_allies = next((e for e in [game.floor.get_elem_at(c, superclass=DungeonActor) for c in game.room.get_cells()] if (
+      e and e is not mage
+      and e.get_faction() == mage.get_faction()
+    )), None)
+
+    mage.face(enemy.cell)
     skill = next((s for s in mage.core.skills if s.atk and enemy.cell in find_skill_targets(s, mage, game.floor)), None)
     if skill:
       return game.use_skill(mage, skill)
 
-    skill = next((s for s in mage.core.skills if (
-      not s.atk
-      and not (s is Accerso and [e for e in [game.floor.get_elem_at(c, superclass=DungeonActor) for c in game.room.get_cells()] if (
-        e and e is not mage
-        and e.get_faction() == mage.get_faction()
-      )])
-    )), None)
-    if skill:
-      return game.use_skill(mage, skill)
+    if not has_allies:
+      return game.use_skill(mage, Accerso)
+
+    mage_x, mage_y = mage.cell
+    enemy_x, enemy_y = enemy.cell
+    dist_x = enemy_x - mage_x
+    delta_x = dist_x // (abs(dist_x) or 1)
+    dist_y = enemy_y - mage_y
+    delta_y = dist_y // (abs(dist_y) or 1)
+    delta = None
+    if abs(dist_x) + abs(dist_y) == 1:
+      if game.floor.is_cell_empty((mage_x - delta_x, mage_y - delta_y)):
+        delta = (-delta_x, -delta_y)
+      else:
+        deltas = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        deltas = [(dx, dy) for (dx, dy) in deltas if game.floor.is_cell_empty((mage_x + dx, mage_y + dy))]
+        if deltas:
+          delta = choice(deltas)
+    elif abs(dist_x) + abs(dist_y) < 4:
+      if delta_x and delta_y:
+        delta = randint(0, 1) and (-delta_x, 0) or (0, -delta_y)
+      elif delta_x:
+        delta = (-delta_x, 0)
+      elif delta_y:
+        delta = (0, -delta_y)
+    else:
+      if delta_x and delta_y:
+        delta = randint(0, 1) and (delta_x, 0) or (0, delta_y)
+      elif delta_x:
+        delta = (delta_x, 0)
+      elif delta_y:
+        delta = (0, delta_y)
+    if delta:
+      game.move(actor=mage, delta=delta)
 
   def view(mage, anims):
     sprites = use_assets().sprites

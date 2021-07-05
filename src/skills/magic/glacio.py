@@ -73,7 +73,7 @@ class Glacio(MagicSkill):
             target.inflict_ailment("freeze"),
             game.flinch(
               target=target,
-              damage=16 + randint(-2, 2),
+              damage=8 + randint(-2, 2),
               on_end=lambda: (
                 not target.is_dead() and game.log.print((target.token(), " is frozen.")),
                 on_end and on_end()

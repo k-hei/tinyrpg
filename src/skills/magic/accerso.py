@@ -26,7 +26,7 @@ class Accerso(MagicSkill):
   def effect(user, dest, game, on_end=None):
     floor = game.floor
     valid_cells = [c for c in find_skill_targets(Accerso, user, floor) if floor.is_cell_empty(c)]
-    target_count = randint(2, 3)
+    target_count = randint(2, 3) if user.get_faction() == "player" else 2
     target_cells = []
     while valid_cells and len(target_cells) < target_count:
       cell = choice(valid_cells)
@@ -42,13 +42,13 @@ class Accerso(MagicSkill):
           game.anims[0].append(WarpInAnim(
             target=ally,
             duration=15,
-            delay=i * 10
+            delay=i * 10,
+            on_end=(on_end if cell == target_cells[-1] else lambda: None)
           ))
         if user.get_faction() == "player":
           game.log.print("Allies have appeared!")
         elif user.get_faction() == "enemy":
           game.log.print("Enemies have appeared!")
-        on_end and on_end()
       else:
         game.log.print("But nothing happened...")
         on_end and on_end()

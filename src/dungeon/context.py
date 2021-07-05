@@ -640,6 +640,8 @@ class DungeonContext(Context):
         if game.open_door(target_cell):
           game.step(run)
           game.refresh_fov()
+
+    # end_move()
     return moved
 
   def obtain(game, item):
