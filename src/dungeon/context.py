@@ -136,6 +136,7 @@ class DungeonContext(Context):
       game.parent.transits = []
       game.handle_minimap(lock=True)
       game.refresh_fov()
+    game.camera.focus((4, 4))
 
   def get_floor_no(game):
     return next((i for i, f in enumerate(game.floors) if f is game.floor), 0) + 1
@@ -277,7 +278,7 @@ class DungeonContext(Context):
     hero = game.hero
     actors = [e for e in game.floor.elems if isinstance(e, DungeonActor)]
     enemies = [a for a in actors if not a.allied(hero)]
-    enemies.sort(key=lambda e: manhattan(e.cell, hero.cell))
+    enemies.sort(key=lambda e: type(e) is MageActor and 1000 or manhattan(e.cell, hero.cell))
 
     for actor in actors:
       if actor in enemies:

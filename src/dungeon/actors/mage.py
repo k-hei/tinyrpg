@@ -19,21 +19,21 @@ class Mage(DungeonActor):
 
   def __init__(mage, core=None, *args, **kwargs):
     super().__init__(core=core or MageCore(skills=[Glacio, Accerso], *args, **kwargs))
+    mage.chanting = False
 
   def step(mage, game):
     enemy = game.find_closest_enemy(mage)
     if enemy is None:
       return False
 
+    if mage.chanting:
+      mage.chanting = False
+      return game.use_skill(mage, Glacio)
+
     has_allies = next((e for e in [game.floor.get_elem_at(c, superclass=DungeonActor) for c in game.room.get_cells()] if (
       e and e is not mage
       and e.get_faction() == mage.get_faction()
     )), None)
-
-    mage.face(enemy.cell)
-    skill = next((s for s in mage.core.skills if s.atk and enemy.cell in find_skill_targets(s, mage, game.floor)), None)
-    if skill:
-      return game.use_skill(mage, skill)
 
     if not has_allies:
       return game.use_skill(mage, Accerso)
@@ -44,6 +44,13 @@ class Mage(DungeonActor):
     delta_x = dist_x // (abs(dist_x) or 1)
     dist_y = enemy_y - mage_y
     delta_y = dist_y // (abs(dist_y) or 1)
+
+    mage.face(enemy.cell)
+    if (delta_x == 0 and dist_y <= Glacio.range_max
+    or delta_y == 0 and dist_x <= Glacio.range_max):
+      mage.chanting = True
+      return game.log.print((mage.token(), " is chanting."))
+
     delta = None
     if abs(dist_x) + abs(dist_y) == 1:
       if game.floor.is_cell_empty((mage_x - delta_x, mage_y - delta_y)):

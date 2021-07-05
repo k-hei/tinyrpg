@@ -60,7 +60,7 @@ class Glacio(MagicSkill):
       delay = len(target_cells) * 10 + 10
       if target is None:
         game.anims[0].append(PauseAnim(
-          duration=45 + delay,
+          duration=15 + delay,
           on_end=lambda: (
             game.log.print("But nothing happened..."),
             on_end and on_end()

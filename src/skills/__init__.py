@@ -84,7 +84,7 @@ def find_skill_targets(skill, user, floor=None):
     is_blocked = False
     r = 1
     while not is_blocked and r < skill.range_max:
-      if floor and (floor.get_tile_at(cursor).solid or floor.get_elem_at(cursor)):
+      if floor and not floor.is_cell_empty(cursor):
         is_blocked = True
       else:
         cursor_x, cursor_y = cursor
