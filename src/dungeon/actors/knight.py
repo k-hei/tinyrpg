@@ -63,4 +63,6 @@ class Knight(DungeonActor):
         sprite = assets["knight_down"]
       else:
         sprite = assets["knight"]
+    if knight.ailment == "freeze":
+      sprite = assets["knight_flinch"]
     return super().view(sprite, anims)

@@ -65,12 +65,6 @@ class Eye(DungeonActor):
         break
       elif type(anim) in (FlinchAnim, FlickerAnim):
         sprite = sprites["eye_flinch"]
-        if eye.ailment == "freeze" and anim.time % 2:
-          return super().view([
-            sprites["eye_flinch"],
-            Sprite(image=replace_color(sprites["ice"], BLACK, CYAN), layer="elems")
-          ], anims)
-
         break
     else:
       if eye.ailment == "sleep":

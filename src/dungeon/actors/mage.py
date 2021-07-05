@@ -8,10 +8,25 @@ from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from sprite import Sprite
+from skills import find_skill_targets
+from skills.magic.glacio import Glacio
 
 class Mage(DungeonActor):
   def __init__(mage, core=None, *args, **kwargs):
-    super().__init__(core=core or MageCore(*args, **kwargs))
+    super().__init__(core=core or MageCore(skills=[Glacio], *args, **kwargs))
+
+  def step(mage, game):
+    enemy = game.find_closest_enemy(mage)
+    if enemy is None:
+      return False
+    for skill in mage.core.skills:
+      target_cells = find_skill_targets(skill, mage, game.floor)
+      if enemy.cell in target_cells:
+        break
+    else:
+      return False
+    if skill:
+      game.use_skill(mage, skill)
 
   def view(mage, anims):
     sprites = use_assets().sprites

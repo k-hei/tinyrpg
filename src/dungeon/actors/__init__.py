@@ -168,6 +168,7 @@ class DungeonActor(DungeonElement):
     return actor.core.update()
 
   def view(actor, sprites, anims=[]):
+    assets = use_assets().sprites
     if not sprites:
       return []
     if type(sprites) is Surface:
@@ -195,6 +196,11 @@ class DungeonActor(DungeonElement):
         return []
       if type(anim) is FlinchAnim:
         offset_x, offset_y = anim.offset
+        if actor.ailment == "freeze" and anim.time % 2:
+          sprites.append(Sprite(
+            image=replace_color(assets["ice"], BLACK, CYAN),
+            layer="elems"
+          ))
       if type(anim) is BounceAnim:
         anim_xscale, anim_yscale = anim.scale
         actor_width *= anim_xscale

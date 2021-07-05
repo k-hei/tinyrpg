@@ -88,7 +88,7 @@ class GameContext(Context):
       floor.entrance = floor.find_tile(Stage.STAIRS_DOWN)
       floor.rooms = [Room((r["width"], r["height"]), (r["x"], r["y"])) for r in floor_data["rooms"]]
       for elem_cell, elem_name, *elem_params in floor_data["elems"]:
-        elem_params = elem_params[0] if elem_params else None
+        elem_params = elem_params[0] if elem_params else {}
         promoted = False
         if elem_name[-1] == "+":
           promoted = True

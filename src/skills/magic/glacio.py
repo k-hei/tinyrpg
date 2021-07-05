@@ -1,4 +1,5 @@
 from random import randint
+from skills import find_skill_targets
 from skills.magic import MagicSkill
 from cores.mage import Mage
 from dungeon.actors import DungeonActor
@@ -29,13 +30,17 @@ class Glacio(MagicSkill):
     delta_x, delta_y = user.facing
     bump_dest = (hero_x + delta_x, hero_y + delta_y)
 
+    if not dest:
+      dest = find_skill_targets(Glacio, user, game.floor)[-1]
     target = floor.get_elem_at(dest, superclass=DungeonActor)
     target_cells = []
     cell = user.cell
-    while cell != dest:
+    dist = 0
+    while cell != dest and dist < Glacio.range_max:
       x, y = cell
       cell = (x + delta_x, y + delta_y)
       target_cells.append(cell)
+      dist += 1
 
     def on_connect():
       impact_frames = ["fx_impact{}".format(i) for i in range(7)]
