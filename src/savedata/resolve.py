@@ -33,6 +33,7 @@ from skills.attack.rendinggale import RendingGale
 from skills.magic.vortex import Vortex
 from skills.magic.hirudo import Hirudo
 from skills.magic.ignis import Ignis
+from skills.magic.accerso import Accerso
 from skills.magic.fulgur import Fulgur
 from skills.magic.glacio import Glacio
 from skills.field.detectmana import DetectMana
@@ -114,6 +115,7 @@ def resolve_skill(key):
   if key == "Vortex": return Vortex
   if key == "Hirudo": return Hirudo
   if key == "Ignis": return Ignis
+  if key == "Accerso": return Accerso
   if key == "Fulgur": return Fulgur
   if key == "Glacio": return Glacio
   if key == "DetectMana": return DetectMana
@@ -163,3 +165,4 @@ def resolve_material(material):
   if material is Diamond: return None
   if material is AngelTears: return Eye
   if material is RedFerrule: return Mushroom
+  if material is BroadSword: return Mage

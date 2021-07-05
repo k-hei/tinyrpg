@@ -2,6 +2,7 @@ from comps.log import Token
 from anims.pause import PauseAnim
 from cores import Core
 from palette import BLACK
+from lib.cell import neighbors as neighborhood
 
 class Skill:
   name = "Untitled"
@@ -59,7 +60,7 @@ def find_skill_targets(skill, user, floor=None):
         (user_x, user_y + facing_y),
         (user_x + 1, user_y + facing_y)
       ]
-  if skill.range_type == "radial" or skill.range_type == "linear" and skill.range_max == 1:
+  if skill.range_type in ("radial", "linear") and skill.range_max == 1:
     if skill.range_min == 0:
       targets.append((user_x, user_y))
     targets.extend([
@@ -68,6 +69,16 @@ def find_skill_targets(skill, user, floor=None):
       (user_x + 1, user_y),
       (user_x, user_y + 1)
     ])
+  elif skill.range_type == "radial":
+    stack = [(user.cell, 0)]
+    while stack:
+      cell, steps = stack.pop()
+      neighbors = neighborhood(cell)
+      for neighbor in neighbors:
+        if neighbor not in targets and neighbor != user.cell:
+          targets.append(neighbor)
+          if steps + 1 < skill.range_max:
+            stack.append((neighbor, steps + 1))
   elif skill.range_type == "linear" and skill.range_max > 2:
     targets.append(cursor)
     is_blocked = False
