@@ -5,5 +5,10 @@
   "fx_spark3": [24, 0, 8, 8],
   "fx_smallspark0": [ 8, 0, 8, 8],
   "fx_smallspark1": [16, 0, 8, 8],
-  "fx_smallspark2": [24, 0, 8, 8]
+  "fx_smallspark2": [24, 0, 8, 8],
+  "fx_particle": [
+    [8, 0, 8, 8],
+    [16, 0, 8, 8],
+    [24, 0, 8, 8]
+  ]
 }

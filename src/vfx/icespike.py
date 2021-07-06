@@ -5,12 +5,13 @@ from assets import load as use_assets
 from anims.frame import FrameAnim
 from anims.pause import PauseAnim
 from sprite import Sprite
-from palette import BLACK, CYAN
+from palette import BLACK, WHITE, CYAN
 from filters import replace_color
 from vfx.icepiece import IcePieceVfx
+from vfx.particle import ParticleVfx
 
 class IceSpikeVfx(Vfx):
-  def __init__(fx, cell, delay=0, color=CYAN, *args, **kwargs):
+  def __init__(fx, cell, delay=0, color=CYAN, is_last=False, *args, **kwargs):
     x, y = cell
     super().__init__(
       kind=None,
@@ -20,6 +21,7 @@ class IceSpikeVfx(Vfx):
     )
     fx.delay = delay
     fx.color = color
+    fx.is_last = is_last
     fx.anims = []
 
   def init(fx):
@@ -36,12 +38,22 @@ class IceSpikeVfx(Vfx):
   def update(fx):
     if not fx.done and not fx.anims:
       fx.init()
+    fx_x, fx_y = fx.pos
+    fx_y -= TILE_SIZE // 2
     anim = fx.anims[0]
     if anim.done:
       fx.anims.remove(anim)
       if not fx.anims:
         fx.done = True
-        return [IcePieceVfx(pos=fx.pos, color=fx.color) for _ in range(randint(2, 3))]
+        return [IcePieceVfx(
+          pos=(fx_x, fx_y),
+          color=fx.color
+        ) for _ in range(randint(2, 3))]
+      else:
+        return [ParticleVfx(
+          pos=(fx_x, fx_y),
+          color=WHITE
+        ) for _ in range(randint(20, 30))] if fx.is_last else []
     else:
       anim.update()
     return []
