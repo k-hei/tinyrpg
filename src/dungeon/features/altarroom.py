@@ -1,5 +1,6 @@
 from dungeon.features.specialroom import SpecialRoom
 from dungeon.props.altar import Altar
+from dungeon.props.pillar import Pillar
 
 class AltarRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
@@ -16,7 +17,13 @@ class AltarRoom(SpecialRoom):
       "   .   ",
       "   .   ",
     ], elems=[
-      ((3, 4), Altar())
+      ((3, 4), Altar()),
+      ((1, 2), Pillar()),
+      ((1, 4), Pillar()),
+      ((1, 6), Pillar()),
+      ((5, 2), Pillar()),
+      ((5, 4), Pillar()),
+      ((5, 6), Pillar()),
     ], *args, **kwargs)
     room.entered = False
 
