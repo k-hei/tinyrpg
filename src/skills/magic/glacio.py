@@ -7,7 +7,7 @@ from config import TILE_SIZE, ATTACK_DURATION
 from anims.attack import AttackAnim
 from anims.frame import FrameAnim
 from anims.pause import PauseAnim
-from vfx import Vfx
+from vfx.icespike import IceSpikeVfx
 from palette import CYAN
 
 class Glacio(MagicSkill):
@@ -44,16 +44,10 @@ class Glacio(MagicSkill):
       dist += 1
 
     def on_connect():
-      impact_frames = ["fx_impact{}".format(i) for i in range(7)]
-      game.vfx += [Vfx(
-        kind="impact",
-        pos=tuple([x * TILE_SIZE for x in cell]),
-        color=CYAN,
-        anim=FrameAnim(
-          duration=20,
-          delay=i * 10,
-          frames=impact_frames
-        )
+      game.vfx += [IceSpikeVfx(
+        cell=cell,
+        delay=i * 10,
+        color=CYAN
       ) for i, cell in enumerate(target_cells)]
 
     def on_bump():

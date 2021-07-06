@@ -12,6 +12,7 @@ class FrameAnim(Anim):
     if anim.done:
       return anim.frames[-1]
     if anim.time < 0:
+      anim.frame = None
       return None
     frame_duration = anim.frame_duration or anim.duration / len(anim.frames)
     anim_duration = frame_duration * len(anim.frames)

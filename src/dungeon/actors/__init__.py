@@ -198,7 +198,7 @@ class DungeonActor(DungeonElement):
         offset_x, offset_y = anim.offset
         if actor.ailment == "freeze" and anim.time % 2:
           sprites.append(Sprite(
-            image=replace_color(assets["ice"], BLACK, CYAN),
+            image=replace_color(assets["fx_icecube"], BLACK, CYAN),
             layer="elems"
           ))
       if type(anim) is BounceAnim:

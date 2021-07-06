@@ -58,8 +58,11 @@ def load_sprite(key, path, sprites):
             cell_height
           ))
     elif type(value) is list:
-      rect = Rect(*value)
-      sprites[key] = sprite.subsurface(rect)
+      if type(value[0]) is list:
+        sprites[key] = [sprite.subsurface(Rect(*r)) for r in value]
+      else:
+        rect = Rect(*value)
+        sprites[key] = sprite.subsurface(rect)
 
 def load_pngfont(key, path):
   typeface = pygame.image.load(join(path, key) + ".png").convert_alpha()
