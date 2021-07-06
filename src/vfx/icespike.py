@@ -1,14 +1,16 @@
+from random import randint
 from vfx import Vfx
 from config import TILE_SIZE
 from assets import load as use_assets
 from anims.frame import FrameAnim
 from anims.pause import PauseAnim
 from sprite import Sprite
-from palette import BLACK
+from palette import BLACK, CYAN
 from filters import replace_color
+from vfx.icepiece import IcePieceVfx
 
 class IceSpikeVfx(Vfx):
-  def __init__(fx, cell, delay=0, color=BLACK, *args, **kwargs):
+  def __init__(fx, cell, delay=0, color=CYAN, *args, **kwargs):
     x, y = cell
     super().__init__(
       kind=None,
@@ -39,8 +41,10 @@ class IceSpikeVfx(Vfx):
       fx.anims.remove(anim)
       if not fx.anims:
         fx.done = True
+        return [IcePieceVfx(pos=fx.pos, color=fx.color) for _ in range(randint(2, 3))]
     else:
       anim.update()
+    return []
 
   def view(fx):
     assets = use_assets()

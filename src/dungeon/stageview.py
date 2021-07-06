@@ -157,7 +157,7 @@ class StageView:
         vfx.remove(fx)
         continue
       if "view" in dir(fx):
-        fx.update()
+        vfx += fx.update()
         sprites += fx.view()
         continue
       elif fx.kind:

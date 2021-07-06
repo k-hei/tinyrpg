@@ -7,7 +7,7 @@
     [64, 0, 16, 32]
   ],
   "fx_icecube": [0, 32, 32, 32],
-  "fx_iceshardA": [32, 32, 16, 32],
-  "fx_iceshardB": [48, 32, 16, 32],
-  "fx_iceshardC": [64, 32, 16, 16]
+  "fx_iceshard": [32, 32, 16, 32],
+  "fx_icechunk": [48, 32, 16, 32],
+  "fx_icepiece": [64, 32, 16, 16]
 }
