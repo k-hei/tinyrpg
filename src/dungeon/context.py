@@ -136,7 +136,6 @@ class DungeonContext(Context):
       game.parent.transits = []
       game.handle_minimap(lock=True)
       game.refresh_fov()
-    game.camera.focus((4, 4))
 
   def get_floor_no(game):
     return next((i for i, f in enumerate(game.floors) if f is game.floor), 0) + 1
@@ -837,7 +836,7 @@ class DungeonContext(Context):
       else:
         game.anims.append([move_anim])
       if jump:
-        game.anims.append([PauseAnim(duration=30)])
+        game.anims.append([PauseAnim(duration=5)])
       actor.cell = target_cell
       actor.elev = target_tile.elev
       return True

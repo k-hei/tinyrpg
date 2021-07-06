@@ -37,7 +37,7 @@ class StageView:
     except ValueError:
       depth = 0
     depth *= 1000
-    y = sprite_y + sprite.image.get_height() + sprite.offset
+    y = sprite_y + sprite.offset
     return depth + y
 
   def __init__(self, size):

@@ -17,9 +17,10 @@
   "sand_pile_side": [16, 160, 32, 48],
   "push_block": [112, 168, 32, 40],
   "push_block_open": [144, 168, 32, 40],
-  "oasis_palm": [224, 64, 32, 48],
-  "oasis_grass": [224, 112, 16, 16],
+  "oasis_palm": [208, 64, 32, 48],
+  "oasis_grass": [32, 208, 16, 16],
   "oasis_edge": [176, 144, 32, 32],
-  "oasis_wave": [240, 112, 16, 16],
-  "oasis_waves": [256, 112, 16, 16]
+  "oasis_wave": [208, 112, 16, 16],
+  "oasis_waves": [224, 112, 16, 16],
+  "altar": [240, 64, 32, 64]
 }
