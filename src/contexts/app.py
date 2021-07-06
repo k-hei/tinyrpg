@@ -66,6 +66,8 @@ class App(Context):
     app.clock.tick(app.fps)
     keyboard.update()
     app.handle_events()
+    if app.paused:
+      return
     if app.child:
       app.child.update()
     if app.transits:
@@ -87,9 +89,12 @@ class App(Context):
     new_size = (new_width, new_height)
     app.size_scaled = new_size
     app.display = pygame.display.set_mode(app.size_scaled)
+    app.paused = False
     return True
 
   def redraw(app):
+    if app.paused:
+      return
     sprites = []
     sprites += app.view()
     if app.transits:
@@ -122,6 +127,9 @@ class App(Context):
     else:
       app.fps = FPS
     pygame.key.set_repeat(1000 // app.fps)
+
+  def toggle_pause(app):
+    app.paused = not app.paused
 
   def toggle_fullscreen(app):
     app.fullscreen = not app.fullscreen
@@ -161,6 +169,8 @@ class App(Context):
       return tapping and app.toggle_fps()
     if key == pygame.K_f and ctrl:
       return tapping and app.toggle_fullscreen()
+    if key == pygame.K_p and ctrl:
+      return tapping and app.toggle_pause()
     if app.child:
       return app.child.handle_keydown(key)
 
