@@ -36,6 +36,7 @@ from skills.magic.ignis import Ignis
 from skills.magic.accerso import Accerso
 from skills.magic.fulgur import Fulgur
 from skills.magic.glacio import Glacio
+from skills.magic.congelatio import Congelatio
 from skills.field.detectmana import DetectMana
 from skills.support.anastasis import Anastasis
 from skills.support.counter import Counter
@@ -48,15 +49,18 @@ from dungeon.props.battledoor import BattleDoor
 from dungeon.props.coffin import Coffin
 from dungeon.props.soul import Soul
 from dungeon.props.pushblock import PushBlock
+from dungeon.props.altar import Altar
 from dungeon.props.door import Door
 from dungeon.props.pushtile import PushTile
 from dungeon.props.puzzledoor import PuzzleDoor
+from dungeon.props.pillar import Pillar
 from dungeon.props.chest import Chest
 from dungeon.features.oasisroom import OasisRoom
 from dungeon.features.guardroom import GuardRoom
 from dungeon.features.elevroom import ElevRoom
 from dungeon.features.pitroom import PitRoom
 from dungeon.features.genieroom import GenieRoom
+from dungeon.features.altarroom import AltarRoom
 from dungeon.features.coffinroom import CoffinRoom
 from dungeon.features.treasureroom import TreasureRoom
 from dungeon.features.battleroom import BattleRoom
@@ -118,6 +122,7 @@ def resolve_skill(key):
   if key == "Accerso": return Accerso
   if key == "Fulgur": return Fulgur
   if key == "Glacio": return Glacio
+  if key == "Congelatio": return Congelatio
   if key == "DetectMana": return DetectMana
   if key == "Anastasis": return Anastasis
   if key == "Counter": return Counter
@@ -132,15 +137,18 @@ def resolve_elem(key):
   if key == "Coffin": return Coffin
   if key == "Soul": return Soul
   if key == "PushBlock": return PushBlock
+  if key == "Altar": return Altar
   if key == "Door": return Door
   if key == "PushTile": return PushTile
   if key == "PuzzleDoor": return PuzzleDoor
+  if key == "Pillar": return Pillar
   if key == "Chest": return Chest
   if key == "OasisRoom": return OasisRoom
   if key == "GuardRoom": return GuardRoom
   if key == "ElevRoom": return ElevRoom
   if key == "PitRoom": return PitRoom
   if key == "GenieRoom": return GenieRoom
+  if key == "AltarRoom": return AltarRoom
   if key == "CoffinRoom": return CoffinRoom
   if key == "TreasureRoom": return TreasureRoom
   if key == "BattleRoom": return BattleRoom

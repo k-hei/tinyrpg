@@ -9,7 +9,7 @@ from config import TILE_SIZE
 from random import randint, choice
 from palette import WHITE
 from filters import replace_color
-from lib.cell import neighbors
+from lib.cell import neighborhood
 
 class OasisRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
@@ -125,6 +125,6 @@ class OasisRoom(SpecialRoom):
       ))
     ally_cells = room.get_corners()
     if stage.get_tile_at(ally_cells[0]) is stage.WALL:
-      ally_cells = [n for ns in [neighbors(c) for c in room.get_corners()] for n in ns if n not in room.get_border()]
+      ally_cells = [n for ns in [neighborhood(c) for c in room.get_corners()] for n in ns if n not in room.get_border()]
     ally_cell = choice(ally_cells)
     stage.spawn_elem_at(ally_cell, Mage(faction="ally"))

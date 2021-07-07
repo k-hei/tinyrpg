@@ -15,4 +15,5 @@ class Genie(Npc):
     super().__init__(GenieCore(name=name, color=color), script)
 
   def view(genie, anims=[]):
-    return super().view(genie.core.view(), anims)
+    sprite, *_ = genie.core.view()
+    return super().view([sprite, *_], anims)

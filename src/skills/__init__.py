@@ -2,7 +2,7 @@ from comps.log import Token
 from anims.pause import PauseAnim
 from cores import Core
 from palette import BLACK
-from lib.cell import neighbors as neighborhood
+from lib.cell import neighborhood
 
 class Skill:
   name = "Untitled"
@@ -40,61 +40,62 @@ class Skill:
       text += " ({} SP)".format(skill.cost)
     return text
 
-def find_skill_targets(skill, user, floor=None):
-  targets = []
-  user_x, user_y = user.cell
-  facing_x, facing_y = user.facing
-  cursor = (user_x + facing_x, user_y + facing_y)
-  if skill is None:
-    return []
-  if skill.range_type == "row":
-    if facing_x:
-      targets += [
-        (user_x + facing_x, user_y - 1),
-        (user_x + facing_x, user_y),
-        (user_x + facing_x, user_y + 1)
-      ]
-    elif facing_y:
-      targets += [
-        (user_x - 1, user_y + facing_y),
-        (user_x, user_y + facing_y),
-        (user_x + 1, user_y + facing_y)
-      ]
-  if skill.range_type in ("radial", "linear") and skill.range_max == 1:
+  def find_targets(skill, user, floor=None, dest=None):
+    user_x, user_y = user.cell
+    facing_x, facing_y = user.facing
+    if skill.range_radius < 0:
+      return []
+    if skill.range_type == "row":
+      if facing_x:
+        return [
+          (user_x + facing_x, user_y - 1),
+          (user_x + facing_x, user_y),
+          (user_x + facing_x, user_y + 1)
+        ]
+      elif facing_y:
+        return [
+          (user_x - 1, user_y + facing_y),
+          (user_x, user_y + facing_y),
+          (user_x + 1, user_y + facing_y)
+        ]
+    if skill.range_type == "linear" and skill.range_max > 1:
+      cursor = (user_x + facing_x, user_y + facing_y)
+      targets = [cursor]
+      is_blocked = False
+      r = 1
+      while not is_blocked and r < skill.range_max:
+        if floor and not floor.is_cell_empty(cursor):
+          is_blocked = True
+        else:
+          cursor_x, cursor_y = cursor
+          cursor = (cursor_x + facing_x, cursor_y + facing_y)
+          targets.append(cursor)
+        r += 1
+      return targets
+    if skill.range_radius == 0:
+      return [dest]
+    return neighborhood(dest, skill.range_radius, inclusive=True) if dest else []
+
+  def find_range(skill, user, floor=None):
+    targets = []
+    user_x, user_y = user.cell
+    facing_x, facing_y = user.facing
+    if skill is None:
+      return []
     if skill.range_min == 0:
       targets.append((user_x, user_y))
-    targets.extend([
-      (user_x, user_y - 1),
-      (user_x - 1, user_y),
-      (user_x + 1, user_y),
-      (user_x, user_y + 1)
-    ])
-  elif skill.range_type == "radial":
-    stack = [(user.cell, 0)]
-    while stack:
-      cell, steps = stack.pop()
-      neighbors = neighborhood(cell)
-      for neighbor in neighbors:
-        if neighbor not in targets and neighbor != user.cell:
-          targets.append(neighbor)
-          if steps + 1 < skill.range_max:
-            stack.append((neighbor, steps + 1))
-  elif skill.range_type == "linear" and skill.range_max > 2:
-    targets.append(cursor)
-    is_blocked = False
-    r = 1
-    while not is_blocked and r < skill.range_max:
-      if floor and not floor.is_cell_empty(cursor):
-        is_blocked = True
-      else:
-        cursor_x, cursor_y = cursor
-        cursor = (cursor_x + facing_x, cursor_y + facing_y)
-        targets.append(cursor)
-      r += 1
-  elif skill.range_type == "linear":
-    for r in range(skill.range_min, skill.range_max + 1):
-      targets.append((user_x + facing_x * r, user_y + facing_y * r))
-  return targets
+    if skill.range_type in ("radial", "linear") and skill.range_max == 1:
+      targets += [
+        (user_x, user_y - 1),
+        (user_x - 1, user_y),
+        (user_x + 1, user_y),
+        (user_x, user_y + 1)
+      ]
+    elif skill.range_type == "radial":
+      targets += neighborhood(user.cell, radius=skill.range_max)
+      if skill.range_min > 1:
+        targets = [t for t in targets if t not in neighborhood(user.cell, radius=skill.range_min - 1, inclusive=True)]
+    return targets
 
 def get_skill_order(skill):
   return [

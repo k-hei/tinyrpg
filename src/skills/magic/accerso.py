@@ -1,5 +1,4 @@
 from random import randint, choice
-from skills import find_skill_targets
 from skills.magic import MagicSkill
 from anims.pause import PauseAnim
 from anims.bounce import BounceAnim
@@ -25,7 +24,7 @@ class Accerso(MagicSkill):
 
   def effect(user, dest, game, on_end=None):
     floor = game.floor
-    valid_cells = [c for c in find_skill_targets(Accerso, user, floor) if floor.is_cell_empty(c)]
+    valid_cells = [c for c in Accerso().find_range(user, floor) if floor.is_cell_empty(c)]
     target_count = randint(2, 3) if user.get_faction() == "player" else 2
     target_cells = []
     while valid_cells and len(target_cells) < target_count:

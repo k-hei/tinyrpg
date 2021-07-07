@@ -9,7 +9,6 @@ from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from sprite import Sprite
-from skills import find_skill_targets
 from skills.magic.glacio import Glacio
 from skills.magic.accerso import Accerso
 from skills.weapon.broadsword import BroadSword

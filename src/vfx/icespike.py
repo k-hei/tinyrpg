@@ -11,7 +11,7 @@ from vfx.icepiece import IcePieceVfx
 from vfx.particle import ParticleVfx
 
 class IceSpikeVfx(Vfx):
-  def __init__(fx, cell, delay=0, color=CYAN, is_last=False, *args, **kwargs):
+  def __init__(fx, cell, delay=0, color=CYAN, on_connect=None, *args, **kwargs):
     x, y = cell
     super().__init__(
       kind=None,
@@ -21,7 +21,7 @@ class IceSpikeVfx(Vfx):
     )
     fx.delay = delay
     fx.color = color
-    fx.is_last = is_last
+    fx.on_connect = on_connect
     fx.anims = []
 
   def init(fx):
@@ -49,11 +49,14 @@ class IceSpikeVfx(Vfx):
           pos=(fx_x, fx_y),
           color=fx.color
         ) for _ in range(randint(2, 3))]
-      else:
+      elif fx.on_connect:
+        fx.on_connect()
         return [ParticleVfx(
           pos=(fx_x, fx_y),
           color=WHITE
-        ) for _ in range(randint(20, 30))] if fx.is_last else []
+        ) for _ in range(randint(20, 30))]
+      else:
+        return []
     else:
       anim.update()
     return []

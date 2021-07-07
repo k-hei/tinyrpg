@@ -6,7 +6,6 @@ from anims.attack import AttackAnim
 from anims.frame import FrameAnim
 from dungeon.actors import DungeonActor
 from cores.knight import Knight as Knight
-from skills import find_skill_targets
 from vfx import Vfx
 from random import randint
 
@@ -31,7 +30,7 @@ class RendingGale(AttackSkill):
     floor = game.floor
     hero_x, hero_y = user.cell
     facing_x, facing_y = user.facing
-    target_cells = find_skill_targets(RendingGale, user)
+    target_cells = RendingGale().find_range(user)
     target_cell = (hero_x + facing_x, hero_y + facing_y)
     targets = [e for e in [floor.get_elem_at(c, superclass=DungeonActor) for c in target_cells] if e]
 

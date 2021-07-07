@@ -1,6 +1,6 @@
 from copy import deepcopy
 from random import choice
-from lib.cell import manhattan, neighbors
+from lib.cell import manhattan, neighborhood
 from dungeon.features.specialroom import SpecialRoom
 from dungeon.actors import DungeonActor
 from dungeon.actors.eye import Eye as Eyeball
@@ -80,7 +80,7 @@ class ArenaRoom(SpecialRoom):
       return False
     spawn_x, spawn_y = feature.get_center()
     spawn_cell = (spawn_x, spawn_y)
-    spawn_neighbors = neighbors(spawn_cell)
+    spawn_neighbors = neighborhood(spawn_cell)
     while game.floor.get_elem_at(spawn_cell) and spawn_neighbors:
       spawn_cell = spawn_neighbors.pop(0)
     if spawn_cell:

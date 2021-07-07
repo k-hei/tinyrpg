@@ -1,5 +1,5 @@
 from dungeon.features import Feature
-from lib.cell import is_adjacent, neighbors
+from lib.cell import is_adjacent, neighborhood
 
 class Maze(Feature):
   def __init__(maze, cells):
@@ -13,7 +13,7 @@ class Maze(Feature):
     edges = []
     for cell in maze.cells:
       x, y = cell
-      for neighbor in neighbors(cell):
+      for neighbor in neighborhood(cell):
         if not neighbor in edges + maze.cells:
           edges.append(neighbor)
     return edges

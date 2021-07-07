@@ -1038,7 +1038,7 @@ class DungeonContext(Context):
 
     pause = PauseAnim(duration=DungeonContext.FLINCH_PAUSE_DURATION, on_end=respond)
 
-    if delayed:
+    if delayed or not game.anims:
       game.anims.append([flinch, pause])
     else:
       game.anims[0].extend([flinch, pause])

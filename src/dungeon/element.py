@@ -58,8 +58,8 @@ class DungeonElement:
         item_image = anim.item.render()
         item_z = min(1, t * 3) * 6 + ITEM_OFFSET
         item_x, item_y = elem.cell
-        item_x = (item_x + 0.5) * TILE_SIZE
-        item_y = (item_y + 0.5) * TILE_SIZE - item_z
+        item_x = 0
+        item_y = -item_z
         sprites.append(Sprite(
           image=item_image,
           pos=(item_x, item_y),

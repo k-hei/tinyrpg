@@ -1,5 +1,4 @@
 from random import randint
-from skills import find_skill_targets
 from skills.magic import MagicSkill
 from cores.mage import Mage
 from dungeon.actors import DungeonActor
@@ -32,7 +31,7 @@ class Glacio(MagicSkill):
     bump_dest = (hero_x + delta_x, hero_y + delta_y)
 
     if not dest:
-      dest = find_skill_targets(Glacio, user, game.floor)[-1]
+      dest = Glacio().find_range(user, game.floor)[-1]
     target = floor.get_elem_at(dest, superclass=DungeonActor)
     target_cells = []
     cell = user.cell

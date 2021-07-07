@@ -116,9 +116,8 @@ class StageView:
     if sprites:
       for sprite in sprites:
         elem_x, elem_y = elem.cell
-        if sprite.origin is None:
-          sprite.move(((elem_x + 0.5) * TILE_SIZE, (elem_y + 1) * TILE_SIZE))
-          sprite.origin = ("center", "bottom")
+        sprite.move(((elem_x + 0.5) * TILE_SIZE, (elem_y + 1) * TILE_SIZE))
+        sprite.origin = ("center", "bottom")
       return sprites
     else:
       return []
@@ -158,7 +157,7 @@ class StageView:
         vfx.remove(fx)
         continue
       if "view" in dir(fx):
-        vfx += fx.update()
+        vfx += fx.update() or []
         sprites += fx.view()
         continue
       elif fx.kind:

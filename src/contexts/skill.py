@@ -11,7 +11,6 @@ from text import render as render_text
 from filters import recolor, replace_color, outline
 from palette import BLACK, WHITE, GRAY, YELLOW
 from comps.skill import Skill
-from skills import find_skill_targets
 from sprite import Sprite
 
 from lib.lerp import lerp
@@ -27,11 +26,18 @@ MARGIN = 8
 OFFSET = 4
 SPACING = 10
 
+def find_closest_cell_in_range(range_cells, target_cell):
+  if not range_cells:
+    return None
+  # TODO: take delta into account during sort
+  return sorted(range_cells, key=lambda c: manhattan(c, target_cell))[0]
+
 class SkillContext(Context):
   def __init__(ctx, skills, selected_skill=None, actor=None, on_close=None):
     super().__init__()
     ctx.skills = skills or actor.get_active_skills()
     ctx.skill = selected_skill or skills and skills[0] or None
+    ctx.skill_range = None
     ctx.actor = actor
     ctx.on_close = on_close
     ctx.bar = Bar()
@@ -42,6 +48,15 @@ class SkillContext(Context):
     ctx.anims = []
     ctx.exiting = False
     ctx.confirmed = False
+
+  def init(ctx):
+    if not ctx.actor:
+      return
+    ctx.skill_range = ctx.skill().find_range(ctx.actor, ctx.parent.floor)
+    enemy = ctx.parent.find_closest_visible_enemy(ctx.actor)
+    if enemy:
+      ctx.actor.face(enemy.cell)
+      ctx.dest = find_closest_cell_in_range(ctx.skill_range, enemy.cell)
 
   def print_skill(ctx, skill=None):
     if skill:
@@ -56,28 +71,32 @@ class SkillContext(Context):
     if keyboard.get_pressed(key) != 1:
       return
 
-    key_deltas = {
-      pygame.K_LEFT: (-1, 0),
-      pygame.K_RIGHT: (1, 0),
-      pygame.K_UP: (0, -1),
-      pygame.K_DOWN: (0, 1),
-      pygame.K_a: (-1, 0),
-      pygame.K_d: (1, 0),
-      pygame.K_w: (0, -1),
-      pygame.K_s: (0, 1)
-    }
-    if key in key_deltas:
-      delta = key_deltas[key]
-      ctx.handle_turn(delta)
+    if key in keyboard.ARROW_DELTAS:
+      delta = keyboard.ARROW_DELTAS[key]
+      return ctx.handle_direction(delta)
 
     if key == pygame.K_RETURN or key == pygame.K_SPACE:
-      ctx.handle_confirm()
+      return ctx.handle_confirm()
 
     if key == pygame.K_TAB:
-      ctx.handle_select()
+      return ctx.handle_select()
 
     if key == pygame.K_ESCAPE or key == pygame.K_BACKSPACE:
-      ctx.exit()
+      return ctx.exit()
+
+  def handle_direction(ctx, delta):
+    if ctx.skill and ctx.skill.range_type == "radial" and ctx.skill.range_max > 1:
+      ctx.handle_move(delta)
+    else:
+      ctx.handle_turn(delta)
+
+  def handle_move(ctx, delta):
+    if ctx.dest is None:
+      return False
+    cursor_x, cursor_y = ctx.dest
+    delta_x, delta_y = delta
+    ctx.dest = find_closest_cell_in_range(ctx.skill_range, target_cell=(cursor_x + delta_x, cursor_y + delta_y))
+    ctx.actor.face(ctx.dest)
 
   def handle_turn(ctx, delta):
     game = ctx.parent
@@ -127,10 +146,6 @@ class SkillContext(Context):
       ))
       index += 1
     ctx.print_skill(ctx.skill)
-    if ctx.actor:
-      enemy = ctx.parent.find_closest_visible_enemy(ctx.actor)
-      if enemy:
-        ctx.actor.face(enemy.cell)
 
   def exit(ctx, skill=None, dest=None):
     def close():
@@ -175,7 +190,7 @@ class SkillContext(Context):
     assets = use_assets()
     hero = ctx.actor
     skill = ctx.skill
-    cursor = None
+    cursor = ctx.dest
     if hero:
       game = ctx.parent
       floor = game.floor
@@ -183,17 +198,31 @@ class SkillContext(Context):
       camera_x, camera_y = camera.pos
       facing_x, facing_y = hero.facing
       hero_x, hero_y = hero.cell
-      neighbors = find_skill_targets(skill, hero, floor)
-      if skill.range_type == "linear" and skill.range_max > 1:
-        cursor = neighbors[-1] if neighbors else None
-      if not cursor:
-        cursor = (hero_x + facing_x, hero_y + facing_y)
 
-      if cursor not in neighbors:
-        if neighbors:
-          cursor = neighbors[0]
-        else:
-          cursor = hero.cell
+      skill_targets = skill().find_targets(hero, floor, dest=ctx.dest)
+      if (skill.range_type == "row"
+      or skill.range_type == "linear" and skill.range_max > 1):
+        skill_range = skill_targets
+      else:
+        skill_range = skill().find_range(hero, floor)
+
+      # if skill.range_type == "linear" and skill.range_max > 1:
+      #   cursor = skill_range[-1] if skill_range else None
+      # if not cursor:
+      #   cursor = (hero_x + facing_x, hero_y + facing_y)
+
+      # if cursor not in skill_range:
+      #   if skill_range:
+      #     def dist(cell):
+      #       cell_x, cell_y = cell
+      #       cursor_x, cursor_y = cursor
+      #       dist_x = abs(cell_x - hero_x) + abs(cell_x - cursor_x)
+      #       dist_y = abs(cell_y - hero_y) + abs(cell_y - cursor_y)
+      #       offset = -1 if dist_x == 0 or dist_y == 0 else 0
+      #       return dist_x + dist_y + offset
+      #     cursor = sorted(skill_range, key=dist)[0]
+      #   else:
+      #     cursor = hero.cell
       ctx.dest = cursor
 
       camera_speed = 8
@@ -213,19 +242,17 @@ class SkillContext(Context):
       cursor_anim = ctx.cursor_anim
       t = cursor_anim.update()
       if skill and not ctx.exiting and not (anim and anim.target == "cursor"):
-        if cursor_anim.time % 60 >= 40:
-          alpha = 0x7f
-        elif cursor_anim.time % 60 >= 20:
-          alpha = 0x6f
-        else:
-          alpha = 0x5f
-        square = Surface((TILE_SIZE - 1, TILE_SIZE - 1), pygame.SRCALPHA)
-        color = skill.color
-        pygame.draw.rect(square, color & 0xFFFFFF | int(alpha) << 24, square.get_rect())
-        for cell in neighbors:
+        alpha = [0x5f, 0x6f, 0x7f][int(cursor_anim.time % 60 / 60 * 3)]
+        square_lo = Surface((TILE_SIZE - 1, TILE_SIZE - 1), pygame.SRCALPHA)
+        square_hi = Surface((TILE_SIZE - 1, TILE_SIZE - 1), pygame.SRCALPHA)
+        pygame.draw.rect(square_lo, skill.color & 0xFFFFFF | int(alpha) << 24, square_lo.get_rect())
+        pygame.draw.rect(square_hi, skill.color & 0xFFFFFF | int(alpha + 0x5f) << 24, square_hi.get_rect())
+        square_cells = list(set(skill_range + skill_targets))
+        for cell in square_cells:
           x, y = scale_up(cell)
+          square_image = square_hi if cell in skill_targets else square_lo
           sprites.append(Sprite(
-            image=square,
+            image=square_image,
             pos=(x, y)
           ))
 
