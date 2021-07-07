@@ -47,3 +47,6 @@ class TownContext(Context):
       ctx.party.append(char)
     else:
       ctx.party[1] = char
+
+  def get_inventory(ctx):
+    return ctx.parent.get_inventory()

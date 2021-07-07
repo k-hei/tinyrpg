@@ -178,6 +178,9 @@ class GameContext(Context):
     for core in ctx.party:
       ctx.load_build(core, ctx.skill_builds[core])
 
+  def get_inventory(ctx):
+    return ctx.inventory
+
   def get_gold(ctx):
     return ctx.gold
 
