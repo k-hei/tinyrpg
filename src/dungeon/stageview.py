@@ -5,7 +5,7 @@ from pygame.transform import rotate, flip, scale
 
 from assets import load as use_assets
 from filters import replace_color, darken
-from palette import BLACK, WHITE, GRAY, GRAY_DARK, COLOR_TILE, darken_color
+from palette import BLACK, WHITE, GRAY, GRAY_DARK, TILECOLOR, TILECOLOR_DARK, darken_color
 from config import ITEM_OFFSET, TILE_SIZE, DEBUG
 from sprite import Sprite
 from lib.lerp import lerp
@@ -64,7 +64,7 @@ class StageView:
     color = WHITE
     if (stage.get_tile_at(cell) is not stage.OASIS
     and stage.get_tile_at(cell) is not stage.OASIS_STAIRS):
-      color = COLOR_TILE
+      color = TILECOLOR
       sprite = replace_color(sprite, WHITE, color)
       if (stage.get_tile_at(cell) is not stage.FLOOR_ELEV
       and stage.get_tile_at(cell) is not stage.WALL_ELEV
@@ -116,8 +116,9 @@ class StageView:
     if sprites:
       for sprite in sprites:
         elem_x, elem_y = elem.cell
-        sprite.move(((elem_x + 0.5) * TILE_SIZE, (elem_y + 1) * TILE_SIZE))
-        sprite.origin = ("center", "bottom")
+        if sprite.origin is None:
+          sprite.move(((elem_x + 0.5) * TILE_SIZE, (elem_y + 1) * TILE_SIZE))
+          sprite.origin = ("center", "bottom")
       return sprites
     else:
       return []
@@ -242,7 +243,7 @@ def render_tile(stage, cell, visited_cells=[]):
     assets.sprites["wall_elev"] = replace_color(flip(assets.sprites["wall_base"], True, False), WHITE, GRAY)
   if "floor_elev" not in assets.sprites:
     elevfloor_image = Surface((TILE_SIZE, TILE_SIZE * 2), SRCALPHA)
-    elevfloor_image.fill(COLOR_TILE)
+    elevfloor_image.fill(TILECOLOR)
     elevfloor_image.blit(assets.sprites["floor"], (0, 0))
     elevfloor_image.blit(assets.sprites["wall_elev"], (0, TILE_SIZE))
     assets.sprites["floor_elev"] = elevfloor_image

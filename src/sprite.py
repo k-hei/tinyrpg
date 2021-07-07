@@ -8,7 +8,7 @@ class Sprite:
   pos: tuple[int, int] = (0, 0)
   size: tuple[int, int] = None
   flip: tuple[bool, bool] = (False, False)
-  origin: tuple[str, str] = ("top", "left")
+  origin: tuple[str, str] = None
   offset: int = 0
   layer: str = None
   target: any = None
@@ -45,7 +45,7 @@ class Sprite:
 
     x, y = sprite.pos
 
-    origin_x, origin_y = sprite.origin
+    origin_x, origin_y = sprite.origin or ("top", "left")
     if origin_x == "center":
       x -= scaled_image.get_width() / 2
     if origin_y == "center":

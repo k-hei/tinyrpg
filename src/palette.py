@@ -24,7 +24,8 @@ ORANGE_DARK = 0xFF915071
 MINTGREEN = 0xFF3DE7B8
 PURPLE = 0xFFBA78EE
 
-COLOR_TILE = SAFFRON
+TILECOLOR = SAFFRON
+TILECOLOR_DARK = SAFFRON_DARK
 
 def darken_color(color):
   if color == WHITE: return GRAY
@@ -32,7 +33,7 @@ def darken_color(color):
   elif color == VIOLET: return VIOLET_DARK
   elif color == YELLOW: return YELLOW_DARK
   elif color == GOLD: return GOLD_DARK
-  elif color == SAFFRON: return GOLD_DARK
+  elif color == SAFFRON: return SAFFRON_DARK
   elif color == ORANGE: return ORANGE_DARK
   elif color == GREEN: return GREEN_DARK
   elif color == GRAY: return GRAY_DARK

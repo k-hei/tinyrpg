@@ -7,7 +7,7 @@ from assets import load as use_assets
 from sprite import Sprite
 from config import TILE_SIZE
 from random import randint, choice
-from palette import WHITE, COLOR_TILE
+from palette import WHITE
 from filters import replace_color
 from lib.cell import neighbors
 
