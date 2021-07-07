@@ -11,7 +11,7 @@ class EnterAnim(TweenAnim): pass
 class ExitAnim(TweenAnim): pass
 
 class Log:
-  ROW_COUNT = 2
+  ROW_COUNT = 3
   SCROLL_SPEED = 1
   PADDING_X = 12
   PADDING_Y = 13
@@ -153,7 +153,7 @@ class Log:
 
     target_row = log.row
     if target_row >= Log.ROW_COUNT - 1 and target_row == len(log.lines) - 1:
-      target_row -= 1
+      target_row -= (Log.ROW_COUNT - 1)
     target_y = target_row * line_height
     log.cursor_y += min(Log.SCROLL_SPEED, target_y - log.cursor_y)
 
