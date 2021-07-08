@@ -50,7 +50,7 @@ class Congelatio(MagicSkill):
             on_end=lambda: (
               not target.is_dead() and game.log.print((target.token(), " is frozen.")),
               game.anims[0].append(PauseAnim(
-                duration=30,
+                duration=45,
                 on_end=on_end
               ))
             )

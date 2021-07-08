@@ -52,11 +52,17 @@ class SkillContext(Context):
   def init(ctx):
     if not ctx.actor:
       return
-    ctx.skill_range = ctx.skill().find_range(ctx.actor, ctx.parent.floor)
-    enemy = ctx.parent.find_closest_visible_enemy(ctx.actor)
+    hero = ctx.actor
+    floor = ctx.parent.floor
+    skill = ctx.skill
+    enemy = ctx.parent.find_closest_visible_enemy(hero)
     if enemy:
-      ctx.actor.face(enemy.cell)
-      ctx.dest = find_closest_cell_in_range(ctx.skill_range, enemy.cell)
+      hero.face(enemy.cell)
+      ctx.skill_range = skill().find_range(hero, floor)
+      if skill.range_type == "linear" and skill.range_max > 1:
+        ctx.dest = ctx.skill_range[-1]
+      else:
+        ctx.dest = find_closest_cell_in_range(ctx.skill_range, enemy.cell)
 
   def print_skill(ctx, skill=None):
     if skill:
@@ -100,6 +106,7 @@ class SkillContext(Context):
 
   def handle_turn(ctx, delta):
     game = ctx.parent
+    floor = game.floor
     hero = ctx.actor
     if hero:
       hero_x, hero_y = hero.cell
@@ -109,6 +116,12 @@ class SkillContext(Context):
     skill = ctx.skill
     if skill and ctx.bar.message != skill().text():
       ctx.print_skill()
+    ctx.skill_range = skill().find_range(hero, floor)
+    ctx.dest = target_cell
+    if skill.range_max > 1:
+      ctx.dest = ctx.skill_range[-1]
+    elif hero:
+      ctx.dest = target_cell
 
   def handle_select(ctx, reverse=False):
     options = ctx.skills
@@ -198,31 +211,8 @@ class SkillContext(Context):
       camera_x, camera_y = camera.pos
       facing_x, facing_y = hero.facing
       hero_x, hero_y = hero.cell
-
       skill_targets = skill().find_targets(hero, floor, dest=ctx.dest)
-      if (skill.range_type == "row"
-      or skill.range_type == "linear" and skill.range_max > 1):
-        skill_range = skill_targets
-      else:
-        skill_range = skill().find_range(hero, floor)
-
-      # if skill.range_type == "linear" and skill.range_max > 1:
-      #   cursor = skill_range[-1] if skill_range else None
-      # if not cursor:
-      #   cursor = (hero_x + facing_x, hero_y + facing_y)
-
-      # if cursor not in skill_range:
-      #   if skill_range:
-      #     def dist(cell):
-      #       cell_x, cell_y = cell
-      #       cursor_x, cursor_y = cursor
-      #       dist_x = abs(cell_x - hero_x) + abs(cell_x - cursor_x)
-      #       dist_y = abs(cell_y - hero_y) + abs(cell_y - cursor_y)
-      #       offset = -1 if dist_x == 0 or dist_y == 0 else 0
-      #       return dist_x + dist_y + offset
-      #     cursor = sorted(skill_range, key=dist)[0]
-      #   else:
-      #     cursor = hero.cell
+      skill_range = skill().find_range(hero, floor)
       ctx.dest = cursor
 
       camera_speed = 8

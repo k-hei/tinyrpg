@@ -103,6 +103,7 @@ class DungeonContext(Context):
     game.oasis_used = False
     game.memory = []
     game.anims = []
+    game.commands = []
     game.vfx = []
     game.numbers = []
     game.key_requires_reset = {}
@@ -270,9 +271,10 @@ class DungeonContext(Context):
       new_room.on_enter(game)
 
   def step(game, run=False):
+    commands = {}
     ally = game.ally
-    if ally and not ally.stepped:
-      game.step_ally(ally)
+    if ally:
+      commands[ally] = game.step_ally(ally)
 
     hero = game.hero
     actors = [e for e in game.floor.elems if isinstance(e, DungeonActor)]
@@ -281,7 +283,9 @@ class DungeonContext(Context):
 
     for actor in actors:
       if actor in enemies:
-        game.step_enemy(actor)
+        command = game.step_enemy(actor)
+        if type(command) is tuple:
+          commands[actor] = command
 
       if actor.ailment == "sleep":
         actor.regen(actor.get_hp_max() / 50)
@@ -289,14 +293,40 @@ class DungeonContext(Context):
       if actor.ailment == "poison":
         damage = int(actor.get_hp_max() * DungeonActor.POISON_STRENGTH)
         game.flinch(actor, damage, delayed=True)
-        if actor.ailment_turns == 0:
-          actor.ailment = None
-        else:
-          actor.ailment_turns -= 1
+
+      if actor.ailment_turns == 0:
+        actor.ailment = None
+      else:
+        actor.ailment_turns -= 1
 
       if actor.counter:
         actor.counter = max(0, actor.counter - 1)
 
+    if commands:
+      COMMAND_PRIORITY = ["use_skill", "attack", "move", "move_to"]
+      game.commands = sorted(commands.items(), key=lambda item: COMMAND_PRIORITY.index(item[1][0]))
+      game.next_command(on_end=game.end_step)
+
+  def next_command(game, on_end=None):
+    if not game.commands:
+      return on_end and on_end()
+    next_command = lambda: game.next_command(on_end)
+    actor, (cmd_name, *cmd_args) = game.commands.pop(0)
+    if actor.is_immobile():
+      return next_command()
+    if cmd_name == "use_skill":
+      return game.use_skill(actor, *cmd_args, on_end=next_command)
+    if cmd_name == "attack":
+      return game.attack(actor, *cmd_args, on_end=next_command)
+    if cmd_name == "move":
+      game.move(actor, *cmd_args)
+      return next_command()
+    if cmd_name == "move_to":
+      game.move_to(actor, *cmd_args)
+      return next_command()
+
+  def end_step(game):
+    actors = [e for e in game.floor.elems if isinstance(e, DungeonActor)]
     for actor in actors:
       actor.stepped = False
 
@@ -397,7 +427,7 @@ class DungeonContext(Context):
     game.key_requires_reset[key] = False
 
   def handle_keydown(game, key):
-    if not config.DEBUG and game.anims:
+    if not config.DEBUG and (game.anims or game.commands):
       return False
 
     # debug functionality
@@ -1071,7 +1101,7 @@ class DungeonContext(Context):
       game.anims.pop()
       return False, message
 
-  def use_skill(game, actor, skill, dest=None):
+  def use_skill(game, actor, skill, dest=None, on_end=None):
     camera = game.camera
     if actor.get_faction() == "player":
       game.parent.deplete_sp(skill.cost)
@@ -1097,12 +1127,15 @@ class DungeonContext(Context):
     else:
       game.log.print((actor.token(), " uses ", skill().token()))
       target_cell = skill.effect(actor, dest, game, on_end=lambda: (
-        camera.blur(),
-        actor is game.hero and game.step(),
-        game.refresh_fov()
+        on_end() if on_end else (
+          camera.blur(),
+          actor is game.hero and game.step(),
+          game.refresh_fov()
+        )
       ))
       if target_cell:
-        camera.focus(target_cell)
+        camera.focus(target_cell, force=True)
+        print(target_cell)
 
   def use_oasis(game):
     if game.oasis_used:

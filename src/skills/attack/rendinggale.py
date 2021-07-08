@@ -16,7 +16,7 @@ class RendingGale(AttackSkill):
   cost = 5
   range_type = "row"
   range_min = 1
-  range_max = 2
+  range_max = 1
   range_radius = 0
   users = [Knight]
   blocks = (

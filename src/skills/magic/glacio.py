@@ -30,8 +30,8 @@ class Glacio(MagicSkill):
     delta_x, delta_y = user.facing
     bump_dest = (hero_x + delta_x, hero_y + delta_y)
 
-    if not dest:
-      dest = Glacio().find_range(user, game.floor)[-1]
+    if dest is None:
+      dest = Glacio().find_targets(user, game.floor)[-1]
     target = floor.get_elem_at(dest, superclass=DungeonActor)
     target_cells = []
     cell = user.cell
@@ -47,37 +47,36 @@ class Glacio(MagicSkill):
         cell=cell,
         delay=i * 10,
         color=CYAN,
-        is_last=(target and cell is target_cells[-1])
-      ) for i, cell in enumerate(target_cells)]
-
-    def on_bump():
-      delay = len(target_cells) * 10 + 10
-      if target is None:
-        game.anims[0].append(PauseAnim(
-          duration=15 + delay,
-          on_end=lambda: (
-            game.log.print("But nothing happened..."),
-            on_end and on_end()
-          )
-        ))
-      else:
-        game.anims[0].append(PauseAnim(
-          duration=delay,
-          on_end=lambda: (
-            target.inflict_ailment("freeze"),
-            game.flinch(
-              target=target,
-              damage=8 + randint(-2, 2),
-              on_end=lambda: game.anims[0].append(PauseAnim(
+        on_connect=target and cell == target_cells[-1] and (lambda: (
+          target.inflict_ailment("freeze"),
+          game.flinch(
+            target=target,
+            damage=8 + randint(-2, 2),
+            on_end=lambda: (
+              not target.is_dead() and game.log.print((target.token(), " is frozen.")),
+              game.anims[0].append(PauseAnim(
                 duration=30,
                 on_end=lambda: (
-                  not target.is_dead() and game.log.print((target.token(), " is frozen.")),
                   on_end and on_end()
                 )
               ))
             )
           )
         ))
+      ) for i, cell in enumerate(target_cells)]
+
+    def on_bump():
+      delay = len(target_cells) * 10 + 10
+      game.anims[0].append(PauseAnim(
+        duration=15 + delay,
+        on_end=lambda: (
+          game.log.print("But nothing happened..."),
+          game.anims[0].append(PauseAnim(
+            duration=30,
+            on_end=on_end
+          ))
+        )
+      ))
 
     game.anims.append([AttackAnim(
       duration=ATTACK_DURATION,
@@ -85,7 +84,7 @@ class Glacio(MagicSkill):
       src=user.cell,
       dest=bump_dest,
       on_connect=on_connect,
-      on_end=on_bump
+      on_end=target is None and on_bump
     )])
 
     return dest

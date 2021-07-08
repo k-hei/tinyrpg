@@ -27,7 +27,7 @@ class Mage(DungeonActor):
 
     if mage.chanting:
       mage.chanting = False
-      return game.use_skill(mage, Glacio)
+      return ("use_skill", Glacio)
 
     has_allies = next((e for e in [game.floor.get_elem_at(c, superclass=DungeonActor) for c in game.room.get_cells()] if (
       e and e is not mage
@@ -35,7 +35,7 @@ class Mage(DungeonActor):
     )), None)
 
     if not has_allies:
-      return game.use_skill(mage, Accerso)
+      return ("use_skill", Accerso)
 
     mage_x, mage_y = mage.cell
     enemy_x, enemy_y = enemy.cell
@@ -74,7 +74,7 @@ class Mage(DungeonActor):
       elif delta_y:
         delta = (0, delta_y)
     if delta:
-      game.move(actor=mage, delta=delta)
+      return ("move", delta)
 
   def view(mage, anims):
     sprites = use_assets().sprites

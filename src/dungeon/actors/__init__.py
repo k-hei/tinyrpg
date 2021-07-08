@@ -25,6 +25,7 @@ from config import TILE_SIZE
 class DungeonActor(DungeonElement):
   POISON_DURATION = 5
   POISON_STRENGTH = 1 / 6
+  FREEZE_DURATION = 5
   skill = None
   drops = []
 
@@ -50,6 +51,8 @@ class DungeonActor(DungeonElement):
   def get_skills(actor): return actor.core.skills
   def get_active_skills(actor): return actor.core.get_active_skills()
   def is_dead(actor): return actor.core.dead
+  def is_immobile(actor):
+    return actor.is_dead() or actor.stepped or actor.ailment in ("sleep", "freeze")
 
   def load_weapon(actor):
     return next((s for s in actor.core.skills if s.kind == "weapon"), None)
@@ -76,6 +79,8 @@ class DungeonActor(DungeonElement):
       return False
     if ailment == "poison":
       actor.ailment_turns = DungeonActor.POISON_DURATION
+    if ailment == "freeze":
+      actor.ailment_turns = DungeonActor.FREEZE_DURATION
     actor.ailment = ailment
     return True
 
@@ -155,14 +160,15 @@ class DungeonActor(DungeonElement):
     return max(0, st - en) + random.randint(-variance, variance)
 
   def step(actor, game):
+    if actor.is_immobile():
+      return None
     enemy = game.find_closest_enemy(actor)
     if enemy is None:
-      return False
+      return None
     if is_adjacent(actor.cell, enemy.cell):
-      game.attack(actor, enemy)
+      return ("attack", enemy)
     else:
-      game.move_to(actor, enemy.cell)
-    return True
+      return ("move_to", enemy.cell)
 
   def update(actor):
     return actor.core.update()

@@ -32,21 +32,6 @@ class Eye(DungeonActor):
     ))
     eye.item = None
 
-  def step(eye, game):
-    enemy = game.find_closest_enemy(eye)
-    if enemy is None:
-      return False
-
-    if is_adjacent(eye.cell, enemy.cell):
-      if not eye.item and eye.rare:
-        game.use_skill(eye, Steal)
-      else:
-        game.attack(eye, enemy)
-    else:
-      game.move_to(eye, enemy.cell)
-
-    return True
-
   def view(eye, anims):
     sprites = use_assets().sprites
     sprite = None

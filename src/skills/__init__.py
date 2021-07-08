@@ -84,6 +84,9 @@ class Skill:
       return []
     if skill.range_min == 0:
       targets.append((user_x, user_y))
+    if (skill.range_type == "row"
+    or skill.range_type == "linear" and skill.range_max > 1):
+      return Skill.find_targets(skill, user, floor)
     if skill.range_type in ("radial", "linear") and skill.range_max == 1:
       targets += [
         (user_x, user_y - 1),
