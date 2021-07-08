@@ -20,6 +20,8 @@ class MoveAnim(Anim):
       return anim.src
     if super().update() == -1:
       return anim.dest
+    if anim.cell is None:
+      return None
     src_x, src_y = anim.src
     dest_x, dest_y = anim.dest
     t = anim.time / anim.duration

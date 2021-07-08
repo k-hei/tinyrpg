@@ -22,7 +22,8 @@ class CutsceneContext(Context):
   def init(ctx):
     ctx.cache_bar = Surface((WINDOW_WIDTH, CutsceneContext.BAR_HEIGHT))
     ctx.cache_bar.fill(BLACK)
-    ctx.script = ctx.script(ctx.parent)
+    if callable(ctx.script):
+      ctx.script = ctx.script(ctx.parent)
     ctx.next()
 
   def next(ctx):

@@ -8,6 +8,7 @@ from anims.jump import JumpAnim
 from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
+from anims.shake import ShakeAnim
 from sprite import Sprite
 from skills.magic.glacio import Glacio
 from skills.magic.congelatio import Congelatio
@@ -143,6 +144,9 @@ class Mage(DungeonActor):
         break
       elif type(anim) in (FlinchAnim, FlickerAnim):
         sprite = sprites["mage_flinch"]
+        break
+      elif type(anim) is ShakeAnim:
+        sprite = sprites["mage_shock"]
         break
     else:
       if mage.facing == (0, -1):

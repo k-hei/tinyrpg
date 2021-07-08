@@ -73,6 +73,10 @@ class DungeonActor(DungeonElement):
     else:
       return Core.allied(actor.core, target.core)
 
+  def set_facing(actor, facing):
+    actor.facing = facing
+    actor.core.facing = facing
+
   def face(actor, dest):
     actor_x, actor_y = actor.cell
     dest_x, dest_y = dest
@@ -210,7 +214,7 @@ class DungeonActor(DungeonElement):
     for anim in anim_group:
       if type(anim) is AwakenAnim and anim.visible:
         asleep = True
-      if type(anim) is AttackAnim or type(anim) is JumpAnim:
+      if type(anim) is AttackAnim or type(anim) is JumpAnim and anim.cell:
         anim_x, anim_y = anim.cell
         actor_x, actor_y = actor.cell
         offset_x = (anim_x - actor_x) * TILE_SIZE

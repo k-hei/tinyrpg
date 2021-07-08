@@ -60,8 +60,8 @@ class DialogueContext(Context):
     if isinstance(item, Context):
       def print():
         ctx.name = None
-        ctx.open(item, on_close=lambda next: (
-          next and isinstance(next, Iterable) and ctx.script.extend(next),
+        ctx.open(item, on_close=lambda *data: (
+          len(data) == 1 and isinstance(data[0], Iterable) and ctx.script.extend(data[0]),
           ctx.handle_next()
         ))
         if "log" in dir(ctx.child):

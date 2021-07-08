@@ -10,6 +10,7 @@ from dungeon.actors.npc import Npc
 from dungeon.props.chest import Chest
 from dungeon.props.soul import Soul
 from dungeon.props.door import Door
+from dungeon.props.altar import Altar
 import palette
 from palette import GREEN, GREEN_DARK, VIOLET, VIOLET_DARK
 from anims.tween import TweenAnim
@@ -154,6 +155,8 @@ class Minimap:
           color = 0x7F7F00
         else:
           color = 0xFFFF00 if minimap.time % 60 >= 30 else 0x7F7F00
+      elif type(elem) is Altar:
+        color = 0xFFFF00 if minimap.time % 60 >= 30 else 0x7F7F00
       elif tile is Stage.WALL or tile is Stage.DOOR_HIDDEN or (
         tile is Stage.DOOR_WAY and (tile_above is Stage.DOOR_HIDDEN or tile_below is Stage.DOOR_HIDDEN)
       ) or (

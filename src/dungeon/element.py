@@ -94,7 +94,7 @@ class DungeonElement:
       for anim in group:
         if anims.index(group) == 0:
           continue
-        if anim.target is elem and isinstance(anim, MoveAnim):
+        if anim.target is elem and isinstance(anim, MoveAnim) and anim.cell:
           anim_x, anim_y = anim.src
           actor_x, actor_y = elem.cell
           offset_x = (anim_x - actor_x) * TILE_SIZE

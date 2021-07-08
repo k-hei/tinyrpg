@@ -275,7 +275,9 @@ class DungeonContext(Context):
     commands = {}
     ally = game.ally
     if ally:
-      commands[ally] = game.step_ally(ally)
+      command = game.step_ally(ally)
+      if type(command) is tuple:
+        commands[ally] = command
 
     hero = game.hero
     actors = [e for e in game.floor.elems if isinstance(e, DungeonActor)]

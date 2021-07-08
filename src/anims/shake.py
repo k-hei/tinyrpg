@@ -9,5 +9,5 @@ class ShakeAnim(Anim):
     time = super().update()
     if anim.done:
       return 0
-    anim.offset = time % 2 and -1 or 1
+    anim.offset = time // 2 % 2 and -1 or 1
     return anim.offset
