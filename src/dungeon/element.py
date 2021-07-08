@@ -16,6 +16,7 @@ class DungeonElement:
     elem.solid = solid
     elem.opaque = opaque
     elem.cell = None
+    elem.size = (1, 1)
     elem.elev = 0
 
   def effect(elem, game):

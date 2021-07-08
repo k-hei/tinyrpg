@@ -92,6 +92,9 @@ class Minimap:
     # requires: game.hero, game.floor, game.memory?
     game = minimap.parent
     hero = game.hero
+    if not hero or not hero.cell:
+      return minimap.sprite
+
     start_x, start_y = hero.cell
     end_x, end_y = sprite_width // 2, sprite_height // 2
     focus_x = round(lerp(start_x, end_x, t))

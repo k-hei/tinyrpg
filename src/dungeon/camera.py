@@ -65,9 +65,10 @@ class Camera:
   def update(camera, game):
     view_width, view_height = camera.size
     hero = game.hero
-    focus_x, focus_y = hero.cell
-    hero_x, hero_y = hero.cell
-    hero_y -= hero.elev
+    if hero and hero.cell:
+      focus_x, focus_y = hero.cell
+      hero_x, hero_y = hero.cell
+      hero_y -= hero.elev
 
     anims = []
     if len(game.anims):

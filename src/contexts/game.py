@@ -128,7 +128,6 @@ class GameContext(Context):
     char.faction = "player"
     char_id = encode_char(char)
     ctx.skill_builds[char] = decode_build(ctx.saved_builds[char_id] if char_id in ctx.saved_builds else resolve_default_build(char))
-    print(ctx.skill_builds[char])
     if len(ctx.party) == 1:
       ctx.party.append(char)
     else:

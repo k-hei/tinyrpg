@@ -4,6 +4,7 @@ from dungeon.actors import DungeonActor
 from cores.mage import Mage as MageCore
 from assets import load as use_assets
 from anims.move import MoveAnim
+from anims.path import PathAnim
 from anims.jump import JumpAnim
 from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
@@ -105,14 +106,15 @@ class Mage(DungeonActor):
     sprites = use_assets().sprites
     anim_group = [a for a in anims[0] if a.target is mage] if anims else []
     for anim in anim_group:
-      if type(anim) is MoveAnim:
+      if type(anim) is MoveAnim or type(anim) is PathAnim:
+        x4_idx = max(0, int((anim.time - 1) % anim.period // (anim.period / 4)))
         if mage.facing == (0, -1):
           sprite = [
             sprites["mage_up"],
             sprites["mage_walkup0"],
             sprites["mage_up"],
             sprites["mage_walkup1"]
-          ][anim.time % anim.duration // (anim.duration // 4)]
+          ][x4_idx]
           break
         elif mage.facing == (0, 1):
           sprite = [
@@ -120,9 +122,9 @@ class Mage(DungeonActor):
             sprites["mage_walkdown0"],
             sprites["mage_down"],
             sprites["mage_walkdown1"]
-          ][anim.time % anim.duration // (anim.duration // 4)]
+          ][x4_idx]
           break
-        elif anim.time % (anim.duration // 2) >= anim.duration // 4:
+        elif anim.time % (anim.period // 2) >= anim.period // 4:
           sprite = sprites["mage_walk"]
           break
       elif type(anim) is JumpAnim:

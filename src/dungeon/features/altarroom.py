@@ -5,9 +5,12 @@ from dungeon.actors.mage import Mage
 from anims.pause import PauseAnim
 from anims.jump import JumpAnim
 from anims.shake import ShakeAnim
+from anims.path import PathAnim
+from anims.flicker import FlickerAnim
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
-from anims.path import PathAnim
+from config import RUN_DURATION
+from transits.dissolve import DissolveIn, DissolveOut
 
 class AltarRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
@@ -19,13 +22,16 @@ class AltarRoom(SpecialRoom):
       " ..... ",
       " ..... ",
       " ..... ",
+      " ..... ",
+      "   .   ",
+      "   .   ",
       "   .   ",
       "   .   ",
       "   .   ",
       "   .   ",
     ], elems=[
-      ((3, 5), mage := Mage(faction="ally", facing=(0, -1))),
-      ((3, 4), Altar()),
+      ((3, 6), mage := Mage(faction="ally", facing=(0, -1))),
+      ((3, 5), Altar()),
       ((1, 2), Pillar()),
       ((1, 4), Pillar()),
       ((1, 6), Pillar()),
@@ -46,17 +52,18 @@ class AltarRoom(SpecialRoom):
   def on_enter(room, game):
     game.open(CutsceneContext(script=lambda game: [
       lambda step: (
-        game.camera.focus((4, 5)),
+        game.camera.focus((4, 6)),
         game.anims.append([PauseAnim(
           duration=60,
           on_end=step
         )])
       ),
       lambda step: (
-        game.hero.move_to((4, 7)),
+        game.hero.move_to((4, 8)),
         game.anims.append([PathAnim(
-          path=[(4, 11), (4, 10), (4, 9), (4, 8), (4, 7)],
           target=game.hero,
+          path=[(4, 14), (4, 13), (4, 12), (4, 11), (4, 10), (4, 9), (4, 8)],
+          period=RUN_DURATION,
           on_end=step
         )])
       ),
@@ -65,7 +72,7 @@ class AltarRoom(SpecialRoom):
         on_end=step
       )]),
       lambda step: (
-        game.camera.focus((4, 7), force=True),
+        game.camera.focus((4, 8), force=True),
         game.anims.append([PauseAnim(
           duration=30,
           on_end=step
@@ -98,8 +105,85 @@ class AltarRoom(SpecialRoom):
               ),
             ]),
             (room.mage.get_name(), "The hell?"),
+            CutsceneContext(script=[
+              lambda step: (
+                game.camera.focus((4, 6), force=True),
+                room.mage.move_to((3, 5)),
+                game.anims.append([PathAnim(
+                  target=room.mage,
+                  path=[(4, 7), (3, 7), (3, 6), (3, 5)],
+                  period=RUN_DURATION,
+                  on_end=step
+                )])
+              ),
+              lambda step: (
+                room.mage.set_facing((0, 1)),
+                game.hero.move_to((4, 7)),
+                game.anims.append([PathAnim(
+                  target=game.hero,
+                  path=[(4, 8), (4, 7)],
+                  period=RUN_DURATION
+                )]),
+                step()
+              )
+            ]),
+            (room.mage.get_name(), "Stay away from me, you freak!"),
+            (game.hero.get_name(), "YOU'RE NOT GETTING AWAY!"),
           ],
           on_close=step
         ))
+      ),
+      lambda step: (
+        game.floor.set_tile_at((3, 4), game.floor.PIT),
+        game.floor.set_tile_at((4, 4), game.floor.PIT),
+        game.floor.set_tile_at((5, 4), game.floor.PIT),
+        game.floor.set_tile_at((5, 5), game.floor.PIT),
+        game.floor.set_tile_at((5, 6), game.floor.PIT),
+        game.floor.set_tile_at((5, 7), game.floor.PIT),
+        game.floor.set_tile_at((4, 7), game.floor.PIT),
+        game.floor.set_tile_at((3, 7), game.floor.PIT),
+        game.floor.set_tile_at((3, 6), game.floor.PIT),
+        game.floor.set_tile_at((3, 5), game.floor.PIT),
+        game.redraw_tiles(),
+        game.anims.append([PauseAnim(
+          duration=30,
+          on_end=step
+        )])
+      ),
+      lambda step: (
+        game.anims.extend([
+          [
+            ShakeAnim(
+              target=game.hero,
+              duration=30
+            ),
+            ShakeAnim(
+              target=room.mage,
+              duration=30
+            )
+          ],
+          [
+            FlickerAnim(
+              target=game.hero,
+              duration=30,
+              on_end=lambda: game.floor.remove_elem(game.hero)
+            ),
+            FlickerAnim(
+              target=room.mage,
+              duration=30,
+              on_end=lambda: game.floor.remove_elem(room.mage)
+            )
+          ],
+          [PauseAnim(
+            duration=15,
+            on_end=step
+          )]
+        ])
+      ),
+      lambda step: (
+        game.get_root().transition(
+          DissolveIn(),
+          DissolveOut(on_end=step)
+        )
       )
     ]))
