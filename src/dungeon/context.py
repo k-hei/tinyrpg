@@ -584,8 +584,8 @@ class DungeonContext(Context):
                 )
               )
             ])
-      if not is_waking_up:
-        end_move()
+      # if not is_waking_up:
+      #   end_move()
 
       # regen hp
       if game.parent.sp:
@@ -602,11 +602,13 @@ class DungeonContext(Context):
     if moved:
       if ally:
         game.step_ally(game.ally, run, old_cell)
+      end_move()
       acted = True
     elif isinstance(target_elem, DungeonActor) and not hero.allied(target_elem):
       acted = game.handle_attack(target_elem)
     elif target_tile is Stage.PIT:
       moved = game.jump_pit(hero, run, on_move)
+      end_move()
     else:
       effect_result = target_elem and target_elem.effect(game)
       if effect_result is None:
@@ -671,7 +673,6 @@ class DungeonContext(Context):
           game.step(run)
           game.refresh_fov()
 
-    # end_move()
     return moved
 
   def obtain(game, item):
