@@ -20,6 +20,7 @@ class Congelatio(MagicSkill):
   range_max = 3
   range_radius = 1
   atk = 1
+  chant_turns = 2
   users = [Mage]
   blocks = (
     (0, 0),
@@ -57,6 +58,17 @@ class Congelatio(MagicSkill):
           )
         )) if target else None
       ))(cell, target=floor.get_elem_at(cell)) for i, cell in enumerate(target_cells)]
+      if not targets:
+        game.anims[0].append(PauseAnim(
+          duration=60,
+          on_end=lambda: (
+            game.log.print("But nothing happened..."),
+            game.anims[0].append(PauseAnim(
+              duration=30,
+              on_end=on_end
+            ))
+          )
+        ))
 
     game.anims.append([AttackAnim(
       duration=ATTACK_DURATION,

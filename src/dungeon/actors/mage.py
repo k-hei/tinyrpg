@@ -10,6 +10,7 @@ from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from sprite import Sprite
 from skills.magic.glacio import Glacio
+from skills.magic.congelatio import Congelatio
 from skills.magic.accerso import Accerso
 from skills.weapon.broadsword import BroadSword
 
@@ -18,16 +19,35 @@ class Mage(DungeonActor):
 
   def __init__(mage, core=None, *args, **kwargs):
     super().__init__(core=core or MageCore(skills=[Glacio, Accerso], *args, **kwargs))
-    mage.chanting = False
+    mage.chant_skill = None
+    mage.chant_dest = None
+    mage.chant_turns = 0
+
+  def chant(mage, skill, dest=None):
+    mage.chant_skill = skill
+    mage.chant_dest = dest
+    mage.chant_turns = skill.chant_turns
+
+  def cast_spell(mage):
+    if mage.chant_skill is None:
+      return None
+    command = ("use_skill", mage.chant_skill, mage.chant_dest)
+    mage.chant_skill = None
+    mage.chant_dest = None
+    mage.chant_turns = 0
+    return command
 
   def step(mage, game):
     enemy = game.find_closest_enemy(mage)
     if enemy is None:
-      return False
+      return None
 
-    if mage.chanting:
-      mage.chanting = False
-      return ("use_skill", Glacio)
+    if mage.chant_turns:
+      mage.chant_turns -= 1
+      if mage.chant_turns == 0:
+        return mage.cast_spell()
+      else:
+        return None
 
     has_allies = next((e for e in [game.floor.get_elem_at(c, superclass=DungeonActor) for c in game.room.get_cells()] if (
       e and e is not mage
@@ -47,7 +67,10 @@ class Mage(DungeonActor):
     mage.face(enemy.cell)
     if (delta_x == 0 and dist_y <= Glacio.range_max
     or delta_y == 0 and dist_x <= Glacio.range_max):
-      mage.chanting = True
+      if mage.get_hp() < mage.get_hp_max() / 2:
+        mage.chant(skill=Congelatio, dest=enemy.cell)
+      else:
+        mage.chant(skill=Glacio)
       return game.log.print((mage.token(), " is chanting."))
 
     delta = None
