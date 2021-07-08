@@ -133,23 +133,12 @@ class AltarRoom(SpecialRoom):
           on_close=step
         ))
       ),
-      lambda step: (
-        game.floor.set_tile_at((3, 4), game.floor.PIT),
-        game.floor.set_tile_at((4, 4), game.floor.PIT),
-        game.floor.set_tile_at((5, 4), game.floor.PIT),
-        game.floor.set_tile_at((5, 5), game.floor.PIT),
-        game.floor.set_tile_at((5, 6), game.floor.PIT),
-        game.floor.set_tile_at((5, 7), game.floor.PIT),
-        game.floor.set_tile_at((4, 7), game.floor.PIT),
-        game.floor.set_tile_at((3, 7), game.floor.PIT),
-        game.floor.set_tile_at((3, 6), game.floor.PIT),
-        game.floor.set_tile_at((3, 5), game.floor.PIT),
+      *[(lambda cell: lambda step: (
+        game.floor.set_tile_at(cell, game.floor.PIT),
         game.redraw_tiles(),
-        game.anims.append([PauseAnim(
-          duration=30,
-          on_end=step
-        )])
-      ),
+        game.anims.append([PauseAnim(duration=5, on_end=step)]),
+      ))(c) for c in [(3, 4), (4, 4), (5, 4), (5, 5), (5, 6), (5, 7), (4, 7), (3, 7), (3, 6), (3, 5)]],
+      lambda step: game.anims.append([PauseAnim(duration=30, on_end=step)]),
       lambda step: (
         game.anims.extend([
           [
