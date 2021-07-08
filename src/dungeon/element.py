@@ -6,6 +6,7 @@ from anims.item import ItemAnim
 from anims.flicker import FlickerAnim
 from anims.warpin import WarpInAnim
 from anims.drop import DropAnim
+from anims.shake import ShakeAnim
 from lib.lerp import lerp
 from config import ITEM_OFFSET, TILE_SIZE
 
@@ -79,6 +80,8 @@ class DungeonElement:
         sprite_height *= scale_y
       elif type(anim) is DropAnim:
         offset_y = -anim.y
+      elif type(anim) is ShakeAnim:
+        offset_x = anim.offset
 
     # HACK: if element will move during a future animation sequence,
     # make sure it doesn't jump ahead to the target position

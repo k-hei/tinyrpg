@@ -1,4 +1,4 @@
-import random
+from random import randint
 from pygame import Surface
 from sprite import Sprite
 
@@ -54,6 +54,16 @@ class DungeonActor(DungeonElement):
   def is_immobile(actor):
     return actor.is_dead() or actor.stepped or actor.ailment in ("sleep", "freeze")
 
+  def get_str(actor):
+    return actor.core.st
+
+  def get_def(actor):
+    if actor.ailment == "sleep":
+      return actor.core.en // 2
+    if actor.ailment == "freeze":
+      return int(actor.core.en * 1.5)
+    return actor.core.en
+
   def load_weapon(actor):
     return next((s for s in actor.core.skills if s.kind == "weapon"), None)
 
@@ -83,6 +93,12 @@ class DungeonActor(DungeonElement):
       actor.ailment_turns = DungeonActor.FREEZE_DURATION
     actor.ailment = ailment
     return True
+
+  def step_ailment(actor):
+    if actor.ailment_turns > 0:
+      actor.ailment_turns -= 1
+    else:
+      actor.dispel_ailment()
 
   def dispel_ailment(actor):
     actor.ailment = None
@@ -149,15 +165,15 @@ class DungeonActor(DungeonElement):
     target.set_hp(target.get_hp() - damage)
     if target.get_hp() <= 0:
       target.kill()
-    elif target.ailment == "sleep" and random.randint(0, 1):
+    elif target.ailment == "sleep" and randint(0, 1):
       target.wake_up()
     return damage
 
   def find_damage(actor, target, modifier=0):
-    st = actor.core.st + modifier
-    en = target.core.en if target.ailment != "sleep" else 0
+    st = actor.get_str() + modifier
+    en = target.get_def() if target.ailment != "sleep" else 0
     variance = 1 if actor.core.faction == "enemy" else 2
-    return max(0, st - en) + random.randint(-variance, variance)
+    return max(1, st - en + randint(-variance, variance))
 
   def step(actor, game):
     if actor.is_immobile():

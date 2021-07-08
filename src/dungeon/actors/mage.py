@@ -66,7 +66,8 @@ class Mage(DungeonActor):
 
     mage.face(enemy.cell)
     if (delta_x == 0 and dist_y <= Glacio.range_max
-    or delta_y == 0 and dist_x <= Glacio.range_max):
+    or delta_y == 0 and dist_x <= Glacio.range_max
+    ) and not enemy.ailment == "freeze":
       if mage.get_hp() < mage.get_hp_max() / 2:
         mage.chant(skill=Congelatio, dest=enemy.cell)
       else:

@@ -53,6 +53,7 @@ from anims.chest import ChestAnim
 from anims.item import ItemAnim
 from anims.flicker import FlickerAnim
 from anims.flinch import FlinchAnim
+from anims.shake import ShakeAnim
 from anims.move import MoveAnim
 from anims.jump import JumpAnim
 from anims.pause import PauseAnim
@@ -294,36 +295,36 @@ class DungeonContext(Context):
         damage = int(actor.get_hp_max() * DungeonActor.POISON_STRENGTH)
         game.flinch(actor, damage, delayed=True)
 
-      if actor.ailment_turns == 0:
-        actor.ailment = None
-      else:
-        actor.ailment_turns -= 1
+      actor.step_ailment()
 
       if actor.counter:
         actor.counter = max(0, actor.counter - 1)
 
     if commands:
-      COMMAND_PRIORITY = ["use_skill", "attack", "move", "move_to"]
+      COMMAND_PRIORITY = ["move", "move_to", "use_skill", "attack"]
       game.commands = sorted(commands.items(), key=lambda item: COMMAND_PRIORITY.index(item[1][0]))
       game.next_command(on_end=game.end_step)
 
   def next_command(game, on_end=None):
     if not game.commands:
       return on_end and on_end()
-    next_command = lambda: game.next_command(on_end)
-    actor, (cmd_name, *cmd_args) = game.commands.pop(0)
+    step = lambda: (
+      game.commands.pop(0),
+      game.next_command(on_end)
+    )
+    actor, (cmd_name, *cmd_args) = game.commands[0]
     if actor.is_immobile():
-      return next_command()
+      return step()
     if cmd_name == "use_skill":
-      return game.use_skill(actor, *cmd_args, on_end=next_command)
+      return game.use_skill(actor, *cmd_args, on_end=step)
     if cmd_name == "attack":
-      return game.attack(actor, *cmd_args, on_end=next_command)
+      return game.attack(actor, *cmd_args, on_end=step)
     if cmd_name == "move":
       game.move(actor, *cmd_args)
-      return next_command()
+      return step()
     if cmd_name == "move_to":
       game.move_to(actor, *cmd_args)
-      return next_command()
+      return step()
 
   def end_step(game):
     actors = [e for e in game.floor.elems if isinstance(e, DungeonActor)]
@@ -510,6 +511,7 @@ class DungeonContext(Context):
     def end_move():
       game.step()
       game.refresh_fov(moving=True)
+      return True
 
     def on_move():
       if not moved:
@@ -597,6 +599,13 @@ class DungeonContext(Context):
       # deplete sp
       if target_tile is not Stage.OASIS:
         game.parent.deplete_sp(1 / 100)
+
+    if hero.ailment == "freeze":
+      hero.step_ailment()
+      game.anims.append([
+        ShakeAnim(duration=15, target=hero)
+      ])
+      return end_move()
 
     moved = game.move(actor=hero, delta=delta, run=run, on_end=on_move)
     if moved:
