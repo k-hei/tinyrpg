@@ -58,11 +58,16 @@ class SkillContext(Context):
     enemy = ctx.parent.find_closest_visible_enemy(hero)
     if enemy:
       hero.face(enemy.cell)
-      ctx.skill_range = skill().find_range(hero, floor)
-      if skill.range_type == "linear" and skill.range_max > 1:
-        ctx.dest = ctx.skill_range[-1]
-      else:
-        ctx.dest = find_closest_cell_in_range(ctx.skill_range, enemy.cell)
+      target_cell = enemy.cell
+    else:
+      hero_x, hero_y = hero.cell
+      facing_x, facing_y = hero.facing
+      target_cell = (hero_x + facing_x, hero_y + facing_y)
+    ctx.skill_range = skill().find_range(hero, floor)
+    if skill.range_type == "linear" and skill.range_max > 1:
+      ctx.dest = ctx.skill_range[-1]
+    else:
+      ctx.dest = find_closest_cell_in_range(ctx.skill_range, target_cell)
 
   def print_skill(ctx, skill=None):
     if skill:

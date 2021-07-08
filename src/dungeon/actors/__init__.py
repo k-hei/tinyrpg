@@ -83,10 +83,9 @@ class DungeonActor(DungeonElement):
     delta_x = dest_x - actor_x
     delta_y = dest_y - actor_y
     if abs(delta_x) >= abs(delta_y):
-      actor.facing = (int(delta_x / (abs(delta_x) or 1)), 0)
+      facing = (int(delta_x / (abs(delta_x) or 1)), 0)
     else:
-      actor.facing = (0, int(delta_y / (abs(delta_y) or 1)))
-    actor.core.facing = actor.facing
+      facing = (0, int(delta_y / (abs(delta_y) or 1)))
 
   def inflict_ailment(actor, ailment):
     if ailment == actor.ailment:

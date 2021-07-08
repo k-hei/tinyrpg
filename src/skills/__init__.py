@@ -42,7 +42,7 @@ class Skill:
 
   def find_targets(skill, user, floor=None, dest=None):
     user_x, user_y = user.cell
-    facing_x, facing_y = user.facing
+    facing_x, facing_y = tuple(map(int, user.facing))
     if skill.range_radius < 0:
       return []
     if skill.range_type == "row":
