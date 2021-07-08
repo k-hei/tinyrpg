@@ -7,6 +7,7 @@ from anims.flicker import FlickerAnim
 from anims.warpin import WarpInAnim
 from anims.drop import DropAnim
 from anims.shake import ShakeAnim
+from anims.path import PathAnim
 from lib.lerp import lerp
 from config import ITEM_OFFSET, TILE_SIZE
 
@@ -49,11 +50,15 @@ class DungeonElement:
     moving = next((g for g in anims if next((a for a in g if a.target is elem and type(a) is MoveAnim), None)), None)
     anim_group = anims[0] if anims else []
     for anim in [a for a in anim_group if a.target is elem]:
-      if type(anim) is MoveAnim:
+      if type(anim) is MoveAnim or type(anim) is PathAnim:
+        if offset_x or offset_y:
+          continue
         anim_x, anim_y = anim.cell
         elem_x, elem_y = elem.cell
         offset_x = (anim_x - elem_x) * TILE_SIZE
         offset_y = (anim_y - elem_y) * TILE_SIZE
+        if anim.facing != (0, 0):
+          elem.facing = anim.facing
       elif type(anim) is ChestAnim or type(anim) is ItemAnim:
         t = anim.time / anim.duration
         item_image = anim.item.render()

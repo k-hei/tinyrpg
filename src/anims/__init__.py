@@ -12,6 +12,11 @@ class Anim:
     anim.on_end = on_end
     anim.done = False
 
+  def end(anim):
+    anim.done = True
+    if anim.on_end:
+      anim.on_end()
+
   def update(anim):
     if anim.done:
       return -1
@@ -20,9 +25,7 @@ class Anim:
         anim.on_start()
     anim.time += 1
     if anim.time == anim.duration and not anim.loop:
-      anim.done = True
-      if anim.on_end:
-        anim.on_end()
+      anim.end()
     if anim.time < 0:
       return 0
     return anim.time

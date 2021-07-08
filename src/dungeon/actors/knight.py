@@ -7,6 +7,7 @@ from anims.jump import JumpAnim
 from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
+from anims.path import PathAnim
 from sprite import Sprite
 
 class Knight(DungeonActor):
@@ -17,14 +18,15 @@ class Knight(DungeonActor):
     assets = use_assets().sprites
     anim_group = [a for a in anims[0] if a.target is knight] if anims else []
     for anim in anim_group:
-      if type(anim) is MoveAnim:
+      if type(anim) is MoveAnim or type(anim) is PathAnim:
+        x4_idx = max(0, int((anim.time - 1) % anim.period // (anim.period / 4)))
         if knight.facing == (0, -1):
           sprite = [
             assets["knight_up"],
             assets["knight_walkup0"],
             assets["knight_up"],
             assets["knight_walkup1"]
-          ][int((anim.time - 1) // (anim.duration / 4))]
+          ][x4_idx]
           break
         if knight.facing == (0, 1):
           sprite = [
@@ -32,9 +34,9 @@ class Knight(DungeonActor):
             assets["knight_walkdown0"],
             assets["knight_down"],
             assets["knight_walkdown1"]
-          ][int((anim.time - 1) // (anim.duration / 4))]
+          ][x4_idx]
           break
-        elif anim.time % (anim.duration // 2) >= anim.duration // 4:
+        elif anim.time % (anim.period // 2) >= anim.period // 4:
           sprite = assets["knight_walk"]
           break
       elif type(anim) is JumpAnim:

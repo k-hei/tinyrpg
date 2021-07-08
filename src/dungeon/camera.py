@@ -3,6 +3,7 @@ import pygame
 from pygame import Rect
 from config import TILE_SIZE
 from anims.move import MoveAnim
+from anims.path import PathAnim
 from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
@@ -80,7 +81,11 @@ class Camera:
       room = game.room
       focus_x, focus_y = room.get_center()
       camera_speed = 8
-      move_anim = next((a for a in anims if not a.done and a.target is hero and type(a) is MoveAnim), None)
+      move_anim = next((a for a in anims if (
+        not a.done
+        and a.target is hero
+        and (type(a) is MoveAnim or type(a) is PathAnim)
+      )), None)
       if move_anim:
         hero_x, hero_y = move_anim.cell
 

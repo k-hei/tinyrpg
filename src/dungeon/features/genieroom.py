@@ -38,7 +38,7 @@ class GenieRoom(SpecialRoom):
     room.entered = True
     genies = [e for e in [game.floor.get_elem_at(c, superclass=GenieActor) for c in room.get_cells()] if e]
     game.open(CutsceneContext(script=lambda game: [
-      lambda next: (
+      lambda step: (
         game.camera.focus((4, 2), speed=8),
         game.anims.append([(lambda i, g: (
           g is not genies[-1] and FlickerAnim(
@@ -48,39 +48,39 @@ class GenieRoom(SpecialRoom):
             on_end=lambda: game.floor.remove_elem(g)
           ) or PauseAnim(
             duration=60 + 20 * i + 15,
-            on_end=next
+            on_end=step
           )
         ))(i, g) for i, g in enumerate(genies)])
       ),
-      lambda next: (
+      lambda step: (
         game.vfx.append(AlertBubble(cell=(genies[-1].cell[0], genies[-1].cell[1] - genies[-1].elev))),
-        game.anims.append([PauseAnim(duration=15, on_end=next)])
+        game.anims.append([PauseAnim(duration=15, on_end=step)])
       ),
-      lambda next: (
+      lambda step: (
         genies[-1].face((genies[-1].cell[0] - 1, genies[-1].cell[1])),
-        game.anims.append([PauseAnim(duration=30, on_end=next)])
+        game.anims.append([PauseAnim(duration=30, on_end=step)])
       ),
-      lambda next: (
+      lambda step: (
         genies[-1].face((genies[-1].cell[0] + 1, genies[-1].cell[1])),
-        game.anims.append([PauseAnim(duration=30, on_end=next)])
+        game.anims.append([PauseAnim(duration=30, on_end=step)])
       ),
-      lambda next: game.anims.append([FlickerAnim(
+      lambda step: game.anims.append([FlickerAnim(
         target=genies[-1],
         duration=30,
-        on_end=next
+        on_end=step
       )]),
-      lambda next: (
+      lambda step: (
         game.floor.remove_elem(genies[-1]),
         game.anims.append([PauseAnim(
           duration=15,
-          on_end=next
+          on_end=step
         )])
       ),
-      lambda next: (
+      lambda step: (
         game.camera.blur(),
         game.anims.append([PauseAnim(
           duration=15,
-          on_end=next
+          on_end=step
         )])
       )
     ]))

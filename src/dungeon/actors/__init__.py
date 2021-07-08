@@ -156,6 +156,9 @@ class DungeonActor(DungeonElement):
       on_close=stop_talk,
     ))
 
+  def move_to(actor, dest):
+    actor.cell = dest
+
   def attack(actor, target, damage=None):
     if damage == None:
       damage = DungeonActor.find_damage(actor, target)

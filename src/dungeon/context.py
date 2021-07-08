@@ -1281,12 +1281,11 @@ class DungeonContext(Context):
     if game.anims:
       group = game.anims[0]
       for anim in group:
+        anim.update()
         if anim.done:
           group.remove(anim)
-        else:
-          anim.update()
-          if type(anim) is PauseAnim:
-            break
+        if type(anim) is PauseAnim:
+          break
       if not group:
         game.anims.remove(group)
 
