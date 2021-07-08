@@ -91,7 +91,8 @@ class Stage:
     target_tile = stage.get_tile_at(cell)
     if not target_tile or target_tile.solid:
       return False
-    if stage.get_elem_at(cell):
+    target_elem = stage.get_elem_at(cell)
+    if target_elem and target_elem.solid:
       return False
     return True
 
