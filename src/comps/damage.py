@@ -16,13 +16,13 @@ class DamageNumber:
   STAGGER = 10
   BOUNCE = 0
 
-  def __init__(number, value, x, color=None):
+  def __init__(number, value, x, delay=0, color=None):
     number.value = value
     number.x = x
     number.color = color
     number.y = 0
     number.done = False
-    number.time = -DamageNumber.STAGGER * x
+    number.time = -delay
     number.duration = DamageNumber.DURATION
     number.velocity = DamageNumber.INITIAL_VELOCITY
     number.sprite = number.render()
@@ -50,22 +50,30 @@ class DamageNumber:
     return sprite
 
 class DamageValue:
-  def __init__(value, number, cell, color=None):
+  def __init__(value, number, cell, offset=(0, 0), color=None):
     value.cell = cell
+    value.offset = offset
     value.done = False
     value.width = 0
     value.time = 0
     value.numbers = []
-    for i, char in enumerate(str(number)):
-      number = DamageNumber(value=char, x=i, color=color)
+    text = str(number)
+    for i, char in enumerate(text):
+      number = DamageNumber(
+        value=char,
+        x=i,
+        delay=i * (DamageNumber.STAGGER if len(text) <= 3 else DamageNumber.STAGGER // 2),
+        color=color
+      )
       value.numbers.append(number)
-      value.width += number.sprite.get_width()
+      value.width += number.sprite.get_width() - 2
 
   def render(value):
     sprites = []
     col, row = value.cell
-    x = (col + 0.5) * config.TILE_SIZE - value.width // 2
-    y = row * config.TILE_SIZE - 8
+    offset_x, offset_y = value.offset
+    x = (col + 0.5) * config.TILE_SIZE - value.width // 2 + offset_x
+    y = row * config.TILE_SIZE - 8 + offset_y
     value.time += 1
     for i, number in enumerate(value.numbers):
       number.update()
@@ -78,7 +86,7 @@ class DamageValue:
           int(number_width * lerp(1, 0, t)),
           int(number_height * lerp(1, 3, t))
         ))
-      if number.time >= 0 and (value.time < 60 or value.time % 2):
+      if number.time >= 0 and (value.time < 75 or value.time % 2):
         number_x = x + number_width // 2 - image.get_width() // 2
         number_y = y + number.y + number_height // 2 - image.get_height() // 2
         sprites.append(Sprite(

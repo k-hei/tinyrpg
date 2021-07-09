@@ -53,7 +53,7 @@ class Glacio(MagicSkill):
             target=target,
             damage=8 + randint(-2, 2),
             on_end=lambda: (
-              not target.is_dead() and game.log.print((target.token(), " is frozen.")),
+              game.freeze(target),
               game.anims[0].append(PauseAnim(
                 duration=30,
                 on_end=lambda: (

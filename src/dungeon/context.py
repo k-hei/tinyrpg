@@ -1091,6 +1091,11 @@ class DungeonContext(Context):
         on_end=awaken
       ))
 
+  def freeze(game, target):
+    if not target.is_dead():
+      game.log.print((target.token(), " is frozen.")),
+      game.numbers.append(DamageValue("FROZEN", target.cell, offset=(4, -4), color=CYAN))
+
   def use_item(game, item):
     game.anims.append([
       ItemAnim(
