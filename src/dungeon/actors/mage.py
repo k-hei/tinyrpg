@@ -10,11 +10,16 @@ from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from anims.shake import ShakeAnim
+from anims.drop import DropAnim
+from anims.frame import FrameAnim
 from sprite import Sprite
 from skills.magic.glacio import Glacio
 from skills.magic.congelatio import Congelatio
 from skills.magic.accerso import Accerso
 from skills.weapon.broadsword import BroadSword
+
+class CastAnim(FrameAnim):
+  pass
 
 class Mage(DungeonActor):
   drops = [BroadSword]
@@ -74,6 +79,7 @@ class Mage(DungeonActor):
         mage.chant(skill=Congelatio, dest=enemy.cell)
       else:
         mage.chant(skill=Glacio)
+      # game.anims.append(CastAnim(target=mage))
       return game.log.print((mage.token(), " is chanting."))
 
     delta = None
@@ -144,7 +150,7 @@ class Mage(DungeonActor):
         else:
           sprite = sprites["mage_walk"]
         break
-      elif type(anim) in (FlinchAnim, FlickerAnim):
+      elif type(anim) in (FlinchAnim, FlickerAnim, DropAnim):
         sprite = sprites["mage_flinch"]
         break
       elif type(anim) is ShakeAnim:

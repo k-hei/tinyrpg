@@ -8,6 +8,7 @@ from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from anims.shake import ShakeAnim
+from anims.drop import DropAnim
 from anims.path import PathAnim
 from sprite import Sprite
 
@@ -56,10 +57,7 @@ class Knight(DungeonActor):
         else:
           sprite = assets["knight"]
         break
-      elif type(anim) in (FlinchAnim, FlickerAnim):
-        sprite = assets["knight_flinch"]
-        break
-      elif type(anim) is ShakeAnim:
+      elif type(anim) in (FlinchAnim, FlickerAnim, ShakeAnim, DropAnim):
         sprite = assets["knight_flinch"]
         break
     else:

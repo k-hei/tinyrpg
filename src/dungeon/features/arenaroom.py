@@ -88,7 +88,6 @@ class ArenaRoom(SpecialRoom):
       game.floor.spawn_elem_at(spawn_cell, reward)
       game.camera.focus(feature.get_center(), force=True)
       game.anims.append([DropAnim(
-        y=WINDOW_HEIGHT / 2 + TILE_SIZE,
         target=reward,
         on_end=lambda: game.camera.blur()
       )])

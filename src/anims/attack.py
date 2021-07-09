@@ -1,7 +1,8 @@
 import math
+from config import ATTACK_DURATION
 
 class AttackAnim:
-  def __init__(anim, duration, target, src, dest, on_connect=None, on_end=None):
+  def __init__(anim, target, src, dest, duration=ATTACK_DURATION, on_connect=None, on_end=None):
     src_x, src_y = src
     dest_x, dest_y = dest
     disp_x, disp_y = (dest_x - src_x, dest_y - src_y)
