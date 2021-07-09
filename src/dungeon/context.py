@@ -311,7 +311,7 @@ class DungeonContext(Context):
     if not game.commands:
       return on_end and on_end()
     step = lambda: (
-      game.commands.pop(0),
+      game.commands and game.commands.pop(0),
       game.next_command(on_end)
     )
     actor, (cmd_name, *cmd_args) = game.commands[0]

@@ -18,11 +18,17 @@ from skills.magic.congelatio import Congelatio
 from skills.magic.accerso import Accerso
 from skills.weapon.broadsword import BroadSword
 
-class CastAnim(FrameAnim):
-  pass
 
 class Mage(DungeonActor):
   drops = [BroadSword]
+
+  class CastAnim(FrameAnim):
+    def __init__(anim, *args, **kwargs):
+      super().__init__(
+        frames=use_assets().sprites["mage_cast"],
+        frame_duration=10,
+        *args, **kwargs
+      )
 
   def __init__(mage, core=None, *args, **kwargs):
     super().__init__(core=core or MageCore(skills=[Glacio, Accerso], *args, **kwargs))
@@ -34,6 +40,7 @@ class Mage(DungeonActor):
     mage.chant_skill = skill
     mage.chant_dest = dest
     mage.chant_turns = skill.chant_turns
+    mage.core.anims.append(Mage.CastAnim())
 
   def cast_spell(mage):
     if mage.chant_skill is None:
@@ -42,6 +49,7 @@ class Mage(DungeonActor):
     mage.chant_skill = None
     mage.chant_dest = None
     mage.chant_turns = 0
+    mage.core.anims = []
     return command
 
   def step(mage, game):
@@ -79,7 +87,6 @@ class Mage(DungeonActor):
         mage.chant(skill=Congelatio, dest=enemy.cell)
       else:
         mage.chant(skill=Glacio)
-      # game.anims.append(CastAnim(target=mage))
       return game.log.print((mage.token(), " is chanting."))
 
     delta = None

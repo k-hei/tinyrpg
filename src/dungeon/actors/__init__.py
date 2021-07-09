@@ -16,6 +16,7 @@ from anims.awaken import AwakenAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from anims.bounce import BounceAnim
+from anims.frame import FrameAnim
 from lib.cell import is_adjacent, manhattan
 from lib.lerp import lerp
 from comps.log import Token
@@ -86,6 +87,7 @@ class DungeonActor(DungeonElement):
       facing = (int(delta_x / (abs(delta_x) or 1)), 0)
     else:
       facing = (0, int(delta_y / (abs(delta_y) or 1)))
+    actor.set_facing(facing)
 
   def inflict_ailment(actor, ailment):
     if ailment == actor.ailment:
@@ -209,7 +211,7 @@ class DungeonActor(DungeonElement):
     actor_cell = actor.cell
     new_color = None
     asleep = actor.ailment == "sleep"
-    anim_group = [a for a in anims[0] if a.target is actor] if anims else []
+    anim_group = ([a for a in anims[0] if a.target is actor] if anims else []) + actor.core.anims
     for anim in anim_group:
       if type(anim) is AwakenAnim and anim.visible:
         asleep = True
@@ -233,6 +235,8 @@ class DungeonActor(DungeonElement):
         anim_xscale, anim_yscale = anim.scale
         actor_width *= anim_xscale
         actor_height *= anim_yscale
+      if isinstance(anim, FrameAnim):
+        sprite.image = anim.frame
     else:
       if actor.ailment == "poison":
         new_color = VIOLET
