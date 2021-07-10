@@ -52,7 +52,7 @@ class AltarRoom(SpecialRoom):
       (room_x + room_width // 2, room_y + room_height)
     ]
 
-  def on_focus(room, game):
+  def on_enter(room, game):
     game.open(CutsceneContext(script=[
       *(cutscene(room, game) if CUTSCENES else []),
       lambda step: (
@@ -139,8 +139,8 @@ def cutscene(room, game):
     ),
     *[(lambda cell: lambda step: (
       game.floor.set_tile_at(add(room.cell, cell), game.floor.PIT),
-      game.redraw_tiles(),
-      game.anims.append([PauseAnim(duration=5, on_end=step)]),
+      game.redraw_tiles(force=True),
+      game.anims.append([PauseAnim(duration=1, on_end=step)]),
     ))(c) for c in [(2, 3), (3, 3), (4, 3), (4, 4), (4, 5), (4, 6), (3, 6), (2, 6), (2, 5), (2, 4)]],
     lambda step: game.anims.append([PauseAnim(duration=30, on_end=step)]),
     lambda step: (

@@ -56,7 +56,7 @@ class DepthsRoom(SpecialRoom):
     if room.focused:
       return False
     room.focused = True
-    game.hero.cell = add(room.cell, (3, 5))
+    game.hero.cell = add(room.cell, (2, 4))
     game.hero.set_facing((0, -1))
     game.open(CutsceneContext(script=[
       *(cutscene(room, game) if CUTSCENES else [])
@@ -128,7 +128,7 @@ def cutscene(room, game):
       game.anims.append([PauseAnim(duration=60, on_end=step)])
     ),
     lambda step: (
-      room.mage.move_to(add(room.cell, (4, 5))),
+      room.mage.move_to(add(room.cell, (3, 4))),
       game.camera.focus(add(room. cell, (2.5, 4.5)), force=True, speed=8),
       game.anims.append([PathAnim(
         target=room.mage,
@@ -211,10 +211,10 @@ def cutscene(room, game):
       game.anims.append([PauseAnim(duration=15, on_end=step)])
     ),
     lambda step: (
-      room.mage.move_to(add(room.cell, (3, -1))),
+      room.mage.move_to(add(room.cell, (3, -2))),
       game.anims.append([PathAnim(
         target=room.mage,
-        path=[add(room.cell, c) for c in [(3, 2), (3, 1), (3, 0), (3, -1)]],
+        path=[add(room.cell, c) for c in [(3, 2), (3, 1), (3, 0), (3, -1), (3, -2)]],
         on_end=step
       )])
     ),
