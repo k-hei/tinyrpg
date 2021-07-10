@@ -10,7 +10,7 @@ from anims.path import PathAnim
 from anims.flicker import FlickerAnim
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
-from config import RUN_DURATION
+from config import RUN_DURATION, CUTSCENES
 from transits.dissolve import DissolveIn, DissolveOut
 from lib.cell import add
 
@@ -59,7 +59,7 @@ class AltarRoom(SpecialRoom):
 
   def on_focus(room, game):
     game.open(CutsceneContext(script=[
-      # *cutscene(room, game),
+      *(cutscene(room, game) if CUTSCENES else []),
       lambda step: (
         game.get_root().transition(
           DissolveIn(on_end=lambda: (
