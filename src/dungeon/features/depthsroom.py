@@ -16,6 +16,11 @@ from skills.weapon.longinus import Longinus
 from lib.cell import add
 from config import CUTSCENES
 
+from dungeon.gen import gen_floor
+from dungeon.features.room import Room
+from dungeon.features.treasureroom import TreasureRoom
+from items.hp.potion import Potion
+
 class DepthsRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
     super().__init__(degree=1, shape=[
@@ -59,7 +64,15 @@ class DepthsRoom(SpecialRoom):
     return True
 
   def create_floor(room, *args, **kwargs):
-    return super().create_floor(use_edge=False, *args, **kwargs)
+    entry_room = DepthsRoom()
+    fork_room = Room(size=(5, 4), degree=3)
+    item_room = TreasureRoom(item=Potion)
+    return gen_floor(
+      entrance=type(entry_room),
+      features=[
+        [fork_room, entry_room, item_room],
+      ]
+    )
 
 def cutscene(room, game):
   return [

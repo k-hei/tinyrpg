@@ -14,11 +14,6 @@ from config import RUN_DURATION, CUTSCENES
 from transits.dissolve import DissolveIn, DissolveOut
 from lib.cell import add
 
-from dungeon.gen import gen_floor
-from dungeon.features.room import Room
-from dungeon.features.treasureroom import TreasureRoom
-from items.hp.potion import Potion
-
 class AltarRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
     super().__init__(degree=2, shape=[
@@ -63,12 +58,7 @@ class AltarRoom(SpecialRoom):
       lambda step: (
         game.get_root().transition(
           DissolveIn(on_end=lambda: (
-            game.use_floor(gen_floor(
-              entrance=DepthsRoom,
-              features=[
-                [Room(size=(5, 4), degree=3), DepthsRoom(), TreasureRoom(item=Potion)],
-              ])
-            ),
+            game.use_floor(DepthsRoom().create_floor()),
             step()
           )),
           DissolveOut()
