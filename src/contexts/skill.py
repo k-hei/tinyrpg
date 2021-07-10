@@ -63,6 +63,9 @@ class SkillContext(Context):
       hero_x, hero_y = hero.cell
       facing_x, facing_y = hero.facing
       target_cell = (hero_x + facing_x, hero_y + facing_y)
+    if not skill:
+      ctx.dest = hero.cell
+      return
     ctx.skill_range = skill().find_range(hero, floor)
     if skill.range_type == "linear" and skill.range_max > 1:
       ctx.dest = ctx.skill_range[-1]
@@ -216,8 +219,8 @@ class SkillContext(Context):
       camera_x, camera_y = camera.pos
       facing_x, facing_y = hero.facing
       hero_x, hero_y = hero.cell
-      skill_targets = skill().find_targets(hero, floor, dest=ctx.dest)
-      skill_range = skill().find_range(hero, floor)
+      skill_targets = skill().find_targets(hero, floor, dest=ctx.dest) if skill else []
+      skill_range = skill().find_range(hero, floor) if skill else []
       ctx.dest = cursor
 
       camera_speed = 8

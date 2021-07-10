@@ -1,5 +1,7 @@
 from dungeon.features.specialroom import SpecialRoom
 from dungeon.actors.mage import Mage
+from dungeon.props.bag import Bag
+from skills.weapon.rustyblade import RustyBlade
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
 from anims.pause import PauseAnim
@@ -24,7 +26,8 @@ class DepthsRoom(SpecialRoom):
       ".......",
       "#.....#"
     ], elems=[
-      ((4, 3), mage := Mage(faction="ally"))
+      ((4, 3), mage := Mage(faction="ally")),
+      ((2, 2), Bag(RustyBlade)),
     ], *args, **kwargs)
     room.mage = mage
     room.focused = False

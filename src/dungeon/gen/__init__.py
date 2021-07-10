@@ -13,7 +13,7 @@ from dungeon.features.exitroom import ExitRoom
 from dungeon.features.vertroom import VerticalRoom
 from dungeon.features.specialroom import SpecialRoom
 from dungeon.features.arenaroom import ArenaRoom
-from dungeon.features.treasureroom import TreasureRoom
+from dungeon.features.raretreasureroom import RareTreasureRoom
 from dungeon.features.oasisroom import OasisRoom
 from dungeon.features.coffinroom import CoffinRoom
 from dungeon.features.pitroom import PitRoom
@@ -426,7 +426,7 @@ def gen_floor(features=[], entrance=None, seed=None):
     arena = ArenaRoom()
     exit_room = ExitRoom()
     puzzle_room = VerticalRoom((5, 4))
-    treasure_room = TreasureRoom()
+    treasure_room = RareTreasureRoom()
     oasis_room = OasisRoom()
     coffin_room = CoffinRoom()
     pit_room = PitRoom()
@@ -499,7 +499,7 @@ def gen_floor(features=[], entrance=None, seed=None):
     feature_types = [type(f) for f in (origin, target)]
     if ArenaRoom in feature_types:
       door = BattleDoor()
-    elif TreasureRoom in feature_types:
+    elif RareTreasureRoom in feature_types:
       door = TreasureDoor()
     else:
       door = Door()
@@ -549,7 +549,7 @@ def gen_floor(features=[], entrance=None, seed=None):
       stage.spawn_elem_at(cell, gen_enemy(1))
       i += 1
 
-  if next((f for f in feature_list if type(f) is TreasureRoom), None):
+  if next((f for f in feature_list if type(f) is RareTreasureRoom), None):
     if not empty_rooms:
       debug("No empty rooms to spawn key at")
       return regen()

@@ -1,6 +1,6 @@
 # dungeon generation
 SEED = None
-DEBUG = False
+DEBUG = True
 TOP_FLOOR = 5
 MAX_LOOPS = 0
 MAX_ROOM_FAILS = 3

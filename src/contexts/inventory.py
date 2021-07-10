@@ -250,6 +250,8 @@ class InventoryContext(Context):
     ctx.select()
 
   def handle_choose(ctx):
+    if ctx.get_item_at(ctx.cursor) is None:
+      return False
     ctx.open(ChoiceContext(choices=[
       Choice(text="Use"),
       Choice(text="Discard", closing=True)
@@ -260,6 +262,7 @@ class InventoryContext(Context):
       choice is None and True
       or choice.text == "Discard" and ctx.discard()
     )))
+    return True
 
   def update(ctx):
     for anim in ctx.anims:

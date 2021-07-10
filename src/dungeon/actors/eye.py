@@ -23,9 +23,9 @@ class Eye(DungeonActor):
     super().__init__(Core(
       name="Eyeball",
       faction=faction,
-      hp=20,
+      hp=14,
       st=12,
-      en=7,
+      en=11,
       skills=[ Tackle ],
       *args,
       **kwargs
