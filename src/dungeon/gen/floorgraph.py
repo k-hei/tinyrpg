@@ -1,8 +1,8 @@
 from lib.graph import Graph
 
 class FloorGraph(Graph):
-  def __init__(graph):
-    super().__init__()
+  def __init__(graph, *args, **kwargs):
+    super().__init__(*args, **kwargs)
     graph.conns = {}
 
   def connect(graph, node1, node2, conn):

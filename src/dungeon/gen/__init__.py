@@ -304,7 +304,7 @@ class Floor:
     graph = floor.graph
     tree = floor.tree
     if start is None:
-      start = choice(graph.nodes)
+      start = choice([n for n in graph.nodes if tree.degree(n) < n.degree])
     queue = [start]
     while queue:
       node = queue[-1]
@@ -312,9 +312,8 @@ class Floor:
       neighbors = graph.neighbors(node)
       neighbors = [n for n in neighbors if (
         tree.degree(n) == 0
-        # not tree.connectors(node, n)
-        # and tree.degree(n) < n.degree or n.degree == 0
       )]
+      debug("Spanning from {node}".format(node=type(node).__name__))
       if not neighbors:
         if tree.degree(node) < node.degree:
           debug("Node is missing connections")
@@ -398,20 +397,21 @@ def gen_debug(seed=None):
   stage.set_tile_at((stage.entrance[0] + 2, stage.entrance[1]), stage.PIT)
   return stage
 
-def gen_features(floor, features):
-  for group in features:
-    root = group[0]
-    if not floor.gen_place(root):
-      return False
-    if len(group) > 1:
-      floor.tree.add(root)
-    for feature in group[1:]:
-      if not floor.gen_neighbor(root, feature):
+def gen_features(floor, feature_graph):
+  for node in feature_graph.nodes:
+    if node not in floor.tree.nodes:
+      if not floor.gen_place(node):
         return False
-      floor.tree.add(feature)
+      floor.tree.add(node)
+    neighbors = feature_graph.neighbors(node)
+    for neighbor in neighbors:
+      if neighbor not in floor.tree.nodes:
+        if not floor.gen_neighbor(node, neighbor):
+          return False
+        floor.tree.add(neighbor)
   return True
 
-def gen_floor(features=[], entrance=None, seed=None):
+def gen_floor(features, entrance=None, seed=None):
   regen = lambda: gen_floor(features, entrance)
   floor = Floor(config.FLOOR_SIZE)
   if seed is None:
@@ -422,29 +422,14 @@ def gen_floor(features=[], entrance=None, seed=None):
   stage = floor.stage
   stage.seed = seed
 
-  if not features:
-    arena = ArenaRoom()
-    exit_room = ExitRoom()
-    puzzle_room = VerticalRoom((5, 4))
-    treasure_room = RareTreasureRoom()
-    oasis_room = OasisRoom()
-    coffin_room = CoffinRoom()
-    pit_room = PitRoom()
-    elev_room = ElevRoom()
-    features = [
-      [arena, exit_room, puzzle_room],
-      [treasure_room],
-      [oasis_room],
-    ]
-
   if not gen_features(floor, features):
     debug("Feature placement failed")
     return regen()
 
   empty_rooms = floor.gen_rooms()
-  # if not empty_rooms:
-  #   debug("No usable rooms generated")
-  #   return gen_floor()
+  if not empty_rooms:
+    debug("No usable rooms generated")
+    return regen()
 
   floor.gen_mazes()
 
@@ -452,7 +437,7 @@ def gen_floor(features=[], entrance=None, seed=None):
     debug("Failed to connect feature graph")
     return regen()
 
-  if not floor.span(start=features[0][0]):
+  if not floor.span():
     debug("Failed to satisfy feature degree constraints")
     return regen()
 
@@ -460,8 +445,7 @@ def gen_floor(features=[], entrance=None, seed=None):
   floor.fill_ends()
   floor.fill_isolated()
 
-  feature_list = [f for g in features for f in g]
-  isolated = [f for f in feature_list if f not in tree.nodes]
+  isolated = [f for f in features.nodes if f not in tree.nodes]
   if isolated:
     debug("Failed to connect all features")
     return regen()
@@ -524,15 +508,13 @@ def gen_floor(features=[], entrance=None, seed=None):
         corner = choice(corners)
         stage.set_tile_at(corner, stage.WALL)
 
-  stage.rooms = empty_rooms + feature_list
+  stage.rooms = empty_rooms + features.nodes
   empty_leaves = [n for n in empty_rooms if tree.degree(n) == 1]
   if not empty_leaves:
     debug("No empty leaves to spawn at")
     return regen()
 
-  entry_room = (entrance
-    and next((f for f in feature_list if type(f) is entrance), None)
-    or choice(empty_leaves))
+  entry_room = entrance or choice(empty_leaves)
   center_x, center_y = entry_room.get_center()
   stage.entrance = (center_x, center_y + 0)
   if entry_room in empty_rooms:
@@ -549,7 +531,7 @@ def gen_floor(features=[], entrance=None, seed=None):
       stage.spawn_elem_at(cell, gen_enemy(1))
       i += 1
 
-  if next((f for f in feature_list if type(f) is RareTreasureRoom), None):
+  if next((f for f in features.nodes if type(f) is RareTreasureRoom), None):
     if not empty_rooms:
       debug("No empty rooms to spawn key at")
       return regen()

@@ -3,7 +3,7 @@ from dungeon.props.chest import Chest
 
 class TreasureRoom(SpecialRoom):
   def __init__(room, item):
-    super().__init__(degree=1, secret=True, shape=[
+    super().__init__(degree=1, shape=[
       "...",
       "...",
       "...",

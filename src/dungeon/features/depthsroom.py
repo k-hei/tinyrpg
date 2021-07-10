@@ -16,9 +16,11 @@ from skills.weapon.longinus import Longinus
 from lib.cell import add
 from config import CUTSCENES
 
-from dungeon.gen import gen_floor
+from dungeon.gen import gen_floor, FloorGraph
 from dungeon.features.room import Room
+from dungeon.features.exitroom import ExitRoom
 from dungeon.features.treasureroom import TreasureRoom
+from dungeon.features.enemyroom import EnemyRoom
 from items.hp.potion import Potion
 
 class DepthsRoom(SpecialRoom):
@@ -67,11 +69,18 @@ class DepthsRoom(SpecialRoom):
     entry_room = DepthsRoom()
     fork_room = Room(size=(5, 4), degree=3)
     item_room = TreasureRoom(item=Potion)
+    enemy_room = EnemyRoom()
+    exit_room = ExitRoom()
     return gen_floor(
-      entrance=type(entry_room),
-      features=[
-        [fork_room, entry_room, item_room],
-      ]
+      entrance=entry_room,
+      features=FloorGraph(
+        nodes=[fork_room, entry_room, item_room, enemy_room, exit_room],
+        edges=[
+          (fork_room, entry_room),
+          (fork_room, item_room),
+          (fork_room, enemy_room),
+        ]
+      )
     )
 
 def cutscene(room, game):
