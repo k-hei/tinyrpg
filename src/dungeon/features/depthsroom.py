@@ -11,6 +11,7 @@ from anims.attack import AttackAnim
 from anims.item import ItemAnim
 from vfx.alertbubble import AlertBubble
 from skills.weapon.longinus import Longinus
+from lib.cell import add
 
 class DepthsRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
@@ -51,176 +52,181 @@ class DepthsRoom(SpecialRoom):
     stage.spawn_elem_at(door_cell, door)
 
   def on_focus(room, game):
-    game.hero.cell = (3, 5)
+    game.hero.cell = add(room.cell, (3, 5))
     game.hero.set_facing((0, -1))
     game.open(CutsceneContext(script=[
-      lambda step: (
-        game.camera.focus(room.get_center()),
-        game.anims.extend([
-          [
-            PauseAnim(duration=30),
-            DropAnim(
-              target=game.hero,
-              on_end=lambda: game.hero.inflict_ailment("sleep")
-            ),
-            DropAnim(
-              target=room.mage,
-              delay=30,
-              on_end=lambda: room.mage.inflict_ailment("sleep")
-            )
-          ],
-          [PauseAnim(duration=30, on_end=step)]
-        ])
-      ),
-      lambda step: (
-        game.camera.focus(room.mage.cell, force=True, speed=8),
-        game.anims.append([PauseAnim(duration=30, on_end=step)])
-      ),
-      lambda step: (
-        room.mage.dispel_ailment(),
-        game.anims.append([AwakenAnim(target=room.mage, duration=30, on_end=step)])
-      ),
-      lambda step: game.anims.append([JumpAnim(target=room.mage, on_end=step)]),
-      lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
-      lambda step: (
-        room.mage.set_facing((-1, 0)),
-        game.anims.append([PauseAnim(duration=15, on_end=step)])
-      ),
-      lambda step: (
-        room.mage.set_facing((0, 1)),
-        game.anims.append([PauseAnim(duration=15, on_end=step)])
-      ),
-      lambda step: game.child.open(DialogueContext(script=[
-        (room.mage.get_name(), "I'm alive...")
-      ], on_close=step)),
-      lambda step: (
-        room.mage.set_facing((0, -1)),
-        game.anims.append([PauseAnim(duration=30, on_end=step)])
-      ),
-      lambda step: (
-        room.mage.set_facing((-1, 0)),
-        game.anims.append([PauseAnim(duration=15, on_end=step)])
-      ),
-      lambda step: (
-        game.vfx.append(AlertBubble(cell=room.mage.cell)),
-        game.anims.append([PauseAnim(duration=60, on_end=step)])
-      ),
-      lambda step: (
-        room.mage.move_to((4, 5)),
-        game.camera.focus((3.5, 5.5), force=True, speed=8),
-        game.anims.append([PathAnim(
-          target=room.mage,
-          path=[(5, 4), (4, 4), (4, 5)],
-          on_end=step
-        )])
-      ),
-      lambda step: (
-        room.mage.set_facing((-1, 0)),
-        game.anims.append([PauseAnim(duration=15, on_end=step)])
-      ),
-      lambda step: game.child.open(DialogueContext(script=[
-        (room.mage.get_name(), "Hmmm..."),
-        (room.mage.get_name(), "I doubt this son of a gun has two brain cells to rub together, but...")
-      ], on_close=step)),
-      lambda step: (
-        room.mage.set_facing((0, -1)),
-        game.anims.append([PauseAnim(duration=30, on_end=step)])
-      ),
-      lambda step: (
-        room.mage.set_facing((0, 1)),
-        game.anims.append([PauseAnim(duration=30, on_end=step)])
-      ),
-      lambda step: (
-        room.mage.set_facing((-1, 0)),
-        game.anims.append([PauseAnim(duration=15, on_end=step)])
-      ),
-      lambda step: game.child.open(DialogueContext(script=[
-        (room.mage.get_name(), ". . . . ."),
-        (room.mage.get_name(), "...that weapon he's holding doesn't look half bad...")
-      ], on_close=step)),
-      lambda step: (
-        room.mage.set_facing((0, 1)),
-        game.anims.append([PauseAnim(duration=45, on_end=step)])
-      ),
-      lambda step: (
-        room.mage.set_facing((-1, 0)),
-        game.anims.append([PauseAnim(duration=15, on_end=step)])
-      ),
-      lambda step: game.anims.extend([
-        [AttackAnim(
-          target=room.mage,
-          duration=15,
-          src=room.mage.cell,
-          dest=game.hero.cell,
-          on_end=step
-        )],
-        [ItemAnim(
-          target=room.mage,
-          duration=15,
-          item=Longinus
-        )]
-      ]),
-      lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
-      lambda step: (
-        game.camera.focus((4, 3), force=True, speed=8),
-        room.mage.move_to((4, 3)),
-        game.anims.append([PathAnim(
-          target=room.mage,
-          path=[(4, 5), (4, 4), (4, 3)],
-          on_end=step
-        )])
-      ),
-      lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
-      lambda step: (
-        room.mage.set_facing((0, 1)),
-        game.anims.append([JumpAnim(target=room.mage, on_end=step)])
-      ),
-      lambda step: game.child.open(DialogueContext(script=[
-        (room.mage.get_name(), "Well then!"),
-        (room.mage.get_name(), "I'd better make like a tree and get the hell out of here."),
-        (room.mage.get_name(), "There's a million places I'd rather be than this godforsaken tomb...")
-      ], on_close=step)),
-      lambda step: (
-        room.mage.set_facing((1, 0)),
-        game.anims.append([PauseAnim(duration=15, on_end=step)])
-      ),
-      lambda step: (
-        room.mage.set_facing((0, -1)),
-        game.anims.append([PauseAnim(duration=15, on_end=step)])
-      ),
-      lambda step: (
-        room.mage.move_to((4, -1)),
-        game.anims.append([PathAnim(
-          target=room.mage,
-          path=[(4, 3), (4, 2), (4, 1), (4, 0), (4, -1)],
-          on_end=step
-        )])
-      ),
-      lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
-      lambda step: (
-        game.floor.remove_elem(room.mage),
-        game.camera.focus(game.hero.cell, force=True, speed=8),
-        game.anims.append([PauseAnim(duration=60, on_end=step)])
-      ),
-      lambda step: (
-        game.hero.dispel_ailment(),
-        game.anims.append([AwakenAnim(target=game.hero, duration=30, on_end=step)])
-      ),
-      lambda step: game.anims.append([JumpAnim(target=game.hero, on_end=step)]),
-      lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
-      lambda step: (
-        game.hero.set_facing((1, 0)),
-        game.anims.append([PauseAnim(duration=15, on_end=step)])
-      ),
-      lambda step: (
-        game.hero.set_facing((-1, 0)),
-        game.anims.append([PauseAnim(duration=30, on_end=step)])
-      ),
-      lambda step: (
-        game.hero.set_facing((0, 1)),
-        game.anims.append([PauseAnim(duration=15, on_end=step)])
-      )
+      *cutscene(room, game)
     ]))
 
   def create_floor(room, *args, **kwargs):
     return super().create_floor(use_edge=False, *args, **kwargs)
+
+def cutscene(room, game):
+  return [
+    lambda step: (
+      game.camera.focus(room.get_center()),
+      game.anims.extend([
+        [
+          PauseAnim(duration=30),
+          DropAnim(
+            target=game.hero,
+            on_end=lambda: game.hero.inflict_ailment("sleep")
+          ),
+          DropAnim(
+            target=room.mage,
+            delay=30,
+            on_end=lambda: room.mage.inflict_ailment("sleep")
+          )
+        ],
+        [PauseAnim(duration=30, on_end=step)]
+      ])
+    ),
+    lambda step: (
+      game.camera.focus(room.mage.cell, force=True, speed=8),
+      game.anims.append([PauseAnim(duration=30, on_end=step)])
+    ),
+    lambda step: (
+      room.mage.dispel_ailment(),
+      game.anims.append([AwakenAnim(target=room.mage, duration=30, on_end=step)])
+    ),
+    lambda step: game.anims.append([JumpAnim(target=room.mage, on_end=step)]),
+    lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
+    lambda step: (
+      room.mage.set_facing((-1, 0)),
+      game.anims.append([PauseAnim(duration=15, on_end=step)])
+    ),
+    lambda step: (
+      room.mage.set_facing((0, 1)),
+      game.anims.append([PauseAnim(duration=15, on_end=step)])
+    ),
+    lambda step: game.child.open(DialogueContext(script=[
+      (room.mage.get_name(), "I'm alive...")
+    ], on_close=step)),
+    lambda step: (
+      room.mage.set_facing((0, -1)),
+      game.anims.append([PauseAnim(duration=30, on_end=step)])
+    ),
+    lambda step: (
+      room.mage.set_facing((-1, 0)),
+      game.anims.append([PauseAnim(duration=15, on_end=step)])
+    ),
+    lambda step: (
+      game.vfx.append(AlertBubble(cell=room.mage.cell)),
+      game.anims.append([PauseAnim(duration=60, on_end=step)])
+    ),
+    lambda step: (
+      room.mage.move_to(add(room.cell, (4, 5))),
+      game.camera.focus(add(room. cell, (2.5, 4.5)), force=True, speed=8),
+      game.anims.append([PathAnim(
+        target=room.mage,
+        path=[add(room.cell, c) for c in [(4, 3), (3, 3), (3, 4)]],
+        on_end=step
+      )])
+    ),
+    lambda step: (
+      room.mage.set_facing((-1, 0)),
+      game.anims.append([PauseAnim(duration=15, on_end=step)])
+    ),
+    lambda step: game.child.open(DialogueContext(script=[
+      (room.mage.get_name(), "Hmmm..."),
+      (room.mage.get_name(), "I doubt this son of a gun has two brain cells to rub together, but...")
+    ], on_close=step)),
+    lambda step: (
+      room.mage.set_facing((0, -1)),
+      game.anims.append([PauseAnim(duration=30, on_end=step)])
+    ),
+    lambda step: (
+      room.mage.set_facing((0, 1)),
+      game.anims.append([PauseAnim(duration=30, on_end=step)])
+    ),
+    lambda step: (
+      room.mage.set_facing((-1, 0)),
+      game.anims.append([PauseAnim(duration=15, on_end=step)])
+    ),
+    lambda step: game.child.open(DialogueContext(script=[
+      (room.mage.get_name(), ". . . . ."),
+      (room.mage.get_name(), "...that weapon he's holding doesn't look half bad...")
+    ], on_close=step)),
+    lambda step: (
+      room.mage.set_facing((0, 1)),
+      game.anims.append([PauseAnim(duration=45, on_end=step)])
+    ),
+    lambda step: (
+      room.mage.set_facing((-1, 0)),
+      game.anims.append([PauseAnim(duration=15, on_end=step)])
+    ),
+    lambda step: game.anims.extend([
+      [AttackAnim(
+        target=room.mage,
+        duration=15,
+        src=room.mage.cell,
+        dest=game.hero.cell,
+        on_end=step
+      )],
+      [ItemAnim(
+        target=room.mage,
+        duration=15,
+        item=Longinus
+      )]
+    ]),
+    lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
+    lambda step: (
+      game.camera.focus(add(room.cell, (3, 2)), force=True, speed=8),
+      room.mage.move_to(add(room.cell, (3, 2))),
+      game.anims.append([PathAnim(
+        target=room.mage,
+        path=[add(room.cell, c) for c in [(3, 4), (3, 3), (3, 2)]],
+        on_end=step
+      )])
+    ),
+    lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
+    lambda step: (
+      room.mage.set_facing((0, 1)),
+      game.anims.append([JumpAnim(target=room.mage, on_end=step)])
+    ),
+    lambda step: game.child.open(DialogueContext(script=[
+      (room.mage.get_name(), "Well then!"),
+      (room.mage.get_name(), "I'd better make like a tree and get the hell out of here."),
+      (room.mage.get_name(), "There's a million places I'd rather be than this godforsaken tomb...")
+    ], on_close=step)),
+    lambda step: (
+      room.mage.set_facing((1, 0)),
+      game.anims.append([PauseAnim(duration=15, on_end=step)])
+    ),
+    lambda step: (
+      room.mage.set_facing((0, -1)),
+      game.anims.append([PauseAnim(duration=15, on_end=step)])
+    ),
+    lambda step: (
+      room.mage.move_to(add(room.cell, (3, -1))),
+      game.anims.append([PathAnim(
+        target=room.mage,
+        path=[add(room.cell, c) for c in [(3, 2), (3, 1), (3, 0), (3, -1)]],
+        on_end=step
+      )])
+    ),
+    lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
+    lambda step: (
+      game.floor.remove_elem(room.mage),
+      game.camera.focus(game.hero.cell, force=True, speed=8),
+      game.anims.append([PauseAnim(duration=60, on_end=step)])
+    ),
+    lambda step: (
+      game.hero.dispel_ailment(),
+      game.anims.append([AwakenAnim(target=game.hero, duration=30, on_end=step)])
+    ),
+    lambda step: game.anims.append([JumpAnim(target=game.hero, on_end=step)]),
+    lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
+    lambda step: (
+      game.hero.set_facing((1, 0)),
+      game.anims.append([PauseAnim(duration=15, on_end=step)])
+    ),
+    lambda step: (
+      game.hero.set_facing((-1, 0)),
+      game.anims.append([PauseAnim(duration=30, on_end=step)])
+    ),
+    lambda step: (
+      game.hero.set_facing((0, 1)),
+      game.anims.append([PauseAnim(duration=15, on_end=step)])
+    )
+  ]

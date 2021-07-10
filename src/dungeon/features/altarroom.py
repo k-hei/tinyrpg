@@ -12,6 +12,7 @@ from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
 from config import RUN_DURATION
 from transits.dissolve import DissolveIn, DissolveOut
+from lib.cell import add
 
 class AltarRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
@@ -32,7 +33,7 @@ class AltarRoom(SpecialRoom):
       "   .   ",
     ], elems=[
       ((3, 6), mage := Mage(faction="ally", facing=(0, -1))),
-      ((3, 5), Altar()),
+      ((3, 5), altar := Altar()),
       ((1, 2), Pillar()),
       ((1, 4), Pillar()),
       ((1, 6), Pillar()),
@@ -41,6 +42,7 @@ class AltarRoom(SpecialRoom):
       ((5, 6), Pillar()),
     ], *args, **kwargs)
     room.mage = mage
+    room.altar = altar
     room.entered = False
 
   def get_edges(room):
@@ -67,31 +69,24 @@ class AltarRoom(SpecialRoom):
 def cutscene(room, game):
   return [
     lambda step: (
-      game.camera.focus((4, 6)),
+      game.camera.focus(room.altar.cell),
       game.anims.append([PauseAnim(
         duration=60,
         on_end=step
       )])
     ),
     lambda step: (
-      game.hero.move_to((4, 8)),
+      game.hero.move_to(add(room.cell, (3, 7))),
       game.anims.append([PathAnim(
         target=game.hero,
-        path=[(4, 14), (4, 13), (4, 12), (4, 11), (4, 10), (4, 9), (4, 8)],
-        period=RUN_DURATION,
+        path=[add(room.cell, c) for c in [(3, 13), (3, 12), (3, 11), (3, 10), (3, 9), (3, 8), (3, 7)]],
         on_end=step
       )])
     ),
-    lambda step: game.anims.append([PauseAnim(
-      duration=30,
-      on_end=step
-    )]),
+    lambda step: game.anims.append([PauseAnim(duration=30, on_end=step)]),
     lambda step: (
-      game.camera.focus((4, 8), force=True),
-      game.anims.append([PauseAnim(
-        duration=30,
-        on_end=step
-      )])
+      game.camera.focus(add(room.cell, (3, 7)), force=True),
+      game.anims.append([PauseAnim(duration=30, on_end=step)])
     ),
     lambda step: (
       game.anims.extend([
@@ -106,37 +101,31 @@ def cutscene(room, game):
           CutsceneContext(script=[
             lambda step: (
               room.mage.set_facing((1, 0)),
-              game.anims.append([PauseAnim(
-                duration=15,
-                on_end=step
-              )])
+              game.anims.append([PauseAnim(duration=15, on_end=step)])
             ),
             lambda step: (
               room.mage.set_facing((0, 1)),
-              game.anims.append([PauseAnim(
-                duration=15,
-                on_end=step
-              )])
+              game.anims.append([PauseAnim(duration=15, on_end=step)])
             ),
           ]),
           (room.mage.get_name(), "The hell?"),
           CutsceneContext(script=[
             lambda step: (
-              game.camera.focus((4, 6), force=True),
-              room.mage.move_to((3, 5)),
+              game.camera.focus(add(room.cell, (3, 5)), force=True),
+              room.mage.move_to(add(room.cell, (2, 4))),
               game.anims.append([PathAnim(
                 target=room.mage,
-                path=[(4, 7), (3, 7), (3, 6), (3, 5)],
+                path=[add(room.cell, c) for c in [(3, 6), (2, 6), (2, 5), (2, 4)]],
                 period=RUN_DURATION,
                 on_end=step
               )])
             ),
             lambda step: (
               room.mage.set_facing((0, 1)),
-              game.hero.move_to((4, 7)),
+              game.hero.move_to(add(room.cell, (3, 6))),
               game.anims.append([PathAnim(
                 target=game.hero,
-                path=[(4, 8), (4, 7)],
+                path=[add(room.cell, c) for c in [(3, 7), (3, 6)]],
                 period=RUN_DURATION
               )]),
               step()
@@ -149,10 +138,10 @@ def cutscene(room, game):
       ))
     ),
     *[(lambda cell: lambda step: (
-      game.floor.set_tile_at(cell, game.floor.PIT),
+      game.floor.set_tile_at(add(room.cell, cell), game.floor.PIT),
       game.redraw_tiles(),
       game.anims.append([PauseAnim(duration=5, on_end=step)]),
-    ))(c) for c in [(3, 4), (4, 4), (5, 4), (5, 5), (5, 6), (5, 7), (4, 7), (3, 7), (3, 6), (3, 5)]],
+    ))(c) for c in [(2, 3), (3, 3), (4, 3), (4, 4), (4, 5), (4, 6), (3, 6), (2, 6), (2, 5), (2, 4)]],
     lambda step: game.anims.append([PauseAnim(duration=30, on_end=step)]),
     lambda step: (
       game.anims.extend([
