@@ -43,16 +43,6 @@ class DepthsRoom(SpecialRoom):
       (room_x + room_width // 2, room_y - 1),
     ]
 
-  def place(room, stage, cell=None):
-    super().place(stage, cell)
-    room_width, room_height = room.get_size()
-    room_x, room_y = room.cell
-    door = room.Door()
-    door.open()
-    door_cell = (room_x + room_width // 2, 0)
-    stage.set_tile_at(door_cell, stage.FLOOR)
-    stage.spawn_elem_at(door_cell, door)
-
   def on_focus(room, game):
     if room.focused:
       return False

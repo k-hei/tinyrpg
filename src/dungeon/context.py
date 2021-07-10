@@ -956,15 +956,16 @@ class DungeonContext(Context):
 
     if opened:
       game.floor.set_tile_at(cell, Stage.DOOR_OPEN)
-      game.redraw_tiles()
+      game.redraw_tiles(force=True)
     return opened
 
-  def redraw_tiles(game):
+  def redraw_tiles(game, force=False):
     game.floor_view.redraw_tiles(
       stage=game.floor,
       camera=game.camera,
       visible_cells=game.get_visible_cells(),
-      visited_cells=game.get_visited_cells()
+      visited_cells=game.get_visited_cells(),
+      force=force
     )
 
   def attack(game, actor, target, damage=None, on_connect=None, on_end=None):
