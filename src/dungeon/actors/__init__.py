@@ -52,8 +52,8 @@ class DungeonActor(DungeonElement):
   def get_skills(actor): return actor.core.skills
   def get_active_skills(actor): return actor.core.get_active_skills()
   def is_dead(actor): return actor.core.dead
-  def is_immobile(actor):
-    return actor.is_dead() or actor.stepped or actor.ailment in ("sleep", "freeze")
+  def can_step(actor):
+    return not actor.is_dead() and not actor.stepped and actor.ailment not in ("sleep", "freeze")
 
   def get_str(actor):
     return actor.core.st
@@ -184,7 +184,7 @@ class DungeonActor(DungeonElement):
     return max(1, st - en + randint(-variance, variance))
 
   def step(actor, game):
-    if actor.is_immobile():
+    if not actor.can_step():
       return None
     enemy = game.find_closest_enemy(actor)
     if enemy is None:

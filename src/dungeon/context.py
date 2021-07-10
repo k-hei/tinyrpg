@@ -288,7 +288,7 @@ class DungeonContext(Context):
     enemies.sort(key=lambda e: type(e) is MageActor and 1000 or manhattan(e.cell, hero.cell))
 
     for actor in actors:
-      if actor in enemies:
+      if actor in enemies and actor is not ally:
         command = game.step_enemy(actor)
         if type(command) is tuple:
           commands[actor] = command
@@ -309,6 +309,8 @@ class DungeonContext(Context):
       COMMAND_PRIORITY = ["move", "move_to", "use_skill", "attack"]
       game.commands = sorted(commands.items(), key=lambda item: COMMAND_PRIORITY.index(item[1][0]))
       game.next_command(on_end=game.end_step)
+    else:
+      game.end_step()
 
   def next_command(game, on_end=None):
     if not game.commands:
@@ -318,7 +320,7 @@ class DungeonContext(Context):
       game.next_command(on_end)
     )
     actor, (cmd_name, *cmd_args) = game.commands[0]
-    if actor.is_immobile():
+    if not actor.can_step():
       return step()
     if cmd_name == "use_skill":
       return game.use_skill(actor, *cmd_args, on_end=step)
@@ -337,7 +339,7 @@ class DungeonContext(Context):
       actor.stepped = False
 
   def step_ally(game, ally, run=False, old_hero_cell=None):
-    if not ally or ally.stepped or ally.is_dead() or ally.ailment == "sleep":
+    if not ally or not ally.can_step():
       return False
     hero = game.hero
     actors = [e for e in game.floor.elems if isinstance(e, DungeonActor)]
