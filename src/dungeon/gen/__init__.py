@@ -304,32 +304,52 @@ class Floor:
     graph = floor.graph
     tree = floor.tree
     if start is None:
-      start = choice([n for n in graph.nodes if tree.degree(n) < n.degree])
+      start = choice([n for n in graph.nodes if (
+        type(n) is not Maze
+        and (tree.degree(n) < n.degree
+          or n.degree == 0)
+      )])
     queue = [start]
     while queue:
       node = queue[-1]
       tree.add(node)
       neighbors = graph.neighbors(node)
       neighbors = [n for n in neighbors if (
-        tree.degree(n) == 0
+        not tree.connectors(node, n)
+        and (tree.degree(n) == 0
+          or n.degree and tree.degree(n) != n.degree)
       )]
-      debug("Spanning from {node}".format(node=type(node).__name__))
       if not neighbors:
         if tree.degree(node) < node.degree:
-          debug("Node is missing connections")
+          debug("{node} has too few connections (expected {expected_degree}, got {observed_degree})".format(
+            node=type(node).__name__,
+            expected_degree=node.degree,
+            observed_degree=tree.degree(node),
+          ))
           return False
+        debug("Span from {node} complete".format(node=type(node).__name__))
         queue.pop()
         continue
+      debug("Spanning from {node}".format(node=type(node).__name__))
       for neighbor in neighbors:
         connectors = graph.connectors(node, neighbor)
         connector = choice(connectors)
-        tree.connect(node, neighbor, connector)
-        queue.insert(0, neighbor)
-        debug("Connecting {node} with degree {degree} to {neighbor}".format(
+        debug("Connecting {node}({node_degree}°) to {neighbor}({neighbor_degree}°)".format(
           node=type(node).__name__,
+          node_degree=tree.degree(node),
           neighbor=type(neighbor).__name__,
-          degree=tree.degree(node),
+          neighbor_degree=tree.degree(neighbor),
         ))
+        tree.connect(node, neighbor, connector)
+        if tree.degree(neighbor) < neighbor.degree or neighbor.degree == 0:
+          debug("Queueing neighbor {node}({observed_degree}/{expected_degree}°)".format(
+            node=type(neighbor).__name__,
+            observed_degree=tree.degree(node),
+            expected_degree=node.degree
+          ))
+          queue.insert(0, neighbor)
+        else:
+          debug("Neighbor {node} has enough connections, skipping...".format(node=type(neighbor).__name__))
         if node.degree:
           if tree.degree(node) == node.degree:
             break
@@ -411,8 +431,9 @@ def gen_features(floor, feature_graph):
         floor.tree.add(neighbor)
   return True
 
-def gen_floor(features, entrance=None, seed=None):
-  regen = lambda: gen_floor(features, entrance)
+def gen_floor(features, entrance=None, iters=0, seed=None):
+  debug("-- Iteration {} --".format(iters + 1))
+  regen = lambda: gen_floor(features, entrance, iters + 1)
   floor = Floor(config.FLOOR_SIZE)
   if seed is None:
     seed = random.getrandbits(32)
@@ -441,7 +462,7 @@ def gen_floor(features, entrance=None, seed=None):
     debug("Failed to satisfy feature degree constraints")
     return regen()
 
-  floor.gen_loops()
+  # floor.gen_loops()
   floor.fill_ends()
   floor.fill_isolated()
 
@@ -480,11 +501,10 @@ def gen_floor(features, entrance=None, seed=None):
     elif isinstance(n2, Room):
       origin = n1
       target = n2
-    feature_types = [type(f) for f in (origin, target)]
-    if ArenaRoom in feature_types:
-      door = BattleDoor()
-    elif RareTreasureRoom in feature_types:
-      door = TreasureDoor()
+    if isinstance(target, Room) and target.EntryDoor is not Door:
+      door = target.EntryDoor()
+    elif isinstance(origin, Room) and origin.ExitDoor is not Door:
+      door = origin.ExitDoor()
     else:
       door = Door()
     for door_cell in conns:
@@ -494,9 +514,6 @@ def gen_floor(features, entrance=None, seed=None):
       doors.append(door_cell)
 
   empty_rooms = [r for r in empty_rooms if r in tree.nodes]
-  if not empty_rooms:
-    debug("No empty rooms to spawn at")
-    return regen()
 
   # draw corners
   for room in empty_rooms:
@@ -508,19 +525,26 @@ def gen_floor(features, entrance=None, seed=None):
         corner = choice(corners)
         stage.set_tile_at(corner, stage.WALL)
 
+  # set entrance
   stage.rooms = empty_rooms + features.nodes
-  empty_leaves = [n for n in empty_rooms if tree.degree(n) == 1]
-  if not empty_leaves:
-    debug("No empty leaves to spawn at")
-    return regen()
-
-  entry_room = entrance or choice(empty_leaves)
+  if entrance:
+    entry_room = entrance
+  else:
+    if not empty_rooms:
+      debug("No empty rooms to spawn at")
+      return regen()
+    empty_leaves = [n for n in empty_rooms if tree.degree(n) == 1]
+    if not empty_leaves:
+      debug("No empty leaves to spawn at")
+      return regen()
+    entry_room = choice(empty_leaves)
   center_x, center_y = entry_room.get_center()
   stage.entrance = (center_x, center_y + 0)
   if entry_room in empty_rooms:
     empty_rooms.remove(entry_room)
     stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
 
+  # spawn enemies
   for room in empty_rooms:
     valid_cells = [c for c in room.get_cells() if not [d for d in doors if manhattan(d, c) <= 2]]
     enemy_count = randint(0, 3)
@@ -531,6 +555,7 @@ def gen_floor(features, entrance=None, seed=None):
       stage.spawn_elem_at(cell, gen_enemy(1))
       i += 1
 
+  # spawn key if necessary
   if next((f for f in features.nodes if type(f) is RareTreasureRoom), None):
     if not empty_rooms:
       debug("No empty rooms to spawn key at")

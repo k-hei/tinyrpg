@@ -17,7 +17,6 @@ from config import WINDOW_HEIGHT, TILE_SIZE
 class ArenaRoom(SpecialRoom):
   Door = BattleDoor
   waves = [
-    # [Eyeball],
     [Eyeball, Eyeball],
     [Eyeball, Eyeball, Mushroom],
     [Mushroom, Mushroom],

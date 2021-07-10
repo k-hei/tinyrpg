@@ -5,10 +5,10 @@ from random import choice
 
 class SpecialRoom(Room):
   def __init__(feature, shape, elems=None, rooms=None, *args, **kwargs):
+    super().__init__(shape and (len(shape[0]), len(shape)) or (0, 0), *args, **kwargs)
     feature.shape = shape or []
     feature.elems = elems or []
     feature.rooms = rooms or {}
-    super().__init__(shape and (len(shape[0]), len(shape)) or (0, 0), *args, **kwargs)
 
   def parse_char(char):
     if char == "#": return Stage.WALL

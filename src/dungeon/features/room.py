@@ -1,15 +1,20 @@
+from random import choice
 from math import ceil
 from lib.cell import add
 from dungeon.features import Feature
 from dungeon.props.door import Door
+from config import ROOM_WIDTHS, ROOM_HEIGHTS
 
 class Room(Feature):
-  Door = Door
+  EntryDoor = Door
+  ExitDoor = Door
 
-  def __init__(room, size, cell=None, degree=0, secret=False):
+  def __init__(room, size=None, cell=None, degree=0, secret=False):
     super().__init__(degree, secret)
-    room.size = size
+    room.size = size or (choice(ROOM_WIDTHS), choice(ROOM_HEIGHTS))
     room.cell = cell
+    room.entered = False
+    room.focused = False
 
   def get_width(room):
     width, _ = room.get_size()
@@ -99,17 +104,20 @@ class Room(Feature):
           slots.append((col, row))
     return slots
 
-  def on_enter(room, game): pass
-  def on_exit(room, game): pass
-  def on_kill(room, game, target): pass
-
   def on_focus(room, game):
+    room.focused = True
     for door in room.get_doors(game.floor):
       door.focus = game.hero.cell
 
   def on_blur(room, game):
     for door in room.get_doors(game.floor):
       door.focus = game.hero.cell
+
+  def on_enter(room, game):
+    room.entered = True
+
+  def on_exit(room, game): pass
+  def on_kill(room, game, target): pass
 
   def validate(room, cell, slots):
     for slot in room.get_slots(cell):
