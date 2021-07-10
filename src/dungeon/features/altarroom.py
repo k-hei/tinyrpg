@@ -1,5 +1,6 @@
 from dungeon.features.specialroom import SpecialRoom
 from dungeon.features.depthsroom import DepthsRoom
+from dungeon.features.room import Room
 from dungeon.props.altar import Altar
 from dungeon.props.pillar import Pillar
 from dungeon.actors.mage import Mage
@@ -13,6 +14,7 @@ from contexts.dialogue import DialogueContext
 from config import RUN_DURATION
 from transits.dissolve import DissolveIn, DissolveOut
 from lib.cell import add
+from dungeon.gen import gen_floor
 
 class AltarRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
@@ -52,13 +54,18 @@ class AltarRoom(SpecialRoom):
       (room_x + room_width // 2, room_y + room_height)
     ]
 
-  def on_enter(room, game):
+  def on_focus(room, game):
     game.open(CutsceneContext(script=[
-      *cutscene(room, game),
+      # *cutscene(room, game),
       lambda step: (
         game.get_root().transition(
           DissolveIn(on_end=lambda: (
-            game.use_floor(DepthsRoom().create_floor()),
+            game.parent.goto_dungeon(floor=gen_floor(
+              entrance=DepthsRoom,
+              features=[
+                [DepthsRoom()]
+              ])
+            ),
             step()
           )),
           DissolveOut()

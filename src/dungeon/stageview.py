@@ -2,6 +2,7 @@ import sys
 from math import ceil
 from pygame import Surface, Rect, SRCALPHA
 from pygame.transform import rotate, flip, scale
+from pygame.time import get_ticks
 
 from assets import load as use_assets
 from filters import replace_color, darken
@@ -47,6 +48,7 @@ class StageView:
     self.tile_surface = Surface((width, height), SRCALPHA)
     self.tile_offset = (0, 0)
     self.tile_cache = {}
+    self.camera_cell = None
     self.stage = None
     self.facings = {}
 
@@ -70,6 +72,7 @@ class StageView:
       and stage.get_tile_at(cell) is not stage.WALL_ELEV
       and stage.get_tile_at(cell) is not stage.STAIRS_RIGHT):
         sprite = replace_color(sprite, GRAY, GRAY_DARK)
+    sprite_dark = sprite
     sprite_dark = replace_color(sprite, color, darken_color(color))
     self.tile_cache[cell] = sprite_dark
     x = (col - start_x) * TILE_SIZE + sprite_xoffset
@@ -83,6 +86,10 @@ class StageView:
     start_y = camera.top // TILE_SIZE - 1
     end_x = ceil(camera.right / TILE_SIZE) + 1
     end_y = ceil(camera.bottom / TILE_SIZE) + 1
+    camera_cell = (start_x, start_y)
+    if camera_cell == self.camera_cell:
+      return
+    self.camera_cell = camera_cell
     self.tile_offset = (start_x, start_y)
     self.tile_surface.fill(BLACK)
     if stage is not self.stage:
@@ -298,16 +305,16 @@ def render_tile(stage, cell, visited_cells=[]):
     sprite_name = "door_open"
   elif tile is stage.DOOR_LOCKED:
     sprite_name = "door"
-  elif tile is stage.FLOOR and (
-    stage.get_tile_at((x - 1, y)) is stage.FLOOR
-    and stage.get_tile_at((x + 1, y)) is stage.FLOOR
-    and stage.get_tile_at((x, y - 1)) is stage.FLOOR
-    and stage.get_tile_at((x, y + 1)) is stage.FLOOR
-    and stage.get_tile_at((x - 1, y - 1)) is stage.FLOOR
-    and stage.get_tile_at((x + 1, y - 1)) is stage.FLOOR
-    and stage.get_tile_at((x - 1, y + 1)) is stage.FLOOR
-    and stage.get_tile_at((x + 1, y + 1)) is stage.FLOOR):
-    sprite_name = "floor_fancy"
+  # elif tile is stage.FLOOR and (
+  #   stage.get_tile_at((x - 1, y)) is stage.FLOOR
+  #   and stage.get_tile_at((x + 1, y)) is stage.FLOOR
+  #   and stage.get_tile_at((x, y - 1)) is stage.FLOOR
+  #   and stage.get_tile_at((x, y + 1)) is stage.FLOOR
+  #   and stage.get_tile_at((x - 1, y - 1)) is stage.FLOOR
+  #   and stage.get_tile_at((x + 1, y - 1)) is stage.FLOOR
+  #   and stage.get_tile_at((x - 1, y + 1)) is stage.FLOOR
+  #   and stage.get_tile_at((x + 1, y + 1)) is stage.FLOOR):
+  #   sprite_name = "floor_fancy"
   elif tile is stage.FLOOR and tile_below is not stage.DOOR:
     sprite_name = "floor"
   elif tile is stage.PIT and tile_above and tile_above is not stage.PIT:

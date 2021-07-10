@@ -27,6 +27,7 @@ class DepthsRoom(SpecialRoom):
       ((4, 3), mage := Mage(faction="ally"))
     ], *args, **kwargs)
     room.mage = mage
+    room.focused = False
 
   def get_cells(room):
     return [c for c in super().get_cells() if c not in room.get_corners()]
@@ -38,7 +39,8 @@ class DepthsRoom(SpecialRoom):
     room_width, room_height = room.get_size()
     room_x, room_y = room.cell or (0, 0)
     return [
-      (room_x + room_width // 2, room_y + room_height)
+      (room_x + room_width // 2, room_y - 2),
+      (room_x + room_width // 2, room_y - 1),
     ]
 
   def place(room, stage, cell=None):
@@ -52,11 +54,15 @@ class DepthsRoom(SpecialRoom):
     stage.spawn_elem_at(door_cell, door)
 
   def on_focus(room, game):
+    if room.focused:
+      return False
+    room.focused = True
     game.hero.cell = add(room.cell, (3, 5))
     game.hero.set_facing((0, -1))
     game.open(CutsceneContext(script=[
-      *cutscene(room, game)
+      # *cutscene(room, game)
     ]))
+    return True
 
   def create_floor(room, *args, **kwargs):
     return super().create_floor(use_edge=False, *args, **kwargs)

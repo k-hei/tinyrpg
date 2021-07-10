@@ -175,6 +175,9 @@ class DungeonContext(Context):
     elif floor.find_tile(Stage.DOOR_HIDDEN):
       game.log.print("This floor seems to hold many secrets.")
 
+    game.room = None
+    game.anims = []
+    game.commands = []
     game.floor = floor
     game.floors.append(game.floor)
     game.memory.append((game.floor, []))
@@ -430,7 +433,7 @@ class DungeonContext(Context):
     game.key_requires_reset[key] = False
 
   def handle_keydown(game, key):
-    if not config.DEBUG and (game.anims or game.commands):
+    if game.anims or game.commands:
       return False
 
     # debug functionality
@@ -1016,7 +1019,8 @@ class DungeonContext(Context):
           drop = choice(enemy_drops)
           game.floor.spawn_elem_at(target.cell, Bag(item=drop))
       target.kill()
-      game.floor.elems.remove(target)
+      if target in game.floor.elems:
+        game.floor.elems.remove(target)
       if game.room:
         game.room.on_kill(game, target) # TODO: associate actors with rooms for robustness
       if target is hero:

@@ -317,6 +317,7 @@ class Floor:
       )]
       if not neighbors:
         if tree.degree(node) < node.degree:
+          debug("Node is missing connections")
           return False
         queue.pop()
         continue
@@ -325,10 +326,20 @@ class Floor:
         connector = choice(connectors)
         tree.connect(node, neighbor, connector)
         queue.insert(0, neighbor)
+        debug("Connecting {node} with degree {degree} to {neighbor}".format(
+          node=type(node).__name__,
+          neighbor=type(neighbor).__name__,
+          degree=tree.degree(node),
+        ))
         if node.degree:
           if tree.degree(node) == node.degree:
             break
           if tree.degree(node) > node.degree:
+            debug("{node} has too many connections (expected {expected_degree}, got {observed_degree})".format(
+              node=type(node).__name__,
+              expected_degree=node.degree,
+              observed_degree=tree.degree(node),
+            ))
             return False
       if type(node) is Maze:
         queue.remove(node)
@@ -400,7 +411,8 @@ def gen_features(floor, features):
       floor.tree.add(feature)
   return True
 
-def gen_floor(seed=None):
+def gen_floor(features=[], entrance=None, seed=None):
+  regen = lambda: gen_floor(features, entrance)
   floor = Floor(config.FLOOR_SIZE)
   if seed is None:
     seed = random.getrandbits(32)
@@ -410,27 +422,24 @@ def gen_floor(seed=None):
   stage = floor.stage
   stage.seed = seed
 
-  arena = ArenaRoom()
-  exit_room = ExitRoom()
-  puzzle_room = VerticalRoom((5, 4))
-  treasure_room = TreasureRoom()
-  oasis_room = OasisRoom()
-  coffin_room = CoffinRoom()
-  pit_room = PitRoom()
-  elev_room = ElevRoom()
-
-  features = [
-    [arena, exit_room, puzzle_room],
-    # [pit_room],
-    # [elev_room],
-    [treasure_room],
-    [oasis_room],
-    # [coffin_room],
-  ]
+  if not features:
+    arena = ArenaRoom()
+    exit_room = ExitRoom()
+    puzzle_room = VerticalRoom((5, 4))
+    treasure_room = TreasureRoom()
+    oasis_room = OasisRoom()
+    coffin_room = CoffinRoom()
+    pit_room = PitRoom()
+    elev_room = ElevRoom()
+    features = [
+      [arena, exit_room, puzzle_room],
+      [treasure_room],
+      [oasis_room],
+    ]
 
   if not gen_features(floor, features):
     debug("Feature placement failed")
-    return gen_floor()
+    return regen()
 
   empty_rooms = floor.gen_rooms()
   # if not empty_rooms:
@@ -441,11 +450,11 @@ def gen_floor(seed=None):
 
   if not floor.connect():
     debug("Failed to connect feature graph")
-    return gen_floor()
+    return regen()
 
-  if not floor.span(start=puzzle_room):
+  if not floor.span(start=features[0][0]):
     debug("Failed to satisfy feature degree constraints")
-    return gen_floor()
+    return regen()
 
   floor.gen_loops()
   floor.fill_ends()
@@ -455,7 +464,7 @@ def gen_floor(seed=None):
   isolated = [f for f in feature_list if f not in tree.nodes]
   if isolated:
     debug("Failed to connect all features")
-    return gen_floor()
+    return regen()
 
   secrets = [n for n in tree.nodes if n.secret]
   for node in secrets:
@@ -465,7 +474,7 @@ def gen_floor(seed=None):
       door = tree.connectors(node, maze)[0]
       if [e for e in maze.get_ends() if is_adjacent(e, door)]:
         debug("Hidden room connected to dead end")
-        return gen_floor()
+        return regen()
 
   for feature in graph.nodes:
     feature.place(floor.stage)
@@ -503,7 +512,7 @@ def gen_floor(seed=None):
   empty_rooms = [r for r in empty_rooms if r in tree.nodes]
   if not empty_rooms:
     debug("No empty rooms to spawn at")
-    return gen_floor()
+    return regen()
 
   # draw corners
   for room in empty_rooms:
@@ -519,9 +528,11 @@ def gen_floor(seed=None):
   empty_leaves = [n for n in empty_rooms if tree.degree(n) == 1]
   if not empty_leaves:
     debug("No empty leaves to spawn at")
-    return gen_floor()
+    return regen()
 
-  entry_room = choice(empty_leaves)
+  entry_room = (entrance
+    and next((f for f in feature_list if type(f) is entrance), None)
+    or choice(empty_leaves))
   center_x, center_y = entry_room.get_center()
   stage.entrance = (center_x, center_y + 0)
   if entry_room in empty_rooms:
@@ -538,23 +549,13 @@ def gen_floor(seed=None):
       stage.spawn_elem_at(cell, gen_enemy(1))
       i += 1
 
-  if not empty_rooms:
-    debug("No empty rooms to spawn key at")
-    return gen_floor()
-  key_room = choice(empty_rooms)
-  empty_rooms.remove(key_room)
-  stage.spawn_elem_at(key_room.get_center(), Chest(Key))
-
-  genie = Genie(name="Joshin", script=(
-    ("Joshin", "Pee pee poo poo"),
-    ("Minxia", "He has such a way with words")
-  ))
-  corner = next((c for c in entry_room.get_corners() if (
-    stage.get_tile_at(c) is stage.FLOOR
-    and not [d for d in doors if manhattan(d, c) <= 2]
-  )), None)
-  if corner:
-    stage.spawn_elem_at(corner, genie)
+  if next((f for f in feature_list if type(f) is TreasureRoom), None):
+    if not empty_rooms:
+      debug("No empty rooms to spawn key at")
+      return regen()
+    key_room = choice(empty_rooms)
+    empty_rooms.remove(key_room)
+    stage.spawn_elem_at(key_room.get_center(), Chest(Key))
 
   return stage
 
