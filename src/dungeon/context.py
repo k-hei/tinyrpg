@@ -341,6 +341,15 @@ class DungeonContext(Context):
     actors = [e for e in game.floor.elems if isinstance(e, DungeonActor)]
     for actor in actors:
       actor.stepped = False
+    hero = game.hero
+    if hero.ailment == "sleep":
+      if hero.get_hp() == hero.get_hp_max():
+        hero.dispel_ailment()
+      else:
+        game.anims.append([PauseAnim(
+          duration=1,
+          on_end=game.step
+        )])
 
   def step_ally(game, ally, run=False, old_hero_cell=None):
     if not ally or not ally.can_step():
@@ -464,14 +473,17 @@ class DungeonContext(Context):
     key_requires_reset = key in game.key_requires_reset and game.key_requires_reset[key]
     if key in ARROW_DELTAS and not key_requires_reset:
       delta = ARROW_DELTAS[key]
-      run = pygame.K_RSHIFT in key_times and key_times[pygame.K_RSHIFT] > 0
-      run = run or pygame.K_LSHIFT in key_times and key_times[pygame.K_LSHIFT] > 0
+      run = keyboard.get_pressed(pygame.K_LSHIFT) or keyboard.get_pressed(pygame.K_RSHIFT)
       moved = game.handle_move(delta, run)
       if not moved:
         game.key_requires_reset[key] = True
       return moved
 
-    if key not in key_times or key_times[key] != 1:
+    if ((key == pygame.K_BACKSLASH or key == pygame.K_BACKQUOTE)
+    and keyboard.get_pressed(key) > 30):
+      return game.handle_sleep()
+
+    if keyboard.get_pressed(key) != 1:
       return False
 
     if key == pygame.K_TAB:
@@ -504,6 +516,17 @@ class DungeonContext(Context):
         return game.handle_skill()
 
     return None
+
+  def handle_sleep(game):
+    hero = game.hero
+    floor = game.floor
+    visible_actors = [floor.get_elem_at(c, superclass=DungeonActor) for c in hero.visible_cells]
+    visible_enemies = [e for e in visible_actors if e and not e.allied(hero)]
+    if hero.ailment == "sleep" or visible_enemies:
+      return False
+    hero.inflict_ailment("sleep")
+    game.step()
+    return True
 
   def handle_move(game, delta, run=False):
     hero = game.hero

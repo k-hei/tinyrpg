@@ -27,6 +27,7 @@ class DungeonActor(DungeonElement):
   POISON_DURATION = 4
   POISON_STRENGTH = 1 / 7
   FREEZE_DURATION = 5
+  SLEEP_DURATION = 256
   skill = None
   drops = []
 
@@ -96,6 +97,8 @@ class DungeonActor(DungeonElement):
       actor.ailment_turns = DungeonActor.POISON_DURATION
     if ailment == "freeze":
       actor.ailment_turns = DungeonActor.FREEZE_DURATION
+    if ailment == "sleep":
+      actor.ailment_turns = DungeonActor.SLEEP_DURATION
     actor.ailment = ailment
     return True
 
