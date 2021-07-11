@@ -288,6 +288,9 @@ class DungeonContext(Context):
     enemies.sort(key=lambda e: type(e) is MageActor and 1000 or manhattan(e.cell, hero.cell))
 
     for actor in actors:
+      if actor.is_dead():
+        continue
+
       if actor in enemies and actor is not ally:
         command = game.step_enemy(actor)
         if type(command) is tuple:

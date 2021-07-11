@@ -72,15 +72,16 @@ class DepthsRoom(SpecialRoom):
     item_room = TreasureRoom(item=Potion)
     enemy_room = EnemyRoom()
     exit_room = ExitRoom()
-    lock_room = VerticalRoom(degree=2)
+    lock_room = VerticalRoom(degree=3)
     return gen_floor(
       entrance=entry_room,
       features=FloorGraph(
-        nodes=[fork_room, entry_room, item_room, enemy_room, exit_room, lock_room],
+        nodes=[fork_room, entry_room, item_room, enemy_room, lock_room, exit_room],
         edges=[
           (fork_room, entry_room),
           (fork_room, item_room),
           (fork_room, enemy_room),
+          (lock_room, enemy_room),
           (lock_room, exit_room),
         ]
       )

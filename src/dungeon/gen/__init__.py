@@ -53,26 +53,6 @@ from items.materials.angeltears import AngelTears
 
 from skills.support.counter import Counter
 
-def cells(size):
-  cells = []
-  width, height = size
-  for y in range(height):
-    for x in range(width):
-      cells.append((x, y))
-  return cells
-
-def get_neighbors(nodes, node):
-  neighbors = {}
-  others = [n for n in nodes if n is not node]
-  for edge in node.get_edges():
-    neighbor = next((n for n in others if edge in n.get_edges()), None)
-    if neighbor:
-      if neighbor not in neighbors:
-        neighbors[neighbor] = [edge]
-      else:
-        neighbors[neighbor].append(edge)
-  return neighbors
-
 class Floor:
   def __init__(floor, size):
     floor.slots = Floor.gen_slots(size)
@@ -126,7 +106,7 @@ class Floor:
     overlap = []
     while valid_slots and not overlap:
       neighbor.cell = choice(valid_slots)
-      overlap = set(node.get_edges()) & set(neighbor.get_exits())
+      overlap = set(node.get_exits()) & set(neighbor.get_edges())
       if not overlap:
         valid_slots.remove(neighbor.cell)
         neighbor.cell = None
@@ -363,6 +343,9 @@ class Floor:
       if type(node) is Maze:
         queue.remove(node)
         queue.insert(0, node)
+    for node in graph.nodes:
+      if node.degree and tree.degree(node) < node.degree:
+        return False
     return True
 
   def fill_ends(floor):
@@ -423,11 +406,16 @@ def gen_features(floor, feature_graph):
       if not floor.gen_place(node):
         return False
       floor.tree.add(node)
+      debug("Placed {}".format(type(node).__name__))
     neighbors = feature_graph.neighbors(node)
     for neighbor in neighbors:
       if neighbor not in floor.tree.nodes:
         if not floor.gen_neighbor(node, neighbor):
           return False
+        debug("Placed {neighbor} from {node}".format(
+          node=type(node).__name__,
+          neighbor=type(neighbor).__name__
+        ))
         floor.tree.add(neighbor)
   return True
 
@@ -488,6 +476,7 @@ def gen_floor(features, entrance=None, iters=0, seed=None):
 
   # draw doors
   doors = []
+  door_cells = []
   for (n1, n2), conns in tree.conns.items():
     if n1.secret or tree.degree(n1) == 1:
       origin = n2
@@ -507,18 +496,19 @@ def gen_floor(features, entrance=None, iters=0, seed=None):
       door = origin.ExitDoor()
     else:
       door = Door()
+    doors.append(door)
     for door_cell in conns:
       if door_cell in doors:
         continue
       floor.draw_door(door_cell, door, room=target)
-      doors.append(door_cell)
+      door_cells.append(door_cell)
 
   empty_rooms = [r for r in empty_rooms if r in tree.nodes]
 
   # draw corners
   for room in empty_rooms:
     corners = [c for c in room.get_corners() if not [
-      d for d in doors if manhattan(c, d) <= 2]]
+      d for d in door_cells if manhattan(c, d) <= 2]]
     if corners:
       corner_count = randrange(0, len(corners))
       for i in range(corner_count):
@@ -546,7 +536,7 @@ def gen_floor(features, entrance=None, iters=0, seed=None):
 
   # spawn enemies
   for room in empty_rooms:
-    valid_cells = [c for c in room.get_cells() if not [d for d in doors if manhattan(d, c) <= 2]]
+    valid_cells = [c for c in room.get_cells() if not [d for d in door_cells if manhattan(d, c) <= 2]]
     enemy_count = randint(0, 3)
     i = 0
     while i < enemy_count and valid_cells:
@@ -556,11 +546,12 @@ def gen_floor(features, entrance=None, iters=0, seed=None):
       i += 1
 
   # spawn key if necessary
-  if next((f for f in features.nodes if type(f) is RareTreasureRoom), None):
-    if not empty_rooms:
+  if next((d for d in doors if type(d) is TreasureDoor), None):
+    empty_leaves = [r for r in tree.nodes if tree.degree(r) == 1 and type(r) is Room]
+    if not empty_leaves:
       debug("No empty rooms to spawn key at")
       return regen()
-    key_room = choice(empty_rooms)
+    key_room = choice(empty_leaves)
     empty_rooms.remove(key_room)
     stage.spawn_elem_at(key_room.get_center(), Chest(Key))
 

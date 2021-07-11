@@ -1,16 +1,16 @@
 from dungeon.features.specialroom import SpecialRoom
 
 class PitRoom(SpecialRoom):
-  def __init__(room, secret=False):
-    super().__init__(degree=2, secret=secret, shape=[
-      ". . .",
+  def __init__(room, *args, **kwargs):
+    super().__init__(shape=[
+      ".....",
+      ".....",
       "     ",
-      ". . .",
       "     ",
-      ". . .",
       "     ",
-      ". . ."
-    ])
+      ".....",
+      "....."
+    ], *args, **kwargs)
 
   def get_edges(room):
     edges = super().get_edges()
