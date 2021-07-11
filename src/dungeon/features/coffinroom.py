@@ -10,8 +10,8 @@ class CoffinRoom(Room):
     height = choice([h for h in ROOM_HEIGHTS if h % 2 == 1])
     super().__init__((width, height), *args, **kwargs)
 
-  def place(room, stage):
-    super().place(stage)
+  def place(room, stage, connectors, cell=None):
+    super().place(stage, connectors, cell)
     room_width, room_height = room.get_size()
     room_x, room_y = room.cell or (0, 0)
     for y in range(room_height):

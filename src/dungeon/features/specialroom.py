@@ -34,7 +34,7 @@ class SpecialRoom(Room):
   def get_size(feature):
     return (feature.get_width(), feature.get_height())
 
-  def place(feature, stage, cell=None):
+  def place(feature, stage, connectors, cell=None):
     feature.cell = cell or feature.cell or (0, 0)
     x, y = feature.cell
     entrance, stairs = None, None

@@ -46,9 +46,9 @@ class OasisRoom(SpecialRoom):
       (x + width, y + height // 2),
     ]
 
-  def place(room, stage, cell=None):
+  def place(room, stage, connectors, cell=None):
     sprites = use_assets().sprites
-    super().place(stage, cell)
+    super().place(stage, connectors, cell)
     room.cell = cell or room.cell or (0, 0)
     offset_x, offset_y = room.cell
     floor_cells = []

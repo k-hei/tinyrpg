@@ -470,7 +470,7 @@ def gen_floor(features, entrance=None, iters=0, seed=None):
         return regen()
 
   for feature in graph.nodes:
-    feature.place(floor.stage)
+    feature.place(floor.stage, tree.connectors(feature))
 
   floor.gen_minirooms()
 

@@ -3,6 +3,6 @@ class Feature:
     feature.degree = degree
     feature.secret = secret
 
-  def place(feature, stage):
-    for cell in feature.get_cells():
-      stage.set_tile_at(cell, stage.FLOOR)
+  def place(feature, stage, connectors=[], cell=None):
+    for c in feature.get_cells():
+      stage.set_tile_at(c, stage.FLOOR)

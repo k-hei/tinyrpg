@@ -142,10 +142,3 @@ class ArenaRoom(SpecialRoom):
       duration=15,
       on_end=lambda: feature.spawn_reward(game)
     )])
-
-  # def place(feature, stage, *args, **kwargs):
-  #   super().place(stage, *args, **kwargs)
-    # feat_x, feat_y = feature.cell
-    # top_edge = (feat_x + feature.get_width() // 2, feat_y - 1)
-    # stage.spawn_elem_at(top_edge, BattleDoor(locked=True))
-    # stage.set_tile_at(top_edge, stage.FLOOR)
