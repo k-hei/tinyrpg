@@ -18,6 +18,7 @@ from skills.ailment.virus import Virus
 from skills.ailment.somnus import Somnus
 from skills.ailment.exoculo import Exoculo
 from skills.ailment.steal import Steal
+from skills.weapon.rustyblade import RustyBlade
 from skills.weapon.tackle import Tackle
 from skills.weapon.stick import Stick
 from skills.weapon.club import Club
@@ -28,6 +29,7 @@ from skills.weapon.caladbolg import Caladbolg
 from skills.weapon.mjolnir import Mjolnir
 from skills.attack.shieldbash import ShieldBash
 from skills.attack.helmsplitter import HelmSplitter
+from skills.attack.cleave import Cleave
 from skills.attack.blitzritter import Blitzritter
 from skills.attack.rendinggale import RendingGale
 from skills.magic.vortex import Vortex
@@ -62,14 +64,17 @@ from dungeon.features.pitroom import PitRoom
 from dungeon.features.genieroom import GenieRoom
 from dungeon.features.altarroom import AltarRoom
 from dungeon.features.coffinroom import CoffinRoom
-from dungeon.features.raretreasureroom import RareTreasureRoom
+from dungeon.features.treasureroom import TreasureRoom
 from dungeon.features.battleroom import BattleRoom
 from dungeon.features.arenaroom import ArenaRoom
 from dungeon.features.maze import Maze
+from dungeon.features.raretreasureroom import RareTreasureRoom
 from dungeon.features.vertroom import VerticalRoom
 from dungeon.features.specialroom import SpecialRoom
+from dungeon.features.depthsroom import DepthsRoom
 from dungeon.features.exitroom import ExitRoom
 from dungeon.features.room import Room
+from dungeon.features.enemyroom import EnemyRoom
 from dungeon.actors.genie import Genie
 from dungeon.actors.npc import Npc
 from dungeon.actors.skeleton import Skeleton
@@ -104,6 +109,7 @@ def resolve_skill(key):
   if key == "Somnus": return Somnus
   if key == "Exoculo": return Exoculo
   if key == "Steal": return Steal
+  if key == "RustyBlade": return RustyBlade
   if key == "Tackle": return Tackle
   if key == "Stick": return Stick
   if key == "Club": return Club
@@ -114,6 +120,7 @@ def resolve_skill(key):
   if key == "Mjolnir": return Mjolnir
   if key == "ShieldBash": return ShieldBash
   if key == "HelmSplitter": return HelmSplitter
+  if key == "Cleave": return Cleave
   if key == "Blitzritter": return Blitzritter
   if key == "RendingGale": return RendingGale
   if key == "Vortex": return Vortex
@@ -150,14 +157,17 @@ def resolve_elem(key):
   if key == "GenieRoom": return GenieRoom
   if key == "AltarRoom": return AltarRoom
   if key == "CoffinRoom": return CoffinRoom
-  if key == "RareTreasureRoom": return RareTreasureRoom
+  if key == "TreasureRoom": return TreasureRoom
   if key == "BattleRoom": return BattleRoom
   if key == "ArenaRoom": return ArenaRoom
   if key == "Maze": return Maze
+  if key == "RareTreasureRoom": return RareTreasureRoom
   if key == "VerticalRoom": return VerticalRoom
   if key == "SpecialRoom": return SpecialRoom
+  if key == "DepthsRoom": return DepthsRoom
   if key == "ExitRoom": return ExitRoom
   if key == "Room": return Room
+  if key == "EnemyRoom": return EnemyRoom
   if key == "Genie": return Genie
   if key == "Npc": return Npc
   if key == "Skeleton": return Skeleton
