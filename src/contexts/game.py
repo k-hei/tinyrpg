@@ -6,6 +6,7 @@ from contexts.pause import PauseContext
 from dungeon.context import DungeonContext
 from dungeon.stage import Stage
 from dungeon.features.room import Room
+from dungeon.features.altarroom import AltarRoom
 from town import TownContext
 from cores.knight import Knight
 from cores.mage import Mage
@@ -148,7 +149,14 @@ class GameContext(Context):
     ctx.load()
 
   def goto_dungeon(ctx, floor=None):
-    ctx.open(DungeonContext(party=ctx.party, floor=floor))
+    if floor:
+      ctx.open(DungeonContext(party=ctx.party, floor=floor))
+    else:
+      app = ctx.get_head()
+      app.load(
+        loader=AltarRoom().create_floor(),
+        on_end=lambda floor: ctx.goto_dungeon(floor)
+      )
 
   def goto_town(ctx, returning=False):
     ctx.open(TownContext(party=ctx.party))
