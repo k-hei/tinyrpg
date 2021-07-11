@@ -8,7 +8,7 @@ from filters import replace_color
 from comps.log import Token
 
 class Core:
-  def __init__(core, name, faction="ally", facing=(1, 0), hp=0, st=0, en=0, skills=[], color=None, message=None):
+  def __init__(core, name, faction="ally", facing=(1, 0), hp=0, st=0, en=0, skills=[], message=None, color=None, anims=[]):
     core.name = name
     core.faction = faction
     core.facing = tuple(facing)
@@ -19,8 +19,8 @@ class Core:
     core.skills = skills
     core.color = color
     core.message = message
+    core.anims = anims
     core.dead = False
-    core.anims = []
 
   def rename(core, name):
     core.name = name

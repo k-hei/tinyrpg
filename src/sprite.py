@@ -48,6 +48,8 @@ class Sprite:
     origin_x, origin_y = sprite.origin or ("top", "left")
     if origin_x == "center":
       x -= scaled_image.get_width() / 2
+    if origin_x == "right":
+      x -= scaled_image.get_width()
     if origin_y == "center":
       y -= scaled_image.get_height() / 2
     if origin_y == "bottom":
@@ -57,6 +59,8 @@ class Sprite:
       origin_x, origin_y = origin
       if origin_x == "left":
         x += image.get_width() / 2
+      if origin_x == "right":
+        x -= image.get_width() / 2
       if origin_y == "top":
         y += image.get_height() / 2
       elif origin_y == "bottom":
