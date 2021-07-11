@@ -19,7 +19,7 @@ class Inventory:
     return [item for item in inv.items if Inventory.tab(item) == tab]
 
   def is_full(inv, tab):
-    return inv.filter(tab) == inv.cols * inv.rows
+    return len(inv.filter(tab)) >= inv.cols * inv.rows
 
   def append(inv, item):
     if not inv.is_full(Inventory.tab(item)):

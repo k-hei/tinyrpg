@@ -51,7 +51,7 @@ class FortuneArea(Stage):
           "{}: Welcome...".format(talkee.get_name().upper()),
           lambda: FortuneContext(hud=ctx.hud, items=ctx.get_inventory().items),
           lambda: ctx.anims.append(ctx.HudAnim()),
-          lambda: ctx.get_head().transition(DissolveOut())
+          lambda: ctx.get_head().transition([DissolveOut()])
         ]
       ),
       "2": FortuneDesk,

@@ -148,10 +148,10 @@ class SideViewContext(Context):
     return True
 
   def follow_link(ctx, link):
-    ctx.get_head().transition(
+    ctx.get_head().transition([
       DissolveIn(on_end=lambda: ctx.change_areas(link)),
       DissolveOut()
-    )
+    ])
 
   def change_areas(ctx, link):
     if graph := ctx.get_graph():

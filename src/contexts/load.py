@@ -24,9 +24,9 @@ class LoadContext(DataContext):
       choice.text == "Yes" and ctx.open(DialogueContext(
         script=["Save data loaded successfully."],
         lite=True,
-        on_close=lambda: ctx.get_head().transition(
+        on_close=lambda: ctx.get_head().transition([
           DissolveIn(on_end=lambda: ctx.close(savedata)),
           DissolveOut()
-        )
+        ])
       ))
     ))

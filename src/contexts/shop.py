@@ -97,7 +97,7 @@ class ShopContext(Context):
 
   def enter(ctx):
     ctx.anims.append(HudEnterAnim(duration=20))
-    ctx.get_head().transition(SlideDown(on_end=lambda: (
+    ctx.get_head().transition([SlideDown(on_end=lambda: (
       ctx.anims.extend([
         BackgroundSlideupAnim(duration=15),
         BackgroundEnterAnim(duration=15, delay=10),
@@ -107,7 +107,7 @@ class ShopContext(Context):
         BoxEnterAnim(duration=20, delay=90)
       ]),
       ctx.portraits.enter(on_end=ctx.focus)
-    )))
+    ))])
 
   def exit(ctx):
     ctx.exiting = True

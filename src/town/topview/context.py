@@ -177,10 +177,10 @@ class TopViewContext(Context):
 
   def handle_areachange(ctx, delta):
     ctx.link = delta
-    ctx.get_head().transition(
+    ctx.get_head().transition([
       DissolveIn(on_end=lambda: ctx.change_areas(ctx.area.links["entrance"])),
       DissolveOut()
-    )
+    ])
 
   def change_areas(ctx, link):
     if graph := ctx.get_graph():

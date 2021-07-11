@@ -57,7 +57,7 @@ class StoreArea(Stage):
           "{}: Ever get a rebar stuck up your ass?".format(talkee.get_name().upper()),
           lambda: StoreContext(hud=ctx.hud, items=ctx.get_inventory().items),
           lambda: ctx.anims.append(ctx.HudAnim()),
-          lambda: ctx.get_head().transition(DissolveOut())
+          lambda: ctx.get_head().transition([DissolveOut()])
         ]
       ),
       "2": Actor(
@@ -71,7 +71,7 @@ class StoreArea(Stage):
           "{}: Welcome!".format(talkee.get_name().upper()),
           lambda: StoreContext(hud=ctx.hud, items=ctx.get_inventory().items),
           lambda: ctx.anims.append(ctx.HudAnim()),
-          lambda: ctx.get_head().transition(DissolveOut())
+          lambda: ctx.get_head().transition([DissolveOut()])
         ]
       ),
       "3": Actor(

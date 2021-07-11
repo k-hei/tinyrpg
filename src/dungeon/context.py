@@ -796,13 +796,13 @@ class DungeonContext(Context):
   def handle_floorchange(game, direction):
     for comp in game.comps:
       comp.exit()
-    game.get_head().transition(
+    game.get_head().transition([
       DissolveIn(on_end=lambda: (
         game.camera.reset(),
         game.change_floors(direction)
       )),
       DissolveOut()
-    )
+    ])
 
   def handle_skill(game):
     game.log.exit()
@@ -1285,10 +1285,10 @@ class DungeonContext(Context):
     for comp in game.comps:
       comp.exit()
     app = game.get_head()
-    app.transition(
+    app.transition([
       DissolveIn(on_end=lambda: game.parent.goto_town(returning=True)),
       DissolveOut()
-    )
+    ])
 
   def toggle_lights(game):
     game.lights = not game.lights

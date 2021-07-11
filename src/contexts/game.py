@@ -78,11 +78,12 @@ class GameContext(Context):
     floor = None
     if ctx.feature:
       savedata.place = "dungeon"
-      return ctx.get_head().load(
+      app = ctx.get_head()
+      return app.load(
         loader=ctx.feature().create_floor(),
         on_end=lambda floor: (
           ctx.goto_dungeon(floor),
-          ctx.get_head().transition([DissolveOut()])
+          app.transition([DissolveOut()])
         )
       )
     elif savedata.dungeon:
