@@ -38,7 +38,7 @@ class ChoiceContext(Context):
   def __init__(ctx, choices, required=False, on_choose=None, on_close=None):
     super().__init__(on_close=on_close)
     ctx.choices_template = choices if callable(choices) else lambda: choices
-    ctx.choices = choices()
+    ctx.choices = ctx.choices_template()
     ctx.required = required
     ctx.on_choose = on_choose
     ctx.index = next((i for i, c in enumerate(ctx.choices) if c.default), 0)
@@ -109,7 +109,7 @@ class ChoiceContext(Context):
 
   def handle_choose(ctx):
     choice = ctx.choices[ctx.index]
-    chosen = ctx.on_choose(choice)
+    chosen = ctx.on_choose and ctx.on_choose(choice)
     ctx.choices = ctx.choices_template()
     if not ctx.on_choose or chosen:
       ctx.choose()

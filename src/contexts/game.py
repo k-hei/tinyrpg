@@ -36,10 +36,11 @@ def decode_build(build_data):
   return [(resolve_skill(skill_name), skill_cell) for (skill_name, skill_cell) in build_data.items()]
 
 class GameContext(Context):
-  def __init__(ctx, savedata, feature=None):
+  def __init__(ctx, savedata, feature=None, floor=None):
     super().__init__()
     ctx.savedata = savedata
     ctx.feature = feature
+    ctx.floor = floor
     ctx.party = []
     ctx.gold = 0
     ctx.sp_max = 40
@@ -77,6 +78,7 @@ class GameContext(Context):
     ctx.saved_builds = savedata.chars
     ctx.update_skills()
     floor = None
+
     if ctx.feature:
       savedata.place = "dungeon"
       app = ctx.get_head()
@@ -87,7 +89,19 @@ class GameContext(Context):
           app.transition([DissolveOut()])
         )
       )
-    elif savedata.dungeon:
+
+    if ctx.floor:
+      savedata.place = "dungeon"
+      app = ctx.get_head()
+      return app.load(
+        loader=ctx.floor(),
+        on_end=lambda floor: (
+          ctx.goto_dungeon(floor),
+          app.transition([DissolveOut()])
+        )
+      )
+
+    if savedata.dungeon:
       floor_idx = savedata.dungeon["floor_no"] - 1 if "floor_no" in savedata.dungeon else 0
       floor_data = savedata.dungeon["floors"][floor_idx]
       floor = Stage(
@@ -106,6 +120,7 @@ class GameContext(Context):
         if promoted:
           elem.promote()
         floor.spawn_elem_at(tuple(elem_cell), elem)
+
     if savedata.place == "dungeon":
       ctx.goto_dungeon(floor)
     elif savedata.place == "town":

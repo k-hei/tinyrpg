@@ -15,7 +15,8 @@ from anims.drop import DropAnim
 from config import WINDOW_HEIGHT, TILE_SIZE
 
 class ArenaRoom(SpecialRoom):
-  Door = BattleDoor
+  EntryDoor = BattleDoor
+  ExitDoor = BattleDoor
   waves = [
     [Eyeball, Eyeball],
     [Eyeball, Eyeball, Mushroom],

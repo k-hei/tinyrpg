@@ -544,8 +544,9 @@ def gen_floor(features, entrance=None, seed=None):
       entry_room = choice(empty_leaves)
     center_x, center_y = entry_room.get_center()
     stage.entrance = (center_x, center_y + 0)
-    if entry_room in empty_rooms:
-      empty_rooms.remove(entry_room)
+    if entry_room in empty_rooms or type(entry_room) is VerticalRoom:
+      if entry_room in empty_rooms:
+        empty_rooms.remove(entry_room)
       stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
 
     # spawn enemies

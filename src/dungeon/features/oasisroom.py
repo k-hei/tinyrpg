@@ -123,8 +123,9 @@ class OasisRoom(SpecialRoom):
           layer="decors"
         )
       ))
-    ally_cells = room.get_corners()
-    if stage.get_tile_at(ally_cells[0]) is stage.WALL:
-      ally_cells = [n for ns in [neighborhood(c) for c in room.get_corners()] for n in ns if n not in room.get_border()]
-    ally_cell = choice(ally_cells)
-    stage.spawn_elem_at(ally_cell, Mage(faction="ally"))
+
+    # ally_cells = room.get_corners()
+    # if stage.get_tile_at(ally_cells[0]) is stage.WALL:
+    #   ally_cells = [n for ns in [neighborhood(c) for c in room.get_corners()] for n in ns if n not in room.get_border()]
+    # ally_cell = choice(ally_cells)
+    # stage.spawn_elem_at(ally_cell, Mage(faction="ally"))
