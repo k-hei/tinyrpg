@@ -21,17 +21,15 @@ class Eye(DungeonActor):
   drops = [AngelTears]
   skill = HpUp
 
-  def __init__(eye, faction="enemy", rare=False, *args, **kwargs):
+  def __init__(eye, faction="enemy", rare=False,  *args, **kwargs):
     super().__init__(Core(
       name="Eyeball",
       faction=faction,
       hp=14,
       st=12,
       en=11,
-      skills=[ Tackle ],
-      *args,
-      **kwargs
-    ))
+      skills=[Tackle]
+    ),  *args, **kwargs)
     eye.item = None
     if rare:
       eye.promote(hp=False)

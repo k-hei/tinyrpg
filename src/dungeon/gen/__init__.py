@@ -1,5 +1,5 @@
 import random
-from random import randint, randrange, choice, choices
+from random import randint, randrange, choice, choices, getrandbits
 from lib.cell import is_odd, add, is_adjacent, manhattan
 
 import config
@@ -424,7 +424,7 @@ def gen_floor(features, entrance=None, iters=0, seed=None):
   regen = lambda: gen_floor(features, entrance, iters + 1)
   floor = Floor(config.FLOOR_SIZE)
   if seed is None:
-    seed = random.getrandbits(32)
+    seed = getrandbits(32)
   random.seed(seed)
   tree = floor.tree
   graph = floor.graph
@@ -536,14 +536,14 @@ def gen_floor(features, entrance=None, iters=0, seed=None):
 
   # spawn enemies
   for room in empty_rooms:
-    valid_cells = [c for c in room.get_cells() if not [d for d in door_cells if manhattan(d, c) <= 2]]
     enemy_count = randint(0, 3)
-    i = 0
-    while i < enemy_count and valid_cells:
+    valid_cells = [c for c in room.get_cells() if not [d for d in door_cells if manhattan(d, c) <= 2]]
+    while enemy_count and valid_cells:
       cell = choice(valid_cells)
       valid_cells.remove(cell)
-      stage.spawn_elem_at(cell, gen_enemy(1))
-      i += 1
+      if stage.get_tile_at(cell) is stage.FLOOR:
+        stage.spawn_elem_at(cell, gen_enemy(1))
+        enemy_count -= 1
 
   # spawn key if necessary
   if next((d for d in doors if type(d) is TreasureDoor), None):
@@ -560,7 +560,7 @@ def gen_floor(features, entrance=None, iters=0, seed=None):
 
 def gen_enemy(floor):
   if floor == 1:
-    return choices((Eye, Mushroom), (5, 1))[0]()
+    return choices((Eye, Mushroom), (5, 1))[0](ailment="sleep" if randint(1, 3) == 1 else None)
   elif floor == 2:
     return choices((Eye, Mushroom), (3, 1))[0]()
   else:

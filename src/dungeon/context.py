@@ -387,7 +387,7 @@ class DungeonContext(Context):
     return game.floor.get_tile_at(target_cell) is Stage.PIT
 
   def step_enemy(game, enemy):
-    if enemy.is_dead() or enemy.stepped or enemy.idle or enemy.ailment == "sleep" or enemy.ailment == "freeze":
+    if not enemy.can_step():
       return False
 
     if not enemy.aggro:

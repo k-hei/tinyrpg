@@ -6,7 +6,7 @@ from dungeon.element import DungeonElement
 from cores import Core
 from skills.weapon import Weapon
 
-from palette import BLACK, RED, GREEN, BLUE, CYAN, VIOLET, GOLD_DARK
+from palette import BLACK, RED, GREEN, BLUE, CYAN, VIOLET, GOLD
 from assets import load as use_assets
 from filters import replace_color, darken
 from anims.move import MoveAnim
@@ -31,13 +31,15 @@ class DungeonActor(DungeonElement):
   skill = None
   drops = []
 
-  def __init__(actor, core):
+  def __init__(actor, core, ailment=None):
     super().__init__(solid=True)
     actor.core = core
-    actor.weapon = actor.load_weapon()
-    actor.stepped = False
     actor.ailment = None
     actor.ailment_turns = 0
+    if ailment:
+      actor.inflict_ailment(ailment)
+    actor.weapon = actor.load_weapon()
+    actor.stepped = False
     actor.counter = False
     actor.aggro = False
     actor.idle = False
@@ -251,7 +253,7 @@ class DungeonActor(DungeonElement):
       elif actor.core.faction == "ally":
         new_color = GREEN
       elif actor.core.faction == "enemy" and actor.rare:
-        new_color = GOLD_DARK
+        new_color = GOLD
       elif actor.core.faction == "enemy":
         new_color = RED
 
@@ -269,7 +271,7 @@ class DungeonActor(DungeonElement):
 
   def color(actor):
     if actor.core.faction == "player": return BLUE
-    if actor.core.faction == "enemy" and actor.rare: return GOLD_DARK
+    if actor.core.faction == "enemy" and actor.rare: return GOLD
     if actor.core.faction == "enemy": return RED
 
   def token(actor):

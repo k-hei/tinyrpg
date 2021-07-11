@@ -12,15 +12,15 @@ class Mushroom(DungeonActor):
   skill = Virus
   drops = [RedFerrule]
 
-  def __init__(mushroom):
+  def __init__(mushroom, *args, **kwargs):
     super().__init__(Core(
       name="Toadstool",
       faction="enemy",
       hp=19,
       st=14,
       en=10,
-      skills=[ Tackle, Virus ]
-    ))
+      skills=[Tackle, Virus]
+    ), *args, **kwargs)
 
   def step(actor, game):
     enemy = game.find_closest_enemy(actor)
