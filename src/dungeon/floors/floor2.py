@@ -19,7 +19,7 @@ def gen_enemy(Enemy, *args, **kwargs):
 def Floor2():
   entry_room = VerticalRoom(size=(3, 4), degree=1)
   puzzle_room = PushBlockRoom(degree=2)
-  buffer_room1 = EnemyRoom(size=(5, 4), degree=2, enemies=[
+  buffer_room1 = EnemyRoom(size=(5, 7), degree=2, enemies=[
     gen_enemy(Skeleton),
     gen_enemy(Mushroom),
     gen_enemy(Eyeball),

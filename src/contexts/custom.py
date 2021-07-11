@@ -25,6 +25,7 @@ from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
 
+MATRIX_SIZE = (4, 4)
 SPACING_X = 4
 SPACING_Y = 4
 SKILL_SPACING = 1
@@ -64,7 +65,7 @@ class CustomContext(Context):
     menu.arrange = False
     menu.arrange_drawn = menu.arrange
     menu.pieces = builds[menu.char]
-    menu.matrix_size = (3, 3)
+    menu.matrix_size = MATRIX_SIZE
     menu.anims = []
     menu.renders = 0
     menu.bar = Bar()

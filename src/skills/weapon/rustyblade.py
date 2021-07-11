@@ -11,4 +11,5 @@ class RustyBlade(Weapon):
   blocks = (
     (0, 0),
     (1, 0),
+    (1, 1),
   )

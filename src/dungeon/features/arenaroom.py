@@ -8,7 +8,7 @@ from dungeon.actors.mushroom import Mushroom
 from dungeon.props.door import Door
 from dungeon.props.battledoor import BattleDoor
 from dungeon.props.chest import Chest
-from items.ailment.amethyst import Amethyst
+from items.hp.elixir import Elixir
 from anims.warpin import WarpInAnim
 from anims.pause import PauseAnim
 from anims.drop import DropAnim
@@ -23,7 +23,7 @@ class ArenaRoom(SpecialRoom):
     [Mushroom, Mushroom],
   ]
 
-  def __init__(feature, reward=Amethyst):
+  def __init__(feature, reward=Elixir):
     super().__init__(degree=2, shape=[
       "   .   ",
       "  ...  ",

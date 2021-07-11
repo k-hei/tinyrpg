@@ -15,9 +15,11 @@ class Cleave(AttackSkill):
   cost = 3
   users = [Knight]
   blocks = (
-    (0, 0),
-    (0, 1),
-    (1, 1)
+    (1, 0),
+    (2, 0),
+    (1, 1),
+    (1, 2),
+    (0, 2),
   )
 
   def effect(user, dest, game, on_end=None):

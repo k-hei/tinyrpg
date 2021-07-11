@@ -926,9 +926,9 @@ class DungeonContext(Context):
       duration = duration * 1.5 if jump else duration
       anim_kind = JumpAnim if jump else MoveAnim
       src_x, src_y = actor.cell
-      src_cell = (src_x, src_y - origin_tile.elev)
+      src_cell = (src_x, src_y) # - origin_tile.elev)
       dest_x, dest_y = target_cell
-      dest_cell = (dest_x, dest_y - target_tile.elev)
+      dest_cell = (dest_x, dest_y) # - target_tile.elev)
       move_anim = anim_kind(
         duration=duration,
         target=actor,
