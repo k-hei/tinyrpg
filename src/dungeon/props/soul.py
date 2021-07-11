@@ -93,7 +93,7 @@ class Soul(Prop):
       soul.burst(game),
       soul.obtain(game)
     )
-    game.anims.append([ PauseAnim(duration=180) ])
+    game.anims.append([ PauseAnim(duration=60) ])
     if game.log.active:
       game.log.exit()
 

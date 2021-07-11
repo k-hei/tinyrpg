@@ -18,6 +18,7 @@ from dungeon.features.oasisroom import OasisRoom
 from dungeon.features.coffinroom import CoffinRoom
 from dungeon.features.pitroom import PitRoom
 from dungeon.features.elevroom import ElevRoom
+from dungeon.features.itemroom import ItemRoom
 
 from dungeon.actors.knight import Knight
 from dungeon.actors.mage import Mage
@@ -544,16 +545,27 @@ def gen_floor(features, entrance=None, iters=0, seed=None):
       if stage.get_tile_at(cell) is stage.FLOOR:
         stage.spawn_elem_at(cell, gen_enemy(1))
         enemy_count -= 1
+        if room in empty_rooms:
+          empty_rooms.remove(room)
 
   # spawn key if necessary
   if next((d for d in doors if type(d) is TreasureDoor), None):
-    empty_leaves = [r for r in tree.nodes if tree.degree(r) == 1 and type(r) is Room]
-    if not empty_leaves:
+    common_leaves = [r for r in tree.nodes if tree.degree(r) == 1 and type(r) is Room]
+    if not common_leaves:
       debug("No empty rooms to spawn key at")
       return regen()
-    key_room = choice(empty_leaves)
-    empty_rooms.remove(key_room)
+    key_room = choice(common_leaves)
+    if key_room in empty_rooms:
+      empty_rooms.remove(key_room)
     stage.spawn_elem_at(key_room.get_center(), Chest(Key))
+
+  # spawn items
+  for room in empty_rooms:
+    ItemRoom(
+      size=room.size,
+      cell=room.cell,
+      items=[gen_item() for _ in range(randint(1, 3))]
+    ).place(stage, connectors=door_cells)
 
   debug("-- Generation succeeded in {} iterations --".format(iters + 1))
   return stage
@@ -570,4 +582,4 @@ def gen_item():
   return choices(
     (Potion, Ankh, Cheese, Bread, Fish, Antidote, Emerald),
     (     3,    1,      4,     3,    1,        3,       1)
-  )[0]()
+  )[0]
