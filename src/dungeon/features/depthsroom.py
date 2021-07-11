@@ -89,6 +89,7 @@ class DepthsRoom(SpecialRoom):
     enemy_room1 = EnemyRoom(size=(5, 4), enemies=[gen_enemy(Eyeball), gen_enemy(Eyeball)])
     enemy_room2 = EnemyRoom(size=(5, 7), enemies=[gen_enemy(Eyeball), gen_enemy(Mushroom)])
     enemy_room3 = EnemyRoom(size=(3, 4), degree=1, enemies=[gen_enemy(Eyeball, rare=True), gen_enemy(Mushroom)])
+
     return gen_floor(
       entrance=entry_room,
       features=FloorGraph(

@@ -114,7 +114,7 @@ class SideViewContext(Context):
   def handle_keydown(ctx, key):
     if ctx.child:
       return ctx.child.handle_keydown(key)
-    if ctx.link or ctx.anims or ctx.get_root().transits:
+    if ctx.link or ctx.anims or ctx.get_head().transits:
       return False
     if key in (pygame.K_LEFT, pygame.K_a):
       return ctx.handle_move(-1)
@@ -148,7 +148,7 @@ class SideViewContext(Context):
     return True
 
   def follow_link(ctx, link):
-    ctx.get_root().transition(
+    ctx.get_head().transition(
       DissolveIn(on_end=lambda: ctx.change_areas(link)),
       DissolveOut()
     )
@@ -210,7 +210,7 @@ class SideViewContext(Context):
               EVENT_HORIZON = Area.TRANSIT_SOUTH
             if hero_y != TARGET_HORIZON:
               hero.move_to((link.x, TARGET_HORIZON))
-            if abs(hero_y) >= abs(EVENT_HORIZON) and not ctx.get_root().transits:
+            if abs(hero_y) >= abs(EVENT_HORIZON) and not ctx.get_head().transits:
               ctx.follow_link(ctx.link)
           for ally in allies:
             ally.follow(hero)

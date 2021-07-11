@@ -34,7 +34,7 @@ class SpecialRoom(Room):
   def get_size(feature):
     return (feature.get_width(), feature.get_height())
 
-  def place(feature, stage, connectors, cell=None):
+  def place(feature, stage, connectors=[], cell=None):
     feature.cell = cell or feature.cell or (0, 0)
     x, y = feature.cell
     entrance, stairs = None, None
@@ -59,7 +59,7 @@ class SpecialRoom(Room):
     stage.entrance = entrance or stage.entrance
     stage.stairs = stairs or stage.stairs
 
-  def create_floor(feature, use_edge=True):
+  def create_floor(feature, use_edge=True, on_end=None):
     floor = Stage(size=(feature.get_width() + 2, feature.get_height() * 2))
     floor.fill(Stage.WALL)
     feature.place(floor, cell=(1, 1))
@@ -73,10 +73,10 @@ class SpecialRoom(Room):
       edge_x, edge_y = edge
       floor.entrance = (edge_x, edge_y)
     if use_edge:
-      door = feature.Door()
+      door = feature.EntryDoor()
       door.open()
       floor.set_tile_at(floor.entrance, Stage.FLOOR)
       floor.spawn_elem_at(floor.entrance, door)
     else:
       floor.entrance = feature.get_center()
-    return floor
+    yield floor

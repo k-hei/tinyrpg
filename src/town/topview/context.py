@@ -44,7 +44,7 @@ class TopViewContext(Context):
   def handle_keydown(ctx, key):
     if ctx.child:
       return ctx.child.handle_keydown(key)
-    if ctx.anims or ctx.link or ctx.get_root().transits:
+    if ctx.anims or ctx.link or ctx.get_head().transits:
       return None
     if key in keyboard.ARROW_DELTAS:
       delta = keyboard.ARROW_DELTAS[key]
@@ -177,7 +177,7 @@ class TopViewContext(Context):
 
   def handle_areachange(ctx, delta):
     ctx.link = delta
-    ctx.get_root().transition(
+    ctx.get_head().transition(
       DissolveIn(on_end=lambda: ctx.change_areas(ctx.area.links["entrance"])),
       DissolveOut()
     )

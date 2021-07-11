@@ -796,7 +796,7 @@ class DungeonContext(Context):
   def handle_floorchange(game, direction):
     for comp in game.comps:
       comp.exit()
-    game.get_root().transition(
+    game.get_head().transition(
       DissolveIn(on_end=lambda: (
         game.camera.reset(),
         game.change_floors(direction)
@@ -1284,7 +1284,7 @@ class DungeonContext(Context):
   def leave_dungeon(game):
     for comp in game.comps:
       comp.exit()
-    app = game.get_root()
+    app = game.get_head()
     app.transition(
       DissolveIn(on_end=lambda: game.parent.goto_town(returning=True)),
       DissolveOut()
@@ -1347,7 +1347,7 @@ class DungeonContext(Context):
     else:
       for comp in game.comps:
         sprites += comp.view()
-      if game.child and type(game.child) is not InventoryContext or game.get_root().transits:
+      if game.child and type(game.child) is not InventoryContext or game.get_head().transits:
         for comp in [c for c in game.comps if c.active]:
           if (type(comp) is not Log
           and not (type(game.child) is MinimapContext and type(comp) is Minimap)

@@ -56,12 +56,10 @@ class AltarRoom(SpecialRoom):
     game.open(CutsceneContext(script=[
       *(cutscene(room, game) if CUTSCENES else []),
       lambda step: (
-        game.get_root().transition(
-          DissolveIn(on_end=lambda: (
-            game.use_floor(DepthsRoom().create_floor()),
-            step()
-          )),
-          DissolveOut()
+        game.get_head().transition(
+          transits=(DissolveIn(), DissolveOut()),
+          loader=DepthsRoom().create_floor(),
+          on_end=lambda floor: game.use_floor(floor)
         )
       )
     ]))

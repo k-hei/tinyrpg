@@ -6,12 +6,15 @@ from anims.pause import PauseAnim
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 from assets import load as use_assets
 from sprite import Sprite
+import pygame
 
 class LoadingContext(Context):
   LOADING_TEXT = "Now Loading..."
 
-  def __init__(ctx, *args, **kwargs):
+  def __init__(ctx, loader, on_end, *args, **kwargs):
     super().__init__(*args, **kwargs)
+    ctx.loader = loader
+    ctx.on_end = on_end
     ctx.anims = []
     ctx.knight = Knight(anims=[
       WalkAnim(period=30)
@@ -35,7 +38,19 @@ class LoadingContext(Context):
       if type(anim) is PauseAnim and anim.done:
         ctx.anims.remove(anim)
 
+    if ctx.loader:
+      result = next(ctx.loader)
+      if result is not None:
+        ctx.loader = None
+        ctx.anims = [PauseAnim(duration=30, on_end=lambda: (
+          ctx.close(),
+          ctx.on_end(result)
+        ))]
+
   def view(ctx):
+    if not ctx.loader:
+      return []
+
     sprites = []
     assets = use_assets()
 
@@ -45,6 +60,7 @@ class LoadingContext(Context):
     knight_y = WINDOW_HEIGHT - 16
     knight_sprite.pos = (knight_x, knight_y)
     knight_sprite.origin = ("right", "bottom")
+    knight_sprite.layer = "hud"
     sprites.append(knight_sprite)
 
     label_font = assets.ttf["roman"]
@@ -60,7 +76,8 @@ class LoadingContext(Context):
         char_y += char_anim.offset
       sprites.append(Sprite(
         image=char_image,
-        pos=(label_x, char_y)
+        pos=(label_x, char_y),
+        layer="hud"
       ))
       label_x += char_image.get_width()
 

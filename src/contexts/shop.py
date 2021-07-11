@@ -97,7 +97,7 @@ class ShopContext(Context):
 
   def enter(ctx):
     ctx.anims.append(HudEnterAnim(duration=20))
-    ctx.get_root().transition(SlideDown(on_end=lambda: (
+    ctx.get_head().transition(SlideDown(on_end=lambda: (
       ctx.anims.extend([
         BackgroundSlideupAnim(duration=15),
         BackgroundEnterAnim(duration=15, delay=10),
@@ -219,7 +219,7 @@ class ShopContext(Context):
         layer="hud"
       ))
 
-    if ctx.get_root().transits:
+    if ctx.get_head().transits:
       return sprites
 
     assets = use_assets()

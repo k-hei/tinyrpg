@@ -39,13 +39,13 @@ class OutskirtsArea(Area):
               choice.text == "Load data" and [
                 lambda: LoadContext(
                   on_close=lambda data: (
-                    data and ctx.get_root().child.load(data)
+                    data and ctx.get_head().child.load(data)
                     or [prompt]
                   )
                 )
               ] or choice.text == "Save data" and [
                 lambda: SaveContext(
-                  data=ctx.get_root().child.save(),
+                  data=ctx.get_head().child.save(),
                   on_close=lambda _: [prompt]
                 )
               ] or choice.text == "Nothing" and [prompt]

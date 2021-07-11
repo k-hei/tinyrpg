@@ -6,6 +6,7 @@ from pygame.transform import scale
 import keyboard
 import assets
 from contexts import Context
+from contexts.loading import LoadingContext
 from transits.dissolve import DissolveIn, DissolveOut
 from config import (
   FPS, FPS_SLOW,
@@ -27,6 +28,8 @@ class App(Context):
     app.display = None
     app.fullscreen = False
     app.transits = []
+    app.loading = False
+    app.paused = False
     app.done = False
 
   def init(app):
@@ -74,23 +77,8 @@ class App(Context):
       transit = app.transits[0]
       if transit.done:
         app.transits.remove(transit)
-      else:
+      elif not app.loading:
         transit.update()
-
-  def rescale(app, new_scale):
-    if (new_scale == app.scale
-    or new_scale < 1
-    or new_scale > WINDOW_SCALE_MAX):
-      return False
-    app.scale = new_scale
-    old_width, old_height = app.size
-    new_width = old_width * new_scale
-    new_height = old_height * new_scale
-    new_size = (new_width, new_height)
-    app.size_scaled = new_size
-    app.display = pygame.display.set_mode(app.size_scaled)
-    app.paused = False
-    return True
 
   def redraw(app):
     if app.paused:
@@ -107,8 +95,32 @@ class App(Context):
     app.display.blit(scale(app.surface, app.size_scaled), (0, 0))
     pygame.display.flip()
 
-  def transition(app, *transits):
+  def rescale(app, new_scale):
+    if (new_scale == app.scale
+    or new_scale < 1
+    or new_scale > WINDOW_SCALE_MAX):
+      return False
+    app.scale = new_scale
+    old_width, old_height = app.size
+    new_width = old_width * new_scale
+    new_height = old_height * new_scale
+    new_size = (new_width, new_height)
+    app.size_scaled = new_size
+    app.display = pygame.display.set_mode(app.size_scaled)
+    return True
+
+  def transition(app, transits, loader=None, on_end=None):
+    if len(transits) == 2:
+      transit_in, transit_out = transits
+      if loader:
+        transit_in.on_end = lambda: app.load(loader, on_end)
     app.transits += transits
+
+  def load(app, loader, on_end):
+    app.loading = True
+    def on_close():
+      app.loading = False
+    app.get_tail().open(LoadingContext(loader, on_end), on_close)
 
   def print_contexts(app):
     contexts = []
@@ -120,6 +132,9 @@ class App(Context):
       contexts.append(ctx)
     print(contexts)
     return True
+
+  def print_transits(app):
+    print(app.transits)
 
   def toggle_fps(app):
     if app.fps != FPS_SLOW:
@@ -169,6 +184,8 @@ class App(Context):
       return tapping and app.toggle_fps()
     if key == pygame.K_f and ctrl:
       return tapping and app.toggle_fullscreen()
+    if key == pygame.K_t and ctrl:
+      return tapping and app.print_transits()
     if key == pygame.K_p and ctrl:
       return tapping and app.toggle_pause()
     if app.child:

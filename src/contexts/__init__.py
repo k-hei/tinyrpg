@@ -11,9 +11,15 @@ class Context:
     ctx.child = None
     ctx.comps = []
 
-  def get_root(ctx):
+  def get_head(ctx):
     if ctx.parent:
-      return ctx.parent.get_root()
+      return ctx.parent.get_head()
+    else:
+      return ctx
+
+  def get_tail(ctx):
+    if ctx.child:
+      return ctx.child.get_tail()
     else:
       return ctx
 

@@ -1,3 +1,4 @@
+import pygame
 import random
 from random import randint, randrange, choice, choices, getrandbits
 from lib.cell import is_odd, add, is_adjacent, manhattan
@@ -420,155 +421,170 @@ def gen_features(floor, feature_graph):
         floor.tree.add(neighbor)
   return True
 
-def gen_floor(features, entrance=None, iters=0, seed=None):
-  debug("-- Iteration {} --".format(iters + 1))
-  regen = lambda: gen_floor(features, entrance, iters + 1)
-  floor = Floor(config.FLOOR_SIZE)
-  if seed is None:
-    seed = getrandbits(32)
-  random.seed(seed)
-  tree = floor.tree
-  graph = floor.graph
-  stage = floor.stage
-  stage.seed = seed
+def gen_floor(features, entrance=None, seed=None):
+  lkg = None
+  iters = 0
+  while lkg is None:
+    iters += 1
+    debug("-- Iteration {} --".format(iters))
+    floor = Floor(config.FLOOR_SIZE)
+    if seed is None:
+      seed = getrandbits(32)
+    random.seed(seed)
+    tree = floor.tree
+    graph = floor.graph
+    stage = floor.stage
+    stage.seed = seed
+    seed = None
 
-  if not gen_features(floor, features):
-    debug("Feature placement failed")
-    return regen()
+    if not gen_features(floor, features):
+      debug("Feature placement failed")
+      yield None
+      continue
 
-  empty_rooms = floor.gen_rooms()
-  if not empty_rooms:
-    debug("No usable rooms generated")
-    return regen()
-
-  floor.gen_mazes()
-
-  if not floor.connect():
-    debug("Failed to connect feature graph")
-    return regen()
-
-  if not floor.span():
-    debug("Failed to satisfy feature degree constraints")
-    return regen()
-
-  # floor.gen_loops()
-  floor.fill_ends()
-  floor.fill_isolated()
-
-  isolated = [f for f in features.nodes if f not in tree.nodes]
-  if isolated:
-    debug("Failed to connect all features")
-    return regen()
-
-  secrets = [n for n in tree.nodes if n.secret]
-  for node in secrets:
-    neighbors = tree.neighbors(node)
-    if len(neighbors) == 1 and type(neighbors[0]) is Maze:
-      maze = neighbors[0]
-      door = tree.connectors(node, maze)[0]
-      if [e for e in maze.get_ends() if is_adjacent(e, door)]:
-        debug("Hidden room connected to dead end")
-        return regen()
-
-  for feature in graph.nodes:
-    feature.place(floor.stage, tree.connectors(feature))
-
-  floor.gen_minirooms()
-
-  # draw doors
-  doors = []
-  door_cells = []
-  for (n1, n2), conns in tree.conns.items():
-    if n1.secret or tree.degree(n1) == 1:
-      origin = n2
-      target = n1
-    elif n2.secret or tree.degree(n2) == 1:
-      origin = n1
-      target = n2
-    elif isinstance(n1, Room):
-      origin = n2
-      target = n1
-    elif isinstance(n2, Room):
-      origin = n1
-      target = n2
-    if isinstance(target, Room) and target.EntryDoor is not Door:
-      door = target.EntryDoor()
-    elif isinstance(origin, Room) and origin.ExitDoor is not Door:
-      door = origin.ExitDoor()
-    else:
-      door = Door()
-    doors.append(door)
-    for door_cell in conns:
-      if door_cell in doors:
-        continue
-      floor.draw_door(door_cell, door, room=target)
-      door_cells.append(door_cell)
-
-  empty_rooms = [r for r in empty_rooms if r in tree.nodes]
-
-  # draw corners
-  for room in empty_rooms:
-    corners = [c for c in room.get_corners() if not [
-      d for d in door_cells if manhattan(c, d) <= 2]]
-    if corners:
-      corner_count = randrange(0, len(corners))
-      for i in range(corner_count):
-        corner = choice(corners)
-        stage.set_tile_at(corner, stage.WALL)
-
-  # set entrance
-  stage.rooms = empty_rooms + features.nodes
-  if entrance:
-    entry_room = entrance
-  else:
+    empty_rooms = floor.gen_rooms()
     if not empty_rooms:
-      debug("No empty rooms to spawn at")
-      return regen()
-    empty_leaves = [n for n in empty_rooms if tree.degree(n) == 1]
-    if not empty_leaves:
-      debug("No empty leaves to spawn at")
-      return regen()
-    entry_room = choice(empty_leaves)
-  center_x, center_y = entry_room.get_center()
-  stage.entrance = (center_x, center_y + 0)
-  if entry_room in empty_rooms:
-    empty_rooms.remove(entry_room)
-    stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
+      debug("No usable rooms generated")
+      yield None
+      continue
 
-  # spawn enemies
-  for room in empty_rooms:
-    enemy_count = randint(0, 3)
-    valid_cells = [c for c in room.get_cells() if not [d for d in door_cells if manhattan(d, c) <= 2]]
-    while enemy_count and valid_cells:
-      cell = choice(valid_cells)
-      valid_cells.remove(cell)
-      if stage.get_tile_at(cell) is stage.FLOOR:
-        stage.spawn_elem_at(cell, gen_enemy(1))
-        enemy_count -= 1
-        if room in empty_rooms:
-          empty_rooms.remove(room)
+    floor.gen_mazes()
 
-  # spawn key if necessary
-  if next((d for d in doors if type(d) is TreasureDoor), None):
-    common_leaves = [r for r in tree.nodes if tree.degree(r) == 1 and type(r) is Room]
-    if not common_leaves:
-      debug("No empty rooms to spawn key at")
-      return regen()
-    key_room = choice(common_leaves)
-    if key_room in empty_rooms:
-      empty_rooms.remove(key_room)
-    stage.spawn_elem_at(key_room.get_center(), Chest(Key))
+    if not floor.connect():
+      debug("Failed to connect feature graph")
+      yield None
+      continue
 
-  # spawn items
-  for room in empty_rooms:
-    ItemRoom(
-      size=room.size,
-      cell=room.cell,
-      items=[gen_item() for _ in range(randint(1, 3))]
-    ).place(stage, connectors=door_cells)
+    if not floor.span():
+      debug("Failed to satisfy feature degree constraints")
+      yield None
+      continue
 
-  debug("-- Generation succeeded in {} iterations --".format(iters + 1))
-  return stage
+    # floor.gen_loops()
+    floor.fill_ends()
+    floor.fill_isolated()
+
+    isolated = [f for f in features.nodes if f not in tree.nodes]
+    if isolated:
+      debug("Failed to connect all features")
+      yield None
+      continue
+
+    secrets = [n for n in tree.nodes if n.secret]
+    for node in secrets:
+      neighbors = tree.neighbors(node)
+      if len(neighbors) == 1 and type(neighbors[0]) is Maze:
+        maze = neighbors[0]
+        door = tree.connectors(node, maze)[0]
+        if [e for e in maze.get_ends() if is_adjacent(e, door)]:
+          debug("Hidden room connected to dead end")
+          yield None
+          continue
+
+    for feature in graph.nodes:
+      feature.place(floor.stage, tree.connectors(feature))
+
+    floor.gen_minirooms()
+
+    # draw doors
+    doors = []
+    door_cells = []
+    for (n1, n2), conns in tree.conns.items():
+      if n1.secret or tree.degree(n1) == 1:
+        origin = n2
+        target = n1
+      elif n2.secret or tree.degree(n2) == 1:
+        origin = n1
+        target = n2
+      elif isinstance(n1, Room):
+        origin = n2
+        target = n1
+      elif isinstance(n2, Room):
+        origin = n1
+        target = n2
+      if isinstance(target, Room) and target.EntryDoor is not Door:
+        door = target.EntryDoor()
+      elif isinstance(origin, Room) and origin.ExitDoor is not Door:
+        door = origin.ExitDoor()
+      else:
+        door = Door()
+      doors.append(door)
+      for door_cell in conns:
+        if door_cell in doors:
+          continue
+        floor.draw_door(door_cell, door, room=target)
+        door_cells.append(door_cell)
+
+    empty_rooms = [r for r in empty_rooms if r in tree.nodes]
+
+    # draw corners
+    for room in empty_rooms:
+      corners = [c for c in room.get_corners() if not [
+        d for d in door_cells if manhattan(c, d) <= 2]]
+      if corners:
+        corner_count = randrange(0, len(corners))
+        for i in range(corner_count):
+          corner = choice(corners)
+          stage.set_tile_at(corner, stage.WALL)
+
+    # set entrance
+    stage.rooms = empty_rooms + features.nodes
+    if entrance:
+      entry_room = entrance
+    else:
+      if not empty_rooms:
+        debug("No empty rooms to spawn at")
+        yield None
+        continue
+      empty_leaves = [n for n in empty_rooms if tree.degree(n) == 1]
+      if not empty_leaves:
+        debug("No empty leaves to spawn at")
+        yield None
+        continue
+      entry_room = choice(empty_leaves)
+    center_x, center_y = entry_room.get_center()
+    stage.entrance = (center_x, center_y + 0)
+    if entry_room in empty_rooms:
+      empty_rooms.remove(entry_room)
+      stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
+
+    # spawn enemies
+    for room in empty_rooms:
+      enemy_count = randint(0, 3)
+      valid_cells = [c for c in room.get_cells() if not [d for d in door_cells if manhattan(d, c) <= 2]]
+      while enemy_count and valid_cells:
+        cell = choice(valid_cells)
+        valid_cells.remove(cell)
+        if stage.get_tile_at(cell) is stage.FLOOR:
+          stage.spawn_elem_at(cell, gen_enemy(1))
+          enemy_count -= 1
+          if room in empty_rooms:
+            empty_rooms.remove(room)
+
+    # spawn key if necessary
+    if next((d for d in doors if type(d) is TreasureDoor), None):
+      common_leaves = [r for r in tree.nodes if tree.degree(r) == 1 and type(r) is Room]
+      if not common_leaves:
+        debug("No empty rooms to spawn key at")
+        yield None
+        continue
+      key_room = choice(common_leaves)
+      if key_room in empty_rooms:
+        empty_rooms.remove(key_room)
+      stage.spawn_elem_at(key_room.get_center(), Chest(Key))
+
+    # spawn items
+    for room in empty_rooms:
+      ItemRoom(
+        size=room.size,
+        cell=room.cell,
+        items=[gen_item() for _ in range(randint(1, 3))]
+      ).place(stage, connectors=door_cells)
+
+    debug("-- Generation succeeded in {} iterations --".format(iters))
+    lkg = stage
+
+  yield lkg
 
 def gen_enemy(floor):
   if floor == 1:

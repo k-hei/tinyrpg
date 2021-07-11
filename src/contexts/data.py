@@ -362,7 +362,7 @@ class DataContext(Context):
       ctx.hand_y += (hand_y - ctx.hand_y) / 4
 
     anims = [a for a in ctx.anims if type(a) is not TitleEnterAnim]
-    if not anims and ctx.child is None and not ctx.get_root().transits:
+    if not anims and ctx.child is None and not ctx.get_head().transits:
       surface_clip.blit(hand_image, (hand_x, ctx.hand_y))
       if not ctx.banner.active:
         ctx.banner.enter()

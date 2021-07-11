@@ -14,6 +14,7 @@ from inventory import Inventory
 from skills import get_skill_order
 from savedata import SaveData
 from savedata.resolve import resolve_item, resolve_skill, resolve_elem
+from transits.dissolve import DissolveOut
 
 def resolve_char(char):
   if char == "knight": return Knight()
@@ -76,8 +77,14 @@ class GameContext(Context):
     ctx.update_skills()
     floor = None
     if ctx.feature:
-      floor = ctx.feature().create_floor()
       savedata.place = "dungeon"
+      return ctx.get_head().load(
+        loader=ctx.feature().create_floor(),
+        on_end=lambda floor: (
+          ctx.goto_dungeon(floor),
+          ctx.get_head().transition([DissolveOut()])
+        )
+      )
     elif savedata.dungeon:
       floor_idx = savedata.dungeon["floor_no"] - 1 if "floor_no" in savedata.dungeon else 0
       floor_data = savedata.dungeon["floors"][floor_idx]
@@ -217,4 +224,4 @@ class GameContext(Context):
 
   def update(ctx):
     super().update()
-    ctx.time += 1 / ctx.get_root().fps
+    ctx.time += 1 / ctx.get_head().fps
