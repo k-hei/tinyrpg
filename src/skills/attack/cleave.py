@@ -37,13 +37,10 @@ class Cleave(AttackSkill):
         )
       ))
 
-    def find_damage(target):
-      return int((user.core.st + user.weapon.st) * 1.25 - target.get_def()) + randint(-2, 2)
-
     def on_pause():
       game.flinch(
         target=target_elem,
-        damage=find_damage(target_elem),
+        damage=game.find_damage(user, target_elem, 1.25),
         on_end=on_end
       )
 

@@ -56,9 +56,9 @@ class DungeonActor(DungeonElement):
     return not actor.is_dead() and not actor.stepped and actor.ailment not in ("sleep", "freeze")
 
   def get_str(actor):
-    return actor.core.st
+    return actor.core.st + (actor.weapon.st if actor.weapon else 0)
 
-  def get_def(actor):
+  def get_def(actor, stage=None):
     if actor.ailment == "sleep":
       return actor.core.en // 2
     if actor.ailment == "freeze":
@@ -127,8 +127,8 @@ class DungeonActor(DungeonElement):
     if hp:
       actor.core.hp_max += 5
       actor.core.hp += 5
-    actor.core.st += 2
-    actor.core.en += 2
+    actor.core.st += 1
+    actor.core.en += 1
 
   def regen(actor, amount=None):
     if amount is None:
@@ -178,9 +178,9 @@ class DungeonActor(DungeonElement):
       target.wake_up()
     return damage
 
-  def find_damage(actor, target, modifier=0):
-    st = actor.get_str() + modifier
-    en = target.get_def() if target.ailment != "sleep" else 0
+  def find_damage(actor, target, modifier=1):
+    st = actor.get_str() * modifier
+    en = target.get_def()
     variance = 1 if actor.core.faction == "enemy" else 2
     return max(1, st - en + randint(-variance, variance))
 

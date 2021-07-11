@@ -976,12 +976,19 @@ class DungeonContext(Context):
       force=force
     )
 
+  def find_damage(game, actor, target, modifier=1):
+    actor_str = actor.get_str() * modifier
+    target_def = target.get_def()
+    if game.floor.get_elem_at(target.cell, superclass=Door):
+      target_def = max(0, target_def - 2)
+    variance = 1 if actor.core.faction == "enemy" else 2
+    return max(1, actor_str - target_def + randint(-variance, variance))
+
   def attack(game, actor, target, damage=None, on_connect=None, on_end=None):
     if actor.weapon is None:
       return False
     if damage is None:
-      modifier = actor.weapon.st if actor.weapon else 0
-      damage = DungeonActor.find_damage(actor, target, modifier)
+      damage = game.find_damage(actor, target)
       game.log.print((actor.token(), " uses ", actor.weapon().token()))
     def connect():
       if on_connect:
@@ -1082,11 +1089,11 @@ class DungeonContext(Context):
       direction=direction,
       on_start=lambda:(
         target.damage(damage),
-        game.numbers.append(DamageValue(str(damage), target.cell)),
+        game.numbers.append(DamageValue(str(int(damage)), target.cell)),
         game.log.print((
           target.token(),
           " {}".format(game.hero.allied(target) and "receives" or "suffers"),
-          " {} damage.".format(damage)
+          " {} damage.".format(int(damage))
         ))
       )
     )
