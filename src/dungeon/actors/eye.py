@@ -6,6 +6,7 @@ from cores import Core
 from assets import load as use_assets
 from skills.weapon.tackle import Tackle
 from skills.ailment.steal import Steal
+from skills.armor.hpup import HpUp
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
@@ -18,8 +19,9 @@ from palette import BLACK, CYAN
 
 class Eye(DungeonActor):
   drops = [AngelTears]
+  skill = HpUp
 
-  def __init__(eye, faction="enemy", *args, **kwargs):
+  def __init__(eye, faction="enemy", rare=False, *args, **kwargs):
     super().__init__(Core(
       name="Eyeball",
       faction=faction,
@@ -31,6 +33,9 @@ class Eye(DungeonActor):
       **kwargs
     ))
     eye.item = None
+    if rare:
+      eye.promote(hp=False)
+      eye.core.skills.append(HpUp)
 
   def view(eye, anims):
     sprites = use_assets().sprites

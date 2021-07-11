@@ -1,15 +1,17 @@
 from random import choice
-from dungeon.features.specialroom import SpecialRoom
+from lib.cell import manhattan
+from dungeon.features.room import Room
 from dungeon.props.chest import Chest
 from dungeon.actors.eye import Eye as Eyeball
-from lib.cell import manhattan
 
-class EnemyRoom(SpecialRoom):
-  def __init__(room):
+class EnemyRoom(Room):
+  def __init__(room, enemies, degree=2, *args, **kwargs):
     super().__init__(
-      degree=2,
-      shape=[("." * 5) for _ in range(4)]
+      degree=degree,
+      *args,
+      **kwargs
     )
+    room.enemies = enemies
 
   def get_edges(room):
     room_width, room_height = room.get_size()
@@ -21,12 +23,9 @@ class EnemyRoom(SpecialRoom):
 
   def place(room, stage, connectors, cell=None):
     super().place(stage, connectors, cell)
-    room_width, room_height = room.get_size()
-    room_x, room_y = room.cell or (0, 0)
-    valid_cells = [c for c in room.get_cells() if not next((d for d in connectors if manhattan(d, c) <= 3), None)]
-    enemy_count = 2
-    while enemy_count and valid_cells:
+    valid_cells = [c for c in room.get_cells() if not next((d for d in connectors if manhattan(d, c) <= 2), None)]
+    enemies = list(room.enemies)
+    while enemies and valid_cells:
       cell = choice(valid_cells)
-      stage.spawn_elem_at(cell, Eyeball())
+      stage.spawn_elem_at(cell, enemies.pop(0))
       valid_cells.remove(cell)
-      enemy_count -= 1

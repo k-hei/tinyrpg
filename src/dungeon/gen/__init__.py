@@ -555,6 +555,7 @@ def gen_floor(features, entrance=None, iters=0, seed=None):
     empty_rooms.remove(key_room)
     stage.spawn_elem_at(key_room.get_center(), Chest(Key))
 
+  debug("-- Generation succeeded in {} iterations --".format(iters + 1))
   return stage
 
 def gen_enemy(floor):

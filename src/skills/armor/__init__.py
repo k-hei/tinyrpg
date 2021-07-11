@@ -1,8 +1,8 @@
 from skills import Skill
-from palette import YELLOW
+from palette import GOLD
 
 class Armor(Skill):
   kind = "armor"
-  color = YELLOW
+  color = GOLD
   cost = 0
   hp = 0

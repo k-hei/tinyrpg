@@ -24,8 +24,8 @@ from contexts.dialogue import DialogueContext
 from config import TILE_SIZE
 
 class DungeonActor(DungeonElement):
-  POISON_DURATION = 5
-  POISON_STRENGTH = 1 / 6
+  POISON_DURATION = 4
+  POISON_STRENGTH = 1 / 7
   FREEZE_DURATION = 5
   skill = None
   drops = []
@@ -122,10 +122,11 @@ class DungeonActor(DungeonElement):
   def revive(actor, hp_factor=0):
     actor.core.revive(hp_factor)
 
-  def promote(actor):
+  def promote(actor, hp=True):
     actor.rare = True
-    actor.core.hp_max += 5
-    actor.core.hp += 5
+    if hp:
+      actor.core.hp_max += 5
+      actor.core.hp += 5
     actor.core.st += 2
     actor.core.en += 2
 

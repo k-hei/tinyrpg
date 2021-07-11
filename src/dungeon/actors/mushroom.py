@@ -16,9 +16,9 @@ class Mushroom(DungeonActor):
     super().__init__(Core(
       name="Toadstool",
       faction="enemy",
-      hp=27,
+      hp=19,
       st=14,
-      en=8,
+      en=10,
       skills=[ Tackle, Virus ]
     ))
 

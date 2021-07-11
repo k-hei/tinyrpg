@@ -36,6 +36,7 @@ from cores.knight import Knight
 from cores.mage import Mage
 
 from dungeon.props import Prop
+from dungeon.props.door import Door
 from dungeon.props.chest import Chest
 from dungeon.props.bag import Bag
 from dungeon.props.soul import Soul
@@ -517,6 +518,8 @@ class DungeonContext(Context):
     target_cell = (hero_x + delta_x, hero_y + delta_y)
     target_tile = floor.get_tile_at(target_cell)
     target_elem = floor.get_elem_at(target_cell)
+    if isinstance(target_elem, Door) and not target_elem.solid:
+      target_elem = floor.get_elem_at(target_cell, exclude=[Door])
 
     def end_move():
       game.step()
@@ -527,7 +530,7 @@ class DungeonContext(Context):
       if not moved:
         return False
 
-      origin_elem = game.floor.get_elem_at(old_cell)
+      origin_elem = game.floor.get_elem_at(old_cell, exclude=[Door])
       if origin_elem:
         origin_elem.aftereffect(game)
 

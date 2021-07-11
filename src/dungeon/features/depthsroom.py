@@ -19,10 +19,15 @@ from config import CUTSCENES
 from dungeon.gen import gen_floor, FloorGraph
 from dungeon.features.room import Room
 from dungeon.features.exitroom import ExitRoom
-from dungeon.features.treasureroom import TreasureRoom
+from dungeon.features.itemroom import ItemRoom
 from dungeon.features.enemyroom import EnemyRoom
 from dungeon.features.vertroom import VerticalRoom
+from dungeon.actors.eye import Eye as Eyeball
+from dungeon.actors.mushroom import Mushroom
 from items.hp.potion import Potion
+from items.sp.cheese import Cheese
+from items.sp.bread import Bread
+from items.ailment.antidote import Antidote
 
 class DepthsRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
@@ -69,20 +74,24 @@ class DepthsRoom(SpecialRoom):
   def create_floor(room, *args, **kwargs):
     entry_room = DepthsRoom()
     fork_room = Room(size=(5, 4), degree=3)
-    item_room = TreasureRoom(item=Potion)
-    enemy_room = EnemyRoom()
     exit_room = ExitRoom()
-    lock_room = VerticalRoom(degree=3)
+    lock_room = VerticalRoom(degree=4)
+    item_room1 = ItemRoom(size=(3, 4), items=[Potion, Antidote])
+    item_room2 = ItemRoom(size=(5, 4), items=[Potion, Bread, Antidote])
+    enemy_room1 = EnemyRoom(size=(5, 4), enemies=[Eyeball(), Eyeball()])
+    enemy_room2 = EnemyRoom(size=(5, 7), enemies=[Eyeball(), Mushroom()])
+    enemy_room3 = EnemyRoom(size=(3, 4), degree=1, enemies=[Eyeball(rare=True), Mushroom()])
     return gen_floor(
       entrance=entry_room,
       features=FloorGraph(
-        nodes=[fork_room, entry_room, item_room, enemy_room, lock_room, exit_room],
+        nodes=[fork_room, entry_room, enemy_room1, item_room1, lock_room, exit_room, enemy_room2, item_room2, enemy_room3],
         edges=[
           (fork_room, entry_room),
-          (fork_room, item_room),
-          (fork_room, enemy_room),
-          (lock_room, enemy_room),
+          (fork_room, item_room1),
+          (fork_room, enemy_room1),
+          (lock_room, enemy_room1),
           (lock_room, exit_room),
+          (enemy_room2, item_room2),
         ]
       )
     )

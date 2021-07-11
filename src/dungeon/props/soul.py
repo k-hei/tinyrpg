@@ -136,7 +136,6 @@ class Soul(Prop):
 
   def view(soul, anims):
     sprites = []
-    soul.update()
     assets = use_assets()
     soul_color = soul.skill.color
     soul_image = assets.sprites[soul.anim.frame]

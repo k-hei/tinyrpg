@@ -64,11 +64,11 @@ from dungeon.features.pitroom import PitRoom
 from dungeon.features.genieroom import GenieRoom
 from dungeon.features.altarroom import AltarRoom
 from dungeon.features.coffinroom import CoffinRoom
-from dungeon.features.treasureroom import TreasureRoom
 from dungeon.features.battleroom import BattleRoom
 from dungeon.features.arenaroom import ArenaRoom
 from dungeon.features.maze import Maze
 from dungeon.features.raretreasureroom import RareTreasureRoom
+from dungeon.features.itemroom import ItemRoom
 from dungeon.features.vertroom import VerticalRoom
 from dungeon.features.specialroom import SpecialRoom
 from dungeon.features.depthsroom import DepthsRoom
@@ -157,11 +157,11 @@ def resolve_elem(key):
   if key == "GenieRoom": return GenieRoom
   if key == "AltarRoom": return AltarRoom
   if key == "CoffinRoom": return CoffinRoom
-  if key == "TreasureRoom": return TreasureRoom
   if key == "BattleRoom": return BattleRoom
   if key == "ArenaRoom": return ArenaRoom
   if key == "Maze": return Maze
   if key == "RareTreasureRoom": return RareTreasureRoom
+  if key == "ItemRoom": return ItemRoom
   if key == "VerticalRoom": return VerticalRoom
   if key == "SpecialRoom": return SpecialRoom
   if key == "DepthsRoom": return DepthsRoom

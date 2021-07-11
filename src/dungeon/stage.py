@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-# from dungeon.props.door import Door
 
 @dataclass
 class Tile:
@@ -102,16 +101,21 @@ class Stage:
     elem = stage.get_elem_at(cell)
     return elem and elem.opaque
 
-  def get_elem_at(stage, cell, superclass=None):
+  def get_elem_at(stage, cell, superclass=None, exclude=[]):
     if superclass:
       return next((e for e in stage.elems if (
         e.cell == cell
         and (superclass is None or isinstance(e, superclass))
+        and not next((t for t in exclude if isinstance(e, t)), None)
       )), None)
     else:
-      return (next((e for e in stage.elems if e.cell == cell and e.solid), None)
-        # or next((e for e in stage.elems if e.cell == cell and not isinstance(e, Door)), None)
-        or next((e for e in stage.elems if e.cell == cell), None))
+      return (
+        next((e for e in stage.elems if e.cell == cell and e.solid), None)
+        or next((e for e in stage.elems if (
+          e.cell == cell
+          and not next((t for t in exclude if isinstance(e, t)), None)
+        )), None)
+      )
 
   def get_tile_at(stage, cell):
     if not stage.contains(cell):

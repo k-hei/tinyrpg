@@ -62,15 +62,15 @@ def build_buffer(items, skills, elems, actors, materials):
     buffer += "from {} import {}\n".format(path, key)
 
   buffer += "\ndef resolve_item(key):\n"
-  for key, path in items.items():
+  for key in items.keys():
     buffer += "  if key == \"{key}\": return {key}\n".format(key=key)
 
   buffer += "\ndef resolve_skill(key):\n"
-  for key, path in skills.items():
+  for key in skills.keys():
     buffer += "  if key == \"{key}\": return {key}\n".format(key=key)
 
   buffer += "\ndef resolve_elem(key):\n"
-  for key, path in elems.items():
+  for key in elems.keys():
     buffer += "  if key == \"{key}\": return {key}\n".format(key=key)
 
   buffer += "\ndef resolve_material(material):\n"
