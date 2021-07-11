@@ -1,5 +1,5 @@
 from dungeon.element import DungeonElement
-from dungeon.props.door import Door
+from dungeon.props.puzzledoor import PuzzleDoor
 from assets import load as use_assets
 from filters import replace_color
 from palette import BLACK, WHITE, GRAY, PURPLE, GRAY_DARK, BLUE_DARK
@@ -24,16 +24,14 @@ class PushTile(DungeonElement):
         tile.completed = True
       door = None
       for cell in game.room.get_border():
-        door = game.floor.get_elem_at(cell, superclass=Door)
+        door = game.floor.get_elem_at(cell, superclass=PuzzleDoor)
         if door:
+          door.unlock()
+          game.anims.append([PauseAnim(
+            duration=60,
+            on_end=lambda: door.effect(game)
+          )])
           break
-      print(door)
-      if door:
-        door.unlock()
-        game.anims.append([PauseAnim(
-          duration=60,
-          on_end=lambda: door.effect(game)
-        )])
 
   def aftereffect(tile, game):
     if not tile.completed:

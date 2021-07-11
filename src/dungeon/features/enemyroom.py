@@ -13,14 +13,6 @@ class EnemyRoom(Room):
     )
     room.enemies = enemies
 
-  def get_edges(room):
-    room_width, room_height = room.get_size()
-    room_x, room_y = room.cell
-    return [(x, y) for (x, y) in super().get_edges() if (
-      x == room_x + room_width // 2
-      or y == room_y + room_height // 2
-    )]
-
   def place(room, stage, connectors, cell=None):
     super().place(stage, connectors, cell)
     valid_cells = [c for c in room.get_cells() if not next((d for d in connectors if manhattan(d, c) <= 2), None)]
