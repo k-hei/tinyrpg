@@ -101,8 +101,8 @@ class DungeonElement:
           offset_x = (anim_x - actor_x) * TILE_SIZE
           offset_y = (anim_y - actor_y) * TILE_SIZE
 
-    if not moving:
-      offset_y -= elem.elev * TILE_SIZE
+    # if not moving:
+    #   offset_y -= elem.elev * TILE_SIZE
     sprite.size = (sprite_width, sprite_height)
     sprite.layer = sprite_layer
     sprite.move((offset_x, offset_y))

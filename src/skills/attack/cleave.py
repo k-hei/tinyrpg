@@ -15,7 +15,7 @@ class Cleave(AttackSkill):
   cost = 3
   users = [Knight]
   blocks = (
-    (1, 0),
+    (0, 0),
     (0, 1),
     (1, 1)
   )

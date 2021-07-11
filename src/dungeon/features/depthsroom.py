@@ -20,7 +20,7 @@ from config import CUTSCENES
 from random import randint
 from dungeon.gen import gen_floor, FloorGraph
 from dungeon.features.room import Room
-from dungeon.features.exitroom import ExitRoom
+from dungeon.features.lockedexitroom import LockedExitRoom
 from dungeon.features.itemroom import ItemRoom
 from dungeon.features.enemyroom import EnemyRoom
 from dungeon.features.vertroom import VerticalRoom
@@ -76,7 +76,7 @@ class DepthsRoom(SpecialRoom):
   def create_floor(room, *args, **kwargs):
     entry_room = room
     fork_room = Room(size=(5, 4), degree=3)
-    exit_room = ExitRoom()
+    exit_room = LockedExitRoom()
     lock_room = VerticalRoom(degree=4)
     item_room1 = ItemRoom(size=(3, 4), items=[Potion, Antidote])
     item_room2 = ItemRoom(size=(5, 4), items=[Potion, Bread, Antidote])

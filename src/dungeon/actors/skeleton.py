@@ -10,15 +10,17 @@ from sprite import Sprite
 class Skeleton(DungeonActor):
   skill = ShieldBash
 
-  def __init__(skeleton):
+  def __init__(skeleton, rare=False, *args, **kwargs):
     super().__init__(Core(
       name="Skeleton",
       faction="enemy",
-      hp=35,
-      st=14,
-      en=9,
+      hp=16,
+      st=13,
+      en=11,
       skills=[ Club, ShieldBash ]
-    ))
+    ), *args, **kwargs)
+    if rare:
+      skeleton.promote()
 
   def step(actor, game):
     enemy = game.find_closest_enemy(actor)

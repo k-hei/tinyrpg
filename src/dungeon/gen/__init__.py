@@ -301,7 +301,7 @@ class Floor:
         and (tree.degree(n) == 0
           or n.degree and tree.degree(n) != n.degree)
       )]
-      if not neighbors:
+      if not neighbors or node.degree and tree.degree(node) == node.degree:
         if tree.degree(node) < node.degree:
           debug("{node} has too few connections (expected {expected_degree}, got {observed_degree})".format(
             node=type(node).__name__,
@@ -316,11 +316,13 @@ class Floor:
       for neighbor in neighbors:
         connectors = graph.connectors(node, neighbor)
         connector = choice(connectors)
-        debug("Connecting {node}({node_degree}°) to {neighbor}({neighbor_degree}°)".format(
+        debug("Connecting {node}({node_observed_degree}/{node_expected_degree}°) to {neighbor}({neighbor_observed_degree}/{neighbor_expected_degree}°)".format(
           node=type(node).__name__,
-          node_degree=tree.degree(node),
+          node_observed_degree=tree.degree(node),
+          node_expected_degree=node.degree,
           neighbor=type(neighbor).__name__,
-          neighbor_degree=tree.degree(neighbor),
+          neighbor_observed_degree=tree.degree(neighbor),
+          neighbor_expected_degree=neighbor.degree,
         ))
         tree.connect(node, neighbor, connector)
         if tree.degree(neighbor) < neighbor.degree or neighbor.degree == 0:
@@ -412,6 +414,10 @@ def gen_features(floor, feature_graph):
     neighbors = feature_graph.neighbors(node)
     for neighbor in neighbors:
       if neighbor not in floor.tree.nodes:
+        debug("Attempting to place {neighbor} from {node}".format(
+          node=type(node).__name__,
+          neighbor=type(neighbor).__name__
+        ))
         if not floor.gen_neighbor(node, neighbor):
           return False
         debug("Placed {neighbor} from {node}".format(
@@ -421,13 +427,13 @@ def gen_features(floor, feature_graph):
         floor.tree.add(neighbor)
   return True
 
-def gen_floor(features, entrance=None, seed=None):
+def gen_floor(features, entrance=None, size=config.FLOOR_SIZE, seed=None):
   lkg = None
   iters = 0
   while lkg is None:
     iters += 1
     debug("-- Iteration {} --".format(iters))
-    floor = Floor(config.FLOOR_SIZE)
+    floor = Floor(size)
     if seed is None:
       seed = getrandbits(32)
     random.seed(seed)
@@ -486,36 +492,8 @@ def gen_floor(features, entrance=None, seed=None):
 
     floor.gen_minirooms()
 
-    # draw doors
-    doors = []
-    door_cells = []
-    for (n1, n2), conns in tree.conns.items():
-      if n1.secret or tree.degree(n1) == 1:
-        origin = n2
-        target = n1
-      elif n2.secret or tree.degree(n2) == 1:
-        origin = n1
-        target = n2
-      elif isinstance(n1, Room):
-        origin = n2
-        target = n1
-      elif isinstance(n2, Room):
-        origin = n1
-        target = n2
-      if isinstance(target, Room) and target.EntryDoor is not Door:
-        door = target.EntryDoor()
-      elif isinstance(origin, Room) and origin.ExitDoor is not Door:
-        door = origin.ExitDoor()
-      else:
-        door = Door()
-      doors.append(door)
-      for door_cell in conns:
-        if door_cell in doors:
-          continue
-        floor.draw_door(door_cell, door, room=target)
-        door_cells.append(door_cell)
-
     empty_rooms = [r for r in empty_rooms if r in tree.nodes]
+    door_cells = [d for cs in tree.conns.values() for d in cs]
 
     # draw corners
     for room in empty_rooms:
@@ -548,6 +526,34 @@ def gen_floor(features, entrance=None, seed=None):
       if entry_room in empty_rooms:
         empty_rooms.remove(entry_room)
       stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
+
+    # draw doors
+    doors = []
+    for (n1, n2), conns in tree.conns.items():
+      if n1.secret or tree.degree(n1) == 1 and not n1 is entry_room:
+        origin = n2
+        target = n1
+      elif n2.secret or tree.degree(n2) == 1 and not n2 is entry_room:
+        origin = n1
+        target = n2
+      elif isinstance(n2, Room):
+        origin = n1
+        target = n2
+      elif isinstance(n1, Room):
+        origin = n2
+        target = n1
+      if isinstance(target, Room) and target.EntryDoor is not Door:
+        door = target.EntryDoor()
+      elif isinstance(origin, Room) and origin.ExitDoor is not Door:
+        door = origin.ExitDoor()
+      else:
+        door = Door()
+      debug(type(origin).__name__, type(target).__name__, type(door).__name__)
+      doors.append(door)
+      for door_cell in conns:
+        if door_cell in doors:
+          continue
+        floor.draw_door(door_cell, door, room=target)
 
     # spawn enemies
     for room in empty_rooms:
@@ -582,7 +588,10 @@ def gen_floor(features, entrance=None, seed=None):
         items=[gen_item() for _ in range(randint(1, 3))]
       ).place(stage, connectors=door_cells)
 
-    debug("-- Generation succeeded in {} iterations --".format(iters))
+    debug("-- Generation succeeded in {iters} iteration{s} --".format(
+      iters=iters,
+      s="" if iters == 1 else "s"
+    ))
     lkg = stage
 
   yield lkg
