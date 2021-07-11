@@ -14,6 +14,7 @@ from anims.item import ItemAnim
 from vfx.alertbubble import AlertBubble
 from skills.weapon.longinus import Longinus
 from lib.cell import add
+import config
 from config import CUTSCENES
 
 from random import randint
@@ -68,7 +69,7 @@ class DepthsRoom(SpecialRoom):
     game.hero.cell = add(room.cell, (2, 4))
     game.hero.set_facing((0, -1))
     game.open(CutsceneContext(script=[
-      *(cutscene(room, game) if CUTSCENES else [])
+      *(cutscene(room, game) if config.CUTSCENES else [])
     ]))
     return True
 

@@ -5,7 +5,7 @@ from dungeon.features.elevroom import ElevRoom
 
 App(title="elevated room demo",
   context=GameContext(
-    savedata=load("src/data0.json"),
+    savedata=load("src/data00.json"),
     feature=ElevRoom
   )
 ).init()

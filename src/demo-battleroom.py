@@ -5,7 +5,7 @@ from dungeon.features.battleroom import BattleRoom
 
 App(title="battle room demo",
   context=GameContext(
-    savedata=load("src/data0.json"),
+    savedata=load("src/data00.json"),
     feature=BattleRoom
   )
 ).init()

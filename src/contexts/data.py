@@ -185,8 +185,8 @@ class DataContext(Context):
     super().__init__(on_close=on_close)
     ctx.index = 0
     ctx.slots = [
-      Slot(1, savedata.load("src/data0.json")),
-      Slot(2, savedata.load("src/data1.json"))
+      Slot(1, savedata.load("src/data00.json")),
+      Slot(2, savedata.load("src/data01.json"))
     ]
     ctx.hand_y = None
     ctx.bg = Bg(WINDOW_SIZE)

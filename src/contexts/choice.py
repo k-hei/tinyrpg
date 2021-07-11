@@ -37,10 +37,11 @@ class Choice:
 class ChoiceContext(Context):
   def __init__(ctx, choices, required=False, on_choose=None, on_close=None):
     super().__init__(on_close=on_close)
-    ctx.choices = choices
+    ctx.choices_template = choices if callable(choices) else lambda: choices
+    ctx.choices = choices()
     ctx.required = required
     ctx.on_choose = on_choose
-    ctx.index = next((i for i, c in enumerate(choices) if c.default), 0)
+    ctx.index = next((i for i, c in enumerate(ctx.choices) if c.default), 0)
     ctx.cursor = (BORDER_WIDTH + PADDING, SineAnim(30))
     ctx.choice = None
     ctx.exiting = False
@@ -108,7 +109,9 @@ class ChoiceContext(Context):
 
   def handle_choose(ctx):
     choice = ctx.choices[ctx.index]
-    if not ctx.on_choose or ctx.on_choose(choice):
+    chosen = ctx.on_choose(choice)
+    ctx.choices = ctx.choices_template()
+    if not ctx.on_choose or chosen:
       ctx.choose()
 
   def handle_close(ctx):

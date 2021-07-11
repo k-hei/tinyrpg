@@ -155,7 +155,10 @@ class GameContext(Context):
       app = ctx.get_head()
       app.load(
         loader=AltarRoom().create_floor(),
-        on_end=lambda floor: ctx.goto_dungeon(floor)
+        on_end=lambda floor: (
+          ctx.goto_dungeon(floor),
+          not app.transits and app.transition([DissolveOut()])
+        )
       )
 
   def goto_town(ctx, returning=False):

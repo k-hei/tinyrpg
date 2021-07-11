@@ -43,7 +43,7 @@ class Virus(AilmentSkill):
       game.log.print((target.token(), " is poisoned."))
       game.anims[0].extend([
         FlinchAnim(duration=45, target=target),
-        PauseAnim(duration=120, on_end=poison)
+        PauseAnim(duration=60, on_end=poison)
       ])
 
     def on_bounce():

@@ -74,6 +74,7 @@ from contexts.inventory import InventoryContext
 from contexts.minimap import MinimapContext
 from contexts.skill import SkillContext
 from contexts.dialogue import DialogueContext
+from contexts.prompt import PromptContext, Choice
 
 def manifest(core):
   if type(core) is Knight: return KnightActor(core)
@@ -111,6 +112,7 @@ class DungeonContext(Context):
     game.key_requires_reset = {}
     game.seeds = []
     game.lights = False
+    game.god_mode = False
     game.camera = Camera(WINDOW_SIZE)
     game.log = Log(align="left")
     game.minimap = Minimap(parent=game)
@@ -462,6 +464,8 @@ class DungeonContext(Context):
         return print(game.parent.seeds)
       if key == pygame.K_s:
         return print(game.floor.seed)
+      if key == pygame.K_d and shift:
+        return game.handle_debug_toggle()
       if key == pygame.K_d:
         return game.handle_debug()
       if key == pygame.K_p:
@@ -849,7 +853,33 @@ class DungeonContext(Context):
       on_close=game.refresh_fov
     ))
 
+  def toggle_cutscenes(game):
+    config.CUTSCENES = not config.CUTSCENES
+
+  def toggle_god_mode(game):
+    game.god_mode = not game.god_mode
+    if game.god_mode:
+      game.full_restore()
+
   def handle_debug(game):
+    if game.child:
+      return False
+    game.open(PromptContext(
+      message="[ DEBUG MENU ]",
+      choices=lambda: [
+        Choice(text="Cutscenes: {}".format(config.CUTSCENES and "ON" or "OFF")),
+        Choice(text="Lights: {}".format(game.lights and "ON" or "OFF")),
+        Choice(text="GodMode: {}".format(game.god_mode and "ON" or "OFF")),
+      ],
+      on_choose=lambda choice: (
+        choice.text.startswith("Cutscenes") and game.toggle_cutscenes(),
+        choice.text.startswith("Lights") and game.toggle_lights(),
+        choice.text.startswith("GodMode") and game.toggle_god_mode()
+      ) and False
+    ))
+    return True
+
+  def handle_debug_toggle(game):
     config.DEBUG = not config.DEBUG
     if config.DEBUG:
       game.handle_minimap()
@@ -1106,6 +1136,9 @@ class DungeonContext(Context):
       elif on_end:
           on_end()
 
+    if game.god_mode and target is game.hero:
+      damage = 0
+
     flinch = FlinchAnim(
       duration=DungeonContext.FLINCH_DURATION,
       target=target,
@@ -1197,6 +1230,13 @@ class DungeonContext(Context):
         camera.focus(target_cell, force=True)
         print(target_cell)
 
+  def full_restore(game):
+    hero = game.hero
+    hero.regen(hero.get_hp_max())
+    hero.dispel_ailment()
+    game.numbers.append(DamageValue(hero.get_hp_max(), add(hero.cell, (0, -0.25)), color=GREEN))
+    game.numbers.append(DamageValue(game.get_sp_max(), hero.cell, color=CYAN))
+
   def use_oasis(game):
     if game.oasis_used:
       return
@@ -1214,10 +1254,7 @@ class DungeonContext(Context):
     palm.vanish(game)
 
     hero = game.hero
-    hero.regen(hero.get_hp_max())
-    hero.dispel_ailment()
-    game.numbers.append(DamageValue(hero.get_hp_max(), add(hero.cell, (0, -0.25)), GREEN))
-    game.numbers.append(DamageValue(game.get_sp_max(), hero.cell, CYAN))
+    game.full_restore()
 
     ally = game.ally
     if ally:
@@ -1233,7 +1270,7 @@ class DungeonContext(Context):
       game.log.print("Your HP and SP has been restored.")
 
     game.parent.regen_sp()
-    game.anims.append([PauseAnim(duration=240)])
+    game.anims.append([PauseAnim(duration=180)])
 
   def learn_skill(game, skill):
     game.parent.learn_skill(skill)

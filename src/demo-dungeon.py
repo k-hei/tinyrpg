@@ -1,21 +1,9 @@
 from contexts.app import App
 from contexts.game import GameContext
-from savedata import SaveData
+from savedata import load
 
+savedata = load("src/data00.json")
+savedata.place = "dungeon"
 App(title="dungeon demo",
-  context=GameContext(SaveData(
-    place="dungeon",
-    sp=40,
-    time=0,
-    gold=100,
-    items=["Potion", "Balloon", "Fish", "Antidote", "Ruby", "Sapphire", "Emerald", "Amethyst"],
-    skills=["Stick", "Blitzritter"],
-    party=["knight"],
-    chars={
-      "knight": {
-        "Stick": (0, 0),
-        "Blitzritter": (1, 0)
-      }
-    }
-  ))
+  context=GameContext(savedata)
 ).init()
