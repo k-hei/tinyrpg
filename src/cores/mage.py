@@ -19,7 +19,7 @@ class Mage(BipedCore):
       faction=faction,
       hp=MAGE_HP,
       st=14,
-      en=7,
+      en=10,
       message=lambda ctx: DialogueContext(script=[
         (hero := ctx.party[0]) and None,
         PromptContext((name.upper(), ": ", "Are you ready yet?"), (

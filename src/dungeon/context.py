@@ -1131,7 +1131,10 @@ class DungeonContext(Context):
 
     def respond():
       if target.is_dead() or game.floor.get_tile_at(target.cell) is Stage.PIT:
-        game.kill(target, on_end)
+        if target.on_kill:
+          target.on_kill(game)
+        else:
+          game.kill(target, on_end)
       elif on_end:
           on_end()
 

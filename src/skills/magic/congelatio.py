@@ -36,7 +36,7 @@ class Congelatio(MagicSkill):
     bump_dest = (hero_x + delta_x, hero_y + delta_y)
     target_cells = Congelatio().find_targets(user, floor, dest)
     target_cells = sorted(target_cells, key=lambda cell: 0 if cell == dest else 1 + random())
-    targets = [e for e in [floor.get_elem_at(c) for c in target_cells] if e]
+    targets = [e for e in [floor.get_elem_at(c, superclass=DungeonActor) for c in target_cells] if e]
 
     def on_connect():
       game.vfx += [(lambda cell, target: IceSpikeVfx(

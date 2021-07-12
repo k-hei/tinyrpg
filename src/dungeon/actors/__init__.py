@@ -45,6 +45,7 @@ class DungeonActor(DungeonElement):
     actor.rare = False
     actor.facing = core.facing or (1, 0)
     actor.visible_cells = []
+    actor.on_kill = None
 
   def get_name(actor): return actor.core.name
   def get_faction(actor): return actor.core.faction
