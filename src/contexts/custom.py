@@ -6,7 +6,8 @@ from filters import replace_color, recolor, outline
 from text import render as render_text
 import pygame
 from pygame import Rect
-from palette import BLACK, WHITE, GRAY, GRAY_DARK, YELLOW, YELLOW_DARK, BLUE, BLUE_DARK, darken_color
+from colors import darken_color
+from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, YELLOW, DARKYELLOW, BLUE, DARKBLUE
 import keyboard
 from comps.piece import Piece
 from comps.hud import Hud
@@ -256,10 +257,10 @@ class CustomContext(Context):
     mage = assets.sprites["circle_mage"]
     if type(menu.char) is Knight:
       mage = replace_color(mage, WHITE, GRAY)
-      mage = replace_color(mage, BLUE, BLUE_DARK)
+      mage = replace_color(mage, BLUE, DARKBLUE)
     elif type(menu.char) is Mage:
       knight = replace_color(knight, WHITE, GRAY)
-      knight = replace_color(knight, BLUE, BLUE_DARK)
+      knight = replace_color(knight, BLUE, DARKBLUE)
     deck = assets.sprites["deck"]
     tab = assets.sprites["deck_tab"]
     tab_inactive = replace_color(tab, WHITE, GRAY)
@@ -399,7 +400,7 @@ class CustomContext(Context):
         for col in range(grid_height):
           x = col * Piece.BLOCK_SIZE + grid_x
           y = row * Piece.BLOCK_SIZE + grid_y
-          pygame.draw.rect(surface, GRAY_DARK, Rect(
+          pygame.draw.rect(surface, DARKGRAY, Rect(
             x, y,
             Piece.BLOCK_SIZE - 1, Piece.BLOCK_SIZE - 1
           ), 1)
@@ -545,7 +546,7 @@ class CustomContext(Context):
             badges.append((text, x + sprite.get_width() - text.get_width() - 6, y + sprite.get_height() - 6))
         elif skill in menu.new_skills and not entering:
           text = render_text("NEW", assets.fonts["smallcaps"])
-          text = recolor(text, YELLOW if menu.renders % 60 >= 30 else YELLOW_DARK)
+          text = recolor(text, YELLOW if menu.renders % 60 >= 30 else DARKYELLOW)
           text = outline(text, (0, 0, 0))
           badges.append((text, x + sprite.get_width() - text.get_width() - 6, y + sprite.get_height() - 6))
 

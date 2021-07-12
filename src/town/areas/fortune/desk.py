@@ -3,7 +3,7 @@ from assets import load as use_assets
 from sprite import Sprite
 from config import TILE_SIZE
 from filters import replace_color
-from palette import WHITE, ORANGE
+from colors.palette import WHITE, ORANGE
 
 class FortuneDesk(Element):
   size = (80, 16)

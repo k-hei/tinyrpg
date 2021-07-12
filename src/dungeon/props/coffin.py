@@ -1,7 +1,7 @@
 from dungeon.props import Prop
 from assets import load as use_assets
 from config import TILE_SIZE
-from palette import WHITE, TILECOLOR
+from colors.palette import WHITE, COLOR_TILE
 from filters import replace_color
 from anims.item import ItemAnim
 from items.gold import Gold
@@ -41,7 +41,7 @@ class Coffin(Prop):
       sprite = sprites["coffin_open"]
     else:
       sprite = sprites["coffin"]
-    sprite = replace_color(sprite, WHITE, TILECOLOR)
+    sprite = replace_color(sprite, WHITE, COLOR_TILE)
     return sprite
 
 # class CoffinLid(Vfx):

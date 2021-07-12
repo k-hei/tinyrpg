@@ -1,5 +1,5 @@
 from skills import Skill
-from palette import RED
+from colors.palette import RED
 
 class AttackSkill(Skill):
   kind = "attack"

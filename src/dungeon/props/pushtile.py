@@ -2,7 +2,7 @@ from dungeon.element import DungeonElement
 from dungeon.props.puzzledoor import PuzzleDoor
 from assets import load as use_assets
 from filters import replace_color
-from palette import BLACK, WHITE, GRAY, PURPLE, GRAY_DARK, BLUE_DARK
+from colors.palette import BLACK, WHITE, GRAY, PURPLE, DARKGRAY, DARKBLUE
 from sprite import Sprite
 from anims.pause import PauseAnim
 
@@ -40,10 +40,10 @@ class PushTile(DungeonElement):
   def view(tile, anims):
     assets = use_assets()
     tile_image = assets.sprites["push_tile"]
-    tile_image = replace_color(tile_image, GRAY, GRAY_DARK)
+    tile_image = replace_color(tile_image, GRAY, DARKGRAY)
     if tile.pushed:
       tile_image = replace_color(tile_image, WHITE, PURPLE)
-      tile_image = replace_color(tile_image, BLACK, BLUE_DARK)
+      tile_image = replace_color(tile_image, BLACK, DARKBLUE)
     return super().view(Sprite(
       image=tile_image,
       layer="decors"

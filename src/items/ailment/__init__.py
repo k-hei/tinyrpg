@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from items import Item
 from assets import load as use_assets
-from palette import VIOLET
+from colors.palette import VIOLET
 
 @dataclass
 class AilmentItem(Item):

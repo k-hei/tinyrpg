@@ -2,7 +2,7 @@ from dungeon.props import Prop
 from assets import load as use_assets
 from filters import replace_color
 from anims.chest import ChestAnim
-import palette
+from colors.palette import PINK, GOLD, BLACK
 from sprite import Sprite
 
 class Chest(Prop):
@@ -31,6 +31,6 @@ class Chest(Prop):
         sprite = sprites["chest_open"]
       else:
         sprite = sprites["chest"]
-    color = palette.PINK if chest.rare else palette.GOLD
-    sprite = replace_color(sprite, palette.BLACK, color)
+    color = PINK if chest.rare else GOLD
+    sprite = replace_color(sprite, BLACK, color)
     return super().view(sprite, anims)

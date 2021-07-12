@@ -1,5 +1,5 @@
 from skills import Skill
-from palette import GOLD
+from colors.palette import GOLD
 
 class Armor(Skill):
   kind = "armor"

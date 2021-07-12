@@ -1,5 +1,5 @@
 from skills import Skill
-from palette import GREEN
+from colors.palette import GREEN
 
 class SupportSkill(Skill):
   kind = "support"

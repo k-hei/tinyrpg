@@ -14,7 +14,7 @@ from lib.lerp import lerp
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
 from filters import outline
 from transits.dissolve import DissolveIn, DissolveOut
-from palette import BLACK, WHITE
+from colors.palette import BLACK, WHITE
 import keyboard
 from cores.knight import Knight
 from cores.mage import Mage

@@ -2,8 +2,7 @@ import math
 from random import random, randint, choice
 import pygame
 from pygame import Rect
-import palette
-from palette import GREEN, CYAN
+from colors.palette import GREEN, CYAN
 from copy import deepcopy
 
 import config

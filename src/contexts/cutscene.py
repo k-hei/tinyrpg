@@ -1,7 +1,7 @@
 from pygame import Surface
 from contexts import Context
 from anims.tween import TweenAnim
-from palette import BLACK
+from colors.palette import BLACK
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 from sprite import Sprite
 from easing.expo import ease_out

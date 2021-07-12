@@ -4,7 +4,7 @@ from pygame import Rect
 from portraits import Portrait
 from assets import load as use_assets
 from anims.frame import FrameAnim
-from palette import BLUE, BLUE_DARK
+from colors.palette import BLUE, DARKBLUE
 from lib.lerp import lerp
 
 class MiraPortrait(Portrait):
@@ -71,14 +71,14 @@ class MiraPortrait(Portrait):
     BALL_HEIGHT = 17
     BALL_X = surface.get_width() - BALL_WIDTH
     BALL_Y = surface.get_height() - BALL_HEIGHT
-    pygame.draw.rect(surface, BLUE_DARK, Rect(BALL_X, BALL_Y, BALL_WIDTH, BALL_HEIGHT))
+    pygame.draw.rect(surface, DARKBLUE, Rect(BALL_X, BALL_Y, BALL_WIDTH, BALL_HEIGHT))
     for i in range(BALL_WIDTH):
       swing = sin(ticks % 600 / 600 * 2 * pi)
       amplitude = (sin(ticks % 240 / 240 * 2 * pi) + 1) / 2
       amplitude = lerp(3, 9, amplitude)
       height = (sin((ticks % 90 / 90 * 2 + swing + i / BALL_WIDTH) * 2 * pi) + 1) / 2
       height *= amplitude
-      pygame.draw.rect(surface, BLUE_DARK, Rect(
+      pygame.draw.rect(surface, DARKBLUE, Rect(
         (BALL_X + i, BALL_Y - int(height)),
         (1, int(height))
       ))

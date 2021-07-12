@@ -8,7 +8,7 @@ from anims.awaken import AwakenAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from filters import replace_color
-from palette import BLACK, ORANGE
+from colors.palette import BLACK, ORANGE
 
 class Genie(DungeonActor):
   def __init__(genie, *args, **kwargs):

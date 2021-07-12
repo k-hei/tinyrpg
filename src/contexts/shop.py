@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from math import sin, cos, pi
 import pygame
-from pygame import Rect, Surface
+from pygame import Rect, Surface, Color
 from pygame.transform import rotate, scale
 from contexts import Context
 from contexts.cardgroup import CardContext, CARD_BUY, CARD_SELL, CARD_EXIT
@@ -15,8 +15,8 @@ from comps.card import Card
 from comps.portraitgroup import PortraitGroup
 from comps.hud import Hud
 from assets import load as use_assets
-from filters import replace_color, darken
-from palette import BLACK, WHITE, RED, BLUE, BLUE_DARK, GOLD, ORANGE
+from filters import replace_color, darken_image
+from colors.palette import BLACK, WHITE, RED, BLUE, DARKBLUE, GOLD, ORANGE
 import keyboard
 from anims import Anim
 from anims.tween import TweenAnim
@@ -290,7 +290,7 @@ class ShopContext(Context):
             t = char_anim.pos
             c = int(0xFF * t)
             char_offset = (1 - ease_out(t)) * 12
-            char_color = (c << 16) + (c << 8) + c
+            char_color = Color(c, c, c)
           else:
             c = 255
             char_offset = 0
@@ -326,7 +326,7 @@ class ShopContext(Context):
             t = char_anim.pos
             c = int(0xFF * t)
             char_offset = (1 - ease_out(t)) * 12
-            char_color = (c << 16) + (c << 8) + c
+            char_color = Color(c, c, c)
           else:
             c = 255
             char_offset = 0

@@ -1,5 +1,5 @@
 from items import Item
-from palette import GOLD
+from colors.palette import GOLD
 
 class Gold(Item):
   name = "Gold"

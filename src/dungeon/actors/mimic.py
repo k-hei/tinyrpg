@@ -5,7 +5,7 @@ from dungeon.props.chest import Chest
 from assets import load as use_assets
 from anims.activate import ActivateAnim
 from filters import replace_color
-import palette
+from colors.palette import BLACK, RED
 
 class Mimic(DungeonActor):
   def __init__(mimic):
@@ -29,7 +29,7 @@ class Mimic(DungeonActor):
     anim_group = [a for a in anims[0] if a.target is mimic] if anims else []
     for anim in anim_group:
       if type(anim) is ActivateAnim and anim.visible:
-        sprite = replace_color(sprite, palette.BLACK, palette.RED)
+        sprite = replace_color(sprite, BLACK, RED)
         break
     else:
       if mimic.idle:

@@ -10,7 +10,7 @@ from cores.mira import MiraCore
 from cores.rogue import Rogue
 from transits.dissolve import DissolveOut
 from savedata.resolve import resolve_item
-from palette import BLACK, ORANGE, BLUE_DARK
+from colors.palette import BLACK, ORANGE, DARKBLUE
 
 class FortuneArea(Stage):
   name = "Fortune House"
@@ -56,5 +56,5 @@ class FortuneArea(Stage):
       ),
       "2": FortuneDesk,
       "|": FortuneStand,
-      "+": lambda: Door(palette=(BLACK, BLUE_DARK))
+      "+": lambda: Door(palette=(BLACK, DARKBLUE))
     })

@@ -1,7 +1,7 @@
 from dungeon.props.door import Door, SpriteMap
 from contexts.prompt import PromptContext, Choice
 from filters import replace_color
-from palette import SAFFRON, GOLD
+from colors.palette import SAFFRON, GOLD
 from items.dungeon.key import Key
 
 class TreasureDoor(Door):

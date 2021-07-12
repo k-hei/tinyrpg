@@ -1,7 +1,7 @@
 from dungeon.element import DungeonElement
 from assets import load as use_assets
 from filters import replace_color
-from palette import WHITE, SAFFRON
+from colors.palette import WHITE, SAFFRON
 from sprite import Sprite
 
 class Pillar(DungeonElement):

@@ -15,7 +15,7 @@ from anims.awaken import AwakenAnim
 from items.materials.angeltears import AngelTears
 from sprite import Sprite
 from filters import replace_color
-from palette import BLACK, CYAN
+from colors.palette import BLACK, CYAN
 
 class Eye(DungeonActor):
   drops = [AngelTears]

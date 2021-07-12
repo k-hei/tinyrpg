@@ -11,8 +11,7 @@ from dungeon.props.chest import Chest
 from dungeon.props.soul import Soul
 from dungeon.props.door import Door
 from dungeon.props.altar import Altar
-import palette
-from palette import GREEN, GREEN_DARK, VIOLET, VIOLET_DARK
+from colors.palette import GREEN, DARKGREEN, VIOLET, DARKVIOLET
 from anims.tween import TweenAnim
 from anims.warpin import WarpInAnim
 from easing.expo import ease_out, ease_in_out
@@ -145,9 +144,9 @@ class Minimap:
         else:
           color = 0xFF0000 if minimap.time % 60 >= 30 else 0x990000
       elif isinstance(elem, Soul) and cell in visible_cells:
-        color = VIOLET if minimap.time % 60 >= 30 else VIOLET_DARK
+        color = VIOLET if minimap.time % 60 >= 30 else DARKVIOLET
       elif isinstance(elem, Npc) and cell in visible_cells:
-        color = GREEN if minimap.time % 60 >= 30 else GREEN_DARK
+        color = GREEN if minimap.time % 60 >= 30 else DARKGREEN
       elif type(elem) is Chest and elem.rare:
         if elem.opened:
           color = 0x7F007F

@@ -4,7 +4,7 @@ from config import TILE_SIZE
 from assets import load as use_assets
 from anims.flicker import FlickerAnim
 from sprite import Sprite
-from palette import BLACK, CYAN
+from colors.palette import BLACK, CYAN
 from filters import replace_color
 
 class IcePieceVfx(Vfx):

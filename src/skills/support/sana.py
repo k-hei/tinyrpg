@@ -1,10 +1,9 @@
-from config import ATTACK_DURATION
+import random
 from skills.support import SupportSkill
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from comps.damage import DamageValue
-import palette
-import random
+from colors.palette import GREEN
 
 from dungeon.actors import DungeonActor
 from cores.mage import Mage
@@ -32,7 +31,7 @@ class Sana(SupportSkill):
       if target_elem:
         amount = 20 + random.randint(-2, 2)
         target_elem.regen(amount)
-        game.numbers.append(DamageValue(str(amount), target_cell, palette.GREEN))
+        game.numbers.append(DamageValue(str(amount), target_cell, GREEN))
         result = (target_elem.token(), " restored ", str(amount), " HP.")
       else:
         result = "But nothing happened..."
@@ -49,7 +48,6 @@ class Sana(SupportSkill):
 
     game.anims.append([
       AttackAnim(
-        duration=ATTACK_DURATION,
         target=user,
         src=user.cell,
         dest=target_cell,

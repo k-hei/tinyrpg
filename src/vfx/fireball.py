@@ -2,7 +2,7 @@ from math import sqrt, cos, sin, atan2, pi
 from random import random, choice
 from vfx import Vfx
 from config import TILE_SIZE
-from palette import RED
+from colors.palette import RED
 from anims import Anim
 from anims.tween import TweenAnim
 from lib.lerp import lerp

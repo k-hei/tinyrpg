@@ -7,7 +7,7 @@ from comps.box import Box
 from comps.control import Control
 from comps.card import Card
 from comps.textbubble import TextBubble
-from palette import BLACK, WHITE, GRAY, GRAY_DARK, BLUE, GOLD, CYAN
+from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, BLUE, GOLD, CYAN
 from filters import replace_color
 from assets import load as use_assets
 from inventory import Inventory
@@ -178,7 +178,7 @@ class BagList:
       track_height = bag.box.get_height() - 6 * 2
       track_x = bag.box.get_width() - track_width - 6
       track_y = 7
-      pygame.draw.rect(bag.surface, GRAY_DARK, Rect(
+      pygame.draw.rect(bag.surface, DARKGRAY, Rect(
         (track_x, track_y),
         (track_width, track_height)
       ))
@@ -217,7 +217,7 @@ class BagList:
           coin_y = y + icon_image.get_height() // 2 - coin_image.get_height() // 2 - 1
           bag.surface.blit(coin_image, (coin_x, coin_y))
 
-        pygame.draw.rect(bag.surface, GRAY_DARK, Rect(
+        pygame.draw.rect(bag.surface, DARKGRAY, Rect(
           (x + 16 + 4, y + 15),
           (bag.box.get_width() - x - 32, 1)
         ))

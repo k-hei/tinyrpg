@@ -1,7 +1,7 @@
 from contexts.shop import ShopContext, ShopCard
 from cores.mira import MiraCore as Oracle
 from portraits.mira import MiraPortrait as OraclePortrait
-from palette import BLUE_DARK
+from colors.palette import DARKBLUE
 
 class FortuneContext(ShopContext):
   def __init__(ctx, *args, **kwargs):
@@ -18,7 +18,7 @@ class FortuneContext(ShopContext):
         "exit": Oracle.name.upper() + ": Come again..."
       },
       bg_name="fortune_bg",
-      bg_color=BLUE_DARK,
+      bg_color=DARKBLUE,
       portraits=[OraclePortrait()],
       cards=[
         ShopCard(name="buy", text="Buy recovery and support items."),

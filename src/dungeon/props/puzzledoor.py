@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from dungeon.props.door import Door
-from palette import PURPLE, SAFFRON
+from colors.palette import PURPLE, SAFFRON
 from filters import replace_color
 
 class PuzzleDoor(Door):

@@ -5,7 +5,7 @@ from lib.lerp import lerp
 from sprite import Sprite
 import config
 import pygame
-from palette import WHITE, BLACK
+from colors.palette import WHITE, BLACK
 
 class DamageNumber:
   INITIAL_VELOCITY = -2

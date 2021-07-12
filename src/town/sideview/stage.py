@@ -1,8 +1,8 @@
 from math import sin, pi
 from dataclasses import dataclass
 from assets import load as use_assets
-from filters import stroke, replace_color, darken
-from palette import BLACK, WHITE, GRAY, BLUE
+from filters import stroke, replace_color, darken_image
+from colors.palette import BLACK, WHITE, GRAY, BLUE
 from config import TILE_SIZE, WINDOW_WIDTH
 from sprite import Sprite
 
@@ -59,7 +59,7 @@ class Area:
         sprite.target = actor
         _, sprite_y = sprite.pos
         if actor is hero and link_name and link_name.startswith("door") and sprite_y < Area.DOOR_Y:
-          sprite.image = darken(sprite.image)
+          sprite.image = darken_image(sprite.image)
         sprites.append(sprite)
     if link_name and link_name.startswith("door"):
       link_pos = (link.x + area.camera, 96)

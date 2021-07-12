@@ -4,12 +4,12 @@ import keyboard
 
 import math
 import pygame
-from pygame import Rect, Surface
+from pygame import Rect, Surface, Color
 from config import TILE_SIZE, WINDOW_HEIGHT
 from assets import load as use_assets
 from text import render as render_text
 from filters import recolor, replace_color, outline
-from palette import BLACK, WHITE, GRAY, YELLOW
+from colors.palette import BLACK, WHITE, GRAY, YELLOW
 from comps.skill import Skill
 from sprite import Sprite
 
@@ -246,8 +246,8 @@ class SkillContext(Context):
         alpha = [0x5f, 0x6f, 0x7f][int(cursor_anim.time % 60 / 60 * 3)]
         square_lo = Surface((TILE_SIZE - 1, TILE_SIZE - 1), pygame.SRCALPHA)
         square_hi = Surface((TILE_SIZE - 1, TILE_SIZE - 1), pygame.SRCALPHA)
-        pygame.draw.rect(square_lo, skill.color & 0xFFFFFF | int(alpha) << 24, square_lo.get_rect())
-        pygame.draw.rect(square_hi, skill.color & 0xFFFFFF | int(alpha + 0x5f) << 24, square_hi.get_rect())
+        pygame.draw.rect(square_lo, Color(*skill.color, alpha), square_lo.get_rect())
+        pygame.draw.rect(square_hi, Color(*skill.color, alpha + 0x5f), square_hi.get_rect())
         square_cells = list(set(skill_range + skill_targets))
         for cell in square_cells:
           x, y = scale_up(cell)

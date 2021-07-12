@@ -1,6 +1,6 @@
 from pygame import Surface, SRCALPHA
 from assets import load as use_assets
-from palette import BLACK, BLUE, GOLD
+from colors.palette import BLACK, BLUE, GOLD
 from filters import replace_color
 
 class Control:

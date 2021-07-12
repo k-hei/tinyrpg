@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from items.materials import MaterialItem
-from palette import GRAY
+from colors.palette import GRAY
 
 @dataclass
 class Diamond(MaterialItem):

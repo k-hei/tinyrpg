@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from items import Item
 from assets import load as use_assets
-from palette import GREEN
+from colors.palette import GREEN
 
 @dataclass
 class DungeonItem(Item):

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from items.materials import MaterialItem
-from palette import BLUE
+from colors.palette import BLUE
 
 @dataclass
 class AngelTears(MaterialItem):

@@ -3,7 +3,7 @@ import pygame
 from pygame import Surface, Rect
 from assets import load as use_assets
 from filters import replace_color, outline
-from palette import WHITE
+from colors.palette import WHITE
 
 class Piece:
   BLOCK_SIZE = 16

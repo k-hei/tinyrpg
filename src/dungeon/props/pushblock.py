@@ -6,7 +6,7 @@ from sprite import Sprite
 from anims.move import MoveAnim
 from anims import Anim
 from filters import replace_color
-from palette import BLACK, WHITE, PURPLE, SAFFRON, BLUE_DARK
+from colors.palette import BLACK, WHITE, PURPLE, SAFFRON, DARKBLUE
 
 class PushBlock(Prop):
   def __init__(block):
@@ -59,7 +59,7 @@ class PushBlock(Prop):
       block_z = SinkAnim.DEPTH
       block_image = assets.sprites["push_block_open"]
       block_image = replace_color(block_image, WHITE, PURPLE)
-      block_image = replace_color(block_image, BLACK, BLUE_DARK)
+      block_image = replace_color(block_image, BLACK, DARKBLUE)
     if block_z:
       block_image = block_image.subsurface(Rect(
         (0, 0),

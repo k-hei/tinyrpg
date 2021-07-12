@@ -3,7 +3,6 @@ from skills.support import SupportSkill
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from comps.damage import DamageValue
-import palette
 import random
 
 from dungeon.actors import DungeonActor

@@ -8,7 +8,7 @@ from filters import replace_color, recolor
 from comps.skill import Skill
 from contexts.dialogue import DialogueContext
 from vfx import Vfx
-from palette import BLACK
+from colors.palette import BLACK
 from sprite import Sprite
 import config
 

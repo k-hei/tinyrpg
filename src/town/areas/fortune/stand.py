@@ -3,14 +3,14 @@ from assets import load as use_assets
 from sprite import Sprite
 from config import TILE_SIZE
 from filters import replace_color
-from palette import WHITE, BLUE_DARK
+from colors.palette import WHITE, DARKBLUE
 
 class FortuneStand(Element):
   size = (16, 16)
 
   def view(stand):
     stand_image = use_assets().sprites["fortune_stand"]
-    stand_image = replace_color(stand_image, WHITE, BLUE_DARK)
+    stand_image = replace_color(stand_image, WHITE, DARKBLUE)
     stand_sprite = Sprite(
       image=stand_image,
       pos=stand.pos,

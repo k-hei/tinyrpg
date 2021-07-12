@@ -6,9 +6,9 @@ from dungeon.element import DungeonElement
 from cores import Core
 from skills.weapon import Weapon
 
-from palette import BLACK, RED, GREEN, BLUE, CYAN, VIOLET, GOLD
+from colors.palette import BLACK, RED, GREEN, BLUE, CYAN, VIOLET, GOLD
 from assets import load as use_assets
-from filters import replace_color, darken
+from filters import replace_color, darken_image
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
 from anims.jump import JumpAnim
@@ -263,7 +263,7 @@ class DungeonActor(DungeonElement):
     if new_color:
       sprite.image = replace_color(sprite.image, BLACK, new_color)
     if asleep:
-      sprite.image = darken(sprite.image)
+      sprite.image = darken_image(sprite.image)
     facing_x, _ = actor.facing
     _, flip_y = sprite.flip
     sprite.flip = (facing_x == -1, flip_y)

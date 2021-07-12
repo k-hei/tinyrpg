@@ -1,5 +1,5 @@
 from filters import replace_color
-from palette import WHITE, ORANGE
+from colors.palette import WHITE, ORANGE
 
 class Portrait:
   BLINK_INTERVAL = 150

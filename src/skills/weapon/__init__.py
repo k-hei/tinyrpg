@@ -1,5 +1,5 @@
 from skills import Skill
-from palette import GRAY
+from colors.palette import GRAY
 
 class Weapon(Skill):
   kind = "weapon"

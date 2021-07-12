@@ -11,8 +11,8 @@ from contexts.prompt import PromptContext, Choice
 from contexts.dialogue import DialogueContext
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
 from assets import load as use_assets
-from palette import BLACK, WHITE, GRAY, BLUE
-from filters import replace_color, darken
+from colors.palette import BLACK, WHITE, GRAY, BLUE
+from filters import replace_color, darken_image
 from comps.log import Token
 from anims.walk import WalkAnim
 from anims.tween import TweenAnim
@@ -129,7 +129,7 @@ class Banner:
       start_image = assets.sprites["button_start"]
       start_image = replace_color(start_image, BLACK, BLUE)
       if not can_confirm:
-        start_image = darken(start_image)
+        start_image = darken_image(start_image)
       x += -BANNER_ITEM_ICON_SPACING - start_image.get_width()
       y += confirm_image.get_height() / 2 -  start_image.get_height() / 2
       banner_image.blit(start_image, (x, y))

@@ -1,7 +1,7 @@
 from dungeon.features.specialroom import SpecialRoom
 from dungeon.props.door import Door
 from dungeon.actors.genie import Genie as GenieActor
-from palette import ORANGE, GREEN, BLUE
+from colors.palette import ORANGE, GREEN, BLUE
 from anims.pause import PauseAnim
 from anims.flicker import FlickerAnim
 from contexts.cutscene import CutsceneContext

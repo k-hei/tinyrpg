@@ -5,7 +5,7 @@ from assets import load as use_assets
 from cores import Core
 from sprite import Sprite
 from filters import replace_color
-from palette import BLACK, ORANGE
+from colors.palette import BLACK, ORANGE
 
 RIPPLE_PERIOD = 90
 RIPPLE_WAVES = 2

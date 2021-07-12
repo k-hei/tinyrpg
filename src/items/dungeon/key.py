@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from items.dungeon import DungeonItem
-from palette import GOLD
+from colors.palette import GOLD
 
 @dataclass
 class Key(DungeonItem):

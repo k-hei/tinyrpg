@@ -1,5 +1,5 @@
-from filters import outline, darken
-from palette import WHITE
+from filters import outline, darken_image
+from colors.palette import WHITE
 from anims.walk import WalkAnim
 from config import TILE_SIZE
 

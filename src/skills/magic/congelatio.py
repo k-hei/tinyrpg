@@ -7,7 +7,7 @@ from anims.attack import AttackAnim
 from anims.frame import FrameAnim
 from anims.pause import PauseAnim
 from vfx.icespike import IceSpikeVfx
-from palette import CYAN
+from colors.palette import CYAN
 
 class Congelatio(MagicSkill):
   name = "Congelatio"

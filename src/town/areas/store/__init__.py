@@ -16,7 +16,7 @@ from portraits.husband import HusbandPortrait
 from portraits.wife import WifePortrait
 from transits.dissolve import DissolveOut
 from savedata.resolve import resolve_item
-from palette import ORANGE, WHITE
+from colors.palette import ORANGE, WHITE
 
 class StoreArea(Stage):
   name = "General Store"

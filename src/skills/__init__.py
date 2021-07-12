@@ -1,7 +1,7 @@
 from comps.log import Token
 from anims.pause import PauseAnim
 from cores import Core
-from palette import BLACK
+from colors.palette import BLACK
 from lib.cell import neighborhood
 
 class Skill:

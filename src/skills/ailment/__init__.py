@@ -1,5 +1,5 @@
 from skills import Skill
-from palette import VIOLET
+from colors.palette import VIOLET
 
 class AilmentSkill(Skill):
   kind = "ailment"

@@ -8,7 +8,7 @@ from text import render as render_text
 from contexts import Context
 from keyboard import key_times
 from filters import recolor, replace_color
-from palette import BLACK, WHITE, GRAY, YELLOW
+from colors.palette import BLACK, WHITE, GRAY, YELLOW
 
 from anims.tween import TweenAnim
 from anims.sine import SineAnim

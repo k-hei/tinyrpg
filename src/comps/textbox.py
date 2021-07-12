@@ -1,7 +1,7 @@
 from pygame import Surface, SRCALPHA
 from assets import load as use_assets
 from comps.log import Message
-from palette import BLACK
+from colors.palette import BLACK
 
 LINE_SPACING = 4
 

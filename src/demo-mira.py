@@ -4,7 +4,7 @@ from sprite import Sprite
 from contexts import Context
 from contexts.app import App
 from assets import load as use_assets
-from palette import WHITE
+from colors.palette import WHITE
 from anims.frame import FrameAnim
 from portraits.mira import MiraPortrait
 import keyboard

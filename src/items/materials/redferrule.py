@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from items.materials import MaterialItem
-from palette import RED
+from colors.palette import RED
 
 @dataclass
 class RedFerrule(MaterialItem):

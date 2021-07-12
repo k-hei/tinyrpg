@@ -2,7 +2,7 @@ from skills.weapon.rare import RareWeapon
 from cores import Core
 from cores.knight import Knight
 from assets import load as use_assets
-from palette import PINK
+from colors.palette import PINK
 
 class Mjolnir(RareWeapon):
   name = "Mjolnir"

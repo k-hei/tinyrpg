@@ -10,7 +10,7 @@ from assets import load as use_assets
 from filters import replace_color
 import keyboard
 from keyboard import key_times, ARROW_DELTAS
-from palette import BLACK, WHITE, GRAY, BLUE
+from colors.palette import BLACK, WHITE, GRAY, BLUE
 from sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 

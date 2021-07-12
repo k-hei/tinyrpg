@@ -1,14 +1,14 @@
-from pygame import Surface, PixelArray, SRCALPHA
-import palette
+from pygame import Surface, PixelArray, Color, SRCALPHA
+from colors import darken_color, rgbify, hexify
 
-def darken(surface):
+def darken_image(surface):
   width, height = surface.get_size()
   surface = surface.copy()
   pixels = PixelArray(surface)
   for y in range(height):
     for x in range(width):
       if pixels[x, y] == 0: continue
-      pixels[x, y] = palette.darken_color(pixels[x, y])
+      pixels[x, y] = Color(*darken_color(pixels[x, y]))
   return surface
 
 def recolor(surface, color):

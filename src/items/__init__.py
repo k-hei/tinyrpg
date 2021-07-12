@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from assets import load as use_assets
 from filters import replace_color
 from comps.log import Token
-from palette import BLACK
+from colors.palette import BLACK
 
 @dataclass
 class Item:

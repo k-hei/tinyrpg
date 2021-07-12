@@ -3,7 +3,7 @@ from sprite import Sprite
 from assets import load as use_assets
 from anims.pause import PauseAnim
 from filters import replace_color
-from palette import WHITE, BLACK
+from colors.palette import WHITE, BLACK
 
 class Door(Element):
   EFFECT_DELAY = 20

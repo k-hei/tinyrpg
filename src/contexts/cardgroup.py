@@ -5,9 +5,9 @@ from pygame.transform import rotate
 from contexts import Context
 from comps.card import Card, CARD_BUY, CARD_SELL, CARD_EXIT
 from assets import load as use_assets
-from palette import RED, BLUE
+from colors.palette import RED, BLUE
 from sprite import Sprite
-from filters import darken
+from filters import darken_image
 from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
@@ -183,7 +183,7 @@ class CardContext(Context):
             card_x = lerp(from_x, card_x, t)
             card_y = lerp(from_y, card_y, t)
         if card is not ctx.card():
-          card_sprite.image = darken(card_sprite.image)
+          card_sprite.image = darken_image(card_sprite.image)
         elif not ctx.anims and not ctx.chosen:
           card_y -= CARD_LIFT
         elif not ctx.anims and ctx.chosen:

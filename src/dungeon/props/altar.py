@@ -1,7 +1,7 @@
 from dungeon.element import DungeonElement
 from assets import load as use_assets
 from filters import replace_color
-from palette import WHITE, BLACK, GOLD, VIOLET
+from colors.palette import WHITE, BLACK, GOLD, VIOLET
 from sprite import Sprite
 from anims.frame import FrameAnim
 

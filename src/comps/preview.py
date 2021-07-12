@@ -3,7 +3,7 @@ import pygame
 from pygame import Surface, Rect
 from assets import load as use_assets
 from filters import replace_color
-from palette import RED, WHITE, GOLD, VIOLET, GRAY
+from colors.palette import RED, WHITE, GOLD, VIOLET, GRAY
 
 from anims import Anim
 from anims.tween import TweenAnim

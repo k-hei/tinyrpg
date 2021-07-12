@@ -11,8 +11,8 @@ from comps.banner import Banner
 from comps.log import Log
 from config import WINDOW_SIZE
 from assets import load as use_assets
-from palette import BLACK, WHITE, GOLD, BLUE, YELLOW
-from filters import recolor, replace_color, darken, outline, shadow_lite as shadow
+from colors.palette import BLACK, WHITE, GOLD, BLUE, YELLOW
+from filters import recolor, replace_color, darken_image, outline, shadow_lite as shadow
 from text import render as render_text
 from anims.tween import TweenAnim
 from easing.expo import ease_out
@@ -107,19 +107,19 @@ class Slot:
 
       if "knight" in slot.data.chars:
         if "knight" not in slot.data.party:
-          knight_image = darken(knight_image)
+          knight_image = darken_image(knight_image)
         surface.blit(knight_image, (x, y))
         x += knight_image.get_width() + slot.ICON_SPACING
 
       if "mage" in slot.data.chars:
         if "mage" not in slot.data.party:
-          mage_image = darken(mage_image)
+          mage_image = darken_image(mage_image)
         surface.blit(mage_image, (x, y))
         x += mage_image.get_width() + slot.ICON_SPACING
 
       if "rogue" in slot.data.chars:
         if "rogue" not in slot.data.party:
-          rogue_image = darken(rogue_image)
+          rogue_image = darken_image(rogue_image)
         surface.blit(rogue_image, (x, y))
         x += rogue_image.get_width() + slot.ICON_SPACING
 
@@ -325,7 +325,7 @@ class DataContext(Context):
       else:
         x = to_x
       if i != ctx.index:
-        slot_image = darken(slot_image)
+        slot_image = darken_image(slot_image)
       surface_clip.blit(slot_image, (x, slot_y))
       slot_y += slot_image.get_height() + ctx.SLOT_SPACING
 

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from items import Item
-from palette import RED
+from colors.palette import RED
 
 @dataclass
 class HpItem(Item):

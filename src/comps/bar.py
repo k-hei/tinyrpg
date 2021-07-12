@@ -3,7 +3,7 @@ from pygame import Surface, Rect
 from assets import load as use_assets
 from text import render as render_text
 from filters import recolor
-from palette import WHITE
+from colors.palette import WHITE
 from config import WINDOW_HEIGHT
 from sprite import Sprite
 

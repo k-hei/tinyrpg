@@ -1,6 +1,6 @@
 from dungeon.actors import DungeonActor
 from cores.knight import Knight as KnightCore
-from palette import ORANGE
+from colors.palette import ORANGE
 from anims.walk import WalkAnim
 
 class GuardActor(DungeonActor):

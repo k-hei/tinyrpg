@@ -3,7 +3,7 @@ import pygame
 from pygame import Surface, Rect, SRCALPHA
 from assets import load as use_assets
 from config import WINDOW_WIDTH
-from palette import BLACK, BLUE
+from colors.palette import BLACK, BLUE
 from filters import replace_color
 from anims.tween import TweenAnim
 

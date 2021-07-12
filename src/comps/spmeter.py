@@ -1,12 +1,12 @@
 from math import ceil, sin, pi
-from pygame import Surface, Rect
+from pygame import Surface, Rect, Color
 from assets import load as use_assets
 from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
 from comps.hud import render_numbers
 from filters import recolor, replace_color
-from palette import RED, WHITE, BLUE
+from colors.palette import RED, WHITE, BLUE
 from sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 
@@ -64,7 +64,7 @@ class SpMeter:
     bg_sprite = None
     if delta > 0:
       alpha = sin(meter.draws % 30 / 30 * 2 * pi) * 0x7F + 0x7F
-      bg_sprite = replace_color(fill_sprite, BLUE, WHITE & 0xFFFFFF | int(alpha) << 24)
+      bg_sprite = replace_color(fill_sprite, BLUE, Color(*WHITE, alpha))
       bg_y = bg_sprite.get_height() * (1 - sp_pct)
       bg_sprite = bg_sprite.subsurface(Rect(
         (0, ceil(bg_y)),

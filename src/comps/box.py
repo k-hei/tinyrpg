@@ -1,6 +1,6 @@
 from pygame import Surface
 from assets import load as use_assets
-from palette import BLACK
+from colors.palette import BLACK
 
 class Box:
   TILE_SIZE = 8

@@ -11,7 +11,7 @@ from assets import load as use_assets
 from sprite import Sprite
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
 from filters import replace_color, outline
-from palette import BLACK, WHITE, BLUE
+from colors.palette import BLACK, WHITE, BLUE
 from transits.dissolve import DissolveIn, DissolveOut
 from anims import Anim
 import keyboard

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from dungeon.props import Prop
 from assets import load as use_assets
 from anims.frame import FrameAnim
-from palette import WHITE, SAFFRON
+from colors.palette import WHITE, SAFFRON
 from filters import replace_color
 from sprite import Sprite
 from config import TILE_SIZE

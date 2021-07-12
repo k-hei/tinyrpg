@@ -3,7 +3,7 @@ from functools import reduce
 from operator import add
 from pygame import Surface
 from pygame.transform import flip
-from palette import BLACK, RED, GREEN, BLUE, GOLD_DARK
+from colors.palette import BLACK, RED, GREEN, BLUE, DARKGOLD
 from filters import replace_color
 from comps.log import Token
 

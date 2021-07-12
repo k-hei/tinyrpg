@@ -8,7 +8,7 @@ from contexts import Context
 from assets import load as use_assets
 from comps.log import Log
 from collections.abc import Iterable
-from palette import BLACK
+from colors.palette import BLACK
 from anims.tween import TweenAnim
 from easing.expo import ease_out
 from sprite import Sprite

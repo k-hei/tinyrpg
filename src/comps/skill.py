@@ -3,7 +3,8 @@ from text import render as render_text
 from filters import recolor, outline, replace_color
 from pygame import Rect
 import pygame
-from palette import BLACK, WHITE, GRAY, darken_color
+from colors import darken_color
+from colors.palette import BLACK, WHITE, GRAY
 
 class Skill:
   PADDING_X = 6

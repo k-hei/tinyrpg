@@ -4,7 +4,7 @@ from easing.expo import ease_out
 from lib.lerp import lerp
 from text import render as render_text
 from filters import recolor, replace_color
-from palette import BLACK
+from colors.palette import BLACK
 from sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 

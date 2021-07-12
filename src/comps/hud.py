@@ -4,7 +4,7 @@ import pygame
 from pygame import Rect, Surface, SRCALPHA
 from pygame.transform import scale
 
-from palette import BLACK, WHITE, BLUE, RED, CYAN, GRAY
+from colors.palette import BLACK, WHITE, BLUE, RED, CYAN, GRAY
 from assets import load as use_assets
 from filters import replace_color, recolor, outline
 from sprite import Sprite
