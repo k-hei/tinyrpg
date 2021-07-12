@@ -29,13 +29,19 @@ class DialogueContext(Context):
 
   def __init__(ctx, script, lite=False, side="bottom", on_close=None):
     super().__init__(on_close=on_close)
-    ctx.script = list(script)
+    ctx.script = script
     ctx.lite = lite
     ctx.side = side
     ctx.index = 0
     ctx.name = None
     ctx.log = Log(autohide=False, side=side)
     ctx.anim = None
+
+  def init(ctx):
+    if callable(ctx.script):
+      ctx.script = ctx.script(ctx.parent)
+    else:
+      ctx.script = list(ctx.script)
 
   def enter(ctx):
     if ctx.lite:

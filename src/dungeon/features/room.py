@@ -9,8 +9,8 @@ class Room(Feature):
   EntryDoor = Door
   ExitDoor = Door
 
-  def __init__(room, size=None, cell=None, degree=0, secret=False):
-    super().__init__(degree, secret)
+  def __init__(room, size=None, cell=None, *args, **kwargs):
+    super().__init__(*args, **kwargs)
     room.size = size or (choice(ROOM_WIDTHS), choice(ROOM_HEIGHTS))
     room.cell = cell
     room.entered = False

@@ -20,7 +20,7 @@ from anims.frame import FrameAnim
 from lib.cell import is_adjacent, manhattan
 from lib.lerp import lerp
 from comps.log import Token
-from contexts.dialogue import DialogueContext
+from contexts.cutscene import CutsceneContext
 from config import TILE_SIZE
 
 class DungeonActor(DungeonElement):
@@ -158,11 +158,11 @@ class DungeonActor(DungeonElement):
     actor.face(hero.cell)
     game.camera.focus(((hero_x + actor_x) / 2, (hero_y + actor_y) / 2 + 1))
     def stop_talk():
-      actor.face(old_target)
+      if actor in game.floor.elems:
+        actor.face(old_target)
       game.camera.blur()
       game.talkee = None
-    game.open(DialogueContext(
-      lite=True,
+    game.open(CutsceneContext(
       script=message,
       on_close=stop_talk,
     ))

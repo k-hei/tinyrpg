@@ -1,4 +1,4 @@
-from dungeon.actors.npc import Npc
+from dungeon.actors import DungeonActor
 from cores.genie import Genie as GenieCore
 from assets import load as use_assets
 from skills.weapon.tackle import Tackle
@@ -10,9 +10,9 @@ from anims.flicker import FlickerAnim
 from filters import replace_color
 from palette import BLACK, ORANGE
 
-class Genie(Npc):
-  def __init__(genie, name, script, color=ORANGE):
-    super().__init__(GenieCore(name=name, color=color), script)
+class Genie(DungeonActor):
+  def __init__(genie, *args, **kwargs):
+    super().__init__(GenieCore(color=ORANGE, *args, **kwargs))
 
   def view(genie, anims=[]):
     sprite, *_ = genie.core.view()
