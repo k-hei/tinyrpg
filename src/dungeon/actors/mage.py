@@ -64,14 +64,6 @@ class Mage(DungeonActor):
       else:
         return None
 
-    has_allies = next((e for e in [game.floor.get_elem_at(c, superclass=DungeonActor) for c in game.room.get_cells()] if (
-      e and e is not mage
-      and e.get_faction() == mage.get_faction()
-    )), None)
-
-    if not has_allies:
-      return ("use_skill", Accerso)
-
     mage_x, mage_y = mage.cell
     enemy_x, enemy_y = enemy.cell
     dist_x = enemy_x - mage_x
@@ -82,12 +74,20 @@ class Mage(DungeonActor):
     mage.face(enemy.cell)
     if (delta_x == 0 and dist_y <= Glacio.range_max
     or delta_y == 0 and dist_x <= Glacio.range_max
-    ) and not enemy.ailment == "freeze":
+    ) and not enemy.ailment == "freeze" and not abs(dist_x) + abs(dist_y) == 1:
       if mage.get_hp() < mage.get_hp_max() / 2:
         mage.chant(skill=Congelatio, dest=enemy.cell)
       else:
         mage.chant(skill=Glacio)
       return game.log.print((mage.token(), " is chanting."))
+
+    has_allies = next((e for e in [game.floor.get_elem_at(c, superclass=DungeonActor) for c in game.room.get_cells()] if (
+      e and e is not mage
+      and e.get_faction() == mage.get_faction()
+    )), None)
+
+    if not has_allies:
+      return ("use_skill", Accerso)
 
     delta = None
     if abs(dist_x) + abs(dist_y) == 1:

@@ -48,6 +48,9 @@ class DungeonActor(DungeonElement):
 
   def get_name(actor): return actor.core.name
   def get_faction(actor): return actor.core.faction
+  def set_faction(actor, faction):
+    actor.core.faction = faction
+
   def get_hp(actor): return actor.core.get_hp()
   def get_hp_max(actor): return actor.core.get_hp_max()
   def set_hp(actor, hp): actor.core.set_hp(hp)
@@ -75,6 +78,9 @@ class DungeonActor(DungeonElement):
       return False
     else:
       return Core.allied(actor.core, target.core)
+
+  def get_facing(actor):
+    return actor.facing
 
   def set_facing(actor, facing):
     actor.facing = facing

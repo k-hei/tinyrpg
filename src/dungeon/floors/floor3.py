@@ -10,14 +10,19 @@ def Floor3():
   mageboss_room = MageBossRoom()
   exit_room = VerticalRoom(size=(3, 4), degree=1)
   return gen_floor(
-    size=(17, 42),
+    size=(21, 42),
     entrance=entry_room,
     features=FloorGraph(
-      nodes=[entry_room, hall_room, mageboss_room, exit_room],
+      nodes=[entry_room, mageboss_room, exit_room],
       edges=[
-        (entry_room, hall_room),
-        (hall_room, mageboss_room),
+        (entry_room, mageboss_room),
         (mageboss_room, exit_room),
       ]
+      # nodes=[entry_room, hall_room, mageboss_room, exit_room],
+      # edges=[
+      #   (entry_room, hall_room),
+      #   (hall_room, mageboss_room),
+      #   (mageboss_room, exit_room),
+      # ]
     )
   )
