@@ -9,13 +9,13 @@ class Elixir(HpItem):
 
   def use(elixir, ctx):
     game = ctx.parent
-    hero = game.hero
-    ally = game.ally
+    hero = ctx.hero
+    ally = ctx.ally
     if (hero.get_hp() < hero.get_hp_max()
-    or ally.get_hp() < ally.get_hp_max()
+    or ally and ally.get_hp() < ally.get_hp_max()
     or game.sp < game.sp_max):
       hero.set_hp(hero.get_hp_max())
-      ally.set_hp(ally.get_hp_max())
+      ally and ally.set_hp(ally.get_hp_max())
       game.sp = game.sp_max
       return True, "The party restored full HP and SP."
     else:
