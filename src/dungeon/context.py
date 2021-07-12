@@ -1135,18 +1135,18 @@ class DungeonContext(Context):
     if game.god_mode and target is game.hero:
       damage = 0
 
+    game.log.print((
+      target.token(),
+      " {}".format(game.hero.allied(target) and "receives" or "suffers"),
+      " {} damage.".format(int(damage))
+    ))
     flinch = FlinchAnim(
       duration=DungeonContext.FLINCH_DURATION,
       target=target,
       direction=direction,
       on_start=lambda:(
         target.damage(damage),
-        game.numbers.append(DamageValue(str(int(damage)), target.cell)),
-        game.log.print((
-          target.token(),
-          " {}".format(game.hero.allied(target) and "receives" or "suffers"),
-          " {} damage.".format(int(damage))
-        ))
+        game.numbers.append(DamageValue(str(int(damage)), target.cell))
       )
     )
 
@@ -1224,7 +1224,6 @@ class DungeonContext(Context):
       ))
       if target_cell:
         camera.focus(target_cell, force=True)
-        print(target_cell)
 
   def full_restore(game):
     hero = game.hero
@@ -1232,6 +1231,7 @@ class DungeonContext(Context):
     hero.dispel_ailment()
     game.numbers.append(DamageValue(hero.get_hp_max(), add(hero.cell, (0, -0.25)), color=GREEN))
     game.numbers.append(DamageValue(game.get_sp_max(), hero.cell, color=CYAN))
+    game.parent.regen_sp()
 
   def use_oasis(game):
     if game.oasis_used:
@@ -1263,9 +1263,8 @@ class DungeonContext(Context):
       ally.dispel_ailment()
       game.log.print("The party's HP and SP has been restored.")
     else:
-      game.log.print("Your HP and SP has been restored.")
+      game.log.print("Your HP and SP have been restored.")
 
-    game.parent.regen_sp()
     game.anims.append([PauseAnim(duration=180)])
 
   def learn_skill(game, skill):
