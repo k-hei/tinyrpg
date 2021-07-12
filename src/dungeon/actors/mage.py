@@ -18,7 +18,6 @@ from skills.magic.congelatio import Congelatio
 from skills.magic.accerso import Accerso
 from skills.weapon.broadsword import BroadSword
 
-
 class Mage(DungeonActor):
   drops = [BroadSword]
 

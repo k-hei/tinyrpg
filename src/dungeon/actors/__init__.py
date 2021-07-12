@@ -127,6 +127,7 @@ class DungeonActor(DungeonElement):
 
   def kill(actor):
     actor.core.kill()
+    actor.core.anims = []
     actor.ailment = None
     actor.ailment_turns = 0
 
