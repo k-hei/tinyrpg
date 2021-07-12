@@ -20,7 +20,6 @@ from anims.frame import FrameAnim
 from lib.cell import is_adjacent, manhattan
 from lib.lerp import lerp
 from comps.log import Token
-from contexts.cutscene import CutsceneContext
 from config import TILE_SIZE
 
 class DungeonActor(DungeonElement):
@@ -162,10 +161,7 @@ class DungeonActor(DungeonElement):
         actor.face(old_target)
       game.camera.blur()
       game.talkee = None
-    game.open(CutsceneContext(
-      script=message,
-      on_close=stop_talk,
-    ))
+    game.open(message, on_close=stop_talk)
 
   def move_to(actor, dest):
     actor.cell = dest

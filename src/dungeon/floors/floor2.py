@@ -29,7 +29,7 @@ def Floor2():
     size=(3, 4),
     degree=2,
     on_place=lambda room, stage: (
-      stage.spawn_elem_at(add_cell((room.get_width() - 1, 0), room.cell), Genie(
+      stage.spawn_elem_at(add_cell((0, 0), room.cell), Genie(
         name="Joshin",
         message=lambda game: [
           lambda step: game.child.open(DialogueContext(script=[

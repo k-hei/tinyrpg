@@ -11,9 +11,10 @@ from anims.jump import JumpAnim
 from anims.path import PathAnim
 from anims.attack import AttackAnim
 from anims.item import ItemAnim
+from anims.flicker import FlickerAnim
 from vfx.alertbubble import AlertBubble
 from skills.weapon.longinus import Longinus
-from lib.cell import add
+from lib.cell import add as add_cell
 import config
 from config import CUTSCENES
 
@@ -26,6 +27,7 @@ from dungeon.features.enemyroom import EnemyRoom
 from dungeon.features.vertroom import VerticalRoom
 from dungeon.actors.eye import Eye as Eyeball
 from dungeon.actors.mushroom import Mushroom
+from dungeon.actors.genie import Genie
 from items.hp.potion import Potion
 from items.sp.cheese import Cheese
 from items.sp.bread import Bread
@@ -66,7 +68,7 @@ class DepthsRoom(SpecialRoom):
     if room.focused:
       return False
     room.focused = True
-    game.hero.cell = add(room.cell, (2, 4))
+    game.hero.cell = add_cell(room.cell, (2, 4))
     game.hero.set_facing((0, -1))
     game.open(CutsceneContext(script=[
       *(cutscene(room, game) if config.CUTSCENES else [])
@@ -75,7 +77,35 @@ class DepthsRoom(SpecialRoom):
 
   def create_floor(room, *args, **kwargs):
     entry_room = room
-    fork_room = Room(size=(5, 4), degree=3)
+    fork_room = Room(
+      size=(5, 4),
+      degree=3,
+      on_place=lambda room, stage: (
+        stage.spawn_elem_at(add_cell((room.get_width() - 1, 0), room.cell), Genie(
+          name="Joshin",
+          message=lambda game: CutsceneContext(script=[
+            lambda step: game.child.open(DialogueContext(script=[
+              (game.talkee.get_name(), "Do you have a weapon on you?"),
+              (game.talkee.get_name(), "Try pressing 'B' to open up the CUSTOM menu."),
+              (game.talkee.get_name(), "You'll be a sitting duck in the dungeon without a weapon equipped."),
+            ]), on_close=step),
+            lambda step: (
+              game.anims.append([FlickerAnim(
+                target=game.talkee,
+                duration=45,
+                on_end=lambda: (
+                  game.floor.remove_elem(game.talkee),
+                  step()
+                )
+              )])
+            ),
+            lambda step: game.child.open(DialogueContext(script=[
+              (game.hero.get_name(), "We have a certain someone to thank for that..."),
+            ]), on_close=step)
+          ])
+        ))
+      )
+    )
     exit_room = LockedExitRoom()
     lock_room = VerticalRoom(degree=4)
     item_room1 = ItemRoom(size=(3, 4), items=[Potion, Antidote])
@@ -160,11 +190,11 @@ def cutscene(room, game):
       game.anims.append([PauseAnim(duration=60, on_end=step)])
     ),
     lambda step: (
-      room.mage.move_to(add(room.cell, (3, 4))),
-      game.camera.focus(add(room. cell, (2.5, 4.5)), force=True, speed=8),
+      room.mage.move_to(add_cell(room.cell, (3, 4))),
+      game.camera.focus(add_cell(room. cell, (2.5, 4.5)), force=True, speed=8),
       game.anims.append([PathAnim(
         target=room.mage,
-        path=[add(room.cell, c) for c in [(4, 3), (3, 3), (3, 4)]],
+        path=[add_cell(room.cell, c) for c in [(4, 3), (3, 3), (3, 4)]],
         on_end=step
       )])
     ),
@@ -216,11 +246,11 @@ def cutscene(room, game):
     ]),
     lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
     lambda step: (
-      game.camera.focus(add(room.cell, (3, 2)), force=True, speed=8),
-      room.mage.move_to(add(room.cell, (3, 2))),
+      game.camera.focus(add_cell(room.cell, (3, 2)), force=True, speed=8),
+      room.mage.move_to(add_cell(room.cell, (3, 2))),
       game.anims.append([PathAnim(
         target=room.mage,
-        path=[add(room.cell, c) for c in [(3, 4), (3, 3), (3, 2)]],
+        path=[add_cell(room.cell, c) for c in [(3, 4), (3, 3), (3, 2)]],
         on_end=step
       )])
     ),
@@ -243,10 +273,10 @@ def cutscene(room, game):
       game.anims.append([PauseAnim(duration=15, on_end=step)])
     ),
     lambda step: (
-      room.mage.move_to(add(room.cell, (3, -2))),
+      room.mage.move_to(add_cell(room.cell, (3, -2))),
       game.anims.append([PathAnim(
         target=room.mage,
-        path=[add(room.cell, c) for c in [(3, 2), (3, 1), (3, 0), (3, -1), (3, -2)]],
+        path=[add_cell(room.cell, c) for c in [(3, 2), (3, 1), (3, 0), (3, -1), (3, -2)]],
         on_end=step
       )])
     ),

@@ -1,6 +1,7 @@
 from cores.biped import BipedCore, SpriteMap
 from config import MAGE_NAME, MAGE_HP
 from contexts.prompt import PromptContext, Choice
+from contexts.dialogue import DialogueContext
 
 class Mage(BipedCore):
   sprites = SpriteMap(
@@ -19,7 +20,7 @@ class Mage(BipedCore):
       hp=MAGE_HP,
       st=14,
       en=7,
-      message=lambda ctx: [
+      message=lambda ctx: DialogueContext(script=[
         (hero := ctx.party[0]) and None,
         PromptContext((name.upper(), ": ", "Are you ready yet?"), (
           Choice("\"Let's go!\""),
@@ -34,7 +35,7 @@ class Mage(BipedCore):
             (name, "You know I don't have all day, right?")
           )
         ))
-      ],
+      ]),
       *args,
       **kwargs
     )

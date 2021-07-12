@@ -7,7 +7,6 @@ import keyboard
 from contexts import Context
 from assets import load as use_assets
 from comps.log import Log
-from comps.hud import Hud
 from collections.abc import Iterable
 from palette import BLACK
 from anims.tween import TweenAnim
@@ -22,7 +21,7 @@ class EnterAnim(TweenAnim): pass
 class ExitAnim(TweenAnim): pass
 
 class DialogueContext(Context):
-  # effects = [Hud] # , Previews, Minimap, SpMeter, FloorNo]
+  # effects = [] # , Previews, Minimap, SpMeter, FloorNo]
   BAR_HEIGHT = 24
   BAR_ENTER_DURATION = 15
   BAR_EXIT_DURATION = 7
@@ -40,6 +39,8 @@ class DialogueContext(Context):
   def init(ctx):
     if callable(ctx.script):
       ctx.script = ctx.script(ctx.parent)
+    elif type(ctx.script) is DialogueContext:
+      ctx.parent.open(ctx.script)
     else:
       ctx.script = list(ctx.script)
 
