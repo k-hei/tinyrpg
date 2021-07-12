@@ -45,6 +45,7 @@ from dungeon.props.palm import Palm
 
 from inventory import Inventory
 from items import Item
+from items.materials import MaterialItem
 from skills.weapon import Weapon
 
 from anims.activate import ActivateAnim
@@ -1180,7 +1181,10 @@ class DungeonContext(Context):
         on_end=game.step
       ),
     ])
-    success, message = item.use(item, game)
+    if issubclass(item, MaterialItem):
+      success, message = False, "You can't use this item!"
+    else:
+      success, message = item.use(item, game)
     if success:
       game.log.print(("Used ", item.token(item)))
       game.log.print(message)

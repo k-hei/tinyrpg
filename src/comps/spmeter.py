@@ -63,7 +63,7 @@ class SpMeter:
 
     bg_sprite = None
     if delta > 0:
-      alpha = sin(meter.draws % 30 / 30 * 2 * pi) * 0x7F + 0x7F
+      alpha = int(sin(meter.draws % 30 / 30 * 2 * pi) * 0x7F + 0x7F)
       bg_sprite = replace_color(fill_sprite, BLUE, Color(*WHITE, alpha))
       bg_y = bg_sprite.get_height() * (1 - sp_pct)
       bg_sprite = bg_sprite.subsurface(Rect(
