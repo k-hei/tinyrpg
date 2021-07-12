@@ -96,7 +96,7 @@ class GameContext(Context):
       return app.load(
         loader=ctx.floor(),
         on_end=lambda floor: (
-          ctx.goto_dungeon(floor),
+          ctx.goto_dungeon(floor, loader=ctx.floor),
           app.transition([DissolveOut()])
         )
       )
@@ -163,8 +163,9 @@ class GameContext(Context):
   def reset(ctx):
     ctx.load()
 
-  def goto_dungeon(ctx, floor=None):
+  def goto_dungeon(ctx, floor=None, loader=None):
     if floor:
+      floor.loader = loader
       ctx.open(DungeonContext(party=ctx.party, floor=floor))
     else:
       app = ctx.get_head()

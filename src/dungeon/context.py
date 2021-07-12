@@ -152,7 +152,8 @@ class DungeonContext(Context):
   def get_inventory(game):
     return game.parent.inventory.items
 
-  def use_floor(game, floor):
+  def use_floor(game, floor, loader=None):
+    floor.loader = floor.loader or loader
     floor_no = game.get_floor_no()
     hero = game.hero
     hero.facing = (1, 0)
@@ -1301,15 +1302,14 @@ class DungeonContext(Context):
     index = game.floors.index(game.floor) + direction
     if index >= len(game.floors):
       # create a new floor if out of bounds
-
       app = game.get_head()
-      Floor = DungeonContext.FLOORS[index - 1]
+      Floor = DungeonContext.FLOORS[DungeonContext.FLOORS.index(game.floor.loader) + direction]
       app.transition(
         transits=(DissolveIn(), DissolveOut()),
         loader=Floor(),
         on_end=lambda floor: (
           remove_heroes(),
-          game.use_floor(floor),
+          game.use_floor(floor, loader=Floor),
           game.log.print("You go upstairs.")
         )
       )

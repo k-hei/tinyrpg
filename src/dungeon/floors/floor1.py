@@ -63,7 +63,7 @@ def Floor1():
   enemy_room3 = EnemyRoom(size=(3, 4), degree=1, enemies=[gen_enemy(Eyeball, rare=True), gen_enemy(Mushroom)])
 
   return gen_floor(
-    entrance=exit_room,
+    entrance=entry_room,
     features=FloorGraph(
       nodes=[fork_room, entry_room, enemy_room1, item_room1, lock_room, exit_room, enemy_room2, item_room2, enemy_room3],
       edges=[

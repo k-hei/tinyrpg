@@ -61,7 +61,7 @@ class AltarRoom(SpecialRoom):
           transits=(DissolveIn(), DissolveOut()),
           loader=Floor1(),
           on_end=lambda floor: (
-            game.use_floor(floor),
+            game.use_floor(floor, loader=Floor1),
             step()
           )
         )
