@@ -58,19 +58,12 @@ def Floor1():
   lock_room = VerticalRoom(degree=4)
   item_room1 = ItemRoom(size=(3, 4), items=[Potion, Antidote])
   item_room2 = ItemRoom(size=(5, 4), items=[Potion, Bread, Antidote])
-
-  def gen_enemy(Enemy, *args, **kwargs):
-    return Enemy(
-      ailment=("sleep" if randint(1, 3) == 1 else None),
-      *args, **kwargs
-    )
-
   enemy_room1 = EnemyRoom(size=(5, 4), enemies=[gen_enemy(Eyeball), gen_enemy(Eyeball)])
   enemy_room2 = EnemyRoom(size=(5, 7), enemies=[gen_enemy(Eyeball), gen_enemy(Mushroom)])
   enemy_room3 = EnemyRoom(size=(3, 4), degree=1, enemies=[gen_enemy(Eyeball, rare=True), gen_enemy(Mushroom)])
 
   return gen_floor(
-    entrance=entry_room,
+    entrance=exit_room,
     features=FloorGraph(
       nodes=[fork_room, entry_room, enemy_room1, item_room1, lock_room, exit_room, enemy_room2, item_room2, enemy_room3],
       edges=[

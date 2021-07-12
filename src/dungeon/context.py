@@ -76,6 +76,9 @@ from contexts.skill import SkillContext
 from contexts.dialogue import DialogueContext
 from contexts.prompt import PromptContext, Choice
 
+from dungeon.floors.floor1 import Floor1
+from dungeon.floors.floor2 import Floor2
+
 def manifest(core):
   if type(core) is Knight: return KnightActor(core)
   if type(core) is Mage: return MageActor(core)
@@ -88,6 +91,7 @@ class DungeonContext(Context):
   PAUSE_ITEM_DURATION = 30
   PAUSE_DEATH_DURATION = 45
   AWAKEN_DURATION = 45
+  FLOORS = [Floor1, Floor2]
 
   def __init__(game, party, floor=None, debug=False):
     super().__init__()
@@ -800,13 +804,7 @@ class DungeonContext(Context):
   def handle_floorchange(game, direction):
     for comp in game.comps:
       comp.exit()
-    game.get_head().transition([
-      DissolveIn(on_end=lambda: (
-        game.camera.reset(),
-        game.change_floors(direction)
-      )),
-      DissolveOut()
-    ])
+    game.change_floors(direction)
 
   def handle_skill(game):
     game.log.exit()
@@ -1295,26 +1293,45 @@ class DungeonContext(Context):
       return False
 
     old_floor = game.floor
-    old_floor.remove_elem(game.hero)
-    old_floor.remove_elem(game.ally)
+    def remove_heroes():
+      old_floor.remove_elem(game.hero)
+      if game.ally and not game.ally.is_dead():
+        old_floor.remove_elem(game.ally)
 
     index = game.floors.index(game.floor) + direction
     if index >= len(game.floors):
       # create a new floor if out of bounds
-      game.log.print("You go upstairs.")
-      game.create_floor()
+
+      app = game.get_head()
+      Floor = DungeonContext.FLOORS[index - 1]
+      app.transition(
+        transits=(DissolveIn(), DissolveOut()),
+        loader=Floor(),
+        on_end=lambda floor: (
+          remove_heroes(),
+          game.use_floor(floor),
+          game.log.print("You go upstairs.")
+        )
+      )
     elif index >= 0:
       # go back to old floor if within bounds
-      new_floor = game.floors[index]
-      stairs_x, stairs_y = new_floor.find_tile(entry_tile)
-      new_floor.spawn_elem_at((stairs_x, stairs_y), game.hero)
-      if game.ally and not game.ally.is_dead():
-        new_floor.spawn_elem_at((stairs_x - 1, stairs_y), game.ally)
-      game.floor = new_floor
-      game.refresh_fov(moving=True)
-      game.log.print((direction == 1
-        and "You go back upstairs."
-        or "You go back downstairs."))
+      def change_floors():
+        remove_heroes()
+        new_floor = game.floors[index]
+        stairs_x, stairs_y = new_floor.find_tile(entry_tile)
+        new_floor.spawn_elem_at((stairs_x, stairs_y), game.hero)
+        if game.ally and not game.ally.is_dead():
+          new_floor.spawn_elem_at((stairs_x - 1, stairs_y), game.ally)
+        game.floor = new_floor
+        game.refresh_fov(moving=True)
+        game.camera.reset()
+        game.log.print((direction == 1
+          and "You go back upstairs."
+          or "You go back downstairs."))
+      game.get_head().transition([
+        DissolveIn(on_end=change_floors),
+        DissolveOut()
+      ])
 
     return True
 
