@@ -1,5 +1,5 @@
 from dungeon.features.specialroom import SpecialRoom
-from dungeon.features.depthsroom import DepthsRoom
+from dungeon.floors.floor1 import Floor1
 from dungeon.props.altar import Altar
 from dungeon.props.pillar import Pillar
 from dungeon.actors.mage import Mage
@@ -59,7 +59,7 @@ class AltarRoom(SpecialRoom):
       lambda step: (
         game.get_head().transition(
           transits=(DissolveIn(), DissolveOut()),
-          loader=DepthsRoom().create_floor(),
+          loader=Floor1(),
           on_end=lambda floor: game.use_floor(floor)
         )
       )
