@@ -455,7 +455,7 @@ class DungeonContext(Context):
     game.key_requires_reset[key] = False
 
   def handle_keydown(game, key):
-    if game.anims or game.commands:
+    if game.anims or game.commands or game.get_head().transits:
       return False
 
     # debug functionality
