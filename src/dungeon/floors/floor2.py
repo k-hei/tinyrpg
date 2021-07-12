@@ -15,6 +15,7 @@ from dungeon.actors.genie import Genie
 from lib.cell import add as add_cell
 from anims.flicker import FlickerAnim
 from contexts.dialogue import DialogueContext
+from contexts.cutscene import CutsceneContext
 
 def Floor2():
   entry_room = VerticalRoom(size=(3, 4), degree=1)
@@ -25,10 +26,9 @@ def Floor2():
     on_place=lambda room, stage: (
       stage.spawn_elem_at(add_cell((0, 0), room.cell), Genie(
         name="Joshin",
-        message=lambda game: [
+        message=lambda game: CutsceneContext(script=[
           lambda step: game.child.open(DialogueContext(script=[
-            (game.talkee.get_name(), "Here's another tip:"),
-            (game.talkee.get_name(), "The tiles you stand on can have different effects on combat."),
+            (game.talkee.get_name(), "The tiles you stand on can have different combat effects."),
             (game.talkee.get_name(), "Use the environment to boost your chances of survival in the dungeon.")
           ]), on_close=step),
           lambda step: (
@@ -41,7 +41,7 @@ def Floor2():
               )
             )])
           )
-        ]
+        ])
       ))
     )
   )
@@ -57,7 +57,7 @@ def Floor2():
     on_place=lambda room, stage: (
       stage.spawn_elem_at(add_cell((room.get_width() - 1, 0), room.cell), Genie(
         name="Joshin",
-        message=lambda game: [
+        message=lambda game: CutsceneContext(script=[
           lambda step: game.child.open(DialogueContext(script=[
             (game.talkee.get_name(), "How are you doing on items?"),
             (game.talkee.get_name(), "You may want to make sure you're well stocked up before proceeding.")
@@ -72,7 +72,7 @@ def Floor2():
               )
             )])
           )
-        ]
+        ])
       ))
     )
   )

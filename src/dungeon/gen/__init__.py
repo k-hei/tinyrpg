@@ -505,6 +505,8 @@ def gen_floor(features, entrance=None, size=config.FLOOR_SIZE, seed=None):
           corner = choice(corners)
           stage.set_tile_at(corner, stage.WALL)
 
+    stage.rooms = empty_rooms + features.nodes
+
     # set entrance
     if entrance:
       entry_room = entrance

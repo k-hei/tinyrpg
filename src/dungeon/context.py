@@ -78,6 +78,7 @@ from contexts.prompt import PromptContext, Choice
 
 from dungeon.floors.floor1 import Floor1
 from dungeon.floors.floor2 import Floor2
+from dungeon.floors.floor3 import Floor3
 
 def manifest(core):
   if type(core) is Knight: return KnightActor(core)
@@ -91,7 +92,7 @@ class DungeonContext(Context):
   PAUSE_ITEM_DURATION = 30
   PAUSE_DEATH_DURATION = 45
   AWAKEN_DURATION = 45
-  FLOORS = [Floor1, Floor2]
+  FLOORS = [Floor1, Floor2, Floor3]
 
   def __init__(game, party, floor=None, debug=False):
     super().__init__()
@@ -175,13 +176,6 @@ class DungeonContext(Context):
         if enemy is not None:
           enemy.promote()
           promoted = True
-
-    if floor_no == config.TOP_FLOOR:
-      game.log.print("The air feels different up here.")
-    elif promoted:
-      game.log.print("You feel a powerful presence on this floor...")
-    elif floor.find_tile(Stage.DOOR_HIDDEN):
-      game.log.print("This floor seems to hold many secrets.")
 
     game.room = None
     game.anims = []
