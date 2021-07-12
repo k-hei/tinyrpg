@@ -1,5 +1,5 @@
 from random import randint
-from dungeon.gen import gen_floor, FloorGraph
+from dungeon.gen import gen_floor, gen_enemy, FloorGraph
 from dungeon.features.vertroom import VerticalRoom
 from dungeon.features.exitroom import ExitRoom
 from dungeon.features.arenaroom import ArenaRoom
@@ -15,12 +15,6 @@ from dungeon.actors.genie import Genie
 from lib.cell import add as add_cell
 from anims.flicker import FlickerAnim
 from contexts.dialogue import DialogueContext
-
-def gen_enemy(Enemy, *args, **kwargs):
-  return Enemy(
-    ailment=("sleep" if randint(1, 3) == 1 else None),
-    *args, **kwargs
-  )
 
 def Floor2():
   entry_room = VerticalRoom(size=(3, 4), degree=1)

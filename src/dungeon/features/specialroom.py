@@ -2,6 +2,7 @@ from dungeon.features.room import Room
 from dungeon.stage import Stage
 from dungeon.props.door import Door
 from random import choice
+from lib.cell import add as add_cell
 
 class SpecialRoom(Room):
   def __init__(feature, shape, elems=None, rooms=None, *args, **kwargs):
@@ -59,6 +60,7 @@ class SpecialRoom(Room):
       stage.spawn_elem_at((elem_x + x, elem_y + y), elem)
     stage.entrance = entrance or stage.entrance
     stage.stairs = stairs or stage.stairs
+    stage.rooms += [Room(r.size, add_cell(r.cell, feature.cell)) for r in feature.rooms] or [feature]
 
   def create_floor(feature, use_edge=True, on_end=None):
     floor = Stage(size=(feature.get_width() + 2, feature.get_height() * 2))

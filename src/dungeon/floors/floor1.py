@@ -15,13 +15,7 @@ from items.ailment.antidote import Antidote
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
 from anims.flicker import FlickerAnim
-from dungeon.gen import gen_floor, FloorGraph
-
-def gen_enemy(Enemy, *args, **kwargs):
-  return Enemy(
-    ailment=("sleep" if randint(1, 3) == 1 else None),
-    *args, **kwargs
-  )
+from dungeon.gen import gen_floor, gen_enemy, FloorGraph
 
 def Floor1():
   entry_room = DepthsRoom()

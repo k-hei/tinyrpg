@@ -506,7 +506,6 @@ def gen_floor(features, entrance=None, size=config.FLOOR_SIZE, seed=None):
           stage.set_tile_at(corner, stage.WALL)
 
     # set entrance
-    stage.rooms = empty_rooms + features.nodes
     if entrance:
       entry_room = entrance
     else:
@@ -563,7 +562,7 @@ def gen_floor(features, entrance=None, size=config.FLOOR_SIZE, seed=None):
         cell = choice(valid_cells)
         valid_cells.remove(cell)
         if stage.get_tile_at(cell) is stage.FLOOR:
-          stage.spawn_elem_at(cell, gen_enemy(1))
+          stage.spawn_elem_at(cell, gen_enemy(choices((Eye, Mushroom), (5, 1))[0]))
           enemy_count -= 1
           if room in empty_rooms:
             empty_rooms.remove(room)
@@ -596,13 +595,11 @@ def gen_floor(features, entrance=None, size=config.FLOOR_SIZE, seed=None):
 
   yield lkg
 
-def gen_enemy(floor):
-  if floor == 1:
-    return choices((Eye, Mushroom), (5, 1))[0](ailment="sleep" if randint(1, 3) == 1 else None)
-  elif floor == 2:
-    return choices((Eye, Mushroom), (3, 1))[0]()
-  else:
-    return choices((Eye, Mushroom, Skeleton), (2, 2, 1))[0]()
+def gen_enemy(Enemy, *args, **kwargs):
+  return Enemy(
+    ailment=("sleep" if randint(1, 3) == 1 else None),
+    *args, **kwargs
+  )
 
 def gen_item():
   return choices(

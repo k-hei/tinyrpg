@@ -76,8 +76,6 @@ class Door(Prop):
     door.locked = True
 
   def handle_close(door, game):
-    if not door.opened:
-      return False
     door.close()
     game.anims.append([
       DoorCloseAnim(

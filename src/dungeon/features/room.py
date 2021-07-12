@@ -127,3 +127,7 @@ class Room(Feature):
 
   def filter_slots(room, slots):
     return [s for s in slots if room.validate(s, slots)]
+
+  def place(room, stage, *args, **kwargs):
+    super().place(stage, *args, **kwargs)
+    stage.rooms.append(room)
