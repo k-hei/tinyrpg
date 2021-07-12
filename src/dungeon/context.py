@@ -4,6 +4,7 @@ import pygame
 from pygame import Rect
 import palette
 from palette import GREEN, CYAN
+from copy import deepcopy
 
 import config
 from config import WINDOW_SIZE, VISION_RANGE, MOVE_DURATION, RUN_DURATION, JUMP_DURATION, FLICKER_DURATION

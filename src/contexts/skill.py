@@ -124,12 +124,15 @@ class SkillContext(Context):
     skill = ctx.skill
     if skill and ctx.bar.message != skill().text():
       ctx.print_skill()
-    ctx.skill_range = skill().find_range(hero, floor)
-    ctx.dest = target_cell
-    if skill.range_max > 1:
-      ctx.dest = ctx.skill_range[-1]
-    elif hero:
+    if skill:
+      ctx.skill_range = skill().find_range(hero, floor)
       ctx.dest = target_cell
+      if skill.range_max > 1:
+        ctx.dest = ctx.skill_range[-1]
+      elif hero:
+        ctx.dest = target_cell
+    elif hero:
+      ctx.dest = hero.cell
 
   def handle_select(ctx, reverse=False):
     options = ctx.skills

@@ -13,6 +13,7 @@ from contexts.dialogue import DialogueContext
 import config
 from config import WINDOW_HEIGHT, TILE_SIZE
 from lib.cell import add as add_cell
+from skills.weapon.broadsword import BroadSword
 
 class MageBossRoom(SpecialRoom):
   EntryDoor = BattleDoor
@@ -274,6 +275,10 @@ def postbattle_cutscene_teardown(room, game):
     lambda step: (
       game.recruit(mage),
       room.unlock(game),
+      game.learn_skill(skill=BroadSword),
       step()
     ),
+    lambda step: game.child.open(DialogueContext(script=[
+      ("", ("Received ", BroadSword().token(), ".")),
+    ]), on_close=step),
   ]

@@ -1,8 +1,8 @@
 # dungeon generation
 SEED = None
 DEBUG = False
-CUTSCENES = False
-TOP_FLOOR = 5
+CUTSCENES = True
+TOP_FLOOR = 3
 MAX_LOOPS = 0
 MAX_ROOM_FAILS = 3
 FLOOR_SIZE = (27, 27)
