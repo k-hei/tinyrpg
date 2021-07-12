@@ -1,4 +1,4 @@
-from pygame import Surface, Rect
+from pygame import Surface, Rect, SRCALPHA
 from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
@@ -68,7 +68,7 @@ class InventoryDescription:
         box.surface = Surface((
           surface.get_width() - PADDING_LEFT - PADDING_RIGHT,
           surface.get_height() - PADDING_Y * 2
-        )).convert_alpha()
+        ), SRCALPHA)
 
       if type(box.message) is Message:
         sprite_title = None

@@ -1,6 +1,6 @@
 import math
 import pygame
-from pygame import Surface, Rect
+from pygame import Surface, Rect, Color, SRCALPHA
 from assets import load as use_assets
 from filters import replace_color, outline
 from colors.palette import WHITE
@@ -33,7 +33,7 @@ class Piece:
     if icon:
       icon = outline(icon, (0, 0, 0))
     cols, rows = Piece.get_size(blocks)
-    surface = Surface((cols * Piece.BLOCK_SIZE, rows * Piece.BLOCK_SIZE)).convert_alpha()
+    surface = Surface((cols * Piece.BLOCK_SIZE, rows * Piece.BLOCK_SIZE), SRCALPHA)
     icon_pos = None
 
     def _connect(cell, other):
@@ -109,7 +109,7 @@ class Piece:
       elif e: sprite = assets.sprites["block_e"]
       elif w: sprite = assets.sprites["block_w"]
       elif s: sprite = assets.sprites["block_s"]
-      sprite = replace_color(sprite, 0xFFFF0000, color)
+      sprite = replace_color(sprite, Color(255, 0, 0), color)
       surface.blit(sprite, (x, y))
 
     if icon_pos:

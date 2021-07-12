@@ -1,5 +1,5 @@
 import pygame
-from pygame import Surface
+from pygame import Surface, Color, SRCALPHA
 from pygame.transform import flip
 
 import keyboard
@@ -40,8 +40,8 @@ class PauseContext(Context):
     assets = use_assets()
 
     # tint
-    tint = Surface(WINDOW_SIZE, pygame.SRCALPHA)
-    tint.fill(0x7F000000)
+    tint = Surface(WINDOW_SIZE, SRCALPHA)
+    tint.fill(Color(0, 0, 0, 0x7F))
     sprites.append(Sprite(
       image=tint,
       pos=(0, 0)

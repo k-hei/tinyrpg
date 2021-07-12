@@ -54,7 +54,6 @@ class ShieldBash(AttackSkill):
     # nudge target actor 1 square in the given direction
     target_x, target_y = target_cell
     nudge_cell = (int(target_x + delta_x), int(target_y + delta_y))
-    print(target_cell, nudge_cell)
     nudge_tile = floor.get_tile_at(nudge_cell)
     nudge_actor = floor.get_elem_at(nudge_cell, superclass=DungeonActor)
     will_nudge = (

@@ -56,7 +56,7 @@ class Congelatio(MagicSkill):
               ))
             )
           )
-        )) if target else None
+        )) if target in targets else None
       ))(cell, target=floor.get_elem_at(cell)) for i, cell in enumerate(target_cells)]
       if not targets:
         game.anims[0].append(PauseAnim(

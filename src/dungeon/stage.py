@@ -106,7 +106,7 @@ class Stage:
     if superclass:
       return next((e for e in stage.elems if (
         e.cell == cell
-        and (superclass is None or isinstance(e, superclass))
+        and isinstance(e, superclass)
         and not next((t for t in exclude if isinstance(e, t)), None)
       )), None)
     else:

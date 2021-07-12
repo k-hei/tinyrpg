@@ -1,37 +1,46 @@
 from pygame import Surface, PixelArray, Color, SRCALPHA
 from colors import darken_color, rgbify, hexify
 
+COLOR_KEY = (255, 0, 255)
+
 def darken_image(surface):
   width, height = surface.get_size()
-  surface = surface.copy()
-  pixels = PixelArray(surface)
+  new_surface = Surface(surface.get_size(), SRCALPHA)
+  new_surface.blit(surface, (0, 0))
+  pixels = PixelArray(new_surface)
   for y in range(height):
     for x in range(width):
-      if pixels[x, y] == 0: continue
+      if pixels[x, y] in (0, COLOR_KEY): continue
       pixels[x, y] = Color(*darken_color(pixels[x, y]))
-  return surface
+  return new_surface
 
 def recolor(surface, color):
   width, height = surface.get_size()
-  surface = surface.copy()
-  pixels = PixelArray(surface)
+  new_surface = Surface(surface.get_size(), SRCALPHA)
+  new_surface.blit(surface, (0, 0))
+  pixels = PixelArray(new_surface)
   for y in range(height):
     for x in range(width):
-      if pixels[x, y] == 0: continue
+      if pixels[x, y] in (0, COLOR_KEY): continue
       pixels[x, y] = color
   pixels.close()
-  return surface
+  return new_surface
 
 def replace_color(surface, old_color, new_color):
-  surface = surface.convert_alpha()
-  pixels = PixelArray(surface)
-  pixels.replace(old_color, new_color)
+  new_surface = Surface(surface.get_size())
+  new_surface.fill(COLOR_KEY)
+  new_surface.blit(surface, (0, 0))
+  pixels = PixelArray(new_surface)
+  pixels.replace(Color(*old_color), Color(*new_color))
   pixels.close()
-  return surface
+  new_surface.set_colorkey(COLOR_KEY)
+  return new_surface
 
 def outline(surface, color):
   width, height = surface.get_size()
-  new_surface = Surface((width + 2, height + 2), SRCALPHA)
+  new_surface = Surface((width + 2, height + 2))
+  new_surface.fill(COLOR_KEY)
+  new_surface.set_colorkey(COLOR_KEY)
   recolored_surface = recolor(surface, color)
   for y in range(3):
     for x in range(3):

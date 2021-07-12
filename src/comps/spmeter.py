@@ -1,5 +1,5 @@
 from math import ceil, sin, pi
-from pygame import Surface, Rect, Color
+from pygame import Surface, Rect, Color, SRCALPHA
 from assets import load as use_assets
 from anims.tween import TweenAnim
 from easing.expo import ease_out
@@ -93,7 +93,7 @@ class SpMeter:
     sprite = Surface((
       meter_sprite.get_width() + numbers_sprite.get_width() - NUMBERS_OVERLAP,
       meter_sprite.get_height()
-    )).convert_alpha()
+    ), SRCALPHA)
 
     meter_x = numbers_sprite.get_width() - NUMBERS_OVERLAP
     meter_y = 0

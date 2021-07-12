@@ -1,4 +1,4 @@
-from pygame import Surface, Rect
+from pygame import Surface, Rect, SRCALPHA
 from assets import load as use_assets
 from text import render as render_text, find_width as find_text_width
 from filters import recolor, outline, shadow
@@ -6,6 +6,7 @@ from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 from sprite import Sprite
+from colors.palette import BLACK
 
 class EnterAnim(TweenAnim): pass
 class ExitAnim(TweenAnim): pass
@@ -107,9 +108,12 @@ class Log:
         log.surface = Surface((
           log.box.get_width() - Log.PADDING_X * 2,
           target_height
-        )).convert_alpha()
+        ), SRCALPHA)
       if log.row + 1 > len(log.lines):
-        line = Surface((log.surface.get_width(), line_height)).convert_alpha()
+        COLOR_KEY = (255, 0, 255)
+        line = Surface((log.surface.get_width(), line_height))
+        line.fill(COLOR_KEY)
+        line.set_colorkey(COLOR_KEY)
         log.lines.append(line)
       message = log.messages[log.index]
       char = message[log.col]
@@ -134,7 +138,7 @@ class Log:
           log.row += 1
           log.cursor_x = 0
           return log.render()
-      char_sprite = font.render(char, token.color or 0)
+      char_sprite = font.render(char, token.color or BLACK)
       log.lines[-1].blit(char_sprite, (log.cursor_x, 0))
       for row, line in enumerate(log.lines):
         log.surface.blit(line, (0, row * line_height))

@@ -1,5 +1,5 @@
 from math import pi, sin
-from pygame import Surface, Rect
+from pygame import Surface, Rect, SRCALPHA
 from easing.expo import ease_out
 from assets import load as use_assets
 from cores import Core
@@ -24,7 +24,7 @@ class Genie(Core):
 
   def view(genie):
     genie_image = use_assets().sprites["genie"]
-    image = Surface(genie_image.get_size()).convert_alpha()
+    image = Surface(genie_image.get_size(), SRCALPHA).convert_alpha()
     image.blit(genie_image.subsurface(Rect(0, 0, 32, RIPPLE_START)), (0, 0))
     for y in range(RIPPLE_START, RIPPLE_END):
       i = y - RIPPLE_START

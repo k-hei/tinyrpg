@@ -5,7 +5,7 @@ from comps.skill import Skill
 from filters import replace_color, recolor, outline
 from text import render as render_text
 import pygame
-from pygame import Rect
+from pygame import Rect, SRCALPHA
 from colors import darken_color
 from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, YELLOW, DARKYELLOW, BLUE, DARKBLUE
 import keyboard
@@ -275,7 +275,7 @@ class CustomContext(Context):
     surface = pygame.Surface((
       deck.get_width() + SPACING_X + skill.get_width() + SKILL_NUDGE_LEFT,
       deck_y + deck.get_height() + 1 + SKILL_SPACING + arrow.get_height()
-    )).convert_alpha()
+    ), SRCALPHA)
 
     knight_scaled = knight
     knight_anim = menu.anims and next((a for a in menu.anims[0] if a.target == "Knight"), None)

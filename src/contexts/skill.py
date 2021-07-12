@@ -343,7 +343,7 @@ class SkillContext(Context):
         x = lerp(old_x, new_x, t)
         y = lerp(old_y, new_y, t)
         if option is skill:
-          value = lerp(0x7F, 0xFF, t)
+          value = int(lerp(0x7F, 0xFF, t))
           sprite = replace_color(sprite, WHITE, (value, value, value))
 
       anim = next((anim for anim in ctx.anims if anim.target == i), None)

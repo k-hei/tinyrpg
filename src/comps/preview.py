@@ -1,6 +1,6 @@
 import random
 import pygame
-from pygame import Surface, Rect
+from pygame import Surface, Rect, SRCALPHA
 from assets import load as use_assets
 from filters import replace_color
 from colors.palette import RED, WHITE, GOLD, VIOLET, GRAY
@@ -109,7 +109,7 @@ class Preview:
       portrait = portrait and replace_color(portrait, WHITE, GOLD)
     surface_width = bar_x + bar.get_width()
     surface_height = HP_OFFSET_Y + hp_tag.get_height()
-    surface = Surface((surface_width, surface_height)).convert_alpha()
+    surface = Surface((surface_width, surface_height), SRCALPHA)
     surface.blit(base, (0, 0))
     if portrait is not None:
       surface.blit(portrait, (PORTRAIT_X, PORTRAIT_Y))

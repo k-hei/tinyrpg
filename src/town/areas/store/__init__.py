@@ -16,7 +16,7 @@ from portraits.husband import HusbandPortrait
 from portraits.wife import WifePortrait
 from transits.dissolve import DissolveOut
 from savedata.resolve import resolve_item
-from colors.palette import ORANGE, WHITE
+from colors.palette import ORANGE, WHITE, CORAL
 
 class StoreArea(Stage):
   name = "General Store"
@@ -92,5 +92,5 @@ class StoreArea(Stage):
       "B": BreadStock,
       "C": CheeseStock,
       "-": Counter,
-      "+": lambda: Door(palette=(0xFFE6A8A8, WHITE))
+      "+": lambda: Door(palette=(CORAL, WHITE))
     })

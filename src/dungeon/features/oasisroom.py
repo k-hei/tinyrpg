@@ -7,7 +7,7 @@ from assets import load as use_assets
 from sprite import Sprite
 from config import TILE_SIZE
 from random import randint, choice
-from colors.palette import WHITE
+from colors.palette import WHITE, SEAGREEN
 from filters import replace_color
 from lib.cell import neighborhood
 
@@ -68,7 +68,7 @@ class OasisRoom(SpecialRoom):
       cell = choice(floor_cells)
       floor_cells.remove(cell)
       x, y = cell
-      image = replace_color(sprites["oasis_grass"], WHITE, 0xff3a827e)
+      image = replace_color(sprites["oasis_grass"], WHITE, SEAGREEN)
       for j in range(2):
         for k in range(2):
           if randint(1, 5) == 1:
