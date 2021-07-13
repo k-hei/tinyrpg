@@ -33,8 +33,8 @@ KNIGHT_BUILD = {
 MAGE_NAME = "Minxia"
 MAGE_HP = 16
 MAGE_BUILD = {
-  "Ignis": (1, 0),
-  "Somnus": (0, 0)
+  "Sana": (0, 0),
+  "Glacio": (1, 1)
 }
 
 ROGUE_NAME = "Fray"
