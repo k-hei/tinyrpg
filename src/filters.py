@@ -27,20 +27,18 @@ def recolor(surface, color):
   return new_surface
 
 def replace_color(surface, old_color, new_color):
-  new_surface = Surface(surface.get_size())
-  new_surface.fill(COLOR_KEY)
+  new_surface = Surface(surface.get_size(), SRCALPHA)
   new_surface.blit(surface, (0, 0))
   pixels = PixelArray(new_surface)
-  pixels.replace(Color(*old_color), Color(*new_color))
+  old_color = Color(*old_color)
+  new_color = Color(*new_color)
+  pixels.replace(old_color, new_color)
   pixels.close()
-  new_surface.set_colorkey(COLOR_KEY)
   return new_surface
 
 def outline(surface, color):
   width, height = surface.get_size()
-  new_surface = Surface((width + 2, height + 2))
-  new_surface.fill(COLOR_KEY)
-  new_surface.set_colorkey(COLOR_KEY)
+  new_surface = Surface((width + 2, height + 2), SRCALPHA)
   recolored_surface = recolor(surface, color)
   for y in range(3):
     for x in range(3):

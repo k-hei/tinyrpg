@@ -1,7 +1,7 @@
 from assets import load as use_assets
 from text import render as render_text
 from filters import recolor, outline, replace_color
-from pygame import Rect
+from pygame import Rect, Surface, SRCALPHA
 import pygame
 from colors import darken_color
 from colors.palette import BLACK, WHITE, GRAY
@@ -13,24 +13,24 @@ class Skill:
 
   def render(skill, selected=True):
     assets = use_assets()
-    icon = Skill.get_icon(skill)
+    icon_image = Skill.get_icon(skill)
     icon_bgcolor = skill.color
     icon_bgcolor = icon_bgcolor if selected else darken_color(icon_bgcolor)
     text_color = WHITE if selected else GRAY
+    box_image = assets.sprites["skill"]
     font = assets.fonts["standard"]
-    sprite = assets.sprites["skill"]
 
-    icon = recolor(icon, WHITE)
-    icon = outline(icon, BLACK)
-    text = render_text(skill.name, font)
-    text = recolor(text, WHITE)
+    icon_image = outline(icon_image, BLACK)
+    text_image = render_text(skill.name, font)
+    text_image = recolor(text_image, WHITE)
 
-    surface = sprite.copy()
+    surface = Surface(box_image.get_size(), SRCALPHA)
+    surface.blit(box_image, (0, 0))
     pygame.draw.rect(surface, icon_bgcolor, Rect(3, 4, 16, 11))
     pygame.draw.rect(surface, icon_bgcolor, Rect(4, 3, 14, 13))
-    surface.blit(icon, (Skill.PADDING_X, Skill.PADDING_Y))
-    surface.blit(text, (
-      Skill.PADDING_X + icon.get_width() + Skill.ICON_MARGIN,
+    surface.blit(icon_image, (Skill.PADDING_X, Skill.PADDING_Y))
+    surface.blit(text_image, (
+      Skill.PADDING_X + icon_image.get_width() + Skill.ICON_MARGIN,
       Skill.PADDING_Y + 1
     ))
     surface = replace_color(surface, WHITE, text_color)

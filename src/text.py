@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Dict
-from pygame import Surface, Rect, SRCALPHA
+from pygame import Surface, Rect, Color, SRCALPHA
 from colors.palette import WHITE
 
 @dataclass
@@ -38,10 +38,7 @@ class Ttf:
     return height
 
   def render(ttf, text, color=WHITE):
-    width, height = ttf.size(text)
-    surface = Surface((width, height), SRCALPHA)
-    surface.blit(ttf.font.render(text, False, color), (0, 0))
-    return surface
+    return ttf.font.render(text, False, color)
 
 def find_width(content: str, font: Font) -> int:
   text_width = 0

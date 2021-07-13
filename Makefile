@@ -1,11 +1,12 @@
 all:
-	python3 src/main.py
+	python3 src/demo.py
 
-resolve:
+imports:
+	python3 src/colors/build.py
 	python3 src/savedata/build.py
 
 clean:
-	rm -rf build dist main.spec
+	rm -rf build dist tinyrpg.spec
 
 build: clean
 	mv src/demo.py src/tinyrpg.py
