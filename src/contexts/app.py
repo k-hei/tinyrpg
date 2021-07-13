@@ -149,7 +149,7 @@ class App(Context):
   def toggle_fullscreen(app):
     app.fullscreen = not app.fullscreen
     if app.fullscreen:
-      app.display = pygame.display.set_mode(app.size_scaled, pygame.FULLSCREEN)
+      app.display = pygame.display.set_mode(app.size_scaled, pygame.FULLSCREEN | pygame.SCALED | pygame.HWSURFACE | pygame.DOUBLEBUF)
     else:
       app.display = pygame.display.set_mode(app.size_scaled)
 
