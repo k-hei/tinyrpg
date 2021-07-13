@@ -18,15 +18,15 @@ from config import RUN_DURATION
 class AltarRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
     super().__init__(degree=2, shape=[
-      " ....... ",
+      "         ",
       "         ",
       "  .....  ",
+      " ....... ",
+      " ....... ",
+      " ....... ",
+      " ....... ",
+      " ....... ",
       "  .....  ",
-      "  .....  ",
-      "  .....  ",
-      "  .....  ",
-      "  .....  ",
-      "    .    ",
       "    .    ",
       "    .    ",
       "    .    ",
@@ -35,12 +35,16 @@ class AltarRoom(SpecialRoom):
     ], elems=[
       ((4, 6), mage := Mage(faction="ally", facing=(0, -1))),
       ((4, 5), altar := Altar()),
-      ((2, 2), Pillar()),
-      ((2, 4), Pillar()),
-      ((2, 6), Pillar()),
-      ((6, 2), Pillar()),
-      ((6, 4), Pillar()),
-      ((6, 6), Pillar()),
+      ((2, 7), Pillar()),
+      ((1, 6), Pillar()),
+      ((1, 4), Pillar()),
+      ((1, 2), Pillar()),
+      ((2, 1), Pillar()),
+      ((6, 1), Pillar()),
+      ((7, 2), Pillar()),
+      ((7, 4), Pillar()),
+      ((7, 6), Pillar()),
+      ((6, 7), Pillar()),
     ], *args, **kwargs)
     room.mage = mage
     room.altar = altar
