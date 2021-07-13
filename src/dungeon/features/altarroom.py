@@ -71,7 +71,7 @@ class AltarRoom(SpecialRoom):
 def cutscene(room, game):
   return [
     lambda step: (
-      game.camera.focus(room.altar.cell, speed=8),
+      game.camera.focus(cell=room.altar.cell, speed=90, tween=True),
       game.anims.append([PauseAnim(
         duration=60,
         on_end=step
@@ -87,8 +87,12 @@ def cutscene(room, game):
     ),
     lambda step: game.anims.append([PauseAnim(duration=30, on_end=step)]),
     lambda step: (
-      game.camera.focus(add(room.cell, (4, 7)), force=True, speed=8),
-      game.anims.append([PauseAnim(duration=30, on_end=step)])
+      game.camera.focus(
+        cell=add(room.cell, (4, 7)),
+        speed=60,
+        tween=True,
+        on_end=step
+      )
     ),
     lambda step: (
       game.anims.extend([
@@ -113,7 +117,11 @@ def cutscene(room, game):
           (room.mage.get_name(), "The hell?"),
           CutsceneContext(script=[
             lambda step: (
-              game.camera.focus(add(room.cell, (4, 5)), force=True, speed=8),
+              game.camera.focus(
+                cell=add(room.cell, (4, 5)),
+                speed=30,
+                tween=True
+              ),
               room.mage.move_to(add(room.cell, (3, 4))),
               game.anims.append([PathAnim(
                 target=room.mage,
@@ -142,7 +150,7 @@ def cutscene(room, game):
     *[(lambda cell: lambda step: (
       game.floor.set_tile_at(add(room.cell, cell), game.floor.PIT),
       game.redraw_tiles(force=True),
-      game.anims.append([PauseAnim(duration=1, on_end=step)]),
+      game.anims.append([PauseAnim(duration=5, on_end=step)]),
     ))(c) for c in [(3, 3), (4, 3), (5, 3), (5, 4), (5, 5), (5, 6), (4, 6), (3, 6), (3, 5), (3, 4)]],
     lambda step: game.anims.append([PauseAnim(duration=30, on_end=step)]),
     lambda step: (
