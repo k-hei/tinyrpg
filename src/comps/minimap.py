@@ -129,36 +129,37 @@ class Minimap:
       if next((g for g in game.anims if next((a for a in g if type(a) is WarpInAnim and a.target is elem), None)), None):
         elem = None
       color = None
+      blink = minimap.time % 60 >= 30
       if isinstance(elem, DungeonActor) and elem.get_faction() == "player" and cell in visible_cells:
-        color = 0x3399FF if minimap.time % 60 >= 30 else 0x0066CC
+        color = (0x3399FF, 0x0066CC)[blink]
       elif isinstance(elem, DungeonActor) and elem.get_faction() == "ally" and cell in visible_cells:
-        color = 0x33FF99 if minimap.time % 60 >= 30 else 0x00CC66
+        color = (0x33FF99, 0x00CC66)[blink]
       elif type(elem) is Mimic and cell in visible_cells:
         if elem.idle:
-          color = 0xFFFF00 if minimap.time % 60 >= 30 else 0x7F7F00
+          color = (0xFFFF00, 0x7F7F00)[blink]
         else:
-          color = 0xFF0000 if minimap.time % 60 >= 30 else 0x990000
+          color = (0xFF0000, 0x990000)[blink]
       elif isinstance(elem, DungeonActor) and elem.get_faction() == "enemy" and cell in visible_cells:
         if elem.ailment == "sleep":
           color = 0x990000
         else:
-          color = 0xFF0000 if minimap.time % 60 >= 30 else 0x990000
+          color = (0xFF0000, 0x990000)[blink]
       elif isinstance(elem, Soul) and cell in visible_cells:
-        color = VIOLET if minimap.time % 60 >= 30 else DARKVIOLET
+        color = (VIOLET, DARKVIOLET)[blink]
       elif isinstance(elem, Npc) and cell in visible_cells:
-        color = GREEN if minimap.time % 60 >= 30 else DARKGREEN
+        color = (GREEN, DARKGREEN)[blink]
       elif type(elem) is Chest and elem.rare:
         if elem.opened:
           color = 0x7F007F
         else:
-          color = 0xFF00FF if minimap.time % 60 >= 30 else 0x7F007F
+          color = (0xFF00FF, 0x7F007F)[blink]
       elif type(elem) is Chest:
         if elem.opened:
           color = 0x7F7F00
         else:
-          color = 0xFFFF00 if minimap.time % 60 >= 30 else 0x7F7F00
+          color = (0xFFFF00, 0x7F7F00)[blink]
       elif type(elem) is Altar:
-        color = 0xFFFF00 if minimap.time % 60 >= 30 else 0x7F7F00
+        color = (0xFFFF00, 0x7F7F00)[blink]
       elif tile is Stage.WALL or isinstance(elem, Door) and elem.locked:
         if cell in visible_cells:
           color = 0x00CCFF
@@ -175,7 +176,7 @@ class Minimap:
         else:
           color = 0x003399
       elif tile is Stage.STAIRS_UP:
-        color = 0x00FF00 if minimap.time % 60 >= 30 else 0x007F00
+        color = (0x00FF00, 0x007F00)[blink]
       elif tile is Stage.STAIRS_DOWN:
         color = 0x007F00
       elif tile is Stage.PIT:
