@@ -27,8 +27,11 @@ class Camera:
   def get_size(camera):
     return camera.size
 
-  def get_rect(camera):
-    x, y = camera.get_pos() or (0, 0)
+  def get_rect(camera, cell=None):
+    if cell:
+      x, y = camera.upscale(cell)
+    else:
+      x, y = camera.get_pos() or (0, 0)
     width, height = camera.get_size()
     return Rect(x, y, width, height)
 

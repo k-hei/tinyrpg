@@ -14,8 +14,6 @@ class SpecialRoom(Room):
   def parse_char(char):
     if char == "#": return Stage.WALL
     if char == " ": return Stage.PIT
-    if char == "+": return Stage.DOOR
-    if char == "*": return Stage.DOOR_HIDDEN
     if char == ",": return Stage.DOOR_WAY
     if char == ">": return Stage.STAIRS_DOWN
     if char == "<": return Stage.STAIRS_UP

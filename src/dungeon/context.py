@@ -572,35 +572,6 @@ class DungeonContext(Context):
           game.log.print("There's a staircase going down here.")
         else:
           game.log.print("You can return to the town from here.")
-      elif target_tile is Stage.MONSTER_DEN and not floor.trap_sprung:
-        floor.trap_sprung = True
-
-        def spawn():
-          monsters = 15
-          cells = [c for c in game.room.get_cells() if (
-            not floor.get_elem_at(c)
-            and floor.get_tile_at(c) is Stage.FLOOR
-            and manhattan(c, hero.cell) > 2
-          )]
-          for i in range(monsters):
-            cell = choice(cells)
-            enemy = Eye()
-            floor.spawn_elem_at(cell, enemy)
-            cells.remove(cell)
-            if randint(0, 9):
-              enemy.ailment = "sleep"
-
-        game.anims.append([
-          PauseAnim(
-            duration=45,
-            on_end=lambda: (
-              floor.set_tile_at((hero_x - 1, hero_y), Stage.DOOR_LOCKED),
-              game.log.clear(),
-              game.log.print("Stepped into a monster den!"),
-              spawn()
-            )
-          )
-        ])
 
       # if not make_sound(1 / 10)
       is_waking_up = False
@@ -715,12 +686,6 @@ class DungeonContext(Context):
             ))
           )
         ))
-      elif (target_tile is Stage.DOOR
-      or target_tile is Stage.DOOR_HIDDEN
-      or target_tile is Stage.DOOR_LOCKED):
-        if game.open_door(target_cell):
-          game.step(run)
-          game.refresh_fov()
 
     return moved
 
@@ -995,25 +960,6 @@ class DungeonContext(Context):
     else:
       return False
 
-  def open_door(game, cell):
-    floor = game.floor
-    tile = floor.get_tile_at(cell)
-
-    opened = False
-
-    if tile is Stage.DOOR:
-      opened = True
-    elif tile is Stage.DOOR_HIDDEN:
-      game.log.print("Discovered a hidden door!")
-      opened = True
-    elif tile is Stage.DOOR_LOCKED:
-      game.log.print("The door is locked...")
-
-    if opened:
-      game.floor.set_tile_at(cell, Stage.DOOR_OPEN)
-      game.redraw_tiles(force=True)
-    return opened
-
   def redraw_tiles(game, force=False):
     game.floor_view.redraw_tiles(
       stage=game.floor,
@@ -1094,16 +1040,8 @@ class DungeonContext(Context):
             on_end and on_end()
           )
         ))
-      else:
-        if game.floor.find_tile(Stage.MONSTER_DEN):
-          trap = game.floor.find_tile(Stage.MONSTER_DEN)
-          if trap and not [e for e in game.floor.elems if isinstance(e, DungeonActor) and hero.allied(e)]:
-            trap_x, trap_y = trap
-            game.floor.set_tile_at((trap_x - 2, trap_y), Stage.DOOR_OPEN)
-        elif game.room and game.room in game.rooms_entered and not game.find_room_enemies():
-          game.floor.set_tile_at(game.room_entrances[game.room], Stage.DOOR_OPEN)
-        if on_end:
-          on_end()
+      elif on_end:
+        on_end()
 
     if not hero.allied(target):
       game.log.print(("Defeated ", target.token(), "."))

@@ -11,25 +11,66 @@ class Tile:
     return tile and tile.solid
 
 class Stage:
-  FLOOR = Tile(solid=False, opaque=False)
-  WALL = Tile(solid=True, opaque=True)
-  FLOOR_ELEV = Tile(solid=False, opaque=False, elev=1.0)
-  WALL_ELEV = Tile(solid=True, opaque=False)
-  STAIRS = Tile(solid=False, opaque=False, elev=0.5, direction=(0, -1))
-  STAIRS_RIGHT = Tile(solid=False, opaque=False, elev=0.5, direction=(1, 0))
-  LADDER = Tile(solid=False, opaque=False, elev=0.5)
-  PIT = Tile(solid=True, opaque=False)
-  DOOR = Tile(solid=True, opaque=True)
-  DOOR_OPEN = Tile(solid=False, opaque=False)
-  DOOR_HIDDEN = Tile(solid=True, opaque=True)
-  DOOR_LOCKED = Tile(solid=True, opaque=True)
-  DOOR_WAY = Tile(solid=False, opaque=False)
-  STAIRS_UP = Tile(solid=False, opaque=False)
-  STAIRS_DOWN = Tile(solid=False, opaque=False)
-  MONSTER_DEN = Tile(solid=False, opaque=False)
-  COFFIN = Tile(solid=True, opaque=True)
-  OASIS = Tile(solid=False, opaque=False, elev=-1.0)
-  OASIS_STAIRS = Tile(solid=False, opaque=False, elev=-0.5)
+  class FLOOR(Tile):
+    solid = False
+    opaque = False
+
+  class WALL(Tile):
+    solid = True
+    opaque = True
+
+  class FLOOR_ELEV(Tile):
+    solid = False
+    opaque = False
+    elev = 1.0
+
+  class WALL_ELEV(Tile):
+    solid = True
+    opaque = False
+
+  class STAIRS(Tile):
+    solid = False
+    opaque = False
+    elev = 0.5
+    direction = (0, -1)
+
+  class STAIRS_RIGHT(Tile):
+    solid = False
+    opaque = False
+    elev = 0.5
+    direction = (1, 0)
+
+  class LADDER(Tile):
+    solid = False
+    opaque = False
+    elev = 0.5
+
+  class PIT(Tile):
+    solid = True
+    opaque = False
+
+  class DOOR_WAY(Tile):
+    solid = False
+    opaque = False
+
+  class STAIRS_UP(Tile):
+    solid = False
+    opaque = False
+
+  class STAIRS_DOWN(Tile):
+    solid = False
+    opaque = False
+
+  class OASIS(Tile):
+    solid = False
+    opaque = False
+    elev = -1.0
+
+  class OASIS_STAIRS(Tile):
+    solid = False
+    opaque = False
+    elev = -0.5
+
   TILES = [FLOOR, WALL, STAIRS_DOWN, STAIRS_UP, PIT, DOOR_WAY]
 
   def __init__(stage, size, data=None, elems=None):

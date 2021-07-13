@@ -159,11 +159,7 @@ class Minimap:
           color = 0xFFFF00 if minimap.time % 60 >= 30 else 0x7F7F00
       elif type(elem) is Altar:
         color = 0xFFFF00 if minimap.time % 60 >= 30 else 0x7F7F00
-      elif tile is Stage.WALL or tile is Stage.DOOR_HIDDEN or (
-        tile is Stage.DOOR_WAY and (tile_above is Stage.DOOR_HIDDEN or tile_below is Stage.DOOR_HIDDEN)
-      ) or (
-        isinstance(elem, Door) and elem.locked
-      ):
+      elif tile is Stage.WALL or isinstance(elem, Door) and elem.locked:
         if cell in visible_cells:
           color = 0x00CCFF
         else:

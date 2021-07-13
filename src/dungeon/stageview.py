@@ -13,6 +13,7 @@ from sprite import Sprite
 from lib.lerp import lerp
 
 from dungeon.actors import DungeonActor
+from dungeon.stage import Stage
 from dungeon.props.chest import Chest
 from dungeon.props.soul import Soul
 from dungeon.props.palm import Palm
@@ -31,6 +32,14 @@ from anims.item import ItemAnim
 
 class StageView:
   LAYERS = ["tiles", "decors", "elems", "vfx", "numbers", "ui"]
+  SPECIAL_TILES = [Stage.OASIS, Stage.OASIS_STAIRS]
+  ELEVATED_TILES = [Stage.FLOOR_ELEV, Stage.WALL_ELEV, Stage.STAIRS_RIGHT]
+  VARIABLE_TILES = [
+    Stage.FLOOR,
+    Stage.WALL,
+    Stage.PIT,
+    Stage.OASIS,
+  ]
 
   def order(sprite):
     sprite_x, sprite_y = sprite.pos
@@ -56,37 +65,42 @@ class StageView:
   def redraw_tile(self, stage, cell, visited_cells):
     col, row = cell
     start_x, start_y = self.tile_offset
-    sprite = render_tile(stage, cell, visited_cells)
-    if type(sprite) is Sprite:
-      sprite_xoffset, sprite_yoffset = sprite.pos
-      sprite = sprite.image
+    tile = stage.get_tile_at(cell)
+    if not tile:
+      return False
+    tile_name = tile.__name__
+    tile_xoffset, tile_yoffset = (0, 0)
+    if tile_name in self.tile_cache and tile not in StageView.VARIABLE_TILES:
+      tile_image = self.tile_cache[tile_name]
     else:
-      sprite_xoffset, sprite_yoffset = (0, 0)
-    if not sprite:
-      return
-    color = WHITE
-    if (stage.get_tile_at(cell) is not stage.OASIS
-    and stage.get_tile_at(cell) is not stage.OASIS_STAIRS):
-      color = COLOR_TILE
-      sprite = replace_color(sprite, WHITE, color)
-      if (stage.get_tile_at(cell) is not stage.FLOOR_ELEV
-      and stage.get_tile_at(cell) is not stage.WALL_ELEV
-      and stage.get_tile_at(cell) is not stage.STAIRS_RIGHT):
-        sprite = replace_color(sprite, GRAY, DARKGRAY)
-    sprite_dark = sprite
-    sprite_dark = darken_image(sprite)
-    self.tile_cache[cell] = sprite_dark
-    x = (col - start_x) * TILE_SIZE + sprite_xoffset
-    y = (row - start_y + 1) * TILE_SIZE - sprite.get_height() + sprite_yoffset
-    self.tile_surface.blit(sprite, (x, y))
+      tile_image = render_tile(stage, cell, visited_cells)
+      if type(tile_image) is Sprite:
+        tile_image = tile_image.image
+        tile_xoffset, tile_yoffset = tile_image.pos
+      if not tile_image:
+        return False
+      color = WHITE
+      if tile not in StageView.SPECIAL_TILES:
+        color = COLOR_TILE
+        tile_image = replace_color(tile_image, WHITE, color)
+        if tile not in StageView.ELEVATED_TILES:
+          tile_image = replace_color(tile_image, GRAY, DARKGRAY)
+    x = (col - start_x) * TILE_SIZE + tile_xoffset
+    y = (row - start_y + 1) * TILE_SIZE - tile_image.get_height() + tile_yoffset
+    self.tile_surface.blit(tile_image, (x, y))
+    self.tile_cache[tile_name] = tile_image
+    if cell not in self.tile_cache:
+      self.tile_cache[cell] = darken_image(tile_image)
+    return True
 
   def redraw_tiles(self, stage, camera, visible_cells, visited_cells, force=False):
+    time_start = get_ticks()
     sprites = []
-    camera = camera.get_rect()
-    start_x = camera.left // TILE_SIZE - 1
-    start_y = camera.top // TILE_SIZE - 1
-    end_x = ceil(camera.right / TILE_SIZE) + 1
-    end_y = ceil(camera.bottom / TILE_SIZE) + 1
+    camera_rect = camera.get_rect()
+    start_x = camera_rect.left // TILE_SIZE - 1
+    start_y = camera_rect.top // TILE_SIZE - 1
+    end_x = ceil(camera_rect.right / TILE_SIZE) + 1
+    end_y = ceil(camera_rect.bottom / TILE_SIZE) + 1
     camera_cell = (start_x, start_y)
     if camera_cell == self.camera_cell and not force:
       return
@@ -102,10 +116,23 @@ class StageView:
         if cell in visible_cells:
           self.redraw_tile(stage, cell, visited_cells)
         elif cell in self.tile_cache:
-          image = self.tile_cache[cell]
+          tile_image = self.tile_cache[cell]
           x = (col - start_x) * TILE_SIZE
           y = (row - start_y) * TILE_SIZE
-          self.tile_surface.blit(image, (x, y))
+          self.tile_surface.blit(tile_image, (x, y))
+    time_end = get_ticks()
+    # print(time_end - time_start)
+
+  def view_tiles(self, camera):
+    camera = camera.get_rect()
+    offset_x, offset_y = self.tile_offset
+    dest_x = -camera.left + offset_x * TILE_SIZE
+    dest_y = -camera.top + offset_y * TILE_SIZE
+    return [Sprite(
+      image=self.tile_surface,
+      pos=(dest_x, dest_y),
+      layer="tiles"
+    )]
 
   def view_decors(self, decors, camera, visible_cells, visited_cells):
     sprites = []
@@ -198,17 +225,6 @@ class StageView:
         numbers.remove(number)
     return sprites
 
-  def view_tiles(self, camera):
-    camera = camera.get_rect()
-    offset_x, offset_y = self.tile_offset
-    dest_x = -camera.left + offset_x * TILE_SIZE
-    dest_y = -camera.top + offset_y * TILE_SIZE
-    return [Sprite(
-      image=self.tile_surface,
-      pos=(dest_x, dest_y),
-      layer="tiles"
-    )]
-
   def view(self, ctx):
     sprites = []
     visible_cells = ctx.hero.visible_cells
@@ -255,8 +271,7 @@ def render_tile(stage, cell, visited_cells=[]):
     elevfloor_image.blit(assets.sprites["wall_elev"], (0, TILE_SIZE))
     assets.sprites["floor_elev"] = elevfloor_image
 
-  if tile is stage.WALL or tile is stage.DOOR_HIDDEN or (
-  tile is stage.DOOR_WAY and tile_below is stage.DOOR_HIDDEN):
+  if tile is stage.WALL:
     room = next((r for r in stage.rooms if cell in r.get_cells() + r.get_border()), None)
     elev = 0
     if room:
@@ -268,7 +283,7 @@ def render_tile(stage, cell, visited_cells=[]):
       return Sprite(image=assets.sprites["wall_bottom"], pos=(0, -TILE_SIZE))
     elif ((tile_below is stage.FLOOR or tile_below is stage.PIT)
     and not stage.get_elem_at((x, y + 1), superclass=Door)):
-      if x % (3 + y % 2) == 0 or tile is stage.DOOR_HIDDEN:
+      if x % (3 + y % 2) == 0:
         sprite_name = "wall_torch"
       else:
         sprite_name = "wall_bottom"
@@ -300,12 +315,6 @@ def render_tile(stage, cell, visited_cells=[]):
     sprite_name = "stairs_down"
   elif tile is stage.STAIRS_RIGHT:
     return flip(assets.sprites["stairs_right"], True, False)
-  elif tile is stage.DOOR:
-    sprite_name = "door"
-  elif tile is stage.DOOR_OPEN:
-    sprite_name = "door_open"
-  elif tile is stage.DOOR_LOCKED:
-    sprite_name = "door"
   elif tile is stage.FLOOR and (
     stage.get_tile_at((x - 1, y)) is stage.FLOOR
     and stage.get_tile_at((x + 1, y)) is stage.FLOOR
@@ -316,14 +325,13 @@ def render_tile(stage, cell, visited_cells=[]):
     and stage.get_tile_at((x - 1, y + 1)) is stage.FLOOR
     and stage.get_tile_at((x + 1, y + 1)) is stage.FLOOR):
     sprite_name = "floor_fancy"
-  elif tile is stage.FLOOR and tile_below is not stage.DOOR:
+  elif tile is stage.FLOOR:
     sprite_name = "floor"
-  elif tile is stage.PIT and tile_above and tile_above is not stage.PIT:
-    sprite_name = "pit"
-  elif tile is stage.MONSTER_DEN:
-    sprite_name = "floor"
-  elif tile is stage.COFFIN:
-    sprite_name = "coffin"
+  elif tile is stage.PIT:
+    if tile_above and tile_above is not stage.PIT:
+      sprite_name = "pit"
+    else:
+      return None
   elif tile is stage.OASIS_STAIRS:
     sprite_name = "oasis_stairs"
   elif tile is stage.OASIS:
@@ -343,14 +351,8 @@ def render_wall(stage, cell, visited_cells=[]):
         stage.get_tile_at((x, y + 1)) is None
         or stage.get_tile_at((x, y + 1)) is stage.WALL
         or stage.get_elem_at((x, y + 1), superclass=Door))
-      or stage.get_tile_at((x, y)) is stage.DOOR_HIDDEN
     )
-  is_door = lambda x, y: (
-    stage.get_tile_at((x, y)) is stage.DOOR
-    or stage.get_tile_at((x, y)) is stage.DOOR_OPEN
-    or stage.get_tile_at((x, y)) is stage.DOOR_LOCKED
-    or stage.get_elem_at((x, y), superclass=Door)
-  )
+  is_door = lambda x, y: stage.get_elem_at((x, y), superclass=Door)
 
   sprite = Surface((TILE_SIZE, TILE_SIZE), SRCALPHA)
   sprite.fill(BLACK)
