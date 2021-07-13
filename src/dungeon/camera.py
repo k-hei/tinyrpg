@@ -70,6 +70,7 @@ class Camera:
     hero = game.hero
     if hero and hero.cell:
       focus_x, focus_y = hero.cell
+      target_x, target_y = hero.cell
       hero_x, hero_y = hero.cell
       hero_y -= hero.elev
 
@@ -80,6 +81,7 @@ class Camera:
     camera_speed = 4
     if camera.flag:
       focus_x, focus_y = camera.flag
+      target_x, target_y = camera.flag
       camera_speed = 20
     elif game.room:
       room = game.room
@@ -112,6 +114,8 @@ class Camera:
           focus_y += max_radius_y
         else:
           focus_y = hero_y
+
+      target_x, target_y = focus_x, focus_y
     else:
       move_anim = next((a for a in anims if (
         not a.done
@@ -120,6 +124,7 @@ class Camera:
       )), None)
       if move_anim:
         focus_x, focus_y = move_anim.cell
+        target_x, target_y = move_anim.dest
 
     camera_anim = camera.anims[0] if camera.anims else None
     if camera_anim:
@@ -140,4 +145,4 @@ class Camera:
         camera_x = old_camera_x + (camera_x - old_camera_x) / camera_speed
         camera_y = old_camera_y + (camera_y - old_camera_y) / camera_speed
     camera.pos = (camera_x, camera_y)
-    camera.cell = (focus_x, focus_y)
+    camera.cell = (target_x, target_y)

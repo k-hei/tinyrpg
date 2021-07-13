@@ -30,6 +30,12 @@ from anims.awaken import AwakenAnim
 from anims.chest import ChestAnim
 from anims.item import ItemAnim
 
+def recolor_walls():
+  assets = use_assets()
+  for key in assets.sprites.keys():
+    if key.startswith("wall"):
+      assets.sprites[key] = replace_color(assets.sprites[key], WHITE, COLOR_TILE)
+
 class StageView:
   LAYERS = ["tiles", "decors", "elems", "vfx", "numbers", "ui"]
   SPECIAL_TILES = [Stage.OASIS, Stage.OASIS_STAIRS]
@@ -64,7 +70,7 @@ class StageView:
 
   def redraw_tile(self, stage, cell, visited_cells):
     col, row = cell
-    start_x, start_y = self.tile_offset
+    offset_x, offset_y = self.tile_offset
     tile = stage.get_tile_at(cell)
     if not tile:
       return False
@@ -82,11 +88,12 @@ class StageView:
       color = WHITE
       if tile not in StageView.SPECIAL_TILES:
         color = COLOR_TILE
-        tile_image = replace_color(tile_image, WHITE, color)
+        if tile_image is not stage.WALL:
+          tile_image = replace_color(tile_image, WHITE, color)
         if tile not in StageView.ELEVATED_TILES:
           tile_image = replace_color(tile_image, GRAY, DARKGRAY)
-    x = (col - start_x) * TILE_SIZE + tile_xoffset
-    y = (row - start_y + 1) * TILE_SIZE - tile_image.get_height() + tile_yoffset
+    x = (col - offset_x) * TILE_SIZE + tile_xoffset
+    y = (row - offset_y + 1) * TILE_SIZE - tile_image.get_height() + tile_yoffset
     self.tile_surface.blit(tile_image, (x, y))
     self.tile_cache[tile_name] = tile_image
     if cell not in self.tile_cache:
@@ -96,32 +103,44 @@ class StageView:
   def redraw_tiles(self, stage, camera, visible_cells, visited_cells, force=False):
     time_start = get_ticks()
     sprites = []
-    camera_rect = camera.get_rect()
-    start_x = camera_rect.left // TILE_SIZE - 1
-    start_y = camera_rect.top // TILE_SIZE - 1
-    end_x = ceil(camera_rect.right / TILE_SIZE) + 1
-    end_y = ceil(camera_rect.bottom / TILE_SIZE) + 1
-    camera_cell = (start_x, start_y)
+    camera_x, camera_y = camera.cell
+    camera_cell = (int(camera_x), int(camera_y))
     if camera_cell == self.camera_cell and not force:
       return
+    camera_rect = camera.get_rect()
+    camera_oldrect = camera.get_rect(camera.cell)
+    snap = lambda rect: (
+      rect.left // TILE_SIZE - 1,
+      rect.top // TILE_SIZE - 1,
+      ceil(rect.right / TILE_SIZE) + 1,
+      ceil(rect.bottom / TILE_SIZE) + 1
+    )
+    old_left, old_top, old_right, old_bottom = snap(camera_oldrect)
+    new_left, new_top, new_right, new_bottom = snap(camera_rect)
+    left = min(old_left, new_left)
+    top = min(old_top, new_top)
+    right = max(old_right, new_right)
+    bottom = max(old_bottom, new_bottom)
+    cols = right - left + 1
+    rows = bottom - top + 1
+    self.tile_surface = Surface((cols * TILE_SIZE, rows * TILE_SIZE), SRCALPHA)
+    self.tile_offset = (left, top)
     self.camera_cell = camera_cell
-    self.tile_offset = (start_x, start_y)
-    self.tile_surface.fill(BLACK)
     if stage is not self.stage:
       self.stage = stage
       self.tile_cache = {}
-    for row in range(start_y, end_y + 1):
-      for col in range(start_x, end_x + 1):
+      recolor_walls()
+    for row in range(top, bottom + 1):
+      for col in range(left, right + 1):
         cell = (col, row)
         if cell in visible_cells:
           self.redraw_tile(stage, cell, visited_cells)
         elif cell in self.tile_cache:
           tile_image = self.tile_cache[cell]
-          x = (col - start_x) * TILE_SIZE
-          y = (row - start_y) * TILE_SIZE
+          x = (col - left) * TILE_SIZE
+          y = (row - top) * TILE_SIZE
           self.tile_surface.blit(tile_image, (x, y))
     time_end = get_ticks()
-    # print(time_end - time_start)
 
   def view_tiles(self, camera):
     camera = camera.get_rect()
