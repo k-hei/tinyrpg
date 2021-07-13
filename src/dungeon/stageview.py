@@ -301,6 +301,7 @@ def render_tile(stage, cell, visited_cells=[]):
     if tile_below is stage.FLOOR_ELEV:
       return Sprite(image=assets.sprites["wall_bottom"], pos=(0, -TILE_SIZE))
     elif ((tile_below is stage.FLOOR or tile_below is stage.PIT)
+    and (x, y + 1) in visited_cells
     and not stage.get_elem_at((x, y + 1), superclass=Door)):
       if x % (3 + y % 2) == 0:
         sprite_name = "wall_torch"
@@ -367,7 +368,8 @@ def render_wall(stage, cell, visited_cells=[]):
       (x, y) not in visited_cells
       or stage.get_tile_at((x, y)) is None
       or stage.get_tile_at((x, y)) is stage.WALL and (
-        stage.get_tile_at((x, y + 1)) is None
+        (x, y + 1) not in visited_cells
+        or stage.get_tile_at((x, y + 1)) is None
         or stage.get_tile_at((x, y + 1)) is stage.WALL
         or stage.get_elem_at((x, y + 1), superclass=Door))
     )
