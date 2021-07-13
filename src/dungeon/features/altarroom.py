@@ -18,29 +18,29 @@ from config import RUN_DURATION
 class AltarRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
     super().__init__(degree=2, shape=[
-      ".......",
-      "       ",
-      " ..... ",
-      " ..... ",
-      " ..... ",
-      " ..... ",
-      " ..... ",
-      " ..... ",
-      "   .   ",
-      "   .   ",
-      "   .   ",
-      "   .   ",
-      "   .   ",
-      "   .   ",
+      " ....... ",
+      "         ",
+      "  .....  ",
+      "  .....  ",
+      "  .....  ",
+      "  .....  ",
+      "  .....  ",
+      "  .....  ",
+      "    .    ",
+      "    .    ",
+      "    .    ",
+      "    .    ",
+      "    .    ",
+      "    .    ",
     ], elems=[
-      ((3, 6), mage := Mage(faction="ally", facing=(0, -1))),
-      ((3, 5), altar := Altar()),
-      ((1, 2), Pillar()),
-      ((1, 4), Pillar()),
-      ((1, 6), Pillar()),
-      ((5, 2), Pillar()),
-      ((5, 4), Pillar()),
-      ((5, 6), Pillar()),
+      ((4, 6), mage := Mage(faction="ally", facing=(0, -1))),
+      ((4, 5), altar := Altar()),
+      ((2, 2), Pillar()),
+      ((2, 4), Pillar()),
+      ((2, 6), Pillar()),
+      ((6, 2), Pillar()),
+      ((6, 4), Pillar()),
+      ((6, 6), Pillar()),
     ], *args, **kwargs)
     room.mage = mage
     room.altar = altar
@@ -71,23 +71,23 @@ class AltarRoom(SpecialRoom):
 def cutscene(room, game):
   return [
     lambda step: (
-      game.camera.focus(room.altar.cell),
+      game.camera.focus(room.altar.cell, speed=8),
       game.anims.append([PauseAnim(
         duration=60,
         on_end=step
       )])
     ),
     lambda step: (
-      game.hero.move_to(add(room.cell, (3, 7))),
+      game.hero.move_to(add(room.cell, (4, 7))),
       game.anims.append([PathAnim(
         target=game.hero,
-        path=[add(room.cell, c) for c in [(3, 13), (3, 12), (3, 11), (3, 10), (3, 9), (3, 8), (3, 7)]],
+        path=[add(room.cell, c) for c in [(4, 13), (4, 12), (4, 11), (4, 10), (4, 9), (4, 8), (4, 7)]],
         on_end=step
       )])
     ),
     lambda step: game.anims.append([PauseAnim(duration=30, on_end=step)]),
     lambda step: (
-      game.camera.focus(add(room.cell, (3, 7)), force=True),
+      game.camera.focus(add(room.cell, (4, 7)), force=True, speed=8),
       game.anims.append([PauseAnim(duration=30, on_end=step)])
     ),
     lambda step: (
@@ -113,21 +113,21 @@ def cutscene(room, game):
           (room.mage.get_name(), "The hell?"),
           CutsceneContext(script=[
             lambda step: (
-              game.camera.focus(add(room.cell, (3, 5)), force=True),
-              room.mage.move_to(add(room.cell, (2, 4))),
+              game.camera.focus(add(room.cell, (4, 5)), force=True, speed=8),
+              room.mage.move_to(add(room.cell, (3, 4))),
               game.anims.append([PathAnim(
                 target=room.mage,
-                path=[add(room.cell, c) for c in [(3, 6), (2, 6), (2, 5), (2, 4)]],
+                path=[add(room.cell, c) for c in [(4, 6), (3, 6), (3, 5), (3, 4)]],
                 period=RUN_DURATION,
                 on_end=step
               )])
             ),
             lambda step: (
               room.mage.set_facing((0, 1)),
-              game.hero.move_to(add(room.cell, (3, 6))),
+              game.hero.move_to(add(room.cell, (4, 6))),
               game.anims.append([PathAnim(
                 target=game.hero,
-                path=[add(room.cell, c) for c in [(3, 7), (3, 6)]],
+                path=[add(room.cell, c) for c in [(4, 7), (4, 6)]],
                 period=RUN_DURATION
               )]),
               step()
@@ -143,7 +143,7 @@ def cutscene(room, game):
       game.floor.set_tile_at(add(room.cell, cell), game.floor.PIT),
       game.redraw_tiles(force=True),
       game.anims.append([PauseAnim(duration=1, on_end=step)]),
-    ))(c) for c in [(2, 3), (3, 3), (4, 3), (4, 4), (4, 5), (4, 6), (3, 6), (2, 6), (2, 5), (2, 4)]],
+    ))(c) for c in [(3, 3), (4, 3), (5, 3), (5, 4), (5, 5), (5, 6), (4, 6), (3, 6), (3, 5), (3, 4)]],
     lambda step: game.anims.append([PauseAnim(duration=30, on_end=step)]),
     lambda step: (
       game.anims.extend([
