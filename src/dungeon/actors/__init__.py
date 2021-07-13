@@ -282,6 +282,7 @@ class DungeonActor(DungeonElement):
     if actor.core.faction == "player": return BLUE
     if actor.core.faction == "enemy" and actor.rare: return GOLD
     if actor.core.faction == "enemy": return RED
+    if actor.core.faction == "ally": return actor.core.color or GREEN
 
   def token(actor):
     return Token(text=actor.get_name().upper(), color=actor.color())
