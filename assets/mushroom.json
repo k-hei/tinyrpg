@@ -1,0 +1,5 @@
+{
+  "mushroom": [0, 0, 32, 32],
+  "mushroom_move": [32, 0, 32, 32],
+  "mushroom_flinch": [64, 0, 32, 32]
+}

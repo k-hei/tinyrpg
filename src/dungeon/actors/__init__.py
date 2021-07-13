@@ -46,6 +46,7 @@ class DungeonActor(DungeonElement):
     actor.facing = core.facing or (1, 0)
     actor.visible_cells = []
     actor.on_kill = None
+    actor.flipped = False
 
   def get_name(actor): return actor.core.name
   def get_faction(actor): return actor.core.faction
@@ -267,7 +268,11 @@ class DungeonActor(DungeonElement):
       sprite.image = darken_image(sprite.image)
     facing_x, _ = actor.facing
     _, flip_y = sprite.flip
-    sprite.flip = (facing_x == -1, flip_y)
+    if facing_x == -1:
+      actor.flipped = True
+    elif facing_x == 1:
+      actor.flipped = False
+    sprite.flip = (actor.flipped, flip_y)
     sprite.move((offset_x, offset_y))
     sprite.size = (actor_width, actor_height)
     sprite.layer = "elems"

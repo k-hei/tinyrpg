@@ -8,6 +8,11 @@ import random
 from items.materials.redferrule import RedFerrule
 from sprite import Sprite
 
+from anims.move import MoveAnim
+from anims.attack import AttackAnim
+from anims.flinch import FlinchAnim
+from anims.flicker import FlickerAnim
+
 class Mushroom(DungeonActor):
   skill = Virus
   drops = [RedFerrule]
@@ -39,5 +44,26 @@ class Mushroom(DungeonActor):
 
   def view(mushroom, anims):
     sprites = use_assets().sprites
-    sprite = sprites["mushroom"]
+    sprite = None
+    if mushroom.is_dead():
+      return super().view(sprites["mushroom_flinch"], anims)
+    anim_group = [a for a in anims[0] if a.target is mushroom] if anims else []
+    for anim in anim_group:
+      if type(anim) is MoveAnim:
+        sprite = sprites["mushroom_move"]
+        break
+      elif (type(anim) is AttackAnim
+      and anim.time < anim.duration // 2):
+        sprite = sprites["mushroom_move"]
+        break
+      elif type(anim) in (FlinchAnim, FlickerAnim):
+        sprite = sprites["mushroom_flinch"]
+        break
+    else:
+      if mushroom.ailment == "sleep":
+        sprite = sprites["mushroom_move"]
+      else:
+        sprite = sprites["mushroom"]
+    if mushroom.ailment == "freeze":
+      sprite = sprites["mushroom_flinch"]
     return super().view(sprite, anims)
