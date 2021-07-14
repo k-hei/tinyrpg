@@ -79,7 +79,10 @@ class App(Context):
     app.handle_events()
     if app.paused:
       return
-    super().update()
+    try:
+      super().update()
+    except:
+      debug.append(traceback.format_exc())
     if app.transits:
       transit = app.transits[0]
       if transit.done:

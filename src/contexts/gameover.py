@@ -60,9 +60,11 @@ class GameOverContext(Context):
   def handle_choose(ctx):
     choice = ctx.choices[ctx.choice_index]
     ctx.anims.append(ChooseAnim(target="hand", duration=30, on_end=lambda: (
-      choice == "Load Game" and ctx.open(LoadContext(), on_close=lambda data: (
-        game := ctx.get_parent(cls="GameContext"),
-        game and game.load(savedata=data)
+      choice == "Load Game" and ctx.open(LoadContext(), on_close=lambda *data: (
+        data and (
+          game := ctx.get_parent(cls="GameContext"),
+          game and game.load(savedata=data[0])
+        )
       ))
     )))
     return True
