@@ -11,7 +11,7 @@ from contexts import Context
 from contexts.loading import LoadingContext
 from transits.dissolve import DissolveIn, DissolveOut
 from config import (
-  FPS, FPS_SLOW,
+  FPS, FPS_SLOW, FPS_FAST,
   WINDOW_SIZE, WINDOW_SCALE_INIT, WINDOW_SCALE_MAX,
   ASSETS_PATH
 )
@@ -148,12 +148,18 @@ class App(Context):
   def print_transits(app):
     print(app.transits)
 
-  def toggle_fps(app):
-    if app.fps != FPS_SLOW:
-      app.fps = FPS_SLOW
+  def toggle_fps(app, fps):
+    if app.fps != fps:
+      app.fps = fps
     else:
       app.fps = FPS
     pygame.key.set_repeat(1000 // app.fps)
+
+  def toggle_speedup(app):
+    app.toggle_fps(FPS_FAST)
+
+  def toggle_slowdown(app):
+    app.toggle_fps(FPS_SLOW)
 
   def toggle_pause(app):
     app.paused = not app.paused
@@ -196,8 +202,10 @@ class App(Context):
       return tapping and app.reset()
     if key == pygame.K_a and ctrl:
       return tapping and app.print_contexts()
+    if key == pygame.K_BACKQUOTE and ctrl and shift:
+      return tapping and app.toggle_slowdown()
     if key == pygame.K_BACKQUOTE and ctrl:
-      return tapping and app.toggle_fps()
+      return tapping and app.toggle_speedup()
     if key == pygame.K_f and ctrl:
       return tapping and app.toggle_fullscreen()
     if key == pygame.K_t and ctrl:

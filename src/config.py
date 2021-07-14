@@ -12,6 +12,7 @@ ROOM_HEIGHTS = (4, 7)
 
 # game settings
 FPS = 60
+FPS_FAST = 120
 FPS_SLOW = 15
 VISION_RANGE = 3.5
 TILE_SIZE = 32
