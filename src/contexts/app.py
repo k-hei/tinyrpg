@@ -68,6 +68,8 @@ class App(Context):
       while not app.done:
         app.redraw()
         app.update()
+    except:
+      debug.append(traceback.format_exc())
     finally:
       app.close()
 
