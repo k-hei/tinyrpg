@@ -1,4 +1,3 @@
-import sys
 from math import ceil
 from pygame import Surface, Rect, SRCALPHA
 from pygame.transform import rotate, flip, scale
@@ -197,8 +196,7 @@ class StageView:
     for elem in visible_elems:
       try:
         sprites += self.view_elem(elem, anims)
-      except TypeError:
-        print(elem)
+      except:
         raise
     return sprites
 

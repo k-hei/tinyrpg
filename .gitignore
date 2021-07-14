@@ -1,12 +1,13 @@
 /target
 .DS_Store
-node_modules
-tmp
 .vscode
 __pycache__
+node_modules
+tmp
+dist
+build
 *.spec
 *.dmg
 *.zip
 *.pyc
-dist
-build
+*.log

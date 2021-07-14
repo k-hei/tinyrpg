@@ -53,7 +53,12 @@ class Area:
     else:
       link_name = None
     for actor in sorted(area.actors, key=lambda actor: 1 if actor is hero else 0):
-      for sprite in actor.view():
+      try:
+        actor_sprites = actor.view()
+      except:
+        actor_sprites = []
+        raise
+      for sprite in actor_sprites:
         y = Area.ACTOR_Y
         sprite.move((area.camera, y))
         sprite.target = actor
