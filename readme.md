@@ -16,6 +16,7 @@ View the latest builds for this project on the [releases page](https://github.co
 ### system
 - Ctrl+=: Scale up window
 - Ctrl+-: Scale down window
+- Ctrl+F: Toggle fullscreen
 - Ctrl+R: Reset to initial game state
 
 ## development
