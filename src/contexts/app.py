@@ -1,6 +1,8 @@
 from copy import deepcopy
 import os
 import sys
+import traceback
+import debug
 import pygame
 from pygame.transform import scale
 import keyboard
@@ -53,6 +55,7 @@ class App(Context):
     if data:
       print(*data)
     app.done = True
+    debug.write()
 
   def reset(app):
     app.open(deepcopy(app.child_init))
@@ -61,9 +64,12 @@ class App(Context):
     os.execl(sys.executable, sys.executable, *sys.argv)
 
   def loop(app):
-    while not app.done:
-      app.redraw()
-      app.update()
+    try:
+      while not app.done:
+        app.redraw()
+        app.update()
+    finally:
+      app.close()
 
   def update(app):
     app.clock.tick(app.fps)
@@ -71,8 +77,7 @@ class App(Context):
     app.handle_events()
     if app.paused:
       return
-    if app.child:
-      app.child.update()
+    super().update()
     if app.transits:
       transit = app.transits[0]
       if transit.done:
@@ -83,17 +88,19 @@ class App(Context):
   def redraw(app):
     if app.paused:
       return
-    sprites = []
-    sprites += app.view()
-    if app.transits:
-      transit = app.transits[0]
-      sprites += transit.view(sprites)
-    sprites.sort(key=lambda sprite: 1 if sprite.layer == "hud" else 0)
-    app.surface.fill(0)
-    for sprite in sprites:
-      sprite.draw(app.surface)
-    app.display.blit(scale(app.surface, app.size_scaled), (0, 0))
-    pygame.display.flip()
+    try:
+      sprites = app.view()
+      if app.transits:
+        transit = app.transits[0]
+        sprites += transit.view(sprites)
+      sprites.sort(key=lambda sprite: 1 if sprite.layer == "hud" else 0)
+      app.surface.fill(0)
+      for sprite in sprites:
+        sprite.draw(app.surface)
+      app.display.blit(scale(app.surface, app.size_scaled), (0, 0))
+      pygame.display.flip()
+    except:
+      debug.append(traceback.format_exc())
 
   def rescale(app, new_scale):
     if (new_scale == app.scale

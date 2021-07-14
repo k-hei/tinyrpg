@@ -245,15 +245,16 @@ class SideViewContext(Context):
       )]
     elif not interrupt and (npc := ctx.nearby_npc):
       npc_sprite = next((s for s in sprites if s.target is npc), None)
-      npc_x, npc_y = npc_sprite.pos
-      bubble_image = assets.sprites["bubble_talk"]
-      bubble_x = npc_x + TILE_SIZE * 0.25
-      bubble_y = npc_y - TILE_SIZE * 0.75
-      sprites.append(Sprite(
-        image=bubble_image,
-        pos=(bubble_x, bubble_y),
-        layer="markers"
-      ))
+      if npc_sprite:
+        npc_x, npc_y = npc_sprite.pos
+        bubble_image = assets.sprites["bubble_talk"]
+        bubble_x = npc_x + TILE_SIZE * 0.25
+        bubble_y = npc_y - TILE_SIZE * 0.75
+        sprites.append(Sprite(
+          image=bubble_image,
+          pos=(bubble_x, bubble_y),
+          layer="markers"
+        ))
     if ctx.time < 120:
       label_image = assets.ttf["roman"].render(ctx.area.name, WHITE)
       label_image = outline(label_image, BLACK)

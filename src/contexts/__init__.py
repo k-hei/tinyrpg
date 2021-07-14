@@ -73,7 +73,10 @@ class Context:
 
   def update(ctx):
     if ctx.child:
-      ctx.child.update()
+      try:
+        ctx.child.update()
+      except:
+        raise
 
   def view(ctx):
     return ctx.child.view() if ctx.child else []
