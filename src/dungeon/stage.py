@@ -81,8 +81,6 @@ class Stage:
     stage.rooms = []
     stage.decors = []
     stage.entrance = None
-    stage.stairs = None
-    stage.trap_sprung = False
     stage.loader = None
 
   def fill(stage, data):

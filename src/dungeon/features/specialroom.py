@@ -37,7 +37,7 @@ class SpecialRoom(Room):
   def place(feature, stage, connectors=[], cell=None):
     feature.cell = cell or feature.cell or (0, 0)
     x, y = feature.cell
-    entrance, stairs = None, None
+    entrance = None
     for row in range(feature.get_height()):
       for col in range(feature.get_width()):
         cell = (col + x, row + y)
@@ -57,7 +57,6 @@ class SpecialRoom(Room):
       elem_x, elem_y = elem_cell
       stage.spawn_elem_at((elem_x + x, elem_y + y), elem)
     stage.entrance = entrance or stage.entrance
-    stage.stairs = stairs or stage.stairs
     stage.rooms.append(feature)
     # stage.rooms += [Room(r.size, add_cell(r.cell, feature.cell)) for r in feature.rooms] or [feature]
 

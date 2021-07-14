@@ -101,7 +101,9 @@ class GameContext(Context):
         )
       )
 
-    if savedata.dungeon:
+    if type(savedata.dungeon) is Stage:
+      floor = savedata.dungeon
+    elif savedata.dungeon:
       floor_idx = savedata.dungeon["floor_no"] - 1 if "floor_no" in savedata.dungeon else 0
       floor_data = savedata.dungeon["floors"][floor_idx]
       floor = Stage(
@@ -137,16 +139,20 @@ class GameContext(Context):
       for skill, cell in pieces:
         build[encode(skill)] = list(cell)
       chars[encode_char(char)] = build
-    return SaveData(
-      place="town",
+    place = type(ctx.child) is TownContext and "town" or "dungeon"
+    dungeon = place == "dungeon" and ctx.child.save() or None
+    ctx.savedata = SaveData(
+      place=place,
       sp=ctx.sp,
       time=int(ctx.time),
       gold=ctx.gold,
       items=items,
       skills=skills,
       party=party,
-      chars=chars
+      chars=chars,
+      dungeon=dungeon
     )
+    return ctx.savedata
 
   def recruit(ctx, char):
     char.faction = "player"

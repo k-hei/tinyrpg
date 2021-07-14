@@ -2,7 +2,6 @@ import math
 from random import random, randint, choice
 import pygame
 from pygame import Rect
-from colors.palette import GREEN, CYAN
 from copy import deepcopy
 
 import config
@@ -16,6 +15,7 @@ import lib.direction as direction
 
 from assets import load as load_assets
 from filters import recolor, replace_color
+from colors.palette import GREEN, CYAN
 from text import render as render_text
 from transits.dissolve import DissolveIn, DissolveOut
 
@@ -96,12 +96,11 @@ class DungeonContext(Context):
   AWAKEN_DURATION = 45
   FLOORS = [Floor1, Floor2, Floor3]
 
-  def __init__(game, party, floor=None, debug=False):
+  def __init__(game, party, floor=None):
     super().__init__()
     game.hero = manifest(party[0])
     game.ally = manifest(party[1]) if len(party) == 2 else None
     game.party = [game.hero, game.ally] if game.ally else [game.hero]
-    game.debug = debug
     game.floor = floor
     game.floor_view = None
     game.floor_cells = None
@@ -121,16 +120,18 @@ class DungeonContext(Context):
     game.lights = False
     game.god_mode = False
     game.camera = Camera(WINDOW_SIZE)
-    game.log = Log(align="left")
-    game.minimap = Minimap(parent=game)
+    game.log = None
+    game.minimap = None
     game.comps = []
+    game.debug = False
 
   def init(game):
-    game.floor_view = StageView(WINDOW_SIZE)
     if game.floor:
       game.use_floor(game.floor)
     else:
       game.create_floor()
+    game.log = Log(align="left")
+    game.minimap = Minimap(parent=game)
     game.comps = [
       game.log,
       game.minimap,
@@ -155,7 +156,13 @@ class DungeonContext(Context):
   def get_inventory(game):
     return game.parent.inventory.items
 
+  def save(game):
+    return deepcopy(game.floor)
+
   def use_floor(game, floor, loader=None):
+    game.floor = floor
+    game.parent.save()
+
     floor.loader = floor.loader or loader
     floor_no = game.get_floor_no()
     hero = game.hero
@@ -168,7 +175,6 @@ class DungeonContext(Context):
       ally.facing = (1, 0)
       floor.spawn_elem_at((x - 1, y), ally)
 
-    promoted = False
     enemies = [e for e in floor.elems if isinstance(e, DungeonActor) and not hero.allied(e)]
     for monster, kills in game.parent.monster_kills.items():
       if (monster.skill is not None
@@ -177,18 +183,17 @@ class DungeonContext(Context):
         enemy = next((e for e in enemies if type(e) is monster), None)
         if enemy is not None:
           enemy.promote()
-          promoted = True
 
     game.room = None
     game.anims = []
     game.commands = []
-    game.floor = floor
     game.floors.append(game.floor)
     game.memory.append((game.floor, []))
-    game.rooms_entered.append(game.room)
     game.refresh_fov(moving=True)
+    game.rooms_entered.append(game.room)
     game.camera.reset()
     game.camera.update(game)
+    game.floor_view = StageView(WINDOW_SIZE)
     game.redraw_tiles()
 
   def create_floor(game):

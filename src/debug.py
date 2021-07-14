@@ -18,3 +18,10 @@ def write():
   debug_file = open("debug.log", "w")
   debug_file.write(buffer)
   debug_file.close()
+
+def dictify(obj):
+  {key: getattr(obj, key) for key in dir(obj) if (
+    key != key.upper()
+    and not key.startswith("__")
+    and not callable(getattr(obj, key))
+  )}
