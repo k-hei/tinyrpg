@@ -113,7 +113,7 @@ class Minimap:
 
     floor = game.floor
     visible_cells = hero.visible_cells
-    visited_cells = next((cells for floor, cells in game.memory if floor is game.floor), None)
+    visited_cells = game.get_visited_cells()
     for cell in visited_cells:
       x, y = cell
       tile = game.floor.get_tile_at(cell)

@@ -3,6 +3,8 @@ from random import random, randint, choice
 import pygame
 from pygame import Rect
 from copy import deepcopy
+from dataclasses import dataclass
+import json
 
 import config
 from config import WINDOW_SIZE, VISION_RANGE, MOVE_DURATION, RUN_DURATION, JUMP_DURATION, FLICKER_DURATION
@@ -22,9 +24,10 @@ from transits.dissolve import DissolveIn, DissolveOut
 import dungeon.gen as gen
 from dungeon.fov import shadowcast
 from dungeon.camera import Camera
-from dungeon.stage import Stage
+from dungeon.stage import Stage, Tile
 from dungeon.stageview import StageView
 
+from dungeon.element import DungeonElement
 from dungeon.actors import DungeonActor
 from dungeon.actors.eye import Eye
 from dungeon.actors.knight import Knight as KnightActor
@@ -32,6 +35,7 @@ from dungeon.actors.mage import Mage as MageActor
 from dungeon.actors.mimic import Mimic
 from dungeon.actors.npc import Npc
 
+from cores import Core
 from cores.knight import Knight
 from cores.mage import Mage
 
@@ -78,6 +82,7 @@ from contexts.dialogue import DialogueContext
 from contexts.prompt import PromptContext, Choice
 from contexts.gameover import GameOverContext
 
+from dungeon.features.room import Room
 from dungeon.floors.floor1 import Floor1
 from dungeon.floors.floor2 import Floor2
 from dungeon.floors.floor3 import Floor3
@@ -85,6 +90,24 @@ from dungeon.floors.floor3 import Floor3
 def manifest(core):
   if type(core) is Knight: return KnightActor(core)
   if type(core) is Mage: return MageActor(core)
+
+class DungeonDataEncoder(json.JSONEncoder):
+  def default(encoder, obj):
+    if type(obj) is type and issubclass(obj, Tile):
+      return dir(Stage).index(obj.__name__)
+    if type(obj) in (DungeonData, Stage):
+      return obj.__dict__
+    if isinstance(obj, DungeonElement):
+      return (obj.cell, type(obj).__name__)
+    if isinstance(obj, Room):
+      return ((*obj.cell, *obj.size), type(obj).__name__)
+    return json.JSONEncoder.default(encoder, obj)
+
+@dataclass
+class DungeonData:
+  floors: list[Stage]
+  floor_index: int
+  memory: list[list[tuple[int, int]]]
 
 class DungeonContext(Context):
   ATTACK_DURATION = 12
@@ -96,21 +119,21 @@ class DungeonContext(Context):
   AWAKEN_DURATION = 45
   FLOORS = [Floor1, Floor2, Floor3]
 
-  def __init__(game, party, floor=None):
+  def __init__(game, party, floors, floor_index=0, memory=[]):
     super().__init__()
     game.hero = manifest(party[0])
     game.ally = manifest(party[1]) if len(party) == 2 else None
     game.party = [game.hero, game.ally] if game.ally else [game.hero]
-    game.floor = floor
+    game.floors = floors
+    game.floor = floors[floor_index]
     game.floor_view = None
     game.floor_cells = None
-    game.floors = []
+    game.memory = memory
     game.room = None
     game.room_within = None
     game.room_entrances = {}
     game.rooms_entered = []
     game.oasis_used = False
-    game.memory = []
     game.anims = []
     game.commands = []
     game.vfx = []
@@ -150,6 +173,12 @@ class DungeonContext(Context):
       game.handle_minimap(lock=True)
       game.refresh_fov()
 
+  def close(game):
+    debug_file = open("debug.json", "w")
+    debug_file.write(json.dumps(game.save(), cls=DungeonDataEncoder))
+    debug_file.close()
+    super().close()
+
   def get_floor_no(game):
     return next((i for i, f in enumerate(game.floors) if f is game.floor), 0) + 1
 
@@ -157,13 +186,19 @@ class DungeonContext(Context):
     return game.parent.inventory.items
 
   def save(game):
-    return deepcopy(game.floor)
+    return DungeonData(
+      floor_index=game.floors.index(game.floor),
+      floors=deepcopy(game.floors),
+      memory=deepcopy(game.memory)
+    )
 
-  def use_floor(game, floor, loader=None):
+  def use_floor(game, floor, generator=None):
     game.floor = floor
+    game.floors.append(game.floor)
+    game.memory.append([])
     game.parent.save()
 
-    floor.loader = floor.loader or loader
+    floor.generator = floor.generator or generator
     floor_no = game.get_floor_no()
     hero = game.hero
     hero.facing = (1, 0)
@@ -187,8 +222,6 @@ class DungeonContext(Context):
     game.room = None
     game.anims = []
     game.commands = []
-    game.floors.append(game.floor)
-    game.memory.append((game.floor, []))
     game.refresh_fov(moving=True)
     game.rooms_entered.append(game.room)
     game.camera.reset()
@@ -254,7 +287,7 @@ class DungeonContext(Context):
     hero.visible_cells = visible_cells
 
     # update visited cells
-    visited_cells = next((cells for floor, cells in game.memory if floor is game.floor), None)
+    visited_cells = game.get_visited_cells()
     for cell in visible_cells:
       if cell not in visited_cells:
         visited_cells.append(cell)
@@ -1248,13 +1281,13 @@ class DungeonContext(Context):
     if index >= len(game.floors):
       # create a new floor if out of bounds
       app = game.get_head()
-      Floor = DungeonContext.FLOORS[DungeonContext.FLOORS.index(game.floor.loader) + direction]
+      Floor = DungeonContext.FLOORS[DungeonContext.FLOORS.index(game.floor.generator) + direction]
       app.transition(
         transits=(DissolveIn(), DissolveOut()),
         loader=Floor(),
         on_end=lambda floor: (
           remove_heroes(),
-          game.use_floor(floor, loader=Floor),
+          game.use_floor(floor, generator=Floor),
           game.log.print("You go upstairs.")
         )
       )
@@ -1311,7 +1344,7 @@ class DungeonContext(Context):
 
   def get_visited_cells(game, floor=None):
     floor = floor or game.floor
-    return next((cells for f, cells in game.memory if f is floor), None)
+    return next((cells for i, cells in enumerate(game.memory) if i is game.floors.index(floor)), None)
 
   def update_camera(game):
     if game.camera.get_pos():

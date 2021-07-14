@@ -55,7 +55,12 @@ class App(Context):
     if data:
       print(*data)
     app.done = True
-    debug.write()
+    try:
+      super().close()
+    except:
+      debug.append(traceback.format_exc())
+    finally:
+      debug.write()
 
   def reset(app):
     app.open(deepcopy(app.child_init))
@@ -76,19 +81,19 @@ class App(Context):
   def update(app):
     app.clock.tick(app.fps)
     keyboard.update()
-    app.handle_events()
     if app.paused:
       return
     try:
+      app.handle_events()
       super().update()
+      if app.transits:
+        transit = app.transits[0]
+        if transit.done:
+          app.transits.remove(transit)
+        elif not app.loading:
+          transit.update()
     except:
       debug.append(traceback.format_exc())
-    if app.transits:
-      transit = app.transits[0]
-      if transit.done:
-        app.transits.remove(transit)
-      elif not app.loading:
-        transit.update()
 
   def redraw(app):
     if app.paused:

@@ -72,7 +72,10 @@ class Context:
     return True
 
   def close(ctx, *args):
-    ctx.parent.child = None
+    if ctx.child:
+      ctx.child.close()
+    if ctx.parent:
+      ctx.parent.child = None
     for kind in ctx.effects:
       for comp in ctx.parent.comps:
         if isinstance(comp, kind):

@@ -96,14 +96,12 @@ class GameContext(Context):
       return app.load(
         loader=ctx.floor(),
         on_end=lambda floor: (
-          ctx.goto_dungeon(floor, loader=ctx.floor),
+          ctx.goto_dungeon(floor, generator=ctx.floor),
           app.transition([DissolveOut()])
         )
       )
 
-    if type(savedata.dungeon) is Stage:
-      floor = savedata.dungeon
-    elif savedata.dungeon:
+    if type(savedata.dungeon) is dict:
       floor_idx = savedata.dungeon["floor_no"] - 1 if "floor_no" in savedata.dungeon else 0
       floor_data = savedata.dungeon["floors"][floor_idx]
       floor = Stage(
@@ -122,9 +120,15 @@ class GameContext(Context):
         if promoted:
           elem.promote()
         floor.spawn_elem_at(tuple(elem_cell), elem)
+    elif savedata.dungeon:
+      return ctx.goto_dungeon(
+        floor_index=savedata.dungeon.floor_index,
+        floors=savedata.dungeon.floors,
+        memory=savedata.dungeon.memory
+      )
 
     if savedata.place == "dungeon":
-      ctx.goto_dungeon(floor)
+      ctx.goto_dungeon(floors=floor and [floor])
     elif savedata.place == "town":
       ctx.goto_town()
 
@@ -169,16 +173,21 @@ class GameContext(Context):
   def reset(ctx):
     ctx.load()
 
-  def goto_dungeon(ctx, floor=None, loader=None):
-    if floor:
-      floor.loader = loader
-      ctx.open(DungeonContext(party=ctx.party, floor=floor))
+  def goto_dungeon(ctx, floors=[], floor_index=0, memory=[], generator=None):
+    if floors:
+      floors[floor_index].generator = generator
+      ctx.open(DungeonContext(
+        party=ctx.party,
+        floors=floors,
+        floor_index=floor_index,
+        memory=memory
+      ))
     else:
       app = ctx.get_head()
       app.load(
         loader=AltarRoom().create_floor(),
         on_end=lambda floor: (
-          ctx.goto_dungeon(floor),
+          ctx.goto_dungeon(floors=[floor]),
           not app.transits and app.transition([DissolveOut()])
         )
       )

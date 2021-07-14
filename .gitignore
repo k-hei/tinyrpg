@@ -10,4 +10,4 @@ build
 *.dmg
 *.zip
 *.pyc
-*.log
+debug.*
