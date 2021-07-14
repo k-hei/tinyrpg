@@ -76,6 +76,7 @@ from contexts.minimap import MinimapContext
 from contexts.skill import SkillContext
 from contexts.dialogue import DialogueContext
 from contexts.prompt import PromptContext, Choice
+from contexts.gameover import GameOverContext
 
 from dungeon.floors.floor1 import Floor1
 from dungeon.floors.floor2 import Floor2
@@ -450,6 +451,9 @@ class DungeonContext(Context):
     game.key_requires_reset[key] = False
 
   def handle_keydown(game, key):
+    if game.child:
+      return game.child.handle_keydown(key)
+
     if game.anims or game.commands or game.get_head().transits:
       return False
 
@@ -470,9 +474,6 @@ class DungeonContext(Context):
         return game.handle_debug()
       if key == pygame.K_p:
         return print(game.hero.cell)
-
-    if game.child:
-      return game.child.handle_keydown(key)
 
     key_requires_reset = key in game.key_requires_reset and game.key_requires_reset[key]
     if key in ARROW_DELTAS and not key_requires_reset:
@@ -1036,8 +1037,9 @@ class DungeonContext(Context):
         game.anims[0].append(PauseAnim(
           duration=DungeonContext.PAUSE_DEATH_DURATION,
           on_end=lambda: (
-            game.handle_swap(),
-            on_end and on_end()
+            game.handle_swap()
+            and [on_end and on_end()]
+            or game.open(GameOverContext())
           )
         ))
       elif on_end:
@@ -1341,8 +1343,7 @@ class DungeonContext(Context):
         sprites += comp.view()
       if game.child and type(game.child) is not InventoryContext or game.get_head().transits:
         for comp in [c for c in game.comps if c.active]:
-          if (type(comp) is not Log
-          and not (type(game.child) is MinimapContext and type(comp) is Minimap)
+          if (not (type(game.child) is MinimapContext and type(comp) is Minimap)
           and not (type(game.child) is SkillContext and (
             type(comp) is Hud
             or type(comp) is SpMeter

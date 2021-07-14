@@ -1,14 +1,14 @@
-import math
+from math import sin, pi
+from anims import Anim
 
-class SineAnim:
-  def __init__(anim, period, on_end=None):
-    anim.done = False
-    anim.time = 0
-    anim.pos = 0
+class SineAnim(Anim):
+  def __init__(anim, period, amplitude=1, *args, **kwargs):
+    super().__init__(*args, **kwargs)
     anim.period = period
-    anim.target = None
+    anim.amplitude = amplitude
+    anim.pos = 0
 
   def update(anim):
-    anim.time += 1
-    anim.pos = math.sin(anim.time % anim.period / anim.period * 2 * math.pi)
+    time = super().update()
+    anim.pos = sin(anim.time % anim.period / anim.period * 2 * pi) * anim.amplitude
     return anim.pos

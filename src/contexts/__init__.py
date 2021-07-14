@@ -23,6 +23,16 @@ class Context:
     else:
       return ctx
 
+  def get_parent(ctx, cls=None):
+    if not ctx.parent:
+      return None
+    if not cls:
+      return ctx.parent
+    if (type(ctx.get_parent()) is cls
+    or type(cls) is str and type(ctx.get_parent()).__name__ == cls):
+      return ctx.get_parent()
+    return ctx.get_parent().get_parent(cls)
+
   def handle_keydown(ctx, key):
     if ctx.child:
       return ctx.child.handle_keydown(key)
