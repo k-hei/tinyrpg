@@ -63,8 +63,6 @@ class OasisRoom(SpecialRoom):
         if SpecialRoom.parse_char(char) is stage.OASIS:
           oasis_cells.append(cell)
 
-    print(oasis_cells)
-
     for i in range(randint(2, 3)):
       cell = choice(floor_cells)
       floor_cells.remove(cell)

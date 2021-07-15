@@ -94,28 +94,28 @@ def manifest(core):
   if type(core) is Knight: return KnightActor(core)
   if type(core) is Mage: return MageActor(core)
 
-class DungeonDataEncoder(json.JSONEncoder):
-  def default(encoder, obj):
-    if type(obj) is type and issubclass(obj, Tile):
-      try:
-        return Stage.TILES.index(obj)
-      except ValueError:
-        return -1
-    if type(obj) in (DungeonData, Stage, Decor):
-      return obj.__dict__
-    if isinstance(obj, DungeonElement):
-      return (obj.cell, type(obj).__name__)
-    if isinstance(obj, Room):
-      return ((*obj.cell, *obj.size), type(obj).__name__)
-    if isinstance(obj, FunctionType):
-      return obj.__name__
-    return json.JSONEncoder.default(encoder, obj)
-
 @dataclass
 class DungeonData:
   floors: list[Stage]
   floor_index: int
   memory: list[list[tuple[int, int]]]
+
+  class Encoder(json.JSONEncoder):
+    def default(encoder, obj):
+      if type(obj) is type and issubclass(obj, Tile):
+        try:
+          return Stage.TILES.index(obj)
+        except ValueError:
+          return -1
+      if type(obj) in (DungeonData, Stage, Decor):
+        return obj.__dict__
+      if isinstance(obj, DungeonElement):
+        return (obj.cell, type(obj).__name__)
+      if isinstance(obj, Room):
+        return ((*obj.cell, *obj.size), type(obj).__name__)
+      if isinstance(obj, FunctionType):
+        return obj.__name__
+      return json.JSONEncoder.default(encoder, obj)
 
 class DungeonContext(Context):
   ATTACK_DURATION = 12
@@ -183,7 +183,7 @@ class DungeonContext(Context):
 
   def close(game):
     debug_file = open("debug.json", "w")
-    debug_file.write(json.dumps(game.save(), cls=DungeonDataEncoder))
+    debug_file.write(json.dumps({ "dungeon": game.save() }, cls=DungeonData.Encoder))
     debug_file.close()
     super().close()
 
