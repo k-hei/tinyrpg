@@ -21,7 +21,8 @@ def load(*paths):
     data = {}
     for path in paths:
       savefile = open(path, "r")
-      data.update(**json.loads(savefile.read()))
+      savefile_contents = savefile.read()
+      data.update(**json.loads(savefile_contents))
       savefile.close()
   except OSError:
     return None

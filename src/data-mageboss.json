@@ -19,7 +19,7 @@
           [[4, 2], "Mage", { "faction": "enemy", "facing": [0, 1] }]
         ],
         "rooms": [
-          {"x": 1, "y": 1, "width": 7, "height": 7}
+          [[1, 1, 7, 7], "Room"]
         ]
       }
     ]

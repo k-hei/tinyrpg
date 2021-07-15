@@ -208,17 +208,22 @@ class DungeonContext(Context):
       game.memory.append([])
     game.parent.save()
 
-    floor.generator = floor.generator or generator
     floor_no = game.get_floor_no()
-    hero = game.hero
-    hero.facing = (1, 0)
-    floor.spawn_elem_at(floor.entrance, hero)
+    floor.generator = floor.generator or generator
 
-    ally = game.ally
-    if ally and not ally.is_dead():
-      x, y = floor.entrance
-      ally.facing = (1, 0)
-      floor.spawn_elem_at((x - 1, y), ally)
+    hero = floor.find_elem(KnightActor)
+    if hero:
+      game.hero = hero
+    else:
+      hero = game.hero
+      hero.facing = (1, 0)
+      floor.spawn_elem_at(floor.entrance, hero)
+
+      ally = game.ally
+      if ally and not ally.is_dead():
+        x, y = floor.entrance
+        ally.facing = (1, 0)
+        floor.spawn_elem_at((x - 1, y), ally)
 
     enemies = [e for e in floor.elems if isinstance(e, DungeonActor) and not hero.allied(e)]
     for monster, kills in game.parent.monster_kills.items():

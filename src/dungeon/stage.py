@@ -71,7 +71,7 @@ class Stage:
     opaque = False
     elev = -0.5
 
-  TILES = [PIT, FLOOR, WALL, STAIRS_DOWN, STAIRS_UP, DOOR_WAY]
+  TILES = [PIT, FLOOR, WALL, STAIRS_DOWN, STAIRS_UP, DOOR_WAY, OASIS, OASIS_STAIRS]
 
   def __init__(stage, size, data=None, elems=None):
     width, height = size
@@ -171,15 +171,6 @@ class Stage:
     x, y = cell
     stage.data[y * width + x] = data
 
-  def find_tile(stage, tile):
-    width, height = stage.size
-    for y in range(height):
-      for x in range(width):
-        cell = (x, y)
-        if stage.get_tile_at(cell) is tile:
-          return cell
-    return None
-
   def spawn_elem_at(stage, cell, elem):
     elem.spawn(stage, cell)
     if elem not in stage.elems:
@@ -189,6 +180,25 @@ class Stage:
     if elem in stage.elems:
       stage.elems.remove(elem)
       elem.cell = None
+
+  def find_tile(stage, tile):
+    width, height = stage.size
+    for y in range(height):
+      for x in range(width):
+        cell = (x, y)
+        if stage.get_tile_at(cell) is tile:
+          return cell
+    return None
+
+  def find_elem(stage, cls):
+    width, height = stage.size
+    for y in range(height):
+      for x in range(width):
+        cell = (x, y)
+        elem = stage.get_elem_at(cell, superclass=cls)
+        if elem:
+          return elem
+    return None
 
   def contains(stage, cell):
     (width, height) = stage.size

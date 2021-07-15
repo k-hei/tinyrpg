@@ -5,6 +5,7 @@ from contexts import Context
 from contexts.pause import PauseContext
 from dungeon.context import DungeonContext
 from dungeon.stage import Stage
+from dungeon.decor import Decor
 from dungeon.features.room import Room
 from dungeon.features.altarroom import AltarRoom
 from town import TownContext
@@ -108,8 +109,13 @@ class GameContext(Context):
         size=floor_data["size"],
         data=[Stage.TILES[t] for t in floor_data["data"]]
       )
-      floor.entrance = floor.find_tile(Stage.STAIRS_DOWN)
-      floor.rooms = [Room((r["width"], r["height"]), (r["x"], r["y"])) for r in floor_data["rooms"]]
+
+      floor.entrance = floor_data["entrance"] or floor.find_tile(Stage.STAIRS_DOWN)
+      if not floor.entrance:
+        print("WARNING: No entrance for this floor!")
+
+      floor.rooms = [Room((width, height), (x, y)) for (x, y, width, height), room_type in floor_data["rooms"]]
+
       for elem_cell, elem_name, *elem_params in floor_data["elems"]:
         elem_params = elem_params[0] if elem_params else {}
         promoted = False
@@ -120,6 +126,14 @@ class GameContext(Context):
         if promoted:
           elem.promote()
         floor.spawn_elem_at(tuple(elem_cell), elem)
+
+      for decor_data in floor_data["decors"]:
+        decor_kind = decor_data["kind"]
+        decor_cell = tuple(decor_data["cell"])
+        decor_offset = tuple(decor_data["offset"])
+        decor_color = tuple(decor_data["color"])
+        floor.decors.append(Decor(decor_kind, decor_cell, decor_offset, decor_color))
+
     elif savedata.dungeon:
       return ctx.goto_dungeon(
         floor_index=savedata.dungeon.floor_index,

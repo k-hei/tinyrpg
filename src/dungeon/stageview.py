@@ -152,7 +152,7 @@ class StageView:
       layer="tiles"
     )]
 
-  def view_decors(self, decors, camera, visible_cells, visited_cells):
+  def view_decors(self, decors, visible_cells, visited_cells):
     sprites = []
     for decor in decors:
       if decor.cell not in visited_cells:
@@ -254,7 +254,7 @@ class StageView:
     stage = ctx.floor
     elems = stage.elems
     decors = stage.decors
-    sprites += self.view_decors(decors, camera, visible_cells, visited_cells)
+    sprites += self.view_decors(decors, visible_cells, visited_cells)
     sprites += self.view_elems(elems, hero, camera, visible_cells, anims)
     sprites += self.view_vfx(vfx, camera)
     sprites += self.view_numbers(numbers, camera)
