@@ -35,16 +35,16 @@ class AltarRoom(SpecialRoom):
     ], elems=[
       ((4, 6), mage := Mage(faction="ally", facing=(0, -1))),
       ((4, 5), altar := Altar()),
-      ((2, 7), Pillar()),
-      ((1, 6), Pillar()),
-      ((1, 4), Pillar()),
-      ((1, 2), Pillar()),
-      ((2, 1), Pillar()),
-      ((6, 1), Pillar()),
-      ((7, 2), Pillar()),
-      ((7, 4), Pillar()),
-      ((7, 6), Pillar()),
-      ((6, 7), Pillar()),
+      ((2, 8), Pillar()),
+      ((1, 7), Pillar()),
+      ((1, 5), Pillar()),
+      ((1, 3), Pillar()),
+      ((2, 2), Pillar()),
+      ((6, 2), Pillar()),
+      ((7, 3), Pillar()),
+      ((7, 5), Pillar()),
+      ((7, 7), Pillar()),
+      ((6, 8), Pillar()),
     ], *args, **kwargs)
     room.mage = mage
     room.altar = altar

@@ -89,6 +89,7 @@ from dungeon.floors.floor2 import Floor2
 from dungeon.floors.floor3 import Floor3
 
 from types import FunctionType
+from savedata.resolve import resolve_elem
 
 def manifest(core):
   if type(core) is Knight: return KnightActor(core)
@@ -116,6 +117,36 @@ class DungeonData:
       if isinstance(obj, FunctionType):
         return obj.__name__
       return json.JSONEncoder.default(encoder, obj)
+
+  def decode_floor(floor_data):
+    floor = Stage(
+      size=floor_data["size"],
+      data=[Stage.TILES[t] for t in floor_data["data"]]
+    )
+
+    floor.entrance = floor_data["entrance"] or floor.find_tile(Stage.STAIRS_DOWN)
+    floor.rooms = [Room((width, height), (x, y)) for (x, y, width, height), room_type in floor_data["rooms"]]
+    floor.decors = [
+      Decor(**decor_data) for decor_data in [{
+        **d,
+        "cell": tuple(d["cell"]),
+        "offset": tuple(d["offset"]),
+        "color": tuple(d["color"])
+      } for d in floor_data["decors"]]
+    ]
+
+    for elem_cell, elem_name, *elem_params in floor_data["elems"]:
+      elem_params = elem_params[0] if elem_params else {}
+      promoted = False
+      if elem_name[-1] == "+":
+        promoted = True
+        elem_name = elem_name[0:-1]
+      elem = resolve_elem(elem_name)(**elem_params)
+      if promoted:
+        elem.promote()
+      floor.spawn_elem_at(tuple(elem_cell), elem)
+
+    return floor
 
 class DungeonContext(Context):
   ATTACK_DURATION = 12

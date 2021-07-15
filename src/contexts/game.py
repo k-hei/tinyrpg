@@ -3,7 +3,7 @@ import keyboard
 from config import WINDOW_SIZE, DEBUG, KNIGHT_BUILD, MAGE_BUILD, ROGUE_BUILD
 from contexts import Context
 from contexts.pause import PauseContext
-from dungeon.context import DungeonContext
+from dungeon.context import DungeonContext, DungeonData
 from dungeon.stage import Stage
 from dungeon.decor import Decor
 from dungeon.features.room import Room
@@ -103,37 +103,11 @@ class GameContext(Context):
       )
 
     if type(savedata.dungeon) is dict:
-      floor_idx = savedata.dungeon["floor_no"] - 1 if "floor_no" in savedata.dungeon else 0
-      floor_data = savedata.dungeon["floors"][floor_idx]
-      floor = Stage(
-        size=floor_data["size"],
-        data=[Stage.TILES[t] for t in floor_data["data"]]
+      return ctx.goto_dungeon(
+        floor_index=savedata.dungeon["floor_no"] if "floor_no" in savedata.dungeon else 0,
+        floors=[DungeonData.decode_floor(f) for f in savedata.dungeon["floors"]],
+        memory=[[tuple(c) for c in f] for f in savedata.dungeon["memory"]]
       )
-
-      floor.entrance = floor_data["entrance"] or floor.find_tile(Stage.STAIRS_DOWN)
-      if not floor.entrance:
-        print("WARNING: No entrance for this floor!")
-
-      floor.rooms = [Room((width, height), (x, y)) for (x, y, width, height), room_type in floor_data["rooms"]]
-
-      for elem_cell, elem_name, *elem_params in floor_data["elems"]:
-        elem_params = elem_params[0] if elem_params else {}
-        promoted = False
-        if elem_name[-1] == "+":
-          promoted = True
-          elem_name = elem_name[0:-1]
-        elem = resolve_elem(elem_name)(**elem_params)
-        if promoted:
-          elem.promote()
-        floor.spawn_elem_at(tuple(elem_cell), elem)
-
-      for decor_data in floor_data["decors"]:
-        decor_kind = decor_data["kind"]
-        decor_cell = tuple(decor_data["cell"])
-        decor_offset = tuple(decor_data["offset"])
-        decor_color = tuple(decor_data["color"])
-        floor.decors.append(Decor(decor_kind, decor_cell, decor_offset, decor_color))
-
     elif savedata.dungeon:
       return ctx.goto_dungeon(
         floor_index=savedata.dungeon.floor_index,
