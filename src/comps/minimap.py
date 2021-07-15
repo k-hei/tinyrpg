@@ -1,6 +1,6 @@
 from math import ceil
 import pygame
-from pygame import Surface, Rect, PixelArray
+from pygame import Surface, Rect, PixelArray, SRCALPHA
 from dungeon.stage import Stage
 from dungeon.actors.knight import Knight
 from dungeon.actors import DungeonActor
@@ -102,12 +102,13 @@ class Minimap:
     scaled_width = round(sprite_width * sprite_scale)
     scaled_height = round(sprite_height * sprite_scale)
     scaled_size = (scaled_width, scaled_height)
+    COLOR_KEY = (255, 0, 255)
     surface = Surface(scaled_size)
-    surface.set_colorkey(0x123456)
-    surface.fill(0x123456)
+    surface.fill(COLOR_KEY)
+    surface.set_colorkey(COLOR_KEY)
     temp_surface = Surface((ceil(sprite_width), ceil(sprite_height)))
-    temp_surface.set_colorkey(0x123456)
-    temp_surface.fill(0x123456)
+    temp_surface.fill(COLOR_KEY)
+    temp_surface.set_colorkey(COLOR_KEY)
     pixels = PixelArray(temp_surface)
     minimap.time += 1
 

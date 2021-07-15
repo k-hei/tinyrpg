@@ -71,7 +71,7 @@ class Stage:
     opaque = False
     elev = -0.5
 
-  TILES = [FLOOR, WALL, STAIRS_DOWN, STAIRS_UP, PIT, DOOR_WAY]
+  TILES = [PIT, FLOOR, WALL, STAIRS_DOWN, STAIRS_UP, DOOR_WAY]
 
   def __init__(stage, size, data=None, elems=None):
     width, height = size

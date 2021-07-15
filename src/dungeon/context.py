@@ -26,6 +26,7 @@ from dungeon.fov import shadowcast
 from dungeon.camera import Camera
 from dungeon.stage import Stage, Tile
 from dungeon.stageview import StageView
+from dungeon.decor import Decor
 
 from dungeon.element import DungeonElement
 from dungeon.actors import DungeonActor
@@ -87,6 +88,8 @@ from dungeon.floors.floor1 import Floor1
 from dungeon.floors.floor2 import Floor2
 from dungeon.floors.floor3 import Floor3
 
+from types import FunctionType
+
 def manifest(core):
   if type(core) is Knight: return KnightActor(core)
   if type(core) is Mage: return MageActor(core)
@@ -94,13 +97,18 @@ def manifest(core):
 class DungeonDataEncoder(json.JSONEncoder):
   def default(encoder, obj):
     if type(obj) is type and issubclass(obj, Tile):
-      return dir(Stage).index(obj.__name__)
-    if type(obj) in (DungeonData, Stage):
+      try:
+        return Stage.TILES.index(obj)
+      except ValueError:
+        return -1
+    if type(obj) in (DungeonData, Stage, Decor):
       return obj.__dict__
     if isinstance(obj, DungeonElement):
       return (obj.cell, type(obj).__name__)
     if isinstance(obj, Room):
       return ((*obj.cell, *obj.size), type(obj).__name__)
+    if isinstance(obj, FunctionType):
+      return obj.__name__
     return json.JSONEncoder.default(encoder, obj)
 
 @dataclass
@@ -194,8 +202,10 @@ class DungeonContext(Context):
 
   def use_floor(game, floor, generator=None):
     game.floor = floor
-    game.floors.append(game.floor)
-    game.memory.append([])
+    if game.floor not in game.floors:
+      game.floors.append(game.floor)
+    if len(game.memory) < len(game.floors):
+      game.memory.append([])
     game.parent.save()
 
     floor.generator = floor.generator or generator

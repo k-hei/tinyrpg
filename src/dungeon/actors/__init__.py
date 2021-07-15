@@ -41,7 +41,6 @@ class DungeonActor(DungeonElement):
     actor.stepped = False
     actor.counter = False
     actor.aggro = False
-    actor.idle = False
     actor.rare = False
     actor.facing = core.facing or (1, 0)
     actor.visible_cells = []
