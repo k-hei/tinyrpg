@@ -4,7 +4,7 @@ import re
 
 def build_tree(path, prefix=[], exclude=[], root=False):
   imports = {}
-  pattern = re.compile("class (\w+)\(\w+\)")
+  pattern = re.compile("class (\w+)\(\w+")
   for item in listdir(join(path, *prefix)):
     if item[:2] == "__" or item in exclude: continue
     item_path = join(path, *prefix, item)

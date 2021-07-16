@@ -63,7 +63,7 @@ class DungeonElement:
         offset_x = (anim_x - elem_x) * TILE_SIZE
         offset_y = (anim_y - elem_y) * TILE_SIZE
         if anim.facing != (0, 0) and not next((a for g in anims for a in g if a.target is elem and type(a) is FlinchAnim), None):
-          elem.facing = anim.facing
+          elem.facing = tuple(map(int, anim.facing))
       elif type(anim) is ChestAnim or type(anim) is ItemAnim:
         t = anim.time / anim.duration
         item_image = anim.item.render()

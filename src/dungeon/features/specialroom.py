@@ -5,8 +5,8 @@ from random import choice
 from lib.cell import add as add_cell
 
 class SpecialRoom(Room):
-  def __init__(feature, shape, elems=None, rooms=None, *args, **kwargs):
-    super().__init__(shape and (len(shape[0]), len(shape)) or (0, 0), *args, **kwargs)
+  def __init__(feature, shape, elems=None, rooms=None, size=None, cell=None, *args, **kwargs):
+    super().__init__(size=(size or shape and (len(shape[0]), len(shape)) or (0, 0)), cell=cell, *args, **kwargs)
     feature.shape = shape or []
     feature.elems = elems or []
     feature.rooms = rooms or {}
@@ -34,8 +34,11 @@ class SpecialRoom(Room):
   def get_size(feature):
     return (feature.get_width(), feature.get_height())
 
-  def place(feature, stage, connectors=[], cell=None):
-    feature.cell = cell or feature.cell or (0, 0)
+  def place(feature, stage, cell=None, connectors=[]):
+    if feature.placed:
+      return False
+    feature.placed = True
+    feature.cell = cell or feature.cell
     x, y = feature.cell
     entrance = None
     for row in range(feature.get_height()):
@@ -59,6 +62,7 @@ class SpecialRoom(Room):
     stage.entrance = entrance or stage.entrance
     stage.rooms.append(feature)
     # stage.rooms += [Room(r.size, add_cell(r.cell, feature.cell)) for r in feature.rooms] or [feature]
+    return True
 
   def create_floor(feature, use_edge=True, on_end=None):
     floor = Stage(size=(feature.get_width() + 2, feature.get_height() * 2))
@@ -80,3 +84,6 @@ class SpecialRoom(Room):
     else:
       floor.entrance = feature.get_center()
     yield floor
+
+  def encode(room):
+    return [room.cell, type(room).__name__]

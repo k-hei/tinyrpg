@@ -157,7 +157,11 @@ class DungeonContext(Context):
 
   def close(game):
     debug_file = open("debug.json", "w")
-    debug_file.write(json.dumps({ "dungeon": game.save() }, cls=DungeonData.Encoder))
+    debug_file.write(json.dumps(
+      obj={ "dungeon": game.save() },
+      cls=DungeonData.Encoder,
+      separators=(',', ':')
+    ))
     debug_file.close()
     super().close()
 

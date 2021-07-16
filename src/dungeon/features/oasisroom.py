@@ -46,9 +46,10 @@ class OasisRoom(SpecialRoom):
       (x + width, y + height // 2),
     ]
 
-  def place(room, stage, connectors=[], cell=None):
+  def place(room, stage, cell=None, connectors=[]):
+    if not super().place(stage, cell, connectors):
+      return False
     sprites = use_assets().sprites
-    super().place(stage, connectors, cell)
     room.cell = cell or room.cell or (0, 0)
     offset_x, offset_y = room.cell
 
@@ -115,3 +116,4 @@ class OasisRoom(SpecialRoom):
       ))
 
     stage.decors += wave_decors
+    return True

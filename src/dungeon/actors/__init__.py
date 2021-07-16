@@ -82,6 +82,7 @@ class DungeonActor(DungeonElement):
       **(actor.get_faction() != "player" and { "faction": actor.get_faction() } or {}),
       **(actor.ailment and { "ailment": actor.ailment } or {}),
       **(actor.ailment_turns and { "ailment_turns": actor.ailment_turns } or {}),
+      **(actor.rare and { "rare": actor.rare } or {}),
     }
     return [actor.cell, type(actor).__name__, *(props and [props] or [])]
 
@@ -98,6 +99,7 @@ class DungeonActor(DungeonElement):
     return actor.facing
 
   def set_facing(actor, facing):
+    facing = tuple(map(int, facing))
     actor.facing = facing
     actor.core.facing = facing
 

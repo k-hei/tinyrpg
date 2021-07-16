@@ -23,8 +23,10 @@ class PushBlockRoom(SpecialRoom, VerticalRoom):
     room_x, room_y = room.cell
     return [(x, y) for (x, y) in super().get_edges() if y >= room_y + room.get_height()]
 
-  def place(room, stage, connectors, *args, **kwargs):
-    super().place(stage, connectors, *args, **kwargs)
+  def place(room, stage, cell=None, connectors=[]):
+    if not super().place(stage, cell=None, connectors=[]):
+      return False
     pushtile_cell = add_cell(connectors[1], (0, 1))
     stage.set_tile_at(pushtile_cell, stage.DOOR_WAY)
     stage.spawn_elem_at(pushtile_cell, PushTile())
+    return True

@@ -85,10 +85,12 @@ class GenieRoom(SpecialRoom):
       )
     ]))
 
-  def place(room, stage, connectors, cell=None):
-    super().place(stage, connectors, cell=None)
+  def place(room, stage, *args, **kwargs):
+    if not super().place(stage, *args, **kwargs):
+      return False
     room_width, room_height = room.get_size()
-    room_x, room_y = cell or room.cell or (0, 0)
+    room_x, room_y = room.cell or (0, 0)
     top_edge = (room_x + room_width // 2, room_y - 1)
     stage.set_tile_at(top_edge, stage.FLOOR_ELEV)
     stage.spawn_elem_at(top_edge, Door())
+    return True

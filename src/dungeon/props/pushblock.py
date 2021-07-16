@@ -15,10 +15,11 @@ class PushBlock(Prop):
 
   def encode(block):
     [cell, kind, *props] = super().encode()
-    return [cell, kind, {
+    props = {
       **(props[0] if props else {}),
       **(block.placed and { "placed": True } or {}),
-    }]
+    }
+    return [cell, kind, *(props and [props] or [])]
 
   def effect(block, game):
     hero = game.hero

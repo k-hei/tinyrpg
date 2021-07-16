@@ -23,7 +23,7 @@ class ArenaRoom(SpecialRoom):
     [Mushroom, Mushroom],
   ]
 
-  def __init__(feature, reward=Elixir):
+  def __init__(feature, reward=Elixir, *args, **kwargs):
     super().__init__(degree=2, shape=[
       "   .   ",
       "  ...  ",
@@ -32,7 +32,7 @@ class ArenaRoom(SpecialRoom):
       " ..... ",
       "  ...  ",
       "   .   "
-    ])
+    ], *args, **kwargs)
     feature.reward = reward
     feature.waves = deepcopy(ArenaRoom.waves)
     feature.entered = False

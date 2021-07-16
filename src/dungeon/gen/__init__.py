@@ -488,7 +488,11 @@ def gen_floor(features, entrance=None, size=config.FLOOR_SIZE, seed=None):
           continue
 
     for feature in graph.nodes:
-      feature.place(floor.stage, tree.connectors(feature))
+      try:
+        feature.place(floor.stage, connectors=tree.connectors(feature))
+      except:
+        debug("Failed to place feature {}".format(type(feature).__name__))
+        raise
 
     floor.gen_minirooms()
 

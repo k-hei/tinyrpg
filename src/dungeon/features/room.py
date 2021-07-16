@@ -9,12 +9,12 @@ class Room(Feature):
   EntryDoor = Door
   ExitDoor = Door
 
-  def __init__(room, size=None, cell=None, *args, **kwargs):
+  def __init__(room, size=None, cell=None, entered=False, focused=False, *args, **kwargs):
     super().__init__(*args, **kwargs)
     room.size = size or (choice(ROOM_WIDTHS), choice(ROOM_HEIGHTS))
     room.cell = cell
-    room.entered = False
-    room.focused = False
+    room.entered = entered
+    room.focused = focused
 
   def get_width(room):
     width, _ = room.get_size()
@@ -129,5 +129,16 @@ class Room(Feature):
     return [s for s in slots if room.validate(s, slots)]
 
   def place(room, stage, *args, **kwargs):
-    super().place(stage, *args, **kwargs)
+    if not super().place(stage, *args, **kwargs):
+      return False
     stage.rooms.append(room)
+    return True
+
+  def encode(room):
+    x, y = room.cell
+    width, height = room.size
+    props = {
+      **(room.entered and { "entered": room.entered } or {}),
+      **(room.focused and { "focused": room.focused } or {}),
+    }
+    return [[x, y, width, height], type(room).__name__, *(props and [props] or [])]

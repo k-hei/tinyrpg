@@ -66,7 +66,9 @@ from dungeon.features.genieroom import GenieRoom
 from dungeon.features.altarroom import AltarRoom
 from dungeon.features.coffinroom import CoffinRoom
 from dungeon.features.hallroom import HallRoom
+from dungeon.features.pushblockroom import PushBlockRoom
 from dungeon.features.battleroom import BattleRoom
+from dungeon.features.puzzleroom import PuzzleRoom
 from dungeon.features.arenaroom import ArenaRoom
 from dungeon.features.maze import Maze
 from dungeon.features.magebossroom import MageBossRoom
@@ -163,7 +165,9 @@ def resolve_elem(key):
   if key == "AltarRoom": return AltarRoom
   if key == "CoffinRoom": return CoffinRoom
   if key == "HallRoom": return HallRoom
+  if key == "PushBlockRoom": return PushBlockRoom
   if key == "BattleRoom": return BattleRoom
+  if key == "PuzzleRoom": return PuzzleRoom
   if key == "ArenaRoom": return ArenaRoom
   if key == "Maze": return Maze
   if key == "MageBossRoom": return MageBossRoom

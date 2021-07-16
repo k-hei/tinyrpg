@@ -7,10 +7,10 @@ from sprite import Sprite
 from anims.pause import PauseAnim
 
 class PushTile(DungeonElement):
-  def __init__(tile):
+  def __init__(tile, pushed=False, completed=False):
     super().__init__(solid=False)
-    tile.pushed = False
-    tile.completed = False
+    tile.pushed = pushed
+    tile.completed = completed
 
   def effect(tile, game):
     tile.pushed = True
@@ -48,3 +48,12 @@ class PushTile(DungeonElement):
       image=tile_image,
       layer="decors"
     ), anims)
+
+  def encode(tile):
+    [cell, kind, *props] = super().encode()
+    props = {
+      **(props[0] if props else {}),
+      **(tile.pushed and { "pushed": True } or {}),
+      **(tile.completed and { "completed": True } or {}),
+    }
+    return [cell, kind, *(props and [props] or [])]
