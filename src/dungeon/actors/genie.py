@@ -19,7 +19,8 @@ class Genie(DungeonActor):
     props = props[0] if props else {}
     return [cell, kind, {
       **props,
-      "name": genie.core.name
+      **({ "color": genie.core.color } if genie.core.color != ORANGE else {}),
+      "name": genie.core.name,
     }]
 
   def view(genie, anims=[]):

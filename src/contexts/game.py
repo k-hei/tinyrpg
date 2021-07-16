@@ -8,6 +8,7 @@ from dungeon.stage import Stage
 from dungeon.decor import Decor
 from dungeon.features.room import Room
 from dungeon.features.altarroom import AltarRoom
+from dungeon.decoder import decode_floor
 from town import TownContext
 from cores.knight import Knight
 from cores.mage import Mage
@@ -109,7 +110,7 @@ class GameContext(Context):
     if type(savedata.dungeon) is dict:
       return ctx.goto_dungeon(
         floor_index=savedata.dungeon["floor_no"] if "floor_no" in savedata.dungeon else 0,
-        floors=[DungeonData.decode_floor(f) for f in savedata.dungeon["floors"]],
+        floors=[decode_floor(f) for f in savedata.dungeon["floors"]],
         memory=[[tuple(c) for c in f] for f in savedata.dungeon["memory"]]
       )
     elif savedata.dungeon:

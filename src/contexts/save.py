@@ -22,7 +22,7 @@ class SaveContext(DataContext):
     old_data = slot.data
     new_data = ctx.data
     def save():
-      savedata.save("src/data{}.json".format(ctx.index), new_data.__dict__)
+      savedata.save("src/data0{}.json".format(ctx.index), new_data.__dict__)
       slot.save(new_data)
       ctx.open(DialogueContext(
         script=[

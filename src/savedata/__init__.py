@@ -3,6 +3,7 @@ import os
 from dataclasses import dataclass
 from items import Item
 from skills import Skill
+from dungeon.data import DungeonData
 
 @dataclass
 class SaveData:
@@ -15,6 +16,12 @@ class SaveData:
   chars: dict[str, dict]
   place: str
   dungeon: dict[str, dict] = None
+
+  class Encoder(json.JSONEncoder):
+    def default(encoder, obj):
+      if type(obj) is DungeonData:
+        return DungeonData.Encoder.default(encoder, obj)
+      return json.JSONEncoder.default(encoder, obj)
 
 def load(*paths):
   try:
@@ -30,7 +37,7 @@ def load(*paths):
 
 def save(path, data):
   savefile = open(path, "w")
-  savefile.write(json.dumps(data))
+  savefile.write(json.dumps(data, cls=DungeonData.Encoder))
   savefile.close()
 
 def delete(path):

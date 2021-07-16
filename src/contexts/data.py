@@ -260,7 +260,7 @@ class DataContext(Context):
 
   def delete_data(ctx, slot):
     slot.clear()
-    savedata.delete("src/data{}.json".format(ctx.index))
+    savedata.delete("src/data0{}.json".format(ctx.index))
 
   def handle_close(ctx):
     ctx.open(PromptContext("Return to the game?", [

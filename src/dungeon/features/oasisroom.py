@@ -2,18 +2,21 @@ from dungeon.features.specialroom import SpecialRoom
 from dungeon.stage import Stage
 from dungeon.decor import Decor
 from dungeon.props.palm import Palm
-from dungeon.actors.mage import Mage
+from dungeon.actors.genie import Genie
 from assets import load as use_assets
 from sprite import Sprite
 from config import TILE_SIZE
 from random import randint, choice
-from colors.palette import WHITE, SEAGREEN
+from colors.palette import WHITE, SEAGREEN, GREEN
 from filters import replace_color
 from lib.cell import neighborhood
+from contexts.dialogue import DialogueContext
+from contexts.prompt import PromptContext, Choice
+from contexts.save import SaveContext
 
 class OasisRoom(SpecialRoom):
-  def __init__(room, *args, **kwargs):
-    super().__init__(degree=1, shape=choice(([
+  shapes = [
+    [
       "#...#",
       ".....",
       ".OVO.",
@@ -26,7 +29,18 @@ class OasisRoom(SpecialRoom):
       "...OOOVO.",
       "...OOOOO.",
       ".........",
-    ])), *args, **kwargs)
+    ]
+  ]
+
+  def __init__(room, shape_index=None, *args, **kwargs):
+    super().__init__(
+      degree=1,
+      shape=(shape_index is not None
+        and OasisRoom.shapes[shape_index]
+        or choice(OasisRoom.shapes)),
+      *args, **kwargs
+    )
+    room.shape_index = shape_index
 
   def get_cells(room):
     return [c for c in super().get_cells() if c not in room.get_corners()]
@@ -114,6 +128,37 @@ class OasisRoom(SpecialRoom):
         cell=cell,
         offset=(offset_x, offset_y)
       ))
-
     stage.decors += wave_decors
+
+    actor_cells = room.get_corners()
+    if stage.get_tile_at(actor_cells[0]) is stage.WALL:
+      actor_cells = [n for ns in [neighborhood(c) for c in room.get_corners()] for n in ns if n not in room.get_border()]
+    actor_cell = choice(actor_cells)
+    stage.spawn_elem_at(actor_cell, Genie(
+      name="Eljin",
+      color=GREEN,
+      message=lambda game: DialogueContext(script=[
+        lambda: PromptContext(
+          message="{}: Save your game?".format(game.talkee.get_name().upper()),
+          choices=[
+            Choice("Yes"),
+            Choice("No"),
+          ],
+          on_close=lambda choice: (
+            choice.text == "Yes" and [
+              lambda: SaveContext(data=game.get_head().child.save())
+            ]
+          )
+        )
+      ])
+    ))
+
     return True
+
+  def encode(room):
+    cell, name, *props = super().encode()
+    props = {
+      **(props and props[0] or {}),
+      "shape_index": room.shape_index,
+    }
+    return [cell, name, *(props and [props] or [])]
