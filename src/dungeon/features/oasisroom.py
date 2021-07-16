@@ -6,7 +6,7 @@ from dungeon.actors.genie import Genie
 from assets import load as use_assets
 from sprite import Sprite
 from config import TILE_SIZE
-from random import randint, choice
+from random import randint, randrange, choice
 from colors.palette import WHITE, SEAGREEN, GREEN
 from filters import replace_color
 from lib.cell import neighborhood
@@ -32,12 +32,29 @@ class OasisRoom(SpecialRoom):
     ]
   ]
 
+  scripts = [
+    ("save", lambda game: DialogueContext(script=[
+      lambda: PromptContext(
+        message="{}: Save your game?".format(game.talkee.get_name().upper()),
+        choices=[
+          Choice("Yes"),
+          Choice("No", closing=True),
+        ],
+        on_close=lambda choice: (
+          choice.text == "Yes" and [
+            lambda: SaveContext(data=game.get_head().child.save())
+          ]
+        )
+      )
+    ]))
+  ]
+
   def __init__(room, shape_index=None, *args, **kwargs):
+    if shape_index is None:
+      shape_index = randrange(len(OasisRoom.shapes))
     super().__init__(
       degree=1,
-      shape=(shape_index is not None
-        and OasisRoom.shapes[shape_index]
-        or choice(OasisRoom.shapes)),
+      shape=OasisRoom.shapes[shape_index],
       *args, **kwargs
     )
     room.shape_index = shape_index
@@ -137,20 +154,7 @@ class OasisRoom(SpecialRoom):
     stage.spawn_elem_at(actor_cell, Genie(
       name="Eljin",
       color=GREEN,
-      message=lambda game: DialogueContext(script=[
-        lambda: PromptContext(
-          message="{}: Save your game?".format(game.talkee.get_name().upper()),
-          choices=[
-            Choice("Yes"),
-            Choice("No"),
-          ],
-          on_close=lambda choice: (
-            choice.text == "Yes" and [
-              lambda: SaveContext(data=game.get_head().child.save())
-            ]
-          )
-        )
-      ])
+      message=next((s for s in OasisRoom.scripts if s[0] == "save"), None)
     ))
 
     return True

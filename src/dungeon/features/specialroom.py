@@ -83,6 +83,7 @@ class SpecialRoom(Room):
       floor.spawn_elem_at(floor.entrance, door)
     else:
       floor.entrance = feature.get_center()
+    floor.generator = type(feature).__name__
     yield floor
 
   def encode(room):

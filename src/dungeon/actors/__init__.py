@@ -76,13 +76,16 @@ class DungeonActor(DungeonElement):
     return actor.core.en
 
   def encode(actor):
+    cell, name, *props = super().encode()
     props = {
+      **(props and props[0] or {}),
       **(actor.get_hp() != actor.get_hp_max() and { "hp": actor.get_hp() } or {}),
       **(actor.get_facing() != (1, 0) and { "facing": actor.get_facing() } or {}),
       **(actor.get_faction() != "player" and { "faction": actor.get_faction() } or {}),
       **(actor.ailment and { "ailment": actor.ailment } or {}),
       **(actor.ailment_turns and { "ailment_turns": actor.ailment_turns } or {}),
       **(actor.rare and { "rare": actor.rare } or {}),
+      **({ "message": actor.core.message[0] } if actor.core.message else {}),
     }
     return [actor.cell, type(actor).__name__, *(props and [props] or [])]
 
@@ -169,7 +172,10 @@ class DungeonActor(DungeonElement):
   def talk(actor, game):
     game.talkee = actor
     message = actor.core.message
-    message = message(game) if callable(message) else message
+    if type(message) is tuple:
+      _, message = message
+    if callable(message):
+      message = message(game)
     if not message:
       game.talkee = None
       return

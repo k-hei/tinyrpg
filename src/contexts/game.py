@@ -89,7 +89,7 @@ class GameContext(Context):
       return app.load(
         loader=feature().create_floor(),
         on_end=lambda floor: (
-          ctx.goto_dungeon(floors=[floor]),
+          ctx.goto_dungeon(floors=[floor], generator=feature),
           app.transition([DissolveOut()])
         )
       )
