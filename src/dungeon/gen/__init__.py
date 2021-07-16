@@ -531,6 +531,7 @@ def gen_floor(features, entrance=None, size=config.FLOOR_SIZE, seed=None):
       if entry_room in empty_rooms:
         empty_rooms.remove(entry_room)
       stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
+    stage.exit = stage.find_tile(stage.STAIRS_UP)
 
     # draw doors
     doors = []
@@ -553,7 +554,6 @@ def gen_floor(features, entrance=None, size=config.FLOOR_SIZE, seed=None):
         door = origin.ExitDoor()
       else:
         door = Door()
-      debug(type(origin).__name__, type(target).__name__, type(door).__name__)
       doors.append(door)
       for door_cell in conns:
         if door_cell in doors:

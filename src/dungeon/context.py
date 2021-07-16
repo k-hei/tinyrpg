@@ -12,6 +12,8 @@ from config import WINDOW_SIZE, VISION_RANGE, MOVE_DURATION, RUN_DURATION, JUMP_
 import keyboard
 from keyboard import ARROW_DELTAS, key_times
 
+import debug
+
 from lib.cell import add, is_adjacent, manhattan, normal
 import lib.direction as direction
 
@@ -166,7 +168,8 @@ class DungeonContext(Context):
     super().close()
 
   def get_floor_no(game):
-    return next((i for i, f in enumerate(game.floors) if f is game.floor), 0) + 1
+    gen_index = next((i for i, g in enumerate(DungeonContext.FLOORS) if g.__name__ == game.floor.generator), None)
+    return gen_index + 1 if gen_index is not None else '??'
 
   def get_inventory(game):
     return game.parent.inventory.items
@@ -178,16 +181,23 @@ class DungeonContext(Context):
       memory=deepcopy(game.memory)
     )
 
-  def use_floor(game, floor, generator=None):
+  def use_floor(game, floor, direction=1, generator=None):
+    floor.generator = floor.generator or generator and generator.__name__
+    if floor not in game.floors:
+      new_index = next((i for i, g in enumerate(DungeonContext.FLOORS) if g.__name__ == floor.generator), None)
+      old_index = next((i for i, g in enumerate(DungeonContext.FLOORS) if g.__name__ == game.floor.generator), None)
+      if new_index < old_index:
+        debug.log("Prepend new floor")
+        game.floors.insert(0, floor)
+      else:
+        debug.log("Append new floor")
+        game.floors.append(floor)
     game.floor = floor
-    if game.floor not in game.floors:
-      game.floors.append(game.floor)
     if len(game.memory) < len(game.floors):
       game.memory.append([])
     game.parent.save()
 
     floor_no = game.get_floor_no()
-    floor.generator = floor.generator or generator and generator.__name__
 
     hero = floor.find_elem(KnightActor)
     if hero:
@@ -196,7 +206,7 @@ class DungeonContext(Context):
     else:
       hero = game.hero
       hero.facing = (1, 0)
-      floor.spawn_elem_at(floor.entrance, hero)
+      floor.spawn_elem_at(direction == 1 and floor.entrance or floor.exit, hero)
 
       ally = game.ally
       if ally and not ally.is_dead():
@@ -758,23 +768,6 @@ class DungeonContext(Context):
     game.parent.recruit(actor.core)
     game.ally = actor
 
-  def handle_ascend(game):
-    if game.floor.get_tile_at(game.hero.cell) is not Stage.STAIRS_UP:
-      return game.log.print("There's nowhere to go up here!")
-    game.ascend()
-
-  def handle_descend(game):
-    if game.floor.get_tile_at(game.hero.cell) is not Stage.STAIRS_DOWN:
-      return game.log.print("There's nowhere to go down here!")
-    if game.floors.index(game.floor) == 0:
-      return game.leave_dungeon()
-    game.descend()
-
-  def handle_floorchange(game, direction):
-    for comp in game.comps:
-      comp.exit()
-    game.change_floors(direction)
-
   def handle_skill(game):
     game.log.exit()
     game.open(SkillContext(
@@ -1227,6 +1220,25 @@ class DungeonContext(Context):
     if game.ally:
       game.ally.weapon = game.ally.load_weapon()
 
+  def handle_ascend(game):
+    if game.floor.get_tile_at(game.hero.cell) is not Stage.STAIRS_UP:
+      return game.log.print("There's nowhere to go up here!")
+    game.ascend()
+
+  def handle_descend(game):
+    if game.floor.get_tile_at(game.hero.cell) is not Stage.STAIRS_DOWN:
+      return game.log.print("There's nowhere to go down here!")
+    gen = next((f for f in DungeonContext.FLOORS if f.__name__ == game.floor.generator), None)
+    gen_index = DungeonContext.FLOORS.index(gen) if gen in DungeonContext.FLOORS else None
+    if game.floors.index(game.floor) == 0 and not gen_index:
+      return game.leave_dungeon()
+    game.descend()
+
+  def handle_floorchange(game, direction):
+    for comp in game.comps:
+      comp.exit()
+    game.change_floors(direction)
+
   def ascend(game):
     game.handle_floorchange(1)
 
@@ -1246,18 +1258,19 @@ class DungeonContext(Context):
       if game.ally and not game.ally.is_dead():
         old_floor.remove_elem(game.ally)
 
+    gen_index = next((i for i, g in enumerate(DungeonContext.FLOORS) if g.__name__ == game.floor.generator), None)
     index = game.floors.index(game.floor) + direction
-    if index >= len(game.floors):
+    if index >= len(game.floors) or index < 0:
       # create a new floor if out of bounds
       app = game.get_head()
-      Floor = DungeonContext.FLOORS[next((i for i, g in enumerate(DungeonContext.FLOORS) if g._name__ == game.floor.generator), None) + direction]
+      Floor = DungeonContext.FLOORS[gen_index + direction]
       app.transition(
         transits=(DissolveIn(), DissolveOut()),
         loader=Floor(),
         on_end=lambda floor: (
           remove_heroes(),
-          game.use_floor(floor, generator=Floor),
-          game.log.print("You go upstairs.")
+          game.use_floor(floor, direction=direction, generator=Floor),
+          game.log.print(direction == 1 and "You go upstairs." or "You go downstairs.")
         )
       )
     elif index >= 0:
@@ -1351,6 +1364,7 @@ class DungeonContext(Context):
       if game.child and type(game.child) is not InventoryContext or game.get_head().transits:
         for comp in [c for c in game.comps if c.active]:
           if (not (type(game.child) is MinimapContext and type(comp) is Minimap)
+          and (not type(comp) is Log or type(game.child) is GameOverContext)
           and not (type(game.child) is SkillContext and (
             type(comp) is Hud
             or type(comp) is SpMeter
