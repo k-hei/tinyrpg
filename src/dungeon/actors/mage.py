@@ -29,12 +29,22 @@ class Mage(DungeonActor):
         *args, **kwargs
       )
 
-  def __init__(mage, core=None, on_kill=None, *args, **kwargs):
+  def __init__(mage, core=None, chant_skill=None, chant_dest=None, chant_turns=0, on_kill=None, *args, **kwargs):
     super().__init__(core=core or MageCore(skills=[Glacio, Accerso], *args, **kwargs))
+    mage.chant_skill = chant_skill
+    mage.chant_dest = chant_dest
+    mage.chant_turns = chant_turns
     mage.on_kill = on_kill
-    mage.chant_skill = None
-    mage.chant_dest = None
-    mage.chant_turns = 0
+
+  def encode(mage):
+    [cell, kind, *props] = super().encode()
+    props = props[0] if props else {}
+    return [cell, kind, {
+      **props,
+      **(mage.chant_skill and { "chant_skill": mage.chant_skill } or {}),
+      **(mage.chant_dest and { "chant_dest": mage.chant_dest } or {}),
+      **(mage.chant_turns and { "chant_turns": mage.chant_turns } or {})
+    }]
 
   def chant(mage, skill, dest=None):
     mage.chant_skill = skill

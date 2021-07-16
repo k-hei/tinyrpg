@@ -163,7 +163,7 @@ class GameContext(Context):
 
   def goto_dungeon(ctx, floors=[], floor_index=0, memory=[], generator=None):
     if floors:
-      floors[floor_index].generator = generator
+      floors[floor_index].generator = generator and generator.__name__
       ctx.open(DungeonContext(
         party=ctx.party,
         floors=floors,

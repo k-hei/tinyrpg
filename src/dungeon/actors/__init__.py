@@ -30,19 +30,23 @@ class DungeonActor(DungeonElement):
   skill = None
   drops = []
 
-  def __init__(actor, core, ailment=None):
+  def __init__(actor, core, hp=None, faction=None, facing=None, ailment=None, ailment_turns=0):
     super().__init__(solid=True)
     actor.core = core
-    actor.ailment = None
-    actor.ailment_turns = 0
+    actor.set_hp(hp or core.hp)
+    actor.set_faction(faction or core.faction)
+    actor.set_facing(facing or core.facing)
+
+    actor.ailment = ailment
+    actor.ailment_turns = ailment_turns
     if ailment:
       actor.inflict_ailment(ailment)
+
     actor.weapon = actor.load_weapon()
     actor.stepped = False
     actor.counter = False
     actor.aggro = False
     actor.rare = False
-    actor.facing = core.facing or (1, 0)
     actor.visible_cells = []
     actor.on_kill = None
     actor.flipped = False
@@ -70,6 +74,16 @@ class DungeonActor(DungeonElement):
     if actor.ailment == "freeze":
       return int(actor.core.en * 1.5)
     return actor.core.en
+
+  def encode(actor):
+    props = {
+      **(actor.get_hp() != actor.get_hp_max() and { "hp": actor.get_hp() } or {}),
+      **(actor.get_facing() != (1, 0) and { "facing": actor.get_facing() } or {}),
+      **(actor.get_faction() != "player" and { "faction": actor.get_faction() } or {}),
+      **(actor.ailment and { "ailment": actor.ailment } or {}),
+      **(actor.ailment_turns and { "ailment_turns": actor.ailment_turns } or {}),
+    }
+    return [actor.cell, type(actor).__name__, *(props and [props] or [])]
 
   def load_weapon(actor):
     return next((s for s in actor.core.skills if s.kind == "weapon"), None)

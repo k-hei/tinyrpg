@@ -17,15 +17,14 @@ FLOAT_PERIOD = 180
 FLOAT_AMP = 2
 
 class Genie(Core):
-  def __init__(genie, name, *args, **kwargs):
-    super().__init__(name=name, faction="ally", *args, **kwargs)
-    genie.sprite = Sprite(layer="elems")
+  def __init__(genie, name, faction="ally", *args, **kwargs):
+    super().__init__(name=name, faction=faction, *args, **kwargs)
     genie.renders = 0
 
   def view(genie):
     genie_image = use_assets().sprites["genie"]
-    image = Surface(genie_image.get_size(), SRCALPHA).convert_alpha()
-    image.blit(genie_image.subsurface(Rect(0, 0, 32, RIPPLE_START)), (0, 0))
+    genie_surface = Surface(genie_image.get_size(), SRCALPHA).convert_alpha()
+    genie_surface.blit(genie_image.subsurface(Rect(0, 0, 32, RIPPLE_START)), (0, 0))
     for y in range(RIPPLE_START, RIPPLE_END):
       i = y - RIPPLE_START
       p = i / RIPPLE_EXTENT
@@ -33,13 +32,13 @@ class Genie(Core):
       t = t + p * RIPPLE_PERIOD
       t = (t % (RIPPLE_PERIOD / RIPPLE_WAVES) / RIPPLE_PERIOD) * RIPPLE_WAVES
       x = sin(t * 2 * pi) * ease_out(p) * RIPPLE_AMP
-      image.blit(genie_image.subsurface(Rect(0, y, 32, 1)), (x, y))
+      genie_surface.blit(genie_image.subsurface(Rect(0, y, 32, 1)), (x, y))
     y = sin(genie.renders % FLOAT_PERIOD / FLOAT_PERIOD * 2 * pi) * FLOAT_AMP
-    genie.sprite.image = replace_color(image, BLACK, genie.color or ORANGE)
-    genie.sprite.pos = (0, y)
-    flip_x, _ = genie.sprite.flip
-    if genie.facing == (-1, 0) != flip_x:
-      flip_x = genie.facing == (-1, 0)
-      genie.sprite.flip = (flip_x, False)
+    genie_surface = replace_color(genie_surface, BLACK, genie.color or ORANGE)
     genie.renders += 1
-    return [genie.sprite]
+    return [Sprite(
+      image=genie_surface,
+      pos=(0, y),
+      flip=(genie.facing == (-1, 0), False),
+      layer="elems"
+    )]

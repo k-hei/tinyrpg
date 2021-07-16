@@ -20,6 +20,9 @@ class DungeonElement:
     elem.size = (1, 1)
     elem.elev = 0
 
+  def encode(elem):
+    return [(elem.cell), type(elem).__name__]
+
   def effect(elem, game):
     pass
 

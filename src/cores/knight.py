@@ -11,11 +11,11 @@ class Knight(BipedCore):
     walk_up=("knight_walkup0", "knight_up", "knight_walkup1", "knight_up")
   )
 
-  def __init__(knight, name=KNIGHT_NAME, faction="player", *args, **kwargs):
+  def __init__(knight, name=KNIGHT_NAME, faction="player", hp=KNIGHT_HP, *args, **kwargs):
     super().__init__(
       name=name,
       faction=faction,
-      hp=KNIGHT_HP,
+      hp=hp,
       st=15,
       en=9,
       *args,

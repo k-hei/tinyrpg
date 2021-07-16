@@ -7,6 +7,15 @@ from colors.palette import BLACK, RED, GREEN, BLUE, DARKGOLD
 from filters import replace_color
 from comps.log import Token
 
+class Stats:
+  hp: int
+  st: int
+  ma: int
+  en: int
+  ag: int
+  dx: int
+  lu: int
+
 class Core:
   def __init__(core, name, faction="ally", facing=(1, 0), hp=0, st=0, en=0, skills=[], message=None, color=None, anims=None):
     core.name = name

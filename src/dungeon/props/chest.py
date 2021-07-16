@@ -6,11 +6,20 @@ from colors.palette import PINK, GOLD, BLACK
 from sprite import Sprite
 
 class Chest(Prop):
-  def __init__(chest, contents, rare=False):
+  def __init__(chest, contents=None, opened=False, rare=False):
     super().__init__()
     chest.contents = contents
+    chest.opened = opened
     chest.rare = rare
-    chest.opened = False
+
+  def encode(chest):
+    [cell, kind, *props] = super().encode()
+    return [cell, kind, {
+      **(props[0] if props else {}),
+      **(chest.contents and { "contents": chest.contents.__name__ } or {}),
+      **(chest.opened and { "opened": True } or {}),
+      **(chest.rare and { "rare": True } or {}),
+    }]
 
   def open(chest):
     contents = chest.contents

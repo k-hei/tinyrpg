@@ -26,9 +26,7 @@ from dungeon.fov import shadowcast
 from dungeon.camera import Camera
 from dungeon.stage import Stage, Tile
 from dungeon.stageview import StageView
-from dungeon.decor import Decor
 
-from dungeon.element import DungeonElement
 from dungeon.actors import DungeonActor
 from dungeon.actors.eye import Eye
 from dungeon.actors.knight import Knight as KnightActor
@@ -83,70 +81,15 @@ from contexts.dialogue import DialogueContext
 from contexts.prompt import PromptContext, Choice
 from contexts.gameover import GameOverContext
 
-from dungeon.features.room import Room
 from dungeon.floors.floor1 import Floor1
 from dungeon.floors.floor2 import Floor2
 from dungeon.floors.floor3 import Floor3
 
-from types import FunctionType
-from savedata.resolve import resolve_elem
+from dungeon.data import DungeonData
 
 def manifest(core):
   if type(core) is Knight: return KnightActor(core)
   if type(core) is Mage: return MageActor(core)
-
-@dataclass
-class DungeonData:
-  floors: list[Stage]
-  floor_index: int
-  memory: list[list[tuple[int, int]]]
-
-  class Encoder(json.JSONEncoder):
-    def default(encoder, obj):
-      if type(obj) is type and issubclass(obj, Tile):
-        try:
-          return Stage.TILES.index(obj)
-        except ValueError:
-          return -1
-      if type(obj) in (DungeonData, Stage, Decor):
-        return obj.__dict__
-      if isinstance(obj, DungeonElement):
-        return (obj.cell, type(obj).__name__)
-      if isinstance(obj, Room):
-        return ((*obj.cell, *obj.size), type(obj).__name__)
-      if isinstance(obj, FunctionType):
-        return obj.__name__
-      return json.JSONEncoder.default(encoder, obj)
-
-  def decode_floor(floor_data):
-    floor = Stage(
-      size=floor_data["size"],
-      data=[Stage.TILES[t] for t in floor_data["data"]]
-    )
-
-    floor.entrance = floor_data["entrance"] or floor.find_tile(Stage.STAIRS_DOWN)
-    floor.rooms = [Room((width, height), (x, y)) for (x, y, width, height), room_type in floor_data["rooms"]]
-    floor.decors = [
-      Decor(**decor_data) for decor_data in [{
-        **d,
-        "cell": tuple(d["cell"]),
-        "offset": tuple(d["offset"]),
-        "color": tuple(d["color"])
-      } for d in floor_data["decors"]]
-    ]
-
-    for elem_cell, elem_name, *elem_params in floor_data["elems"]:
-      elem_params = elem_params[0] if elem_params else {}
-      promoted = False
-      if elem_name[-1] == "+":
-        promoted = True
-        elem_name = elem_name[0:-1]
-      elem = resolve_elem(elem_name)(**elem_params)
-      if promoted:
-        elem.promote()
-      floor.spawn_elem_at(tuple(elem_cell), elem)
-
-    return floor
 
 class DungeonContext(Context):
   ATTACK_DURATION = 12
@@ -240,11 +183,12 @@ class DungeonContext(Context):
     game.parent.save()
 
     floor_no = game.get_floor_no()
-    floor.generator = floor.generator or generator
+    floor.generator = floor.generator or generator and generator.__name__
 
     hero = floor.find_elem(KnightActor)
     if hero:
       game.hero = hero
+      hero.core = game.parent.party[0]
     else:
       hero = game.hero
       hero.facing = (1, 0)
@@ -347,7 +291,7 @@ class DungeonContext(Context):
       isinstance(e, DungeonActor)
       and not hero.allied(e)
       and manhattan(hero.cell, e.cell) == 1
-      and (type(e) is not Mimic or not e.idle)
+      and not (type(e) is Mimic and e.idle)
     )]
     if nearby_enemies:
       enemy = nearby_enemies[0]
@@ -788,32 +732,7 @@ class DungeonContext(Context):
 
   def handle_attack(game, target):
     hero = game.hero
-    if target.idle:
-      game.anims.append([
-        AttackAnim(
-          duration=DungeonContext.ATTACK_DURATION,
-          target=hero,
-          src=hero.cell,
-          dest=target.cell
-        ),
-        PauseAnim(duration=15, on_end=lambda: (
-          game.anims[0].append(ActivateAnim(
-            duration=45,
-            target=target,
-            on_end=lambda: (
-              target.activate(),
-              game.log.print(("The lamp was ", target.token(), "!")),
-              game.anims[0].append(PauseAnim(duration=15, on_end=lambda: (
-                game.step(),
-                game.refresh_fov()
-              )))
-            )
-          ))
-        ))
-      ])
-      game.log.print("You open the lamp")
-      return True
-    elif hero.weapon:
+    if hero.weapon:
       game.parent.deplete_sp(hero.weapon.cost)
       return game.attack(hero, target, on_end=lambda: (
         game.step(),
@@ -1327,7 +1246,7 @@ class DungeonContext(Context):
     if index >= len(game.floors):
       # create a new floor if out of bounds
       app = game.get_head()
-      Floor = DungeonContext.FLOORS[DungeonContext.FLOORS.index(game.floor.generator) + direction]
+      Floor = DungeonContext.FLOORS[next((i for i, g in enumerate(DungeonContext.FLOORS) if g._name__ == game.floor.generator), None) + direction]
       app.transition(
         transits=(DissolveIn(), DissolveOut()),
         loader=Floor(),

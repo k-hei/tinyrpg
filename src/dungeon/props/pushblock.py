@@ -9,9 +9,16 @@ from filters import replace_color
 from colors.palette import BLACK, WHITE, PURPLE, SAFFRON, DARKBLUE
 
 class PushBlock(Prop):
-  def __init__(block):
+  def __init__(block, placed=False):
     super().__init__()
-    block.placed = False
+    block.placed = placed
+
+  def encode(block):
+    [cell, kind, *props] = super().encode()
+    return [cell, kind, {
+      **(props[0] if props else {}),
+      **(block.placed and { "placed": True } or {}),
+    }]
 
   def effect(block, game):
     hero = game.hero

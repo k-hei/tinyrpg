@@ -21,13 +21,23 @@ class Door(Prop):
     opening_frames=["door_puzzle", "door_puzzle_opening", "door_puzzle_open"]
   )
 
-  def __init__(door, locked=False):
-    super().__init__(solid=True, opaque=True)
+  def __init__(door, opened=False, locked=False, vertical=False):
+    super().__init__(solid=(not opened), opaque=(not opened))
+    door.opened = opened
     door.locked = locked
-    door.opened = False
-    door.vertical = False
+    door.vertical = vertical
     door.focus = None
     door.origin = None
+
+  def encode(door):
+    [cell, kind, *props] = super().encode()
+    props = {
+      **(props[0] if props else {}),
+      **(door.opened and { "opened": True } or {}),
+      **(door.locked and { "locked": True } or {}),
+      **(door.vertical and { "vertical": True } or {}),
+    }
+    return [door.origin or cell, kind, *(props and [props] or [])]
 
   def unlock(door):
     door.locked = False
