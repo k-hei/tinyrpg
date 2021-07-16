@@ -10,6 +10,7 @@ from colors.palette import BLACK
 from assets import load as use_assets
 from anims.sine import SineAnim
 from anims.flicker import FlickerAnim
+from transits.dissolve import DissolveOut
 
 OPTIONS_SPACING = 20
 OPTIONS_X = WINDOW_WIDTH // 2 - 32
@@ -62,7 +63,8 @@ class GameOverContext(Context):
     ctx.anims.append(ChooseAnim(target="hand", duration=30, on_end=lambda: (
       choice == "Continue" and (
         game := ctx.get_parent(cls="GameContext"),
-        game and game.load()
+        game and game.load(),
+        game.get_head().transition([DissolveOut()])
       ),
       choice == "Load Game" and ctx.open(LoadContext(), on_close=lambda *data: (
         data and (

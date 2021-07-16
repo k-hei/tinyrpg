@@ -81,10 +81,12 @@ class GameContext(Context):
     floor = None
 
     if ctx.feature:
+      feature = ctx.feature
+      ctx.feature = None
       savedata.place = "dungeon"
       app = ctx.get_head()
       return app.load(
-        loader=ctx.feature().create_floor(),
+        loader=feature().create_floor(),
         on_end=lambda floor: (
           ctx.goto_dungeon(floors=[floor]),
           app.transition([DissolveOut()])
@@ -92,12 +94,14 @@ class GameContext(Context):
       )
 
     if ctx.floor:
+      generator = ctx.floor
+      ctx.floor = None
       savedata.place = "dungeon"
       app = ctx.get_head()
       return app.load(
-        loader=ctx.floor(),
+        loader=generator(),
         on_end=lambda floor: (
-          ctx.goto_dungeon(floors=[floor], generator=ctx.floor),
+          ctx.goto_dungeon(floors=[floor], generator=generator),
           app.transition([DissolveOut()])
         )
       )
