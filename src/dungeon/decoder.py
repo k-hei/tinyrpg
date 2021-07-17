@@ -12,7 +12,7 @@ def decode_floor(floor_data):
   )
 
   floor.entrance = floor_data["entrance"] if "entrance" in floor_data else floor.find_tile(Stage.STAIRS_DOWN)
-  floor.exit = tuple(floor_data["exit"]) if "exit" in floor_data else None
+  floor.exit = tuple(floor_data["exit"]) if "exit" in floor_data and floor_data["exit"] else None
   floor.generator = floor_data["generator"] if "generator" in floor_data else None
 
   if "decors" in floor_data:

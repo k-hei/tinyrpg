@@ -3,8 +3,6 @@ from sprite import Sprite
 from config import WINDOW_SIZE
 
 class Context:
-  effects = []
-
   def __init__(ctx, parent=None, on_close=None):
     ctx.on_close = on_close
     ctx.parent = parent
@@ -55,17 +53,13 @@ class Context:
   def open(ctx, child, on_close=None):
     ctx.child = child
     child.parent = ctx
-    for kind in ctx.child.effects:
-      for comp in ctx.comps:
-        if isinstance(comp, kind):
-          comp.exit()
     ctx.child.enter()
     child.init()
     if on_close:
       if child.on_close:
         on_close_old = child.on_close
-        def close(data=None):
-          on_close(on_close_old(data))
+        def close(*data):
+          on_close(on_close_old(*data))
         child.on_close = close
       else:
         child.on_close = on_close
@@ -76,10 +70,6 @@ class Context:
       ctx.child.close()
     if ctx.parent:
       ctx.parent.child = None
-    for kind in ctx.effects:
-      for comp in ctx.parent.comps:
-        if isinstance(comp, kind):
-          comp.enter()
     if ctx.on_close:
       ctx.on_close(*args)
     return True
