@@ -687,9 +687,8 @@ class DungeonContext(Context):
           game.anims.append([anim])
       elif effect_result == True:
         moved = True
-      if isinstance(target_elem, Npc):
-        game.handle_talk()
-      elif type(target_elem) is Chest:
+
+      if type(target_elem) is Chest:
         chest = target_elem
         item = chest.contents
         if item:
@@ -716,19 +715,19 @@ class DungeonContext(Context):
           game.log.print("There's nothing left to take...")
         game.step(run)
         game.refresh_fov()
-      elif isinstance(target_elem, DungeonActor) and target_elem.ailment == "sleep" and hero.allied(target_elem):
-        game.log.exit()
-        game.anims[0].append(PauseAnim(
-          duration=60,
-          on_end=lambda: (
-            target_elem.wake_up(),
-            game.log.print((target_elem.token(), " woke up!")),
-            game.anims[0].append(FlinchAnim(
-              duration=DungeonContext.FLINCH_DURATION,
-              target=target_elem,
-            ))
-          )
-        ))
+      # elif isinstance(target_elem, DungeonActor) and target_elem.ailment == "sleep" and hero.allied(target_elem):
+      #   game.log.exit()
+      #   game.anims[0].append(PauseAnim(
+      #     duration=60,
+      #     on_end=lambda: (
+      #       target_elem.wake_up(),
+      #       game.log.print((target_elem.token(), " woke up!")),
+      #       game.anims[0].append(FlinchAnim(
+      #         duration=DungeonContext.FLINCH_DURATION,
+      #         target=target_elem,
+      #       ))
+      #     )
+      #   ))
 
     return moved
 
@@ -1027,7 +1026,7 @@ class DungeonContext(Context):
         and not game.floor.get_tile_at(target.cell) is Stage.PIT
         and not game.floor.get_elem_at(target.cell, superclass=Bag)):
           drop = choice(enemy_drops)
-          game.floor.spawn_elem_at(target.cell, Bag(item=drop))
+          game.floor.spawn_elem_at(target.cell, Bag(contents=drop))
       target.kill()
       if target in game.floor.elems:
         game.floor.elems.remove(target)

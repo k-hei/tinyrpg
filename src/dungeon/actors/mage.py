@@ -21,16 +21,12 @@ from skills.weapon.broadsword import BroadSword
 class Mage(DungeonActor):
   drops = [BroadSword]
 
-  class CastAnim(FrameAnim):
-    def __init__(anim, *args, **kwargs):
-      super().__init__(
-        frames=use_assets().sprites["mage_cast"],
-        frame_duration=10,
-        *args, **kwargs
-      )
-
-  def __init__(mage, core=None, chant_skill=None, chant_dest=None, chant_turns=0, on_kill=None, *args, **kwargs):
-    super().__init__(core=core or MageCore(skills=[Glacio, Accerso], *args, **kwargs))
+  def __init__(mage, core=None, ailment=None, ailment_turns=0, chant_skill=None, chant_dest=None, chant_turns=0, on_kill=None, *args, **kwargs):
+    super().__init__(
+      core=core or MageCore(skills=[Glacio, Accerso], *args, **kwargs),
+      ailment=ailment,
+      ailment_turns=ailment_turns
+    )
     mage.chant_skill = chant_skill
     mage.chant_dest = chant_dest
     mage.chant_turns = chant_turns
@@ -50,7 +46,7 @@ class Mage(DungeonActor):
     mage.chant_skill = skill
     mage.chant_dest = dest
     mage.chant_turns = skill.chant_turns
-    mage.core.anims.append(Mage.CastAnim())
+    mage.core.anims.append(MageCore.CastAnim())
 
   def cast_spell(mage):
     if mage.chant_skill is None:
@@ -180,4 +176,8 @@ class Mage(DungeonActor):
         sprite = sprites["mage_down"]
       else:
         sprite = sprites["mage"]
+
+    if mage.ailment == "sleep" and not mage.core.anims:
+      mage.core.anims = [MageCore.SleepAnim()]
+
     return super().view(sprite, anims)

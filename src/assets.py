@@ -6,16 +6,15 @@ from typing import Dict
 import pygame
 from pygame import Surface, Rect
 from text import Font, Ttf
+from config import ASSETS_PATH, WINDOW_SIZE
 
 @dataclass
 class Assets:
-  sprites: Dict[str, Surface]
-  fonts: Dict[str, Font]
-  ttf: Dict[str, Ttf]
+  sprites: Dict[str, Surface] = None
+  fonts: Dict[str, Font] = None
+  ttf: Dict[str, Ttf] = None
 
-assets = None
-
-def load_sprite(key, path, sprites):
+def load_image(key, path, sprites):
   try:
     sprite = pygame.image.load(join(path, key) + ".png").convert_alpha()
   except FileNotFoundError:
@@ -74,9 +73,12 @@ def load_ttf(key, size, path):
   return Ttf(font)
 
 def load(path=None):
-  global assets
-  if assets:
+  if assets.sprites:
     return assets
+
+  pygame.display.init()
+  pygame.display.set_mode(WINDOW_SIZE)
+  pygame.font.init()
 
   sprites = {}
   for f in listdir(path):
@@ -84,7 +86,7 @@ def load(path=None):
       item_name, item_ext = splitext(f)
       if item_ext == ".png":
         try:
-          load_sprite(item_name, path, sprites)
+          load_image(item_name, path, sprites)
         except:
           print("Failed to load {}".format(item_name))
 
@@ -101,9 +103,9 @@ def load(path=None):
   ttf["roman_large"] = load_ttf("PCPaintRomanMedium", 16, join(path, "ttf"))
   ttf["special"] = load_ttf("PCPaintSpecialMedium", 12, join(path, "ttf"))
 
+  assets.sprites = sprites
+  assets.fonts = pngfonts
+  assets.ttf = ttf
 
-  assets = Assets(
-    sprites=sprites,
-    fonts=pngfonts,
-    ttf=ttf
-  )
+assets = Assets()
+load(ASSETS_PATH)

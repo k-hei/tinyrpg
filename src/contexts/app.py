@@ -42,7 +42,6 @@ class App(Context):
     app.rescale(WINDOW_SCALE_INIT)
     pygame.key.set_repeat(1000 // FPS)
     pygame.display.flip()
-    assets.load(ASSETS_PATH)
     app.clock = pygame.time.Clock()
     if app.child:
       app.open()

@@ -6,8 +6,8 @@ from dungeon.element import DungeonElement
 from cores import Core
 from skills.weapon import Weapon
 
-from colors.palette import BLACK, RED, GREEN, BLUE, CYAN, VIOLET, GOLD
-from assets import load as use_assets
+from colors.palette import BLACK, RED, GREEN, BLUE, CYAN, VIOLET, GOLD, DARKBLUE
+from assets import assets
 from filters import replace_color, darken_image
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
@@ -30,6 +30,10 @@ class DungeonActor(DungeonElement):
   skill = None
   drops = []
 
+  class SleepAnim(FrameAnim):
+    frames = assets.sprites["status_sleep"]
+    frame_duration = 15
+
   def __init__(actor, core, hp=None, faction=None, facing=None, ailment=None, ailment_turns=0):
     super().__init__(solid=True)
     actor.core = core
@@ -37,10 +41,11 @@ class DungeonActor(DungeonElement):
     actor.set_faction(faction or core.faction)
     actor.set_facing(facing or core.facing)
 
-    actor.ailment = ailment
+    actor.ailment = None
     actor.ailment_turns = ailment_turns
     if ailment:
       actor.inflict_ailment(ailment)
+    actor.ailment = ailment
 
     actor.weapon = actor.load_weapon()
     actor.stepped = False
@@ -48,6 +53,7 @@ class DungeonActor(DungeonElement):
     actor.aggro = False
     actor.rare = False
     actor.visible_cells = []
+    actor.anims = []
     actor.on_kill = None
     actor.flipped = False
 
@@ -63,7 +69,9 @@ class DungeonActor(DungeonElement):
   def get_active_skills(actor): return actor.core.get_active_skills()
   def is_dead(actor): return actor.core.dead
   def can_step(actor):
-    return not actor.is_dead() and not actor.stepped and actor.ailment not in ("sleep", "freeze")
+    return not actor.stepped and not actor.is_immobile()
+  def is_immobile(actor):
+    return actor.is_dead() or actor.ailment in ("sleep", "freeze")
 
   def get_str(actor):
     return actor.core.st + (actor.weapon.st if actor.weapon else 0)
@@ -85,7 +93,7 @@ class DungeonActor(DungeonElement):
       **(actor.ailment and { "ailment": actor.ailment } or {}),
       **(actor.ailment_turns and { "ailment_turns": actor.ailment_turns } or {}),
       **(actor.rare and { "rare": actor.rare } or {}),
-      **({ "message": actor.core.message[0] } if actor.core.message else {}),
+      **({ "message": actor.core.message[0] } if type(actor.core.message) is tuple else {}),
     }
     return [actor.cell, type(actor).__name__, *(props and [props] or [])]
 
@@ -130,19 +138,22 @@ class DungeonActor(DungeonElement):
     return True
 
   def step_ailment(actor):
-    if actor.ailment_turns > 0:
-      actor.ailment_turns -= 1
-    else:
+    if actor.ailment_turns == 0:
       actor.dispel_ailment()
+    else:
+      actor.ailment_turns -= 1
 
   def dispel_ailment(actor):
+    if actor.ailment == "sleep":
+      sleep_anim = next((a for a in actor.anims if type(a) is DungeonActor.SleepAnim), None)
+      sleep_anim and actor.anims.remove(sleep_anim)
     actor.ailment = None
     actor.ailment_turns = 0
 
   def wake_up(actor):
     actor.stepped = True
     if actor.ailment == "sleep":
-      actor.ailment = None
+      actor.dispel_ailment()
 
   def kill(actor):
     actor.core.kill()
@@ -167,6 +178,8 @@ class DungeonActor(DungeonElement):
     actor.set_hp(min(actor.get_hp_max(), actor.get_hp() + amount))
 
   def effect(actor, game):
+    if actor.is_immobile():
+      return None
     return actor.talk(game)
 
   def talk(actor, game):
@@ -178,7 +191,7 @@ class DungeonActor(DungeonElement):
       message = message(game)
     if not message:
       game.talkee = None
-      return
+      return False
     hero = game.hero
     hero_x, hero_y = hero.cell
     actor_x, actor_y = actor.cell
@@ -192,6 +205,7 @@ class DungeonActor(DungeonElement):
       game.camera.blur()
       game.talkee = None
     game.open(message, on_close=stop_talk)
+    return True
 
   def move_to(actor, dest):
     actor.cell = dest
@@ -227,10 +241,14 @@ class DungeonActor(DungeonElement):
       return ("move_to", enemy.cell)
 
   def update(actor):
+    for anim in actor.anims:
+      if anim.done:
+        actor.anims.remove(anim)
+      else:
+        anim.update()
     return actor.core.update()
 
   def view(actor, sprites, anims=[]):
-    assets = use_assets().sprites
     if not sprites:
       return []
     if type(sprites) is Surface:
@@ -260,7 +278,7 @@ class DungeonActor(DungeonElement):
         offset_x, offset_y = anim.offset
         if actor.ailment == "freeze" and anim.time % 2:
           sprites.append(Sprite(
-            image=replace_color(assets["fx_icecube"], BLACK, CYAN),
+            image=replace_color(assets.sprites["fx_icecube"], BLACK, CYAN),
             layer="elems"
           ))
       if type(anim) is BounceAnim:
@@ -268,7 +286,7 @@ class DungeonActor(DungeonElement):
         actor_width *= anim_xscale
         actor_height *= anim_yscale
       if isinstance(anim, FrameAnim):
-        sprite.image = anim.frame
+        sprite.image = anim.frame()
     else:
       if actor.ailment == "poison":
         new_color = VIOLET
@@ -282,6 +300,18 @@ class DungeonActor(DungeonElement):
         new_color = GOLD
       elif actor.core.faction == "enemy":
         new_color = RED
+
+    if actor.ailment == "sleep":
+      sleep_anim = next((a for a in actor.anims if type(a) is DungeonActor.SleepAnim), None)
+      if sleep_anim:
+        sprites.append(Sprite(
+          image=replace_color(sleep_anim.frame(), BLACK, DARKBLUE),
+          pos=(12, -20),
+          origin=("left", "bottom"),
+          layer="vfx"
+        ))
+      else:
+        actor.anims = [DungeonActor.SleepAnim()]
 
     if new_color:
       sprite.image = replace_color(sprite.image, BLACK, new_color)

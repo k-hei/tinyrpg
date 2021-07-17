@@ -29,7 +29,7 @@ class DepthsRoom(SpecialRoom):
       ".......",
       "#.....#"
     ], elems=[
-      ((4, 3), mage := Mage(faction="ally")),
+      ((4, 3), mage := Mage(faction="ally", ailment="sleep")),
       ((2, 2), Bag(RustyBlade)),
     ], *args, **kwargs)
     room.mage = mage

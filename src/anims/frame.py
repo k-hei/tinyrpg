@@ -1,11 +1,16 @@
 from anims import Anim
 
 class FrameAnim(Anim):
-  def __init__(anim, frames, frame_duration=0, *args, **kwargs):
+  def __init__(anim, frames=[], frame_duration=0, *args, **kwargs):
     super().__init__(*args, **kwargs)
-    anim.frames = frames
-    anim.frame = frames[0]
-    anim.frame_duration = frame_duration
+    if not anim.frames:
+      anim.frames = frames
+    if not anim.frame_duration:
+      anim.frame_duration = frame_duration
+    anim.frame_index = 0
+
+  def frame(anim):
+    return anim.frames[anim.frame_index] # separate for serialization
 
   def update(anim):
     time = super().update()
@@ -17,6 +22,5 @@ class FrameAnim(Anim):
     frame_duration = anim.frame_duration or anim.duration / len(anim.frames)
     anim_duration = frame_duration * len(anim.frames)
     frame_index = int(time % anim_duration / anim_duration * len(anim.frames))
-    frame = anim.frames[frame_index]
-    anim.frame = frame
-    return frame
+    anim.frame_index = frame_index
+    return frame_index

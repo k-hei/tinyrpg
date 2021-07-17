@@ -1,7 +1,11 @@
 from cores.biped import BipedCore, SpriteMap
 from config import MAGE_NAME, MAGE_HP
+
 from contexts.prompt import PromptContext, Choice
 from contexts.dialogue import DialogueContext
+
+from assets import assets
+from anims.frame import FrameAnim
 
 class Mage(BipedCore):
   sprites = SpriteMap(
@@ -12,6 +16,14 @@ class Mage(BipedCore):
     walk_down=("mage_walkdown0", "mage_down", "mage_walkdown1", "mage_down"),
     walk_up=("mage_walkup0", "mage_up", "mage_walkup1", "mage_up")
   )
+
+  class SleepAnim(FrameAnim):
+    frames = assets.sprites["mage_sleep"]
+    frame_duration = 30
+
+  class CastAnim(FrameAnim):
+    frames = assets.sprites["mage_cast"]
+    frame_duration = 10
 
   def __init__(mage, name=MAGE_NAME, faction="player", *args, **kwargs):
     super().__init__(
