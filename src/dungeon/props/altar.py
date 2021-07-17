@@ -29,7 +29,7 @@ class Altar(DungeonElement):
     )]
     if altar.anim.time % 2:
       sprites.append(Sprite(
-        image=replace_color(assets.sprites[altar.anim.frame], BLACK, VIOLET),
+        image=replace_color(assets.sprites[altar.anim.frame()], BLACK, VIOLET),
         pos=(0, -24),
         origin=("center", "center"),
         layer="numbers"

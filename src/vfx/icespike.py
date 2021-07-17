@@ -63,7 +63,8 @@ class IceSpikeVfx(Vfx):
 
   def view(fx):
     assets = use_assets()
-    fx_image = fx.anims[0].frame if fx.anims and type(fx.anims[0]) is FrameAnim else assets.sprites["fx_icespike"][-1]
+    fx_anim = fx.anims[0] if fx.anims and type(fx.anims[0]) is FrameAnim else None
+    fx_image = fx_anim.frame() if fx_anim else assets.sprites["fx_icespike"][-1]
     if fx_image is None:
       return []
     if fx.color != BLACK:

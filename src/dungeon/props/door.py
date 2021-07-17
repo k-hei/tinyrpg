@@ -109,7 +109,7 @@ class Door(Prop):
       door.cell = (door_x, door_y + 1)
     for anim in anim_group:
       if isinstance(anim, DoorAnim):
-        image = sprites[anim.frame]
+        image = sprites[anim.frame()]
         break
     else:
       if door.opened or will_close:

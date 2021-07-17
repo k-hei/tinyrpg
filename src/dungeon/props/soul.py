@@ -138,7 +138,7 @@ class Soul(Prop):
     sprites = []
     assets = use_assets()
     soul_color = soul.skill.color
-    soul_image = assets.sprites[soul.anim.frame]
+    soul_image = assets.sprites[soul.anim.frame()]
     soul_image = replace_color(soul_image, BLACK, soul_color)
     sprites.append(Sprite(
       image=soul_image,

@@ -7,32 +7,21 @@ from anims.frame import FrameAnim
 from colors.palette import BLUE, DARKBLUE
 from lib.lerp import lerp
 
+FRAME_PREFIX = "portrait_mira"
+
 class MiraPortrait(Portrait):
-  FRAME_PREFIX = "portrait_mira"
   EYES_POS = (52, 38)
   MOUTH_POS = (61, 59)
   SHINE_POS = (144, 96)
   BLINK_INTERVAL = 150
-  BLINK_DURATION = 16
-  BLINK_FRAMES = [FRAME_PREFIX + "_eyes", FRAME_PREFIX + "_eyes_closing", FRAME_PREFIX + "_eyes_closed", FRAME_PREFIX + "_eyes_closing"]
-  TALK_DURATION = 16
-  TALK_FRAMES = [FRAME_PREFIX + "_mouth", FRAME_PREFIX + "_mouth_opening", FRAME_PREFIX + "_mouth_open", FRAME_PREFIX + "_mouth_opening"]
 
   class BlinkAnim(FrameAnim):
-    def __init__(anim, *args, **kwargs):
-      super().__init__(
-        frames=MiraPortrait.BLINK_FRAMES,
-        duration=MiraPortrait.BLINK_DURATION,
-        *args, **kwargs
-      )
+    frames = [FRAME_PREFIX + "_eyes", FRAME_PREFIX + "_eyes_closing", FRAME_PREFIX + "_eyes_closed", FRAME_PREFIX + "_eyes_closing"]
+    duration = 16
 
   class TalkAnim(FrameAnim):
-    def __init__(anim, *args, **kwargs):
-      super().__init__(
-        frames=MiraPortrait.TALK_FRAMES,
-        duration=MiraPortrait.TALK_DURATION,
-        *args, **kwargs
-      )
+    frames = [FRAME_PREFIX + "_mouth", FRAME_PREFIX + "_mouth_opening", FRAME_PREFIX + "_mouth_open", FRAME_PREFIX + "_mouth_opening"]
+    duration = 16
 
   def __init__(portrait):
     portrait.talking = False
@@ -55,14 +44,14 @@ class MiraPortrait(Portrait):
   def render(portrait):
     portrait.update()
     assets = use_assets().sprites
-    surface = assets[portrait.FRAME_PREFIX].copy()
+    surface = assets[FRAME_PREFIX].copy()
 
     blink_anim = next((a for a in portrait.anims if type(a) is MiraPortrait.BlinkAnim), None)
-    eyes_frame = blink_anim.frame if blink_anim else portrait.FRAME_PREFIX + "_eyes"
+    eyes_frame = blink_anim.frame() if blink_anim else FRAME_PREFIX + "_eyes"
     surface.blit(assets[eyes_frame], MiraPortrait.EYES_POS)
 
     talk_anim = next((a for a in portrait.anims if type(a) is MiraPortrait.TalkAnim), None)
-    mouth_frame = talk_anim.frame if talk_anim else portrait.FRAME_PREFIX + "_mouth"
+    mouth_frame = talk_anim.frame() if talk_anim else FRAME_PREFIX + "_mouth"
     surface.blit(assets[mouth_frame], MiraPortrait.MOUTH_POS)
 
     ticks = portrait.ticks // 2 * 2
@@ -97,10 +86,10 @@ class MiraPortrait(Portrait):
         (1, int(height))
       ))
 
-    shine_image = assets[portrait.FRAME_PREFIX + "_shine"]
+    shine_image = assets[FRAME_PREFIX + "_shine"]
     surface.blit(shine_image, MiraPortrait.SHINE_POS)
 
-    hand_image = assets[portrait.FRAME_PREFIX + "_hand"]
+    hand_image = assets[FRAME_PREFIX + "_hand"]
     surface.blit(hand_image, (
       surface.get_width() - hand_image.get_width() - 19,
       surface.get_height() - hand_image.get_height()

@@ -11,15 +11,17 @@ def decode_floor(floor_data):
     data=[Stage.TILES[t] for t in floor_data["data"]]
   )
 
-  floor.entrance = floor_data["entrance"] or floor.find_tile(Stage.STAIRS_DOWN)
-  floor.decors = [
-    Decor(**decor_data) for decor_data in [{
-      **d,
-      "cell": tuple(d["cell"]),
-      "offset": tuple(d["offset"]),
-      "color": tuple(d["color"])
-    } for d in floor_data["decors"]]
-  ]
+  floor.entrance = floor_data["entrance"] if "entrance" in floor_data else floor.find_tile(Stage.STAIRS_DOWN)
+
+  if "decors" in floor_data:
+    floor.decors = [
+      Decor(**decor_data) for decor_data in [{
+        **d,
+        "cell": tuple(d["cell"]),
+        "offset": tuple(d["offset"]),
+        "color": tuple(d["color"])
+      } for d in floor_data["decors"]]
+    ]
 
   for (x, y, *size), room_kind, *room_props in floor_data["rooms"]:
     room_props = room_props[0] if room_props else {}

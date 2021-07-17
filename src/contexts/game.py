@@ -111,7 +111,7 @@ class GameContext(Context):
       return ctx.goto_dungeon(
         floor_index=savedata.dungeon["floor_no"] if "floor_no" in savedata.dungeon else 0,
         floors=[decode_floor(f) for f in savedata.dungeon["floors"]],
-        memory=[[tuple(c) for c in f] for f in savedata.dungeon["memory"]]
+        memory=[[tuple(c) for c in f] for f in (savedata.dungeon["memory"] if "memory" in savedata.dungeon else [])]
       )
     elif savedata.dungeon:
       return ctx.goto_dungeon(

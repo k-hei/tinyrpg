@@ -47,7 +47,7 @@ class ParticleVfx(Vfx):
     if not fx.anim or fx.blinking and fx.anim.time % 2:
       return []
     return [Sprite(
-      image=fx.anim.frame,
+      image=fx.anim.frame(),
       pos=fx.pos,
       origin=("center", "center"),
       layer="vfx"

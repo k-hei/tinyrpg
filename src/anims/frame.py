@@ -1,23 +1,24 @@
 from anims import Anim
 
 class FrameAnim(Anim):
+  frames = []
+  frame_duration = 0
+
   def __init__(anim, frames=[], frame_duration=0, *args, **kwargs):
     super().__init__(*args, **kwargs)
-    if not anim.frames:
-      anim.frames = frames
-    if not anim.frame_duration:
-      anim.frame_duration = frame_duration
+    anim.frames = anim.frames or frames
+    anim.frame_duration = anim.frame_duration or frame_duration
     anim.frame_index = 0
 
-  def frame(anim):
-    return anim.frames[anim.frame_index] # separate for serialization
+  def frame(anim): # method instead of prop for serialization
+    return anim.frames[anim.frame_index] if anim.frame_index is not None else None
 
   def update(anim):
     time = super().update()
     if anim.done:
       return anim.frames[-1]
     if anim.time < 0:
-      anim.frame = None
+      anim.frame_index = None
       return None
     frame_duration = anim.frame_duration or anim.duration / len(anim.frames)
     anim_duration = frame_duration * len(anim.frames)
