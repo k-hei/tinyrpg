@@ -12,7 +12,7 @@ class Vfx:
     vel_x, vel_y = vfx.vel
     vfx.pos = (pos_x + vel_x, pos_y + vel_y)
     if vfx.anim:
-      frame = vfx.anim.update()
+      vfx.anim.update()
       if vfx.anim.done:
         vfx.done = True
-      return frame
+      return vfx.anim.frame()
