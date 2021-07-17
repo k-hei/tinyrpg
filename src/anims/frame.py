@@ -6,8 +6,10 @@ class FrameAnim(Anim):
 
   def __init__(anim, frames=[], frame_duration=0, *args, **kwargs):
     super().__init__(*args, **kwargs)
-    anim.frames = anim.frames or frames
-    anim.frame_duration = anim.frame_duration or frame_duration
+    if not anim.frames:
+      anim.frames = frames
+    if not anim.frame_duration:
+      anim.frame_duration = frame_duration
     anim.frame_index = 0
 
   def frame(anim): # method instead of prop for serialization

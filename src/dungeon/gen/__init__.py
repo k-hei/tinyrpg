@@ -430,9 +430,16 @@ def gen_features(floor, feature_graph):
 def gen_floor(features, entrance=None, size=config.FLOOR_SIZE, seed=None):
   lkg = None
   iters = 0
+  placement = { feature: feature.placed for feature in features.nodes }
+
   while lkg is None:
+    if iters:
+      for feature in features.nodes:
+        feature.placed = placement[feature]
+
     iters += 1
     debug("-- Iteration {} --".format(iters))
+
     floor = Floor(size)
     if seed is None:
       seed = getrandbits(32)
