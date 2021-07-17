@@ -14,9 +14,10 @@ from cores.knight import Knight
 from cores.mage import Mage
 
 class TownContext(Context):
-  def __init__(ctx, party=[Knight()]):
+  def __init__(ctx, party=[Knight()], returning=False):
     super().__init__()
     ctx.party = party
+    ctx.returning = returning
     ctx.area = OutskirtsArea
     ctx.graph = TownGraph(
       nodes=[CentralArea, ClearingArea, OutskirtsArea, FortuneArea, StoreArea],
@@ -30,7 +31,8 @@ class TownContext(Context):
     )
 
   def init(ctx):
-    ctx.load_area(ctx.area)
+    link = OutskirtsArea.links["tower"] if ctx.returning else None
+    ctx.load_area(ctx.area, link)
 
   def load_area(ctx, area, link=None):
     if area is DungeonContext:

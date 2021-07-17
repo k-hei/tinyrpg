@@ -36,8 +36,6 @@ class EmeraldRoom(SpecialRoom):
   def get_edges(feature):
     x, y = feature.cell or (0, 0)
     return [
-      (x + 9, y - 2),
-      (x + 9, y - 1),
       (x + 9, y + feature.get_height()),
       (x + 9, y + feature.get_height() + 1),
     ]

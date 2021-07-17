@@ -187,7 +187,7 @@ class GameContext(Context):
       )
 
   def goto_town(ctx, returning=False):
-    ctx.open(TownContext(party=ctx.party))
+    ctx.open(TownContext(party=ctx.party, returning=returning))
 
   def obtain(ctx, item):
     ctx.inventory.items.append(item)

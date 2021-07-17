@@ -1,5 +1,7 @@
 from math import sin, pi
 import pygame
+from lib.direction import invert as invert_direction
+
 from contexts import Context
 from contexts.dialogue import DialogueContext
 from town.graph import TownGraph
@@ -59,8 +61,12 @@ class SideViewContext(Context):
 
   def init(ctx):
     hero, *_ = ctx.party
+    if ctx.spawn:
+      spawn_x = ctx.spawn.x
+      hero.face(invert_direction(ctx.spawn.direction))
+    else:
+      spawn_x = 64
     facing_x, _ = hero.get_facing()
-    spawn_x = ctx.spawn.x if ctx.spawn else 64
     for actor in ctx.party:
       ctx.area.spawn(actor, spawn_x)
       actor.stop_move()
