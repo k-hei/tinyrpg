@@ -250,7 +250,11 @@ class SkillContext(Context):
         pygame.draw.rect(square_hi, Color(*skill.color, alpha + 0x5f), square_hi.get_rect())
         square_cells = list(set(skill_range + skill_targets))
         for cell in square_cells:
-          x, y = scale_up(cell)
+          tile = floor.get_tile_at(cell)
+          z = tile.elev
+          x, y = cell
+          y -= z
+          x, y = scale_up((x, y))
           square_image = square_hi if cell in skill_targets else square_lo
           sprites.append(Sprite(
             image=square_image,
