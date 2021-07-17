@@ -186,7 +186,7 @@ class DungeonContext(Context):
     if floor not in game.floors:
       new_index = next((i for i, g in enumerate(DungeonContext.FLOORS) if g.__name__ == floor.generator), None)
       old_index = next((i for i, g in enumerate(DungeonContext.FLOORS) if g.__name__ == game.floor.generator), None)
-      if new_index < old_index:
+      if new_index is not None and old_index is not None and new_index < old_index:
         debug.log("Prepend new floor")
         game.floors.insert(0, floor)
       else:
