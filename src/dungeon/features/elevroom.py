@@ -10,10 +10,10 @@ class ElevRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
     super().__init__(degree=1, shape=[
       "·····##",
-      "····-..",
-      "····-..",
-      "#=##...",
-      ".......",
+      "·····..",
+      "./···..",
+      ".../·..",
+      "...··..",
       ".......",
       "......."
     ], *args, **kwargs)

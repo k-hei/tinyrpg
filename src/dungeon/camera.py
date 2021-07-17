@@ -111,7 +111,8 @@ class Camera:
           and (type(a) is MoveAnim or type(a) is PathAnim)
         )), None)
         if move_anim:
-          hero_x, hero_y = move_anim.cell
+          hero_x, hero_y, hero_z = move_anim.cell
+          hero_y -= hero_z
 
         room_halfwidth = ceil(room.get_width() / 2)
         room_halfheight = ceil(room.get_height() / 2)

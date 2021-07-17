@@ -22,13 +22,14 @@ class MoveAnim(Anim):
       return anim.dest
     if anim.cell is None:
       return None
-    src_x, src_y = anim.src
-    dest_x, dest_y = anim.dest
-    t = anim.time / anim.duration
+    src_x, src_y, src_z = anim.src
+    dest_x, dest_y, dest_z = anim.dest
     dist_x = dest_x - src_x
     dist_y = dest_y - src_y
     anim.facing = (dist_x and dist_x / abs(dist_x), dist_y and dist_y / abs(dist_y))
+    t = anim.time / anim.duration
     x = lerp(src_x, dest_x, t)
     y = lerp(src_y, dest_y, t)
-    anim.cell = (x, y)
+    z = lerp(src_z, dest_z, t)
+    anim.cell = (x, y, z)
     return anim.cell

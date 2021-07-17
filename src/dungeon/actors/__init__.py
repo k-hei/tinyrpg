@@ -265,10 +265,11 @@ class DungeonActor(DungeonElement):
       if type(anim) is AwakenAnim and anim.visible:
         asleep = True
       if type(anim) is AttackAnim or type(anim) is JumpAnim and anim.cell:
-        anim_x, anim_y = anim.cell
+        anim_x, anim_y, *anim_z = anim.cell
+        anim_z = anim_z and anim_z[0] or 0
         actor_x, actor_y = actor.cell
         offset_x = (anim_x - actor_x) * TILE_SIZE
-        offset_y = (anim_y - actor_y) * TILE_SIZE
+        offset_y = (anim_y - anim_z - actor_y) * TILE_SIZE
       if type(anim) is JumpAnim:
         offset_y += anim.offset
       if type(anim) is FlinchAnim and anim.time <= 3:
@@ -311,6 +312,10 @@ class DungeonActor(DungeonElement):
         ))
       else:
         actor.anims = [DungeonActor.SleepAnim()]
+
+    move_anim = next((a for a in anim_group if type(a) is MoveAnim), None)
+    if actor.elev and not move_anim:
+      offset_y -= actor.elev * TILE_SIZE
 
     if new_color:
       sprite.image = replace_color(sprite.image, BLACK, new_color)

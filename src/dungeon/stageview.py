@@ -32,7 +32,7 @@ from anims.item import ItemAnim
 def recolor_walls():
   assets = use_assets()
   for key in assets.sprites.keys():
-    if key.startswith("wall"):
+    if key.startswith("wall") :
       assets.sprites[key] = replace_color(assets.sprites[key], WHITE, COLOR_TILE)
 
 class StageView:
@@ -63,6 +63,7 @@ class StageView:
     self.tile_surface = Surface((width, height), SRCALPHA)
     self.tile_offset = (0, 0)
     self.tile_cache = {}
+    self.tile_sprites = {}
     self.camera_cell = None
     self.stage = None
     self.facings = {}
@@ -75,28 +76,32 @@ class StageView:
       return False
     tile_name = tile.__name__
     tile_xoffset, tile_yoffset = (0, 0)
+    tile_sprite = None
     if tile_name in self.tile_cache and tile not in StageView.VARIABLE_TILES:
       tile_image = self.tile_cache[tile_name]
     else:
       tile_image = render_tile(stage, cell, visited_cells)
       if type(tile_image) is Sprite:
-        tile_image = tile_image.image
-        tile_xoffset, tile_yoffset = tile_image.pos
+        tile_sprite = tile_image
+        tile_image = tile_sprite.image
+        tile_xoffset, tile_yoffset = tile_sprite.pos
       if not tile_image:
         return False
-      color = WHITE
-      if tile not in StageView.SPECIAL_TILES:
-        color = COLOR_TILE
-        if tile_image is not stage.WALL:
-          tile_image = replace_color(tile_image, WHITE, color)
-        if tile not in StageView.ELEVATED_TILES:
-          tile_image = replace_color(tile_image, GRAY, DARKGRAY)
+      if (tile not in StageView.SPECIAL_TILES
+      and tile not in StageView.ELEVATED_TILES
+      and tile is not stage.WALL):
+        tile_image = replace_color(tile_image, WHITE, COLOR_TILE)
+        tile_image = replace_color(tile_image, GRAY, DARKGRAY)
     x = (col - offset_x) * TILE_SIZE + tile_xoffset
     y = (row - offset_y + 1) * TILE_SIZE - tile_image.get_height() + tile_yoffset
-    self.tile_surface.blit(tile_image, (x, y))
-    self.tile_cache[tile_name] = tile_image
-    if cell not in self.tile_cache:
-      self.tile_cache[cell] = darken_image(tile_image)
+    if tile_sprite is None:
+      self.tile_surface.blit(tile_image, (x, y))
+      self.tile_cache[tile_name] = tile_image
+      if cell not in self.tile_cache:
+        self.tile_cache[cell] = darken_image(tile_image)
+    elif cell not in self.tile_sprites:
+      tile_sprite.pos = (x, y + tile_image.get_height())
+      self.tile_sprites[cell] = tile_sprite
     return True
 
   def redraw_tiles(self, stage, camera, visible_cells, visited_cells, force=False):
@@ -146,11 +151,14 @@ class StageView:
     offset_x, offset_y = self.tile_offset
     dest_x = -camera.left + offset_x * TILE_SIZE
     dest_y = -camera.top + offset_y * TILE_SIZE
+    tile_sprites = [s.copy() for s in self.tile_sprites.values()]
+    for sprite in tile_sprites:
+      sprite.move((dest_x, -camera.top + 2 * TILE_SIZE))
     return [Sprite(
       image=self.tile_surface,
       pos=(dest_x, dest_y),
       layer="tiles"
-    )]
+    ), *tile_sprites]
 
   def view_decors(self, decors, visible_cells, visited_cells):
     sprites = []
@@ -170,6 +178,12 @@ class StageView:
       for sprite in sprites:
         elem_x, elem_y = elem.cell
         sprite.move(((elem_x + 0.5) * TILE_SIZE, (elem_y + 1) * TILE_SIZE))
+        move_anim = anims and next((a for a in anims[0] if type(a) is MoveAnim and a.target is elem), None)
+        if move_anim:
+          _, _, anim_z = move_anim.cell
+          sprite.offset += anim_z * TILE_SIZE
+        else:
+          sprite.offset += elem.elev * TILE_SIZE
         sprite.origin = ("center", "bottom")
       return sprites
     else:
@@ -280,7 +294,7 @@ def render_tile(stage, cell, visited_cells=[]):
   tile_se = stage.get_tile_at((x + 1, y + 1))
 
   if "wall_elev" not in assets.sprites:
-    assets.sprites["wall_elev"] = replace_color(flip(assets.sprites["wall_base"], True, False), WHITE, GRAY)
+    assets.sprites["wall_elev"] = replace_color(flip(assets.sprites["wall_base"], True, False), COLOR_TILE, GRAY)
   if "floor_elev" not in assets.sprites:
     elevfloor_image = Surface((TILE_SIZE, TILE_SIZE * 2), SRCALPHA)
     elevfloor_image.fill(COLOR_TILE)
@@ -320,7 +334,12 @@ def render_tile(stage, cell, visited_cells=[]):
     and stage.get_tile_at((x + 1, y + 1)) is stage.FLOOR_ELEV):
     return Sprite(image=assets.sprites["floor_fancy"], pos=(0, -TILE_SIZE))
   elif tile is stage.FLOOR_ELEV:
-    return assets.sprites["floor_elev"]
+    return Sprite(
+      image=assets.sprites["floor_elev"],
+      origin=("left", "bottom"),
+      layer="elems",
+      offset=-TILE_SIZE,
+    )
   elif tile is stage.WALL_ELEV:
     sprite_name = "wall_elev"
   elif tile is stage.LADDER:
@@ -332,7 +351,12 @@ def render_tile(stage, cell, visited_cells=[]):
   elif tile is stage.STAIRS_DOWN:
     sprite_name = "stairs_down"
   elif tile is stage.STAIRS_RIGHT:
-    return flip(assets.sprites["stairs_right"], True, False)
+    return Sprite(
+      image=flip(assets.sprites["stairs_right"], True, False),
+      origin=("left", "bottom"),
+      layer="elems",
+      offset=-TILE_SIZE,
+    )
   elif tile is stage.FLOOR and (
     stage.get_tile_at((x - 1, y)) is stage.FLOOR
     and stage.get_tile_at((x + 1, y)) is stage.FLOOR

@@ -879,15 +879,15 @@ class DungeonContext(Context):
       or direction.normalize(delta) == direction.normalize(target_tile.direction))
     and (target_elem is None
       or not target_elem.solid
-      or actor is game.hero and target_elem is game.ally and not game.ally.ailment == "sleep"
+      or actor is game.hero and target_elem is game.ally and game.ally.can_step()
     )):
       duration = RUN_DURATION if run else MOVE_DURATION
       duration = duration * 1.5 if jump else duration
       anim_kind = JumpAnim if jump else MoveAnim
       src_x, src_y = actor.cell
-      src_cell = (src_x, src_y) # - origin_tile.elev)
+      src_cell = (src_x, src_y, origin_tile.elev)
       dest_x, dest_y = target_cell
-      dest_cell = (dest_x, dest_y) # - target_tile.elev)
+      dest_cell = (dest_x, dest_y, target_tile.elev)
       move_anim = anim_kind(
         duration=duration,
         target=actor,

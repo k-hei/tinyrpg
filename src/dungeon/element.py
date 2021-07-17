@@ -58,10 +58,11 @@ class DungeonElement:
       if type(anim) is MoveAnim or type(anim) is PathAnim:
         if offset_x or offset_y:
           continue
-        anim_x, anim_y = anim.cell
+        anim_x, anim_y, *anim_z = anim.cell
+        anim_z = anim_z and anim_z[0] or 0
         elem_x, elem_y = elem.cell
         offset_x = (anim_x - elem_x) * TILE_SIZE
-        offset_y = (anim_y - elem_y) * TILE_SIZE
+        offset_y = (anim_y - anim_z - elem_y) * TILE_SIZE
         if anim.facing != (0, 0) and not next((a for g in anims for a in g if a.target is elem and type(a) is FlinchAnim), None):
           elem.facing = tuple(map(int, anim.facing))
       elif type(anim) is ChestAnim or type(anim) is ItemAnim:
