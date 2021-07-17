@@ -153,7 +153,7 @@ class StageView:
     dest_y = -camera.top + offset_y * TILE_SIZE
     tile_sprites = [s.copy() for s in self.tile_sprites.values()]
     for sprite in tile_sprites:
-      sprite.move((dest_x, -camera.top + 2 * TILE_SIZE))
+      sprite.move((-camera.left - 3 * TILE_SIZE, -camera.top + 2 * TILE_SIZE))
     return [Sprite(
       image=self.tile_surface,
       pos=(dest_x, dest_y),
@@ -301,6 +301,11 @@ def render_tile(stage, cell, visited_cells=[]):
     elevfloor_image.blit(assets.sprites["floor"], (0, 0))
     elevfloor_image.blit(assets.sprites["wall_elev"], (0, TILE_SIZE))
     assets.sprites["floor_elev"] = elevfloor_image
+  if assets.sprites["stairs"].get_height() < TILE_SIZE * 2:
+    stairs_image = Surface((TILE_SIZE, TILE_SIZE * 2), SRCALPHA)
+    stairs_image.blit(assets.sprites["stairs"], (0, 0))
+    stairs_image.blit(assets.sprites["stairs"], (0, TILE_SIZE))
+    assets.sprites["stairs"] = stairs_image
 
   if tile is stage.WALL:
     room = next((r for r in stage.rooms if cell in r.get_cells() + r.get_border()), None)
@@ -345,7 +350,12 @@ def render_tile(stage, cell, visited_cells=[]):
   elif tile is stage.LADDER:
     sprite_name = "ladder"
   elif tile is stage.STAIRS:
-    sprite_name = "stairs"
+    return Sprite(
+      image=assets.sprites["stairs"],
+      origin=("left", "bottom"),
+      layer="elems",
+      offset=-TILE_SIZE,
+    )
   elif tile is stage.STAIRS_UP:
     sprite_name = "stairs_up"
   elif tile is stage.STAIRS_DOWN:

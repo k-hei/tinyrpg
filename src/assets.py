@@ -82,7 +82,6 @@ def load(path=None):
   surface.fill((0, 0, 0))
   pygame.display.flip()
 
-  sprites = {}
   for f in listdir(path):
     if isfile(join(path, f)):
       item_name, item_ext = splitext(f)
@@ -92,13 +91,11 @@ def load(path=None):
         except:
           print("Failed to load {}".format(item_name))
 
-  pngfonts = {}
   for f in listdir(join(path, "pngfont")):
     item_name, item_ext = splitext(f)
     if item_ext == ".png":
-      pngfonts[item_name] = load_pngfont(item_name, join(path, "pngfont"))
+      fonts[item_name] = load_pngfont(item_name, join(path, "pngfont"))
 
-  ttf = {}
   ttf["english"] = load_ttf("PCPaintEnglishSmall", 8, join(path, "ttf"))
   ttf["english_large"] = load_ttf("PCPaintEnglishMedium", 16, join(path, "ttf"))
   ttf["roman"] = load_ttf("PCPaintRomanSmall", 8, join(path, "ttf"))
@@ -106,8 +103,11 @@ def load(path=None):
   ttf["special"] = load_ttf("PCPaintSpecialMedium", 12, join(path, "ttf"))
 
   assets.sprites = sprites
-  assets.fonts = pngfonts
+  assets.fonts = fonts
   assets.ttf = ttf
 
-assets = Assets()
+sprites = {}
+fonts = {}
+ttf = {}
+assets = Assets(sprites, fonts, ttf)
 load(ASSETS_PATH)
