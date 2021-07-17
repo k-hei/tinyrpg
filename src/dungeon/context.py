@@ -1265,7 +1265,7 @@ class DungeonContext(Context):
       Floor = DungeonContext.FLOORS[gen_index + direction]
       app.transition(
         transits=(DissolveIn(), DissolveOut()),
-        loader=Floor(),
+        loader=Floor.generate(),
         on_end=lambda floor: (
           remove_heroes(),
           game.use_floor(floor, direction=direction, generator=Floor),

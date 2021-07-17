@@ -191,7 +191,7 @@ class DungeonActor(DungeonElement):
       message = message(game)
     if not message:
       game.talkee = None
-      return False
+      return
     hero = game.hero
     hero_x, hero_y = hero.cell
     actor_x, actor_y = actor.cell
@@ -205,7 +205,6 @@ class DungeonActor(DungeonElement):
       game.camera.blur()
       game.talkee = None
     game.open(message, on_close=stop_talk)
-    return True
 
   def move_to(actor, dest):
     actor.cell = dest

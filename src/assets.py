@@ -77,8 +77,10 @@ def load(path=None):
     return assets
 
   pygame.display.init()
-  pygame.display.set_mode(WINDOW_SIZE)
   pygame.font.init()
+  surface = pygame.display.set_mode(WINDOW_SIZE)
+  surface.fill((0, 0, 0))
+  pygame.display.flip()
 
   sprites = {}
   for f in listdir(path):

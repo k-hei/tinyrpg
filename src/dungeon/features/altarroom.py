@@ -63,7 +63,7 @@ class AltarRoom(SpecialRoom):
       lambda step: (
         game.get_head().transition(
           transits=(DissolveIn(), DissolveOut()),
-          loader=Floor1(),
+          loader=Floor1.generate(),
           on_end=lambda floor: (
             game.use_floor(floor, generator=Floor1),
             step()

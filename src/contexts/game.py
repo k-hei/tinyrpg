@@ -95,14 +95,14 @@ class GameContext(Context):
       )
 
     if ctx.floor:
-      generator = ctx.floor
+      Floor = ctx.floor
       ctx.floor = None
       savedata.place = "dungeon"
       app = ctx.get_head()
       return app.load(
-        loader=generator(),
+        loader=Floor.generate(),
         on_end=lambda floor: (
-          ctx.goto_dungeon(floors=[floor], generator=generator),
+          ctx.goto_dungeon(floors=[floor], generator=Floor),
           app.transition([DissolveOut()])
         )
       )
@@ -168,7 +168,8 @@ class GameContext(Context):
 
   def goto_dungeon(ctx, floors=[], floor_index=0, memory=[], generator=None):
     if floors:
-      floors[floor_index].generator = generator and generator.__name__
+      floor = floors[floor_index]
+      floor.generator = floor.generator or generator and generator.__name__
       ctx.open(DungeonContext(
         party=ctx.party,
         floors=floors,

@@ -91,6 +91,9 @@ from dungeon.actors.knight import Knight
 from dungeon.actors.mushroom import Mushroom
 from dungeon.actors.guard import GuardActor
 from dungeon.actors.soldier import Soldier
+from dungeon.floors.floor1 import Floor1
+from dungeon.floors.floor3 import Floor3
+from dungeon.floors.floor2 import Floor2
 
 def resolve_item(key):
   if key == "Antidote": return Antidote
@@ -190,6 +193,9 @@ def resolve_elem(key):
   if key == "Mushroom": return Mushroom
   if key == "GuardActor": return GuardActor
   if key == "Soldier": return Soldier
+  if key == "Floor1": return Floor1
+  if key == "Floor3": return Floor3
+  if key == "Floor2": return Floor2
 
 def resolve_material(material):
   if material is Diamond: return None

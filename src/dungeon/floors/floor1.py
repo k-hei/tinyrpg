@@ -16,57 +16,63 @@ from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
 from anims.flicker import FlickerAnim
 from dungeon.gen import gen_floor, gen_enemy, FloorGraph
+from dungeon.floors import Floor
 
-def Floor1():
-  entry_room = DepthsRoom()
-  fork_room = Room(
-    size=(5, 4),
-    degree=3,
-    on_place=lambda room, stage: (
-      stage.spawn_elem_at(add_cell((room.get_width() - 1, 0), room.cell), Genie(
-        name="Joshin",
-        message=lambda game: CutsceneContext(script=[
-          lambda step: game.child.open(DialogueContext(script=[
-            (game.talkee.get_name(), "Do you have a weapon on you?"),
-            (game.talkee.get_name(), "Try pressing 'B' to open up the CUSTOM menu."),
-            (game.talkee.get_name(), "You'll be a sitting duck in the dungeon without a weapon equipped."),
-          ]), on_close=step),
-          lambda step: (
-            game.anims.append([FlickerAnim(
-              target=game.talkee,
-              duration=45,
-              on_end=lambda: (
-                game.floor.remove_elem(game.talkee),
-                step()
-              )
-            )])
-          ),
-          lambda step: game.child.open(DialogueContext(script=[
-            (game.hero.get_name(), "We have a certain someone to thank for that..."),
-          ]), on_close=step)
-        ])
-      ))
-    )
-  )
-  exit_room = LockedExitRoom()
-  lock_room = VerticalRoom(degree=4)
-  item_room1 = ItemRoom(size=(3, 4), items=[Potion, Antidote])
-  item_room2 = ItemRoom(size=(5, 4), items=[Potion, Bread, Antidote])
-  enemy_room1 = EnemyRoom(size=(5, 4), enemies=[gen_enemy(Eyeball), gen_enemy(Eyeball)])
-  enemy_room2 = EnemyRoom(size=(5, 7), enemies=[gen_enemy(Eyeball), gen_enemy(Mushroom)])
-  enemy_room3 = EnemyRoom(size=(3, 4), degree=1, enemies=[gen_enemy(Eyeball, rare=True), gen_enemy(Mushroom)])
+class Floor1(Floor):
+  scripts = [
+    ("equip", lambda game: CutsceneContext(script=[
+      lambda step: game.child.open(DialogueContext(script=[
+        (game.talkee.get_name(), "Do you have a weapon on you?"),
+        (game.talkee.get_name(), "Try pressing 'B' to open up the CUSTOM menu."),
+        (game.talkee.get_name(), "You'll be a sitting duck in the dungeon without a weapon equipped."),
+      ]), on_close=step),
+      lambda step: (
+        game.anims.append([FlickerAnim(
+          target=game.talkee,
+          duration=45,
+          on_end=lambda: (
+            game.floor.remove_elem(game.talkee),
+            step()
+          )
+        )])
+      ),
+      lambda step: game.child.open(DialogueContext(script=[
+        (game.hero.get_name(), "We have a certain someone to thank for that..."),
+      ]), on_close=step)
+    ]))
+  ]
 
-  return gen_floor(
-    entrance=entry_room,
-    features=FloorGraph(
-      nodes=[fork_room, entry_room, enemy_room1, item_room1, lock_room, exit_room, enemy_room2, item_room2, enemy_room3],
-      edges=[
-        (fork_room, entry_room),
-        (fork_room, item_room1),
-        (fork_room, enemy_room1),
-        (lock_room, enemy_room1),
-        (lock_room, exit_room),
-        (enemy_room2, item_room2),
-      ]
+  def generate():
+    entry_room = DepthsRoom()
+    fork_room = Room(
+      size=(5, 4),
+      degree=3,
+      on_place=lambda room, stage: (
+        stage.spawn_elem_at(add_cell((room.get_width() - 1, 0), room.cell), Genie(
+          name="Joshin",
+          message=next((s for s in Floor1.scripts if s[0] == "equip"), None)
+        ))
+      )
     )
-  )
+    exit_room = LockedExitRoom()
+    lock_room = VerticalRoom(degree=4)
+    item_room1 = ItemRoom(size=(3, 4), items=[Potion, Antidote])
+    item_room2 = ItemRoom(size=(5, 4), items=[Potion, Bread, Antidote])
+    enemy_room1 = EnemyRoom(size=(5, 4), enemies=[gen_enemy(Eyeball), gen_enemy(Eyeball)])
+    enemy_room2 = EnemyRoom(size=(5, 7), enemies=[gen_enemy(Eyeball), gen_enemy(Mushroom)])
+    enemy_room3 = EnemyRoom(size=(3, 4), degree=1, enemies=[gen_enemy(Eyeball, rare=True), gen_enemy(Mushroom)])
+
+    return gen_floor(
+      entrance=entry_room,
+      features=FloorGraph(
+        nodes=[fork_room, entry_room, enemy_room1, item_room1, lock_room, exit_room, enemy_room2, item_room2, enemy_room3],
+        edges=[
+          (fork_room, entry_room),
+          (fork_room, item_room1),
+          (fork_room, enemy_room1),
+          (lock_room, enemy_room1),
+          (lock_room, exit_room),
+          (enemy_room2, item_room2),
+        ]
+      )
+    )
