@@ -13,8 +13,12 @@ from anims.path import PathAnim
 from sprite import Sprite
 
 class Knight(DungeonActor):
-  def __init__(knight, core=None, *args, **kwargs):
-    super().__init__(core=core or KnightCore(*args, **kwargs))
+  def __init__(knight, core=None, ailment=None, ailment_turns=0, *args, **kwargs):
+    super().__init__(
+      core=core or KnightCore(*args, **kwargs),
+      ailment=ailment,
+      ailment_turns=ailment_turns
+    )
 
   def view(knight, anims):
     assets = use_assets().sprites

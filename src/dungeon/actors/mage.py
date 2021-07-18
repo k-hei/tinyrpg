@@ -177,7 +177,4 @@ class Mage(DungeonActor):
       else:
         sprite = sprites["mage"]
 
-    if mage.ailment == "sleep" and not mage.core.anims:
-      mage.core.anims = [MageCore.SleepAnim()]
-
     return super().view(sprite, anims)

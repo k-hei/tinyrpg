@@ -41,11 +41,12 @@ class DungeonActor(DungeonElement):
     actor.set_faction(faction or core.faction)
     actor.set_facing(facing or core.facing)
 
+    actor.anims = []
     actor.ailment = None
-    actor.ailment_turns = ailment_turns
+    actor.ailment_turns = 0
     if ailment:
       actor.inflict_ailment(ailment)
-    actor.ailment = ailment
+      actor.ailment_turns = ailment_turns or actor.ailment_turns
 
     actor.weapon = actor.load_weapon()
     actor.stepped = False
@@ -53,7 +54,6 @@ class DungeonActor(DungeonElement):
     actor.aggro = False
     actor.rare = False
     actor.visible_cells = []
-    actor.anims = []
     actor.on_kill = None
     actor.flipped = False
 
@@ -134,6 +134,9 @@ class DungeonActor(DungeonElement):
       actor.ailment_turns = DungeonActor.FREEZE_DURATION
     if ailment == "sleep":
       actor.ailment_turns = DungeonActor.SLEEP_DURATION
+      actor.anims = [DungeonActor.SleepAnim()]
+      if "SleepAnim" in dir(actor.core):
+        actor.core.anims = [actor.core.SleepAnim()]
     actor.ailment = ailment
     return True
 
@@ -147,7 +150,9 @@ class DungeonActor(DungeonElement):
     if actor.ailment == "sleep":
       sleep_anim = next((a for a in actor.anims if type(a) is DungeonActor.SleepAnim), None)
       sleep_anim and actor.anims.remove(sleep_anim)
-      actor.core.wake_up()
+      if "SleepAnim" in dir(actor.core):
+        sleep_anim = next((a for a in actor.core.anims if type(a) is actor.core.SleepAnim), None)
+        actor.core.anims.remove(sleep_anim)
     actor.ailment = None
     actor.ailment_turns = 0
 
@@ -311,8 +316,6 @@ class DungeonActor(DungeonElement):
           origin=("left", "bottom"),
           layer="vfx"
         ))
-      else:
-        actor.anims = [DungeonActor.SleepAnim()]
 
     move_anim = next((a for a in anim_group if type(a) is MoveAnim), None)
     if actor.elev and not move_anim:

@@ -1,5 +1,7 @@
 from cores.biped import BipedCore, SpriteMap
 from config import KNIGHT_NAME, KNIGHT_HP
+import assets
+from anims.frame import FrameAnim
 
 class Knight(BipedCore):
   sprites = SpriteMap(
@@ -10,6 +12,10 @@ class Knight(BipedCore):
     walk_down=("knight_walkdown0", "knight_down", "knight_walkdown1", "knight_down"),
     walk_up=("knight_walkup0", "knight_up", "knight_walkup1", "knight_up")
   )
+
+  class SleepAnim(FrameAnim):
+    frames = assets.sprites["knight_sleep"]
+    frame_duration = 30
 
   def __init__(knight, name=KNIGHT_NAME, faction="player", hp=KNIGHT_HP, *args, **kwargs):
     super().__init__(

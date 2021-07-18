@@ -199,7 +199,11 @@ class DungeonContext(Context):
 
     floor_no = game.get_floor_no()
 
-    hero = next((e for e in game.floor.elems if isinstance(e, DungeonActor) and type(e.core) is type(game.parent.party[0])), None)
+    hero = next((e for e in game.floor.elems if (
+      isinstance(e, DungeonActor)
+      and e.get_faction() == "player"
+      and type(e.core) is type(game.parent.party[0])
+    )), None)
     if hero:
       game.hero = hero
       hero.core = game.parent.party[0]
