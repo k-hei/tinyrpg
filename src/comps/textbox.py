@@ -34,9 +34,10 @@ class TextBox:
           cursor_x = 0
           cursor_y += word_height + LINE_SPACING
           index += 1
-      char = message[index]
-      cursor_x += font.width(char)
-      index += 1
+      if index < len(message):
+        char = message[index]
+        cursor_x += font.width(char)
+        index += 1
     return cursor_y + font.height()
 
   def __init__(box, size, font=None, color=BLACK):

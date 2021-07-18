@@ -40,12 +40,10 @@ class Context:
   def handle_keydown(ctx, key):
     if ctx.child:
       return ctx.child.handle_keydown(key)
-    return False
 
   def handle_keyup(ctx, key):
     if ctx.child:
       return ctx.child.handle_keyup(key)
-    return False
 
   def enter(ctx):
     pass

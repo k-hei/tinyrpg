@@ -38,10 +38,10 @@ class App(Context):
     pygame.init()
     pygame.display.set_caption(app.title)
     app.rescale(WINDOW_SCALE_INIT)
-    app.surface = pygame.Surface(app.size)
-    app.surface.fill(0)
-    pygame.key.set_repeat(1000 // FPS)
+    app.display.fill((0, 0, 0))
     pygame.display.flip()
+    pygame.key.set_repeat(1000 // FPS)
+    app.surface = pygame.Surface(app.size)
     app.clock = pygame.time.Clock()
     if app.child:
       app.open()
@@ -70,6 +70,7 @@ class App(Context):
   def loop(app):
     try:
       while not app.done:
+        app.clock.tick(app.fps)
         app.redraw()
         app.update()
     except:
@@ -78,7 +79,6 @@ class App(Context):
       app.close()
 
   def update(app):
-    app.clock.tick(app.fps)
     keyboard.update()
     if app.paused:
       return
