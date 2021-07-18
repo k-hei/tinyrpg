@@ -31,6 +31,12 @@ class Context:
       return ctx.get_parent()
     return ctx.get_parent().get_parent(cls)
 
+  def get_depth(ctx, depth=0):
+    if ctx.child:
+      return ctx.child.get_depth(depth + 1)
+    else:
+      return depth
+
   def handle_keydown(ctx, key):
     if ctx.child:
       return ctx.child.handle_keydown(key)

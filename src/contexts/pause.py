@@ -26,9 +26,6 @@ class PauseContext(Context):
   choices = ["item", "equip", "status", "quest", "option"]
   effects = [Hud, Previews, Minimap, SpMeter, FloorNo]
 
-  def __init__(ctx, parent=None, on_close=None):
-    super().__init__(parent, on_close)
-
   def handle_keydown(ctx, key):
     if keyboard.get_pressed(key) > 1:
       return False
@@ -57,14 +54,16 @@ class PauseContext(Context):
       pos=(gold_x, gold_y)
     ))
 
-    gold_amount = ctx.parent.get_gold()
-    gold_text = assets.ttf["english"].render("{}G".format(gold_amount))
-    gold_x += gold_image.get_width() + GOLD_SPACING
-    gold_y += gold_image.get_height() // 2 - gold_text.get_height() // 2
-    sprites.append(Sprite(
-      image=gold_text,
-      pos=(gold_x, gold_y)
-    ))
+    game = ctx.get_parent(cls="GameContext")
+    if game:
+      gold_amount = game.get_gold()
+      gold_text = assets.ttf["english"].render("{}G".format(gold_amount))
+      gold_x += gold_image.get_width() + GOLD_SPACING
+      gold_y += gold_image.get_height() // 2 - gold_text.get_height() // 2
+      sprites.append(Sprite(
+        image=gold_text,
+        pos=(gold_x, gold_y)
+      ))
 
     # choices
     choices_width = 0

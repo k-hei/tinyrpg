@@ -251,13 +251,16 @@ class GameContext(Context):
   def handle_keydown(ctx, key):
     if super().handle_keydown(key) != None:
       return
-    if keyboard.get_pressed(key) == 1 and not ctx.child.child:
+    if keyboard.get_pressed(key) == 1 and (
+      type(ctx.child) is DungeonContext and ctx.child.get_depth() == 0
+      or type(ctx.child) is TownContext and ctx.child.get_depth() == 1
+    ):
       if key == pygame.K_ESCAPE:
         return ctx.handle_pause()
 
   def handle_pause(ctx):
-    ctx.child.log.exit()
-    ctx.child.open(PauseContext())
+    tail = ctx.get_tail()
+    tail.open(PauseContext())
 
   def update(ctx):
     super().update()
