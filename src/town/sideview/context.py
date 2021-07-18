@@ -4,6 +4,7 @@ from lib.direction import invert as invert_direction
 
 from contexts import Context
 from contexts.dialogue import DialogueContext
+from contexts.inventory import InventoryContext
 from town.graph import TownGraph
 from town.sideview.stage import Area, AreaLink
 from town.sideview.actor import Actor
@@ -230,7 +231,9 @@ class SideViewContext(Context):
     assets = use_assets()
     hero, *_ = ctx.party
     sprites += ctx.area.view(hero, ctx.link)
-    interrupt = ctx.child or ctx.link or ctx.anims
+    interrupt = ctx.link or ctx.anims or (ctx.child
+      and not isinstance(ctx.child, InventoryContext)
+    )
     if interrupt:
       if ctx.hud.active:
         ctx.hud.exit()

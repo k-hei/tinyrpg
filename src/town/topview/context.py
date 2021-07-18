@@ -3,6 +3,7 @@ from pygame import Surface, SRCALPHA
 from contexts import Context
 from contexts.dialogue import DialogueContext
 from contexts.shop import ShopContext
+from contexts.inventory import InventoryContext
 from comps.hud import Hud
 from assets import load as use_assets
 from town.topview.stage import Stage, Tile
@@ -265,7 +266,10 @@ class TopViewContext(Context):
       ctx.hud.active = True
       ctx.hud.anims = []
 
-    if ctx.link or (ctx.child and not isinstance(ctx.child.child, ShopContext)):
+    if ctx.link or (ctx.child
+      and not isinstance(ctx.child, InventoryContext)
+      and not isinstance(ctx.child.child, ShopContext)
+    ):
       if ctx.hud.active:
         ctx.hud.exit()
     else:

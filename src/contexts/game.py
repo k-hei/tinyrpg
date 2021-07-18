@@ -3,6 +3,7 @@ import keyboard
 from config import WINDOW_SIZE, DEBUG, KNIGHT_BUILD, MAGE_BUILD, ROGUE_BUILD
 from contexts import Context
 from contexts.pause import PauseContext
+from contexts.inventory import InventoryContext
 from dungeon.context import DungeonContext, DungeonData
 from dungeon.stage import Stage
 from dungeon.decor import Decor
@@ -251,16 +252,26 @@ class GameContext(Context):
   def handle_keydown(ctx, key):
     if super().handle_keydown(key) != None:
       return
-    if keyboard.get_pressed(key) == 1 and (
-      type(ctx.child) is DungeonContext and ctx.child.get_depth() == 0
-      or type(ctx.child) is TownContext and ctx.child.get_depth() == 1
+    if keyboard.get_pressed(key) > 1 or (
+      type(ctx.child) is DungeonContext and ctx.child.get_depth() > 0
+      or type(ctx.child) is TownContext and ctx.child.get_depth() > 1
     ):
-      if key == pygame.K_ESCAPE:
-        return ctx.handle_pause()
+      return
+    if key == pygame.K_ESCAPE:
+      return ctx.handle_pause()
+    if key == pygame.K_BACKSPACE:
+      return ctx.handle_inventory()
 
   def handle_pause(ctx):
-    tail = ctx.get_tail()
-    tail.open(PauseContext())
+    child = ctx.get_tail()
+    child.open(PauseContext())
+
+  def handle_inventory(ctx):
+    child = ctx.get_tail()
+    child.open(InventoryContext(
+      inventory=ctx.inventory,
+      has_ally=len(ctx.party) > 1,
+    ))
 
   def update(ctx):
     super().update()
