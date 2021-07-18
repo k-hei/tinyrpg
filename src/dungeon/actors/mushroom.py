@@ -61,7 +61,7 @@ class Mushroom(DungeonActor):
         break
     else:
       if mushroom.ailment == "sleep":
-        sprite = sprites["mushroom_move"]
+        sprite = sprites["mushroom_sleep"]
       else:
         sprite = sprites["mushroom"]
     if mushroom.ailment == "freeze":

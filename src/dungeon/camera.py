@@ -142,8 +142,10 @@ class Camera:
           and isinstance(a, MoveAnim)
         )), None)
         if move_anim:
-          focus_x, focus_y = move_anim.cell
-          target_x, target_y = move_anim.dest
+          focus_x, focus_y, focus_z = move_anim.cell
+          focus_y -= focus_z
+          target_x, target_y, target_z = move_anim.dest
+          target_y -= target_z
 
       camera_x, camera_y = camera.upscale((focus_x, focus_y))
       if camera.pos:
