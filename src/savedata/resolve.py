@@ -23,6 +23,7 @@ from skills.weapon.tackle import Tackle
 from skills.weapon.stick import Stick
 from skills.weapon.club import Club
 from skills.weapon.rare import RareWeapon
+from skills.weapon.cudgel import Cudgel
 from skills.weapon.broadsword import BroadSword
 from skills.weapon.longinus import Longinus
 from skills.weapon.caladbolg import Caladbolg
@@ -123,6 +124,7 @@ def resolve_skill(key):
   if key == "Stick": return Stick
   if key == "Club": return Club
   if key == "RareWeapon": return RareWeapon
+  if key == "Cudgel": return Cudgel
   if key == "BroadSword": return BroadSword
   if key == "Longinus": return Longinus
   if key == "Caladbolg": return Caladbolg

@@ -101,10 +101,11 @@ class DungeonElement:
         if anims.index(group) == 0:
           continue
         if anim.target is elem and isinstance(anim, MoveAnim) and anim.cell:
-          anim_x, anim_y = anim.src
+          anim_x, anim_y, *anim_z = anim.src
+          anim_z = anim_z and anim_z[0] or 0
           actor_x, actor_y = elem.cell
           offset_x = (anim_x - actor_x) * TILE_SIZE
-          offset_y = (anim_y - actor_y) * TILE_SIZE
+          offset_y = (anim_y - anim_z - actor_y) * TILE_SIZE
 
     # if not moving:
     #   offset_y -= elem.elev * TILE_SIZE

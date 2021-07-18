@@ -251,7 +251,7 @@ class SkillContext(Context):
         square_cells = list(set(skill_range + skill_targets))
         for cell in square_cells:
           tile = floor.get_tile_at(cell)
-          z = tile.elev
+          z = tile.elev if tile else 0
           x, y = cell
           y -= z
           x, y = scale_up((x, y))

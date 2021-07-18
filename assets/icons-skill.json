@@ -3,6 +3,7 @@
   "icon_lance":     [ 7,  0, 7, 7],
   "icon_axe":       [14,  0, 7, 7],
   "icon_shield":    [21,  0, 7, 7],
+  "icon_cudgel":    [28,  0, 7, 7],
   "icon_fire":      [ 0,  7, 7, 7],
   "icon_ice":       [ 7,  7, 7, 7],
   "icon_volt":      [14,  7, 7, 7],

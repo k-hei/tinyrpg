@@ -23,10 +23,10 @@ class Congelatio(MagicSkill):
   chant_turns = 2
   users = [Mage]
   blocks = (
-    (0, 0),
     (1, 0),
+    (0, 1),
     (1, 1),
-    (1, 2),
+    (2, 1),
   )
 
   def effect(user, dest, game, on_end=None):

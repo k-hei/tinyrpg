@@ -22,7 +22,7 @@
       }
     ]
   },
-  "skills": ["Congelatio"],
+  "skills": ["Congelatio", "Cudgel"],
   "party": ["mage"],
-  "chars": { "mage": { "Congelatio": [0, 0] } }
+  "chars": { "mage": { "Congelatio": [0, 0], "Cudgel": [2, 0] } }
 }
