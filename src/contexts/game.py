@@ -4,6 +4,7 @@ from config import WINDOW_SIZE, DEBUG, KNIGHT_BUILD, MAGE_BUILD, ROGUE_BUILD
 from contexts import Context
 from contexts.pause import PauseContext
 from contexts.inventory import InventoryContext
+from contexts.custom import CustomContext
 from dungeon.context import DungeonContext, DungeonData
 from dungeon.stage import Stage
 from dungeon.decor import Decor
@@ -261,6 +262,8 @@ class GameContext(Context):
       return ctx.handle_pause()
     if key == pygame.K_BACKSPACE:
       return ctx.handle_inventory()
+    if key == pygame.K_b:
+      return ctx.handle_custom()
 
   def handle_pause(ctx):
     child = ctx.get_tail()
@@ -271,6 +274,16 @@ class GameContext(Context):
     child.open(InventoryContext(
       inventory=ctx.inventory,
       has_ally=len(ctx.party) > 1,
+    ))
+
+  def handle_custom(ctx):
+    child = ctx.get_tail()
+    child.open(CustomContext(
+      skills=ctx.skill_pool,
+      chars=ctx.party,
+      builds=ctx.skill_builds,
+      new_skills=ctx.new_skills,
+      on_close=ctx.update_skills
     ))
 
   def update(ctx):
