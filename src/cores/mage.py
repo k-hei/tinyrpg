@@ -51,3 +51,8 @@ class Mage(BipedCore):
       *args,
       **kwargs
     )
+
+  def wake_up(mage):
+    sleep_anim = next((a for a in mage.anims if type(a) is Mage.SleepAnim), None)
+    if sleep_anim:
+      mage.anims.remove(sleep_anim)

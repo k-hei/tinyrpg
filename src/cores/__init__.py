@@ -76,6 +76,9 @@ class Core:
     core.dead = False
     return True
 
+  def wake_up(core):
+    pass
+
   def allied(a, b):
     return (a.faction == b.faction
       or a.faction == "player" and b.faction == "ally"

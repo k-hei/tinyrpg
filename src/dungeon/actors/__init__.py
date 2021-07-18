@@ -147,6 +147,7 @@ class DungeonActor(DungeonElement):
     if actor.ailment == "sleep":
       sleep_anim = next((a for a in actor.anims if type(a) is DungeonActor.SleepAnim), None)
       sleep_anim and actor.anims.remove(sleep_anim)
+      actor.core.wake_up()
     actor.ailment = None
     actor.ailment_turns = 0
 
