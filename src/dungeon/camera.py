@@ -111,7 +111,8 @@ class Camera:
           and (type(a) is MoveAnim or type(a) is PathAnim)
         )), None)
         if move_anim:
-          hero_x, hero_y, hero_z = move_anim.cell
+          hero_x, hero_y, *hero_z = move_anim.cell
+          hero_z = hero_z and hero_z[0] or 0
           hero_y -= hero_z
 
         room_halfwidth = ceil(room.get_width() / 2)
@@ -142,9 +143,11 @@ class Camera:
           and isinstance(a, MoveAnim)
         )), None)
         if move_anim:
-          focus_x, focus_y, focus_z = move_anim.cell
+          focus_x, focus_y, *focus_z = move_anim.cell
+          focus_z = focus_z and focus_z[0] or 0
           focus_y -= focus_z
           target_x, target_y, target_z = move_anim.dest
+          target_z = target_z and target_z[0] or 0
           target_y -= target_z
 
       camera_x, camera_y = camera.upscale((focus_x, focus_y))

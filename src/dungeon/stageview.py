@@ -180,7 +180,8 @@ class StageView:
         sprite.move(((elem_x + 0.5) * TILE_SIZE, (elem_y + 1) * TILE_SIZE))
         move_anim = anims and next((a for a in anims[0] if type(a) is MoveAnim and a.target is elem), None)
         if move_anim:
-          _, _, anim_z = move_anim.cell
+          _, _, *anim_z = move_anim.cell
+          anim_z = anim_z and anim_z[0] or 0
           sprite.offset += anim_z * TILE_SIZE
         else:
           sprite.offset += elem.elev * TILE_SIZE
