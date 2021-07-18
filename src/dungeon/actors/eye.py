@@ -41,26 +41,26 @@ class Eye(DungeonActor):
     for anim_group in anims:
       for anim in [a for a in anim_group if a.target is eye]:
         if type(anim) is AwakenAnim:
-          return super().view(sprites["eye_attack"], anims)
+          return super().view(sprites["eyeball_move"], anims)
     if eye.is_dead():
-      return super().view(sprites["eye_flinch"], anims)
+      return super().view(sprites["eyeball_flinch"], anims)
     anim_group = [a for a in anims[0] if a.target is eye] if anims else []
     for anim in anim_group:
       if type(anim) is MoveAnim:
-        sprite = sprites["eye_attack"]
+        sprite = sprites["eyeball_move"]
         break
       elif (type(anim) is AttackAnim
       and anim.time < anim.duration // 2):
-        sprite = sprites["eye_attack"]
+        sprite = sprites["eyeball_move"]
         break
       elif type(anim) in (FlinchAnim, FlickerAnim):
-        sprite = sprites["eye_flinch"]
+        sprite = sprites["eyeball_flinch"]
         break
     else:
       if eye.ailment == "sleep":
-        sprite = sprites["eye_attack"]
+        sprite = sprites["eyeball_sleep"]
       else:
-        sprite = sprites["eye"]
+        sprite = sprites["eyeball"]
     if eye.ailment == "freeze":
-      sprite = sprites["eye_flinch"]
+      sprite = sprites["eyeball_flinch"]
     return super().view(sprite, anims)

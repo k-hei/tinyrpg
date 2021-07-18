@@ -1,0 +1,6 @@
+{
+  "eyeball":        [ 0,  0, 32, 32],
+  "eyeball_move":   [32,  0, 32, 32],
+  "eyeball_flinch": [ 0, 32, 32, 32],
+  "eyeball_sleep":  [32, 32, 32, 32]
+}
