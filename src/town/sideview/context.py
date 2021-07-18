@@ -264,7 +264,13 @@ class SideViewContext(Context):
           pos=(bubble_x, bubble_y),
           layer="markers"
         ))
-    if ctx.time < 120:
+
+    sprites += ctx.hud.view()
+    if sprites and sprites[0].image.get_width() == 256:
+      for sprite in sprites:
+        sprite.move((256 - WINDOW_WIDTH // 2, 0))
+
+    if ctx.time < 120 and not ctx.child:
       label_image = assets.ttf["roman"].render(ctx.area.name, WHITE)
       label_image = outline(label_image, BLACK)
       label_image = outline(label_image, WHITE)
@@ -274,5 +280,5 @@ class SideViewContext(Context):
         origin=("center", "center"),
         layer="markers"
       ))
-    sprites += ctx.hud.view()
+
     return sprites + super().view()

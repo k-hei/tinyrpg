@@ -72,6 +72,7 @@ class TopViewContext(Context):
 
   def handle_debug(ctx):
     ctx.debug = not ctx.debug
+    return True
 
   def collide(ctx, actor, delta):
     delta_x, delta_y = delta
@@ -294,7 +295,10 @@ class TopViewContext(Context):
           layer="hud"
         ))
 
-    if ctx.time < 120:
+    for sprite in sprites:
+      sprite.move((256 - WINDOW_WIDTH // 2, 0))
+
+    if ctx.time < 120 and not ctx.child:
       label_image = assets.ttf["roman"].render(ctx.area.name, WHITE)
       label_image = outline(label_image, BLACK)
       if not ctx.area.dark:

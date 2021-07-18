@@ -37,9 +37,9 @@ class App(Context):
   def init(app):
     pygame.init()
     pygame.display.set_caption(app.title)
+    app.rescale(WINDOW_SCALE_INIT)
     app.surface = pygame.Surface(app.size)
     app.surface.fill(0)
-    app.rescale(WINDOW_SCALE_INIT)
     pygame.key.set_repeat(1000 // FPS)
     pygame.display.flip()
     app.clock = pygame.time.Clock()
