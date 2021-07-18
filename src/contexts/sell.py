@@ -7,6 +7,7 @@ from comps.box import Box
 from comps.control import Control
 from comps.card import Card
 from comps.textbubble import TextBubble
+from comps.hud import Hud
 from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, BLUE, GOLD, CYAN
 from filters import replace_color
 from assets import load as use_assets
@@ -247,9 +248,9 @@ class SellContext(Context):
     super().__init__(on_close=on_close)
     ctx.items = items
     ctx.messages = messages
-    ctx.bubble = bubble or TextBubble(width=96, pos=(128, 40))
+    ctx.bubble = bubble or TextBubble(width=104, pos=(112, 40))
     ctx.portrait = portrait
-    ctx.hud = hud
+    ctx.hud = hud or Hud(party=[Knight()])
     ctx.card = card or Card("sell")
     ctx.card_pos = card and card.sprite.pos
     ctx.cursor = 0
@@ -463,6 +464,8 @@ class SellContext(Context):
         pos=(tag_x, tag_y)
       ))
 
+    if ctx.hud.image is None:
+      ctx.hud.image = ctx.hud.render()
     hud_image = ctx.hud.image
     hud_x = MARGIN
     hud_y = WINDOW_HEIGHT - hud_image.get_height() - MARGIN

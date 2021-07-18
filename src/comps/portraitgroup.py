@@ -42,6 +42,7 @@ class PortraitGroup:
   def __init__(group, portraits):
     group.portraits = portraits
     group.portraits_init = list(portraits)
+    group.portraits_cache = {}
     group.cycling = False
     group.exiting = False
     group.anims = []
@@ -125,7 +126,9 @@ class PortraitGroup:
     for i, portrait in enumerate(group.portraits):
       portrait_image = portraits_images[i]
       if group.cycling and i != 0:
-        portrait_image = darken_image(portrait_image)
+        if i not in group.portraits_cache:
+          group.portraits_cache[i] = darken_image(portrait_image)
+        portrait_image = group.portraits_cache[i]
       portrait_anim = next((a for a in group.anims if a.target is portrait), None)
       portrait_x = portraits_xs[i]
       if type(portrait_anim) is EnterAnim:

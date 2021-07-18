@@ -5,17 +5,18 @@ from colors.palette import DARKBLUE
 
 class FortuneContext(ShopContext):
   def __init__(ctx, *args, **kwargs):
+    ORACLE_NAME = Oracle.name.upper()
     super().__init__(
       title="Fortune House",
       subtitle="Destiny written in starlight",
       messages={
-        "home": Oracle.name.upper() + ": What can I do you for...?",
-        "home_again": Oracle.name.upper() + ": Anything else...?",
+        "home": "{}: What can I do you for...?".format(ORACLE_NAME),
+        "home_again": "{}: Anything else...?".format(ORACLE_NAME),
         "sell": {
-          "home": Oracle.name.upper() + ": Got something to sell me?",
-          "thanks": Oracle.name.upper() + ": Thanks!"
+          "home": "{}: Got something to sell me?".format(ORACLE_NAME),
+          "thanks": "{}: Thanks!".format(ORACLE_NAME)
         },
-        "exit": Oracle.name.upper() + ": Come again..."
+        "exit": "{}: Come again...".format(ORACLE_NAME)
       },
       bg_name="fortune_bg",
       bg_color=DARKBLUE,
