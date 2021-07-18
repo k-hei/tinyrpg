@@ -14,6 +14,8 @@ class StoreContext(ShopContext):
         "home_again": Husband.name.upper() + ": Will that be all for today?",
         "sell": {
           "home": Wife.name.upper() + ": Got something to sell me?",
+          "home_again": Wife.name.upper() + ": Anything else to sell?",
+          "confirm": Wife.name.upper() + ": That'll be {gold}G. OK?",
           "thanks": Wife.name.upper() + ": Thanks!"
         },
         "exit": Wife.name.upper() + ": See you soon!"

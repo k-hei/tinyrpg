@@ -13,7 +13,7 @@ App(
       "home": "{}: Got something to sell me?".format(ORACLE_NAME),
       "thanks": "{}: Thanks!".format(ORACLE_NAME)
     },
-    items=list(map(resolve_item, [
+    items=[resolve_item(i) for i in [
       "Potion",
       "Potion",
       "Ankh",
@@ -35,6 +35,6 @@ App(
       "AngelTears",
       "RedFerrule",
       "Diamond"
-    ]))
+    ]]
   )
 ).init()

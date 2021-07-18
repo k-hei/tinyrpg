@@ -90,7 +90,7 @@ class ShopContext(Context):
     ctx.hud = hud or Hud([Knight()])
     ctx.anims = [CursorAnim()]
     ctx.on_animate = None
-    ctx.bubble = TextBubble(width=104, pos=(112, 40))
+    ctx.bubble = TextBubble(width=104, pos=(240, 40))
     ctx.controls = [
       Control(key=("X"), value="Menu")
     ]

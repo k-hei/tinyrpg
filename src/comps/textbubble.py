@@ -7,6 +7,7 @@ from assets import assets
 from comps.textbox import TextBox
 from comps.log import Message
 from contexts import Context
+from contexts.choice import Choice
 from easing.circ import ease_out
 from anims.tween import TweenAnim
 from anims.sine import SineAnim

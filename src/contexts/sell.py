@@ -6,7 +6,7 @@ from contexts import Context
 from comps.box import Box
 from comps.control import Control
 from comps.card import Card
-from comps.textbubble import TextBubble
+from comps.textbubble import TextBubble, Choice
 from comps.hud import Hud
 from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, BLUE, GOLD, CYAN
 from filters import replace_color
@@ -16,6 +16,7 @@ import keyboard
 from cores.knight import Knight
 from anims import Anim
 from anims.tween import TweenAnim
+from anims.pause import PauseAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
 from items.materials import MaterialItem
@@ -253,6 +254,7 @@ class SellContext(Context):
     ctx.hud = hud or Hud(party=[Knight()])
     ctx.card = card or Card("sell")
     ctx.card_pos = card and card.sprite.pos
+    ctx.gold = 500
     ctx.cursor = 0
     ctx.cursor_drawn = 0
     ctx.scroll = 0
@@ -270,6 +272,30 @@ class SellContext(Context):
       Control(key=("L", "R"), value="Tab")
     ]
     ctx.reset_cursor()
+
+  def get_selection_value(ctx):
+    surplus = 0
+    for tab, i in ctx.selection:
+      items = filter_items(ctx.items, tab)
+      item = items[i]
+      surplus += item.value // 2
+    return surplus
+
+  def sell(ctx):
+    items = []
+    cursor = None
+    for tab, i in ctx.selection:
+      items.append(filter_items(ctx.items, tab)[i])
+      if tab == ctx.tablist.selection() and cursor is None:
+        cursor = i
+    for item in items:
+      ctx.gold += item.value // 2
+      ctx.items.remove(item)
+    ctx.itembox.items = filter_items(ctx.items, ctx.tablist.selection())
+    ctx.selection = []
+    if cursor != None:
+      ctx.cursor = cursor
+      ctx.cursor_drawn = cursor
 
   def enter(ctx):
     ctx.anims += [
@@ -305,6 +331,9 @@ class SellContext(Context):
     ctx.on_animate = ctx.close
 
   def handle_keydown(ctx, key):
+    if ctx.child:
+      return super().handle_keydown(key)
+
     if next((a for a in ctx.anims if a.blocking), None) or ctx.tablist.anims:
       return
 
@@ -338,6 +367,9 @@ class SellContext(Context):
       else:
         control.press("R")
         return ctx.handle_tab(delta=1)
+
+    if key == pygame.K_RETURN:
+      ctx.handle_sell()
 
     if key in (pygame.K_BACKSPACE, pygame.K_ESCAPE):
       if ctx.selection:
@@ -412,6 +444,31 @@ class SellContext(Context):
   def handle_close(ctx):
     return ctx.exit(on_end=ctx.close)
 
+  def handle_sell(ctx):
+    if not ctx.selection:
+      return
+    selection_value = ctx.get_selection_value()
+    ctx.open(
+      child=ctx.bubble.prompt(
+        message=ctx.messages["confirm"].format(gold=selection_value),
+        choices=[
+          Choice(text="Yes"),
+          Choice(text="No", closing=True),
+        ]
+      ),
+      on_close=lambda choice: (
+        choice.text == "Yes" and (
+          ctx.sell(),
+          ctx.bubble.print(ctx.messages["thanks"]),
+          ctx.anims.append(PauseAnim(
+            duration=90,
+            on_end=lambda: ctx.bubble.print(ctx.messages["home_again"])
+          ))
+        ),
+        choice.text == "No" and ctx.bubble.print(ctx.messages["home_again"])
+      )
+    )
+
   def reset_cursor(ctx):
     ctx.cursor = 0
     ctx.cursor_drawn = 0
@@ -423,6 +480,7 @@ class SellContext(Context):
     ]
 
   def update(ctx):
+    super().update()
     for anim in ctx.anims:
       if anim.done:
         ctx.anims.remove(anim)
@@ -484,18 +542,14 @@ class SellContext(Context):
       gold_y = lerp(WINDOW_HEIGHT, gold_y, t)
     if gold_anim or not ctx.exiting:
       goldtext_font = assets.ttf["roman"]
-      goldtext_image = goldtext_font.render("500")
+      goldtext_image = goldtext_font.render(str(ctx.gold))
       goldtext_x = gold_x + gold_image.get_width() + 3
       goldtext_y = gold_y + gold_image.get_height() // 2 - goldtext_image.get_height() // 2
       sprites += [
         Sprite(image=gold_image, pos=(gold_x, gold_y)),
         Sprite(image=goldtext_image, pos=(goldtext_x, goldtext_y))
       ]
-      surplus = 0
-      for tab, i in ctx.selection:
-        items = filter_items(ctx.items, tab)
-        item = items[i]
-        surplus += item.value // 2
+      surplus = ctx.get_selection_value()
       if surplus:
         surplus_image = goldtext_font.render("(+{})".format(surplus), CYAN)
         sprites.append(Sprite(
@@ -637,7 +691,10 @@ class SellContext(Context):
     card_sprite.pos = (card_x, card_y)
     sprites.append(card_sprite)
 
-    if ctx.itembox.items and ctx.cursor_drawn != None and not next((a for a in ctx.anims if a.blocking), None):
+    if (ctx.itembox.items
+    and ctx.cursor_drawn != None
+    and not next((a for a in ctx.anims if a.blocking), None)
+    and not ctx.child):
       cursor_anim = next((a for a in ctx.anims if type(a) is ctx.CursorAnim), None)
       hand_color = CYAN if ctx.selection else BLACK
       hand_image = assets.sprites["hand"]

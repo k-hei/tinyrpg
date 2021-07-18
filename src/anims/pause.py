@@ -1,4 +1,6 @@
 class PauseAnim():
+  blocking = False
+
   def __init__(anim, duration, on_end=None):
     anim.done = False
     anim.time = 0

@@ -62,9 +62,10 @@ class Context:
     if on_close:
       if child.on_close:
         on_close_old = child.on_close
-        def close(*data):
-          on_close(on_close_old(*data))
-        child.on_close = close
+        child.on_close = lambda *data: (
+          on_close_old(*data),
+          on_close(*data)
+        )
       else:
         child.on_close = on_close
     return True
