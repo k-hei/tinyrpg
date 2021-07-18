@@ -888,10 +888,8 @@ class DungeonContext(Context):
       duration = RUN_DURATION if run else MOVE_DURATION
       duration = duration * 1.5 if jump else duration
       anim_kind = JumpAnim if jump else MoveAnim
-      src_x, src_y = actor.cell
-      src_cell = (src_x, src_y, origin_tile.elev)
-      dest_x, dest_y = target_cell
-      dest_cell = (dest_x, dest_y, target_tile.elev)
+      src_cell = (*actor.cell, max(0, origin_tile.elev))
+      dest_cell = (*target_cell, max(0, target_tile.elev))
       move_anim = anim_kind(
         duration=duration,
         target=actor,
@@ -1212,7 +1210,7 @@ class DungeonContext(Context):
     else:
       game.log.print("Your HP and SP have been restored.")
 
-    game.anims.append([PauseAnim(duration=180)])
+    game.anims.append([PauseAnim(duration=60)])
 
   def learn_skill(game, skill):
     game.parent.learn_skill(skill)

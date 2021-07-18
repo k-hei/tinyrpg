@@ -90,7 +90,7 @@ class Camera:
         focus_x, focus_y = hero.cell
         target_x, target_y = hero.cell
         hero_x, hero_y = hero.cell
-        hero_y -= hero.elev
+        hero_y -= max(0, hero.elev)
 
       anims = []
       if len(game.anims):
@@ -112,7 +112,7 @@ class Camera:
         )), None)
         if move_anim:
           hero_x, hero_y, *hero_z = move_anim.cell
-          hero_z = hero_z and hero_z[0] or 0
+          hero_z = max(0, hero_z and hero_z[0] or 0)
           hero_y -= hero_z
 
         room_halfwidth = ceil(room.get_width() / 2)
@@ -144,10 +144,10 @@ class Camera:
         )), None)
         if move_anim:
           focus_x, focus_y, *focus_z = move_anim.cell
-          focus_z = focus_z and focus_z[0] or 0
+          focus_z = max(0, focus_z and focus_z[0] or 0)
           focus_y -= focus_z
           target_x, target_y, target_z = move_anim.dest
-          target_z = target_z and target_z[0] or 0
+          target_z = max(0, target_z and target_z[0] or 0)
           target_y -= target_z
 
       camera_x, camera_y = camera.upscale((focus_x, focus_y))

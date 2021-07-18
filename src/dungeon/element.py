@@ -59,7 +59,7 @@ class DungeonElement:
         if offset_x or offset_y:
           continue
         anim_x, anim_y, *anim_z = anim.cell
-        anim_z = anim_z and anim_z[0] or 0
+        anim_z = max(0, anim_z and anim_z[0] or 0)
         elem_x, elem_y = elem.cell
         offset_x = (anim_x - elem_x) * TILE_SIZE
         offset_y = (anim_y - anim_z - elem_y) * TILE_SIZE

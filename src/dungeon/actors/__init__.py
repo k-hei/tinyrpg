@@ -318,7 +318,7 @@ class DungeonActor(DungeonElement):
         ))
 
     move_anim = next((a for a in anim_group if type(a) is MoveAnim), None)
-    if actor.elev and not move_anim:
+    if actor.elev > 0 and not move_anim:
       offset_y -= actor.elev * TILE_SIZE
 
     if new_color:
