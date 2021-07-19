@@ -12,13 +12,13 @@ from sprite import Sprite
 from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
-from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
 from filters import outline
 from transits.dissolve import DissolveIn, DissolveOut
 from colors.palette import BLACK, WHITE
 import keyboard
 from cores.knight import Knight
 from cores.mage import Mage
+from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT, LABEL_FRAMES
 
 def insert_value(mapping, key, value):
   keys = mapping.keys()
@@ -298,7 +298,7 @@ class TopViewContext(Context):
           layer="hud"
         ))
 
-    if ctx.time < 120 and not ctx.child:
+    if ctx.time < LABEL_FRAMES and not ctx.child:
       label_image = assets.ttf["roman"].render(ctx.area.name, WHITE)
       label_image = outline(label_image, BLACK)
       if not ctx.area.dark:

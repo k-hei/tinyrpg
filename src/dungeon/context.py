@@ -7,7 +7,17 @@ from dataclasses import dataclass
 import json
 
 import config
-from config import WINDOW_SIZE, VISION_RANGE, MOVE_DURATION, RUN_DURATION, JUMP_DURATION, FLICKER_DURATION
+from config import (
+  WINDOW_WIDTH,
+  WINDOW_HEIGHT,
+  WINDOW_SIZE,
+  VISION_RANGE,
+  MOVE_DURATION,
+  RUN_DURATION,
+  JUMP_DURATION,
+  FLICKER_DURATION,
+  LABEL_FRAMES
+)
 
 import keyboard
 from keyboard import ARROW_DELTAS, key_times
@@ -17,9 +27,11 @@ import debug
 from lib.cell import add, is_adjacent, manhattan, normal
 import lib.direction as direction
 
+import assets
 from assets import load as load_assets
-from filters import recolor, replace_color
-from colors.palette import GREEN, CYAN
+from sprite import Sprite
+from filters import recolor, replace_color, outline
+from colors.palette import BLACK, WHITE, GREEN, CYAN
 from text import render as render_text
 from transits.dissolve import DissolveIn, DissolveOut
 
@@ -131,6 +143,7 @@ class DungeonContext(Context):
     game.minimap = None
     game.comps = []
     game.debug = False
+    game.time = 0
 
   def init(game):
     if game.floor:
@@ -236,6 +249,7 @@ class DungeonContext(Context):
     game.camera.update(game)
     game.floor_view = StageView(WINDOW_SIZE)
     game.redraw_tiles()
+    game.time = 0
 
   def create_floor(game):
     floor = gen.gen_floor(seed=config.SEED)
@@ -1353,6 +1367,7 @@ class DungeonContext(Context):
           break
       if not group:
         game.anims.remove(group)
+    game.time += 1
 
   def view(game):
     sprites = []
@@ -1376,5 +1391,16 @@ class DungeonContext(Context):
         for comp in [c for c in game.comps if not c.active]:
           if type(comp) is not Log:
             comp.enter()
+
+    if game.time < LABEL_FRAMES and not game.child:
+      label_image = assets.ttf["roman"].render("Dungeon {}F".format(game.get_floor_no()), WHITE)
+      label_image = outline(label_image, BLACK)
+      label_image = outline(label_image, WHITE)
+      sprites.append(Sprite(
+        image=label_image,
+        pos=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 4),
+        origin=("center", "center"),
+        layer="markers"
+      ))
 
     return sprites + super().view()

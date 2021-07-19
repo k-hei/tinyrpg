@@ -12,12 +12,12 @@ from cores.knight import Knight
 from comps.hud import Hud
 from assets import load as use_assets
 from sprite import Sprite
-from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
 from filters import replace_color, outline
 from colors.palette import BLACK, WHITE, BLUE
 from transits.dissolve import DissolveIn, DissolveOut
 from anims import Anim
 import keyboard
+from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT, LABEL_FRAMES
 
 class FollowAnim(Anim): pass
 
@@ -270,7 +270,7 @@ class SideViewContext(Context):
         sprite.move((256 - WINDOW_WIDTH // 2, 0))
     sprites += ctx.hud.view()
 
-    if ctx.time < 120 and not ctx.child:
+    if ctx.time < LABEL_FRAMES and not ctx.child:
       label_image = assets.ttf["roman"].render(ctx.area.name, WHITE)
       label_image = outline(label_image, BLACK)
       label_image = outline(label_image, WHITE)
