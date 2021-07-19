@@ -25,7 +25,7 @@ OPTIONS_Y = WINDOW_HEIGHT // 2 + 16
 class TitleCharEnterAnim(TweenAnim): blocking = True
 class ChooseAnim(FlickerAnim): blocking = True
 class ScrollAnim(Anim):
-  speed = 3
+  speed = 2
   offset = 48
 
 def get_title_char_offset(a, b):
@@ -221,14 +221,15 @@ class GameOverContext(Context):
           char_height *= ease_out(char_anim.pos)
         sprites.append(Sprite(
           image=char_image,
-          pos=(chars_x + char_x, WINDOW_HEIGHT // 3),
+          pos=(chars_x + char_x + char_offset // 2, WINDOW_HEIGHT // 3),
           size=(char_image.get_width(), char_height),
           origin=("left", "center")
         ))
         char_next = GameOverContext.TITLE_SEQUENCE[i + 1] if i + 1 < len(GameOverContext.TITLE_SEQUENCE) else None
         char_x += char_image.get_width() + char_offset + get_title_char_offset(char, char_next)
 
-    if scroll_anim or next((a for a in ctx.anims if a.blocking), None):
+    flicker_anim = next((a for a in ctx.anims if type(a) is ChooseAnim), None)
+    if scroll_anim or next((a for a in ctx.anims if a.blocking and a is not flicker_anim), None):
       return sprites
 
     choice_y = OPTIONS_Y
@@ -242,7 +243,6 @@ class GameOverContext(Context):
     choice_sprite = choice_sprites[ctx.choice_index]
     choice_x = OPTIONS_X - 4
     bounce_anim = next((a for a in ctx.anims if type(a) is SineAnim), None)
-    flicker_anim = next((a for a in ctx.anims if type(a) is ChooseAnim), None)
     if not flicker_anim or flicker_anim.visible:
       if not flicker_anim and bounce_anim and not ctx.child:
         choice_x += bounce_anim.pos
