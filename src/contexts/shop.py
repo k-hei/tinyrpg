@@ -72,14 +72,14 @@ def animate_text(anim, text, period, stagger=1, delay=0):
   return anims
 
 class ShopContext(Context):
-  def __init__(ctx, title, subtitle, messages, portraits, cards, bg_name, bg_color=WHITE, items=[], hud=None):
+  def __init__(ctx, title, subtitle, messages, portraits, cards, bg_name, bg_color=WHITE, items=[], gold=0, hud=None):
     super().__init__()
     ctx.title = title
     ctx.subtitle = subtitle
     ctx.portraits = PortraitGroup(portraits)
     ctx.cards = cards
     ctx.items = items
-    ctx.hero = Knight()
+    ctx.gold = gold
     ctx.bg_name = bg_name
     ctx.bg_color = bg_color
     ctx.messages = messages
@@ -166,6 +166,7 @@ class ShopContext(Context):
     ]
     ctx.child.open(SellContext(
       items=ctx.items,
+      gold=ctx.gold,
       bubble=ctx.bubble,
       portrait=ctx.portraits.portraits[0],
       messages=ctx.messages["sell"],

@@ -10,13 +10,15 @@ class FortuneContext(ShopContext):
       title="Fortune House",
       subtitle="Destiny written in starlight",
       messages={
-        "home": "{}: What can I do you for...?".format(ORACLE_NAME),
-        "home_again": "{}: Anything else...?".format(ORACLE_NAME),
+        "home": ORACLE_NAME + ": What can I do you for...?",
+        "home_again": ORACLE_NAME + ": Anything else...?",
         "sell": {
-          "home": "{}: Got something to sell me?".format(ORACLE_NAME),
-          "thanks": "{}: Thanks!".format(ORACLE_NAME)
+          "home": ORACLE_NAME + ": Got something to sell me?",
+          "home_again": ORACLE_NAME + ": Anything else to sell?",
+          "confirm": ORACLE_NAME + ": That'll be {gold}G. OK?",
+          "thanks": ORACLE_NAME + ": Thanks!"
         },
-        "exit": "{}: Come again...".format(ORACLE_NAME)
+        "exit": ORACLE_NAME + ": Come again..."
       },
       bg_name="fortune_bg",
       bg_color=DARKBLUE,

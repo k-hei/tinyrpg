@@ -245,7 +245,7 @@ class SellContext(Context):
   class GoldEnterAnim(GoldAnim): pass
   class GoldExitAnim(GoldAnim): pass
 
-  def __init__(ctx, items, messages, bubble=None, portrait=None, hud=None, card=None, on_close=None):
+  def __init__(ctx, items, gold, messages, bubble=None, portrait=None, hud=None, card=None, on_close=None):
     super().__init__(on_close=on_close)
     ctx.items = items
     ctx.messages = messages
@@ -254,7 +254,8 @@ class SellContext(Context):
     ctx.hud = hud or Hud(party=[Knight()])
     ctx.card = card or Card("sell")
     ctx.card_pos = card and card.sprite.pos
-    ctx.gold = 500
+    ctx.gold = gold
+    ctx.gold_drawn = ctx.gold
     ctx.cursor = 0
     ctx.cursor_drawn = 0
     ctx.scroll = 0
@@ -283,19 +284,17 @@ class SellContext(Context):
 
   def sell(ctx):
     items = []
-    cursor = None
     for tab, i in ctx.selection:
       items.append(filter_items(ctx.items, tab)[i])
-      if tab == ctx.tablist.selection() and cursor is None:
-        cursor = i
     for item in items:
       ctx.gold += item.value // 2
+      game = ctx.get_parent(cls="GameContext")
+      if game:
+        game.gold += item.value // 2
       ctx.items.remove(item)
     ctx.itembox.items = filter_items(ctx.items, ctx.tablist.selection())
     ctx.selection = []
-    if cursor != None:
-      ctx.cursor = cursor
-      ctx.cursor_drawn = cursor
+    ctx.reset_cursor()
 
   def enter(ctx):
     ctx.anims += [
@@ -461,7 +460,7 @@ class SellContext(Context):
           ctx.sell(),
           ctx.bubble.print(ctx.messages["thanks"]),
           ctx.anims.append(PauseAnim(
-            duration=90,
+            duration=120,
             on_end=lambda: ctx.bubble.print(ctx.messages["home_again"])
           ))
         ),
@@ -542,7 +541,8 @@ class SellContext(Context):
       gold_y = lerp(WINDOW_HEIGHT, gold_y, t)
     if gold_anim or not ctx.exiting:
       goldtext_font = assets.ttf["roman"]
-      goldtext_image = goldtext_font.render(str(ctx.gold))
+      ctx.gold_drawn += (ctx.gold - ctx.gold_drawn) / 16
+      goldtext_image = goldtext_font.render(str(round(ctx.gold_drawn)))
       goldtext_x = gold_x + gold_image.get_width() + 3
       goldtext_y = gold_y + gold_image.get_height() // 2 - goldtext_image.get_height() // 2
       sprites += [

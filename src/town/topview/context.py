@@ -277,6 +277,9 @@ class TopViewContext(Context):
       if not ctx.hud.active and not hud_anim:
         ctx.hud.enter()
 
+    for sprite in sprites:
+      sprite.move((256 - WINDOW_WIDTH // 2, 0))
+
     if hud_anim or (ctx.hud.active or ctx.hud.anims) and (not ctx.child or not isinstance(ctx.child.child, ShopContext)):
       if ctx.hud.anims and not hud_anim:
         sprites += ctx.hud.view()
@@ -294,9 +297,6 @@ class TopViewContext(Context):
           pos=(hud_x, hud_y),
           layer="hud"
         ))
-
-    for sprite in sprites:
-      sprite.move((256 - WINDOW_WIDTH // 2, 0))
 
     if ctx.time < 120 and not ctx.child:
       label_image = assets.ttf["roman"].render(ctx.area.name, WHITE)
