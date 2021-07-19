@@ -12,6 +12,7 @@ from colors.palette import BLACK
 from anims.tween import TweenAnim
 from easing.expo import ease_out
 from sprite import Sprite
+import debug
 # from comps.previews import Previews
 # from comps.minimap import Minimap
 # from comps.spmeter import SpMeter
@@ -68,7 +69,7 @@ class DialogueContext(Context):
       def print():
         ctx.name = None
         ctx.open(item, on_close=lambda *data: (
-          len(data) == 1 and isinstance(data[0], Iterable) and ctx.script.extend(data[0]),
+          data and isinstance(data[0], Iterable) and ctx.script.extend(data[0]),
           ctx.handle_next()
         ))
         if "log" in dir(ctx.child):

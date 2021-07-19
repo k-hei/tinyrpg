@@ -115,25 +115,26 @@ class Camera:
           hero_z = max(0, hero_z and hero_z[0] or 0)
           hero_y -= hero_z
 
-        room_halfwidth = ceil(room.get_width() / 2)
-        room_halfheight = ceil(room.get_height() / 2)
-        max_radius_x = room_halfwidth - Camera.MAX_RADIUS_X
-        max_radius_y = room_halfheight - Camera.MAX_RADIUS_Y
-        if room.get_width() > Camera.MAX_RADIUS_X * 2 + 1:
-          if hero_x - focus_x < -max_radius_x:
-            focus_x -= max_radius_x
-          elif hero_x - focus_x > max_radius_x:
-            focus_x += max_radius_x
-          else:
-            focus_x = hero_x
+        if hero and hero in game.floor.elems:
+          room_halfwidth = ceil(room.get_width() / 2)
+          room_halfheight = ceil(room.get_height() / 2)
+          max_radius_x = room_halfwidth - Camera.MAX_RADIUS_X
+          max_radius_y = room_halfheight - Camera.MAX_RADIUS_Y
+          if room.get_width() > Camera.MAX_RADIUS_X * 2 + 1:
+            if hero_x - focus_x < -max_radius_x:
+              focus_x -= max_radius_x
+            elif hero_x - focus_x > max_radius_x:
+              focus_x += max_radius_x
+            else:
+              focus_x = hero_x
 
-        if room.get_height() > Camera.MAX_RADIUS_Y * 2 + 1:
-          if hero_y - focus_y < -max_radius_y:
-            focus_y -= max_radius_y
-          elif hero_y - focus_y > max_radius_y:
-            focus_y += max_radius_y
-          else:
-            focus_y = hero_y
+          if room.get_height() > Camera.MAX_RADIUS_Y * 2 + 1:
+            if hero_y - focus_y < -max_radius_y:
+              focus_y -= max_radius_y
+            elif hero_y - focus_y > max_radius_y:
+              focus_y += max_radius_y
+            else:
+              focus_y = hero_y
 
         target_x, target_y = focus_x, focus_y
       else:

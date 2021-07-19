@@ -197,7 +197,6 @@ def cutscene(room, game):
       game.anims.append([PauseAnim(duration=15, on_end=step)])
     ),
     lambda step: (
-      room.mage.move_to(add_cell(room.cell, (3, -2))),
       game.anims.append([PathAnim(
         target=room.mage,
         path=[add_cell(room.cell, c) for c in [(3, 2), (3, 1), (3, 0), (3, -1), (3, -2)]],
@@ -206,6 +205,7 @@ def cutscene(room, game):
     ),
     lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
     lambda step: (
+      room.mage.move_to(add_cell(room.cell, (3, -2))),
       game.floor.remove_elem(room.mage),
       game.camera.focus(game.hero.cell, force=True, speed=8),
       game.anims.append([PauseAnim(duration=60, on_end=step)])

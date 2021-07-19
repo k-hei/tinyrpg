@@ -1,5 +1,5 @@
 DEBUG = True
-CUTSCENES = False
+CUTSCENES = True
 
 # dungeon generation
 SEED = None

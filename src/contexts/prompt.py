@@ -27,9 +27,7 @@ class PromptContext(Context):
       on_close=ctx.exit))
 
   def close(ctx, choice):
-    ctx.parent.child = None
-    if ctx.on_close:
-      ctx.on_close(choice)
+    super().close(choice)
 
   def view(ctx):
     sprites = []

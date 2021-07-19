@@ -37,7 +37,7 @@ class AltarRoom(SpecialRoom):
       "    .    ",
     ], elems=[
       ((4, 6), mage := Mage(faction="ally", facing=(0, -1))),
-      ((4, 5), altar := Altar()),
+      ((4, 5), altar := Altar(on_effect=room.on_trigger)),
       ((2, 8), Pillar()),
       ((1, 7), Pillar()),
       ((1, 5), Pillar()),
@@ -66,16 +66,13 @@ class AltarRoom(SpecialRoom):
       return False
     game.open(CutsceneContext(script=[
       *(cutscene(room, game) if config.CUTSCENES else []),
-      lambda step: (
-        game.get_head().transition(
-          transits=(DissolveIn(), DissolveOut()),
-          loader=Floor1.generate(),
-          on_end=lambda floor: (
-            game.use_floor(floor, generator=Floor1),
-            step()
-          )
-        )
-      )
+      next_floor(game)
+    ]))
+
+  def on_trigger(room, game):
+    game.open(CutsceneContext(script=[
+      *collapse(room, game),
+      next_floor(game)
     ]))
 
   def create_floor(room, *args, **kwargs):
@@ -163,6 +160,23 @@ def cutscene(room, game):
         on_close=step
       ))
     ),
+    *collapse(room, game)
+  ]
+
+def next_floor(game):
+  return lambda step: (
+    game.get_head().transition(
+      transits=(DissolveIn(), DissolveOut()),
+      loader=Floor1.generate(),
+      on_end=lambda floor: (
+        game.use_floor(floor, generator=Floor1),
+        step()
+      )
+    )
+  )
+
+def collapse(room, game):
+  return [
     *[(lambda cell: lambda step: (
       game.floor.set_tile_at(add(room.cell, cell), game.floor.PIT),
       game.redraw_tiles(force=True),

@@ -6,8 +6,9 @@ from sprite import Sprite
 from anims.frame import FrameAnim
 
 class Altar(DungeonElement):
-  def __init__(altar, *args, **kwargs):
+  def __init__(altar, on_effect=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
+    altar.on_effect = on_effect
     altar.reset_anim()
 
   def reset_anim(altar):
@@ -15,6 +16,9 @@ class Altar(DungeonElement):
       frames=["fx_soul{}".format(i) for i in range(6)],
       duration=60
     )
+
+  def effect(altar, game):
+    altar.on_effect and altar.on_effect(game)
 
   def update(altar):
     altar.anim.update()

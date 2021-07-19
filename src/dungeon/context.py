@@ -972,6 +972,7 @@ class DungeonContext(Context):
     return max(1, actor_str - target_def + randint(-variance, variance))
 
   def attack(game, actor, target, damage=None, on_connect=None, on_end=None):
+    actor.weapon = actor.load_weapon()
     if actor.weapon is None:
       return False
     if damage is None:
@@ -1206,12 +1207,6 @@ class DungeonContext(Context):
 
   def learn_skill(game, skill):
     game.parent.learn_skill(skill)
-
-  def update_skills(game):
-    game.parent.update_skills()
-    game.hero.weapon = game.hero.load_weapon()
-    if game.ally:
-      game.ally.weapon = game.ally.load_weapon()
 
   def handle_ascend(game):
     if game.floor.get_tile_at(game.hero.cell) is not Stage.STAIRS_UP:
