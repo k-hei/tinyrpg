@@ -557,17 +557,11 @@ class DungeonContext(Context):
     if key == pygame.K_f:
       return game.handle_examine()
 
-    if key == pygame.K_b:
-      return game.handle_custom()
-
     if key == pygame.K_m:
       return game.handle_minimap()
 
     if game.hero.is_dead() or game.hero.ailment == "sleep":
       return False
-
-    if key == pygame.K_BACKSPACE:
-      return game.handle_inventory()
 
     if key == pygame.K_BACKSLASH or key == pygame.K_BACKQUOTE:
       return game.handle_wait()
@@ -763,6 +757,7 @@ class DungeonContext(Context):
 
   def handle_attack(game, target):
     hero = game.hero
+    hero.weapon = hero.load_weapon()
     if hero.weapon:
       game.parent.deplete_sp(hero.weapon.cost)
       return game.attack(hero, target, on_end=lambda: (
@@ -797,23 +792,6 @@ class DungeonContext(Context):
           game.use_skill(game.hero, skill, dest)
         ) or game.refresh_fov()
       )
-    ))
-
-  def handle_inventory(game):
-    game.log.exit()
-    game.open(InventoryContext(inventory=game.parent.inventory))
-
-  def handle_custom(game):
-    game.log.exit()
-    chars = [game.hero.core]
-    if game.ally:
-      chars.append(game.ally.core)
-    game.open(CustomContext(
-      skills=game.parent.skill_pool,
-      chars=chars,
-      builds=game.parent.skill_builds,
-      new_skills=game.parent.new_skills,
-      on_close=game.update_skills
     ))
 
   def handle_examine(game):
