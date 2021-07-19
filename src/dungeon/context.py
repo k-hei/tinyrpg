@@ -1277,6 +1277,8 @@ class DungeonContext(Context):
     index = game.floors.index(game.floor) + direction
     if index >= len(game.floors) or index < 0:
       # create a new floor if out of bounds
+      if gen_index is None:
+        return game.leave_dungeon()
       app = game.get_head()
       Floor = DungeonContext.FLOORS[gen_index + direction]
       app.transition(
@@ -1311,8 +1313,6 @@ class DungeonContext(Context):
     return True
 
   def leave_dungeon(game):
-    for comp in game.comps:
-      comp.exit()
     app = game.get_head()
     app.transition([
       DissolveIn(on_end=lambda: game.parent.goto_town(returning=True)),

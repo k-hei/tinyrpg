@@ -32,6 +32,9 @@ class AltarRoom(SpecialRoom):
       "    .    ",
       "    .    ",
       "    .    ",
+      "    .    ",
+      "    .    ",
+      "    .    ",
     ], elems=[
       ((4, 6), mage := Mage(faction="ally", facing=(0, -1))),
       ((4, 5), altar := Altar()),
@@ -58,6 +61,9 @@ class AltarRoom(SpecialRoom):
     ]
 
   def on_enter(room, game):
+    super().on_enter(game)
+    if not config.CUTSCENES:
+      return False
     game.open(CutsceneContext(script=[
       *(cutscene(room, game) if config.CUTSCENES else []),
       lambda step: (
@@ -71,6 +77,12 @@ class AltarRoom(SpecialRoom):
         )
       )
     ]))
+
+  def create_floor(room, *args, **kwargs):
+    floor = next(super().create_floor(use_edge=False, *args, **kwargs))
+    floor.entrance = room.get_edges()[0]
+    floor.set_tile_at(floor.entrance, floor.STAIRS_UP)
+    yield floor
 
 def cutscene(room, game):
   return [
