@@ -1,24 +1,53 @@
 from math import sin, pi
+from random import randrange, randint
 import pygame
-from pygame import Surface
+from pygame import Surface, Rect, SRCALPHA
 import keyboard
 from contexts import Context
 from contexts.load import LoadContext
 from sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
 from colors.palette import BLACK
+from filters import recolor, outline
 from assets import load as use_assets
+from anims import Anim
 from anims.sine import SineAnim
 from anims.flicker import FlickerAnim
+from anims.tween import TweenAnim
+from easing.expo import ease_out
 from transits.dissolve import DissolveOut
+import assets
 
 OPTIONS_SPACING = 20
 OPTIONS_X = WINDOW_WIDTH // 2 - 32
 OPTIONS_Y = WINDOW_HEIGHT // 2 + 16
 
+class TitleCharEnterAnim(TweenAnim): blocking = True
 class ChooseAnim(FlickerAnim): blocking = True
+class ScrollAnim(Anim):
+  speed = 3
+  offset = 48
+
+def get_title_char_offset(a, b):
+  if a == "g" and b == "a": return -7
+  if a == "m" and b == "e1": return 1
+  if b == " ": return 21
+  if a == "o" and b == "v": return 1
+  if a == "e2" and b == "r": return -12
+  return 0
+
+class Hand:
+  def __init__(hand, x, y=0):
+    hand.x = x
+    hand.y = WINDOW_HEIGHT + randrange(48) + y
+    hand.darkened = y != 0
+    hand.flipped = not randint(0, 1)
+    hand.shake_period = randint(2, 4)
+    hand.twitch_period = randint(4, 16)
+    hand.twitch_offset = randrange(8)
 
 class GameOverContext(Context):
+  TITLE_SEQUENCE = ["g", "a", "m", "e1", " ", "o", "v", "e2", "r"]
   choices = [
     "Continue",
     "Load Game"
@@ -27,12 +56,53 @@ class GameOverContext(Context):
   def __init__(ctx, *args, **kwargs):
     super().__init__(*args, **kwargs)
     ctx.choice_index = 0
-    ctx.anims = [SineAnim(target="hand", period=30, amplitude=2)]
+    ctx.anims = [
+      SineAnim(target="hand", period=30, amplitude=2),
+      ScrollAnim(),
+    ]
     ctx.cache_bg = None
+    ctx.hands = []
+    ctx.title_active = False
+
+  def enter(ctx):
+    x = -32
+    while x < WINDOW_WIDTH + 32:
+      x += randrange(32, 64)
+      ctx.hands.append(Hand(x=x, y=-16))
+      x += 1
+
+    x = -32
+    while x < WINDOW_WIDTH + 32:
+      x += randrange(16, 48)
+      ctx.hands.append(Hand(x=x))
+      x += 1
+
+  def enter_title(ctx):
+    ctx.title_active = True
+    offset = 0
+    for i, char in enumerate(GameOverContext.TITLE_SEQUENCE):
+      if char == " ":
+        offset += 1
+        continue
+      ctx.anims.append(TitleCharEnterAnim(
+        target=char,
+        duration=15,
+        delay=5 * (i - offset),
+      ))
 
   def init(ctx):
-    ctx.cache_bg = Surface(WINDOW_SIZE)
-    ctx.cache_bg.fill(BLACK)
+    triangle_image = assets.sprites["gameover_tri"]
+    offset = triangle_image.get_height()
+    ctx.cache_bg = Surface((WINDOW_WIDTH, WINDOW_HEIGHT + offset), SRCALPHA)
+    pygame.draw.rect(ctx.cache_bg, BLACK, Rect(
+      (0, offset),
+      WINDOW_SIZE
+    ))
+    start_x = -triangle_image.get_width() // 2
+    x = start_x
+    while x < WINDOW_WIDTH - start_x:
+      ctx.cache_bg.blit(triangle_image, (x, 0))
+      x += triangle_image.get_width()
 
   def handle_keydown(ctx, key):
     if ctx.child:
@@ -82,18 +152,85 @@ class GameOverContext(Context):
         ctx.anims.remove(anim)
       else:
         anim.update()
+    scroll_anim = next((a for a in ctx.anims if type(a) is ScrollAnim), None)
+    for hand in ctx.hands:
+      hand.y -= ScrollAnim.speed
+      if hand.y < -assets.sprites["gameover_hand"][0].get_height():
+        ctx.hands.remove(hand)
+    if scroll_anim:
+      bg_y = WINDOW_HEIGHT + scroll_anim.offset - scroll_anim.time * scroll_anim.speed
+      if bg_y < WINDOW_HEIGHT // 3 and not ctx.title_active:
+        ctx.enter_title()
+      if bg_y < -assets.sprites["gameover_tri"].get_height():
+        ctx.anims.remove(scroll_anim)
 
   def view(ctx):
     sprites = []
     assets = use_assets()
-    sprites.append(Sprite(
-      image=ctx.cache_bg,
-    ))
-    sprites.append(Sprite(
-      image=assets.sprites["game_over"],
-      pos=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 3),
-      origin=("center", "center"),
-    ))
+
+    if ctx.get_head().get_depth() == 1:
+      bg_image = Surface(WINDOW_SIZE)
+      bg_image.fill((255, 255, 255))
+      sprites.append(Sprite(
+        image=bg_image
+      ))
+
+    scroll_anim = next((a for a in ctx.anims if type(a) is ScrollAnim), None)
+
+    if scroll_anim:
+      for hand in ctx.hands:
+        hand_image = assets.sprites["gameover_hand"][int((scroll_anim.time + hand.twitch_offset) / hand.twitch_period) % 4 == 0]
+        if hand.darkened:
+          hand_image = recolor(hand_image, BLACK)
+        sprites.append(Sprite(
+          image=hand_image,
+          pos=(hand.x + int(scroll_anim.time / hand.shake_period) % 2, hand.y),
+          origin=("center", "top"),
+          flip=(hand.flipped, False)
+        ))
+      bg_y = WINDOW_HEIGHT + scroll_anim.offset - scroll_anim.time * ScrollAnim.speed
+      sprites.append(Sprite(
+        image=ctx.cache_bg,
+        pos=(0, bg_y)
+      ))
+    else:
+      sprites.append(Sprite(
+        image=ctx.cache_bg,
+        pos=(0, -assets.sprites["gameover_tri"].get_height())
+      ))
+
+    if ctx.title_active:
+      chars_x = WINDOW_WIDTH // 2 - assets.sprites["gameover"].get_width() // 2
+      char_x = 0
+      char_offset = 0
+      for i, char in enumerate(GameOverContext.TITLE_SEQUENCE):
+        if char == " ":
+          continue
+        char_anim = next((a for a in ctx.anims if (
+          type(a) is TitleCharEnterAnim
+          and a.target == char
+        )), None)
+        char_image = assets.sprites["gameover_" + char]
+        if scroll_anim:
+          char_image = outline(char_image, BLACK)
+          char_offset = -2
+        else:
+          char_offset = 0
+        char_height = char_image.get_height()
+        if char_anim:
+          char_height *= ease_out(char_anim.pos)
+        sprites.append(Sprite(
+          image=char_image,
+          pos=(chars_x + char_x, WINDOW_HEIGHT // 3),
+          size=(char_image.get_width(), char_height),
+          origin=("left", "center")
+        ))
+        char_next = GameOverContext.TITLE_SEQUENCE[i + 1] if i + 1 < len(GameOverContext.TITLE_SEQUENCE) else None
+        char_x += char_image.get_width() + char_offset + get_title_char_offset(char, char_next)
+
+    if scroll_anim or next((a for a in ctx.anims if a.blocking), None):
+      return sprites
+
     choice_y = OPTIONS_Y
     choice_sprites = []
     for choice in ctx.choices:

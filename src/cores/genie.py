@@ -6,6 +6,7 @@ from cores import Core
 from sprite import Sprite
 from filters import replace_color
 from colors.palette import BLACK, ORANGE
+from colorsys import hsv_to_rgb
 
 RIPPLE_PERIOD = 90
 RIPPLE_WAVES = 2
@@ -34,6 +35,8 @@ class Genie(Core):
       x = sin(t * 2 * pi) * ease_out(p) * RIPPLE_AMP
       genie_surface.blit(genie_image.subsurface(Rect(0, y, 32, 1)), (x, y))
     y = sin(genie.renders % FLOAT_PERIOD / FLOAT_PERIOD * 2 * pi) * FLOAT_AMP
+    # hue = genie.renders % 180 / 180
+    # color = tuple([int(c * 255) for c in hsv_to_rgb(hue, 1, 1)])
     genie_surface = replace_color(genie_surface, BLACK, genie.color or ORANGE)
     genie.renders += 1
     return [Sprite(
