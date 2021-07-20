@@ -1,8 +1,13 @@
 from dungeon.props import Prop
-from assets import load as use_assets
+import assets
 from filters import replace_color
-from anims.chest import ChestAnim
+from anims.attack import AttackAnim
+from anims.shake import ShakeAnim
+from anims.jump import JumpAnim
+from anims.item import ItemAnim
+from anims.frame import FrameAnim
 from colors.palette import PINK, GOLD, BLACK
+from contexts.dialogue import DialogueContext
 from sprite import Sprite
 from inventory import Inventory
 from items import Item
@@ -31,43 +36,79 @@ class Chest(Prop):
     return contents
 
   def effect(chest, game):
+    anims = []
+    script = []
     item = chest.contents
+    item_anim = None
     if item:
       if not game.parent.inventory.is_full(Inventory.tab(item)):
-        game.anims.append([
-          ChestAnim(
-            duration=30,
+        anims = [
+          [JumpAnim(
             target=chest,
-            item=item(),
+          ), FrameAnim(
+            target=chest,
+            duration=30,
+            frames=assets.sprites["chest_opening"],
             on_end=chest.open
+          ), item_anim := ItemAnim(
+            target=chest,
+            item=item()
+          )]
+        ]
+        open_chest = lambda: game.anims.extend(anims)
+        open_dialog = lambda: game.open(
+          child=DialogueContext(
+            lite=True,
+            script=script
+          ),
+          on_close=lambda: (
+            item_anim and item_anim.end(),
+            game.camera.blur()
           )
-        ])
-        game.log.print("You open the lamp")
+        )
+        game.anims.append(
+          [AttackAnim(
+            target=game.hero,
+            src=game.hero.cell,
+            dest=chest.cell
+          ), ShakeAnim(
+            target=chest,
+            duration=30,
+            on_end=lambda: (
+              open_chest(),
+              open_dialog()
+            )
+          )]
+        )
         if not isinstance(item, Item) and issubclass(item, Weapon):
           game.learn_skill(item)
         else:
           game.parent.inventory.append(item)
-        game.log.print(("Obtained ", item().token(), "."))
-        acted = True
+        script = [(
+          ("", ("Obtained ", item().token(), "."))
+        )]
       else:
-        game.log.print("Your inventory is already full!")
+        script = ["Your inventory is already full!"]
     else:
-      game.log.print("There's nothing left to take...")
-    return True
+      script = ["There's nothing left to take..."]
+    game.camera.focus(
+      cell=chest.cell,
+      force=True,
+      speed=8
+    )
+    return False
 
   def view(chest, anims):
-    sprites = use_assets().sprites
     anim_group = [a for a in anims[0] if a.target is chest] if anims else []
     for anim in anim_group:
-      if type(anim) is ChestAnim:
-        frame = anim.frame + 1
-        sprite = sprites["chest_open" + str(frame)]
+      if type(anim) is FrameAnim:
+        chest_image = anim.frame()
         break
     else:
       if chest.opened:
-        sprite = sprites["chest_open"]
+        chest_image = assets.sprites["chest_opened"]
       else:
-        sprite = sprites["chest"]
-    color = PINK if chest.rare else GOLD
-    sprite = replace_color(sprite, BLACK, color)
-    return super().view(sprite, anims)
+        chest_image = assets.sprites["chest"]
+    chest_color = PINK if chest.rare else GOLD
+    chest_image = replace_color(chest_image, BLACK, chest_color)
+    return super().view(chest_image, anims)

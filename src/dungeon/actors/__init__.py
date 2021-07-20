@@ -276,8 +276,6 @@ class DungeonActor(DungeonElement):
         actor_x, actor_y = actor.cell
         offset_x = (anim_x - actor_x) * TILE_SIZE
         offset_y = (anim_y - anim_z - actor_y) * TILE_SIZE
-      if type(anim) is JumpAnim:
-        offset_y += anim.offset
       if type(anim) is FlinchAnim and anim.time <= 3:
         return []
       if type(anim) is FlinchAnim:

@@ -9,6 +9,7 @@ from sprite import Sprite
 
 class Skeleton(DungeonActor):
   skill = ShieldBash
+  drops = [Club]
 
   def __init__(skeleton, rare=False, *args, **kwargs):
     super().__init__(Core(

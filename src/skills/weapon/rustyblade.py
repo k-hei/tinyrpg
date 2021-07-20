@@ -6,7 +6,7 @@ class RustyBlade(Weapon):
   desc = "An old sword"
   element = "sword"
   cost = 1
-  st = 2
+  st = 1
   users = [Knight]
   blocks = (
     (0, 0),

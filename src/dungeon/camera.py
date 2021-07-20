@@ -47,7 +47,7 @@ class Camera:
       (y + 0.5) * TILE_SIZE - height / 2
     )
 
-  def focus(camera, cell, speed=None, force=False, tween=False, on_end=None):
+  def focus(camera, cell, speed=None, force=False, tween=False, easing=None, on_end=None):
     if camera.flag and not (force or tween):
       return
     camera.flag = cell
@@ -55,6 +55,7 @@ class Camera:
       camera.anims.append(TweenAnim(
         target=(camera.cell, cell),
         duration=speed,
+        easing=easing,
         on_end=on_end
       ))
     else:

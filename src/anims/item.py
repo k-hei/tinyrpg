@@ -1,6 +1,6 @@
-from anims.tween import TweenAnim
+from anims import Anim
 
-class ItemAnim(TweenAnim):
-  def __init__(anim, duration, target, item, delay=0, on_end=None):
-    super().__init__(duration, delay, target, on_end)
+class ItemAnim(Anim):
+  def __init__(anim, item, *args, **kwargs):
+    super().__init__(*args, **kwargs)
     anim.item = item

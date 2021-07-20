@@ -1,12 +1,13 @@
 class TweenAnim:
   blocking = True
 
-  def __init__(anim, duration, delay=0, target=None, on_end=None):
+  def __init__(anim, duration, delay=0, easing=None, target=None, on_end=None):
     anim.done = False
     anim.pos = 0
     anim.time = -delay
     anim.duration = duration
     anim.target = target
+    anim.easing = easing
     anim.on_end = on_end
 
   def update(anim):
@@ -18,4 +19,6 @@ class TweenAnim:
       if anim.on_end:
         anim.on_end()
     anim.pos = max(0, anim.time / anim.duration)
+    if anim.easing:
+      anim.pos = anim.easing(anim.pos)
     return anim.pos

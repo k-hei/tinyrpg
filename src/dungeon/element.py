@@ -1,10 +1,11 @@
+from math import sin, pi
 from pygame import Surface
 from sprite import Sprite
 from anims.move import MoveAnim
-from anims.chest import ChestAnim
 from anims.item import ItemAnim
 from anims.flicker import FlickerAnim
 from anims.warpin import WarpInAnim
+from anims.jump import JumpAnim
 from anims.drop import DropAnim
 from anims.shake import ShakeAnim
 from anims.flinch import FlinchAnim
@@ -66,10 +67,11 @@ class DungeonElement:
         offset_y = (anim_y - anim_z - elem_y) * TILE_SIZE
         if anim.facing != (0, 0) and not next((a for g in anims for a in g if a.target is elem and type(a) is FlinchAnim), None):
           elem.facing = tuple(map(int, anim.facing))
-      elif type(anim) is ChestAnim or type(anim) is ItemAnim:
-        t = anim.time / anim.duration
+      elif type(anim) is ItemAnim:
         item_image = anim.item.render()
-        item_z = min(1, t * 3) * 6 + ITEM_OFFSET
+        item_z = min(12, 6 + anim.time // 2) + ITEM_OFFSET
+        if anim.time > 30:
+          item_z += sin((anim.time - 30) % 90 / 90 * 2 * pi) * 2
         item_x, item_y = elem.cell
         item_x = 0
         item_y = -item_z
@@ -90,6 +92,8 @@ class DungeonElement:
         scale_x, scale_y = anim.scale
         sprite_width *= scale_x
         sprite_height *= scale_y
+      if type(anim) is JumpAnim:
+        offset_y += anim.offset
       elif type(anim) is DropAnim:
         offset_y = -anim.y
       elif type(anim) is ShakeAnim:

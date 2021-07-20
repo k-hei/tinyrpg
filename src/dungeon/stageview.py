@@ -26,7 +26,6 @@ from anims.flicker import FlickerAnim
 from anims.bounce import BounceAnim
 from anims.pause import PauseAnim
 from anims.awaken import AwakenAnim
-from anims.chest import ChestAnim
 from anims.item import ItemAnim
 
 def recolor_walls():

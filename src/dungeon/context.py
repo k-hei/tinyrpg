@@ -69,7 +69,6 @@ from skills.weapon import Weapon
 from anims.activate import ActivateAnim
 from anims.attack import AttackAnim
 from anims.awaken import AwakenAnim
-from anims.chest import ChestAnim
 from anims.item import ItemAnim
 from anims.flicker import FlickerAnim
 from anims.flinch import FlinchAnim
@@ -722,16 +721,19 @@ class DungeonContext(Context):
         return game.attack(hero, target_actor, on_end=game.step)
     target_elem = game.floor.get_elem_at(target_cell)
     effect_result = target_elem and target_elem.effect(game)
-    if effect_result is None:
-      anim = AttackAnim(
+    bump = lambda: (
+      anim := AttackAnim(
         duration=DungeonContext.ATTACK_DURATION,
         target=hero,
         src=hero.cell,
         dest=target_cell
-      )
-      not game.anims and game.anims.append([])
+      ),
+      not game.anims and game.anims.append([]),
       game.anims[-1].append(anim)
-    elif effect_result == True:
+    )
+    if not game.anims or not next((a for a in game.anims[0] if a.target is hero), None):
+      bump()
+    if effect_result == True:
       game.step()
 
   def handle_wait(game):
