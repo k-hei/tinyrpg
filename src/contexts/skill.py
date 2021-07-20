@@ -270,7 +270,9 @@ class SkillContext(Context):
             y -= TILE_SIZE // 2
           sprites.append(Sprite(
             image=square_image,
-            pos=(x, y),
+            pos=(x, y + square_image.get_height()),
+            origin=("left", "bottom"),
+            offset=TILE_SIZE - 1,
             layer="elems",
           ))
 

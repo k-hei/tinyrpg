@@ -1356,7 +1356,10 @@ class DungeonContext(Context):
         image=label_image,
         pos=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 4),
         origin=("center", "center"),
-        layer="markers"
+        layer="ui"
       ))
 
-    return sprites + super().view()
+    sprites += super().view()
+    sprites.sort(key=lambda sprite: StageView.order(sprite))
+
+    return sprites

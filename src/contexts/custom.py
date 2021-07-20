@@ -596,7 +596,8 @@ class CustomContext(Context):
     y -= (menu_image.get_height() - arrow_offset) // 2
     sprites.append(Sprite(
       image=menu_image,
-      pos=(x, y)
+      pos=(x, y),
+      layer="ui"
     ))
     sprites += menu.bar.view()
     return sprites

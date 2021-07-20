@@ -311,7 +311,8 @@ class InventoryContext(Context):
         pos=(
           Hud.MARGIN_LEFT,
           Hud.MARGIN_TOP + sprite_circle.get_height() // 2
-        )
+        ),
+        layer="ui"
       ))
 
     # "ITEM" letters
@@ -335,7 +336,8 @@ class InventoryContext(Context):
       if sprite_char:
         sprites.append(Sprite(
           image=sprite_char,
-          pos=(x, y)
+          pos=(x, y),
+          layer="ui"
         ))
       y += sprite_height + 2
 
@@ -367,13 +369,15 @@ class InventoryContext(Context):
         y = cells_y + tile_height * row + tile_height // 2 - sprite.get_height() // 2
         sprites.append(Sprite(
           image=sprite,
-          pos=(x, y)
+          pos=(x, y),
+          layer="ui"
         ))
         item = ctx.get_item_at(cell)
         if item and not anim:
           sprites.append(Sprite(
             image=item().render(),
-            pos=(x, y)
+            pos=(x, y),
+            layer="ui"
           ))
 
     # tabs
@@ -419,7 +423,8 @@ class InventoryContext(Context):
           tab_image = replace_color(tab_image, WHITE, GRAY)
         sprites.append(Sprite(
           image=tab_image,
-          pos=(x, y)
+          pos=(x, y),
+          layer="ui"
         ))
       y += tab_image.get_height() + 1
 
@@ -433,7 +438,8 @@ class InventoryContext(Context):
       pygame.draw.rect(cursor_image, cursor_color, Rect(0, 0, tile_width, tile_height), width=1)
       sprites.append(Sprite(
         image=cursor_image,
-        pos=(cursor_x, cursor_y)
+        pos=(cursor_x, cursor_y),
+        layer="ui"
       ))
 
     # description box
@@ -444,7 +450,7 @@ class InventoryContext(Context):
       sprites.append(Sprite(
         image=sprite_desc,
         pos=(box_x, box_y),
-        layer="hud"
+        layer="ui"
       ))
 
     # choice box
@@ -464,13 +470,15 @@ class InventoryContext(Context):
       y = cells_y
       sprites.append(Sprite(
         image=ctx.child.render(),
-        pos=(x, y)
+        pos=(x, y),
+        layer="ui"
       ))
     elif not ctx.anims and ctx.items:
       hand_x = cursor_x + tile_width - 3 + ctx.cursor_anim.update() * 2
       sprites.append(Sprite(
         image=sprite_hand,
-        pos=(hand_x, cursor_y)
+        pos=(hand_x, cursor_y),
+        layer="ui"
       ))
 
     return sprites + super().view()
