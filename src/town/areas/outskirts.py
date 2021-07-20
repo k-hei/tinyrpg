@@ -46,7 +46,7 @@ class OutskirtsArea(Area):
               ] or choice.text == "Save data" and [
                 lambda: SaveContext(
                   data=ctx.get_head().child.save(),
-                  on_close=lambda _: [prompt]
+                  on_close=lambda: [prompt]
                 )
               ] or choice.text == "Nothing" and [prompt]
             ))

@@ -215,6 +215,7 @@ class TextBubble:
     bubble.print(message, offset_height=16)
     def handle_close(choice):
       bubble.ctx = None
+      return choice
     bubble.ctx = TextBubble.PromptContext(choices, on_close=handle_close)
     return bubble.ctx
 
