@@ -345,7 +345,7 @@ class DungeonContext(Context):
     if new_room:
       new_room.on_enter(game)
 
-  def step(game, run=False):
+  def step(game, run=False, moving=False):
     commands = {}
     ally = game.ally
     if ally:
@@ -382,9 +382,9 @@ class DungeonContext(Context):
     if commands:
       COMMAND_PRIORITY = ["move", "move_to", "use_skill", "attack"]
       game.commands = sorted(commands.items(), key=lambda item: COMMAND_PRIORITY.index(item[1][0]))
-      game.next_command(on_end=game.end_step)
+      game.next_command(on_end=lambda: game.end_step(moving=moving))
     else:
-      game.end_step()
+      game.end_step(moving=moving)
 
   def next_command(game, on_end=None):
     if not game.commands:
@@ -407,7 +407,7 @@ class DungeonContext(Context):
       game.move_to(actor, *cmd_args)
       return step()
 
-  def end_step(game):
+  def end_step(game, moving=False):
     actors = [e for e in game.floor.elems if isinstance(e, DungeonActor)]
     for actor in actors:
       actor.stepped = False
@@ -417,9 +417,10 @@ class DungeonContext(Context):
         hero.dispel_ailment()
       else:
         game.anims.append([PauseAnim(
-          duration=1,
+          duration=5,
           on_end=game.step
         )])
+    game.refresh_fov(moving=moving)
 
   def step_ally(game, ally, run=False, old_hero_cell=None):
     if not ally or not ally.can_step():
@@ -583,7 +584,7 @@ class DungeonContext(Context):
       return game.handle_skill()
 
     if key == pygame.K_SPACE:
-      return game.handle_attack()
+      return game.handle_action()
 
     return None
 
@@ -615,8 +616,7 @@ class DungeonContext(Context):
       target_elem = floor.get_elem_at(target_cell, exclude=[Door])
 
     def end_move():
-      game.step()
-      game.refresh_fov(moving=True)
+      game.step(moving=True)
       return True
 
     def on_move():
@@ -682,7 +682,10 @@ class DungeonContext(Context):
       game.anims.append([
         ShakeAnim(duration=15, target=hero)
       ])
-      return end_move()
+      if hero.ailment:
+        return end_move()
+      else:
+        return
 
     moved = game.move(actor=hero, delta=delta, run=run, on_end=on_move)
     if moved:
@@ -693,63 +696,6 @@ class DungeonContext(Context):
     elif target_tile is Stage.PIT:
       moved = game.jump_pit(hero, run, on_move)
       end_move()
-    else:
-      effect_result = target_elem and target_elem.effect(game)
-      if effect_result is None:
-        anim = AttackAnim(
-          duration=DungeonContext.ATTACK_DURATION,
-          target=hero,
-          src=hero.cell,
-          dest=target_cell
-        )
-        if game.anims:
-          game.anims[-1].append(anim)
-        else:
-          game.anims.append([anim])
-      elif effect_result == True:
-        moved = True
-
-      if type(target_elem) is Chest:
-        chest = target_elem
-        item = chest.contents
-        if item:
-          if not game.parent.inventory.is_full(Inventory.tab(item)):
-            game.anims.append([
-              ChestAnim(
-                duration=30,
-                target=chest,
-                item=item(),
-                on_end=chest.open
-              )
-            ])
-            game.log.print("You open the lamp")
-            if not isinstance(item, Item) and issubclass(item, Weapon):
-              game.learn_skill(item)
-              game.log.print(("Obtained ", item().token(), "."))
-            else:
-              game.parent.inventory.append(item)
-              game.log.print(("Obtained ", item().token(), "."))
-            acted = True
-          else:
-            game.log.print("Your inventory is already full!")
-        else:
-          game.log.print("There's nothing left to take...")
-        game.step(run)
-        game.refresh_fov()
-      # elif isinstance(target_elem, DungeonActor) and target_elem.ailment == "sleep" and hero.allied(target_elem):
-      #   game.log.exit()
-      #   game.anims[0].append(PauseAnim(
-      #     duration=60,
-      #     on_end=lambda: (
-      #       target_elem.wake_up(),
-      #       game.log.print((target_elem.token(), " woke up!")),
-      #       game.anims[0].append(FlinchAnim(
-      #         duration=DungeonContext.FLINCH_DURATION,
-      #         target=target_elem,
-      #       ))
-      #     )
-      #   ))
-
     return moved
 
   def obtain(game, item):
@@ -764,27 +710,29 @@ class DungeonContext(Context):
       game.step_ally(game.ally, run, old_cell)
     return moved
 
-  def handle_attack(game):
+  def handle_action(game):
     hero = game.hero
     target_cell = add_cell(hero.cell, hero.get_facing())
-    target_elem = game.floor.get_elem_at(target_cell, superclass=DungeonActor)
-    on_attack = lambda: (
-      game.step(),
-      game.refresh_fov()
-    )
-    hero.weapon = hero.load_weapon()
-    if hero.weapon and target_elem:
-      game.parent.deplete_sp(hero.weapon.cost)
-      return game.attack(hero, target_elem, on_end=on_attack)
-    else:
-      game.anims.append([
-        AttackAnim(
-          target=hero,
-          src=hero.cell,
-          dest=target_cell,
-          on_end=on_attack
-        )
-      ])
+    target_actor = game.floor.get_elem_at(target_cell, superclass=DungeonActor)
+    if target_actor and not hero.allied(target_actor):
+      if not hero.weapon:
+        hero.weapon = hero.load_weapon()
+      if hero.weapon:
+        game.parent.deplete_sp(hero.weapon.cost)
+        return game.attack(hero, target_actor, on_end=game.step)
+    target_elem = game.floor.get_elem_at(target_cell)
+    effect_result = target_elem and target_elem.effect(game)
+    if effect_result is None:
+      anim = AttackAnim(
+        duration=DungeonContext.ATTACK_DURATION,
+        target=hero,
+        src=hero.cell,
+        dest=target_cell
+      )
+      not game.anims and game.anims.append([])
+      game.anims[-1].append(anim)
+    elif effect_result == True:
+      game.step()
 
   def handle_wait(game):
     game.step()

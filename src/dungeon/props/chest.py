@@ -4,6 +4,9 @@ from filters import replace_color
 from anims.chest import ChestAnim
 from colors.palette import PINK, GOLD, BLACK
 from sprite import Sprite
+from inventory import Inventory
+from items import Item
+from skills.weapon import Weapon
 
 class Chest(Prop):
   def __init__(chest, contents=None, opened=False, rare=False):
@@ -26,6 +29,31 @@ class Chest(Prop):
     chest.contents = None
     chest.opened = True
     return contents
+
+  def effect(chest, game):
+    item = chest.contents
+    if item:
+      if not game.parent.inventory.is_full(Inventory.tab(item)):
+        game.anims.append([
+          ChestAnim(
+            duration=30,
+            target=chest,
+            item=item(),
+            on_end=chest.open
+          )
+        ])
+        game.log.print("You open the lamp")
+        if not isinstance(item, Item) and issubclass(item, Weapon):
+          game.learn_skill(item)
+        else:
+          game.parent.inventory.append(item)
+        game.log.print(("Obtained ", item().token(), "."))
+        acted = True
+      else:
+        game.log.print("Your inventory is already full!")
+    else:
+      game.log.print("There's nothing left to take...")
+    return True
 
   def view(chest, anims):
     sprites = use_assets().sprites
