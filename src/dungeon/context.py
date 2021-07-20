@@ -170,6 +170,10 @@ class DungeonContext(Context):
       game.handle_minimap(lock=True)
       game.refresh_fov()
 
+  def open(game, *args, **kwargs):
+    super().open(*args, **kwargs)
+    game.log.exit()
+
   def close(game):
     debug_file = open("debug.json", "w")
     debug_file.write(json.dumps(

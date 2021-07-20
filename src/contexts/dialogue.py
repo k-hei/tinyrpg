@@ -27,14 +27,14 @@ class DialogueContext(Context):
   BAR_ENTER_DURATION = 15
   BAR_EXIT_DURATION = 7
 
-  def __init__(ctx, script, lite=False, side="bottom", on_close=None):
+  def __init__(ctx, script, lite=False, side="bottom", log=None, on_close=None):
     super().__init__(on_close=on_close)
     ctx.script = script
     ctx.lite = lite
     ctx.side = side
     ctx.index = 0
     ctx.name = None
-    ctx.log = Log(autohide=False, side=side)
+    ctx.log = log or Log(autohide=False, side=side)
     ctx.anim = None
 
   def init(ctx):

@@ -81,14 +81,16 @@ class MageBossRoom(SpecialRoom):
   def on_complete(room, game):
     game.anims.append([PauseAnim(
       duration=30,
-      on_end=lambda: game.open(CutsceneContext(script=[
-        *postbattle_cutscene_setup(room, game),
-        *(postbattle_cutscene(room, game) if config.CUTSCENES else []),
-        *postbattle_cutscene_teardown(room, game),
-        lambda step: (
-          room.unlock(game), step()
-        )
-      ]))
+      on_end=lambda: game.open(CutsceneContext(
+        script=[
+          *postbattle_cutscene_setup(room, game),
+          *(postbattle_cutscene(room, game) if config.CUTSCENES else []),
+          *postbattle_cutscene_teardown(room, game),
+          lambda step: (
+            room.unlock(game), step()
+          )
+        ]
+      ))
     )])
 
 def prebattle_cutscene_setup(room, game):
@@ -282,7 +284,10 @@ def postbattle_cutscene_teardown(room, game):
       game.learn_skill(skill=BroadSword),
       step()
     ),
-    lambda step: game.child.open(DialogueContext(script=[
-      ("", ("Received ", BroadSword().token(), ".")),
-    ]), on_close=step),
+    lambda step: game.child.open(DialogueContext(
+      script=[
+        ("", ("Received ", BroadSword().token(), ".")),
+      ],
+      log=game.log
+    ), on_close=step),
   ]
