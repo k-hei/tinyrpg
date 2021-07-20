@@ -5,6 +5,7 @@ import keyboard
 import math
 import pygame
 from pygame import Rect, Surface, Color
+from pygame.transform import flip
 from config import TILE_SIZE, WINDOW_HEIGHT
 from assets import load as use_assets
 from text import render as render_text
@@ -256,9 +257,21 @@ class SkillContext(Context):
           y -= z
           x, y = scale_up((x, y))
           square_image = square_hi if cell in skill_targets else square_lo
+          if z != int(z):
+            slope_image = assets.sprites["square_hslope"]
+            if tile.direction == (1, 0):
+              slope_image = flip(slope_image, True, False)
+            elif tile.direction == (0, -1):
+              slope_image = assets.sprites["square_vslope"]
+            square_image = Surface(slope_image.get_size(), pygame.SRCALPHA)
+            square_image.blit(slope_image, (0, 0))
+            square_color = Color(*skill.color, alpha + (cell in skill_targets and 0x5f or 0))
+            square_image = replace_color(square_image, WHITE, square_color)
+            y -= TILE_SIZE // 2
           sprites.append(Sprite(
             image=square_image,
-            pos=(x, y)
+            pos=(x, y),
+            layer="elems",
           ))
 
       if ctx.cursor:
