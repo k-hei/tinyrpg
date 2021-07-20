@@ -91,6 +91,8 @@ class Camera:
         target_x, target_y = hero.cell
         hero_x, hero_y = hero.cell
         hero_y -= max(0, hero.elev)
+      else:
+        return
 
       anims = []
       if len(game.anims):

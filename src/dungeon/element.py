@@ -8,6 +8,7 @@ from anims.warpin import WarpInAnim
 from anims.drop import DropAnim
 from anims.shake import ShakeAnim
 from anims.flinch import FlinchAnim
+from anims.fall import FallAnim
 from anims.path import PathAnim
 from lib.lerp import lerp
 from config import ITEM_OFFSET, TILE_SIZE
@@ -93,6 +94,9 @@ class DungeonElement:
         offset_y = -anim.y
       elif type(anim) is ShakeAnim:
         offset_x = anim.offset
+      elif type(anim) is FallAnim:
+        offset_y = anim.y
+        sprite_layer = "tiles"
 
     # HACK: if element will move during a future animation sequence,
     # make sure it doesn't jump ahead to the target position
@@ -112,4 +116,5 @@ class DungeonElement:
     sprite.size = (sprite_width, sprite_height)
     sprite.layer = sprite_layer
     sprite.move((offset_x, offset_y))
+    sprite.offset = -offset_y
     return sprites

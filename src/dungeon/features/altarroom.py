@@ -7,13 +7,14 @@ from anims.pause import PauseAnim
 from anims.jump import JumpAnim
 from anims.shake import ShakeAnim
 from anims.path import PathAnim
+from anims.fall import FallAnim
 from anims.flicker import FlickerAnim
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
 from transits.dissolve import DissolveIn, DissolveOut
 from lib.cell import add
 import config
-from config import RUN_DURATION
+from config import RUN_DURATION, TILE_SIZE
 
 class AltarRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
@@ -188,23 +189,25 @@ def collapse(room, game):
         [
           ShakeAnim(
             target=game.hero,
-            duration=30
+            duration=30,
+            on_end=lambda: game.anims[-1].append(
+              FallAnim(
+                target=game.hero,
+                y=game.hero.cell[1] * TILE_SIZE,
+                on_end=lambda: game.floor.remove_elem(game.hero)
+              )
+            )
           ),
           ShakeAnim(
             target=room.mage,
-            duration=30
-          )
-        ],
-        [
-          FlickerAnim(
-            target=game.hero,
             duration=30,
-            on_end=lambda: game.floor.remove_elem(game.hero)
-          ),
-          FlickerAnim(
-            target=room.mage,
-            duration=30,
-            on_end=lambda: game.floor.remove_elem(room.mage)
+            on_end=lambda: game.anims[-1].append(
+              FallAnim(
+                target=room.mage,
+                y=room.mage.cell[1] * TILE_SIZE,
+                on_end=lambda: game.floor.remove_elem(room.mage)
+              )
+            )
           )
         ],
         [PauseAnim(

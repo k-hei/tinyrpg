@@ -47,7 +47,7 @@ class StageView:
   ]
 
   def order(sprite):
-    sprite_x, sprite_y = sprite.pos
+    _, sprite_y = sprite.pos
     try:
       depth = StageView.LAYERS.index(sprite.layer)
     except ValueError:
@@ -93,15 +93,21 @@ class StageView:
         tile_image = replace_color(tile_image, WHITE, COLOR_TILE)
         tile_image = replace_color(tile_image, GRAY, DARKGRAY)
     x = (col - offset_x) * TILE_SIZE + tile_xoffset
-    y = (row - offset_y + 1) * TILE_SIZE - tile_image.get_height() + tile_yoffset
+    y = (row - offset_y) * TILE_SIZE + tile_yoffset
+    if cell in self.tile_sprites and tile is not self.tile_sprites[cell][0]:
+      del self.tile_sprites[cell]
     if tile_sprite is None:
-      self.tile_surface.blit(tile_image, (x, y))
+      self.tile_surface.blit(tile_image, (x, y + TILE_SIZE - tile_image.get_height()))
       self.tile_cache[tile_name] = tile_image
       if cell not in self.tile_cache:
         self.tile_cache[cell] = darken_image(tile_image)
     elif cell not in self.tile_sprites:
-      tile_sprite.pos = (x, y + tile_image.get_height())
-      self.tile_sprites[cell] = tile_sprite
+      x = col * TILE_SIZE
+      y = row * TILE_SIZE
+      tile_sprite.move((x, y))
+      if tile_sprite.origin and tile_sprite.origin[1] == "bottom":
+        tile_sprite.move((0, tile_image.get_height()))
+      self.tile_sprites[cell] = (tile, tile_sprite)
     return True
 
   def redraw_tiles(self, stage, camera, visible_cells, visited_cells, force=False):
@@ -129,6 +135,7 @@ class StageView:
     rows = bottom - top + 1
     self.tile_surface = Surface((cols * TILE_SIZE, rows * TILE_SIZE), SRCALPHA)
     self.tile_offset = (left, top)
+    self.tile_sprites = {}
     self.camera_cell = camera_cell
     if stage is not self.stage:
       self.stage = stage
@@ -151,9 +158,9 @@ class StageView:
     offset_x, offset_y = self.tile_offset
     dest_x = -camera.left + offset_x * TILE_SIZE
     dest_y = -camera.top + offset_y * TILE_SIZE
-    tile_sprites = [s.copy() for s in self.tile_sprites.values()]
+    tile_sprites = [s.copy() for t, s in self.tile_sprites.values()]
     for sprite in tile_sprites:
-      sprite.move((-camera.left - 3 * TILE_SIZE, -camera.top + 2 * TILE_SIZE))
+      sprite.move((-camera.left, -camera.top))
     return [Sprite(
       image=self.tile_surface,
       pos=(dest_x, dest_y),
@@ -376,9 +383,18 @@ def render_tile(stage, cell, visited_cells=[]):
     and stage.get_tile_at((x - 1, y - 1)) is stage.FLOOR
     and stage.get_tile_at((x + 1, y - 1)) is stage.FLOOR
     and stage.get_tile_at((x - 1, y + 1)) is stage.FLOOR
-    and stage.get_tile_at((x + 1, y + 1)) is stage.FLOOR):
+    and stage.get_tile_at((x + 1, y + 1)) is stage.FLOOR
+  ):
     sprite_name = "floor_fancy"
   elif tile is stage.FLOOR:
+    if next((e for e in stage.elems if e.cell[1] < y), None) and (
+      stage.get_tile_at((x, y - 1)) is stage.PIT
+      or stage.get_tile_at((x, y - 2)) is stage.PIT
+    ):
+      return Sprite(
+        image=replace_color(assets.sprites["floor"], GRAY, DARKGRAY),
+        layer="elems",
+      )
     sprite_name = "floor"
   elif tile is stage.PIT:
     if tile_above and tile_above is not stage.PIT:
