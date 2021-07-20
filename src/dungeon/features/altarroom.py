@@ -190,7 +190,7 @@ def collapse(room, game):
           ShakeAnim(
             target=game.hero,
             duration=30,
-            on_end=lambda: game.anims[-1].append(
+            on_end=lambda: game.anims[0].append(
               FallAnim(
                 target=game.hero,
                 y=game.hero.cell[1] * TILE_SIZE,
@@ -201,17 +201,18 @@ def collapse(room, game):
           ShakeAnim(
             target=room.mage,
             duration=30,
-            on_end=lambda: game.anims[-1].append(
+            on_end=lambda: game.anims[0].append(
               FallAnim(
                 target=room.mage,
                 y=room.mage.cell[1] * TILE_SIZE,
                 on_end=lambda: game.floor.remove_elem(room.mage)
               )
             )
-          )
+          ),
+          PauseAnim(duration=60)
         ],
         [PauseAnim(
-          duration=15,
+          duration=30,
           on_end=step
         )]
       ])

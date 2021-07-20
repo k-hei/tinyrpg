@@ -16,7 +16,8 @@ from config import (
   RUN_DURATION,
   JUMP_DURATION,
   FLICKER_DURATION,
-  LABEL_FRAMES
+  LABEL_FRAMES,
+  ENABLED_LOG_COMBAT
 )
 
 import keyboard
@@ -648,7 +649,7 @@ class DungeonContext(Context):
                 duration=DungeonContext.AWAKEN_DURATION,
                 target=enemy,
                 on_end=lambda: (
-                  game.log.print((enemy.token(), " woke up!")),
+                  ENABLED_LOG_COMBAT and game.log.print((enemy.token(), " woke up!")),
                   game.anims[0].append(PauseAnim(
                     duration=DungeonContext.PAUSE_DURATION,
                     on_end=end_move
@@ -981,7 +982,8 @@ class DungeonContext(Context):
       return False
     if damage is None:
       damage = game.find_damage(actor, target)
-      game.log.print((actor.token(), " uses ", actor.weapon().token()))
+      if ENABLED_LOG_COMBAT:
+        game.log.print((actor.token(), " uses ", actor.weapon().token()))
     def connect():
       if on_connect:
         on_connect()
@@ -1043,10 +1045,11 @@ class DungeonContext(Context):
       elif on_end:
         on_end()
 
-    if not hero.allied(target):
-      game.log.print(("Defeated ", target.token(), "."))
-    else:
-      game.log.print((target.token(), " is defeated."))
+    if ENABLED_LOG_COMBAT:
+      if not hero.allied(target):
+        game.log.print(("Defeated ", target.token(), "."))
+      else:
+        game.log.print((target.token(), " is defeated."))
     game.anims[0].append(FlickerAnim(
       duration=FLICKER_DURATION,
       target=target,
@@ -1059,7 +1062,8 @@ class DungeonContext(Context):
       on_end()
 
     def awaken():
-      game.log.print((target.token(), " woke up!"))
+      if ENABLED_LOG_COMBAT:
+        game.log.print((target.token(), " woke up!"))
       game.anims[0].append(PauseAnim(duration=DungeonContext.PAUSE_DURATION))
 
     def respond():
@@ -1072,11 +1076,12 @@ class DungeonContext(Context):
     if game.god_mode and target is game.hero:
       damage = 0
 
-    game.log.print((
-      target.token(),
-      " {}".format(game.hero.allied(target) and "receives" or "suffers"),
-      " {} damage.".format(int(damage))
-    ))
+    if ENABLED_LOG_COMBAT:
+      game.log.print((
+        target.token(),
+        " {}".format(game.hero.allied(target) and "receives" or "suffers"),
+        " {} damage.".format(int(damage))
+      ))
     flinch = FlinchAnim(
       duration=DungeonContext.FLINCH_DURATION,
       target=target,
@@ -1102,7 +1107,8 @@ class DungeonContext(Context):
 
   def freeze(game, target):
     if not target.is_dead():
-      game.log.print((target.token(), " is frozen.")),
+      if ENABLED_LOG_COMBAT:
+        game.log.print((target.token(), " is frozen.")),
       game.numbers.append(DamageValue("FROZEN", target.cell, offset=(4, -4), color=CYAN))
 
   def use_item(game, item):
@@ -1154,7 +1160,8 @@ class DungeonContext(Context):
       else:
         game.log.print("But nothing happened...")
     else:
-      game.log.print((actor.token(), " uses ", skill().token()))
+      if ENABLED_LOG_COMBAT:
+        game.log.print((actor.token(), " uses ", skill().token()))
       target_cell = skill.effect(actor, dest, game, on_end=lambda: (
         on_end() if on_end else (
           camera.blur(),

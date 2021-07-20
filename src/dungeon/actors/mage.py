@@ -13,6 +13,7 @@ from anims.shake import ShakeAnim
 from anims.drop import DropAnim
 from anims.frame import FrameAnim
 from anims.fall import FallAnim
+from anims.pause import PauseAnim
 from sprite import Sprite
 from skills.magic.glacio import Glacio
 from skills.magic.congelatio import Congelatio
@@ -124,6 +125,9 @@ class Mage(DungeonActor):
   def view(mage, anims):
     sprites = use_assets().sprites
     anim_group = [a for a in anims[0] if a.target is mage] if anims else []
+    will_fall = anims and next((a for a in anims[0] if type(a) is FallAnim), None)
+    if will_fall and anims[0].index(will_fall) > 0:
+      return super().view(sprites["mage_shock"], anims)
     for anim in anim_group:
       if type(anim) is MoveAnim or type(anim) is PathAnim:
         x4_idx = max(0, int((anim.time - 1) % anim.period // (anim.period / 4)))
