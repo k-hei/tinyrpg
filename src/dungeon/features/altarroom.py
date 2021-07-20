@@ -12,46 +12,46 @@ from anims.flicker import FlickerAnim
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
 from transits.dissolve import DissolveIn, DissolveOut
-from lib.cell import add
+from lib.cell import add as add_cell
 import config
 from config import RUN_DURATION, TILE_SIZE
 
 class AltarRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
     super().__init__(degree=2, shape=[
-      "         ",
-      "         ",
-      "  .....  ",
-      " ....... ",
-      " ....... ",
-      " ....... ",
-      " ....... ",
-      " ....... ",
-      "  .....  ",
-      "    .    ",
-      "    .    ",
-      "    .    ",
-      "    .    ",
-      "    .    ",
-      "    .    ",
-      "    .    ",
-      "    .    ",
+      "                   ",
+      "                   ",
+      "       .....       ",
+      "      .......      ",
+      "      .......      ",
+      "      .......      ",
+      "      .......      ",
+      "      .......      ",
+      "       .....       ",
+      "         .         ",
+      "         .         ",
+      "         .         ",
+      "         .         ",
+      "         .         ",
+      "         .         ",
+      "         .         ",
+      "         .         ",
     ], elems=[
-      ((4, 6), mage := Mage(faction="ally", facing=(0, -1))),
-      ((4, 5), altar := Altar(on_effect=room.on_trigger)),
-      ((2, 8), Pillar()),
-      ((1, 7), Pillar()),
-      ((1, 5), Pillar()),
-      ((1, 3), Pillar()),
-      ((2, 2), Pillar()),
-      ((6, 2), Pillar()),
-      ((7, 3), Pillar()),
-      ((7, 5), Pillar()),
-      ((7, 7), Pillar()),
-      ((6, 8), Pillar()),
+      (altar_cell := (9, 5), altar := Altar(on_effect=room.on_trigger)),
+      (add_cell(altar_cell, (0, 1)), mage := Mage(faction="ally", facing=(0, -1))),
+      (add_cell(altar_cell, (-2, -3)), Pillar()),
+      (add_cell(altar_cell, (-3, -2)), Pillar()),
+      (add_cell(altar_cell, (-3, 0)), Pillar()),
+      (add_cell(altar_cell, (-3, 2)), Pillar()),
+      (add_cell(altar_cell, (2, 3)), Pillar()),
+      (add_cell(altar_cell, (2, -3)), Pillar()),
+      (add_cell(altar_cell, (3, -2)), Pillar()),
+      (add_cell(altar_cell, (3, 0)), Pillar()),
+      (add_cell(altar_cell, (3, 2)), Pillar()),
+      (add_cell(altar_cell, (2, 3)), Pillar()),
     ], *args, **kwargs)
-    room.mage = mage
     room.altar = altar
+    room.mage = mage
     room.entered = False
 
   def get_edges(room):
@@ -92,17 +92,17 @@ def cutscene(room, game):
       )])
     ),
     lambda step: (
-      game.hero.move_to(add(room.cell, (4, 7))),
+      game.hero.move_to(add_cell(room.altar.cell, (0, 2))),
       game.anims.append([PathAnim(
         target=game.hero,
-        path=[add(room.cell, c) for c in [(4, 13), (4, 12), (4, 11), (4, 10), (4, 9), (4, 8), (4, 7)]],
+        path=[add_cell(room.altar.cell, c) for c in [(0, 8), (0, 7), (0, 6), (0, 5), (0, 4), (0, 3), (0, 2)]],
         on_end=step
       )])
     ),
     lambda step: game.anims.append([PauseAnim(duration=30, on_end=step)]),
     lambda step: (
       game.camera.focus(
-        cell=add(room.cell, (4, 7)),
+        cell=add_cell(room.altar.cell, (0, 2)),
         speed=60,
         tween=True,
         on_end=step
@@ -132,24 +132,24 @@ def cutscene(room, game):
           CutsceneContext(script=[
             lambda step: (
               game.camera.focus(
-                cell=add(room.cell, (4, 5)),
+                cell=room.altar.cell,
                 speed=30,
                 tween=True
               ),
-              room.mage.move_to(add(room.cell, (3, 4))),
+              room.mage.move_to(add_cell(room.cell, (3, 4))),
               game.anims.append([PathAnim(
                 target=room.mage,
-                path=[add(room.cell, c) for c in [(4, 6), (3, 6), (3, 5), (3, 4)]],
+                path=[add_cell(room.altar.cell, c) for c in [(0, 1), (-1, 1), (-1, 0), (-1, -1)]],
                 period=RUN_DURATION,
                 on_end=step
               )])
             ),
             lambda step: (
               room.mage.set_facing((0, 1)),
-              game.hero.move_to(add(room.cell, (4, 6))),
+              game.hero.move_to(add_cell(room.altar.cell, (0, 1))),
               game.anims.append([PathAnim(
                 target=game.hero,
-                path=[add(room.cell, c) for c in [(4, 7), (4, 6)]],
+                path=[add_cell(room.altar.cell, c) for c in [(0, 2), (0, 1)]],
                 period=RUN_DURATION
               )]),
               step()
@@ -179,10 +179,10 @@ def next_floor(game):
 def collapse(room, game):
   return [
     *[(lambda cell: lambda step: (
-      game.floor.set_tile_at(add(room.cell, cell), game.floor.PIT),
+      game.floor.set_tile_at(add_cell(room.altar.cell, cell), game.floor.PIT),
       game.redraw_tiles(force=True),
       game.anims.append([PauseAnim(duration=5, on_end=step)]),
-    ))(c) for c in [(3, 3), (4, 3), (5, 3), (5, 4), (5, 5), (5, 6), (4, 6), (3, 6), (3, 5), (3, 4)]],
+    ))(c) for c in [(-1, -2), (0, -2), (1, -2), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1)]],
     lambda step: game.anims.append([PauseAnim(duration=30, on_end=step)]),
     lambda step: (
       game.anims.extend([
