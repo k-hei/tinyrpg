@@ -32,7 +32,7 @@ import assets
 from assets import load as load_assets
 from sprite import Sprite
 from filters import recolor, replace_color, outline
-from colors.palette import BLACK, WHITE, GREEN, CYAN
+from colors.palette import BLACK, WHITE, RED, GREEN, BLUE, CYAN
 from text import render as render_text
 from transits.dissolve import DissolveIn, DissolveOut
 
@@ -85,6 +85,7 @@ from comps.minimap import Minimap
 from comps.previews import Previews
 from comps.spmeter import SpMeter
 from comps.floorno import FloorNo
+from comps.skillbanner import SkillBanner
 
 from contexts import Context
 from contexts.custom import CustomContext
@@ -173,7 +174,8 @@ class DungeonContext(Context):
 
   def open(game, *args, **kwargs):
     super().open(*args, **kwargs)
-    game.log.exit()
+    if game.log:
+      game.log.exit()
 
   def close(game):
     debug_file = open("debug.json", "w")
@@ -1162,6 +1164,11 @@ class DungeonContext(Context):
     else:
       if ENABLED_LOG_COMBAT:
         game.log.print((actor.token(), " uses ", skill().token()))
+      else:
+        game.comps.append(SkillBanner(
+          text=skill.name,
+          color=actor.color(),
+        ))
       target_cell = skill.effect(actor, dest, game, on_end=lambda: (
         on_end() if on_end else (
           camera.blur(),
@@ -1349,6 +1356,9 @@ class DungeonContext(Context):
           break
       if not group:
         game.anims.remove(group)
+    for comp in game.comps:
+      if "done" in dir(comp) and comp.done:
+        game.comps.remove(comp)
     game.time += 1
 
   def view(game):

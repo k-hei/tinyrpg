@@ -149,7 +149,7 @@ class Camera:
           focus_x, focus_y, *focus_z = move_anim.cell
           focus_z = max(0, focus_z and focus_z[0] or 0)
           focus_y -= focus_z
-          target_x, target_y, target_z = move_anim.dest
+          target_x, target_y, *target_z = move_anim.dest
           target_z = max(0, target_z and target_z[0] or 0)
           target_y -= target_z
 
