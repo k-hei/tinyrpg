@@ -105,7 +105,8 @@ class StageView:
       y = row * TILE_SIZE
       tile_sprite.move((x, y))
       if tile_sprite.origin and tile_sprite.origin[1] == "bottom":
-        tile_sprite.move((0, tile_image.get_height()))
+        tile_sprite.move((0, TILE_SIZE))
+        tile_sprite.offset = tile_sprite.offset or -1
       self.tile_sprites[cell] = (tile, tile_sprite)
     return True
 
@@ -344,13 +345,17 @@ def render_tile(stage, cell, visited_cells=[]):
     and stage.get_tile_at((x + 1, y - 1)) is stage.FLOOR_ELEV
     and stage.get_tile_at((x - 1, y + 1)) is stage.FLOOR_ELEV
     and stage.get_tile_at((x + 1, y + 1)) is stage.FLOOR_ELEV):
-    return Sprite(image=assets.sprites["floor_fancy"], pos=(0, -TILE_SIZE))
+    return Sprite(
+      image=assets.sprites["floor_fancy"],
+      origin=("left", "bottom"),
+      pos=(0, -TILE_SIZE),
+      layer="elems",
+    )
   elif tile is stage.FLOOR_ELEV:
     return Sprite(
       image=assets.sprites["floor_elev"],
       origin=("left", "bottom"),
       layer="elems",
-      offset=-TILE_SIZE,
     )
   elif tile is stage.WALL_ELEV:
     sprite_name = "wall_elev"
@@ -361,7 +366,7 @@ def render_tile(stage, cell, visited_cells=[]):
       image=assets.sprites["stairs"],
       origin=("left", "bottom"),
       layer="elems",
-      offset=-TILE_SIZE,
+      offset=-TILE_SIZE
     )
   elif tile is stage.STAIRS_UP:
     sprite_name = "stairs_up"
@@ -372,7 +377,6 @@ def render_tile(stage, cell, visited_cells=[]):
       image=flip(assets.sprites["stairs_right"], True, False),
       origin=("left", "bottom"),
       layer="elems",
-      offset=-TILE_SIZE,
     )
   elif tile is stage.FLOOR and (
     stage.get_tile_at((x - 1, y)) is stage.FLOOR
