@@ -1026,7 +1026,7 @@ class DungeonContext(Context):
       if target in game.floor.elems:
         game.floor.elems.remove(target)
       if game.room:
-        game.room.on_kill(game, target) # TODO: associate actors with rooms for robustness
+        game.room.on_death(game, target)
       if target is hero:
         game.anims[0].append(PauseAnim(
           duration=DungeonContext.PAUSE_DEATH_DURATION,
@@ -1060,12 +1060,10 @@ class DungeonContext(Context):
 
     def respond():
       if target.is_dead() or game.floor.get_tile_at(target.cell) is Stage.PIT:
-        if target.on_kill:
-          target.on_kill(game)
-        else:
+        if not game.room or game.room.on_kill(game, target):
           game.kill(target, on_end)
       elif on_end:
-          on_end()
+        on_end()
 
     if game.god_mode and target is game.hero:
       damage = 0

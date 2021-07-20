@@ -117,7 +117,11 @@ class Room(Feature):
     room.entered = True
 
   def on_exit(room, game): pass
-  def on_kill(room, game, target): pass
+
+  def on_kill(room, game, target):
+    return True
+
+  def on_death(room, game, target): pass
 
   def validate(room, cell, slots):
     for slot in room.get_slots(cell):

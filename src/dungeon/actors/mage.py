@@ -22,7 +22,7 @@ from skills.weapon.broadsword import BroadSword
 class Mage(DungeonActor):
   drops = [BroadSword]
 
-  def __init__(mage, core=None, ailment=None, ailment_turns=0, chant_skill=None, chant_dest=None, chant_turns=0, on_kill=None, *args, **kwargs):
+  def __init__(mage, core=None, ailment=None, ailment_turns=0, chant_skill=None, chant_dest=None, chant_turns=0, *args, **kwargs):
     super().__init__(
       core=core or MageCore(skills=[Glacio, Accerso], *args, **kwargs),
       ailment=ailment,
@@ -31,7 +31,6 @@ class Mage(DungeonActor):
     mage.chant_skill = chant_skill
     mage.chant_dest = chant_dest
     mage.chant_turns = chant_turns
-    mage.on_kill = on_kill
 
   def encode(mage):
     [cell, kind, *props] = super().encode()

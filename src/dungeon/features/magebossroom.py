@@ -31,8 +31,7 @@ class MageBossRoom(SpecialRoom):
     ], elems=[
       ((3, 2), mage := Mage(
         faction="ally",
-        facing=(0, -1),
-        on_kill=room.on_complete
+        facing=(0, -1)
       ))
     ])
     room.mage = mage
@@ -73,8 +72,13 @@ class MageBossRoom(SpecialRoom):
     )])
     return True
 
+  def on_kill(room, game, actor):
+    if actor is room.mage:
+      room.on_complete(game)
+      return False
+    return True
+
   def on_complete(room, game):
-    game.anims.append([PauseAnim(duration=15)])
     game.anims.append([PauseAnim(
       duration=30,
       on_end=lambda: game.open(CutsceneContext(script=[
