@@ -25,7 +25,7 @@ from keyboard import ARROW_DELTAS, key_times
 
 import debug
 
-from lib.cell import add, is_adjacent, manhattan, normal
+from lib.cell import add as add_cell, is_adjacent, manhattan, normal
 import lib.direction as direction
 
 import assets
@@ -578,8 +578,12 @@ class DungeonContext(Context):
         return game.handle_ascend()
       elif game.floor.get_tile_at(game.hero.cell) is Stage.STAIRS_DOWN:
         return game.handle_descend()
-      else:
-        return game.handle_skill()
+
+    if key == pygame.K_RETURN:
+      return game.handle_skill()
+
+    if key == pygame.K_SPACE:
+      return game.handle_attack()
 
     return None
 
@@ -686,8 +690,6 @@ class DungeonContext(Context):
         game.step_ally(game.ally, run, old_cell)
       end_move()
       acted = True
-    elif isinstance(target_elem, DungeonActor) and not hero.allied(target_elem):
-      acted = game.handle_attack(target_elem)
     elif target_tile is Stage.PIT:
       moved = game.jump_pit(hero, run, on_move)
       end_move()
@@ -762,15 +764,27 @@ class DungeonContext(Context):
       game.step_ally(game.ally, run, old_cell)
     return moved
 
-  def handle_attack(game, target):
+  def handle_attack(game):
     hero = game.hero
+    target_cell = add_cell(hero.cell, hero.get_facing())
+    target_elem = game.floor.get_elem_at(target_cell, superclass=DungeonActor)
+    on_attack = lambda: (
+      game.step(),
+      game.refresh_fov()
+    )
     hero.weapon = hero.load_weapon()
-    if hero.weapon:
+    if hero.weapon and target_elem:
       game.parent.deplete_sp(hero.weapon.cost)
-      return game.attack(hero, target, on_end=lambda: (
-        game.step(),
-        game.refresh_fov()
-      ))
+      return game.attack(hero, target_elem, on_end=on_attack)
+    else:
+      game.anims.append([
+        AttackAnim(
+          target=hero,
+          src=hero.cell,
+          dest=target_cell,
+          on_end=on_attack
+        )
+      ])
 
   def handle_wait(game):
     game.step()
@@ -1183,7 +1197,7 @@ class DungeonContext(Context):
     hero = game.hero
     hero.regen(hero.get_hp_max())
     hero.dispel_ailment()
-    game.numbers.append(DamageValue(hero.get_hp_max(), add(hero.cell, (0, -0.25)), color=GREEN))
+    game.numbers.append(DamageValue(hero.get_hp_max(), add_cell(hero.cell, (0, -0.25)), color=GREEN))
     game.numbers.append(DamageValue(game.get_sp_max(), hero.cell, color=CYAN))
     game.parent.regen_sp()
 
@@ -1210,8 +1224,8 @@ class DungeonContext(Context):
     if ally:
       if ally.is_dead():
         ally.revive()
-        floor.spawn_elem_at(add(hero.cell, (-1, 0)), ally)
-      game.numbers.append(DamageValue(ally.get_hp_max(), add(ally.cell, (0, -0.25)), GREEN))
+        floor.spawn_elem_at(add_cell(hero.cell, (-1, 0)), ally)
+      game.numbers.append(DamageValue(ally.get_hp_max(), add_cell(ally.cell, (0, -0.25)), GREEN))
       game.numbers.append(DamageValue(game.get_sp_max(), ally.cell, CYAN))
       ally.regen(ally.get_hp_max())
       ally.dispel_ailment()

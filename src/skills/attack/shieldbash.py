@@ -9,7 +9,7 @@ from anims.move import MoveAnim
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from anims.flicker import FlickerAnim
-from config import ATTACK_DURATION, MOVE_DURATION
+from config import ATTACK_DURATION, MOVE_DURATION, ENABLED_LOG_COMBAT
 
 class ShieldBash(AttackSkill):
   name = "ShieldBash"
@@ -43,7 +43,7 @@ class ShieldBash(AttackSkill):
           on_end=lambda: game.anims[0].append(PauseAnim(
             duration=45,
             on_end=lambda: (
-              game.log.print("But nothing happened..."),
+              ENABLED_LOG_COMBAT and game.log.print("But nothing happened..."),
               on_end and on_end()
             )
           ))
@@ -75,10 +75,11 @@ class ShieldBash(AttackSkill):
         damage=game.find_damage(actor=user, target=target_elem, modifier=0.8),
         on_end=on_end
       )
-      if nudge_tile is floor.PIT:
-        game.log.print((target_elem.token(), " tumbles into the chasm below!"))
-      else:
-        game.log.print((target_elem.token(), " is reeling."))
+      if ENABLED_LOG_COMBAT:
+        if nudge_tile is floor.PIT:
+          game.log.print((target_elem.token(), " tumbles into the chasm below!"))
+        else:
+          game.log.print((target_elem.token(), " is reeling."))
 
     game.anims.append([
       AttackAnim(

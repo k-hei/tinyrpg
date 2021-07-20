@@ -6,7 +6,7 @@ from anims.frame import FrameAnim
 from dungeon.actors import DungeonActor
 from cores.knight import Knight as Knight
 from vfx import Vfx
-from config import TILE_SIZE
+from config import TILE_SIZE, ENABLED_LOG_COMBAT
 
 class Cleave(AttackSkill):
   name = "Cleave"
@@ -56,7 +56,7 @@ class Cleave(AttackSkill):
         game.anims[0].append(PauseAnim(
           duration=45,
           on_end=lambda: (
-            game.log.print("But nothing happened..."),
+            ENABLED_LOG_COMBAT and game.log.print("But nothing happened..."),
             on_end and on_end()
           )
         ))

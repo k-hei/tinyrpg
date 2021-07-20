@@ -6,6 +6,7 @@ from anims.pause import PauseAnim
 from dungeon.actors import DungeonActor
 from cores.mage import Mage
 from lib.cell import is_adjacent
+from config import ENABLED_LOG_COMBAT
 
 ATTACK_DURATION = 12
 
@@ -40,7 +41,8 @@ class Virus(AilmentSkill):
         return
       target.inflict_ailment("poison")
       game.camera.focus(target.cell)
-      game.log.print((target.token(), " is poisoned."))
+      if ENABLED_LOG_COMBAT:
+        game.log.print((target.token(), " is poisoned."))
       game.anims[0].extend([
         FlinchAnim(duration=45, target=target),
         PauseAnim(duration=60, on_end=poison)
@@ -50,7 +52,8 @@ class Virus(AilmentSkill):
       if targets:
         poison()
       else:
-        game.log.print("But nothing happened...")
+        if ENABLED_LOG_COMBAT:
+          game.log.print("But nothing happened...")
         if on_end:
           on_end()
 
