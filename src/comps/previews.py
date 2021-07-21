@@ -195,6 +195,7 @@ class Previews:
       y += sprite_height // 2 - sprite.get_height() // 2
       sprites.append(Sprite(
         image=sprite,
-        pos=(x, y)
+        pos=(x, y),
+        layer="ui"
       ))
     return sprites

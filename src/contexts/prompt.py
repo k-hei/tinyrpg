@@ -39,6 +39,6 @@ class PromptContext(Context):
       sprites += [Sprite(
         image=panel,
         pos=(panel_x, panel_y),
-        layer="hud"
+        layer="ui"
       )]
     return sprites + super().view()

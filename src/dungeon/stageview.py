@@ -34,6 +34,19 @@ def recolor_walls():
     if key.startswith("wall") :
       assets.sprites[key] = replace_color(assets.sprites[key], WHITE, COLOR_TILE)
 
+def get_tile_visited_state(cell, visited_cells):
+  x, y = cell
+  return [
+    (x - 1, y - 1) in visited_cells,
+    (    x, y - 1) in visited_cells,
+    (x + 1, y - 1) in visited_cells,
+    (x - 1,     y) in visited_cells,
+    (x + 1,     y) in visited_cells,
+    (x - 1, y + 1) in visited_cells,
+    (    x, y + 1) in visited_cells,
+    (x + 1, y + 1) in visited_cells,
+  ]
+
 class StageView:
   LAYERS = ["tiles", "decors", "elems", "vfx", "numbers", "ui"]
   SPECIAL_TILES = [Stage.OASIS, Stage.OASIS_STAIRS]
@@ -93,13 +106,16 @@ class StageView:
         tile_image = replace_color(tile_image, GRAY, DARKGRAY)
     x = (col - offset_x) * TILE_SIZE + tile_xoffset
     y = (row - offset_y) * TILE_SIZE + tile_yoffset
+    tile_visited_state = get_tile_visited_state(cell, visited_cells)
+    if cell in self.tile_cache and self.tile_cache[cell][0] != tile_visited_state:
+      del self.tile_cache[cell]
     if cell in self.tile_sprites and tile is not self.tile_sprites[cell][0]:
       del self.tile_sprites[cell]
     if tile_sprite is None:
       self.tile_surface.blit(tile_image, (x, y + TILE_SIZE - tile_image.get_height()))
       self.tile_cache[tile_name] = tile_image
       if cell not in self.tile_cache:
-        self.tile_cache[cell] = darken_image(tile_image)
+        self.tile_cache[cell] = (tile_visited_state, darken_image(tile_image))
     elif cell not in self.tile_sprites:
       x = col * TILE_SIZE
       y = row * TILE_SIZE
@@ -147,7 +163,7 @@ class StageView:
         if cell in visible_cells:
           self.redraw_tile(stage, cell, visited_cells)
         elif cell in self.tile_cache:
-          tile_image = self.tile_cache[cell]
+          _, tile_image = self.tile_cache[cell]
           x = (col - left) * TILE_SIZE
           y = (row - top) * TILE_SIZE
           self.tile_surface.blit(tile_image, (x, y))

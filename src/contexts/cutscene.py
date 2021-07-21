@@ -65,12 +65,14 @@ class CutsceneContext(Context):
         image=ctx.cache_bar,
         pos=(0, 0),
         size=(WINDOW_WIDTH, bar_height),
+        layer="ui"
       ),
       Sprite(
         image=ctx.cache_bar,
         pos=(0, WINDOW_HEIGHT),
         size=(WINDOW_WIDTH, bar_height),
         origin=("left", "bottom"),
+        layer="ui"
       )
     ]
     return sprites + super().view()
