@@ -18,6 +18,7 @@ class Camera:
     camera.pos = None
     camera.cell = None
     camera.flag = None
+    camera.room = None
     camera.speed = None
     camera.anims = []
 
@@ -37,6 +38,7 @@ class Camera:
 
   def reset(camera):
     camera.pos = None
+    camera.room = None
     camera.blur()
 
   def upscale(camera, cell):
@@ -65,6 +67,52 @@ class Camera:
     camera.flag = None
     camera.speed = None
 
+  def illuminate(camera, room, actor, on_end=None):
+    camera.anims.append(TweenAnim(
+      target=(camera.cell, camera.get_room_focus(room, actor)),
+      duration=45,
+      on_end=on_end
+    ))
+
+  def get_room_focus(camera, room, actor=None, anims=[]):
+    if actor and actor.cell:
+      actor_x, actor_y = actor.cell
+      actor_y -= max(0, actor.elev)
+    focus_x, focus_y = room.get_center()
+
+    move_anim = next((a for a in anims if (
+      not a.done
+      and a.target is actor
+      and (type(a) is MoveAnim or type(a) is PathAnim)
+    )), None)
+    if move_anim:
+      actor_x, actor_y, *actor_z = move_anim.cell
+      actor_z = max(0, actor_z and actor_z[0] or 0)
+      actor_y -= actor_z
+
+    if actor:
+      room_halfwidth = ceil(room.get_width() / 2)
+      room_halfheight = ceil(room.get_height() / 2)
+      max_radius_x = room_halfwidth - Camera.MAX_RADIUS_X
+      max_radius_y = room_halfheight - Camera.MAX_RADIUS_Y
+      if room.get_width() > Camera.MAX_RADIUS_X * 2 + 1:
+        if actor_x - focus_x < -max_radius_x:
+          focus_x -= max_radius_x
+        elif actor_x - focus_x > max_radius_x:
+          focus_x += max_radius_x
+        else:
+          focus_x = actor_x
+
+      if room.get_height() > Camera.MAX_RADIUS_Y * 2 + 1:
+        if actor_y - focus_y < -max_radius_y:
+          focus_y -= max_radius_y
+        elif actor_y - focus_y > max_radius_y:
+          focus_y += max_radius_y
+        else:
+          focus_y = actor_y
+
+    return (focus_x, focus_y)
+
   def is_cell_visible(camera, cell):
     col, row = cell
     center_col, center_row = camera.cell
@@ -88,58 +136,28 @@ class Camera:
     else:
       hero = game.hero
       if hero and hero.cell:
-        focus_x, focus_y = hero.cell
-        target_x, target_y = hero.cell
         hero_x, hero_y = hero.cell
         hero_y -= max(0, hero.elev)
+        focus_x, focus_y = (hero_x, hero_y)
+        target_x, target_y = (hero_x, hero_y)
       else:
         return
 
-      anims = []
-      if len(game.anims):
-        anims = game.anims[0]
-
+      anims = game.anims[0] if game.anims else []
       camera_speed = 4
       if camera.flag:
         focus_x, focus_y = camera.flag
         target_x, target_y = camera.flag
         camera_speed = 20
       elif game.room:
-        room = game.room
-        focus_x, focus_y = room.get_center()
         camera_speed = 8
-        move_anim = next((a for a in anims if (
-          not a.done
-          and a.target is hero
-          and (type(a) is MoveAnim or type(a) is PathAnim)
-        )), None)
-        if move_anim:
-          hero_x, hero_y, *hero_z = move_anim.cell
-          hero_z = max(0, hero_z and hero_z[0] or 0)
-          hero_y -= hero_z
-
-        if hero and hero in game.floor.elems:
-          room_halfwidth = ceil(room.get_width() / 2)
-          room_halfheight = ceil(room.get_height() / 2)
-          max_radius_x = room_halfwidth - Camera.MAX_RADIUS_X
-          max_radius_y = room_halfheight - Camera.MAX_RADIUS_Y
-          if room.get_width() > Camera.MAX_RADIUS_X * 2 + 1:
-            if hero_x - focus_x < -max_radius_x:
-              focus_x -= max_radius_x
-            elif hero_x - focus_x > max_radius_x:
-              focus_x += max_radius_x
-            else:
-              focus_x = hero_x
-
-          if room.get_height() > Camera.MAX_RADIUS_Y * 2 + 1:
-            if hero_y - focus_y < -max_radius_y:
-              focus_y -= max_radius_y
-            elif hero_y - focus_y > max_radius_y:
-              focus_y += max_radius_y
-            else:
-              focus_y = hero_y
-
-        target_x, target_y = focus_x, focus_y
+        room_focus = camera.get_room_focus(
+          room=game.room,
+          actor=(game.hero if game.hero in game.floor.elems else None),
+          anims=anims
+        )
+        focus_x, focus_y = room_focus
+        target_x, target_y = room_focus
       else:
         move_anim = next((a for a in anims if (
           not a.done

@@ -27,6 +27,7 @@ from anims.bounce import BounceAnim
 from anims.pause import PauseAnim
 from anims.awaken import AwakenAnim
 from anims.item import ItemAnim
+from anims.tween import TweenAnim
 
 def recolor_walls():
   assets = use_assets()
@@ -58,6 +59,8 @@ class StageView:
     Stage.OASIS,
   ]
 
+  class FadeAnim(TweenAnim): pass
+
   def order(sprite):
     _, sprite_y = sprite.pos
     try:
@@ -80,7 +83,7 @@ class StageView:
     self.stage = None
     self.facings = {}
 
-  def redraw_tile(self, stage, cell, visited_cells):
+  def redraw_tile(self, stage, cell, visible_cells, visited_cells, anims=[]):
     col, row = cell
     offset_x, offset_y = self.tile_offset
     tile = stage.get_tile_at(cell)
@@ -112,10 +115,24 @@ class StageView:
     if cell in self.tile_sprites and tile is not self.tile_sprites[cell][0]:
       del self.tile_sprites[cell]
     if tile_sprite is None:
-      self.tile_surface.blit(tile_image, (x, y + TILE_SIZE - tile_image.get_height()))
-      self.tile_cache[tile_name] = tile_image
       if cell not in self.tile_cache:
         self.tile_cache[cell] = (tile_visited_state, darken_image(tile_image))
+      fade_anim = None
+      for group in anims:
+        fade_anim = next((a for a in group if type(a) is StageView.FadeAnim), None)
+        if fade_anim:
+          break
+      anim_cells = fade_anim and not fade_anim.done and fade_anim.target or []
+      # fade_anim and fade_anim.time and print(len(anim_cells))
+      if cell in (set(anim_cells) - set(visible_cells)):
+        if fade_anim.time:
+          _, tile_darkened = self.tile_cache[cell]
+          tile_image = tile_darkened
+        else:
+          tile_image = None
+      if tile_image:
+        self.tile_surface.blit(tile_image, (x, y + TILE_SIZE - tile_image.get_height()))
+        self.tile_cache[tile_name] = tile_image
     elif cell not in self.tile_sprites:
       x = col * TILE_SIZE
       y = row * TILE_SIZE
@@ -126,7 +143,7 @@ class StageView:
       self.tile_sprites[cell] = (tile, tile_sprite)
     return True
 
-  def redraw_tiles(self, stage, camera, visible_cells, visited_cells, force=False):
+  def redraw_tiles(self, stage, camera, visible_cells, visited_cells, anims=[], force=False):
     time_start = get_ticks()
     sprites = []
     camera_x, camera_y = camera.cell
@@ -160,8 +177,15 @@ class StageView:
     for row in range(top, bottom + 1):
       for col in range(left, right + 1):
         cell = (col, row)
-        if cell in visible_cells:
-          self.redraw_tile(stage, cell, visited_cells)
+        # fade_anim = next((next((a for a in g if type(a) is StageView.FadeAnim), None) for g in anims), None)
+        fade_anim = None
+        for group in anims:
+          fade_anim = next((a for a in group if type(a) is StageView.FadeAnim), None)
+          if fade_anim:
+            break
+        anim_cells = fade_anim and fade_anim.target or []
+        if cell in visible_cells + anim_cells:
+          self.redraw_tile(stage, cell, visible_cells, visited_cells, anims)
         elif cell in self.tile_cache:
           _, tile_image = self.tile_cache[cell]
           x = (col - left) * TILE_SIZE

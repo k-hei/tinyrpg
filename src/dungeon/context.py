@@ -271,7 +271,7 @@ class DungeonContext(Context):
   def refresh_fov(game, moving=False):
     hero = game.hero
     floor = game.floor
-    visible_cells = shadowcast(floor, hero.cell, VISION_RANGE)
+    visible_cells = []
 
     def is_within_room(room, cell):
       _, room_y = room.cell
@@ -301,24 +301,42 @@ class DungeonContext(Context):
       if room_within is not game.room_within:
         new_room = room_within
 
-      game.room = room
-      game.room_within = room_within
       if room and room not in game.room_entrances:
         game.room_entrances[room] = hero.cell
+        if game.room:
+          room_cells = room.get_cells() + room.get_border()
+          game.camera.illuminate(room, actor=game.hero)
+          def illuminate():
+            hero.visible_cells = room_cells
+            game.redraw_tiles(force=True)
+          game.anims += [
+            [
+              PauseAnim(duration=30),
+              StageView.FadeAnim(
+                target=room_cells,
+                duration=15,
+                on_start=lambda: game.update_visited_cells(room_cells),
+                on_end=illuminate
+              ),
+            ],
+            [PauseAnim(duration=15)]
+          ]
+      game.room = room
+      game.room_within = room_within
 
-    if game.room:
-      visible_cells += game.room.get_cells() + game.room.get_border()
     if game.lights:
       if not game.floor_cells:
         game.floor_cells = game.floor.get_visible_cells()
       visible_cells = game.floor_cells
-    hero.visible_cells = visible_cells
+    elif not game.camera.anims:
+      if game.room:
+        visible_cells += game.room.get_cells() + game.room.get_border()
+      else:
+        visible_cells = shadowcast(floor, hero.cell, VISION_RANGE)
 
-    # update visited cells
-    visited_cells = game.get_visited_cells()
-    for cell in visible_cells:
-      if cell not in visited_cells:
-        visited_cells.append(cell)
+    if not game.camera.anims:
+      hero.visible_cells = visible_cells
+      game.update_visited_cells(visible_cells)
 
     if door is not None:
       return
@@ -721,16 +739,15 @@ class DungeonContext(Context):
         return game.attack(hero, target_actor, on_end=game.step)
     target_elem = game.floor.get_elem_at(target_cell)
     effect_result = target_elem and target_elem.effect(game)
-    bump = lambda: (
-      anim := AttackAnim(
+    def bump():
+      anim = AttackAnim(
         duration=DungeonContext.ATTACK_DURATION,
         target=hero,
         src=hero.cell,
         dest=target_cell
-      ),
-      not game.anims and game.anims.append([]),
+      )
+      not game.anims and game.anims.append([])
       game.anims[-1].append(anim)
-    )
     if not game.anims or not next((a for a in game.anims[0] if a.target is hero), None):
       bump()
     if effect_result == True:
@@ -931,6 +948,7 @@ class DungeonContext(Context):
       camera=game.camera,
       visible_cells=game.get_visible_cells(),
       visited_cells=game.get_visited_cells(),
+      anims=game.anims,
       force=force
     )
 
@@ -1296,12 +1314,20 @@ class DungeonContext(Context):
     floor = floor or game.floor
     return next((cells for i, cells in enumerate(game.memory) if i is game.floors.index(floor)), None)
 
+  def update_visited_cells(game, cells):
+    visited_cells = game.get_visited_cells()
+    for cell in cells:
+      if cell not in visited_cells:
+        visited_cells.append(cell)
+
   def update_camera(game):
     if game.camera.get_pos():
       old_x, old_y = game.camera.get_pos()
       game.camera.update(game)
       new_x, new_y = game.camera.get_pos()
-      if round(new_x - old_x) or round(new_y - old_y):
+      if game.anims and type(game.anims[0][0]) is StageView.FadeAnim and game.anims[0][0].time == 1:
+        game.redraw_tiles(force=True)
+      elif round(new_x - old_x) or round(new_y - old_y):
         game.redraw_tiles()
     else:
       game.camera.update(game)
