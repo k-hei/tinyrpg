@@ -43,7 +43,7 @@ from dungeon.stage import Stage, Tile
 from dungeon.stageview import StageView
 
 from dungeon.actors import DungeonActor
-from dungeon.actors.eye import Eye
+from dungeon.actors.eye import Eyeball
 from dungeon.actors.knight import Knight as KnightActor
 from dungeon.actors.mage import Mage as MageActor
 from dungeon.actors.mimic import Mimic

@@ -172,7 +172,8 @@ class GameOverContext(Context):
       bg_image = Surface(WINDOW_SIZE)
       bg_image.fill((255, 255, 255))
       sprites.append(Sprite(
-        image=bg_image
+        image=bg_image,
+        layer="ui",
       ))
 
     scroll_anim = next((a for a in ctx.anims if type(a) is ScrollAnim), None)
@@ -186,17 +187,20 @@ class GameOverContext(Context):
           image=hand_image,
           pos=(hand.x + int(scroll_anim.time / hand.shake_period) % 2, hand.y),
           origin=("center", "top"),
-          flip=(hand.flipped, False)
+          flip=(hand.flipped, False),
+          layer="ui",
         ))
       bg_y = WINDOW_HEIGHT + scroll_anim.offset - scroll_anim.time * ScrollAnim.speed
       sprites.append(Sprite(
         image=ctx.cache_bg,
-        pos=(0, bg_y)
+        pos=(0, bg_y),
+        layer="ui",
       ))
     else:
       sprites.append(Sprite(
         image=ctx.cache_bg,
-        pos=(0, -assets.sprites["gameover_tri"].get_height())
+        pos=(0, -assets.sprites["gameover_tri"].get_height()),
+        layer="ui",
       ))
 
     if ctx.title_active:
@@ -223,7 +227,8 @@ class GameOverContext(Context):
           image=char_image,
           pos=(chars_x + char_x + char_offset // 2, WINDOW_HEIGHT // 3),
           size=(char_image.get_width(), char_height),
-          origin=("left", "center")
+          origin=("left", "center"),
+        layer="ui",
         ))
         char_next = GameOverContext.TITLE_SEQUENCE[i + 1] if i + 1 < len(GameOverContext.TITLE_SEQUENCE) else None
         char_x += char_image.get_width() + char_offset + get_title_char_offset(char, char_next)
@@ -238,6 +243,7 @@ class GameOverContext(Context):
       choice_sprites.append(Sprite(
         image=assets.ttf["english"].render(choice.upper()),
         pos=(OPTIONS_X, choice_y),
+        layer="ui",
       ))
       choice_y += OPTIONS_SPACING
     choice_sprite = choice_sprites[ctx.choice_index]
@@ -252,6 +258,7 @@ class GameOverContext(Context):
         pos=(choice_x, choice_y + choice_sprite.image.get_height() // 2),
         origin=("right", "center"),
         flip=(True, False),
+        layer="ui",
       ))
     sprites += choice_sprites
     return sprites + super().view()

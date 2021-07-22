@@ -240,7 +240,7 @@ class DungeonActor(DungeonElement):
     enemy = game.find_closest_enemy(actor)
     if enemy is None:
       return None
-    if is_adjacent(actor.cell, enemy.cell):
+    if is_adjacent(actor.cell, enemy.cell) and actor.elev == enemy.elev:
       return ("attack", enemy)
     else:
       return ("move_to", enemy.cell)

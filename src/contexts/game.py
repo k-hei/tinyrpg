@@ -17,7 +17,7 @@ from cores.mage import Mage
 from cores.rogue import Rogue
 from inventory import Inventory
 from skills import get_skill_order
-from savedata import SaveData
+from savedata import GameState
 from savedata.resolve import resolve_item, resolve_skill, resolve_elem
 from transits.dissolve import DissolveOut
 
@@ -140,7 +140,7 @@ class GameContext(Context):
       chars[encode_char(char)] = build
     place = type(ctx.child) is TownContext and "town" or "dungeon"
     dungeon = place == "dungeon" and ctx.child.save() or None
-    ctx.savedata = SaveData(
+    ctx.savedata = GameState(
       place=place,
       sp=ctx.sp,
       time=int(ctx.time),

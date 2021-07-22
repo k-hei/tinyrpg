@@ -1,11 +1,11 @@
 from dungeon.features.specialroom import SpecialRoom
-from dungeon.actors.eye import Eye
+from dungeon.actors.eye import Eyeball
 from dungeon.actors.mushroom import Mushroom
 from random import choice
 
 class BattleRoom(SpecialRoom):
   def __init__(feature, *args, **kwargs):
-    feature.actors = (Mushroom(), Eye(), Mushroom())
+    feature.actors = (Mushroom(), Eyeball(), Mushroom())
     feature.actors[1].inflict_ailment("sleep")
     feature.actors[2].inflict_ailment("sleep")
     super().__init__(degree=2, shape=choice(([

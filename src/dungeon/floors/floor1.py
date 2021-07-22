@@ -1,7 +1,7 @@
 from random import randint
 from lib.cell import add as add_cell
 from dungeon.actors.genie import Genie
-from dungeon.actors.eye import Eye as Eyeball
+from dungeon.actors.eye import Eyeball
 from dungeon.actors.mushroom import Mushroom
 from dungeon.features.room import Room
 from dungeon.features.vertroom import VerticalRoom

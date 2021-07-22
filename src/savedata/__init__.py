@@ -6,7 +6,7 @@ from skills import Skill
 from dungeon.data import DungeonData
 
 @dataclass
-class SaveData:
+class GameState:
   sp: int
   time: int
   gold: int
@@ -33,7 +33,7 @@ def load(*paths):
       savefile.close()
   except OSError:
     return None
-  return SaveData(**data)
+  return GameState(**data)
 
 def save(path, data):
   savefile = open(path, "w")

@@ -4,7 +4,7 @@ from anims.pause import PauseAnim
 from anims.bounce import BounceAnim
 from anims.warpin import WarpInAnim
 from cores.mage import Mage
-from dungeon.actors.eye import Eye
+from dungeon.actors.eye import Eyeball
 from config import ENABLED_LOG_COMBAT
 
 class Accerso(MagicSkill):
@@ -36,7 +36,7 @@ class Accerso(MagicSkill):
     def on_bounce():
       if target_cells:
         for i, cell in enumerate(target_cells):
-          ally = Eye(faction="ally" if user.get_faction() == "player" else "enemy")
+          ally = Eyeball(faction="ally" if user.get_faction() == "player" else "enemy")
           # ally.stepped = True
           floor.spawn_elem_at(cell, ally)
           game.anims[0].append(WarpInAnim(

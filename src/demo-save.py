@@ -1,10 +1,10 @@
 from contexts.app import App
 from contexts.save import SaveContext
-from savedata import SaveData
+from savedata import GameState
 from config import KNIGHT_BUILD
 
 App(title="save data demo",
-  context=SaveContext(SaveData(
+  context=SaveContext(GameState(
     place="town",
     sp=40,
     time=0,

@@ -150,7 +150,6 @@ class Camera:
         target_x, target_y = camera.flag
         camera_speed = 20
       elif game.room:
-        camera_speed = 8
         room_focus = camera.get_room_focus(
           room=game.room,
           actor=(game.hero if game.hero in game.floor.elems else None),
@@ -158,6 +157,7 @@ class Camera:
         )
         focus_x, focus_y = room_focus
         target_x, target_y = room_focus
+        camera_speed = 8
       else:
         move_anim = next((a for a in anims if (
           not a.done

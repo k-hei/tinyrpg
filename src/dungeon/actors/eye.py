@@ -17,7 +17,7 @@ from sprite import Sprite
 from filters import replace_color
 from colors.palette import BLACK, CYAN
 
-class Eye(DungeonActor):
+class Eyeball(DungeonActor):
   drops = [AngelTears]
   skill = HpUp
 

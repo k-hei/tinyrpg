@@ -53,5 +53,6 @@ class SkillBanner(Component):
       image=(type(banner_anim) is PauseAnim and banner.image_written or banner.image),
       pos=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 4),
       size=(banner.image.get_width(), banner_height),
-      origin=("center", "center")
+      origin=("center", "center"),
+      layer="ui"
     )]
