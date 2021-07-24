@@ -44,6 +44,14 @@ class DungeonElement:
   def update(elem):
     pass
 
+  def get_move_offset(elem, anim):
+    anim_x, anim_y, *anim_z = anim.cell
+    anim_z = max(0, anim_z and anim_z[0] or 0)
+    elem_x, elem_y = elem.cell
+    offset_x = (anim_x - elem_x) * TILE_SIZE
+    offset_y = (anim_y - anim_z - elem_y) * TILE_SIZE
+    return (offset_x, offset_y)
+
   def view(elem, sprites, anims=[]):
     will_enter = anims and next((g for g in anims if g is not anims[0] and next((a for a in g if (
       a.target is elem
@@ -66,11 +74,7 @@ class DungeonElement:
       if type(anim) is MoveAnim or type(anim) is PathAnim:
         if offset_x or offset_y:
           continue
-        anim_x, anim_y, *anim_z = anim.cell
-        anim_z = max(0, anim_z and anim_z[0] or 0)
-        elem_x, elem_y = elem.cell
-        offset_x = (anim_x - elem_x) * TILE_SIZE
-        offset_y = (anim_y - anim_z - elem_y) * TILE_SIZE
+        offset_x, offset_y = elem.get_move_offset(anim)
         if (anim.facing != (0, 0)
         and not anim.duration == PUSH_DURATION
         and not next((a for g in anims for a in g if a.target is elem and type(a) is FlinchAnim), None)):

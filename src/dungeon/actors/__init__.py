@@ -17,7 +17,7 @@ from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from anims.bounce import BounceAnim
 from anims.frame import FrameAnim
-from lib.cell import is_adjacent, manhattan
+from lib.cell import is_adjacent, manhattan, add as add_vector
 from lib.lerp import lerp
 from comps.log import Token
 from config import TILE_SIZE
@@ -271,11 +271,7 @@ class DungeonActor(DungeonElement):
       if type(anim) is AwakenAnim and anim.visible:
         asleep = True
       if type(anim) is AttackAnim or type(anim) is JumpAnim and anim.cell:
-        anim_x, anim_y, *anim_z = anim.cell
-        anim_z = anim_z and anim_z[0] or 0
-        actor_x, actor_y = actor.cell
-        offset_x = (anim_x - actor_x) * TILE_SIZE
-        offset_y = (anim_y - anim_z - actor_y) * TILE_SIZE
+        offset_x, offset_y = actor.get_move_offset(anim)
       if type(anim) is FlinchAnim and anim.time <= 3:
         return []
       if type(anim) is FlinchAnim:
@@ -308,9 +304,13 @@ class DungeonActor(DungeonElement):
     if actor.ailment == "sleep":
       sleep_anim = next((a for a in actor.anims if type(a) is DungeonActor.SleepAnim), None)
       if sleep_anim:
+        badge_pos = (12, -20)
+        move_anim = next((a for a in anim_group if type(a) is MoveAnim), None)
+        if move_anim:
+          badge_pos = add_vector(badge_pos, actor.get_move_offset(move_anim))
         sprites.append(Sprite(
           image=replace_color(sleep_anim.frame(), BLACK, DARKBLUE),
-          pos=(12, -20),
+          pos=badge_pos,
           origin=("left", "bottom"),
           layer="vfx"
         ))
