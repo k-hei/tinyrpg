@@ -55,31 +55,31 @@ class Chest(Prop):
             item=item()
           )]
         ]
-        open_chest = lambda: game.anims.extend(anims)
-        open_dialog = lambda: game.open(
-          child=DialogueContext(
-            lite=True,
-            script=script
-          ),
-          on_close=lambda: (
-            item_anim and item_anim.end(),
-            game.camera.blur()
-          )
-        )
-        game.anims.append(
-          [AttackAnim(
+        game.anims.append([
+          AttackAnim(
             target=game.hero,
             src=game.hero.cell,
             dest=chest.cell
-          ), ShakeAnim(
+          ),
+          ShakeAnim(
             target=chest,
+            magnitude=0.5,
             duration=30,
             on_end=lambda: (
-              open_chest(),
-              open_dialog()
+              game.anims.extend(anims),
+              game.open(
+                child=DialogueContext(
+                  lite=True,
+                  script=script
+                ),
+                on_close=lambda: (
+                  item_anim and item_anim.end(),
+                  game.camera.blur()
+                )
+              )
             )
-          )]
-        )
+          )
+        ])
         if not isinstance(item, Item) and issubclass(item, Weapon):
           game.learn_skill(item)
         else:
