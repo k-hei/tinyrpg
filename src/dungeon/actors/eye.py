@@ -50,6 +50,7 @@ class Eyeball(DungeonActor):
         sprite = sprites["eyeball_move"]
         break
       elif (type(anim) is AttackAnim
+      and anim.time >= 0
       and anim.time < anim.duration // 2):
         sprite = sprites["eyeball_move"]
         break

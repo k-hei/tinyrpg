@@ -995,6 +995,8 @@ class DungeonContext(Context):
       if ENABLED_COMBAT_LOG:
         game.log.print((actor.token(), " uses ", actor.weapon().token()))
     blocking = target.find_shield() and target.facing == direction.invert(actor.facing)
+    if blocking:
+      target.block()
     def connect():
       if on_connect:
         on_connect()
@@ -1016,6 +1018,7 @@ class DungeonContext(Context):
     game.anims.append([
       AttackAnim(
         duration=DungeonContext.ATTACK_DURATION,
+        delay=(blocking and 12 or 0),
         target=actor,
         src=actor.cell,
         dest=target.cell,
@@ -1097,7 +1100,11 @@ class DungeonContext(Context):
     target.damage(damage),
     game.numbers.append(DamageValue(str(int(damage)), target.cell))
     if blocking:
-      flinch = None
+      flinch = ShakeAnim(
+        target=target,
+        magnitude=0.5,
+        duration=15
+      )
     else:
       flinch = FlinchAnim(
         target=target,

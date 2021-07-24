@@ -15,7 +15,11 @@ class Knight(BipedCore):
 
   class SleepAnim(FrameAnim):
     frames = assets.sprites["knight_sleep"]
-    frame_duration = 30
+    frames_duration = 30
+
+  class BlockAnim(FrameAnim):
+    frames = assets.sprites["knight_block"]
+    frames_duration = [6, 6, 30]
 
   def __init__(knight, name=KNIGHT_NAME, faction="player", hp=KNIGHT_HP, *args, **kwargs):
     super().__init__(

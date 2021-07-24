@@ -19,11 +19,11 @@ class Mage(BipedCore):
 
   class SleepAnim(FrameAnim):
     frames = assets.sprites["mage_sleep"]
-    frame_duration = 30
+    frames_duration = 30
 
   class CastAnim(FrameAnim):
     frames = assets.sprites["mage_cast"]
-    frame_duration = 10
+    frames_duration = 10
 
   def __init__(mage, name=MAGE_NAME, faction="player", *args, **kwargs):
     super().__init__(

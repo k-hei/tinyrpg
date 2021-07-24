@@ -32,11 +32,11 @@ class DungeonActor(DungeonElement):
 
   class SleepAnim(FrameAnim):
     frames = assets.sprites["status_sleep"]
-    frame_duration = 15
+    frames_duration = 15
 
   class PoisonAnim(FrameAnim):
     frames = assets.sprites["status_poison"]
-    frame_duration = 15
+    frames_duration = 15
 
   def __init__(actor, core, hp=None, faction=None, facing=None, ailment=None, ailment_turns=0):
     super().__init__(solid=True)
@@ -178,6 +178,9 @@ class DungeonActor(DungeonElement):
     actor.stepped = True
     if actor.ailment == "sleep":
       actor.dispel_ailment()
+
+  def block(actor):
+    pass
 
   def kill(actor):
     actor.core.kill()

@@ -21,6 +21,9 @@ class Knight(DungeonActor):
       ailment_turns=ailment_turns
     )
 
+  def block(knight):
+    knight.core.anims = [KnightCore.BlockAnim()]
+
   def view(knight, anims):
     assets = use_assets().sprites
     anim_group = [a for a in anims[0] if a.target is knight] if anims else []
