@@ -8,7 +8,7 @@ from anims.frame import FrameAnim
 from anims.pause import PauseAnim
 from vfx.icespike import IceSpikeVfx
 from colors.palette import CYAN
-from config import ENABLED_LOG_COMBAT
+from config import ENABLED_COMBAT_LOG
 
 class Congelatio(MagicSkill):
   name = "Congelatio"
@@ -63,7 +63,7 @@ class Congelatio(MagicSkill):
         game.anims[0].append(PauseAnim(
           duration=60,
           on_end=lambda: (
-            ENABLED_LOG_COMBAT and game.log.print("But nothing happened..."),
+            ENABLED_COMBAT_LOG and game.log.print("But nothing happened..."),
             game.anims[0].append(PauseAnim(
               duration=30,
               on_end=on_end

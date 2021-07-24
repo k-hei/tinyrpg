@@ -18,7 +18,7 @@ from config import (
   PUSH_DURATION,
   FLICKER_DURATION,
   LABEL_FRAMES,
-  ENABLED_LOG_COMBAT
+  ENABLED_COMBAT_LOG
 )
 
 import keyboard
@@ -664,7 +664,7 @@ class DungeonContext(Context):
                 duration=DungeonContext.AWAKEN_DURATION,
                 target=enemy,
                 on_end=lambda: (
-                  ENABLED_LOG_COMBAT and game.log.print((enemy.token(), " woke up!")),
+                  ENABLED_COMBAT_LOG and game.log.print((enemy.token(), " woke up!")),
                   game.anims[0].append(PauseAnim(
                     duration=DungeonContext.PAUSE_DURATION,
                     on_end=lambda: game.step(moving=True)
@@ -757,7 +757,7 @@ class DungeonContext(Context):
     target_actor = game.floor.get_elem_at(target_cell, superclass=DungeonActor)
     if target_actor and not hero.allied(target_actor):
       if not hero.weapon:
-        hero.weapon = hero.load_weapon()
+        hero.weapon = hero.find_weapon()
       if hero.weapon:
         game.parent.deplete_sp(hero.weapon.cost)
         return game.attack(hero, target_actor, on_end=game.step)
@@ -981,24 +981,27 @@ class DungeonContext(Context):
     target_def = target.get_def()
     if game.floor.get_elem_at(target.cell, superclass=Door):
       target_def = max(0, target_def - 2)
+    if target.find_shield() and target.facing == direction.invert(actor.facing):
+      target_def *= 1.5
     variance = 1 if actor.core.faction == "enemy" else 2
     return max(1, actor_str - target_def + randint(-variance, variance))
 
   def attack(game, actor, target, damage=None, on_connect=None, on_end=None):
-    actor.weapon = actor.load_weapon()
+    actor.weapon = actor.find_weapon()
     if actor.weapon is None:
       return False
     if damage is None:
       damage = game.find_damage(actor, target)
-      if ENABLED_LOG_COMBAT:
+      if ENABLED_COMBAT_LOG:
         game.log.print((actor.token(), " uses ", actor.weapon().token()))
+    blocking = target.find_shield() and target.facing == direction.invert(actor.facing)
     def connect():
       if on_connect:
         on_connect()
       real_target = actor if target.counter else target
       real_damage = damage
       if target.counter:
-        game.log.print((target.token(), " reflected the attack!"))
+        ENABLED_COMBAT_LOG and game.log.print((target.token(), " reflected the attack!"))
         # target.counter = False
         real_target = actor
         real_damage = DungeonActor.find_damage(actor, actor)
@@ -1006,6 +1009,7 @@ class DungeonContext(Context):
         target=real_target,
         damage=real_damage,
         direction=actor.facing,
+        blocking=blocking,
         on_end=on_end
       )
     actor.face(target.cell)
@@ -1053,7 +1057,7 @@ class DungeonContext(Context):
       elif on_end:
         on_end()
 
-    if ENABLED_LOG_COMBAT:
+    if ENABLED_COMBAT_LOG:
       if not hero.allied(target):
         game.log.print(("Defeated ", target.token(), "."))
       else:
@@ -1064,13 +1068,13 @@ class DungeonContext(Context):
       on_end=remove
     ))
 
-  def flinch(game, target, damage, direction=None, delayed=False, on_end=None):
+  def flinch(game, target, damage, direction=None, delayed=False, blocking=False, on_end=None):
     was_asleep = target.ailment == "sleep"
     if target.is_dead() and on_end:
       on_end()
 
     def awaken():
-      if ENABLED_LOG_COMBAT:
+      if ENABLED_COMBAT_LOG:
         game.log.print((target.token(), " woke up!"))
       game.anims[0].append(PauseAnim(duration=DungeonContext.PAUSE_DURATION))
 
@@ -1084,38 +1088,39 @@ class DungeonContext(Context):
     if game.god_mode and target is game.hero:
       damage = 0
 
-    if ENABLED_LOG_COMBAT:
-      game.log.print((
-        target.token(),
-        " {}".format(game.hero.allied(target) and "receives" or "suffers"),
-        " {} damage.".format(int(damage))
-      ))
-    flinch = FlinchAnim(
-      duration=DungeonContext.FLINCH_DURATION,
-      target=target,
-      direction=direction,
-      on_start=lambda:(
-        target.damage(damage),
-        game.numbers.append(DamageValue(str(int(damage)), target.cell))
+    ENABLED_COMBAT_LOG and game.log.print((
+      target.token(),
+      " {}".format(game.hero.allied(target) and "receives" or "suffers"),
+      " {} damage.".format(int(damage))
+    ))
+
+    target.damage(damage),
+    game.numbers.append(DamageValue(str(int(damage)), target.cell))
+    if blocking:
+      flinch = None
+    else:
+      flinch = FlinchAnim(
+        target=target,
+        duration=DungeonContext.FLINCH_DURATION,
+        direction=direction
       )
-    )
 
     pause = PauseAnim(duration=DungeonContext.FLINCH_PAUSE_DURATION, on_end=respond)
-
     if delayed or not game.anims:
-      game.anims.append([flinch, pause])
+      game.anims.append([*(flinch and [flinch] or []), pause])
     else:
-      game.anims[0].extend([flinch, pause])
+      game.anims[0] += [*(flinch and [flinch] or []), pause]
+
     if was_asleep and not target.ailment == "sleep" and not target.is_dead():
-      game.anims[0].append(AwakenAnim(
+      game.anims.append([AwakenAnim(
         duration=DungeonContext.AWAKEN_DURATION,
         target=target,
         on_end=awaken
-      ))
+      )])
 
   def freeze(game, target):
     if not target.is_dead():
-      if ENABLED_LOG_COMBAT:
+      if ENABLED_COMBAT_LOG:
         game.log.print((target.token(), " is frozen.")),
       game.numbers.append(DamageValue("FROZEN", target.cell, offset=(4, -4), color=CYAN))
 
@@ -1168,7 +1173,7 @@ class DungeonContext(Context):
       else:
         game.log.print("But nothing happened...")
     else:
-      if ENABLED_LOG_COMBAT:
+      if ENABLED_COMBAT_LOG:
         game.log.print((actor.token(), " uses ", skill().token()))
       else:
         game.comps.append(SkillBanner(

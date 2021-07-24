@@ -2,6 +2,8 @@ from dungeon.features.specialroom import SpecialRoom
 from dungeon.actors.mage import Mage
 from dungeon.props.bag import Bag
 from skills.weapon.rustyblade import RustyBlade
+from skills.weapon.longinus import Longinus
+from skills.armor.buckler import Buckler
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
 from anims.pause import PauseAnim
@@ -13,7 +15,6 @@ from anims.attack import AttackAnim
 from anims.item import ItemAnim
 from anims.flicker import FlickerAnim
 from vfx.alertbubble import AlertBubble
-from skills.weapon.longinus import Longinus
 from lib.cell import add as add_cell
 import config
 from config import CUTSCENES
@@ -31,6 +32,7 @@ class DepthsRoom(SpecialRoom):
     ], elems=[
       ((4, 3), mage := Mage(faction="ally", ailment="sleep")),
       ((2, 2), Bag(RustyBlade)),
+      ((6, 5), Bag(Buckler)),
     ], *args, **kwargs)
     room.mage = mage
     room.focused = False

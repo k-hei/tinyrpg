@@ -52,7 +52,7 @@ class DungeonActor(DungeonElement):
       actor.inflict_ailment(ailment)
       actor.ailment_turns = ailment_turns or actor.ailment_turns
 
-    actor.weapon = actor.load_weapon()
+    actor.weapon = actor.find_weapon()
     actor.stepped = False
     actor.counter = False
     actor.aggro = False
@@ -101,8 +101,11 @@ class DungeonActor(DungeonElement):
     }
     return [actor.cell, type(actor).__name__, *(props and [props] or [])]
 
-  def load_weapon(actor):
+  def find_weapon(actor):
     return next((s for s in actor.core.skills if s.kind == "weapon"), None)
+
+  def find_shield(actor):
+    return next((s for s in actor.core.skills if s.kind == "armor" and s.element == "shield"), None)
 
   def allied(actor, target):
     if target is None or not isinstance(target, DungeonActor):

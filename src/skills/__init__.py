@@ -103,10 +103,10 @@ class Skill:
 def get_skill_order(skill):
   return [
     "weapon",
+    "armor",
     "attack",
     "magic",
     "support",
     "ailment",
     "field",
-    "armor"
   ].index(skill.kind)

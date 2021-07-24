@@ -5,7 +5,7 @@ from anims.bounce import BounceAnim
 from anims.warpin import WarpInAnim
 from cores.mage import Mage
 from dungeon.actors.eye import Eyeball
-from config import ENABLED_LOG_COMBAT
+from config import ENABLED_COMBAT_LOG
 
 class Accerso(MagicSkill):
   name = "Accerso"
@@ -45,13 +45,13 @@ class Accerso(MagicSkill):
             delay=i * 10,
             on_end=(on_end if cell == target_cells[-1] else lambda: None)
           ))
-        if ENABLED_LOG_COMBAT:
+        if ENABLED_COMBAT_LOG:
           if user.get_faction() == "player":
             game.log.print("Allies have appeared!")
           elif user.get_faction() == "enemy":
             game.log.print("Enemies have appeared!")
       else:
-        if ENABLED_LOG_COMBAT:
+        if ENABLED_COMBAT_LOG:
           game.log.print("But nothing happened...")
         on_end and on_end()
 
