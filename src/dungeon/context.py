@@ -385,14 +385,7 @@ class DungeonContext(Context):
         if type(command) is tuple:
           commands[actor] = command
 
-      if actor.ailment == "sleep":
-        actor.regen(actor.get_hp_max() / 50)
-
-      if actor.ailment == "poison":
-        damage = int(actor.get_hp_max() * DungeonActor.POISON_STRENGTH)
-        game.flinch(actor, damage, delayed=True)
-
-      actor.step_ailment()
+      actor.step_ailment(game)
 
       if actor.counter:
         actor.counter = max(0, actor.counter - 1)
@@ -613,7 +606,7 @@ class DungeonContext(Context):
     floor = game.floor
     visible_actors = [floor.get_elem_at(c, superclass=DungeonActor) for c in hero.visible_cells]
     visible_enemies = [e for e in visible_actors if e and not e.allied(hero)]
-    if hero.ailment == "sleep" or visible_enemies:
+    if hero.ailment or visible_enemies:
       return False
     hero.inflict_ailment("sleep")
     game.step()

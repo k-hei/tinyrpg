@@ -6,7 +6,7 @@ from dungeon.element import DungeonElement
 from cores import Core
 from skills.weapon import Weapon
 
-from colors.palette import BLACK, RED, GREEN, BLUE, CYAN, VIOLET, GOLD, DARKBLUE
+from colors.palette import BLACK, WHITE, RED, GREEN, BLUE, CYAN, VIOLET, GOLD, DARKBLUE
 from assets import assets
 from filters import replace_color, darken_image
 from anims.move import MoveAnim
@@ -23,7 +23,7 @@ from comps.log import Token
 from config import TILE_SIZE
 
 class DungeonActor(DungeonElement):
-  POISON_DURATION = 4
+  POISON_DURATION = 5
   POISON_STRENGTH = 1 / 7
   FREEZE_DURATION = 5
   SLEEP_DURATION = 256
@@ -32,6 +32,10 @@ class DungeonActor(DungeonElement):
 
   class SleepAnim(FrameAnim):
     frames = assets.sprites["status_sleep"]
+    frame_duration = 15
+
+  class PoisonAnim(FrameAnim):
+    frames = assets.sprites["status_poison"]
     frame_duration = 15
 
   def __init__(actor, core, hp=None, faction=None, facing=None, ailment=None, ailment_turns=0):
@@ -130,21 +134,27 @@ class DungeonActor(DungeonElement):
       return False
     if ailment == "poison":
       actor.ailment_turns = DungeonActor.POISON_DURATION
-    if ailment == "freeze":
-      actor.ailment_turns = DungeonActor.FREEZE_DURATION
+      actor.anims = [DungeonActor.PoisonAnim()]
     if ailment == "sleep":
       actor.ailment_turns = DungeonActor.SLEEP_DURATION
       actor.anims = [DungeonActor.SleepAnim()]
       if "SleepAnim" in dir(actor.core):
         actor.core.anims = [actor.core.SleepAnim()]
+    if ailment == "freeze":
+      actor.ailment_turns = DungeonActor.FREEZE_DURATION
     actor.ailment = ailment
     return True
 
-  def step_ailment(actor):
+  def step_ailment(actor, game):
     if actor.ailment_turns == 0:
       actor.dispel_ailment()
-    else:
-      actor.ailment_turns -= 1
+      return
+    actor.ailment_turns -= 1
+    if actor.ailment == "sleep":
+      actor.regen(actor.get_hp_max() / 50)
+    elif actor.ailment == "poison":
+      damage = int(actor.get_hp_max() * DungeonActor.POISON_STRENGTH)
+      game.flinch(actor, damage, delayed=True)
 
   def dispel_ailment(actor):
     if actor.ailment == "sleep":
@@ -153,6 +163,11 @@ class DungeonActor(DungeonElement):
       if "SleepAnim" in dir(actor.core):
         sleep_anim = next((a for a in actor.core.anims if type(a) is actor.core.SleepAnim), None)
         actor.core.anims.remove(sleep_anim)
+
+    if actor.ailment == "poison":
+      poison_anim = next((a for a in actor.anims if type(a) is DungeonActor.PoisonAnim), None)
+      poison_anim and actor.anims.remove(poison_anim)
+
     actor.ailment = None
     actor.ailment_turns = 0
 
@@ -301,15 +316,29 @@ class DungeonActor(DungeonElement):
       elif actor.core.faction == "enemy":
         new_color = RED
 
-    if actor.ailment == "sleep":
-      sleep_anim = next((a for a in actor.anims if type(a) is DungeonActor.SleepAnim), None)
-      if sleep_anim:
-        badge_pos = (12, -20)
-        move_anim = next((a for a in anim_group if type(a) is MoveAnim), None)
-        if move_anim:
-          badge_pos = add_vector(badge_pos, actor.get_move_offset(move_anim))
+    if actor.ailment:
+      badge_image = None
+      badge_pos = (12, -20)
+      move_anim = next((a for a in anim_group if type(a) is MoveAnim), None)
+      if move_anim:
+        badge_pos = add_vector(badge_pos, actor.get_move_offset(move_anim))
+
+      if actor.ailment == "sleep":
+        sleep_anim = next((a for a in actor.anims if type(a) is DungeonActor.SleepAnim), None)
+        if sleep_anim:
+          badge_image = sleep_anim.frame()
+          badge_image = replace_color(badge_image, BLACK, DARKBLUE)
+
+      if actor.ailment == "poison":
+        poison_anim = next((a for a in actor.anims if type(a) is DungeonActor.PoisonAnim), None)
+        if poison_anim:
+          badge_image = poison_anim.frame()
+          badge_image = replace_color(badge_image, BLACK, VIOLET)
+          badge_image = replace_color(badge_image, WHITE, DARKBLUE)
+
+      if badge_image:
         sprites.append(Sprite(
-          image=replace_color(sleep_anim.frame(), BLACK, DARKBLUE),
+          image=badge_image,
           pos=badge_pos,
           origin=("left", "bottom"),
           layer="vfx"
