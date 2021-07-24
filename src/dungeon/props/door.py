@@ -22,7 +22,7 @@ class Door(Prop):
   )
 
   def __init__(door, opened=False, locked=False):
-    super().__init__(solid=(not opened), opaque=(not opened))
+    super().__init__(solid=(not opened), opaque=(not opened), static=True)
     door.opened = opened
     door.locked = locked
     door.vertical = False

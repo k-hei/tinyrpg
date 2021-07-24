@@ -1,6 +1,5 @@
 from random import randint, choice
 from lib.cell import is_adjacent
-from config import ATTACK_DURATION
 from dungeon.actors import DungeonActor
 from cores import Core
 from assets import load as use_assets
@@ -16,6 +15,7 @@ from items.materials.angeltears import AngelTears
 from sprite import Sprite
 from filters import replace_color
 from colors.palette import BLACK, CYAN
+from config import PUSH_DURATION
 
 class Eyeball(DungeonActor):
   drops = [AngelTears]
@@ -46,7 +46,7 @@ class Eyeball(DungeonActor):
       return super().view(sprites["eyeball_flinch"], anims)
     anim_group = [a for a in anims[0] if a.target is eye] if anims else []
     for anim in anim_group:
-      if type(anim) is MoveAnim:
+      if type(anim) is MoveAnim and anim.duration != PUSH_DURATION:
         sprite = sprites["eyeball_move"]
         break
       elif (type(anim) is AttackAnim

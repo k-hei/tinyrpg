@@ -142,6 +142,9 @@ class Stage:
     elem = stage.get_elem_at(cell)
     return elem and elem.opaque
 
+  def get_elems_at(stage, cell):
+    return [e for e in stage.elems if e.cell == cell]
+
   def get_elem_at(stage, cell, superclass=None, exclude=[]):
     if superclass:
       return next((e for e in stage.elems if (

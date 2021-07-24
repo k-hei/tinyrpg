@@ -12,7 +12,7 @@ from anims.flinch import FlinchAnim
 from anims.fall import FallAnim
 from anims.path import PathAnim
 from lib.lerp import lerp
-from config import ITEM_OFFSET, TILE_SIZE
+from config import ITEM_OFFSET, TILE_SIZE, PUSH_DURATION
 
 class DungeonElement:
   def __init__(elem, solid=True, opaque=False, static=False):
@@ -71,7 +71,9 @@ class DungeonElement:
         elem_x, elem_y = elem.cell
         offset_x = (anim_x - elem_x) * TILE_SIZE
         offset_y = (anim_y - anim_z - elem_y) * TILE_SIZE
-        if anim.facing != (0, 0) and not next((a for g in anims for a in g if a.target is elem and type(a) is FlinchAnim), None):
+        if (anim.facing != (0, 0)
+        and not anim.duration == PUSH_DURATION
+        and not next((a for g in anims for a in g if a.target is elem and type(a) is FlinchAnim), None)):
           elem.facing = tuple(map(int, anim.facing))
       elif type(anim) is ItemAnim:
         item_image = anim.item.render()

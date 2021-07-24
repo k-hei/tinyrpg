@@ -12,6 +12,7 @@ from anims.move import MoveAnim
 from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
+from config import PUSH_DURATION
 
 class Mushroom(DungeonActor):
   skill = Virus
@@ -49,7 +50,7 @@ class Mushroom(DungeonActor):
       return super().view(sprites["mushroom_flinch"], anims)
     anim_group = [a for a in anims[0] if a.target is mushroom] if anims else []
     for anim in anim_group:
-      if type(anim) is MoveAnim:
+      if type(anim) is MoveAnim and anim.duration != PUSH_DURATION:
         sprite = sprites["mushroom_move"]
         break
       elif (type(anim) is AttackAnim

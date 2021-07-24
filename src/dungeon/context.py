@@ -136,7 +136,7 @@ class DungeonContext(Context):
     game.commands = []
     game.vfx = []
     game.numbers = []
-    game.key_requires_reset = {}
+    game.keys_rejected = {}
     game.seeds = []
     game.lights = False
     game.god_mode = False
@@ -534,7 +534,8 @@ class DungeonContext(Context):
     )]
 
   def handle_keyup(game, key):
-    game.key_requires_reset[key] = False
+    if key in game.keys_rejected:
+      del game.keys_rejected[key]
 
   def handle_keydown(game, key):
     if game.child:
@@ -547,7 +548,7 @@ class DungeonContext(Context):
     ctrl = keyboard.get_pressed(pygame.K_LCTRL) or keyboard.get_pressed(pygame.K_RCTRL)
     shift = keyboard.get_pressed(pygame.K_LSHIFT) or keyboard.get_pressed(pygame.K_RSHIFT)
     if keyboard.get_pressed(key) == 1 and ctrl:
-      game.key_requires_reset[key] = True
+      game.keys_rejected[key] = True
       if key == pygame.K_ESCAPE:
         return game.toggle_lights()
       if key == pygame.K_s and shift:
@@ -561,13 +562,14 @@ class DungeonContext(Context):
       if key == pygame.K_p:
         return print(game.hero.cell)
 
-    key_requires_reset = key in game.key_requires_reset and game.key_requires_reset[key]
-    if key in ARROW_DELTAS and not key_requires_reset:
-      delta = ARROW_DELTAS[key]
-      run = keyboard.get_pressed(pygame.K_LSHIFT) or keyboard.get_pressed(pygame.K_RSHIFT)
-      moved = game.handle_move(delta, run)
+    if key in ARROW_DELTAS:
+      moved = game.handle_move(delta=ARROW_DELTAS[key], run=shift)
       if not moved:
-        game.key_requires_reset[key] = True
+        if key not in game.keys_rejected:
+          game.keys_rejected[key] = 0
+        game.keys_rejected[key] += 1
+        if game.keys_rejected[key] >= 30:
+          game.handle_push()
       return moved
 
     if ((key == pygame.K_BACKSLASH or key == pygame.K_BACKQUOTE)
@@ -672,13 +674,11 @@ class DungeonContext(Context):
                   ENABLED_LOG_COMBAT and game.log.print((enemy.token(), " woke up!")),
                   game.anims[0].append(PauseAnim(
                     duration=DungeonContext.PAUSE_DURATION,
-                    on_end=end_move
+                    on_end=lambda: game.step(moving=True)
                   ))
                 )
               )
             ])
-      # if not is_waking_up:
-      #   end_move()
 
       # regen hp
       if game.parent.sp:
@@ -709,10 +709,21 @@ class DungeonContext(Context):
     elif target_tile is Stage.PIT:
       moved = game.jump_pit(hero, run, on_move)
       game.step(moving=True)
-    elif target_elem:
-      moved = game.push(actor=hero, target=target_elem, on_end=on_move)
-      game.step(moving=True)
     return moved
+
+  def handle_push(game):
+    hero = game.hero
+    target_cell = add_cell(hero.cell, hero.facing)
+    target_elem = next((e for e in game.floor.get_elems_at(target_cell) if (
+      e.solid and not e.static
+    )), None)
+    if target_elem:
+      pushed = game.push(actor=hero, target=target_elem)
+      if pushed:
+        game.step(moving=True)
+      return True
+    else:
+      return False
 
   def push(game, actor, target, on_end=None):
     origin_cell = target.cell
@@ -723,12 +734,15 @@ class DungeonContext(Context):
       return False
     target.cell = target_cell
     game.move(actor, delta=actor.facing, duration=PUSH_DURATION)
-    game.anims[-1].append(MoveAnim(
-      target=target,
-      duration=PUSH_DURATION,
-      src=origin_cell,
-      dest=target_cell
-    ))
+    game.anims[-1] += [
+      MoveAnim(
+        target=target,
+        duration=PUSH_DURATION,
+        src=origin_cell,
+        dest=target_cell
+      ),
+      PauseAnim(duration=15)
+    ]
     target.on_push(game)
     return True
 
