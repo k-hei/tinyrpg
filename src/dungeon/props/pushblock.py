@@ -10,49 +10,25 @@ from colors.palette import BLACK, WHITE, PURPLE, SAFFRON, DARKBLUE
 
 class PushBlock(Prop):
   def __init__(block, placed=False):
-    super().__init__()
-    block.placed = placed
+    super().__init__(static=placed)
 
   def encode(block):
     [cell, kind, *props] = super().encode()
     props = {
       **(props[0] if props else {}),
-      **(block.placed and { "placed": True } or {}),
+      **(block.static and { "placed": True } or {}),
     }
     return [cell, kind, *(props and [props] or [])]
 
-  def effect(block, game):
-    hero = game.hero
-    block_x, block_y = block.cell
-    delta_x, delta_y = hero.facing
-    target_cell = (block_x + delta_x, block_y + delta_y)
-    target_tile = game.floor.get_tile_at(target_cell)
-    target_elem = game.floor.get_elem_at(target_cell)
-    if block.placed or target_tile is None or target_tile.solid or target_elem and target_elem.solid:
-      return None
-    game.anims.append([
-      MoveAnim(
-        duration=45,
-        target=hero,
-        src=hero.cell,
-        dest=block.cell
-      ),
-      MoveAnim(
-        duration=45,
-        target=block,
-        src=block.cell,
-        dest=target_cell
-      )
-    ])
+  def on_push(block, game):
+    target_elem = game.floor.get_elem_at(block.cell, exclude=[PushBlock])
     if type(target_elem) is PushTile:
-      block.placed = True
+      block.static = True
       game.anims.append([
         SinkAnim(target=block)
       ])
-    hero.cell = block.cell
-    block.cell = target_cell
-    if target_elem:
-      target_elem.effect(game)
+      if target_elem:
+        target_elem.effect(game)
     return True
 
   def view(block, anims):
@@ -63,7 +39,7 @@ class PushBlock(Prop):
     for anim in anim_group:
       if type(anim) is SinkAnim:
         block_z = anim.z
-    if not anim_group and block.placed:
+    if not anim_group and block.static:
       block_z = SinkAnim.DEPTH
       block_image = assets.sprites["push_block_open"]
       block_image = replace_color(block_image, WHITE, PURPLE)
@@ -76,7 +52,7 @@ class PushBlock(Prop):
     return super().view(Sprite(
       image=block_image,
       pos=(0, 0),
-      layer="elems" # if anim_group or not block.placed else "decors"
+      layer="elems"
     ), anims)
 
 class SinkAnim(Anim):

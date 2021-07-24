@@ -15,9 +15,10 @@ from lib.lerp import lerp
 from config import ITEM_OFFSET, TILE_SIZE
 
 class DungeonElement:
-  def __init__(elem, solid=True, opaque=False):
+  def __init__(elem, solid=True, opaque=False, static=False):
     elem.solid = solid
     elem.opaque = opaque
+    elem.static = static
     elem.cell = None
     elem.size = (1, 1)
     elem.elev = 0
@@ -30,6 +31,11 @@ class DungeonElement:
 
   def aftereffect(elem, game):
     pass
+
+  def on_nudge(elem, game): pass
+  def on_push(elem, game): pass
+  def on_enter(elem, game): pass
+  def on_leave(elem, game): pass
 
   def spawn(elem, stage, cell):
     elem.cell = cell

@@ -15,6 +15,7 @@ from config import (
   MOVE_DURATION,
   RUN_DURATION,
   JUMP_DURATION,
+  PUSH_DURATION,
   FLICKER_DURATION,
   LABEL_FRAMES,
   ENABLED_LOG_COMBAT
@@ -632,10 +633,6 @@ class DungeonContext(Context):
     if isinstance(target_elem, Door) and not target_elem.solid:
       target_elem = floor.get_elem_at(target_cell, exclude=[Door])
 
-    def end_move():
-      game.step(moving=True)
-      return True
-
     def on_move():
       if not moved:
         return False
@@ -700,20 +697,40 @@ class DungeonContext(Context):
         ShakeAnim(duration=15, target=hero)
       ])
       if hero.ailment:
-        return end_move()
+        game.step(moving=True)
+        return True
       else:
         return
 
     moved = game.move(actor=hero, delta=delta, run=run, on_end=on_move)
     if moved:
-      if ally:
-        game.step_ally(game.ally, run, old_cell)
-      end_move()
-      acted = True
+      ally and game.step_ally(ally, run, old_cell)
+      game.step(moving=True)
     elif target_tile is Stage.PIT:
       moved = game.jump_pit(hero, run, on_move)
-      end_move()
+      game.step(moving=True)
+    elif target_elem:
+      moved = game.push(actor=hero, target=target_elem, on_end=on_move)
+      game.step(moving=True)
     return moved
+
+  def push(game, actor, target, on_end=None):
+    origin_cell = target.cell
+    target_cell = add_cell(origin_cell, actor.facing)
+    target_tile = game.floor.get_tile_at(target_cell)
+    target_elem = game.floor.get_elem_at(target_cell)
+    if target.static or target_tile is None or target_tile.solid or target_elem and target_elem.solid:
+      return False
+    target.cell = target_cell
+    game.move(actor, delta=actor.facing, duration=PUSH_DURATION)
+    game.anims[-1].append(MoveAnim(
+      target=target,
+      duration=PUSH_DURATION,
+      src=origin_cell,
+      dest=target_cell
+    ))
+    target.on_push(game)
+    return True
 
   def obtain(game, item):
     game.parent.obtain(item)
@@ -845,7 +862,7 @@ class DungeonContext(Context):
     game.log.exit()
     game.open(DialogueContext(script=target.script))
 
-  def move(game, actor, delta, run=False, jump=False, on_end=None):
+  def move(game, actor, delta, run=False, jump=False, duration=0, on_end=None):
     origin_tile = game.floor.get_tile_at(actor.cell)
     origin_elev = origin_tile and origin_tile.elev
     actor_x, actor_y = actor.cell
@@ -865,7 +882,7 @@ class DungeonContext(Context):
       or not target_elem.solid
       or actor is game.hero and target_elem is game.ally and game.ally.can_step()
     )):
-      duration = RUN_DURATION if run else MOVE_DURATION
+      duration = duration or (RUN_DURATION if run else MOVE_DURATION)
       duration = duration * 1.5 if jump else duration
       anim_kind = JumpAnim if jump else MoveAnim
       src_cell = (*actor.cell, max(0, origin_tile.elev))

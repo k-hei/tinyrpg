@@ -151,7 +151,11 @@ class Stage:
       )), None)
     else:
       return (
-        next((e for e in stage.elems if e.cell == cell and e.solid), None)
+        next((e for e in stage.elems if (
+          e.cell == cell
+          and e.solid
+          and not next((t for t in exclude if isinstance(e, t)), None)
+        )), None)
         or next((e for e in stage.elems if (
           e.cell == cell
           and not next((t for t in exclude if isinstance(e, t)), None)
