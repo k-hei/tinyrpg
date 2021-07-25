@@ -55,6 +55,7 @@ class DungeonActor(DungeonElement):
     actor.weapon = actor.find_weapon()
     actor.command = None
     actor.counter = False
+    actor.turns = 0
     actor.aggro = False
     actor.rare = False
     actor.visible_cells = []
@@ -78,14 +79,14 @@ class DungeonActor(DungeonElement):
     return actor.is_dead() or actor.ailment in ("sleep", "freeze")
 
   def get_str(actor):
-    return actor.core.st + (actor.weapon.st if actor.weapon else 0)
+    return actor.core.stats.st + (actor.weapon.st if actor.weapon else 0)
 
   def get_def(actor, stage=None):
     if actor.ailment == "sleep":
-      return actor.core.en // 2
+      return actor.core.stats.en // 2
     if actor.ailment == "freeze":
-      return int(actor.core.en * 1.5)
-    return actor.core.en
+      return int(actor.core.stats.en * 1.5)
+    return actor.core.stats.en
 
   def encode(actor):
     cell, name, *props = super().encode()
@@ -194,10 +195,10 @@ class DungeonActor(DungeonElement):
   def promote(actor, hp=True):
     actor.rare = True
     if hp:
-      actor.core.hp_max += 5
+      actor.core.stats.hp += 5
       actor.core.hp += 5
-    actor.core.st += 1
-    actor.core.en += 1
+    actor.core.stats.st += 1
+    actor.core.stats.en += 1
 
   def regen(actor, amount=None):
     if amount is None:

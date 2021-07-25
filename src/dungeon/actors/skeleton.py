@@ -1,5 +1,5 @@
 from dungeon.actors import DungeonActor
-from cores import Core
+from cores import Core, Stats
 from assets import load as use_assets
 from skills.attack.shieldbash import ShieldBash
 from skills.weapon.club import Club
@@ -15,9 +15,12 @@ class Skeleton(DungeonActor):
     super().__init__(Core(
       name="Skeleton",
       faction="enemy",
-      hp=16,
-      st=13,
-      en=11,
+      stats=Stats(
+        hp=16,
+        st=13,
+        ag=5,
+        en=11,
+      ),
       skills=[ Club, ShieldBash ]
     ), *args, **kwargs)
     if rare:

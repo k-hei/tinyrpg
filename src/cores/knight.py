@@ -1,3 +1,4 @@
+from cores import Stats
 from cores.biped import BipedCore, SpriteMap
 from config import KNIGHT_NAME, KNIGHT_HP
 import assets
@@ -30,8 +31,15 @@ class Knight(BipedCore):
       name=name,
       faction=faction,
       hp=hp,
-      st=15,
-      en=9,
+      stats=Stats(
+        hp=KNIGHT_HP,
+        st=15,
+        ma=3,
+        dx=11,
+        ag=7,
+        lu=6,
+        en=9
+      ),
       *args,
       **kwargs
     )

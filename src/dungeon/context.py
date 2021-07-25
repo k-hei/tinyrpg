@@ -374,32 +374,39 @@ class DungeonContext(Context):
         commands[ally] = command
 
     hero = game.hero
-    actors = [e for e in game.floor.elems if isinstance(e, DungeonActor)]
+    actors = [e for e in game.floor.elems if isinstance(e, DungeonActor) and e is not hero]
     enemies = [a for a in actors if not a.allied(hero)]
     enemies.sort(key=lambda e: type(e) is MageActor and 1000 or manhattan(e.cell, hero.cell))
 
     for actor in actors:
+      spd = actor.core.stats.ag / hero.core.stats.ag
+      actor.turns += spd
+
+    for actor in actors:
       if actor.is_dead():
         continue
-
-      if actor in enemies and actor is not ally:
-        command = game.step_enemy(actor)
-        if type(command) is tuple:
-          commands[actor] = command
-
-      actor.step_ailment(game)
-
-      if actor.counter:
-        actor.counter = max(0, actor.counter - 1)
+      while actor.turns >= 1:
+        actor.turns -= 1
+        if actor in enemies and actor is not ally:
+          command = game.step_enemy(actor)
+          if type(command) is tuple:
+            if actor in commands:
+              commands[actor].append(command)
+            else:
+              commands[actor] = [command]
+        actor.step_ailment(game)
+        if actor.counter:
+          actor.counter = max(0, actor.counter - 1)
+    print(commands)
 
     end_exec = lambda: game.end_step(moving=moving)
     start_exec = lambda: game.next_command(on_end=end_exec)
     if commands:
       COMMAND_PRIORITY = ["move", "move_to", "use_skill", "attack"]
-      game.commands = sorted(commands.items(), key=lambda item: COMMAND_PRIORITY.index(item[1][0]))
+      game.commands = sorted(commands.items(), key=lambda item: COMMAND_PRIORITY.index(item[1][0][0]))
       if (hero.command
       and hero.command.on_end
-      and not (type(hero.command) is MoveCommand and game.commands[0][1][0].startswith("move"))):
+      and not (type(hero.command) is MoveCommand and game.commands[0][1][0][0].startswith("move"))):
         hero.command.on_end = compose(hero.command.on_end, start_exec)
       else:
         start_exec()
@@ -412,22 +419,29 @@ class DungeonContext(Context):
     if not game.commands:
       return on_end and on_end()
     step = lambda: (
-      game.commands and game.commands.pop(0),
+      not game.commands[0][1] and game.commands.pop(0),
       game.next_command(on_end)
     )
-    actor, (cmd_name, *cmd_args) = game.commands[0]
-    if not actor.can_step():
+    actor, commands = game.commands[0]
+    cmd_name, *cmd_args = commands.pop(0)
+    if actor.is_immobile():
       return step()
     if cmd_name == "use_skill":
       return game.use_skill(actor, *cmd_args, on_end=step)
     if cmd_name == "attack":
       return game.attack(actor, *cmd_args, on_end=step)
     if cmd_name == "move":
-      game.move(actor, *cmd_args)
-      return step()
+      if commands:
+        return game.move(actor, *cmd_args, on_end=step)
+      else:
+        game.move(actor, *cmd_args)
+        return step()
     if cmd_name == "move_to":
-      game.move_to(actor, *cmd_args)
-      return step()
+      if commands:
+        return game.move_to(actor, *cmd_args, on_end=step)
+      else:
+        game.move_to(actor, *cmd_args)
+        return step()
 
   def end_step(game, moving=False):
     actors = [e for e in game.floor.elems if isinstance(e, DungeonActor)]
@@ -944,7 +958,7 @@ class DungeonContext(Context):
         and isinstance(anim.target, DungeonActor)):
           return group
 
-  def move_to(game, actor, cell, run=False):
+  def move_to(game, actor, cell, run=False, on_end=None):
     if actor.cell == cell:
       return False
 
@@ -984,7 +998,7 @@ class DungeonContext(Context):
         delta_x = select_x()
 
     if delta_x or delta_y:
-      return game.move(actor=actor, delta=(delta_x, delta_y), run=run, on_end=game.refresh_fov)
+      return game.move(actor=actor, delta=(delta_x, delta_y), run=run, on_end=on_end)
     else:
       return False
 

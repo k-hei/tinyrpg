@@ -1,5 +1,5 @@
 from dungeon.actors import DungeonActor
-from cores import Core
+from cores import Core, Stats
 from assets import load as use_assets
 from skills.ailment.virus import Virus
 from skills.weapon.tackle import Tackle
@@ -22,9 +22,12 @@ class Mushroom(DungeonActor):
     super().__init__(Core(
       name="Toadstool",
       faction="enemy",
-      hp=19,
-      st=14,
-      en=10,
+      stats=Stats(
+        hp=19,
+        st=14,
+        ag=4,
+        en=10,
+      ),
       skills=[Tackle, Virus]
     ), *args, **kwargs)
 

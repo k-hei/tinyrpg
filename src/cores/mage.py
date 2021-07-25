@@ -1,3 +1,4 @@
+from cores import Stats
 from cores.biped import BipedCore, SpriteMap
 from config import MAGE_NAME, MAGE_HP
 
@@ -25,13 +26,20 @@ class Mage(BipedCore):
     frames = assets.sprites["mage_cast"]
     frames_duration = 10
 
-  def __init__(mage, name=MAGE_NAME, faction="player", *args, **kwargs):
+  def __init__(mage, name=MAGE_NAME, faction="player", hp=MAGE_HP, *args, **kwargs):
     super().__init__(
       name=name,
       faction=faction,
-      hp=MAGE_HP,
-      st=14,
-      en=10,
+      hp=hp,
+      stats=Stats(
+        hp=MAGE_HP,
+        st=14,
+        ma=14,
+        dx=9,
+        ag=6,
+        lu=9,
+        en=10,
+      ),
       message=lambda ctx: DialogueContext(script=[
         (hero := ctx.party[0]) and None,
         PromptContext((name.upper(), ": ", "Are you ready yet?"), (

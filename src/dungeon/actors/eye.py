@@ -1,7 +1,7 @@
 from random import randint, choice
 from lib.cell import is_adjacent
 from dungeon.actors import DungeonActor
-from cores import Core
+from cores import Core, Stats
 from assets import load as use_assets
 from skills.weapon.tackle import Tackle
 from skills.ailment.steal import Steal
@@ -25,9 +25,12 @@ class Eyeball(DungeonActor):
     super().__init__(Core(
       name="Eyeball",
       faction=faction,
-      hp=14,
-      st=12,
-      en=11,
+      stats=Stats(
+        hp=14,
+        st=12,
+        ag=6,
+        en=11,
+      ),
       skills=[Tackle]
     ),  *args, **kwargs)
     eye.item = None
