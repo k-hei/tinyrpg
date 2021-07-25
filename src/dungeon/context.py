@@ -26,7 +26,7 @@ from keyboard import ARROW_DELTAS, key_times
 
 import debug
 
-from lib.cell import add as add_cell, is_adjacent, manhattan, normal
+from lib.cell import add as add_vector, is_adjacent, manhattan, normal
 import lib.direction as direction
 from lib.compose import compose
 
@@ -397,7 +397,6 @@ class DungeonContext(Context):
         actor.step_ailment(game)
         if actor.counter:
           actor.counter = max(0, actor.counter - 1)
-    print(commands)
 
     end_exec = lambda: game.end_step(moving=moving)
     start_exec = lambda: game.next_command(on_end=end_exec)
@@ -732,7 +731,7 @@ class DungeonContext(Context):
 
   def handle_push(game):
     hero = game.hero
-    target_cell = add_cell(hero.cell, hero.facing)
+    target_cell = add_vector(hero.cell, hero.facing)
     target_elem = next((e for e in game.floor.get_elems_at(target_cell) if (
       e.solid and not e.static
     )), None)
@@ -753,7 +752,7 @@ class DungeonContext(Context):
 
   def push(game, actor, target, on_end=None):
     origin_cell = target.cell
-    target_cell = add_cell(origin_cell, actor.facing)
+    target_cell = add_vector(origin_cell, actor.facing)
     target_tile = game.floor.get_tile_at(target_cell)
     target_elem = game.floor.get_elem_at(target_cell)
     if target.static or target_tile is None or target_tile.solid or target_elem and target_elem.solid:
@@ -786,7 +785,7 @@ class DungeonContext(Context):
 
   def handle_action(game):
     hero = game.hero
-    target_cell = add_cell(hero.cell, hero.get_facing())
+    target_cell = add_vector(hero.cell, hero.get_facing())
     target_actor = game.floor.get_elem_at(target_cell, superclass=DungeonActor)
     if target_actor and not hero.allied(target_actor):
       if not hero.weapon:
@@ -1012,15 +1011,22 @@ class DungeonContext(Context):
       force=force
     )
 
+  def can_block(game, actor, attacker):
+    return (
+      actor.find_shield()
+      and actor.get_facing() == direction.invert(attacker.get_facing())
+      and type(actor.command) is not SkillCommand
+    )
+
   def find_damage(game, actor, target, modifier=1):
     actor_str = actor.get_str() * modifier
     target_def = target.get_def()
     if game.floor.get_elem_at(target.cell, superclass=Door):
       target_def = max(0, target_def - 2)
-    if target.find_shield() and target.facing == direction.invert(actor.facing):
+    if game.can_block(actor=target, attacker=actor):
       target_def *= 1.5
     variance = 1 if actor.core.faction == "enemy" else 2
-    return max(1, actor_str - target_def + randint(-variance, variance))
+    return max(0, actor_str - target_def + randint(-variance, variance))
 
   def attack(game, actor, target, damage=None, on_connect=None, on_end=None):
     actor.weapon = actor.find_weapon()
@@ -1033,12 +1039,7 @@ class DungeonContext(Context):
         game.log.print((actor.token(), " uses ", actor.weapon().token()))
 
     actor.face(target.cell)
-    blocking = (
-      target.find_shield()
-      and target.get_facing() == direction.invert(actor.get_facing())
-      and (target.command is None
-        or type(target.command) in (MoveCommand, PushCommand))
-    )
+    blocking = game.can_block(actor=target, attacker=actor)
     if blocking:
       target.block()
 
@@ -1152,8 +1153,13 @@ class DungeonContext(Context):
       " {} damage.".format(int(damage))
     ))
 
-    target.damage(damage),
-    game.numbers.append(DamageValue(str(int(damage)), target.cell))
+    target.damage(damage)
+    damage_fx = DamageValue(
+      text=(damage or "BLOCK"),
+      cell=target.cell,
+      offset=(randint(-1, 1), randint(-1, 1))
+    )
+    game.numbers.append(damage_fx)
     if blocking:
       flinch = ShakeAnim(
         target=target,
@@ -1256,7 +1262,7 @@ class DungeonContext(Context):
     hero = game.hero
     hero.regen(hero.get_hp_max())
     hero.dispel_ailment()
-    game.numbers.append(DamageValue(hero.get_hp_max(), add_cell(hero.cell, (0, -0.25)), color=GREEN))
+    game.numbers.append(DamageValue(hero.get_hp_max(), add_vector(hero.cell, (0, -0.25)), color=GREEN))
     game.numbers.append(DamageValue(game.get_sp_max(), hero.cell, color=CYAN))
     game.parent.regen_sp()
 
@@ -1283,8 +1289,8 @@ class DungeonContext(Context):
     if ally:
       if ally.is_dead():
         ally.revive()
-        floor.spawn_elem_at(add_cell(hero.cell, (-1, 0)), ally)
-      game.numbers.append(DamageValue(ally.get_hp_max(), add_cell(ally.cell, (0, -0.25)), GREEN))
+        floor.spawn_elem_at(add_vector(hero.cell, (-1, 0)), ally)
+      game.numbers.append(DamageValue(ally.get_hp_max(), add_vector(ally.cell, (0, -0.25)), GREEN))
       game.numbers.append(DamageValue(game.get_sp_max(), ally.cell, CYAN))
       ally.regen(ally.get_hp_max())
       ally.dispel_ailment()

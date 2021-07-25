@@ -32,7 +32,7 @@ class Eyeball(DungeonActor):
         en=11,
       ),
       skills=[Tackle]
-    ),  *args, **kwargs)
+    ), *args, **kwargs)
     eye.item = None
     if rare:
       eye.promote(hp=False)

@@ -50,14 +50,14 @@ class DamageNumber:
     return sprite
 
 class DamageValue:
-  def __init__(value, number, cell, offset=(0, 0), color=None):
+  def __init__(value, text, cell, offset=(0, 0), color=None):
     value.cell = cell
     value.offset = offset
     value.done = False
     value.width = 0
     value.time = 0
     value.numbers = []
-    text = str(number)
+    text = str(text)
     for i, char in enumerate(text):
       number = DamageNumber(
         value=char,
