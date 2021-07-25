@@ -22,7 +22,10 @@ class Knight(DungeonActor):
     )
 
   def block(knight):
-    knight.core.anims = [KnightCore.BlockAnim()]
+    if knight.facing == (0, 1):
+      knight.core.anims = [KnightCore.BlockDownAnim()]
+    else:
+      knight.core.anims = [KnightCore.BlockAnim()]
 
   def view(knight, anims):
     assets = use_assets().sprites

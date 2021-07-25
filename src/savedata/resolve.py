@@ -44,6 +44,7 @@ from skills.field.detectmana import DetectMana
 from skills.support.anastasis import Anastasis
 from skills.support.counter import Counter
 from skills.support.sana import Sana
+from skills.armor.buckler import Buckler
 from skills.armor.hpup import HpUp
 from dungeon.props.bag import Bag
 from dungeon.props.treasuredoor import TreasureDoor
@@ -145,6 +146,7 @@ def resolve_skill(key):
   if key == "Anastasis": return Anastasis
   if key == "Counter": return Counter
   if key == "Sana": return Sana
+  if key == "Buckler": return Buckler
   if key == "HpUp": return HpUp
 
 def resolve_elem(key):
@@ -203,4 +205,5 @@ def resolve_material(material):
   if material is Diamond: return None
   if material is AngelTears: return Eyeball
   if material is RedFerrule: return Mushroom
+  if material is Club: return Skeleton
   if material is BroadSword: return Mage

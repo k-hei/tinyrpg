@@ -616,7 +616,7 @@ class DungeonContext(Context):
     hero = game.hero
     ally = game.ally
     floor = game.floor
-    if hero.is_dead() or hero.ailment == "sleep":
+    if not hero.can_step():
       return False
     old_cell = hero.cell
     hero_x, hero_y = old_cell
@@ -627,6 +627,7 @@ class DungeonContext(Context):
     target_elem = floor.get_elem_at(target_cell)
     if isinstance(target_elem, Door) and not target_elem.solid:
       target_elem = floor.get_elem_at(target_cell, exclude=[Door])
+    hero.set_facing(delta)
 
     def on_move():
       if not moved:
@@ -990,13 +991,17 @@ class DungeonContext(Context):
     actor.weapon = actor.find_weapon()
     if actor.weapon is None:
       return False
+
     if damage is None:
       damage = game.find_damage(actor, target)
       if ENABLED_COMBAT_LOG:
         game.log.print((actor.token(), " uses ", actor.weapon().token()))
-    blocking = target.find_shield() and target.facing == direction.invert(actor.facing)
+
+    actor.face(target.cell)
+    blocking = target.find_shield() and target.get_facing() == direction.invert(actor.get_facing())
     if blocking:
       target.block()
+
     def connect():
       if on_connect:
         on_connect()
@@ -1014,7 +1019,7 @@ class DungeonContext(Context):
         blocking=blocking,
         on_end=on_end
       )
-    actor.face(target.cell)
+
     game.anims.append([
       AttackAnim(
         duration=DungeonContext.ATTACK_DURATION,
