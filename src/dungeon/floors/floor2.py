@@ -54,14 +54,14 @@ class Floor2(Floor):
     ]))
   ]
 
-  def generate():
+  def generate(story):
     entry_room = VerticalRoom(size=(3, 4), degree=1)
     pushblock_room = PushBlockRoom(degree=2)
     buffer_room1 = VerticalRoom(
       size=(3, 4),
       degree=2,
       on_place=lambda room, stage: (
-        stage.spawn_elem_at(add_cell((0, 0), room.cell), Genie(
+        not story["minxia"] and stage.spawn_elem_at(add_cell((0, 0), room.cell), Genie(
           name="Joshin",
           message=next((s for s in Floor2.scripts if s[0] == "tiles"), None)
         ))

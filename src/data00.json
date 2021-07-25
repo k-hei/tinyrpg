@@ -13,5 +13,8 @@
       "Glacio": [1, 1]
     },
     "rogue": {}
+  },
+  "story": {
+    "minxia": true
   }
 }

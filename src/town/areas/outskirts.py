@@ -38,8 +38,8 @@ class OutskirtsArea(Area):
             ), required=True, on_close=lambda choice: (
               choice.text == "Load data" and [
                 lambda: LoadContext(
-                  on_close=lambda data: (
-                    data and ctx.get_head().child.load(data)
+                  on_close=lambda *data: (
+                    data and ctx.get_head().child.load(data[0])
                     or [prompt]
                   )
                 )

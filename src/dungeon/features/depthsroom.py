@@ -30,11 +30,10 @@ class DepthsRoom(SpecialRoom):
       ".......",
       "#.....#"
     ], elems=[
-      ((4, 3), mage := Mage(faction="ally", ailment="sleep")),
       ((2, 2), Bag(RustyBlade)),
       ((6, 5), Bag(Buckler)),
     ], *args, **kwargs)
-    room.mage = mage
+    room.mage = None
     room.focused = False
 
   def get_cells(room):
@@ -52,8 +51,10 @@ class DepthsRoom(SpecialRoom):
     ]
 
   def on_focus(room, game):
-    if room.focused:
+    if room.focused or game.parent.story["minxia"]:
       return False
+    room.mage = Mage(faction="ally", ailment="sleep")
+    game.floor.spawn_elem_at((4, 3), room.mage)
     room.focused = True
     game.hero.cell = add_cell(room.cell, (2, 4))
     game.hero.set_facing((0, -1))

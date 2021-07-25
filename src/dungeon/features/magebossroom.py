@@ -28,13 +28,8 @@ class MageBossRoom(SpecialRoom):
       ".......",
       ".......",
       "#.....#"
-    ], elems=[
-      ((3, 2), mage := Mage(
-        faction="ally",
-        facing=(0, -1)
-      ))
     ])
-    room.mage = mage
+    room.mage = None
 
   def get_edges(room):
     x, y = room.cell or (0, 0)
@@ -58,8 +53,13 @@ class MageBossRoom(SpecialRoom):
       door.handle_open(game)
 
   def on_enter(room, game):
-    if room.entered:
+    if room.entered or game.parent.story["minxia"]:
       return False
+    room.mage = Mage(
+      faction="ally",
+      facing=(0, -1)
+    )
+    game.floor.spawn_elem_at((3, 2), room.mage)
     room.entered = True
     room.lock(game)
     game.anims.append([PauseAnim(
@@ -79,6 +79,7 @@ class MageBossRoom(SpecialRoom):
     return True
 
   def on_complete(room, game):
+    game.parent.story["minxia"] = True
     game.anims.append([PauseAnim(
       duration=30,
       on_end=lambda: game.open(CutsceneContext(
@@ -87,7 +88,8 @@ class MageBossRoom(SpecialRoom):
           *(postbattle_cutscene(room, game) if config.CUTSCENES else []),
           *postbattle_cutscene_teardown(room, game),
           lambda step: (
-            room.unlock(game), step()
+            room.unlock(game),
+            step()
           )
         ]
       ))

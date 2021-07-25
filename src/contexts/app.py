@@ -102,7 +102,7 @@ class App(Context):
       if app.transits:
         transit = app.transits[0]
         sprites += transit.view(sprites)
-      sprites.sort(key=lambda sprite: 1 if sprite.layer == "hud" else 0)
+      sprites.sort(key=lambda sprite: 1 if sprite.layer in ("hud", "ui") else 0)
       app.surface.fill(0)
       for sprite in sprites:
         sprite.draw(app.surface)

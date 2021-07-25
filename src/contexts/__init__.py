@@ -10,16 +10,10 @@ class Context:
     ctx.comps = []
 
   def get_head(ctx):
-    if ctx.parent:
-      return ctx.parent.get_head()
-    else:
-      return ctx
+    return ctx.parent.get_head() if ctx.parent else ctx
 
   def get_tail(ctx):
-    if ctx.child:
-      return ctx.child.get_tail()
-    else:
-      return ctx
+    return ctx.child.get_tail() if ctx.child else ctx
 
   def get_parent(ctx, cls=None):
     if not ctx.parent:

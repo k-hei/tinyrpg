@@ -7,7 +7,7 @@ from dungeon.features.magebossroom import MageBossRoom
 from dungeon.features.emeraldroom import EmeraldRoom
 
 class Floor3(Floor):
-  def generate():
+  def generate(story):
     entry_room = VerticalRoom(size=(3, 4), degree=1)
     hall_room = HallRoom()
     mageboss_room = MageBossRoom()

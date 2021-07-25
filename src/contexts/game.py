@@ -51,6 +51,7 @@ class GameContext(Context):
     ctx.sp = ctx.sp_max
     ctx.time = 0
     ctx.inventory = Inventory((2, 4))
+    ctx.story = {}
     ctx.monster_kills = {}
     ctx.new_skills = []
     ctx.skill_pool = []
@@ -81,6 +82,8 @@ class GameContext(Context):
         ctx.skill_builds[char].append(piece)
     ctx.saved_builds = savedata.chars
     ctx.update_skills()
+    ctx.story = savedata.story
+
     floor = None
 
     if ctx.feature:
@@ -102,7 +105,7 @@ class GameContext(Context):
       savedata.place = "dungeon"
       app = ctx.get_head()
       return app.load(
-        loader=Floor.generate(),
+        loader=Floor.generate(ctx.story),
         on_end=lambda floor: (
           ctx.goto_dungeon(floors=[floor], generator=Floor),
           app.transition([DissolveOut()])
@@ -149,6 +152,7 @@ class GameContext(Context):
       skills=skills,
       party=party,
       chars=chars,
+      story=ctx.story,
       dungeon=dungeon
     )
     return ctx.savedata
