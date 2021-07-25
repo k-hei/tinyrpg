@@ -46,17 +46,13 @@ class RendingGale(AttackSkill):
         )
       ) for i, cell in enumerate(target_cells)]
 
-    def find_damage(target):
-      en = target.core.stats.en if not target.ailment == "sleep" else 0
-      return int((user.core.stats.st + user.weapon.st) * 1.25 - en) + randint(-2, 2)
-
     def next_target():
       if not targets:
         return on_end and on_end()
       target = targets.pop(0)
       game.flinch(
         target=target,
-        damage=find_damage(target),
+        damage=game.find_damage(user, target, modifier=1.25),
         on_end=next_target
       )
 

@@ -81,25 +81,21 @@ class Blitzritter(AttackSkill):
         )
       ])
 
-    def find_damage(target):
-      en = target.core.stats.en if not target.ailment == "sleep" else 0
-      return int((user.core.stats.st + user.weapon.st) * 1.25 - en) + random.randint(-2, 2)
-
     def end_pause():
       if target_a and target_b:
         return game.flinch(
           target=target_a,
-          damage=find_damage(target_a),
+          damage=game.find_damage(user, target_a, modifier=1.25),
           on_end=lambda: game.flinch(
             target=target_b,
-            damage=find_damage(target_b),
+            damage=game.find_damage(user, target_b, modifier=1.25),
             on_end=on_end
           )
         )
       target = target_a or target_b
       game.flinch(
         target=target,
-        damage=find_damage(target),
+        damage=game.find_damage(user, target, modifier=1.25),
         on_end=on_end
       )
 

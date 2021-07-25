@@ -379,7 +379,7 @@ class DungeonContext(Context):
     enemies.sort(key=lambda e: type(e) is MageActor and 1000 or manhattan(e.cell, hero.cell))
 
     for actor in actors:
-      spd = actor.core.stats.ag / hero.core.stats.ag
+      spd = actor.stats.ag / hero.stats.ag
       actor.turns += spd
 
     for actor in actors:
@@ -1020,8 +1020,8 @@ class DungeonContext(Context):
     )
 
   def roll_hit(game, attacker, defender):
-    hit = attacker.core.stats.dx + attacker.core.stats.lu / 2
-    avo = defender.core.stats.ag + defender.core.stats.lu / 2
+    hit = attacker.stats.dx + attacker.stats.lu / 2
+    avo = defender.stats.ag + defender.stats.lu / 2
     if hit >= avo:
       chance = 0.75 + (hit - avo) / (avo * 2) * 0.25
     else:

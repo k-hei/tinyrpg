@@ -1,6 +1,7 @@
 from random import randint
 from pygame import Surface
 from sprite import Sprite
+from copy import copy
 
 from dungeon.element import DungeonElement
 from cores import Core
@@ -41,6 +42,7 @@ class DungeonActor(DungeonElement):
   def __init__(actor, core, hp=None, faction=None, facing=None, ailment=None, ailment_turns=0):
     super().__init__(solid=True)
     actor.core = core
+    actor.stats = copy(core.stats)
     actor.set_hp(hp or core.hp)
     actor.set_faction(faction or core.faction)
     actor.set_facing(facing or core.facing)
@@ -79,14 +81,14 @@ class DungeonActor(DungeonElement):
     return actor.is_dead() or actor.ailment in ("sleep", "freeze")
 
   def get_str(actor):
-    return actor.core.stats.st + (actor.weapon.st if actor.weapon else 0)
+    return actor.stats.st + (actor.weapon.st if actor.weapon else 0)
 
   def get_def(actor, stage=None):
     if actor.ailment == "sleep":
-      return actor.core.stats.en // 2
+      return actor.stats.en // 2
     if actor.ailment == "freeze":
-      return int(actor.core.stats.en * 1.5)
-    return actor.core.stats.en
+      return int(actor.stats.en * 1.5)
+    return actor.stats.en
 
   def encode(actor):
     cell, name, *props = super().encode()
@@ -199,6 +201,7 @@ class DungeonActor(DungeonElement):
       actor.core.hp += 5
     actor.core.stats.st += 1
     actor.core.stats.en += 1
+    actor.stats = copy(actor.core.stats)
 
   def regen(actor, amount=None):
     if amount is None:

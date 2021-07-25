@@ -23,7 +23,6 @@ class Core:
     core.faction = faction
     core.facing = tuple(facing)
     core.hp = hp or stats.hp
-    core.bases = stats
     core.stats = stats
     core.skills = skills
     core.color = color
