@@ -87,6 +87,7 @@ from comps.previews import Previews
 from comps.spmeter import SpMeter
 from comps.floorno import FloorNo
 from comps.skillbanner import SkillBanner
+from vfx.flash import FlashVfx
 
 from contexts import Context
 from contexts.custom import CustomContext
@@ -1032,7 +1033,7 @@ class DungeonContext(Context):
     cdf = defender.stats.ag + defender.stats.lu / 4
     if crt >= cdf:
       chance = 0.125 + (crt - cdf) / 100
-      return True
+      return True # debug
     else:
       chance = crt / cdf * 0.125
     print(attacker.get_name(), defender.get_name(), chance)
@@ -1190,6 +1191,8 @@ class DungeonContext(Context):
         color=YELLOW,
         delay=15
       ))
+      game.vfx.append(FlashVfx())
+
     if damage == None:
       damage_text = "MISS"
     elif damage == 0:

@@ -322,7 +322,8 @@ class StageView:
     for sprite in sprites:
       camera_x, camera_y = camera.pos or (0, 0)
       camera_inv = (-camera_x, -camera_y)
-      sprite.move(camera_inv)
+      if sprite.layer != "ui":
+        sprite.move(camera_inv)
     sprites += self.view_tiles(camera)
     sprites.sort(key=StageView.order)
     return sprites
