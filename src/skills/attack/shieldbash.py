@@ -64,7 +64,7 @@ class ShieldBash(AttackSkill):
     def on_connect():
       if will_nudge:
         target_elem.cell = nudge_cell
-        target_elem.stepped = True
+        target_elem.command = True
         game.anims[0].append(MoveAnim(
           target=target_elem,
           src=target_cell,

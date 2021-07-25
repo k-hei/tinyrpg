@@ -23,7 +23,7 @@ class Knight(BipedCore):
 
   class BlockDownAnim(FrameAnim):
     frames = assets.sprites["knight_blockdown"]
-    frames_duration = [6, 6, 30]
+    frames_duration = [6, 6, 33]
 
   def __init__(knight, name=KNIGHT_NAME, faction="player", hp=KNIGHT_HP, *args, **kwargs):
     super().__init__(

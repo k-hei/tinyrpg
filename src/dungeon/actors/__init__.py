@@ -53,7 +53,7 @@ class DungeonActor(DungeonElement):
       actor.ailment_turns = ailment_turns or actor.ailment_turns
 
     actor.weapon = actor.find_weapon()
-    actor.stepped = False
+    actor.command = None
     actor.counter = False
     actor.aggro = False
     actor.rare = False
@@ -73,7 +73,7 @@ class DungeonActor(DungeonElement):
   def get_active_skills(actor): return actor.core.get_active_skills()
   def is_dead(actor): return actor.core.dead
   def can_step(actor):
-    return not actor.stepped and not actor.is_immobile()
+    return not actor.command and not actor.is_immobile()
   def is_immobile(actor):
     return actor.is_dead() or actor.ailment in ("sleep", "freeze")
 
@@ -175,7 +175,7 @@ class DungeonActor(DungeonElement):
     actor.ailment_turns = 0
 
   def wake_up(actor):
-    actor.stepped = True
+    actor.command = True
     if actor.ailment == "sleep":
       actor.dispel_ailment()
 

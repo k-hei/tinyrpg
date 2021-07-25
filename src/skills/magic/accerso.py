@@ -37,7 +37,7 @@ class Accerso(MagicSkill):
       if target_cells:
         for i, cell in enumerate(target_cells):
           ally = Eyeball(faction="ally" if user.get_faction() == "player" else "enemy")
-          # ally.stepped = True
+          # ally.command = True
           floor.spawn_elem_at(cell, ally)
           game.anims[0].append(WarpInAnim(
             target=ally,

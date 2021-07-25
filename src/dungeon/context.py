@@ -28,6 +28,7 @@ import debug
 
 from lib.cell import add as add_cell, is_adjacent, manhattan, normal
 import lib.direction as direction
+from lib.compose import compose
 
 import assets
 from assets import load as load_assets
@@ -102,6 +103,7 @@ from dungeon.floors.floor2 import Floor2
 from dungeon.floors.floor3 import Floor3
 
 from dungeon.data import DungeonData
+from dungeon.command import MoveCommand, MoveToCommand, PushCommand, SkillCommand
 
 def manifest(core):
   if type(core) is Knight: return KnightActor(core)
@@ -390,12 +392,21 @@ class DungeonContext(Context):
       if actor.counter:
         actor.counter = max(0, actor.counter - 1)
 
+    end_exec = lambda: game.end_step(moving=moving)
+    start_exec = lambda: game.next_command(on_end=end_exec)
     if commands:
       COMMAND_PRIORITY = ["move", "move_to", "use_skill", "attack"]
       game.commands = sorted(commands.items(), key=lambda item: COMMAND_PRIORITY.index(item[1][0]))
-      game.next_command(on_end=lambda: game.end_step(moving=moving))
+      if (hero.command
+      and hero.command.on_end
+      and not (type(hero.command) is MoveCommand and game.commands[0][1][0].startswith("move"))):
+        hero.command.on_end = compose(hero.command.on_end, start_exec)
+      else:
+        start_exec()
+    elif hero.command and hero.command.on_end:
+      hero.command.on_end = compose(hero.command.on_end, end_exec)
     else:
-      game.end_step(moving=moving)
+      end_exec()
 
   def next_command(game, on_end=None):
     if not game.commands:
@@ -421,7 +432,7 @@ class DungeonContext(Context):
   def end_step(game, moving=False):
     actors = [e for e in game.floor.elems if isinstance(e, DungeonActor)]
     for actor in actors:
-      actor.stepped = False
+      actor.command = None
     hero = game.hero
     if hero.ailment == "sleep":
       if hero.get_hp() == hero.get_hp_max():
@@ -445,7 +456,7 @@ class DungeonContext(Context):
       adjacent_enemies.sort(key=lambda e: e.get_hp())
       enemy = adjacent_enemies[0]
       game.attack(ally, enemy)
-      ally.stepped = True
+      ally.command = True
     elif old_hero_cell and (
       is_adjacent(ally.cell, old_hero_cell)
       or manhattan(ally.cell, old_hero_cell) == 2 and game.is_pit_between(ally.cell, old_hero_cell)
@@ -458,9 +469,9 @@ class DungeonContext(Context):
     elif visible_enemies and not is_adjacent(ally.cell, hero.cell):
       visible_enemies.sort(key=lambda e: e.get_hp())
       enemy = visible_enemies[0]
-      ally.stepped = game.move_to(ally, enemy.cell)
+      ally.command = game.move_to(ally, enemy.cell)
     elif not is_adjacent(ally.cell, hero.cell):
-      ally.stepped = game.move_to(ally, hero.cell, run)
+      ally.command = game.move_to(ally, hero.cell, run)
 
   def is_pit_between(game, a, b):
     ax, ay = a
@@ -712,9 +723,16 @@ class DungeonContext(Context):
       e.solid and not e.static
     )), None)
     if target_elem:
-      pushed = game.push(actor=hero, target=target_elem)
-      if pushed:
+      command = PushCommand(target=target_elem)
+      hero.command = command
+      def end_push():
+        hero.command.on_end = None
         game.step(moving=True)
+      pushed = game.push(
+        actor=hero,
+        target=target_elem,
+        on_end=end_push
+      )
       return True
     else:
       return False
@@ -727,7 +745,7 @@ class DungeonContext(Context):
     if target.static or target_tile is None or target_tile.solid or target_elem and target_elem.solid:
       return False
     target.cell = target_cell
-    game.move(actor, delta=actor.facing, duration=PUSH_DURATION)
+    game.move(actor, delta=actor.facing, duration=PUSH_DURATION, on_end=on_end)
     game.anims[-1] += [
       MoveAnim(
         target=target,
@@ -895,12 +913,15 @@ class DungeonContext(Context):
       anim_kind = JumpAnim if jump else MoveAnim
       src_cell = (*actor.cell, max(0, origin_tile.elev))
       dest_cell = (*target_cell, max(0, target_tile.elev))
+      command = MoveCommand(direction=delta, on_end=on_end)
+      if not actor.command:
+        actor.command = command
       move_anim = anim_kind(
         duration=duration,
         target=actor,
         src=src_cell,
         dest=dest_cell,
-        on_end=on_end
+        on_end=lambda: command.on_end and command.on_end()
       )
       move_group = game.find_move_group()
       if move_group:
@@ -998,7 +1019,12 @@ class DungeonContext(Context):
         game.log.print((actor.token(), " uses ", actor.weapon().token()))
 
     actor.face(target.cell)
-    blocking = target.find_shield() and target.get_facing() == direction.invert(actor.get_facing())
+    blocking = (
+      target.find_shield()
+      and target.get_facing() == direction.invert(actor.get_facing())
+      and (target.command is None
+        or type(target.command) in (MoveCommand, PushCommand))
+    )
     if blocking:
       target.block()
 
@@ -1012,14 +1038,22 @@ class DungeonContext(Context):
         # target.counter = False
         real_target = actor
         real_damage = DungeonActor.find_damage(actor, actor)
+
+      def end_attack():
+        on_end = command.on_end
+        command.on_end = None
+        on_end and on_end()
+
       game.flinch(
         target=real_target,
         damage=real_damage,
         direction=actor.facing,
         blocking=blocking,
-        on_end=on_end
+        on_end=end_attack
       )
 
+    command = SkillCommand(skill=actor.weapon, on_end=on_end)
+    actor.command = command
     game.anims.append([
       AttackAnim(
         duration=DungeonContext.ATTACK_DURATION,
@@ -1027,9 +1061,11 @@ class DungeonContext(Context):
         target=actor,
         src=actor.cell,
         dest=target.cell,
-        on_connect=connect
+        on_connect=connect,
       )
     ])
+
+    return True
 
   def kill(game, target, on_end=None):
     hero = game.hero

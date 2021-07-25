@@ -127,7 +127,7 @@ class ArenaRoom(SpecialRoom):
     if feature.waves:
       feature.next_wave(game)
       for enemy in feature.get_enemies(game.floor):
-        enemy.stepped = True
+        enemy.command = True
     else:
       game.anims.append([
         PauseAnim(
