@@ -10,7 +10,7 @@ import vfx
 
 class Coffin(Prop):
   def __init__(coffin, contents=None):
-    super().__init__()
+    super().__init__(static=True)
     coffin.contents = contents
     coffin.opened = False
 

@@ -1011,6 +1011,7 @@ class DungeonContext(Context):
       force=force
     )
 
+  # TODO: move into dungeon actor class
   def can_block(game, actor, attacker):
     return (
       actor.find_shield()

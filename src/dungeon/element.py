@@ -15,10 +15,13 @@ from lib.lerp import lerp
 from config import ITEM_OFFSET, TILE_SIZE, PUSH_DURATION
 
 class DungeonElement:
+  static = False
+
   def __init__(elem, solid=True, opaque=False, static=False):
     elem.solid = solid
     elem.opaque = opaque
-    elem.static = static
+    if not elem.static:
+      elem.static = static
     elem.cell = None
     elem.size = (1, 1)
     elem.elev = 0

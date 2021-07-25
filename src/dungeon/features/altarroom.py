@@ -72,6 +72,12 @@ class AltarRoom(SpecialRoom):
 
   def on_trigger(room, game):
     game.open(CutsceneContext(script=[
+      lambda step: game.camera.focus(
+        cell=room.altar.cell,
+        tween=True,
+        speed=30,
+        on_end=step
+      ),
       *collapse(room, game),
       next_floor(game)
     ]))
