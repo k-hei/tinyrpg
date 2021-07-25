@@ -123,7 +123,6 @@ class StageView:
         if fade_anim:
           break
       anim_cells = fade_anim and not fade_anim.done and fade_anim.target or []
-      # fade_anim and fade_anim.time and print(len(anim_cells))
       if cell in (set(anim_cells) - set(visible_cells)):
         if fade_anim.time:
           _, tile_darkened = self.tile_cache[cell]

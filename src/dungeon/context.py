@@ -312,16 +312,14 @@ class DungeonContext(Context):
           def illuminate():
             hero.visible_cells = room_cells
             game.redraw_tiles(force=True)
+          game.anims[0].append(PauseAnim(duration=45))
           game.anims += [
-            [
-              PauseAnim(duration=30),
-              StageView.FadeAnim(
-                target=room_cells,
-                duration=15,
-                on_start=lambda: game.update_visited_cells(room_cells),
-                on_end=illuminate
-              ),
-            ],
+            [StageView.FadeAnim(
+              target=room_cells,
+              duration=15,
+              on_start=lambda: game.update_visited_cells(room_cells),
+              on_end=illuminate
+            )],
             [PauseAnim(duration=15)]
           ]
       game.room = room
@@ -374,6 +372,7 @@ class DungeonContext(Context):
         commands[ally] = command
 
     hero = game.hero
+    hero.step_ailment(game)
     actors = [e for e in game.floor.elems if isinstance(e, DungeonActor) and e is not hero]
     enemies = [a for a in actors if not a.allied(hero)]
     enemies.sort(key=lambda e: type(e) is MageActor and 1000 or manhattan(e.cell, hero.cell))
@@ -1025,7 +1024,17 @@ class DungeonContext(Context):
     if hit >= avo:
       chance = 0.75 + (hit - avo) / (avo * 2) * 0.25
     else:
-      chance = hit / avo
+      chance = hit / avo * 0.75
+    return random() <= chance
+
+  def roll_crit(game, attacker, defender):
+    crt = attacker.stats.dx + attacker.stats.lu / 4
+    cdf = defender.stats.ag + defender.stats.lu / 4
+    if crt >= cdf:
+      chance = 0.125 + (crt - cdf) / 100
+    else:
+      chance = crt / cdf * 0.125
+    print(attacker.get_name(), defender.get_name(), chance)
     return random() <= chance
 
   def find_damage(game, actor, target, modifier=1):
@@ -1038,20 +1047,23 @@ class DungeonContext(Context):
     variance = 1 if actor.core.faction == "enemy" else 2
     return max(0, actor_str - target_def + randint(-variance, variance))
 
-  def attack(game, actor, target, damage=None, on_connect=None, on_end=None):
+  def attack(game, actor, target, damage=None, modifier=1, on_connect=None, on_end=None):
     actor.weapon = actor.find_weapon()
     if actor.weapon is None:
       return False
 
     if damage is None:
-      damage = game.find_damage(actor, target)
+      damage = game.find_damage(actor, target, modifier)
       if ENABLED_COMBAT_LOG:
         game.log.print((actor.token(), " uses ", actor.weapon().token()))
 
     actor.face(target.cell)
 
+    game.roll_crit(attacker=actor, defender=target)
     block = game.can_block(actor=target, attacker=actor)
-    if not target.is_immobile() and not game.roll_hit(attacker=actor, defender=target):
+    if (not target.is_immobile()
+    and not game.roll_hit(attacker=actor, defender=target)
+    and (not block or randint(0, 1))):
       damage = None
     elif block:
       damage = 0
