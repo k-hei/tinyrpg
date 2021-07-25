@@ -1029,14 +1029,12 @@ class DungeonContext(Context):
     return random() <= chance
 
   def roll_crit(game, attacker, defender):
-    crt = attacker.stats.dx + attacker.stats.lu / 4
-    cdf = defender.stats.ag + defender.stats.lu / 4
+    crt = attacker.stats.dx + attacker.stats.lu
+    cdf = defender.stats.ag + defender.stats.lu
     if crt >= cdf:
       chance = 0.125 + (crt - cdf) / 100
-      return True # debug
     else:
       chance = crt / cdf * 0.125
-    print(attacker.get_name(), defender.get_name(), chance)
     return random() <= chance
 
   def find_damage(game, actor, target, modifier=1):
@@ -1192,6 +1190,7 @@ class DungeonContext(Context):
         delay=15
       ))
       game.vfx.append(FlashVfx())
+      game.floor_view.shake(vertical=direction[1])
 
     if damage == None:
       damage_text = "MISS"

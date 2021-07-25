@@ -10,6 +10,7 @@ from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, COLOR_TILE
 from config import ITEM_OFFSET, TILE_SIZE, DEBUG
 from sprite import Sprite
 from lib.lerp import lerp
+from lib.cell import add as add_vector
 
 from dungeon.actors import DungeonActor
 from dungeon.stage import Stage
@@ -28,6 +29,7 @@ from anims.pause import PauseAnim
 from anims.awaken import AwakenAnim
 from anims.item import ItemAnim
 from anims.tween import TweenAnim
+from anims.shake import ShakeAnim
 
 def recolor_walls():
   assets = use_assets()
@@ -82,6 +84,7 @@ class StageView:
     self.camera_cell = None
     self.stage = None
     self.facings = {}
+    self.anim = None
 
   def redraw_tile(self, stage, cell, visible_cells, visited_cells, anims=[]):
     col, row = cell
@@ -303,7 +306,18 @@ class StageView:
         numbers.remove(number)
     return sprites
 
+  def shake(self, vertical=False):
+    self.anim = ShakeAnim(duration=15, target=vertical)
+
+  def update(self):
+    if self.anim:
+      if self.anim.done:
+        self.anim = None
+      else:
+        self.anim.update()
+
   def view(self, ctx):
+    self.update()
     sprites = []
     visible_cells = ctx.hero.visible_cells
     visited_cells = ctx.get_visited_cells()
@@ -321,9 +335,16 @@ class StageView:
     sprites += self.view_numbers(numbers, camera)
     for sprite in sprites:
       camera_x, camera_y = camera.pos or (0, 0)
-      camera_inv = (-camera_x, -camera_y)
+      camera_offset = (0, 0)
+      if self.anim:
+        if self.anim.target:
+          camera_offset = (0, self.anim.offset)
+        else:
+          camera_offset = (self.anim.offset, 0)
+      camera_pos = (-camera_x, -camera_y)
+      camera_pos = add_vector(camera_pos, camera_offset)
       if sprite.layer != "ui":
-        sprite.move(camera_inv)
+        sprite.move(camera_pos)
     sprites += self.view_tiles(camera)
     sprites.sort(key=StageView.order)
     return sprites
