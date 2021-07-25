@@ -1034,7 +1034,6 @@ class DungeonContext(Context):
     cdf = defender.stats.ag + defender.stats.lu
     if crt >= cdf:
       chance = 0.125 + (crt - cdf) / 100
-      return True
     else:
       chance = crt / cdf * 0.125
     return random() <= chance
@@ -1113,13 +1112,14 @@ class DungeonContext(Context):
     return True
 
   def nudge(game, actor, direction, on_end=None):
-    target_cell = add_vector(actor.cell, direction)
+    source_cell = actor.cell
+    target_cell = add_vector(source_cell, direction)
     actor.cell = target_cell
     actor.command = True
     game.anims[0].append(MoveAnim(
       duration=NUDGE_DURATION,
       target=actor,
-      src=actor.cell,
+      src=source_cell,
       dest=target_cell,
       on_end=on_end
     ))
@@ -1214,7 +1214,7 @@ class DungeonContext(Context):
         color=YELLOW,
         delay=15
       ))
-      # game.vfx.append(FlashVfx())
+      game.vfx.append(FlashVfx())
       game.floor_view.shake(vertical=direction[1])
       game.nudge(target, direction)
 
