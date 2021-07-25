@@ -52,19 +52,19 @@ class DamageNumber:
     return sprite
 
 class DamageValue:
-  def __init__(value, text, cell, offset=(0, 0), color=None):
+  def __init__(value, text, cell, offset=(0, 0), color=None, delay=0):
     value.cell = cell
     value.offset = add_vector(offset, (randint(-1, 1), randint(-1, 1)))
     value.done = False
     value.width = 0
-    value.time = 0
+    value.time = -delay
     value.numbers = []
     text = str(text)
     for i, char in enumerate(text):
       number = DamageNumber(
         value=char,
         x=i,
-        delay=i * (DamageNumber.STAGGER if len(text) <= 3 else DamageNumber.STAGGER // 2),
+        delay=i * (DamageNumber.STAGGER if len(text) <= 3 else DamageNumber.STAGGER // 2) + delay,
         color=color
       )
       value.numbers.append(number)

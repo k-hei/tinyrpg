@@ -34,7 +34,7 @@ import assets
 from assets import load as load_assets
 from sprite import Sprite
 from filters import recolor, replace_color, outline
-from colors.palette import BLACK, WHITE, RED, GREEN, BLUE, CYAN
+from colors.palette import BLACK, WHITE, RED, GREEN, BLUE, YELLOW, CYAN
 from text import render as render_text
 from transits.dissolve import DissolveIn, DissolveOut
 
@@ -1032,6 +1032,7 @@ class DungeonContext(Context):
     cdf = defender.stats.ag + defender.stats.lu / 4
     if crt >= cdf:
       chance = 0.125 + (crt - cdf) / 100
+      return True
     else:
       chance = crt / cdf * 0.125
     print(attacker.get_name(), defender.get_name(), chance)
@@ -1059,7 +1060,7 @@ class DungeonContext(Context):
 
     actor.face(target.cell)
 
-    game.roll_crit(attacker=actor, defender=target)
+    crit = game.roll_crit(attacker=actor, defender=target)
     block = game.can_block(actor=target, attacker=actor)
     if (not target.is_immobile()
     and not game.roll_hit(attacker=actor, defender=target)
@@ -1068,6 +1069,8 @@ class DungeonContext(Context):
     elif block:
       damage = 0
       target.block()
+    elif crit:
+      damage = game.find_damage(actor, target, modifier=2)
 
     def connect():
       on_connect and on_connect()
@@ -1089,6 +1092,7 @@ class DungeonContext(Context):
         target=real_target,
         damage=real_damage,
         direction=actor.facing,
+        crit=crit,
         on_end=end_attack
       )
 
@@ -1152,7 +1156,7 @@ class DungeonContext(Context):
       on_end=remove
     ))
 
-  def flinch(game, target, damage, direction=None, delayed=False, on_end=None):
+  def flinch(game, target, damage, direction=None, delayed=False, crit=False, on_end=None):
     was_asleep = target.ailment == "sleep"
     if target.is_dead() and on_end:
       on_end()
@@ -1178,6 +1182,14 @@ class DungeonContext(Context):
       " {} damage.".format(int(damage))
     ))
 
+    if damage and crit:
+      game.numbers.append(DamageValue(
+        text="CRITICAL!",
+        cell=target.cell,
+        offset=(4, -4),
+        color=YELLOW,
+        delay=15
+      ))
     if damage == None:
       damage_text = "MISS"
     elif damage == 0:
@@ -1222,7 +1234,13 @@ class DungeonContext(Context):
     if not target.is_dead():
       if ENABLED_COMBAT_LOG:
         game.log.print((target.token(), " is frozen.")),
-      game.numbers.append(DamageValue("FROZEN", target.cell, offset=(4, -4), color=CYAN))
+      game.numbers.append(DamageValue(
+        text="FROZEN",
+        cell=target.cell,
+        offset=(4, -4),
+        color=CYAN,
+        delay=15
+      ))
 
   def use_item(game, item):
     game.anims.append([
