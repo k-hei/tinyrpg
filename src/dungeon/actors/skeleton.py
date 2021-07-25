@@ -18,6 +18,7 @@ class Skeleton(DungeonActor):
       stats=Stats(
         hp=16,
         st=13,
+        dx=7,
         ag=5,
         en=11,
       ),

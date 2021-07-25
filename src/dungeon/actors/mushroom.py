@@ -25,6 +25,7 @@ class Mushroom(DungeonActor):
       stats=Stats(
         hp=19,
         st=14,
+        dx=4,
         ag=4,
         en=10,
       ),

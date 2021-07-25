@@ -62,6 +62,7 @@ class Door(Prop):
   def open(door):
     door.solid = False
     door.opened = True
+    door.opaque = False
     door.locked = False
 
   def handle_open(door, game):

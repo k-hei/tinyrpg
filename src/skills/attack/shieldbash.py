@@ -18,10 +18,10 @@ class ShieldBash(AttackSkill):
   cost = 2
   users = [Knight]
   blocks = (
+    (0, 0),
     (1, 0),
-    (0, 1),
     (1, 1),
-    (2, 1),
+    (1, 2),
   )
 
   def effect(user, dest, game, on_end=None):

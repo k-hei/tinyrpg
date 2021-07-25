@@ -516,7 +516,7 @@ class CustomContext(Context):
           t = 1 - skill_anim.pos
           x += t * SKILL_NUDGE_LEFT
         if menu.arrange and index != menu.index:
-          sprite = Skill.render(skill, False)
+          sprite = Skill.render(skill, selected=False)
         else:
           sprite = Skill.render(skill)
 

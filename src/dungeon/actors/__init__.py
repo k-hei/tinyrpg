@@ -40,7 +40,7 @@ class DungeonActor(DungeonElement):
     frames_duration = 15
 
   def __init__(actor, core, hp=None, faction=None, facing=None, ailment=None, ailment_turns=0):
-    super().__init__(solid=True)
+    super().__init__(solid=True, opaque=False)
     actor.core = core
     actor.stats = copy(core.stats)
     actor.set_hp(hp or core.hp)
