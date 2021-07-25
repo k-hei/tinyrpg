@@ -9,7 +9,7 @@ from anims.move import MoveAnim
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from anims.flicker import FlickerAnim
-from config import ATTACK_DURATION, MOVE_DURATION, ENABLED_COMBAT_LOG
+from config import ENABLED_COMBAT_LOG
 
 class ShieldBash(AttackSkill):
   name = "ShieldBash"
@@ -63,13 +63,7 @@ class ShieldBash(AttackSkill):
 
     def on_connect():
       if will_nudge:
-        target_elem.cell = nudge_cell
-        target_elem.command = True
-        game.anims[0].append(MoveAnim(
-          target=target_elem,
-          src=target_cell,
-          dest=nudge_cell
-        ))
+        game.nudge(actor=target_elem, direction=user.facing)
       game.flinch(
         target=target_elem,
         damage=game.find_damage(actor=user, target=target_elem, modifier=0.8),

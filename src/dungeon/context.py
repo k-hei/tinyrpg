@@ -16,6 +16,7 @@ from config import (
   RUN_DURATION,
   JUMP_DURATION,
   PUSH_DURATION,
+  NUDGE_DURATION,
   FLICKER_DURATION,
   LABEL_FRAMES,
   ENABLED_COMBAT_LOG
@@ -1033,6 +1034,7 @@ class DungeonContext(Context):
     cdf = defender.stats.ag + defender.stats.lu
     if crt >= cdf:
       chance = 0.125 + (crt - cdf) / 100
+      return True
     else:
       chance = crt / cdf * 0.125
     return random() <= chance
@@ -1069,7 +1071,7 @@ class DungeonContext(Context):
       damage = 0
       target.block()
     elif crit:
-      damage = game.find_damage(actor, target, modifier=2)
+      damage = game.find_damage(actor, target, modifier=1.5)
 
     def connect():
       on_connect and on_connect()
@@ -1109,6 +1111,18 @@ class DungeonContext(Context):
     ])
 
     return True
+
+  def nudge(game, actor, direction, on_end=None):
+    target_cell = add_vector(actor.cell, direction)
+    actor.cell = target_cell
+    actor.command = True
+    game.anims[0].append(MoveAnim(
+      duration=NUDGE_DURATION,
+      target=actor,
+      src=actor.cell,
+      dest=target_cell,
+      on_end=on_end
+    ))
 
   def kill(game, target, on_end=None):
     hero = game.hero
@@ -1181,17 +1195,6 @@ class DungeonContext(Context):
       " {} damage.".format(int(damage))
     ))
 
-    if damage and crit:
-      game.numbers.append(DamageValue(
-        text="CRITICAL!",
-        cell=target.cell,
-        offset=(4, -4),
-        color=YELLOW,
-        delay=15
-      ))
-      game.vfx.append(FlashVfx())
-      game.floor_view.shake(vertical=direction[1])
-
     if damage == None:
       damage_text = "MISS"
     elif damage == 0:
@@ -1202,6 +1205,18 @@ class DungeonContext(Context):
       text=damage_text,
       cell=target.cell
     ))
+
+    if damage and crit:
+      game.numbers.insert(0, DamageValue(
+        text="CRITICAL!",
+        cell=target.cell,
+        offset=(4, -4),
+        color=YELLOW,
+        delay=15
+      ))
+      # game.vfx.append(FlashVfx())
+      game.floor_view.shake(vertical=direction[1])
+      game.nudge(target, direction)
 
     if damage == None:
       flinch = None
