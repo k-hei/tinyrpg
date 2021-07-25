@@ -60,7 +60,7 @@ class LoadingContext(Context):
     knight_y = WINDOW_HEIGHT - 16
     knight_sprite.pos = (knight_x, knight_y)
     knight_sprite.origin = ("right", "bottom")
-    knight_sprite.layer = "hud"
+    knight_sprite.layer = "ui"
     sprites.append(knight_sprite)
 
     label_font = assets.ttf["roman"]
@@ -77,7 +77,7 @@ class LoadingContext(Context):
       sprites.append(Sprite(
         image=char_image,
         pos=(label_x, char_y),
-        layer="hud"
+        layer="ui"
       ))
       label_x += char_image.get_width()
 

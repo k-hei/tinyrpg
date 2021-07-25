@@ -56,7 +56,7 @@ class DepthsRoom(SpecialRoom):
     room.mage = Mage(faction="ally", ailment="sleep")
     game.floor.spawn_elem_at((4, 3), room.mage)
     room.focused = True
-    game.hero.cell = add_cell(room.cell, (2, 4))
+    game.hero.cell = add_cell(room.cell, (3, 5))
     game.hero.set_facing((0, -1))
     game.open(CutsceneContext(script=[
       *(cutscene(room, game) if config.CUTSCENES else [])

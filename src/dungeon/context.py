@@ -311,6 +311,7 @@ class DungeonContext(Context):
         if game.room:
           room_cells = room.get_cells() + room.get_border()
           game.camera.illuminate(room, actor=game.hero)
+          game.log.exit()
           def illuminate():
             hero.visible_cells = room_cells
             game.redraw_tiles(force=True)
@@ -416,10 +417,11 @@ class DungeonContext(Context):
       end_exec()
 
   def next_command(game, on_end=None):
+    print(game.commands)
     if not game.commands:
       return on_end and on_end()
     step = lambda: (
-      not game.commands[0][1] and game.commands.pop(0),
+      not (game.commands[0] and game.commands[0][1]) and game.commands.pop(0),
       game.next_command(on_end)
     )
     actor, commands = game.commands[0]
@@ -641,8 +643,21 @@ class DungeonContext(Context):
     hero = game.hero
     ally = game.ally
     floor = game.floor
+
+    if hero.ailment == "freeze":
+      hero.step_ailment(game)
+      game.anims.append([
+        ShakeAnim(duration=15, target=hero)
+      ])
+      if hero.ailment:
+        game.step(moving=True)
+        return True
+      else:
+        return
+
     if not hero.can_step():
       return False
+
     old_cell = hero.cell
     hero_x, hero_y = old_cell
     delta_x, delta_y = delta
@@ -709,17 +724,6 @@ class DungeonContext(Context):
       # deplete sp
       if target_tile is not Stage.OASIS:
         game.parent.deplete_sp(1 / 100)
-
-    if hero.ailment == "freeze":
-      hero.step_ailment()
-      game.anims.append([
-        ShakeAnim(duration=15, target=hero)
-      ])
-      if hero.ailment:
-        game.step(moving=True)
-        return True
-      else:
-        return
 
     moved = game.move(actor=hero, delta=delta, run=run, on_end=on_move)
     if moved:
@@ -794,6 +798,7 @@ class DungeonContext(Context):
       if hero.weapon:
         game.parent.deplete_sp(hero.weapon.cost)
         return game.attack(hero, target_actor, on_end=game.step)
+      return False
     target_elem = game.floor.get_elem_at(target_cell)
     effect_result = target_elem and target_elem.effect(game)
     def bump():
@@ -1169,7 +1174,7 @@ class DungeonContext(Context):
       on_end=remove
     ))
 
-  def flinch(game, target, damage, direction=None, delayed=False, crit=False, on_end=None):
+  def flinch(game, target, damage, direction=None, delayed=False, block=False, crit=False, on_end=None):
     was_asleep = target.ailment == "sleep"
     if target.is_dead() and on_end:
       on_end()
@@ -1195,10 +1200,10 @@ class DungeonContext(Context):
       " {} damage.".format(int(damage))
     ))
 
-    if damage == None:
-      damage_text = "MISS"
-    elif damage == 0:
+    if damage == 0 or block:
       damage_text = "BLOCK"
+    elif damage == None:
+      damage_text = "MISS"
     else:
       damage_text = int(damage)
     game.numbers.append(DamageValue(
@@ -1311,6 +1316,7 @@ class DungeonContext(Context):
       if ENABLED_COMBAT_LOG:
         game.log.print((actor.token(), " uses ", skill().token()))
       else:
+        game.log.exit()
         game.comps.append(SkillBanner(
           text=skill.name,
           color=actor.color(),

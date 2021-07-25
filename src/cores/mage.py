@@ -36,7 +36,7 @@ class Mage(BipedCore):
         st=14,
         ma=14,
         dx=9,
-        ag=6,
+        ag=7,
         lu=9,
         en=10,
       ),

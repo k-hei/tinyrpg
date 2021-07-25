@@ -219,7 +219,7 @@ class Log:
     sprites = [Sprite(
       image=log.box,
       pos=(x, y),
-      layer="hud"
+      layer="log"
     )]
     return sprites
 

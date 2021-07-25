@@ -59,7 +59,7 @@ class MageBossRoom(SpecialRoom):
       faction="ally",
       facing=(0, -1)
     )
-    game.floor.spawn_elem_at((3, 2), room.mage)
+    game.floor.spawn_elem_at(add_cell(room.cell, (3, 2)), room.mage)
     room.entered = True
     room.lock(game)
     game.anims.append([PauseAnim(
