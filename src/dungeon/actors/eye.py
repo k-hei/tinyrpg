@@ -28,7 +28,9 @@ class Eyeball(DungeonActor):
       stats=Stats(
         hp=14,
         st=12,
+        dx=5,
         ag=6,
+        lu=3,
         en=11,
       ),
       skills=[Tackle]

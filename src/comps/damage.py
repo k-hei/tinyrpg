@@ -1,7 +1,9 @@
+from random import randint
 from assets import load as use_assets
 from filters import recolor, outline
 from text import render as render_text
 from lib.lerp import lerp
+from lib.cell import add as add_vector
 from sprite import Sprite
 import config
 import pygame
@@ -52,7 +54,7 @@ class DamageNumber:
 class DamageValue:
   def __init__(value, text, cell, offset=(0, 0), color=None):
     value.cell = cell
-    value.offset = offset
+    value.offset = add_vector(offset, (randint(-1, 1), randint(-1, 1)))
     value.done = False
     value.width = 0
     value.time = 0

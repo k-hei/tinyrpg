@@ -1019,6 +1019,15 @@ class DungeonContext(Context):
       and type(actor.command) is not SkillCommand
     )
 
+  def roll_hit(game, attacker, defender):
+    hit = attacker.core.stats.dx + attacker.core.stats.lu / 2
+    avo = defender.core.stats.ag + defender.core.stats.lu / 2
+    if hit >= avo:
+      chance = 0.75 + (hit - avo) / (avo * 2) * 0.25
+    else:
+      chance = hit / avo
+    return random() <= chance
+
   def find_damage(game, actor, target, modifier=1):
     actor_str = actor.get_str() * modifier
     target_def = target.get_def()
@@ -1040,13 +1049,17 @@ class DungeonContext(Context):
         game.log.print((actor.token(), " uses ", actor.weapon().token()))
 
     actor.face(target.cell)
-    blocking = game.can_block(actor=target, attacker=actor)
-    if blocking:
+
+    block = game.can_block(actor=target, attacker=actor)
+    if not target.is_immobile() and not game.roll_hit(attacker=actor, defender=target):
+      damage = None
+    elif block:
+      damage = 0
       target.block()
 
     def connect():
-      if on_connect:
-        on_connect()
+      on_connect and on_connect()
+
       real_target = actor if target.counter else target
       real_damage = damage
       if target.counter:
@@ -1064,7 +1077,6 @@ class DungeonContext(Context):
         target=real_target,
         damage=real_damage,
         direction=actor.facing,
-        blocking=blocking,
         on_end=end_attack
       )
 
@@ -1073,7 +1085,7 @@ class DungeonContext(Context):
     game.anims.append([
       AttackAnim(
         duration=DungeonContext.ATTACK_DURATION,
-        delay=(blocking and 12 or 0),
+        delay=(block and 12 or 0),
         target=actor,
         src=actor.cell,
         dest=target.cell,
@@ -1128,7 +1140,7 @@ class DungeonContext(Context):
       on_end=remove
     ))
 
-  def flinch(game, target, damage, direction=None, delayed=False, blocking=False, on_end=None):
+  def flinch(game, target, damage, direction=None, delayed=False, on_end=None):
     was_asleep = target.ailment == "sleep"
     if target.is_dead() and on_end:
       on_end()
@@ -1154,14 +1166,20 @@ class DungeonContext(Context):
       " {} damage.".format(int(damage))
     ))
 
-    target.damage(damage)
-    damage_fx = DamageValue(
-      text=(damage or "BLOCK"),
-      cell=target.cell,
-      offset=(randint(-1, 1), randint(-1, 1))
-    )
-    game.numbers.append(damage_fx)
-    if blocking:
+    if damage == None:
+      damage_text = "MISS"
+    elif damage == 0:
+      damage_text = "BLOCK"
+    else:
+      damage_text = int(damage)
+    game.numbers.append(DamageValue(
+      text=damage_text,
+      cell=target.cell
+    ))
+
+    if damage == None:
+      flinch = None
+    elif damage == 0:
       flinch = ShakeAnim(
         target=target,
         magnitude=0.5,
@@ -1173,6 +1191,7 @@ class DungeonContext(Context):
         duration=DungeonContext.FLINCH_DURATION,
         direction=direction
       )
+      target.damage(damage)
 
     pause = PauseAnim(duration=DungeonContext.FLINCH_PAUSE_DURATION, on_end=respond)
     if delayed or not game.anims:
