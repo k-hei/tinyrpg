@@ -878,16 +878,30 @@ class DungeonContext(Context):
   def handle_debug(game):
     if game.child:
       return False
+    ailments = {
+      "sleep": "Sleep",
+      "poison": "Poison",
+      "freeze": "Freeze",
+    }
+    def cycle_ailment():
+      for i, (a, n) in enumerate(ailments.items()):
+        if a == game.hero.ailment:
+          i = (i + 1) % len(ailments)
+          break
+      next_ailment = [*ailments.keys()][i]
+      game.hero.inflict_ailment(next_ailment)
     game.open(PromptContext(
       message="[ DEBUG MENU ]",
       choices=lambda: [
         Choice(text="Cutscenes: {}".format(config.CUTSCENES and "ON" or "OFF")),
         Choice(text="Lights: {}".format(game.lights and "ON" or "OFF")),
+        Choice(text="Ailment: {}".format("None" if game.hero.ailment is None else ailments[game.hero.ailment])),
         Choice(text="GodMode: {}".format(game.god_mode and "ON" or "OFF")),
       ],
       on_choose=lambda choice: (
         choice.text.startswith("Cutscenes") and game.toggle_cutscenes(),
         choice.text.startswith("Lights") and game.toggle_lights(),
+        choice.text.startswith("Ailment") and cycle_ailment(),
         choice.text.startswith("GodMode") and game.toggle_god_mode()
       ) and False
     ))
@@ -1554,8 +1568,8 @@ class DungeonContext(Context):
     super().update()
     game.update_camera()
     for elem in game.floor.elems:
-      elems = elem.update()
-      elems and game.floor.extend(elems)
+      vfx = elem.update()
+      vfx and game.vfx.extend(vfx)
     if game.anims:
       group = game.anims[0]
       for anim in group:

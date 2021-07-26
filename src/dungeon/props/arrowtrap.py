@@ -1,5 +1,6 @@
 from pygame.transform import flip
 from dungeon.props import Prop
+from vfx.arrow import Arrow
 from anims import Anim
 from sprite import Sprite
 import assets
@@ -28,6 +29,10 @@ class ArrowTrap(Prop):
     trap.anim.update()
     if trap.anim.done:
       trap.anim = Anim(duration=ARROW_PERIOD)
+      return [ArrowVfx(
+        cell=trap.cell,
+        direction=trap.facing
+      )]
     else:
       trap.anim.update()
 

@@ -138,6 +138,7 @@ class DungeonActor(DungeonElement):
   def inflict_ailment(actor, ailment):
     if ailment == actor.ailment:
       return False
+    actor.core.anims = []
     if ailment == "poison":
       actor.ailment_turns = DungeonActor.POISON_DURATION
       actor.anims = [DungeonActor.PoisonAnim()]

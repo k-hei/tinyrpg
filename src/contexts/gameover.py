@@ -134,7 +134,7 @@ class GameOverContext(Context):
       choice == "Continue" and (
         game := ctx.get_parent(cls="GameContext"),
         game and game.load(),
-        game.get_head().transition([DissolveOut()])
+        ctx.get_head().transition([DissolveOut()])
       ),
       choice == "Load Game" and ctx.open(LoadContext(), on_close=lambda *data: (
         data and (

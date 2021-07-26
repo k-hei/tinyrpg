@@ -7,7 +7,7 @@
   "skills": ["Cleave", "Glacio", "Sana"],
   "party": ["knight"],
   "chars": {
-    "knight": {},
+    "knight": { },
     "mage": {
       "Sana": [0, 0],
       "Glacio": [1, 1]
