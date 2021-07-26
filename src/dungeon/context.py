@@ -89,6 +89,7 @@ from comps.spmeter import SpMeter
 from comps.floorno import FloorNo
 from comps.skillbanner import SkillBanner
 from vfx.flash import FlashVfx
+from vfx.talkbubble import TalkBubble
 
 from contexts import Context
 from contexts.custom import CustomContext
@@ -150,6 +151,7 @@ class DungeonContext(Context):
     game.comps = []
     game.debug = False
     game.time = 0
+    game.talkbubble = None
 
   def init(game):
     if game.floor:
@@ -362,6 +364,7 @@ class DungeonContext(Context):
       camera.focus((mid_x, mid_y), force=True)
     else:
       camera.blur()
+    game.update_bubble()
 
     if new_room:
       new_room.on_enter(game)
@@ -666,7 +669,6 @@ class DungeonContext(Context):
     target_elem = floor.get_elem_at(target_cell)
     if isinstance(target_elem, Door) and not target_elem.solid:
       target_elem = floor.get_elem_at(target_cell, exclude=[Door])
-    hero.set_facing(delta)
 
     def on_move():
       if not moved:
@@ -724,6 +726,10 @@ class DungeonContext(Context):
       if target_tile is not Stage.OASIS:
         game.parent.deplete_sp(1 / 100)
 
+    if hero.get_facing() != delta:
+      hero.set_facing(delta)
+      game.update_bubble()
+
     moved = game.move(actor=hero, delta=delta, run=run, on_end=on_move)
     if moved:
       ally and game.step_ally(ally, run, old_cell)
@@ -741,7 +747,6 @@ class DungeonContext(Context):
     )), None)
     if target_elem:
       command = PushCommand(target=target_elem)
-      hero.command = command
       def end_push():
         hero.command.on_end = None
         game.step(moving=True)
@@ -750,6 +755,9 @@ class DungeonContext(Context):
         target=target_elem,
         on_end=end_push
       )
+      if pushed:
+        hero.command = command
+        game.update_bubble()
       return True
     else:
       return False
@@ -800,6 +808,8 @@ class DungeonContext(Context):
       return False
     target_elem = game.floor.get_elem_at(target_cell)
     effect_result = target_elem and target_elem.effect(game)
+    if game.talkbubble:
+      game.talkbubble.hide()
     def bump():
       anim = AttackAnim(
         duration=DungeonContext.ATTACK_DURATION,
@@ -1519,6 +1529,27 @@ class DungeonContext(Context):
       game.camera.update(game)
       game.redraw_tiles()
 
+  def update_bubble(game):
+    hero = game.hero
+    facing_cell = add_vector(hero.cell, hero.facing)
+    facing_elems = game.floor.get_elems_at(facing_cell)
+    facing_elem = next((e for e in facing_elems if (
+      e.solid
+      and (not isinstance(e, DungeonActor) or hero.allied(e))
+    )), None)
+    if game.talkbubble:
+      game.talkbubble.done = True
+      game.talkbubble = None
+    if facing_elem:
+      game.talkbubble = TalkBubble(cell=facing_cell)
+      game.vfx.append(game.talkbubble)
+
+  def show_bubble(game):
+    game.talkbubble and game.talkbubble.show()
+
+  def hide_bubble(game):
+    game.talkbubble and game.talkbubble.hide()
+
   def update(game):
     super().update()
     game.update_camera()
@@ -1555,10 +1586,12 @@ class DungeonContext(Context):
             or type(comp) is Minimap
           ))):
             comp.exit()
+            game.hide_bubble()
       else:
         for comp in [c for c in game.comps if not c.active]:
           if type(comp) is not Log:
             comp.enter()
+            game.show_bubble()
 
     if game.time < LABEL_FRAMES and not game.child:
       label_image = assets.ttf["roman"].render("Dungeon {}F".format(game.get_floor_no()), WHITE)

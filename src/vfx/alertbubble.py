@@ -5,10 +5,10 @@ from assets import load as use_assets
 from config import TILE_SIZE
 
 class AlertBubble(Vfx):
-  def __init__(bubble, cell):
+  def __init__(bubble, cell, duration=45):
     x, y = cell
     super().__init__(kind=None, pos=(x * TILE_SIZE, y * TILE_SIZE))
-    bubble.anim = Anim(duration=45)
+    bubble.anim = Anim(duration=duration)
 
   def update(bubble):
     if bubble.anim.done:
