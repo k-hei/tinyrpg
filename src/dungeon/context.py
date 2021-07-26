@@ -1592,6 +1592,7 @@ class DungeonContext(Context):
           if type(comp) is not Log:
             comp.enter()
             game.show_bubble()
+            game.update_bubble()
 
     if game.time < LABEL_FRAMES and not game.child:
       label_image = assets.ttf["roman"].render("Dungeon {}F".format(game.get_floor_no()), WHITE)

@@ -54,7 +54,7 @@ class DepthsRoom(SpecialRoom):
     if room.focused or game.parent.story["minxia"]:
       return False
     room.mage = Mage(faction="ally", ailment="sleep")
-    game.floor.spawn_elem_at((4, 3), room.mage)
+    game.floor.spawn_elem_at(add_cell(room.cell, (4, 3)), room.mage)
     room.focused = True
     game.hero.cell = add_cell(room.cell, (3, 5))
     game.hero.set_facing((0, -1))
