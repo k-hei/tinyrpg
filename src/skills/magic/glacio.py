@@ -45,7 +45,7 @@ class Glacio(MagicSkill):
 
     def on_connect():
       damage = 8 + randint(-2, 2)
-      block = game.can_block(actor=target, attacker=user)
+      block = game.can_block(attacker=user, defender=target)
       if block:
         target.block()
         damage /= 2

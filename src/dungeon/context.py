@@ -1016,38 +1016,48 @@ class DungeonContext(Context):
       force=force
     )
 
-  # TODO: move into dungeon actor class
-  def can_block(game, actor, attacker):
-    return (
-      actor.find_shield()
-      and actor.get_facing() == direction.invert(attacker.get_facing())
-      and type(actor.command) is not SkillCommand
-    )
+  def roll(game, dx, ag, chance):
+    if dx >= ag:
+      chance = chance + (dx - ag) / 100
+    else:
+      chance = dx / ag * chance
+    return random() <= chance
 
   def roll_hit(game, attacker, defender):
-    hit = attacker.stats.dx + attacker.stats.lu / 2
-    avo = defender.stats.ag + defender.stats.lu / 2
-    if hit >= avo:
-      chance = 0.75 + (hit - avo) / (avo * 2) * 0.25
-    else:
-      chance = hit / avo * 0.75
-    return random() <= chance
+    return game.roll(
+      dx=attacker.stats.dx + attacker.stats.lu / 2,
+      ag=defender.stats.ag + defender.stats.lu / 2,
+      chance=0.75
+    )
 
   def roll_crit(game, attacker, defender):
-    crt = attacker.stats.dx + attacker.stats.lu
-    cdf = defender.stats.ag + defender.stats.lu
-    if crt >= cdf:
-      chance = 0.125 + (crt - cdf) / 100
-    else:
-      chance = crt / cdf * 0.125
-    return random() <= chance
+    return game.roll(
+      dx=attacker.stats.dx + attacker.stats.lu / 2,
+      ag=defender.stats.ag + defender.stats.lu / 2,
+      chance=0.125
+    )
+
+  def roll_block(game, attacker, defender):
+    return game.roll(
+      dx=defender.stats.dx + defender.stats.lu / 2,
+      ag=attacker.stats.dx + attacker.stats.lu / 2,
+      chance=0.125
+    )
+
+  def can_block(game, defender, attacker):
+    return (
+      defender.find_shield()
+      and defender.get_facing() == direction.invert(attacker.get_facing())
+      and (type(defender.command) is not SkillCommand
+        or game.roll_block(attacker=attacker, defender=defender))
+    )
 
   def find_damage(game, actor, target, modifier=1):
     actor_str = actor.get_str() * modifier
     target_def = target.get_def()
     if game.floor.get_elem_at(target.cell, superclass=Door):
       target_def = max(0, target_def - 2)
-    if game.can_block(actor=target, attacker=actor):
+    if game.can_block(attacker=actor, defender=target):
       target_def *= 1.5
     variance = 1 if actor.core.faction == "enemy" else 2
     return max(0, actor_str - target_def + randint(-variance, variance))
@@ -1065,7 +1075,7 @@ class DungeonContext(Context):
     actor.face(target.cell)
 
     crit = game.roll_crit(attacker=actor, defender=target)
-    block = game.can_block(actor=target, attacker=actor)
+    block = game.can_block(attacker=actor, defender=target)
     if (not target.is_immobile()
     and not game.roll_hit(attacker=actor, defender=target)
     and (not block or randint(0, 1))):
