@@ -1126,8 +1126,11 @@ class DungeonContext(Context):
     return True
 
   def nudge(game, actor, direction, on_end=None):
+    floor = game.floor
     source_cell = actor.cell
     target_cell = add_vector(source_cell, direction)
+    if not floor.is_cell_empty(target_cell) and floor.get_tile_at(target_cell) is not floor.PIT:
+      return False
     actor.cell = target_cell
     actor.command = True
     game.anims[0].append(MoveAnim(
@@ -1137,6 +1140,7 @@ class DungeonContext(Context):
       dest=target_cell,
       on_end=on_end
     ))
+    return True
 
   def kill(game, target, on_end=None):
     hero = game.hero
