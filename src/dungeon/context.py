@@ -1553,6 +1553,9 @@ class DungeonContext(Context):
   def update(game):
     super().update()
     game.update_camera()
+    for elem in game.floor.elems:
+      elems = elem.update()
+      elems and game.floor.extend(elems)
     if game.anims:
       group = game.anims[0]
       for anim in group:

@@ -53,6 +53,7 @@ from dungeon.props.battledoor import BattleDoor
 from dungeon.props.coffin import Coffin
 from dungeon.props.soul import Soul
 from dungeon.props.pushblock import PushBlock
+from dungeon.props.arrowtrap import ArrowTrap
 from dungeon.props.altar import Altar
 from dungeon.props.door import Door
 from dungeon.props.pushtile import PushTile
@@ -62,6 +63,7 @@ from dungeon.props.chest import Chest
 from dungeon.features.oasisroom import OasisRoom
 from dungeon.features.emeraldroom import EmeraldRoom
 from dungeon.features.guardroom import GuardRoom
+from dungeon.features.traproom import TrapRoom
 from dungeon.features.elevroom import ElevRoom
 from dungeon.features.pitroom import PitRoom
 from dungeon.features.genieroom import GenieRoom
@@ -157,6 +159,7 @@ def resolve_elem(key):
   if key == "Coffin": return Coffin
   if key == "Soul": return Soul
   if key == "PushBlock": return PushBlock
+  if key == "ArrowTrap": return ArrowTrap
   if key == "Altar": return Altar
   if key == "Door": return Door
   if key == "PushTile": return PushTile
@@ -166,6 +169,7 @@ def resolve_elem(key):
   if key == "OasisRoom": return OasisRoom
   if key == "EmeraldRoom": return EmeraldRoom
   if key == "GuardRoom": return GuardRoom
+  if key == "TrapRoom": return TrapRoom
   if key == "ElevRoom": return ElevRoom
   if key == "PitRoom": return PitRoom
   if key == "GenieRoom": return GenieRoom

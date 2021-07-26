@@ -221,7 +221,6 @@ class StageView:
     return sprites
 
   def view_elem(self, elem, anims):
-    elem.update()
     sprites = elem.view(anims)
     if sprites:
       for sprite in sprites:

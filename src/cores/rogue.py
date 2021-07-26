@@ -1,3 +1,4 @@
+from cores import Stats
 from cores.biped import BipedCore, SpriteMap
 from config import ROGUE_NAME, ROGUE_HP
 
@@ -11,13 +12,14 @@ class Rogue(BipedCore):
     walk_up=("rogue_walkup0", "rogue_up", "rogue_walkup1", "rogue_up")
   )
 
-  def __init__(rogue, name=ROGUE_NAME, faction="player", *args, **kwargs):
+  def __init__(rogue, name=ROGUE_NAME, faction="player", hp=ROGUE_HP, *args, **kwargs):
     super().__init__(
       name=name,
       faction=faction,
-      hp=ROGUE_HP,
-      st=14,
-      en=7,
+      hp=hp,
+      stats=Stats(
+        hp=ROGUE_HP
+      ),
       *args,
       **kwargs
     )
