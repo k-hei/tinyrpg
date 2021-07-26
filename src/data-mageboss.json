@@ -23,5 +23,8 @@
         ]
       }
     ]
-  }
+  },
+  "skills": ["Buckler", "RustyBlade"],
+  "party": ["knight"],
+  "chars": { "knight": { "Buckler": [0, 0], "RustyBlade": [2, 0] } }
 }

@@ -44,29 +44,32 @@ class Glacio(MagicSkill):
       dist += 1
 
     def on_connect():
+      damage = 8 + randint(-2, 2)
+      block = game.can_block(actor=target, attacker=user)
+      if block:
+        target.block()
+        damage /= 2
+      game.flinch(
+        target=target,
+        damage=damage,
+        on_end=lambda: (
+          not block and game.freeze(target),
+          game.anims[0].append(PauseAnim(
+            duration=30,
+            on_end=on_end
+          ))
+        )
+      )
+
+    def on_bump():
       game.vfx += [IceSpikeVfx(
         cell=cell,
         delay=i * 10,
         color=CYAN,
-        on_connect=target and cell == target_cells[-1] and (lambda: (
-          target.inflict_ailment("freeze"),
-          game.flinch(
-            target=target,
-            damage=8 + randint(-2, 2),
-            on_end=lambda: (
-              game.freeze(target),
-              game.anims[0].append(PauseAnim(
-                duration=30,
-                on_end=lambda: (
-                  on_end and on_end()
-                )
-              ))
-            )
-          )
-        ))
+        on_connect=target and cell == target_cells[-1] and on_connect
       ) for i, cell in enumerate(target_cells)]
 
-    def on_bump():
+    def on_bump_end():
       delay = len(target_cells) * 10 + 10
       game.anims[0].append(PauseAnim(
         duration=15 + delay,
@@ -84,8 +87,8 @@ class Glacio(MagicSkill):
       target=user,
       src=user.cell,
       dest=bump_dest,
-      on_connect=on_connect,
-      on_end=target is None and on_bump
+      on_connect=on_bump,
+      on_end=target is None and on_bump_end
     )])
 
     return dest

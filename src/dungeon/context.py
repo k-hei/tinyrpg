@@ -417,7 +417,6 @@ class DungeonContext(Context):
       end_exec()
 
   def next_command(game, on_end=None):
-    print(game.commands)
     if not game.commands:
       return on_end and on_end()
     step = lambda: (
@@ -1200,7 +1199,7 @@ class DungeonContext(Context):
       " {} damage.".format(int(damage))
     ))
 
-    if damage == 0 or block:
+    if damage == 0:
       damage_text = "BLOCK"
     elif damage == None:
       damage_text = "MISS"
@@ -1225,7 +1224,7 @@ class DungeonContext(Context):
 
     if damage == None:
       flinch = None
-    elif damage == 0:
+    elif damage == 0 or block:
       flinch = ShakeAnim(
         target=target,
         magnitude=0.5,
@@ -1253,16 +1252,19 @@ class DungeonContext(Context):
       )])
 
   def freeze(game, target):
-    if not target.is_dead():
-      if ENABLED_COMBAT_LOG:
-        game.log.print((target.token(), " is frozen.")),
-      game.numbers.append(DamageValue(
-        text="FROZEN",
-        cell=target.cell,
-        offset=(4, -4),
-        color=CYAN,
-        delay=15
-      ))
+    if target.is_dead():
+      return False
+    target.inflict_ailment("freeze")
+    if ENABLED_COMBAT_LOG:
+      game.log.print((target.token(), " is frozen.")),
+    game.numbers.append(DamageValue(
+      text="FROZEN",
+      cell=target.cell,
+      offset=(4, -4),
+      color=CYAN,
+      delay=15
+    ))
+    return True
 
   def use_item(game, item):
     game.anims.append([
