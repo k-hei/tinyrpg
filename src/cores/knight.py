@@ -20,7 +20,11 @@ class Knight(BipedCore):
 
   class BlockAnim(FrameAnim):
     frames = assets.sprites["knight_block"]
-    frames_duration = [6, 6, 30]
+    frames_duration = [6, 6, 33]
+
+  class BlockUpAnim(FrameAnim):
+    frames = assets.sprites["knight_blockup"]
+    frames_duration = [6, 6, 33]
 
   class BlockDownAnim(FrameAnim):
     frames = assets.sprites["knight_blockdown"]
