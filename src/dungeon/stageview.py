@@ -179,7 +179,6 @@ class StageView:
     for row in range(top, bottom + 1):
       for col in range(left, right + 1):
         cell = (col, row)
-        # fade_anim = next((next((a for a in g if type(a) is StageView.FadeAnim), None) for g in anims), None)
         fade_anim = None
         for group in anims:
           fade_anim = next((a for a in group if type(a) is StageView.FadeAnim), None)
@@ -446,10 +445,8 @@ def render_tile(stage, cell, visited_cells=[]):
   ):
     sprite_name = "floor_fancy"
   elif tile is stage.FLOOR:
-    if next((e for e in stage.elems if e.cell[1] < y), None) and (
-      stage.get_tile_at((x, y - 1)) is stage.PIT
-      or stage.get_tile_at((x, y - 2)) is stage.PIT
-    ):
+    if (next((e for e in stage.elems if e.cell[1] < y), None)
+    and stage.get_tile_at((x, y - 1)) is stage.PIT):
       return Sprite(
         image=replace_color(assets.sprites["floor"], GRAY, DARKGRAY),
         layer="elems",

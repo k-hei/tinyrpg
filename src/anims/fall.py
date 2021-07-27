@@ -2,10 +2,11 @@ from anims import Anim
 from config import WINDOW_HEIGHT, TILE_SIZE
 
 class FallAnim(Anim):
-  def __init__(anim, y, gravity=0.2, *args, **kwargs):
+  def __init__(anim, y, dest=(WINDOW_HEIGHT // 2 + TILE_SIZE), gravity=0.2, *args, **kwargs):
     super().__init__(*args, **kwargs)
     anim.y = 0
-    anim.dest = WINDOW_HEIGHT // 2 + TILE_SIZE
+    anim.dest = dest
+    print(y, dest)
     anim.gravity = gravity
     anim.vel = 0
 

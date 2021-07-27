@@ -183,9 +183,10 @@ def next_floor(game):
   )
 
 def collapse(room, game):
+  floor = game.floor
   return [
     *[(lambda cell: lambda step: (
-      game.floor.set_tile_at(add_cell(room.altar.cell, cell), game.floor.PIT),
+      floor.set_tile_at(add_cell(room.altar.cell, cell), floor.PIT),
       game.redraw_tiles(force=True),
       game.anims.append([PauseAnim(duration=5, on_end=step)]),
     ))(c) for c in [(-1, -2), (0, -2), (1, -2), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1)]],
@@ -200,7 +201,14 @@ def collapse(room, game):
               FallAnim(
                 target=game.hero,
                 y=game.hero.cell[1] * TILE_SIZE,
-                on_end=lambda: game.floor.remove_elem(game.hero)
+                dest=(
+                  (next(
+                    (y for y in range(game.hero.cell[1], floor.get_height())
+                      if floor.get_tile_at((game.hero.cell[0], y)) is not floor.PIT),
+                    floor.get_height()
+                  ) - game.hero.cell[1]) * TILE_SIZE
+                ),
+                on_end=lambda: floor.remove_elem(game.hero)
               )
             )
           ),
@@ -211,7 +219,14 @@ def collapse(room, game):
               FallAnim(
                 target=room.mage,
                 y=room.mage.cell[1] * TILE_SIZE,
-                on_end=lambda: game.floor.remove_elem(room.mage)
+                dest=(
+                  (next(
+                    (y for y in range(room.mage.cell[1], floor.get_height())
+                      if floor.get_tile_at((room.mage.cell[0], y)) is not floor.PIT),
+                    floor.get_height()
+                  ) - room.mage.cell[1]) * TILE_SIZE
+                ),
+                on_end=lambda: floor.remove_elem(room.mage)
               )
             )
           ),
