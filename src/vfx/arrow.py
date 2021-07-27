@@ -35,7 +35,7 @@ class ArrowUpAnim(ArrowAnim): frames = get_arrow_frames((0, -1))
 class ArrowDownAnim(ArrowAnim): frames = get_arrow_frames((0, 1))
 
 class Arrow(Vfx):
-  speed = 4
+  speed = 5
 
   def __init__(arrow, cell, direction, *args, **kwargs):
     super().__init__(pos=vector.scale(
@@ -65,12 +65,13 @@ class Arrow(Vfx):
       if can_block:
         hero.block()
 
-    if not game.floor.is_cell_empty(arrow_cell):
+    target_tile = game.floor.get_tile_at(arrow_cell)
+    target_elem = next((e for e in game.floor.get_elems_at(arrow_cell) if (
+      e.solid
+      and not (game.anims and next((a for a in game.anims[0] if type(a) is FlinchAnim and a.target is e), None))
+    )), None)
+    if target_tile and target_tile.solid and target_tile is not game.floor.PIT or target_elem:
       arrow.done = True
-      target_elem = next((e for e in game.floor.get_elems_at(arrow_cell) if (
-        e.solid
-        and not (game.anims and next((a for a in game.anims[0] if type(a) is FlinchAnim and a.target is e), None))
-      )), None)
       if target_elem and isinstance(target_elem, DungeonActor):
         if can_block:
           target_elem.block()

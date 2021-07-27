@@ -11,10 +11,11 @@ from config import TILE_SIZE
 ARROW_PERIOD = 300
 
 class ArrowTrap(Prop):
-  def __init__(trap, facing, *args, **kwargs):
+  def __init__(trap, facing, delay=0, *args, **kwargs):
     super().__init__(*args, **kwargs)
     trap.facing = facing
-    trap.anim = Anim(duration=ARROW_PERIOD)
+    trap.delay = delay
+    trap.anim = Anim(duration=trap.delay or ARROW_PERIOD, delay=trap.delay)
 
   def surface(trap):
     if trap.facing == (-1, 0):
