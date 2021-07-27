@@ -757,7 +757,7 @@ class DungeonContext(Context):
       )
       if pushed:
         hero.command = command
-        game.update_bubble()
+        game.hide_bubble()
       return True
     else:
       return False

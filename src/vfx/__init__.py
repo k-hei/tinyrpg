@@ -1,5 +1,7 @@
+from colors.palette import BLACK
+
 class Vfx:
-  def __init__(vfx, kind, pos, anim=None, color=None, vel=(0, 0)):
+  def __init__(vfx, pos, kind=None, anim=None, color=BLACK, vel=(0, 0)):
     vfx.kind = kind
     vfx.pos = pos
     vfx.anim = anim

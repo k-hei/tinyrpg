@@ -4,8 +4,9 @@ from vfx.arrow import Arrow
 from anims import Anim
 from sprite import Sprite
 import assets
-from colors.palette import WHITE, SAFFRON
 from filters import replace_color
+from colors.palette import WHITE, SAFFRON
+from config import TILE_SIZE
 
 ARROW_PERIOD = 300
 
@@ -29,7 +30,7 @@ class ArrowTrap(Prop):
     trap.anim.update()
     if trap.anim.done:
       trap.anim = Anim(duration=ARROW_PERIOD)
-      return [ArrowVfx(
+      return [Arrow(
         cell=trap.cell,
         direction=trap.facing
       )]
@@ -37,7 +38,9 @@ class ArrowTrap(Prop):
       trap.anim.update()
 
   def view(trap, anims):
+    trap_image = trap.surface()
     return super().view(Sprite(
-      image=trap.surface(),
+      image=trap_image,
+      pos=trap.facing[0] and (0, trap_image.get_height() - TILE_SIZE - 6) or (0, 0),
       layer="elems"
     ), anims)

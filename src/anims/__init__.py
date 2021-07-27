@@ -3,11 +3,13 @@ from math import inf
 class Anim:
   blocking = False
   duration = 0
+  loop = False
 
   def __init__(anim, duration=inf, delay=0, loop=False, target=None, on_start=None, on_end=None):
     anim.duration = anim.duration or duration
     anim.time = -delay
-    anim.loop = loop
+    if not anim.loop:
+      anim.loop = loop
     anim.target = target
     anim.on_start = on_start
     anim.on_end = on_end
