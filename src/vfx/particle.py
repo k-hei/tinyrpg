@@ -30,7 +30,7 @@ class ParticleVfx(Vfx):
       duration=30
     )
 
-  def update(fx):
+  def update(fx, _):
     if not fx.done and not fx.anim:
       fx.init()
     fx_x, fx_y = fx.pos

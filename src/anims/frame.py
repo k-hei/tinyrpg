@@ -25,7 +25,7 @@ class FrameAnim(Anim):
     if type(anim.frames_duration) is list:
       frame_index = 0
       for duration in anim.frames_duration:
-        if time <= duration:
+        if time < duration:
           break
         elif frame_index < len(anim.frames) - 1:
           time -= duration

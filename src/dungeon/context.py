@@ -563,7 +563,7 @@ class DungeonContext(Context):
     if game.child:
       return game.child.handle_keydown(key)
 
-    if game.anims or game.commands or game.get_head().transits:
+    if game.anims or game.commands or game.get_head().transits or game.hero and game.hero.core.anims:
       return False
 
     # debug functionality
@@ -1567,9 +1567,17 @@ class DungeonContext(Context):
   def update(game):
     super().update()
     game.update_camera()
+
     for elem in game.floor.elems:
-      vfx = elem.update()
+      vfx = elem.update() or []
       vfx and game.vfx.extend(vfx)
+
+    for fx in game.vfx:
+      if fx.done:
+        game.vfx.remove(fx)
+      else:
+        game.vfx += fx.update(game) or []
+
     if game.anims:
       group = game.anims[0]
       for anim in group:

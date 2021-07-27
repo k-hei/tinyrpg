@@ -20,15 +20,15 @@ class Knight(BipedCore):
 
   class BlockAnim(FrameAnim):
     frames = assets.sprites["knight_block"]
-    frames_duration = [6, 6, 33]
+    frames_duration = [6, 6, 28]
 
   class BlockUpAnim(FrameAnim):
     frames = assets.sprites["knight_blockup"]
-    frames_duration = [6, 6, 33]
+    frames_duration = [6, 6, 28]
 
   class BlockDownAnim(FrameAnim):
     frames = assets.sprites["knight_blockdown"]
-    frames_duration = [6, 6, 33]
+    frames_duration = [6, 6, 28]
 
   def __init__(knight, name=KNIGHT_NAME, faction="player", hp=KNIGHT_HP, *args, **kwargs):
     super().__init__(

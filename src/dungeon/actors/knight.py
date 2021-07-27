@@ -22,6 +22,8 @@ class Knight(DungeonActor):
     )
 
   def block(knight):
+    if knight.core.anims:
+      return
     if knight.facing == (0, -1):
       knight.core.anims = [KnightCore.BlockUpAnim()]
     elif knight.facing == (0, 1):

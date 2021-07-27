@@ -17,7 +17,7 @@ class TalkBubble(Vfx):
   def hide(bubble):
     bubble.shown = False
 
-  def update(bubble):
+  def update(bubble, _):
     if bubble.anim:
       if bubble.anim.done:
         bubble.anim = None

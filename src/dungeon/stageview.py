@@ -268,11 +268,7 @@ class StageView:
     assets = use_assets()
     camera = camera.get_rect()
     for fx in vfx:
-      if fx.done:
-        vfx.remove(fx)
-        continue
       if "view" in dir(fx):
-        vfx += fx.update() or []
         sprites += fx.view()
         continue
       elif fx.kind:
