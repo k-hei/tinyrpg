@@ -1,16 +1,18 @@
+from random import randint
 from dungeon.props import Prop
-from assets import load as use_assets
-from config import TILE_SIZE
-from colors.palette import WHITE, COLOR_TILE
+import assets
 from filters import replace_color
 from anims.item import ItemAnim
 from items.gold import Gold
-from random import randint
-import vfx
+from config import TILE_SIZE
+from colors.palette import WHITE, COLOR_TILE
 
 class Coffin(Prop):
+  static = True
+  solid = True
+
   def __init__(coffin, contents=None):
-    super().__init__(static=True)
+    super().__init__()
     coffin.contents = contents
     coffin.opened = False
 
@@ -36,13 +38,12 @@ class Coffin(Prop):
     return contents
 
   def view(coffin, anims):
-    sprites = use_assets().sprites
     if coffin.opened:
-      sprite = sprites["coffin_open"]
+      coffin_image = assets.sprites["coffin_open"]
     else:
-      sprite = sprites["coffin"]
-    sprite = replace_color(sprite, WHITE, COLOR_TILE)
-    return sprite
+      coffin_image = assets.sprites["coffin"]
+    coffin_image = replace_color(coffin_image, WHITE, COLOR_TILE)
+    return super().view(coffin_image, anims)
 
 # class CoffinLid(Vfx):
 #   def __init__(vfx, pos):

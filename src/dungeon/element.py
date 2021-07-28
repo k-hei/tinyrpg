@@ -16,13 +16,14 @@ import lib.vector as vector
 from config import ITEM_OFFSET, TILE_SIZE, PUSH_DURATION
 
 class DungeonElement:
+  solid = False
+  opaque = False
   static = False
 
-  def __init__(elem, solid=True, opaque=False, static=False):
-    elem.solid = solid
-    elem.opaque = opaque
-    if not elem.static:
-      elem.static = static
+  def __init__(elem, solid=False, opaque=False, static=False):
+    if not elem.solid: elem.solid = solid
+    if not elem.opaque: elem.opaque = opaque
+    if not elem.static: elem.static = static
     elem.cell = None
     elem.size = (1, 1)
     elem.elev = 0
