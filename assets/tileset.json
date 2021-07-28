@@ -12,7 +12,7 @@
     ["",  "coffin_lid",              "",                      "",                    "", "oasis_corner_bottom", "oasis_edge_bottom",      "ladder"],
     ["",            "",              "",                      "",                    "",        "oasis_stairs",                  "",         "pit"]
   ],
-  "stairs_right": [80, 128, 32, 64],
+  "stairs_left": [80, 128, 32, 64],
   "sand_pile": [48, 192, 32, 32],
   "sand_pile_side": [16, 160, 32, 48],
   "push_block": [112, 168, 32, 40],

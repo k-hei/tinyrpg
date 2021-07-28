@@ -345,7 +345,6 @@ class StageView:
     return sprites
 
 def render_tile(stage, cell, visited_cells=[]):
-  assets = use_assets()
   x, y = cell
   sprite_name = None
   tile = stage.get_tile_at(cell)
@@ -365,6 +364,8 @@ def render_tile(stage, cell, visited_cells=[]):
     elevfloor_image.blit(assets.sprites["floor"], (0, 0))
     elevfloor_image.blit(assets.sprites["wall_elev"], (0, TILE_SIZE))
     assets.sprites["floor_elev"] = elevfloor_image
+  if "stairs_right" not in assets.sprites:
+    assets.sprites["stairs_right"] = flip(assets.sprites["stairs_left"], True, False)
   if assets.sprites["stairs"].get_height() < TILE_SIZE * 2:
     stairs_image = Surface((TILE_SIZE, TILE_SIZE * 2), SRCALPHA)
     stairs_image.blit(assets.sprites["stairs"], (0, 0))
@@ -388,7 +389,7 @@ def render_tile(stage, cell, visited_cells=[]):
         sprite_name = "wall_torch"
       else:
         sprite_name = "wall_bottom"
-    elif (tile_base is stage.FLOOR or tile_base is stage.PIT) and elev == 1:
+    elif (tile_base is not stage.WALL) and elev == 1:
       sprite_name = "wall_top"
     else:
       return render_wall(stage, cell, visited_cells)
@@ -429,10 +430,16 @@ def render_tile(stage, cell, visited_cells=[]):
     sprite_name = "stairs_up"
   elif tile is stage.STAIRS_DOWN:
     sprite_name = "stairs_down"
+  elif tile is stage.STAIRS_LEFT:
+    return Sprite(
+      image=assets.sprites["stairs_left"],
+      origin=("left", "bottom"),
+      layer="elems",
+      offset=-TILE_SIZE
+    )
   elif tile is stage.STAIRS_RIGHT:
     return Sprite(
-      key="stairs",
-      image=flip(assets.sprites["stairs_right"], True, False),
+      image=assets.sprites["stairs_right"],
       origin=("left", "bottom"),
       layer="elems",
       offset=-TILE_SIZE

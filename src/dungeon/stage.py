@@ -2,13 +2,16 @@ from dataclasses import dataclass
 
 @dataclass
 class Tile:
-  solid: bool
+  solid: bool = False
   opaque: bool = False
   elev: float = 0.0
   direction: tuple = (0, 0)
 
   def is_solid(tile):
     return tile and tile.solid
+
+  def get_elev(tile):
+    return tile and tile.elev or 0
 
 class Stage:
   class FLOOR(Tile):
@@ -33,6 +36,10 @@ class Stage:
     opaque = False
     elev = 0.5
     direction = (0, -1)
+
+  class STAIRS_LEFT(Tile):
+    elev = 0.5
+    direction = (-1, 0)
 
   class STAIRS_RIGHT(Tile):
     solid = False

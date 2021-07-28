@@ -12,7 +12,7 @@ class ElevRoom(SpecialRoom):
     super().__init__(
       degree=1,
       shape=[
-        "·····##",
+        "·····\\.",
         "·····..",
         "·-···..",
         ".../·..",

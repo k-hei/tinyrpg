@@ -19,6 +19,7 @@ class SpecialRoom(Room):
     if char == "<": return Stage.STAIRS_UP
     if char == "-": return Stage.STAIRS
     if char == "/": return Stage.STAIRS_RIGHT
+    if char == "\\": return Stage.STAIRS_LEFT
     if char == "=": return Stage.LADDER
     if char == "O": return Stage.OASIS
     if char == "V": return Stage.OASIS_STAIRS
