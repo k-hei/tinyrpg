@@ -353,6 +353,7 @@ class DungeonContext(Context):
       isinstance(e, DungeonActor)
       and not hero.allied(e)
       and manhattan(hero.cell, e.cell) == 1
+      and hero.elev == e.elev
       and not (type(e) is Mimic and e.idle)
     )]
     if nearby_enemies:

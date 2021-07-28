@@ -135,5 +135,4 @@ class DungeonElement:
     sprite.size = (sprite_width, sprite_height)
     sprite.layer = sprite_layer
     sprite.move((offset_x, offset_y))
-    sprite.offset = -offset_y
     return sprites

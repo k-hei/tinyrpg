@@ -272,8 +272,8 @@ class SkillContext(Context):
             image=square_image,
             pos=(x, y + square_image.get_height()),
             origin=("left", "bottom"),
-            offset=TILE_SIZE - 1,
             layer="elems",
+            offset=z * TILE_SIZE
           ))
 
       if ctx.cursor:
@@ -298,6 +298,9 @@ class SkillContext(Context):
           cursor_sprite = assets.sprites["cursor_cell2"]
 
       new_cursor_col, new_cursor_row = cursor
+      cursor_tile = floor.get_tile_at(cursor)
+      cursor_z = cursor_tile.elev if cursor_tile else 0
+      new_cursor_row -= cursor_z
       if ctx.exiting and not ctx.confirmed:
         new_cursor_col, new_cursor_row = hero.cell
         cursor_scale += -cursor_scale / 4

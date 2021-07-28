@@ -202,7 +202,7 @@ def collapse(room, game):
                 target=game.hero,
                 y=game.hero.cell[1] * TILE_SIZE,
                 dest=(
-                  (next(
+                  (next( # TODO: refactor into `find_nearest_non_pit_cell(cell)` or `find_pit_depth(cell)`
                     (y for y in range(game.hero.cell[1], floor.get_height())
                       if floor.get_tile_at((game.hero.cell[0], y)) is not floor.PIT),
                     floor.get_height()

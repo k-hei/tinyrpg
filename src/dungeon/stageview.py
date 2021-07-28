@@ -3,11 +3,12 @@ from pygame import Surface, Rect, SRCALPHA
 from pygame.transform import rotate, flip, scale
 from pygame.time import get_ticks
 
+import assets
 from assets import load as use_assets
 from filters import replace_color, darken_image
 from colors import darken_color
 from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, COLOR_TILE
-from config import ITEM_OFFSET, TILE_SIZE, DEBUG
+from config import ITEM_OFFSET, TILE_SIZE, DEBUG, WINDOW_HEIGHT, DEPTH_SIZE
 from sprite import Sprite
 from lib.lerp import lerp
 from lib.cell import add as add_vector
@@ -69,9 +70,9 @@ class StageView:
       depth = StageView.LAYERS.index(sprite.layer)
     except ValueError:
       depth = 0
-    depth *= 1000
-    y = sprite_y + sprite.offset
-    return depth + y
+    depth *= WINDOW_HEIGHT * DEPTH_SIZE
+    y = (sprite_y + sprite.offset + 0.5) * DEPTH_SIZE
+    return int(depth + y)
 
   def __init__(self, size):
     width, height = size
@@ -404,13 +405,14 @@ def render_tile(stage, cell, visited_cells=[]):
       image=assets.sprites["floor_fancy"],
       origin=("left", "bottom"),
       pos=(0, -TILE_SIZE),
-      layer="elems",
+      layer="elems"
     )
   elif tile is stage.FLOOR_ELEV:
     return Sprite(
       image=assets.sprites["floor_elev"],
       origin=("left", "bottom"),
       layer="elems",
+      offset=-TILE_SIZE // 2 + 1
     )
   elif tile is stage.WALL_ELEV:
     sprite_name = "wall_elev"
@@ -429,9 +431,11 @@ def render_tile(stage, cell, visited_cells=[]):
     sprite_name = "stairs_down"
   elif tile is stage.STAIRS_RIGHT:
     return Sprite(
+      key="stairs",
       image=flip(assets.sprites["stairs_right"], True, False),
       origin=("left", "bottom"),
       layer="elems",
+      offset=-TILE_SIZE
     )
   elif tile is stage.FLOOR and (
     stage.get_tile_at((x - 1, y)) is stage.FLOOR

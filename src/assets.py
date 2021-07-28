@@ -111,3 +111,6 @@ fonts = {}
 ttf = {}
 assets = Assets(sprites, fonts, ttf)
 load(ASSETS_PATH)
+
+def trace(sprite):
+  return next((k for k, s in sprites.items() if s is sprite), None)

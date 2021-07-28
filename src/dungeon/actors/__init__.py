@@ -287,7 +287,7 @@ class DungeonActor(DungeonElement):
     if type(sprites) is list:
       sprites = [(Sprite(image=s) if type(s) is Surface else s) for s in sprites]
     sprite = sprites[0]
-    offset_x, offset_y = (0, 0)
+    offset_x, offset_y, offset_z = (0, 0, 0)
     actor_width, actor_height = (TILE_SIZE, TILE_SIZE)
     actor_cell = actor.cell
     new_color = None
@@ -357,7 +357,7 @@ class DungeonActor(DungeonElement):
 
     move_anim = next((a for a in anim_group if type(a) is MoveAnim), None)
     if actor.elev > 0 and not move_anim:
-      offset_y -= actor.elev * TILE_SIZE
+      offset_z = actor.elev * TILE_SIZE
 
     if new_color:
       sprite.image = replace_color(sprite.image, BLACK, new_color)
@@ -370,9 +370,15 @@ class DungeonActor(DungeonElement):
     elif facing_x == 1:
       actor.flipped = False
     sprite.flip = (actor.flipped, flip_y)
-    sprite.move((offset_x, offset_y))
+    sprite.move((offset_x, offset_y - offset_z))
     sprite.size = (actor_width, actor_height)
-    sprite.layer = "elems"
+    offset_y = abs(
+      move_anim
+      and (len(move_anim.src) != 3
+        or move_anim.src[2] == move_anim.dest[2])
+      and actor.get_move_offset(move_anim)[1]
+      or 0)
+    sprite.offset += offset_z + offset_y
     return super().view(sprites, anims)
 
   def color(actor):
