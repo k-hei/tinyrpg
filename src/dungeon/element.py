@@ -12,6 +12,7 @@ from anims.flinch import FlinchAnim
 from anims.fall import FallAnim
 from anims.path import PathAnim
 from lib.lerp import lerp
+import lib.vector as vector
 from config import ITEM_OFFSET, TILE_SIZE, PUSH_DURATION
 
 class DungeonElement:
@@ -75,9 +76,9 @@ class DungeonElement:
     anim_group = anims[0] if anims else []
     for anim in [a for a in anim_group if a.target is elem]:
       if type(anim) is MoveAnim or type(anim) is PathAnim:
-        if offset_x or offset_y:
-          continue
-        offset_x, offset_y = elem.get_move_offset(anim)
+        # if offset_x or offset_y:
+        #   continue
+        offset_x, offset_y = vector.add((offset_x, offset_y), elem.get_move_offset(anim))
         if (anim.facing != (0, 0)
         and not anim.duration == PUSH_DURATION
         and not next((a for g in anims for a in g if a.target is elem and type(a) is FlinchAnim), None)):
@@ -112,7 +113,7 @@ class DungeonElement:
       elif type(anim) is DropAnim:
         offset_y = -anim.y
       elif type(anim) is ShakeAnim:
-        offset_x = anim.offset
+        offset_x += anim.offset
       elif type(anim) is FallAnim:
         offset_y = anim.y
         sprite_layer = "tiles"

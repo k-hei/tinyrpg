@@ -15,8 +15,8 @@ class GauntletRoom(SpecialRoom):
       "...    .     ....",
       "             ....",
     ], elems=[
-      ((16, 2), ArrowTrap(facing=(-1, 0), delay=100)),
-      ((16, 4), ArrowTrap(facing=(-1, 0))),
+      ((0, 2), ArrowTrap(facing=(1, 0), delay=100)),
+      ((0, 4), ArrowTrap(facing=(1, 0))),
       ((5, 0), ArrowTrap(facing=(0, 1), delay=45)),
       ((8, 0), ArrowTrap(facing=(0, 1), delay=60)),
       ((11, 0), ArrowTrap(facing=(0, 1), delay=75)),
@@ -25,9 +25,5 @@ class GauntletRoom(SpecialRoom):
 
   def get_edges(room):
     return [
-      vector.add(room.cell, (-1, 1)),
-      vector.add(room.cell, (-1, 2)),
       vector.add(room.cell, (-1, 3)),
-      vector.add(room.cell, (-1, 4)),
-      vector.add(room.cell, (-1, 5)),
     ]
