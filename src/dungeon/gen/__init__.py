@@ -473,7 +473,7 @@ def gen_floor(features, entrance=None, size=config.FLOOR_SIZE, seed=None):
       yield None
       continue
 
-    # floor.gen_loops()
+    floor.gen_loops()
     floor.fill_ends()
     floor.fill_isolated()
 
