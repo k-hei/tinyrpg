@@ -9,7 +9,7 @@ class Vfx:
     vfx.vel = vel
     vfx.done = False
 
-  def update(vfx):
+  def update(vfx, _):
     pos_x, pos_y = vfx.pos
     vel_x, vel_y = vfx.vel
     vfx.pos = (pos_x + vel_x, pos_y + vel_y)

@@ -227,7 +227,7 @@ class StageView:
         elem_x, elem_y = elem.cell
         sprite.move(((elem_x + 0.5) * TILE_SIZE, (elem_y + 1) * TILE_SIZE))
         move_anim = anims and next((a for a in anims[0] if type(a) is MoveAnim and a.target is elem), None)
-        if move_anim:
+        if move_anim and move_anim.cell:
           _, _, *anim_z = move_anim.cell
           anim_z = anim_z and anim_z[0] or 0
           sprite.offset += anim_z * TILE_SIZE
@@ -301,8 +301,11 @@ class StageView:
         numbers.remove(number)
     return sprites
 
-  def shake(self, vertical=False):
-    self.anim = ShakeAnim(duration=15, target=vertical)
+  def shake(self, duration=15, vertical=False):
+    self.anim = ShakeAnim(duration=duration, target=vertical)
+
+  def stop_shake(self):
+    self.anim = None
 
   def update(self):
     if self.anim:
@@ -337,10 +340,12 @@ class StageView:
         else:
           camera_offset = (self.anim.offset, 0)
       camera_pos = (-camera_x, -camera_y)
-      camera_pos = add_vector(camera_pos, camera_offset)
       if sprite.layer != "ui":
         sprite.move(camera_pos)
     sprites += self.view_tiles(camera)
+    for sprite in sprites:
+      if sprite.layer != "ui":
+        sprite.move(camera_offset)
     sprites.sort(key=StageView.order)
     return sprites
 

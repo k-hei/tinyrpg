@@ -1,10 +1,11 @@
+from math import inf
 from anims import Anim
 
 class FrameAnim(Anim):
   frames = []
   frames_duration = 0
 
-  def __init__(anim, frames=[], frames_duration=0, *args, **kwargs):
+  def __init__(anim, frames=[], frames_duration=inf, *args, **kwargs):
     super().__init__(*args, **kwargs)
     if not anim.frames:
       anim.frames = frames

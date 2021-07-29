@@ -77,8 +77,8 @@ class DungeonElement:
     anim_group = anims[0] if anims else []
     for anim in [a for a in anim_group if a.target is elem]:
       if type(anim) is MoveAnim or type(anim) is PathAnim:
-        # if offset_x or offset_y:
-        #   continue
+        if not anim.cell:
+          continue
         offset_x, offset_y = vector.add((offset_x, offset_y), elem.get_move_offset(anim))
         if (anim.facing != (0, 0)
         and not anim.duration == PUSH_DURATION

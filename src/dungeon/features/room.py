@@ -114,7 +114,10 @@ class Room(Feature):
       door.focus = game.hero.cell
 
   def on_enter(room, game):
+    if room.entered:
+      return False
     room.entered = True
+    return True
 
   def on_exit(room, game): pass
 

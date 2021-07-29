@@ -190,6 +190,7 @@ class Stage:
     elem.spawn(stage, cell)
     if elem not in stage.elems:
       stage.elems.append(elem)
+    return elem
 
   def remove_elem(stage, elem):
     if elem in stage.elems:

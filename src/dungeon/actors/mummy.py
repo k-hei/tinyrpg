@@ -1,5 +1,5 @@
 from dungeon.actors import DungeonActor
-from cores import Core
+from cores import Core, Stats
 from assets import load as use_assets
 from skills.attack.blitzritter import Blitzritter
 from skills.weapon.club import Club
@@ -7,16 +7,21 @@ from lib.cell import is_adjacent
 import random
 from sprite import Sprite
 
-class Soldier(DungeonActor):
+class Mummy(DungeonActor):
   skill = Blitzritter
 
   def __init__(soldier):
     super().__init__(Core(
-      name="Soldier",
+      name="Mummy",
       faction="enemy",
-      hp=32,
-      st=15,
-      en=11,
+      stats=Stats(
+        hp=14,
+        st=12,
+        dx=5,
+        ag=6,
+        lu=3,
+        en=11,
+      ),
       skills=[ Club, Blitzritter ]
     ))
 

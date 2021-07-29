@@ -143,8 +143,8 @@ class DialogueContext(Context):
       bar_bottom = Surface((WINDOW_WIDTH, bar_height))
       bar_bottom.fill(BLACK)
       sprites += [
-        Sprite(image=bar_top, pos=(0, 0)),
-        Sprite(image=bar_bottom, pos=(0, WINDOW_HEIGHT - bar_height + 1))
+        Sprite(image=bar_top, pos=(0, 0), layer="ui"),
+        Sprite(image=bar_bottom, pos=(0, WINDOW_HEIGHT - bar_height + 1), layer="ui")
       ]
 
     if not ctx.child or not "log" in dir(ctx.child):

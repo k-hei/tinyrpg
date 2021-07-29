@@ -26,7 +26,6 @@ from dungeon.actors.mage import Mage
 from dungeon.actors.eye import Eyeball
 from dungeon.actors.mushroom import Mushroom
 from dungeon.actors.skeleton import Skeleton
-from dungeon.actors.soldier import Soldier
 from dungeon.actors.mimic import Mimic
 from dungeon.actors.npc import Npc
 from dungeon.actors.genie import Genie

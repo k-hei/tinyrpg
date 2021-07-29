@@ -51,6 +51,7 @@ from dungeon.props.treasuredoor import TreasureDoor
 from dungeon.props.palm import Palm
 from dungeon.props.battledoor import BattleDoor
 from dungeon.props.coffin import Coffin
+from dungeon.props.vcoffin import VCoffin
 from dungeon.props.soul import Soul
 from dungeon.props.pushblock import PushBlock
 from dungeon.props.arrowtrap import ArrowTrap
@@ -72,6 +73,7 @@ from dungeon.features.coffinroom import CoffinRoom
 from dungeon.features.hallroom import HallRoom
 from dungeon.features.pushblockroom import PushBlockRoom
 from dungeon.features.battleroom import BattleRoom
+from dungeon.features.gauntletroom import GauntletRoom
 from dungeon.features.puzzleroom import PuzzleRoom
 from dungeon.features.arenaroom import ArenaRoom
 from dungeon.features.maze import Maze
@@ -86,6 +88,7 @@ from dungeon.features.exitroom import ExitRoom
 from dungeon.features.room import Room
 from dungeon.features.enemyroom import EnemyRoom
 from dungeon.actors.genie import Genie
+from dungeon.actors.mummy import Mummy
 from dungeon.actors.npc import Npc
 from dungeon.actors.skeleton import Skeleton
 from dungeon.actors.mage import Mage
@@ -94,7 +97,6 @@ from dungeon.actors.mimic import Mimic
 from dungeon.actors.knight import Knight
 from dungeon.actors.mushroom import Mushroom
 from dungeon.actors.guard import GuardActor
-from dungeon.actors.soldier import Soldier
 from dungeon.floors.floor1 import Floor1
 from dungeon.floors.floor3 import Floor3
 from dungeon.floors.floor2 import Floor2
@@ -157,6 +159,7 @@ def resolve_elem(key):
   if key == "Palm": return Palm
   if key == "BattleDoor": return BattleDoor
   if key == "Coffin": return Coffin
+  if key == "VCoffin": return VCoffin
   if key == "Soul": return Soul
   if key == "PushBlock": return PushBlock
   if key == "ArrowTrap": return ArrowTrap
@@ -178,6 +181,7 @@ def resolve_elem(key):
   if key == "HallRoom": return HallRoom
   if key == "PushBlockRoom": return PushBlockRoom
   if key == "BattleRoom": return BattleRoom
+  if key == "GauntletRoom": return GauntletRoom
   if key == "PuzzleRoom": return PuzzleRoom
   if key == "ArenaRoom": return ArenaRoom
   if key == "Maze": return Maze
@@ -192,6 +196,7 @@ def resolve_elem(key):
   if key == "Room": return Room
   if key == "EnemyRoom": return EnemyRoom
   if key == "Genie": return Genie
+  if key == "Mummy": return Mummy
   if key == "Npc": return Npc
   if key == "Skeleton": return Skeleton
   if key == "Mage": return Mage
@@ -200,7 +205,6 @@ def resolve_elem(key):
   if key == "Knight": return Knight
   if key == "Mushroom": return Mushroom
   if key == "GuardActor": return GuardActor
-  if key == "Soldier": return Soldier
   if key == "Floor1": return Floor1
   if key == "Floor3": return Floor3
   if key == "Floor2": return Floor2

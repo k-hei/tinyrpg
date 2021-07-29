@@ -3,12 +3,12 @@ from lib.lerp import lerp
 from config import WALK_DURATION
 
 class MoveAnim(Anim):
-  def __init__(anim, src, dest, duration=WALK_DURATION, started=True, *args, **kwargs):
+  def __init__(anim, src=None, dest=None, duration=WALK_DURATION, period=0, started=True, *args, **kwargs):
     super().__init__(duration=duration, *args, **kwargs)
     anim.cell = src
     anim.src = src
     anim.dest = dest
-    anim.period = duration
+    anim.period = period or duration
     anim.started = started
     anim.facing = (0, 0)
 

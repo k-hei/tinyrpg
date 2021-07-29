@@ -374,6 +374,7 @@ class DungeonActor(DungeonElement):
     sprite.size = (actor_width, actor_height)
     offset_y = abs(
       move_anim
+      and move_anim.src
       and (len(move_anim.src) != 3
         or move_anim.src[2] == move_anim.dest[2])
       and actor.get_move_offset(move_anim)[1]
