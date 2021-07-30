@@ -17,6 +17,7 @@ class Knight(BipedCore):
   class SleepAnim(FrameAnim):
     frames = assets.sprites["knight_sleep"]
     frames_duration = 30
+    loop = True
 
   class BlockAnim(FrameAnim):
     frames = assets.sprites["knight_block"]

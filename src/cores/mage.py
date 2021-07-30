@@ -21,14 +21,17 @@ class Mage(BipedCore):
   class SleepAnim(FrameAnim):
     frames = assets.sprites["mage_sleep"]
     frames_duration = 30
+    loop = True
 
   class CastAnim(FrameAnim):
     frames = assets.sprites["mage_cast"]
     frames_duration = 10
+    loop = True
 
   class LaughAnim(FrameAnim):
     frames = assets.sprites["mage_sleep"][0:2]
     frames_duration = 8
+    loop = True
 
   class YellAnim(FrameAnim):
     frames = [assets.sprites["mage_yell"]]

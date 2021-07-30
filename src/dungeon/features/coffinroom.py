@@ -101,13 +101,14 @@ def cutscene(room, game):
     lambda step: (
       move_anim := MoveAnim(target=mage, duration=inf, period=30),
       game.child.open(DialogueContext(script=[
+        (mage.get_name().upper(), "You again?"),
         (mage.get_name().upper(), "Ugh, I'm getting deja vu..."),
         lambda: game.anims.append([JumpAnim(target=hero)]),
         (hero.get_name().upper(), "First you waltz in here without a permit, then you jack my stuff"),
         (hero.get_name().upper(), "and leave my naked ass to get buried alive."),
         (hero.get_name().upper(), "Just how rotten can you get?"),
         lambda: (
-          mage.core.anims.clear(),
+          # mage.core.anims.clear(),
           mage.core.anims.append(mage.core.LaughAnim())
         ) and (mage.get_name().upper(), "Hee hee hee..."),
         lambda: (
