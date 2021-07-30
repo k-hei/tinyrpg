@@ -196,6 +196,6 @@ class Previews:
       sprites.append(Sprite(
         image=sprite,
         pos=(x, y),
-        layer="ui"
+        layer="hud"
       ))
     return sprites

@@ -113,8 +113,7 @@ def cutscene(room, game):
         lambda: (
           mage.core.anims.clear(),
           game.anims.append([move_anim])
-        ) and (mage.get_name().upper(), "Look here, mister."),
-        (mage.get_name().upper(), "You're gonna wish you'd stayed in that rotten old pile of bones!"),
+        ) and (mage.get_name().upper(), "You're gonna wish you'd stayed in that rotten old pile of bones!"),
         (hero.get_name().upper(), "????"),
         lambda: (
           move_anim.end(),
@@ -139,6 +138,8 @@ def cutscene(room, game):
     ),
     lambda step: (
       game.floor_view.shake(duration=inf, vertical=True),
+      hero.set_facing((-1, 0)),
+      game.vfx.append(AlertBubble(hero.cell)),
       game.child.open(DialogueContext(script=[
         lambda: [
           (
@@ -150,23 +151,42 @@ def cutscene(room, game):
               on_start=c.open
             ))
           ) for i, c in enumerate(room.enemy_coffins)
-         ] and ("????", "Urrrrrgh....."),
-        lambda: game.anims[0].append(
-          JumpAnim(target=hero)
-        ) or (hero.get_name().upper(), "You idiot! You're gonna get us both killed!")
+        ] and ("????", "Urrrrrgh....."),
+        lambda: (
+          hero.set_facing((0, -1)),
+          game.anims[0].append(JumpAnim(target=hero)),
+        ) and (hero.get_name().upper(), "You idiot! You're gonna get us both killed!")
       ]), on_close=step)
     ),
     lambda step: (
       game.anims.clear(),
       mage.core.anims.clear(),
-      mage.move_to(vector.add(room.cell, (room.get_width() // 2, -1))),
       mage.set_facing((0, 1)),
+      game.anims.append([MoveAnim(target=mage, duration=inf, period=30)]),
+      # mage.move_to(vector.add(room.cell, (room.get_width() // 2, -1))),
       game.camera.focus(
         cell=vector.add(room.get_center(), (0, -room.get_height() // 2 + 2)),
-        speed=30,
+        speed=15,
         tween=True,
         on_end=step
       ),
+    ),
+    lambda step: (
+      game.child.open(DialogueContext(script=[
+        (mage.get_name().upper(), "If someone's gonna kick the bucket down here,"),
+        (mage.get_name().upper(), "it's not gonna be me!"),
+        (hero.get_name().upper(), "!!"),
+      ]), on_close=step),
+    ),
+    lambda step: (
+      mage.move_to(vector.add(room.cell, (4, -1))),
+      game.anims.clear(),
+      game.anims.append([PathAnim(
+        target=mage,
+        period=RUN_DURATION,
+        path=[vector.add(room.cell, c) for c in [(7, 0), (6, 0), (5, 0), (4, 0), (4, -1)]],
+        on_end=step
+      )])
     ),
     lambda step: game.anims.append([PauseAnim(duration=30, on_end=step)]),
     lambda step: (
@@ -221,6 +241,7 @@ def cutscene(room, game):
           hero.set_facing((-1, 0)),
           game.anims.append([JumpAnim(target=mage)])
         ) and (hero.get_name().upper(), "Damn! That little...!"),
+        (hero.get_name().upper(), "Looks like I'll have to put these guys back to sleep first..."),
         lambda: (
           game.floor_view.stop_shake(),
         ) and None
