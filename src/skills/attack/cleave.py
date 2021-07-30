@@ -5,7 +5,7 @@ from anims.pause import PauseAnim
 from anims.frame import FrameAnim
 from dungeon.actors import DungeonActor
 from cores.knight import Knight as Knight
-from vfx import Vfx
+from vfx.impact import ImpactVfx
 from config import TILE_SIZE, ENABLED_COMBAT_LOG
 
 class Cleave(AttackSkill):
@@ -29,14 +29,7 @@ class Cleave(AttackSkill):
     target_elem = floor.get_elem_at(target_cell, superclass=DungeonActor)
 
     def on_connect():
-      game.vfx.append(Vfx(
-        kind="impact",
-        pos=tuple([x * TILE_SIZE for x in target_cell]),
-        anim=FrameAnim(
-          duration=20,
-          frames=["fx_impact{}".format(i) for i in range(7)]
-        )
-      ))
+      game.vfx.append(ImpactVfx(cell=target_cell))
 
     def on_pause():
       game.flinch(

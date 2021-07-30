@@ -1,14 +1,14 @@
 from dungeon.actors import DungeonActor
 from cores import Core, Stats
 from assets import load as use_assets
-from skills.attack.blitzritter import Blitzritter
+from skills.attack.cleave import Cleave
 from skills.weapon.club import Club
 from lib.cell import is_adjacent
 import random
 from sprite import Sprite
 
 class Mummy(DungeonActor):
-  skill = Blitzritter
+  skill = Cleave
 
   def __init__(soldier):
     super().__init__(Core(
@@ -22,7 +22,7 @@ class Mummy(DungeonActor):
         lu=3,
         en=11,
       ),
-      skills=[ Club, Blitzritter ]
+      skills=[ Club, Cleave ]
     ))
 
   def step(soldier, game):
@@ -33,7 +33,7 @@ class Mummy(DungeonActor):
     if is_adjacent(soldier.cell, enemy.cell):
       if random.randint(1, 3) == 1:
         soldier.face(enemy.cell)
-        game.use_skill(soldier, Blitzritter)
+        game.use_skill(soldier, Cleave)
       else:
         game.attack(soldier, enemy)
     else:

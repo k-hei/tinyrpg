@@ -38,5 +38,8 @@ class FrameAnim(Anim):
       frame_duration = anim.frames_duration or anim.duration / len(anim.frames)
       anim_duration = frame_duration * len(anim.frames)
       frame_index = int(time % anim_duration / anim_duration * len(anim.frames))
+      if time == anim_duration and not anim.loop:
+        anim.end()
+        return anim.frames[-1]
     anim.frame_index = frame_index
     return frame_index
