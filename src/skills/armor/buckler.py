@@ -1,6 +1,9 @@
 from skills.armor import Armor
 from cores import Core
 from cores.knight import Knight
+import assets
+from filters import replace_color
+from colors.palette import BLACK, ORANGE
 
 class Buckler(Armor):
   name = "Buckler"
@@ -14,3 +17,6 @@ class Buckler(Armor):
     (0, 1),
     (1, 1),
   ]
+
+  def render(item=None):
+    return replace_color(assets.sprites["item_shield"], BLACK, ORANGE)

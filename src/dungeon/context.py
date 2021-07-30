@@ -66,7 +66,9 @@ from dungeon.props.palm import Palm
 
 from inventory import Inventory
 from items import Item
+from items.gold import Gold
 from items.materials import MaterialItem
+from skills import Skill
 from skills.weapon import Weapon
 
 from anims.activate import ActivateAnim
@@ -785,7 +787,13 @@ class DungeonContext(Context):
     return True
 
   def obtain(game, item):
-    game.parent.obtain(item)
+    if isinstance(item, Gold):
+      game.change_gold(item.amount)
+    elif type(item) is type and issubclass(item, Skill):
+      game.learn_skill(item)
+    else:
+      game.parent.obtain(item)
+    return True
 
   def jump_pit(game, actor, run=False, on_end=None):
     facing_x, facing_y = actor.facing
@@ -808,6 +816,8 @@ class DungeonContext(Context):
         return game.attack(hero, target_actor, on_end=game.step)
       return False
     target_elem = game.floor.get_elem_at(target_cell)
+    if not target_elem.active:
+      return False
     effect_result = target_elem and target_elem.effect(game)
     if game.talkbubble:
       game.talkbubble.hide()
@@ -1052,7 +1062,7 @@ class DungeonContext(Context):
     return game.roll(
       dx=attacker.stats.dx + attacker.stats.lu / 2,
       ag=defender.stats.ag + defender.stats.lu / 2,
-      chance=0.75
+      chance=0.8
     )
 
   def roll_crit(game, attacker, defender):
@@ -1550,6 +1560,7 @@ class DungeonContext(Context):
     facing_elems = game.floor.get_elems_at(facing_cell)
     facing_elem = next((e for e in facing_elems if (
       e.solid
+      and e.active
       and (not isinstance(e, DungeonActor) or hero.allied(e))
     )), None)
     if game.talkbubble:

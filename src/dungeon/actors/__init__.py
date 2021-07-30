@@ -34,10 +34,12 @@ class DungeonActor(DungeonElement):
   class SleepAnim(FrameAnim):
     frames = assets.sprites["status_sleep"]
     frames_duration = 15
+    loop = True
 
   class PoisonAnim(FrameAnim):
     frames = assets.sprites["status_poison"]
     frames_duration = 15
+    loop = True
 
   def __init__(actor, core, hp=None, faction=None, facing=None, ailment=None, ailment_turns=0):
     super().__init__(solid=True, opaque=False)

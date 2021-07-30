@@ -19,11 +19,13 @@ class DungeonElement:
   solid = False
   opaque = False
   static = False
+  active = False
 
-  def __init__(elem, solid=False, opaque=False, static=False):
+  def __init__(elem, solid=False, opaque=False, static=False, active=True):
     if not elem.solid: elem.solid = solid
     if not elem.opaque: elem.opaque = opaque
     if not elem.static: elem.static = static
+    if not elem.active: elem.active = active
     elem.cell = None
     elem.size = (1, 1)
     elem.elev = 0

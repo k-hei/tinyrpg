@@ -11,7 +11,7 @@ class FrameAnim(Anim):
       anim.frames = frames
     if not anim.frames_duration:
       anim.frames_duration = frames_duration
-    anim.frame_index = 0
+    anim.frame_index = None
 
   def frame(anim): # method instead of prop for serialization
     return anim.frames[anim.frame_index] if anim.frame_index is not None else None

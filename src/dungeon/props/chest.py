@@ -90,7 +90,7 @@ class Chest(Prop):
       else:
         script = ["Your inventory is already full!"]
     else:
-      script = ["There's nothing left to take..."]
+      script = ["It's empty..."]
     game.camera.focus(
       cell=chest.cell,
       force=True,

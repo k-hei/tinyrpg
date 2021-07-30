@@ -3,10 +3,15 @@ from random import randint, choice
 from dungeon.features.specialroom import SpecialRoom
 from dungeon.props.coffin import Coffin
 from dungeon.props.vcoffin import VCoffin
+from dungeon.actors import DungeonActor
 from dungeon.actors.mage import Mage
 from dungeon.actors.mummy import Mummy
+from skills.armor.buckler import Buckler
+from items.hp.potion import Potion
+from items.materials.diamond import Diamond
 from items.gold import Gold
 import lib.vector as vector
+import config
 from config import ROOM_WIDTHS, ROOM_HEIGHTS, RUN_DURATION
 
 from contexts.cutscene import CutsceneContext
@@ -24,11 +29,11 @@ class CoffinRoom(SpecialRoom):
     super().__init__(
       shape=["." * 9 for _ in range(7)],
       elems=[
-        ((2, 2), coffin1 := Coffin()),
-        ((4, 2), Coffin()),
-        ((6, 2), Coffin()),
-        ((2, 4), Coffin()),
-        ((4, 4), coffin2 := Coffin()),
+        ((2, 2), coffin1 := Coffin(Gold(amount=randint(5, 20)))),
+        ((4, 2), Coffin(Potion, locked=True)),
+        ((6, 2), Coffin(Buckler, locked=True)),
+        ((2, 4), Coffin(Diamond, locked=True)),
+        ((4, 4), coffin2 := Coffin(Gold(amount=randint(5, 20)))),
         ((6, 4), coffin3 := Coffin()),
         ((1, 0), VCoffin()),
         ((3, 0), VCoffin()),
@@ -44,6 +49,11 @@ class CoffinRoom(SpecialRoom):
       vector.add(room.cell, (room.get_width() // 2, room.get_height()))
     ]
 
+  def get_enemies(room, stage):
+    return [e for e in [
+      stage.get_elem_at(c, superclass=DungeonActor) for c in room.get_cells()
+    ] if e and e.get_faction() == "enemy"]
+
   def place(room, stage, *args, **kwargs):
     if not super().place(stage, *args, **kwargs):
       return False
@@ -54,9 +64,35 @@ class CoffinRoom(SpecialRoom):
     if not super().on_enter(game):
       return False
     game.open(CutsceneContext([
-      *cutscene(room, game)
+      *(cutscene(room, game) if config.CUTSCENES else [
+        lambda step: (
+          game.floor.remove_elem(room.mage),
+          step()
+        ),
+        *take_battle_position(room, game),
+        lambda step: (
+          spawn_enemies(room, game)(),
+          step()
+        )
+      ])
     ]))
     return True
+
+  def on_death(room, game, actor):
+    if room.get_enemies(game.floor):
+      return False
+    game.anims.append([
+      PauseAnim(
+        duration=30,
+        on_end=lambda: room.on_complete(game)
+      )
+    ])
+    return True
+
+  def on_complete(room, game):
+    for c, e in room.elems:
+      if type(e) is Coffin:
+        e.unlock()
 
 def cutscene(room, game):
   hero = game.hero
@@ -67,20 +103,7 @@ def cutscene(room, game):
       game.vfx.append(AlertBubble(hero.cell)),
       game.anims.append([PauseAnim(duration=45, on_end=step)]),
     ),
-    lambda step: (
-      hero.move_to(vector.add(room.cell, (7, 2))),
-      game.anims.append([PathAnim(
-        target=hero,
-        period=RUN_DURATION,
-        path=[vector.add(room.cell, c) for c in [(4, 6), (4, 5), (5, 5), (6, 5), (7, 5), (7, 4), (7, 3), (7, 2)]]
-      )]),
-      game.camera.focus(
-        cell=vector.add(room.cell, (7, 2)),
-        speed=75,
-        tween=True,
-        on_end=step
-      ),
-    ),
+    *take_battle_position(room, game),
     lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
     lambda step: (
       game.child.open(DialogueContext(script=[
@@ -99,7 +122,6 @@ def cutscene(room, game):
       game.anims.append([PauseAnim(duration=10, on_end=step)]),
     ),
     lambda step: (
-      move_anim := MoveAnim(target=mage, duration=inf, period=30),
       game.child.open(DialogueContext(script=[
         (mage.get_name().upper(), "You again?"),
         (mage.get_name().upper(), "Ugh, I'm getting deja vu..."),
@@ -108,16 +130,17 @@ def cutscene(room, game):
         (hero.get_name().upper(), "and leave my naked ass to get buried alive."),
         (hero.get_name().upper(), "Just how rotten can you get?"),
         lambda: (
-          # mage.core.anims.clear(),
+          mage.core.anims.clear(),
           mage.core.anims.append(mage.core.LaughAnim())
         ) and (mage.get_name().upper(), "Hee hee hee..."),
         lambda: (
           mage.core.anims.clear(),
-          game.anims.append([move_anim])
-        ) and (mage.get_name().upper(), "You're gonna wish you'd stayed in that rotten old pile of bones!"),
+          game.anims.append([MoveAnim(target=mage, duration=inf, period=30)])
+        ) and (mage.get_name().upper(), "Listen here, punk..."),
+        (mage.get_name().upper(), "You're gonna wish you'd stayed in that rotten old pile of bones!"),
         (hero.get_name().upper(), "????"),
         lambda: (
-          move_anim.end(),
+          game.anims.clear(),
           mage.core.anims.clear(),
           mage.core.anims.append(mage.core.CastAnim())
         ) and (mage.get_name().upper(), "Hee..."),
@@ -142,17 +165,7 @@ def cutscene(room, game):
       hero.set_facing((-1, 0)),
       game.vfx.append(AlertBubble(hero.cell)),
       game.child.open(DialogueContext(script=[
-        lambda: [
-          (
-            game.floor.spawn_elem_at(c.cell, mummy := Mummy()),
-            game.anims[0].append(WarpInAnim(
-              target=mummy,
-              duration=15,
-              delay=i * 8,
-              on_start=c.open
-            ))
-          ) for i, c in enumerate(room.enemy_coffins)
-        ] and ("????", "Urrrrrgh....."),
+        spawn_enemies(room, game) and ("????", "Urrrrrgh....."),
         lambda: (
           hero.set_facing((0, -1)),
           game.anims[0].append(JumpAnim(target=hero)),
@@ -248,4 +261,36 @@ def cutscene(room, game):
         ) and None
       ]), on_close=step)
     ),
+  ]
+
+def take_battle_position(room, game):
+  hero = game.hero
+  return [
+    lambda step: (
+      hero.move_to(vector.add(room.cell, (7, 2))),
+      game.anims.append([PathAnim(
+        target=hero,
+        period=RUN_DURATION,
+        path=[vector.add(room.cell, c) for c in [(4, 6), (4, 5), (5, 5), (6, 5), (7, 5), (7, 4), (7, 3), (7, 2)]]
+      )]),
+      game.camera.focus(
+        cell=vector.add(room.cell, (7, 2)),
+        speed=75,
+        tween=True,
+        on_end=step
+      ),
+    ),
+  ]
+
+def spawn_enemies(room, game):
+  return lambda: [
+    (
+      game.floor.spawn_elem_at(c.cell, mummy := Mummy()),
+      game.anims[0].append(WarpInAnim(
+        target=mummy,
+        duration=15,
+        delay=i * 8,
+        on_start=c.open
+      ))
+    ) for i, c in enumerate(room.enemy_coffins)
   ]

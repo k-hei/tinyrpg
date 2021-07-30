@@ -6,7 +6,7 @@ from anims.attack import AttackAnim
 from anims.frame import FrameAnim
 from dungeon.actors import DungeonActor
 from cores.knight import Knight as Knight
-from vfx import Vfx
+from vfx.impact import ImpactVfx
 from config import ATTACK_DURATION, TILE_SIZE, ENABLED_COMBAT_LOG
 
 class Blitzritter(AttackSkill):
@@ -42,43 +42,9 @@ class Blitzritter(AttackSkill):
       target_b = None
 
     def connect():
-      near_col, near_row = near_cell
-      near_x = near_col * TILE_SIZE
-      near_y = near_row * TILE_SIZE
-      near_pos = (near_x, near_y)
-
-      far_col, far_row = far_cell
-      far_x = far_col * TILE_SIZE
-      far_y = far_row * TILE_SIZE
-      far_pos = (far_x, far_y)
-
-      impact_frames = [
-        "fx_impact0",
-        "fx_impact1",
-        "fx_impact2",
-        "fx_impact3",
-        "fx_impact4",
-        "fx_impact5",
-        "fx_impact6"
-      ]
       game.vfx.extend([
-        Vfx(
-          kind="impact",
-          pos=near_pos,
-          anim=FrameAnim(
-            duration=20,
-            frames=impact_frames
-          )
-        ),
-        Vfx(
-          kind="impact",
-          pos=far_pos,
-          anim=FrameAnim(
-            duration=20,
-            delay=10,
-            frames=impact_frames
-          )
-        )
+        ImpactVfx(cell=near_cell),
+        ImpactVfx(cell=far_cell, delay=10),
       ])
 
     def end_pause():

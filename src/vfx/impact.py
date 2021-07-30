@@ -9,10 +9,10 @@ class ImpactVfx(Vfx):
     frames = assets.sprites["fx_impact"]
     frames_duration = 3
 
-  def __init__ (fx, cell):
+  def __init__ (fx, cell, delay=0):
     x, y = cell
     super().__init__(kind=None, pos=(x * TILE_SIZE, y * TILE_SIZE))
-    fx.anim = ImpactVfx.ImpactAnim()
+    fx.anim = ImpactVfx.ImpactAnim(delay=delay)
 
   def update(fx, _):
     if fx.anim:
@@ -23,7 +23,7 @@ class ImpactVfx(Vfx):
         fx.anim.update()
 
   def view(fx):
-    if fx.done:
+    if fx.done or not fx.anim.frame():
       return []
     return [Sprite(
       image=fx.anim.frame(),

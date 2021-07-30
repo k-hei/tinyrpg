@@ -15,12 +15,12 @@ class Mummy(DungeonActor):
       name="Mummy",
       faction="enemy",
       stats=Stats(
-        hp=14,
+        hp=8,
         st=12,
-        dx=5,
-        ag=6,
+        dx=3,
+        ag=5,
         lu=3,
-        en=11,
+        en=14,
       ),
       skills=[ Club, Cleave ]
     ))
