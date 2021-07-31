@@ -15,6 +15,8 @@ class SpriteMap:
   opening_frames: list[str]
 
 class Door(Prop):
+  solid = True
+  active = True
   sprites = SpriteMap(
     closed="door_puzzle",
     opened="door_puzzle_open",

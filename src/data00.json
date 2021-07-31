@@ -4,10 +4,10 @@
   "time": 215999,
   "gold": 9999,
   "items": [],
-  "skills": ["Glacio", "Sana"],
+  "skills": ["Cleave", "Glacio", "Sana"],
   "party": ["knight"],
   "chars": {
-    "knight": { },
+    "knight": {},
     "mage": {
       "Sana": [0, 0],
       "Glacio": [1, 1]

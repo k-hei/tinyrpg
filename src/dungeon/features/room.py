@@ -70,6 +70,9 @@ class Room(Feature):
       (x + width - 1, y + height - 1),
     ]
 
+  def get_entrances(room):
+    return room.get_edges()
+
   def get_exits(room):
     return room.get_edges()
 

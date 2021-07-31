@@ -5,13 +5,13 @@ class FrameAnim(Anim):
   frames = []
   frames_duration = 0
 
-  def __init__(anim, frames=[], frames_duration=inf, *args, **kwargs):
-    super().__init__(*args, **kwargs)
+  def __init__(anim, frames=[], frames_duration=inf, delay=0, *args, **kwargs):
+    super().__init__(delay=delay, *args, **kwargs)
     if not anim.frames:
       anim.frames = frames
     if not anim.frames_duration:
       anim.frames_duration = frames_duration
-    anim.frame_index = None
+    anim.frame_index = None if delay else 0
 
   def frame(anim): # method instead of prop for serialization
     return anim.frames[anim.frame_index] if anim.frame_index is not None else None

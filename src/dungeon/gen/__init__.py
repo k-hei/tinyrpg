@@ -107,7 +107,7 @@ class Floor:
     overlap = []
     while valid_slots and not overlap:
       neighbor.cell = choice(valid_slots)
-      overlap = set(node.get_exits()) & set(neighbor.get_edges())
+      overlap = set(node.get_exits()) & set(neighbor.get_entrances())
       if not overlap:
         valid_slots.remove(neighbor.cell)
         neighbor.cell = None

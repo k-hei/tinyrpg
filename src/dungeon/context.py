@@ -1167,7 +1167,12 @@ class DungeonContext(Context):
     if not floor.is_cell_empty(target_cell) and floor.get_tile_at(target_cell) is not floor.PIT:
       return False
     actor.cell = target_cell
-    actor.command = True
+    # actor.command = True
+    if not game.anims: game.anims.append([])
+    move_anim = next((a for a in game.anims[0] if a.target == actor and type(a) is MoveAnim), None)
+    if move_anim:
+      on_end = compose(on_end, move_anim.on_end)
+      game.anims[0].remove(move_anim)
     game.anims[0].append(MoveAnim(
       duration=NUDGE_DURATION,
       target=actor,

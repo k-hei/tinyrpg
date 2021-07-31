@@ -75,6 +75,7 @@ class Arrow(Vfx):
       if target_elem and isinstance(target_elem, DungeonActor):
         if can_block:
           target_elem.block()
+        game.nudge(target_elem, arrow.direction)
         game.flinch(target_elem,
           damage=0 if can_block else 1,
           direction=arrow.direction

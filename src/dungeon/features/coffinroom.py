@@ -27,6 +27,7 @@ from vfx.alertbubble import AlertBubble
 class CoffinRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
     super().__init__(
+      degree=4,
       shape=["." * 9 for _ in range(7)],
       elems=[
         ((2, 2), coffin1 := Coffin(Gold(amount=randint(5, 20)))),
@@ -44,9 +45,24 @@ class CoffinRoom(SpecialRoom):
     )
     room.enemy_coffins = [coffin1, coffin2, coffin3]
 
-  def get_edges(room):
+  # def get_edges(room):
+  #   return [
+  #     vector.add(room.cell, (room.get_width() // 2, room.get_height())),
+  #     vector.add(room.cell, (room.get_width() // 2, -1)),
+  #     vector.add(room.cell, (-1, room.get_height() // 2)),
+  #     vector.add(room.cell, (room.get_width(), room.get_height() // 2)),
+  #   ]
+
+  def get_entrances(room):
+    _, room_y = room.cell
+    return [(x, y) for (x, y) in super().get_edges() if y >= room_y + room.get_height()]
+
+  def get_exits(room):
+    print(type(room))
     return [
-      vector.add(room.cell, (room.get_width() // 2, room.get_height()))
+      vector.add(room.cell, (room.get_width() // 2, -1)),
+      vector.add(room.cell, (-1, room.get_height() // 2)),
+      vector.add(room.cell, (room.get_width(), room.get_height() // 2)),
     ]
 
   def get_enemies(room, stage):

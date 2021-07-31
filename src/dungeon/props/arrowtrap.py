@@ -11,6 +11,9 @@ from config import TILE_SIZE
 ARROW_PERIOD = 300
 
 class ArrowTrap(Prop):
+  solid = True
+  active = False
+
   def __init__(trap, facing, delay=0, *args, **kwargs):
     super().__init__(*args, **kwargs)
     trap.facing = facing

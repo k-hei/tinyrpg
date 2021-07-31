@@ -21,7 +21,7 @@ class DungeonElement:
   static = False
   active = False
 
-  def __init__(elem, solid=False, opaque=False, static=False, active=True):
+  def __init__(elem, solid=False, opaque=False, static=False, active=False):
     if not elem.solid: elem.solid = solid
     if not elem.opaque: elem.opaque = opaque
     if not elem.static: elem.static = static

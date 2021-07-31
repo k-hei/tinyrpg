@@ -4,6 +4,7 @@ from dungeon.gen import gen_floor, gen_enemy, FloorGraph
 from dungeon.features.vertroom import VerticalRoom
 from dungeon.features.exitroom import ExitRoom
 from dungeon.features.arenaroom import ArenaRoom
+from dungeon.features.coffinroom import CoffinRoom
 from dungeon.features.pushblockroom import PushBlockRoom
 from dungeon.features.puzzleroom import PuzzleRoom
 from dungeon.features.oasisroom import OasisRoom
@@ -56,6 +57,7 @@ class Floor2(Floor):
 
   def generate(story):
     entry_room = VerticalRoom(size=(3, 4), degree=1)
+    coffin_room = CoffinRoom()
     pushblock_room = PushBlockRoom(degree=2)
     buffer_room1 = VerticalRoom(
       size=(3, 4),
@@ -93,17 +95,21 @@ class Floor2(Floor):
     ])
 
     return gen_floor(
-      size=(23, 42),
+      size=(27, 42),
       entrance=entry_room,
       features=FloorGraph(
-        nodes=[buffer_room2, puzzle_room, buffer_room3, arena_room, exit_room, oasis_room, entry_room, pushblock_room, buffer_room1, enemy_room],
+        nodes=[entry_room, coffin_room],
         edges=[
-          (buffer_room2, puzzle_room),
-          (puzzle_room, buffer_room3),
-          (buffer_room3, arena_room),
-          (arena_room, exit_room),
-          (entry_room, pushblock_room),
-          (pushblock_room, buffer_room1),
+          (entry_room, coffin_room)
         ]
+        # nodes=[buffer_room2, puzzle_room, buffer_room3, arena_room, exit_room, oasis_room, entry_room, coffin_room, buffer_room1, enemy_room],
+        # edges=[
+        #   (buffer_room2, puzzle_room),
+        #   (puzzle_room, buffer_room3),
+        #   (buffer_room3, arena_room),
+        #   (arena_room, exit_room),
+        #   (entry_room, coffin_room),
+        #   (coffin_room, buffer_room1),
+        # ]
       )
     )
