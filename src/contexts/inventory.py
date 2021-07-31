@@ -471,14 +471,14 @@ class InventoryContext(Context):
       sprites.append(Sprite(
         image=ctx.child.render(),
         pos=(x, y),
-        layer="ui"
+        layer="hud"
       ))
     elif not ctx.anims and ctx.items:
       hand_x = cursor_x + tile_width - 3 + ctx.cursor_anim.update() * 2
       sprites.append(Sprite(
         image=sprite_hand,
         pos=(hand_x, cursor_y),
-        layer="ui"
+        layer="hud"
       ))
 
     return sprites + super().view()

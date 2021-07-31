@@ -20,7 +20,7 @@ class FlashVfx(Vfx):
     fx.surface_half = Surface(WINDOW_SIZE, SRCALPHA)
     fx.surface_half.fill(Color(*color, 0x7F))
 
-  def update(fx, _):
+  def update(fx, *_):
     if fx.done:
       return
     fx.time += 1

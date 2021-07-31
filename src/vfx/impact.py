@@ -14,7 +14,7 @@ class ImpactVfx(Vfx):
     super().__init__(kind=None, pos=(x * TILE_SIZE, y * TILE_SIZE))
     fx.anim = ImpactVfx.ImpactAnim(delay=delay)
 
-  def update(fx, _):
+  def update(fx, *_):
     if fx.anim:
       if fx.anim.done:
         fx.anim = None

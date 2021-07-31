@@ -43,12 +43,12 @@ class AltarRoom(SpecialRoom):
       (add_cell(altar_cell, (-3, -2)), Pillar()),
       (add_cell(altar_cell, (-3, 0)), Pillar()),
       (add_cell(altar_cell, (-3, 2)), Pillar()),
+      (add_cell(altar_cell, (-2, 3)), Pillar()),
       (add_cell(altar_cell, (2, 3)), Pillar()),
       (add_cell(altar_cell, (2, -3)), Pillar()),
       (add_cell(altar_cell, (3, -2)), Pillar()),
       (add_cell(altar_cell, (3, 0)), Pillar()),
       (add_cell(altar_cell, (3, 2)), Pillar()),
-      (add_cell(altar_cell, (2, 3)), Pillar()),
     ], *args, **kwargs)
     room.altar = altar
     room.mage = mage
@@ -142,7 +142,7 @@ def cutscene(room, game):
                 speed=30,
                 tween=True
               ),
-              room.mage.move_to(add_cell(room.cell, (3, 4))),
+              room.mage.move_to(add_cell(room.altar.cell, (-1, -1))),
               game.anims.append([PathAnim(
                 target=room.mage,
                 path=[add_cell(room.altar.cell, c) for c in [(0, 1), (-1, 1), (-1, 0), (-1, -1)]],

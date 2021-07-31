@@ -54,7 +54,7 @@ class DepthsRoom(SpecialRoom):
     room.mage = Mage(faction="ally", ailment="sleep")
     game.floor.spawn_elem_at(add_cell(room.cell, (4, 3)), room.mage)
     room.focused = True
-    game.hero.cell = add_cell(room.cell, (3, 5))
+    game.hero.cell = add_cell(room.cell, (2, 4))
     game.hero.set_facing((0, -1))
     game.open(CutsceneContext(script=[
       *(cutscene(room, game) if config.CUTSCENES else [])
@@ -202,12 +202,14 @@ def cutscene(room, game):
         target=room.mage,
         path=[add_cell(room.cell, c) for c in [(3, 2), (3, 1), (3, 0), (3, -1), (3, -2)]],
         on_end=step
-      )])
+      )]),
     ),
-    lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
     lambda step: (
       room.mage.move_to(add_cell(room.cell, (3, -2))),
       game.floor.remove_elem(room.mage),
+      game.anims.append([PauseAnim(duration=15, on_end=step)]),
+    ),
+    lambda step: (
       game.camera.focus(game.hero.cell, force=True, speed=8),
       game.anims.append([PauseAnim(duration=60, on_end=step)])
     ),

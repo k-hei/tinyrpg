@@ -88,11 +88,17 @@ class Chest(Prop):
         script = ["Your inventory is already full!"]
     else:
       script = ["It's empty..."]
-    game.camera.focus(
-      cell=chest.cell,
-      force=True,
-      speed=8
-    )
+    if anims:
+      game.camera.focus(
+        cell=chest.cell,
+        force=True,
+        speed=8
+      )
+    else:
+      game.open(child=DialogueContext(
+        lite=True,
+        script=script
+      ))
     return False
 
   def view(chest, anims):

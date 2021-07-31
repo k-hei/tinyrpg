@@ -23,9 +23,9 @@ class Soul(Prop):
   ACCEL = 0.25
   FRAMES = ["fx_soul0", "fx_soul1", "fx_soul2", "fx_soul3", "fx_soul4"]
 
-  def __init__(soul, skill=None):
+  def __init__(soul, contents=None):
     super().__init__(solid=False)
-    soul.skill = skill
+    soul.skill = contents
     soul.obtaining = False
     soul.anim = FrameAnim(frames=Soul.FRAMES, duration=45, loop=True)
     soul.pos = (0, 0)
@@ -97,7 +97,7 @@ class Soul(Prop):
     if game.log.active:
       game.log.exit()
 
-  def update(soul, _):
+  def update(soul, *_):
     soul.anim.update()
     pos_x, pos_y = soul.pos
     if soul.obtaining:

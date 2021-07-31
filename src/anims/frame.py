@@ -21,7 +21,7 @@ class FrameAnim(Anim):
   def update(anim):
     time = super().update()
     if anim.done:
-      return anim.frames[-1]
+      return None
     if anim.time < 0:
       anim.frame_index = None
       return None
@@ -35,13 +35,13 @@ class FrameAnim(Anim):
           frame_index += 1
         else:
           anim.end()
-          return anim.frames[-1]
+          return None
     else:
       frame_duration = anim.frames_duration or anim.duration / len(anim.frames)
       anim_duration = frame_duration * len(anim.frames)
       frame_index = int(time % anim_duration / anim_duration * len(anim.frames))
-      if time == anim_duration and not anim.loop:
+      if time >= anim_duration and not anim.loop:
         anim.end()
-        return anim.frames[-1]
+        return None
     anim.frame_index = frame_index
     return frame_index

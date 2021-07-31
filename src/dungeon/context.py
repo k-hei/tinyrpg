@@ -337,10 +337,9 @@ class DungeonContext(Context):
         game.floor_cells = game.floor.get_visible_cells()
       visible_cells = game.floor_cells
     elif not game.camera.anims:
+      visible_cells = shadowcast(floor, hero.cell, VISION_RANGE)
       if game.room:
         visible_cells += game.room.get_cells() + game.room.get_border()
-      else:
-        visible_cells = shadowcast(floor, hero.cell, VISION_RANGE)
 
     if not game.camera.anims:
       hero.visible_cells = visible_cells
@@ -402,7 +401,8 @@ class DungeonContext(Context):
               commands[actor].append(command)
             else:
               commands[actor] = [command]
-        actor.step_ailment(game)
+        if game.room and actor.cell in game.room.get_cells():
+          actor.step_ailment(game)
         if actor.counter:
           actor.counter = max(0, actor.counter - 1)
 
@@ -641,6 +641,7 @@ class DungeonContext(Context):
     if hero.ailment or visible_enemies:
       return False
     hero.inflict_ailment("sleep")
+    hero.command = None
     game.step()
     return True
 
@@ -1197,7 +1198,7 @@ class DungeonContext(Context):
         if enemy_skill and target.rare:
           skill = enemy_skill
           if skill not in game.parent.skill_pool:
-            game.floor.spawn_elem_at(target.cell, Soul(skill))
+            game.floor.spawn_elem_at(target.cell, Soul(contents=skill))
         elif (enemy_drops
         and randint(1, 3) == 1
         and not game.floor.get_tile_at(target.cell) is Stage.PIT
@@ -1280,10 +1281,11 @@ class DungeonContext(Context):
       game.vfx.append(FlashVfx())
       game.floor_view.shake(vertical=direction[1])
       game.nudge(target, direction)
+      target.turns = 0
 
     if damage == None:
       flinch = None
-    elif damage == 0 or block:
+    elif int(damage) == 0 or block:
       flinch = ShakeAnim(
         target=target,
         magnitude=0.5,
@@ -1595,6 +1597,8 @@ class DungeonContext(Context):
       vfx and game.vfx.extend(vfx)
 
     for fx in game.vfx:
+      if fx.kind:
+        continue
       if fx.done:
         game.vfx.remove(fx)
       else:

@@ -1,12 +1,12 @@
 from random import randint
 from vfx import Vfx
 from config import TILE_SIZE
-from assets import load as use_assets
 from anims.frame import FrameAnim
 from anims.pause import PauseAnim
 from sprite import Sprite
 from colors.palette import BLACK, WHITE, CYAN
 from filters import replace_color
+import assets
 from vfx.icepiece import IcePieceVfx
 from vfx.particle import ParticleVfx
 
@@ -22,10 +22,6 @@ class IceSpikeVfx(Vfx):
     fx.delay = delay
     fx.color = color
     fx.on_connect = on_connect
-    fx.anims = []
-
-  def init(fx):
-    assets = use_assets()
     fx.anims = [
       FrameAnim(
         frames=assets.sprites["fx_icespike"],
@@ -35,7 +31,7 @@ class IceSpikeVfx(Vfx):
       PauseAnim(duration=30)
     ]
 
-  def update(fx, _):
+  def update(fx, *_):
     if not fx.done and not fx.anims:
       fx.init()
     fx_x, fx_y = fx.pos
@@ -62,7 +58,6 @@ class IceSpikeVfx(Vfx):
     return []
 
   def view(fx):
-    assets = use_assets()
     fx_anim = fx.anims[0] if fx.anims and type(fx.anims[0]) is FrameAnim else None
     fx_image = fx_anim.frame() if fx_anim else assets.sprites["fx_icespike"][-1]
     if fx_image is None:

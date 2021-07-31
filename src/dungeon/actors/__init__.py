@@ -18,12 +18,14 @@ from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from anims.bounce import BounceAnim
 from anims.frame import FrameAnim
+from anims.drop import DropAnim
 from lib.cell import is_adjacent, manhattan, add as add_vector
 from lib.lerp import lerp
 from comps.log import Token
 from config import TILE_SIZE
 
 class DungeonActor(DungeonElement):
+  active = True
   POISON_DURATION = 5
   POISON_STRENGTH = 1 / 7
   FREEZE_DURATION = 5
@@ -167,11 +169,7 @@ class DungeonActor(DungeonElement):
 
   def dispel_ailment(actor):
     if actor.ailment == "sleep":
-      sleep_anim = next((a for a in actor.anims if type(a) is DungeonActor.SleepAnim), None)
-      sleep_anim and actor.anims.remove(sleep_anim)
-      if "SleepAnim" in dir(actor.core):
-        sleep_anim = next((a for a in actor.core.anims if type(a) is actor.core.SleepAnim), None)
-        actor.core.anims.remove(sleep_anim)
+      return actor.wake_up()
 
     if actor.ailment == "poison":
       poison_anim = next((a for a in actor.anims if type(a) is DungeonActor.PoisonAnim), None)
@@ -181,9 +179,17 @@ class DungeonActor(DungeonElement):
     actor.ailment_turns = 0
 
   def wake_up(actor):
-    actor.command = True
-    if actor.ailment == "sleep":
-      actor.dispel_ailment()
+    if actor.ailment != "sleep":
+      return False
+    actor.ailment = None
+    actor.ailment_turns = 0
+    sleep_anim = next((a for a in actor.anims if type(a) is DungeonActor.SleepAnim), None)
+    sleep_anim and actor.anims.remove(sleep_anim)
+    if "SleepAnim" in dir(actor.core):
+      sleep_anim = next((a for a in actor.core.anims if type(a) is actor.core.SleepAnim), None)
+      actor.core.anims.remove(sleep_anim)
+    actor.turns = 0
+    return True
 
   def block(actor):
     pass
@@ -329,7 +335,8 @@ class DungeonActor(DungeonElement):
       elif actor.core.faction == "enemy":
         new_color = RED
 
-    if actor.ailment:
+    drop_anim = next((a for a in anim_group if type(a) is DropAnim), None)
+    if actor.ailment and not drop_anim:
       badge_image = None
       badge_pos = (12, -20)
       move_anim = next((a for a in anim_group if type(a) is MoveAnim), None)

@@ -9,12 +9,15 @@ class Vfx:
     vfx.vel = vel
     vfx.done = False
 
-  def update(vfx, _):
+  def update(vfx, *_):
+    if vfx.done:
+      return None
     pos_x, pos_y = vfx.pos
     vel_x, vel_y = vfx.vel
     vfx.pos = (pos_x + vel_x, pos_y + vel_y)
     if vfx.anim:
-      vfx.anim.update()
       if vfx.anim.done:
         vfx.done = True
+      else:
+        vfx.anim.update()
       return vfx.anim.frame()

@@ -28,7 +28,7 @@ class IcePieceVfx(Vfx):
       fx.image = replace_color(fx.image, BLACK, fx.color)
     fx.anim = FlickerAnim(duration=30)
 
-  def update(fx, _):
+  def update(fx, *_):
     fx_x, fx_y = fx.pos
     vel_x, vel_y = fx.vel
     fx.pos = (fx_x + vel_x, fx_y + vel_y)

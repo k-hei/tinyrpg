@@ -22,7 +22,7 @@ class Coffin(Prop):
 
   def effect(coffin, game):
     item = coffin.open()
-    coffin.item = None
+    coffin.contents = None
     item_anim = None
     if item:
       if game.obtain(item):
