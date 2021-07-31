@@ -13,7 +13,7 @@ from anims.fall import FallAnim
 from anims.path import PathAnim
 from lib.lerp import lerp
 import lib.vector as vector
-from config import ITEM_OFFSET, TILE_SIZE, PUSH_DURATION
+from config import ITEM_OFFSET, TILE_SIZE, PUSH_DURATION, NUDGE_DURATION
 
 class DungeonElement:
   solid = False
@@ -83,7 +83,7 @@ class DungeonElement:
           continue
         offset_x, offset_y = vector.add((offset_x, offset_y), elem.get_move_offset(anim))
         if (anim.facing != (0, 0)
-        and not anim.duration == PUSH_DURATION
+        and not anim.duration in (PUSH_DURATION, NUDGE_DURATION)
         and not next((a for g in anims for a in g if a.target is elem and type(a) is FlinchAnim), None)):
           elem.facing = tuple(map(int, anim.facing))
       elif type(anim) is ItemAnim:

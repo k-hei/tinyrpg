@@ -97,7 +97,7 @@ class Floor2(Floor):
     trap_room = TrapRoom(degree=2)
 
     return gen_floor(
-      size=(27, 42),
+      size=(43, 27),
       entrance=entry_room,
       features=FloorGraph(
         nodes=[

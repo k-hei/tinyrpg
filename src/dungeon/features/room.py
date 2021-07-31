@@ -102,9 +102,12 @@ class Room(Feature):
     return slots
 
   def on_focus(room, game):
+    if room.focused:
+      return False
     room.focused = True
     for door in room.get_doors(game.floor):
       door.focus = game.hero.cell
+    return True
 
   def on_blur(room, game):
     for door in room.get_doors(game.floor):

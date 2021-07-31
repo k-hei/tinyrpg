@@ -3,6 +3,7 @@ from random import randint, choice
 from dungeon.features.specialroom import SpecialRoom
 from dungeon.props.coffin import Coffin
 from dungeon.props.vcoffin import VCoffin
+from dungeon.props.battledoor import BattleDoor
 from dungeon.actors import DungeonActor
 from dungeon.actors.mage import Mage
 from dungeon.actors.mummy import Mummy
@@ -12,7 +13,10 @@ from items.materials.diamond import Diamond
 from items.gold import Gold
 import lib.vector as vector
 import config
-from config import ROOM_WIDTHS, ROOM_HEIGHTS, RUN_DURATION
+from config import (
+  ROOM_WIDTHS, ROOM_HEIGHTS,
+  RUN_DURATION, PUSH_DURATION, NUDGE_DURATION
+)
 
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
@@ -22,9 +26,13 @@ from anims.jump import JumpAnim
 from anims.shake import ShakeAnim
 from anims.move import MoveAnim
 from anims.warpin import WarpInAnim
+from anims.attack import AttackAnim
 from vfx.alertbubble import AlertBubble
 
 class CoffinRoom(SpecialRoom):
+  EntryDoor = BattleDoor
+  ExitDoor = BattleDoor
+
   def __init__(room, *args, **kwargs):
     super().__init__(
       degree=4,
@@ -81,6 +89,21 @@ class CoffinRoom(SpecialRoom):
     room.mage = stage.spawn_elem_at(vector.add(room.cell, (7, 0)), Mage(faction="ally", facing=(0, -1)))
     return True
 
+  def unlock(room, game):
+    for door in room.get_doors(game.floor):
+      door.handle_open(game)
+
+  def lock(room, game):
+    for door in room.get_doors(game.floor):
+      door.handle_close(game)
+
+  def on_focus(room, game):
+    if not super().on_focus(game):
+      return False
+    for door in room.get_doors(game.floor):
+      door.open()
+    return True
+
   def on_enter(room, game):
     if not super().on_enter(game):
       return False
@@ -92,7 +115,8 @@ class CoffinRoom(SpecialRoom):
         ),
         *take_battle_position(room, game),
         lambda step: (
-          spawn_enemies(room, game)(),
+          spawn_enemies(room, game),
+          room.lock(game),
           step()
         )
       ])
@@ -114,6 +138,7 @@ class CoffinRoom(SpecialRoom):
     for c, e in room.elems:
       if type(e) is Coffin:
         e.unlock()
+    room.unlock(game)
 
 def cutscene(room, game):
   hero = game.hero
@@ -144,12 +169,18 @@ def cutscene(room, game):
     ),
     lambda step: (
       game.child.open(DialogueContext(script=[
-        (mage.get_name().upper(), "You again?"),
-        (mage.get_name().upper(), "Ugh, I'm getting deja vu..."),
-        lambda: game.anims.append([JumpAnim(target=hero)]),
-        (hero.get_name().upper(), "First you waltz in here without a permit, then you jack my stuff"),
-        (hero.get_name().upper(), "and leave my naked ass to get buried alive."),
-        (hero.get_name().upper(), "Just how rotten can you get?"),
+        (mage.get_name().upper(), "Ugh, you AGAIN?"),
+        (mage.get_name().upper(), "Look, I already spent all your little coins on jewelry and makeups."),
+        (mage.get_name().upper(), "You don't have a reason to chase me!"),
+        lambda: (
+          game.anims.append([MoveAnim(
+            target=hero,
+            duration=PUSH_DURATION,
+            src=hero.cell,
+            dest=vector.add(hero.cell, hero.get_facing()),
+          )]),
+          hero.move_to(vector.add(hero.cell, hero.get_facing()))
+        ) and (hero.get_name().upper(), "Give me my sword."),
         lambda: (
           mage.core.anims.clear(),
           mage.core.anims.append(mage.core.LaughAnim())
@@ -157,20 +188,31 @@ def cutscene(room, game):
         lambda: (
           mage.core.anims.clear(),
           game.anims.append([MoveAnim(target=mage, duration=inf, period=30)])
-        ) and (mage.get_name().upper(), "Listen here, punk..."),
-        (mage.get_name().upper(), "You're gonna wish you'd stayed in that rotten old pile of bones!"),
+        ) and (mage.get_name().upper(), "How about I keep it, and you deal with whatever nice fellas might be in here?"),
         (hero.get_name().upper(), "????"),
         lambda: (
           game.anims.clear(),
           mage.core.anims.clear(),
           mage.core.anims.append(mage.core.CastAnim())
-        ) and (mage.get_name().upper(), "Hee..."),
+        ) and (mage.get_name().upper(), "SUPER...."),
+        (mage.get_name().upper(), "YELLING..."),
+        (mage.get_name().upper(), "ATTACK!!!"),
         lambda: (
           mage.set_facing((-1, 0)),
           mage.core.anims.clear(),
           mage.core.anims.append(mage.core.YellAnim()),
-          game.anims.append([ShakeAnim(target=mage, magnitude=0.5)])
-        ) and (mage.get_name().upper(), "HOOOOO!!!!"),
+          game.anims.append([
+            ShakeAnim(target=mage, magnitude=0.5),
+            MoveAnim(
+              target=hero,
+              duration=NUDGE_DURATION,
+              src=hero.cell,
+              dest=vector.add(hero.cell, (0, 1)),
+            )
+          ]),
+          game.vfx.append(AlertBubble(hero.cell)),
+          hero.move_to(vector.add(hero.cell, (0, 1)))
+        ) and (mage.get_name().upper(), "AAAAAHHH!!!!!!!!!"),
       ]), on_close=step),
     ),
     lambda step: (
@@ -184,7 +226,6 @@ def cutscene(room, game):
     lambda step: (
       game.floor_view.shake(duration=inf, vertical=True),
       hero.set_facing((-1, 0)),
-      game.vfx.append(AlertBubble(hero.cell)),
       game.child.open(DialogueContext(script=[
         spawn_enemies(room, game) and ("????", "Urrrrrgh....."),
         lambda: (
@@ -198,7 +239,6 @@ def cutscene(room, game):
       mage.core.anims.clear(),
       mage.set_facing((0, 1)),
       game.anims.append([MoveAnim(target=mage, duration=inf, period=30)]),
-      # mage.move_to(vector.add(room.cell, (room.get_width() // 2, -1))),
       game.camera.focus(
         cell=vector.add(room.get_center(), (0, -room.get_height() // 2 + 2)),
         speed=15,
@@ -263,20 +303,44 @@ def cutscene(room, game):
       ]), on_close=step)
     ),
     lambda step: (
-      game.camera.focus(
-        cell=vector.add(room.get_center(), (0, 0.5)),
-        speed=15,
-        tween=True,
+      game.anims.clear(),
+      game.anims.append([PathAnim(
+        target=hero,
+        period=RUN_DURATION,
+        path=[vector.add(room.cell, c) for c in [(7, 2), (7, 1), (7, 0), (6, 0), (5, 0), (4, 0)]],
         on_end=step
-      ),
+      ), PauseAnim(
+        duration=45,
+        on_end=lambda: room.lock(game)
+      )]),
+      hero.move_to(vector.add(room.cell, (4, 0))),
+    ),
+    lambda step: (
+      hero.set_facing((0, -1)),
+      game.anims.append([AttackAnim(
+        target=hero,
+        src=hero.cell,
+        dest=vector.add(hero.cell, hero.get_facing()),
+        on_end=step
+      )])
+    ),
+    lambda step: (
+      game.anims.append([AttackAnim(
+        target=hero,
+        src=hero.cell,
+        dest=vector.add(hero.cell, hero.get_facing()),
+        on_end=step
+      )])
     ),
     lambda step: (
       game.child.open(DialogueContext(script=[
         lambda: (
           hero.set_facing((-1, 0)),
           game.anims.append([JumpAnim(target=mage)])
-        ) and (hero.get_name().upper(), "Damn! That little...!"),
-        (hero.get_name().upper(), "Looks like I'll have to put these guys back to sleep first..."),
+        ) and (hero.get_name().upper(), "Damn! That mousy little...!"),
+        lambda: (
+          hero.set_facing((0, 1))
+        ) or (hero.get_name().upper(), "Looks like I'll have to put these guys back to sleep first..."),
         lambda: (
           game.floor_view.stop_shake(),
         ) and None
@@ -284,18 +348,39 @@ def cutscene(room, game):
     ),
   ]
 
+def pathfind(start, goal):
+  path = [start]
+  cell = start
+  while cell != goal:
+    current_x, current_y = cell
+    goal_x, goal_y = goal
+    if current_y > goal_y:
+      current_y -= 1
+    elif current_y < goal_y:
+      current_y += 1
+    elif current_x > goal_x:
+      current_x -= 1
+    elif current_x < goal_x:
+      current_x += 1
+    cell = (current_x, current_y)
+    path.append(cell)
+  return path
+
 def take_battle_position(room, game):
   hero = game.hero
   return [
     lambda step: (
-      hero.move_to(vector.add(room.cell, (7, 2))),
       game.anims.append([PathAnim(
         target=hero,
         period=RUN_DURATION,
-        path=[vector.add(room.cell, c) for c in [(4, 6), (4, 5), (5, 5), (6, 5), (7, 5), (7, 4), (7, 3), (7, 2)]]
+        path=[
+          *pathfind(game.hero.cell, vector.add(room.cell, (5, 5))),
+          *[vector.add(room.cell, c) for c in [(6, 5), (7, 5), (7, 4), (7, 3), (7, 2)]]
+        ]
       )]),
+      hero.move_to(vector.add(room.cell, (7, 2))),
       game.camera.focus(
-        cell=vector.add(room.cell, (7, 2)),
+        cell=hero.cell,
         speed=75,
         tween=True,
         on_end=step
@@ -304,9 +389,10 @@ def take_battle_position(room, game):
   ]
 
 def spawn_enemies(room, game):
-  return lambda: [
+  return [
     (
       game.floor.spawn_elem_at(c.cell, mummy := Mummy()),
+      not game.anims and game.anims.append([]),
       game.anims[0].append(WarpInAnim(
         target=mummy,
         duration=15,

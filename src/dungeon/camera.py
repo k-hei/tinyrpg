@@ -9,7 +9,7 @@ from easing.expo import ease_out
 from lib.lerp import lerp
 
 class Camera:
-  MAX_RADIUS_X = 5
+  MAX_RADIUS_X = 3
   MAX_RADIUS_Y = 2
   MOVE_DURATION = 15
 

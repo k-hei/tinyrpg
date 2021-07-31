@@ -91,20 +91,17 @@ class Door(Prop):
 
   def handle_close(door, game):
     door.close()
-    game.anims.append([
-      DoorCloseAnim(
-        duration=30,
-        frames=list(reversed(door.sprites.opening_frames)),
-        target=door
-      )
-    ])
+    not game.anims and game.anims.append([])
+    game.anims[0].append(DoorCloseAnim(
+      duration=30,
+      frames=list(reversed(door.sprites.opening_frames)),
+      target=door
+    ))
     return True
 
-  def view(door, anims):
-    sprites = use_assets().sprites
-    will_open = next((g for g in anims if next((a for a in g if a.target is door and type(a) is DoorOpenAnim), None)), None)
-    will_close = next((g for g in anims if next((a for a in g if a.target is door and type(a) is DoorCloseAnim), None)), None)
-    anim_group = [a for a in anims[0] if a.target is door] if anims else []
+  def update(door, game):
+    if not game.room or door not in game.room.get_doors(game.floor):
+      return
     door_x, door_y = door.cell
     origin_x, origin_y = door.origin
     focus_x, focus_y = door.focus or door.cell
@@ -112,6 +109,12 @@ class Door(Prop):
       door.cell = door.origin
     elif door.cell == door.origin:
       door.cell = (door_x, door_y + 1)
+
+  def view(door, anims):
+    sprites = use_assets().sprites
+    will_open = next((g for g in anims if next((a for a in g if a.target is door and type(a) is DoorOpenAnim), None)), None)
+    will_close = next((g for g in anims if next((a for a in g if a.target is door and type(a) is DoorCloseAnim), None)), None)
+    anim_group = [a for a in anims[0] if a.target is door] if anims else []
     for anim in anim_group:
       if isinstance(anim, DoorAnim):
         image = sprites[anim.frame()]
