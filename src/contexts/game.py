@@ -51,7 +51,7 @@ class GameContext(Context):
     ctx.sp = ctx.sp_max
     ctx.time = 0
     ctx.inventory = Inventory((2, 4))
-    ctx.story = {}
+    ctx.story = []
     ctx.monster_kills = {}
     ctx.new_skills = []
     ctx.skill_pool = []

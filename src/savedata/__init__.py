@@ -15,7 +15,7 @@ class GameState:
   party: list[str]
   chars: dict[str, dict]
   place: str
-  story: dict[str, bool]
+  story: list[str]
   dungeon: dict[str, dict] = None
 
   class Encoder(json.JSONEncoder):

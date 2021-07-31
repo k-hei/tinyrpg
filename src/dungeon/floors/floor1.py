@@ -50,7 +50,7 @@ class Floor1(Floor):
       size=(5, 4),
       degree=3,
       on_place=lambda room, stage: (
-        not story["minxia"] and stage.spawn_elem_at(add_cell((room.get_width() - 1, 0), room.cell), Genie(
+        "minxia" not in story and stage.spawn_elem_at(add_cell((room.get_width() - 1, 0), room.cell), Genie(
           name="Joshin",
           message=next((s for s in Floor1.scripts if s[0] == "equip"), None)
         ))
@@ -58,7 +58,7 @@ class Floor1(Floor):
     )
     exit_room = LockedExitRoom()
     lock_room = VerticalRoom(degree=4)
-    item_room1 = ItemRoom(size=(3, 4), items=[story["minxia"] and Emerald or Potion, Antidote, *([Topaz] if randint(1, 5) == 1 else [])])
+    item_room1 = ItemRoom(size=(3, 4), items=["minxia" in story and Emerald or Potion, Antidote, *([Topaz] if randint(1, 5) == 1 else [])])
     item_room2 = ItemRoom(size=(5, 4), items=[Potion, Bread, Antidote])
     enemy_room1 = EnemyRoom(size=(5, 4), enemies=[gen_enemy(Eyeball), gen_enemy(Eyeball)])
     enemy_room2 = EnemyRoom(size=(5, 7), enemies=[gen_enemy(Eyeball), gen_enemy(Mushroom)])

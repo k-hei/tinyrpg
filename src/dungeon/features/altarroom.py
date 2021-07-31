@@ -63,7 +63,7 @@ class AltarRoom(SpecialRoom):
 
   def on_enter(room, game):
     super().on_enter(game)
-    if not config.CUTSCENES or game.parent.story["minxia"]:
+    if not config.CUTSCENES or "minxia" in game.parent.story:
       return False
     game.open(CutsceneContext(script=[
       *(cutscene(room, game) if config.CUTSCENES else []),
