@@ -97,7 +97,7 @@ class Soul(Prop):
     if game.log.active:
       game.log.exit()
 
-  def update(soul):
+  def update(soul, _):
     soul.anim.update()
     pos_x, pos_y = soul.pos
     if soul.obtaining:

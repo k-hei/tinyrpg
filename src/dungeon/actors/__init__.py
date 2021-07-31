@@ -273,7 +273,7 @@ class DungeonActor(DungeonElement):
     else:
       return ("move_to", enemy.cell)
 
-  def update(actor):
+  def update(actor, game):
     for anim in actor.anims:
       if anim.done:
         actor.anims.remove(anim)

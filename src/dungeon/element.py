@@ -48,7 +48,7 @@ class DungeonElement:
     elem.cell = cell
     elem.elev = stage.get_tile_at(cell).elev
 
-  def update(elem):
+  def update(elem, game):
     pass
 
   def get_move_offset(elem, anim):

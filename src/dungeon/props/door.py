@@ -55,6 +55,8 @@ class Door(Prop):
     super().spawn(stage, cell)
     door_x, door_y = cell
     door.origin = cell
+    if Tile.get_elev(stage.get_tile_at((door_x - 1, door_y))):
+      door.elev += 1
     if (Tile.is_solid(stage.get_tile_at((door_x - 1, door_y)))
     and Tile.is_solid(stage.get_tile_at((door_x + 1, door_y)))
     and Tile.is_solid(stage.get_tile_at((door_x - 1, door_y + 1)))

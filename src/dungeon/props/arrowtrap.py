@@ -31,7 +31,9 @@ class ArrowTrap(Prop):
     surface = replace_color(surface, WHITE, SAFFRON)
     return surface
 
-  def update(trap):
+  def update(trap, game):
+    if not game.room or trap.cell not in game.room.get_cells():
+      return
     trap.anim.update()
     if trap.anim.done:
       trap.anim = Anim(duration=ARROW_PERIOD)

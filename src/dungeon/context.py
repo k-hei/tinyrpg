@@ -818,7 +818,7 @@ class DungeonContext(Context):
         return game.attack(hero, target_actor, on_end=game.step)
       return False
     target_elem = game.floor.get_elem_at(target_cell)
-    if not target_elem.active:
+    if not target_elem or not target_elem.active:
       return False
     effect_result = target_elem and target_elem.effect(game)
     if game.talkbubble:
@@ -1591,7 +1591,7 @@ class DungeonContext(Context):
     game.update_camera()
 
     for elem in game.floor.elems:
-      vfx = elem.update() or []
+      vfx = elem.update(game) or []
       vfx and game.vfx.extend(vfx)
 
     for fx in game.vfx:

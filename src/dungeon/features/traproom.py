@@ -9,20 +9,27 @@ class TrapRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
     super().__init__(shape=[
       "     .../··",
-      "       ..··",
+      "      ...··",
       ".....  ..··",
+      "..  .  ..··",
       "..  .....··",
-      "..  .  ....",
-      "   ..      ",
+      "   ..  ....",
       "   ..      ",
     ], elems=[
       ((0, 0), ArrowTrap(facing=(1, 0))),
-      ((8, 3), ArrowTrap(facing=(-1, 0))),
+      ((8, 4), ArrowTrap(facing=(-1, 0))),
       ((3, 5), Eyeball()),
-      ((10, 4), Chest(Fish))
+      ((10, 5), Chest(Fish))
     ], *args, **kwargs)
 
   def get_entrances(room):
     return [
-      vector.add(room.cell, (-1, 4))
+      vector.add(room.cell, (-1, 2)),
+      vector.add(room.cell, (-1, 3)),
+      vector.add(room.cell, (-1, 4)),
+    ]
+
+  def get_exits(room):
+    return [
+      vector.add(room.cell, (5, -1)),
     ]

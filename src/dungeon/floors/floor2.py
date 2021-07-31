@@ -9,6 +9,7 @@ from dungeon.features.pushblockroom import PushBlockRoom
 from dungeon.features.puzzleroom import PuzzleRoom
 from dungeon.features.oasisroom import OasisRoom
 from dungeon.features.enemyroom import EnemyRoom
+from dungeon.features.traproom import TrapRoom
 from dungeon.actors.eye import Eyeball
 from dungeon.actors.mushroom import Mushroom
 from dungeon.actors.skeleton import Skeleton
@@ -87,12 +88,13 @@ class Floor2(Floor):
     )
     arena_room = ArenaRoom()
     exit_room = ExitRoom(degree=1)
-    oasis_room = OasisRoom(degree=2)
+    oasis_room = OasisRoom()
     enemy_room = EnemyRoom(size=(3, 4), degree=1, enemies=[
       gen_enemy(Skeleton, rare=True),
       gen_enemy(Eyeball),
       gen_enemy(Eyeball),
     ])
+    trap_room = TrapRoom(degree=2)
 
     return gen_floor(
       size=(27, 42),
@@ -101,26 +103,19 @@ class Floor2(Floor):
         nodes=[
           entry_room,
           coffin_room,
+          trap_room,
           oasis_room,
           buffer_room3,
           arena_room,
-          exit_room
+          exit_room,
+          enemy_room
         ],
         edges=[
           (entry_room, coffin_room),
           (coffin_room, oasis_room),
-          (oasis_room, buffer_room3),
+          (coffin_room, trap_room),
           (buffer_room3, arena_room),
           (arena_room, exit_room),
         ]
-        # nodes=[buffer_room2, puzzle_room, buffer_room3, arena_room, exit_room, oasis_room, entry_room, coffin_room, buffer_room1, enemy_room],
-        # edges=[
-        #   (buffer_room2, puzzle_room),
-        #   (puzzle_room, buffer_room3),
-        #   (buffer_room3, arena_room),
-        #   (arena_room, exit_room),
-        #   (entry_room, coffin_room),
-        #   (coffin_room, buffer_room1),
-        # ]
       )
     )
