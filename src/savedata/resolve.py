@@ -1,3 +1,4 @@
+from items.ailment.topaz import Topaz
 from items.ailment.antidote import Antidote
 from items.ailment.amethyst import Amethyst
 from items.sp.bread import Bread
@@ -102,6 +103,7 @@ from dungeon.floors.floor3 import Floor3
 from dungeon.floors.floor2 import Floor2
 
 def resolve_item(key):
+  if key == "Topaz": return Topaz
   if key == "Antidote": return Antidote
   if key == "Amethyst": return Amethyst
   if key == "Bread": return Bread

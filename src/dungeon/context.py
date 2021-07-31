@@ -202,6 +202,9 @@ class DungeonContext(Context):
   def get_inventory(game):
     return game.parent.inventory.items
 
+  def get_hero(game):
+    return game.hero
+
   def save(game):
     return DungeonData(
       floor_index=game.floors.index(game.floor),
@@ -1250,7 +1253,7 @@ class DungeonContext(Context):
       elif on_end:
         on_end()
 
-    if game.god_mode and target is game.hero:
+    if target is game.hero and game.god_mode:
       damage = 0
 
     ENABLED_COMBAT_LOG and game.log.print((

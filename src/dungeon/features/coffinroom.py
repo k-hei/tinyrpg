@@ -53,14 +53,6 @@ class CoffinRoom(SpecialRoom):
     )
     room.enemy_coffins = [coffin1, coffin2, coffin3]
 
-  # def get_edges(room):
-  #   return [
-  #     vector.add(room.cell, (room.get_width() // 2, room.get_height())),
-  #     vector.add(room.cell, (room.get_width() // 2, -1)),
-  #     vector.add(room.cell, (-1, room.get_height() // 2)),
-  #     vector.add(room.cell, (room.get_width(), room.get_height() // 2)),
-  #   ]
-
   def get_entrances(room):
     return [
       vector.add(room.cell, (room.get_width() // 2 - 1, room.get_height())),
@@ -108,7 +100,7 @@ class CoffinRoom(SpecialRoom):
     if not super().on_enter(game):
       return False
     game.open(CutsceneContext([
-      *(cutscene(room, game) if config.CUTSCENES else [
+      *(cutscene(room, game) if (config.CUTSCENES and not game.parent.story["minxia"]) else [
         lambda step: (
           game.floor.remove_elem(room.mage),
           step()

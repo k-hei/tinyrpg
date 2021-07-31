@@ -12,6 +12,7 @@ from dungeon.features.enemyroom import EnemyRoom
 from items.hp.potion import Potion
 from items.sp.bread import Bread
 from items.ailment.antidote import Antidote
+from items.ailment.topaz import Topaz
 from items.dungeon.emerald import Emerald
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
@@ -57,7 +58,7 @@ class Floor1(Floor):
     )
     exit_room = LockedExitRoom()
     lock_room = VerticalRoom(degree=4)
-    item_room1 = ItemRoom(size=(3, 4), items=[story["minxia"] and Emerald or Potion, Antidote])
+    item_room1 = ItemRoom(size=(3, 4), items=[story["minxia"] and Emerald or Potion, Antidote, *([Topaz] if randint(1, 5) == 1 else [])])
     item_room2 = ItemRoom(size=(5, 4), items=[Potion, Bread, Antidote])
     enemy_room1 = EnemyRoom(size=(5, 4), enemies=[gen_enemy(Eyeball), gen_enemy(Eyeball)])
     enemy_room2 = EnemyRoom(size=(5, 7), enemies=[gen_enemy(Eyeball), gen_enemy(Mushroom)])

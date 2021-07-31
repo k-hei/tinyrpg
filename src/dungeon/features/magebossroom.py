@@ -52,15 +52,19 @@ class MageBossRoom(SpecialRoom):
     for door in room.get_doors(game.floor):
       door.handle_open(game)
 
-  def on_enter(room, game):
-    if room.entered or game.parent.story["minxia"]:
+  def on_focus(room, game):
+    if not super().on_focus(game) or game.parent.story["minxia"]:
       return False
     room.mage = Mage(
       faction="ally",
       facing=(0, -1)
     )
     game.floor.spawn_elem_at(add_cell(room.cell, (3, 2)), room.mage)
-    room.entered = True
+    return True
+
+  def on_enter(room, game):
+    if not super().on_enter(game) or game.parent.story["minxia"]:
+      return False
     room.lock(game)
     game.anims.append([PauseAnim(
       duration=30,

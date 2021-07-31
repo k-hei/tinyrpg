@@ -30,6 +30,7 @@ class DungeonActor(DungeonElement):
   POISON_STRENGTH = 1 / 7
   FREEZE_DURATION = 5
   SLEEP_DURATION = 256
+  INVULNERABLE_DURATION = 16
   skill = None
   drops = []
 
@@ -153,6 +154,13 @@ class DungeonActor(DungeonElement):
         actor.core.anims = [actor.core.SleepAnim()]
     if ailment == "freeze":
       actor.ailment_turns = DungeonActor.FREEZE_DURATION
+    if ailment == "invulnerable":
+      actor.ailment_turns = DungeonActor.INVULNERABLE_DURATION
+      actor.stats.st += 2
+      actor.stats.dx += 10
+      actor.stats.ag *= 2
+      actor.stats.en += 2
+      actor.stats.lu += 10
     actor.ailment = ailment
     return True
 
@@ -174,6 +182,9 @@ class DungeonActor(DungeonElement):
     if actor.ailment == "poison":
       poison_anim = next((a for a in actor.anims if type(a) is DungeonActor.PoisonAnim), None)
       poison_anim and actor.anims.remove(poison_anim)
+
+    if actor.ailment == "invulnerable":
+      actor.stats = copy(actor.core.stats)
 
     actor.ailment = None
     actor.ailment_turns = 0
@@ -326,12 +337,12 @@ class DungeonActor(DungeonElement):
         new_color = VIOLET
       elif actor.ailment == "freeze":
         new_color = CYAN
+      elif actor.core.faction == "enemy" and actor.rare or actor.ailment == "invulnerable":
+        new_color = GOLD
       elif actor.core.faction == "player":
         new_color = BLUE
       elif actor.core.faction == "ally":
         new_color = GREEN
-      elif actor.core.faction == "enemy" and actor.rare:
-        new_color = GOLD
       elif actor.core.faction == "enemy":
         new_color = RED
 
@@ -393,7 +404,7 @@ class DungeonActor(DungeonElement):
 
   def color(actor):
     if actor.core.faction == "player": return BLUE
-    if actor.core.faction == "enemy" and actor.rare: return GOLD
+    if actor.core.faction == "enemy" and actor.rare or actor.ailment == "invulnerable": return GOLD
     if actor.core.faction == "enemy": return RED
     if actor.core.faction == "ally": return actor.core.color or GREEN
 
