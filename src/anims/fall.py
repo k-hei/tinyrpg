@@ -6,7 +6,6 @@ class FallAnim(Anim):
     super().__init__(*args, **kwargs)
     anim.y = 0
     anim.dest = dest
-    print(y, dest)
     anim.gravity = gravity
     anim.vel = 0
 

@@ -455,7 +455,8 @@ class NameEntryContext(Context):
     sprites.append(Sprite(
       image=ctx.cache.surface,
       pos=(0, surface_rect.top),
-      size=(WINDOW_WIDTH, surface_rect.height)
+      size=(WINDOW_WIDTH, surface_rect.height),
+      layer="ui"
     ))
 
     ctx.draws += 1

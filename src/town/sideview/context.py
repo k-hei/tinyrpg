@@ -164,14 +164,14 @@ class SideViewContext(Context):
     if graph := ctx.get_graph():
       dest_item = graph.tail(head=link)
       if dest_item:
-        try:
-          if issubclass(dest_item, Context):
-            ctx.parent.load_area(dest_item)
-        except TypeError:
+        for actor in ctx.party:
+          actor.stop_move()
+        if type(dest_item) is type and issubclass(dest_item, Context):
+          ctx.parent.load_area(dest_item)
+        else:
           dest_area = graph.link_area(link=dest_item)
-          for actor in ctx.party:
-            actor.stop_move()
           ctx.parent.load_area(dest_area, dest_item)
+        ctx.link = None
     else:
       ctx.close()
 
