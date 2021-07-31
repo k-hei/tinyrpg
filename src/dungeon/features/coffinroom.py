@@ -170,7 +170,10 @@ def cutscene(room, game):
     lambda step: (
       game.child.open(DialogueContext(script=[
         (mage.get_name().upper(), "Ugh, you AGAIN?"),
-        (mage.get_name().upper(), "Look, I already spent all your little coins on jewelry and makeups."),
+        lambda: (
+          mage.core.anims.clear(),
+          mage.core.anims.append(mage.core.CheekyAnim())
+        ) and (mage.get_name().upper(), "Look, I already spent all your little coins on jewelry and makeup."),
         (mage.get_name().upper(), "You don't have a reason to chase me!"),
         lambda: (
           game.anims.append([MoveAnim(
@@ -340,7 +343,7 @@ def cutscene(room, game):
         ) and (hero.get_name().upper(), "Damn! That mousy little...!"),
         lambda: (
           hero.set_facing((0, 1))
-        ) or (hero.get_name().upper(), "Looks like I'll have to put these guys back to sleep first..."),
+        ) or (hero.get_name().upper(), "Looks like I'll have to put these guys back to sleep first!"),
         lambda: (
           game.floor_view.stop_shake(),
         ) and None

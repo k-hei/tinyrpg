@@ -33,6 +33,11 @@ class Mage(BipedCore):
     frames_duration = 8
     loop = True
 
+  class CheekyAnim(FrameAnim):
+    frames = assets.sprites["mage_cheeky"]
+    frames_duration = 10
+    loop = True
+
   class YellAnim(FrameAnim):
     frames = [assets.sprites["mage_yell"]]
 
