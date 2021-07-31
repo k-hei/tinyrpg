@@ -11,9 +11,12 @@ from contexts.dialogue import DialogueContext
 from sprite import Sprite
 from inventory import Inventory
 from items import Item
-from skills.weapon import Weapon
+from skills import Skill
 
 class Chest(Prop):
+  solid = True
+  active = True
+
   def __init__(chest, contents=None, opened=False, rare=False):
     super().__init__()
     chest.contents = contents
@@ -67,20 +70,14 @@ class Chest(Prop):
             duration=30,
             on_end=lambda: (
               game.anims.extend(anims),
-              game.open(
-                child=DialogueContext(
-                  lite=True,
-                  script=script
-                ),
-                on_close=lambda: (
-                  item_anim and item_anim.end(),
-                  game.camera.blur()
-                )
-              )
+              game.open(child=DialogueContext(
+                lite=True,
+                script=script
+              ), on_close=lambda: item_anim and item_anim.end())
             )
           )
         ])
-        if not isinstance(item, Item) and issubclass(item, Weapon):
+        if not isinstance(item, Item) and issubclass(item, Skill):
           game.learn_skill(item)
         else:
           game.parent.inventory.append(item)

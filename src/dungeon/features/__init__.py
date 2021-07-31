@@ -5,6 +5,15 @@ class Feature:
     feature.placed = placed
     feature.on_place = on_place
 
+  def get_edges(maze):
+    return []
+
+  def get_entrances(feature):
+    return feature.get_edges()
+
+  def get_exits(feature):
+    return feature.get_edges()
+
   def place(feature, stage, cell=None, connectors=[]):
     if feature.placed:
       return False

@@ -77,7 +77,7 @@ class Floor2(Floor):
     puzzle_room = PuzzleRoom(degree=2)
     buffer_room3 = VerticalRoom(
       size=(3, 4),
-      degree=2,
+      degree=3,
       on_place=lambda room, stage: (
         stage.spawn_elem_at(add_cell((room.get_width() - 1, 0), room.cell), Genie(
           name="Joshin",
@@ -86,8 +86,8 @@ class Floor2(Floor):
       )
     )
     arena_room = ArenaRoom()
-    exit_room = ExitRoom()
-    oasis_room = OasisRoom()
+    exit_room = ExitRoom(degree=1)
+    oasis_room = OasisRoom(degree=2)
     enemy_room = EnemyRoom(size=(3, 4), degree=1, enemies=[
       gen_enemy(Skeleton, rare=True),
       gen_enemy(Eyeball),
@@ -98,9 +98,20 @@ class Floor2(Floor):
       size=(27, 42),
       entrance=entry_room,
       features=FloorGraph(
-        nodes=[entry_room, coffin_room],
+        nodes=[
+          entry_room,
+          coffin_room,
+          oasis_room,
+          buffer_room3,
+          arena_room,
+          exit_room
+        ],
         edges=[
-          (entry_room, coffin_room)
+          (entry_room, coffin_room),
+          (coffin_room, oasis_room),
+          (oasis_room, buffer_room3),
+          (buffer_room3, arena_room),
+          (arena_room, exit_room),
         ]
         # nodes=[buffer_room2, puzzle_room, buffer_room3, arena_room, exit_room, oasis_room, entry_room, coffin_room, buffer_room1, enemy_room],
         # edges=[

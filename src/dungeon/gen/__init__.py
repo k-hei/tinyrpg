@@ -272,8 +272,8 @@ class Floor:
     for node in nodes:
       others = [n for n in nodes if n is not node]
       edges = []
-      for edge in node.get_edges():
-        neighbor = next((n for n in others if edge in n.get_edges()), None)
+      for edge in node.get_exits():
+        neighbor = next((n for n in others if edge in n.get_entrances()), None)
         if neighbor:
           graph.connect(node, neighbor, edge)
           edges.append(edge)

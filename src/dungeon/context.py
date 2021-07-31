@@ -767,19 +767,21 @@ class DungeonContext(Context):
 
   def push(game, actor, target, on_end=None):
     origin_cell = target.cell
+    origin_tile = game.floor.get_tile_at(origin_cell)
     target_cell = add_vector(origin_cell, actor.facing)
     target_tile = game.floor.get_tile_at(target_cell)
     target_elem = game.floor.get_elem_at(target_cell)
-    if target.static or target_tile is None or target_tile.solid or target_elem and target_elem.solid:
+    if target.static or target_tile is None or target_tile.solid or target_tile.elev or target_elem and target_elem.solid:
       return False
     target.cell = target_cell
+    target.elev = target_tile.elev
     game.move(actor, delta=actor.facing, duration=PUSH_DURATION, on_end=on_end)
     game.anims[-1] += [
       MoveAnim(
         target=target,
         duration=PUSH_DURATION,
-        src=origin_cell,
-        dest=target_cell
+        src=(*origin_cell, origin_tile.elev),
+        dest=(*target_cell, target_tile.elev)
       ),
       PauseAnim(duration=15)
     ]
@@ -1163,10 +1165,13 @@ class DungeonContext(Context):
   def nudge(game, actor, direction, on_end=None):
     floor = game.floor
     source_cell = actor.cell
+    source_tile = game.floor.get_tile_at(source_cell)
     target_cell = add_vector(source_cell, direction)
+    target_tile = game.floor.get_tile_at(target_cell)
     if not floor.is_cell_empty(target_cell) and floor.get_tile_at(target_cell) is not floor.PIT:
       return False
     actor.cell = target_cell
+    actor.elev = target_tile.elev
     # actor.command = True
     if not game.anims: game.anims.append([])
     move_anim = next((a for a in game.anims[0] if a.target == actor and type(a) is MoveAnim), None)
@@ -1176,8 +1181,8 @@ class DungeonContext(Context):
     game.anims[0].append(MoveAnim(
       duration=NUDGE_DURATION,
       target=actor,
-      src=source_cell,
-      dest=target_cell,
+      src=(*source_cell, source_tile.elev),
+      dest=(*target_cell, target_tile.elev),
       on_end=on_end
     ))
     return True

@@ -54,11 +54,16 @@ class CoffinRoom(SpecialRoom):
   #   ]
 
   def get_entrances(room):
-    _, room_y = room.cell
-    return [(x, y) for (x, y) in super().get_edges() if y >= room_y + room.get_height()]
+    return [
+      vector.add(room.cell, (room.get_width() // 2 - 1, room.get_height())),
+      vector.add(room.cell, (room.get_width() // 2 + 0, room.get_height())),
+      vector.add(room.cell, (room.get_width() // 2 + 1, room.get_height())),
+      vector.add(room.cell, (room.get_width() // 2 - 1, room.get_height() + 1)),
+      vector.add(room.cell, (room.get_width() // 2 + 0, room.get_height() + 1)),
+      vector.add(room.cell, (room.get_width() // 2 + 1, room.get_height() + 1)),
+    ]
 
   def get_exits(room):
-    print(type(room))
     return [
       vector.add(room.cell, (room.get_width() // 2, -1)),
       vector.add(room.cell, (-1, room.get_height() // 2)),

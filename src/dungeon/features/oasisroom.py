@@ -49,11 +49,11 @@ class OasisRoom(SpecialRoom):
     ]))
   ]
 
-  def __init__(room, shape_index=None, *args, **kwargs):
+  def __init__(room, shape_index=None, degree=1, *args, **kwargs):
     if shape_index is None:
       shape_index = randrange(len(OasisRoom.shapes))
     super().__init__(
-      degree=1,
+      degree=degree,
       shape=OasisRoom.shapes[shape_index],
       *args, **kwargs
     )

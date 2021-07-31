@@ -12,6 +12,7 @@ ARROW_PERIOD = 300
 
 class ArrowTrap(Prop):
   solid = True
+  static = True
   active = False
 
   def __init__(trap, facing, delay=0, *args, **kwargs):
@@ -45,6 +46,6 @@ class ArrowTrap(Prop):
     trap_image = trap.surface()
     return super().view(Sprite(
       image=trap_image,
-      pos=trap.facing[0] and (0, trap_image.get_height() - TILE_SIZE - 6) or (0, 0),
+      origin=("left", "bottom"),
       layer="elems"
     ), anims)

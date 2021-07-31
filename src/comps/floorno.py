@@ -66,5 +66,6 @@ class FloorNo:
       return []
     return [Sprite(
       image=image,
-      pos=(x, y)
+      pos=(x, y),
+      layer="ui"
     )]

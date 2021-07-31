@@ -3,7 +3,6 @@ from dungeon.actors.mage import Mage
 from dungeon.props.bag import Bag
 from skills.weapon.rustyblade import RustyBlade
 from skills.weapon.longinus import Longinus
-from skills.armor.buckler import Buckler
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
 from anims.pause import PauseAnim
@@ -31,7 +30,6 @@ class DepthsRoom(SpecialRoom):
       "#.....#"
     ], elems=[
       ((2, 2), Bag(RustyBlade)),
-      ((6, 5), Bag(Buckler)),
     ], *args, **kwargs)
     room.mage = None
     room.focused = False

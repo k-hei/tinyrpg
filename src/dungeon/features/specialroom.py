@@ -69,7 +69,7 @@ class SpecialRoom(Room):
     floor = Stage(size=(feature.get_width() + 2, feature.get_height() * 2))
     floor.fill(Stage.WALL)
     feature.place(floor, cell=(1, 1), connectors=[])
-    edge = choice([(x, y) for (x, y) in feature.get_edges() if y >= 0 and y <= feature.get_height() + 1])
+    edge = choice([(x, y) for (x, y) in feature.get_entrances() if y >= 0 and y <= feature.get_height() + 1])
     if feature.rooms:
       for x, y, width, height in feature.rooms:
         floor.rooms.append(Room((width, height), (x + 1, y + 1)))

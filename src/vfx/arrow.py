@@ -1,7 +1,8 @@
+import lib.vector as vector
+from random import randint
 from pygame.transform import flip
 from sprite import Sprite
 from vfx import Vfx
-import lib.vector as vector
 import assets
 from filters import replace_color
 from anims.frame import FrameAnim
@@ -38,11 +39,15 @@ class Arrow(Vfx):
   speed = 5
 
   def __init__(arrow, cell, direction, *args, **kwargs):
-    super().__init__(pos=vector.scale(
-      vector.add(cell, (0.5, 0.5), vector.scale(direction, 0.5)),
-      scalar=TILE_SIZE
+    super().__init__(pos=vector.add(
+      vector.scale(
+        vector.add(cell, (0.5, 0.5), vector.scale(direction, 0.5)),
+        scalar=TILE_SIZE
+      ),
+      direction[0] and (0, -6) or (0, 0)
     ), *args, **kwargs)
     arrow.direction = direction
+    arrow.elev = 0
     arrow.anim = {
       (-1, 0): ArrowLeftAnim(),
       (1, 0): ArrowRightAnim(),
@@ -54,6 +59,9 @@ class Arrow(Vfx):
     return arrow.direction
 
   def update(arrow, game):
+    if arrow.done:
+      return
+
     arrow.pos = vector.add(arrow.pos, vector.scale(arrow.direction, arrow.speed))
     arrow.anim.update()
     arrow_cell = snap(arrow.pos, TILE_SIZE)
@@ -66,18 +74,20 @@ class Arrow(Vfx):
         hero.block()
 
     target_tile = game.floor.get_tile_at(arrow_cell)
+    if target_tile and (not target_tile.solid and not abs(arrow.elev - target_tile.elev) >= 1 or target_tile is game.floor.PIT):
+      target_tile = None
     target_elem = next((e for e in game.floor.get_elems_at(arrow_cell) if (
       e.solid
       and not (game.anims and next((a for a in game.anims[0] if type(a) is FlinchAnim and a.target is e), None))
     )), None)
-    if target_tile and target_tile.solid and target_tile is not game.floor.PIT or target_elem:
+    if target_tile or target_elem:
       arrow.done = True
-      if target_elem and isinstance(target_elem, DungeonActor):
+      if not target_tile and target_elem and isinstance(target_elem, DungeonActor):
         if can_block:
           target_elem.block()
         game.nudge(target_elem, arrow.direction)
         game.flinch(target_elem,
-          damage=0 if can_block else 1,
+          damage=0 if can_block else randint(4, 6),
           direction=arrow.direction
         )
 

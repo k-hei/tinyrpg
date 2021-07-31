@@ -37,12 +37,17 @@ class ArenaRoom(SpecialRoom):
     feature.waves = deepcopy(ArenaRoom.waves)
     feature.entered = False
 
-  def get_edges(feature):
+  def get_entrances(feature):
+    x, y = feature.cell or (0, 0)
+    return [
+      (x + feature.get_width() // 2, y + feature.get_height()),
+      (x + feature.get_width() // 2, y + feature.get_height() + 1),
+    ]
+
+  def get_exits(feature):
     x, y = feature.cell or (0, 0)
     return [
       (x + feature.get_width() // 2, y - 1),
-      (x + feature.get_width() // 2, y + feature.get_height()),
-      (x + feature.get_width() // 2, y + feature.get_height() + 1),
     ]
 
   def get_enemies(feature, stage):
