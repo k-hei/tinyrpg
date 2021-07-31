@@ -35,6 +35,8 @@ class TownContext(Context):
     ctx.load_area(ctx.area, link)
 
   def load_area(ctx, area, link=None):
+    for char in ctx.party:
+      char.anims.clear()
     if area is DungeonContext:
       return ctx.parent.goto_dungeon()
     if issubclass(area, SideViewArea):

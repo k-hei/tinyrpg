@@ -380,7 +380,7 @@ class DungeonContext(Context):
     if ally:
       command = game.step_ally(ally)
       if type(command) is tuple:
-        commands[ally] = command
+        commands[ally] = [command]
 
     hero = game.hero
     hero.step_ailment(game)
@@ -1576,7 +1576,7 @@ class DungeonContext(Context):
     facing_elem = next((e for e in facing_elems if (
       e.solid
       and e.active
-      and (not isinstance(e, DungeonActor) or hero.allied(e))
+      and (not isinstance(e, DungeonActor) or e.get_faction() == "ally")
     )), None)
     if game.talkbubble:
       game.talkbubble.done = True
