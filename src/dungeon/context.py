@@ -896,6 +896,7 @@ class DungeonContext(Context):
     if game.child:
       return False
     ailments = {
+      None: "None",
       "sleep": "Sleep",
       "poison": "Poison",
       "freeze": "Freeze",
