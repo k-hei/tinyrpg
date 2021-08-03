@@ -6,6 +6,10 @@ from sprite import Sprite
 from anims.frame import FrameAnim
 
 class Altar(DungeonElement):
+  solid = True
+  static = True
+  active = True
+
   def __init__(altar, on_effect=None, *args, **kwargs):
     super().__init__(static=True, *args, **kwargs)
     altar.on_effect = on_effect
