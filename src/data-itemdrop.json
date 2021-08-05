@@ -19,7 +19,7 @@
           [[3, 3], "ItemDrop", { "contents": "Cheese" }],
           [[5, 3], "Chest", { "contents": "Cheese" }],
           [[3, 5], "Coffin", { "contents": "Cheese" }],
-          [[5, 5], "Soul", { "contents": "ShieldBash" }]
+          [[5, 5], "Vase", { "contents": "Cheese" }]
         ],
         "rooms": [
           [[1, 1, 7, 7], "Room"]

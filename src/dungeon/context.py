@@ -840,7 +840,6 @@ class DungeonContext(Context):
     target_elem = game.floor.get_elem_at(target_cell)
     if not target_elem or not target_elem.active:
       return False
-    effect_result = target_elem and target_elem.effect(game)
     if game.talkbubble:
       game.talkbubble.hide()
     def bump():
@@ -854,6 +853,7 @@ class DungeonContext(Context):
       game.anims[-1].append(anim)
     if not game.anims or not next((a for a in game.anims[0] if a.target is hero), None):
       bump()
+    effect_result = target_elem and target_elem.effect(game)
     if effect_result == True:
       game.step()
 

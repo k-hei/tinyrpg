@@ -53,6 +53,7 @@ from dungeon.props.palm import Palm
 from dungeon.props.battledoor import BattleDoor
 from dungeon.props.coffin import Coffin
 from dungeon.props.vcoffin import VCoffin
+from dungeon.props.vase import Vase
 from dungeon.props.soul import Soul
 from dungeon.props.pushblock import PushBlock
 from dungeon.props.arrowtrap import ArrowTrap
@@ -163,6 +164,7 @@ def resolve_elem(key):
   if key == "BattleDoor": return BattleDoor
   if key == "Coffin": return Coffin
   if key == "VCoffin": return VCoffin
+  if key == "Vase": return Vase
   if key == "Soul": return Soul
   if key == "PushBlock": return PushBlock
   if key == "ArrowTrap": return ArrowTrap
