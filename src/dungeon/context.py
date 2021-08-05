@@ -683,7 +683,7 @@ class DungeonContext(Context):
 
       origin_elem = game.floor.get_elem_at(old_cell, exclude=[Door])
       if origin_elem:
-        origin_elem.aftereffect(game)
+        origin_elem.on_leave(game)
 
       if target_elem and not target_elem.solid:
         target_elem.effect(game)
@@ -792,7 +792,23 @@ class DungeonContext(Context):
     target.on_push(game)
     return True
 
-  def obtain(game, item):
+  def obtain(game, item, target=None, on_end=None):
+    if target:
+      game.anims.append([
+        item_anim := ItemAnim(
+          target=target,
+          item=item()
+        )
+      ])
+      game.open(child=DialogueContext(
+        lite=True,
+        script=[
+          ("", ("Obtained ", item().token(), "."))
+        ]
+      ), on_close=lambda: (
+        on_end and on_end(),
+        item_anim and item_anim.end()
+      ))
     if isinstance(item, Gold):
       game.change_gold(item.amount)
     elif type(item) is type and issubclass(item, Skill):

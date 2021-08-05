@@ -59,6 +59,7 @@ from dungeon.props.arrowtrap import ArrowTrap
 from dungeon.props.altar import Altar
 from dungeon.props.door import Door
 from dungeon.props.pushtile import PushTile
+from dungeon.props.itemdrop import ItemDrop
 from dungeon.props.puzzledoor import PuzzleDoor
 from dungeon.props.pillar import Pillar
 from dungeon.props.chest import Chest
@@ -168,6 +169,7 @@ def resolve_elem(key):
   if key == "Altar": return Altar
   if key == "Door": return Door
   if key == "PushTile": return PushTile
+  if key == "ItemDrop": return ItemDrop
   if key == "PuzzleDoor": return PuzzleDoor
   if key == "Pillar": return Pillar
   if key == "Chest": return Chest

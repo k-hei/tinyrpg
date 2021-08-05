@@ -33,7 +33,7 @@ class PushTile(DungeonElement):
           )])
           break
 
-  def aftereffect(tile, game):
+  def on_leave(tile, game):
     if not tile.completed:
       tile.pushed = False
 
