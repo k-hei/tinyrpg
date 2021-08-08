@@ -204,7 +204,8 @@ class CardContext(Context):
       sprites.append(Sprite(
         image=hand_image,
         pos=(hand_x, hand_y),
-        origin=("center", "center")
+        origin=("center", "center"),
+        layer="hud"
       ))
     return sprites
 
