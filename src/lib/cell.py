@@ -1,3 +1,5 @@
+from math import sqrt
+
 def manhattan(a, b):
   x1, y1 = a
   x2, y2 = b
@@ -5,6 +7,12 @@ def manhattan(a, b):
 
 def is_adjacent(a, b):
   return manhattan(a, b) == 1
+
+def distance(a, b):
+  x1, y1 = a
+  x2, y2 = b
+  dx, dy = x2 - x1, y2 - y1
+  return sqrt(dx * dx + dy * dy)
 
 def normal(a, b):
   x1, y1 = a

@@ -7,6 +7,7 @@ from anims.path import PathAnim
 from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
+from lib.cell import distance
 
 class Camera:
   MAX_RADIUS_X = 3
@@ -68,14 +69,17 @@ class Camera:
     camera.speed = None
 
   def illuminate(camera, room, actor, on_end=None):
-    if camera.cell == camera.get_room_focus(room, actor):
-      return False
+    origin_cell = camera.cell
+    target_cell = camera.get_room_focus(room, actor)
+    if origin_cell == target_cell:
+      return 0
+    duration = int(distance(origin_cell, target_cell) * 8)
     camera.anims.append(TweenAnim(
-      target=(camera.cell, camera.get_room_focus(room, actor)),
-      duration=45,
+      target=(origin_cell, target_cell),
+      duration=duration,
       on_end=on_end
     ))
-    return True
+    return duration
 
   def get_room_focus(camera, room, actor=None, anims=[]):
     if actor and actor.cell:

@@ -316,12 +316,13 @@ class DungeonContext(Context):
       if room and room not in game.room_entrances:
         if game.room_entrances:
           room_cells = room.get_cells() + room.get_border()
-          if game.camera.illuminate(room, actor=game.hero):
+          tween_duration = game.camera.illuminate(room, actor=game.hero)
+          if tween_duration:
             game.log.exit()
             def illuminate():
               hero.visible_cells = room_cells
               game.redraw_tiles(force=True)
-            game.anims[0].append(PauseAnim(duration=45))
+            game.anims[0].append(PauseAnim(duration=tween_duration))
             game.anims += [
               [StageView.FadeAnim(
                 target=room_cells,
