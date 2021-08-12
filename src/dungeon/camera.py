@@ -68,11 +68,14 @@ class Camera:
     camera.speed = None
 
   def illuminate(camera, room, actor, on_end=None):
+    if camera.cell == camera.get_room_focus(room, actor):
+      return False
     camera.anims.append(TweenAnim(
       target=(camera.cell, camera.get_room_focus(room, actor)),
       duration=45,
       on_end=on_end
     ))
+    return True
 
   def get_room_focus(camera, room, actor=None, anims=[]):
     if actor and actor.cell:

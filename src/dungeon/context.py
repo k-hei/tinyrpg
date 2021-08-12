@@ -314,24 +314,24 @@ class DungeonContext(Context):
         new_room = room_within
 
       if room and room not in game.room_entrances:
-        game.room_entrances[room] = hero.cell
-        if game.room:
+        if game.room_entrances:
           room_cells = room.get_cells() + room.get_border()
-          game.camera.illuminate(room, actor=game.hero)
-          game.log.exit()
-          def illuminate():
-            hero.visible_cells = room_cells
-            game.redraw_tiles(force=True)
-          game.anims[0].append(PauseAnim(duration=45))
-          game.anims += [
-            [StageView.FadeAnim(
-              target=room_cells,
-              duration=15,
-              on_start=lambda: game.update_visited_cells(room_cells),
-              on_end=illuminate
-            )],
-            [PauseAnim(duration=15)]
-          ]
+          if game.camera.illuminate(room, actor=game.hero):
+            game.log.exit()
+            def illuminate():
+              hero.visible_cells = room_cells
+              game.redraw_tiles(force=True)
+            game.anims[0].append(PauseAnim(duration=45))
+            game.anims += [
+              [StageView.FadeAnim(
+                target=room_cells,
+                duration=15,
+                on_start=lambda: game.update_visited_cells(room_cells),
+                on_end=illuminate
+              )],
+              [PauseAnim(duration=15)]
+            ]
+        game.room_entrances[room] = hero.cell
       game.room = room
       game.room_within = room_within
 
@@ -341,7 +341,10 @@ class DungeonContext(Context):
       visible_cells = game.floor_cells
     elif not game.camera.anims:
       visible_cells = shadowcast(floor, hero.cell, VISION_RANGE)
-      visible_cells = [c for c in visible_cells if next((r for r in game.floor.rooms if c in r.get_cells()), None) in game.room_entrances]
+      def is_cell_within_visited_room(cell):
+        room = next((r for r in game.floor.rooms if cell in r.get_cells()), None)
+        return room is None or room in game.room_entrances
+      visible_cells = [c for c in visible_cells if is_cell_within_visited_room(c)]
       if game.room:
         visible_cells += game.room.get_cells() + game.room.get_border()
 
