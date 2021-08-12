@@ -341,6 +341,7 @@ class DungeonContext(Context):
       visible_cells = game.floor_cells
     elif not game.camera.anims:
       visible_cells = shadowcast(floor, hero.cell, VISION_RANGE)
+      visible_cells = [c for c in visible_cells if next((r for r in game.floor.rooms if c in r.get_cells()), None) in game.room_entrances]
       if game.room:
         visible_cells += game.room.get_cells() + game.room.get_border()
 
