@@ -59,11 +59,6 @@ class Chest(Prop):
           )]
         ]
         game.anims.append([
-          AttackAnim(
-            target=game.hero,
-            src=game.hero.cell,
-            dest=chest.cell
-          ),
           ShakeAnim(
             target=chest,
             magnitude=0.5,
