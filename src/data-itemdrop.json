@@ -29,5 +29,5 @@
   },
   "skills": [],
   "party": ["knight"],
-  "chars": { "knight": {} }
+  "builds": { "knight": {} }
 }

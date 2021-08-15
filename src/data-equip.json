@@ -22,5 +22,5 @@
   },
   "skills": ["RustyBlade", "Buckler", "HpUp", "ShieldBash", "Cleave"],
   "party": ["knight"],
-  "chars": { "knight": {} }
+  "builds": { "knight": {} }
 }

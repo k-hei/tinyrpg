@@ -23,5 +23,5 @@
   },
   "skills": ["Glacio"],
   "party": ["mage"],
-  "chars": { "mage": { "Glacio": [0, 0] } }
+  "builds": { "mage": { "Glacio": [0, 0] } }
 }

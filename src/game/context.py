@@ -17,7 +17,7 @@ from cores.mage import Mage
 from cores.rogue import Rogue
 from inventory import Inventory
 from skills import get_skill_order
-from savedata import GameState
+from game.data import GameData
 from savedata.resolve import resolve_item, resolve_skill, resolve_elem
 from transits.dissolve import DissolveOut
 
@@ -25,11 +25,6 @@ def resolve_char(char):
   if char == "knight": return Knight()
   if char == "mage": return Mage()
   if char == "rogue": return Rogue()
-
-def encode_char(char):
-  if type(char) is Knight: return "knight"
-  if type(char) is Mage: return "mage"
-  if type(char) is Rogue: return "rogue"
 
 def resolve_default_build(char):
   if type(char) is Knight: return KNIGHT_BUILD
@@ -42,24 +37,9 @@ def decode_build(build_data):
 class GameContext(Context):
   def __init__(ctx, savedata, feature=None, floor=None):
     super().__init__()
-    ctx.savedata = savedata
+    ctx.store = GameData.decode(savedata)
     ctx.feature = feature
     ctx.floor = floor
-    ctx.party = []
-    ctx.gold = 0
-    ctx.sp_max = 40
-    ctx.sp = ctx.sp_max
-    ctx.time = 0
-    ctx.inventory = Inventory((2, 4))
-    ctx.story = []
-    ctx.monster_kills = {}
-    ctx.new_skills = []
-    ctx.skill_pool = []
-    ctx.skill_builds = {}
-    ctx.saved_builds = {}
-    ctx.selected_skills = {}
-    ctx.seeds = []
-    ctx.debug = False
 
   def init(ctx):
     ctx.load()
@@ -67,22 +47,6 @@ class GameContext(Context):
   def load(ctx, savedata=None):
     if savedata is None:
       savedata = ctx.savedata
-    ctx.sp = savedata.sp
-    ctx.time = savedata.time
-    ctx.gold = savedata.gold
-    ctx.inventory.items = [resolve_item(i) for i in savedata.items]
-    ctx.skill_pool = [resolve_skill(s) for s in savedata.skills]
-    ctx.party = [resolve_char(n) for n in savedata.party]
-    for i, char in enumerate(ctx.party):
-      char_name = savedata.party[i]
-      char_data = savedata.chars[char_name]
-      ctx.skill_builds[char] = []
-      for skill, cell in char_data.items():
-        piece = (resolve_skill(skill), cell)
-        ctx.skill_builds[char].append(piece)
-    ctx.saved_builds = savedata.chars
-    ctx.update_skills()
-    ctx.story = savedata.story
 
     floor = None
 

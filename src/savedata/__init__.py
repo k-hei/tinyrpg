@@ -6,23 +6,17 @@ from skills import Skill
 from dungeon.data import DungeonData
 
 @dataclass
-class GameState:
-  sp: int
+class SaveData:
   time: int
+  sp: int
   gold: int
   items: list[Item]
   skills: list[Skill]
   party: list[str]
-  chars: dict[str, dict]
-  place: str
+  builds: dict[str, dict]
   story: list[str]
+  place: str
   dungeon: dict[str, dict] = None
-
-  class Encoder(json.JSONEncoder):
-    def default(encoder, obj):
-      if type(obj) is DungeonData:
-        return DungeonData.Encoder.default(encoder, obj)
-      return json.JSONEncoder.default(encoder, obj)
 
 def load(*paths):
   try:
@@ -34,7 +28,7 @@ def load(*paths):
       savefile.close()
   except OSError:
     return None
-  return GameState(**data)
+  return SaveData(**data)
 
 def save(path, data):
   savefile = open(path, "w")

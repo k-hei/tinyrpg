@@ -24,5 +24,5 @@
   },
   "skills": ["ShieldBash"],
   "party": ["knight"],
-  "chars": { "knight": { "ShieldBash": [0, 0] } }
+  "builds": { "knight": { "ShieldBash": [0, 0] } }
 }

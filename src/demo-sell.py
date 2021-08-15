@@ -13,6 +13,7 @@ App(
       "home": "{}: Got something to sell me?".format(ORACLE_NAME),
       "thanks": "{}: Thanks!".format(ORACLE_NAME)
     },
+    gold=500,
     items=[resolve_item(i) for i in [
       "Potion",
       "Potion",
