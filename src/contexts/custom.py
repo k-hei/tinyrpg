@@ -65,7 +65,7 @@ class CustomContext(Context):
     menu.cursor_drawn = menu.cursor
     menu.arrange = False
     menu.arrange_drawn = menu.arrange
-    menu.pieces = builds[menu.char]
+    menu.pieces = builds[type(menu.char).__name__]
     menu.matrix_size = MATRIX_SIZE
     menu.anims = []
     menu.renders = 0
@@ -85,7 +85,7 @@ class CustomContext(Context):
         delay=i * 6,
         target=skill
       ))
-    build = menu.builds[menu.char]
+    build = menu.builds[type(menu.char).__name__]
     for i, (skill, cell) in enumerate(build):
       menu.anims[0].append(PlaceAnim(
         duration=ANIM_PLACE_DURATION,
@@ -110,7 +110,7 @@ class CustomContext(Context):
     return skills[menu.index] if skills else None
 
   def is_skill_used(menu, skill):
-    for char, build in menu.builds.items():
+    for _, build in menu.builds.items():
       for s, _ in build:
         if s is skill:
           return True
@@ -170,7 +170,7 @@ class CustomContext(Context):
       menu.char = menu.chars[1]
     elif menu.char is menu.chars[1]:
       menu.char = menu.chars[0]
-    menu.pieces = menu.builds[menu.char]
+    menu.pieces = menu.builds[type(menu.char).__name__]
     menu.index = 0
     menu.offset = 0
     menu.update_bar()
@@ -202,16 +202,16 @@ class CustomContext(Context):
     other = None
     if len(menu.chars) == 2:
       other = menu.chars[0] if menu.char is menu.chars[1] else menu.chars[1]
-    char_skills = [skill for skill, cell in menu.builds[menu.char]]
-    other_skills = [skill for skill, cell in menu.builds[other]] if other else []
+    char_skills = [skill for skill, cell in menu.builds[type(menu.char).__name__]]
+    other_skills = [skill for skill, cell in menu.builds[type(other).__name__]] if other else []
     if skill in char_skills:
       index = char_skills.index(skill)
-      build = menu.builds[menu.char]
+      build = menu.builds[type(menu.char).__name__]
       _, cell = build.pop(index)
       menu.cursor = cell
     elif other_skills and skill in other_skills:
       index = other_skills.index(skill)
-      build = menu.builds[other]
+      build = menu.builds[type(other).__name__]
       build.pop(index)
       menu.cursor = (0, 0)
 
@@ -345,7 +345,7 @@ class CustomContext(Context):
           delay=i * 6,
           target=skill
         ))
-      build = menu.builds[menu.char]
+      build = menu.builds[type(menu.char).__name__]
       for i, (skill, cell) in enumerate(build):
         skill_enters.append(PlaceAnim(
           duration=ANIM_PLACE_DURATION,

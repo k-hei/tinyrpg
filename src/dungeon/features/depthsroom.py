@@ -49,7 +49,7 @@ class DepthsRoom(SpecialRoom):
     ]
 
   def on_focus(room, game):
-    if room.focused or "minxia" in game.parent.story:
+    if room.focused or "minxia" in game.parent.store.story:
       return False
     room.mage = Mage(faction="ally", ailment="sleep")
     game.floor.spawn_elem_at(add_cell(room.cell, (4, 3)), room.mage)

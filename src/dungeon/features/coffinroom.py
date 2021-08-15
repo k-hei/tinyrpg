@@ -100,7 +100,7 @@ class CoffinRoom(SpecialRoom):
     if not super().on_enter(game):
       return False
     game.open(CutsceneContext([
-      *(cutscene(room, game) if (config.CUTSCENES and "minxia" not in game.parent.story) else [
+      *(cutscene(room, game) if (config.CUTSCENES and "minxia" not in game.parent.store.story) else [
         lambda step: (
           game.floor.remove_elem(room.mage),
           step()

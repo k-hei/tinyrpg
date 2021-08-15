@@ -5,6 +5,8 @@
   "gold": 9999,
   "items": [],
   "skills": ["Cleave", "Cudgel", "Glacio", "Sana"],
+  "new_skills": [],
+  "selected_skill": {},
   "party": ["Knight"],
   "builds": {
     "Knight": {},
@@ -14,5 +16,6 @@
     },
     "Rogue": {}
   },
+  "kills": {},
   "story": []
 }

@@ -32,11 +32,13 @@ def resolve_default_build(char):
   if type(char) is Rogue: return ROGUE_BUILD
 
 def decode_build(build_data):
-  return [(resolve_skill(skill_name), skill_cell) for (skill_name, skill_cell) in build_data.items()]
+  return [(resolve_skill(skill_name), skill_cell)
+    for (skill_name, skill_cell) in build_data.items()]
 
 class GameContext(Context):
   def __init__(ctx, savedata, feature=None, floor=None):
     super().__init__()
+    ctx.savedata = savedata
     ctx.store = GameData.decode(savedata)
     ctx.feature = feature
     ctx.floor = floor
@@ -69,7 +71,7 @@ class GameContext(Context):
       savedata.place = "dungeon"
       app = ctx.get_head()
       return app.load(
-        loader=Floor.generate(ctx.story),
+        loader=Floor.generate(ctx.store.story),
         on_end=lambda floor: (
           ctx.goto_dungeon(floors=[floor], generator=Floor),
           app.transition([DissolveOut()])
@@ -89,46 +91,26 @@ class GameContext(Context):
         memory=savedata.dungeon.memory
       )
 
+    ctx.store = GameData.decode(savedata)
     if savedata.place == "dungeon":
       ctx.goto_dungeon(floors=floor and [floor])
     elif savedata.place == "town":
       ctx.goto_town()
 
   def save(ctx):
-    encode = lambda x: x.__name__
-    items = list(map(encode, ctx.inventory.items))
-    skills = list(map(encode, ctx.skill_pool))
-    party = [encode_char(c) for c in ctx.party]
-    chars = {}
-    for char, pieces in ctx.skill_builds.items():
-      build = {}
-      for skill, cell in pieces:
-        build[encode(skill)] = list(cell)
-      chars[encode_char(char)] = build
-    place = type(ctx.child) is TownContext and "town" or "dungeon"
-    dungeon = place == "dungeon" and ctx.child.save() or None
-    ctx.savedata = GameState(
-      place=place,
-      sp=ctx.sp,
-      time=int(ctx.time),
-      gold=ctx.gold,
-      items=items,
-      skills=skills,
-      party=party,
-      chars=chars,
-      story=ctx.story,
-      dungeon=dungeon
-    )
+    ctx.savedata = ctx.store.encode()
     return ctx.savedata
 
   def recruit(ctx, char):
     char.faction = "player"
-    char_id = encode_char(char)
-    ctx.skill_builds[char] = decode_build(ctx.saved_builds[char_id] if char_id in ctx.saved_builds else resolve_default_build(char))
-    if len(ctx.party) == 1:
-      ctx.party.append(char)
+    char_id = type(char).__name__
+    ctx.store.builds[char_id] = decode_build(ctx.store.builds[char_id]
+      if char_id in ctx.store.builds
+      else resolve_default_build(char))
+    if len(ctx.store.party) == 1:
+      ctx.store.party.append(char)
     else:
-      ctx.party[1] = char
+      ctx.store.party[1] = char
 
   def swap_chars(ctx):
     ctx.party.append(ctx.party.pop(0))
@@ -157,39 +139,40 @@ class GameContext(Context):
       )
 
   def goto_town(ctx, returning=False):
-    ctx.open(TownContext(party=ctx.party, returning=returning))
+    ctx.open(TownContext(party=ctx.store.party, returning=returning))
 
   def obtain(ctx, item):
-    ctx.inventory.items.append(item)
+    ctx.store.items.append(item)
 
   def record_kill(ctx, target):
     target_type = type(target)
-    if target_type in ctx.monster_kills:
-      ctx.monster_kills[target_type] += 1
+    if target_type in ctx.store.kills:
+      ctx.store.kills[target_type] += 1
     else:
-      ctx.monster_kills[target_type] = 1
+      ctx.store.kills[target_type] = 1
 
   def get_skill(ctx, actor):
-    return ctx.selected_skills[actor] if actor in ctx.selected_skills else None
+    actor_id = type(actor).__name__
+    return ctx.store.selected_skill[actor_id] if actor_id in ctx.store.selected_skill else None
 
   def set_skill(ctx, actor, skill):
-    ctx.selected_skills[actor] = skill
+    ctx.store.selected_skill[type(actor).__name__] = skill
 
   def learn_skill(ctx, skill):
-    if not skill in ctx.skill_pool:
-      ctx.new_skills.append(skill)
-      ctx.skill_pool.append(skill)
-      ctx.skill_pool.sort(key=get_skill_order)
+    if not skill in ctx.store.skills:
+      ctx.store.new_skills.append(skill)
+      ctx.store.skills.append(skill)
+      ctx.store.skills.sort(key=get_skill_order)
 
   def load_build(ctx, actor, build):
-    ctx.skill_builds[actor] = build
+    ctx.store.builds[type(actor).__name__] = build
     actor.skills = [skill for skill, cell in build]
     active_skills = actor.get_active_skills()
     ctx.set_skill(actor, active_skills[0] if active_skills else None)
 
   def update_skills(ctx):
-    for core in ctx.party:
-      ctx.load_build(core, ctx.skill_builds[core])
+    for core in ctx.store.party:
+      ctx.load_build(actor=core, build=ctx.store.builds[type(core).__name__])
 
   def get_inventory(ctx):
     return ctx.inventory
@@ -247,13 +230,13 @@ class GameContext(Context):
   def handle_custom(ctx):
     child = ctx.get_tail()
     child.open(CustomContext(
-      skills=ctx.skill_pool,
-      chars=ctx.party,
-      builds=ctx.skill_builds,
-      new_skills=ctx.new_skills,
+      skills=ctx.store.skills,
+      chars=ctx.store.party,
+      builds=ctx.store.builds,
+      new_skills=[],
       on_close=ctx.update_skills
     ))
 
   def update(ctx):
     super().update()
-    ctx.time += 1 / ctx.get_head().fps
+    ctx.store.time += 1 / ctx.get_head().fps

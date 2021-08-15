@@ -1,5 +1,5 @@
 from contexts.app import App
-from contexts.game import GameContext
+from game.context import GameContext
 import savedata
 
 App(title="town demo",

@@ -1,6 +1,6 @@
 import sys
 from contexts.app import App
-from contexts.game import GameContext
+from game.context import GameContext
 from savedata import load
 
 if len(sys.argv) != 2:

@@ -63,7 +63,7 @@ class AltarRoom(SpecialRoom):
 
   def on_enter(room, game):
     super().on_enter(game)
-    if not config.CUTSCENES or "minxia" in game.parent.story:
+    if not config.CUTSCENES or "minxia" in game.parent.store.story:
       game.floor.remove_elem(room.mage)
       room.mage = None
       return False
@@ -176,7 +176,7 @@ def next_floor(game):
   return lambda step: (
     game.get_head().transition(
       transits=(DissolveIn(), DissolveOut()),
-      loader=Floor1.generate(game.parent.story),
+      loader=Floor1.generate(game.parent.store.story),
       on_end=lambda floor: (
         game.use_floor(floor, generator=Floor1),
         step()

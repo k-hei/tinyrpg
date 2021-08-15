@@ -12,8 +12,11 @@ class SaveData:
   gold: int
   items: list[Item]
   skills: list[Skill]
+  new_skills: list[Skill]
+  selected_skill: dict[str, Skill]
   party: list[str]
   builds: dict[str, dict]
+  kills: dict[str, int]
   story: list[str]
   place: str
   dungeon: dict[str, dict] = None
