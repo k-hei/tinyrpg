@@ -125,7 +125,7 @@ class TextBubble:
 
     def view(ctx):
       sprites = []
-      font = assets.ttf["roman"]
+      font = assets.ttf["english"]
       choices_width = 0
       choices_height = font.height()
       choices_xs = {}
