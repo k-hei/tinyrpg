@@ -49,14 +49,11 @@ class RecallAnim(PieceAnim): pass
 class CustomContext(Context):
   effects = [Hud, Previews, Minimap, SpMeter, FloorNo]
 
-  def __init__(menu, skills, chars, builds, new_skills=[], on_close=None):
+  def __init__(menu, store, on_close=None):
     super().__init__()
-    menu.skills = skills
-    menu.chars = chars
-    menu.builds = builds
-    menu.new_skills = new_skills
+    menu.store = store
     menu.on_close = on_close
-    menu.char = chars[0]
+    menu.char = store.party[0]
     menu.char_drawn = menu.char
     menu.index = 0
     menu.index_drawn = -1
@@ -65,7 +62,7 @@ class CustomContext(Context):
     menu.cursor_drawn = menu.cursor
     menu.arrange = False
     menu.arrange_drawn = menu.arrange
-    menu.pieces = builds[type(menu.char).__name__]
+    menu.pieces = store.builds[type(menu.char).__name__]
     menu.matrix_size = MATRIX_SIZE
     menu.anims = []
     menu.renders = 0
@@ -85,7 +82,7 @@ class CustomContext(Context):
         delay=i * 6,
         target=skill
       ))
-    build = menu.builds[type(menu.char).__name__]
+    build = menu.store.builds[type(menu.char).__name__]
     for i, (skill, cell) in enumerate(build):
       menu.anims[0].append(PlaceAnim(
         duration=ANIM_PLACE_DURATION,
@@ -103,14 +100,14 @@ class CustomContext(Context):
   def get_char_skills(menu, char=None):
     if char is None:
       char = menu.char
-    return [s for s in menu.skills if type(char) in s.users]
+    return [s for s in menu.store.skills if type(char) in s.users]
 
   def get_selected_skill(menu):
     skills = menu.get_char_skills()
     return skills[menu.index] if skills else None
 
   def is_skill_used(menu, skill):
-    for _, build in menu.builds.items():
+    for _, build in menu.store.builds.items():
       for s, _ in build:
         if s is skill:
           return True
@@ -150,8 +147,8 @@ class CustomContext(Context):
     else:
       menu.pieces.append((skill, menu.cursor))
       menu.stop_arrange()
-      if skill in menu.new_skills:
-        menu.new_skills.remove(skill)
+      if skill in menu.store.new_skills:
+        menu.store.new_skills.remove(skill)
     menu.anims.append([PlaceAnim(duration=ANIM_PLACE_DURATION, target=skill.blocks)])
 
   def handle_recall_piece(menu):
@@ -164,13 +161,10 @@ class CustomContext(Context):
     menu.cursor = (0, 0)
 
   def handle_swap_char(menu):
-    if len(menu.chars) == 1:
+    if len(menu.store.party) == 1:
       return False
-    if menu.char is menu.chars[0]:
-      menu.char = menu.chars[1]
-    elif menu.char is menu.chars[1]:
-      menu.char = menu.chars[0]
-    menu.pieces = menu.builds[type(menu.char).__name__]
+    menu.char = next((c for c in menu.store.party if c is not menu.char), None)
+    menu.pieces = menu.store.builds[type(menu.char).__name__]
     menu.index = 0
     menu.offset = 0
     menu.update_bar()
@@ -199,19 +193,17 @@ class CustomContext(Context):
       menu.anims.append([CallAnim(duration=7, target=(skill, (0, 0)))])
       return
     menu.arrange = True
-    other = None
-    if len(menu.chars) == 2:
-      other = menu.chars[0] if menu.char is menu.chars[1] else menu.chars[1]
-    char_skills = [skill for skill, cell in menu.builds[type(menu.char).__name__]]
-    other_skills = [skill for skill, cell in menu.builds[type(other).__name__]] if other else []
+    other = next((c for c in menu.store.party if c is not menu.char), None)
+    char_skills = [skill for skill, cell in menu.store.builds[type(menu.char).__name__]]
+    other_skills = [skill for skill, cell in menu.store.builds[type(other).__name__]] if other else []
     if skill in char_skills:
       index = char_skills.index(skill)
-      build = menu.builds[type(menu.char).__name__]
+      build = menu.store.builds[type(menu.char).__name__]
       _, cell = build.pop(index)
       menu.cursor = cell
     elif other_skills and skill in other_skills:
       index = other_skills.index(skill)
-      build = menu.builds[type(other).__name__]
+      build = menu.store.builds[type(other).__name__]
       build.pop(index)
       menu.cursor = (0, 0)
 
@@ -290,7 +282,7 @@ class CustomContext(Context):
       0
     ))
 
-    if next((c for c in menu.chars if type(c) is Mage), None):
+    if next((c for c in menu.store.party if type(c) is Mage), None):
       mage_scaled = mage
       mage_anim = menu.anims and next((a for a in menu.anims[0] if a.target == "Mage"), None)
       if mage_anim:
@@ -345,7 +337,7 @@ class CustomContext(Context):
           delay=i * 6,
           target=skill
         ))
-      build = menu.builds[type(menu.char).__name__]
+      build = menu.store.builds[type(menu.char).__name__]
       for i, (skill, cell) in enumerate(build):
         skill_enters.append(PlaceAnim(
           duration=ANIM_PLACE_DURATION,
@@ -544,7 +536,7 @@ class CustomContext(Context):
             text = recolor(text, YELLOW)
             text = outline(text, (0, 0, 0))
             badges.append((text, x + sprite.get_width() - text.get_width() - 6, y + sprite.get_height() - 6))
-        elif skill in menu.new_skills and not entering:
+        elif skill in menu.store.new_skills and not entering:
           text = render_text("NEW", assets.fonts["smallcaps"])
           text = recolor(text, YELLOW if menu.renders % 60 >= 30 else DARKYELLOW)
           text = outline(text, (0, 0, 0))

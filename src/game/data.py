@@ -3,10 +3,11 @@ from dataclasses import dataclass, field
 from items import Item
 from skills import Skill, get_skill_order
 from cores import Core
+from contexts import Context
 from dungeon.data import DungeonData
 from savedata import SaveData
 from savedata.resolve import resolve_item, resolve_skill, resolve_core
-from config import KNIGHT_BUILD, MAGE_BUILD, ROGUE_BUILD
+from config import MAX_SP, KNIGHT_BUILD, MAGE_BUILD, ROGUE_BUILD
 
 def decode_build(build_data):
   return [(resolve_skill(skill_name), skill_cell)
@@ -25,7 +26,7 @@ class GameData:
   builds: dict[str, dict] = field(default_factory=lambda: {})
   kills: dict[str, int] = field(default_factory=lambda: {})
   story: list[str] = field(default_factory=lambda: [])
-  place: str = "town"
+  place: Context = None
   dungeon: DungeonData = None
 
   class Encoder(json.JSONEncoder):
@@ -35,6 +36,7 @@ class GameData:
       return json.JSONEncoder.default(encoder, obj)
 
   def encode(store):
+    place = type(store.place).__name__.startswith("Town") and "town" or "dungeon"
     builds = {}
     for char, pieces in store.builds.items():
       build = {}
@@ -53,8 +55,8 @@ class GameData:
       builds=builds,
       kills=store.kills,
       story=store.story,
-      place=store.place,
-      dungeon=(store.place == "dungeon" and place.save() or None)
+      place=place,
+      dungeon=(place == "dungeon" and store.place.save() or None)
     )
 
   def decode(savedata):
@@ -78,8 +80,20 @@ class GameData:
       kills=savedata.kills,
       story=savedata.story,
       place=savedata.place,
-      dungeon=(savedata.place == "dungeon" and DungeonData(**savedata.dungeon) or None)
+      dungeon=(savedata.dungeon and DungeonData(**savedata.dungeon))
     )
+
+  def regen_sp(store, amount=None):
+    if amount is None:
+      store.sp = store.sp_max
+      return
+    store.sp = min(store.sp_max, store.sp + amount)
+
+  def deplete_sp(store, amount=None):
+    if amount is None:
+      store.sp = 0
+      return
+    store.sp = max(0, store.sp - amount)
 
   def obtain_item(store, item):
     if item in store.items:

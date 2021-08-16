@@ -98,12 +98,13 @@ class GameContext(Context):
     if floors:
       floor = floors[floor_index]
       floor.generator = floor.generator or generator and generator.__name__
-      ctx.open(DungeonContext(
-        party=ctx.party,
+      ctx.store.place = DungeonContext(
+        store=ctx.store,
         floors=floors,
         floor_index=floor_index,
         memory=memory
-      ))
+      )
+      ctx.open(ctx.store.place)
     else:
       app = ctx.get_head()
       app.load(
@@ -115,10 +116,8 @@ class GameContext(Context):
       )
 
   def goto_town(ctx, returning=False):
-    ctx.open(TownContext(store=ctx.store, returning=returning))
-
-  def obtain(ctx, item):
-    ctx.store.items.append(item)
+    ctx.store.place = TownContext(store=ctx.store, returning=returning)
+    ctx.open(ctx.store.place)
 
   def record_kill(ctx, target):
     target_type = type(target)
@@ -150,33 +149,6 @@ class GameContext(Context):
     for core in ctx.store.party:
       ctx.load_build(actor=core, build=ctx.store.builds[type(core).__name__])
 
-  def get_inventory(ctx):
-    return ctx.inventory
-
-  def get_gold(ctx):
-    return ctx.gold
-
-  def change_gold(ctx, amount):
-    ctx.gold += amount
-
-  def get_sp(ctx):
-    return ctx.sp
-
-  def get_sp_max(ctx):
-    return ctx.sp_max
-
-  def regen_sp(ctx, amount=None):
-    if amount is None:
-      ctx.sp = ctx.sp_max
-      return
-    ctx.sp = min(ctx.sp_max, ctx.sp + amount)
-
-  def deplete_sp(ctx, amount=None):
-    if amount is None:
-      ctx.sp = 0
-      return
-    ctx.sp = max(0, ctx.sp - amount)
-
   def handle_keydown(ctx, key):
     if super().handle_keydown(key) != None:
       return
@@ -197,19 +169,11 @@ class GameContext(Context):
     child.open(PauseContext())
 
   def handle_inventory(ctx):
-    child = ctx.get_tail()
-    child.open(InventoryContext(
-      inventory=ctx.inventory,
-      has_ally=len(ctx.party) > 1,
-    ))
+    ctx.get_tail().open(InventoryContext(store=ctx.store))
 
   def handle_custom(ctx):
-    child = ctx.get_tail()
-    child.open(CustomContext(
-      skills=ctx.store.skills,
-      chars=ctx.store.party,
-      builds=ctx.store.builds,
-      new_skills=[],
+    ctx.get_tail().open(CustomContext(
+      store=ctx.store,
       on_close=ctx.update_skills
     ))
 

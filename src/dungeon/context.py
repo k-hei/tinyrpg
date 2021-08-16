@@ -124,10 +124,11 @@ class DungeonContext(Context):
   AWAKEN_DURATION = 45
   FLOORS = [Floor1, Floor2, Floor3]
 
-  def __init__(game, party, floors, floor_index=0, memory=[]):
+  def __init__(game, store, floors, floor_index=0, memory=[]):
     super().__init__()
-    game.hero = manifest(party[0])
-    game.ally = manifest(party[1]) if len(party) == 2 else None
+    game.store = store
+    game.hero = manifest(store.party[0])
+    game.ally = manifest(store.party[1]) if len(store.party) == 2 else None
     game.party = [game.hero, game.ally] if game.ally else [game.hero]
     game.floors = floors
     game.floor = floors[floor_index]
@@ -165,10 +166,10 @@ class DungeonContext(Context):
     game.comps = [
       game.log,
       game.minimap,
-      Hud(party=game.parent.party, hp=True),
+      Hud(party=game.store.party, hp=True),
       Previews(parent=game),
       FloorNo(parent=game),
-      SpMeter(parent=game.parent)
+      SpMeter(store=game.store)
     ]
     for comp in game.comps:
       comp.active = False
@@ -198,9 +199,6 @@ class DungeonContext(Context):
   def get_floor_no(game):
     gen_index = next((i for i, g in enumerate(DungeonContext.FLOORS) if g.__name__ == game.floor.generator), None)
     return gen_index + 1 if gen_index is not None else '??'
-
-  def get_inventory(game):
-    return game.parent.inventory.items
 
   def get_hero(game):
     return game.hero
@@ -250,9 +248,9 @@ class DungeonContext(Context):
         floor.spawn_elem_at((x - 1, y), ally)
 
     enemies = [e for e in floor.elems if isinstance(e, DungeonActor) and not hero.allied(e)]
-    for monster, kills in game.parent.monster_kills.items():
+    for monster, kills in game.store.kills.items():
       if (monster.skill is not None
-      and monster.skill not in game.parent.skill_pool
+      and monster.skill not in game.store.skills
       and kills >= 3):
         enemy = next((e for e in enemies if type(e) is monster), None)
         if enemy is not None:
@@ -728,7 +726,7 @@ class DungeonContext(Context):
             ])
 
       # regen hp
-      if game.parent.sp:
+      if game.store.sp:
         if not hero.is_dead() and not hero.ailment == "sleep":
           hero.regen()
         if ally and not ally.is_dead() and not ally.ailment == "sleep":
@@ -736,7 +734,7 @@ class DungeonContext(Context):
 
       # deplete sp
       if target_tile is not Stage.OASIS:
-        game.parent.deplete_sp(1 / 100)
+        game.store.deplete_sp(1 / 100)
 
     if hero.get_facing() != delta:
       hero.set_facing(delta)
@@ -1425,7 +1423,7 @@ class DungeonContext(Context):
     hero.dispel_ailment()
     game.numbers.append(DamageValue(hero.get_hp_max(), add_vector(hero.cell, (0, -0.25)), color=GREEN))
     game.numbers.append(DamageValue(game.get_sp_max(), hero.cell, color=CYAN))
-    game.parent.regen_sp()
+    game.store.regen_sp()
 
   def use_oasis(game):
     if game.oasis_used:
