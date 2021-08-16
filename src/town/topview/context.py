@@ -30,12 +30,13 @@ class TopViewContext(Context):
     def __init__(anim):
       super().__init__(duration=45)
 
-  def __init__(ctx, area, party=[Knight(faction="player"), Mage(faction="player")], link=None):
+  def __init__(ctx, store, area=None, link=None):
     super().__init__()
+    ctx.store = store
     ctx.area = area
-    ctx.party = [Actor(core=c, facing=(0, -1), solid=(i == 0)) for i, c in enumerate(party)]
-    ctx.stage = area(ctx.party)
-    ctx.hud = Hud(party)
+    ctx.party = [Actor(core=c, facing=(0, -1), solid=(i == 0)) for i, c in enumerate(store.party)]
+    ctx.stage = area and area(ctx.party)
+    ctx.hud = Hud(store.party)
     ctx.elem = None
     ctx.link = None
     ctx.anims = []
@@ -194,6 +195,14 @@ class TopViewContext(Context):
         ctx.parent.load_area(dest_area, dest_link)
     else:
       ctx.close()
+
+  def recruit(ctx, actor):
+    ctx.store.recruit(actor.core)
+    if len(ctx.party) == 1:
+      ctx.party.append(actor)
+    else:
+      # TODO: handle party replacement
+      ctx.party[1] = actor
 
   def update(ctx):
     super().update()

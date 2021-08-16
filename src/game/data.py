@@ -1,25 +1,26 @@
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from items import Item
 from skills import Skill
+from cores import Core
 from dungeon.data import DungeonData
 from savedata import SaveData
 from savedata.resolve import resolve_item, resolve_skill, resolve_core
 
 @dataclass
 class GameData:
-  time: int
-  sp: int
-  gold: int
-  items: list[Item]
-  skills: list[Skill]
-  new_skills: list[Skill]
-  selected_skill: dict[str, str]
-  party: list[str]
-  builds: dict[str, dict]
-  kills: dict[str, int]
-  story: list[str]
-  place: str
+  time: int = 0
+  sp: int = 0
+  gold: int = 0
+  items: list[Item] = field(default_factory=lambda: [])
+  skills: list[Skill] = field(default_factory=lambda: [])
+  new_skills: list[Skill] = field(default_factory=lambda: [])
+  selected_skill: dict[str, str] = field(default_factory=lambda: {})
+  party: list[Core] = field(default_factory=lambda: [])
+  builds: dict[str, dict] = field(default_factory=lambda: {})
+  kills: dict[str, int] = field(default_factory=lambda: {})
+  story: list[str] = field(default_factory=lambda: [])
+  place: str = "town"
   dungeon: DungeonData = None
 
   class Encoder(json.JSONEncoder):
@@ -74,3 +75,10 @@ class GameData:
       place=savedata.place,
       dungeon=(savedata.place == "dungeon" and DungeonData(**savedata.dungeon) or None)
     )
+
+  def recruit(store, core):
+    core.faction = "player"
+    if len(store.party) == 1:
+      store.party.append(core)
+    else:
+      store.party[1] = core

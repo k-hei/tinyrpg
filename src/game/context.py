@@ -11,7 +11,7 @@ from dungeon.decor import Decor
 from dungeon.features.room import Room
 from dungeon.features.altarroom import AltarRoom
 from dungeon.decoder import decode_floor
-from town import TownContext
+from town.context import TownContext
 from cores.knight import Knight
 from cores.mage import Mage
 from cores.rogue import Rogue
@@ -20,11 +20,6 @@ from skills import get_skill_order
 from game.data import GameData
 from savedata.resolve import resolve_item, resolve_skill, resolve_elem
 from transits.dissolve import DissolveOut
-
-def resolve_char(char):
-  if char == "knight": return Knight()
-  if char == "mage": return Mage()
-  if char == "rogue": return Rogue()
 
 def resolve_default_build(char):
   if type(char) is Knight: return KNIGHT_BUILD
@@ -36,10 +31,10 @@ def decode_build(build_data):
     for (skill_name, skill_cell) in build_data.items()]
 
 class GameContext(Context):
-  def __init__(ctx, savedata, feature=None, floor=None):
-    super().__init__()
-    ctx.savedata = savedata
-    ctx.store = GameData.decode(savedata)
+  def __init__(ctx, data, feature=None, floor=None, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    ctx.store = data
+    ctx.savedata = GameData.encode(data)
     ctx.feature = feature
     ctx.floor = floor
 

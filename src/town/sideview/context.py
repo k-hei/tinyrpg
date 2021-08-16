@@ -47,16 +47,17 @@ ARROW_PERIOD = 45
 ARROW_BOUNCE = 2
 
 class SideViewContext(Context):
-  def __init__(ctx, area, graph, party=[Knight()], spawn=None):
+  def __init__(ctx, store, area=None, spawn=None):
     super().__init__()
-    ctx.area = area()
-    ctx.party = [Actor(core=core) for core in party]
+    ctx.area = area and area()
+    ctx.store = store
+    ctx.party = [Actor(core=core) for core in store.party]
     ctx.spawn = spawn
     ctx.link = None
     ctx.talkee = None
     ctx.nearby_link = None
     ctx.nearby_npc = None
-    ctx.hud = Hud(party)
+    ctx.hud = Hud(store.party)
     ctx.time = 0
     ctx.anims = []
 
@@ -69,10 +70,10 @@ class SideViewContext(Context):
       spawn_x = 64
     facing_x, _ = hero.get_facing()
     for actor in ctx.party:
-      ctx.area.spawn(actor, spawn_x)
+      ctx.area and ctx.area.spawn(actor, spawn_x)
       actor.stop_move()
       spawn_x -= TILE_SIZE * facing_x
-    ctx.area.init(ctx)
+    ctx.area and ctx.area.init(ctx)
 
   def handle_move(ctx, delta):
     hero, *allies = ctx.party
@@ -177,7 +178,7 @@ class SideViewContext(Context):
 
   def recruit(ctx, actor):
     actor.recruit()
-    ctx.parent.recruit(actor.core)
+    ctx.store.recruit(actor.core)
     if len(ctx.party) == 1:
       ctx.party.append(actor)
     else:
