@@ -30,7 +30,7 @@ class TopViewContext(Context):
     def __init__(anim):
       super().__init__(duration=45)
 
-  def __init__(ctx, store, area=None, link=None):
+  def __init__(ctx, store, area=None, spawn=None):
     super().__init__()
     ctx.store = store
     ctx.area = area
@@ -174,9 +174,6 @@ class TopViewContext(Context):
 
   def get_graph(ctx):
     return ctx.parent.graph if "graph" in dir(ctx.parent) else None
-
-  def get_inventory(ctx):
-    return ctx.parent.get_inventory()
 
   def handle_areachange(ctx, delta):
     ctx.link = delta

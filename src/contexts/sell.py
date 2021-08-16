@@ -245,17 +245,16 @@ class SellContext(Context):
   class GoldEnterAnim(GoldAnim): pass
   class GoldExitAnim(GoldAnim): pass
 
-  def __init__(ctx, items, gold, messages, bubble=None, portrait=None, hud=None, card=None, on_close=None):
+  def __init__(ctx, store, messages, bubble=None, portrait=None, hud=None, card=None, on_close=None):
     super().__init__(on_close=on_close)
-    ctx.items = items
+    ctx.store = store
     ctx.messages = messages
     ctx.bubble = bubble or TextBubble(width=104, pos=(112, 40))
     ctx.portrait = portrait
     ctx.hud = hud or Hud(party=[Knight()])
     ctx.card = card or Card("sell")
     ctx.card_pos = card and card.sprite.pos
-    ctx.gold = gold
-    ctx.gold_drawn = ctx.gold
+    ctx.gold_drawn = store.gold
     ctx.cursor = 0
     ctx.cursor_drawn = 0
     ctx.scroll = 0
@@ -267,7 +266,7 @@ class SellContext(Context):
     ctx.requires_release = {}
     ctx.hero = Knight()
     ctx.tablist = BagTabs(Inventory.tabs)
-    ctx.itembox = BagList((148, 76), items=filter_items(items, ctx.tablist.selection()))
+    ctx.itembox = BagList((148, 76), items=filter_items(store.items, ctx.tablist.selection()))
     ctx.controls = [
       Control(key=("X"), value="Multi"),
       Control(key=("L", "R"), value="Tab")
@@ -277,7 +276,7 @@ class SellContext(Context):
   def get_selection_value(ctx):
     surplus = 0
     for tab, i in ctx.selection:
-      items = filter_items(ctx.items, tab)
+      items = filter_items(ctx.store.items, tab)
       item = items[i]
       surplus += item.value // 2
     return surplus
@@ -285,14 +284,14 @@ class SellContext(Context):
   def sell(ctx):
     items = []
     for tab, i in ctx.selection:
-      items.append(filter_items(ctx.items, tab)[i])
+      items.append(filter_items(ctx.store.items, tab)[i])
     for item in items:
-      ctx.gold += item.value // 2
+      ctx.store.gold += item.value // 2
       game = ctx.get_parent(cls="GameContext")
       if game:
         game.gold += item.value // 2
-      ctx.items.remove(item)
-    ctx.itembox.items = filter_items(ctx.items, ctx.tablist.selection())
+      ctx.store.discard_item(item)
+    ctx.itembox.items = filter_items(ctx.store.items, ctx.tablist.selection())
     ctx.selection = []
     ctx.reset_cursor()
 
@@ -416,7 +415,7 @@ class SellContext(Context):
       tab = ctx.tablist.select_next(on_end=ctx.reset_cursor)
     else:
       return False
-    items = filter_items(ctx.items, tab)
+    items = filter_items(ctx.store.items, tab)
     ctx.itembox.load(items)
     ctx.cursor = 0
     ctx.cursor_drawn = None
@@ -541,7 +540,7 @@ class SellContext(Context):
       gold_y = lerp(WINDOW_HEIGHT, gold_y, t)
     if gold_anim or not ctx.exiting:
       goldtext_font = assets.ttf["roman"]
-      ctx.gold_drawn += (ctx.gold - ctx.gold_drawn) / 16
+      ctx.gold_drawn += (ctx.store.gold - ctx.gold_drawn) / 16
       goldtext_image = goldtext_font.render(str(round(ctx.gold_drawn)))
       goldtext_x = gold_x + gold_image.get_width() + 3
       goldtext_y = gold_y + gold_image.get_height() // 2 - goldtext_image.get_height() // 2

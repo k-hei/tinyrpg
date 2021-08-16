@@ -23,9 +23,9 @@ class CentralArea(Area):
 
   def init(area, ctx):
     super().init(ctx)
-    # if ("minxia" in ctx.get_parent(cls="GameContext").store.story
-    # and not next((a for a in ctx.party if type(a.core) is Mage), None)):
-    area.spawn(Actor(core=Mage(
-      faction="ally",
-      facing=(1, 0)
-    )), x=112)
+    if ("minxia" in ctx.store.story
+    and not next((c for c in ctx.store.party if type(c) is Mage), None)):
+      area.spawn(Actor(core=Mage(
+        faction="ally",
+        facing=(1, 0)
+      )), x=112)

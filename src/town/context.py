@@ -44,6 +44,3 @@ class TownContext(Context):
     elif issubclass(area, TopViewArea):
       child = TopViewContext(store=ctx.store, area=area, spawn=link)
     ctx.open(child)
-
-  def get_inventory(ctx):
-    return ctx.parent.get_inventory()
