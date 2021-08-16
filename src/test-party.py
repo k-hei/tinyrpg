@@ -1,6 +1,4 @@
 from game.data import GameData
-from game.context import GameContext
-from town.context import TownContext
 from town.sideview.context import SideViewContext
 from town.sideview.actor import Actor as SideViewActor
 from town.topview.context import TopViewContext
@@ -10,6 +8,17 @@ from cores.mage import Mage
 
 knight = Knight()
 mage = Mage()
+
+def test_switch_one():
+  store = GameData(party=[knight])
+  store.switch_chars()
+  assert store.party[0] is knight
+
+def test_switch_many():
+  store = GameData(party=[knight, mage])
+  store.switch_chars()
+  assert store.party[0] is mage
+  assert store.party[1] is knight
 
 def test_recruit():
   store = GameData(party=[knight])

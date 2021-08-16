@@ -35,7 +35,7 @@ class TownContext(Context):
     ctx.load_area(ctx.area, link)
 
   def load_area(ctx, area, link=None):
-    for char in ctx.party:
+    for char in ctx.store.party:
       char.anims.clear()
     if area is DungeonContext:
       return ctx.parent.goto_dungeon()

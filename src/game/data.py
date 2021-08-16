@@ -1,7 +1,7 @@
 import json
 from dataclasses import dataclass, field
 from items import Item
-from skills import Skill
+from skills import Skill, get_skill_order
 from cores import Core
 from dungeon.data import DungeonData
 from savedata import SaveData
@@ -81,6 +81,26 @@ class GameData:
       dungeon=(savedata.place == "dungeon" and DungeonData(**savedata.dungeon) or None)
     )
 
+  def obtain_item(store, item):
+    if item in store.items:
+      return False
+    store.items.append(item)
+    return True
+
+  def discard_item(store, item):
+    if item not in store.items:
+      return False
+    store.items.remove(item)
+    return True
+
+  def learn_skill(store, skill):
+    if skill in store.skills:
+      return False
+    store.new_skills.append(skill)
+    store.skills.append(skill)
+    store.skills.sort(key=get_skill_order)
+    return True
+
   def recruit(store, core):
     core.faction = "player"
     core_id = type(core).__name__
@@ -93,3 +113,6 @@ class GameData:
       store.party.append(core)
     else:
       store.party[1] = core
+
+  def switch_chars(store):
+    store.party.append(store.party.pop(0))

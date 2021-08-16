@@ -24,8 +24,12 @@ from transits.dissolve import DissolveOut
 class GameContext(Context):
   def __init__(ctx, data, feature=None, floor=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
-    ctx.store = data
-    ctx.savedata = GameData.encode(data)
+    if type(data) is GameData:
+      ctx.store = data
+      ctx.savedata = GameData.encode(data)
+    else:
+      ctx.store = GameData.decode(data)
+      ctx.savedata = data
     ctx.feature = feature
     ctx.floor = floor
 
@@ -87,20 +91,6 @@ class GameContext(Context):
     ctx.savedata = ctx.store.encode()
     return ctx.savedata
 
-  def recruit(ctx, char):
-    char.faction = "player"
-    char_id = type(char).__name__
-    ctx.store.builds[char_id] = decode_build(ctx.store.builds[char_id]
-      if char_id in ctx.store.builds
-      else resolve_default_build(char))
-    if len(ctx.store.party) == 1:
-      ctx.store.party.append(char)
-    else:
-      ctx.store.party[1] = char
-
-  def swap_chars(ctx):
-    ctx.party.append(ctx.party.pop(0))
-
   def reset(ctx):
     ctx.load()
 
@@ -125,7 +115,7 @@ class GameContext(Context):
       )
 
   def goto_town(ctx, returning=False):
-    ctx.open(TownContext(party=ctx.store.party, returning=returning))
+    ctx.open(TownContext(store=ctx.store, returning=returning))
 
   def obtain(ctx, item):
     ctx.store.items.append(item)

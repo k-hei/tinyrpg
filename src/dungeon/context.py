@@ -869,7 +869,7 @@ class DungeonContext(Context):
     if not game.ally or game.ally.is_dead():
       return False
     game.hero, game.ally = game.ally, game.hero
-    game.parent.swap_chars()
+    game.store.switch_chars()
     game.refresh_fov(moving=True)
     return True
 
