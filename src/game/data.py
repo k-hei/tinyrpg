@@ -6,6 +6,11 @@ from cores import Core
 from dungeon.data import DungeonData
 from savedata import SaveData
 from savedata.resolve import resolve_item, resolve_skill, resolve_core
+from config import KNIGHT_BUILD, MAGE_BUILD, ROGUE_BUILD
+
+def decode_build(build_data):
+  return [(resolve_skill(skill_name), skill_cell)
+    for (skill_name, skill_cell) in build_data.items()]
 
 @dataclass
 class GameData:
@@ -78,6 +83,12 @@ class GameData:
 
   def recruit(store, core):
     core.faction = "player"
+    core_id = type(core).__name__
+    store.builds[core_id] = decode_build(store.builds[core_id] if core_id in store.builds else {
+      "Knight": KNIGHT_BUILD,
+      "Mage": MAGE_BUILD,
+      "Rogue": ROGUE_BUILD,
+    }[core_id])
     if len(store.party) == 1:
       store.party.append(core)
     else:

@@ -21,15 +21,6 @@ from game.data import GameData
 from savedata.resolve import resolve_item, resolve_skill, resolve_elem
 from transits.dissolve import DissolveOut
 
-def resolve_default_build(char):
-  if type(char) is Knight: return KNIGHT_BUILD
-  if type(char) is Mage: return MAGE_BUILD
-  if type(char) is Rogue: return ROGUE_BUILD
-
-def decode_build(build_data):
-  return [(resolve_skill(skill_name), skill_cell)
-    for (skill_name, skill_cell) in build_data.items()]
-
 class GameContext(Context):
   def __init__(ctx, data, feature=None, floor=None, *args, **kwargs):
     super().__init__(*args, **kwargs)

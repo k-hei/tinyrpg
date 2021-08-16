@@ -13,24 +13,25 @@ knight = Knight()
 mage = Mage()
 
 class TestRecruit(TestCase):
-  def test_recruit_from_store(test):
+  def test_recruit(test):
     store = GameData(party=[knight])
     store.recruit(mage)
-    test.assertIs(store.party[1], mage)
+    test.assertTrue(store.party[1] is mage)
+    test.assertTrue("Mage" in store.builds)
 
   def test_recruit_from_town_sideview(test):
     store = GameData(party=[knight])
     ctx = SideViewContext(store)
     ctx.recruit(SideViewActor(core=mage))
-    test.assertIs(ctx.party[1].core, mage)
-    test.assertIs(store.party[1], mage)
+    test.assertTrue(ctx.party[1].core is mage)
+    test.assertTrue(store.party[1] is mage)
 
   def test_recruit_from_town_topview(test):
     store = GameData(party=[knight])
     ctx = TopViewContext(store)
     ctx.recruit(TopViewActor(core=mage))
-    test.assertIs(ctx.party[1].core, mage)
-    test.assertIs(store.party[1], mage)
+    test.assertTrue(ctx.party[1].core is mage)
+    test.assertTrue(store.party[1] is mage)
 
 if __name__ == "__main__":
   main()
