@@ -193,6 +193,10 @@ class TopViewContext(Context):
     else:
       ctx.close()
 
+  def switch_chars(ctx):
+    ctx.store.switch_chars()
+    ctx.party.reverse()
+
   def recruit(ctx, actor):
     ctx.store.recruit(actor.core)
     if len(ctx.party) == 1:

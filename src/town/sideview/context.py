@@ -176,6 +176,10 @@ class SideViewContext(Context):
     else:
       ctx.close()
 
+  def switch_chars(ctx):
+    ctx.store.switch_chars()
+    ctx.party.reverse()
+
   def recruit(ctx, actor):
     actor.recruit()
     ctx.store.recruit(actor.core)

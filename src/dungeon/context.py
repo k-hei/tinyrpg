@@ -124,14 +124,14 @@ class DungeonContext(Context):
   AWAKEN_DURATION = 45
   FLOORS = [Floor1, Floor2, Floor3]
 
-  def __init__(game, store, floors, floor_index=0, memory=[]):
+  def __init__(game, store, floors=[], floor_index=0, memory=[]):
     super().__init__()
     game.store = store
     game.hero = manifest(store.party[0])
     game.ally = manifest(store.party[1]) if len(store.party) == 2 else None
     game.party = [game.hero, game.ally] if game.ally else [game.hero]
     game.floors = floors
-    game.floor = floors[floor_index]
+    game.floor = floors[floor_index] if floors else None
     game.floor_view = None
     game.floor_cells = None
     game.memory = memory
@@ -279,6 +279,9 @@ class DungeonContext(Context):
     floor_view.redraw_tile(floor, cell, game.get_visited_cells())
 
   def refresh_fov(game, moving=False):
+    if game.floor is None:
+      return
+
     hero = game.hero
     floor = game.floor
     visible_cells = []
@@ -611,7 +614,7 @@ class DungeonContext(Context):
       return False
 
     if key == pygame.K_TAB:
-      return game.handle_swap()
+      return game.handle_switch()
 
     if key == pygame.K_f:
       return game.handle_examine()
@@ -863,13 +866,17 @@ class DungeonContext(Context):
   def handle_wait(game):
     game.step()
 
-  def handle_swap(game):
+  def switch_chars(game):
     if not game.ally or game.ally.is_dead():
       return False
     game.hero, game.ally = game.ally, game.hero
     game.store.switch_chars()
+    game.party.reverse()
     game.refresh_fov(moving=True)
     return True
+
+  def handle_switch(game):
+    return game.switch_chars()
 
   def recruit(game, actor):
     game.parent.recruit(actor.core)
@@ -1237,7 +1244,7 @@ class DungeonContext(Context):
         game.anims[0].append(PauseAnim(
           duration=DungeonContext.PAUSE_DEATH_DURATION,
           on_end=lambda: (
-            game.handle_swap()
+            game.handle_switch()
             and [on_end and on_end()]
             or game.open(GameOverContext())
           )

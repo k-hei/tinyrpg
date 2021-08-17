@@ -56,7 +56,7 @@ class GameData:
       kills=store.kills,
       story=store.story,
       place=place,
-      dungeon=(place == "dungeon" and store.place.save() or None)
+      dungeon=(store.place.save() if store.place and place == "dungeon" else None)
     )
 
   def decode(savedata):
