@@ -214,7 +214,7 @@ def collapse(room, game):
               )
             )
           ),
-          ShakeAnim(
+          room.mage and ShakeAnim(
             target=room.mage,
             duration=30,
             on_end=lambda: game.anims[0].append(
@@ -231,7 +231,7 @@ def collapse(room, game):
                 on_end=lambda: floor.remove_elem(room.mage)
               )
             )
-          ),
+          ) or None,
           PauseAnim(duration=60)
         ],
         [PauseAnim(

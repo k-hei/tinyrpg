@@ -315,7 +315,7 @@ class DungeonContext(Context):
         new_room = room_within
 
       if room and room not in game.room_entrances:
-        if game.room_entrances:
+        if next((r for r in game.floor.rooms if r in game.room_entrances), None):
           room_cells = room.get_cells() + room.get_border()
           tween_duration = game.camera.illuminate(room, actor=game.hero)
           if tween_duration:
@@ -1637,6 +1637,9 @@ class DungeonContext(Context):
     if game.anims:
       group = game.anims[0]
       for anim in group:
+        if anim is None:
+          group.remove(anim)
+          continue
         anim.update()
         if anim.done:
           group.remove(anim)
