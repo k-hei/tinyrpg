@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from types import FunctionType
 from json import JSONEncoder
 from dungeon.stage import Stage, Tile
@@ -9,8 +9,8 @@ from dungeon.features.room import Room
 @dataclass
 class DungeonData:
   floors: list[Stage]
-  floor_index: int
-  memory: list[list[tuple[int, int]]]
+  floor_index: int = 0
+  memory: list[list[tuple[int, int]]] = field(default_factory=lambda: [])
 
   class Encoder(JSONEncoder):
     def default(encoder, obj):

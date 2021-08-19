@@ -18,7 +18,7 @@ class Stats:
   lu: int = 1
 
 class Core:
-  def __init__(core, name, faction="ally", facing=(1, 0), hp=0, stats=Stats(), skills=[], message=None, color=None, anims=None):
+  def __init__(core, name, faction="ally", facing=(0, 1), hp=0, stats=Stats(), skills=[], message=None, color=None, anims=None):
     core.name = name
     core.faction = faction
     core.facing = tuple(facing)

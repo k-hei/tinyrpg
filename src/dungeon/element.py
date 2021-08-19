@@ -78,11 +78,12 @@ class DungeonElement:
     moving = next((g for g in anims if next((a for a in g if a.target is elem and type(a) is MoveAnim), None)), None)
     anim_group = anims[0] if anims else []
     for anim in [a for a in anim_group if a.target is elem]:
-      if type(anim) is MoveAnim or type(anim) is PathAnim:
+      if isinstance(anim, MoveAnim) or type(anim) is PathAnim:
         if not anim.cell:
           continue
         offset_x, offset_y = vector.add((offset_x, offset_y), elem.get_move_offset(anim))
-        if (anim.facing != (0, 0)
+        if (type(anim) is MoveAnim
+        and anim.facing != (0, 0)
         and not anim.duration in (PUSH_DURATION, NUDGE_DURATION)
         and not next((a for g in anims for a in g if a.target is elem and type(a) is FlinchAnim), None)):
           elem.facing = tuple(map(int, anim.facing))
@@ -115,7 +116,7 @@ class DungeonElement:
         offset_y += anim.offset
       elif type(anim) is DropAnim:
         offset_y = -anim.y
-      elif type(anim) is ShakeAnim:
+      elif isinstance(anim, ShakeAnim):
         offset_x += anim.offset
       elif type(anim) is FallAnim:
         offset_y = anim.y

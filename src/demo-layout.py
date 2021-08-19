@@ -9,6 +9,6 @@ if len(sys.argv) != 2:
 
 App(title="layout demo",
   context=GameContext(
-    savedata=load("src/data00.json", sys.argv[1])
+    data=load("src/data00.json", sys.argv[1])
   )
 ).init()
