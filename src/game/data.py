@@ -1,3 +1,4 @@
+import debug
 import json
 from dataclasses import dataclass, field
 from items import Item
@@ -94,6 +95,15 @@ class GameData:
       store.sp = 0
       return
     store.sp = max(0, store.sp - amount)
+
+  def obtain(store, target):
+    if isinstance(target, Item) or issubclass(target, Item):
+      return store.obtain_item(item=target)
+    elif issubclass(target, Skill):
+      return store.learn_skill(skill=target)
+    else:
+      debug.log("Failed to obtain unrecognized item {}".format(target))
+      return False
 
   def obtain_item(store, item):
     if item in store.items:

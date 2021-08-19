@@ -44,7 +44,7 @@ class Chest(Prop):
     item = chest.contents
     item_anim = None
     if item:
-      if not game.parent.inventory.is_full(Inventory.tab(item)):
+      if True:
         anims = [
           [JumpAnim(
             target=chest,
@@ -73,9 +73,9 @@ class Chest(Prop):
           )
         ])
         if not isinstance(item, Item) and issubclass(item, Skill):
-          game.learn_skill(item)
+          game.store.learn_skill(skill=item)
         else:
-          game.parent.inventory.append(item)
+          game.store.obtain_item(item)
         script = [(
           ("", ("Obtained ", item().token(), "."))
         )]

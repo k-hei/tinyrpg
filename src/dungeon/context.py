@@ -19,7 +19,8 @@ from config import (
   NUDGE_DURATION,
   FLICKER_DURATION,
   LABEL_FRAMES,
-  ENABLED_COMBAT_LOG
+  ENABLED_COMBAT_LOG,
+  MAX_SP
 )
 
 import keyboard
@@ -231,11 +232,11 @@ class DungeonContext(Context):
     hero = next((e for e in game.floor.elems if (
       isinstance(e, DungeonActor)
       and e.get_faction() == "player"
-      and type(e.core) is type(game.parent.party[0])
+      and type(e.core) is type(game.store.party[0])
     )), None)
     if hero:
       game.hero = hero
-      hero.core = game.parent.party[0]
+      hero.core = game.store.party[0]
     else:
       hero = game.hero
       hero.facing = (1, 0)
@@ -820,7 +821,7 @@ class DungeonContext(Context):
     elif type(item) is type and issubclass(item, Skill):
       game.learn_skill(item)
     else:
-      game.parent.obtain(item)
+      game.store.obtain(item)
     return True
 
   def jump_pit(game, actor, run=False, on_end=None):
@@ -840,7 +841,7 @@ class DungeonContext(Context):
       if not hero.weapon:
         hero.weapon = hero.find_weapon()
       if hero.weapon:
-        game.parent.deplete_sp(hero.weapon.cost)
+        game.store.sp -= hero.weapon.cost
         return game.attack(hero, target_actor, on_end=game.step)
       return False
     target_elem = game.floor.get_elem_at(target_cell)
@@ -879,7 +880,7 @@ class DungeonContext(Context):
     return game.switch_chars()
 
   def recruit(game, actor):
-    game.parent.recruit(actor.core)
+    game.store.recruit(actor.core)
     game.ally = actor
 
   def handle_skill(game):
@@ -1227,7 +1228,7 @@ class DungeonContext(Context):
         enemy_drops = type(target).drops
         if enemy_skill and target.rare:
           skill = enemy_skill
-          if skill not in game.parent.skill_pool:
+          if skill not in game.store.skills:
             game.floor.spawn_elem_at(target.cell, Soul(contents=skill))
         elif (enemy_drops
         and randint(1, 3) == 1
@@ -1376,7 +1377,7 @@ class DungeonContext(Context):
     if success:
       game.log.print(("Used ", item.token(item)))
       game.log.print(message)
-      game.parent.inventory.items.remove(item)
+      game.store.discard_item(item)
       return True, None
     else:
       game.anims.pop()
@@ -1385,7 +1386,7 @@ class DungeonContext(Context):
   def use_skill(game, actor, skill, dest=None, on_end=None):
     camera = game.camera
     if actor.get_faction() == "player":
-      game.parent.deplete_sp(skill.cost)
+      game.store.sp -= skill.cost
     if skill.kind == "weapon":
       actor_x, actor_y = actor.cell
       facing_x, facing_y = actor.facing
@@ -1517,7 +1518,7 @@ class DungeonContext(Context):
       Floor = DungeonContext.FLOORS[gen_index + direction]
       app.transition(
         transits=(DissolveIn(), DissolveOut()),
-        loader=Floor.generate(game.parent.store.story),
+        loader=Floor.generate(game.store.story),
         on_end=lambda floor: (
           remove_heroes(),
           game.use_floor(floor, direction=direction, generator=Floor),
@@ -1559,16 +1560,17 @@ class DungeonContext(Context):
     return True
 
   def get_gold(game):
-    return game.parent.get_gold()
+    return game.store.gold
 
   def change_gold(game, amount):
-    return game.parent.change_gold(amount)
+    game.store.gold += amount
+    return game.store.gold
 
   def get_sp(game):
-    return game.parent.get_sp()
+    return game.store.sp
 
   def get_sp_max(game):
-    return game.parent.get_sp_max()
+    return MAX_SP
 
   def get_visible_cells(game, actor=None):
     return (actor or game.hero).visible_cells

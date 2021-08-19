@@ -2,6 +2,7 @@ from game.data import GameData
 from items.hp.potion import Potion
 
 def test_obtain():
+  # TODO: capacity tests
   store = GameData()
   obtained = store.obtain_item(Potion)
   assert obtained

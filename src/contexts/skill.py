@@ -155,7 +155,7 @@ class SkillContext(Context):
     dest = ctx.dest
     if skill is None:
       return
-    if game.parent and skill.cost > game.parent.sp:
+    if skill.cost > game.store.sp:
       ctx.bar.print("You don't have enough SP!")
     else:
       ctx.exit(skill, dest)

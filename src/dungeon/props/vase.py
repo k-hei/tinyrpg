@@ -26,7 +26,7 @@ class Vase(Prop):
     return True
 
   def effect(vase, game):
-    if game.obtain(vase.contents, target=vase):
+    if game.store.obtain(vase.contents, target=vase):
       vase.open(game)
 
   def view(vase, anims=[], *args, **kwargs):

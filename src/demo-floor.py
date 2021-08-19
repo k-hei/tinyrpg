@@ -16,7 +16,7 @@ floor = getattr(floor_module, floor_name)
 
 App(title="dungeon {} demo".format(floor_name.lower()),
   context=GameContext(
-    savedata=load("src/data00.json"),
+    data=load("src/data00.json"),
     floor=floor
   )
 ).init()
