@@ -68,6 +68,8 @@ class GameContext(Context):
         )
       )
 
+    ctx.store = GameData.decode(savedata)
+    ctx.update_skills()
     if type(savedata.dungeon) is dict:
       return ctx.goto_dungeon(
         floor_index=savedata.dungeon["floor_index"] if "floor_index" in savedata.dungeon else 0,
@@ -81,7 +83,6 @@ class GameContext(Context):
         memory=savedata.dungeon.memory
       )
 
-    ctx.store = GameData.decode(savedata)
     if savedata.place == "dungeon":
       ctx.goto_dungeon(floors=floor and [floor])
     elif savedata.place == "town":
