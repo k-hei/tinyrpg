@@ -8,7 +8,7 @@ from comps.hud import render_numbers
 from filters import recolor, replace_color
 from colors.palette import RED, WHITE, BLUE
 from sprite import Sprite
-from config import WINDOW_WIDTH, WINDOW_HEIGHT
+from config import WINDOW_WIDTH, WINDOW_HEIGHT, MAX_SP
 
 MARGIN_X = 12
 MARGIN_Y = 32
@@ -24,8 +24,8 @@ SPEED_DEPLETE = 1 / 500
 SPEED_RESTORE = 1 / 250
 
 class SpMeter:
-  def __init__(meter, parent):
-    meter.parent = parent
+  def __init__(meter, store):
+    meter.store = store
     meter.active = False
     meter.sp_drawn = None
     meter.draws = 0
@@ -45,10 +45,10 @@ class SpMeter:
     meter_sprite = assets.sprites["sp_meter"]
     tag_sprite = assets.sprites["sp_tag"]
     fill_sprite = assets.sprites["sp_fill"]
-    ctx = meter.parent
+    store = meter.store
     fill_y = 0
     delta = 0
-    sp_pct = min(1, ctx.sp / (ctx.sp_max or 1))
+    sp_pct = min(1, store.sp / (MAX_SP or 1))
     if meter.sp_drawn == None:
       meter.sp_drawn = sp_pct
     elif sp_pct > meter.sp_drawn:
@@ -78,16 +78,16 @@ class SpMeter:
         (fill_sprite.get_width(), fill_sprite.get_height() - ceil(fill_y))
       ))
 
-    sp = meter.sp_drawn * ctx.sp_max
-    if ceil(sp) == ctx.sp_max:
-      sp = ctx.sp_max
+    sp = meter.sp_drawn * MAX_SP
+    if ceil(sp) == MAX_SP:
+      sp = MAX_SP
     elif int(sp) == 0:
       sp = 0
-    numbers_sprite = render_numbers(sp, ctx.sp_max)
+    numbers_sprite = render_numbers(sp, MAX_SP)
     numbers_x = 0
     numbers_y = meter_sprite.get_height() // 2 - numbers_sprite.get_height() // 2 + NUMBERS_OFFSET
 
-    if ctx.sp == 0:
+    if store.sp == 0:
       tag_sprite = replace_color(tag_sprite, BLUE, RED)
 
     sprite = Surface((

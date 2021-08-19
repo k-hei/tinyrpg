@@ -47,6 +47,15 @@ from skills.support.counter import Counter
 from skills.support.sana import Sana
 from skills.armor.buckler import Buckler
 from skills.armor.hpup import HpUp
+from cores.genie import Genie
+from cores.rogue import Rogue
+from cores.mage import Mage
+from cores.husband import Husband
+from cores.wife import Wife
+from cores.biped import BipedCore
+from cores.knight import Knight
+from cores.mira import MiraCore
+from cores.rat import Rat
 from dungeon.props.bag import Bag
 from dungeon.props.treasuredoor import TreasureDoor
 from dungeon.props.palm import Palm
@@ -103,6 +112,13 @@ from dungeon.actors.guard import GuardActor
 from dungeon.floors.floor1 import Floor1
 from dungeon.floors.floor3 import Floor3
 from dungeon.floors.floor2 import Floor2
+from cores.genie import Genie as GenieCore
+from cores.rogue import Rogue as RogueCore
+from cores.mage import Mage as MageCore
+from cores.husband import Husband as HusbandCore
+from cores.wife import Wife as WifeCore
+from cores.knight import Knight as KnightCore
+from cores.rat import Rat as RatCore
 
 def resolve_item(key):
   if key == "Topaz": return Topaz
@@ -156,6 +172,15 @@ def resolve_skill(key):
   if key == "Sana": return Sana
   if key == "Buckler": return Buckler
   if key == "HpUp": return HpUp
+
+def resolve_core(key):
+  if key == "Genie": return GenieCore
+  if key == "Rogue": return RogueCore
+  if key == "Mage": return MageCore
+  if key == "Husband": return HusbandCore
+  if key == "Wife": return WifeCore
+  if key == "Knight": return KnightCore
+  if key == "Rat": return RatCore
 
 def resolve_elem(key):
   if key == "Bag": return Bag

@@ -14,7 +14,7 @@
           2, 2, 2, 3, 2, 2, 2
         ],
         "elems": [
-          [[3, 3], "Soul", { "contents": "ShieldBash" }]
+          [[3, 2], "Eyeball"]
         ],
         "rooms": [
           [[1, 1, 5, 5], "Room"]
@@ -22,7 +22,7 @@
       }
     ]
   },
-  "skills": [],
+  "skills": ["ShieldBash"],
   "party": ["knight"],
-  "chars": { "knight": {} }
+  "builds": { "knight": { "ShieldBash": [0, 0] } }
 }

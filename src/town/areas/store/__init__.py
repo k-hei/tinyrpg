@@ -55,7 +55,7 @@ class StoreArea(Stage):
         is_shopkeep=True,
         message=lambda talkee, ctx: [
           "{}: Ever get a rebar stuck up your ass?".format(talkee.get_name().upper()),
-          lambda: StoreContext(hud=ctx.hud, items=ctx.get_inventory().items),
+          lambda: StoreContext(hud=ctx.hud, store=ctx.store),
           lambda: ctx.anims.append(ctx.HudAnim()),
           lambda: ctx.get_head().transition([DissolveOut()])
         ]
@@ -69,7 +69,7 @@ class StoreArea(Stage):
         is_shopkeep=True,
         message=lambda talkee, ctx: [
           "{}: Welcome!".format(talkee.get_name().upper()),
-          lambda: StoreContext(hud=ctx.hud, items=ctx.get_inventory().items),
+          lambda: StoreContext(hud=ctx.hud, store=ctx.store),
           lambda: ctx.anims.append(ctx.HudAnim()),
           lambda: ctx.get_head().transition([DissolveOut()])
         ]

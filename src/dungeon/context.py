@@ -19,7 +19,8 @@ from config import (
   NUDGE_DURATION,
   FLICKER_DURATION,
   LABEL_FRAMES,
-  ENABLED_COMBAT_LOG
+  ENABLED_COMBAT_LOG,
+  MAX_SP
 )
 
 import keyboard
@@ -124,13 +125,14 @@ class DungeonContext(Context):
   AWAKEN_DURATION = 45
   FLOORS = [Floor1, Floor2, Floor3]
 
-  def __init__(game, party, floors, floor_index=0, memory=[]):
+  def __init__(game, store, floors=[], floor_index=0, memory=[]):
     super().__init__()
-    game.hero = manifest(party[0])
-    game.ally = manifest(party[1]) if len(party) == 2 else None
+    game.store = store
+    game.hero = manifest(store.party[0])
+    game.ally = manifest(store.party[1]) if len(store.party) == 2 else None
     game.party = [game.hero, game.ally] if game.ally else [game.hero]
     game.floors = floors
-    game.floor = floors[floor_index]
+    game.floor = floors[floor_index] if floors else None
     game.floor_view = None
     game.floor_cells = None
     game.memory = memory
@@ -165,10 +167,10 @@ class DungeonContext(Context):
     game.comps = [
       game.log,
       game.minimap,
-      Hud(party=game.parent.party, hp=True),
+      Hud(party=game.store.party, hp=True),
       Previews(parent=game),
       FloorNo(parent=game),
-      SpMeter(parent=game.parent)
+      SpMeter(store=game.store)
     ]
     for comp in game.comps:
       comp.active = False
@@ -198,9 +200,6 @@ class DungeonContext(Context):
   def get_floor_no(game):
     gen_index = next((i for i, g in enumerate(DungeonContext.FLOORS) if g.__name__ == game.floor.generator), None)
     return gen_index + 1 if gen_index is not None else '??'
-
-  def get_inventory(game):
-    return game.parent.inventory.items
 
   def get_hero(game):
     return game.hero
@@ -233,11 +232,11 @@ class DungeonContext(Context):
     hero = next((e for e in game.floor.elems if (
       isinstance(e, DungeonActor)
       and e.get_faction() == "player"
-      and type(e.core) is type(game.parent.party[0])
+      and type(e.core) is type(game.store.party[0])
     )), None)
     if hero:
       game.hero = hero
-      hero.core = game.parent.party[0]
+      hero.core = game.store.party[0]
     else:
       hero = game.hero
       hero.facing = (1, 0)
@@ -250,9 +249,9 @@ class DungeonContext(Context):
         floor.spawn_elem_at((x - 1, y), ally)
 
     enemies = [e for e in floor.elems if isinstance(e, DungeonActor) and not hero.allied(e)]
-    for monster, kills in game.parent.monster_kills.items():
+    for monster, kills in game.store.kills.items():
       if (monster.skill is not None
-      and monster.skill not in game.parent.skill_pool
+      and monster.skill not in game.store.skills
       and kills >= 3):
         enemy = next((e for e in enemies if type(e) is monster), None)
         if enemy is not None:
@@ -281,6 +280,9 @@ class DungeonContext(Context):
     floor_view.redraw_tile(floor, cell, game.get_visited_cells())
 
   def refresh_fov(game, moving=False):
+    if game.floor is None:
+      return
+
     hero = game.hero
     floor = game.floor
     visible_cells = []
@@ -314,7 +316,7 @@ class DungeonContext(Context):
         new_room = room_within
 
       if room and room not in game.room_entrances:
-        if game.room_entrances:
+        if next((r for r in game.floor.rooms if r in game.room_entrances), None):
           room_cells = room.get_cells() + room.get_border()
           tween_duration = game.camera.illuminate(room, actor=game.hero)
           if tween_duration:
@@ -613,7 +615,7 @@ class DungeonContext(Context):
       return False
 
     if key == pygame.K_TAB:
-      return game.handle_swap()
+      return game.handle_switch()
 
     if key == pygame.K_f:
       return game.handle_examine()
@@ -728,7 +730,7 @@ class DungeonContext(Context):
             ])
 
       # regen hp
-      if game.parent.sp:
+      if game.store.sp:
         if not hero.is_dead() and not hero.ailment == "sleep":
           hero.regen()
         if ally and not ally.is_dead() and not ally.ailment == "sleep":
@@ -736,7 +738,7 @@ class DungeonContext(Context):
 
       # deplete sp
       if target_tile is not Stage.OASIS:
-        game.parent.deplete_sp(1 / 100)
+        game.store.deplete_sp(1 / 100)
 
     if hero.get_facing() != delta:
       hero.set_facing(delta)
@@ -819,7 +821,7 @@ class DungeonContext(Context):
     elif type(item) is type and issubclass(item, Skill):
       game.learn_skill(item)
     else:
-      game.parent.obtain(item)
+      game.store.obtain(item)
     return True
 
   def jump_pit(game, actor, run=False, on_end=None):
@@ -839,7 +841,7 @@ class DungeonContext(Context):
       if not hero.weapon:
         hero.weapon = hero.find_weapon()
       if hero.weapon:
-        game.parent.deplete_sp(hero.weapon.cost)
+        game.store.sp -= hero.weapon.cost
         return game.attack(hero, target_actor, on_end=game.step)
       return False
     target_elem = game.floor.get_elem_at(target_cell)
@@ -865,16 +867,20 @@ class DungeonContext(Context):
   def handle_wait(game):
     game.step()
 
-  def handle_swap(game):
+  def switch_chars(game):
     if not game.ally or game.ally.is_dead():
       return False
     game.hero, game.ally = game.ally, game.hero
-    game.parent.swap_chars()
+    game.store.switch_chars()
+    game.party.reverse()
     game.refresh_fov(moving=True)
     return True
 
+  def handle_switch(game):
+    return game.switch_chars()
+
   def recruit(game, actor):
-    game.parent.recruit(actor.core)
+    game.store.recruit(actor.core)
     game.ally = actor
 
   def handle_skill(game):
@@ -1222,7 +1228,7 @@ class DungeonContext(Context):
         enemy_drops = type(target).drops
         if enemy_skill and target.rare:
           skill = enemy_skill
-          if skill not in game.parent.skill_pool:
+          if skill not in game.store.skills:
             game.floor.spawn_elem_at(target.cell, Soul(contents=skill))
         elif (enemy_drops
         and randint(1, 3) == 1
@@ -1239,7 +1245,7 @@ class DungeonContext(Context):
         game.anims[0].append(PauseAnim(
           duration=DungeonContext.PAUSE_DEATH_DURATION,
           on_end=lambda: (
-            game.handle_swap()
+            game.handle_switch()
             and [on_end and on_end()]
             or game.open(GameOverContext())
           )
@@ -1371,7 +1377,7 @@ class DungeonContext(Context):
     if success:
       game.log.print(("Used ", item.token(item)))
       game.log.print(message)
-      game.parent.inventory.items.remove(item)
+      game.store.discard_item(item)
       return True, None
     else:
       game.anims.pop()
@@ -1380,7 +1386,7 @@ class DungeonContext(Context):
   def use_skill(game, actor, skill, dest=None, on_end=None):
     camera = game.camera
     if actor.get_faction() == "player":
-      game.parent.deplete_sp(skill.cost)
+      game.store.sp -= skill.cost
     if skill.kind == "weapon":
       actor_x, actor_y = actor.cell
       facing_x, facing_y = actor.facing
@@ -1425,7 +1431,7 @@ class DungeonContext(Context):
     hero.dispel_ailment()
     game.numbers.append(DamageValue(hero.get_hp_max(), add_vector(hero.cell, (0, -0.25)), color=GREEN))
     game.numbers.append(DamageValue(game.get_sp_max(), hero.cell, color=CYAN))
-    game.parent.regen_sp()
+    game.store.regen_sp()
 
   def use_oasis(game):
     if game.oasis_used:
@@ -1512,7 +1518,7 @@ class DungeonContext(Context):
       Floor = DungeonContext.FLOORS[gen_index + direction]
       app.transition(
         transits=(DissolveIn(), DissolveOut()),
-        loader=Floor.generate(game.parent.story),
+        loader=Floor.generate(game.store.story),
         on_end=lambda floor: (
           remove_heroes(),
           game.use_floor(floor, direction=direction, generator=Floor),
@@ -1554,16 +1560,17 @@ class DungeonContext(Context):
     return True
 
   def get_gold(game):
-    return game.parent.get_gold()
+    return game.store.gold
 
   def change_gold(game, amount):
-    return game.parent.change_gold(amount)
+    game.store.gold += amount
+    return game.store.gold
 
   def get_sp(game):
-    return game.parent.get_sp()
+    return game.store.sp
 
   def get_sp_max(game):
-    return game.parent.get_sp_max()
+    return MAX_SP
 
   def get_visible_cells(game, actor=None):
     return (actor or game.hero).visible_cells
@@ -1632,6 +1639,9 @@ class DungeonContext(Context):
     if game.anims:
       group = game.anims[0]
       for anim in group:
+        if anim is None:
+          group.remove(anim)
+          continue
         anim.update()
         if anim.done:
           group.remove(anim)

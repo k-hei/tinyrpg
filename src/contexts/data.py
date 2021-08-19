@@ -105,20 +105,20 @@ class Slot:
       x = slot.ICON_X
       y = slot.ICON_Y + slot.LABEL_OVERLAP
 
-      if "knight" in slot.data.chars:
-        if "knight" not in slot.data.party:
+      if "Knight" in slot.data.builds:
+        if "Knight" not in slot.data.party:
           knight_image = darken_image(knight_image)
         surface.blit(knight_image, (x, y))
         x += knight_image.get_width() + slot.ICON_SPACING
 
-      if "mage" in slot.data.chars:
-        if "mage" not in slot.data.party:
+      if "Mage" in slot.data.builds:
+        if "Mage" not in slot.data.party:
           mage_image = darken_image(mage_image)
         surface.blit(mage_image, (x, y))
         x += mage_image.get_width() + slot.ICON_SPACING
 
-      if "rogue" in slot.data.chars:
-        if "rogue" not in slot.data.party:
+      if "Rogue" in slot.data.builds:
+        if "Rogue" not in slot.data.party:
           rogue_image = darken_image(rogue_image)
         surface.blit(rogue_image, (x, y))
         x += rogue_image.get_width() + slot.ICON_SPACING

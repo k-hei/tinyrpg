@@ -25,7 +25,7 @@ class Coffin(Prop):
     coffin.contents = None
     item_anim = None
     if item:
-      if game.obtain(item):
+      if game.store.obtain(item):
         if type(item) is type:
           item = item()
         game.anims.append([

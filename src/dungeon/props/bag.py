@@ -25,10 +25,7 @@ class Bag(Prop):
     )])
     game.log.print("You open the bag")
     if bag.contents:
-      if issubclass(bag.contents, Skill):
-        game.learn_skill(skill=bag.contents)
-      else:
-        game.obtain(bag.contents)
+      game.store.obtain(bag.contents)
       game.log.print(("Received ", bag.contents().token(), "."))
     else:
       game.log.print("But there was nothing inside...")

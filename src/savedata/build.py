@@ -52,14 +52,18 @@ def build_materials(materials_path, actors_path):
 
   return materials
 
-def build_buffer(items, skills, elems, actors, materials):
+def build_buffer(items, skills, cores, elems, actors, materials):
   buffer = ""
-  for key, path in items.items():
+  for key, path in [l for m in [
+    items.items(),
+    skills.items(),
+    cores.items(),
+    elems.items(),
+  ] for l in m]:
     buffer += "from {} import {}\n".format(path, key)
-  for key, path in skills.items():
-    buffer += "from {} import {}\n".format(path, key)
-  for key, path in elems.items():
-    buffer += "from {} import {}\n".format(path, key)
+  for key, path in cores.items():
+    if not key.endswith("Core"):
+      buffer += "from {} import {} as {}Core\n".format(path, key, key)
 
   buffer += "\ndef resolve_item(key):\n"
   for key in items.keys():
@@ -68,6 +72,11 @@ def build_buffer(items, skills, elems, actors, materials):
   buffer += "\ndef resolve_skill(key):\n"
   for key in skills.keys():
     buffer += "  if key == \"{key}\": return {key}\n".format(key=key)
+
+  buffer += "\ndef resolve_core(key):\n"
+  for key in cores.keys():
+    if not key.endswith("Core"):
+      buffer += "  if key == \"{key}\": return {key}Core\n".format(key=key)
 
   buffer += "\ndef resolve_elem(key):\n"
   for key in elems.keys():
@@ -82,11 +91,12 @@ def build_buffer(items, skills, elems, actors, materials):
 if __name__ == "__main__":
   items = build_tree("src/items")
   skills = build_tree("src/skills")
+  cores = build_tree("src/cores", root=True)
   elems = build_tree("src/dungeon", exclude=["gen"])
   actors = build_tree("src/dungeon/actors", root=True)
   materials = build_materials("src/items/materials", "src/dungeon/actors")
-  buffer = build_buffer(items, skills, elems, actors, materials)
-  print(buffer)
+  buffer = build_buffer(items, skills, cores, elems, actors, materials)
+  # print(buffer)
   output_file = open("src/savedata/resolve.py", "w")
   output_file.write(buffer)
   output_file.close()
