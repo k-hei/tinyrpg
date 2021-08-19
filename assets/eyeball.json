@@ -1,6 +1,17 @@
 {
-  "eyeball":        [ 0,  0, 32, 32],
-  "eyeball_move":   [32,  0, 32, 32],
-  "eyeball_flinch": [ 0, 32, 32, 32],
-  "eyeball_sleep":  [32, 32, 32, 32]
+  "eyeball":        [  0, 0, 32, 32],
+  "eyeball_move":   [ 32, 0, 32, 32],
+  "eyeball_sleep":  [ 64, 0, 32, 32],
+  "eyeball_charge": [ 96, 0, 32, 32],
+  "eyeball_flinch": [128, 0, 32, 32],
+  "eyeball_right":        [  0, 32, 32, 32],
+  "eyeball_move_right":   [ 32, 32, 32, 32],
+  "eyeball_sleep_right":  [ 64, 32, 32, 32],
+  "eyeball_charge_right": [ 96, 32, 32, 32],
+  "eyeball_flinch_right": [128, 32, 32, 32],
+  "eyeball_up":        [  0, 64, 32, 32],
+  "eyeball_move_up":   [ 32, 64, 32, 32],
+  "eyeball_sleep_up":  [ 64, 64, 32, 32],
+  "eyeball_charge_up": [ 96, 64, 32, 32],
+  "eyeball_flinch_up": [128, 64, 32, 32]
 }
