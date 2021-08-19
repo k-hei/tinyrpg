@@ -12,7 +12,7 @@ import keyboard
 from keyboard import key_times, ARROW_DELTAS
 from colors.palette import BLACK, WHITE, GRAY, BLUE
 from sprite import Sprite
-from config import WINDOW_WIDTH, WINDOW_HEIGHT
+from config import WINDOW_WIDTH, WINDOW_HEIGHT, INVENTORY_COLS, INVENTORY_ROWS
 
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
@@ -56,10 +56,9 @@ class InventoryContext(Context):
     else:
       return []
 
-  def __init__(ctx, inventory, has_ally=False, on_close=None):
+  def __init__(ctx, store, on_close=None):
     super().__init__(on_close=on_close)
-    ctx.data = inventory
-    ctx.has_ally = has_ally
+    ctx.store = store
     ctx.on_animate = None
     ctx.tab = 0
     ctx.cursor = (0, 0)
@@ -67,7 +66,7 @@ class InventoryContext(Context):
     ctx.active = True
     ctx.anims = []
     ctx.box = InventoryDescription()
-    ctx.grid_size = (inventory.cols, inventory.rows)
+    ctx.grid_size = (INVENTORY_COLS, INVENTORY_ROWS)
     ctx.items = []
     ctx.update_items()
 
@@ -174,7 +173,7 @@ class InventoryContext(Context):
 
   def discard(ctx):
     item = ctx.get_selected_item()
-    ctx.data.items.remove(item)
+    ctx.store.items.remove(item)
     ctx.update_items()
     return True
 
@@ -245,7 +244,7 @@ class InventoryContext(Context):
         ))
 
   def update_items(ctx):
-    ctx.items = InventoryContext.filter_items(ctx.data.items, ctx.tabs[ctx.tab])
+    ctx.items = InventoryContext.filter_items(ctx.store.items, ctx.tabs[ctx.tab])
     ctx.cursor = (0, 0)
     ctx.select()
 
@@ -277,7 +276,7 @@ class InventoryContext(Context):
     sprites = []
     assets = use_assets()
 
-    sprite_hud = assets.sprites["hud" if ctx.has_ally else "hud_single"]
+    sprite_hud = assets.sprites["hud" if len(ctx.store.party) == 2 else "hud_single"]
     sprite_belt = assets.sprites["belt"]
     sprite_hand = assets.sprites["hand"]
     sprite_circle = assets.sprites["circle_knight"]

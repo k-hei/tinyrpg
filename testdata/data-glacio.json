@@ -13,8 +13,7 @@
           2, 2, 2, 2, 2, 2, 2, 2, 2, 2
         ],
         "elems": [
-          [[7, 2], "Eyeball"],
-          [[7, 3], "Eyeball"]
+          [[7, 2], "Eyeball"]
         ],
         "rooms": [
           [[1, 1, 8, 4], "Room"]
@@ -22,7 +21,7 @@
       }
     ]
   },
-  "skills": ["Congelatio", "Cudgel"],
+  "skills": ["Glacio"],
   "party": ["mage"],
-  "chars": { "mage": { "Congelatio": [0, 0], "Cudgel": [2, 0] } }
+  "builds": { "mage": { "Glacio": [0, 0] } }
 }

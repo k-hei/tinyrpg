@@ -8,21 +8,19 @@
           2, 2, 2, 2, 2, 2, 2,
           2, 0, 0, 0, 0, 0, 2,
           2, 0, 1, 1, 1, 0, 2,
-          3, 1, 1, 1, 1, 0, 2,
+          2, 0, 1, 3, 1, 0, 2,
           2, 0, 1, 1, 1, 0, 2,
           2, 0, 0, 0, 0, 0, 2,
           2, 2, 2, 2, 2, 2, 2
         ],
-        "elems": [
-          [[4, 3], "Eyeball"]
-        ],
+        "elems": [],
         "rooms": [
           [[1, 1, 5, 5], "Room"]
         ]
       }
     ]
   },
-  "skills": ["Buckler", "RustyBlade"],
+  "skills": ["RustyBlade", "Buckler", "HpUp", "ShieldBash", "Cleave"],
   "party": ["knight"],
-  "chars": { "knight": { "Buckler": [0, 0], "RustyBlade": [2, 0] } }
+  "builds": { "knight": {} }
 }

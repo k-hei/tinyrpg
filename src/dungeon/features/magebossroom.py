@@ -53,7 +53,7 @@ class MageBossRoom(SpecialRoom):
       door.handle_open(game)
 
   def on_focus(room, game):
-    if not super().on_focus(game) or "minxia" in game.parent.story:
+    if not super().on_focus(game) or "minxia" in game.store.story:
       return False
     room.mage = Mage(
       faction="ally",
@@ -63,7 +63,7 @@ class MageBossRoom(SpecialRoom):
     return True
 
   def on_enter(room, game):
-    if not super().on_enter(game) or "minxia" in game.parent.story:
+    if not super().on_enter(game) or "minxia" in game.store.story:
       return False
     room.lock(game)
     game.anims.append([PauseAnim(
@@ -83,7 +83,7 @@ class MageBossRoom(SpecialRoom):
     return True
 
   def on_complete(room, game):
-    game.parent.story.append("minxia")
+    game.store.story.append("minxia")
     game.anims.append([PauseAnim(
       duration=30,
       on_end=lambda: game.open(CutsceneContext(

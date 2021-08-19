@@ -5,14 +5,17 @@
   "gold": 9999,
   "items": [],
   "skills": ["Cleave", "Cudgel", "Glacio", "Sana"],
-  "party": ["knight"],
-  "chars": {
-    "knight": {},
-    "mage": {
+  "new_skills": [],
+  "selected_skill": {},
+  "party": ["Knight"],
+  "builds": {
+    "Knight": {},
+    "Mage": {
       "Sana": [0, 0],
       "Glacio": [1, 1]
     },
-    "rogue": {}
+    "Rogue": {}
   },
+  "kills": {},
   "story": []
 }

@@ -26,5 +26,5 @@
   },
   "skills": ["Buckler", "RustyBlade"],
   "party": ["knight"],
-  "chars": { "knight": { "Buckler": [0, 0], "RustyBlade": [2, 0] } }
+  "builds": { "knight": { "Buckler": [0, 0], "RustyBlade": [2, 0] } }
 }

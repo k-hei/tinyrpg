@@ -14,9 +14,9 @@ from cores.knight import Knight
 from cores.mage import Mage
 
 class TownContext(Context):
-  def __init__(ctx, party=[Knight()], returning=False):
+  def __init__(ctx, store, returning=False):
     super().__init__()
-    ctx.party = party
+    ctx.store = store
     ctx.returning = returning
     ctx.area = OutskirtsArea
     ctx.graph = TownGraph(
@@ -35,22 +35,12 @@ class TownContext(Context):
     ctx.load_area(ctx.area, link)
 
   def load_area(ctx, area, link=None):
-    for char in ctx.party:
+    for char in ctx.store.party:
       char.anims.clear()
     if area is DungeonContext:
       return ctx.parent.goto_dungeon()
     if issubclass(area, SideViewArea):
-      child = SideViewContext(area, ctx.graph, ctx.party, link)
+      child = SideViewContext(store=ctx.store, area=area, spawn=link)
     elif issubclass(area, TopViewArea):
-      child = TopViewContext(area, ctx.party, link)
+      child = TopViewContext(store=ctx.store, area=area, spawn=link)
     ctx.open(child)
-
-  def recruit(ctx, char):
-    ctx.parent.recruit(char)
-    if len(ctx.party) == 1:
-      ctx.party.append(char)
-    else:
-      ctx.party[1] = char
-
-  def get_inventory(ctx):
-    return ctx.parent.get_inventory()

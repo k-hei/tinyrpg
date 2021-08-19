@@ -2,6 +2,7 @@ from contexts.data import DataContext
 from contexts.dialogue import DialogueContext
 from contexts.prompt import PromptContext, Choice
 from transits.dissolve import DissolveIn, DissolveOut
+from game.data import GameData
 
 class LoadContext(DataContext):
   title = "LOAD DATA"
@@ -17,6 +18,7 @@ class LoadContext(DataContext):
     savedata = ctx.slots[ctx.index].data
     if savedata is None:
       return False
+    gamedata = GameData.decode(savedata)
     ctx.open(PromptContext("Load this file?", [
       Choice("Yes"),
       Choice("No", closing=True)
@@ -25,7 +27,7 @@ class LoadContext(DataContext):
         script=["Save data loaded successfully."],
         lite=True,
         on_close=lambda: ctx.get_head().transition([
-          DissolveIn(on_end=lambda: ctx.close(savedata)),
+          DissolveIn(on_end=lambda: ctx.close(gamedata)),
           DissolveOut()
         ])
       ))

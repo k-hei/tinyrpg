@@ -5,6 +5,7 @@ from colors.palette import WHITE, SAFFRON
 from sprite import Sprite
 
 class Pillar(DungeonElement):
+  solid = True
   static = True
 
   def view(pillar, anims):

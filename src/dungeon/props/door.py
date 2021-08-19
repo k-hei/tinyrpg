@@ -16,6 +16,7 @@ class SpriteMap:
 
 class Door(Prop):
   solid = True
+  static = True
   active = True
   sprites = SpriteMap(
     closed="door_puzzle",
@@ -24,7 +25,7 @@ class Door(Prop):
   )
 
   def __init__(door, opened=False, locked=False):
-    super().__init__(solid=(not opened), opaque=(not opened), static=True)
+    super().__init__(solid=(not opened), opaque=(not opened))
     door.opened = opened
     door.locked = locked
     door.vertical = False

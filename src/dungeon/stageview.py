@@ -320,7 +320,7 @@ class StageView:
     visible_cells = ctx.hero.visible_cells
     visited_cells = ctx.get_visited_cells()
     camera = ctx.camera
-    anims = ctx.anims
+    anims = [[a for a in g if a] for g in ctx.anims]
     vfx = ctx.vfx
     numbers = ctx.numbers
     hero = ctx.hero
