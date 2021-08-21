@@ -57,7 +57,9 @@ class GameData:
       kills=store.kills,
       story=store.story,
       place=place,
-      dungeon=(store.place.save() if store.place and place == "dungeon" else None)
+      dungeon=(store.place.save()
+        if store.place and place == "dungeon"
+        else None)
     )
 
   def decode(savedata):
@@ -81,7 +83,9 @@ class GameData:
       kills=savedata.kills,
       story=savedata.story,
       place=savedata.place,
-      dungeon=(savedata.dungeon and DungeonData(**savedata.dungeon))
+      dungeon=(DungeonData(**savedata.dungeon)
+        if savedata.dungeon and type(savedata.dungeon) is not DungeonData
+        else savedata.dungeon)
     )
 
   def regen_sp(store, amount=None):
