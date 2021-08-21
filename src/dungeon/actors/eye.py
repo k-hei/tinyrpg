@@ -68,19 +68,22 @@ class Meyetosis(Skill):
     if neighbors:
       neighbor = choice(neighbors)
       clone = Eyeball(clone=True, facing=user.facing)
-      game.floor.spawn_elem_at(neighbor, clone)
       game.anims.append([
         BounceAnim(
           duration=20,
-          target=user
-        ),
-        PauseAnim(duration=10),
-        Eyeball.SplitAnim(
-          duration=30,
-          target=clone,
-          src=user.cell,
-          dest=neighbor,
-          on_end=on_end
+          target=user,
+          on_return=lambda: (
+            game.floor.spawn_elem_at(neighbor, clone),
+            game.anims[0].append(
+              Eyeball.SplitAnim(
+                duration=15,
+                target=clone,
+                src=user.cell,
+                dest=neighbor,
+                on_end=on_end
+              )
+            )
+          )
         )
       ])
 
@@ -98,7 +101,7 @@ class Eyeball(DungeonActor):
       faction=faction,
       stats=Stats(
         hp=14,
-        st=12,
+        st=11,
         dx=5,
         ag=6,
         lu=3,
