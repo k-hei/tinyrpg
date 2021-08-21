@@ -2,13 +2,18 @@ import debug
 import json
 from dataclasses import dataclass, field
 from items import Item
+from inventory import Inventory
 from skills import Skill, get_skill_order
 from cores import Core
 from contexts import Context
 from dungeon.data import DungeonData
 from savedata import SaveData
 from savedata.resolve import resolve_item, resolve_skill, resolve_core
-from config import MAX_SP, KNIGHT_BUILD, MAGE_BUILD, ROGUE_BUILD
+from config import (
+  MAX_SP,
+  INVENTORY_COLS, INVENTORY_ROWS,
+  KNIGHT_BUILD, MAGE_BUILD, ROGUE_BUILD
+)
 
 def decode_build(build_data):
   return [(resolve_skill(skill_name), skill_cell)
@@ -110,10 +115,7 @@ class GameData:
       return False
 
   def obtain_item(store, item):
-    if item in store.items:
-      return False
-    store.items.append(item)
-    return True
+    return Inventory.append(store.items, item)
 
   def discard_item(store, item):
     if item not in store.items:
