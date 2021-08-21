@@ -78,9 +78,7 @@ class DungeonElement:
     moving = next((g for g in anims if next((a for a in g if a.target is elem and type(a) is MoveAnim), None)), None)
     anim_group = anims[0] if anims else []
     for anim in [a for a in anim_group if a.target is elem]:
-      if isinstance(anim, MoveAnim) or type(anim) is PathAnim:
-        if not anim.cell:
-          continue
+      if (isinstance(anim, MoveAnim) or type(anim) is PathAnim) and anim.cell:
         offset_x, offset_y = vector.add((offset_x, offset_y), elem.get_move_offset(anim))
         if (type(anim) is MoveAnim
         and anim.facing != (0, 0)
@@ -112,8 +110,6 @@ class DungeonElement:
         scale_x, scale_y = anim.scale
         sprite_width *= scale_x
         sprite_height *= scale_y
-      if type(anim) is JumpAnim:
-        offset_y += anim.offset
       elif type(anim) is DropAnim:
         offset_y = -anim.y
       elif isinstance(anim, ShakeAnim):
@@ -121,6 +117,8 @@ class DungeonElement:
       elif type(anim) is FallAnim:
         offset_y = anim.y
         sprite_layer = "tiles"
+      if type(anim) is JumpAnim:
+        offset_y += anim.offset
 
     # HACK: if element will move during a future animation sequence,
     # make sure it doesn't jump ahead to the target position

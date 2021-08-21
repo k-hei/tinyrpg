@@ -10,8 +10,6 @@ from colors.palette import PINK, GOLD, BLACK
 from contexts.dialogue import DialogueContext
 from sprite import Sprite
 from inventory import Inventory
-from items import Item
-from skills import Skill
 
 class Chest(Prop):
   solid = True
@@ -44,7 +42,7 @@ class Chest(Prop):
     item = chest.contents
     item_anim = None
     if item:
-      if True:
+      if game.store.obtain(item):
         anims = [
           [JumpAnim(
             target=chest,
@@ -72,10 +70,6 @@ class Chest(Prop):
             )
           )
         ])
-        if not isinstance(item, Item) and issubclass(item, Skill):
-          game.store.learn_skill(skill=item)
-        else:
-          game.store.obtain_item(item)
         script = [(
           ("", ("Obtained ", item().token(), "."))
         )]
