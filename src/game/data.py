@@ -56,7 +56,7 @@ class GameData:
       items=[i.__name__ for i in store.items],
       skills=[s.__name__ for s in store.skills],
       new_skills=[s.__name__ for s in store.new_skills],
-      selected_skill={ n: s.__name__ for n, s in store.selected_skill.items() },
+      selected_skill={ n: s.__name__ for n, s in store.selected_skill.items() if s is not None },
       party=[type(c).__name__ for c in store.party],
       builds=builds,
       kills=store.kills,
