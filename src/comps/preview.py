@@ -11,7 +11,7 @@ from anims.flicker import FlickerAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
 
-from dungeon.actors.eye import Eyeball
+from dungeon.actors.eyeball import Eyeball
 from dungeon.actors.mimic import Mimic
 
 MARGIN = 8

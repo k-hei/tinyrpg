@@ -60,33 +60,6 @@ def SleepSprite(facing):
   elif facing[0]:
     return sprites["eyeball_sleep_right"]
 
-class Meyetosis(Skill):
-  name = "Meyetosis"
-  chant_turns = 2
-  def effect(user, dest, game, on_end=None):
-    neighbors = [c for c in neighborhood(user.cell) if game.floor.is_cell_empty(c)]
-    if neighbors:
-      neighbor = choice(neighbors)
-      clone = Eyeball(clone=True, facing=user.facing)
-      game.anims.append([
-        BounceAnim(
-          duration=20,
-          target=user,
-          on_return=lambda: (
-            game.floor.spawn_elem_at(neighbor, clone),
-            game.anims[0].append(
-              Eyeball.SplitAnim(
-                duration=15,
-                target=clone,
-                src=user.cell,
-                dest=neighbor,
-                on_end=on_end
-              )
-            )
-          )
-        )
-      ])
-
 class Eyeball(DungeonActor):
   drops = [AngelTears]
   skill = HpUp
@@ -94,6 +67,32 @@ class Eyeball(DungeonActor):
 
   class ChargeAnim(ShakeAnim): pass
   class SplitAnim(MoveAnim): pass
+  class Meyetosis(Skill):
+    name = "Meyetosis"
+    chant_turns = 2
+    def effect(user, dest, game, on_end=None):
+      neighbors = [c for c in neighborhood(user.cell) if game.floor.is_cell_empty(c)]
+      if neighbors:
+        neighbor = choice(neighbors)
+        clone = Eyeball(clone=True, facing=user.facing)
+        game.anims.append([
+          BounceAnim(
+            duration=20,
+            target=user,
+            on_return=lambda: (
+              game.floor.spawn_elem_at(neighbor, clone),
+              game.anims[0].append(
+                Eyeball.SplitAnim(
+                  duration=15,
+                  target=clone,
+                  src=user.cell,
+                  dest=neighbor,
+                  on_end=on_end
+                )
+              )
+            )
+          )
+        ])
 
   def __init__(eyeball, faction="enemy", rare=False, chant_skill=None, chant_turns=0, clones=0, clone=False, *args, **kwargs):
     super().__init__(Core(
@@ -130,7 +129,7 @@ class Eyeball(DungeonActor):
     eyeball.chant_turns = 0
     eyeball.core.anims.clear()
     eyeball.clones += 1
-    return ("use_skill", Meyetosis)
+    return ("use_skill", Eyeball.Meyetosis)
 
   def step(eyeball, game):
     enemy = game.find_closest_enemy(eyeball)
@@ -148,7 +147,7 @@ class Eyeball(DungeonActor):
     and not eyeball.clone
     and eyeball.clones < Eyeball.CLONES_MAX
     and randint(1, 3) == 1):
-      return eyeball.chant(Meyetosis, game)
+      return eyeball.chant(Eyeball.Meyetosis, game)
     elif is_adjacent(eyeball.cell, enemy.cell):
       return ("attack", enemy)
     else:

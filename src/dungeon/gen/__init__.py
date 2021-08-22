@@ -23,7 +23,7 @@ from dungeon.features.itemroom import ItemRoom
 
 from dungeon.actors.knight import Knight
 from dungeon.actors.mage import Mage
-from dungeon.actors.eye import Eyeball
+from dungeon.actors.eyeball import Eyeball
 from dungeon.actors.mushroom import Mushroom
 from dungeon.actors.skeleton import Skeleton
 from dungeon.actors.mimic import Mimic

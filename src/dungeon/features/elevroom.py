@@ -1,6 +1,6 @@
 from dungeon.features.specialroom import SpecialRoom
 from dungeon.stage import Stage
-from dungeon.actors.eye import Eyeball
+from dungeon.actors.eyeball import Eyeball
 from assets import load as use_assets
 from sprite import Sprite
 from config import TILE_SIZE

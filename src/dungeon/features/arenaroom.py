@@ -3,7 +3,7 @@ from random import choice
 from lib.cell import manhattan, neighborhood
 from dungeon.features.specialroom import SpecialRoom
 from dungeon.actors import DungeonActor
-from dungeon.actors.eye import Eyeball
+from dungeon.actors.eyeball import Eyeball
 from dungeon.actors.mushroom import Mushroom
 from dungeon.props.door import Door
 from dungeon.props.battledoor import BattleDoor

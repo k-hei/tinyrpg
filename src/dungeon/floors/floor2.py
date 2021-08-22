@@ -10,7 +10,7 @@ from dungeon.features.puzzleroom import PuzzleRoom
 from dungeon.features.oasisroom import OasisRoom
 from dungeon.features.enemyroom import EnemyRoom
 from dungeon.features.traproom import TrapRoom
-from dungeon.actors.eye import Eyeball
+from dungeon.actors.eyeball import Eyeball
 from dungeon.actors.mushroom import Mushroom
 from dungeon.actors.skeleton import Skeleton
 from dungeon.actors.genie import Genie

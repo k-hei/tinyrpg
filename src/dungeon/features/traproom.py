@@ -2,7 +2,7 @@ import lib.vector as vector
 from dungeon.features.specialroom import SpecialRoom
 from dungeon.props.arrowtrap import ArrowTrap
 from dungeon.props.chest import Chest
-from dungeon.actors.eye import Eyeball
+from dungeon.actors.eyeball import Eyeball
 from items.sp.fish import Fish
 
 class TrapRoom(SpecialRoom):

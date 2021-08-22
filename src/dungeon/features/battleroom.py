@@ -1,5 +1,5 @@
 from dungeon.features.specialroom import SpecialRoom
-from dungeon.actors.eye import Eyeball
+from dungeon.actors.eyeball import Eyeball
 from dungeon.actors.mushroom import Mushroom
 from random import choice
 

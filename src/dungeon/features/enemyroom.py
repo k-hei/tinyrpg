@@ -2,7 +2,7 @@ from random import choice
 from lib.cell import manhattan
 from dungeon.features.room import Room
 from dungeon.props.chest import Chest
-from dungeon.actors.eye import Eyeball
+from dungeon.actors.eyeball import Eyeball
 
 class EnemyRoom(Room):
   def __init__(room, enemies=[], degree=2, *args, **kwargs):

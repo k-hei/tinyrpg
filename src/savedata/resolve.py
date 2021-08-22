@@ -104,8 +104,8 @@ from dungeon.actors.genie import Genie
 from dungeon.actors.mummy import Mummy
 from dungeon.actors.npc import Npc
 from dungeon.actors.skeleton import Skeleton
+from dungeon.actors.eyeball import Eyeball
 from dungeon.actors.mage import Mage
-from dungeon.actors.eye import Meyetosis
 from dungeon.actors.mimic import Mimic
 from dungeon.actors.knight import Knight
 from dungeon.actors.mushroom import Mushroom
@@ -234,8 +234,8 @@ def resolve_elem(key):
   if key == "Mummy": return Mummy
   if key == "Npc": return Npc
   if key == "Skeleton": return Skeleton
+  if key == "Eyeball": return Eyeball
   if key == "Mage": return Mage
-  if key == "Meyetosis": return Meyetosis
   if key == "Mimic": return Mimic
   if key == "Knight": return Knight
   if key == "Mushroom": return Mushroom
@@ -247,7 +247,7 @@ def resolve_elem(key):
 
 def resolve_material(material):
   if material is Diamond: return None
-  if material is AngelTears: return Meyetosis
+  if material is AngelTears: return Eyeball
   if material is RedFerrule: return Mushroom
   if material is Club: return Skeleton
   if material is BroadSword: return Mage

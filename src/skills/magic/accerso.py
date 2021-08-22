@@ -4,7 +4,7 @@ from anims.pause import PauseAnim
 from anims.bounce import BounceAnim
 from anims.warpin import WarpInAnim
 from cores.mage import Mage
-from dungeon.actors.eye import Eyeball
+from dungeon.actors.eyeball import Eyeball
 from config import ENABLED_COMBAT_LOG
 
 class Accerso(MagicSkill):
