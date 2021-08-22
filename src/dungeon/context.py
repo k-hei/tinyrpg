@@ -1156,28 +1156,27 @@ class DungeonContext(Context):
       damage = game.find_damage(actor, target, modifier=1.5)
 
     def connect():
-      on_connect and on_connect()
-
-      real_target = actor if target.counter else target
-      real_damage = damage
-      if target.counter:
-        ENABLED_COMBAT_LOG and game.log.print((target.token(), " reflected the attack!"))
-        # target.counter = False
-        real_target = actor
-        real_damage = DungeonActor.find_damage(actor, actor)
-
       def end_attack():
         on_end = command.on_end
         command.on_end = None
         on_end and on_end()
 
-      game.flinch(
-        target=real_target,
-        damage=real_damage,
-        direction=actor.facing,
-        crit=crit,
-        on_end=end_attack
-      )
+      if is_adjacent(actor.cell, target.cell):
+        on_connect and on_connect()
+        real_target = actor if target.counter else target
+        real_damage = damage
+        if target.counter:
+          real_target = actor
+          real_damage = DungeonActor.find_damage(actor, actor)
+        game.flinch(
+          target=real_target,
+          damage=real_damage,
+          direction=actor.facing,
+          crit=crit,
+          on_end=end_attack
+        )
+      else:
+        end_attack()
 
     command = SkillCommand(skill=actor.weapon, on_end=on_end)
     actor.command = command

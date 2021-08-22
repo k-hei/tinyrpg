@@ -1,9 +1,11 @@
 from math import pi, sin
-from cores import Core
+from cores import Core, Stats
 import assets
 from sprite import Sprite
 from filters import ripple
 from anims.frame import FrameAnim
+from anims.flinch import FlinchAnim
+from anims.flicker import FlickerAnim
 
 FLOAT_PERIOD = 180
 FLOAT_AMP = 2
@@ -14,23 +16,53 @@ class Ghost(Core):
     frames_duration = 10
     loop = True
 
+  class TurnAnim(FrameAnim):
+    frames = [assets.sprites["ghost_turn"]]
+    frames_duration = 5
+
   def __init__(ghost, name="Ghost", faction="enemy", *args, **kwargs):
-    super().__init__(name=name, faction=faction, *args, **kwargs)
+    super().__init__(
+      name=name,
+      faction=faction,
+      stats=Stats(
+        hp=11,
+        st=10,
+        dx=7,
+        ag=12,
+        lu=3,
+        en=8,
+      ),
+      *args,
+      **kwargs
+    )
     ghost.time = 0
+    ghost.flipped = False
 
   def update(ghost):
     super().update()
     ghost.time += 1
 
-  def view(ghost, sprites=[]):
-    ghost_anim = ghost.anims and ghost.anims[0]
-    if ghost_anim and isinstance(ghost_anim, FrameAnim):
-      ghost_image = ghost_anim.frame()
-    else:
-      ghost_image = assets.sprites["ghost"]
-    ghost_image = ripple(ghost_image, start=16, end=32, time=ghost.time)
+  def view(ghost, sprites=[], anims=[]):
+    if not sprites:
+      return None
+    is_flinching = next((a for a in anims if type(a) in (FlinchAnim, FlickerAnim)), False)
+    ghost_sprite, *other_sprites = sprites
+    old_flipped = ghost.flipped
+    if not ghost.flipped and ghost.facing[0] == -1:
+      ghost.flipped = True
+    elif ghost.flipped and ghost.facing[0] == 1:
+      ghost.flipped = False
+    if ghost.flipped != old_flipped:
+      turn_anim = Ghost.TurnAnim()
+      ghost.anims.append(turn_anim)
+      ghost_sprite.image = turn_anim.frame()
+    ghost_sprite.image = ripple(ghost_sprite.image,
+      start=(0 if is_flinching else 16),
+      end=32,
+      waves=(4 if is_flinching else 2),
+      period=(45 if is_flinching else 90),
+      time=ghost.time,
+      pinch=not is_flinching)
     ghost_y = sin(ghost.time % FLOAT_PERIOD / FLOAT_PERIOD * 2 * pi) * FLOAT_AMP
-    return super().view([Sprite(
-      image=ghost_image,
-      pos=(0, ghost_y)
-    )])
+    ghost_sprite.move((0, ghost_y))
+    return super().view([ghost_sprite, *other_sprites])

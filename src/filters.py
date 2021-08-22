@@ -79,7 +79,7 @@ def shadow_lite(surface, color):
   new_surface.blit(surface, (0, 0))
   return new_surface
 
-def ripple(surface, start, end, waves=2, amplitude=4, period=90, time=0):
+def ripple(surface, start, end, waves=2, amplitude=4, period=90, time=0, pinch=True):
   new_surface = Surface(surface.get_size(), SRCALPHA).convert_alpha()
   new_surface.blit(surface.subsurface(Rect(0, 0, surface.get_width(), start)), (0, 0))
   for y in range(start, end):
@@ -87,6 +87,6 @@ def ripple(surface, start, end, waves=2, amplitude=4, period=90, time=0):
     p = i / (end - start)
     t = time + p * period
     t = (t % (period / waves) / period) * waves
-    x = sin(t * 2 * pi) * ease_out(p) * amplitude
+    x = sin(t * 2 * pi) * (ease_out(p) if pinch else 1) * amplitude
     new_surface.blit(surface.subsurface(Rect(0, y, surface.get_width(), 1)), (x, y))
   return new_surface

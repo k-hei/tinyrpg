@@ -311,7 +311,7 @@ class DungeonActor(DungeonElement):
     actor_cell = actor.cell
     new_color = None
     asleep = actor.ailment == "sleep"
-    anim_group = ([a for a in anims[0] if a.target is actor] if anims else [])
+    anim_group = ([a for a in anims[0] if a.target is actor] if anims else []) + actor.core.anims
     for anim in anim_group:
       if type(anim) is AwakenAnim and anim.visible:
         asleep = True
