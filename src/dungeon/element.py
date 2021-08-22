@@ -79,8 +79,8 @@ class DungeonElement:
     offset_x, offset_y = (0, 0)
     item = None
     moving = next((g for g in anims if next((a for a in g if a.target is elem and type(a) is MoveAnim), None)), None)
-    anim_group = anims[0] if anims else []
-    for anim in [a for a in anim_group if a.target is elem]:
+    anim_group = [a for a in anims[0] if a.target is elem] if anims else []
+    for anim in anim_group:
       if (isinstance(anim, MoveAnim) or type(anim) is PathAnim) and anim.cell:
         offset_x, offset_y = vector.add((offset_x, offset_y), elem.get_move_offset(anim))
         if (type(anim) is MoveAnim

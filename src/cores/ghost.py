@@ -6,19 +6,23 @@ from filters import ripple
 from anims.frame import FrameAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
+from anims.shake import ShakeAnim
 
 FLOAT_PERIOD = 180
 FLOAT_AMP = 2
 
 class Ghost(Core):
+  class ChargeAnim(ShakeAnim): pass
   class LaughAnim(FrameAnim):
     frames = assets.sprites["ghost_laugh"]
     frames_duration = 10
     loop = True
-
   class TurnAnim(FrameAnim):
     frames = [assets.sprites["ghost_turn"]]
     frames_duration = 5
+  class WhipAnim(FrameAnim):
+    frames = assets.sprites["ghost_whip"]
+    frames_duration = [10, 10, 48]
 
   def __init__(ghost, name="Ghost", faction="enemy", *args, **kwargs):
     super().__init__(
@@ -46,6 +50,7 @@ class Ghost(Core):
     if not sprites:
       return None
     is_flinching = next((a for a in anims if type(a) in (FlinchAnim, FlickerAnim)), False)
+    is_whipping = next((a for a in ghost.anims if type(a) is Ghost.WhipAnim), False)
     ghost_sprite, *other_sprites = sprites
     old_flipped = ghost.flipped
     if not ghost.flipped and ghost.facing[0] == -1:
@@ -56,13 +61,14 @@ class Ghost(Core):
       turn_anim = Ghost.TurnAnim()
       ghost.anims.append(turn_anim)
       ghost_sprite.image = turn_anim.frame()
-    ghost_sprite.image = ripple(ghost_sprite.image,
-      start=(0 if is_flinching else 16),
-      end=32,
-      waves=(4 if is_flinching else 2),
-      period=(45 if is_flinching else 90),
-      time=ghost.time,
-      pinch=not is_flinching)
-    ghost_y = sin(ghost.time % FLOAT_PERIOD / FLOAT_PERIOD * 2 * pi) * FLOAT_AMP
-    ghost_sprite.move((0, ghost_y))
+    if not is_whipping:
+      ghost_sprite.image = ripple(ghost_sprite.image,
+        start=(0 if is_flinching else 16),
+        end=32,
+        waves=(4 if is_flinching else 2),
+        period=(45 if is_flinching else 90),
+        time=ghost.time,
+        pinch=not is_flinching)
+      ghost_y = sin(ghost.time % FLOAT_PERIOD / FLOAT_PERIOD * 2 * pi) * FLOAT_AMP
+      ghost_sprite.move((0, ghost_y))
     return super().view([ghost_sprite, *other_sprites])

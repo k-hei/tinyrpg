@@ -4,7 +4,7 @@ from anims import Anim
 class ShakeAnim(Anim):
   def __init__(anim, magnitude=1, duration=inf, *args, **kwargs):
     super().__init__(duration=duration, *args, **kwargs)
-    anim.magnitude = magnitude
+    anim.magnitude = magnitude / 2
     anim.offset = 0
 
   def update(anim):

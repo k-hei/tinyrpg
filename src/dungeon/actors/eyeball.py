@@ -69,7 +69,7 @@ class Eyeball(DungeonActor):
   class SplitAnim(MoveAnim): pass
   class Meyetosis(Skill):
     name = "Meyetosis"
-    chant_turns = 2
+    chant_turns = 3
     def effect(user, dest, game, on_end=None):
       neighbors = [c for c in neighborhood(user.cell) if game.floor.is_cell_empty(c)]
       if neighbors:
