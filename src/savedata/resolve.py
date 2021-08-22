@@ -55,6 +55,7 @@ from cores.wife import Wife
 from cores.biped import BipedCore
 from cores.knight import Knight
 from cores.mira import MiraCore
+from cores.ghost import Ghost
 from cores.rat import Rat
 from dungeon.props.bag import Bag
 from dungeon.props.treasuredoor import TreasureDoor
@@ -104,11 +105,12 @@ from dungeon.actors.mummy import Mummy
 from dungeon.actors.npc import Npc
 from dungeon.actors.skeleton import Skeleton
 from dungeon.actors.mage import Mage
-from dungeon.actors.eye import Eyeball
+from dungeon.actors.eye import Meyetosis
 from dungeon.actors.mimic import Mimic
 from dungeon.actors.knight import Knight
 from dungeon.actors.mushroom import Mushroom
 from dungeon.actors.guard import GuardActor
+from dungeon.actors.ghost import Ghost
 from dungeon.floors.floor1 import Floor1
 from dungeon.floors.floor3 import Floor3
 from dungeon.floors.floor2 import Floor2
@@ -118,6 +120,7 @@ from cores.mage import Mage as MageCore
 from cores.husband import Husband as HusbandCore
 from cores.wife import Wife as WifeCore
 from cores.knight import Knight as KnightCore
+from cores.ghost import Ghost as GhostCore
 from cores.rat import Rat as RatCore
 
 def resolve_item(key):
@@ -180,6 +183,7 @@ def resolve_core(key):
   if key == "Husband": return HusbandCore
   if key == "Wife": return WifeCore
   if key == "Knight": return KnightCore
+  if key == "Ghost": return GhostCore
   if key == "Rat": return RatCore
 
 def resolve_elem(key):
@@ -231,18 +235,19 @@ def resolve_elem(key):
   if key == "Npc": return Npc
   if key == "Skeleton": return Skeleton
   if key == "Mage": return Mage
-  if key == "Eyeball": return Eyeball
+  if key == "Meyetosis": return Meyetosis
   if key == "Mimic": return Mimic
   if key == "Knight": return Knight
   if key == "Mushroom": return Mushroom
   if key == "GuardActor": return GuardActor
+  if key == "Ghost": return Ghost
   if key == "Floor1": return Floor1
   if key == "Floor3": return Floor3
   if key == "Floor2": return Floor2
 
 def resolve_material(material):
   if material is Diamond: return None
-  if material is AngelTears: return Eyeball
+  if material is AngelTears: return Meyetosis
   if material is RedFerrule: return Mushroom
   if material is Club: return Skeleton
   if material is BroadSword: return Mage

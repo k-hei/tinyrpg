@@ -1,5 +1,7 @@
-from pygame import Surface, PixelArray, Color, SRCALPHA
+from math import pi, sin
+from pygame import Rect, Surface, PixelArray, Color, SRCALPHA
 from colors import darken_color, rgbify, hexify
+from easing.expo import ease_out
 
 COLOR_KEY = (255, 0, 255)
 
@@ -75,4 +77,16 @@ def shadow_lite(surface, color):
   recolored_surface = recolor(surface, color)
   new_surface.blit(recolored_surface, (1, 1))
   new_surface.blit(surface, (0, 0))
+  return new_surface
+
+def ripple(surface, start, end, waves=2, amplitude=4, period=90, time=0):
+  new_surface = Surface(surface.get_size(), SRCALPHA).convert_alpha()
+  new_surface.blit(surface.subsurface(Rect(0, 0, surface.get_width(), start)), (0, 0))
+  for y in range(start, end):
+    i = y - start
+    p = i / (end - start)
+    t = time + p * period
+    t = (t % (period / waves) / period) * waves
+    x = sin(t * 2 * pi) * ease_out(p) * amplitude
+    new_surface.blit(surface.subsurface(Rect(0, y, surface.get_width(), 1)), (x, y))
   return new_surface

@@ -1,0 +1,27 @@
+{
+  "place": "dungeon",
+  "dungeon": {
+    "floors": [
+      {
+        "size": [7, 6],
+        "data": [
+          2, 2, 2, 2, 2, 2, 2,
+          2, 0, 1, 1, 1, 0, 2,
+          2, 0, 1, 1, 1, 0, 2,
+          2, 0, 1, 1, 1, 0, 2,
+          2, 0, 0, 3, 0, 0, 2,
+          2, 2, 2, 2, 2, 2, 2
+        ],
+        "elems": [
+          [[3, 1], "Ghost"]
+        ],
+        "rooms": [
+          [[1, 1, 5, 4], "Room"]
+        ]
+      }
+    ]
+  },
+  "skills": ["RustyBlade"],
+  "party": ["Knight"],
+  "builds": { "Knight": { "RustyBlade": [0, 0] } }
+}
