@@ -87,7 +87,6 @@ from comps.damage import DamageValue
 from comps.hud import Hud
 from comps.log import Log, Message, Token
 from comps.minimap import Minimap
-from comps.previews import Previews
 from comps.spmeter import SpMeter
 from comps.floorno import FloorNo
 from comps.skillbanner import SkillBanner
@@ -168,7 +167,6 @@ class DungeonContext(Context):
       game.log,
       game.minimap,
       Hud(party=game.store.party, hp=True),
-      Previews(parent=game),
       FloorNo(parent=game),
       SpMeter(store=game.store)
     ]

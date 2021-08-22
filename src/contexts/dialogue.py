@@ -13,16 +13,11 @@ from anims.tween import TweenAnim
 from easing.expo import ease_out
 from sprite import Sprite
 import debug
-# from comps.previews import Previews
-# from comps.minimap import Minimap
-# from comps.spmeter import SpMeter
-# from comps.floorno import FloorNo
 
 class EnterAnim(TweenAnim): pass
 class ExitAnim(TweenAnim): pass
 
 class DialogueContext(Context):
-  # effects = [] # , Previews, Minimap, SpMeter, FloorNo]
   BAR_HEIGHT = 24
   BAR_ENTER_DURATION = 15
   BAR_EXIT_DURATION = 7

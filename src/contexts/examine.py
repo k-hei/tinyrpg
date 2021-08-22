@@ -3,15 +3,8 @@ from contexts import Context
 import config
 import pygame
 import keyboard
-from comps.hud import Hud
-from comps.previews import Previews
-from comps.minimap import Minimap
-from comps.spmeter import SpMeter
-from comps.floorno import FloorNo
 
 class ExamineContext(Context):
-  effects = [Hud, Previews, Minimap, SpMeter, FloorNo]
-
   def __init__(ctx, parent=None, on_close=None):
     super().__init__(parent, on_close)
     ctx.anims = None

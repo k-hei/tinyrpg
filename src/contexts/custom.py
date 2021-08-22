@@ -11,7 +11,6 @@ from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, YELLOW, DARKYELLOW, BLU
 import keyboard
 from comps.piece import Piece
 from comps.hud import Hud
-from comps.previews import Previews
 from comps.minimap import Minimap
 from comps.spmeter import SpMeter
 from comps.floorno import FloorNo
@@ -47,7 +46,7 @@ class CallAnim(PieceAnim): pass
 class RecallAnim(PieceAnim): pass
 
 class CustomContext(Context):
-  effects = [Hud, Previews, Minimap, SpMeter, FloorNo]
+  effects = [Hud, Minimap, SpMeter, FloorNo]
 
   def __init__(menu, store, on_close=None):
     super().__init__()

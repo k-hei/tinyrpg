@@ -8,11 +8,6 @@ from assets import load as use_assets
 from filters import outline, recolor, replace_color
 from colors.palette import WHITE, BLUE, BLACK, GOLD
 from config import WINDOW_SIZE, WINDOW_HEIGHT
-from comps.hud import Hud
-from comps.previews import Previews
-from comps.minimap import Minimap
-from comps.spmeter import SpMeter
-from comps.floorno import FloorNo
 from sprite import Sprite
 
 MARGIN_X = 48
@@ -24,7 +19,6 @@ HUD_MARGIN = 8
 
 class PauseContext(Context):
   choices = ["item", "equip", "status", "quest", "option"]
-  effects = [Hud, Previews, Minimap, SpMeter, FloorNo]
 
   def handle_keydown(ctx, key):
     if keyboard.get_pressed(key) > 1:
