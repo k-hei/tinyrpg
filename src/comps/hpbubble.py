@@ -1,10 +1,11 @@
+from random import randint
 from pygame import Rect
 from comps import Component
 import assets
 from sprite import Sprite
 from filters import replace_color
 from colors.palette import WHITE, RED
-from anims.shake import ShakeAnim
+from anims import Anim
 
 DEPLETE_SPEED = 0.25
 
@@ -13,13 +14,11 @@ class HpBubble(Component):
     bubble.actor = actor
     bubble.hp = actor.get_hp()
     bubble.anim = None
+    bubble.offset = None
 
   def update(bubble):
-    if bubble.anim:
-      if bubble.anim.done:
-        bubble.anim = None
-      else:
-        bubble.anim.update()
+    if bubble.anim and not bubble.anim.done:
+      bubble.anim.update()
 
   def view(bubble):
     if bubble.actor.get_hp() == bubble.actor.get_hp_max():
@@ -34,7 +33,7 @@ class HpBubble(Component):
       else:
         bubble.hp -= DEPLETE_SPEED
       if bubble.anim == None or bubble.actor.get_hp() != bubble.anim.target:
-        bubble.anim = ShakeAnim(duration=15, target=bubble.actor.get_hp())
+        bubble.anim = Anim(duration=12, target=bubble.actor.get_hp())
     if bubble.hp != bubble.actor.get_hp():
       sprites.append(render_bubblefill(
         value=bubble.hp / bubble.actor.get_hp_max(),
@@ -46,9 +45,13 @@ class HpBubble(Component):
         color=RED
       ))
     bubble.update()
-    if bubble.anim:
+    if bubble.anim and not bubble.anim.done:
+      offset = bubble.offset
+      while offset == bubble.offset:
+        offset = (randint(-1, 1), randint(-1, 1))
+      bubble.offset = offset
       for sprite in sprites:
-        sprite.move((bubble.anim.offset, 0))
+        sprite.move(bubble.offset)
     return sprites
 
 def render_bubblefill(value, color=WHITE):
