@@ -339,7 +339,7 @@ class StageView:
           camera_offset = (0, self.anim.offset)
         else:
           camera_offset = (self.anim.offset, 0)
-      camera_pos = (-camera_x, -camera_y)
+      camera_pos = (-int(camera_x), -int(camera_y))
       if sprite.layer != "ui":
         sprite.move(camera_pos)
     sprites += self.view_tiles(camera)

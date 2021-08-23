@@ -22,6 +22,7 @@ from anims.drop import DropAnim
 from lib.cell import is_adjacent, manhattan, add as add_vector
 from lib.lerp import lerp
 from comps.log import Token
+from comps.hpbubble import HpBubble
 from config import TILE_SIZE
 
 class DungeonActor(DungeonElement):
@@ -51,6 +52,7 @@ class DungeonActor(DungeonElement):
     actor.set_hp(hp or core.hp)
     actor.set_faction(faction or core.faction)
     actor.set_facing(facing or core.facing)
+    actor.bubble = HpBubble(actor.core)
 
     actor.anims = []
     actor.ailment = None
@@ -347,11 +349,12 @@ class DungeonActor(DungeonElement):
       elif actor.core.faction == "enemy":
         new_color = RED
 
+    move_anim = next((a for a in anim_group if type(a) is MoveAnim), None)
     drop_anim = next((a for a in anim_group if type(a) is DropAnim), None)
+
     if actor.ailment and not drop_anim:
       badge_image = None
       badge_pos = (12, -20)
-      move_anim = next((a for a in anim_group if type(a) is MoveAnim), None)
       if move_anim:
         badge_pos = add_vector(badge_pos, actor.get_move_offset(move_anim))
 
@@ -376,7 +379,14 @@ class DungeonActor(DungeonElement):
           layer="vfx"
         ))
 
-    move_anim = next((a for a in anim_group if type(a) is MoveAnim), None)
+    if actor.get_faction() == "enemy":
+      bubble_sprites = actor.bubble.view()
+      for bubble_sprite in bubble_sprites:
+        bubble_sprite.move((28, -20))
+        if move_anim:
+          bubble_sprite.move(actor.get_move_offset(move_anim))
+      sprites += bubble_sprites
+
     if actor.elev > 0 and not move_anim:
       offset_z = actor.elev * TILE_SIZE
 
