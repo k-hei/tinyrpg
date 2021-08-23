@@ -4,6 +4,7 @@ import assets
 from sprite import Sprite
 from filters import replace_color
 from colors.palette import WHITE, RED
+from anims.shake import ShakeAnim
 
 DEPLETE_SPEED = 0.25
 
@@ -11,6 +12,14 @@ class HpBubble(Component):
   def __init__(bubble, actor):
     bubble.actor = actor
     bubble.hp = actor.get_hp()
+    bubble.anim = None
+
+  def update(bubble):
+    if bubble.anim:
+      if bubble.anim.done:
+        bubble.anim = None
+      else:
+        bubble.anim.update()
 
   def view(bubble):
     if bubble.actor.get_hp() == bubble.actor.get_hp_max():
@@ -24,6 +33,8 @@ class HpBubble(Component):
         bubble.hp = bubble.actor.get_hp()
       else:
         bubble.hp -= DEPLETE_SPEED
+      if bubble.anim == None or bubble.actor.get_hp() != bubble.anim.target:
+        bubble.anim = ShakeAnim(duration=15, target=bubble.actor.get_hp())
     if bubble.hp != bubble.actor.get_hp():
       sprites.append(render_bubblefill(
         value=bubble.hp / bubble.actor.get_hp_max(),
@@ -34,6 +45,10 @@ class HpBubble(Component):
         value=bubble.actor.get_hp() / bubble.actor.get_hp_max(),
         color=RED
       ))
+    bubble.update()
+    if bubble.anim:
+      for sprite in sprites:
+        sprite.move((bubble.anim.offset, 0))
     return sprites
 
 def render_bubblefill(value, color=WHITE):
