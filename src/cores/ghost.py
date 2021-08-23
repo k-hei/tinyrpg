@@ -22,7 +22,7 @@ class Ghost(Core):
     frames_duration = 5
   class WhipAnim(FrameAnim):
     frames = assets.sprites["ghost_whip"]
-    frames_duration = [10, 10, 48]
+    frames_duration = [7, 7, 40]
 
   def __init__(ghost, name="Ghost", faction="enemy", *args, **kwargs):
     super().__init__(
@@ -32,8 +32,8 @@ class Ghost(Core):
         hp=11,
         st=10,
         dx=7,
-        ag=12,
-        lu=3,
+        ag=14,
+        lu=28,
         en=8,
       ),
       *args,

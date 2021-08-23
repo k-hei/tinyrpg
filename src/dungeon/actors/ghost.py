@@ -20,7 +20,7 @@ class Ghost(DungeonActor):
       target_elem = next((e for e in game.floor.get_elems_at(dest) if isinstance(e, DungeonActor)), None)
       user.core.anims = [GhostCore.WhipAnim(on_end=on_end if target_elem is None else None)]
       game.anims.append([PauseAnim(
-        duration=20,
+        duration=14,
         on_end=lambda: game.vfx.append(
           GhostArmVfx(
             cell=dest,

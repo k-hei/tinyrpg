@@ -1086,6 +1086,8 @@ class DungeonContext(Context):
   def roll(game, dx, ag, chance):
     if dx >= ag:
       chance = chance + (dx - ag) / 100
+    elif ag >= dx * 2:
+      chance = dx / ag * chance * 0.75
     else:
       chance = dx / ag * chance
     return random() <= chance

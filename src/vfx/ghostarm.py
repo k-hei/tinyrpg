@@ -31,7 +31,7 @@ class GhostArmVfx(Vfx):
           assets.sprites["ghostarm_shrink"][0],
           assets.sprites["ghostarm_shrink"][1]
         ],
-        frames_duration=[2, *([3] * len(assets.sprites["ghostarm"]) * 2), 5, 5],
+        frames_duration=[4, *([2] * len(assets.sprites["ghostarm"]) * 2), 6, 6],
         delay=fx.delay
       )
     ]
