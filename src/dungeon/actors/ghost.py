@@ -1,3 +1,4 @@
+from random import randint
 from dungeon.actors import DungeonActor
 from cores.ghost import Ghost as GhostCore
 from skills.weapon.tackle import Tackle
@@ -9,7 +10,8 @@ from anims.pause import PauseAnim
 from sprite import Sprite
 import assets
 from skills import Skill
-from lib.cell import is_adjacent
+from lib.cell import is_adjacent, manhattan
+from skills.ailment.somnus import Somnus
 from vfx.ghostarm import GhostArmVfx
 
 class Ghost(DungeonActor):
@@ -35,9 +37,11 @@ class Ghost(DungeonActor):
         )
       )])
 
+  skill = Somnus
+
   def __init__(ghost, chant_skill=None, chant_dest=None, chant_turns=0, *args, **kwargs):
     super().__init__(GhostCore(
-      skills=[Tackle]
+      skills=[Tackle, Somnus]
     ), *args, **kwargs)
     ghost.chant_skill = chant_skill
     ghost.chant_dest = chant_dest
@@ -72,7 +76,11 @@ class Ghost(DungeonActor):
       else:
         return None
 
-    if is_adjacent(ghost.cell, enemy.cell):
+    if is_adjacent(ghost.cell, enemy.cell) and not enemy.ailment == "sleep" and randint(1, 3) == 1:
+      ghost.face(enemy.cell)
+      ghost.turns = 0
+      return ("use_skill", Somnus)
+    elif manhattan(ghost.cell, enemy.cell) <= 2:
       return ghost.chant(
         game=game,
         skill=Ghost.ColdWhip,

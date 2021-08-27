@@ -200,7 +200,8 @@ class DungeonActor(DungeonElement):
     sleep_anim and actor.anims.remove(sleep_anim)
     if "SleepAnim" in dir(actor.core):
       sleep_anim = next((a for a in actor.core.anims if type(a) is actor.core.SleepAnim), None)
-      actor.core.anims.remove(sleep_anim)
+      if sleep_anim:
+        actor.core.anims.remove(sleep_anim)
     actor.turns = 0
     return True
 

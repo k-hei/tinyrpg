@@ -464,13 +464,13 @@ class DungeonContext(Context):
       actor.command = None
     hero = game.hero
     if hero.ailment == "sleep":
-      if hero.get_hp() == hero.get_hp_max():
-        hero.dispel_ailment()
-      else:
-        game.anims.append([PauseAnim(
-          duration=5,
-          on_end=game.step
-        )])
+    #   if hero.get_hp() == hero.get_hp_max():
+    #     hero.dispel_ailment()
+    #   else:
+      game.anims.append([PauseAnim(
+        duration=5,
+        on_end=game.step
+      )])
     game.refresh_fov(moving=moving)
 
   def step_ally(game, ally, run=False, old_hero_cell=None):

@@ -15,7 +15,7 @@ class Ghost(Core):
   class ChargeAnim(ShakeAnim): pass
   class LaughAnim(FrameAnim):
     frames = assets.sprites["ghost_laugh"]
-    frames_duration = 10
+    frames_duration = 5
     loop = True
   class TurnAnim(FrameAnim):
     frames = [assets.sprites["ghost_turn"]]
