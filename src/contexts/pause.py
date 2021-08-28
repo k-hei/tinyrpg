@@ -50,7 +50,7 @@ class PauseContext(Context):
 
     game = ctx.get_parent(cls="GameContext")
     if game:
-      gold_amount = game.get_gold()
+      gold_amount = game.store.gold
       gold_text = assets.ttf["english"].render("{}G".format(gold_amount))
       gold_x += gold_image.get_width() + GOLD_SPACING
       gold_y += gold_image.get_height() // 2 - gold_text.get_height() // 2

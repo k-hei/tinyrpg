@@ -1,7 +1,12 @@
 from random import randint, choice
 from dungeon.actors import DungeonActor
 from cores.bug import Bug as BugCore
+from items.materials.bug import Bug as BugItem
+from anims.item import ItemAnim
+from anims.pause import PauseAnim
+from contexts.dialogue import DialogueContext
 from sprite import Sprite
+from config import ATTACK_DURATION
 
 class Bug(DungeonActor):
   def __init__(bug, *args, **kwargs):
@@ -42,6 +47,25 @@ class Bug(DungeonActor):
         delta = (0, delta_y)
     if delta:
       return ("move", delta)
+
+  def effect(bug, game):
+    if bug.is_immobile():
+      return None
+    game.anims.append([
+      PauseAnim(
+        duration=ATTACK_DURATION // 2,
+        on_end=lambda: game.floor.remove_elem(bug)
+      ),
+      item_anim := ItemAnim(
+        target=game.hero,
+        item=BugItem()
+      )
+    ])
+    game.store.obtain(BugItem)
+    game.open(child=DialogueContext(
+      lite=True,
+      script=[("", ("Obtained ", BugItem().token(), "."))]
+    ), on_close=lambda: item_anim and item_anim.end())
 
   def view(bug, anims=[]):
     return super().view(bug.core.view(anims and [a for a in anims[0] if a.target is bug]), anims)
