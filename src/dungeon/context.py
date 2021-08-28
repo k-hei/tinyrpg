@@ -1391,6 +1391,7 @@ class DungeonContext(Context):
       target_cell = (actor_x + facing_x, actor_y + facing_y)
       target = next((e for e in game.floor.elems if (
         isinstance(e, DungeonActor)
+        and e.get_faction() == "enemy"
         and e.cell == target_cell
       )), None)
       if target:
@@ -1403,7 +1404,18 @@ class DungeonContext(Context):
           )
         )
       else:
-        game.log.print("But nothing happened...")
+        camera.focus(target_cell)
+        game.anims.append([
+          AttackAnim(
+            target=actor,
+            src=actor.cell,
+            dest=target_cell,
+            on_end=lambda: (
+              camera.blur(),
+              game.step()
+            )
+          )
+        ])
     else:
       if ENABLED_COMBAT_LOG:
         game.log.print((actor.token(), " uses ", skill().token()))
