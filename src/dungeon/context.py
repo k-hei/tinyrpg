@@ -402,7 +402,7 @@ class DungeonContext(Context):
         continue
       while actor.turns >= 1:
         actor.turns -= 1
-        if actor in enemies and actor is not ally:
+        if actor not in (hero, ally):
           command = game.step_enemy(actor)
           if type(command) is tuple:
             if actor in commands:
@@ -516,9 +516,8 @@ class DungeonContext(Context):
       hero = game.hero
       ally = game.ally
       floor = game.floor
-      rooms = [r for r in floor.rooms if enemy.cell in r.get_cells()]
-      if rooms:
-        room = rooms[0]
+      room = next((r for r in floor.rooms if enemy.cell in r.get_cells()), None)
+      if room:
         if hero.cell not in room.get_cells() + room.get_border():
           return False
       elif manhattan(enemy.cell, hero.cell) <= VISION_RANGE:

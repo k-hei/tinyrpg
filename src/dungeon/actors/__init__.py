@@ -252,7 +252,7 @@ class DungeonActor(DungeonElement):
     facing_x, facing_y = actor.facing
     old_target = (actor_x + facing_x, actor_y + facing_y)
     actor.face(hero.cell)
-    game.camera.focus(((hero_x + actor_x) / 2, (hero_y + actor_y) / 2 + 1))
+    game.camera.focus(((hero_x + actor_x) / 2, (hero_y + actor_y) / 2 + 1), speed=8)
     def stop_talk():
       if actor in game.floor.elems:
         actor.face(old_target)
@@ -310,7 +310,7 @@ class DungeonActor(DungeonElement):
       sprites = [(Sprite(image=s) if type(s) is Surface else s) for s in sprites]
     sprite = sprites[0]
     offset_x, offset_y, offset_z = (0, 0, 0)
-    actor_width, actor_height = (TILE_SIZE, TILE_SIZE)
+    actor_width, actor_height = sprite.image.get_size()
     actor_cell = actor.cell
     new_color = None
     asleep = actor.ailment == "sleep"

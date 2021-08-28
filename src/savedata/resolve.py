@@ -48,13 +48,16 @@ from skills.support.sana import Sana
 from skills.armor.buckler import Buckler
 from skills.armor.hpup import HpUp
 from cores.genie import Genie
+from cores.bug import Bug
 from cores.rogue import Rogue
 from cores.mage import Mage
 from cores.husband import Husband
 from cores.wife import Wife
 from cores.biped import BipedCore
 from cores.knight import Knight
+from cores.radhead import Radhead
 from cores.mira import MiraCore
+from cores.beetless import Beetless
 from cores.ghost import Ghost
 from cores.rat import Rat
 from dungeon.props.bag import Bag
@@ -102,6 +105,7 @@ from dungeon.features.room import Room
 from dungeon.features.enemyroom import EnemyRoom
 from dungeon.actors.genie import Genie
 from dungeon.actors.mummy import Mummy
+from dungeon.actors.bug import Bug
 from dungeon.actors.npc import Npc
 from dungeon.actors.skeleton import Skeleton
 from dungeon.actors.eyeball import Eyeball
@@ -115,11 +119,14 @@ from dungeon.floors.floor1 import Floor1
 from dungeon.floors.floor3 import Floor3
 from dungeon.floors.floor2 import Floor2
 from cores.genie import Genie as GenieCore
+from cores.bug import Bug as BugCore
 from cores.rogue import Rogue as RogueCore
 from cores.mage import Mage as MageCore
 from cores.husband import Husband as HusbandCore
 from cores.wife import Wife as WifeCore
 from cores.knight import Knight as KnightCore
+from cores.radhead import Radhead as RadheadCore
+from cores.beetless import Beetless as BeetlessCore
 from cores.ghost import Ghost as GhostCore
 from cores.rat import Rat as RatCore
 
@@ -178,11 +185,14 @@ def resolve_skill(key):
 
 def resolve_core(key):
   if key == "Genie": return GenieCore
+  if key == "Bug": return BugCore
   if key == "Rogue": return RogueCore
   if key == "Mage": return MageCore
   if key == "Husband": return HusbandCore
   if key == "Wife": return WifeCore
   if key == "Knight": return KnightCore
+  if key == "Radhead": return RadheadCore
+  if key == "Beetless": return BeetlessCore
   if key == "Ghost": return GhostCore
   if key == "Rat": return RatCore
 
@@ -232,6 +242,7 @@ def resolve_elem(key):
   if key == "EnemyRoom": return EnemyRoom
   if key == "Genie": return Genie
   if key == "Mummy": return Mummy
+  if key == "Bug": return Bug
   if key == "Npc": return Npc
   if key == "Skeleton": return Skeleton
   if key == "Eyeball": return Eyeball
