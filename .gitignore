@@ -10,5 +10,6 @@ build
 *.dmg
 *.zip
 *.pyc
+.pytest_cache
 debug.*
 src/data01.json
