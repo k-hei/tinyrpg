@@ -33,6 +33,7 @@ class GameData:
   builds: dict[str, dict] = field(default_factory=lambda: {})
   kills: dict[str, int] = field(default_factory=lambda: {})
   story: list[str] = field(default_factory=lambda: [])
+  quests: dict[str, bool] = field(default_factory=lambda: {})
   place: Context = None
   dungeon: DungeonData = None
 
@@ -63,6 +64,7 @@ class GameData:
       builds=builds,
       kills=store.kills,
       story=store.story,
+      quests=store.quests,
       place=place,
       dungeon=(store.place.save()
         if store.place and place == "dungeon"
@@ -90,6 +92,7 @@ class GameData:
       builds=builds,
       kills=savedata.kills,
       story=savedata.story,
+      quests=savedata.quests,
       place=savedata.place,
       dungeon=(DungeonData(**savedata.dungeon)
         if savedata.dungeon and type(savedata.dungeon) is not DungeonData
@@ -145,3 +148,15 @@ class GameData:
 
   def switch_chars(store):
     store.party.append(store.party.pop(0))
+
+  def is_quest_accepted(store, quest):
+    return quest in store.quests and store.quests[quest] == False
+
+  def is_quest_completed(store, quest):
+    return quest in store.quests and store.quests[quest] == True
+
+  def accept_quest(store, quest):
+    store.quests[quest] = False
+
+  def complete_quest(store, quest):
+    store.quests[quest] = True

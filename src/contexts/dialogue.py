@@ -56,10 +56,13 @@ class DialogueContext(Context):
   def print(ctx, item=None):
     if item is None:
       item = ctx.script[min(len(ctx.script) - 1, ctx.index)]
+
     if callable(item):
       item = item()
-    if item is None:
+
+    if item is None or type(item) is bool:
       return ctx.handle_next()
+
     if isinstance(item, Context):
       def print():
         ctx.name = None
@@ -80,22 +83,28 @@ class DialogueContext(Context):
       else:
         ctx.log.exit(on_end=print)
       return
+
     ctx.log.clear()
+
     if type(item) is tuple:
-      name, page = item
+      name, text = item
     else:
-      name, page = None, item
-    if callable(page):
-      page = page()
-    if name and name != ctx.name:
+      name, text = None, item
+
+    if callable(text):
+      text = text()
+    if name != ctx.name:
       ctx.name = name
-      message = (name.upper(), ": ", page)
+      if name:
+        message = (name.upper(), ": ", text)
+      else:
+        message = text
       if not ctx.log.active:
         ctx.log.print(message)
       else:
         ctx.log.exit(on_end=lambda: ctx.log.print(message))
     else:
-      ctx.log.print(page)
+      ctx.log.print(text)
 
   def handle_keydown(ctx, key):
     if ctx.anim:

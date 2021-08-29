@@ -19,6 +19,7 @@ class SaveData:
   builds: dict[str, dict]
   kills: dict[str, int]
   story: list[str]
+  quests: dict[str, bool]
   place: str
   dungeon: dict[str, dict] = None
 

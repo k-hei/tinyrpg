@@ -6,7 +6,7 @@
     [   "item_cheese",    "item_bread",       "item_fish",       "item_vino", "item_centurybottle",           "" ],
     [      "item_gem",  "item_balloon",                "",                "",                   "",           "" ],
     [ "item_antidote",              "",                "",                "",                   "",           "" ],
-    [      "item_key",     "item_gold",       "item_mask",        "item_orb",           "item_bug", "item_berry" ],
+    [      "item_key",     "item_gold",       "item_mask",        "item_orb",        "item_beetle", "item_berry" ],
     [    "item_lance",    "item_sword",     "item_hammer",        "item_axe",        "item_shield",           "" ]
   ]
 }

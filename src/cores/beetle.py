@@ -5,8 +5,8 @@ from sprite import Sprite
 from contexts.dialogue import DialogueContext
 from anims.move import MoveAnim
 
-class Bug(Core):
-  def __init__(bug, name="Buge", faction="ally", *args, **kwargs):
+class Beetle(Core):
+  def __init__(beetle, name="Buge", faction="ally", *args, **kwargs):
     super().__init__(
       name=name,
       faction=faction,
@@ -17,24 +17,24 @@ class Bug(Core):
       *args,
       **kwargs
     )
-    bug.time = 0
+    beetle.time = 0
 
-  def update(bug):
+  def update(beetle):
     super().update()
-    bug.time += 1
+    beetle.time += 1
 
-  def view(bug, anims=[]):
-    if bug.facing[0]:
-      frames = assets.sprites["bug_right"]
-    elif bug.facing == (0, -1):
-      frames = assets.sprites["bug_up"]
-    elif bug.facing == (0, 1):
-      frames = assets.sprites["bug_down"]
+  def view(beetle, anims=[]):
+    if beetle.facing[0]:
+      frames = assets.sprites["beetle_right"]
+    elif beetle.facing == (0, -1):
+      frames = assets.sprites["beetle_up"]
+    elif beetle.facing == (0, 1):
+      frames = assets.sprites["beetle_down"]
     move_anim = next((a for a in anims if type(a) is MoveAnim), None)
     anim_period = 4 if move_anim else 8
     return super().view(sprites=[
       Sprite(
-        image=frames[bug.time // anim_period % 2],
+        image=frames[beetle.time // anim_period % 2],
         pos=(0, -8)
       )
     ])

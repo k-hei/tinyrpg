@@ -99,13 +99,14 @@ class GameContext(Context):
     if floors:
       floor = floors[floor_index]
       floor.generator = floor.generator or generator and generator.__name__
-      ctx.store.place = DungeonContext(
+      dungeon = DungeonContext(
         store=ctx.store,
         floors=floors,
         floor_index=floor_index,
         memory=memory
       )
-      ctx.open(ctx.store.place)
+      ctx.store.place = dungeon
+      ctx.open(dungeon)
     else:
       app = ctx.get_head()
       app.load(
@@ -117,8 +118,9 @@ class GameContext(Context):
       )
 
   def goto_town(ctx, returning=False):
-    ctx.store.place = TownContext(store=ctx.store, returning=returning)
-    ctx.open(ctx.store.place)
+    town = TownContext(store=ctx.store, returning=returning)
+    ctx.store.place = town
+    ctx.open(town)
 
   def record_kill(ctx, target):
     target_type = type(target)

@@ -1,22 +1,3 @@
-from items.ailment.topaz import Topaz
-from items.ailment.antidote import Antidote
-from items.ailment.amethyst import Amethyst
-from items.sp.bread import Bread
-from items.sp.berry import Berry
-from items.sp.cheese import Cheese
-from items.sp.sapphire import Sapphire
-from items.sp.fish import Fish
-from items.materials.bug import Bug
-from items.materials.diamond import Diamond
-from items.materials.angeltears import AngelTears
-from items.materials.redferrule import RedFerrule
-from items.hp.ankh import Ankh
-from items.hp.ruby import Ruby
-from items.hp.elixir import Elixir
-from items.hp.potion import Potion
-from items.dungeon.key import Key
-from items.dungeon.emerald import Emerald
-from items.dungeon.balloon import Balloon
 from skills.ailment.virus import Virus
 from skills.ailment.somnus import Somnus
 from skills.ailment.exoculo import Exoculo
@@ -49,19 +30,6 @@ from skills.support.counter import Counter
 from skills.support.sana import Sana
 from skills.armor.buckler import Buckler
 from skills.armor.hpup import HpUp
-from cores.genie import Genie
-from cores.bug import Bug
-from cores.rogue import Rogue
-from cores.mage import Mage
-from cores.husband import Husband
-from cores.wife import Wife
-from cores.biped import BipedCore
-from cores.knight import Knight
-from cores.radhead import Radhead
-from cores.mira import MiraCore
-from cores.beetless import Beetless
-from cores.ghost import Ghost
-from cores.rat import Rat
 from dungeon.props.bag import Bag
 from dungeon.props.treasuredoor import TreasureDoor
 from dungeon.props.palm import Palm
@@ -107,10 +75,10 @@ from dungeon.features.room import Room
 from dungeon.features.enemyroom import EnemyRoom
 from dungeon.actors.genie import Genie
 from dungeon.actors.mummy import Mummy
-from dungeon.actors.bug import Bug
 from dungeon.actors.npc import Npc
 from dungeon.actors.skeleton import Skeleton
 from dungeon.actors.eyeball import Eyeball
+from dungeon.actors.beetle import Beetle
 from dungeon.actors.mage import Mage
 from dungeon.actors.mimic import Mimic
 from dungeon.actors.knight import Knight
@@ -120,9 +88,28 @@ from dungeon.actors.ghost import Ghost
 from dungeon.floors.floor1 import Floor1
 from dungeon.floors.floor3 import Floor3
 from dungeon.floors.floor2 import Floor2
+from items.ailment.topaz import Topaz as TopazItem
+from items.ailment.antidote import Antidote as AntidoteItem
+from items.ailment.amethyst import Amethyst as AmethystItem
+from items.sp.bread import Bread as BreadItem
+from items.sp.berry import Berry as BerryItem
+from items.sp.cheese import Cheese as CheeseItem
+from items.sp.sapphire import Sapphire as SapphireItem
+from items.sp.fish import Fish as FishItem
+from items.materials.diamond import Diamond as DiamondItem
+from items.materials.beetle import Beetle as BeetleItem
+from items.materials.angeltears import AngelTears as AngelTearsItem
+from items.materials.redferrule import RedFerrule as RedFerruleItem
+from items.hp.ankh import Ankh as AnkhItem
+from items.hp.ruby import Ruby as RubyItem
+from items.hp.elixir import Elixir as ElixirItem
+from items.hp.potion import Potion as PotionItem
+from items.dungeon.key import Key as KeyItem
+from items.dungeon.emerald import Emerald as EmeraldItem
+from items.dungeon.balloon import Balloon as BalloonItem
 from cores.genie import Genie as GenieCore
-from cores.bug import Bug as BugCore
 from cores.rogue import Rogue as RogueCore
+from cores.beetle import Beetle as BeetleCore
 from cores.mage import Mage as MageCore
 from cores.husband import Husband as HusbandCore
 from cores.wife import Wife as WifeCore
@@ -133,25 +120,25 @@ from cores.ghost import Ghost as GhostCore
 from cores.rat import Rat as RatCore
 
 def resolve_item(key):
-  if key == "Topaz": return Topaz
-  if key == "Antidote": return Antidote
-  if key == "Amethyst": return Amethyst
-  if key == "Bread": return Bread
-  if key == "Berry": return Berry
-  if key == "Cheese": return Cheese
-  if key == "Sapphire": return Sapphire
-  if key == "Fish": return Fish
-  if key == "Bug": return Bug
-  if key == "Diamond": return Diamond
-  if key == "AngelTears": return AngelTears
-  if key == "RedFerrule": return RedFerrule
-  if key == "Ankh": return Ankh
-  if key == "Ruby": return Ruby
-  if key == "Elixir": return Elixir
-  if key == "Potion": return Potion
-  if key == "Key": return Key
-  if key == "Emerald": return Emerald
-  if key == "Balloon": return Balloon
+  if key == "Topaz": return TopazItem
+  if key == "Antidote": return AntidoteItem
+  if key == "Amethyst": return AmethystItem
+  if key == "Bread": return BreadItem
+  if key == "Berry": return BerryItem
+  if key == "Cheese": return CheeseItem
+  if key == "Sapphire": return SapphireItem
+  if key == "Fish": return FishItem
+  if key == "Diamond": return DiamondItem
+  if key == "Beetle": return BeetleItem
+  if key == "AngelTears": return AngelTearsItem
+  if key == "RedFerrule": return RedFerruleItem
+  if key == "Ankh": return AnkhItem
+  if key == "Ruby": return RubyItem
+  if key == "Elixir": return ElixirItem
+  if key == "Potion": return PotionItem
+  if key == "Key": return KeyItem
+  if key == "Emerald": return EmeraldItem
+  if key == "Balloon": return BalloonItem
 
 def resolve_skill(key):
   if key == "Virus": return Virus
@@ -189,8 +176,8 @@ def resolve_skill(key):
 
 def resolve_core(key):
   if key == "Genie": return GenieCore
-  if key == "Bug": return BugCore
   if key == "Rogue": return RogueCore
+  if key == "Beetle": return BeetleCore
   if key == "Mage": return MageCore
   if key == "Husband": return HusbandCore
   if key == "Wife": return WifeCore
@@ -246,10 +233,10 @@ def resolve_elem(key):
   if key == "EnemyRoom": return EnemyRoom
   if key == "Genie": return Genie
   if key == "Mummy": return Mummy
-  if key == "Bug": return Bug
   if key == "Npc": return Npc
   if key == "Skeleton": return Skeleton
   if key == "Eyeball": return Eyeball
+  if key == "Beetle": return Beetle
   if key == "Mage": return Mage
   if key == "Mimic": return Mimic
   if key == "Knight": return Knight
@@ -261,8 +248,8 @@ def resolve_elem(key):
   if key == "Floor2": return Floor2
 
 def resolve_material(material):
-  if material is Bug: return None
   if material is Diamond: return None
+  if material is Beetle: return None
   if material is AngelTears: return Eyeball
   if material is RedFerrule: return Mushroom
   if material is Club: return Skeleton

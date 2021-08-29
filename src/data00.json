@@ -4,7 +4,7 @@
   "sp_max": 40,
   "time": 215999,
   "gold": 9999,
-  "items": [],
+  "items": ["Beetle"],
   "skills": ["Cleave", "Cudgel", "Glacio", "Sana"],
   "new_skills": [],
   "selected_skill": {},
@@ -18,5 +18,6 @@
     "Rogue": {}
   },
   "kills": {},
-  "story": []
+  "story": [],
+  "quests": {}
 }

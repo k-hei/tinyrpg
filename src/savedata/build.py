@@ -55,19 +55,22 @@ def build_materials(materials_path, actors_path):
 def build_buffer(items, skills, cores, elems, actors, materials):
   buffer = ""
   for key, path in [l for m in [
-    items.items(),
     skills.items(),
-    cores.items(),
     elems.items(),
   ] for l in m]:
     buffer += "from {} import {}\n".format(path, key)
+
+  for key, path in items.items():
+    if not key.endswith("Item"):
+      buffer += "from {} import {} as {}Item\n".format(path, key, key)
+
   for key, path in cores.items():
     if not key.endswith("Core"):
       buffer += "from {} import {} as {}Core\n".format(path, key, key)
 
   buffer += "\ndef resolve_item(key):\n"
   for key in items.keys():
-    buffer += "  if key == \"{key}\": return {key}\n".format(key=key)
+    buffer += "  if key == \"{key}\": return {key}Item\n".format(key=key)
 
   buffer += "\ndef resolve_skill(key):\n"
   for key in skills.keys():
