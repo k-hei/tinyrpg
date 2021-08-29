@@ -9,6 +9,7 @@ from dungeon.data import DungeonData
 class SaveData:
   time: int
   sp: int
+  sp_max: int
   gold: int
   items: list[Item]
   skills: list[Skill]

@@ -22,7 +22,8 @@ def decode_build(build_data):
 @dataclass
 class GameData:
   time: int = 0
-  sp: int = 0
+  _sp: int = 0
+  sp_max: int = MAX_SP
   gold: int = 0
   items: list[Item] = field(default_factory=lambda: [])
   skills: list[Skill] = field(default_factory=lambda: [])
@@ -52,6 +53,7 @@ class GameData:
     return SaveData(
       time=int(store.time),
       sp=store.sp,
+      sp_max=store.sp_max,
       gold=store.gold,
       items=[i.__name__ for i in store.items],
       skills=[s.__name__ for s in store.skills],
@@ -77,7 +79,8 @@ class GameData:
         builds[name].append(piece)
     return GameData(
       time=savedata.time,
-      sp=savedata.sp,
+      _sp=savedata.sp,
+      sp_max=savedata.sp_max,
       gold=savedata.gold,
       items=[resolve_item(i) for i in savedata.items],
       skills=[resolve_skill(s) for s in savedata.skills],
@@ -93,17 +96,13 @@ class GameData:
         else savedata.dungeon)
     )
 
-  def regen_sp(store, amount=None):
-    if amount is None:
-      store.sp = store.sp_max
-      return
-    store.sp = min(store.sp_max, store.sp + amount)
+  @property
+  def sp(store):
+    return store._sp
 
-  def deplete_sp(store, amount=None):
-    if amount is None:
-      store.sp = 0
-      return
-    store.sp = max(0, store.sp - amount)
+  @sp.setter
+  def sp(store, sp):
+    store._sp = max(0, min(store.sp_max, sp))
 
   def obtain(store, target):
     if isinstance(target, Item) or issubclass(target, Item):

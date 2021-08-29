@@ -2,9 +2,11 @@ from items.ailment.topaz import Topaz
 from items.ailment.antidote import Antidote
 from items.ailment.amethyst import Amethyst
 from items.sp.bread import Bread
+from items.sp.berry import Berry
 from items.sp.cheese import Cheese
 from items.sp.sapphire import Sapphire
 from items.sp.fish import Fish
+from items.materials.bug import Bug
 from items.materials.diamond import Diamond
 from items.materials.angeltears import AngelTears
 from items.materials.redferrule import RedFerrule
@@ -135,9 +137,11 @@ def resolve_item(key):
   if key == "Antidote": return Antidote
   if key == "Amethyst": return Amethyst
   if key == "Bread": return Bread
+  if key == "Berry": return Berry
   if key == "Cheese": return Cheese
   if key == "Sapphire": return Sapphire
   if key == "Fish": return Fish
+  if key == "Bug": return Bug
   if key == "Diamond": return Diamond
   if key == "AngelTears": return AngelTears
   if key == "RedFerrule": return RedFerrule
@@ -257,6 +261,7 @@ def resolve_elem(key):
   if key == "Floor2": return Floor2
 
 def resolve_material(material):
+  if material is Bug: return None
   if material is Diamond: return None
   if material is AngelTears: return Eyeball
   if material is RedFerrule: return Mushroom

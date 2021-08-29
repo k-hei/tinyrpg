@@ -735,7 +735,7 @@ class DungeonContext(Context):
 
       # deplete sp
       if target_tile is not Stage.OASIS:
-        game.store.deplete_sp(1 / 100)
+        game.store.sp -= 1 / 100
 
     if hero.get_facing() != delta:
       hero.set_facing(delta)
@@ -1441,7 +1441,7 @@ class DungeonContext(Context):
     hero.dispel_ailment()
     game.numbers.append(DamageValue(hero.get_hp_max(), add_vector(hero.cell, (0, -0.25)), color=GREEN))
     game.numbers.append(DamageValue(game.get_sp_max(), hero.cell, color=CYAN))
-    game.store.regen_sp()
+    game.store.sp = game.store.sp_max
 
   def use_oasis(game):
     if game.oasis_used:

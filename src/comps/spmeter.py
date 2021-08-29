@@ -8,7 +8,7 @@ from comps.hud import render_numbers
 from filters import recolor, replace_color
 from colors.palette import RED, WHITE, BLUE
 from sprite import Sprite
-from config import WINDOW_WIDTH, WINDOW_HEIGHT, MAX_SP
+from config import WINDOW_WIDTH, WINDOW_HEIGHT
 
 MARGIN_X = 12
 MARGIN_Y = 32
@@ -48,7 +48,7 @@ class SpMeter:
     store = meter.store
     fill_y = 0
     delta = 0
-    sp_pct = min(1, store.sp / (MAX_SP or 1))
+    sp_pct = min(1, store.sp / (store.sp_max or 1))
     if meter.sp_drawn == None:
       meter.sp_drawn = sp_pct
     elif sp_pct > meter.sp_drawn:
@@ -78,12 +78,12 @@ class SpMeter:
         (fill_sprite.get_width(), fill_sprite.get_height() - ceil(fill_y))
       ))
 
-    sp = meter.sp_drawn * MAX_SP
-    if ceil(sp) == MAX_SP:
-      sp = MAX_SP
+    sp = meter.sp_drawn * store.sp_max
+    if ceil(sp) == store.sp_max:
+      sp = store.sp_max
     elif int(sp) == 0:
       sp = 0
-    numbers_sprite = render_numbers(sp, MAX_SP)
+    numbers_sprite = render_numbers(sp, store.sp_max)
     numbers_x = 0
     numbers_y = meter_sprite.get_height() // 2 - numbers_sprite.get_height() // 2 + NUMBERS_OFFSET
 
