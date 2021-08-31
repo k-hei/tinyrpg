@@ -382,8 +382,16 @@ class DungeonActor(DungeonElement):
 
     if actor.get_faction() == "enemy":
       bubble_sprites = actor.bubble.view()
+      if actor.ailment == "sleep":
+        actor.bubble.color = DARKBLUE
+      elif actor.ailment == "poison":
+        actor.bubble.color = VIOLET
+      elif actor.ailment == "freeze":
+        actor.bubble.color = CYAN
+      else:
+        actor.bubble.color = RED
       for bubble_sprite in bubble_sprites:
-        bubble_sprite.move((28, -20))
+        bubble_sprite.move((24, -20))
         if move_anim:
           bubble_sprite.move(actor.get_move_offset(move_anim))
       sprites += bubble_sprites

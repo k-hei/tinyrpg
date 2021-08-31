@@ -10,11 +10,12 @@ from anims import Anim
 DEPLETE_SPEED = 0.25
 
 class HpBubble(Component):
-  def __init__(bubble, actor):
+  def __init__(bubble, actor, color=RED):
     bubble.actor = actor
     bubble.hp = actor.get_hp()
     bubble.anim = None
     bubble.offset = None
+    bubble.color = color
 
   def update(bubble):
     if bubble.anim and not bubble.anim.done:
@@ -24,7 +25,7 @@ class HpBubble(Component):
     if bubble.actor.get_hp() == bubble.actor.get_hp_max():
       return []
     sprites = [Sprite(
-      image=replace_color(assets.sprites["hpbubble"], WHITE, RED),
+      image=replace_color(assets.sprites["hpbubble"], WHITE, bubble.color),
       layer="vfx"
     )]
     if bubble.actor.get_hp() < bubble.hp:
@@ -42,7 +43,7 @@ class HpBubble(Component):
     if bubble.hp:
       sprites.append(render_bubblefill(
         value=bubble.actor.get_hp() / bubble.actor.get_hp_max(),
-        color=RED
+        color=bubble.color
       ))
     bubble.update()
     if bubble.anim and not bubble.anim.done:
