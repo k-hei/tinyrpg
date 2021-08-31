@@ -5,6 +5,7 @@ from dungeon.features.specialroom import SpecialRoom
 from dungeon.actors import DungeonActor
 from dungeon.actors.eyeball import Eyeball
 from dungeon.actors.mushroom import Mushroom
+from dungeon.actors.ghost import Ghost
 from dungeon.props.door import Door
 from dungeon.props.battledoor import BattleDoor
 from dungeon.props.chest import Chest
@@ -20,7 +21,7 @@ class ArenaRoom(SpecialRoom):
   waves = [
     [Eyeball, Eyeball],
     [Eyeball, Eyeball, Mushroom],
-    [Mushroom, Mushroom],
+    [Mushroom, Ghost],
   ]
 
   def __init__(feature, reward=Elixir, *args, **kwargs):
