@@ -60,6 +60,9 @@ class Mage(DungeonActor):
     return command
 
   def step(mage, game):
+    if mage.get_faction() == "ally":
+      return None
+
     enemy = game.find_closest_enemy(mage)
     if enemy is None:
       return None
