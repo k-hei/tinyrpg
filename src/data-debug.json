@@ -1,0 +1,26 @@
+{
+  "place": "town",
+  "sp": 40,
+  "sp_max": 40,
+  "time": 215999,
+  "gold": 9999,
+  "items": ["Potion"],
+  "skills": ["RustyBlade", "Cleave", "Cudgel", "Glacio", "Sana"],
+  "new_skills": [],
+  "selected_skill": {},
+  "party": ["Knight"],
+  "builds": {
+    "Knight": {
+      "RustyBlade": [0, 0],
+      "Cleave": [1, 0]
+    },
+    "Mage": {
+      "Sana": [0, 0],
+      "Glacio": [1, 1]
+    },
+    "Rogue": {}
+  },
+  "kills": {},
+  "story": [],
+  "quests": {}
+}

@@ -7,8 +7,8 @@ from dungeon.props.battledoor import BattleDoor
 from dungeon.actors import DungeonActor
 from dungeon.actors.mage import Mage
 from dungeon.actors.mummy import Mummy
+from dungeon.actors.beetle import Beetle
 from skills.armor.buckler import Buckler
-from items.hp.potion import Potion
 from items.materials.diamond import Diamond
 from items.gold import Gold
 import lib.vector as vector
@@ -39,7 +39,7 @@ class CoffinRoom(SpecialRoom):
       shape=["." * 9 for _ in range(7)],
       elems=[
         ((2, 2), coffin1 := Coffin(Gold(amount=randint(5, 20)))),
-        ((4, 2), Coffin(Potion, locked=True)),
+        ((4, 2), Coffin(Beetle(), locked=True)),
         ((6, 2), Coffin(Buckler, locked=True)),
         ((2, 4), Coffin(Diamond, locked=True)),
         ((4, 4), coffin2 := Coffin(Gold(amount=randint(5, 20)))),

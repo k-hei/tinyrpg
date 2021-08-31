@@ -83,7 +83,7 @@ class DungeonElement:
     for anim in anim_group:
       if (isinstance(anim, MoveAnim) or type(anim) is PathAnim) and anim.cell:
         offset_x, offset_y = vector.add((offset_x, offset_y), elem.get_move_offset(anim))
-        if (type(anim) is MoveAnim
+        if ((type(anim) is MoveAnim or type(anim) is PathAnim)
         and anim.facing != (0, 0)
         and not anim.duration in (PUSH_DURATION, NUDGE_DURATION)
         and not next((a for g in anims for a in g if a.target is elem and type(a) is FlinchAnim), None)):

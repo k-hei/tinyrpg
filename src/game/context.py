@@ -41,11 +41,12 @@ class GameContext(Context):
       savedata = ctx.savedata
 
     floor = None
+    ctx.store = GameData.decode(savedata)
+    ctx.update_skills()
 
     if ctx.feature:
       feature = ctx.feature
       ctx.feature = None
-      savedata.place = "dungeon"
       app = ctx.get_head()
       return app.load(
         loader=feature().create_floor(),
@@ -58,7 +59,6 @@ class GameContext(Context):
     if ctx.floor:
       Floor = ctx.floor
       ctx.floor = None
-      savedata.place = "dungeon"
       app = ctx.get_head()
       return app.load(
         loader=Floor.generate(ctx.store.story),
@@ -68,8 +68,6 @@ class GameContext(Context):
         )
       )
 
-    ctx.store = GameData.decode(savedata)
-    ctx.update_skills()
     if type(savedata.dungeon) is dict:
       return ctx.goto_dungeon(
         floor_index=savedata.dungeon["floor_index"] if "floor_index" in savedata.dungeon else 0,

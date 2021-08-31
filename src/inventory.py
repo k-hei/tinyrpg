@@ -5,7 +5,7 @@ class Inventory:
   tabs = ["consumables", "materials", "equipment"]
 
   def tab(item):
-    if issubclass(item, MaterialItem):
+    if type(item) is type and issubclass(item, MaterialItem):
       return "materials"
     else:
       return "consumables"

@@ -1,5 +1,6 @@
 from random import randint
 from dungeon.props import Prop
+from dungeon.actors import DungeonActor
 import assets
 from filters import replace_color
 from anims.item import ItemAnim
@@ -7,6 +8,9 @@ from items.gold import Gold
 from contexts.dialogue import DialogueContext
 from config import TILE_SIZE
 from colors.palette import WHITE, COLOR_TILE, DARKBLUE
+from sprite import Sprite
+from lib.cell import neighborhood
+from anims.jump import JumpAnim
 
 class Coffin(Prop):
   static = True
@@ -21,28 +25,38 @@ class Coffin(Prop):
     coffin.opened = False
 
   def effect(coffin, game):
-    item = coffin.open()
+    contents = coffin.open()
     coffin.contents = None
+    script = None
     item_anim = None
-    if item:
-      if game.store.obtain(item):
-        if type(item) is type:
-          item = item()
+    if contents:
+      if isinstance(contents, DungeonActor):
+        neighbor = coffin.cell
+        game.anims.append([JumpAnim(
+          target=contents,
+          src=coffin.cell,
+          dest=neighbor,
+          on_start=lambda: game.floor.spawn_elem_at(neighbor, contents)
+        )])
+      elif game.store.obtain(contents):
+        if type(contents) is type:
+          contents = contents()
         game.anims.append([
           item_anim := ItemAnim(
             target=coffin,
-            item=item
+            item=contents
           )
         ])
-        script = [("", ("Obtained ", item.token(), "."))]
+        script = [("", ("Obtained ", contents.token(), "."))]
       else:
         script = ["Your inventory is already full!"]
     else:
       script = ["It's empty..."]
-    game.open(child=DialogueContext(
-      lite=True,
-      script=script
-    ), on_close=lambda: item_anim and item_anim.end())
+    if script:
+      game.open(child=DialogueContext(
+        lite=True,
+        script=script
+      ), on_close=lambda: item_anim and item_anim.end())
 
   def unlock(coffin):
     coffin.locked = False
@@ -60,7 +74,7 @@ class Coffin(Prop):
       coffin_image = assets.sprites["coffin"]
     coffin_color = DARKBLUE if coffin.unlocked else COLOR_TILE
     coffin_image = replace_color(coffin_image, WHITE, coffin_color)
-    return super().view(coffin_image, anims)
+    return super().view([Sprite(image=coffin_image, layer="tiles")], anims)
 
 # class CoffinLid(Vfx):
 #   def __init__(vfx, pos):
