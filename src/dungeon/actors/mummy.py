@@ -21,7 +21,7 @@ class Mummy(DungeonActor):
       name="Mummy",
       faction="enemy",
       stats=Stats(
-        hp=8,
+        hp=11,
         st=12,
         dx=3,
         ag=4,

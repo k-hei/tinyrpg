@@ -7,7 +7,7 @@ from anims.move import MoveAnim
 from colors.palette import GREEN
 
 class Beetle(Core):
-  def __init__(beetle, name="Buge", faction="enemy", *args, **kwargs):
+  def __init__(beetle, name="Buge", faction="ally", *args, **kwargs):
     super().__init__(
       name=name,
       faction=faction,

@@ -139,6 +139,7 @@ class DungeonContext(Context):
     game.room_within = None
     game.room_entrances = {}
     game.rooms_entered = []
+    game.is_sleeping = False
     game.oasis_used = False
     game.anims = []
     game.commands = []
@@ -464,13 +465,15 @@ class DungeonContext(Context):
       actor.command = None
     hero = game.hero
     if hero.ailment == "sleep":
-    #   if hero.get_hp() == hero.get_hp_max():
-    #     hero.dispel_ailment()
-    #   else:
-      game.anims.append([PauseAnim(
-        duration=5,
-        on_end=game.step
-      )])
+      if hero.get_hp() == hero.get_hp_max() and game.is_sleeping:
+        hero.dispel_ailment()
+      else:
+        game.anims.append([PauseAnim(
+          duration=3,
+          on_end=game.step
+        )])
+    if hero.ailment != "sleep":
+      game.is_sleeping = False
     game.refresh_fov(moving=moving)
 
   def step_ally(game, ally, run=False, old_hero_cell=None):
@@ -651,6 +654,7 @@ class DungeonContext(Context):
       return False
     hero.inflict_ailment("sleep")
     hero.command = None
+    game.is_sleeping = True
     game.step()
     return True
 

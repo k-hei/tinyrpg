@@ -49,10 +49,11 @@ class InventoryContext(Context):
   tabs = ["consumables", "materials", "equipment"]
 
   def filter_items(items, tab):
+    materials = [i for i in items if isinstance(i, MaterialItem) or type(i) is type and issubclass(i, MaterialItem)]
     if tab == "consumables":
-      return [i for i in items if not issubclass(i, MaterialItem)]
+      return [i for i in items if i not in materials]
     elif tab == "materials":
-      return [i for i in items if issubclass(i, MaterialItem)]
+      return materials
     else:
       return []
 

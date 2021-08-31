@@ -2,6 +2,7 @@ import debug
 import json
 from dataclasses import dataclass, field
 from items import Item
+from items.gold import Gold
 from inventory import Inventory
 from skills import Skill, get_skill_order
 from cores import Core
@@ -119,6 +120,9 @@ class GameData:
       return False
 
   def obtain_item(store, item):
+    if type(item) is Gold:
+      store.gold += item.amount
+      return True
     return Inventory.append(store.items, item)
 
   def use_item(store, item):

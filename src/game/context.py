@@ -158,9 +158,7 @@ class GameContext(Context):
       or type(ctx.child) is TownContext and ctx.child.get_depth() > 1
     ):
       return
-    if key == pygame.K_ESCAPE:
-      return ctx.handle_pause()
-    if key == pygame.K_BACKSPACE:
+    if key in (pygame.K_ESCAPE, pygame.K_BACKSPACE):
       return ctx.handle_inventory()
     if key == pygame.K_b:
       return ctx.handle_custom()

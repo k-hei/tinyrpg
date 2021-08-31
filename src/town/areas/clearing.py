@@ -19,9 +19,11 @@ class ClearingArea(Area):
     super().init(town)
     area.spawn(Actor(core=Rat(
       name=(rat_name := "Rascal"),
+      facing=(-1, 0),
       message=lambda town: [
-        (rat_name, "Fuck you")
-      ])
+        (rat_name, "Hmmm?"),
+        (rat_name, "I haven't seen you around before. You new here?")
+      ]),
     ), x=32)
 
     BUGHEAD_NAME = "Beetless"
