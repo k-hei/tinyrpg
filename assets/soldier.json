@@ -1,0 +1,6 @@
+{
+  "soldier": [0, 0, 32, 32],
+  "soldier_move": [32, 0, 32, 32],
+  "soldier_sleep": [64, 0, 32, 32],
+  "soldier_charge": [96, 0, 32, 32]
+}

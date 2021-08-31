@@ -16,7 +16,7 @@ feature = getattr(feature_module, feature_name)
 
 App(title="{} demo".format(feature_name.lower()),
   context=GameContext(
-    savedata=load("src/data00.json"),
+    data=load("src/data-debug.json"),
     feature=feature
   )
 ).init()

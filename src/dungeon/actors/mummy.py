@@ -1,11 +1,13 @@
+from random import randint
 from dungeon.actors import DungeonActor
 from cores import Core, Stats
-from assets import load as use_assets
 from skills.attack.cleave import Cleave
 from skills.weapon.club import Club
 from lib.cell import is_adjacent
-import random
 from sprite import Sprite
+import assets
+from anims.move import MoveAnim
+from config import PUSH_DURATION
 
 class Mummy(DungeonActor):
   skill = Cleave
@@ -18,9 +20,9 @@ class Mummy(DungeonActor):
         hp=8,
         st=12,
         dx=3,
-        ag=5,
+        ag=4,
         lu=3,
-        en=14,
+        en=13,
       ),
       skills=[ Club, Cleave ]
     ))
@@ -31,7 +33,7 @@ class Mummy(DungeonActor):
       return False
 
     if is_adjacent(soldier.cell, enemy.cell):
-      if random.randint(1, 3) == 1:
+      if randint(1, 3) == 1:
         soldier.face(enemy.cell)
         game.use_skill(soldier, Cleave)
       else:
@@ -42,6 +44,15 @@ class Mummy(DungeonActor):
     return True
 
   def view(soldier, anims):
-    sprites = use_assets().sprites
-    sprite = sprites["soldier"]
+    sprite = assets.sprites["soldier"]
+    anim_group = [a for a in anims[0] if a.target is soldier] if anims else []
+    for anim in anim_group:
+      if type(anim) is MoveAnim and anim.duration != PUSH_DURATION:
+        sprite = assets.sprites["soldier_move"]
+        break
+    else:
+      if soldier.ailment == "sleep":
+        sprite = assets.sprites["soldier_sleep"]
+      else:
+        sprite = assets.sprites["soldier"]
     return super().view(sprite, anims)
