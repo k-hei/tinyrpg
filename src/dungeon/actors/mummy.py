@@ -8,9 +8,11 @@ from sprite import Sprite
 import assets
 from anims.move import MoveAnim
 from config import PUSH_DURATION
+from items.materials.crownjewel import CrownJewel
 
 class Mummy(DungeonActor):
   skill = Cleave
+  drops = [CrownJewel]
 
   def __init__(soldier):
     super().__init__(Core(

@@ -99,6 +99,7 @@ from items.sp.fish import Fish as FishItem
 from items.materials.diamond import Diamond as DiamondItem
 from items.materials.beetle import Beetle as BeetleItem
 from items.materials.angeltears import AngelTears as AngelTearsItem
+from items.materials.crownjewel import CrownJewel as CrownJewelItem
 from items.materials.redferrule import RedFerrule as RedFerruleItem
 from items.hp.ankh import Ankh as AnkhItem
 from items.hp.ruby import Ruby as RubyItem
@@ -131,6 +132,7 @@ def resolve_item(key):
   if key == "Diamond": return DiamondItem
   if key == "Beetle": return BeetleItem
   if key == "AngelTears": return AngelTearsItem
+  if key == "CrownJewel": return CrownJewelItem
   if key == "RedFerrule": return RedFerruleItem
   if key == "Ankh": return AnkhItem
   if key == "Ruby": return RubyItem
@@ -251,6 +253,7 @@ def resolve_material(material):
   if material is Diamond: return None
   if material is Beetle: return None
   if material is AngelTears: return Eyeball
+  if material is CrownJewel: return Mummy
   if material is RedFerrule: return Mushroom
   if material is Club: return Skeleton
   if material is BroadSword: return Mage
