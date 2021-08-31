@@ -76,7 +76,7 @@ class Ghost(DungeonActor):
       else:
         return None
 
-    if is_adjacent(ghost.cell, enemy.cell) and not enemy.ailment == "sleep" and randint(1, 3) == 1:
+    if is_adjacent(ghost.cell, enemy.cell) and not enemy.ailment == "sleep" and randint(1, 5) == 1:
       ghost.face(enemy.cell)
       ghost.turns = 0
       return ("use_skill", Somnus)
