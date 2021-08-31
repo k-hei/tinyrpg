@@ -1371,7 +1371,7 @@ class DungeonContext(Context):
     if issubclass(item, MaterialItem):
       success, message = False, "You can't use this item!"
     else:
-      success, message = item.use(item, game)
+      success, message = game.store.use_item(item)
     if success:
       game.log.print(("Used ", item.token(item)))
       game.log.print(message)

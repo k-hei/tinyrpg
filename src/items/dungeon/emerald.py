@@ -10,7 +10,11 @@ class Emerald(DungeonItem):
   effect: str = "leave_dungeon"
   value: int = 80
 
-  def use(emerald, game):
+  def use(emerald, store):
+    if type(store.place).__name__.startswith("Town"):
+      return False, "You can't use this here!"
+
+    game = store.place
     game.anims.append([
       PauseAnim(duration=DungeonItem.PAUSE_DURATION, on_end=game.leave_dungeon)
     ])

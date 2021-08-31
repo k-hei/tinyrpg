@@ -8,7 +8,11 @@ class AilmentItem(Item):
   color: int = VIOLET
   ailment: str = ""
 
-  def use(item, game):
+  def use(item, store):
+    if type(store.place).__name__.startswith("Town"):
+      return False, "You can't use that here!"
+
+    game = store.place
     hero = game.hero
     if hero.ailment == item.ailment or item.ailment == "any" and hero.ailment != None:
       ailment = hero.ailment

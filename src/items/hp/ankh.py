@@ -8,7 +8,11 @@ class Ankh(HpItem):
   desc: str = "Revives ally with 50% HP."
   value: int = 80
 
-  def use(ankh, game):
+  def use(ankh, store):
+    if type(store.place).__name__.startswith("Town"):
+      return False, "You can't use that here!"
+
+    game = store.place
     hero = game.hero
     ally = game.ally
     floor = game.floor

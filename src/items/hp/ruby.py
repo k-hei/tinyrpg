@@ -7,7 +7,11 @@ class Ruby(HpItem):
   desc: str = "Restores full HP."
   sprite: str = "gem"
 
-  def use(ruby, game):
+  def use(ruby, store):
+    if type(store.place).__name__.startswith("Town"):
+      return False, "You can't use that here!"
+
+    game = store.place
     hero = game.hero
     ally = game.ally
     if (hero.get_hp() < hero.get_hp_max()

@@ -8,8 +8,7 @@ class Berry(SpItem):
   sp: int = 10
   value: int = 10
 
-  def use(item, ctx):
-    game = ctx.parent
-    game.store.sp_max += item.sp
-    game.store.sp += item.sp
+  def use(item, store):
+    store.sp_max += item.sp
+    store.sp += item.sp
     return True, "Max SP increased by {sp}.".format(sp=item.sp)

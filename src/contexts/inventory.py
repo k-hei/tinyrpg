@@ -163,7 +163,10 @@ class InventoryContext(Context):
 
   def use(ctx):
     item = ctx.get_selected_item()
-    success, message = ctx.parent.store.use_item(item)
+    if "use_item" in dir(ctx.parent):
+      success, message = ctx.parent.use_item(item)
+    else:
+      success, message = ctx.parent.store.use_item(item)
     if not success:
       ctx.box.print(message)
       return False

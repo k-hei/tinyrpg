@@ -120,8 +120,10 @@ class GameData:
     return Inventory.append(store.items, item)
 
   def use_item(store, item):
-    item.use(store)
-    store.items.remove(item)
+    success, message = item.use(item, store)
+    if success:
+      store.items.remove(item)
+    return success, message
 
   def discard_item(store, item):
     if item not in store.items:

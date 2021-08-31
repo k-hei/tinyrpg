@@ -7,7 +7,11 @@ class Elixir(HpItem):
   desc: str = "Restores full HP and SP."
   value: int = 100
 
-  def use(elixir, ctx):
+  def use(elixir, store):
+    if type(store.place).__name__.startswith("Town"):
+      return False, "You can't use that here!"
+
+    ctx = store.place
     game = ctx.parent
     hero = ctx.hero
     ally = ctx.ally

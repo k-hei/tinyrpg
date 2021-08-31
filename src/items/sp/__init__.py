@@ -7,10 +7,9 @@ class SpItem(Item):
   color: int = BLUE
   sp: int = 0
 
-  def use(item, ctx):
-    game = ctx.parent
-    if game.store.sp < game.store.sp_max:
-      game.store.sp += item.sp
+  def use(item, store):
+    if store.sp < store.sp_max:
+      store.sp += item.sp
       return True, "Restored " + str(item.sp) + " SP."
     else:
       return False, "Your stamina is already full!"
