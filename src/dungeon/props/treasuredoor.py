@@ -20,7 +20,7 @@ class TreasureDoor(Door):
     effect = super().effect
     if door.opened:
       return
-    inventory = game.get_inventory()
+    inventory = game.store.items
     if Key in inventory:
       game.open(PromptContext(("Use the ", Key().token(), "?"), [
         Choice("Yes"),
