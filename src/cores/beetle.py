@@ -11,7 +11,7 @@ class Beetle(Core):
     super().__init__(
       name=name,
       faction=faction,
-      stats=Stats(ag=7),
+      stats=Stats(ag=6),
       color=GREEN,
       message=lambda ctx: DialogueContext(script=[
         ("Buge", "Nooo, I'm just a little guy"),
