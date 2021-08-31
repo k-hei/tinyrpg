@@ -119,6 +119,10 @@ class GameData:
   def obtain_item(store, item):
     return Inventory.append(store.items, item)
 
+  def use_item(store, item):
+    item.use(store)
+    store.items.remove(item)
+
   def discard_item(store, item):
     if item not in store.items:
       return False
