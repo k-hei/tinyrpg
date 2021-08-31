@@ -573,9 +573,6 @@ class DungeonContext(Context):
     if game.child:
       return game.child.handle_keydown(key)
 
-    if game.anims or game.commands or game.get_head().transits or game.hero and game.hero.core.anims:
-      return False
-
     # debug functionality
     ctrl = keyboard.get_pressed(pygame.K_LCTRL) or keyboard.get_pressed(pygame.K_RCTRL)
     shift = keyboard.get_pressed(pygame.K_LSHIFT) or keyboard.get_pressed(pygame.K_RSHIFT)
@@ -591,8 +588,13 @@ class DungeonContext(Context):
         return game.handle_debug_toggle()
       if key == pygame.K_d:
         return game.handle_debug()
+      if key == pygame.K_c:
+        return print(game.commands)
       if key == pygame.K_p:
         return print(game.hero.cell)
+
+    if game.anims or game.commands or game.get_head().transits or game.hero and game.hero.core.anims:
+      return False
 
     if key in ARROW_DELTAS:
       moved = game.handle_move(delta=ARROW_DELTAS[key], run=shift)
