@@ -7,6 +7,8 @@ from lib.cell import is_adjacent
 from sprite import Sprite
 import assets
 from anims.move import MoveAnim
+from anims.flinch import FlinchAnim
+from anims.flicker import FlickerAnim
 from config import PUSH_DURATION
 from items.materials.crownjewel import CrownJewel
 
@@ -52,9 +54,14 @@ class Mummy(DungeonActor):
       if type(anim) is MoveAnim and anim.duration != PUSH_DURATION:
         sprite = assets.sprites["soldier_move"]
         break
+      elif type(anim) in (FlinchAnim, FlickerAnim):
+        sprite = assets.sprites["soldier_flinch"]
+        break
     else:
       if soldier.ailment == "sleep":
         sprite = assets.sprites["soldier_sleep"]
       else:
         sprite = assets.sprites["soldier"]
+    if soldier.ailment == "freeze":
+      sprite = assets.sprites["soldier_flinch"]
     return super().view(sprite, anims)
