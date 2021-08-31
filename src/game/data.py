@@ -16,8 +16,10 @@ from config import (
 )
 
 def decode_build(build_data):
+  if type(build_data) is dict:
+    build_data = build_data.items()
   return [(resolve_skill(skill_name), skill_cell)
-    for (skill_name, skill_cell) in build_data.items()]
+    for (skill_name, skill_cell) in build_data]
 
 @dataclass
 class GameData:
