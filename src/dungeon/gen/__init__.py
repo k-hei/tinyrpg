@@ -26,6 +26,7 @@ from dungeon.actors.mage import Mage
 from dungeon.actors.eyeball import Eyeball
 from dungeon.actors.mushroom import Mushroom
 from dungeon.actors.skeleton import Skeleton
+from dungeon.actors.ghost import Ghost
 from dungeon.actors.mimic import Mimic
 from dungeon.actors.npc import Npc
 from dungeon.actors.genie import Genie
@@ -575,7 +576,7 @@ def gen_floor(features, entrance=None, size=config.FLOOR_SIZE, seed=None):
         cell = choice(valid_cells)
         valid_cells.remove(cell)
         if stage.get_tile_at(cell) is stage.FLOOR:
-          stage.spawn_elem_at(cell, gen_enemy(choices((Eyeball, Mushroom), (5, 1))[0]))
+          stage.spawn_elem_at(cell, gen_enemy(choices((Eyeball, Mushroom, Ghost), (5, 1, 1))[0]))
           enemy_count -= 1
           if room in empty_rooms:
             empty_rooms.remove(room)
