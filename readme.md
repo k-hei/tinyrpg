@@ -40,3 +40,9 @@ To create an .exe on Windows, use [pyinstaller](https://pypi.org/project/pyinsta
 > py -m pip install pygame pyinstaller
 > py -m PyInstaller -Fwn tinyrpg src/demo.py
 ```
+
+`pytest` is an optional dependency. Use for running unit tests:
+```sh
+> pip install pytest
+> make test
+```
