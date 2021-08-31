@@ -1102,7 +1102,7 @@ class DungeonContext(Context):
     return game.roll(
       dx=attacker.stats.dx + attacker.stats.lu / 2,
       ag=defender.stats.ag + defender.stats.lu / 2,
-      chance=0.125
+      chance=1 / 16
     )
 
   def roll_block(game, attacker, defender):
