@@ -49,6 +49,7 @@ class Ghost(DungeonActor):
 
   def chant(ghost, skill, dest, game):
     ghost.stats.ag = game.hero.stats.ag
+    ghost.stats.lu = 0
     ghost.chant_skill = skill
     ghost.chant_dest = dest
     ghost.chant_turns = skill.chant_turns
@@ -62,6 +63,7 @@ class Ghost(DungeonActor):
     ghost.chant_dest = None
     ghost.chant_turns = 0
     ghost.stats.ag = ghost.core.stats.ag
+    ghost.stats.lu = ghost.core.stats.lu
     return command
 
   def step(ghost, game):

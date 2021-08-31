@@ -272,7 +272,7 @@ class DungeonActor(DungeonElement):
     target.set_hp(target.get_hp() - damage)
     if target.get_hp() <= 0:
       target.kill()
-    elif target.ailment == "sleep" and randint(0, 1):
+    elif target.ailment == "sleep":
       target.wake_up()
     return damage
 

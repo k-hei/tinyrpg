@@ -144,7 +144,7 @@ class Eyeball(DungeonActor):
 
     if eyeball.chant_turns:
       eyeball.chant_turns -= 1
-      if eyeball.chant_turns == 0:
+      if eyeball.chant_turns == 1:
         return eyeball.split(game)
       else:
         return None

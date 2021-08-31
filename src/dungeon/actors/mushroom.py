@@ -1,24 +1,27 @@
 from dungeon.actors import DungeonActor
 from cores import Core, Stats
-from assets import load as use_assets
 from skills.ailment.virus import Virus
 from skills.weapon.tackle import Tackle
 from lib.cell import is_adjacent
 import random
 from items.materials.redferrule import RedFerrule
+import assets
 from sprite import Sprite
 
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
+from anims.shake import ShakeAnim
 from config import PUSH_DURATION
 
 class Mushroom(DungeonActor):
   skill = Virus
   drops = [RedFerrule]
 
-  def __init__(mushroom, *args, **kwargs):
+  class ChargeAnim(ShakeAnim): pass
+
+  def __init__(mushroom, chant_skill=None, chant_turns=0, *args, **kwargs):
     super().__init__(Core(
       name="Toadstool",
       faction="enemy",
@@ -31,44 +34,81 @@ class Mushroom(DungeonActor):
       ),
       skills=[Tackle, Virus]
     ), *args, **kwargs)
+    mushroom.chant_skill = chant_skill
+    mushroom.chant_turns = chant_turns
 
-  def step(actor, game):
-    enemy = game.find_closest_enemy(actor)
+  def chant(mushroom, skill, dest, game):
+    mushroom.stats.ag = game.hero.stats.ag
+    mushroom.chant_skill = skill
+    mushroom.chant_turns = skill.chant_turns
+    mushroom.core.anims.append(Mushroom.ChargeAnim())
+
+  def cast(mushroom):
+    if mushroom.chant_skill is None:
+      return None
+    command = ("use_skill", mushroom.chant_skill)
+    mushroom.chant_skill = None
+    mushroom.chant_turns = 0
+    mushroom.stats.ag = mushroom.core.stats.ag
+    mushroom.core.anims.clear()
+    return command
+
+  def step(mushroom, game):
+    enemy = game.find_closest_enemy(mushroom)
     if enemy is None:
       return False
 
-    if is_adjacent(actor.cell, enemy.cell):
-      if random.randint(1, 5) == 1:
-        game.use_skill(actor, Virus)
+    if mushroom.chant_turns:
+      mushroom.chant_turns -= 1
+      if mushroom.chant_turns == 1:
+        return mushroom.cast()
       else:
-        game.attack(actor, enemy)
+        return None
+
+    if is_adjacent(mushroom.cell, enemy.cell):
+      if random.randint(1, 5) == 1:
+        return mushroom.chant(
+          game=game,
+          skill=Virus,
+          dest=game.hero.cell
+        )
+      else:
+        game.attack(mushroom, enemy)
     else:
-      game.move_to(actor, enemy.cell)
+      game.move_to(mushroom, enemy.cell)
 
     return True
 
   def view(mushroom, anims):
-    sprites = use_assets().sprites
-    sprite = None
+    mushroom_image = None
+    offset_x, offset_y = 0, 0
     if mushroom.is_dead():
-      return super().view(sprites["mushroom_flinch"], anims)
+      return super().view(assets.sprites["mushroom_flinch"], anims)
     anim_group = [a for a in anims[0] if a.target is mushroom] if anims else []
+    anim_group += mushroom.core.anims
     for anim in anim_group:
       if type(anim) is MoveAnim and anim.duration != PUSH_DURATION:
-        sprite = sprites["mushroom_move"]
+        mushroom_image = assets.sprites["mushroom_move"]
         break
       elif (type(anim) is AttackAnim
       and anim.time < anim.duration // 2):
-        sprite = sprites["mushroom_move"]
+        mushroom_image = assets.sprites["mushroom_move"]
         break
       elif type(anim) in (FlinchAnim, FlickerAnim):
-        sprite = sprites["mushroom_flinch"]
+        mushroom_image = assets.sprites["mushroom_flinch"]
+        break
+      elif type(anim) is Mushroom.ChargeAnim:
+        mushroom_image = assets.sprites["mushroom_move"]
+        offset_x += anim.offset
         break
     else:
       if mushroom.ailment == "sleep":
-        sprite = sprites["mushroom_sleep"]
+        mushroom_image = assets.sprites["mushroom_sleep"]
       else:
-        sprite = sprites["mushroom"]
+        mushroom_image = assets.sprites["mushroom"]
     if mushroom.ailment == "freeze":
-      sprite = sprites["mushroom_flinch"]
-    return super().view(sprite, anims)
+      mushroom_image = assets.sprites["mushroom_flinch"]
+    return super().view([Sprite(
+      image=mushroom_image,
+      pos=(offset_x, offset_y)
+    )], anims)
