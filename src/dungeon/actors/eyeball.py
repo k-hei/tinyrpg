@@ -93,6 +93,12 @@ class Eyeball(DungeonActor):
             )
           )
         ])
+      else:
+        game.anims.append([BounceAnim(
+          duration=20,
+          target=user,
+          on_end=on_end
+        )])
 
   def __init__(eyeball, faction="enemy", rare=False, chant_skill=None, chant_turns=0, clones=0, clone=False, *args, **kwargs):
     super().__init__(Core(
