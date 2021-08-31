@@ -25,7 +25,7 @@ class Beetle(DungeonActor):
     delta = None
     if abs(dist_x) + abs(dist_y) == 1:
       if game.floor.is_cell_empty((beetle_x - delta_x, beetle_y - delta_y)):
-        delta = (-delta_x, -beetle)
+        delta = (-delta_x, -delta_y)
       else:
         deltas = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         deltas = [(dx, dy) for (dx, dy) in deltas if game.floor.is_cell_empty((beetle_x + dx, beetle_y + dy))]

@@ -4,15 +4,17 @@ import assets
 from sprite import Sprite
 from contexts.dialogue import DialogueContext
 from anims.move import MoveAnim
+from colors.palette import GREEN
 
 class Beetle(Core):
-  def __init__(beetle, name="Buge", faction="ally", *args, **kwargs):
+  def __init__(beetle, name="Buge", faction="enemy", *args, **kwargs):
     super().__init__(
       name=name,
       faction=faction,
       stats=Stats(ag=7),
+      color=GREEN,
       message=lambda ctx: DialogueContext(script=[
-        ("BINGO", "Nooo, I'm just a little guy"),
+        ("Buge", "Nooo, I'm just a little guy"),
       ]),
       *args,
       **kwargs
