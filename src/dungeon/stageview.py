@@ -249,7 +249,8 @@ class StageView:
       x, y = elem.cell
       x *= TILE_SIZE
       y *= TILE_SIZE
-      if (x + TILE_SIZE < camera.left
+      elem_anims = [a for a in anims[0] if a.target is elem] if anims else []
+      if not elem_anims and (x + TILE_SIZE < camera.left
       or y + TILE_SIZE < camera.top
       or x > camera.right
       or y > camera.bottom):
