@@ -250,6 +250,7 @@ def postbattle_cutscene(room, game):
   )
   return [
     lambda step: (
+      mage.set_faction("ally"),
       game.camera.focus(midpoint, speed=8, force=True),
       mage.face(knight.cell),
       game.anims.append([JumpAnim(target=mage, on_end=step)])
@@ -288,6 +289,7 @@ def postbattle_cutscene_teardown(room, game):
       game.recruit(mage),
       room.unlock(game),
       game.learn_skill(skill=BroadSword),
+      game.end_step(),
       step()
     ),
     lambda step: game.child.open(DialogueContext(

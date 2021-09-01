@@ -592,7 +592,7 @@ class DungeonContext(Context):
       if key == pygame.K_d:
         return game.handle_debug()
       if key == pygame.K_c:
-        return print(game.commands)
+        return print(game.anims, game.commands, game.get_head().transits, game.hero and game.hero.core.anims, game.hero.command)
       if key == pygame.K_p:
         return print(game.hero.cell)
 
