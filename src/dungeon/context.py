@@ -1381,7 +1381,6 @@ class DungeonContext(Context):
     if success:
       game.log.print(("Used ", item.token(item)))
       game.log.print(message)
-      game.store.discard_item(item)
       return True, None
     else:
       game.anims.pop()
