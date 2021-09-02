@@ -9,7 +9,7 @@ from cores import Core
 from contexts import Context
 from dungeon.data import DungeonData
 from savedata import SaveData
-from savedata.resolve import resolve_item, resolve_skill, resolve_core
+from savedata.resolve import resolve_item, resolve_skill, resolve_elem, resolve_core
 from config import (
   MAX_SP,
   INVENTORY_COLS, INVENTORY_ROWS,
@@ -65,7 +65,7 @@ class GameData:
       selected_skill={ n: s.__name__ for n, s in store.selected_skill.items() if s is not None },
       party=[type(c).__name__ for c in store.party],
       builds=builds,
-      kills=store.kills,
+      kills={ enemy.__name__: kills for enemy, kills in store.kills.items() },
       story=store.story,
       quests=store.quests,
       place=place,
@@ -93,7 +93,7 @@ class GameData:
       selected_skill={ n: resolve_skill(s) for n, s in savedata.selected_skill.items() },
       party=party,
       builds=builds,
-      kills=savedata.kills,
+      kills={ resolve_elem(name): kills for name, kills in savedata.kills.items() },
       story=savedata.story,
       quests=savedata.quests,
       place=savedata.place,

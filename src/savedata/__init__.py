@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from items import Item
 from skills import Skill
 from dungeon.data import DungeonData
+import debug
 
 @dataclass
 class SaveData:
@@ -36,8 +37,9 @@ def load(*paths):
   return SaveData(**data)
 
 def save(path, data):
+  buffer = json.dumps(data, cls=DungeonData.Encoder)
   savefile = open(path, "w")
-  savefile.write(json.dumps(data, cls=DungeonData.Encoder))
+  savefile.write(buffer)
   savefile.close()
 
 def delete(path):
