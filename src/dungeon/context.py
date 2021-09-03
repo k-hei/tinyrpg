@@ -607,7 +607,7 @@ class DungeonContext(Context):
           game.keys_rejected[key] = 0
         game.keys_rejected[key] += 1
         if game.keys_rejected[key] >= 30:
-          game.handle_push()
+          return game.handle_push()
       return moved
 
     if ((key == pygame.K_BACKSLASH or key == pygame.K_BACKQUOTE)
@@ -764,7 +764,8 @@ class DungeonContext(Context):
       game.step(moving=True)
     elif target_tile is Stage.PIT:
       moved = game.jump_pit(hero, run, on_move)
-      game.step(moving=True)
+      if moved:
+        game.step(moving=True)
     return moved
 
   def handle_push(game):
@@ -1345,6 +1346,9 @@ class DungeonContext(Context):
       )
       target.damage(damage)
 
+    if flinch:
+      game.place_item(actor=target)
+
     pause = PauseAnim(duration=DungeonContext.FLINCH_PAUSE_DURATION, on_end=respond)
     if delayed or not game.anims:
       game.anims.append([*(flinch and [flinch] or []), pause])
@@ -1412,17 +1416,19 @@ class DungeonContext(Context):
       return False
     item = actor.item
     target_cell = add_vector(actor.cell, actor.get_facing())
-    if not game.floor.is_cell_empty(target_cell):
+    if Tile.is_solid(game.floor.get_tile_at(target_cell)):
       return False
     game.floor.spawn_elem_at(target_cell, ItemDrop(item))
-    game.anims.append([
-      AttackAnim(
-        duration=DungeonContext.ATTACK_DURATION,
-        target=actor,
-        src=actor.cell,
-        dest=target_cell
-      )
-    ])
+    if not game.anims:
+      game.anims.append([
+        AttackAnim(
+          duration=DungeonContext.ATTACK_DURATION,
+          target=actor,
+          src=actor.cell,
+          dest=target_cell,
+          on_end=game.step
+        )
+      ])
     actor.item = None
     return True
 
