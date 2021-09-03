@@ -641,12 +641,16 @@ class DungeonContext(Context):
     if key == pygame.K_RETURN:
       if game.hero.item:
         return game.handle_place()
+      elif shift:
+        return game.handle_pickup()
       else:
         return game.handle_skill()
 
     if key == pygame.K_SPACE:
       if game.hero.item:
         return game.handle_place()
+      elif shift:
+        return game.handle_pickup()
       else:
         return game.handle_action()
 
@@ -1420,6 +1424,18 @@ class DungeonContext(Context):
       )
     ])
     actor.item = None
+    return True
+
+  def handle_pickup(game):
+    return game.pickup_item(actor=game.hero)
+
+  def pickup_item(game, actor, itemdrop=None):
+    target_cell = add_vector(actor.cell, actor.get_facing())
+    itemdrop = itemdrop or next((e for e in game.floor.get_elems_at(target_cell) if isinstance(e, ItemDrop)), None)
+    if not itemdrop:
+      return False
+    game.floor.remove_elem(itemdrop)
+    game.hero.item = itemdrop.item
     return True
 
   def use_skill(game, actor, skill, dest=None, on_end=None):
