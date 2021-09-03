@@ -85,12 +85,15 @@ from dungeon.actors.knight import Knight
 from dungeon.actors.mushroom import Mushroom
 from dungeon.actors.guard import GuardActor
 from dungeon.actors.ghost import Ghost
+from dungeon.floors.debugfloor import DebugFloor
 from dungeon.floors.floor1 import Floor1
 from dungeon.floors.floor3 import Floor3
 from dungeon.floors.floor2 import Floor2
 from items.ailment.topaz import Topaz as TopazItem
+from items.ailment.musicbox import MusicBox as MusicBoxItem
 from items.ailment.antidote import Antidote as AntidoteItem
 from items.ailment.amethyst import Amethyst as AmethystItem
+from items.ailment.lovepotion import LovePotion as LovePotionItem
 from items.sp.bread import Bread as BreadItem
 from items.sp.berry import Berry as BerryItem
 from items.sp.cheese import Cheese as CheeseItem
@@ -122,8 +125,10 @@ from cores.rat import Rat as RatCore
 
 def resolve_item(key):
   if key == "Topaz": return TopazItem
+  if key == "MusicBox": return MusicBoxItem
   if key == "Antidote": return AntidoteItem
   if key == "Amethyst": return AmethystItem
+  if key == "LovePotion": return LovePotionItem
   if key == "Bread": return BreadItem
   if key == "Berry": return BerryItem
   if key == "Cheese": return CheeseItem
@@ -245,6 +250,7 @@ def resolve_elem(key):
   if key == "Mushroom": return Mushroom
   if key == "GuardActor": return GuardActor
   if key == "Ghost": return Ghost
+  if key == "DebugFloor": return DebugFloor
   if key == "Floor1": return Floor1
   if key == "Floor3": return Floor3
   if key == "Floor2": return Floor2

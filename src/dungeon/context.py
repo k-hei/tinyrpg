@@ -1456,6 +1456,7 @@ class DungeonContext(Context):
     item = actor.item
     facing_cell = add_vector(actor.cell, actor.get_facing())
     target_cell = actor.cell
+    target_elem = None
     throwing = True
     while throwing:
       next_cell = add_vector(target_cell, actor.get_facing())
@@ -1464,6 +1465,7 @@ class DungeonContext(Context):
         throwing = False
         break
       elif next_elem:
+        target_elem = next_elem
         throwing = False
       target_cell = next_cell
     if target_cell == actor.cell:
@@ -1482,7 +1484,12 @@ class DungeonContext(Context):
             src=actor.cell,
             dest=target_cell,
             on_end=lambda: (
-              setattr(itemdrop, "cell", target_cell),
+              "effect" in dir(item) and target_elem and isinstance(target_elem, DungeonActor) and (
+                game.log.print(item().effect(game, target_elem)),
+                game.floor.remove_elem(itemdrop),
+              ) or (
+                setattr(itemdrop, "cell", target_cell),
+              ),
               game.anims[0].append(
                 PauseAnim(
                   duration=15,
