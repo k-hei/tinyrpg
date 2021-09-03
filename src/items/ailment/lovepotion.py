@@ -14,4 +14,3 @@ class LovePotion(AilmentItem):
   def effect(item, game, actor=None):
     actor = actor or game.hero
     actor.set_faction("ally")
-    return (actor.token(), " is sizing you up.")

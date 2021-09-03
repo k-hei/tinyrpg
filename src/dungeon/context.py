@@ -1485,7 +1485,8 @@ class DungeonContext(Context):
             dest=target_cell,
             on_end=lambda: (
               "effect" in dir(item) and target_elem and isinstance(target_elem, DungeonActor) and (
-                game.log.print(item().effect(game, target_elem)),
+                response := item().effect(game, target_elem),
+                response and game.log.print(response),
                 game.floor.remove_elem(itemdrop),
               ) or (
                 setattr(itemdrop, "cell", target_cell),
