@@ -670,6 +670,7 @@ class DungeonContext(Context):
 
   def handle_turn(game, direction):
     game.hero.set_facing(direction)
+    game.update_bubble()
     return True
 
   def handle_move(game, delta, run=False):
