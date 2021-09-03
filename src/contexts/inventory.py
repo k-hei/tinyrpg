@@ -307,7 +307,7 @@ class InventoryContext(Context):
     sprite_tileright = assets.sprites["item_tile_right"]
     sprite_desc = assets.sprites["item_desc"]
     font_heading = assets.ttf["english"]
-    font_content = assets.ttf["roman"]
+    font_content = assets.ttf["normal"]
     tile_width = sprite_tile.get_width()
     tile_height = sprite_tile.get_height()
 

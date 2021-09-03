@@ -63,7 +63,7 @@ class LoadingContext(Context):
     knight_sprite.layer = "hud"
     sprites.append(knight_sprite)
 
-    label_font = assets.ttf["roman"]
+    label_font = assets.ttf["normal"]
     label_text = LoadingContext.LOADING_TEXT
     label_width = label_font.width(label_text)
     label_x = knight_x - knight_image.get_width() - 4 - label_width

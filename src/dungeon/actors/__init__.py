@@ -25,6 +25,9 @@ from comps.log import Token
 from comps.hpbubble import HpBubble
 from config import TILE_SIZE
 
+from contexts import Context
+from contexts.dialogue import DialogueContext
+
 class DungeonActor(DungeonElement):
   active = True
   POISON_DURATION = 5
@@ -259,7 +262,11 @@ class DungeonActor(DungeonElement):
         actor.face(old_target)
       game.camera.blur()
       game.talkee = None
-    game.open(message, on_close=stop_talk)
+    if isinstance(message, Context):
+      context = message
+    else:
+      context = DialogueContext(script=message)
+    game.open(context, on_close=stop_talk)
 
   def move_to(actor, dest):
     actor.cell = dest
@@ -381,16 +388,9 @@ class DungeonActor(DungeonElement):
           layer="vfx"
         ))
 
-    if actor.get_faction() == "enemy":
+    if actor.get_faction() != "player":
       bubble_sprites = actor.bubble.view()
-      if actor.ailment == "sleep":
-        actor.bubble.color = DARKBLUE
-      elif actor.ailment == "poison":
-        actor.bubble.color = VIOLET
-      elif actor.ailment == "freeze":
-        actor.bubble.color = CYAN
-      else:
-        actor.bubble.color = RED
+      actor.bubble.color = new_color
       for bubble_sprite in bubble_sprites:
         bubble_sprite.move((24, -20))
         if move_anim:

@@ -27,7 +27,7 @@ class Control:
     if control.surface and not control.dirty:
       return control.surface
     assets = use_assets()
-    font = assets.ttf["roman"]
+    font = assets.ttf["normal"]
     nodes = []
     x = 0
     for key in control.key:

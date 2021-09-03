@@ -306,7 +306,7 @@ class ShopContext(Context):
           char_x += char_width
 
       subtitle_text = ctx.subtitle
-      subtitle_font = assets.ttf["roman"]
+      subtitle_font = assets.ttf["normal"]
       subtitle_width, subtitle_height = subtitle_font.size(subtitle_text)
       subtitle_x = title_x + title_width - subtitle_width
       subtitle_y = title_y - title_height + 2

@@ -11,6 +11,7 @@ class LovePotion(AilmentItem):
   def use(item, store):
     return False, "You can't use that here!"
 
-  def effect(item, game, actor):
-    actor.inflict_ailment("sleep")
-    game.log.print((actor.token(), " fell asleep!"))
+  def effect(item, game, actor=None):
+    actor = actor or game.hero
+    actor.set_faction("ally")
+    return (actor.token(), " is sizing you up.")

@@ -94,7 +94,7 @@ class Slot:
     surface.blit(slot_image, (0, slot.LABEL_OVERLAP))
     surface.blit(tag_image, (slot.LABEL_X, 0))
     if slot.data is None:
-      text_image = assets.ttf["roman"].render("[ No data ]")
+      text_image = assets.ttf["normal"].render("[ No data ]")
       text_x = surface.get_width() // 2 - text_image.get_width() // 2
       text_y = (surface.get_height() - slot.LABEL_OVERLAP) // 2 - text_image.get_height() // 2 + slot.LABEL_OVERLAP
       surface.blit(text_image, (text_x, text_y))
@@ -127,11 +127,11 @@ class Slot:
       gold_image = assets.sprites["item_gold"].copy()
       gold_image = replace_color(gold_image, BLACK, GOLD)
       surface.blit(gold_image, (slot.INFO_X, slot.GOLD_Y + slot.LABEL_OVERLAP))
-      surface.blit(assets.ttf["roman"].render("{}G".format(slot.data.gold)), (slot.INFO_X + 16 + slot.TEXT_X, slot.GOLD_Y + slot.TEXT_Y + slot.LABEL_OVERLAP))
+      surface.blit(assets.ttf["normal"].render("{}G".format(slot.data.gold)), (slot.INFO_X + 16 + slot.TEXT_X, slot.GOLD_Y + slot.TEXT_Y + slot.LABEL_OVERLAP))
       time_image = assets.sprites["icon_clock"].copy()
       time_image = replace_color(time_image, BLACK, BLUE)
       surface.blit(time_image, (slot.INFO_X, slot.TIME_Y + slot.LABEL_OVERLAP))
-      surface.blit(assets.ttf["roman"].render(view_time(slot.data.time)), (slot.INFO_X + 16 + slot.TEXT_X, slot.TIME_Y + slot.TEXT_Y + slot.LABEL_OVERLAP))
+      surface.blit(assets.ttf["normal"].render(view_time(slot.data.time)), (slot.INFO_X + 16 + slot.TEXT_X, slot.TIME_Y + slot.TEXT_Y + slot.LABEL_OVERLAP))
 
   def reload(slot):
     slot.exit(on_end=lambda: (

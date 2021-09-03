@@ -30,7 +30,7 @@ MATRIX = [
   "YZ,.'\" yz-:/ ",
 ]
 MATRIX_DEADCOL = 6
-FONT_NAME = "roman"
+FONT_NAME = "normal"
 MAX_NAME_LENGTH = 7
 NAME_LETTER_SPACING = 4
 CHAR_MARGIN = 8

@@ -36,6 +36,9 @@ class Ghost(Core):
         lu=28,
         en=8,
       ),
+      message=[
+        (name, "You looking thick as hell bro! Boutta make me act up. No homo though.")
+      ],
       *args,
       **kwargs
     )

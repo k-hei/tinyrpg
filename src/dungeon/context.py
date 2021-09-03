@@ -1817,7 +1817,7 @@ class DungeonContext(Context):
             game.update_bubble()
 
     if game.time < LABEL_FRAMES and not game.child:
-      label_image = assets.ttf["roman"].render("Dungeon {}F".format(game.get_floor_no()), WHITE)
+      label_image = assets.ttf["normal"].render("Dungeon {}F".format(game.get_floor_no()), WHITE)
       label_image = outline(label_image, BLACK)
       label_image = outline(label_image, WHITE)
       sprites.append(Sprite(

@@ -21,7 +21,7 @@ class Log:
   ENTER_DURATION = 15
   EXIT_DURATION = 5
   HANG_DURATION = 180
-  FONT_NAME = "roman"
+  FONT_NAME = "normal"
   LINE_SPACING = 4
 
   def __init__(log, autohide=True, align="center", side="bottom", silent=False):

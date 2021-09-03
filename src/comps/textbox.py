@@ -6,7 +6,7 @@ from colors.palette import BLACK
 LINE_SPACING = 4
 
 class TextBox:
-  font = "roman"
+  font = "normal"
 
   def height(token, width):
     assets = use_assets()

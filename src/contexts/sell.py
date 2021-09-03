@@ -171,7 +171,7 @@ class BagList:
       bag.surface = Surface(bag.box.get_size())
     bag.surface.blit(bag.box, (0, 0))
     if bag.items == []:
-      text_image = assets.ttf["roman"].render("[ No items ]")
+      text_image = assets.ttf["normal"].render("[ No items ]")
       x = bag.box.get_width() // 2 - text_image.get_width() // 2
       y = bag.box.get_height() // 2 - text_image.get_height() // 2
       bag.surface.blit(text_image, (x, y))
@@ -208,7 +208,7 @@ class BagList:
           text_y = y + icon_image.get_height() // 2 - text_image.get_height() // 2
           bag.surface.blit(text_image, (text_x, text_y))
 
-          price_image = assets.ttf["roman"].render(str(item.value // 2), text_color)
+          price_image = assets.ttf["normal"].render(str(item.value // 2), text_color)
           price_x = bag.box.get_width() - price_image.get_width() - 12
           price_y = text_y
           bag.surface.blit(price_image, (price_x, price_y))
@@ -539,7 +539,7 @@ class SellContext(Context):
         t = 1 - t
       gold_y = lerp(WINDOW_HEIGHT, gold_y, t)
     if gold_anim or not ctx.exiting:
-      goldtext_font = assets.ttf["roman"]
+      goldtext_font = assets.ttf["normal"]
       ctx.gold_drawn += (ctx.store.gold - ctx.gold_drawn) / 16
       goldtext_image = goldtext_font.render(str(round(ctx.gold_drawn)))
       goldtext_x = gold_x + gold_image.get_width() + 3
@@ -621,7 +621,7 @@ class SellContext(Context):
       title_image = assets.ttf["english"].render(item.name, item.color)
       PADDING = 8
       descbox_image.blit(title_image, (PADDING, PADDING))
-      desc_font = assets.ttf["roman"]
+      desc_font = assets.ttf["normal"]
       desc_x = PADDING
       desc_y = 21
       desc_right = descbox_image.get_width() - PADDING
@@ -639,7 +639,7 @@ class SellContext(Context):
             desc_x = PADDING
             desc_y += desc_font.height() + 4
             continue
-        char_image = assets.ttf["roman"].render(char)
+        char_image = assets.ttf["normal"].render(char)
         descbox_image.blit(char_image, (desc_x, desc_y))
         desc_x += char_image.get_width()
       label_text = (issubclass(item, MaterialItem)
@@ -653,7 +653,7 @@ class SellContext(Context):
         and (resolve_material(item) and resolve_material(item).__name__ or "N/A")
         or len([i for i in ctx.itembox.items if i is item]))
       value_text = str(value)
-      value_image = assets.ttf["roman"].render(value_text)
+      value_image = assets.ttf["normal"].render(value_text)
       descbox_image.blit(value_image, (label_x + label_image.get_width() + 5, label_y))
 
     descbox_anim = next((a for a in ctx.anims if isinstance(a, SellContext.DescMoveAnim)), None)

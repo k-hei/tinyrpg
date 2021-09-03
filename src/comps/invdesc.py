@@ -46,7 +46,7 @@ class InventoryDescription:
   def render(box):
     assets = use_assets()
     font_heading = assets.ttf["english"]
-    font_content = assets.ttf["roman"]
+    font_content = assets.ttf["normal"]
     surface = assets.sprites["item_desc"].copy()
     if box.anim:
       t = box.anim.update()

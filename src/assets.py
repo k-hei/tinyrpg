@@ -100,6 +100,7 @@ def load(path=None):
   ttf["english_large"] = load_ttf("PCPaintEnglishMedium", 16, join(path, "ttf"))
   ttf["roman"] = load_ttf("PCPaintRomanSmall", 8, join(path, "ttf"))
   ttf["roman_large"] = load_ttf("PCPaintRomanMedium", 16, join(path, "ttf"))
+  ttf["normal"] = load_ttf("PCPaintNormalSmall", 8, join(path, "ttf"))
   ttf["special"] = load_ttf("PCPaintSpecialMedium", 12, join(path, "ttf"))
 
   assets.sprites = sprites

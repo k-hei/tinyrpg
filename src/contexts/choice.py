@@ -122,7 +122,7 @@ class ChoiceContext(Context):
 
   def render(ctx):
     assets = use_assets()
-    font = assets.ttf["roman"]
+    font = assets.ttf["normal"]
     cursor = replace_color(assets.sprites["cursor"], WHITE, YELLOW)
 
     choice_widths = map(lambda c: font.width(c.text), ctx.choices)

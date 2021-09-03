@@ -309,7 +309,7 @@ class TopViewContext(Context):
         ))
 
     if ctx.time < LABEL_FRAMES and not ctx.child:
-      label_image = assets.ttf["roman"].render(ctx.area.name, WHITE)
+      label_image = assets.ttf["normal"].render(ctx.area.name, WHITE)
       label_image = outline(label_image, BLACK)
       if not ctx.area.dark:
         label_image = outline(label_image, WHITE)
