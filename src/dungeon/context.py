@@ -516,23 +516,21 @@ class DungeonContext(Context):
     if not enemy.can_step():
       return None
 
-    if not enemy.aggro:
-      hero = game.hero
-      floor = game.floor
-      target = game.find_closest_enemy(enemy)
-      room = next((r for r in floor.rooms if enemy.cell in r.get_cells()), None)
-      if target:
-        if room and target.cell not in room.get_cells() + room.get_border():
-          return None
-        elif manhattan(enemy.cell, target.cell) <= VISION_RANGE and target.cell not in shadowcast(floor, enemy.cell, VISION_RANGE):
-          return None
-      elif enemy.get_faction() == "ally":
+    hero = game.hero
+    floor = game.floor
+    target = game.find_closest_enemy(enemy)
+    room = next((r for r in floor.rooms if enemy.cell in r.get_cells()), None)
+    if target and room and target.cell in room.get_cells() + room.get_border():
+      enemy.aggro = True
+    elif target and manhattan(enemy.cell, target.cell) <= VISION_RANGE and target.cell in shadowcast(floor, enemy.cell, VISION_RANGE):
+      enemy.aggro = True
+    else:
+      enemy.aggro = False
+      if enemy.get_faction() == "ally":
         return ("move_to", hero.cell)
-      else:
-        return None
 
-    enemy.aggro = True
-    return enemy.step(game)
+    if enemy.aggro:
+      return enemy.step(game)
 
   def find_closest_enemy(game, actor):
     enemies = [e for e in game.floor.elems if (
@@ -1095,6 +1093,7 @@ class DungeonContext(Context):
     if delta_x or delta_y:
       return game.move(actor=actor, delta=(delta_x, delta_y), run=run, on_end=on_end)
     else:
+      on_end and on_end()
       return False
 
   def redraw_tiles(game, force=False):
@@ -1335,6 +1334,7 @@ class DungeonContext(Context):
       game.vfx.append(FlashVfx())
       game.floor_view.shake(vertical=direction[1])
       game.nudge(target, direction)
+      target.command = True
       target.turns = 0
 
     if damage == None:

@@ -30,7 +30,7 @@ class Ghost(Core):
       faction=faction,
       stats=Stats(
         hp=11,
-        st=9,
+        st=10,
         dx=7,
         ag=14,
         lu=28,

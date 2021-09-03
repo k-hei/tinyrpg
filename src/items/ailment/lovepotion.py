@@ -14,13 +14,14 @@ class LovePotion(AilmentItem):
     return False, "You can't use that here!"
 
   def effect(item, game, actor=None):
-    if actor.get_faction() != "enemy":
-      return False
-    actor = actor or game.hero
-    actor.set_faction("ally")
-    actor.aggro = False
-    actor.behavior = "chase"
     game.vfx.append(BurstVfx(
       cell=actor.cell,
       color=GREEN
     ))
+    actor = actor or game.hero
+    if actor.get_faction() != "enemy":
+      return False
+    actor.set_faction("ally")
+    actor.aggro = False
+    actor.behavior = "chase"
+    actor.dispel_ailment()

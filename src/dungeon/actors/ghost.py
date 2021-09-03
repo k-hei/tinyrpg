@@ -26,6 +26,7 @@ class Ghost(DungeonActor):
         on_end=lambda: game.vfx.append(
           GhostArmVfx(
             cell=dest,
+            color=user.color(),
             on_connect=(lambda: (
               game.flinch(
                 target=target_elem,
@@ -93,7 +94,7 @@ class Ghost(DungeonActor):
       return ghost.chant(
         game=game,
         skill=Ghost.ColdWhip,
-        dest=game.hero.cell
+        dest=enemy.cell
       )
     else:
       return ("move_to", enemy.cell)

@@ -4,7 +4,10 @@ from colors.palette import BLACK, ORANGE
 
 class Genie(DungeonActor):
   def __init__(genie, color=ORANGE, faction="ally", *args, **kwargs):
-    super().__init__(GenieCore(color=color, faction=faction, behavior="guard", *args, **kwargs))
+    super().__init__(
+      core=GenieCore(color=color, faction=faction, *args, **kwargs),
+      behavior="guard"
+    )
 
   def encode(genie):
     [cell, kind, *props] = super().encode()
