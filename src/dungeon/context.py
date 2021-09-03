@@ -601,7 +601,10 @@ class DungeonContext(Context):
       return False
 
     if key in ARROW_DELTAS:
-      moved = game.handle_move(delta=ARROW_DELTAS[key], run=shift)
+      delta = ARROW_DELTAS[key]
+      if ctrl:
+        return game.handle_turn(delta)
+      moved = game.handle_move(delta, run=shift)
       if not moved:
         if key not in game.keys_rejected:
           game.keys_rejected[key] = 0
@@ -667,6 +670,10 @@ class DungeonContext(Context):
     hero.command = None
     game.is_sleeping = True
     game.step()
+    return True
+
+  def handle_turn(game, direction):
+    game.hero.set_facing(direction)
     return True
 
   def handle_move(game, delta, run=False):
