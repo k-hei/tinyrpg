@@ -64,6 +64,7 @@ from dungeon.props.bag import Bag
 from dungeon.props.soul import Soul
 from dungeon.props.coffin import Coffin
 from dungeon.props.palm import Palm
+from dungeon.props.itemdrop import ItemDrop
 
 from inventory import Inventory
 from items import Item
@@ -638,10 +639,16 @@ class DungeonContext(Context):
         return game.handle_descend()
 
     if key == pygame.K_RETURN:
-      return game.handle_skill()
+      if game.hero.item:
+        return game.handle_place()
+      else:
+        return game.handle_skill()
 
     if key == pygame.K_SPACE:
-      return game.handle_action()
+      if game.hero.item:
+        return game.handle_place()
+      else:
+        return game.handle_action()
 
     return None
 
@@ -1385,6 +1392,35 @@ class DungeonContext(Context):
     else:
       game.anims.pop()
       return False, message
+
+  def carry_item(game, item):
+    if not game.hero.item:
+      game.hero.item = item
+      return True, None
+    else:
+      return False, "You can't carry any more."
+
+  def handle_place(game):
+    return game.place_item(actor=game.hero)
+
+  def place_item(game, actor, item=None):
+    if not item and not actor.item:
+      return False
+    item = actor.item
+    target_cell = add_vector(actor.cell, actor.get_facing())
+    if not game.floor.is_cell_empty(target_cell):
+      return False
+    game.floor.spawn_elem_at(target_cell, ItemDrop(item))
+    game.anims.append([
+      AttackAnim(
+        duration=DungeonContext.ATTACK_DURATION,
+        target=actor,
+        src=actor.cell,
+        dest=target_cell
+      )
+    ])
+    actor.item = None
+    return True
 
   def use_skill(game, actor, skill, dest=None, on_end=None):
     camera = game.camera

@@ -62,6 +62,7 @@ class DungeonActor(DungeonElement):
       actor.ailment_turns = ailment_turns or actor.ailment_turns
 
     actor.weapon = actor.find_weapon()
+    actor.item = None
     actor.command = None
     actor.counter = False
     actor.turns = 0
@@ -395,6 +396,17 @@ class DungeonActor(DungeonElement):
         if move_anim:
           bubble_sprite.move(actor.get_move_offset(move_anim))
       sprites += bubble_sprites
+
+    if actor.item:
+      item_image = actor.item().render()
+      item_sprite = Sprite(
+        image=item_image,
+        pos=(0, -24),
+        layer="vfx"
+      )
+      if move_anim:
+        item_sprite.move(actor.get_move_offset(move_anim))
+      sprites += [item_sprite]
 
     if actor.elev > 0 and not move_anim:
       offset_z = actor.elev * TILE_SIZE

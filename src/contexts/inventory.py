@@ -105,6 +105,8 @@ class InventoryContext(Context):
   def exit(ctx):
     ctx.active = False
     ctx.box.exit()
+    if ctx.child:
+      ctx.child.exit()
     ctx.anims.append(TweenAnim(
       duration=DURATION_BELTEXIT,
       delay=STAGGER_BELTEXIT + STAGGER_CHAREXIT * 2,
@@ -161,25 +163,6 @@ class InventoryContext(Context):
       ctx.box.print(item)
     else:
       ctx.box.print("You have no items in this category.")
-
-  def use(ctx):
-    item = ctx.get_selected_item()
-    if "use_item" in dir(ctx.parent):
-      success, message = ctx.parent.use_item(item)
-    else:
-      success, message = ctx.parent.store.use_item(item)
-    if not success:
-      ctx.box.print(message)
-      return False
-    else:
-      ctx.exit()
-      return True
-
-  def discard(ctx):
-    item = ctx.get_selected_item()
-    ctx.store.items.remove(item)
-    ctx.update_items()
-    return True
 
   def contains(ctx, cell):
     cols, rows = ctx.grid_size
@@ -257,14 +240,49 @@ class InventoryContext(Context):
       return False
     ctx.open(ChoiceContext(choices=[
       Choice(text="Use"),
+      Choice(text="Carry"),
       Choice(text="Discard", closing=True)
     ], on_choose=lambda choice: (
-      choice.text == "Use" and ctx.use()
+      choice.text == "Use" and ctx.use_item()
+      or choice.text == "Carry" and ctx.carry_item()
       or choice.text == "Discard" and True
     ), on_close=lambda choice: (
       choice is None and True
-      or choice.text == "Discard" and ctx.discard()
+      or choice.text == "Discard" and ctx.discard_item()
     )))
+    return True
+
+  def use_item(ctx, item=None):
+    item = item or ctx.get_selected_item()
+    if "use_item" in dir(ctx.parent):
+      success, message = ctx.parent.use_item(item)
+    else:
+      success, message = ctx.parent.store.use_item(item)
+    if success:
+      ctx.exit()
+      return True
+    else:
+      ctx.box.print(message)
+      return False
+
+  def carry_item(ctx, item=None):
+    item = item or ctx.get_selected_item()
+    if "carry_item" in dir(ctx.parent):
+      success, message = ctx.parent.carry_item(item)
+    else:
+      success, message = False, "You can't carry that here!"
+    if success:
+      ctx.store.discard_item(item)
+      ctx.exit()
+      return True
+    else:
+      ctx.box.print(message)
+      return False
+
+  def discard_item(ctx, item=None):
+    item = item or ctx.get_selected_item()
+    ctx.store.discard_item(item)
+    ctx.update_items()
     return True
 
   def update(ctx):
