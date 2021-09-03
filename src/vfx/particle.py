@@ -11,7 +11,7 @@ from filters import replace_color
 class ParticleVfx(Vfx):
   def __init__(fx, pos, color=WHITE, *args, **kwargs):
     angle = 2 * pi * random()
-    speed = random() + 0.5
+    speed = random() + 1.5
     super().__init__(
       kind=None,
       pos=pos,
@@ -27,7 +27,7 @@ class ParticleVfx(Vfx):
     assets = use_assets()
     fx.anim = FrameAnim(
       frames=[replace_color(s, BLACK, fx.color) for s in assets.sprites["fx_particle"]],
-      duration=30
+      duration=45
     )
 
   def update(fx, *_):
@@ -36,6 +36,7 @@ class ParticleVfx(Vfx):
     fx_x, fx_y = fx.pos
     vel_x, vel_y = fx.vel
     fx.pos = (fx_x + vel_x, fx_y + vel_y)
+    fx.vel = (vel_x * 0.925, vel_y * 0.925)
     if fx.anim.done:
       fx.anim = None
       fx.done = True

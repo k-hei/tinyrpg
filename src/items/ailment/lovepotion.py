@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from items.ailment import AilmentItem
+from vfx.burst import BurstVfx
+from colors.palette import GREEN
 
 @dataclass
 class LovePotion(AilmentItem):
@@ -14,3 +16,7 @@ class LovePotion(AilmentItem):
   def effect(item, game, actor=None):
     actor = actor or game.hero
     actor.set_faction("ally")
+    game.vfx.append(BurstVfx(
+      cell=actor.cell,
+      color=GREEN
+    ))

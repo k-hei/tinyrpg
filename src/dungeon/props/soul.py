@@ -8,6 +8,7 @@ from filters import replace_color, recolor
 from comps.skill import Skill
 from contexts.dialogue import DialogueContext
 from vfx import Vfx
+from vfx.burst import BurstVfx
 from colors.palette import BLACK
 from sprite import Sprite
 import config
@@ -50,14 +51,9 @@ class Soul(Prop):
     col, row = soul.cell
     x = col * config.TILE_SIZE
     y = row * config.TILE_SIZE
-    game.vfx.append(Vfx(
-      kind="burst",
-      pos=(x, y),
+    game.vfx.append(BurstVfx(
+      cell=soul.cell,
       color=soul.skill.color,
-      anim=FrameAnim(
-        duration=15,
-        frames=["fx_burst0", "fx_burst1", "fx_burst2", "fx_burst3", "fx_burst4"]
-      )
     ))
     r = 0
     while r < 2 * pi:
