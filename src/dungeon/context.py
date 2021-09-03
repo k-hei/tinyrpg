@@ -635,27 +635,23 @@ class DungeonContext(Context):
     if key == pygame.K_BACKSLASH or key == pygame.K_BACKQUOTE:
       return game.handle_wait()
 
-    if key == pygame.K_RETURN or key == pygame.K_SPACE:
-      if game.floor.get_tile_at(game.hero.cell) is Stage.STAIRS_UP:
-        return game.handle_ascend()
-      elif game.floor.get_tile_at(game.hero.cell) is Stage.STAIRS_DOWN:
-        return game.handle_descend()
-
-    if key == pygame.K_RETURN:
+    if key in (pygame.K_RETURN, pygame.K_SPACE):
       if game.hero.item:
-        return game.handle_place()
-      elif shift:
-        return game.handle_pickup()
+        if shift:
+          return game.handle_throw()
+        else:
+          return game.handle_place()
       else:
-        return game.handle_skill()
-
-    if key == pygame.K_SPACE:
-      if game.hero.item:
-        return game.handle_place()
-      elif shift:
-        return game.handle_pickup()
-      else:
-        return game.handle_action()
+        if shift:
+          return game.handle_pickup()
+        elif game.floor.get_tile_at(game.hero.cell) is Stage.STAIRS_UP:
+          return game.handle_ascend()
+        elif game.floor.get_tile_at(game.hero.cell) is Stage.STAIRS_DOWN:
+          return game.handle_descend()
+        elif key == pygame.K_RETURN:
+          return game.handle_skill()
+        elif key == pygame.K_SPACE:
+          return game.handle_action()
 
     return None
 
@@ -1449,6 +1445,59 @@ class DungeonContext(Context):
       return False
     game.floor.remove_elem(itemdrop)
     game.hero.item = itemdrop.item
+    return True
+
+  def handle_throw(game):
+    return game.throw_item(actor=game.hero)
+
+  def throw_item(game, actor, item=None):
+    if not item and not actor.item:
+      return False
+    item = actor.item
+    facing_cell = add_vector(actor.cell, actor.get_facing())
+    target_cell = actor.cell
+    throwing = True
+    while throwing:
+      next_cell = add_vector(target_cell, actor.get_facing())
+      next_elem = next((e for e in game.floor.get_elems_at(next_cell) if e.solid), None)
+      if Tile.is_solid(game.floor.get_tile_at(next_cell)):
+        throwing = False
+        break
+      elif next_elem:
+        throwing = False
+      target_cell = next_cell
+    if target_cell == actor.cell:
+      return False
+    itemdrop = ItemDrop(item)
+    game.anims.append([
+      AttackAnim(
+        target=actor,
+        src=actor.cell,
+        dest=facing_cell,
+        on_connect=lambda: (
+          setattr(actor, "item", None),
+          game.floor.spawn_elem_at(actor.cell, itemdrop),
+          game.anims[0].append(throw_anim := ItemDrop.ThrownAnim(
+            target=itemdrop,
+            src=actor.cell,
+            dest=target_cell,
+            on_end=lambda: (
+              setattr(itemdrop, "cell", target_cell),
+              game.anims[0].append(
+                PauseAnim(
+                  duration=15,
+                  on_end=lambda:(
+                    game.step(),
+                    game.camera.blur()
+                  )
+                )
+              )
+            )
+          )),
+          game.camera.focus(target_cell) #, tween=True, speed=throw_anim.duration),
+        )
+      )
+    ])
     return True
 
   def use_skill(game, actor, skill, dest=None, on_end=None):
