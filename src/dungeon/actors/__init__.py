@@ -48,7 +48,7 @@ class DungeonActor(DungeonElement):
     frames_duration = 15
     loop = True
 
-  def __init__(actor, core, hp=None, faction=None, facing=None, ailment=None, ailment_turns=0):
+  def __init__(actor, core, hp=None, faction=None, facing=None, ailment=None, ailment_turns=0, behavior="chase"):
     super().__init__(solid=True, opaque=False)
     actor.core = core
     actor.stats = copy(core.stats)
@@ -64,6 +64,7 @@ class DungeonActor(DungeonElement):
       actor.inflict_ailment(ailment)
       actor.ailment_turns = ailment_turns or actor.ailment_turns
 
+    actor.behavior = behavior
     actor.weapon = actor.find_weapon()
     actor.item = None
     actor.command = None

@@ -404,7 +404,7 @@ class DungeonContext(Context):
         continue
       while actor.turns >= 1:
         actor.turns -= 1
-        if actor not in (hero, ally):
+        if actor not in (hero, ally) and not (actor.get_faction() == "ally" and actor.behavior == "guard"):
           command = game.step_enemy(actor)
           if type(command) is tuple:
             if actor in commands:
@@ -514,21 +514,22 @@ class DungeonContext(Context):
 
   def step_enemy(game, enemy):
     if not enemy.can_step():
-      return False
+      return None
 
     if not enemy.aggro:
       hero = game.hero
-      ally = game.ally
       floor = game.floor
+      target = game.find_closest_enemy(enemy)
       room = next((r for r in floor.rooms if enemy.cell in r.get_cells()), None)
-      if room:
-        if hero.cell not in room.get_cells() + room.get_border():
-          return False
-      elif manhattan(enemy.cell, hero.cell) <= VISION_RANGE:
-        if hero.cell not in shadowcast(floor, enemy.cell, VISION_RANGE):
-          return False
+      if target:
+        if room and target.cell not in room.get_cells() + room.get_border():
+          return None
+        elif manhattan(enemy.cell, target.cell) <= VISION_RANGE and target.cell not in shadowcast(floor, enemy.cell, VISION_RANGE):
+          return None
+      elif enemy.get_faction() == "ally":
+        return ("move_to", hero.cell)
       else:
-        return False
+        return None
 
     enemy.aggro = True
     return enemy.step(game)

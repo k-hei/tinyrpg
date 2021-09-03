@@ -27,7 +27,8 @@ class Mage(DungeonActor):
     super().__init__(
       core=core or MageCore(skills=[Glacio, Accerso], *args, **kwargs),
       ailment=ailment,
-      ailment_turns=ailment_turns
+      ailment_turns=ailment_turns,
+      behavior="guard"
     )
     mage.chant_skill = chant_skill
     mage.chant_dest = chant_dest

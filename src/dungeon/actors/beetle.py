@@ -10,7 +10,7 @@ from config import ATTACK_DURATION
 
 class Beetle(DungeonActor):
   def __init__(beetle, *args, **kwargs):
-    super().__init__(BeetleCore(), *args, **kwargs)
+    super().__init__(BeetleCore(), behavior="flee", *args, **kwargs)
 
   def step(beetle, game):
     enemy = game.hero
