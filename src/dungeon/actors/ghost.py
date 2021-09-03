@@ -47,6 +47,17 @@ class Ghost(DungeonActor):
     ghost.chant_dest = chant_dest
     ghost.chant_turns = chant_turns
 
+  def set_faction(ghost, faction):
+    super().set_faction(faction)
+    ghost.reset_chant()
+
+  def reset_chant(ghost):
+    ghost.chant_skill = None
+    ghost.chant_dest = None
+    ghost.chant_turns = 0
+    ghost.stats.ag = ghost.core.stats.ag
+    ghost.stats.lu = ghost.core.stats.lu
+
   def chant(ghost, skill, dest, game):
     ghost.stats.ag = game.hero.stats.ag
     ghost.stats.lu = 0
@@ -59,11 +70,7 @@ class Ghost(DungeonActor):
     if ghost.chant_skill is None:
       return None
     command = ("use_skill", ghost.chant_skill, ghost.chant_dest)
-    ghost.chant_skill = None
-    ghost.chant_dest = None
-    ghost.chant_turns = 0
-    ghost.stats.ag = ghost.core.stats.ag
-    ghost.stats.lu = ghost.core.stats.lu
+    ghost.reset_chant()
     return command
 
   def step(ghost, game):

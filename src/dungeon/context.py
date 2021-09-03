@@ -783,6 +783,8 @@ class DungeonContext(Context):
       command = PushCommand(target=target_elem)
       def end_push():
         hero.command.on_end = None
+        if isinstance(target_elem, DungeonActor) and target_elem.get_faction() == "ally":
+          target_elem.command = command
         game.step(moving=True)
       pushed = game.push(
         actor=hero,
