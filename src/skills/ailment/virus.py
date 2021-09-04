@@ -21,7 +21,7 @@ class Virus(AilmentSkill):
     (1, 0),
     (1, 1),
   )
-  chant_turns: int = 2
+  charge_turns: int = 2
 
   def effect(user, dest, game, on_end=None):
     targets = [e for e in game.floor.elems if (

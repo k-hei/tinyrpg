@@ -69,12 +69,13 @@ class Eyeball(DungeonActor):
   class SplitAnim(MoveAnim): pass
   class Meyetosis(Skill):
     name = "Meyetosis"
-    chant_turns = 3
+    charge_turns = 3
     def effect(user, dest, game, on_end=None):
       neighbors = [c for c in neighborhood(user.cell) if game.floor.is_cell_empty(c)]
       if neighbors:
+        user.clones += 1
         neighbor = choice(neighbors)
-        clone = Eyeball(clone=True, facing=user.facing)
+        clone = Eyeball(clone=True, faction=user.get_faction(), facing=user.facing)
         game.anims.append([
           BounceAnim(
             duration=20,
@@ -100,9 +101,9 @@ class Eyeball(DungeonActor):
           on_end=on_end
         )])
 
-  def __init__(eyeball, faction="enemy", rare=False, chant_skill=None, chant_turns=0, clones=0, clone=False, *args, **kwargs):
+  def __init__(eyeball, name="Eyeball", faction="enemy", rare=False, clones=0, clone=False, *args, **kwargs):
     super().__init__(Core(
-      name="Eyeball",
+      name=name,
       faction=faction,
       stats=Stats(
         hp=14,
@@ -112,10 +113,11 @@ class Eyeball(DungeonActor):
         lu=3,
         en=11,
       ),
-      skills=[Tackle]
+      skills=[Tackle],
+      message=[
+        (name, "You looking thick as hell bro! Boutta make me act up. No homo though.")
+      ]
     ), *args, **kwargs)
-    eyeball.chant_skill = chant_skill
-    eyeball.chant_turns = chant_turns
     eyeball.clones = clones
     eyeball.clone = clone
     eyeball.item = None
@@ -123,37 +125,27 @@ class Eyeball(DungeonActor):
       eyeball.promote(hp=False)
       eyeball.core.skills.append(HpUp)
 
-  def chant(eyeball, skill, game):
-    eyeball.chant_skill = skill
-    eyeball.chant_turns = skill.chant_turns
+  def charge(eyeball, *args, **kwargs):
+    super().charge(*args, **kwargs)
     eyeball.core.anims.append(Eyeball.ChargeAnim(magnitude=0.5))
 
-  def split(eyeball, game):
-    if eyeball.chant_skill is None:
-      return None
-    eyeball.chant_skill = None
-    eyeball.chant_turns = 0
+  def discharge(eyeball):
     eyeball.core.anims.clear()
-    eyeball.clones += 1
-    return ("use_skill", Eyeball.Meyetosis)
+    return super().discharge()
 
   def step(eyeball, game):
     enemy = game.find_closest_enemy(eyeball)
     if enemy is None:
       return False
 
-    if eyeball.chant_turns:
-      eyeball.chant_turns -= 1
-      if eyeball.chant_turns == 1:
-        return eyeball.split(game)
-      else:
-        return None
+    command = eyeball.step_charge()
+    if command: return command
 
     if (eyeball.core.hp < eyeball.core.stats.hp
     and not eyeball.clone
     and eyeball.clones < Eyeball.CLONES_MAX
     and randint(1, 3) == 1):
-      return eyeball.chant(Eyeball.Meyetosis, game)
+      return eyeball.charge(Eyeball.Meyetosis)
     elif is_adjacent(eyeball.cell, enemy.cell):
       return ("attack", enemy)
     else:

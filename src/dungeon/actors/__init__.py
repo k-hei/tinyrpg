@@ -48,13 +48,26 @@ class DungeonActor(DungeonElement):
     frames_duration = 15
     loop = True
 
-  def __init__(actor, core, hp=None, faction=None, facing=None, ailment=None, ailment_turns=0, behavior="chase"):
+  def __init__(
+    actor,
+    core,
+    hp=None,
+    faction=None,
+    behavior="chase",
+    facing=None,
+    ailment=None,
+    ailment_turns=0,
+    charge_skill=None,
+    charge_dest=None,
+    charge_turns=None
+  ):
     super().__init__(solid=True, opaque=False)
     actor.core = core
     actor.stats = copy(core.stats)
     actor.set_hp(hp or core.hp)
     actor.set_faction(faction or core.faction)
     actor.set_facing(facing or core.facing)
+    actor.behavior = behavior
     actor.bubble = HpBubble(actor.core)
 
     actor.anims = []
@@ -64,7 +77,10 @@ class DungeonActor(DungeonElement):
       actor.inflict_ailment(ailment)
       actor.ailment_turns = ailment_turns or actor.ailment_turns
 
-    actor.behavior = behavior
+    actor.charge_skill = charge_skill
+    actor.charge_dest = charge_dest
+    actor.charge_turns = charge_turns
+
     actor.weapon = actor.find_weapon()
     actor.item = None
     actor.command = None
@@ -101,6 +117,32 @@ class DungeonActor(DungeonElement):
     if actor.ailment == "freeze":
       return int(actor.stats.en * 1.5)
     return actor.stats.en
+
+  def charge(actor, skill, dest=None):
+    actor.charge_skill = skill
+    actor.charge_dest = dest
+    actor.charge_turns = skill.charge_turns
+
+  def reset_charge(actor):
+    actor.charge_skill = None
+    actor.charge_dest = None
+    actor.charge_turns = 0
+    actor.core.anims.clear()
+
+  def discharge(actor):
+    if actor.charge_skill is None:
+      return None
+    command = ("use_skill", actor.charge_skill, actor.charge_dest)
+    actor.reset_charge()
+    return command
+
+  def step_charge(actor):
+    if actor.charge_turns:
+      actor.charge_turns -= 1
+      if actor.charge_turns == 0:
+        return actor.discharge()
+      else:
+        return ("wait",)
 
   def encode(actor):
     cell, name, *props = super().encode()

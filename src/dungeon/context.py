@@ -396,8 +396,11 @@ class DungeonContext(Context):
     enemies.sort(key=lambda e: type(e) is MageActor and 1000 or manhattan(e.cell, hero.cell))
 
     for actor in actors:
-      spd = actor.stats.ag / hero.stats.ag
-      actor.turns += spd
+      if actor.charge_skill:
+        actor.turns = 1
+      else:
+        spd = actor.stats.ag / hero.stats.ag
+        actor.turns += spd
 
     for actor in actors:
       if actor.is_dead():
@@ -419,7 +422,7 @@ class DungeonContext(Context):
     end_exec = lambda: game.end_step(moving=moving)
     start_exec = lambda: game.next_command(on_end=end_exec)
     if commands:
-      COMMAND_PRIORITY = ["move", "move_to", "use_skill", "attack"]
+      COMMAND_PRIORITY = ["move", "move_to", "use_skill", "attack", "wait"]
       game.commands = sorted(commands.items(), key=lambda item: COMMAND_PRIORITY.index(item[1][0][0]))
       if (hero.command
       and hero.command.on_end
@@ -459,6 +462,8 @@ class DungeonContext(Context):
       else:
         game.move_to(actor, *cmd_args)
         return step()
+    if cmd_name == "wait":
+      return step()
 
   def end_step(game, moving=False):
     actors = [e for e in game.floor.elems if isinstance(e, DungeonActor)]
@@ -515,6 +520,9 @@ class DungeonContext(Context):
   def step_enemy(game, enemy):
     if not enemy.can_step():
       return None
+
+    if enemy.charge_skill:
+      return enemy.step(game)
 
     hero = game.hero
     floor = game.floor
@@ -701,6 +709,7 @@ class DungeonContext(Context):
     if isinstance(target_elem, Door) and not target_elem.solid:
       target_elem = floor.get_elem_at(target_cell, exclude=[Door])
 
+    moved = False
     def on_move():
       if not moved:
         return False
@@ -1041,6 +1050,7 @@ class DungeonContext(Context):
       actor.elev = target_tile.elev
       return True
     else:
+      on_end and on_end()
       return False
 
   def find_move_group(game):

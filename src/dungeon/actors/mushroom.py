@@ -1,9 +1,9 @@
+from random import randint
+from lib.cell import is_adjacent
 from dungeon.actors import DungeonActor
 from cores import Core, Stats
 from skills.ailment.virus import Virus
 from skills.weapon.tackle import Tackle
-from lib.cell import is_adjacent
-import random
 from items.materials.redferrule import RedFerrule
 import assets
 from sprite import Sprite
@@ -21,7 +21,7 @@ class Mushroom(DungeonActor):
 
   class ChargeAnim(ShakeAnim): pass
 
-  def __init__(mushroom, chant_skill=None, chant_turns=0, *args, **kwargs):
+  def __init__(mushroom, *args, **kwargs):
     super().__init__(Core(
       name="Toadstool",
       faction="enemy",
@@ -34,44 +34,22 @@ class Mushroom(DungeonActor):
       ),
       skills=[Tackle, Virus]
     ), *args, **kwargs)
-    mushroom.chant_skill = chant_skill
-    mushroom.chant_turns = chant_turns
 
-  def chant(mushroom, skill, dest, game):
-    mushroom.stats.ag = game.hero.stats.ag
-    mushroom.chant_skill = skill
-    mushroom.chant_turns = skill.chant_turns
+  def charge(mushroom, *args, **kwargs):
+    super().charge(*args, **kwargs)
     mushroom.core.anims.append(Mushroom.ChargeAnim())
-
-  def cast(mushroom):
-    if mushroom.chant_skill is None:
-      return None
-    command = ("use_skill", mushroom.chant_skill)
-    mushroom.chant_skill = None
-    mushroom.chant_turns = 0
-    mushroom.stats.ag = mushroom.core.stats.ag
-    mushroom.core.anims.clear()
-    return command
 
   def step(mushroom, game):
     enemy = game.find_closest_enemy(mushroom)
     if enemy is None:
       return False
 
-    if mushroom.chant_turns:
-      mushroom.chant_turns -= 1
-      if mushroom.chant_turns == 1:
-        return mushroom.cast()
-      else:
-        return None
+    command = mushroom.step_charge()
+    if command: return command
 
     if is_adjacent(mushroom.cell, enemy.cell):
-      if random.randint(1, 5) == 1:
-        return mushroom.chant(
-          game=game,
-          skill=Virus,
-          dest=game.hero.cell
-        )
+      if randint(1, 5) == 1:
+        return mushroom.charge(skill=Virus, dest=game.hero.cell)
       else:
         game.attack(mushroom, enemy)
     else:

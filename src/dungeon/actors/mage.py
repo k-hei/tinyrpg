@@ -23,42 +23,27 @@ from skills.weapon.broadsword import BroadSword
 class Mage(DungeonActor):
   drops = [BroadSword]
 
-  def __init__(mage, core=None, ailment=None, ailment_turns=0, chant_skill=None, chant_dest=None, chant_turns=0, *args, **kwargs):
+  def __init__(mage, core=None, ailment=None, ailment_turns=0, *args, **kwargs):
     super().__init__(
       core=core or MageCore(skills=[Glacio, Accerso], *args, **kwargs),
       ailment=ailment,
       ailment_turns=ailment_turns,
       behavior="guard"
     )
-    mage.chant_skill = chant_skill
-    mage.chant_dest = chant_dest
-    mage.chant_turns = chant_turns
 
   def encode(mage):
     [cell, kind, *props] = super().encode()
     props = props[0] if props else {}
     return [cell, kind, {
       **props,
-      **(mage.chant_skill and { "chant_skill": mage.chant_skill } or {}),
-      **(mage.chant_dest and { "chant_dest": mage.chant_dest } or {}),
-      **(mage.chant_turns and { "chant_turns": mage.chant_turns } or {})
+      **(mage.charge_skill and { "charge_skill": mage.charge_skill } or {}),
+      **(mage.charge_dest and { "charge_dest": mage.charge_dest } or {}),
+      **(mage.charge_turns and { "charge_turns": mage.charge_turns } or {})
     }]
 
-  def chant(mage, skill, dest=None):
-    mage.chant_skill = skill
-    mage.chant_dest = dest
-    mage.chant_turns = skill.chant_turns
+  def charge(mage, *args, **kwargs):
+    super().charge(*args, **kwargs)
     mage.core.anims.append(MageCore.CastAnim())
-
-  def cast_spell(mage):
-    if mage.chant_skill is None:
-      return None
-    command = ("use_skill", mage.chant_skill, mage.chant_dest)
-    mage.chant_skill = None
-    mage.chant_dest = None
-    mage.chant_turns = 0
-    mage.core.anims = []
-    return command
 
   def step(mage, game):
     if mage.get_faction() == "ally":
@@ -68,12 +53,8 @@ class Mage(DungeonActor):
     if enemy is None:
       return None
 
-    if mage.chant_turns:
-      mage.chant_turns -= 1
-      if mage.chant_turns == 0:
-        return mage.cast_spell()
-      else:
-        return None
+    command = mage.step_charge()
+    if command: return command
 
     mage_x, mage_y = mage.cell
     enemy_x, enemy_y = enemy.cell

@@ -17,7 +17,7 @@ from vfx.ghostarm import GhostArmVfx
 class Ghost(DungeonActor):
   class ColdWhip(Skill):
     name = "ColdWhip"
-    chant_turns = 2
+    charge_turns = 2
     def effect(user, dest, game, on_end=None):
       target_elem = next((e for e in game.floor.get_elems_at(dest) if isinstance(e, DungeonActor)), None)
       user.core.anims = [GhostCore.WhipAnim(on_end=on_end if target_elem is None else None)]
@@ -40,62 +40,33 @@ class Ghost(DungeonActor):
 
   skill = Somnus
 
-  def __init__(ghost, chant_skill=None, chant_dest=None, chant_turns=0, *args, **kwargs):
+  def __init__(ghost, *args, **kwargs):
     super().__init__(GhostCore(
       skills=[Tackle, Somnus]
     ), *args, **kwargs)
-    ghost.chant_skill = chant_skill
-    ghost.chant_dest = chant_dest
-    ghost.chant_turns = chant_turns
 
   def set_faction(ghost, faction):
     super().set_faction(faction)
-    ghost.reset_chant()
+    ghost.reset_charge()
 
-  def reset_chant(ghost):
-    ghost.chant_skill = None
-    ghost.chant_dest = None
-    ghost.chant_turns = 0
-    ghost.stats.ag = ghost.core.stats.ag
-    ghost.stats.lu = ghost.core.stats.lu
-
-  def chant(ghost, skill, dest, game):
-    ghost.stats.ag = game.hero.stats.ag
-    ghost.stats.lu = 0
-    ghost.chant_skill = skill
-    ghost.chant_dest = dest
-    ghost.chant_turns = skill.chant_turns
+  def charge(ghost, *args, **kwargs):
+    super().charge(*args, **kwargs)
     ghost.core.anims.append(GhostCore.ChargeAnim())
-
-  def cast(ghost):
-    if ghost.chant_skill is None:
-      return None
-    command = ("use_skill", ghost.chant_skill, ghost.chant_dest)
-    ghost.reset_chant()
-    return command
 
   def step(ghost, game):
     enemy = game.find_closest_enemy(ghost)
     if enemy is None:
       return False
 
-    if ghost.chant_turns:
-      ghost.chant_turns -= 1
-      if ghost.chant_turns == 0:
-        return ghost.cast()
-      else:
-        return None
+    command = ghost.step_charge()
+    if command: return command
 
     if is_adjacent(ghost.cell, enemy.cell) and not enemy.ailment == "sleep" and randint(1, 5) == 1:
       ghost.face(enemy.cell)
       ghost.turns = 0
       return ("use_skill", Somnus)
     elif manhattan(ghost.cell, enemy.cell) <= 2:
-      return ghost.chant(
-        game=game,
-        skill=Ghost.ColdWhip,
-        dest=enemy.cell
-      )
+      return ghost.charge(skill=Ghost.ColdWhip, dest=enemy.cell)
     else:
       return ("move_to", enemy.cell)
 

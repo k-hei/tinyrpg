@@ -21,7 +21,7 @@ class Congelatio(MagicSkill):
   range_max = 3
   range_radius = 1
   atk = 1
-  chant_turns = 2
+  charge_turns = 2
   users = [Mage]
   blocks = (
     (1, 0),
