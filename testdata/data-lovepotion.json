@@ -38,6 +38,6 @@
       }
     ]
   },
-  "items": ["LovePotion", "LovePotion"],
+  "items": ["LovePotion", "LovePotion", "Potion"],
   "party": ["Knight"]
 }
