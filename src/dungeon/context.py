@@ -407,8 +407,11 @@ class DungeonContext(Context):
         continue
       while actor.turns >= 1:
         actor.turns -= 1
+        had_aggro = actor.aggro
         if actor not in (hero, ally) and not (actor.get_faction() == "ally" and actor.behavior == "guard"):
           command = game.step_enemy(actor)
+          if actor.aggro and not had_aggro:
+            break
           if type(command) is tuple:
             if actor in commands:
               commands[actor].append(command)
@@ -416,8 +419,6 @@ class DungeonContext(Context):
               commands[actor] = [command]
         if game.room and actor.cell in game.room.get_cells():
           actor.step_ailment(game)
-        if actor.counter:
-          actor.counter = max(0, actor.counter - 1)
 
     end_exec = lambda: game.end_step(moving=moving)
     start_exec = lambda: game.next_command(on_end=end_exec)
