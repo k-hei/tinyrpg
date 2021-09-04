@@ -31,6 +31,10 @@ class Mage(DungeonActor):
       behavior="guard"
     )
 
+  def set_faction(mage, faction):
+    super().set_faction(faction)
+    mage.behavior = "chase"
+
   def encode(mage):
     [cell, kind, *props] = super().encode()
     props = props[0] if props else {}
@@ -46,7 +50,7 @@ class Mage(DungeonActor):
     mage.core.anims.append(MageCore.CastAnim())
 
   def step(mage, game):
-    if mage.get_faction() == "ally":
+    if mage.behavior == "guard":
       return None
 
     enemy = game.find_closest_enemy(mage)
@@ -68,9 +72,9 @@ class Mage(DungeonActor):
     or delta_y == 0 and dist_x <= Glacio.range_max
     ) and not enemy.ailment == "freeze" and not abs(dist_x) + abs(dist_y) == 1:
       if mage.get_hp() < mage.get_hp_max() / 2:
-        mage.chant(skill=Congelatio, dest=enemy.cell)
+        mage.charge(skill=Congelatio, dest=enemy.cell)
       else:
-        mage.chant(skill=Glacio)
+        mage.charge(skill=Glacio)
       return game.log.print((mage.token(), " is chanting."))
 
     has_allies = next((e for e in [game.floor.get_elem_at(c, superclass=DungeonActor) for c in game.room.get_cells()] if (

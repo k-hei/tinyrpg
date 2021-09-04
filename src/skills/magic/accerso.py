@@ -26,7 +26,7 @@ class Accerso(MagicSkill):
   def effect(user, dest, game, on_end=None):
     floor = game.floor
     valid_cells = [c for c in Accerso().find_range(user, floor) if floor.is_cell_empty(c) and floor.get_tile_at(c) is floor.FLOOR]
-    target_count = randint(2, 3) if user.get_faction() == "player" else 2
+    target_count = 2
     target_cells = []
     while valid_cells and len(target_cells) < target_count:
       cell = choice(valid_cells)
@@ -36,7 +36,7 @@ class Accerso(MagicSkill):
     def on_bounce():
       if target_cells:
         for i, cell in enumerate(target_cells):
-          ally = Eyeball(faction="ally" if user.get_faction() == "player" else "enemy")
+          ally = Eyeball(faction="enemy" if user.get_faction() == "enemy" else "ally")
           # ally.command = True
           floor.spawn_elem_at(cell, ally)
           game.anims[0].append(WarpInAnim(
