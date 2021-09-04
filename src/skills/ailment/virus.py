@@ -5,7 +5,8 @@ from anims.flinch import FlinchAnim
 from anims.pause import PauseAnim
 from dungeon.actors import DungeonActor
 from cores.mage import Mage
-from lib.cell import is_adjacent
+from lib.cell import is_adjacent, neighborhood
+from dungeon.props.poisonpuff import PoisonPuff
 from config import ENABLED_COMBAT_LOG
 
 ATTACK_DURATION = 12
@@ -24,12 +25,13 @@ class Virus(AilmentSkill):
   charge_turns: int = 2
 
   def effect(user, dest, game, on_end=None):
+    target_area = neighborhood(cell=user.cell, radius=2)
     targets = [e for e in game.floor.elems if (
       isinstance(e, DungeonActor)
       and not e.is_dead()
       and not e.allied(user)
       and e.ailment != "poison"
-      and is_adjacent(e.cell, user.cell)
+      and e.cell in target_area
     )]
 
     def poison():
@@ -40,14 +42,11 @@ class Virus(AilmentSkill):
         if on_end:
           on_end()
         return
-      target.inflict_ailment("poison")
-      game.camera.focus(target.cell)
-      if ENABLED_COMBAT_LOG:
-        game.log.print((target.token(), " is poisoned."))
-      game.anims[0].extend([
-        FlinchAnim(duration=45, target=target),
-        PauseAnim(duration=60, on_end=poison)
-      ])
+      game.poison_actor(target, on_end=poison)
+
+    def spawn_puffs():
+      for cell in target_area:
+        game.floor.spawn_elem_at(cell, PoisonPuff(origin=user.cell))
 
     def on_bounce():
       if targets:
@@ -61,6 +60,7 @@ class Virus(AilmentSkill):
     game.anims.append([BounceAnim(
       duration=20,
       target=user,
+      on_squash=spawn_puffs,
       on_end=lambda: game.anims[0].append(PauseAnim(
         duration=15,
         on_end=on_bounce

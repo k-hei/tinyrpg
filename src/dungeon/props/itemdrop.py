@@ -1,29 +1,11 @@
 from math import sqrt
 from dungeon.props import Prop
 from sprite import Sprite
-from anims.tween import TweenAnim
+from anims.offsetmove import OffsetMoveAnim
 from config import TILE_SIZE
 
 class ItemDrop(Prop):
-  class ThrownAnim(TweenAnim):
-    speed = 8 / TILE_SIZE
-
-    def __init__(anim, src, dest, *args, **kwargs):
-      super().__init__(*args, **kwargs)
-      src_x, src_y = src
-      dest_x, dest_y = dest
-      dist_x, dist_y = (dest_x - src_x, dest_y - src_y)
-      dist = sqrt(dist_x * dist_x + dist_y * dist_y)
-      anim.offset = (0, 0)
-      anim.normal = (dist_x / dist, dist_y / dist)
-      anim.duration = int(dist / anim.speed)
-
-    def update(anim):
-      super().update()
-      x, y = anim.offset
-      norm_x, norm_y = anim.normal
-      anim.offset = (x + norm_x * anim.speed, y + norm_y * anim.speed)
-      return anim.offset
+  ThrownAnim = OffsetMoveAnim
 
   def __init__(drop, contents):
     drop.item = contents

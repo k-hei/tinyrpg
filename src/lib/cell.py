@@ -48,14 +48,15 @@ def neighborhood(cell, radius=1, inclusive=False):
       (x, y + 1)
     ] + ([cell] if inclusive else [])
   cells = []
+  start = cell
   if inclusive:
-    cells.append(cell)
-  stack = [(cell, 0)]
+    cells.append(start)
+  stack = [(start, 0)]
   while stack:
     cell, steps = stack.pop()
     neighbors = neighborhood(cell)
     for neighbor in neighbors:
-      if neighbor not in cells and neighbor != cell:
+      if neighbor not in cells and neighbor != start:
         cells.append(neighbor)
         if steps + 1 < radius:
           stack.append((neighbor, steps + 1))

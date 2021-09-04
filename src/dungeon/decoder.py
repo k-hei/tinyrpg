@@ -47,6 +47,8 @@ def decode_floor(floor_data):
     if "message" in elem_props:
       message_key = elem_props["message"]
       elem_props["message"] = next((s for s in resolve_elem(floor_data["generator"]).scripts if s[0] == message_key), None)
+    if "charge_skill" in elem_props:
+      elem_props["charge_skill"] = resolve_skill(elem_props["charge_skill"])
     try:
       elem = resolve_elem(elem_name)(**elem_props)
     except:

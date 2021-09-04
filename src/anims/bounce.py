@@ -2,11 +2,11 @@ from lib.lerp import lerp
 from easing.expo import ease_in, ease_out
 
 class BounceAnim:
-  def __init__(anim, duration, target, on_squash=None, on_return=None, on_end=None):
+  def __init__(anim, duration, target, on_squish=None, on_squash=None, on_end=None):
     anim.duration = duration
     anim.target = target
+    anim.on_squish = on_squish
     anim.on_squash = on_squash
-    anim.on_return = on_return
     anim.on_end = on_end
     anim.done = False
     anim.time = 0
@@ -30,16 +30,16 @@ class BounceAnim:
       scale_x = lerp(1, 0.5, t)
       scale_y = lerp(1, 1.5, t)
       if anim.time == squish_duration:
+        anim.on_squish and anim.on_squish()
         anim.phase = "squash"
-        anim.on_squash and anim.on_squash()
     elif anim.phase == "squash":
       time = anim.time - squish_duration
       t = time / squash_duration
       scale_x = lerp(0.5, 2, t)
       scale_y = lerp(1.5, 0.5, t)
       if time == squash_duration:
+        anim.on_squash and anim.on_squash()
         anim.phase = "return"
-        anim.on_return and anim.on_return()
     elif anim.phase == "return":
       time = anim.time - squish_duration - squash_duration
       t = ease_out(time / return_duration)

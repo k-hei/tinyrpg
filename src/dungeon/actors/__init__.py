@@ -59,7 +59,7 @@ class DungeonActor(DungeonElement):
     ailment_turns=0,
     charge_skill=None,
     charge_dest=None,
-    charge_turns=None
+    charge_turns=0
   ):
     super().__init__(solid=True, opaque=False)
     actor.core = core
@@ -77,9 +77,10 @@ class DungeonActor(DungeonElement):
       actor.inflict_ailment(ailment)
       actor.ailment_turns = ailment_turns or actor.ailment_turns
 
-    actor.charge_skill = charge_skill
-    actor.charge_dest = charge_dest
-    actor.charge_turns = charge_turns
+    if charge_skill:
+      actor.charge(skill=charge_skill, dest=charge_dest, turns=charge_turns)
+    else:
+      actor.reset_charge()
 
     actor.weapon = actor.find_weapon()
     actor.item = None
@@ -118,10 +119,10 @@ class DungeonActor(DungeonElement):
       return int(actor.stats.en * 1.5)
     return actor.stats.en
 
-  def charge(actor, skill, dest=None):
+  def charge(actor, skill, dest=None, turns=0):
     actor.charge_skill = skill
     actor.charge_dest = dest
-    actor.charge_turns = skill.charge_turns
+    actor.charge_turns = turns or skill.charge_turns
 
   def reset_charge(actor):
     actor.charge_skill = None
