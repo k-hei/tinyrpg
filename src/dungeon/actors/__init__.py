@@ -363,7 +363,6 @@ class DungeonActor(DungeonElement):
     offset_x, offset_y, offset_z = (0, 0, 0)
     actor_width, actor_height = sprite.image.get_size()
     actor_cell = actor.cell
-    new_color = None
     asleep = actor.ailment == "sleep"
     anim_group = [a for a in anims[0] if a.target is actor] if anims else []
     anim_group += actor.core.anims
@@ -387,19 +386,6 @@ class DungeonActor(DungeonElement):
         actor_height *= anim_yscale
       if isinstance(anim, FrameAnim):
         sprite.image = anim.frame()
-    else:
-      if actor.ailment == "poison":
-        new_color = VIOLET
-      elif actor.ailment == "freeze":
-        new_color = CYAN
-      elif actor.core.faction == "enemy" and actor.rare or actor.ailment == "invulnerable":
-        new_color = GOLD
-      elif actor.core.faction == "player":
-        new_color = BLUE
-      elif actor.core.faction == "ally":
-        new_color = GREEN
-      elif actor.core.faction == "enemy":
-        new_color = RED
 
     move_anim = next((a for a in anim_group if type(a) is MoveAnim), None)
     drop_anim = next((a for a in anim_group if type(a) is DropAnim), None)
@@ -433,7 +419,7 @@ class DungeonActor(DungeonElement):
 
     if actor.get_faction() != "player":
       bubble_sprites = actor.bubble.view()
-      actor.bubble.color = new_color
+      actor.bubble.color = actor.color()
       for bubble_sprite in bubble_sprites:
         bubble_sprite.move((24, -20))
         if move_anim:
@@ -454,8 +440,7 @@ class DungeonActor(DungeonElement):
     if actor.elev > 0 and not move_anim:
       offset_z = actor.elev * TILE_SIZE
 
-    if new_color:
-      sprite.image = replace_color(sprite.image, BLACK, new_color)
+    sprite.image = replace_color(sprite.image, BLACK, actor.color())
     if asleep:
       sprite.image = darken_image(sprite.image)
     facing_x, _ = actor.facing
@@ -478,10 +463,18 @@ class DungeonActor(DungeonElement):
     return super().view(sprites, anims)
 
   def color(actor):
-    if actor.core.faction == "player": return BLUE
-    if actor.core.faction == "enemy" and actor.rare or actor.ailment == "invulnerable": return GOLD
-    if actor.core.faction == "enemy": return RED
-    if actor.core.faction == "ally": return actor.core.color or GREEN
+    if actor.ailment == "poison":
+      return VIOLET
+    elif actor.ailment == "freeze":
+      return CYAN
+    elif actor.core.faction == "enemy" and actor.rare or actor.ailment == "invulnerable":
+      return GOLD
+    elif actor.core.faction == "player":
+      return BLUE
+    elif actor.core.faction == "ally":
+      return GREEN
+    elif actor.core.faction == "enemy":
+      return RED
 
   def token(actor):
     return Token(text=actor.get_name().upper(), color=actor.color())
