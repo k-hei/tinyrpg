@@ -474,8 +474,9 @@ class DungeonContext(Context):
       if hero.get_hp() == hero.get_hp_max() and game.is_sleeping:
         hero.dispel_ailment()
       else:
+        SLEEP_TURN_DURATION = 3 if game.is_sleeping else 1
         game.anims.append([PauseAnim(
-          duration=3,
+          duration=SLEEP_TURN_DURATION,
           on_end=game.step
         )])
     if hero.ailment != "sleep":
