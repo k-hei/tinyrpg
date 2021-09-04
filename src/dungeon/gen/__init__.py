@@ -52,6 +52,8 @@ from items.dungeon.emerald import Emerald
 from items.dungeon.key import Key
 from items.ailment.antidote import Antidote
 from items.ailment.topaz import Topaz
+from items.ailment.musicbox import MusicBox
+from items.ailment.lovepotion import LovePotion
 from items.materials.angeltears import AngelTears
 
 from skills.support.counter import Counter
@@ -617,6 +619,6 @@ def gen_enemy(Enemy, *args, **kwargs):
 
 def gen_item():
   return choices(
-    (Potion, Cheese, Bread, Fish, Antidote, Topaz),
-    (     6,     12,     9,    3,        9,     1)
+    (Potion, Cheese, Bread, Fish, Antidote, Topaz, LovePotion, MusicBox),
+    (     6,     12,     9,    3,        9,     1,          3,        3)
   )[0]
