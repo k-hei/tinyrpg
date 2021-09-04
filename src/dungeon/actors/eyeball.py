@@ -63,7 +63,7 @@ def SleepSprite(facing):
 class Eyeball(DungeonActor):
   drops = [AngelTears]
   skill = HpUp
-  CLONES_MAX = 3
+  CLONES_MAX = 2
 
   class ChargeAnim(ShakeAnim): pass
   class SplitAnim(MoveAnim): pass
@@ -75,7 +75,7 @@ class Eyeball(DungeonActor):
       if neighbors:
         user.clones += 1
         neighbor = choice(neighbors)
-        clone = Eyeball(clone=True, faction=user.get_faction(), facing=user.facing)
+        clone = Eyeball(cloned=True, faction=user.get_faction(), facing=user.facing)
         game.anims.append([
           BounceAnim(
             duration=20,
@@ -101,7 +101,7 @@ class Eyeball(DungeonActor):
           on_end=on_end
         )])
 
-  def __init__(eyeball, name="Eyeball", faction="enemy", rare=False, clones=0, clone=False, *args, **kwargs):
+  def __init__(eyeball, name="Eyeball", faction="enemy", rare=False, clones=0, cloned=False, *args, **kwargs):
     super().__init__(Core(
       name=name,
       faction=faction,
@@ -119,7 +119,7 @@ class Eyeball(DungeonActor):
       ]
     ), *args, **kwargs)
     eyeball.clones = clones
-    eyeball.clone = clone
+    eyeball.cloned = cloned
     eyeball.item = None
     if rare:
       eyeball.promote(hp=False)
@@ -142,7 +142,7 @@ class Eyeball(DungeonActor):
     if command: return command
 
     if (eyeball.core.hp < eyeball.core.stats.hp
-    and not eyeball.clone
+    and not eyeball.cloned
     and eyeball.clones < Eyeball.CLONES_MAX
     and randint(1, 3) == 1):
       return eyeball.charge(Eyeball.Meyetosis)

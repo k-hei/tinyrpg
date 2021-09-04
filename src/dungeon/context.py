@@ -826,6 +826,8 @@ class DungeonContext(Context):
       PauseAnim(duration=15)
     ]
     target.on_push(game)
+    if target.ailment == "sleep":
+      target.wake_up()
     return True
 
   def obtain(game, item, target=None, on_end=None):
