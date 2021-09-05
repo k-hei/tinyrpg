@@ -65,6 +65,7 @@ from dungeon.props.soul import Soul
 from dungeon.props.coffin import Coffin
 from dungeon.props.palm import Palm
 from dungeon.props.itemdrop import ItemDrop
+from dungeon.props.poisonpuff import PoisonPuff
 
 from inventory import Inventory
 from items import Item
@@ -410,7 +411,6 @@ class DungeonContext(Context):
     for actor in actors:
       if actor.is_dead():
         continue
-
       while actor.turns >= 1:
         actor.turns -= 1
         had_aggro = actor.aggro
@@ -424,8 +424,10 @@ class DungeonContext(Context):
               commands[actor].append(command)
             else:
               commands[actor] = [command]
+      if actor not in commands:
+        game.end_turn(actor)
 
-    step_status = lambda: hero.step_ailment(game)
+    step_status = lambda: game.end_turn(hero)
     end_exec = lambda: game.end_step(moving=moving)
     start_exec = lambda: game.next_command(on_end=end_exec)
     if commands:
@@ -452,7 +454,7 @@ class DungeonContext(Context):
     step = lambda: (
       not (game.commands[0] and game.commands[0][1]) and (
         game.commands.pop(0),
-        actor.step_ailment(game),
+        game.end_turn(actor),
       ),
       game.next_command(on_end)
     )
@@ -478,15 +480,20 @@ class DungeonContext(Context):
     if cmd_name == "wait":
       return step()
 
+  def end_turn(game, actor):
+    actor.step_ailment(game)
+    effect_elem = next((e for e in game.floor.get_elems_at(actor.cell) if type(e) is PoisonPuff), None)
+    if effect_elem:
+      effect_elem.effect(game, actor)
+
   def end_step(game, moving=False):
     actors = [e for e in game.floor.elems if isinstance(e, DungeonActor)]
     for actor in actors:
       actor.command = None
     hero = game.hero
     if hero.ailment == "sleep":
-      if game.is_sleeping and hero.get_hp() == hero.get_hp_max():
-        hero.dispel_ailment()
-      elif not game.is_sleeping and game.find_closest_visible_enemy(hero) is None:
+      if (game.is_sleeping and hero.get_hp() == hero.get_hp_max()
+      or not game.is_sleeping and game.find_closest_visible_enemy(hero) is None):
         hero.dispel_ailment()
       else:
         SLEEP_TURN_DURATION = 3 if game.is_sleeping else 2
