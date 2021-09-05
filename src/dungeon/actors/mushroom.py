@@ -18,7 +18,7 @@ from config import PUSH_DURATION
 class Mushroom(DungeonActor):
   skill = Virus
   drops = [RedFerrule]
-  COOLDOWN_DURATION = 3
+  COOLDOWN_DURATION = 6
 
   class ChargeAnim(ShakeAnim): pass
 
@@ -48,7 +48,7 @@ class Mushroom(DungeonActor):
     command = mushroom.step_charge()
     if command: return command
 
-    if manhattan(mushroom.cell, enemy.cell) <= 2 and randint(1, 3) == 1:
+    if not mushroom.charge_cooldown and manhattan(mushroom.cell, enemy.cell) <= 2  and randint(1, 3) == 1:
       return mushroom.charge(skill=Virus, dest=game.hero.cell)
     elif is_adjacent(mushroom.cell, enemy.cell):
         game.attack(mushroom, enemy)

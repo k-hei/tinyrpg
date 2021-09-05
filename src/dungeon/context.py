@@ -390,7 +390,6 @@ class DungeonContext(Context):
         commands[ally] = [command]
 
     hero = game.hero
-    hero.step_ailment(game)
     actors = [e for e in game.floor.elems if isinstance(e, DungeonActor) and e is not hero]
     non_actors = [e for e in game.floor.elems if not isinstance(e, DungeonActor)]
     enemies = [a for a in actors if not a.allied(hero)]
@@ -475,6 +474,7 @@ class DungeonContext(Context):
     for actor in actors:
       actor.command = None
     hero = game.hero
+    hero.step_ailment(game)
     if hero.ailment == "sleep":
       if hero.get_hp() == hero.get_hp_max() and game.is_sleeping:
         hero.dispel_ailment()

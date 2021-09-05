@@ -620,5 +620,5 @@ def gen_enemy(Enemy, *args, **kwargs):
 def gen_item():
   return choices(
     (Potion, Cheese, Bread, Fish, Antidote, Topaz, LovePotion, MusicBox),
-    (     6,     12,     9,    3,        9,     1,          3,        3)
+    (     6,     12,     9,    3,        9,     1,          2,        3)
   )[0]
