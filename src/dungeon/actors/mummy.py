@@ -71,24 +71,25 @@ class Mummy(DungeonActor):
   class LinenWhip(AttackSkill):
     name = "LinenWhip"
     def effect(user, dest, game, on_end=None):
-      game.vfx.append(LinenVfx(src=user.cell, dest=dest))
       target_actor = next((e for e in game.floor.get_elems_at(dest) if isinstance(e, DungeonActor)), None)
-      if target_actor:
-        game.attack(
+      not game.anims and game.anims.append([])
+      game.anims[0].append(AttackAnim(
+        target=user,
+        src=user.cell,
+        dest=dest
+      ))
+      game.vfx.append(LinenVfx(
+        src=user.cell,
+        dest=dest,
+        on_connect=(lambda: game.attack(
           actor=user,
           target=target_actor,
           is_ranged=True,
           is_chaining=True,
-          on_end=on_end
-        )
-      else:
-        game.anims[0].append(AttackAnim(
-          target=user,
-          src=user.cell,
-          dest=dest,
-          on_end=on_end
-        ))
-
+          is_animated=False,
+        )) if target_actor else None,
+        on_end=on_end
+      ))
 
   def __init__(soldier):
     super().__init__(Core(
