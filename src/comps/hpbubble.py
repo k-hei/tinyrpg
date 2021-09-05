@@ -1,3 +1,4 @@
+from math import ceil
 from random import randint
 from pygame import Rect
 from comps import Component
@@ -59,7 +60,7 @@ def render_bubblefill(value, color=WHITE):
   fill_image = assets.sprites["hpbubble_fill"]
   if color != WHITE:
     fill_image = replace_color(fill_image, WHITE, color)
-  fill_height = int(value * fill_image.get_height())
+  fill_height = ceil(value * fill_image.get_height())
   fill_image = fill_image.subsurface(Rect(
     (0, fill_image.get_height() - fill_height),
     (fill_image.get_width(), fill_height)

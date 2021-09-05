@@ -267,11 +267,11 @@ class DungeonActor(DungeonElement):
   def kill(actor):
     actor.core.kill()
     actor.core.anims = []
-    actor.ailment = None
-    actor.ailment_turns = 0
 
   def revive(actor, hp_factor=0):
     actor.core.revive(hp_factor)
+    actor.ailment = None
+    actor.ailment_turns = 0
 
   def promote(actor, hp=True):
     actor.rare = True

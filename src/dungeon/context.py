@@ -496,7 +496,7 @@ class DungeonContext(Context):
       or not game.is_sleeping and game.find_closest_visible_enemy(hero) is None):
         hero.dispel_ailment()
       else:
-        SLEEP_TURN_DURATION = 3 if game.is_sleeping else 2
+        SLEEP_TURN_DURATION = 5 if game.is_sleeping else 2
         game.anims.append([PauseAnim(
           duration=SLEEP_TURN_DURATION,
           on_end=game.step
@@ -843,7 +843,7 @@ class DungeonContext(Context):
       PauseAnim(duration=15)
     ]
     target.on_push(game)
-    if target.ailment == "sleep":
+    if isinstance(target, DungeonActor) and target.ailment == "sleep":
       target.wake_up()
     return True
 
@@ -1501,7 +1501,7 @@ class DungeonContext(Context):
       return False
     item = actor.item
     target_cell = add_vector(actor.cell, actor.get_facing())
-    if Tile.is_solid(game.floor.get_tile_at(target_cell)):
+    if Tile.is_solid(game.floor.get_tile_at(target_cell)) or next((e for e in game.floor.get_elems_at(target_cell) if e.solid), None):
       return False
     game.floor.spawn_elem_at(target_cell, ItemDrop(item))
     if not game.anims:
@@ -1527,6 +1527,13 @@ class DungeonContext(Context):
       return False
     game.floor.remove_elem(itemdrop)
     game.hero.item = itemdrop.item
+    game.anims.append([
+      AttackAnim(
+        target=game.hero,
+        src=game.hero.cell,
+        dest=target_cell
+      )
+    ])
     return True
 
   def handle_throw(game):
@@ -1543,7 +1550,7 @@ class DungeonContext(Context):
     while throwing:
       next_cell = add_vector(target_cell, actor.get_facing())
       next_elem = next((e for e in game.floor.get_elems_at(next_cell) if e.solid), None)
-      if Tile.is_solid(game.floor.get_tile_at(next_cell)):
+      if Tile.is_solid(game.floor.get_tile_at(next_cell)) or next((e for e in game.floor.get_elems_at(next_cell) if e.solid and not isinstance(e, DungeonActor)), None):
         throwing = False
         break
       elif next_elem:
@@ -1551,6 +1558,13 @@ class DungeonContext(Context):
         throwing = False
       target_cell = next_cell
     if target_cell == actor.cell:
+      game.anims.append([
+        AttackAnim(
+          target=actor,
+          src=actor.cell,
+          dest=facing_cell,
+        )
+      ])
       return False
     itemdrop = ItemDrop(item)
     game.anims.append([
