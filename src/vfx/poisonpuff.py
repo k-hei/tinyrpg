@@ -17,10 +17,11 @@ class PoisonPuffVfx(Vfx):
 
   def __init__(puff, src, dest, size, *args, **kwargs):
     super().__init__(kind=None, pos=(0, 0), *args, **kwargs)
+    puff.dest = dest
     puff.size = size
     puff.anims = [
-      PoisonPuffVfx.FloatAnim(),
-      OffsetMoveAnim(src, dest, speed=(2 + random()) * TILE_SIZE, easing=ease_out)
+      OffsetMoveAnim(src, dest, speed=(2 + random()) * TILE_SIZE, easing=ease_out),
+      PoisonPuffVfx.FloatAnim()
     ]
     puff.flickering = size != "large" and randint(1, 3) == 1
     puff.offset = tuple([(random() - 0.5) * 16 // 2 * 2 for i in range(2)])
@@ -42,7 +43,10 @@ class PoisonPuffVfx(Vfx):
       else:
         anim.update()
         if type(anim) is PoisonPuffVfx.FloatAnim:
-          x, y = puff.offset
+          if next((a for a in puff.anims if type(a) is OffsetMoveAnim), None):
+            x, y = puff.pos
+          else:
+            x, y = add_vector(puff.dest, puff.offset)
           PERIOD_X = 240 + puff.offset_period
           PERIOD_Y = 210 + puff.offset_period
           AMPLITUDE = 2 + puff.offset_amplitude
@@ -55,11 +59,10 @@ class PoisonPuffVfx(Vfx):
           puff.pos = (x, y)
         elif type(anim) is OffsetMoveAnim:
           src_x, src_y = anim.src
-          dest_x, dest_y = anim.dest
           offset_x, offset_y = anim.offset
           puff.pos = add_vector(puff.offset, (
-            src_x - dest_x + offset_x,
-            src_y - dest_y + offset_y
+            src_x + offset_x,
+            src_y + offset_y
           ))
     if not puff.anims:
       puff.done = True
@@ -88,6 +91,6 @@ class PoisonPuffVfx(Vfx):
       puff_layer = "vfx"
     return [Sprite(
       image=puff_image,
-      pos=puff.pos,
+      pos=add_vector(puff.pos, (TILE_SIZE // 4, TILE_SIZE // 4)),
       layer=puff_layer,
     )]

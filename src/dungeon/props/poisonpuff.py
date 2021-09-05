@@ -13,7 +13,7 @@ class PoisonPuff(Prop):
     super().__init__(*args, **kwargs)
     puff.turns = 7
     puff.origin = origin
-    puff.vfx = []
+    puff.vfx = None
     puff.dissolving = False
 
   def effect(puff, game, actor=None):
@@ -34,20 +34,17 @@ class PoisonPuff(Prop):
         fx.dissolve(delay=i * 5, on_end=(lambda: game.floor.remove_elem(puff)) if fx == puff.vfx[-1] else None)
 
   def update(puff, *_):
-    for fx in puff.vfx:
-      if fx.done:
-        puff.vfx.remove(fx)
-      else:
-        fx.update()
+    if puff.vfx:
+      return []
+    src = tuple([x * TILE_SIZE for x in puff.origin])
+    dest = tuple([x * TILE_SIZE for x in puff.cell])
+    puff.vfx = (
+      [PoisonPuffVfx(src, dest, size="large") for i in range(randint(3, 6))]
+      + [PoisonPuffVfx(src, dest, size="medium") for i in range(randint(3, 6))]
+      + [PoisonPuffVfx(src, dest, size="small") for i in range(randint(3, 6))]
+      + [PoisonPuffVfx(src, dest, size="tiny") for i in range(randint(3, 6))]
+    )
+    return puff.vfx
 
   def view(puff, anims):
-    if not puff.vfx:
-      src = tuple([x * TILE_SIZE for x in puff.origin])
-      dest = tuple([x * TILE_SIZE for x in puff.cell])
-      puff.vfx = (
-        [PoisonPuffVfx(src, dest, size="large") for i in range(randint(3, 6))]
-        + [PoisonPuffVfx(src, dest, size="medium") for i in range(randint(3, 6))]
-        + [PoisonPuffVfx(src, dest, size="small") for i in range(randint(3, 6))]
-        + [PoisonPuffVfx(src, dest, size="tiny") for i in range(randint(3, 6))]
-      )
-    return super().view([n for m in [fx.view() for fx in puff.vfx] for n in m], anims)
+    return []
