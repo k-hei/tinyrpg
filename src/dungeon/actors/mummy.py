@@ -74,15 +74,11 @@ class Mummy(DungeonActor):
     name = "LinenWhip"
     def effect(user, dest, game, on_end=None):
       target_actor = next((e for e in game.floor.get_elems_at(dest) if isinstance(e, DungeonActor)), None)
-      not game.anims and game.anims.append([])
-      game.anims[0].append(AttackAnim(
-        target=user,
-        src=user.cell,
-        dest=dest
-      ))
+      user.core.anims.append(Mummy.ChargeAnim())
       game.vfx.append(LinenVfx(
         src=user.cell,
         dest=dest,
+        color=user.color(),
         on_connect=(lambda: game.attack(
           actor=user,
           target=target_actor,
@@ -90,7 +86,10 @@ class Mummy(DungeonActor):
           is_chaining=True,
           is_animated=False,
         )) if target_actor else None,
-        on_end=on_end
+        on_end=lambda: (
+          user.core.anims.clear(),
+          on_end and on_end()
+        )
       ))
 
   class Backstep(SupportSkill):
@@ -105,6 +104,7 @@ class Mummy(DungeonActor):
           duration=15,
           on_end=lambda: (
             setattr(user, "cell", dest_cell),
+            setattr(user, "turns", 1),
             on_end and on_end()
           )
         )])
@@ -116,7 +116,7 @@ class Mummy(DungeonActor):
       name="Mummy",
       faction="enemy",
       stats=Stats(
-        hp=20,
+        hp=24,
         st=12,
         dx=9,
         ag=4,
@@ -129,7 +129,8 @@ class Mummy(DungeonActor):
 
   def damage(soldier, *args, **kwargs):
     super().damage(*args, **kwargs)
-    soldier.damaged = True
+    if not soldier.ailment == "poison":
+      soldier.damaged = True
 
   def step(soldier, game):
     enemy = game.find_closest_enemy(soldier)
@@ -141,12 +142,16 @@ class Mummy(DungeonActor):
       soldier.face(enemy.cell)
       if randint(0, 1):
         return ("use_skill", Mummy.Backstep)
+      else:
+        return soldier.charge(skill=Mummy.ClawRush, dest=enemy.cell)
 
     soldier_x, soldier_y = soldier.cell
     enemy_x, enemy_y = enemy.cell
     dist_x = enemy_x - soldier_x
     dist_y = enemy_y - soldier_y
-    if abs(dist_x) + abs(dist_y) == 2 and (abs(dist_x) == 2 or abs(dist_y) == 2):
+    dist = abs(dist_x) + abs(dist_y)
+    if (dist == 2 and (abs(dist_x) == 2 or abs(dist_y) == 2)
+    or dist == 1 and randint(0, 1)):
       soldier.face(enemy.cell)
       return soldier.charge(skill=Mummy.ClawRush, dest=enemy.cell)
     elif abs(dist_x) <= 2 and abs(dist_x) == abs(dist_y):
@@ -163,7 +168,8 @@ class Mummy(DungeonActor):
     anim_group = [a for a in anims[0] if a.target is soldier] if anims else []
     anim_group += soldier.core.anims
     for anim in anim_group:
-      if type(anim) is MoveAnim and anim.duration != PUSH_DURATION:
+      if (type(anim) is MoveAnim and anim.duration != PUSH_DURATION
+      or type(anim) is AttackAnim):
         soldier_image = assets.sprites["soldier_move"]
         break
       elif type(anim) in (FlinchAnim, FlickerAnim):

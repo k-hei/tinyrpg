@@ -35,6 +35,11 @@ class Mushroom(DungeonActor):
       ),
       skills=[Tackle, Virus]
     ), *args, **kwargs)
+    mushroom.damaged = False
+
+  def damage(mushroom, *args, **kwargs):
+    super().damage(*args, **kwargs)
+    mushroom.damaged = True
 
   def charge(mushroom, *args, **kwargs):
     super().charge(*args, **kwargs)
@@ -45,7 +50,10 @@ class Mushroom(DungeonActor):
     if enemy is None:
       return False
 
-    if not mushroom.charge_cooldown and manhattan(mushroom.cell, enemy.cell) <= 2  and randint(1, 3) == 1:
+    can_charge = not mushroom.charge_cooldown and (randint(1, 3) == 1 or mushroom.damaged)
+    if mushroom.damaged:
+      mushroom.damaged = False
+    if can_charge and manhattan(mushroom.cell, enemy.cell) <= 2:
       return mushroom.charge(skill=Virus, dest=game.hero.cell)
     elif is_adjacent(mushroom.cell, enemy.cell):
         game.attack(mushroom, enemy)

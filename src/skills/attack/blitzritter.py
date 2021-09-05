@@ -13,7 +13,7 @@ class Blitzritter(AttackSkill):
   name = "Blitzritter"
   desc = "Pierces two squares ahead"
   element = "lance"
-  cost = 4
+  cost = 2
   range_type = "linear"
   range_min = 1
   range_max = 2

@@ -396,7 +396,7 @@ class DungeonActor(DungeonElement):
       if isinstance(anim, FrameAnim):
         sprite.image = anim.frame()
 
-    move_anim = next((a for a in anim_group if type(a) is MoveAnim), None)
+    move_anim = next((a for a in anim_group if isinstance(a, MoveAnim)), None)
     drop_anim = next((a for a in anim_group if type(a) is DropAnim), None)
 
     if actor.ailment and not drop_anim:

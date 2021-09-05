@@ -480,7 +480,9 @@ class DungeonContext(Context):
       actor.command = None
     hero = game.hero
     if hero.ailment == "sleep":
-      if hero.get_hp() == hero.get_hp_max() and game.is_sleeping:
+      if game.is_sleeping and hero.get_hp() == hero.get_hp_max():
+        hero.dispel_ailment()
+      elif not game.is_sleeping and game.find_closest_visible_enemy(hero) is None:
         hero.dispel_ailment()
       else:
         SLEEP_TURN_DURATION = 3 if game.is_sleeping else 2
@@ -488,6 +490,7 @@ class DungeonContext(Context):
           duration=SLEEP_TURN_DURATION,
           on_end=game.step
         )])
+        hero.regen(amount=1)
     if hero.ailment != "sleep":
       game.is_sleeping = False
     game.refresh_fov(moving=moving)

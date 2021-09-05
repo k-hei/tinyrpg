@@ -27,7 +27,7 @@ class Anim:
       if anim.on_start:
         anim.on_start()
     anim.time += 1
-    if anim.time == anim.duration and not anim.loop:
+    if anim.duration and anim.time == anim.duration and not anim.loop:
       anim.end()
     if anim.time < 0:
       return 0
