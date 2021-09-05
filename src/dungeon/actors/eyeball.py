@@ -63,7 +63,8 @@ def SleepSprite(facing):
 class Eyeball(DungeonActor):
   drops = [AngelTears]
   skill = HpUp
-  CLONES_MAX = 2
+  CLONES_MAX = 1
+  CLONES_CAN_CLONE = True
 
   class ChargeAnim(ShakeAnim): pass
   class SplitAnim(MoveAnim): pass
@@ -139,7 +140,7 @@ class Eyeball(DungeonActor):
       return False
 
     if (eyeball.core.hp < eyeball.core.stats.hp
-    and not eyeball.cloned
+    and (not eyeball.cloned or Eyeball.CLONES_CAN_CLONE)
     and eyeball.clones < Eyeball.CLONES_MAX
     and randint(1, 3) == 1):
       return eyeball.charge(Eyeball.Meyetosis)
