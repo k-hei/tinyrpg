@@ -29,7 +29,6 @@ class Virus(AilmentSkill):
     targets = [e for e in game.floor.elems if (
       isinstance(e, DungeonActor)
       and not e.is_dead()
-      and not e.allied(user)
       and e.ailment != "poison"
       and e.cell in target_area
     )]

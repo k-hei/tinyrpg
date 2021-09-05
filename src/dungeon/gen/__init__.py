@@ -27,6 +27,8 @@ from dungeon.actors.eyeball import Eyeball
 from dungeon.actors.mushroom import Mushroom
 from dungeon.actors.skeleton import Skeleton
 from dungeon.actors.ghost import Ghost
+from dungeon.actors.mummy import Mummy
+from dungeon.actors.ghost import Ghost
 from dungeon.actors.mimic import Mimic
 from dungeon.actors.npc import Npc
 from dungeon.actors.genie import Genie
@@ -430,7 +432,7 @@ def gen_features(floor, feature_graph):
         floor.tree.add(neighbor)
   return True
 
-def gen_floor(features, entrance=None, size=config.FLOOR_SIZE, seed=None):
+def gen_floor(features=FloorGraph(), entrance=None, size=config.FLOOR_SIZE, enemies=[Eyeball, Mushroom, Ghost, Mummy], seed=None):
   lkg = None
   iters = 0
   placement = { feature: feature.placed for feature in features.nodes }
@@ -525,23 +527,30 @@ def gen_floor(features, entrance=None, size=config.FLOOR_SIZE, seed=None):
     if entrance:
       entry_room = entrance
     else:
-      if not empty_rooms:
-        debug("No empty rooms to spawn at")
-        yield None
-        continue
       empty_leaves = [n for n in empty_rooms if tree.degree(n) == 1]
       if not empty_leaves:
-        debug("No empty leaves to spawn at")
+        debug("No empty leaves to spawn entrance at")
         yield None
         continue
       entry_room = choice(empty_leaves)
-    center_x, center_y = entry_room.get_center()
-    stage.entrance = (center_x, center_y + 0)
+    stage.entrance = entry_room.get_center()
     if entry_room in empty_rooms or type(entry_room) is VerticalRoom:
       if entry_room in empty_rooms:
         empty_rooms.remove(entry_room)
       stage.set_tile_at(stage.entrance, stage.STAIRS_DOWN)
+
     stage.exit = stage.find_tile(stage.STAIRS_UP)
+    if not stage.exit:
+      empty_leaves = [n for n in empty_rooms if tree.degree(n) == 1]
+      exit_room = choice(empty_leaves)
+      if not empty_leaves and not features.nodes:
+        debug("No empty leaves to spawn exit at")
+        yield None
+        continue
+      stage.exit = exit_room.get_center()
+      if exit_room in empty_rooms:
+        empty_rooms.remove(exit_room)
+      stage.set_tile_at(stage.exit, stage.STAIRS_UP)
 
     # draw doors
     doors = []
@@ -578,7 +587,7 @@ def gen_floor(features, entrance=None, size=config.FLOOR_SIZE, seed=None):
         cell = choice(valid_cells)
         valid_cells.remove(cell)
         if stage.get_tile_at(cell) is stage.FLOOR:
-          stage.spawn_elem_at(cell, gen_enemy(choices((Eyeball, Mushroom, Ghost), (5, 1, 2))[0]))
+          stage.spawn_elem_at(cell, gen_enemy(callable(enemies) and enemies() or choice(enemies)))
           enemy_count -= 1
           if room in empty_rooms:
             empty_rooms.remove(room)
@@ -620,5 +629,5 @@ def gen_enemy(Enemy, *args, **kwargs):
 def gen_item():
   return choices(
     (Potion, Cheese, Bread, Fish, Antidote, Topaz, LovePotion, MusicBox),
-    (     6,     12,     9,    3,        9,     1,          2,        3)
+    (     6,     9,     9,    3,        6,     1,          2,        3)
   )[0]

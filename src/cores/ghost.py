@@ -33,7 +33,7 @@ class Ghost(Core):
         st=10,
         dx=7,
         ag=14,
-        lu=28,
+        lu=8,
         en=8,
       ),
       message=[

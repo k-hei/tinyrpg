@@ -12,10 +12,10 @@ class ItemDrop(Prop):
 
   def effect(drop, game, actor):
     if actor is game.hero:
-      game.obtain(
+      obtained = game.obtain(
         item=drop.item,
         target=drop,
-        on_end=lambda: game.floor.remove_elem(drop)
+        on_end=lambda: obtained and game.floor.remove_elem(drop)
       )
 
   def view(drop, anims):

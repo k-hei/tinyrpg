@@ -107,6 +107,7 @@ from contexts.gameover import GameOverContext
 from dungeon.floors.floor1 import Floor1
 from dungeon.floors.floor2 import Floor2
 from dungeon.floors.floor3 import Floor3
+from dungeon.floors.genericfloor import GenericFloor
 
 from dungeon.data import DungeonData
 from dungeon.command import MoveCommand, MoveToCommand, PushCommand, SkillCommand
@@ -840,7 +841,8 @@ class DungeonContext(Context):
     return True
 
   def obtain(game, item, target=None, on_end=None):
-    if target:
+    obtained = game.store.obtain(item)
+    if obtained:
       game.anims.append([
         item_anim := ItemAnim(
           target=target,
@@ -856,13 +858,14 @@ class DungeonContext(Context):
         on_end and on_end(),
         item_anim and item_anim.end()
       ))
-    if isinstance(item, Gold):
-      game.change_gold(item.amount)
-    elif type(item) is type and issubclass(item, Skill):
-      game.learn_skill(item)
     else:
-      game.store.obtain(item)
-    return True
+      game.open(child=DialogueContext(
+        lite=True,
+        script=[
+          ("", ("You're standing on ", item().token(), "."))
+        ]
+      ), on_close=on_end)
+    return obtained
 
   def jump_pit(game, actor, run=False, on_end=None):
     facing_x, facing_y = actor.facing
@@ -1044,6 +1047,7 @@ class DungeonContext(Context):
       dest_cell = (*target_cell, max(0, target_tile.elev))
       command = MoveCommand(direction=delta, on_end=compose(on_end, lambda: (
         origin_elem and origin_elem.on_leave(game),
+        target_elem := next((e for e in game.floor.get_elems_at(target_cell) if not e.solid and not isinstance(e, Door)), None),
         target_elem and not target_elem.solid and target_elem.effect(game, actor)
       )))
       if not actor.command:
@@ -1713,10 +1717,11 @@ class DungeonContext(Context):
     index = game.floors.index(game.floor) + direction
     if index >= len(game.floors) or index < 0:
       # create a new floor if out of bounds
-      if gen_index is None:
-        return game.leave_dungeon()
+      if gen_index:
+        Floor = DungeonContext.FLOORS[gen_index + direction]
+      else:
+        Floor = GenericFloor
       app = game.get_head()
-      Floor = DungeonContext.FLOORS[gen_index + direction]
       app.transition(
         transits=(DissolveIn(), DissolveOut()),
         loader=Floor.generate(game.store.story),
@@ -1863,23 +1868,26 @@ class DungeonContext(Context):
     else:
       for comp in game.comps:
         sprites += comp.view()
-      if game.child and type(game.child) is not InventoryContext or game.get_head().transits:
-        for comp in [c for c in game.comps if c.active]:
-          if (not (type(game.child) is MinimapContext and type(comp) is Minimap)
-          and (not type(comp) is Log or type(game.child) is GameOverContext)
-          and not (type(game.child) is SkillContext and (
-            type(comp) is Hud
-            or type(comp) is SpMeter
-            or type(comp) is Minimap
-          ))):
-            comp.exit()
-            game.hide_bubble()
+      if game.child or game.get_head().transits:
+        if type(game.child) is InventoryContext:
+          game.hide_bubble()
+        else:
+          for comp in [c for c in game.comps if c.active]:
+            if (not (type(game.child) is MinimapContext and type(comp) is Minimap)
+            and (not type(comp) is Log or type(game.child) is GameOverContext)
+            and not (type(game.child) is SkillContext and (
+              type(comp) is Hud
+              or type(comp) is SpMeter
+              or type(comp) is Minimap
+            ))):
+              comp.exit()
+              game.hide_bubble()
       else:
         for comp in [c for c in game.comps if not c.active]:
           if type(comp) is not Log:
             comp.enter()
-            game.show_bubble()
-            game.update_bubble()
+        game.show_bubble()
+        game.update_bubble()
 
     if game.time < LABEL_FRAMES and not game.child:
       label_image = assets.ttf["normal"].render("Dungeon {}F".format(game.get_floor_no()), WHITE)

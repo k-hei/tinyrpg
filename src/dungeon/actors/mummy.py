@@ -48,6 +48,7 @@ class Mummy(DungeonActor):
             on_end=on_end
           )
         else:
+          not game.anims and game.anims.append([])
           game.anims[0].append(AttackAnim(
             target=user,
             src=dest_cell,
@@ -111,7 +112,7 @@ class Mummy(DungeonActor):
       else:
         on_end and on_end()
 
-  def __init__(soldier):
+  def __init__(soldier, *args, **kwargs):
     super().__init__(Core(
       name="Mummy",
       faction="enemy",
@@ -124,7 +125,7 @@ class Mummy(DungeonActor):
         en=12,
       ),
       skills=[ Club ]
-    ))
+    ), *args, **kwargs)
     soldier.damaged = False
 
   def damage(soldier, *args, **kwargs):

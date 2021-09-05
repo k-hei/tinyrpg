@@ -17,7 +17,9 @@ class Bag(Prop):
       "contents": bag.contents.__name__
     }]
 
-  def effect(bag, game, *_):
+  def effect(bag, game, actor):
+    if actor != game.hero:
+      return False
     game.anims.append([FlickerAnim(
       duration=30,
       target=bag,
@@ -29,6 +31,7 @@ class Bag(Prop):
       game.log.print(("Received ", bag.contents().token(), "."))
     else:
       game.log.print("But there was nothing inside...")
+    return True
 
   def view(bag, anims):
     sprites = use_assets().sprites
