@@ -422,8 +422,6 @@ class DungeonContext(Context):
               commands[actor].append(command)
             else:
               commands[actor] = [command]
-        if game.room and actor.cell in game.room.get_cells():
-          actor.step_ailment(game)
 
     step_status = lambda: hero.step_ailment(game)
     end_exec = lambda: game.end_step(moving=moving)
@@ -442,16 +440,20 @@ class DungeonContext(Context):
       hero.command.on_end = compose(hero.command.on_end, step_status)
       hero.command.on_end = compose(hero.command.on_end, end_exec)
     else:
+      step_status()
       end_exec()
 
   def next_command(game, on_end=None):
     if not game.commands:
       return on_end and on_end()
+    actor, commands = game.commands[0]
     step = lambda: (
-      not (game.commands[0] and game.commands[0][1]) and game.commands.pop(0),
+      not (game.commands[0] and game.commands[0][1]) and (
+        game.commands.pop(0),
+        actor.step_ailment(game),
+      ),
       game.next_command(on_end)
     )
-    actor, commands = game.commands[0]
     cmd_name, *cmd_args = commands.pop(0)
     if actor.is_immobile():
       return step()
@@ -545,10 +547,9 @@ class DungeonContext(Context):
       enemy.aggro = True
     elif target and manhattan(enemy.cell, target.cell) <= VISION_RANGE and target.cell in shadowcast(floor, enemy.cell, VISION_RANGE):
       enemy.aggro = True
-    else:
+    elif enemy.get_faction() == "ally":
       enemy.aggro = False
-      if enemy.get_faction() == "ally":
-        return ("move_to", hero.cell)
+      return ("move_to", hero.cell)
 
     if enemy.aggro:
       return enemy.step(game)
@@ -1349,13 +1350,14 @@ class DungeonContext(Context):
       damage_text = "MISS"
     else:
       damage_text = int(damage)
-    game.numbers.append(DamageValue(
+
+    display_text = lambda: game.numbers.append(DamageValue(
       text=damage_text,
       cell=target.cell
     ))
 
     if damage and crit:
-      game.numbers.insert(0, DamageValue(
+      game.numbers.append(DamageValue(
         text="CRITICAL!",
         cell=target.cell,
         offset=(4, -4),
@@ -1370,28 +1372,32 @@ class DungeonContext(Context):
 
     if damage == None:
       flinch = None
+      display_text()
     elif int(damage) == 0 or block:
       flinch = ShakeAnim(
         target=target,
         magnitude=0.5,
-        duration=15
+        duration=15,
+        on_start=display_text
       )
     else:
       flinch = FlinchAnim(
         target=target,
         duration=DungeonContext.FLINCH_DURATION,
-        direction=direction
+        direction=direction,
+        on_start=lambda:(
+          target.damage(damage),
+          display_text()
+        )
       )
-      target.damage(damage)
 
     if flinch:
       game.place_item(actor=target)
 
     pause = PauseAnim(duration=DungeonContext.FLINCH_PAUSE_DURATION, on_end=respond)
-    if delayed or not game.anims:
-      game.anims.append([*(flinch and [flinch] or []), pause])
-    else:
-      game.anims[0] += [*(flinch and [flinch] or []), pause]
+    anim_group = next((g for g in game.anims if not next((a for a in g if a.target is target), None)), [])
+    anim_group += [*(flinch and [flinch] or []), pause]
+    anim_group not in game.anims and game.anims.append(anim_group)
 
     if was_asleep and not target.ailment == "sleep" and not target.is_dead():
       game.anims.append([AwakenAnim(
@@ -1399,6 +1405,11 @@ class DungeonContext(Context):
         target=target,
         on_end=awaken
       )])
+
+    if damage == None:
+      return False
+    else:
+      return True
 
   def freeze(game, target):
     if target.is_dead():

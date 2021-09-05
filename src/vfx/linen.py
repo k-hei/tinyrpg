@@ -81,12 +81,15 @@ class LinenVfx(Vfx):
       else:
         fx.anim.update()
         if fx.on_connect and fx.anim.frame_index == fx.length:
-          fx.on_connect()
+          on_connect = fx.on_connect
           fx.on_connect = None
-          return [ParticleVfx(
-            pos=fx.dest,
-            color=fx.color if randint(0, 1) and fx.color != BLACK else WHITE
-          ) for _ in range(randint(10, 15))]
+          if on_connect():
+            return [ParticleVfx(
+              pos=fx.dest,
+              color=fx.color if randint(0, 1) and fx.color != BLACK else WHITE
+            ) for _ in range(randint(10, 15))]
+          else:
+            return []
 
   def view(fx):
     if fx.done or not fx.anim.frame():

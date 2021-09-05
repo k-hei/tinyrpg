@@ -10,12 +10,13 @@ class ItemDrop(Prop):
   def __init__(drop, contents):
     drop.item = contents
 
-  def effect(drop, game, *_):
-    game.obtain(
-      item=drop.item,
-      target=drop,
-      on_end=lambda: game.floor.remove_elem(drop)
-    )
+  def effect(drop, game, actor):
+    if actor is game.hero:
+      game.obtain(
+        item=drop.item,
+        target=drop,
+        on_end=lambda: game.floor.remove_elem(drop)
+      )
 
   def view(drop, anims):
     anim_group = [a for a in anims[0] if a.target is drop] if anims else []
