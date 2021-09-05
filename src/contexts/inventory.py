@@ -241,14 +241,11 @@ class InventoryContext(Context):
     ctx.open(ChoiceContext(choices=[
       Choice(text="Use"),
       Choice(text="Carry"),
-      Choice(text="Discard", closing=True)
+      Choice(text="Drop", closing=True)
     ], on_choose=lambda choice: (
       choice.text == "Use" and ctx.use_item()
       or choice.text == "Carry" and ctx.carry_item()
-      or choice.text == "Discard" and True
-    ), on_close=lambda choice: (
-      choice is None and True
-      or choice.text == "Discard" and ctx.discard_item()
+      or choice.text == "Drop" and ctx.drop_item()
     )))
     return True
 
@@ -279,11 +276,19 @@ class InventoryContext(Context):
       ctx.box.print(message)
       return False
 
-  def discard_item(ctx, item=None):
+  def drop_item(ctx, item=None):
     item = item or ctx.get_selected_item()
-    ctx.store.discard_item(item)
-    ctx.update_items()
-    return True
+    if "drop_item" in dir(ctx.parent):
+      success, message = ctx.parent.drop_item(item)
+    else:
+      success, message = False, "You can't drop that here!"
+    if success:
+      ctx.store.discard_item(item)
+      ctx.exit()
+      return True
+    else:
+      ctx.box.print(message)
+      return False
 
   def update(ctx):
     for anim in ctx.anims:

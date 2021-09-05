@@ -1479,6 +1479,14 @@ class DungeonContext(Context):
     else:
       return False, "You can't carry any more."
 
+  def drop_item(game, item):
+    hero = game.hero
+    if next((e for e in game.floor.get_elems_at(hero.cell) if isinstance(e, ItemDrop)), None):
+      return False, "There's nowhere to drop this!"
+    game.floor.spawn_elem_at(hero.cell, ItemDrop(item))
+    game.step()
+    return True, None
+
   def handle_place(game):
     return game.place_item(actor=game.hero)
 

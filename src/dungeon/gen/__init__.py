@@ -542,11 +542,11 @@ def gen_floor(features=FloorGraph(), entrance=None, size=config.FLOOR_SIZE, enem
     stage.exit = stage.find_tile(stage.STAIRS_UP)
     if not stage.exit:
       empty_leaves = [n for n in empty_rooms if tree.degree(n) == 1]
-      exit_room = choice(empty_leaves)
       if not empty_leaves and not features.nodes:
         debug("No empty leaves to spawn exit at")
         yield None
         continue
+      exit_room = choice(empty_leaves)
       stage.exit = exit_room.get_center()
       if exit_room in empty_rooms:
         empty_rooms.remove(exit_room)
