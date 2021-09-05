@@ -1175,7 +1175,7 @@ class DungeonContext(Context):
     variance = 1 if actor.core.faction == "enemy" else 2
     return max(0, actor_str - target_def + randint(-variance, variance))
 
-  def attack(game, actor, target, damage=None, modifier=1, is_chaining=False, on_connect=None, on_end=None):
+  def attack(game, actor, target, damage=None, modifier=1, is_ranged=False, is_chaining=False, on_connect=None, on_end=None):
     actor.weapon = actor.find_weapon()
     if actor.weapon is None:
       return False
@@ -1205,7 +1205,7 @@ class DungeonContext(Context):
         command.on_end = None
         on_end and on_end()
 
-      if is_adjacent(actor.cell, target.cell):
+      if is_adjacent(actor.cell, target.cell) or is_ranged:
         on_connect and on_connect()
         real_target = actor if target.counter else target
         real_damage = damage

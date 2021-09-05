@@ -40,7 +40,7 @@ class Mummy(DungeonActor):
           game.attack(
             actor=user,
             target=target_actor,
-            modifier=1.25,
+            modifier=1.5,
             is_chaining=True,
             on_end=on_end
           )
@@ -67,6 +67,27 @@ class Mummy(DungeonActor):
           )
         ])
 
+  class LinenWhip(AttackSkill):
+    name = "LinenWhip"
+    def effect(user, dest, game, on_end=None):
+      target_actor = next((e for e in game.floor.get_elems_at(dest) if isinstance(e, DungeonActor)), None)
+      if target_actor:
+        game.attack(
+          actor=user,
+          target=target_actor,
+          is_ranged=True,
+          is_chaining=True,
+          on_end=on_end
+        )
+      else:
+        game.anims[0].append(AttackAnim(
+          target=user,
+          src=user.cell,
+          dest=dest,
+          on_end=on_end
+        ))
+
+
   def __init__(soldier):
     super().__init__(Core(
       name="Mummy",
@@ -91,9 +112,11 @@ class Mummy(DungeonActor):
     enemy_x, enemy_y = enemy.cell
     dist_x = enemy_x - soldier_x
     dist_y = enemy_y - soldier_y
-    if abs(dist_x) == 2 or abs(dist_y) == 2:
+    if abs(dist_x) + abs(dist_y) == 2 and (abs(dist_x) == 2 or abs(dist_y) == 2):
       soldier.face(enemy.cell)
       return soldier.charge(skill=Mummy.ClawRush, dest=enemy.cell)
+    elif abs(dist_x) <= 2 and abs(dist_x) == abs(dist_y):
+      return ("use_skill", Mummy.LinenWhip, enemy.cell)
 
     if is_adjacent(soldier.cell, enemy.cell):
       return ("attack", enemy)
