@@ -324,6 +324,7 @@ class DungeonContext(Context):
             def illuminate():
               hero.visible_cells = room_cells
               game.redraw_tiles(force=True)
+            not game.anims and game.anims.append([])
             game.anims[0].append(PauseAnim(duration=tween_duration))
             game.anims += [
               [StageView.FadeAnim(
