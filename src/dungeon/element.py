@@ -49,7 +49,8 @@ class DungeonElement:
 
   def spawn(elem, stage, cell):
     elem.cell = cell
-    elem.elev = stage.get_tile_at(cell).elev
+    tile = stage.get_tile_at(cell)
+    if tile: elem.elev = tile.elev
 
   def step(elem, game):
     pass

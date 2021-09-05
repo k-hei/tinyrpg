@@ -1054,8 +1054,7 @@ class DungeonContext(Context):
       dest_cell = (*target_cell, max(0, target_tile.elev))
       command = MoveCommand(direction=delta, on_end=compose(on_end, lambda: (
         origin_elem and origin_elem.on_leave(game),
-        target_elem := next((e for e in game.floor.get_elems_at(target_cell) if not e.solid and not isinstance(e, Door)), None),
-        target_elem and not target_elem.solid and target_elem.effect(game, actor)
+        next((e for e in game.floor.get_elems_at(target_cell) if not e.solid and not isinstance(e, Door) and e.effect(game, actor)), None),
       )))
       if not actor.command:
         actor.command = command
@@ -1258,7 +1257,7 @@ class DungeonContext(Context):
     else:
       connect()
 
-    return True
+    return damage != None
 
   def nudge(game, actor, direction, on_end=None):
     floor = game.floor

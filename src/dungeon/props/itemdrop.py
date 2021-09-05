@@ -17,6 +17,7 @@ class ItemDrop(Prop):
         target=drop,
         on_end=lambda: obtained and game.floor.remove_elem(drop)
       )
+      return obtained
 
   def view(drop, anims):
     anim_group = [a for a in anims[0] if a.target is drop] if anims else []

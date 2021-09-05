@@ -1,6 +1,7 @@
 from random import randint
 from dungeon.actors import DungeonActor
 from cores import Core, Stats
+from dungeon.stage import Tile
 from skills.attack import AttackSkill
 from skills.support import SupportSkill
 from skills.weapon.club import Club
@@ -74,6 +75,19 @@ class Mummy(DungeonActor):
   class LinenWhip(AttackSkill):
     name = "LinenWhip"
     def effect(user, dest, game, on_end=None):
+      user_x, user_y = user.cell
+      dest_x, dest_y = dest
+      dist_x = dest_x - user_x
+      dist_y = dest_y - user_y
+      delta_x = dist_x // abs(dist_x)
+      delta_y = dist_y // abs(dist_y)
+      cell = (user_x + delta_x, user_y + delta_y)
+      while (cell != dest
+      and not Tile.is_solid(game.floor.get_tile_at(cell))
+      and not [e for e in game.floor.get_elems_at(cell) if e.solid]):
+        x, y = cell
+        cell = (x + delta_x, y + delta_y)
+      dest = cell
       target_actor = next((e for e in game.floor.get_elems_at(dest) if isinstance(e, DungeonActor)), None)
       user.core.anims.append(Mummy.ChargeAnim())
       game.vfx.append(LinenVfx(
