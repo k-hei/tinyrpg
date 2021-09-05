@@ -58,7 +58,6 @@ class Virus(AilmentSkill):
           on_end()
 
     game.anims.append([BounceAnim(
-      duration=20,
       target=user,
       on_squash=spawn_puffs,
       on_end=lambda: game.anims[0].append(PauseAnim(

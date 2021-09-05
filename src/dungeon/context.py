@@ -408,11 +408,13 @@ class DungeonContext(Context):
     for actor in actors:
       if actor.is_dead():
         continue
+
       while actor.turns >= 1:
         actor.turns -= 1
         had_aggro = actor.aggro
         if actor not in (hero, ally) and not (actor.get_faction() == "ally" and actor.behavior == "guard"):
-          command = game.step_enemy(actor)
+          command = actor.step_charge()
+          command = command or game.step_enemy(actor)
           if actor.aggro and not had_aggro:
             break
           if type(command) is tuple:
@@ -423,6 +425,7 @@ class DungeonContext(Context):
         if game.room and actor.cell in game.room.get_cells():
           actor.step_ailment(game)
 
+    step_status = lambda: hero.step_ailment(game)
     end_exec = lambda: game.end_step(moving=moving)
     start_exec = lambda: game.next_command(on_end=end_exec)
     if commands:
@@ -431,10 +434,12 @@ class DungeonContext(Context):
       if (hero.command
       and hero.command.on_end
       and not (type(hero.command) is MoveCommand and game.commands[0][1][0][0].startswith("move"))):
+        hero.command.on_end = compose(hero.command.on_end, step_status)
         hero.command.on_end = compose(hero.command.on_end, start_exec)
       else:
         start_exec()
     elif hero.command and hero.command.on_end:
+      hero.command.on_end = compose(hero.command.on_end, step_status)
       hero.command.on_end = compose(hero.command.on_end, end_exec)
     else:
       end_exec()
@@ -474,12 +479,11 @@ class DungeonContext(Context):
     for actor in actors:
       actor.command = None
     hero = game.hero
-    hero.step_ailment(game)
     if hero.ailment == "sleep":
       if hero.get_hp() == hero.get_hp_max() and game.is_sleeping:
         hero.dispel_ailment()
       else:
-        SLEEP_TURN_DURATION = 3 if game.is_sleeping else 1
+        SLEEP_TURN_DURATION = 3 if game.is_sleeping else 2
         game.anims.append([PauseAnim(
           duration=SLEEP_TURN_DURATION,
           on_end=game.step

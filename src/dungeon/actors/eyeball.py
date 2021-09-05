@@ -138,9 +138,6 @@ class Eyeball(DungeonActor):
     if enemy is None:
       return False
 
-    command = eyeball.step_charge()
-    if command: return command
-
     if (eyeball.core.hp < eyeball.core.stats.hp
     and not eyeball.cloned
     and eyeball.clones < Eyeball.CLONES_MAX

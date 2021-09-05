@@ -57,9 +57,6 @@ class Mage(DungeonActor):
     if enemy is None:
       return None
 
-    command = mage.step_charge()
-    if command: return command
-
     mage_x, mage_y = mage.cell
     enemy_x, enemy_y = enemy.cell
     dist_x = enemy_x - mage_x

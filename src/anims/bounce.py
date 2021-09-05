@@ -2,7 +2,7 @@ from lib.lerp import lerp
 from easing.expo import ease_in, ease_out
 
 class BounceAnim:
-  def __init__(anim, duration, target, on_squish=None, on_squash=None, on_end=None):
+  def __init__(anim, target, duration=45, on_squish=None, on_squash=None, on_end=None):
     anim.duration = duration
     anim.target = target
     anim.on_squish = on_squish

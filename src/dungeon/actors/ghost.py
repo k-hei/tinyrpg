@@ -58,9 +58,6 @@ class Ghost(DungeonActor):
     if enemy is None:
       return False
 
-    command = ghost.step_charge()
-    if command: return command
-
     if is_adjacent(ghost.cell, enemy.cell) and not enemy.ailment == "sleep" and randint(1, 5) == 1:
       ghost.face(enemy.cell)
       ghost.turns = 0

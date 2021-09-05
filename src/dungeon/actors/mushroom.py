@@ -45,9 +45,6 @@ class Mushroom(DungeonActor):
     if enemy is None:
       return False
 
-    command = mushroom.step_charge()
-    if command: return command
-
     if not mushroom.charge_cooldown and manhattan(mushroom.cell, enemy.cell) <= 2  and randint(1, 3) == 1:
       return mushroom.charge(skill=Virus, dest=game.hero.cell)
     elif is_adjacent(mushroom.cell, enemy.cell):
