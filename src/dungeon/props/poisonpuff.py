@@ -17,9 +17,13 @@ class PoisonPuff(Prop):
     puff.dissolving = False
 
   def effect(puff, game, actor=None):
-    if not puff.dissolving:
-      actor = actor or game.hero
-      game.poison_actor(actor)
+    if puff.dissolving:
+      return False
+    actor = actor or game.hero
+    if type(actor).__name__ == "Mushroom":
+      return False
+    game.poison_actor(actor)
+    return True
 
   def step(puff, game):
     if puff.turns:

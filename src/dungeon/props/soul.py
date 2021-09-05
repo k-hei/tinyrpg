@@ -80,7 +80,7 @@ class Soul(Prop):
         )
       ))
 
-  def effect(soul, game):
+  def effect(soul, game, *_):
     r = 2 * pi * random()
     soul.norm = (cos(r), sin(r))
     soul.vel = Soul.BOUNCE_AMP

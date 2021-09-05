@@ -17,7 +17,7 @@ class Bag(Prop):
       "contents": bag.contents.__name__
     }]
 
-  def effect(bag, game):
+  def effect(bag, game, *_):
     game.anims.append([FlickerAnim(
       duration=30,
       target=bag,

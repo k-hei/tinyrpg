@@ -12,7 +12,7 @@ class PushTile(DungeonElement):
     tile.pushed = pushed
     tile.completed = completed
 
-  def effect(tile, game):
+  def effect(tile, game, *_):
     tile.pushed = True
     pushtiles = []
     for cell in game.room.get_cells():

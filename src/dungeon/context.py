@@ -720,12 +720,6 @@ class DungeonContext(Context):
       if not moved:
         return False
 
-      origin_elem = game.floor.get_elem_at(old_cell, exclude=[Door])
-      if origin_elem:
-        origin_elem.on_leave(game)
-
-      if target_elem and not target_elem.solid:
-        target_elem.effect(game)
       if target_tile is Stage.OASIS:
         game.use_oasis()
       elif target_tile is Stage.STAIRS_UP:
@@ -1013,7 +1007,9 @@ class DungeonContext(Context):
     game.open(DialogueContext(script=target.script))
 
   def move(game, actor, delta, run=False, jump=False, duration=0, on_end=None):
+    origin_cell = actor.cell
     origin_tile = game.floor.get_tile_at(actor.cell)
+    origin_elem = game.floor.get_elem_at(origin_cell, exclude=[Door])
     origin_elev = origin_tile and origin_tile.elev
     actor_x, actor_y = actor.cell
     delta_x, delta_y = delta
@@ -1037,7 +1033,10 @@ class DungeonContext(Context):
       anim_kind = JumpAnim if jump else MoveAnim
       src_cell = (*actor.cell, max(0, origin_tile.elev))
       dest_cell = (*target_cell, max(0, target_tile.elev))
-      command = MoveCommand(direction=delta, on_end=on_end)
+      command = MoveCommand(direction=delta, on_end=compose(on_end, lambda: (
+        origin_elem and origin_elem.on_leave(game),
+        target_elem and not target_elem.solid and target_elem.effect(game, actor)
+      )))
       if not actor.command:
         actor.command = command
       move_anim = anim_kind(

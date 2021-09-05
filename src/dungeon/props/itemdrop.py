@@ -10,7 +10,7 @@ class ItemDrop(Prop):
   def __init__(drop, contents):
     drop.item = contents
 
-  def effect(drop, game):
+  def effect(drop, game, *_):
     game.obtain(
       item=drop.item,
       target=drop,

@@ -80,7 +80,7 @@ class Eyeball(DungeonActor):
           BounceAnim(
             duration=20,
             target=user,
-            on_return=lambda: (
+            on_squash=lambda: (
               game.floor.spawn_elem_at(neighbor, clone),
               game.anims[0].append(
                 Eyeball.SplitAnim(
