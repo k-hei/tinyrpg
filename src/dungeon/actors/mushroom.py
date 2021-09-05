@@ -18,6 +18,7 @@ from config import PUSH_DURATION
 class Mushroom(DungeonActor):
   skill = Virus
   drops = [RedFerrule]
+  COOLDOWN_DURATION = 3
 
   class ChargeAnim(ShakeAnim): pass
 

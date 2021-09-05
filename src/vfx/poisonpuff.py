@@ -23,7 +23,7 @@ class PoisonPuffVfx(Vfx):
       OffsetMoveAnim(src, dest, speed=(2 + random()) * TILE_SIZE, easing=ease_out)
     ]
     puff.flickering = size != "large" and randint(1, 3) == 1
-    puff.offset = tuple([(random() - 0.5) * 16 for i in range(2)])
+    puff.offset = tuple([(random() - 0.5) * 16 // 2 * 2 for i in range(2)])
     puff.offset_period = random() * 5
     puff.offset_amplitude = random() * 7
     puff.offset_direction = randint(0, 1) * 2 - 1

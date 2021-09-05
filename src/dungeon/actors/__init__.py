@@ -35,6 +35,7 @@ class DungeonActor(DungeonElement):
   FREEZE_DURATION = 5
   SLEEP_DURATION = 256
   INVULNERABLE_DURATION = 16
+  COOLDOWN_DURATION = 1
   skill = None
   drops = []
 
@@ -59,7 +60,8 @@ class DungeonActor(DungeonElement):
     ailment_turns=0,
     charge_skill=None,
     charge_dest=None,
-    charge_turns=0
+    charge_turns=0,
+    charge_cooldown=0
   ):
     super().__init__(solid=True, opaque=False)
     actor.core = core
@@ -77,6 +79,7 @@ class DungeonActor(DungeonElement):
       actor.inflict_ailment(ailment)
       actor.ailment_turns = ailment_turns or actor.ailment_turns
 
+    actor.charge_cooldown = charge_cooldown
     if charge_skill:
       actor.charge(skill=charge_skill, dest=charge_dest, turns=charge_turns)
     else:
@@ -131,13 +134,16 @@ class DungeonActor(DungeonElement):
     actor.core.anims.clear()
 
   def discharge(actor):
-    if actor.charge_skill is None:
+    if actor.charge_skill is None or actor.charge_cooldown:
       return None
     command = ("use_skill", actor.charge_skill, actor.charge_dest)
+    actor.charge_cooldown = actor.COOLDOWN_DURATION
     actor.reset_charge()
     return command
 
   def step_charge(actor):
+    if actor.charge_cooldown:
+      actor.charge_cooldown -= 1
     if actor.charge_turns:
       actor.charge_turns -= 1
       if actor.charge_turns == 0:
