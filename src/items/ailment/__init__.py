@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from items import Item
 from assets import load as use_assets
 from colors.palette import VIOLET
+from vfx.burst import BurstVfx
 
 @dataclass
 class AilmentItem(Item):
@@ -22,3 +23,12 @@ class AilmentItem(Item):
       return False, "Nothing to dispel!"
     else:
       return False, ("No {} to dispel on ".format(item.ailment), hero.token(), ".")
+
+  def effect(item, game, actor=None):
+    actor = actor or game.hero
+    game.vfx.append(BurstVfx(
+      cell=actor.cell,
+      color=VIOLET
+    ))
+    if actor.ailment == item.ailment or item.ailment == "any" and actor.ailment != None:
+      actor.dispel_ailment()
