@@ -51,6 +51,9 @@ class DungeonElement:
     elem.cell = cell
     elem.elev = stage.get_tile_at(cell).elev
 
+  def step(elem, game):
+    pass
+
   def update(elem, game):
     pass
 
@@ -63,6 +66,8 @@ class DungeonElement:
     return (offset_x, offset_y)
 
   def view(elem, sprites, anims=[]):
+    if not sprites:
+      return []
     will_enter = anims and next((g for g in anims if g is not anims[0] and next((a for a in g if (
       a.target is elem
       and (type(a) is WarpInAnim or type(a) is DropAnim)

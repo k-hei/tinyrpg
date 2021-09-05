@@ -1,41 +1,49 @@
-from random import random
+from random import random, randint
 from lib.cell import add as add_vector
 from dungeon.props import Prop
+from vfx.poisonpuff import PoisonPuffVfx
 import assets
 from sprite import Sprite
 from anims.offsetmove import OffsetMoveAnim
 from config import TILE_SIZE
 from filters import replace_color
-from colors.palette import WHITE, VIOLET
 
 class PoisonPuff(Prop):
   def __init__(puff, origin, *args, **kwargs):
     super().__init__(*args, **kwargs)
-    puff.anim = origin
+    puff.turns = 7
+    puff.origin = origin
+    puff.vfx = []
+    puff.dissolving = False
 
   def effect(puff, game, actor=None):
-    actor = actor or game.hero
-    game.poison_actor(actor)
+    if not puff.dissolving:
+      actor = actor or game.hero
+      game.poison_actor(actor)
+
+  def step(puff, game):
+    if puff.turns:
+      puff.turns -= 1
+    elif not puff.dissolving:
+      puff.dissolving = True
+      for i, fx in enumerate(puff.vfx):
+        fx.dissolve(delay=i * 5, on_end=(lambda: game.floor.remove_elem(puff)) if fx == puff.vfx[-1] else None)
+
+  def update(puff, *_):
+    for fx in puff.vfx:
+      if fx.done:
+        puff.vfx.remove(fx)
+      else:
+        fx.update()
 
   def view(puff, anims):
-    if type(puff.anim) is tuple:
-      get_random_offset = lambda: (random() - 0.5) / 2
-      src = puff.anim
-      dest = add_vector(puff.cell, (get_random_offset(), get_random_offset()))
-      puff.anim = OffsetMoveAnim(target=puff, src=puff.anim, dest=dest, speed=2)
-      not anims and anims.append([])
-      anims[0].append(puff.anim)
-    puff_xoffset, puff_yoffset = (0, 0)
-    anim_group = [a for a in anims[0] if a.target is puff] if anims else []
-    for anim in anim_group:
-      if type(anim) is OffsetMoveAnim:
-        offset_x, offset_y = anim.offset
-        normal_x, normal_y = anim.normal
-        puff_xoffset += (offset_x - normal_x * anim.duration * anim.speed) * TILE_SIZE
-        puff_yoffset += (offset_y - normal_y * anim.duration * anim.speed) * TILE_SIZE
-    puff_image = assets.sprites["fx_poisonpuff"]
-    puff_image = replace_color(puff_image, WHITE, VIOLET)
-    return super().view([Sprite(
-      image=puff_image,
-      pos=(puff_xoffset, puff_yoffset)
-    )], anims)
+    if not puff.vfx:
+      src = tuple([x * TILE_SIZE for x in puff.origin])
+      dest = tuple([x * TILE_SIZE for x in puff.cell])
+      puff.vfx = (
+        [PoisonPuffVfx(src, dest, size="large") for i in range(randint(3, 6))]
+        + [PoisonPuffVfx(src, dest, size="medium") for i in range(randint(3, 6))]
+        + [PoisonPuffVfx(src, dest, size="small") for i in range(randint(3, 6))]
+        + [PoisonPuffVfx(src, dest, size="tiny") for i in range(randint(3, 6))]
+      )
+    return super().view([n for m in [fx.view() for fx in puff.vfx] for n in m], anims)

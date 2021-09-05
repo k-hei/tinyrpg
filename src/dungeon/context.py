@@ -392,8 +392,12 @@ class DungeonContext(Context):
     hero = game.hero
     hero.step_ailment(game)
     actors = [e for e in game.floor.elems if isinstance(e, DungeonActor) and e is not hero]
+    non_actors = [e for e in game.floor.elems if not isinstance(e, DungeonActor)]
     enemies = [a for a in actors if not a.allied(hero)]
     enemies.sort(key=lambda e: type(e) is MageActor and 1000 or manhattan(e.cell, hero.cell))
+
+    for elem in non_actors:
+      elem.step(game)
 
     for actor in actors:
       if actor.charge_skill:
