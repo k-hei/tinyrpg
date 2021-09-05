@@ -2,9 +2,11 @@ from random import randint
 from dungeon.actors import DungeonActor
 from cores import Core, Stats
 from skills.attack import AttackSkill
+from skills.support import SupportSkill
 from skills.weapon.club import Club
 from lib.cell import is_adjacent, add as add_vector
 from lib.compose import compose
+from lib.direction import invert
 from sprite import Sprite
 import assets
 from anims.move import MoveAnim
@@ -91,25 +93,54 @@ class Mummy(DungeonActor):
         on_end=on_end
       ))
 
+  class Backstep(SupportSkill):
+    def effect(user, dest, game, on_end=None):
+      dest_cell = add_vector(user.cell, invert(user.facing))
+      if game.floor.is_cell_empty(dest_cell):
+        game.anims.append([JumpAnim(
+          target=user,
+          src=user.cell,
+          dest=dest_cell,
+          height=6,
+          duration=15,
+          on_end=lambda: (
+            setattr(user, "cell", dest_cell),
+            on_end and on_end()
+          )
+        )])
+      else:
+        on_end and on_end()
+
   def __init__(soldier):
     super().__init__(Core(
       name="Mummy",
       faction="enemy",
       stats=Stats(
-        hp=11,
+        hp=20,
         st=12,
         dx=9,
         ag=4,
         lu=3,
-        en=13,
+        en=12,
       ),
       skills=[ Club ]
     ))
+    soldier.damaged = False
+
+  def damage(soldier, *args, **kwargs):
+    super().damage(*args, **kwargs)
+    soldier.damaged = True
 
   def step(soldier, game):
     enemy = game.find_closest_enemy(soldier)
     if enemy is None:
       return None
+
+    if soldier.damaged:
+      soldier.damaged = False
+      soldier.face(enemy.cell)
+      if randint(0, 1):
+        return ("use_skill", Mummy.Backstep)
 
     soldier_x, soldier_y = soldier.cell
     enemy_x, enemy_y = enemy.cell

@@ -5,7 +5,7 @@ from colors.palette import BLACK
 from lib.cell import neighborhood
 
 class Skill:
-  name = "Untitled"
+  name = ""
   desc = "No description given."
   kind = None
   element = None

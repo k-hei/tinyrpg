@@ -1595,7 +1595,7 @@ class DungeonContext(Context):
     else:
       if ENABLED_COMBAT_LOG:
         game.log.print((actor.token(), " uses ", skill().token()))
-      else:
+      elif skill.name:
         game.log.exit()
         game.comps.append(SkillBanner(
           text=skill.name,

@@ -14,5 +14,4 @@ class JumpAnim(MoveAnim):
   def update(anim):
     super().update()
     t = min(1, max(0, anim.time) / anim.duration)
-    print(anim.cell)
     anim.offset = sin(t * pi) * -anim.height
