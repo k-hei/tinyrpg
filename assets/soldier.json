@@ -3,5 +3,13 @@
   "soldier_move": [32, 0, 32, 32],
   "soldier_sleep": [64, 0, 32, 32],
   "soldier_charge": [0, 32, 32, 32],
-  "soldier_flinch": [32, 32, 32, 32]
+  "soldier_flinch": [32, 32, 32, 32],
+  "fx_linen": [
+    [0, 64, 32, 32],
+    [48, 64, 32, 32]
+  ],
+  "fx_linentail": [
+    [32, 64, 16, 16],
+    [80, 64, 16, 16]
+  ]
 }

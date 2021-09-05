@@ -15,6 +15,7 @@ from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from items.materials.crownjewel import CrownJewel
 from vfx.claw import ClawVfx
+from vfx.linen import LinenVfx
 from config import PUSH_DURATION
 
 class Mummy(DungeonActor):
@@ -70,6 +71,7 @@ class Mummy(DungeonActor):
   class LinenWhip(AttackSkill):
     name = "LinenWhip"
     def effect(user, dest, game, on_end=None):
+      game.vfx.append(LinenVfx(src=user.cell, dest=dest))
       target_actor = next((e for e in game.floor.get_elems_at(dest) if isinstance(e, DungeonActor)), None)
       if target_actor:
         game.attack(

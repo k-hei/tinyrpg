@@ -7,7 +7,6 @@ from sprite import Sprite
 from colors.palette import BLACK, WHITE, RED
 from filters import replace_color
 import assets
-from vfx.icepiece import IcePieceVfx
 from vfx.particle import ParticleVfx
 
 class GhostArmVfx(Vfx):
