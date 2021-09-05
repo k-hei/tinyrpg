@@ -126,6 +126,8 @@ class DungeonActor(DungeonElement):
     actor.charge_skill = skill
     actor.charge_dest = dest
     actor.charge_turns = turns or skill.charge_turns
+    if "ChargeAnim" in dir(actor):
+      actor.core.anims.append(actor.ChargeAnim())
 
   def reset_charge(actor):
     actor.charge_skill = None
@@ -376,7 +378,7 @@ class DungeonActor(DungeonElement):
     for anim in anim_group:
       if type(anim) is AwakenAnim and anim.visible:
         asleep = True
-      if type(anim) is AttackAnim or type(anim) is JumpAnim and anim.cell:
+      if type(anim) is AttackAnim and anim.cell:
         offset_x, offset_y = actor.get_move_offset(anim)
       if type(anim) is FlinchAnim and anim.time <= 3:
         return []

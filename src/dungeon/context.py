@@ -1175,7 +1175,7 @@ class DungeonContext(Context):
     variance = 1 if actor.core.faction == "enemy" else 2
     return max(0, actor_str - target_def + randint(-variance, variance))
 
-  def attack(game, actor, target, damage=None, modifier=1, on_connect=None, on_end=None):
+  def attack(game, actor, target, damage=None, modifier=1, is_chaining=False, on_connect=None, on_end=None):
     actor.weapon = actor.find_weapon()
     if actor.weapon is None:
       return False
@@ -1197,7 +1197,7 @@ class DungeonContext(Context):
       damage = 0
       target.block()
     elif crit:
-      damage = game.find_damage(actor, target, modifier=1.5)
+      damage = game.find_damage(actor, target, modifier=modifier * 1.5)
 
     def connect():
       def end_attack():
@@ -1224,16 +1224,20 @@ class DungeonContext(Context):
 
     command = SkillCommand(skill=actor.weapon, on_end=on_end)
     actor.command = command
-    game.anims.append([
-      AttackAnim(
-        duration=DungeonContext.ATTACK_DURATION,
-        delay=(block and 12 or 0),
-        target=actor,
-        src=actor.cell,
-        dest=target.cell,
-        on_connect=connect,
-      )
-    ])
+
+    anim = AttackAnim(
+      duration=DungeonContext.ATTACK_DURATION,
+      delay=(block and 12 or 0),
+      target=actor,
+      src=actor.cell,
+      dest=target.cell,
+      on_connect=connect,
+    )
+    if is_chaining:
+      not game.anims and game.anims.append([])
+      game.anims[0].append(anim)
+    else:
+      game.anims.append([anim])
 
     return True
 
