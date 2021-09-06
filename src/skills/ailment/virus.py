@@ -56,13 +56,20 @@ class Virus(AilmentSkill):
         if on_end:
           on_end()
 
-    game.anims.append([BounceAnim(
-      target=user,
-      on_squash=spawn_puffs,
-      on_end=lambda: game.anims[0].append(PauseAnim(
-        duration=15,
+    if user.get_hp():
+      game.anims.append([BounceAnim(
+        target=user,
+        on_squash=spawn_puffs,
+        on_end=lambda: game.anims[0].append(PauseAnim(
+          duration=15,
+          on_end=on_bounce
+        ))
+      )])
+    else:
+      spawn_puffs()
+      game.anims.append([PauseAnim(
+        duration=30,
         on_end=on_bounce
-      ))
-    )])
+      )])
 
     return user.cell

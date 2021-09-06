@@ -22,7 +22,7 @@
       }
     ]
   },
-  "skills": ["RustyBlade"],
+  "skills": ["RustyBlade", "ShieldBash"],
   "party": ["Knight"],
-  "builds": { "Knight": { "RustyBlade": [0, 0] } }
+  "builds": { "Knight": { "RustyBlade": [0, 0], "ShieldBash": [1, 0] } }
 }

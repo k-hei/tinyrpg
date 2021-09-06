@@ -264,7 +264,7 @@ class DungeonActor(DungeonElement):
   def block(actor):
     pass
 
-  def kill(actor):
+  def kill(actor, game=None):
     actor.core.kill()
     actor.core.anims = []
 

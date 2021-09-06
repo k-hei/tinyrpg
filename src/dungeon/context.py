@@ -1301,7 +1301,6 @@ class DungeonContext(Context):
         and not game.floor.get_elem_at(target.cell, superclass=Bag)):
           drop = choice(enemy_drops)
           game.floor.spawn_elem_at(target.cell, Bag(contents=drop))
-      target.kill()
       if target in game.floor.elems:
         game.floor.elems.remove(target)
       if game.room:
@@ -1323,6 +1322,7 @@ class DungeonContext(Context):
         game.log.print(("Defeated ", target.token(), "."))
       else:
         game.log.print((target.token(), " is defeated."))
+    target.kill(game)
     game.anims[0].append(FlickerAnim(
       duration=FLICKER_DURATION,
       target=target,
@@ -1378,7 +1378,8 @@ class DungeonContext(Context):
       game.vfx.append(FlashVfx())
       game.floor_view.shake(vertical=direction[1])
       game.nudge(target, direction)
-      target.command = True
+      if target is not game.hero:
+        target.command = True
       target.turns = 0
 
     if damage == None:

@@ -45,6 +45,11 @@ class Mushroom(DungeonActor):
     super().charge(*args, **kwargs)
     mushroom.core.anims.append(Mushroom.ChargeAnim())
 
+  def kill(mushroom, game=None, *args, **kwargs):
+    super().kill(game=game, *args, **kwargs)
+    if mushroom.charge_skill and game and not game.floor.get_tile_at(mushroom.cell) is game.floor.PIT:
+      Virus.effect(user=mushroom, dest=None, game=game)
+
   def step(mushroom, game):
     enemy = game.find_closest_enemy(mushroom)
     if enemy is None:
