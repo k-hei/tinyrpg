@@ -15,17 +15,11 @@
           2, 0, 0, 0, 1, 0, 0, 0, 2,
           2, 2, 2, 2, 3, 2, 2, 2, 2
         ],
-        "elems": [
-          [[4, 3], "Mummy"]
-
-        ],
+        "elems": [],
         "rooms": [
           [[1, 1, 7, 7], "Room"]
         ]
       }
     ]
-  },
-  "skills": ["RustyBlade"],
-  "party": ["Knight"],
-  "builds": { "Knight": { "RustyBlade": [0, 0] } }
+  }
 }
