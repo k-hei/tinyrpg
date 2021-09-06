@@ -136,7 +136,8 @@ class DungeonContext(Context):
     game.room_within = None
     game.room_entrances = {}
     game.rooms_entered = []
-    game.is_sleeping = False
+    game.is_hero_sleeping = False
+    game.is_hero_running = False
     game.oasis_used = False
     game.anims = []
     game.commands = []
@@ -462,15 +463,15 @@ class DungeonContext(Context):
       return game.attack(actor, *cmd_args, on_end=step)
     if cmd_name == "move":
       if commands:
-        return game.move(actor, *cmd_args, on_end=step)
+        return game.move(actor, *cmd_args, run=game.is_hero_running, on_end=step)
       else:
-        game.move(actor, *cmd_args)
+        game.move(actor, *cmd_args, run=game.is_hero_running)
         return step()
     if cmd_name == "move_to":
       if commands:
-        return game.move_to(actor, *cmd_args, on_end=step)
+        return game.move_to(actor, *cmd_args, run=game.is_hero_running, on_end=step)
       else:
-        game.move_to(actor, *cmd_args)
+        game.move_to(actor, *cmd_args, run=game.is_hero_running)
         return step()
     if cmd_name == "wait":
       return step()
@@ -486,19 +487,20 @@ class DungeonContext(Context):
     for actor in actors:
       actor.command = None
     hero = game.hero
+    game.is_hero_running = False
     if hero.ailment == "sleep":
-      if (game.is_sleeping and hero.get_hp() == hero.get_hp_max()
-      or not game.is_sleeping and game.find_closest_visible_enemy(hero) is None):
+      if (game.is_hero_sleeping and hero.get_hp() == hero.get_hp_max()
+      or not game.is_hero_sleeping and game.find_closest_visible_enemy(hero) is None):
         hero.dispel_ailment()
       else:
-        SLEEP_TURN_DURATION = 9 if game.is_sleeping else 2
+        SLEEP_TURN_DURATION = 9 if game.is_hero_sleeping else 2
         game.anims.append([PauseAnim(
           duration=SLEEP_TURN_DURATION,
           on_end=game.step
         )])
         hero.regen(amount=1)
     if hero.ailment != "sleep":
-      game.is_sleeping = False
+      game.is_hero_sleeping = False
     game.refresh_fov(moving=moving)
 
   def step_ally(game, ally, run=False, old_hero_cell=None):
@@ -618,7 +620,7 @@ class DungeonContext(Context):
       if key == pygame.K_d:
         return game.handle_debug()
       if key == pygame.K_c:
-        return print(game.anims, game.commands, game.get_head().transits, game.hero and game.hero.core.anims, game.hero.command)
+        return print([a.__dict__ for g in game.anims for a in g], game.commands, game.get_head().transits, game.hero and game.hero.core.anims, game.hero.command)
       if key == pygame.K_p:
         return print(game.hero.cell)
 
@@ -689,7 +691,7 @@ class DungeonContext(Context):
       return False
     hero.inflict_ailment("sleep")
     hero.command = None
-    game.is_sleeping = True
+    game.is_hero_sleeping = True
     game.step()
     return True
 
@@ -783,6 +785,7 @@ class DungeonContext(Context):
       game.update_bubble()
 
     moved = game.move(actor=hero, delta=delta, run=run, on_end=on_move)
+    game.is_hero_running = bool(run)
     if moved:
       ally and game.step_ally(ally, run, old_cell)
       game.step(moving=True)
@@ -1071,7 +1074,7 @@ class DungeonContext(Context):
       actor.cell = target_cell
       actor.elev = target_tile.elev
       if isinstance(target_elem, DungeonActor) and target_elem.get_faction() == "ally" and target_elem.can_step():
-        game.move(actor=target_elem, delta=direction.invert(delta), run=run, duration=duration)
+        game.move_to(actor=target_elem, cell=origin_cell, run=run)
       return True
     else:
       on_end and on_end()
@@ -1885,12 +1888,12 @@ class DungeonContext(Context):
           group.remove(anim)
           continue
         anim.update()
-        if anim.done:
-          group.remove(anim)
+        print(pygame.time.get_ticks(), type(anim).__name__, type(anim.target).__name__, anim.time, anim.done)
         if type(anim) is PauseAnim:
           break
-      if not group:
-        game.anims.remove(group)
+      game.anims[0] = [a for a in game.anims[0] if not a.done]
+      while game.anims and not game.anims[0]:
+        game.anims.pop(0)
     for comp in game.comps:
       if "done" in dir(comp) and comp.done:
         game.comps.remove(comp)
