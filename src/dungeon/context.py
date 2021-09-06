@@ -416,6 +416,7 @@ class DungeonContext(Context):
         had_aggro = actor.aggro
         if actor not in (hero, ally) and not (actor.get_faction() == "ally" and actor.behavior == "guard"):
           command = actor.step_charge()
+          command = command or actor.command
           command = command or game.step_enemy(actor)
           if actor.aggro and not had_aggro:
             break
@@ -1045,7 +1046,7 @@ class DungeonContext(Context):
       or direction.normalize(delta) == direction.normalize(target_tile.direction))
     and (target_elem is None
       or not target_elem.solid
-      or actor is game.hero and target_elem is game.ally and game.ally.can_step()
+      or actor is game.hero and isinstance(target_elem, DungeonActor) and target_elem.get_faction() == "ally" and target_elem.can_step()
     )):
       duration = duration or (RUN_DURATION if run else MOVE_DURATION)
       duration = duration * 1.5 if jump else duration
@@ -1058,6 +1059,8 @@ class DungeonContext(Context):
       )))
       if not actor.command:
         actor.command = command
+      if isinstance(target_elem, DungeonActor) and target_elem.get_faction() == "ally":
+        target_elem.command = ("move_to", actor.cell)
       move_anim = anim_kind(
         duration=duration,
         target=actor,
