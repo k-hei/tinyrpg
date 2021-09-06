@@ -80,7 +80,9 @@ class Soul(Prop):
         )
       ))
 
-  def effect(soul, game, *_):
+  def effect(soul, game, actor):
+    if actor != game.hero:
+      return False
     r = 2 * pi * random()
     soul.norm = (cos(r), sin(r))
     soul.vel = Soul.BOUNCE_AMP
@@ -92,6 +94,7 @@ class Soul(Prop):
     game.anims.append([ PauseAnim(duration=60) ])
     if game.log.active:
       game.log.exit()
+    return True
 
   def update(soul, *_):
     soul.anim.update()

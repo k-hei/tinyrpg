@@ -592,7 +592,7 @@ def gen_floor(features=FloorGraph(), entrance=None, size=config.FLOOR_SIZE, enem
           if room in empty_rooms:
             empty_rooms.remove(room)
     for room in empty_rooms:
-      gen_enemies(room, max=5)
+      gen_enemies(room, max=6)
 
     # spawn key if necessary
     if next((d for d in doors if type(d) is TreasureDoor), None):

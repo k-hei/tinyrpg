@@ -39,23 +39,20 @@ class Mummy(DungeonActor):
         dest_cell = origin_cell
       target_actor = next((e for e in game.floor.get_elems_at(target_cell) if isinstance(e, DungeonActor)), None)
       def attack():
-        game.vfx.append(ClawVfx(cell=target_cell))
-        if target_actor:
-          game.attack(
+        not game.anims and game.anims.append([])
+        game.anims[0].append(AttackAnim(
+          target=user,
+          src=dest_cell,
+          dest=target_cell,
+          on_start=lambda: game.vfx.append(ClawVfx(cell=target_cell)),
+          on_connect=(lambda: game.attack(
             actor=user,
             target=target_actor,
             modifier=1.5,
-            is_chaining=True,
-            on_end=on_end
-          )
-        else:
-          not game.anims and game.anims.append([])
-          game.anims[0].append(AttackAnim(
-            target=user,
-            src=dest_cell,
-            dest=target_cell,
-            on_end=on_end
-          ))
+            is_animated=False
+          )) if target_actor else None,
+          on_end=on_end
+        ))
       if dest_cell == origin_cell:
         attack()
       else:
