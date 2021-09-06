@@ -11,7 +11,10 @@ class ItemRoom(Room):
   def place(room, stage, cell=None, connectors=[]):
     if not super().place(stage, cell, connectors):
       return False
-    valid_cells = [c for c in room.get_cells() if not next((d for d in connectors if manhattan(d, c) <= 2), None)]
+    valid_cells = [c for c in room.get_cells() if (
+      not next((d for d in connectors if manhattan(d, c) <= 2), None)
+      and stage.is_cell_empty(c)
+    )]
     items = list(room.items)
     while items and valid_cells:
       cell = choice(valid_cells)
