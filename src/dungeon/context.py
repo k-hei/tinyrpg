@@ -1059,8 +1059,6 @@ class DungeonContext(Context):
       )))
       if not actor.command:
         actor.command = command
-      if isinstance(target_elem, DungeonActor) and target_elem.get_faction() == "ally":
-        target_elem.command = ("move_to", actor.cell)
       move_anim = anim_kind(
         duration=duration,
         target=actor,
@@ -1077,6 +1075,8 @@ class DungeonContext(Context):
         game.anims.append([PauseAnim(duration=5)])
       actor.cell = target_cell
       actor.elev = target_tile.elev
+      if isinstance(target_elem, DungeonActor) and target_elem.get_faction() == "ally":
+        game.move(actor=target_elem, delta=direction.invert(delta), run=run, duration=duration)
       return True
     else:
       on_end and on_end()
