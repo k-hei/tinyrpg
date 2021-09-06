@@ -356,7 +356,9 @@ class DungeonActor(DungeonElement):
     if not actor.can_step():
       return None
     enemy = game.find_closest_enemy(actor)
-    if enemy is None:
+    if not actor.aggro:
+      if enemy and game.is_cell_in_vision_range(actor, cell=enemy.cell):
+        actor.alert()
       return None
     if is_adjacent(actor.cell, enemy.cell) and actor.elev == enemy.elev:
       return ("attack", enemy)
@@ -473,7 +475,7 @@ class DungeonActor(DungeonElement):
       offset_z = actor.elev * TILE_SIZE
 
     actor_color = actor.color()
-    if not actor.aggro and actor.get_faction() != "player" and actor.updates % 60 >= 30:
+    if not actor.aggro and actor.get_faction() != "player" and not actor.ailment == "sleep" and actor.updates % 60 >= 30:
       actor_color = darken_color(actor_color)
     sprite.image = replace_color(sprite.image, BLACK, actor_color)
     if asleep:

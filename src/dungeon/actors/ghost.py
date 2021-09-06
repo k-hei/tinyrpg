@@ -55,8 +55,10 @@ class Ghost(DungeonActor):
 
   def step(ghost, game):
     enemy = game.find_closest_enemy(ghost)
-    if enemy is None:
-      return False
+    if not ghost.aggro:
+      return super().step(game)
+    if not enemy:
+      return None
 
     if is_adjacent(ghost.cell, enemy.cell) and not enemy.ailment == "sleep" and randint(1, 5) == 1:
       ghost.face(enemy.cell)

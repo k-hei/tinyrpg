@@ -146,7 +146,9 @@ class Mummy(DungeonActor):
 
   def step(soldier, game):
     enemy = game.find_closest_enemy(soldier)
-    if enemy is None:
+    if not soldier.aggro:
+      return super().step(game)
+    if not enemy:
       return None
 
     if soldier.damaged:

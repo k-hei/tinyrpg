@@ -540,6 +540,9 @@ class DungeonContext(Context):
     target_cell = (ax + nx, ay + ny)
     return game.floor.get_tile_at(target_cell) is Stage.PIT
 
+  def is_cell_in_vision_range(game, actor, cell):
+    return manhattan(actor.cell, cell) <= VISION_RANGE and cell in shadowcast(game.floor, cell, VISION_RANGE)
+
   def step_enemy(game, enemy):
     if not enemy.can_step():
       return None
@@ -550,7 +553,7 @@ class DungeonContext(Context):
       target = game.find_closest_enemy(enemy)
       room = next((r for r in floor.rooms if enemy.cell in r.get_cells()), None)
       if (target and room and target.cell in room.get_cells() + room.get_border()
-      or target and manhattan(enemy.cell, target.cell) <= VISION_RANGE and target.cell in shadowcast(floor, enemy.cell, VISION_RANGE)
+      or game.is_cell_in_vision_range(actor=enemy, cell=target.cell)
       ):
         enemy.alert()
       else:
@@ -752,6 +755,8 @@ class DungeonContext(Context):
         enemy = next((e for e in enemies if e.ailment == "sleep" and randint(1, 10) == 1), None)
         if enemy:
           enemy.wake_up()
+          if is_adjacent(hero.cell, enemy.cell):
+            enemy.alert()
           if game.camera.is_cell_visible(enemy.cell):
             is_waking_up = True
             game.anims.append([
@@ -845,6 +850,7 @@ class DungeonContext(Context):
     target.on_push(game)
     if isinstance(target, DungeonActor) and target.ailment == "sleep":
       target.wake_up()
+      target.alert()
     return True
 
   def obtain(game, item, target=None, on_end=None):

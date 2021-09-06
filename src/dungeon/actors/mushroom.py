@@ -52,8 +52,10 @@ class Mushroom(DungeonActor):
 
   def step(mushroom, game):
     enemy = game.find_closest_enemy(mushroom)
-    if enemy is None:
-      return False
+    if not mushroom.aggro:
+      return super().step(game)
+    if not enemy:
+      return None
 
     can_charge = not mushroom.charge_cooldown and (randint(1, 3) == 1 or mushroom.damaged)
     if mushroom.damaged:

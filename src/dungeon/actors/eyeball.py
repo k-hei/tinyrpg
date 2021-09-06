@@ -130,7 +130,6 @@ class Eyeball(DungeonActor):
       eyeball.promote(hp=False)
       eyeball.core.skills.append(HpUp)
 
-
   def charge(eyeball, *args, **kwargs):
     super().charge(*args, **kwargs)
     eyeball.core.anims.append(Eyeball.ChargeAnim(magnitude=0.5))
