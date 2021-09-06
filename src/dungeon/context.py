@@ -402,7 +402,7 @@ class DungeonContext(Context):
       elem.step(game)
 
     for actor in actors:
-      if actor.charge_skill:
+      if actor.charge_skill or actor.get_faction() == "ally" and not actor.aggro:
         actor.turns = 1
       else:
         spd = actor.stats.ag / hero.stats.ag
@@ -496,7 +496,7 @@ class DungeonContext(Context):
       or not game.is_sleeping and game.find_closest_visible_enemy(hero) is None):
         hero.dispel_ailment()
       else:
-        SLEEP_TURN_DURATION = 5 if game.is_sleeping else 2
+        SLEEP_TURN_DURATION = 9 if game.is_sleeping else 2
         game.anims.append([PauseAnim(
           duration=SLEEP_TURN_DURATION,
           on_end=game.step
