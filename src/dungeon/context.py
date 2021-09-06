@@ -1439,16 +1439,20 @@ class DungeonContext(Context):
   def poison_actor(game, target, on_end=None):
     if target.is_dead() or target.ailment == "poison":
       return False
-    target.inflict_ailment("poison")
-    game.numbers.append(DamageValue(
-      text="POISON",
-      cell=target.cell,
-      offset=(4, -4),
-      color=PURPLE,
-      delay=15
-    ))
     anims = [
-      FlinchAnim(duration=45, target=target),
+      FlinchAnim(
+        duration=45,
+        target=target,
+        on_start=lambda: (
+          target.inflict_ailment("poison"),
+          game.numbers.append(DamageValue(
+            text="POISON",
+            cell=target.cell,
+            offset=(4, -4),
+            color=PURPLE,
+            delay=15
+          ))
+        )),
       PauseAnim(duration=60, on_end=on_end)
     ]
     game.anims[0].extend(anims) if game.anims else game.anims.append(anims)
