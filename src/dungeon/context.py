@@ -138,6 +138,7 @@ class DungeonContext(Context):
     game.rooms_entered = []
     game.is_hero_sleeping = False
     game.is_hero_running = False
+    game.old_hero_cell = None
     game.oasis_used = False
     game.anims = []
     game.commands = []
@@ -488,6 +489,7 @@ class DungeonContext(Context):
       actor.command = None
     hero = game.hero
     game.is_hero_running = False
+    game.old_hero_cell = hero.cell
     if hero.ailment == "sleep":
       if (game.is_hero_sleeping and hero.get_hp() == hero.get_hp_max()
       or not game.is_hero_sleeping and game.find_closest_visible_enemy(hero) is None):
@@ -555,7 +557,7 @@ class DungeonContext(Context):
       enemy.aggro = True
     elif enemy.get_faction() == "ally":
       enemy.aggro = False
-      return ("move_to", hero.cell)
+      return ("move_to", game.old_hero_cell)
 
     if enemy.aggro:
       return enemy.step(game)
@@ -1888,7 +1890,6 @@ class DungeonContext(Context):
           group.remove(anim)
           continue
         anim.update()
-        print(pygame.time.get_ticks(), type(anim).__name__, type(anim.target).__name__, anim.time, anim.done)
         if type(anim) is PauseAnim:
           break
       game.anims[0] = [a for a in game.anims[0] if not a.done]
