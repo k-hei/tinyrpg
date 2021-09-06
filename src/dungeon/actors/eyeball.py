@@ -1,6 +1,7 @@
 from random import randint, choice
-from lib.cell import is_adjacent, neighborhood
+from lib.cell import is_adjacent, neighborhood, add as add_vector
 from dungeon.actors import DungeonActor
+from dungeon.stage import Tile
 from cores import Core, Stats
 from assets import sprites
 from skills import Skill
@@ -14,6 +15,7 @@ from anims.bounce import BounceAnim
 from anims.awaken import AwakenAnim
 from anims.shake import ShakeAnim
 from anims.pause import PauseAnim
+from vfx.alertbubble import AlertBubble
 from items.materials.angeltears import AngelTears
 from sprite import Sprite
 from filters import replace_color
@@ -128,6 +130,15 @@ class Eyeball(DungeonActor):
       eyeball.promote(hp=False)
       eyeball.core.skills.append(HpUp)
 
+  def damage(eyeball, *args, **kwargs):
+    super().damage(*args, **kwargs)
+    eyeball.alert()
+
+  def alert(eyeball, game=None):
+    eyeball.aggro = True
+    if game:
+      game.vfx.append(AlertBubble(cell=eyeball.cell))
+
   def charge(eyeball, *args, **kwargs):
     super().charge(*args, **kwargs)
     eyeball.core.anims.append(Eyeball.ChargeAnim(magnitude=0.5))
@@ -164,13 +175,25 @@ class Eyeball(DungeonActor):
       eyeball.wander_phase = "look"
       eyeball.wander_target = eyeball.find_look_turns()
       return None
-    return ("move_to", eyeball.wander_target)
+    delta = game.find_move_to_delta(actor=eyeball, dest=eyeball.wander_target)
+    if delta != (0, 0):
+      eyeball.set_facing(delta)
+      return ("move", delta)
 
   def step_wander(eyeball, game):
     if eyeball.wander_phase == "look":
-      return eyeball.step_look(game)
+      command = eyeball.step_look(game)
     elif eyeball.wander_phase == "move":
-      return eyeball.step_move(game)
+      command = eyeball.step_move(game)
+    cell = eyeball.cell
+    elem = None
+    while not Tile.is_opaque(game.floor.get_tile_at(cell)) and elem is None:
+      cell = add_vector(cell, eyeball.facing)
+      elem = next((e for e in game.floor.get_elems_at(cell) if isinstance(e, DungeonActor) and not eyeball.allied(e)), None)
+    if elem:
+      eyeball.alert(game)
+      return None
+    return command
 
   def step(eyeball, game):
     if not eyeball.aggro:

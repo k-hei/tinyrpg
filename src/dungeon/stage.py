@@ -10,6 +10,9 @@ class Tile:
   def is_solid(tile):
     return tile and tile.solid
 
+  def is_opaque(tile):
+    return not tile or tile.opaque
+
   def get_elev(tile):
     return tile and tile.elev or 0
 

@@ -1089,45 +1089,42 @@ class DungeonContext(Context):
         and isinstance(anim.target, DungeonActor)):
           return group
 
-  def move_to(game, actor, cell, run=False, on_end=None):
-    if actor.cell == cell:
-      return False
+  def find_move_to_delta(game, actor, dest):
+    if actor.cell == dest:
+      return (0, 0)
 
     delta_x, delta_y = (0, 0)
     actor_x, actor_y = actor.cell
-    target_x, target_y = cell
+    target_x, target_y = dest
     floor = game.floor
 
-    def is_empty(cell):
-      target_tile = floor.get_tile_at(cell)
-      target_elem = floor.get_elem_at(cell)
-      return not target_tile.solid and (not target_elem or not target_elem.solid)
-
     def select_x():
-      if target_x < actor_x and is_empty((actor_x - 1, actor_y)):
+      if target_x < actor_x and game.floor.is_cell_empty((actor_x - 1, actor_y)):
         return -1
-      elif target_x > actor_x and is_empty((actor_x + 1, actor_y)):
+      elif target_x > actor_x and game.floor.is_cell_empty((actor_x + 1, actor_y)):
         return 1
       else:
         return 0
 
     def select_y():
-      if target_y < actor_y and is_empty((actor_x, actor_y - 1)):
+      if target_y < actor_y and game.floor.is_cell_empty((actor_x, actor_y - 1)):
         return -1
-      elif target_y > actor_y and is_empty((actor_x, actor_y + 1)):
+      elif target_y > actor_y and game.floor.is_cell_empty((actor_x, actor_y + 1)):
         return 1
       else:
         return 0
 
-    if randint(0, 1):
-      delta_x = select_x()
-      if not delta_x:
-        delta_y = select_y()
-    else:
+    delta_x = select_x()
+    if not delta_x:
       delta_y = select_y()
-      if not delta_y:
-        delta_x = select_x()
 
+    return (delta_x, delta_y)
+
+  def move_to(game, actor, cell, run=False, on_end=None):
+    if actor.cell == cell:
+      return False
+
+    delta_x, delta_y = game.find_move_to_delta(actor, dest=cell)
     if delta_x or delta_y:
       return game.move(actor=actor, delta=(delta_x, delta_y), run=run, on_end=on_end)
     else:
@@ -1207,7 +1204,7 @@ class DungeonContext(Context):
     crit = game.roll_crit(attacker=actor, defender=target)
     block = game.can_block(attacker=actor, defender=target)
     if (not target.is_immobile()
-    and not game.roll_hit(attacker=actor, defender=target)
+    and (actor.facing != target.facing and not game.roll_hit(attacker=actor, defender=target))
     and (not block or randint(0, 1))):
       damage = None
     elif block:
