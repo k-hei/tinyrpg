@@ -22,7 +22,7 @@ from savedata.resolve import resolve_item, resolve_skill, resolve_elem
 from transits.dissolve import DissolveOut
 
 class GameContext(Context):
-  def __init__(ctx, data, feature=None, floor=None, *args, **kwargs):
+  def __init__(ctx, data, feature=None, floor=None, on_open=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
     if type(data) is GameData:
       ctx.store = data

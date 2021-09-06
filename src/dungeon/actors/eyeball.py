@@ -78,7 +78,7 @@ class Eyeball(DungeonActor):
       if neighbors:
         user.clones += 1
         neighbor = choice(neighbors)
-        clone = Eyeball(cloned=True, faction=user.get_faction(), facing=user.facing)
+        clone = Eyeball(cloned=True, faction=user.get_faction(), facing=user.facing, aggro=user.aggro)
         game.anims.append([
           BounceAnim(
             duration=20,
@@ -130,14 +130,6 @@ class Eyeball(DungeonActor):
       eyeball.promote(hp=False)
       eyeball.core.skills.append(HpUp)
 
-  def damage(eyeball, *args, **kwargs):
-    super().damage(*args, **kwargs)
-    eyeball.alert()
-
-  def alert(eyeball, game=None):
-    eyeball.aggro = True
-    if game:
-      game.vfx.append(AlertBubble(cell=eyeball.cell))
 
   def charge(eyeball, *args, **kwargs):
     super().charge(*args, **kwargs)
@@ -191,7 +183,7 @@ class Eyeball(DungeonActor):
       cell = add_vector(cell, eyeball.facing)
       elem = next((e for e in game.floor.get_elems_at(cell) if isinstance(e, DungeonActor) and not eyeball.allied(e)), None)
     if elem:
-      eyeball.alert(game)
+      eyeball.alert()
       return None
     return command
 

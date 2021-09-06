@@ -7,6 +7,7 @@ from dungeon.element import DungeonElement
 from cores import Core
 from skills.weapon import Weapon
 
+from colors import darken_color
 from colors.palette import BLACK, WHITE, RED, GREEN, BLUE, CYAN, VIOLET, GOLD, DARKBLUE
 from assets import assets
 from filters import replace_color, darken_image
@@ -56,12 +57,13 @@ class DungeonActor(DungeonElement):
     faction=None,
     behavior="chase",
     facing=None,
+    aggro=0,
     ailment=None,
     ailment_turns=0,
     charge_skill=None,
     charge_dest=None,
     charge_turns=0,
-    charge_cooldown=0
+    charge_cooldown=0,
   ):
     super().__init__(solid=True, opaque=False)
     actor.core = core
@@ -73,6 +75,7 @@ class DungeonActor(DungeonElement):
     actor.bubble = HpBubble(actor.core)
 
     actor.anims = []
+    actor.aggro = aggro
     actor.ailment = None
     actor.ailment_turns = 0
     if ailment:
@@ -90,7 +93,7 @@ class DungeonActor(DungeonElement):
     actor.command = None
     actor.counter = False
     actor.turns = 0
-    actor.aggro = False
+    actor.updates = 0
     actor.rare = False
     actor.visible_cells = []
     actor.on_kill = None
@@ -152,6 +155,10 @@ class DungeonActor(DungeonElement):
         return actor.discharge()
       else:
         return ("wait",)
+
+  def alert(actor):
+    if actor.aggro == 0:
+      actor.aggro = 1
 
   def encode(actor):
     cell, name, *props = super().encode()
@@ -222,7 +229,9 @@ class DungeonActor(DungeonElement):
     actor.ailment = ailment
     return True
 
-  def step_ailment(actor, game):
+  def step_status(actor, game):
+    if actor.aggro:
+      actor.aggro += 1
     actor.ailment_turns -= 1
     if actor.ailment == "poison":
       damage = int(actor.get_hp_max() * DungeonActor.POISON_STRENGTH)
@@ -334,6 +343,7 @@ class DungeonActor(DungeonElement):
       target.kill()
     elif target.ailment == "sleep":
       target.wake_up()
+    target.alert()
     return damage
 
   def find_damage(actor, target, modifier=1):
@@ -354,6 +364,7 @@ class DungeonActor(DungeonElement):
       return ("move_to", enemy.cell)
 
   def update(actor, game):
+    actor.updates += 1
     for anim in actor.anims:
       if anim.done:
         actor.anims.remove(anim)
@@ -436,6 +447,17 @@ class DungeonActor(DungeonElement):
         bubble_sprite.move(move_offset)
       sprites += bubble_sprites
 
+    # aggro icon
+    if actor.aggro in (1, 2) and actor.get_faction() == "enemy" and not actor.ailment == "freeze":
+      marker_image = assets.sprites["aggro_mark"]
+      marker_image = replace_color(marker_image, BLACK, RED)
+      marker_sprite = Sprite(
+        image=marker_image,
+        pos=add_vector((-16, -24), move_offset),
+        layer="vfx"
+      )
+      sprites.append(marker_sprite)
+
     # item icon
     if actor.item:
       item_image = actor.item().render()
@@ -450,7 +472,10 @@ class DungeonActor(DungeonElement):
     if actor.elev > 0 and not move_anim:
       offset_z = actor.elev * TILE_SIZE
 
-    sprite.image = replace_color(sprite.image, BLACK, actor.color())
+    actor_color = actor.color()
+    if not actor.aggro and actor.get_faction() != "player" and actor.updates % 60 >= 30:
+      actor_color = darken_color(actor_color)
+    sprite.image = replace_color(sprite.image, BLACK, actor_color)
     if asleep:
       sprite.image = darken_image(sprite.image)
     facing_x, _ = actor.facing

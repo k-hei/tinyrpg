@@ -478,7 +478,7 @@ class DungeonContext(Context):
       return step()
 
   def end_turn(game, actor):
-    actor.step_ailment(game)
+    actor.step_status(game)
     effect_elem = next((e for e in game.floor.get_elems_at(actor.cell) if type(e) is PoisonPuff), None)
     if effect_elem:
       effect_elem.effect(game, actor)
@@ -549,12 +549,12 @@ class DungeonContext(Context):
       floor = game.floor
       target = game.find_closest_enemy(enemy)
       room = next((r for r in floor.rooms if enemy.cell in r.get_cells()), None)
-      if target and room and target.cell in room.get_cells() + room.get_border():
-        enemy.aggro = True
-      elif target and manhattan(enemy.cell, target.cell) <= VISION_RANGE and target.cell in shadowcast(floor, enemy.cell, VISION_RANGE):
-        enemy.aggro = True
+      if (target and room and target.cell in room.get_cells() + room.get_border()
+      or target and manhattan(enemy.cell, target.cell) <= VISION_RANGE and target.cell in shadowcast(floor, enemy.cell, VISION_RANGE)
+      ):
+        enemy.alert()
       else:
-        enemy.aggro = False
+        enemy.aggro = 0
         return ("move_to", game.old_hero_cell)
 
     return enemy.step(game)
@@ -705,7 +705,7 @@ class DungeonContext(Context):
     floor = game.floor
 
     if hero.ailment == "freeze":
-      hero.step_ailment(game)
+      hero.step_status(game)
       game.anims.append([
         ShakeAnim(duration=15, target=hero)
       ])
