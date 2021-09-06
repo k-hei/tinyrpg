@@ -11,7 +11,7 @@ class Potion(HpItem):
   hp: int = 20
   value: int = 25
 
-  def effect(potion, game, actor=None):
+  def effect(potion, game, actor=None, cell=None):
     game.vfx.append(BurstVfx(
       cell=actor.cell,
       color=potion.color

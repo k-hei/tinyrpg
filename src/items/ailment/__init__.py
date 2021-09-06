@@ -24,7 +24,7 @@ class AilmentItem(Item):
     else:
       return False, ("No {} to dispel on ".format(item.ailment), hero.token(), ".")
 
-  def effect(item, game, actor=None):
+  def effect(item, game, actor=None, cell=None):
     actor = actor or game.hero
     game.vfx.append(BurstVfx(
       cell=actor.cell,

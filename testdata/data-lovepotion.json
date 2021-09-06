@@ -39,6 +39,6 @@
       }
     ]
   },
-  "items": ["LovePotion", "Potion", "Antidote"],
+  "items": ["LovePotion", "Potion", "Antidote", "Booze"],
   "party": ["Knight"]
 }

@@ -11,6 +11,7 @@ from anims.offsetmove import OffsetMoveAnim
 from filters import replace_color
 from colors.palette import WHITE, BLACK, VIOLET, DARKBLUE
 from config import TILE_SIZE
+import debug
 
 class PoisonPuffVfx(Vfx):
   class FloatAnim(Anim): pass
@@ -20,7 +21,7 @@ class PoisonPuffVfx(Vfx):
     puff.dest = dest
     puff.size = size
     puff.anims = [
-      OffsetMoveAnim(src, dest, speed=(2 + random()) * TILE_SIZE, easing=ease_out),
+      *(src != dest and [OffsetMoveAnim(src, dest, speed=(2 + random()) * TILE_SIZE, easing=ease_out)] or []),
       PoisonPuffVfx.FloatAnim()
     ]
     puff.flickering = size != "large" and randint(1, 3) == 1

@@ -1440,10 +1440,10 @@ class DungeonContext(Context):
     if target.is_dead() or target.ailment == "poison":
       return False
     anims = [
-      FlinchAnim(
-        duration=45,
+      flinch_anim := FlinchAnim(
+        duration=30,
         target=target,
-        on_start=lambda: (
+        on_start=lambda: flinch_anim.end() if target.ailment == "poison" else (
           target.inflict_ailment("poison"),
           game.numbers.append(DamageValue(
             text="POISON",
@@ -1452,8 +1452,9 @@ class DungeonContext(Context):
             color=PURPLE,
             delay=15
           ))
-        )),
-      PauseAnim(duration=60, on_end=on_end)
+        )
+      ),
+      PauseAnim(duration=45, on_end=on_end)
     ]
     game.anims[0].extend(anims) if game.anims else game.anims.append(anims)
 
@@ -1584,15 +1585,18 @@ class DungeonContext(Context):
             dest=target_cell,
             on_end=lambda: (
               "effect" in dir(item) and target_elem and isinstance(target_elem, DungeonActor) and (
-                response := item().effect(game, target_elem),
+                response := item().effect(game, actor=target_elem, cell=target_cell),
                 response and game.log.print(response),
                 game.floor.remove_elem(itemdrop),
+              ) or item.fragile and (
+                item().effect(game, cell=target_cell),
+                game.floor.remove_elem(itemdrop)
               ) or (
                 setattr(itemdrop, "cell", target_cell),
               ),
               game.anims[0].append(
                 PauseAnim(
-                  duration=15,
+                  duration=30,
                   on_end=lambda:(
                     game.step(),
                     game.camera.blur()

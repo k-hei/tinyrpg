@@ -22,7 +22,7 @@
       }
     ]
   },
-  "items": ["Cheese", "Cheese", "Cheese", "Cheese"],
+  "items": ["Cheese", "Cheese", "Booze", "Booze"],
   "skills": ["Cleave"],
   "party": ["Knight"],
   "builds": { "Knight": { "Cleave": [0, 0] } }

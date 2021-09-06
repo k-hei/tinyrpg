@@ -11,6 +11,7 @@ from anims.shake import ShakeAnim
 from anims.drop import DropAnim
 from anims.path import PathAnim
 from anims.fall import FallAnim
+from anims.pause import PauseAnim
 from sprite import Sprite
 
 class Knight(DungeonActor):
@@ -35,6 +36,8 @@ class Knight(DungeonActor):
     assets = use_assets().sprites
     anim_group = [a for a in anims[0] if a.target is knight] if anims else []
     for anim in anim_group:
+      if type(anim) is PauseAnim:
+        break
       if type(anim) is MoveAnim or type(anim) is PathAnim:
         x4_idx = max(0, int((anim.time - 1) % anim.period // (anim.period / 4)))
         if knight.facing == (0, -1):

@@ -13,7 +13,7 @@ class LovePotion(AilmentItem):
   def use(item, store):
     return False, "You can't use that here!"
 
-  def effect(item, game, actor=None):
+  def effect(item, game, actor=None, cell=None):
     game.vfx.append(BurstVfx(
       cell=actor.cell,
       color=GREEN

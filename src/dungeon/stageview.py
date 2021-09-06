@@ -336,6 +336,7 @@ class StageView:
     sprites += self.view_elems(elems, hero, camera, visible_cells, anims)
     sprites += self.view_vfx(vfx, camera)
     sprites += self.view_numbers(numbers, camera)
+    camera_offset = None
     for sprite in sprites:
       camera_x, camera_y = camera.pos or (0, 0)
       camera_offset = (0, 0)
@@ -349,7 +350,7 @@ class StageView:
         sprite.move(camera_pos)
     sprites += self.view_tiles(camera)
     for sprite in sprites:
-      if sprite.layer != "ui":
+      if sprite.layer != "ui" and camera_offset:
         sprite.move(camera_offset)
     sprites.sort(key=StageView.order)
     return sprites

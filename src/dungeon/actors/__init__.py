@@ -380,7 +380,7 @@ class DungeonActor(DungeonElement):
         asleep = True
       if type(anim) is AttackAnim and anim.cell:
         offset_x, offset_y = actor.find_move_offset(anim)
-      if type(anim) is FlinchAnim and anim.time <= 3:
+      if type(anim) is FlinchAnim and anim.time > 0 and anim.time <= 3:
         return []
       if type(anim) is FlinchAnim:
         offset_x, offset_y = anim.offset

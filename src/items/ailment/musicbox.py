@@ -5,7 +5,7 @@ from items.ailment import AilmentItem
 class MusicBox(AilmentItem):
   name: str = "MusicBox"
   desc: str = "Inflicts sleep."
-  ailment: str = "charm"
+  ailment: str = "sleep"
   value: int = 36
 
   def use(item, store):
@@ -13,7 +13,7 @@ class MusicBox(AilmentItem):
       return False, "You can't use that here!"
     return True, item.effect(store.place)
 
-  def effect(item, game, actor=None):
+  def effect(item, game, actor=None, cell=None):
     actor = actor or game.hero
     actor.inflict_ailment("sleep")
     return (actor.token(), " fell asleep!")

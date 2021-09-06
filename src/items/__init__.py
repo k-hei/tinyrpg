@@ -11,6 +11,7 @@ class Item:
   value: int = 0
   sprite: str = None
   color: int = BLACK
+  fragile: bool = False
 
   def token(item):
     return Token(item.name, item.color)

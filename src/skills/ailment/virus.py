@@ -24,8 +24,8 @@ class Virus(AilmentSkill):
   )
   charge_turns: int = 2
 
-  def effect(user, dest, game, on_end=None):
-    target_area = neighborhood(cell=user.cell, radius=2)
+  def spawn_cloud(game, cell, inclusive=False, on_end=None):
+    target_area = neighborhood(cell, radius=2, inclusive=inclusive)
     targets = [e for e in game.floor.elems if (
       isinstance(e, DungeonActor)
       and not e.is_dead()
@@ -38,38 +38,24 @@ class Virus(AilmentSkill):
         target = targets.pop()
       else:
         game.camera.blur()
-        if on_end:
-          on_end()
+        on_end and on_end()
         return
       game.poison_actor(target, on_end=poison)
 
-    def spawn_puffs():
-      for cell in target_area:
-        game.floor.spawn_elem_at(cell, PoisonPuff(origin=user.cell))
+    for target_cell in target_area:
+      game.floor.spawn_elem_at(target_cell, PoisonPuff(origin=cell))
+    not game.anims and game.anims.append([])
+    game.anims += [
+      [PauseAnim(duration=30)],
+      [PauseAnim(duration=1, on_end=poison)],
+    ]
 
-    def on_bounce():
-      if targets:
-        poison()
-      else:
-        if ENABLED_COMBAT_LOG:
-          game.log.print("But nothing happened...")
-        if on_end:
-          on_end()
-
+  def effect(user, dest, game, on_end=None):
     if user.get_hp():
       game.anims.append([BounceAnim(
         target=user,
-        on_squash=spawn_puffs,
-        on_end=lambda: game.anims[0].append(PauseAnim(
-          duration=15,
-          on_end=on_bounce
-        ))
+        on_squash=lambda: Virus.spawn_cloud(game, cell=user.cell, on_end=on_end)
       )])
     else:
-      spawn_puffs()
-      game.anims.append([PauseAnim(
-        duration=30,
-        on_end=on_bounce
-      )])
-
+      Virus.spawn_cloud(game, cell=user.cell, on_end=on_end)
     return user.cell

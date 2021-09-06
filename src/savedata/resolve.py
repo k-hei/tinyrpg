@@ -34,6 +34,7 @@ from dungeon.props.bag import Bag
 from dungeon.props.treasuredoor import TreasureDoor
 from dungeon.props.palm import Palm
 from dungeon.props.battledoor import BattleDoor
+from dungeon.props.poisonpuff import PoisonPuff
 from dungeon.props.coffin import Coffin
 from dungeon.props.vcoffin import VCoffin
 from dungeon.props.vase import Vase
@@ -87,8 +88,10 @@ from dungeon.actors.guard import GuardActor
 from dungeon.actors.ghost import Ghost
 from dungeon.floors.debugfloor import DebugFloor
 from dungeon.floors.floor1 import Floor1
+from dungeon.floors.genericfloor import GenericFloor
 from dungeon.floors.floor3 import Floor3
 from dungeon.floors.floor2 import Floor2
+from items.ailment.booze import Booze as BoozeItem
 from items.ailment.topaz import Topaz as TopazItem
 from items.ailment.musicbox import MusicBox as MusicBoxItem
 from items.ailment.antidote import Antidote as AntidoteItem
@@ -124,6 +127,7 @@ from cores.ghost import Ghost as GhostCore
 from cores.rat import Rat as RatCore
 
 def resolve_item(key):
+  if key == "Booze": return BoozeItem
   if key == "Topaz": return TopazItem
   if key == "MusicBox": return MusicBoxItem
   if key == "Antidote": return AntidoteItem
@@ -199,6 +203,7 @@ def resolve_elem(key):
   if key == "TreasureDoor": return TreasureDoor
   if key == "Palm": return Palm
   if key == "BattleDoor": return BattleDoor
+  if key == "PoisonPuff": return PoisonPuff
   if key == "Coffin": return Coffin
   if key == "VCoffin": return VCoffin
   if key == "Vase": return Vase
@@ -252,6 +257,7 @@ def resolve_elem(key):
   if key == "Ghost": return Ghost
   if key == "DebugFloor": return DebugFloor
   if key == "Floor1": return Floor1
+  if key == "GenericFloor": return GenericFloor
   if key == "Floor3": return Floor3
   if key == "Floor2": return Floor2
 
