@@ -689,7 +689,7 @@ class DungeonContext(Context):
     floor = game.floor
     visible_actors = [floor.get_elem_at(c, superclass=DungeonActor) for c in hero.visible_cells]
     visible_enemies = [e for e in visible_actors if e and not e.allied(hero)]
-    if hero.ailment or visible_enemies:
+    if hero.ailment or visible_enemies or not game.store.sp:
       return False
     hero.inflict_ailment("sleep")
     hero.command = None
