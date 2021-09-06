@@ -1,6 +1,7 @@
 from math import sin, pi
 from pygame import Surface
 from sprite import Sprite
+from anims import Anim
 from anims.move import MoveAnim
 from anims.item import ItemAnim
 from anims.flicker import FlickerAnim
@@ -58,7 +59,26 @@ class DungeonElement:
   def update(elem, game):
     pass
 
-  def get_move_offset(elem, anim):
+  def find_move_offset(elem, anims):
+    if isinstance(anims, Anim):
+      return elem.find_move_anim_offset(anim=anims)
+    for group in anims:
+      for anim in group:
+        if anim.target is not elem or not (isinstance(anim, MoveAnim) or type(anim) is PathAnim) or not anim.cell:
+          continue
+        if anims.index(group) == 0:
+          return elem.find_move_anim_offset(anim)
+        else:
+          anim_x, anim_y, *anim_z = anim.src
+          anim_z = anim_z and anim_z[0] or 0
+          elem_x, elem_y = elem.cell
+          return (
+            (anim_x - elem_x) * TILE_SIZE,
+            (anim_y - anim_z - elem_y) * TILE_SIZE
+          )
+    return (0, 0)
+
+  def find_move_anim_offset(elem, anim):
     anim_x, anim_y, *anim_z = anim.cell
     anim_z = max(0, anim_z and anim_z[0] or 0)
     elem_x, elem_y = elem.cell
@@ -82,13 +102,12 @@ class DungeonElement:
     sprite = sprites[0]
     sprite_width, sprite_height = sprite.size or sprite.image.get_size()
     sprite_layer = sprite.layer or "elems"
-    offset_x, offset_y = (0, 0)
+    offset_x, offset_y = elem.find_move_offset(anims)
     item = None
     moving = next((g for g in anims if next((a for a in g if a.target is elem and type(a) is MoveAnim), None)), None)
     anim_group = [a for a in anims[0] if a.target is elem] if anims else []
     for anim in anim_group:
       if (isinstance(anim, MoveAnim) or type(anim) is PathAnim) and anim.cell:
-        offset_x, offset_y = vector.add((offset_x, offset_y), elem.get_move_offset(anim))
         if ((type(anim) is MoveAnim or type(anim) is PathAnim)
         and anim.facing != (0, 0)
         and not anim.duration in (PUSH_DURATION, NUDGE_DURATION)
@@ -128,19 +147,6 @@ class DungeonElement:
         sprite_layer = "tiles"
       if type(anim) is JumpAnim:
         offset_y += anim.offset
-
-    # HACK: if element will move during a future animation sequence,
-    # make sure it doesn't jump ahead to the target position
-    for group in anims:
-      for anim in group:
-        if anims.index(group) == 0:
-          continue
-        if anim.target is elem and isinstance(anim, MoveAnim) and anim.cell:
-          anim_x, anim_y, *anim_z = anim.src
-          anim_z = anim_z and anim_z[0] or 0
-          actor_x, actor_y = elem.cell
-          offset_x = (anim_x - actor_x) * TILE_SIZE
-          offset_y = (anim_y - anim_z - actor_y) * TILE_SIZE
 
     # if not moving:
     #   offset_y -= elem.elev * TILE_SIZE

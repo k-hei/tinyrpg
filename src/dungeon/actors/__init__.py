@@ -379,7 +379,7 @@ class DungeonActor(DungeonElement):
       if type(anim) is AwakenAnim and anim.visible:
         asleep = True
       if type(anim) is AttackAnim and anim.cell:
-        offset_x, offset_y = actor.get_move_offset(anim)
+        offset_x, offset_y = actor.find_move_offset(anim)
       if type(anim) is FlinchAnim and anim.time <= 3:
         return []
       if type(anim) is FlinchAnim:
@@ -396,14 +396,15 @@ class DungeonActor(DungeonElement):
       if isinstance(anim, FrameAnim):
         sprite.image = anim.frame()
 
-    move_anim = next((a for a in anim_group if isinstance(a, MoveAnim)), None)
     drop_anim = next((a for a in anim_group if type(a) is DropAnim), None)
+    move_anim = next((a for a in anim_group if isinstance(a, MoveAnim)), None)
+    move_offset = actor.find_move_offset(anims)
 
+    # ailment badge
     if actor.ailment and not drop_anim:
       badge_image = None
       badge_pos = (12, -20)
-      if move_anim:
-        badge_pos = add_vector(badge_pos, actor.get_move_offset(move_anim))
+      badge_pos = add_vector(badge_pos, move_offset)
 
       if actor.ailment == "sleep":
         sleep_anim = next((a for a in actor.anims if type(a) is DungeonActor.SleepAnim), None)
@@ -426,15 +427,16 @@ class DungeonActor(DungeonElement):
           layer="vfx"
         ))
 
+    # hp bubble
     if actor.get_faction() != "player":
       bubble_sprites = actor.bubble.view()
       actor.bubble.color = actor.color()
       for bubble_sprite in bubble_sprites:
         bubble_sprite.move((24, -20))
-        if move_anim:
-          bubble_sprite.move(actor.get_move_offset(move_anim))
+        bubble_sprite.move(move_offset)
       sprites += bubble_sprites
 
+    # item icon
     if actor.item:
       item_image = actor.item().render()
       item_sprite = Sprite(
@@ -442,8 +444,7 @@ class DungeonActor(DungeonElement):
         pos=(0, -24),
         layer="vfx"
       )
-      if move_anim:
-        item_sprite.move(actor.get_move_offset(move_anim))
+      item_sprite.move(move_offset)
       sprites += [item_sprite]
 
     if actor.elev > 0 and not move_anim:
@@ -466,7 +467,7 @@ class DungeonActor(DungeonElement):
       and move_anim.src
       and (len(move_anim.src) != 3
         or move_anim.src[2] == move_anim.dest[2])
-      and actor.get_move_offset(move_anim)[1]
+      and actor.find_move_offset(move_anim)[1]
       or 0)
     sprite.offset += offset_z + offset_y
     return super().view(sprites, anims)
