@@ -19,51 +19,56 @@ from config import RUN_DURATION, TILE_SIZE
 class AltarRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
     super().__init__(degree=2, shape=[
-      "                   ",
-      "                   ",
-      "       .....       ",
-      "      .......      ",
-      "      .......      ",
-      "      .......      ",
-      "      .......      ",
-      "      .......      ",
-      "       .....       ",
-      "         .         ",
-      "         .         ",
-      "         .         ",
-      "         .         ",
-      "         .         ",
-      "         .         ",
-      "         .         ",
-      "         .         ",
+      "                     ...         ",
+      "                   . .<.         ",
+      "         .....       ...         ",
+      "        .......   .    . .       ",
+      "      . ....... .   .            ",
+      "        .......   . .  . .       ",
+      "      . ....... . .   .  .       ",
+      "        .......                  ",
+      "         .....    . . .. .       ",
+      "           .                     ",
+      "           .                     ",
+      "           .                     ",
+      "           .                     ",
+      "           .                     ",
+      "           .                     ",
+      "           .                     ",
+      "           .                     ",
     ], elems=[
-      (altar_cell := (9, 5), altar := Altar(on_effect=room.on_trigger)),
+      (altar_cell := (11, 5), altar := Altar(on_effect=room.on_trigger)),
       (add_cell(altar_cell, (0, 1)), mage := Mage(faction="ally", facing=(0, -1))),
       (add_cell(altar_cell, (-2, -3)), Pillar()),
-      (add_cell(altar_cell, (-3, -2)), Pillar()),
+      (add_cell(altar_cell, (-3, -2)), Pillar(broken=True)),
       (add_cell(altar_cell, (-3, 0)), Pillar()),
       (add_cell(altar_cell, (-3, 2)), Pillar()),
-      (add_cell(altar_cell, (-2, 3)), Pillar()),
+      (add_cell(altar_cell, (-2, 3)), Pillar(broken=True)),
       (add_cell(altar_cell, (2, 3)), Pillar()),
-      (add_cell(altar_cell, (2, -3)), Pillar()),
+      (add_cell(altar_cell, (2, -3)), Pillar(broken=True)),
       (add_cell(altar_cell, (3, -2)), Pillar()),
       (add_cell(altar_cell, (3, 0)), Pillar()),
       (add_cell(altar_cell, (3, 2)), Pillar()),
+      (add_cell(altar_cell, (-5, -1)), Pillar()),
+      (add_cell(altar_cell, (5, 1)), blocker := Pillar(broken=True)),
     ], *args, **kwargs)
     room.altar = altar
     room.mage = mage
+    room.blocker = blocker
     room.entered = False
 
   def get_edges(room):
     room_width, room_height = room.get_size()
     room_x, room_y = room.cell or (0, 0)
     return [
-      (room_x + room_width // 2, room_y + room_height)
+      (room_x + room.altar.cell[0] - 1, room_y + room_height)
     ]
 
   def on_enter(room, game):
     super().on_enter(game)
-    if not config.CUTSCENES or "minxia" in game.store.story:
+    if "minxia" in game.store.story:
+      game.floor.remove_elem(room.blocker)
+    if "minxia" in game.store.story or not config.CUTSCENES:
       game.floor.remove_elem(room.mage)
       room.mage = None
       return False
