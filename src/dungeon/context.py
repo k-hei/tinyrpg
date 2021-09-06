@@ -8,19 +8,13 @@ import json
 
 import config
 from config import (
-  WINDOW_WIDTH,
-  WINDOW_HEIGHT,
-  WINDOW_SIZE,
-  VISION_RANGE,
-  MOVE_DURATION,
-  RUN_DURATION,
-  JUMP_DURATION,
-  PUSH_DURATION,
-  NUDGE_DURATION,
-  FLICKER_DURATION,
+  WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE,
+  MOVE_DURATION, RUN_DURATION, JUMP_DURATION, PUSH_DURATION, NUDGE_DURATION, FLICKER_DURATION,
   LABEL_FRAMES,
+  VISION_RANGE,
+  MAX_SP,
+  TILE_SIZE,
   ENABLED_COMBAT_LOG,
-  MAX_SP
 )
 
 import keyboard
@@ -1075,7 +1069,7 @@ class DungeonContext(Context):
         game.anims.append([PauseAnim(duration=5)])
       actor.cell = target_cell
       actor.elev = target_tile.elev
-      if isinstance(target_elem, DungeonActor) and target_elem.get_faction() == "ally":
+      if isinstance(target_elem, DungeonActor) and target_elem.get_faction() == "ally" and target_elem.can_step():
         game.move(actor=target_elem, delta=direction.invert(delta), run=run, duration=duration)
       return True
     else:
@@ -1849,7 +1843,9 @@ class DungeonContext(Context):
       game.talkbubble.done = True
       game.talkbubble = None
     if facing_elem:
-      game.talkbubble = TalkBubble(cell=facing_cell)
+      move_offset = facing_elem.find_move_offset(game.anims)
+      move_offset = tuple([x / TILE_SIZE for x in move_offset])
+      game.talkbubble = TalkBubble(cell=add_vector(facing_cell, move_offset))
       game.vfx.append(game.talkbubble)
 
   def show_bubble(game):
