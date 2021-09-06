@@ -223,15 +223,15 @@ class DungeonActor(DungeonElement):
     return True
 
   def step_ailment(actor, game):
-    if actor.ailment_turns == 0:
-      actor.dispel_ailment()
-      return
     actor.ailment_turns -= 1
-    if actor.ailment == "sleep":
-      actor.regen(actor.get_hp_max() / 50)
-    elif actor.ailment == "poison":
+    if actor.ailment == "poison":
       damage = int(actor.get_hp_max() * DungeonActor.POISON_STRENGTH)
-      game.flinch(actor, damage, delayed=True)
+      game.flinch(actor, damage, delayed=True, on_end=actor.dispel_ailment if actor.ailment_turns == 0 else None)
+    else:
+      if actor.ailment == "sleep":
+        actor.regen(actor.get_hp_max() / 50)
+      if actor.ailment_turns == 0:
+        actor.dispel_ailment()
 
   def dispel_ailment(actor):
     if actor.ailment == "sleep":

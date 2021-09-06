@@ -1444,7 +1444,10 @@ class DungeonContext(Context):
     return True
 
   def poison_actor(game, target, on_end=None):
-    if target.is_dead() or target.ailment == "poison":
+    if (target.is_dead()
+    or target.ailment == "poison"
+    or game.anims and next((a for a in game.anims[0] if a.target is target and type(a) is FlinchAnim), None)
+    ):
       return False
     anims = [
       flinch_anim := FlinchAnim(
@@ -1461,7 +1464,7 @@ class DungeonContext(Context):
           ))
         )
       ),
-      PauseAnim(duration=45, on_end=on_end)
+      PauseAnim(target=target, duration=45, on_end=on_end)
     ]
     game.anims[0].extend(anims) if game.anims else game.anims.append(anims)
 
