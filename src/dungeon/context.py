@@ -1842,10 +1842,9 @@ class DungeonContext(Context):
     if game.talkbubble:
       game.talkbubble.done = True
       game.talkbubble = None
-    if facing_elem:
-      move_offset = facing_elem.find_move_offset(game.anims)
-      move_offset = tuple([x / TILE_SIZE for x in move_offset])
-      game.talkbubble = TalkBubble(cell=add_vector(facing_cell, move_offset))
+    if facing_elem and not game.anims:
+      bubble_cell = facing_cell
+      game.talkbubble = TalkBubble(cell=bubble_cell)
       game.vfx.append(game.talkbubble)
 
   def show_bubble(game):
