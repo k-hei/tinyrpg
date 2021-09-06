@@ -580,8 +580,8 @@ def gen_floor(features=FloorGraph(), entrance=None, size=config.FLOOR_SIZE, enem
         floor.draw_door(door_cell, door, room=target)
 
     # spawn enemies
-    for room in empty_rooms:
-      enemy_count = randint(0, 3)
+    def gen_enemies(room, max=3):
+      enemy_count = randint(0, max)
       valid_cells = [c for c in room.get_cells() if not [d for d in door_cells if manhattan(d, c) <= 2]]
       while enemy_count and valid_cells:
         cell = choice(valid_cells)
@@ -591,6 +591,8 @@ def gen_floor(features=FloorGraph(), entrance=None, size=config.FLOOR_SIZE, enem
           enemy_count -= 1
           if room in empty_rooms:
             empty_rooms.remove(room)
+    for room in empty_rooms:
+      gen_enemies(room, max=5)
 
     # spawn key if necessary
     if next((d for d in doors if type(d) is TreasureDoor), None):
@@ -611,6 +613,7 @@ def gen_floor(features=FloorGraph(), entrance=None, size=config.FLOOR_SIZE, enem
         cell=room.cell,
         items=[gen_item() for _ in range(randint(1, 3))]
       ).place(stage, connectors=door_cells)
+      gen_enemies(room, max=3)
 
     debug("-- Generation succeeded in {iters} iteration{s} --".format(
       iters=iters,
