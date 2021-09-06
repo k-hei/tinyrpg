@@ -34,9 +34,9 @@ class Virus(AilmentSkill):
     )]
 
     def poison():
-      try:
+      if targets:
         target = targets.pop()
-      except IndexError:
+      else:
         game.camera.blur()
         if on_end:
           on_end()

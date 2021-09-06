@@ -33,13 +33,8 @@ class Blitzritter(AttackSkill):
     delta_x, delta_y = user.facing
     near_cell = (hero_x + delta_x, hero_y + delta_y)
     far_cell = (hero_x + delta_x * 2, hero_y + delta_y * 2)
-    target_a = floor.get_elem_at(near_cell)
-    target_b = floor.get_elem_at(far_cell)
-
-    if not isinstance(target_a, DungeonActor):
-      target_a = None
-    if not isinstance(target_b, DungeonActor):
-      target_b = None
+    target_a = next((e for e in floor.get_elems_at(near_cell) if isinstance(e, DungeonActor)), None)
+    target_b = next((e for e in floor.get_elems_at(far_cell) if isinstance(e, DungeonActor)), None)
 
     def connect():
       game.vfx.extend([
@@ -48,22 +43,23 @@ class Blitzritter(AttackSkill):
       ])
 
     def end_pause():
-      if target_a and target_b:
-        return game.flinch(
-          target=target_a,
-          damage=game.find_damage(user, target_a, modifier=1.25),
-          on_end=lambda: game.flinch(
-            target=target_b,
-            damage=game.find_damage(user, target_b, modifier=1.25),
-            on_end=on_end
-          )
-        )
-      target = target_a or target_b
-      game.flinch(
+      attack = lambda target, on_end: game.attack(
+        actor=user,
         target=target,
-        damage=game.find_damage(user, target, modifier=1.25),
+        modifier=1.25,
+        is_animated=False,
+        is_ranged=True,
         on_end=on_end
       )
+      print(target_a, target_b)
+      if target_a and target_b:
+        attack(target=target_a, on_end=lambda: attack(target=target_b, on_end=on_end))
+      elif target_a and not target_b:
+        attack(target=target_a, on_end=on_end)
+      elif not target_a and target_b:
+        attack(target=target_b, on_end=on_end)
+      elif not target_a and not target_b:
+        on_end()
 
     def end_bump():
       if not target_a and not target_b:
