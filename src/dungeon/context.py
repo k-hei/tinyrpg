@@ -544,23 +544,20 @@ class DungeonContext(Context):
     if not enemy.can_step():
       return None
 
-    if enemy.charge_skill:
-      return enemy.step(game)
+    if enemy.get_faction() == "ally":
+      hero = game.hero
+      floor = game.floor
+      target = game.find_closest_enemy(enemy)
+      room = next((r for r in floor.rooms if enemy.cell in r.get_cells()), None)
+      if target and room and target.cell in room.get_cells() + room.get_border():
+        enemy.aggro = True
+      elif target and manhattan(enemy.cell, target.cell) <= VISION_RANGE and target.cell in shadowcast(floor, enemy.cell, VISION_RANGE):
+        enemy.aggro = True
+      else:
+        enemy.aggro = False
+        return ("move_to", game.old_hero_cell)
 
-    hero = game.hero
-    floor = game.floor
-    target = game.find_closest_enemy(enemy)
-    room = next((r for r in floor.rooms if enemy.cell in r.get_cells()), None)
-    if target and room and target.cell in room.get_cells() + room.get_border():
-      enemy.aggro = True
-    elif target and manhattan(enemy.cell, target.cell) <= VISION_RANGE and target.cell in shadowcast(floor, enemy.cell, VISION_RANGE):
-      enemy.aggro = True
-    elif enemy.get_faction() == "ally":
-      enemy.aggro = False
-      return ("move_to", game.old_hero_cell)
-
-    if enemy.aggro:
-      return enemy.step(game)
+    return enemy.step(game)
 
   def find_closest_enemy(game, actor):
     enemies = [e for e in game.floor.elems if (

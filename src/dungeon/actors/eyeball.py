@@ -121,6 +121,8 @@ class Eyeball(DungeonActor):
     ), *args, **kwargs)
     eyeball.clones = clones
     eyeball.cloned = cloned
+    eyeball.wander_target = eyeball.find_look_turns()
+    eyeball.wander_phase = "look"
     eyeball.item = None
     if rare:
       eyeball.promote(hp=False)
@@ -134,11 +136,47 @@ class Eyeball(DungeonActor):
     eyeball.core.anims.clear()
     return super().discharge()
 
-  def step(eyeball, game):
-    enemy = game.find_closest_enemy(eyeball)
-    if enemy is None:
-      return False
+  def find_look_turns(eyeball):
+    return randint(2, 6)
 
+  def find_move_target(eyeball, game):
+    room = next((r for r in game.floor.rooms if eyeball.cell in r.get_cells()), None)
+    if not room:
+      return None
+    valid_cells = [c for c in room.get_cells() if game.floor.is_cell_empty(c)]
+    return choice(valid_cells) if valid_cells else None
+
+  def step_look(eyeball, game):
+    if eyeball.wander_target <= 0:
+      eyeball.wander_phase = "move"
+      eyeball.wander_target = eyeball.find_move_target(game)
+      return None
+    find_adjacent_facings = lambda facing: (
+      facing[0] and [(0, -1), (0, 1)]
+      or [(-1, 0), (1, 0)]
+    )
+    eyeball.facing = choice(find_adjacent_facings(eyeball.facing))
+    eyeball.wander_target -= 1
+    return None
+
+  def step_move(eyeball, game):
+    if not eyeball.wander_target or eyeball.cell == eyeball.wander_target:
+      eyeball.wander_phase = "look"
+      eyeball.wander_target = eyeball.find_look_turns()
+      return None
+    return ("move_to", eyeball.wander_target)
+
+  def step_wander(eyeball, game):
+    if eyeball.wander_phase == "look":
+      return eyeball.step_look(game)
+    elif eyeball.wander_phase == "move":
+      return eyeball.step_move(game)
+
+  def step(eyeball, game):
+    if not eyeball.aggro:
+      return eyeball.step_wander(game)
+
+    enemy = game.find_closest_enemy(eyeball)
     if (eyeball.core.hp < eyeball.core.stats.hp
     and (not eyeball.cloned or Eyeball.CLONES_CAN_CLONE)
     and eyeball.clones < Eyeball.CLONES_MAX
