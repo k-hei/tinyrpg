@@ -782,11 +782,13 @@ class DungeonContext(Context):
       if target_tile is not Stage.OASIS:
         game.store.sp -= 1 / 100
 
-    if hero.get_facing() != delta:
-      hero.set_facing(delta)
-      game.update_bubble()
 
     moved = game.move(actor=hero, delta=delta, run=run, on_end=on_move)
+    if hero.get_facing() != delta:
+      hero.set_facing(delta)
+      if not moved:
+        game.update_bubble()
+
     game.is_hero_running = bool(run)
     if moved:
       ally and game.step_ally(ally, run, old_cell)
