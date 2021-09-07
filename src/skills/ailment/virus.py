@@ -43,7 +43,11 @@ class Virus(AilmentSkill):
       game.poison_actor(target, on_end=poison)
 
     for target_cell in target_area:
-      game.floor.spawn_elem_at(target_cell, PoisonPuff(origin=cell))
+      existing_puff = next((e for e in game.floor.get_elems_at(target_cell) if isinstance(e, PoisonPuff) and not e.dissolving), None)
+      if existing_puff:
+        existing_puff.turns = PoisonPuff.MAX_TURNS
+      else:
+        game.floor.spawn_elem_at(target_cell, PoisonPuff(origin=cell))
     not game.anims and game.anims.append([])
     game.anims += [
       [PauseAnim(duration=30)],

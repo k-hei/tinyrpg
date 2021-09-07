@@ -121,8 +121,8 @@ class Eyeball(DungeonActor):
     ), *args, **kwargs)
     eyeball.clones = clones
     eyeball.cloned = cloned
-    eyeball.wander_target = eyeball.find_look_turns()
     eyeball.wander_phase = "look"
+    eyeball.wander_target = eyeball.find_look_turns()
     eyeball.item = None
     if rare:
       eyeball.promote(hp=False)

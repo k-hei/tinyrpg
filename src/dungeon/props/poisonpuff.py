@@ -9,9 +9,11 @@ from config import TILE_SIZE
 from filters import replace_color
 
 class PoisonPuff(Prop):
+  MAX_TURNS = 7
+
   def __init__(puff, origin, *args, **kwargs):
     super().__init__(*args, **kwargs)
-    puff.turns = 7
+    puff.turns = PoisonPuff.MAX_TURNS
     puff.origin = origin
     puff.vfx = None
     puff.dissolving = False
