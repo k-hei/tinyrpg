@@ -22,9 +22,9 @@ class Mushroom(DungeonActor):
 
   class ChargeAnim(ShakeAnim): pass
 
-  def __init__(mushroom, *args, **kwargs):
+  def __init__(mushroom, name="Toadstool", *args, **kwargs):
     super().__init__(Core(
-      name="Toadstool",
+      name=name,
       faction="enemy",
       stats=Stats(
         hp=19,
@@ -33,7 +33,8 @@ class Mushroom(DungeonActor):
         ag=4,
         en=10,
       ),
-      skills=[Tackle, Virus]
+      skills=[Tackle, Virus],
+      message=[(name, "Oh god, it's all coming out! Someone make it stop!")]
     ), *args, **kwargs)
     mushroom.damaged = False
 

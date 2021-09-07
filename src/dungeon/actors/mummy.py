@@ -123,9 +123,9 @@ class Mummy(DungeonActor):
       else:
         on_end and on_end()
 
-  def __init__(soldier, *args, **kwargs):
+  def __init__(soldier, name="Mummy", *args, **kwargs):
     super().__init__(Core(
-      name="Mummy",
+      name=name,
       faction="enemy",
       stats=Stats(
         hp=24,
@@ -135,7 +135,8 @@ class Mummy(DungeonActor):
         lu=3,
         en=12,
       ),
-      skills=[ Club ]
+      skills=[ Club ],
+      message=[(name, "I-I'm not doing all this because I want to, you know!")]
     ), *args, **kwargs)
     soldier.damaged = False
 

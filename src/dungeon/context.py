@@ -398,6 +398,9 @@ class DungeonContext(Context):
       elem.step(game)
 
     for actor in actors:
+      if actor.is_dead() or (not actor.cell in hero.visible_cells and not actor.aggro):
+        actor.turns = 0
+        continue
       if actor.charge_skill or actor.get_faction() == "ally" and not actor.aggro:
         actor.turns = 1
       else:
@@ -405,8 +408,6 @@ class DungeonContext(Context):
         actor.turns += spd
 
     for actor in actors:
-      if actor.is_dead() or (not actor.cell in hero.visible_cells and not actor.aggro):
-        continue
       while actor.turns >= 1:
         actor.turns -= 1
         had_aggro = actor.aggro

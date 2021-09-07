@@ -51,7 +51,6 @@ class Blitzritter(AttackSkill):
         is_ranged=True,
         on_end=on_end
       )
-      print(target_a, target_b)
       if target_a and target_b:
         attack(target=target_a, on_end=lambda: attack(target=target_b, on_end=on_end))
       elif target_a and not target_b:

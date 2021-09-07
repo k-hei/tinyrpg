@@ -117,9 +117,7 @@ class Eyeball(DungeonActor):
         en=11,
       ),
       skills=[Tackle],
-      message=[
-        (name, "You looking thick as hell bro! Boutta make me act up. No homo though.")
-      ]
+      message=[(name, "You looking thick as hell bro! Boutta make me act up. No homo though.")]
     ), *args, **kwargs)
     eyeball.clones = clones
     eyeball.cloned = cloned
