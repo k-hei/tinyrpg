@@ -28,12 +28,13 @@ class Ghost(DungeonActor):
           GhostArmVfx(
             cell=dest,
             color=user.color(),
-            on_connect=(lambda: (
-              game.flinch(
-                target=target_elem,
-                damage=game.find_damage(user, target_elem, 1.25),
-                on_end=on_end
-              )
+            on_connect=(lambda: game.attack(
+              actor=user,
+              target=target_elem,
+              modifier=1.25,
+              is_ranged=True,
+              is_animated=False,
+              on_end=on_end
             )) if target_elem else None
           )
         )
