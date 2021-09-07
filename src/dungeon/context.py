@@ -23,7 +23,7 @@ from keyboard import ARROW_DELTAS, key_times
 import debug
 
 from lib.cell import add as add_vector, is_adjacent, manhattan, normal
-import lib.direction as direction
+from lib.direction import invert as invert_direction
 from lib.compose import compose
 
 import assets
@@ -1186,7 +1186,7 @@ class DungeonContext(Context):
   def can_block(game, defender, attacker):
     return (
       defender.find_shield()
-      and defender.get_facing() == direction.invert(attacker.get_facing())
+      and defender.get_facing() == invert_direction(attacker.get_facing())
       and (type(defender.command) is not SkillCommand
         or game.roll_block(attacker=attacker, defender=defender))
     )
@@ -1212,11 +1212,17 @@ class DungeonContext(Context):
         game.log.print((actor.token(), " uses ", actor.weapon().token()))
 
     actor.face(target.cell)
-
-    crit = game.roll_crit(attacker=actor, defender=target)
+    if (not target.aggro and target.get_faction() != "player"
+    or target.facing != actor.facing and target.facing != invert_direction(actor.facing)):
+      modifier *= 1.25 # side attack/surprise attack bonus
+    crit = (
+      actor.facing == target.facing
+      or target.ailment == "sleep"
+      or game.roll_crit(attacker=actor, defender=target)
+    )
     block = game.can_block(attacker=actor, defender=target)
     if (not target.is_immobile()
-    and (actor.facing != target.facing and not game.roll_hit(attacker=actor, defender=target))
+    and ((target.aggro or target.get_faction() == "player") and not game.roll_hit(attacker=actor, defender=target))
     and (not block or randint(0, 1))):
       damage = None
     elif block:
@@ -1388,13 +1394,14 @@ class DungeonContext(Context):
       ))
       game.vfx.append(FlashVfx())
       game.floor_view.shake(vertical=direction[1])
-      game.nudge(target, direction)
+      direction and game.nudge(target, direction)
       if target is not game.hero:
         target.command = True
       target.turns = 0
 
     if damage == None:
       flinch = None
+      direction and target.set_facing(invert_direction(direction))
       display_text()
     elif int(damage) == 0 or block:
       flinch = ShakeAnim(
@@ -1408,7 +1415,8 @@ class DungeonContext(Context):
         target=target,
         duration=DungeonContext.FLINCH_DURATION,
         direction=direction,
-        on_start=lambda:(
+        on_start=lambda: (
+          direction and target.facing != direction and not target.charge_skill and target.set_facing(invert_direction(direction)),
           target.damage(damage),
           display_text()
         )
