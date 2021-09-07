@@ -145,6 +145,8 @@ class Minimap:
       elif isinstance(elem, DungeonActor) and elem.get_faction() == "enemy" and cell in visible_cells:
         if elem.ailment == "sleep":
           color = 0x990000
+        elif elem.aggro:
+          color = 0xFF0000
         else:
           color = (0xFF0000, 0x990000)[blink]
       elif isinstance(elem, Soul) and cell in visible_cells:
