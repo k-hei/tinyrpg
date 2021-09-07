@@ -3,6 +3,7 @@ from assets import load as use_assets
 from sprite import Sprite
 from anims.flicker import FlickerAnim
 from skills import Skill
+from contexts.dialogue import DialogueContext
 
 class Bag(Prop):
   def __init__(bag, contents):
@@ -25,12 +26,14 @@ class Bag(Prop):
       target=bag,
       on_end=lambda: game.floor.remove_elem(bag)
     )])
-    game.log.print("You open the bag")
     if bag.contents:
-      game.store.obtain(bag.contents)
-      game.log.print(("Received ", bag.contents().token(), "."))
-    else:
-      game.log.print("But there was nothing inside...")
+      if game.store.obtain(bag.contents):
+        game.open(child=DialogueContext(
+          lite=True,
+          script=[("", ("You open the bag\n", "Received ", bag.contents().token(), "."))]
+        ))
+      else:
+        game.log.print("You can't carry any more materials...")
     return True
 
   def view(bag, anims):

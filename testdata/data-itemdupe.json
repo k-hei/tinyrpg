@@ -15,14 +15,16 @@
           2, 0, 0, 0, 1, 0, 0, 0, 2,
           2, 2, 2, 2, 3, 2, 2, 2, 2
         ],
-        "elems": [],
+        "elems": [
+          [[4, 4], "ItemDrop", { "contents": "Potion" }]
+        ],
         "rooms": [
           [[1, 1, 7, 7], "Room"]
         ]
       }
     ]
   },
-  "items": ["Cheese", "Cheese", "Booze", "Booze"],
+  "items": ["Potion", "Potion", "Cheese", "Cheese", "Booze", "Booze", "Emerald", "Emerald"],
   "skills": ["Cleave"],
   "party": ["Knight"],
   "builds": { "Knight": { "Cleave": [0, 0] } }

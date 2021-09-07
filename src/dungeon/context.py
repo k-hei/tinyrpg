@@ -875,12 +875,8 @@ class DungeonContext(Context):
         item_anim and item_anim.end()
       ))
     else:
-      game.open(child=DialogueContext(
-        lite=True,
-        script=[
-          ("", ("You're standing on ", item().token(), "."))
-        ]
-      ), on_close=on_end)
+      game.log.clear()
+      game.log.print(("There's a{n} ".format(n="n" if item.name.lower() in "aeiouy" else ""), item().token(), " here."))
     return obtained
 
   def jump_pit(game, actor, run=False, on_end=None):
