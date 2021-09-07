@@ -436,6 +436,7 @@ class DungeonContext(Context):
         hero.command.on_end = compose(hero.command.on_end, step_status)
         hero.command.on_end = compose(hero.command.on_end, start_exec)
       else:
+        step_status()
         start_exec()
     elif hero.command and hero.command.on_end:
       hero.command.on_end = compose(hero.command.on_end, step_status)
@@ -455,6 +456,7 @@ class DungeonContext(Context):
       ),
       game.next_command(on_end)
     )
+    is_actor_visible = actor.cell in game.hero.visible_cells
     cmd_name, *cmd_args = commands.pop(0)
     if actor.is_immobile():
       return step()
@@ -464,15 +466,15 @@ class DungeonContext(Context):
       return game.attack(actor, *cmd_args, on_end=step)
     if cmd_name == "move":
       if commands:
-        return game.move(actor, *cmd_args, run=game.is_hero_running, on_end=step)
+        return game.move(actor, *cmd_args, run=game.is_hero_running, is_animated=is_actor_visible, on_end=step)
       else:
-        game.move(actor, *cmd_args, run=game.is_hero_running)
+        game.move(actor, *cmd_args, run=game.is_hero_running, is_animated=is_actor_visible)
         return step()
     if cmd_name == "move_to":
       if commands:
-        return game.move_to(actor, *cmd_args, run=game.is_hero_running, on_end=step)
+        return game.move_to(actor, *cmd_args, run=game.is_hero_running, is_animated=is_actor_visible, on_end=step)
       else:
-        game.move_to(actor, *cmd_args, run=game.is_hero_running)
+        game.move_to(actor, *cmd_args, run=game.is_hero_running, is_animated=is_actor_visible)
         return step()
     if cmd_name == "wait":
       return step()
@@ -1031,7 +1033,7 @@ class DungeonContext(Context):
     game.log.exit()
     game.open(DialogueContext(script=target.script))
 
-  def move(game, actor, delta, run=False, jump=False, duration=0, on_end=None):
+  def move(game, actor, delta, run=False, jump=False, duration=0, is_animated=True, on_end=None):
     origin_cell = actor.cell
     origin_tile = game.floor.get_tile_at(actor.cell)
     origin_elem = game.floor.get_elem_at(origin_cell, exclude=[Door])
@@ -1064,20 +1066,23 @@ class DungeonContext(Context):
       )))
       if not actor.command:
         actor.command = command
-      move_anim = anim_kind(
-        duration=duration,
-        target=actor,
-        src=src_cell,
-        dest=dest_cell,
-        on_end=lambda: command.on_end and command.on_end()
-      )
-      move_group = game.find_move_group()
-      if move_group:
-        move_group.append(move_anim)
+      if is_animated:
+        move_anim = anim_kind(
+          duration=duration,
+          target=actor,
+          src=src_cell,
+          dest=dest_cell,
+          on_end=lambda: command.on_end and command.on_end()
+        )
+        move_group = game.find_move_group()
+        if move_group:
+          move_group.append(move_anim)
+        else:
+          game.anims.append([move_anim])
+        if jump:
+          game.anims.append([PauseAnim(duration=5)])
       else:
-        game.anims.append([move_anim])
-      if jump:
-        game.anims.append([PauseAnim(duration=5)])
+        command.on_end and command.on_end()
       actor.cell = target_cell
       actor.elev = target_tile.elev
       if isinstance(target_elem, DungeonActor) and target_elem.get_faction() == "ally" and target_elem.can_step():
@@ -1126,13 +1131,13 @@ class DungeonContext(Context):
 
     return (delta_x, delta_y)
 
-  def move_to(game, actor, cell, run=False, on_end=None):
+  def move_to(game, actor, cell, run=False, is_animated=True, on_end=None):
     if actor.cell == cell:
       return False
 
     delta_x, delta_y = game.find_move_to_delta(actor, dest=cell)
     if delta_x or delta_y:
-      return game.move(actor=actor, delta=(delta_x, delta_y), run=run, on_end=on_end)
+      return game.move(actor=actor, delta=(delta_x, delta_y), run=run, is_animated=is_animated, on_end=on_end)
     else:
       on_end and on_end()
       return False

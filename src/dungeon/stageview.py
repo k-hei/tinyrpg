@@ -253,11 +253,13 @@ class StageView:
       x, y = elem.cell
       x *= TILE_SIZE
       y *= TILE_SIZE
-      elem_anims = [a for a in anims[0] if a.target is elem] if anims else []
-      if not elem_anims and (x + TILE_SIZE < camera.left
-      or y + TILE_SIZE < camera.top
-      or x > camera.right
-      or y > camera.bottom):
+      elem_anims = [a for g in anims for a in g if a.target is elem] if anims else []
+      if (
+        x + TILE_SIZE < camera.left
+        or y + TILE_SIZE < camera.top
+        or x > camera.right
+        or y > camera.bottom
+      ) and not elem_anims:
         return False
       return True
     visible_elems = [e for e in elems if is_visible(e)]
@@ -325,7 +327,7 @@ class StageView:
     visible_cells = ctx.hero.visible_cells
     visited_cells = ctx.get_visited_cells()
     camera = ctx.camera
-    anims = ctx.anims # [[a for a in g if a] for g in ctx.anims]
+    anims = ctx.anims
     vfx = ctx.vfx
     numbers = ctx.numbers
     hero = ctx.hero
