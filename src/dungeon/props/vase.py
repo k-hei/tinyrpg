@@ -27,7 +27,7 @@ class Vase(Prop):
 
   def effect(vase, game):
     if game.store.obtain(vase.contents, target=vase):
-      vase.open(game)
+      return vase.open(game)
 
   def view(vase, anims=[], *args, **kwargs):
     anim_group = [a for a in anims[0] if a.target is vase] if anims else []

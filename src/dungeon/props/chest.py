@@ -41,6 +41,7 @@ class Chest(Prop):
     script = []
     item = chest.contents
     item_anim = None
+    success = False
     if item:
       if game.store.obtain(item):
         anims = [
@@ -73,6 +74,7 @@ class Chest(Prop):
         script = [(
           ("", ("Obtained ", item().token(), "."))
         )]
+        success = True
       else:
         script = ["Your inventory is already full!"]
     else:
@@ -88,7 +90,7 @@ class Chest(Prop):
         lite=True,
         script=script
       ))
-    return False
+    return success
 
   def view(chest, anims):
     anim_group = [a for a in anims[0] if a.target is chest] if anims else []

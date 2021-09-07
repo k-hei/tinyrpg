@@ -29,6 +29,7 @@ class Coffin(Prop):
     coffin.contents = None
     script = None
     item_anim = None
+    success = False
     if contents:
       if isinstance(contents, DungeonActor):
         neighbor = coffin.cell
@@ -48,6 +49,7 @@ class Coffin(Prop):
           )
         ])
         script = [("", ("Obtained ", contents.token(), "."))]
+        success = True
       else:
         script = ["Your inventory is already full!"]
     else:
@@ -57,6 +59,7 @@ class Coffin(Prop):
         lite=True,
         script=script
       ), on_close=lambda: item_anim and item_anim.end())
+    return success
 
   def unlock(coffin):
     coffin.locked = False
