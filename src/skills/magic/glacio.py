@@ -22,6 +22,7 @@ class Glacio(MagicSkill):
   blocks = (
     (0, 0),
     (1, 0),
+    (2, 0),
   )
 
   def effect(user, dest, game, on_end=None):

@@ -3,6 +3,9 @@ from lib.cell import add as add_cell
 from dungeon.actors.genie import Genie
 from dungeon.actors.eyeball import Eyeball
 from dungeon.actors.mushroom import Mushroom
+from dungeon.actors.ghost import Ghost
+from dungeon.actors.mummy import Mummy
+from dungeon.actors.skeleton import Skeleton
 from dungeon.features.room import Room
 from dungeon.features.vertroom import VerticalRoom
 from dungeon.features.depthsroom import DepthsRoom
@@ -58,14 +61,14 @@ class Floor1(Floor):
     )
     exit_room = LockedExitRoom()
     lock_room = VerticalRoom(degree=4)
-    item_room1 = ItemRoom(size=(3, 4), items=["minxia" in story and Emerald or Potion, Antidote, *([Topaz] if randint(1, 10) == 1 else [])])
+    item_room1 = ItemRoom(size=(3, 4), items=["minxia" in story and Emerald or Potion, Antidote, *([Topaz] if randint(1, 20) == 1 else [])])
     item_room2 = ItemRoom(size=(5, 4), items=[Potion, Bread, Antidote])
     enemy_room1 = EnemyRoom(size=(5, 4), enemies=[gen_enemy(Eyeball), gen_enemy(Eyeball)])
-    enemy_room2 = EnemyRoom(size=(5, 7), enemies=[gen_enemy(Eyeball), gen_enemy(Mushroom)])
-    enemy_room3 = EnemyRoom(size=(3, 4), degree=1, enemies=[gen_enemy(Eyeball, rare=True), gen_enemy(Mushroom)])
+    enemy_room2 = EnemyRoom(size=(5, 7), enemies=[gen_enemy(Eyeball), gen_enemy(Mushroom), gen_enemy(Mushroom)])
+    enemy_room3 = EnemyRoom(size=(3, 4), degree=1, enemies=[gen_enemy(Eyeball, rare=True), gen_enemy(Mushroom), gen_enemy(Ghost)])
 
     return gen_floor(
-      entrance=entry_room,
+      entrance=exit_room,
       features=FloorGraph(
         nodes=[fork_room, entry_room, enemy_room1, item_room1, lock_room, exit_room, enemy_room2, item_room2, enemy_room3],
         edges=[
@@ -76,5 +79,6 @@ class Floor1(Floor):
           (lock_room, exit_room),
           (enemy_room2, item_room2),
         ]
-      )
+      ),
+      enemies=[Eyeball, Eyeball, Eyeball, Mushroom, Mushroom, Ghost]
     )

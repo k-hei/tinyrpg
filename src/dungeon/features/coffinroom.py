@@ -386,7 +386,7 @@ def take_battle_position(room, game):
 def spawn_enemies(room, game):
   return [
     (
-      game.floor.spawn_elem_at(c.cell, mummy := Mummy()),
+      game.floor.spawn_elem_at(c.cell, mummy := Mummy(aggro=1)),
       not game.anims and game.anims.append([]),
       game.anims[0].append(WarpInAnim(
         target=mummy,

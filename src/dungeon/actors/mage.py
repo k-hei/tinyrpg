@@ -28,6 +28,7 @@ class Mage(DungeonActor):
       core=core or MageCore(skills=[Glacio, Accerso], *args, **kwargs),
       ailment=ailment,
       ailment_turns=ailment_turns,
+      aggro=1,
       behavior="guard"
     )
 

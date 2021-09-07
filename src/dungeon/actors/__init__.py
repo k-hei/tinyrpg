@@ -481,6 +481,7 @@ class DungeonActor(DungeonElement):
     sprite.image = replace_color(sprite.image, BLACK, actor_color)
     if asleep:
       sprite.image = darken_image(sprite.image)
+
     facing_x, _ = actor.facing
     _, flip_y = sprite.flip
     if facing_x == -1:

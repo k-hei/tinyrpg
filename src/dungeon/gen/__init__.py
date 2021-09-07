@@ -580,6 +580,17 @@ def gen_floor(features=FloorGraph(), entrance=None, size=config.FLOOR_SIZE, enem
           continue
         floor.draw_door(door_cell, door, room=target)
 
+    # spawn key if necessary
+    if next((d for d in doors if type(d) is TreasureDoor), None):
+      empty_leaves = [r for r in tree.nodes if tree.degree(r) == 1 and r in empty_rooms]
+      if not empty_leaves:
+        debug("No empty rooms to spawn key at")
+        yield None
+        continue
+      key_room = choice(empty_leaves)
+      empty_rooms.remove(key_room)
+      stage.spawn_elem_at(key_room.get_center(), Chest(Key))
+
     # spawn enemies
     def gen_enemies(room, max=3):
       enemy_count = randint(0, max)
@@ -589,26 +600,13 @@ def gen_floor(features=FloorGraph(), entrance=None, size=config.FLOOR_SIZE, enem
       )]
       while enemy_count and valid_cells:
         cell = choice(valid_cells)
+        stage.spawn_elem_at(cell, gen_enemy(callable(enemies) and enemies() or choice(enemies)))
+        enemy_count -= 1
         valid_cells.remove(cell)
-        if stage.get_tile_at(cell) is stage.FLOOR:
-          stage.spawn_elem_at(cell, gen_enemy(callable(enemies) and enemies() or choice(enemies)))
-          enemy_count -= 1
-          if room in empty_rooms:
-            empty_rooms.remove(room)
+        if room in empty_rooms:
+          empty_rooms.remove(room)
     for room in empty_rooms:
       gen_enemies(room, max=6)
-
-    # spawn key if necessary
-    if next((d for d in doors if type(d) is TreasureDoor), None):
-      common_leaves = [r for r in tree.nodes if tree.degree(r) == 1 and type(r) is Room]
-      if not common_leaves:
-        debug("No empty rooms to spawn key at")
-        yield None
-        continue
-      key_room = choice(common_leaves)
-      if key_room in empty_rooms:
-        empty_rooms.remove(key_room)
-      stage.spawn_elem_at(key_room.get_center(), Chest(Key))
 
     # spawn items
     for room in empty_rooms:

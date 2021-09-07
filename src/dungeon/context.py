@@ -876,7 +876,11 @@ class DungeonContext(Context):
       ))
     else:
       game.log.clear()
-      game.log.print(("There's a{n} ".format(n="n" if item.name.lower() in "aeiouy" else ""), item().token(), " here."))
+      game.log.print((
+        "There's a{n} ".format(n="n" if item.name.lower() in "aeiouy" else ""),
+        item().token(),
+        " here."
+      ))
     return obtained
 
   def jump_pit(game, actor, run=False, on_end=None):
@@ -1169,7 +1173,7 @@ class DungeonContext(Context):
     return game.roll(
       dx=attacker.stats.dx + attacker.stats.lu / 2,
       ag=defender.stats.ag + defender.stats.lu / 2,
-      chance=1 / 16
+      chance=1 / 32
     )
 
   def roll_block(game, attacker, defender):
@@ -1208,7 +1212,7 @@ class DungeonContext(Context):
         game.log.print((actor.token(), " uses ", actor.weapon().token()))
 
     actor.face(target.cell)
-    if (not target.aggro and target.get_faction() != "player"
+    if (target.aggro <= 1 and target.get_faction() != "player"
     or target.facing != actor.facing and target.facing != invert_direction(actor.facing)):
       modifier *= 1.25 # side attack/surprise attack bonus
     crit = (
@@ -1218,14 +1222,14 @@ class DungeonContext(Context):
     )
     block = game.can_block(attacker=actor, defender=target)
     if (not target.is_immobile()
-    and ((target.aggro or target.get_faction() == "player") and not game.roll_hit(attacker=actor, defender=target))
+    and ((target.aggro > 1 or target.get_faction() == "player") and not game.roll_hit(attacker=actor, defender=target))
     and (not block or randint(0, 1))):
       damage = None
     elif block:
       damage = 0
       target.block()
     elif crit:
-      damage = game.find_damage(actor, target, modifier=modifier * 1.5)
+      damage = game.find_damage(actor, target, modifier=modifier * 1.33)
 
     def connect():
       def end_attack():
@@ -1772,7 +1776,7 @@ class DungeonContext(Context):
     index = game.floors.index(game.floor) + direction
     if index >= len(game.floors) or index < 0:
       # create a new floor if out of bounds
-      if gen_index:
+      if gen_index is not None:
         Floor = DungeonContext.FLOORS[gen_index + direction]
       else:
         Floor = GenericFloor

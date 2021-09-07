@@ -12,6 +12,8 @@ from dungeon.features.enemyroom import EnemyRoom
 from dungeon.features.traproom import TrapRoom
 from dungeon.actors.eyeball import Eyeball
 from dungeon.actors.mushroom import Mushroom
+from dungeon.actors.ghost import Ghost
+from dungeon.actors.mummy import Mummy
 from dungeon.actors.skeleton import Skeleton
 from dungeon.actors.genie import Genie
 
@@ -99,6 +101,7 @@ class Floor2(Floor):
     return gen_floor(
       size=(43, 27),
       entrance=entry_room,
+      enemies=[Eyeball, Mushroom, Ghost, Mummy],
       features=FloorGraph(
         nodes=[
           entry_room,

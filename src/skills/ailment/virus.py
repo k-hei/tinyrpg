@@ -6,6 +6,7 @@ from anims.pause import PauseAnim
 from dungeon.actors import DungeonActor
 from cores.mage import Mage
 from lib.cell import is_adjacent, neighborhood
+from dungeon.stage import Tile
 from dungeon.props.poisonpuff import PoisonPuff
 from config import ENABLED_COMBAT_LOG
 
@@ -25,7 +26,10 @@ class Virus(AilmentSkill):
   charge_turns: int = 2
 
   def spawn_cloud(game, cell, inclusive=False, on_end=None):
-    target_area = neighborhood(cell, radius=2, inclusive=inclusive, predicate=game.floor.is_cell_empty)
+    target_area = neighborhood(cell, radius=2, inclusive=inclusive, predicate=lambda cell: (
+      not Tile.is_solid(game.floor.get_tile_at(cell))
+      and not next((e for e in game.floor.get_elems_at(cell) if not isinstance(e, DungeonActor) and e.solid), None)
+    ))
     targets = [e for e in game.floor.elems if (
       isinstance(e, DungeonActor)
       and not e.is_dead()

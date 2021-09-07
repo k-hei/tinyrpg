@@ -16,9 +16,10 @@ class Sana(SupportSkill):
   range_max = 1
   users = (Mage,)
   blocks = (
-    (0, 0),
     (1, 0),
+    (1, 1),
     (0, 1),
+    (0, 2),
   )
 
   def effect(user, dest, game, on_end=None):

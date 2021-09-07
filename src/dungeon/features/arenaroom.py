@@ -21,7 +21,7 @@ class ArenaRoom(SpecialRoom):
   waves = [
     [Eyeball, Eyeball],
     [Eyeball, Eyeball, Mushroom],
-    [Mushroom, Ghost],
+    [Mushroom, Mushroom, Ghost],
   ]
 
   def __init__(feature, reward=Elixir, *args, **kwargs):
@@ -63,7 +63,7 @@ class ArenaRoom(SpecialRoom):
     )]
     i = 0
     while wave and valid_cells:
-      enemy = wave.pop(0)()
+      enemy = wave.pop(0)(aggro=1)
       enemy_cell = choice(valid_cells)
       valid_cells.remove(enemy_cell)
       stage.spawn_elem_at(enemy_cell, enemy)
