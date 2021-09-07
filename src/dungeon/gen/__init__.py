@@ -583,7 +583,10 @@ def gen_floor(features=FloorGraph(), entrance=None, size=config.FLOOR_SIZE, enem
     # spawn enemies
     def gen_enemies(room, max=3):
       enemy_count = randint(0, max)
-      valid_cells = [c for c in room.get_cells() if not [d for d in door_cells if manhattan(d, c) <= 2]]
+      valid_cells = [c for c in room.get_cells() if (
+        not next((d for d in door_cells if manhattan(d, c) <= 2), None)
+        and stage.is_cell_empty(c)
+      )]
       while enemy_count and valid_cells:
         cell = choice(valid_cells)
         valid_cells.remove(cell)

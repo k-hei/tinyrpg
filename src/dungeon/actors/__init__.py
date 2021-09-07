@@ -159,6 +159,7 @@ class DungeonActor(DungeonElement):
   def alert(actor):
     if actor.aggro == 0:
       actor.aggro = 1
+      actor.turns = 0
 
   def encode(actor):
     cell, name, *props = super().encode()
@@ -455,7 +456,7 @@ class DungeonActor(DungeonElement):
       marker_image = replace_color(marker_image, BLACK, RED)
       marker_sprite = Sprite(
         image=marker_image,
-        pos=add_vector((-16, -24), move_offset),
+        pos=add_vector((-14, -24), move_offset),
         layer="vfx"
       )
       sprites.append(marker_sprite)
