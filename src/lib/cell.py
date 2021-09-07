@@ -38,7 +38,7 @@ def is_odd(cell):
   x, y = cell
   return x % 2 == 1 and y % 2 == 1
 
-def neighborhood(cell, radius=1, inclusive=False):
+def neighborhood(cell, radius=1, inclusive=False, predicate=None):
   if radius == 1:
     x, y = cell
     return [
@@ -56,7 +56,7 @@ def neighborhood(cell, radius=1, inclusive=False):
     cell, steps = stack.pop()
     neighbors = neighborhood(cell)
     for neighbor in neighbors:
-      if neighbor not in cells and neighbor != start:
+      if neighbor not in cells and neighbor != start and (not predicate or predicate(neighbor)):
         cells.append(neighbor)
         if steps + 1 < radius:
           stack.append((neighbor, steps + 1))

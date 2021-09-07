@@ -25,7 +25,7 @@ class Virus(AilmentSkill):
   charge_turns: int = 2
 
   def spawn_cloud(game, cell, inclusive=False, on_end=None):
-    target_area = neighborhood(cell, radius=2, inclusive=inclusive)
+    target_area = neighborhood(cell, radius=2, inclusive=inclusive, predicate=game.floor.is_cell_empty)
     targets = [e for e in game.floor.elems if (
       isinstance(e, DungeonActor)
       and not e.is_dead()
