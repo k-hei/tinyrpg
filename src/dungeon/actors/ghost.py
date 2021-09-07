@@ -12,6 +12,7 @@ import assets
 from skills import Skill
 from lib.cell import is_adjacent, manhattan
 from skills.ailment.somnus import Somnus
+from items.materials.luckychoker import LuckyChoker
 from vfx.ghostarm import GhostArmVfx
 
 class Ghost(DungeonActor):
@@ -39,6 +40,7 @@ class Ghost(DungeonActor):
       )])
 
   skill = Somnus
+  drops = [LuckyChoker]
 
   def __init__(ghost, *args, **kwargs):
     super().__init__(GhostCore(

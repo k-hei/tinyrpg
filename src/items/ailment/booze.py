@@ -8,7 +8,7 @@ from skills.ailment.virus import Virus
 @dataclass
 class Booze(AilmentItem):
   name: str = "Booze"
-  desc: str = "Hazardous to your health."
+  desc: str = "Highly hazardous to your health."
   sprite: str = "vino"
   ailment: str = "poison"
   value: int = 32
