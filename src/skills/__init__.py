@@ -63,8 +63,8 @@ class Skill:
       targets = [cursor]
       is_blocked = False
       r = 1
-      while not is_blocked and r < skill.range_max:
-        if floor and not floor.is_cell_empty(cursor):
+      while (not is_blocked or skill.range_max == 2) and r < skill.range_max:
+        if floor and not floor.is_cell_empty(cursor) and skill.range_max != 2:
           is_blocked = True
         else:
           cursor_x, cursor_y = cursor
