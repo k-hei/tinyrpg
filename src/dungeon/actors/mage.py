@@ -23,7 +23,7 @@ from skills.weapon.broadsword import BroadSword
 class Mage(DungeonActor):
   drops = [BroadSword]
 
-  def __init__(mage, faction="ally", core=None, ailment=None, ailment_turns=0, *args, **kwargs):
+  def __init__(mage, core=None, faction="ally", ailment=None, ailment_turns=0, *args, **kwargs):
     super().__init__(
       core=core or MageCore(faction=faction, skills=[Glacio, Accerso], *args, **kwargs),
       ailment=ailment,
@@ -34,22 +34,22 @@ class Mage(DungeonActor):
     if faction == "enemy":
       mage.behavior = "chase"
 
-  def set_faction(mage, faction):
-    super().set_faction(faction)
-    if faction == "enemy":
-      mage.behavior = "chase"
-    else:
-      mage.behavior = "guard"
-
   def encode(mage):
     [cell, kind, *props] = super().encode()
-    props = props[0] if props else {}
     return [cell, kind, {
-      **props,
+      **(props[0] if props else {}),
       **(mage.charge_skill and { "charge_skill": mage.charge_skill } or {}),
       **(mage.charge_dest and { "charge_dest": mage.charge_dest } or {}),
       **(mage.charge_turns and { "charge_turns": mage.charge_turns } or {})
     }]
+
+  @DungeonActor.faction.setter
+  def faction(mage, faction):
+    super().faction = faction
+    if faction == "enemy":
+      mage.behavior = "chase"
+    else:
+      mage.behavior = "guard"
 
   def charge(mage, *args, **kwargs):
     super().charge(*args, **kwargs)
@@ -84,7 +84,7 @@ class Mage(DungeonActor):
 
     has_allies = next((e for e in [game.floor.get_elem_at(c, superclass=DungeonActor) for c in game.room.get_cells()] if (
       e and e is not mage
-      and e.get_faction() == mage.get_faction()
+      and e.faction == mage.faction
     )), None)
 
     if not has_allies:

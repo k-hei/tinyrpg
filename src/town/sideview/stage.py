@@ -31,7 +31,7 @@ class Area:
     pass
 
   def spawn(area, actor, x):
-    y = (actor.get_faction() == "ally"
+    y = (actor.faction == "ally"
       and Area.NPC_Y - Area.ACTOR_Y
       or 0)
     actor.pos = (x, y)

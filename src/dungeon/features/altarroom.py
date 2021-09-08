@@ -129,19 +129,19 @@ def cutscene(room, game):
       ]),
       game.child.open(DialogueContext(
         script=[
-          (game.hero.get_name(), "HEY, WOMAN!"),
-          (game.hero.get_name(), "I NEED TO SEE YOUR PERMIT!"),
+          (game.hero.name, "HEY, WOMAN!"),
+          (game.hero.name, "I NEED TO SEE YOUR PERMIT!"),
           CutsceneContext(script=[
             lambda step: (
-              room.mage.set_facing((1, 0)),
+              setattr(room.mage, "facing", (1, 0)),
               game.anims.append([PauseAnim(duration=15, on_end=step)])
             ),
             lambda step: (
-              room.mage.set_facing((0, 1)),
+              setattr(room.mage, "facing", (0, 1)),
               game.anims.append([PauseAnim(duration=15, on_end=step)])
             ),
           ]),
-          (room.mage.get_name(), "The hell?"),
+          (room.mage.name, "The hell?"),
           CutsceneContext(script=[
             lambda step: (
               game.camera.focus(
@@ -158,7 +158,7 @@ def cutscene(room, game):
               )])
             ),
             lambda step: (
-              room.mage.set_facing((0, 1)),
+              setattr(room.mage, "facing", (0, 1)),
               game.hero.move_to(add_cell(room.altar.cell, (0, 1))),
               game.anims.append([PathAnim(
                 target=game.hero,
@@ -168,8 +168,8 @@ def cutscene(room, game):
               step()
             )
           ]),
-          (room.mage.get_name(), "Stay away from me, you freak!"),
-          (game.hero.get_name(), "YOU'RE NOT GETTING AWAY!"),
+          (room.mage.name, "Stay away from me, you freak!"),
+          (game.hero.name, "YOU'RE NOT GETTING AWAY!"),
         ],
         on_close=step
       ))

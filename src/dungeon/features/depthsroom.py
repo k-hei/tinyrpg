@@ -55,7 +55,7 @@ class DepthsRoom(SpecialRoom):
     game.floor.spawn_elem_at(add_cell(room.cell, (4, 3)), room.mage)
     room.focused = True
     game.hero.cell = add_cell(room.cell, (2, 4))
-    game.hero.set_facing((0, -1))
+    game.hero.facing = (0, -1)
     game.open(CutsceneContext(script=[
       *(cutscene(room, game) if config.CUTSCENES else [])
     ]))
@@ -92,22 +92,22 @@ def cutscene(room, game):
     lambda step: game.anims.append([JumpAnim(target=room.mage, on_end=step)]),
     lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
     lambda step: (
-      room.mage.set_facing((-1, 0)),
+      setattr(room.mage, "facing", (-1, 0)),
       game.anims.append([PauseAnim(duration=15, on_end=step)])
     ),
     lambda step: (
-      room.mage.set_facing((0, 1)),
+      setattr(room.mage, "facing", (0, 1)),
       game.anims.append([PauseAnim(duration=15, on_end=step)])
     ),
     lambda step: game.child.open(DialogueContext(script=[
-      (room.mage.get_name(), "I'm alive...")
+      (room.mage.name, "I'm alive...")
     ], on_close=step)),
     lambda step: (
-      room.mage.set_facing((0, -1)),
+      setattr(room.mage, "facing", (0, -1)),
       game.anims.append([PauseAnim(duration=30, on_end=step)])
     ),
     lambda step: (
-      room.mage.set_facing((-1, 0)),
+      setattr(room.mage, "facing", (-1, 0)),
       game.anims.append([PauseAnim(duration=15, on_end=step)])
     ),
     lambda step: (
@@ -124,35 +124,35 @@ def cutscene(room, game):
       )])
     ),
     lambda step: (
-      room.mage.set_facing((-1, 0)),
+      setattr(room.mage, "facing", (-1, 0)),
       game.anims.append([PauseAnim(duration=15, on_end=step)])
     ),
     lambda step: game.child.open(DialogueContext(script=[
-      (room.mage.get_name(), "Hmmm..."),
-      (room.mage.get_name(), "I doubt this son of a gun has two brain cells to rub together, but...")
+      (room.mage.name, "Hmmm..."),
+      (room.mage.name, "I doubt this son of a gun has two brain cells to rub together, but...")
     ], on_close=step)),
     lambda step: (
-      room.mage.set_facing((0, -1)),
+      setattr(room.mage, "facing", (0, -1)),
       game.anims.append([PauseAnim(duration=30, on_end=step)])
     ),
     lambda step: (
-      room.mage.set_facing((0, 1)),
+      setattr(room.mage, "facing", (0, 1)),
       game.anims.append([PauseAnim(duration=30, on_end=step)])
     ),
     lambda step: (
-      room.mage.set_facing((-1, 0)),
+      setattr(room.mage, "facing", (-1, 0)),
       game.anims.append([PauseAnim(duration=15, on_end=step)])
     ),
     lambda step: game.child.open(DialogueContext(script=[
-      (room.mage.get_name(), ". . . . ."),
-      (room.mage.get_name(), "...that weapon he's holding doesn't look half bad...")
+      (room.mage.name, ". . . . ."),
+      (room.mage.name, "...that weapon he's holding doesn't look half bad...")
     ], on_close=step)),
     lambda step: (
-      room.mage.set_facing((0, 1)),
+      setattr(room.mage, "facing", (0, 1)),
       game.anims.append([PauseAnim(duration=45, on_end=step)])
     ),
     lambda step: (
-      room.mage.set_facing((-1, 0)),
+      setattr(room.mage, "facing", (-1, 0)),
       game.anims.append([PauseAnim(duration=15, on_end=step)])
     ),
     lambda step: game.anims.extend([
@@ -181,20 +181,20 @@ def cutscene(room, game):
     ),
     lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
     lambda step: (
-      room.mage.set_facing((0, 1)),
+      setattr(room.mage, "facing", (0, 1)),
       game.anims.append([JumpAnim(target=room.mage, on_end=step)])
     ),
     lambda step: game.child.open(DialogueContext(script=[
-      (room.mage.get_name(), "Well then!"),
-      (room.mage.get_name(), "I'd better make like a tree and get the hell out of here."),
-      (room.mage.get_name(), "There's a million places I'd rather be than this godforsaken tomb...")
+      (room.mage.name, "Well then!"),
+      (room.mage.name, "I'd better make like a tree and get the hell out of here."),
+      (room.mage.name, "There's a million places I'd rather be than this godforsaken tomb...")
     ], on_close=step)),
     lambda step: (
-      room.mage.set_facing((1, 0)),
+      setattr(room.mage, "facing", (1, 0)),
       game.anims.append([PauseAnim(duration=15, on_end=step)])
     ),
     lambda step: (
-      room.mage.set_facing((0, -1)),
+      setattr(room.mage, "facing", (0, -1)),
       game.anims.append([PauseAnim(duration=15, on_end=step)])
     ),
     lambda step: (
@@ -220,15 +220,15 @@ def cutscene(room, game):
     lambda step: game.anims.append([JumpAnim(target=game.hero, on_end=step)]),
     lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
     lambda step: (
-      game.hero.set_facing((1, 0)),
+      setattr(game.hero, "facing", (1, 0)),
       game.anims.append([PauseAnim(duration=15, on_end=step)])
     ),
     lambda step: (
-      game.hero.set_facing((-1, 0)),
+      setattr(game.hero, "facing", (-1, 0)),
       game.anims.append([PauseAnim(duration=30, on_end=step)])
     ),
     lambda step: (
-      game.hero.set_facing((0, 1)),
+      setattr(game.hero, "facing", (0, 1)),
       game.anims.append([PauseAnim(duration=15, on_end=step)])
     )
   ]

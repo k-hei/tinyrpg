@@ -20,8 +20,8 @@ class GuardRoom(SpecialRoom):
         faction="ally",
         facing=(0, 1),
         message=lambda ctx: [
-          (ctx.talkee.get_name(), "I cannot let you pass."),
-          (ctx.talkee.get_name(), "Suck my dick !"),
+          (ctx.talkee.name, "I cannot let you pass."),
+          (ctx.talkee.name, "Suck my dick !"),
         ])
       ),
     ], *args, **kwargs)

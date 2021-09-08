@@ -37,7 +37,7 @@ class Accerso(MagicSkill):
       if target_cells:
         for i, cell in enumerate(target_cells):
           ally = Eyeball(
-            faction="enemy" if user.get_faction() == "enemy" else "ally",
+            faction="enemy" if user.faction == "enemy" else "ally",
             aggro=3
           )
           # ally.command = True
@@ -49,9 +49,9 @@ class Accerso(MagicSkill):
             on_end=(on_end if cell == target_cells[-1] else lambda: None)
           ))
         if ENABLED_COMBAT_LOG:
-          if user.get_faction() == "player":
+          if user.faction == "player":
             game.log.print("Allies have appeared!")
-          elif user.get_faction() == "enemy":
+          elif user.faction == "enemy":
             game.log.print("Enemies have appeared!")
       else:
         if ENABLED_COMBAT_LOG:

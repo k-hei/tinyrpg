@@ -155,7 +155,7 @@ class TopViewContext(Context):
       return False
     for actor in ctx.party:
       actor.stop_move()
-    old_facing = talkee.get_facing()
+    old_facing = talkee.facing
     talkee.face(hero)
     message = talkee.next_message()
     if callable(message):

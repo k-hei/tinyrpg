@@ -133,16 +133,16 @@ class Minimap:
         elem = None
       color = None
       blink = minimap.time % 60 >= 30
-      if isinstance(elem, DungeonActor) and elem.get_faction() == "player" and cell in visible_cells:
+      if isinstance(elem, DungeonActor) and elem.faction == "player" and cell in visible_cells:
         color = (0x3399FF, 0x0066CC)[blink]
-      elif isinstance(elem, DungeonActor) and elem.get_faction() == "ally" and cell in visible_cells:
+      elif isinstance(elem, DungeonActor) and elem.faction == "ally" and cell in visible_cells:
         color = (0x33FF99, 0x00CC66)[blink]
       elif type(elem) is Mimic and cell in visible_cells:
         if elem.idle:
           color = (0xFFFF00, 0x7F7F00)[blink]
         else:
           color = (0xFF0000, 0x990000)[blink]
-      elif isinstance(elem, DungeonActor) and elem.get_faction() == "enemy" and cell in visible_cells:
+      elif isinstance(elem, DungeonActor) and elem.faction == "enemy" and cell in visible_cells:
         if elem.ailment == "sleep":
           color = 0x990000
         elif elem.aggro:

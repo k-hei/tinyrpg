@@ -26,9 +26,9 @@ class EmeraldRoom(SpecialRoom):
       ((8, 4), Genie(
         name="Joshin",
         message=lambda game: DialogueContext(script=[
-          (game.talkee.get_name(), ("Well done, ", game.hero.token(), "!")),
-          (game.talkee.get_name(), "You've cleared all the content for this demo."),
-          (game.talkee.get_name(), "Thanks for playing, and stay tuned for more updates!"),
+          (game.talkee.name, ("Well done, ", game.hero.token(), "!")),
+          (game.talkee.name, "You've cleared all the content for this demo."),
+          (game.talkee.name, "Thanks for playing, and stay tuned for more updates!"),
         ])
       ))
     ])

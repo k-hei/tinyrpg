@@ -62,11 +62,11 @@ class Mage(BipedCore):
           Choice("\"Maybe later...\"")
         ), required=True, on_close=lambda choice: (
           choice.text == "\"Let's go!\"" and (
-            (hero.get_name(), "Let's get going!"),
+            (hero.name, "Let's get going!"),
             (name, "Jeez, about time..."),
             lambda: ctx.recruit(ctx.talkee)
           ) or choice.text == "\"Maybe later...\"" and (
-            (hero.get_name(), "Give me a second..."),
+            (hero.name, "Give me a second..."),
             (name, "You know I don't have all day, right?")
           )
         ))

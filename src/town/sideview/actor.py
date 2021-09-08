@@ -14,25 +14,33 @@ class Actor:
     actor.pos = None
     actor.core = core
     actor.core.color = color
-    actor.facing = facing
+    actor.facing = facing or actor.core.facing
     actor.anim = None
     actor.moved = False
 
-  def get_name(actor):
+  @property
+  def name(actor):
     return actor.core.name
 
-  def get_faction(actor):
+  @property
+  def faction(actor):
     return actor.core.faction
 
-  def get_facing(actor):
+  @property
+  def facing(actor):
     return actor.core.facing
 
-  def get_message(actor):
+  @facing.setter
+  def facing(actor, facing):
+    actor.core.facing = facing
+
+  @property
+  def message(actor):
     return actor.core.message
 
   def face(actor, facing):
     if type(facing) is tuple:
-      actor.core.facing = facing
+      actor.facing = facing
       return
     if actor.pos == facing.pos:
       return actor.face((0, 1))
@@ -101,7 +109,7 @@ class Actor:
       return True
     actor_x, actor_y = actor.pos
     target_x, target_y = target.pos
-    facing_x, facing_y = target.get_facing()
+    facing_x, facing_y = target.facing
     dist_x = abs(target_x - actor_x)
     if not actor.moved and dist_x < TILE_SIZE and not force:
       return False

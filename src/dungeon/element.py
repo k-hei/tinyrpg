@@ -34,9 +34,6 @@ class DungeonElement:
   def encode(elem):
     return [(elem.cell), type(elem).__name__]
 
-  def set_facing(elem, facing):
-    elem.facing = facing
-
   def effect(elem, game):
     pass
 
@@ -112,7 +109,7 @@ class DungeonElement:
         and anim.facing != (0, 0)
         and not anim.duration in (PUSH_DURATION, NUDGE_DURATION)
         and not next((a for g in anims for a in g if a.target is elem and type(a) is FlinchAnim), None)):
-          elem.set_facing(tuple(map(int, anim.facing)))
+          elem.facing = tuple(map(int, anim.facing))
       elif type(anim) is ItemAnim:
         item_image = anim.item.render()
         item_offset = min(12, 6 + anim.time // 2) + ITEM_OFFSET

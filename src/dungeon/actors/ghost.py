@@ -54,10 +54,6 @@ class Ghost(DungeonActor):
       ghost.damaged = True
       ghost.turns = -1
 
-  def set_faction(ghost, faction):
-    super().set_faction(faction)
-    ghost.reset_charge()
-
   def charge(ghost, *args, **kwargs):
     super().charge(*args, **kwargs)
     ghost.core.anims.append(GhostCore.ChargeAnim())

@@ -78,7 +78,7 @@ class Eyeball(DungeonActor):
       if neighbors:
         user.clones += 1
         neighbor = choice(neighbors)
-        clone = Eyeball(cloned=True, faction=user.get_faction(), facing=user.facing, aggro=user.aggro)
+        clone = Eyeball(cloned=True, faction=user.faction, facing=user.facing, aggro=user.aggro)
         game.anims.append([
           BounceAnim(
             duration=20,
@@ -109,9 +109,9 @@ class Eyeball(DungeonActor):
       name=name,
       faction=faction,
       stats=Stats(
-        hp=15,
-        st=11,
-        dx=5,
+        hp=17,
+        st=12,
+        dx=6,
         ag=6,
         lu=3,
         en=11,
@@ -166,7 +166,7 @@ class Eyeball(DungeonActor):
       return None
     delta = game.find_move_to_delta(actor=eyeball, dest=eyeball.wander_target)
     if delta != (0, 0):
-      eyeball.set_facing(delta)
+      eyeball.facing = delta
       return ("move", delta)
 
   def step_wander(eyeball, game):

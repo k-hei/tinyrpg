@@ -22,13 +22,13 @@ from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT, LABEL_FRAMES
 class FollowAnim(Anim): pass
 
 def can_talk(hero, actor):
-  if (not actor.get_message()
-  or actor.get_faction() == "player"):
+  if (not actor.message
+  or actor.faction == "player"):
     return False
   hero_x, _ = hero.pos
   actor_x, _ = actor.pos
   dist_x = actor_x - hero_x
-  facing_x, _ = hero.get_facing()
+  facing_x, _ = hero.facing
   return abs(dist_x) < TILE_SIZE * 1.5 and dist_x * facing_x >= 0
 
 def find_nearby_npc(hero, actors):
@@ -68,7 +68,7 @@ class SideViewContext(Context):
       hero.face(invert_direction(ctx.spawn.direction))
     else:
       spawn_x = 64
-    facing_x, _ = hero.get_facing()
+    facing_x, _ = hero.facing
     for actor in ctx.party:
       ctx.area and ctx.area.spawn(actor, spawn_x)
       actor.stop_move()
@@ -82,13 +82,13 @@ class SideViewContext(Context):
       ally.follow(ctx.party[i])
     hero_x, hero_y = hero.pos
     for link_name, link in ctx.area.links.items():
-      if (link.direction == (-1, 0) and hero.get_facing() == (-1, 0) and hero_x <= link.x
-      or link.direction == (1, 0) and hero.get_facing() == (1, 0) and hero_x >= link.x):
+      if (link.direction == (-1, 0) and hero.facing == (-1, 0) and hero_x <= link.x
+      or link.direction == (1, 0) and hero.facing == (1, 0) and hero_x >= link.x):
         if ctx.use_link(link):
           break
-    if hero_x < 0 and hero.get_facing() == (-1, 0):
+    if hero_x < 0 and hero.facing == (-1, 0):
       hero.pos = (0, hero_y)
-    elif hero_x > ctx.area.width and hero.get_facing() == (1, 0):
+    elif hero_x > ctx.area.width and hero.facing == (1, 0):
       hero.pos = (ctx.area.width, hero_y)
     return True
 
@@ -108,9 +108,9 @@ class SideViewContext(Context):
     for actor in ctx.party:
       actor.stop_move()
     hero, *_ = ctx.party
-    old_facing = talkee.get_facing()
+    old_facing = talkee.facing
     talkee.face(hero)
-    message = talkee.get_message()
+    message = talkee.message
     if callable(message):
       message = message(ctx)
     def stop_talk():

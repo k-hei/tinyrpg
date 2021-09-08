@@ -41,7 +41,7 @@ class MageBossRoom(SpecialRoom):
 
   def get_enemies(room, stage):
     return [e for e in [stage.get_elem_at(c, superclass=DungeonActor) for c in room.get_cells()] if (
-      e and e.get_faction() == "enemy"
+      e and e.faction == "enemy"
     )]
 
   def lock(room, game):
@@ -112,11 +112,11 @@ def prebattle_cutscene_setup(room, game):
     ),
     lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
     lambda step: (
-      room.mage.set_facing((1, 0)),
+      setattr(room.mage, "facing", (1, 0)),
       game.anims.append([PauseAnim(duration=10, on_end=step)])
     ),
     lambda step: (
-      room.mage.set_facing((0, 1)),
+      setattr(room.mage, "facing", (0, 1)),
       game.anims.append([PauseAnim(duration=10, on_end=step)])
     ),
     lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
@@ -131,20 +131,20 @@ def prebattle_cutscene(room, game):
     lambda step: game.anims.append([JumpAnim(target=mage, on_end=step)]),
     lambda step: game.anims.append([PauseAnim(duration=10, on_end=step)]),
     lambda step: game.child.open(DialogueContext(script=[
-      (mage.get_name(), "Won't you just stay dead and gone already!"),
+      (mage.name, "Won't you just stay dead and gone already!"),
       lambda: game.anims.append([JumpAnim(target=knight)]),
-      (knight.get_name(), "Give me back my money! And my sword!"),
-      (knight.get_name(), "And apologize for the inconveniences you have caused!"),
+      (knight.name, "Give me back my money! And my sword!"),
+      (knight.name, "And apologize for the inconveniences you have caused!"),
     ]), on_close=step),
     lambda step: game.anims.append([AttackAnim(
       target=mage,
       src=mage.cell,
-      dest=add_cell(mage.cell, mage.get_facing()),
+      dest=add_cell(mage.cell, mage.facing),
       on_end=step
     )]),
     lambda step: game.child.open(DialogueContext(script=[
-      (mage.get_name(), "I'm NOT sorry I took those treasures."),
-      (mage.get_name(), "I need them more than you!"),
+      (mage.name, "I'm NOT sorry I took those treasures."),
+      (mage.name, "I need them more than you!"),
       lambda: game.anims.extend([
         [PauseAnim(duration=5)],
         [PathAnim(
@@ -154,47 +154,47 @@ def prebattle_cutscene(room, game):
         )],
         [JumpAnim(target=mage)]
       ]),
-      (mage.get_name(), "Do you know the last time I had a piece of cheese? OR BREAD?"),
+      (mage.name, "Do you know the last time I had a piece of cheese? OR BREAD?"),
     ]), on_close=step),
     lambda step: game.anims.append([ShakeAnim(target=knight, duration=30, on_end=step)]),
     lambda step: game.anims.append([PauseAnim(duration=10, on_end=step)]),
     lambda step: game.child.open(DialogueContext(script=[
-      (knight.get_name(), "You did far more than just that!"),
-      (mage.get_name(), "Why don't you leave me alone already!"),
-      (mage.get_name(), "I'm not interested in being a captive of anyone else's again!"),
+      (knight.name, "You did far more than just that!"),
+      (mage.name, "Why don't you leave me alone already!"),
+      (mage.name, "I'm not interested in being a captive of anyone else's again!"),
     ]), on_close=step),
     lambda step: game.anims.append([AttackAnim(
       target=knight,
       src=knight.cell,
-      dest=add_cell(knight.cell, knight.get_facing()),
+      dest=add_cell(knight.cell, knight.facing),
       on_end=step
     )]),
     lambda step: game.anims.append([PauseAnim(duration=10, on_end=step)]),
     lambda step: game.child.open(DialogueContext(script=[
-      (knight.get_name(), "Not only have you been trying to put me in the ground,"),
-      (knight.get_name(), "you're permitless and exploring a tomb without permission."),
-      (knight.get_name(), "A few years in a little box will give you enough time to think about everything you've done."),
+      (knight.name, "Not only have you been trying to put me in the ground,"),
+      (knight.name, "you're permitless and exploring a tomb without permission."),
+      (knight.name, "A few years in a little box will give you enough time to think about everything you've done."),
     ]), on_close=step),
     lambda step: (
-      room.mage.set_facing((-1, 0)),
+      setattr(room.mage, "facing", (-1, 0)),
       game.anims.append([PauseAnim(duration=5, on_end=step)])
     ),
     lambda step: (
-      room.mage.set_facing((0, -1)),
+      setattr(room.mage, "facing", (0, -1)),
       game.anims.append([PauseAnim(duration=5, on_end=step)])
     ),
     lambda step: (
-      room.mage.set_facing((1, 0)),
+      setattr(room.mage, "facing", (1, 0)),
       game.anims.append([PauseAnim(duration=5, on_end=step)])
     ),
     lambda step: (
-      room.mage.set_facing((0, 1)),
+      setattr(room.mage, "facing", (0, 1)),
       game.anims.append([PauseAnim(duration=5, on_end=step)])
     ),
     lambda step: game.anims.append([JumpAnim(target=mage, on_end=step)]),
     lambda step: game.anims.append([PauseAnim(duration=10, on_end=step)]),
     lambda step: game.child.open(DialogueContext(script=[
-      (mage.get_name(), "Come and get me then, tin man!!"),
+      (mage.name, "Come and get me then, tin man!!"),
     ]), on_close=step),
   ]
 
@@ -210,16 +210,16 @@ def prebattle_cutscene_teardown(room, game):
       )])
     ),
     lambda step: (
-      room.mage.set_facing((1, 0)),
+      setattr(room.mage, "facing", (1, 0)),
       game.anims.append([PauseAnim(duration=10, on_end=step)])
     ),
     lambda step: (
-      room.mage.set_facing((0, 1)),
+      setattr(room.mage, "facing", (0, 1)),
       game.anims.append([PauseAnim(duration=10, on_end=step)])
     ),
     lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
     lambda step: (
-      mage.set_faction("enemy"),
+      setattr(mage, "faction", "enemy"),
       step()
     )
   ]
@@ -250,23 +250,23 @@ def postbattle_cutscene(room, game):
   )
   return [
     lambda step: (
-      mage.set_faction("ally"),
+      setattr(mage, "faction", "ally"),
       game.camera.focus(midpoint, speed=8, force=True),
       mage.face(knight.cell),
       game.anims.append([JumpAnim(target=mage, on_end=step)])
     ),
     lambda step: game.child.open(DialogueContext(script=[
-      (mage.get_name(), "OKAY OKAY! Alright. I get it now. I'll come along."),
-      (mage.get_name(), "I obviously can't get rid of you, so I submit."),
+      (mage.name, "OKAY OKAY! Alright. I get it now. I'll come along."),
+      (mage.name, "I obviously can't get rid of you, so I submit."),
       lambda: knight.face(mage.cell),
-      (knight.get_name(), "I don't have anything to tie you up with,"),
-      (knight.get_name(), "so I'm trusting you not to run away."),
+      (knight.name, "I don't have anything to tie you up with,"),
+      (knight.name, "so I'm trusting you not to run away."),
     ]), on_close=step),
     lambda step: game.anims.append([ShakeAnim(target=mage, duration=30, on_end=step)]),
     lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
     lambda step: game.child.open(DialogueContext(script=[
-      (mage.get_name(), "Boy are you dumb! But I don't think I will."),
-      (mage.get_name(), "My spirit is crushed. I am depressed."),
+      (mage.name, "Boy are you dumb! But I don't think I will."),
+      (mage.name, "My spirit is crushed. I am depressed."),
     ]), on_close=step),
     lambda step: (
       game.camera.focus(add_cell(room.get_edges()[0], (0, 2)), speed=8, force=True),
@@ -277,8 +277,8 @@ def postbattle_cutscene(room, game):
       step()
     ),
     lambda step: game.child.open(DialogueContext(script=[
-      (knight.get_name(), "Now to find a way out of here..."),
-      (mage.get_name(), "I am so depressed..."),
+      (knight.name, "Now to find a way out of here..."),
+      (mage.name, "I am so depressed..."),
     ]), on_close=step),
   ]
 

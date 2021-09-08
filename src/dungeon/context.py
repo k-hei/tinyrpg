@@ -108,8 +108,8 @@ from dungeon.data import DungeonData
 from dungeon.command import MoveCommand, MoveToCommand, PushCommand, SkillCommand
 
 def manifest(core):
-  if type(core) is Knight: return KnightActor(core)
-  if type(core) is Mage: return MageActor(core)
+  if type(core) is Knight: return KnightActor(core=core)
+  if type(core) is Mage: return MageActor(core=core)
 
 class DungeonContext(Context):
   ATTACK_DURATION = 12
@@ -229,7 +229,7 @@ class DungeonContext(Context):
 
     hero = next((e for e in game.floor.elems if (
       isinstance(e, DungeonActor)
-      and e.get_faction() == "player"
+      and e.faction == "player"
       and type(e.core) is type(game.store.party[0])
     )), None)
     if hero:
@@ -399,7 +399,7 @@ class DungeonContext(Context):
       if actor.is_dead() or (not actor.cell in hero.visible_cells and not actor.aggro):
         actor.turns = 0
         continue
-      if actor.charge_skill or actor.get_faction() == "ally" and not actor.aggro:
+      if actor.charge_skill or actor.faction == "ally" and not actor.aggro:
         actor.turns = 1
       else:
         spd = actor.stats.ag / hero.stats.ag
@@ -409,7 +409,7 @@ class DungeonContext(Context):
       while actor.turns >= 1:
         actor.turns -= 1
         had_aggro = actor.aggro
-        if actor not in (hero, ally) and not (actor.get_faction() == "ally" and actor.behavior == "guard"):
+        if actor not in (hero, ally) and not (actor.faction == "ally" and actor.behavior == "guard"):
           command = actor.step_charge()
           command = command or actor.command
           command = command or game.step_enemy(actor)
@@ -548,13 +548,13 @@ class DungeonContext(Context):
     if not enemy.can_step():
       return None
 
-    if enemy.get_faction() == "ally":
+    if enemy.faction == "ally":
       hero = game.hero
       floor = game.floor
       target = game.find_closest_enemy(enemy)
       room = next((r for r in floor.rooms if enemy.cell in r.get_cells()), None)
       if (target and room and target.cell in room.get_cells() + room.get_border()
-      or game.is_cell_in_vision_range(actor=enemy, cell=target.cell)
+      or target and game.is_cell_in_vision_range(actor=enemy, cell=target.cell)
       ):
         print("alert ally from dungeon step")
         enemy.alert()
@@ -700,7 +700,7 @@ class DungeonContext(Context):
     return True
 
   def handle_turn(game, direction):
-    game.hero.set_facing(direction)
+    game.hero.facing = direction
     game.update_bubble()
     return True
 
@@ -788,8 +788,8 @@ class DungeonContext(Context):
 
 
     moved = game.move(actor=hero, delta=delta, run=run, on_end=on_move)
-    if hero.get_facing() != delta:
-      hero.set_facing(delta)
+    if hero.facing != delta:
+      hero.facing = delta
       if not moved:
         game.update_bubble()
 
@@ -813,7 +813,7 @@ class DungeonContext(Context):
       command = PushCommand(target=target_elem)
       def end_push():
         hero.command.on_end = None
-        if isinstance(target_elem, DungeonActor) and target_elem.get_faction() == "ally":
+        if isinstance(target_elem, DungeonActor) and target_elem.faction == "ally":
           target_elem.command = command
         game.refresh_fov(moving=True)
         game.step(moving=True)
@@ -893,7 +893,7 @@ class DungeonContext(Context):
 
   def handle_action(game):
     hero = game.hero
-    target_cell = add_vector(hero.cell, hero.get_facing())
+    target_cell = add_vector(hero.cell, hero.facing)
     target_actor = game.floor.get_elem_at(target_cell, superclass=DungeonActor)
     if target_actor and not hero.allied(target_actor):
       if not hero.weapon:
@@ -1053,7 +1053,7 @@ class DungeonContext(Context):
       or normalize_direction(delta) == normalize_direction(target_tile.direction))
     and (target_elem is None
       or not target_elem.solid
-      or actor is game.hero and isinstance(target_elem, DungeonActor) and target_elem.get_faction() == "ally" and target_elem.can_step()
+      or actor is game.hero and isinstance(target_elem, DungeonActor) and target_elem.faction in ("player", "ally") and target_elem.can_step()
     )):
       duration = duration or (RUN_DURATION if run else MOVE_DURATION)
       duration = duration * 1.5 if jump else duration
@@ -1085,7 +1085,7 @@ class DungeonContext(Context):
         command.on_end and command.on_end()
       actor.cell = target_cell
       actor.elev = target_tile.elev
-      if isinstance(target_elem, DungeonActor) and target_elem.get_faction() == "ally" and target_elem.can_step():
+      if isinstance(target_elem, DungeonActor) and target_elem.faction == "ally" and target_elem.can_step():
         game.move_to(actor=target_elem, cell=origin_cell, run=run)
       return True
     else:
@@ -1186,7 +1186,7 @@ class DungeonContext(Context):
     return (
       defender.find_shield()
       and not defender.is_immobile()
-      and defender.get_facing() == invert_direction(attacker.get_facing())
+      and defender.facing == invert_direction(attacker.facing)
       and (type(defender.command) is not SkillCommand
         or game.roll_block(attacker=attacker, defender=defender))
     )
@@ -1196,10 +1196,8 @@ class DungeonContext(Context):
     target_def = target.get_def()
     if game.floor.get_elem_at(target.cell, superclass=Door):
       target_def = max(0, target_def - 2)
-    if game.can_block(attacker=actor, defender=target):
-      target_def *= 1.5
     variance = 1
-    return max(0, actor_str - target_def + randint(-variance, variance))
+    return max(1, actor_str - target_def + randint(-variance, variance))
 
   def attack(game, actor, target, damage=None, modifier=1, is_ranged=False, is_animated=True, is_chaining=False, on_connect=None, on_end=None):
     actor.weapon = actor.find_weapon()
@@ -1212,21 +1210,21 @@ class DungeonContext(Context):
         game.log.print((actor.token(), " uses ", actor.weapon().token()))
 
     actor.face(target.cell)
-    if (target.aggro <= 2 and target.get_faction() != "player"
+    if (target.aggro <= 2 and target.faction != "player"
     or target.facing != actor.facing and target.facing != invert_direction(actor.facing)):
       modifier *= 1.25 # side attack/surprise attack bonus
-    crit = (
-      actor.facing == target.facing
-      or target.ailment == "sleep"
-      or game.roll_crit(attacker=actor, defender=target)
-    )
     block = game.can_block(attacker=actor, defender=target)
-    if (not target.is_immobile()
-    and ((target.aggro > 1 or target.get_faction() == "player") and not game.roll_hit(attacker=actor, defender=target))
-    and (not block or randint(0, 1))):
+    miss = (not target.is_immobile()
+      and ((target.aggro > 1 or target.faction == "player") and not game.roll_hit(attacker=actor, defender=target))
+      and (not block or randint(0, 1)))
+    crit = (actor.facing == target.facing
+      or target.ailment == "sleep"
+      or game.roll_crit(attacker=actor, defender=target))
+    if miss:
       damage = None
     elif block:
-      damage = 0
+      print(damage)
+      damage = max(0, damage - target.find_shield().en)
       target.block()
     elif crit:
       damage = game.find_damage(actor, target, modifier=modifier * 1.33)
@@ -1402,7 +1400,8 @@ class DungeonContext(Context):
 
     if damage == None:
       flinch = None
-      direction and target.set_facing(invert_direction(direction))
+      if direction:
+        target.facing = invert_direction(direction)
       display_text()
     elif int(damage) == 0 or block:
       flinch = ShakeAnim(
@@ -1417,7 +1416,7 @@ class DungeonContext(Context):
         duration=DungeonContext.FLINCH_DURATION,
         direction=direction,
         on_start=lambda: (
-          direction and target.facing != direction and not target.charge_skill and target.set_facing(invert_direction(direction)),
+          direction and target.facing != direction and not target.charge_skill and setattr(target, "facing", invert_direction(direction)),
           target.damage(damage),
           display_text()
         )
@@ -1529,7 +1528,7 @@ class DungeonContext(Context):
     if not item and not actor.item:
       return False
     item = actor.item
-    target_cell = add_vector(actor.cell, actor.get_facing())
+    target_cell = add_vector(actor.cell, actor.facing)
     if Tile.is_solid(game.floor.get_tile_at(target_cell)) or next((e for e in game.floor.get_elems_at(target_cell) if e.solid), None):
       return False
     game.floor.spawn_elem_at(target_cell, ItemDrop(item))
@@ -1550,7 +1549,7 @@ class DungeonContext(Context):
     return game.pickup_item(actor=game.hero)
 
   def pickup_item(game, actor, itemdrop=None):
-    target_cell = add_vector(actor.cell, actor.get_facing())
+    target_cell = add_vector(actor.cell, actor.facing)
     itemdrop = itemdrop or next((e for e in game.floor.get_elems_at(target_cell) if isinstance(e, ItemDrop)), None)
     if not itemdrop:
       return False
@@ -1572,12 +1571,12 @@ class DungeonContext(Context):
     if not item and not actor.item:
       return False
     item = actor.item
-    facing_cell = add_vector(actor.cell, actor.get_facing())
+    facing_cell = add_vector(actor.cell, actor.facing)
     target_cell = actor.cell
     target_elem = None
     throwing = True
     while throwing:
-      next_cell = add_vector(target_cell, actor.get_facing())
+      next_cell = add_vector(target_cell, actor.facing)
       next_elem = next((e for e in game.floor.get_elems_at(next_cell) if e.solid), None)
       if Tile.is_solid(game.floor.get_tile_at(next_cell)) or next((e for e in game.floor.get_elems_at(next_cell) if e.solid and not isinstance(e, DungeonActor)), None):
         throwing = False
@@ -1638,7 +1637,7 @@ class DungeonContext(Context):
 
   def use_skill(game, actor, skill, dest=None, on_end=None):
     camera = game.camera
-    if actor.get_faction() == "player":
+    if actor.faction == "player":
       game.store.sp -= skill.cost
     if skill.kind == "weapon":
       actor_x, actor_y = actor.cell
@@ -1646,7 +1645,7 @@ class DungeonContext(Context):
       target_cell = (actor_x + facing_x, actor_y + facing_y)
       target = next((e for e in game.floor.elems if (
         isinstance(e, DungeonActor)
-        and e.get_faction() == "enemy"
+        and e.faction == "enemy"
         and e.cell == target_cell
       )), None)
       if target:
@@ -1871,7 +1870,7 @@ class DungeonContext(Context):
     facing_elem = next((e for e in facing_elems if (
       e.solid
       and e.active
-      and (not isinstance(e, DungeonActor) or e.get_faction() == "ally")
+      and (not isinstance(e, DungeonActor) or e.faction == "ally")
     )), None)
     if game.talkbubble:
       game.talkbubble.done = True

@@ -26,9 +26,9 @@ class Floor1(Floor):
   scripts = [
     ("equip", lambda game: CutsceneContext(script=[
       lambda step: game.child.open(DialogueContext(script=[
-        (game.talkee.get_name(), "Do you have a weapon on you?"),
-        (game.talkee.get_name(), "Try pressing 'B' to open up the CUSTOM menu."),
-        (game.talkee.get_name(), "You'll be a sitting duck in the dungeon without a weapon equipped."),
+        (game.talkee.name, "Do you have a weapon on you?"),
+        (game.talkee.name, "Try pressing 'B' to open up the CUSTOM menu."),
+        (game.talkee.name, "You'll be a sitting duck in the dungeon without a weapon equipped."),
       ]), on_close=step),
       lambda step: (
         game.anims.append([FlickerAnim(
@@ -41,7 +41,7 @@ class Floor1(Floor):
         )])
       ),
       lambda step: game.child.open(DialogueContext(script=[
-        (game.hero.get_name(), "We have a certain someone to thank for that..."),
+        (game.hero.name, "We have a certain someone to thank for that..."),
       ]), on_close=step)
     ]))
   ]

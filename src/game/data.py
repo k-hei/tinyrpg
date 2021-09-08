@@ -80,7 +80,7 @@ class GameData:
     )
 
   def decode(savedata):
-    party = [resolve_core(n)() for n in savedata.party]
+    party = [resolve_core(n)(faction="player") for n in savedata.party]
     builds = {}
     for name, build in savedata.builds.items():
       builds[name] = []

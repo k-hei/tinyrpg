@@ -52,7 +52,7 @@ class ArenaRoom(SpecialRoom):
     ]
 
   def get_enemies(feature, stage):
-    return [e for e in [stage.get_elem_at(c, superclass=DungeonActor) for c in feature.get_cells()] if e and e.get_faction() == "enemy"]
+    return [e for e in [stage.get_elem_at(c, superclass=DungeonActor) for c in feature.get_cells()] if e and e.faction == "enemy"]
 
   def spawn_wave(feature, game, wave):
     stage = game.floor
@@ -63,7 +63,7 @@ class ArenaRoom(SpecialRoom):
     )]
     i = 0
     while wave and valid_cells:
-      enemy = wave.pop(0)(aggro=1)
+      enemy = wave.pop(0)(aggro=3)
       enemy_cell = choice(valid_cells)
       valid_cells.remove(enemy_cell)
       stage.spawn_elem_at(enemy_cell, enemy)

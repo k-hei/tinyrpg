@@ -35,7 +35,7 @@ class OasisRoom(SpecialRoom):
   scripts = [
     ("save", lambda game: DialogueContext(script=[
       lambda: PromptContext(
-        message="{}: Save your game?".format(game.talkee.get_name().upper()),
+        message="{}: Save your game?".format(game.talkee.name.upper()),
         choices=[
           Choice("Yes"),
           Choice("No", closing=True),

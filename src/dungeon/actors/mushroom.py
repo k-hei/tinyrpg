@@ -34,7 +34,7 @@ class Mushroom(DungeonActor):
         en=10,
       ),
       skills=[Tackle, Virus],
-      message=[(name, "Oh god, it's all coming out! Someone make it stop!")]
+      message=[(name, "Ahn<3 I'm cooominggggg!!")]
     ), *args, **kwargs)
     mushroom.damaged = False
 

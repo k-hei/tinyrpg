@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from types import FunctionType
 from json import JSONEncoder
+from cores import Core
 from dungeon.stage import Stage, Tile
 from dungeon.decor import Decor
 from dungeon.element import DungeonElement
@@ -22,4 +23,6 @@ class DungeonData:
         return obj.encode()
       if isinstance(obj, FunctionType):
         return obj.__name__
+      if isinstance(obj, Core):
+        return None
       return JSONEncoder.default(encoder, obj)

@@ -19,9 +19,9 @@ class LovePotion(AilmentItem):
       color=GREEN
     ))
     actor = actor or game.hero
-    if actor.get_faction() != "enemy":
+    if actor.faction != "enemy":
       return False
-    actor.set_faction("ally")
+    actor.faction = "ally"
     actor.aggro = False
     actor.behavior = "chase"
     actor.dispel_ailment()

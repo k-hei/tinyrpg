@@ -34,10 +34,12 @@ class Actor(Element):
     top = y
     return Rect(left, top, width, height)
 
-  def get_name(actor):
+  @property
+  def name(actor):
     return actor.core.name
 
-  def get_facing(actor):
+  @property
+  def facing(actor):
     return actor.core.facing
 
   def face(actor, facing):
@@ -105,9 +107,9 @@ class Actor(Element):
     if actor.pos == target.pos:
       return True
     actor_x, actor_y = actor.pos
-    facing_x, facing_y = actor.get_facing()
+    facing_x, facing_y = actor.facing
     target_x, target_y = target.pos
-    target_facing_x, target_facing_y = target.get_facing()
+    target_facing_x, target_facing_y = target.facing
     dist_x = abs(target_x - actor_x)
     dist_y = abs(target_y - actor_y)
     if not actor.moved and dist_x < TILE_SIZE and dist_y < TILE_SIZE:
@@ -130,7 +132,7 @@ class Actor(Element):
     target_x, target_y = target.pos
     dist_x = target_x - actor_x
     dist_y = target_y - actor_y
-    facing_x, facing_y = actor.get_facing()
+    facing_x, facing_y = actor.facing
     in_range = (sqrt(dist_x * dist_x + dist_y * dist_y) < TALK_RADIUS
       or target.is_shopkeep
         and abs(dist_x) < TILE_SIZE // 2

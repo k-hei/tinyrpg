@@ -73,7 +73,7 @@ class CoffinRoom(SpecialRoom):
   def get_enemies(room, stage):
     return [e for e in [
       stage.get_elem_at(c, superclass=DungeonActor) for c in room.get_cells()
-    ] if e and e.get_faction() == "enemy"]
+    ] if e and e.faction == "enemy"]
 
   def place(room, stage, *args, **kwargs):
     if not super().place(stage, *args, **kwargs):
@@ -146,54 +146,54 @@ def cutscene(room, game):
     lambda step: (
       game.child.open(DialogueContext(script=[
         lambda: game.anims.append([ShakeAnim(target=mage, duration=15)]),
-        (hero.get_name().upper(), "You sure like running, don't you?"),
+        (hero.name.upper(), "You sure like running, don't you?"),
         lambda: game.anims.append([JumpAnim(target=mage)]),
-        (mage.get_name().upper(), "Eep!"),
+        (mage.name.upper(), "Eep!"),
       ]), on_close=step)
     ),
     lambda step: (
-      mage.set_facing((1, 0)),
+      setattr(mage, "facing", (1, 0)),
       game.anims.append([PauseAnim(duration=10, on_end=step)]),
     ),
     lambda step: (
-      mage.set_facing((0, 1)),
+      setattr(mage, "facing", (0, 1)),
       game.anims.append([PauseAnim(duration=10, on_end=step)]),
     ),
     lambda step: (
       game.child.open(DialogueContext(script=[
-        (mage.get_name().upper(), "Ugh, you AGAIN?"),
+        (mage.name.upper(), "Ugh, you AGAIN?"),
         lambda: (
           mage.core.anims.clear(),
           mage.core.anims.append(mage.core.CheekyAnim())
-        ) and (mage.get_name().upper(), "Look, I already spent all your little coins on jewelry and makeup."),
-        (mage.get_name().upper(), "You don't have a reason to chase me!"),
+        ) and (mage.name.upper(), "Look, I already spent all your little coins on jewelry and makeup."),
+        (mage.name.upper(), "You don't have a reason to chase me!"),
         lambda: (
           game.anims.append([MoveAnim(
             target=hero,
             duration=PUSH_DURATION,
             src=hero.cell,
-            dest=vector.add(hero.cell, hero.get_facing()),
+            dest=vector.add(hero.cell, hero.facing),
           )]),
-          hero.move_to(vector.add(hero.cell, hero.get_facing()))
-        ) and (hero.get_name().upper(), "Give me my sword."),
+          hero.move_to(vector.add(hero.cell, hero.facing))
+        ) and (hero.name.upper(), "Give me my sword."),
         lambda: (
           mage.core.anims.clear(),
           mage.core.anims.append(mage.core.LaughAnim())
-        ) and (mage.get_name().upper(), "Hee hee hee..."),
+        ) and (mage.name.upper(), "Hee hee hee..."),
         lambda: (
           mage.core.anims.clear(),
           game.anims.append([MoveAnim(target=mage, duration=inf, period=30)])
-        ) and (mage.get_name().upper(), "How about I keep it, and you deal with whatever nice fellas might be in here?"),
-        (hero.get_name().upper(), "????"),
+        ) and (mage.name.upper(), "How about I keep it, and you deal with whatever nice fellas might be in here?"),
+        (hero.name.upper(), "????"),
         lambda: (
           game.anims.clear(),
           mage.core.anims.clear(),
           mage.core.anims.append(mage.core.CastAnim())
-        ) and (mage.get_name().upper(), "SUPER...."),
-        (mage.get_name().upper(), "YELLING..."),
-        (mage.get_name().upper(), "ATTACK!!!"),
+        ) and (mage.name.upper(), "SUPER...."),
+        (mage.name.upper(), "YELLING..."),
+        (mage.name.upper(), "ATTACK!!!"),
         lambda: (
-          mage.set_facing((-1, 0)),
+          setattr(mage, "facing", (-1, 0)),
           mage.core.anims.clear(),
           mage.core.anims.append(mage.core.YellAnim()),
           game.anims.append([
@@ -207,7 +207,7 @@ def cutscene(room, game):
           ]),
           game.vfx.append(AlertBubble(hero.cell)),
           hero.move_to(vector.add(hero.cell, (0, 1)))
-        ) and (mage.get_name().upper(), "AAAAAHHH!!!!!!!!!"),
+        ) and (mage.name.upper(), "AAAAAHHH!!!!!!!!!"),
       ]), on_close=step),
     ),
     lambda step: (
@@ -220,19 +220,19 @@ def cutscene(room, game):
     ),
     lambda step: (
       game.floor_view.shake(duration=inf, vertical=True),
-      hero.set_facing((-1, 0)),
+      setattr(hero, "facing", (-1, 0)),
       game.child.open(DialogueContext(script=[
         spawn_enemies(room, game) and ("????", "Urrrrrgh....."),
         lambda: (
-          hero.set_facing((0, -1)),
+          setattr(hero, "facing", (0, -1)),
           game.anims[0].append(JumpAnim(target=hero)),
-        ) and (hero.get_name().upper(), "You idiot! You're gonna get us both killed!")
+        ) and (hero.name.upper(), "You idiot! You're gonna get us both killed!")
       ]), on_close=step)
     ),
     lambda step: (
       game.anims.clear(),
       mage.core.anims.clear(),
-      mage.set_facing((0, 1)),
+      setattr(mage, "facing", (0, 1)),
       game.anims.append([MoveAnim(target=mage, duration=inf, period=30)]),
       game.camera.focus(
         cell=vector.add(room.get_center(), (0, -room.get_height() // 2 + 2)),
@@ -243,9 +243,9 @@ def cutscene(room, game):
     ),
     lambda step: (
       game.child.open(DialogueContext(script=[
-        (mage.get_name().upper(), "If someone's gonna kick the bucket down here,"),
-        (mage.get_name().upper(), "it's not gonna be me!"),
-        (hero.get_name().upper(), "!!"),
+        (mage.name.upper(), "If someone's gonna kick the bucket down here,"),
+        (mage.name.upper(), "it's not gonna be me!"),
+        (hero.name.upper(), "!!"),
       ]), on_close=step),
     ),
     lambda step: (
@@ -260,26 +260,26 @@ def cutscene(room, game):
     ),
     lambda step: game.anims.append([PauseAnim(duration=30, on_end=step)]),
     lambda step: (
-      mage.set_facing((-1, 0)),
+      setattr(mage, "facing", (-1, 0)),
       game.anims.append([PauseAnim(duration=5, on_end=step)]),
     ),
     lambda step: (
-      mage.set_facing((0, -1)),
+      setattr(mage, "facing", (0, -1)),
       game.anims.append([PauseAnim(duration=5, on_end=step)]),
     ),
     lambda step: (
-      mage.set_facing((1, 0)),
+      setattr(mage, "facing", (1, 0)),
       game.anims.append([PauseAnim(duration=5, on_end=step)]),
     ),
     lambda step: (
-      mage.set_facing((0, 1)),
+      setattr(mage, "facing", (0, 1)),
       game.anims.append([PauseAnim(duration=5, on_end=step)]),
     ),
     lambda step: game.anims.append([JumpAnim(target=mage, on_end=step)]),
     lambda step: (
       game.child.open(DialogueContext(script=[
-        (mage.get_name().upper(), "So long, suckers!"),
-        (mage.get_name().upper(), "Don't make too much of a mess, you hear?"),
+        (mage.name.upper(), "So long, suckers!"),
+        (mage.name.upper(), "Don't make too much of a mess, you hear?"),
       ]), on_close=step),
     ),
     lambda step: game.anims.append([PathAnim(
@@ -294,7 +294,7 @@ def cutscene(room, game):
     lambda step: (
       game.child.open(DialogueContext(script=[
         lambda: game.anims.append([ShakeAnim(target=hero, duration=30)]),
-        (hero.get_name().upper(), "H-hey!"),
+        (hero.name.upper(), "H-hey!"),
       ]), on_close=step)
     ),
     lambda step: (
@@ -311,11 +311,11 @@ def cutscene(room, game):
       hero.move_to(vector.add(room.cell, (4, 0))),
     ),
     lambda step: (
-      hero.set_facing((0, -1)),
+      setattr(hero, "facing", (0, -1)),
       game.anims.append([AttackAnim(
         target=hero,
         src=hero.cell,
-        dest=vector.add(hero.cell, hero.get_facing()),
+        dest=vector.add(hero.cell, hero.facing),
         on_end=step
       )])
     ),
@@ -323,19 +323,19 @@ def cutscene(room, game):
       game.anims.append([AttackAnim(
         target=hero,
         src=hero.cell,
-        dest=vector.add(hero.cell, hero.get_facing()),
+        dest=vector.add(hero.cell, hero.facing),
         on_end=step
       )])
     ),
     lambda step: (
       game.child.open(DialogueContext(script=[
         lambda: (
-          hero.set_facing((-1, 0)),
+          setattr(hero, "facing", (-1, 0)),
           game.anims.append([JumpAnim(target=mage)])
-        ) and (hero.get_name().upper(), "Damn! That mousy little...!"),
+        ) and (hero.name.upper(), "Damn! That mousy little...!"),
         lambda: (
-          hero.set_facing((0, 1))
-        ) or (hero.get_name().upper(), "Looks like I'll have to put these guys back to sleep first!"),
+          setattr(hero, "facing", (0, 1))
+        ) or (hero.name.upper(), "Looks like I'll have to put these guys back to sleep first!"),
         lambda: (
           game.floor_view.stop_shake(),
         ) and None

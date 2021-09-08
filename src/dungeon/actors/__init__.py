@@ -8,7 +8,7 @@ from cores import Core
 from skills.weapon import Weapon
 
 from colors import darken_color
-from colors.palette import BLACK, WHITE, RED, GREEN, BLUE, CYAN, VIOLET, GOLD, DARKBLUE
+from colors.palette import BLACK, WHITE, GRAY, RED, GREEN, BLUE, CYAN, VIOLET, GOLD, DARKBLUE
 from assets import assets
 from filters import replace_color, darken_image
 from anims.move import MoveAnim
@@ -70,8 +70,6 @@ class DungeonActor(DungeonElement):
     actor.core = core
     actor.stats = copy(core.stats)
     actor.set_hp(hp or core.hp)
-    actor.set_faction(faction or core.faction)
-    actor.set_facing(facing or core.facing)
     actor.behavior = behavior
     actor.bubble = HpBubble(actor.core)
 
@@ -103,10 +101,37 @@ class DungeonActor(DungeonElement):
     if rare:
       actor.promote()
 
-  def get_name(actor): return actor.core.name
-  def get_faction(actor): return actor.core.faction
-  def set_faction(actor, faction):
+  @property
+  def name(actor):
+    return actor.core.name
+
+  @property
+  def faction(actor):
+    return actor.core.faction
+
+  @faction.setter
+  def faction(actor, faction):
     actor.core.faction = faction
+    actor.reset_charge()
+
+  @property
+  def facing(actor):
+    return actor.core.facing
+
+  @facing.setter
+  def facing(actor, facing):
+    actor.core.facing = facing and tuple(map(int, facing))
+
+  def face(actor, dest):
+    actor_x, actor_y = actor.cell
+    dest_x, dest_y = dest
+    delta_x = dest_x - actor_x
+    delta_y = dest_y - actor_y
+    if abs(delta_x) >= abs(delta_y):
+      facing = (int(delta_x / (abs(delta_x) or 1)), 0)
+    else:
+      facing = (0, int(delta_y / (abs(delta_y) or 1)))
+    actor.facing = facing
 
   def get_hp(actor): return actor.core.get_hp()
   def get_hp_max(actor): return actor.core.get_hp_max()
@@ -170,8 +195,8 @@ class DungeonActor(DungeonElement):
     props = {
       **(props and props[0] or {}),
       **(actor.get_hp() != actor.get_hp_max() and { "hp": actor.get_hp() } or {}),
-      **(actor.get_facing() != (1, 0) and { "facing": actor.get_facing() } or {}),
-      **(actor.get_faction() != "player" and { "faction": actor.get_faction() } or {}),
+      **(actor.facing != (1, 0) and { "facing": actor.facing } or {}),
+      **(actor.faction != "player" and { "faction": actor.faction } or {}),
       **(actor.ailment and { "ailment": actor.ailment } or {}),
       **(actor.ailment_turns and { "ailment_turns": actor.ailment_turns } or {}),
       **(actor.rare and { "rare": actor.rare } or {}),
@@ -190,25 +215,6 @@ class DungeonActor(DungeonElement):
       return False
     else:
       return Core.allied(actor.core, target.core)
-
-  def get_facing(actor):
-    return actor.facing
-
-  def set_facing(actor, facing):
-    facing = tuple(map(int, facing))
-    actor.facing = facing
-    actor.core.facing = facing
-
-  def face(actor, dest):
-    actor_x, actor_y = actor.cell
-    dest_x, dest_y = dest
-    delta_x = dest_x - actor_x
-    delta_y = dest_y - actor_y
-    if abs(delta_x) >= abs(delta_y):
-      facing = (int(delta_x / (abs(delta_x) or 1)), 0)
-    else:
-      facing = (0, int(delta_y / (abs(delta_y) or 1)))
-    actor.set_facing(facing)
 
   def inflict_ailment(actor, ailment):
     if ailment == actor.ailment:
@@ -363,7 +369,7 @@ class DungeonActor(DungeonElement):
     enemy = game.find_closest_enemy(actor)
     if not actor.aggro:
       if enemy and game.is_cell_in_vision_range(actor, cell=enemy.cell):
-        if actor.get_faction() == "ally":
+        if actor.faction == "ally":
           print("alert ally from actor step")
         actor.alert()
       return None
@@ -451,7 +457,7 @@ class DungeonActor(DungeonElement):
         ))
 
     # hp bubble
-    if actor.get_faction() != "player" and not (actor.get_faction() == "ally" and actor.behavior == "guard"):
+    if actor.faction != "player" and not (actor.faction == "ally" and actor.behavior == "guard"):
       bubble_sprites = actor.bubble.view()
       actor.bubble.color = actor.color()
       for bubble_sprite in bubble_sprites:
@@ -460,7 +466,7 @@ class DungeonActor(DungeonElement):
       sprites += bubble_sprites
 
     # aggro icon
-    if actor.aggro in (1, 2) and actor.get_faction() == "enemy" and not actor.ailment == "freeze":
+    if actor.aggro in (1, 2) and actor.faction == "enemy" and not actor.ailment == "freeze":
       marker_image = assets.sprites["aggro_mark"]
       marker_image = replace_color(marker_image, BLACK, RED)
       marker_sprite = Sprite(
@@ -481,8 +487,8 @@ class DungeonActor(DungeonElement):
       item_sprite.move(move_offset)
       sprites += [item_sprite]
 
-    actor_color = actor.color() or BLACK
-    if not actor.aggro and actor.get_faction() != "player" and not actor.ailment == "sleep" and actor.updates % 60 >= 30:
+    actor_color = actor.color()
+    if not actor.aggro and actor.faction != "player" and not actor.ailment == "sleep" and actor.updates % 60 >= 30:
       actor_color = darken_color(actor_color)
     if actor_color != BLACK:
       sprite.image = replace_color(sprite.image, BLACK, actor_color)
@@ -521,6 +527,7 @@ class DungeonActor(DungeonElement):
       return GREEN
     elif actor.core.faction == "enemy":
       return RED
+    return GRAY
 
   def token(actor):
-    return Token(text=actor.get_name().upper(), color=actor.color())
+    return Token(text=actor.name.upper(), color=actor.color())

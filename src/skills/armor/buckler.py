@@ -10,6 +10,7 @@ class Buckler(Armor):
   desc = "A small round shield"
   element = "shield"
   st = 1
+  en = 3
   users = [Knight]
   blocks = [
     (0, 0),

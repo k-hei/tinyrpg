@@ -55,7 +55,8 @@ class Arrow(Vfx):
       (0, 1): ArrowDownAnim(),
     }[direction]
 
-  def get_facing(arrow):
+  @property
+  def facing(arrow):
     return arrow.direction
 
   def update(arrow, game):

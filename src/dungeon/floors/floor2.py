@@ -26,8 +26,8 @@ class Floor2(Floor):
   scripts = [
     ("tiles", lambda game: CutsceneContext(script=[
       lambda step: game.child.open(DialogueContext(script=[
-        (game.talkee.get_name(), "The tiles you stand on can have different combat effects."),
-        (game.talkee.get_name(), "Use the environment to boost your chances of survival in the dungeon.")
+        (game.talkee.name, "The tiles you stand on can have different combat effects."),
+        (game.talkee.name, "Use the environment to boost your chances of survival in the dungeon.")
       ]), on_close=step),
       lambda step: (
         game.anims.append([FlickerAnim(
@@ -42,8 +42,8 @@ class Floor2(Floor):
     ])),
     ("items", lambda game: CutsceneContext(script=[
       lambda step: game.child.open(DialogueContext(script=[
-        (game.talkee.get_name(), "How are you doing on items?"),
-        (game.talkee.get_name(), "You may want to make sure you're well stocked up before proceeding.")
+        (game.talkee.name, "How are you doing on items?"),
+        (game.talkee.name, "You may want to make sure you're well stocked up before proceeding.")
       ]), on_close=step),
       lambda step: (
         game.anims.append([FlickerAnim(
