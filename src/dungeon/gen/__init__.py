@@ -437,6 +437,7 @@ def gen_floor(
 ):
   lkg = None
   iters = 0
+  features = FloorGraph(nodes=features) if type(features) is list else features
   placement = { feature: feature.placed for feature in features.nodes }
 
   while lkg is None:

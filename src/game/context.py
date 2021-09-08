@@ -37,7 +37,9 @@ class GameContext(Context):
     else:
       ctx.store = GameData.decode(data)
       ctx.savedata = data
-    if data or feature or floor:
+
+  def init(ctx):
+    if ctx.savedata or ctx.feature or ctx.floor:
       ctx.load()
 
   def load(ctx, savedata=None):

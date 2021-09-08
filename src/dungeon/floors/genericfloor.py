@@ -1,4 +1,6 @@
+from random import randint
 from dungeon.floors import Floor
+from dungeon.features.oasisroom import OasisRoom
 from dungeon.gen import gen_floor, gen_enemy, FloorGraph
 from items.ailment.amethyst import Amethyst
 from items.ailment.antidote import Antidote
@@ -20,22 +22,27 @@ from items.sp.sapphire import Sapphire
 
 class GenericFloor(Floor):
   def generate(store):
-    return gen_floor(size=(27, 27), items=[
-      Amethyst,
-      Antidote, Antidote,
-      Booze,
-      LovePotion,
-      MusicBox,
-      Topaz,
-      Balloon,
-      Emerald,
-      Ankh,
-      Elixir,
-      Potion, Potion,
-      Ruby,
-      Berry,
-      Bread, Bread,
-      Cheese, Cheese,
-      Fish, Fish,
-      Sapphire
-    ])
+    return gen_floor(
+      size=(27, 27),
+      features=[
+        *(randint(1, 5) == 1 and [OasisRoom()] or [])
+      ],
+      items=[
+        Amethyst,
+        Antidote, Antidote,
+        Booze,
+        LovePotion,
+        MusicBox,
+        Topaz,
+        Balloon,
+        Emerald,
+        Ankh,
+        Elixir,
+        Potion, Potion,
+        Ruby,
+        Berry,
+        Bread, Bread,
+        Cheese, Cheese,
+        Fish, Fish,
+        Sapphire
+      ])
