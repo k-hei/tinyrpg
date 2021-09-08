@@ -18,7 +18,7 @@ from config import (
 
 def decode_build(build_data):
   if type(build_data) is dict:
-    build_data = build_data.items()
+    build_data = list(build_data.items())
   if not build_data:
     return {}
   if type(build_data[0][0]) is str:
