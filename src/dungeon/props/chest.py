@@ -71,9 +71,7 @@ class Chest(Prop):
             )
           )
         ])
-        script = [(
-          ("", ("Obtained ", item().token(), "."))
-        )]
+        script = [("", ("Obtained ", item().token(), "."))]
         success = True
       else:
         script = ["Your inventory is already full!"]
@@ -105,4 +103,4 @@ class Chest(Prop):
         chest_image = assets.sprites["chest"]
     chest_color = PINK if chest.rare else GOLD
     chest_image = replace_color(chest_image, BLACK, chest_color)
-    return super().view(chest_image, anims)
+    return super().view([Sprite(image=chest_image)], anims)

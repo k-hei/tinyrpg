@@ -49,11 +49,11 @@ class PushBlock(Prop):
         (0, 0),
         (block_image.get_width(), block_image.get_height() - block_z)
       ))
-    return super().view(Sprite(
+    return super().view([Sprite(
       image=block_image,
       pos=(0, 0),
       layer="elems"
-    ), anims)
+    )], anims)
 
 class SinkAnim(Anim):
   GRAVITY_ACCEL = 0.0625

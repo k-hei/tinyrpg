@@ -1,10 +1,10 @@
-from dungeon.element import DungeonElement
+from dungeon.props import Prop
 import assets
 from filters import replace_color
 from colors.palette import WHITE, SAFFRON
 from sprite import Sprite
 
-class Pillar(DungeonElement):
+class Pillar(Prop):
   solid = True
   static = True
 
@@ -18,7 +18,7 @@ class Pillar(DungeonElement):
     else:
       pillar_image = assets.sprites["pillar"]
     pillar_image = replace_color(pillar_image, WHITE, SAFFRON)
-    return super().view(Sprite(
+    return super().view([Sprite(
       image=pillar_image,
       layer="elems"
-    ), anims)
+    )], anims)

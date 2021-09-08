@@ -54,7 +54,7 @@ def get_tile_visited_state(cell, visited_cells):
 class StageView:
   LAYERS = ["tiles", "decors", "elems", "vfx", "numbers", "ui"]
   SPECIAL_TILES = [Stage.OASIS, Stage.OASIS_STAIRS]
-  ELEVATED_TILES = [Stage.FLOOR_ELEV, Stage.WALL_ELEV, Stage.STAIRS_RIGHT]
+  ELEVATED_TILES = [Stage.FLOOR_ELEV, Stage.WALL_ELEV, Stage.STAIRS, Stage.STAIRS_LEFT, Stage.STAIRS_RIGHT]
   VARIABLE_TILES = [
     Stage.FLOOR,
     Stage.WALL,

@@ -41,10 +41,10 @@ class PoisonPuff(Prop):
     src = tuple([x * TILE_SIZE for x in puff.origin])
     dest = tuple([x * TILE_SIZE for x in puff.cell])
     puff.vfx = (
-      [PoisonPuffVfx(src, dest, size="large") for i in range(randint(3, 6))]
-      + [PoisonPuffVfx(src, dest, size="medium") for i in range(randint(3, 6))]
-      + [PoisonPuffVfx(src, dest, size="small") for i in range(randint(3, 6))]
-      + [PoisonPuffVfx(src, dest, size="tiny") for i in range(randint(3, 6))]
+      [PoisonPuffVfx(src, dest, elev=puff.elev, size="large") for i in range(randint(3, 6))]
+      + [PoisonPuffVfx(src, dest, elev=puff.elev, size="medium") for i in range(randint(3, 6))]
+      + [PoisonPuffVfx(src, dest, elev=puff.elev, size="small") for i in range(randint(3, 6))]
+      + [PoisonPuffVfx(src, dest, elev=puff.elev, size="tiny") for i in range(randint(3, 6))]
     )
     return puff.vfx
 

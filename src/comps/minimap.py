@@ -153,18 +153,18 @@ class Minimap:
         color = (VIOLET, DARKVIOLET)[blink]
       elif isinstance(elem, Npc) and cell in visible_cells:
         color = (GREEN, DARKGREEN)[blink]
-      elif type(elem) is Chest and elem.rare:
+      elif isinstance(elem, Chest) and elem.rare:
         if elem.opened:
           color = 0x7F007F
         else:
           color = (0xFF00FF, 0x7F007F)[blink]
-      elif type(elem) is ItemDrop:
-        color = (0xFFFF00, 0x7F7F00)[blink]
-      elif type(elem) in (Chest, Coffin):
+      elif isinstance(elem, Chest) or type(elem) is Coffin:
         if elem.opened:
           color = 0x7F7F00
         else:
           color = (0xFFFF00, 0x7F7F00)[blink]
+      elif type(elem) is ItemDrop:
+        color = (0xFFFF00, 0x7F7F00)[blink]
       elif type(elem) is Altar:
         color = (0xFFFF00, 0x7F7F00)[blink]
       elif tile is Stage.WALL or isinstance(elem, Door) and elem.locked:

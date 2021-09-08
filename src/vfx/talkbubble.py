@@ -5,9 +5,9 @@ import assets
 from config import TILE_SIZE
 
 class TalkBubble(Vfx):
-  def __init__(bubble, cell, duration=None):
+  def __init__(bubble, cell, elev=0, duration=None):
     x, y = cell
-    super().__init__(kind=None, pos=(x * TILE_SIZE, y * TILE_SIZE))
+    super().__init__(kind=None, pos=(x * TILE_SIZE, (y - elev) * TILE_SIZE))
     bubble.anim = duration and Anim(duration=duration) or None
     bubble.shown = True
 

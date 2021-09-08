@@ -420,10 +420,13 @@ class DungeonActor(DungeonElement):
     move_anim = next((a for a in anim_group if isinstance(a, MoveAnim)), None)
     move_offset = actor.find_move_offset(anims)
 
+    if actor.elev > 0 and not move_anim:
+      offset_z = actor.elev * TILE_SIZE
+
     # ailment badge
     if actor.ailment and not drop_anim:
       badge_image = None
-      badge_pos = (12, -20)
+      badge_pos = (12, -20 - offset_z)
       badge_pos = add_vector(badge_pos, move_offset)
 
       if actor.ailment == "sleep":
@@ -452,7 +455,7 @@ class DungeonActor(DungeonElement):
       bubble_sprites = actor.bubble.view()
       actor.bubble.color = actor.color()
       for bubble_sprite in bubble_sprites:
-        bubble_sprite.move((24, -20))
+        bubble_sprite.move((24, -20 - offset_z))
         bubble_sprite.move(move_offset)
       sprites += bubble_sprites
 
@@ -462,7 +465,7 @@ class DungeonActor(DungeonElement):
       marker_image = replace_color(marker_image, BLACK, RED)
       marker_sprite = Sprite(
         image=marker_image,
-        pos=add_vector((-14, -24), move_offset),
+        pos=add_vector((-14, -24 - offset_z), move_offset),
         layer="vfx"
       )
       sprites.append(marker_sprite)
@@ -477,9 +480,6 @@ class DungeonActor(DungeonElement):
       )
       item_sprite.move(move_offset)
       sprites += [item_sprite]
-
-    if actor.elev > 0 and not move_anim:
-      offset_z = actor.elev * TILE_SIZE
 
     actor_color = actor.color() or BLACK
     if not actor.aggro and actor.get_faction() != "player" and not actor.ailment == "sleep" and actor.updates % 60 >= 30:

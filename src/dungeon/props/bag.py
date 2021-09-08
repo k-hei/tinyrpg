@@ -44,12 +44,12 @@ class Bag(Prop):
       bag_anim = next((a for a in anims[0] if a.target is bag), None)
       if bag_anim and type(bag_anim) is FlickerAnim and bag_anim.time % 2:
         return []
-    return [Sprite(
+    return super().view([Sprite(
       image=bag_image,
       pos=(0, bag.anim.y),
       offset=1,
       layer="elems"
-    )]
+    )], anims)
 
 class BagAnim:
   jump = 2

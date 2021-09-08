@@ -16,10 +16,11 @@ import debug
 class PoisonPuffVfx(Vfx):
   class FloatAnim(Anim): pass
 
-  def __init__(puff, src, dest, size, *args, **kwargs):
+  def __init__(puff, src, dest, size, elev=0, *args, **kwargs):
     super().__init__(kind=None, pos=(0, 0), *args, **kwargs)
     puff.dest = dest
     puff.size = size
+    puff.elev = elev
     puff.anims = [
       *(src != dest and [OffsetMoveAnim(src, dest, speed=(2 + random()) * TILE_SIZE, easing=ease_out)] or []),
       PoisonPuffVfx.FloatAnim()
@@ -56,7 +57,7 @@ class PoisonPuffVfx(Vfx):
           if puff.offset_axis:
             xmod, ymod = ymod, xmod
           x += sin(xmod * puff.offset_direction * 2 * pi) * AMPLITUDE // 2 * 2
-          y += sin(ymod * puff.offset_direction * 2 * pi) * AMPLITUDE // 2 * 2
+          y += sin(ymod * puff.offset_direction * 2 * pi) * AMPLITUDE // 2 * 2 - puff.elev * TILE_SIZE
           puff.pos = (x, y)
         elif type(anim) is OffsetMoveAnim:
           src_x, src_y = anim.src

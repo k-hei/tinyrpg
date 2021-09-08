@@ -4,7 +4,6 @@ from pygame.transform import flip, scale
 
 @dataclass
 class Sprite:
-  key: str = None
   image: Surface = None
   pos: tuple[int, int] = (0, 0)
   size: tuple[int, int] = None
@@ -13,6 +12,7 @@ class Sprite:
   offset: int = 0
   layer: str = None
   target: any = None
+  key: str = None
 
   def copy(sprite):
     return Sprite(

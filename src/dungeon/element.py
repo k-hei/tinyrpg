@@ -115,15 +115,16 @@ class DungeonElement:
           elem.set_facing(tuple(map(int, anim.facing)))
       elif type(anim) is ItemAnim:
         item_image = anim.item.render()
-        item_z = min(12, 6 + anim.time // 2) + ITEM_OFFSET
+        item_offset = min(12, 6 + anim.time // 2) + ITEM_OFFSET
         if anim.time > 30:
-          item_z += sin((anim.time - 30) % 90 / 90 * 2 * pi) * 2
+          item_offset += sin((anim.time - 30) % 90 / 90 * 2 * pi) * 2
         item_x, item_y = elem.cell
         item_x = 0
-        item_y = -item_z
+        item_y = -item_offset
+        item_z = elem.elev * TILE_SIZE
         sprites.append(Sprite(
           image=item_image,
-          pos=(item_x, item_y),
+          pos=(item_x, item_y - item_z),
           origin=("center", "center"),
           layer="numbers"
         ))
@@ -148,8 +149,6 @@ class DungeonElement:
       if type(anim) is JumpAnim:
         offset_y += anim.offset
 
-    # if not moving:
-    #   offset_y -= elem.elev * TILE_SIZE
     sprite.size = (sprite_width, sprite_height)
     sprite.layer = sprite_layer
     sprite.move((offset_x, offset_y))

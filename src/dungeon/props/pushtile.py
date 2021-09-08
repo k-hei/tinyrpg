@@ -44,10 +44,10 @@ class PushTile(DungeonElement):
     if tile.pushed:
       tile_image = replace_color(tile_image, WHITE, PURPLE)
       tile_image = replace_color(tile_image, BLACK, DARKBLUE)
-    return super().view(Sprite(
+    return super().view([Sprite(
       image=tile_image,
       layer="decors"
-    ), anims)
+    )], anims)
 
   def encode(tile):
     [cell, kind, *props] = super().encode()

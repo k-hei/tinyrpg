@@ -28,4 +28,4 @@ class Altar(DungeonElement):
       image=replace_color(altar_image, WHITE, GOLD),
       layer="elems"
     )
-    return super().view(altar_sprite, anims)
+    return super().view([altar_sprite], anims)

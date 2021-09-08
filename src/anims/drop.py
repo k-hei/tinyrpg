@@ -5,7 +5,7 @@ class DropAnim(Anim):
   GRAVITY = 0.2
   BOUNCES = 5
 
-  def __init__(anim, y=(WINDOW_HEIGHT / 2 + TILE_SIZE), *args, **kwargs):
+  def __init__(anim, y=(WINDOW_HEIGHT / 2 + TILE_SIZE * 2), *args, **kwargs):
     super().__init__(*args, **kwargs)
     anim.y = y
     anim.vel = 0

@@ -23,7 +23,7 @@ from keyboard import ARROW_DELTAS, key_times
 import debug
 
 from lib.cell import add as add_vector, is_adjacent, manhattan, normal
-from lib.direction import invert as invert_direction
+from lib.direction import invert as invert_direction, normalize as normalize_direction
 from lib.compose import compose
 
 import assets
@@ -837,7 +837,7 @@ class DungeonContext(Context):
     target_cell = add_vector(origin_cell, actor.facing)
     target_tile = game.floor.get_tile_at(target_cell)
     target_elem = game.floor.get_elem_at(target_cell)
-    if target.static or target_tile is None or target_tile.solid or target_tile.elev or target_elem and target_elem.solid:
+    if target.static or target_tile is None or target_tile.solid or origin_tile.elev != target_tile.elev or target_elem and target_elem.solid:
       return False
     target.cell = target_cell
     target.elev = target_tile.elev
@@ -1051,8 +1051,8 @@ class DungeonContext(Context):
     if (target_tile and not target_tile.solid
     and abs(target_tile.elev - origin_tile.elev) < 1
     and (target_tile.direction == (0, 0) and origin_tile.direction == (0, 0)
-      or direction.normalize(delta) == direction.normalize(origin_tile.direction)
-      or direction.normalize(delta) == direction.normalize(target_tile.direction))
+      or normalize_direction(delta) == normalize_direction(origin_tile.direction)
+      or normalize_direction(delta) == normalize_direction(target_tile.direction))
     and (target_elem is None
       or not target_elem.solid
       or actor is game.hero and isinstance(target_elem, DungeonActor) and target_elem.get_faction() == "ally" and target_elem.can_step()
@@ -1187,6 +1187,7 @@ class DungeonContext(Context):
   def can_block(game, defender, attacker):
     return (
       defender.find_shield()
+      and not defender.is_immobile()
       and defender.get_facing() == invert_direction(attacker.get_facing())
       and (type(defender.command) is not SkillCommand
         or game.roll_block(attacker=attacker, defender=defender))
@@ -1382,14 +1383,15 @@ class DungeonContext(Context):
 
     display_text = lambda: game.numbers.append(DamageValue(
       text=damage_text,
-      cell=target.cell
+      cell=target.cell,
+      offset=(0, -target.elev * TILE_SIZE)
     ))
 
     if damage and crit:
       game.numbers.append(DamageValue(
         text="CRITICAL!",
         cell=target.cell,
-        offset=(4, -4),
+        offset=(4, -4 - target.elev * TILE_SIZE),
         color=YELLOW,
         delay=15
       ))
@@ -1452,7 +1454,7 @@ class DungeonContext(Context):
     game.numbers.append(DamageValue(
       text="FROZEN",
       cell=target.cell,
-      offset=(4, -4),
+      offset=(4, -4 - target.elev * TILE_SIZE),
       color=CYAN,
       delay=15
     ))
@@ -1473,7 +1475,7 @@ class DungeonContext(Context):
           game.numbers.append(DamageValue(
             text="POISON",
             cell=target.cell,
-            offset=(4, -4),
+            offset=(4, -4 - target.elev * TILE_SIZE),
             color=PURPLE,
             delay=15
           ))
@@ -1878,7 +1880,7 @@ class DungeonContext(Context):
       game.talkbubble = None
     if facing_elem and not game.anims:
       bubble_cell = facing_cell
-      game.talkbubble = TalkBubble(cell=bubble_cell)
+      game.talkbubble = TalkBubble(cell=bubble_cell, elev=Tile.get_elev(game.floor.get_tile_at(facing_cell)))
       game.vfx.append(game.talkbubble)
 
   def show_bubble(game):

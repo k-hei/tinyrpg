@@ -46,8 +46,8 @@ class ArrowTrap(Prop):
 
   def view(trap, anims):
     trap_image = trap.surface()
-    return super().view(Sprite(
+    return super().view([Sprite(
       image=trap_image,
       origin=("left", "bottom"),
       layer="elems"
-    ), anims)
+    )], anims)
