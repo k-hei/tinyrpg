@@ -78,7 +78,13 @@ class Eyeball(DungeonActor):
       if neighbors:
         user.clones += 1
         neighbor = choice(neighbors)
-        clone = Eyeball(cloned=True, faction=user.faction, facing=user.facing, aggro=user.aggro)
+        clone = Eyeball(
+          cloned=True,
+          faction=user.faction,
+          facing=user.facing,
+          aggro=user.aggro,
+          rare=user.rare
+        )
         game.anims.append([
           BounceAnim(
             duration=20,
