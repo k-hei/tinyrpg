@@ -247,13 +247,11 @@ class DungeonContext(Context):
         floor.spawn_elem_at((x - 1, y), ally)
 
     enemies = [e for e in floor.elems if isinstance(e, DungeonActor) and not hero.allied(e)]
-    for monster, kills in game.store.kills.items():
-      if (monster.skill is not None
-      and monster.skill not in game.store.skills
-      and kills >= 3):
-        enemy = choice([e for e in enemies if type(e) is monster])
-        if enemy is not None:
-          enemy.promote()
+    for Enemy, kills in game.store.kills.items():
+      spawned_enemies = [e for e in enemies if type(e) is Enemy]
+      if Enemy.skill and Enemy.skill not in game.store.skills and kills >= 5 and spawned_enemies:
+        enemy = choice(spawned_enemies)
+        enemy.promote()
 
     game.room = None
     game.anims = []
