@@ -121,7 +121,7 @@ class DungeonContext(Context):
   AWAKEN_DURATION = 45
   FLOORS = [Floor1, Floor2, Floor3]
 
-  def __init__(game, store, floors=[], floor_index=0, memory=[]):
+  def __init__(game, store, floors=[], floor_index=0, memory=None):
     super().__init__()
     game.store = store
     game.hero = manifest(store.party[0])
@@ -131,7 +131,7 @@ class DungeonContext(Context):
     game.floor = floors[floor_index] if floors else None
     game.floor_view = None
     game.floor_cells = None
-    game.memory = memory
+    game.memory = memory or []
     game.room = None
     game.room_within = None
     game.room_entrances = {}
