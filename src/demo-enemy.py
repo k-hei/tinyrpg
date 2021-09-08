@@ -11,7 +11,7 @@ if argc != 2:
 
 enemy_name = sys.argv[1]
 savedata = load("src/data-debug.json", "testdata/data-arena.json")
-savedata.dungeon["floors"][0]["elems"].append([[4, 3], enemy_name])
+savedata.dungeon["floors"][0]["elems"].append([[4, 3], enemy_name, { "rare": True } ])
 
 App(title="{} demo".format(enemy_name.lower()),
   context=GameContext(

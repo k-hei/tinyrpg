@@ -55,6 +55,7 @@ class DungeonActor(DungeonElement):
     core,
     hp=None,
     faction=None,
+    rare=False,
     behavior="chase",
     facing=None,
     aggro=0,
@@ -94,10 +95,13 @@ class DungeonActor(DungeonElement):
     actor.counter = False
     actor.turns = 0
     actor.updates = 0
-    actor.rare = False
+    actor.rare = rare
     actor.visible_cells = []
     actor.on_kill = None
     actor.flipped = False
+
+    if rare:
+      actor.promote()
 
   def get_name(actor): return actor.core.name
   def get_faction(actor): return actor.core.faction

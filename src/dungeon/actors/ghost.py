@@ -16,6 +16,9 @@ from items.materials.luckychoker import LuckyChoker
 from vfx.ghostarm import GhostArmVfx
 
 class Ghost(DungeonActor):
+  skill = Somnus
+  drops = [LuckyChoker]
+
   class ColdWhip(Skill):
     name = "ColdWhip"
     charge_turns = 2
@@ -39,9 +42,6 @@ class Ghost(DungeonActor):
           )
         )
       )])
-
-  skill = Somnus
-  drops = [LuckyChoker]
 
   def __init__(ghost, *args, **kwargs):
     super().__init__(GhostCore(

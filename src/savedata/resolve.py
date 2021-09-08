@@ -15,6 +15,7 @@ from skills.weapon.mjolnir import Mjolnir
 from skills.attack.shieldbash import ShieldBash
 from skills.attack.helmsplitter import HelmSplitter
 from skills.attack.cleave import Cleave
+from skills.attack.clawrush import ClawRush
 from skills.attack.blitzritter import Blitzritter
 from skills.attack.rendinggale import RendingGale
 from skills.magic.vortex import Vortex
@@ -106,6 +107,7 @@ from items.materials.diamond import Diamond as DiamondItem
 from items.materials.beetle import Beetle as BeetleItem
 from items.materials.angeltears import AngelTears as AngelTearsItem
 from items.materials.crownjewel import CrownJewel as CrownJewelItem
+from items.materials.luckychoker import LuckyChoker as LuckyChokerItem
 from items.materials.redferrule import RedFerrule as RedFerruleItem
 from items.hp.ankh import Ankh as AnkhItem
 from items.hp.ruby import Ruby as RubyItem
@@ -142,6 +144,7 @@ def resolve_item(key):
   if key == "Beetle": return BeetleItem
   if key == "AngelTears": return AngelTearsItem
   if key == "CrownJewel": return CrownJewelItem
+  if key == "LuckyChoker": return LuckyChokerItem
   if key == "RedFerrule": return RedFerruleItem
   if key == "Ankh": return AnkhItem
   if key == "Ruby": return RubyItem
@@ -169,6 +172,7 @@ def resolve_skill(key):
   if key == "ShieldBash": return ShieldBash
   if key == "HelmSplitter": return HelmSplitter
   if key == "Cleave": return Cleave
+  if key == "ClawRush": return ClawRush
   if key == "Blitzritter": return Blitzritter
   if key == "RendingGale": return RendingGale
   if key == "Vortex": return Vortex
@@ -266,6 +270,7 @@ def resolve_material(material):
   if material is Beetle: return None
   if material is AngelTears: return Eyeball
   if material is CrownJewel: return Mummy
+  if material is LuckyChoker: return Ghost
   if material is RedFerrule: return Mushroom
   if material is Club: return Skeleton
   if material is BroadSword: return Mage

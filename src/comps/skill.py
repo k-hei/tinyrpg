@@ -47,6 +47,8 @@ class Skill:
       return assets.sprites["icon_axe"]
     elif skill.element == "staff":
       return assets.sprites["icon_cudgel"]
+    elif skill.element == "fist":
+      return assets.sprites["icon_fist"]
     elif skill.element == "shield":
       return assets.sprites["icon_shield"]
     elif skill.element == "fire":

@@ -8,6 +8,7 @@
   "icon_ice":       [ 7,  7, 7, 7],
   "icon_volt":      [14,  7, 7, 7],
   "icon_wind":      [21,  7, 7, 7],
+  "icon_fist":      [28,  7, 7, 7],
   "icon_hat":       [ 0, 14, 7, 7],
   "icon_skull":     [ 7, 14, 7, 7],
   "icon_skill":     [14, 14, 7, 7],

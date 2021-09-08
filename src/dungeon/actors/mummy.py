@@ -3,6 +3,7 @@ from dungeon.actors import DungeonActor
 from cores import Core, Stats
 from dungeon.stage import Tile
 from skills.attack import AttackSkill
+from skills.attack.clawrush import ClawRush
 from skills.support import SupportSkill
 from skills.weapon.club import Club
 from lib.cell import is_adjacent, add as add_vector
@@ -17,57 +18,14 @@ from anims.shake import ShakeAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from items.materials.crownjewel import CrownJewel
-from vfx.claw import ClawVfx
 from vfx.linen import LinenVfx
 from config import PUSH_DURATION
 
 class Mummy(DungeonActor):
   drops = [CrownJewel]
+  skill = ClawRush
 
   class ChargeAnim(ShakeAnim): pass
-
-  class ClawRush(AttackSkill):
-    name = "ClawRush"
-    charge_turns = 1
-    def effect(user, dest, game, on_end=None):
-      origin_cell = user.cell
-      dest_cell = add_vector(origin_cell, user.facing)
-      if game.floor.is_cell_empty(dest_cell):
-        target_cell = add_vector(dest_cell, user.facing)
-      else:
-        target_cell = dest_cell
-        dest_cell = origin_cell
-      target_actor = next((e for e in game.floor.get_elems_at(target_cell) if isinstance(e, DungeonActor)), None)
-      def attack():
-        not game.anims and game.anims.append([])
-        game.anims[0].append(AttackAnim(
-          target=user,
-          src=dest_cell,
-          dest=target_cell,
-          on_start=lambda: game.vfx.append(ClawVfx(cell=target_cell)),
-          on_connect=(lambda: game.attack(
-            actor=user,
-            target=target_actor,
-            modifier=1.5,
-            is_animated=False
-          )) if target_actor else None,
-          on_end=on_end
-        ))
-      if dest_cell == origin_cell:
-        attack()
-      else:
-        game.anims.append([
-          MoveAnim(
-            target=user,
-            src=origin_cell,
-            dest=dest_cell,
-            duration=10,
-            on_end=lambda: (
-              setattr(user, "cell", dest_cell),
-              attack()
-            )
-          )
-        ])
 
   class LinenWhip(AttackSkill):
     name = "LinenWhip"
@@ -158,7 +116,7 @@ class Mummy(DungeonActor):
       if randint(0, 1):
         return ("use_skill", Mummy.Backstep)
       else:
-        return soldier.charge(skill=Mummy.ClawRush, dest=enemy.cell)
+        return soldier.charge(skill=ClawRush, dest=enemy.cell)
 
     soldier_x, soldier_y = soldier.cell
     enemy_x, enemy_y = enemy.cell
@@ -168,7 +126,7 @@ class Mummy(DungeonActor):
     if (dist == 2 and (abs(dist_x) == 2 or abs(dist_y) == 2)
     or dist == 1 and randint(0, 1)):
       soldier.face(enemy.cell)
-      return soldier.charge(skill=Mummy.ClawRush, dest=enemy.cell)
+      return soldier.charge(skill=ClawRush, dest=enemy.cell)
     elif abs(dist_x) <= 2 and abs(dist_x) == abs(dist_y):
       return ("use_skill", Mummy.LinenWhip, enemy.cell)
 

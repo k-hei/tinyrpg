@@ -18,7 +18,7 @@ class Blitzritter(AttackSkill):
   range_min = 1
   range_max = 2
   range_radius = 0
-  users = (Knight,)
+  users = [Knight]
   blocks = (
     (0, 0),
     (1, 0),
