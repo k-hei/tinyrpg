@@ -44,20 +44,14 @@ from dungeon.props.pushblock import PushBlock
 from dungeon.props.pushtile import PushTile
 
 from items.hp.potion import Potion
-from items.hp.ankh import Ankh
-from items.hp.elixir import Elixir
 from items.sp.cheese import Cheese
 from items.sp.bread import Bread
 from items.sp.fish import Fish
-from items.dungeon.balloon import Balloon
-from items.dungeon.emerald import Emerald
 from items.dungeon.key import Key
 from items.ailment.antidote import Antidote
-from items.ailment.topaz import Topaz
 from items.ailment.musicbox import MusicBox
 from items.ailment.lovepotion import LovePotion
 from items.ailment.booze import Booze
-from items.materials.angeltears import AngelTears
 
 from skills.support.counter import Counter
 
@@ -433,7 +427,14 @@ def gen_features(floor, feature_graph):
         floor.tree.add(neighbor)
   return True
 
-def gen_floor(features=FloorGraph(), entrance=None, size=config.FLOOR_SIZE, enemies=[Eyeball, Mushroom, Ghost, Mummy], seed=None):
+def gen_floor(
+  features=FloorGraph(),
+  entrance=None,
+  size=config.FLOOR_SIZE,
+  enemies=[Eyeball, Mushroom, Ghost, Mummy],
+  items=[Potion, Cheese, Bread, Fish, Antidote, MusicBox, LovePotion, Booze],
+  seed=None
+):
   lkg = None
   iters = 0
   placement = { feature: feature.placed for feature in features.nodes }
@@ -614,7 +615,7 @@ def gen_floor(features=FloorGraph(), entrance=None, size=config.FLOOR_SIZE, enem
       ItemRoom(
         size=room.size,
         cell=room.cell,
-        items=[gen_item() for _ in range(randint(1, 3))]
+        items=[choice(items) for _ in range(randint(1, 3))]
       ).place(stage, connectors=door_cells)
       gen_enemies(room, max=3)
 
@@ -631,9 +632,3 @@ def gen_enemy(Enemy, *args, **kwargs):
     ailment=("sleep" if randint(1, 3) == 1 else None),
     *args, **kwargs
   )
-
-def gen_item():
-  return choices(
-    (Potion, Cheese, Bread, Fish, Antidote, Topaz, LovePotion, MusicBox, Booze),
-    (     6,      6,     6,    3,        3,     1,          3,        3,     3)
-  )[0]

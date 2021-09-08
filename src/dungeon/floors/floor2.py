@@ -58,7 +58,7 @@ class Floor2(Floor):
     ]))
   ]
 
-  def generate(story):
+  def generate(store):
     entry_room = VerticalRoom(size=(3, 4), degree=1)
     coffin_room = CoffinRoom()
     pushblock_room = PushBlockRoom(degree=2)
@@ -66,7 +66,7 @@ class Floor2(Floor):
       size=(3, 4),
       degree=2,
       on_place=lambda room, stage: (
-        "minxia" not in story and stage.spawn_elem_at(add_cell((0, 0), room.cell), Genie(
+        "minxia" not in store.story and stage.spawn_elem_at(add_cell((0, 0), room.cell), Genie(
           name="Joshin",
           message=next((s for s in Floor2.scripts if s[0] == "tiles"), None)
         ))

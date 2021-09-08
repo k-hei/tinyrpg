@@ -1783,7 +1783,7 @@ class DungeonContext(Context):
       app = game.get_head()
       app.transition(
         transits=(DissolveIn(), DissolveOut()),
-        loader=Floor.generate(game.store.story),
+        loader=Floor.generate(game.store),
         on_end=lambda floor: (
           remove_heroes(),
           game.use_floor(floor, direction=direction, generator=Floor),

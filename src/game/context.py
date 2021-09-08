@@ -61,7 +61,7 @@ class GameContext(Context):
       ctx.floor = None
       app = ctx.get_head()
       return app.load(
-        loader=Floor.generate(ctx.store.story),
+        loader=Floor.generate(ctx.store),
         on_end=lambda floor: (
           ctx.goto_dungeon(floors=[floor], generator=Floor),
           app.transition([DissolveOut()])

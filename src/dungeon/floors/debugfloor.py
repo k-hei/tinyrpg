@@ -6,7 +6,7 @@ from dungeon.features.coffinroom import CoffinRoom
 from dungeon.features.traproom import TrapRoom
 
 class DebugFloor(Floor):
-  def generate(story):
+  def generate(store):
     entry_room = VerticalRoom(size=(3, 4), degree=2)
     oasis_room = OasisRoom()
     coffin_room = CoffinRoom()

@@ -181,7 +181,7 @@ def next_floor(game):
   return lambda step: (
     game.get_head().transition(
       transits=(DissolveIn(), DissolveOut()),
-      loader=Floor1.generate(game.store.story),
+      loader=Floor1.generate(game.store),
       on_end=lambda floor: (
         game.use_floor(floor, generator=Floor1),
         step()
