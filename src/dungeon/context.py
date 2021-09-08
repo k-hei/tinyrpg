@@ -197,7 +197,7 @@ class DungeonContext(Context):
 
   def get_floor_no(game):
     gen_index = next((i for i, g in enumerate(DungeonContext.FLOORS) if g.__name__ == game.floor.generator), None)
-    return gen_index + 1 if gen_index is not None else '??'
+    return gen_index + 1 if gen_index is not None else len(game.floors)
 
   def get_hero(game):
     return game.hero

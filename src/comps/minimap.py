@@ -12,6 +12,7 @@ from dungeon.props.coffin import Coffin
 from dungeon.props.itemdrop import ItemDrop
 from dungeon.props.soul import Soul
 from dungeon.props.door import Door
+from dungeon.props.pillar import Pillar
 from dungeon.props.altar import Altar
 from colors.palette import GREEN, DARKGREEN, VIOLET, DARKVIOLET
 from anims.tween import TweenAnim
@@ -167,7 +168,7 @@ class Minimap:
         color = (0xFFFF00, 0x7F7F00)[blink]
       elif type(elem) is Altar:
         color = (0xFFFF00, 0x7F7F00)[blink]
-      elif tile is Stage.WALL or isinstance(elem, Door) and elem.locked:
+      elif tile is Stage.WALL or isinstance(elem, Door) and elem.locked or type(elem) is Pillar:
         if cell in visible_cells:
           color = 0x00CCFF
         else:
