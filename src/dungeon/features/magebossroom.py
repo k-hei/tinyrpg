@@ -173,7 +173,7 @@ def prebattle_cutscene(room, game):
     lambda step: game.child.open(DialogueContext(script=[
       (knight.get_name(), "Not only have you been trying to put me in the ground,"),
       (knight.get_name(), "you're permitless and exploring a tomb without permission."),
-      (knight.get_name(), "A few years in a little box will give you enough time to think about everything you've done!"),
+      (knight.get_name(), "A few years in a little box will give you enough time to think about everything you've done."),
     ]), on_close=step),
     lambda step: (
       room.mage.set_facing((-1, 0)),

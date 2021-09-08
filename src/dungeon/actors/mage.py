@@ -23,14 +23,16 @@ from skills.weapon.broadsword import BroadSword
 class Mage(DungeonActor):
   drops = [BroadSword]
 
-  def __init__(mage, core=None, ailment=None, ailment_turns=0, *args, **kwargs):
+  def __init__(mage, faction="ally", core=None, ailment=None, ailment_turns=0, *args, **kwargs):
     super().__init__(
-      core=core or MageCore(skills=[Glacio, Accerso], *args, **kwargs),
+      core=core or MageCore(faction=faction, skills=[Glacio, Accerso], *args, **kwargs),
       ailment=ailment,
       ailment_turns=ailment_turns,
-      aggro=1,
+      aggro=3,
       behavior="guard"
     )
+    if faction == "enemy":
+      mage.behavior = "chase"
 
   def set_faction(mage, faction):
     super().set_faction(faction)
@@ -55,6 +57,8 @@ class Mage(DungeonActor):
       return None
 
     enemy = game.find_closest_enemy(mage)
+    if not mage.aggro:
+      return super().step(game)
     if enemy is None:
       return None
 

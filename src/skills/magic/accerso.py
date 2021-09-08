@@ -38,7 +38,7 @@ class Accerso(MagicSkill):
         for i, cell in enumerate(target_cells):
           ally = Eyeball(
             faction="enemy" if user.get_faction() == "enemy" else "ally",
-            aggro=1
+            aggro=3
           )
           # ally.command = True
           floor.spawn_elem_at(cell, ally)

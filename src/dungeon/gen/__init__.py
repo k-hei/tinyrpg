@@ -547,11 +547,12 @@ def gen_floor(features=FloorGraph(), entrance=None, size=config.FLOOR_SIZE, enem
         debug("No empty leaves to spawn exit at")
         yield None
         continue
-      exit_room = choice(empty_leaves)
-      stage.exit = exit_room.get_center()
-      if exit_room in empty_rooms:
-        empty_rooms.remove(exit_room)
-      stage.set_tile_at(stage.exit, stage.STAIRS_UP)
+      if empty_leaves:
+        exit_room = choice(empty_leaves)
+        stage.exit = exit_room.get_center()
+        if exit_room in empty_rooms:
+          empty_rooms.remove(exit_room)
+        stage.set_tile_at(stage.exit, stage.STAIRS_UP)
 
     # draw doors
     doors = []

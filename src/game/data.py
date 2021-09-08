@@ -19,8 +19,13 @@ from config import (
 def decode_build(build_data):
   if type(build_data) is dict:
     build_data = build_data.items()
-  return [(resolve_skill(skill_name), skill_cell)
-    for (skill_name, skill_cell) in build_data]
+  if not build_data:
+    return {}
+  if type(build_data[0][0]) is str:
+    return [(resolve_skill(skill_name), skill_cell)
+      for skill_name, skill_cell in build_data]
+  else:
+    return build_data
 
 @dataclass
 class GameData:

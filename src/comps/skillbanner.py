@@ -22,7 +22,7 @@ class SkillBanner(Component):
     banner.image = replace_color(assets.sprites["skill_banner"], BANNER_COLOR, color)
     banner.image_written = banner.image.copy()
     Sprite(
-      image=assets.ttf["normal"].render(text),
+      image=assets.ttf["english"].render(text),
       pos=(banner.image.get_width() // 2, banner.image.get_height() // 2),
       origin=("center", "center"),
     ).draw(banner.image_written)

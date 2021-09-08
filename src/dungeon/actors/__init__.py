@@ -475,10 +475,11 @@ class DungeonActor(DungeonElement):
     if actor.elev > 0 and not move_anim:
       offset_z = actor.elev * TILE_SIZE
 
-    actor_color = actor.color()
+    actor_color = actor.color() or BLACK
     if not actor.aggro and actor.get_faction() != "player" and not actor.ailment == "sleep" and actor.updates % 60 >= 30:
       actor_color = darken_color(actor_color)
-    sprite.image = replace_color(sprite.image, BLACK, actor_color)
+    if actor_color != BLACK:
+      sprite.image = replace_color(sprite.image, BLACK, actor_color)
     if asleep:
       sprite.image = darken_image(sprite.image)
 
