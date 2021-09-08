@@ -153,8 +153,8 @@ class ShopContext(Context):
 
   def handle_choose(ctx, card):
     if card.name == "exit": return ctx.handle_exit()
+    if card.name == "buy": return ctx.focus()
     ctx.portraits.cycle()
-    if card.name == "buy": return
     if card.name == "sell": return ctx.handle_sell(card)
 
   def handle_sell(ctx, card):
