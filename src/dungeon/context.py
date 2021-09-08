@@ -1215,6 +1215,7 @@ class DungeonContext(Context):
       modifier *= 1.25 # side attack/surprise attack bonus
     block = game.can_block(attacker=actor, defender=target)
     miss = (not target.is_immobile()
+      and target.facing != actor.facing
       and ((target.aggro > 1 or target.faction == "player") and not game.roll_hit(attacker=actor, defender=target))
       and (not block or randint(0, 1)))
     crit = (actor.facing == target.facing
@@ -1689,12 +1690,15 @@ class DungeonContext(Context):
       if target_cell:
         camera.focus(target_cell, force=True)
 
-  def full_restore(game):
-    hero = game.hero
-    hero.regen(hero.get_hp_max())
-    hero.dispel_ailment()
-    game.numbers.append(DamageValue(hero.get_hp_max(), add_vector(hero.cell, (0, -0.25)), color=GREEN))
-    game.numbers.append(DamageValue(game.get_sp_max(), hero.cell, color=CYAN))
+  def full_restore(game, actor=None):
+    if actor is None:
+      for actor in game.party:
+        game.full_restore(actor)
+      return
+    actor.regen(actor.get_hp_max())
+    actor.dispel_ailment()
+    game.numbers.append(DamageValue(actor.get_hp_max(), add_vector(actor.cell, (0, -0.25)), color=GREEN))
+    game.numbers.append(DamageValue(game.get_sp_max(), actor.cell, color=CYAN))
     game.store.sp = game.store.sp_max
 
   def use_oasis(game):
@@ -1714,17 +1718,14 @@ class DungeonContext(Context):
     palm.vanish(game)
 
     hero = game.hero
-    game.full_restore()
+    game.full_restore(hero)
 
     ally = game.ally
     if ally:
       if ally.is_dead():
         ally.revive()
         floor.spawn_elem_at(add_vector(hero.cell, (-1, 0)), ally)
-      game.numbers.append(DamageValue(ally.get_hp_max(), add_vector(ally.cell, (0, -0.25)), GREEN))
-      game.numbers.append(DamageValue(game.get_sp_max(), ally.cell, CYAN))
-      ally.regen(ally.get_hp_max())
-      ally.dispel_ailment()
+      game.full_restore(ally)
       game.log.print("The party's HP and SP has been restored.")
     else:
       game.log.print("Your HP and SP have been restored.")

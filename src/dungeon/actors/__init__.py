@@ -367,6 +367,8 @@ class DungeonActor(DungeonElement):
     if not actor.can_step():
       return None
     enemy = game.find_closest_enemy(actor)
+    if not enemy:
+      return None
     if not actor.aggro:
       if enemy and game.is_cell_in_vision_range(actor, cell=enemy.cell):
         if actor.faction == "ally":

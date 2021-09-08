@@ -5,7 +5,7 @@
   "time": 0,
   "gold": 100,
   "items": [],
-  "skills": ["Blitzritter", "Cudgel", "Glacio", "Sana"],
+  "skills": ["Blitzritter", "Cudgel", "Glacio", "Congelatio", "Sana"],
   "new_skills": [],
   "selected_skill": {},
   "party": ["Knight"],

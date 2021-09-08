@@ -45,7 +45,7 @@ class Mage(DungeonActor):
 
   @DungeonActor.faction.setter
   def faction(mage, faction):
-    super().faction = faction
+    DungeonActor.faction.fset(mage, faction)
     if faction == "enemy":
       mage.behavior = "chase"
     else:

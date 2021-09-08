@@ -15,14 +15,13 @@ class Glacio(MagicSkill):
   kind = "magic"
   element = "ice"
   desc = "Freezes target with ice"
-  cost = 4
+  cost = 2
   range_max = 4
   atk = 1
   users = [Mage]
   blocks = (
     (0, 0),
     (1, 0),
-    (2, 0),
   )
 
   def effect(user, dest, game, on_end=None):

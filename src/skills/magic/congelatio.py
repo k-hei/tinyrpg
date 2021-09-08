@@ -15,7 +15,7 @@ class Congelatio(MagicSkill):
   kind = "magic"
   element = "ice"
   desc = "Freezes targets with blizzard"
-  cost = 12
+  cost = 4
   range_type = "radial"
   range_min = 2
   range_max = 3
@@ -28,6 +28,7 @@ class Congelatio(MagicSkill):
     (0, 1),
     (1, 1),
     (2, 1),
+    (1, 2),
   )
 
   def effect(user, dest, game, on_end=None):

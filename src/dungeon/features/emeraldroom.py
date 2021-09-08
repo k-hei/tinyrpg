@@ -27,8 +27,9 @@ class EmeraldRoom(SpecialRoom):
         name="Joshin",
         message=lambda game: DialogueContext(script=[
           (game.talkee.name, ("Well done, ", game.hero.token(), "!")),
-          (game.talkee.name, "You've cleared all the content for this demo."),
-          (game.talkee.name, "Thanks for playing, and stay tuned for more updates!"),
+          (game.talkee.name, "You've cleared all the story content for this demo."),
+          (game.talkee.name, "However, much of the dungeon still remains unexplored."),
+          (game.talkee.name, "What other secrets does it hold?"),
         ])
       ))
     ])
