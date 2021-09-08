@@ -48,11 +48,11 @@ class GhostArmVfx(Vfx):
       fx_anim.update()
       if not fx.connected and fx_anim.frame_index == 1 and fx.on_connect:
         fx.connected = True
-        fx.on_connect()
-        return [ParticleVfx(
-          pos=(fx_x, fx_y),
-          color=fx.color if randint(0, 1) and fx.color != BLACK else WHITE
-        ) for _ in range(randint(10, 15))]
+        if fx.on_connect():
+          return [ParticleVfx(
+            pos=(fx_x, fx_y),
+            color=fx.color if randint(0, 1) and fx.color != BLACK else WHITE
+          ) for _ in range(randint(10, 15))]
     return []
 
   def view(fx):

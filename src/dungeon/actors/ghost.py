@@ -34,7 +34,6 @@ class Ghost(DungeonActor):
             on_connect=(lambda: game.attack(
               actor=user,
               target=target_actor,
-              modifier=1.5 if target_actor.get_faction() == "enemy" else 1.25,
               is_ranged=True,
               is_animated=False,
               on_end=on_end
