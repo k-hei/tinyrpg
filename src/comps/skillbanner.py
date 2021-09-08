@@ -27,6 +27,10 @@ class SkillBanner(Component):
       origin=("center", "center"),
     ).draw(banner.image_written)
 
+  def exit(banner):
+    if len(banner.anims) > 1:
+      banner.anims = [banner.anims[-1]]
+
   def update(banner):
     if banner.done:
       return

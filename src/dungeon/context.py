@@ -1676,6 +1676,9 @@ class DungeonContext(Context):
         game.log.print((actor.token(), " uses ", skill().token()))
       elif skill.name:
         game.log.exit()
+        prev_skill_banner = next((c for c in game.comps if type(c) is SkillBanner), None)
+        if prev_skill_banner:
+          prev_skill_banner.exit()
         game.comps.append(SkillBanner(
           text=skill.name,
           color=actor.color(),
