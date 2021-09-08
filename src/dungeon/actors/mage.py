@@ -36,7 +36,10 @@ class Mage(DungeonActor):
 
   def set_faction(mage, faction):
     super().set_faction(faction)
-    mage.behavior = "chase"
+    if faction == "enemy":
+      mage.behavior = "chase"
+    else:
+      mage.behavior = "guard"
 
   def encode(mage):
     [cell, kind, *props] = super().encode()

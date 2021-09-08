@@ -442,7 +442,7 @@ class DungeonActor(DungeonElement):
         ))
 
     # hp bubble
-    if actor.get_faction() != "player":
+    if actor.get_faction() != "player" and not (actor.get_faction() == "ally" and actor.behavior == "guard"):
       bubble_sprites = actor.bubble.view()
       actor.bubble.color = actor.color()
       for bubble_sprite in bubble_sprites:
