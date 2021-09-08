@@ -87,7 +87,7 @@ def build_buffer(items, skills, cores, elems, actors, materials):
 
   buffer += "\ndef resolve_material(material):\n"
   for material, enemy in materials.items():
-    buffer += "  if material is {}: return {}\n".format(material, enemy)
+    buffer += "  if material is {}Item: return {}\n".format(material, enemy)
 
   return buffer
 

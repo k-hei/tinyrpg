@@ -251,7 +251,7 @@ class DungeonContext(Context):
       if (monster.skill is not None
       and monster.skill not in game.store.skills
       and kills >= 3):
-        enemy = next((e for e in enemies if type(e) is monster), None)
+        enemy = choice([e for e in enemies if type(e) is monster])
         if enemy is not None:
           enemy.promote()
 
@@ -558,6 +558,7 @@ class DungeonContext(Context):
       if (target and room and target.cell in room.get_cells() + room.get_border()
       or game.is_cell_in_vision_range(actor=enemy, cell=target.cell)
       ):
+        print("alert ally from dungeon step")
         enemy.alert()
       else:
         enemy.aggro = 0
@@ -1198,7 +1199,7 @@ class DungeonContext(Context):
       target_def = max(0, target_def - 2)
     if game.can_block(attacker=actor, defender=target):
       target_def *= 1.5
-    variance = 1 if actor.core.faction == "enemy" else 2
+    variance = 1
     return max(0, actor_str - target_def + randint(-variance, variance))
 
   def attack(game, actor, target, damage=None, modifier=1, is_ranged=False, is_animated=True, is_chaining=False, on_connect=None, on_end=None):
@@ -1212,7 +1213,7 @@ class DungeonContext(Context):
         game.log.print((actor.token(), " uses ", actor.weapon().token()))
 
     actor.face(target.cell)
-    if (target.aggro <= 1 and target.get_faction() != "player"
+    if (target.aggro <= 2 and target.get_faction() != "player"
     or target.facing != actor.facing and target.facing != invert_direction(actor.facing)):
       modifier *= 1.25 # side attack/surprise attack bonus
     crit = (

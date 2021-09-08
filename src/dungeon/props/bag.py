@@ -21,17 +21,17 @@ class Bag(Prop):
   def effect(bag, game, actor):
     if actor != game.hero:
       return False
-    game.anims.append([FlickerAnim(
-      duration=30,
-      target=bag,
-      on_end=lambda: game.floor.remove_elem(bag)
-    )])
     if bag.contents:
       if game.store.obtain(bag.contents):
         game.open(child=DialogueContext(
           lite=True,
           script=[("", ("You open the bag\n", "Received ", bag.contents().token(), "."))]
         ))
+        game.anims.append([FlickerAnim(
+          duration=30,
+          target=bag,
+          on_end=lambda: game.floor.remove_elem(bag)
+        )])
       else:
         game.log.print("You can't carry any more materials...")
     return True

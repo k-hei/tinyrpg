@@ -287,9 +287,6 @@ class SellContext(Context):
       items.append(filter_items(ctx.store.items, tab)[i])
     for item in items:
       ctx.store.gold += item.value // 2
-      game = ctx.get_parent(cls="GameContext")
-      if game:
-        game.gold += item.value // 2
       ctx.store.discard_item(item)
     ctx.itembox.items = filter_items(ctx.store.items, ctx.tablist.selection())
     ctx.selection = []

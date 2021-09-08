@@ -23,8 +23,8 @@ class Ghost(DungeonActor):
     name = "ColdWhip"
     charge_turns = 2
     def effect(user, dest, game, on_end=None):
-      target_elem = next((e for e in game.floor.get_elems_at(dest) if isinstance(e, DungeonActor)), None)
-      user.core.anims = [GhostCore.WhipAnim(on_end=on_end if target_elem is None else None)]
+      target_actor = next((e for e in game.floor.get_elems_at(dest) if isinstance(e, DungeonActor)), None)
+      user.core.anims = [GhostCore.WhipAnim(on_end=on_end if target_actor is None else None)]
       game.anims.append([PauseAnim(
         duration=14,
         on_end=lambda: game.vfx.append(
@@ -33,12 +33,12 @@ class Ghost(DungeonActor):
             color=user.color(),
             on_connect=(lambda: game.attack(
               actor=user,
-              target=target_elem,
-              modifier=1.25,
+              target=target_actor,
+              modifier=1.5 if target_actor.get_faction() == "enemy" else 1.25,
               is_ranged=True,
               is_animated=False,
               on_end=on_end
-            )) if target_elem else None
+            )) if target_actor else None
           )
         )
       )])
@@ -47,6 +47,13 @@ class Ghost(DungeonActor):
     super().__init__(GhostCore(
       skills=[Tackle, Somnus]
     ), *args, **kwargs)
+    ghost.damaged = False
+
+  def damage(ghost, *args, **kwargs):
+    super().damage(*args, **kwargs)
+    if not ghost.ailment == "poison":
+      ghost.damaged = True
+      ghost.turns = -1
 
   def set_faction(ghost, faction):
     super().set_faction(faction)
@@ -63,11 +70,14 @@ class Ghost(DungeonActor):
     if not enemy:
       return None
 
-    if is_adjacent(ghost.cell, enemy.cell) and not enemy.ailment == "sleep" and randint(1, 5) == 1:
-      ghost.face(enemy.cell)
-      ghost.turns = 0
-      return ("use_skill", Somnus)
-    elif manhattan(ghost.cell, enemy.cell) <= 2:
+    if ghost.damaged:
+      ghost.damaged = False
+      if is_adjacent(ghost.cell, enemy.cell) and not enemy.ailment == "sleep" and randint(1, 5) == 1:
+        ghost.face(enemy.cell)
+        ghost.turns = 0
+        return ("use_skill", Somnus)
+
+    if manhattan(ghost.cell, enemy.cell) <= 2:
       return ghost.charge(skill=Ghost.ColdWhip, dest=enemy.cell)
     else:
       return ("move_to", enemy.cell)

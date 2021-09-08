@@ -363,6 +363,8 @@ class DungeonActor(DungeonElement):
     enemy = game.find_closest_enemy(actor)
     if not actor.aggro:
       if enemy and game.is_cell_in_vision_range(actor, cell=enemy.cell):
+        if actor.get_faction() == "ally":
+          print("alert ally from actor step")
         actor.alert()
       return None
     if is_adjacent(actor.cell, enemy.cell) and actor.elev == enemy.elev:

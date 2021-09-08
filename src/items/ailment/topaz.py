@@ -12,7 +12,7 @@ class Topaz(AilmentItem):
   value: int = 200
 
   def use(topaz, game):
-    hero = game.get_hero()
+    hero = game.hero
     hero.inflict_ailment("invulnerable")
     game.anims.append([PauseAnim(duration=30)])
-    return True, (hero.token(), "'s body is engulfed in a strange light!")
+    return True, (hero.token(), "'s body is engulfed in a strange light.")

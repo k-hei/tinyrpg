@@ -18,7 +18,6 @@ class LoadContext(DataContext):
     savedata = ctx.slots[ctx.index].data
     if savedata is None:
       return False
-    gamedata = GameData.decode(savedata)
     ctx.open(PromptContext("Load this file?", [
       Choice("Yes"),
       Choice("No", closing=True)
@@ -27,7 +26,7 @@ class LoadContext(DataContext):
         script=["Save data loaded successfully."],
         lite=True,
         on_close=lambda: ctx.get_head().transition([
-          DissolveIn(on_end=lambda: ctx.close(gamedata)),
+          DissolveIn(on_end=lambda: ctx.close(savedata)),
           DissolveOut()
         ])
       ))

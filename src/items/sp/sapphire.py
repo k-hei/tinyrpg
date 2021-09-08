@@ -6,6 +6,7 @@ class Sapphire(SpItem):
   name: str = "Sapphire"
   desc: str = "Restores\nfull SP."
   sprite: str = "gem"
+  value: int = 100
 
   def use(elixir, ctx):
     game = ctx.parent

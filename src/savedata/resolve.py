@@ -266,11 +266,11 @@ def resolve_elem(key):
   if key == "Floor2": return Floor2
 
 def resolve_material(material):
-  if material is Diamond: return None
-  if material is Beetle: return None
-  if material is AngelTears: return Eyeball
-  if material is CrownJewel: return Mummy
-  if material is LuckyChoker: return Ghost
-  if material is RedFerrule: return Mushroom
-  if material is Club: return Skeleton
-  if material is BroadSword: return Mage
+  if material is DiamondItem: return None
+  if material is BeetleItem: return None
+  if material is AngelTearsItem: return Eyeball
+  if material is CrownJewelItem: return Mummy
+  if material is LuckyChokerItem: return Ghost
+  if material is RedFerruleItem: return Mushroom
+  if material is ClubItem: return Skeleton
+  if material is BroadSwordItem: return Mage

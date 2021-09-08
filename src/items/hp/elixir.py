@@ -1,11 +1,14 @@
 from dataclasses import dataclass
 from items.hp import HpItem
+from vfx.burst import BurstVfx
+from comps.damage import DamageValue
+from colors.palette import GREEN
 
 @dataclass
 class Elixir(HpItem):
   name: str = "Elixir"
   desc: str = "Restores full HP and SP."
-  value: int = 100
+  value: int = 200
 
   def use(elixir, store):
     if type(store.place).__name__.startswith("Town"):
@@ -24,3 +27,12 @@ class Elixir(HpItem):
       return True, "The party restored full HP and SP."
     else:
       return False, "Nothing to restore!"
+
+  def effect(potion, game, actor=None, cell=None):
+    game.vfx.append(BurstVfx(
+      cell=actor.cell,
+      color=potion.color
+    ))
+    actor = actor or game.hero
+    actor.regen(actor.get_max_hp())
+    game.numbers.append(DamageValue(str(potion.hp), actor.cell, color=GREEN))

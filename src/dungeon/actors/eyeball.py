@@ -109,7 +109,7 @@ class Eyeball(DungeonActor):
       name=name,
       faction=faction,
       stats=Stats(
-        hp=14,
+        hp=15,
         st=11,
         dx=5,
         ag=6,

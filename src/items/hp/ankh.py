@@ -16,6 +16,9 @@ class Ankh(HpItem):
     hero = game.hero
     ally = game.ally
     floor = game.floor
+    if not ally:
+      return False, "No partner to revive!"
+
     if not ally.is_dead():
       return False, "Your partner is still alive!"
 

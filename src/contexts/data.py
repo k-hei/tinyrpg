@@ -47,7 +47,7 @@ class Slot:
   ICON_X = 12
   ICON_Y = 10
   ICON_SPACING = 5
-  INFO_X = 104
+  INFO_X = 96
   GOLD_Y = 12
   TIME_Y = 30
   TEXT_X = 4
@@ -123,7 +123,7 @@ class Slot:
         surface.blit(rogue_image, (x, y))
         x += rogue_image.get_width() + slot.ICON_SPACING
 
-      surface.blit(assets.ttf["english"].render("Dungeon 2F"), (slot.ICON_X, slot.TIME_Y + slot.TEXT_Y + slot.LABEL_OVERLAP))
+      surface.blit(assets.ttf["english"].render("Outskirts"), (slot.ICON_X, slot.TIME_Y + slot.TEXT_Y + slot.LABEL_OVERLAP))
       gold_image = assets.sprites["item_gold"].copy()
       gold_image = replace_color(gold_image, BLACK, GOLD)
       surface.blit(gold_image, (slot.INFO_X, slot.GOLD_Y + slot.LABEL_OVERLAP))

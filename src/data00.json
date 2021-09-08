@@ -10,12 +10,7 @@
   "selected_skill": {},
   "party": ["Knight"],
   "builds": {
-    "Knight": {},
-    "Mage": {
-      "Sana": [0, 0],
-      "Glacio": [1, 1]
-    },
-    "Rogue": {}
+    "Knight": {}
   },
   "kills": {},
   "story": [],

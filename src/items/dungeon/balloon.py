@@ -14,10 +14,7 @@ class Balloon(DungeonItem):
     if type(store.place).__name__.startswith("Town"):
       return False, "You can't use this here!"
     game = store.place
-    if game.get_floor_no() < config.TOP_FLOOR:
-      game.anims.append([
-        PauseAnim(duration=DungeonItem.PAUSE_DURATION, on_end=game.ascend)
-      ])
-      return True, "You take the balloon to the next floor."
-    else:
-      return False, "There's nowhere to go up here!"
+    game.anims.append([
+      PauseAnim(duration=DungeonItem.PAUSE_DURATION, on_end=game.ascend)
+    ])
+    return True, "You take the balloon to the next floor."
