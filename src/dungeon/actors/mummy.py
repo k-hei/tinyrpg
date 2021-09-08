@@ -8,7 +8,7 @@ from skills.support import SupportSkill
 from skills.weapon.club import Club
 from lib.cell import is_adjacent, add as add_vector
 from lib.compose import compose
-from lib.direction import invert
+from lib.direction import invert as invert_direction
 from sprite import Sprite
 import assets
 from anims.move import MoveAnim
@@ -64,7 +64,7 @@ class Mummy(DungeonActor):
 
   class Backstep(SupportSkill):
     def effect(user, dest, game, on_end=None):
-      dest_cell = add_vector(user.cell, invert(user.facing))
+      dest_cell = add_vector(user.cell, invert_direction(user.facing))
       if game.floor.is_cell_empty(dest_cell):
         game.anims.append([JumpAnim(
           target=user,
@@ -113,7 +113,7 @@ class Mummy(DungeonActor):
     if soldier.damaged:
       soldier.damaged = False
       soldier.face(enemy.cell)
-      if randint(0, 1):
+      if randint(0, 1) and game.floor.is_cell_empty(add_vector(enemy.cell, invert_direction(enemy.facing))):
         return ("use_skill", Mummy.Backstep)
       else:
         return soldier.charge(skill=ClawRush, dest=enemy.cell)
