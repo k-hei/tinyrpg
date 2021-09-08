@@ -2,6 +2,7 @@ import pygame
 import keyboard
 from config import WINDOW_SIZE, DEBUG, KNIGHT_BUILD, MAGE_BUILD, ROGUE_BUILD
 from contexts import Context
+from contexts.load import LoadContext
 from contexts.pause import PauseContext
 from contexts.inventory import InventoryContext
 from contexts.custom import CustomContext
@@ -22,19 +23,22 @@ from savedata.resolve import resolve_item, resolve_skill, resolve_elem
 from transits.dissolve import DissolveOut
 
 class GameContext(Context):
-  def __init__(ctx, data, feature=None, floor=None, on_open=None, *args, **kwargs):
+  def __init__(ctx, data=None, feature=None, floor=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
-    if type(data) is GameData:
+    ctx.store = None
+    ctx.savedata = None
+    ctx.feature = feature
+    ctx.floor = floor
+    if data is None:
+      ctx.open(LoadContext(), on_close=lambda *data: ctx.load(*data))
+    elif type(data) is GameData:
       ctx.store = data
       ctx.savedata = GameData.encode(data)
     else:
       ctx.store = GameData.decode(data)
       ctx.savedata = data
-    ctx.feature = feature
-    ctx.floor = floor
-
-  def init(ctx):
-    ctx.load()
+    if data or feature or floor:
+      ctx.load()
 
   def load(ctx, savedata=None):
     if savedata is None:
@@ -178,4 +182,5 @@ class GameContext(Context):
 
   def update(ctx):
     super().update()
-    ctx.store.time += 1 / ctx.get_head().fps
+    if ctx.store:
+      ctx.store.time += 1 / ctx.get_head().fps

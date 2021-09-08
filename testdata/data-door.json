@@ -1,7 +1,7 @@
 {
   "place": "dungeon",
   "dungeon": {
-    "floor_no": 1,
+    "floor_index": 1,
     "floors": [
       {
         "size": [10, 11],

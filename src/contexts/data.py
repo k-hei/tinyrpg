@@ -10,7 +10,7 @@ from comps.bg import Bg
 from comps.banner import Banner
 from comps.log import Log
 from config import WINDOW_SIZE
-from assets import load as use_assets
+import assets
 from colors.palette import BLACK, WHITE, GOLD, BLUE, YELLOW
 from filters import recolor, replace_color, darken_image, outline, shadow_lite as shadow
 from text import render as render_text
@@ -76,8 +76,6 @@ class Slot:
     slot.anim = ExitAnim(duration=7, on_end=on_end)
 
   def redraw(slot):
-    assets = use_assets()
-
     tag_image = render_text("FILE {}".format(slot.number), assets.fonts["smallcaps"])
     tag_image = recolor(tag_image, YELLOW)
     tag_image = outline(tag_image, BLACK)
@@ -93,7 +91,9 @@ class Slot:
     surface = slot.cache_surface
     surface.blit(slot_image, (0, slot.LABEL_OVERLAP))
     surface.blit(tag_image, (slot.LABEL_X, 0))
-    if slot.data is None:
+
+    savedata = slot.data
+    if savedata is None:
       text_image = assets.ttf["normal"].render("[ No data ]")
       text_x = surface.get_width() // 2 - text_image.get_width() // 2
       text_y = (surface.get_height() - slot.LABEL_OVERLAP) // 2 - text_image.get_height() // 2 + slot.LABEL_OVERLAP
@@ -105,33 +105,36 @@ class Slot:
       x = slot.ICON_X
       y = slot.ICON_Y + slot.LABEL_OVERLAP
 
-      if "Knight" in slot.data.builds:
-        if "Knight" not in slot.data.party:
+      if "Knight" in savedata.builds:
+        if "Knight" not in savedata.party:
           knight_image = darken_image(knight_image)
         surface.blit(knight_image, (x, y))
         x += knight_image.get_width() + slot.ICON_SPACING
 
-      if "Mage" in slot.data.builds:
-        if "Mage" not in slot.data.party:
+      if "Mage" in savedata.builds:
+        if "Mage" not in savedata.party:
           mage_image = darken_image(mage_image)
         surface.blit(mage_image, (x, y))
         x += mage_image.get_width() + slot.ICON_SPACING
 
-      if "Rogue" in slot.data.builds:
-        if "Rogue" not in slot.data.party:
+      if "Rogue" in savedata.builds:
+        if "Rogue" not in savedata.party:
           rogue_image = darken_image(rogue_image)
         surface.blit(rogue_image, (x, y))
         x += rogue_image.get_width() + slot.ICON_SPACING
 
-      surface.blit(assets.ttf["english"].render("Outskirts"), (slot.ICON_X, slot.TIME_Y + slot.TEXT_Y + slot.LABEL_OVERLAP))
+      place = (savedata.place == "town"
+        and "Outskirts"
+        or "Dungeon {}F".format(savedata.dungeon.floor_index))
+      surface.blit(assets.ttf["english"].render(place), (slot.ICON_X, slot.TIME_Y + slot.TEXT_Y + slot.LABEL_OVERLAP))
       gold_image = assets.sprites["item_gold"].copy()
       gold_image = replace_color(gold_image, BLACK, GOLD)
       surface.blit(gold_image, (slot.INFO_X, slot.GOLD_Y + slot.LABEL_OVERLAP))
-      surface.blit(assets.ttf["normal"].render("{}G".format(slot.data.gold)), (slot.INFO_X + 16 + slot.TEXT_X, slot.GOLD_Y + slot.TEXT_Y + slot.LABEL_OVERLAP))
+      surface.blit(assets.ttf["normal"].render("{}G".format(savedata.gold)), (slot.INFO_X + 16 + slot.TEXT_X, slot.GOLD_Y + slot.TEXT_Y + slot.LABEL_OVERLAP))
       time_image = assets.sprites["icon_clock"].copy()
       time_image = replace_color(time_image, BLACK, BLUE)
       surface.blit(time_image, (slot.INFO_X, slot.TIME_Y + slot.LABEL_OVERLAP))
-      surface.blit(assets.ttf["normal"].render(view_time(slot.data.time)), (slot.INFO_X + 16 + slot.TEXT_X, slot.TIME_Y + slot.TEXT_Y + slot.LABEL_OVERLAP))
+      surface.blit(assets.ttf["normal"].render(view_time(savedata.time)), (slot.INFO_X + 16 + slot.TEXT_X, slot.TIME_Y + slot.TEXT_Y + slot.LABEL_OVERLAP))
 
   def reload(slot):
     slot.exit(on_end=lambda: (
@@ -155,7 +158,6 @@ class Slot:
       anim.update()
 
   def render(slot):
-    assets = use_assets()
     if slot.anim:
       t = slot.anim.pos
       if type(slot.anim) is EnterAnim:
@@ -189,21 +191,22 @@ class DataContext(Context):
       Slot(2, savedata.load("src/data01.json"))
     ]
     ctx.hand_y = None
-    ctx.bg = Bg(WINDOW_SIZE)
-    ctx.banner = Banner(a=ctx.action, y="Delete")
+    ctx.bg = None
+    ctx.banner = None
     ctx.cache_surface = None
     ctx.cache_chars = {}
     ctx.anims = []
     ctx.time = 0
 
-  def init(ctx):
+  def init_view(ctx):
+    ctx.bg = Bg(WINDOW_SIZE)
     ctx.bg.init()
+    ctx.banner = Banner(a=ctx.action, y="Delete")
     ctx.banner.init()
     for slot in ctx.slots:
       slot.init()
       slot.enter()
     ctx.cache_surface = Surface(WINDOW_SIZE)
-    assets = use_assets()
     for char in ctx.title:
       if char not in ctx.cache_chars:
         char_image = assets.ttf["roman_large"].render(char)
@@ -304,8 +307,10 @@ class DataContext(Context):
     ctx.time += 1
 
   def view(ctx):
+    if not ctx.bg:
+      ctx.init_view()
+
     sprites = []
-    assets = use_assets()
     surface_clip = ctx.cache_surface
     surface_clip.fill(0)
     ctx.bg.draw(surface_clip)
