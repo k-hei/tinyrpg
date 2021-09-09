@@ -1307,19 +1307,21 @@ class DungeonContext(Context):
   def kill(game, target, on_end=None):
     hero = game.hero
     def remove():
+      target_skill = type(target).skill
+      target_drops = type(target).drops
+      if target_skill and target.rare:
+        skill = target_skill
+        if skill not in game.store.skills:
+          game.floor.spawn_elem_at(target.cell, Soul(contents=skill))
       if not hero.allied(target):
         game.parent.record_kill(target)
-        enemy_skill = type(target).skill
-        enemy_drops = type(target).drops
-        if enemy_skill and target.rare:
-          skill = enemy_skill
-          if skill not in game.store.skills:
-            game.floor.spawn_elem_at(target.cell, Soul(contents=skill))
-        elif (enemy_drops
+        if (target_drops
+        and not (not target_skill or target.rare)
         and randint(1, 3) == 1
         and not game.floor.get_tile_at(target.cell) is Stage.PIT
-        and not game.floor.get_elem_at(target.cell, superclass=Bag)):
-          drop = choice(enemy_drops)
+        and not game.floor.get_elem_at(target.cell, superclass=Bag)
+        ):
+          drop = choice(target_drops)
           game.floor.spawn_elem_at(target.cell, Bag(contents=drop))
       if target in game.floor.elems:
         game.floor.elems.remove(target)
