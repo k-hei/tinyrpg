@@ -11,7 +11,11 @@ class Topaz(AilmentItem):
   color: int = GOLD
   value: int = 200
 
-  def use(topaz, game):
+  def use(topaz, store):
+    if type(store.place).__name__.startswith("Town"):
+      return False, "You can't use that here!"
+
+    game = store.place
     hero = game.hero
     hero.inflict_ailment("invulnerable")
     game.anims.append([PauseAnim(duration=30)])
