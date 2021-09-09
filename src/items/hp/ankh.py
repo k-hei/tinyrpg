@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from items.hp import HpItem
-import lib.cell as cell
+from lib.cell import neighborhood
 
 @dataclass
 class Ankh(HpItem):
@@ -19,10 +19,10 @@ class Ankh(HpItem):
     if not ally:
       return False, "No partner to revive!"
 
-    if not ally.is_dead():
+    if ally and not ally.is_dead():
       return False, "Your partner is still alive!"
 
-    neighbors = cell.neighbors(hero.cell)
+    neighbors = neighborhood(hero.cell)
     neighbor = next((n for n in neighbors if floor.is_cell_empty(n)), None)
     if neighbor is None:
       return False, ("There's nowhere for ", ally.token(), " to spawn!")

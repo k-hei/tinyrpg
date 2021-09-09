@@ -1059,8 +1059,8 @@ class DungeonContext(Context):
       or not target_elem.solid
       or (actor is game.hero
         and isinstance(target_elem, DungeonActor)
-        and target_elem.faction in ("player", "ally")
-        and target_elem.behavior != "guard"
+        and (target_elem.faction == "player"
+          or target_elem.faction == "ally" and target_elem.behavior != "guard")
         and target_elem.can_step()
       )
     )):
