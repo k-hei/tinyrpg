@@ -59,6 +59,14 @@ class OasisRoom(SpecialRoom):
     )
     room.shape_index = shape_index
 
+  def encode(room):
+    cell, name, *props = super().encode()
+    props = {
+      **(props and props[0] or {}),
+      "shape_index": room.shape_index,
+    }
+    return [cell, name, *(props and [props] or [])]
+
   def get_cells(room):
     return [c for c in super().get_cells() if c not in room.get_corners()]
 
@@ -147,22 +155,14 @@ class OasisRoom(SpecialRoom):
       ))
     stage.decors += wave_decors
 
-    actor_cells = room.get_corners()
-    if stage.get_tile_at(actor_cells[0]) is stage.WALL:
-      actor_cells = [n for ns in [neighborhood(c) for c in room.get_corners()] for n in ns if n not in room.get_border()]
-    actor_cell = choice(actor_cells)
-    stage.spawn_elem_at(actor_cell, Genie(
-      name="Eljin",
-      color=GREEN,
-      message=next((s for s in OasisRoom.scripts if s[0] == "save"), None)
-    ))
+    # actor_cells = room.get_corners()
+    # if stage.get_tile_at(actor_cells[0]) is stage.WALL:
+    #   actor_cells = [n for ns in [neighborhood(c) for c in room.get_corners()] for n in ns if n not in room.get_border()]
+    # actor_cell = choice(actor_cells)
+    # stage.spawn_elem_at(actor_cell, Genie(
+    #   name="Eljin",
+    #   color=GREEN,
+    #   message=next((s for s in OasisRoom.scripts if s[0] == "save"), None)
+    # ))
 
     return True
-
-  def encode(room):
-    cell, name, *props = super().encode()
-    props = {
-      **(props and props[0] or {}),
-      "shape_index": room.shape_index,
-    }
-    return [cell, name, *(props and [props] or [])]
