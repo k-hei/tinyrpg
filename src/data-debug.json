@@ -4,7 +4,7 @@
   "sp_max": 50,
   "time": 215999,
   "gold": 9999,
-  "items": ["Potion", "Booze", "LovePotion"],
+  "items": ["Potion", "Booze", "LovePotion", "Elixir", "Ankh", "Topaz"],
   "skills": ["RustyBlade", "Blitzritter", "Buckler", "Cudgel", "Glacio", "Congelatio", "Sana"],
   "new_skills": [],
   "selected_skill": {},
