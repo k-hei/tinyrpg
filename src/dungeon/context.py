@@ -1447,6 +1447,7 @@ class DungeonContext(Context):
     if target.is_dead():
       return False
     target.inflict_ailment("freeze")
+    target.aggro = 0
     if ENABLED_COMBAT_LOG:
       game.log.print((target.token(), " is frozen.")),
     game.numbers.append(DamageValue(

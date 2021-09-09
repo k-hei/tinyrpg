@@ -241,7 +241,7 @@ class DungeonActor(DungeonElement):
     return True
 
   def step_status(actor, game):
-    if actor.aggro:
+    if actor.aggro and not actor.ailment == "freeze":
       actor.aggro += 1
     actor.ailment_turns -= 1
     if actor.ailment == "poison":
@@ -490,7 +490,11 @@ class DungeonActor(DungeonElement):
       sprites += [item_sprite]
 
     actor_color = actor.color()
-    if not actor.aggro and actor.faction != "player" and not actor.ailment == "sleep" and actor.updates % 60 >= 30:
+    if (not actor.aggro
+    and actor.faction != "player"
+    and not actor.ailment in ("sleep", "freeze")
+    and actor.updates % 60 >= 30
+    ):
       actor_color = darken_color(actor_color)
     if actor_color != BLACK:
       sprite.image = replace_color(sprite.image, BLACK, actor_color)

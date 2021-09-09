@@ -22,7 +22,7 @@
       }
     ]
   },
-  "skills": ["Congelatio", "Cudgel"],
-  "party": ["mage"],
-  "builds": { "mage": { "Congelatio": [0, 0], "Cudgel": [2, 0] } }
+  "skills": ["Congelatio", "Cudgel", "Glacio", "Sana"],
+  "party": ["Mage"],
+  "builds": { "Mage": { "Congelatio": [0, 0], "Cudgel": [2, 0], "Glacio": [0, 3], "Sana": [2, 2] } }
 }

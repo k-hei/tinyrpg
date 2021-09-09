@@ -40,12 +40,15 @@ class Congelatio(MagicSkill):
     target_cells = sorted(target_cells, key=lambda cell: 0 if cell == dest else 1 + random())
     targets = [e for e in [floor.get_elem_at(c, superclass=DungeonActor) for c in target_cells] if e]
 
+    pause_anim = PauseAnim()
+
     def on_connect():
       game.vfx += [(lambda cell, target: IceSpikeVfx(
         cell=cell,
         delay=i * 5,
         color=CYAN,
         on_connect=(lambda: (
+          pause_anim.end(),
           target.inflict_ailment("freeze"),
           game.flinch(
             target=target,
@@ -53,7 +56,7 @@ class Congelatio(MagicSkill):
             on_end=lambda: (
               game.freeze(target),
               game.anims[0].append(PauseAnim(
-                duration=45,
+                duration=30,
                 on_end=on_end
               ))
             )
@@ -61,6 +64,7 @@ class Congelatio(MagicSkill):
         )) if target in targets else None
       ))(cell, target=floor.get_elem_at(cell)) for i, cell in enumerate(target_cells)]
       if not targets:
+        pause_anim.end()
         game.anims[0].append(PauseAnim(
           duration=60,
           on_end=lambda: (
@@ -78,6 +82,6 @@ class Congelatio(MagicSkill):
       src=user.cell,
       dest=bump_dest,
       on_connect=on_connect
-    )])
+    ), pause_anim])
 
     return dest

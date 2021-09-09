@@ -14,6 +14,7 @@ from colors.palette import BLACK, WHITE, GRAY, YELLOW
 from comps.skill import Skill
 from sprite import Sprite
 
+from lib.cell import manhattan, add as add_vector
 from lib.lerp import lerp
 from easing.expo import ease_out
 from anims.sine import SineAnim
@@ -21,7 +22,6 @@ from anims.tween import TweenAnim
 from anims.flicker import FlickerAnim
 
 from dungeon.actors import DungeonActor
-from lib.cell import manhattan
 
 MARGIN = 8
 OFFSET = 4
@@ -127,10 +127,9 @@ class SkillContext(Context):
       ctx.print_skill()
     if skill:
       ctx.skill_range = skill().find_range(hero, floor)
-      ctx.dest = target_cell
       if skill.range_max > 1:
         ctx.dest = ctx.skill_range[-1]
-      elif hero:
+      else:
         ctx.dest = target_cell
     elif hero:
       ctx.dest = hero.cell
@@ -138,6 +137,7 @@ class SkillContext(Context):
   def handle_select(ctx, reverse=False):
     options = ctx.skills
     game = ctx.parent
+    hero = ctx.actor
     skills = ctx.skills
     old_skill = ctx.skill
     if old_skill is None:
@@ -147,6 +147,11 @@ class SkillContext(Context):
     if old_skill != new_skill:
       ctx.print_skill(new_skill)
       ctx.anims.append(TweenAnim(duration=12, target=options))
+      ctx.skill_range = new_skill().find_range(ctx.actor, game.floor)
+      pivot_cell = add_vector(hero.cell, tuple([x / 10 for x in hero.facing]))
+      ctx.dest = (sorted(ctx.skill_range, key=lambda c: manhattan(c, pivot_cell))[0]
+        if ctx.skill_range
+        else hero.cell)
     ctx.skill = new_skill
 
   def handle_confirm(ctx):

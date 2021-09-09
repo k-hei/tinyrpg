@@ -31,8 +31,7 @@ class Glacio(MagicSkill):
     delta_x, delta_y = user.facing
     bump_dest = (hero_x + delta_x, hero_y + delta_y)
 
-    if dest is None:
-      dest = Glacio().find_targets(user, game.floor)[-1]
+    dest = Glacio().find_targets(user, game.floor)[-1]
     target = floor.get_elem_at(dest, superclass=DungeonActor)
     target_cells = []
     cell = user.cell
