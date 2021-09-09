@@ -1057,7 +1057,12 @@ class DungeonContext(Context):
       or normalize_direction(delta) == normalize_direction(target_tile.direction))
     and (target_elem is None
       or not target_elem.solid
-      or actor is game.hero and isinstance(target_elem, DungeonActor) and target_elem.faction in ("player", "ally") and target_elem.can_step()
+      or (actor is game.hero
+        and isinstance(target_elem, DungeonActor)
+        and target_elem.faction in ("player", "ally")
+        and target_elem.behavior != "guard"
+        and target_elem.can_step()
+      )
     )):
       duration = duration or (RUN_DURATION if run else MOVE_DURATION)
       duration = duration * 1.5 if jump else duration
