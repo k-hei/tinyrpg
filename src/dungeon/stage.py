@@ -81,6 +81,10 @@ class Stage:
     opaque = False
     elev = -0.5
 
+  class EXIT(Tile):
+    solid = False
+    opaque = False
+
   TILES = [PIT, FLOOR, WALL, STAIRS_DOWN, STAIRS_UP, DOOR_WAY, OASIS, OASIS_STAIRS]
 
   def __init__(stage, size, data=None, elems=None):

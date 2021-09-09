@@ -679,6 +679,8 @@ class DungeonContext(Context):
           return game.handle_ascend()
         elif game.floor.get_tile_at(game.hero.cell) is Stage.STAIRS_DOWN:
           return game.handle_descend()
+        elif game.floor.get_tile_at(game.hero.cell) is Stage.EXIT:
+          return game.handle_exit()
         elif key == pygame.K_RETURN:
           return game.handle_skill()
         elif key == pygame.K_SPACE:
@@ -740,6 +742,8 @@ class DungeonContext(Context):
 
       if target_tile is Stage.OASIS:
         game.use_oasis()
+      elif target_tile is Stage.EXIT:
+        game.log.print("There's a staircase leading out of the dungeon here.")
       elif target_tile is Stage.STAIRS_UP:
         game.log.print("There's a staircase going up here.")
       elif target_tile is Stage.STAIRS_DOWN:
@@ -1743,6 +1747,11 @@ class DungeonContext(Context):
     if game.floor.get_tile_at(game.hero.cell) is not Stage.STAIRS_UP:
       return game.log.print("There's nowhere to go up here!")
     game.ascend()
+
+  def handle_exit(game):
+    if game.floor.get_tile_at(game.hero.cell) is not Stage.EXIT:
+      return game.log.print("There's nowhere to go up here!")
+    game.leave_dungeon()
 
   def handle_descend(game):
     if game.floor.get_tile_at(game.hero.cell) is not Stage.STAIRS_DOWN:
