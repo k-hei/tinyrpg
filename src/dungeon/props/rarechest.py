@@ -1,4 +1,4 @@
-from dungeon.props.chest import Chest
+from dungeon.props import Prop
 import assets
 from filters import replace_color
 from anims.attack import AttackAnim
@@ -13,7 +13,7 @@ from sprite import Sprite
 from inventory import Inventory
 from skills.ailment.virus import Virus
 
-class RareChest(Chest):
+class RareChest(Prop):
   solid = True
   active = True
 

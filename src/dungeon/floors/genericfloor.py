@@ -1,7 +1,7 @@
 from random import randint
 from dungeon.floors import Floor
 from dungeon.features.oasisroom import OasisRoom
-from dungeon.features.shieldroom import ShieldRoom
+from dungeon.features.raretreasureroom import RareTreasureRoom
 from dungeon.gen import gen_floor, gen_enemy, FloorGraph
 from items.ailment.amethyst import Amethyst
 from items.ailment.antidote import Antidote
@@ -20,7 +20,7 @@ from items.sp.bread import Bread
 from items.sp.cheese import Cheese
 from items.sp.fish import Fish
 from items.sp.sapphire import Sapphire
-from skills.armor.buckler import Buckler
+from skills.weapon.longinus import Longinus
 
 class GenericFloor(Floor):
   def generate(store):
@@ -28,7 +28,7 @@ class GenericFloor(Floor):
       size=(27, 27),
       features=[
         *(randint(1, 5) == 1 and [OasisRoom()] or []),
-        *(Buckler not in store.skills and randint(1, 3) == 1 and [ShieldRoom()] or []),
+        *(Longinus not in store.skills and randint(1, 3) == 1 and [RareTreasureRoom()] or []),
       ],
       items=[
         Amethyst,
