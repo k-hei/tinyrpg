@@ -8,6 +8,7 @@ from contexts.inventory import InventoryContext
 from town.graph import TownGraph
 from town.sideview.stage import Area, AreaLink
 from town.sideview.actor import Actor
+from items.materials import MaterialItem
 from cores.knight import Knight
 from comps.hud import Hud
 from assets import load as use_assets
@@ -142,6 +143,22 @@ class SideViewContext(Context):
       for actor in ctx.party:
         actor.stop_move()
       return True
+
+  def use_item(ctx, item):
+    if issubclass(item, MaterialItem):
+      success, message = False, "You can't use this item!"
+    else:
+      success, message = ctx.store.use_item(item)
+    if success:
+      ctx.open(DialogueContext(
+        lite=True,
+        script=[
+          ("", ("Used ", item.token(item), "\n", message)),
+        ]
+      ))
+      return True, None
+    else:
+      return False, message
 
   def get_graph(ctx):
     return ctx.parent.graph if "graph" in dir(ctx.parent) else None
