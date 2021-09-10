@@ -83,9 +83,8 @@ class StageView:
     self.facings = {}
     self.anim = None
 
-  def redraw_tile(self, stage, cell, visible_cells, visited_cells, anims=[]):
+  def redraw_tile(self, stage, cell, visible_cells, visited_cells, anims=[], dry=False):
     tile_col, tile_row = cell
-    offset_col, offset_row = self.tile_offset
 
     tile = stage.get_tile_at(cell)
     if not tile:
@@ -120,13 +119,16 @@ class StageView:
       ):
         tile_image = replace_color(tile_image, WHITE, COLOR_TILE)
         tile_image = replace_color(tile_image, GRAY, DARKGRAY)
+      if tile_sprite is None:
+        if cell not in self.tile_cache:
+          self.tile_cache[cell] = (tile_visited_state, tile_image, darken_image(tile_image))
+        if tile_name not in self.tile_cache:
+          self.tile_cache[tile_name] = tile_image
 
+    offset_col, offset_row = self.tile_offset
     tile_x = (tile_col - offset_col) * TILE_SIZE + tile_xoffset
     tile_y = (tile_row - offset_row) * TILE_SIZE + tile_yoffset
-    if tile_sprite is None:
-      if cell not in self.tile_cache:
-        self.tile_cache[cell] = (tile_visited_state, tile_image, darken_image(tile_image))
-    elif cell not in self.tile_sprites:
+    if tile_sprite and cell not in self.tile_sprites:
       tile_x = tile_col * TILE_SIZE
       tile_y = tile_row * TILE_SIZE
       tile_sprite.move((tile_x, tile_y))
@@ -134,6 +136,9 @@ class StageView:
         tile_sprite.move((0, TILE_SIZE))
         tile_sprite.offset = tile_sprite.offset or -1
       self.tile_sprites[cell] = (tile, tile_sprite)
+
+    if dry:
+      return True
 
     # fade animation
     fade_anim = None
@@ -151,7 +156,6 @@ class StageView:
 
     if tile_image and not tile_sprite:
       self.tile_surface.blit(tile_image, (tile_x, tile_y + TILE_SIZE - tile_image.get_height()))
-      self.tile_cache[tile_name] = tile_image
 
     if tile_sprite:
       if tile_image:
@@ -192,24 +196,32 @@ class StageView:
       self.stage = stage
       self.tile_cache = {}
       recolor_walls()
+
+    fade_anim = None
+    for group in anims:
+      fade_anim = next((a for a in group if type(a) is StageView.FadeAnim), None)
+      if fade_anim:
+        break
+    anim_cells = fade_anim.target.copy() if fade_anim else []
+
     for row in range(top, bottom + 1):
       for col in range(left, right + 1):
         cell = (col, row)
-        fade_anim = None
-        for group in anims:
-          fade_anim = next((a for a in group if type(a) is StageView.FadeAnim), None)
-          if fade_anim:
-            break
-        anim_cells = fade_anim and fade_anim.target or []
         if cell in visible_cells + anim_cells:
           self.redraw_tile(stage, cell, visible_cells, visited_cells, anims)
+          if cell in anim_cells:
+            anim_cells.remove(cell)
         elif cell in self.tile_cache:
           _, _, tile_image = self.tile_cache[cell]
           x = (col - left) * TILE_SIZE
           y = (row - top) * TILE_SIZE
           self.tile_surface.blit(tile_image, (x, y))
+
+    for cell in anim_cells:
+      self.redraw_tile(stage, cell, visible_cells, visited_cells, anims, dry=True)
+
     time_end = get_ticks()
-    debug.log("Redraw tile surface in", time_end - time_start, "ms")
+    debug.log("Redraw tile surface in {}ms".format(time_end - time_start))
 
   def view_tiles(self, camera):
     camera = camera.get_rect()
@@ -334,6 +346,7 @@ class StageView:
         self.anim.update()
 
   def view(self, ctx):
+    time_start = get_ticks()
     self.update()
     sprites = []
     visible_cells = ctx.hero.visible_cells
@@ -367,6 +380,8 @@ class StageView:
       if sprite.layer != "ui" and camera_offset:
         sprite.move(camera_offset)
     sprites.sort(key=StageView.order)
+    time_end = get_ticks()
+    # debug.log("Redraw stage in {}ms".format(time_end - time_start))
     return sprites
 
 def render_tile(stage, cell, visited_cells=[]):
