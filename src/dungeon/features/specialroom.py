@@ -5,7 +5,7 @@ from random import choice
 from lib.cell import add as add_cell
 
 class SpecialRoom(Room):
-  def __init__(feature, shape, elems=None, rooms=None, size=None, cell=None, *args, **kwargs):
+  def __init__(feature, shape=None, elems=None, rooms=None, size=None, cell=None, *args, **kwargs):
     super().__init__(size=(size or shape and (len(shape[0]), len(shape)) or (0, 0)), cell=cell, *args, **kwargs)
     feature.shape = shape or []
     feature.elems = elems or []
@@ -28,10 +28,10 @@ class SpecialRoom(Room):
     return Stage.FLOOR
 
   def get_width(feature):
-    return len(feature.shape[0]) if feature.shape else 0
+    return len(feature.shape[0]) if feature.shape else feature.size[0]
 
   def get_height(feature):
-    return len(feature.shape)
+    return len(feature.shape) if feature.shape else feature.size[1]
 
   def get_size(feature):
     return (feature.get_width(), feature.get_height())
@@ -43,27 +43,28 @@ class SpecialRoom(Room):
     feature.cell = cell or feature.cell
     x, y = feature.cell
     entrance = None
-    for row in range(feature.get_height()):
-      for col in range(feature.get_width()):
-        cell = (col + x, row + y)
-        char = feature.shape[row][col]
-        tile = SpecialRoom.parse_char(char)
-        stage.set_tile_at(cell, tile)
-        try:
-          actor_id = int(char)
-          stage.spawn_elem_at(cell, feature.actors[actor_id])
-        except ValueError:
-          actor_id = None
-        if tile is stage.STAIRS_DOWN:
-          entrance = cell
-        elif tile is stage.STAIRS_UP:
-          stairs = cell
+    if feature.shape:
+      for row in range(feature.get_height()):
+        for col in range(feature.get_width()):
+          cell = (col + x, row + y)
+          char = feature.shape[row][col]
+          tile = SpecialRoom.parse_char(char)
+          stage.set_tile_at(cell, tile)
+          try:
+            actor_id = int(char)
+            stage.spawn_elem_at(cell, feature.actors[actor_id])
+          except ValueError:
+            actor_id = None
+          if tile is stage.STAIRS_DOWN:
+            entrance = cell
+    else:
+      for cell in feature.get_cells():
+        stage.set_tile_at(cell, stage.FLOOR)
     for elem_cell, elem in feature.elems:
       elem_x, elem_y = elem_cell
       stage.spawn_elem_at((elem_x + x, elem_y + y), elem)
     stage.entrance = entrance or stage.entrance
     stage.rooms.append(feature)
-    # stage.rooms += [Room(r.size, add_cell(r.cell, feature.cell)) for r in feature.rooms] or [feature]
     return True
 
   def create_floor(feature, use_edge=True, on_end=None):

@@ -242,9 +242,8 @@ class DungeonContext(Context):
 
       ally = game.ally
       if ally and not ally.is_dead():
-        x, y = floor.entrance
-        ally.facing = (1, 0)
-        floor.spawn_elem_at((x - 1, y), ally)
+        floor.spawn_elem_at(floor.entrance, ally)
+        floor.elems.reverse()
 
     enemies = [e for e in floor.elems if isinstance(e, DungeonActor) and not hero.allied(e)]
     for Enemy, kills in game.store.kills.items():
@@ -1051,11 +1050,11 @@ class DungeonContext(Context):
     facing_y = -1 if delta_y < 0 else 1 if delta_y > 0 else 0
     actor.facing = (facing_x, facing_y)
     if (target_tile and not target_tile.solid
-    and abs(target_tile.elev - origin_tile.elev) < 1
-    and (target_tile.direction == (0, 0) and origin_tile.direction == (0, 0)
+    and (not origin_tile or abs(target_tile.elev - origin_tile.elev) < 1
+      and (target_tile.direction == (0, 0) and origin_tile.direction == (0, 0)
       or normalize_direction(delta) == normalize_direction(origin_tile.direction)
-      or normalize_direction(delta) == normalize_direction(target_tile.direction))
-    and (target_elem is None
+      or normalize_direction(delta) == normalize_direction(target_tile.direction)
+    )) and (target_elem is None
       or not target_elem.solid
       or (actor is game.hero
         and isinstance(target_elem, DungeonActor)
