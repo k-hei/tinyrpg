@@ -8,10 +8,11 @@ class Sapphire(SpItem):
   sprite: str = "gem"
   value: int = 100
 
-  def use(elixir, ctx):
-    game = ctx.parent
-    if game.sp < game.sp_max:
-      game.sp = game.sp_max
+  def use(elixir, store):
+    if type(store.place).__name__.startswith("Town"):
+      return False, "You can't use that here!"
+    if store.sp < store.sp_max:
+      store.sp = store.sp_max
       return True, "The party restored full SP."
     else:
       return False, "Nothing to restore!"
