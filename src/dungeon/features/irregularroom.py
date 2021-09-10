@@ -6,7 +6,8 @@ from lib.cell import neighborhood
 
 class IrregularRoom(SpecialRoom):
   def __init__(room):
-    room_width, room_height = (5 + randint(0, 3) * 2, 4 + randint(0, 3) * 3)
+    room_size = randint(0, 3)
+    room_width, room_height = (5 + room_size * 2, 4 + room_size * 3)
     super().__init__(size=(room_width, room_height))
     block_width = ceil(room_width / 2)
     block_height = ceil(room_height / 2)

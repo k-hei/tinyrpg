@@ -3,6 +3,9 @@ from pygame import Surface, Rect, SRCALPHA
 from pygame.transform import rotate, flip, scale
 from pygame.time import get_ticks
 
+from lib.lerp import lerp
+from lib.cell import add as add_vector
+import debug
 import assets
 from assets import load as use_assets
 from filters import replace_color, darken_image
@@ -10,8 +13,6 @@ from colors import darken_color
 from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, COLOR_TILE
 from config import ITEM_OFFSET, TILE_SIZE, DEBUG, WINDOW_HEIGHT, DEPTH_SIZE
 from sprite import Sprite
-from lib.lerp import lerp
-from lib.cell import add as add_vector
 
 from dungeon.actors import DungeonActor
 from dungeon.stage import Stage
@@ -35,7 +36,7 @@ from anims.shake import ShakeAnim
 def recolor_walls():
   assets = use_assets()
   for key in assets.sprites.keys():
-    if key.startswith("wall") :
+    if key.startswith("wall"):
       assets.sprites[key] = replace_color(assets.sprites[key], WHITE, COLOR_TILE)
 
 def get_tile_visited_state(cell, visited_cells):
@@ -55,12 +56,7 @@ class StageView:
   LAYERS = ["tiles", "decors", "elems", "vfx", "numbers", "ui"]
   SPECIAL_TILES = [Stage.OASIS, Stage.OASIS_STAIRS]
   ELEVATED_TILES = [Stage.FLOOR_ELEV, Stage.WALL_ELEV, Stage.STAIRS, Stage.STAIRS_LEFT, Stage.STAIRS_RIGHT]
-  VARIABLE_TILES = [
-    Stage.FLOOR,
-    Stage.WALL,
-    Stage.PIT,
-    Stage.OASIS,
-  ]
+  VARIABLE_TILES = [Stage.WALL, Stage.FLOOR, Stage.OASIS, Stage.PIT] # Tiles with more than one possible image
 
   class FadeAnim(TweenAnim): pass
 
@@ -88,15 +84,26 @@ class StageView:
     self.anim = None
 
   def redraw_tile(self, stage, cell, visible_cells, visited_cells, anims=[]):
-    col, row = cell
-    offset_x, offset_y = self.tile_offset
+    tile_col, tile_row = cell
+    offset_col, offset_row = self.tile_offset
+
     tile = stage.get_tile_at(cell)
     if not tile:
       return False
+
+    tile_visited_state = get_tile_visited_state(cell, visited_cells)
+    if cell in self.tile_cache and tile_visited_state != self.tile_cache[cell][0]:
+      del self.tile_cache[cell]
+    if cell in self.tile_sprites and tile is not self.tile_sprites[cell][0]:
+      del self.tile_sprites[cell]
+
     tile_name = tile.__name__
     tile_xoffset, tile_yoffset = (0, 0)
     tile_sprite = None
-    if tile_name in self.tile_cache and tile not in StageView.VARIABLE_TILES:
+
+    if cell in self.tile_cache:
+      tile_image = self.tile_cache[cell][1]
+    elif tile_name in self.tile_cache and tile not in StageView.VARIABLE_TILES:
       tile_image = self.tile_cache[tile_name]
     else:
       tile_image = render_tile(stage, cell, visited_cells)
@@ -108,46 +115,50 @@ class StageView:
         return False
       if (tile not in StageView.SPECIAL_TILES
       and tile not in StageView.ELEVATED_TILES
-      and tile is not stage.WALL):
+      and tile is not stage.WALL
+      and tile is not stage.FLOOR
+      ):
         tile_image = replace_color(tile_image, WHITE, COLOR_TILE)
         tile_image = replace_color(tile_image, GRAY, DARKGRAY)
-    x = (col - offset_x) * TILE_SIZE + tile_xoffset
-    y = (row - offset_y) * TILE_SIZE + tile_yoffset
-    tile_visited_state = get_tile_visited_state(cell, visited_cells)
-    if cell in self.tile_cache and self.tile_cache[cell][0] != tile_visited_state:
-      del self.tile_cache[cell]
-    if cell in self.tile_sprites and tile is not self.tile_sprites[cell][0]:
-      del self.tile_sprites[cell]
+
+    tile_x = (tile_col - offset_col) * TILE_SIZE + tile_xoffset
+    tile_y = (tile_row - offset_row) * TILE_SIZE + tile_yoffset
     if tile_sprite is None:
       if cell not in self.tile_cache:
-        self.tile_cache[cell] = (tile_visited_state, darken_image(tile_image))
+        self.tile_cache[cell] = (tile_visited_state, tile_image, darken_image(tile_image))
     elif cell not in self.tile_sprites:
-      x = col * TILE_SIZE
-      y = row * TILE_SIZE
-      tile_sprite.move((x, y))
+      tile_x = tile_col * TILE_SIZE
+      tile_y = tile_row * TILE_SIZE
+      tile_sprite.move((tile_x, tile_y))
       if tile_sprite.origin and tile_sprite.origin[1] == "bottom":
         tile_sprite.move((0, TILE_SIZE))
         tile_sprite.offset = tile_sprite.offset or -1
       self.tile_sprites[cell] = (tile, tile_sprite)
+
+    # fade animation
     fade_anim = None
     for group in anims:
       fade_anim = next((a for a in group if type(a) is StageView.FadeAnim), None)
       if fade_anim:
         break
-    anim_cells = fade_anim and not fade_anim.done and fade_anim.target or []
-    if cell in (set(anim_cells) - set(visible_cells)):
-      if fade_anim.time:
-        tile_image = darken_image(tile_image) if tile_sprite else self.tile_cache[cell][1]
-      else:
-        tile_image = None
+    if fade_anim:
+      anim_cells = not fade_anim.done and fade_anim.target or []
+      if cell in (set(anim_cells) - set(visible_cells)):
+        if fade_anim.time:
+          tile_image = darken_image(tile_image) if tile_sprite else self.tile_cache[cell][2]
+        else:
+          tile_image = None
+
     if tile_image and not tile_sprite:
-      self.tile_surface.blit(tile_image, (x, y + TILE_SIZE - tile_image.get_height()))
+      self.tile_surface.blit(tile_image, (tile_x, tile_y + TILE_SIZE - tile_image.get_height()))
       self.tile_cache[tile_name] = tile_image
+
     if tile_sprite:
       if tile_image:
         tile_sprite.image = tile_image
       else:
         del self.tile_sprites[cell]
+
     return True
 
   def redraw_tiles(self, stage, camera, visible_cells, visited_cells, anims=[], force=False):
@@ -193,11 +204,12 @@ class StageView:
         if cell in visible_cells + anim_cells:
           self.redraw_tile(stage, cell, visible_cells, visited_cells, anims)
         elif cell in self.tile_cache:
-          _, tile_image = self.tile_cache[cell]
+          _, _, tile_image = self.tile_cache[cell]
           x = (col - left) * TILE_SIZE
           y = (row - top) * TILE_SIZE
           self.tile_surface.blit(tile_image, (x, y))
     time_end = get_ticks()
+    debug.log("Redraw tile surface in", time_end - time_start, "ms")
 
   def view_tiles(self, camera):
     camera = camera.get_rect()
@@ -487,7 +499,6 @@ def render_tile(stage, cell, visited_cells=[]):
     sprite_name = "oasis_stairs"
   elif tile is stage.OASIS:
     return render_oasis(stage, cell)
-
   return assets.sprites[sprite_name] if sprite_name else None
 
 def render_wall(stage, cell, visited_cells=[]):
