@@ -119,11 +119,12 @@ class StageView:
       ):
         tile_image = replace_color(tile_image, WHITE, COLOR_TILE)
         tile_image = replace_color(tile_image, GRAY, DARKGRAY)
-      if tile_sprite is None:
-        if cell not in self.tile_cache:
-          self.tile_cache[cell] = (tile_visited_state, tile_image, darken_image(tile_image))
-        if tile_name not in self.tile_cache:
-          self.tile_cache[tile_name] = tile_image
+
+    if tile_sprite is None:
+      if cell not in self.tile_cache:
+        self.tile_cache[cell] = (tile_visited_state, tile_image, darken_image(tile_image))
+      if tile_name not in self.tile_cache:
+        self.tile_cache[tile_name] = tile_image
 
     offset_col, offset_row = self.tile_offset
     tile_x = (tile_col - offset_col) * TILE_SIZE + tile_xoffset
