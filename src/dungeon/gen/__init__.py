@@ -426,28 +426,19 @@ def gen_features(floor, feature_graph):
         floor.tree.add(neighbor)
   return True
 
-def gen_items(stage, room, items, connectors=[]):
+def gen_elems(stage, room, elems, doors=[]):
+  spawn_count = 0
   valid_cells = [c for c in room.get_cells() if (
-    not next((d for d in connectors if manhattan(d, c) <= 2), None)
+    not next((d for d in doors if manhattan(d, c) <= 2), None)
     and stage.is_cell_empty(c)
   )]
-  items = list(room.items)
-  while items and valid_cells:
+  while elems and valid_cells:
     cell = choice(valid_cells)
-    stage.spawn_elem_at(cell, Chest(items.pop(0)))
+    stage.spawn_elem_at(cell, elems.pop(0))
+    spawn_count += 1
     for neighbor in neighborhood(cell, inclusive=True):
       if neighbor in valid_cells:
         valid_cells.remove(neighbor)
-
-def gen_enemies(stage, room, enemies, max=3):
-  spawn_count = 0
-  enemy_count = randint(0, max)
-  valid_cells = [c for c in room.get_cells() if stage.is_cell_empty(c)]
-  while spawn_count < enemy_count and valid_cells:
-    cell = choice(valid_cells)
-    stage.spawn_elem_at(cell, gen_enemy(choice(enemies)))
-    spawn_count += 1
-    valid_cells.remove(cell)
   return spawn_count
 
 def gen_floor(
@@ -618,14 +609,24 @@ def gen_floor(
       stage.spawn_elem_at(key_room.get_center(), Chest(Key))
 
     empty_rooms += [n for n in tree.nodes if n.empty]
-    empty_rooms = [room for room in empty_rooms if not gen_enemies(stage, room, enemies, max=6)]
+    enemy_rooms = choices(empty_rooms, k=int(len(empty_rooms) * 0.75))
+    item_rooms = [r for r in empty_rooms if r not in enemy_rooms]
 
-    # spawn items
-    for room in empty_rooms:
-      gen_items(stage, room,
-        items=[choice(items) for _ in range(randint(1, 3))],
-        connectors=door_cells)
-      gen_enemies(stage, room, enemies, max=3)
+    debug("Attempting to spawn {} enemy rooms".format(len(enemy_rooms)))
+    for room in enemy_rooms:
+      enemies_spawned = gen_elems(stage, room,
+        elems=[choice(enemies)() for _ in range(randint(2, 6))],
+        doors=door_cells
+      )
+      debug("Spawned {} enemies".format(enemies_spawned))
+
+    debug("Attempting to spawn {} item rooms".format(len(item_rooms)))
+    for room in item_rooms:
+      items_spawned = gen_elems(stage, room,
+        elems=[Chest(choice(items)) for _ in range(randint(1, 3))],
+        doors=door_cells
+      )
+      debug("Spawned {} items".format(items_spawned))
 
     debug("-- Generation succeeded in {iters} iteration{s} --".format(
       iters=iters,

@@ -267,6 +267,7 @@ class StageView:
       return []
 
   def view_elems(self, elems, hero, camera, visible_cells, anims):
+    time_start = get_ticks()
     sprites = []
     camera = camera.get_rect()
     def is_visible(elem):
@@ -292,6 +293,8 @@ class StageView:
         sprites += self.view_elem(elem, anims)
       except:
         raise
+    time_end = get_ticks()
+    # debug.log("Redraw dungeon elements in {}ms".format(time_end - time_start))
     return sprites
 
   def view_vfx(self, vfx, camera):
