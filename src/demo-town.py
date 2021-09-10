@@ -3,5 +3,5 @@ from game.context import GameContext
 import savedata
 
 App(title="town demo",
-  context=GameContext(savedata.load("src/data00.json"))
+  context=GameContext(savedata.load("src/data-debug.json"))
 ).init()

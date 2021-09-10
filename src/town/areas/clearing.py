@@ -49,6 +49,7 @@ class ClearingArea(Area):
               (BUGHEAD_NAME, "It looks kinda cool, heh heh."),
               ("", ("Got ", Berry().token(), "!")),
               town.store.obtain(Berry),
+              town.store.items.remove(Beetle),
               town.store.complete_quest("fetch_beetles"),
             ] or choice.text == "No" and []
           )
