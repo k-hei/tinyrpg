@@ -1,7 +1,12 @@
 class Feature:
-  def __init__(feature, degree=0, secret=False, placed=False, on_place=None):
-    feature.degree = degree
-    feature.secret = secret
+  degree = 0
+  secret = False
+  empty = False
+
+  def __init__(feature, degree=0, secret=False, empty=False, placed=False, on_place=None):
+    if not feature.degree: feature.degree = degree
+    if not feature.secret: feature.secret = secret
+    if not feature.empty: feature.empty = empty
     feature.placed = placed
     feature.on_place = on_place
 

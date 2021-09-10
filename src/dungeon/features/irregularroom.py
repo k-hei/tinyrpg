@@ -5,6 +5,8 @@ from dungeon.features.specialroom import SpecialRoom
 from lib.cell import neighborhood
 
 class IrregularRoom(SpecialRoom):
+  empty = True
+
   def __init__(room):
     room_size = randint(0, 3)
     room_width, room_height = (5 + room_size * 2, 4 + room_size * 3)

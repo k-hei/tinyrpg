@@ -11,7 +11,7 @@ class Somnus(AilmentSkill):
   kind = "ailment"
   element = "dark"
   desc = "Lulls target to sleep"
-  cost = 4
+  cost = 3
   users = (Mage,)
   blocks = (
     (0, 0),

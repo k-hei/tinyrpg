@@ -427,6 +427,17 @@ def gen_features(floor, feature_graph):
         floor.tree.add(neighbor)
   return True
 
+def gen_enemies(stage, room, enemies, max=3):
+  spawn_count = 0
+  enemy_count = randint(0, max)
+  valid_cells = [c for c in room.get_cells() if stage.is_cell_empty(c)]
+  while spawn_count < enemy_count and valid_cells:
+    cell = choice(valid_cells)
+    stage.spawn_elem_at(cell, gen_enemy(choice(enemies)))
+    spawn_count += 1
+    valid_cells.remove(cell)
+  return spawn_count
+
 def gen_floor(
   features=FloorGraph(),
   entrance=None,
@@ -458,7 +469,7 @@ def gen_floor(
     stage.seed = seed
     seed = None
 
-    if not gen_features(floor, features):
+    if not gen_features(floor, feature_graph=features):
       debug("Feature placement failed")
       yield None
       continue
@@ -594,22 +605,8 @@ def gen_floor(
       empty_rooms.remove(key_room)
       stage.spawn_elem_at(key_room.get_center(), Chest(Key))
 
-    # spawn enemies
-    def gen_enemies(room, max=3):
-      enemy_count = randint(0, max)
-      valid_cells = [c for c in room.get_cells() if (
-        not next((d for d in door_cells if manhattan(d, c) <= 2), None)
-        and stage.is_cell_empty(c)
-      )]
-      while enemy_count and valid_cells:
-        cell = choice(valid_cells)
-        stage.spawn_elem_at(cell, gen_enemy(callable(enemies) and enemies() or choice(enemies)))
-        enemy_count -= 1
-        valid_cells.remove(cell)
-        if room in empty_rooms:
-          empty_rooms.remove(room)
-    for room in empty_rooms:
-      gen_enemies(room, max=6)
+    empty_rooms += [n for n in tree.nodes if n.empty]
+    empty_rooms = [room for room in empty_rooms if not gen_enemies(stage, room, enemies, max=6)]
 
     # spawn items
     while empty_rooms:
@@ -619,7 +616,7 @@ def gen_floor(
         cell=room.cell,
         items=[choice(items) for _ in range(randint(1, 3))]
       ).place(stage, connectors=door_cells)
-      gen_enemies(room, max=3)
+      gen_enemies(stage, room, enemies, max=3)
 
     debug("Empty rooms: {}".format(len(empty_rooms)))
     debug("-- Generation succeeded in {iters} iteration{s} --".format(
