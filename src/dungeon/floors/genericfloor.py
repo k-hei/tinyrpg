@@ -28,7 +28,7 @@ class GenericFloor(Floor):
       size=(27, 27),
       features=[
         *(randint(1, 5) == 1 and [OasisRoom()] or []),
-        *(Longinus not in store.skills and randint(1, 3) == 1 and [RareTreasureRoom()] or []),
+        *(Longinus not in store.skills and randint(1, 2) == 1 and [RareTreasureRoom()] or []),
       ],
       items=[
         Amethyst,

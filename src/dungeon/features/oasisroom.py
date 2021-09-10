@@ -143,7 +143,7 @@ class OasisRoom(SpecialRoom):
       and stage.get_tile_at((x, y + 1)) is stage.OASIS):
         corners.append((1, 1))
       if (not corners
-      or len(wave_decors) >=3 and randint(0, 1)):
+      or len(wave_decors) >= 3 and randint(0, 1)):
         continue
       corner_x, corner_y = choice(corners)
       offset_x = corner_x * 16

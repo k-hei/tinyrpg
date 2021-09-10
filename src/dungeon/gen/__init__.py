@@ -612,7 +612,8 @@ def gen_floor(
       gen_enemies(room, max=6)
 
     # spawn items
-    for room in empty_rooms:
+    while empty_rooms:
+      room = empty_rooms.pop(0)
       ItemRoom(
         size=room.size,
         cell=room.cell,
@@ -620,6 +621,7 @@ def gen_floor(
       ).place(stage, connectors=door_cells)
       gen_enemies(room, max=3)
 
+    debug("Empty rooms: {}".format(len(empty_rooms)))
     debug("-- Generation succeeded in {iters} iteration{s} --".format(
       iters=iters,
       s="" if iters == 1 else "s"
