@@ -448,7 +448,7 @@ class DungeonContext(Context):
       return on_end and on_end()
     actor, commands = game.commands[0]
     step = lambda: (
-      not (game.commands[0] and game.commands[0][1]) and (
+      not (game.commands and game.commands[0] and game.commands[0][1]) and (
         game.commands.pop(0),
         game.end_turn(actor),
       ),

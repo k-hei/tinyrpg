@@ -1,7 +1,7 @@
 import pygame
 import random
 from random import randint, randrange, choice, choices, getrandbits
-from lib.cell import is_odd, add, is_adjacent, manhattan
+from lib.cell import is_odd, add, is_adjacent, manhattan, neighborhood
 
 import config
 from config import ROOM_WIDTHS, ROOM_HEIGHTS
@@ -19,7 +19,6 @@ from dungeon.features.oasisroom import OasisRoom
 from dungeon.features.coffinroom import CoffinRoom
 from dungeon.features.pitroom import PitRoom
 from dungeon.features.elevroom import ElevRoom
-from dungeon.features.itemroom import ItemRoom
 
 from dungeon.actors.knight import Knight
 from dungeon.actors.mage import Mage
@@ -427,6 +426,19 @@ def gen_features(floor, feature_graph):
         floor.tree.add(neighbor)
   return True
 
+def gen_items(stage, room, items, connectors=[]):
+  valid_cells = [c for c in room.get_cells() if (
+    not next((d for d in connectors if manhattan(d, c) <= 2), None)
+    and stage.is_cell_empty(c)
+  )]
+  items = list(room.items)
+  while items and valid_cells:
+    cell = choice(valid_cells)
+    stage.spawn_elem_at(cell, Chest(items.pop(0)))
+    for neighbor in neighborhood(cell, inclusive=True):
+      if neighbor in valid_cells:
+        valid_cells.remove(neighbor)
+
 def gen_enemies(stage, room, enemies, max=3):
   spawn_count = 0
   enemy_count = randint(0, max)
@@ -609,16 +621,12 @@ def gen_floor(
     empty_rooms = [room for room in empty_rooms if not gen_enemies(stage, room, enemies, max=6)]
 
     # spawn items
-    while empty_rooms:
-      room = empty_rooms.pop(0)
-      ItemRoom(
-        size=room.size,
-        cell=room.cell,
-        items=[choice(items) for _ in range(randint(1, 3))]
-      ).place(stage, connectors=door_cells)
+    for room in empty_rooms:
+      gen_items(stage, room,
+        items=[choice(items) for _ in range(randint(1, 3))],
+        connectors=door_cells)
       gen_enemies(stage, room, enemies, max=3)
 
-    debug("Empty rooms: {}".format(len(empty_rooms)))
     debug("-- Generation succeeded in {iters} iteration{s} --".format(
       iters=iters,
       s="" if iters == 1 else "s"
