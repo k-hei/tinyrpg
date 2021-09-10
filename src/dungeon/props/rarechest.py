@@ -43,7 +43,7 @@ class RareChest(Prop):
     item_anim = None
     success = False
     if contents:
-      if game.store.obtain(contents):
+      if game.store.obtain(contents) or contents is Virus:
         success = True
         game.camera.focus(
           cell=chest.cell,
