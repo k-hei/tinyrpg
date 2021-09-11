@@ -13,7 +13,7 @@ class ControlPreset:
   ally: str
   skill: list[str]
   item: list[str]
-  equip: list[str]
+  equip: str
   minimap: str
 
 TYPE_A = ControlPreset(
@@ -27,6 +27,6 @@ TYPE_A = ControlPreset(
   ally=gamepad.L,
   skill=[gamepad.SQUARE],
   item=[gamepad.TRIANGLE],
-  equip=[gamepad.START],
+  equip=gamepad.START,
   minimap=gamepad.SELECT,
 )
