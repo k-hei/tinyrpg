@@ -553,7 +553,7 @@ class DungeonContext(Context):
       floor = game.floor
       target = game.find_closest_enemy(enemy)
       room = next((r for r in floor.rooms if enemy.cell in r.get_cells()), None)
-      if (target and room and target.cell in room.get_cells() + room.get_border()
+      if (target and room and enemy.cell in room.get_cells() + room.get_border()
       or target and game.is_cell_in_vision_range(actor=enemy, cell=target.cell)
       ):
         print("alert ally from dungeon step")
@@ -722,7 +722,13 @@ class DungeonContext(Context):
     floor = game.floor
     visible_actors = [floor.get_elem_at(c, superclass=DungeonActor) for c in hero.visible_cells]
     visible_enemies = [e for e in visible_actors if e and not e.allied(hero)]
-    if hero.ailment or visible_enemies or not game.store.sp:
+    if hero.ailment:
+      return False
+    if visible_enemies:
+      game.log.print("There are enemies nearby!")
+      return False
+    if game.store.sp:
+      game.log.print("You're too hungry to sleep right now...")
       return False
     hero.inflict_ailment("sleep")
     hero.command = None
