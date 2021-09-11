@@ -1574,7 +1574,8 @@ class DungeonContext(Context):
       return False
     item = actor.item
     target_cell = add_vector(actor.cell, actor.facing)
-    if Tile.is_solid(game.floor.get_tile_at(target_cell)) or next((e for e in game.floor.get_elems_at(target_cell) if e.solid), None):
+    if (Tile.is_solid(game.floor.get_tile_at(target_cell))
+    or next((e for e in game.floor.get_elems_at(target_cell) if e.solid or isinstance(item, ItemDrop)), None)):
       return False
     game.floor.spawn_elem_at(target_cell, ItemDrop(item))
     if not game.anims:
@@ -1617,19 +1618,27 @@ class DungeonContext(Context):
       return False
     item = actor.item
     facing_cell = add_vector(actor.cell, actor.facing)
-    target_cell = actor.cell
     target_elem = None
+    target_cell = actor.cell
+    nonpit_cell = actor.cell
     throwing = True
     while throwing:
       next_cell = add_vector(target_cell, actor.facing)
+      next_tile = game.floor.get_tile_at(next_cell)
       next_elem = next((e for e in game.floor.get_elems_at(next_cell) if e.solid), None)
-      if Tile.is_solid(game.floor.get_tile_at(next_cell)) or next((e for e in game.floor.get_elems_at(next_cell) if e.solid and not isinstance(e, DungeonActor)), None):
+      if (not next_tile is game.floor.PIT and Tile.is_solid(next_tile)
+      or next((e for e in game.floor.get_elems_at(next_cell) if e.solid and not isinstance(e, DungeonActor)), None)
+      ):
         throwing = False
         break
       elif next_elem:
         target_elem = next_elem
         throwing = False
+      if next_tile is not game.floor.PIT:
+        nonpit_cell = next_cell
       target_cell = next_cell
+    if game.floor.get_tile_at(target_cell) is game.floor.PIT:
+      target_cell = nonpit_cell
     if target_cell == actor.cell:
       game.anims.append([
         AttackAnim(
