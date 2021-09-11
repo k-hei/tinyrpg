@@ -217,20 +217,22 @@ class DungeonActor(DungeonElement):
       return Core.allied(actor.core, target.core)
 
   def inflict_ailment(actor, ailment):
-    if ailment == actor.ailment:
-      return False
     actor.core.anims = []
     if ailment == "poison":
+      if actor.ailment == "poison":
+        return False
       actor.ailment_turns = DungeonActor.POISON_DURATION
       actor.anims = [DungeonActor.PoisonAnim()]
-    if ailment == "sleep":
+    elif ailment == "sleep":
+      if actor.ailment == "sleep":
+        return False
       actor.ailment_turns = DungeonActor.SLEEP_DURATION
       actor.anims = [DungeonActor.SleepAnim()]
       if "SleepAnim" in dir(actor.core):
         actor.core.anims = [actor.core.SleepAnim()]
-    if ailment == "freeze":
+    elif ailment == "freeze":
       actor.ailment_turns = DungeonActor.FREEZE_DURATION
-    if ailment == "invulnerable":
+    elif ailment == "invulnerable":
       actor.ailment_turns = DungeonActor.INVULNERABLE_DURATION
       actor.stats.st += 2
       actor.stats.dx += 10
