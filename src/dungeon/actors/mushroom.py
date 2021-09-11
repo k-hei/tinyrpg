@@ -93,7 +93,7 @@ class Mushroom(DungeonActor):
         offset_x += anim.offset
         break
     else:
-      if mushroom.ailment == "sleep":
+      if mushroom.ailment == "sleep" or mushroom.get_hp() < mushroom.get_hp_max() / 2:
         mushroom_image = assets.sprites["mushroom_sleep"]
       else:
         mushroom_image = assets.sprites["mushroom"]

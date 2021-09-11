@@ -153,7 +153,7 @@ class Mummy(DungeonActor):
         soldier_xoffset += anim.offset
         break
     else:
-      if soldier.ailment == "sleep":
+      if soldier.ailment == "sleep" or soldier.get_hp() < soldier.get_hp_max() / 2:
         soldier_image = assets.sprites["soldier_sleep"]
       else:
         soldier_image = assets.sprites["soldier"]

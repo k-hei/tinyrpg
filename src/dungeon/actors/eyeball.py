@@ -243,6 +243,8 @@ class Eyeball(DungeonActor):
     else:
       if eyeball.ailment == "sleep":
         image = SleepSprite(eyeball.facing)
+      elif eyeball.get_hp() < eyeball.get_hp_max() / 2:
+        image = MoveSprite(eyeball.facing)
       else:
         image = IdleSprite(eyeball.facing)
     if eyeball.ailment == "freeze":

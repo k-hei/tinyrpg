@@ -79,6 +79,8 @@ class Ghost(DungeonActor):
 
   def view(ghost, anims):
     ghost_image = assets.sprites["ghost"]
+    if ghost.ailment == "sleep" or ghost.get_hp() < ghost.get_hp_max() / 2:
+      ghost_image = assets.sprites["ghost_move"]
     anim_group = [a for a in anims[0] if a.target is ghost] if anims else []
     anim_group += ghost.core.anims
     offset_x, offset_y = (0, 0)
