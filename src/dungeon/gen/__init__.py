@@ -701,7 +701,7 @@ def gen_floor(
     debug("Attempting to spawn {} item rooms".format(len(empty_rooms)))
     for room in empty_rooms:
       items_spawned = gen_elems(stage, room,
-        elems=[Vase(choice(items)) for _ in range(room.get_area() // 15)]
+        elems=[Vase(choice(items)) for _ in range(min(3, room.get_area() // 20))]
       )
       debug("Spawned {} items at {} {}".format(items_spawned, room, room.cell))
 
