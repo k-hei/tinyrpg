@@ -612,6 +612,18 @@ def gen_floor(
     enemy_rooms = [r for i, r in enumerate(empty_rooms) if i < len(empty_rooms) * 0.6]
     item_rooms = [r for r in empty_rooms if r not in enemy_rooms]
 
+    for room in empty_rooms:
+      if type(room) is not Room:
+        continue
+      room_doors = [e for e in room.get_edges() if stage.get_tile_at(e) is not stage.WALL]
+      if next((d for d in room_doors if next((c for c in room.get_corners() if is_adjacent(c, d)), None)), None):
+        continue
+      for cell in room.get_cells():
+        if next((door for door in room_doors if is_adjacent(cell, door)), None):
+          continue
+        if next((n for n in neighborhood(cell) if stage.get_tile_at(n) is stage.WALL), None):
+          stage.set_tile_at(cell, stage.PIT)
+
     debug("Attempting to spawn {} enemy rooms".format(len(enemy_rooms)))
     for room in enemy_rooms:
       enemies_spawned = gen_elems(stage, room,

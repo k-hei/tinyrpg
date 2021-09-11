@@ -222,7 +222,7 @@ class StageView:
       self.redraw_tile(stage, cell, visible_cells, visited_cells, anims, dry=True)
 
     time_end = get_ticks()
-    debug.log("Redraw tile surface in {}ms".format(time_end - time_start))
+    # debug.log("Redraw tile surface in {}ms".format(time_end - time_start))
 
   def view_tiles(self, camera):
     camera = camera.get_rect()
