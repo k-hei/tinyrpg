@@ -633,15 +633,15 @@ class DungeonContext(Context):
     if game.anims or game.commands or game.get_head().transits or game.hero and game.hero.core.anims:
       return False
 
-    delta = None
     directions = [d for d in (gamepad.LEFT, gamepad.RIGHT, gamepad.UP, gamepad.DOWN) if gamepad.get_state(d)]
     if directions:
       directions = sorted(directions, key=lambda d: gamepad.get_state(d))
-      direction = directions[0]
-      delta = ARROW_DELTAS[direction]
+      button = directions[0]
 
     if button in ARROW_DELTAS:
       delta = ARROW_DELTAS[button]
+    else:
+      delta = None
 
     if delta:
       if ctrl or gamepad.get_state(gamepad.controls.turn):
