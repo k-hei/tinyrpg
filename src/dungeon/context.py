@@ -683,7 +683,10 @@ class DungeonContext(Context):
         elif key == pygame.K_RETURN:
           return game.handle_skill()
         elif key == pygame.K_SPACE:
-          return game.handle_action()
+          if game.handle_action():
+            return True
+          else:
+            return game.handle_pickup()
 
     return None
 
@@ -878,11 +881,7 @@ class DungeonContext(Context):
       ))
     else:
       game.log.clear()
-      game.log.print((
-        "There's a{n} ".format(n="n" if item.name.lower() in "aeiouy" else ""),
-        item().token(),
-        " here."
-      ))
+      game.log.print(("You're standing on ", item().token(), "."))
     return obtained
 
   def jump_pit(game, actor, run=False, on_end=None):
@@ -924,6 +923,7 @@ class DungeonContext(Context):
     effect_result = target_elem and target_elem.effect(game)
     if effect_result == True:
       game.step()
+    return effect_result
 
   def handle_wait(game):
     game.step()
