@@ -630,7 +630,7 @@ class InventoryContext(Context):
       cursor_x = cells_x + tile_width * cursor_col
       cursor_y = cells_y + tile_height * cursor_row
       cursor_color = GOLD
-      if not ctx.anims and ctx.items:
+      if not ctx.anims:
         pygame.draw.rect(cursor_image, cursor_color, Rect(0, 0, tile_width, tile_height), width=1)
         sprites.append(Sprite(
           image=cursor_image,
@@ -648,7 +648,7 @@ class InventoryContext(Context):
       cursor_color = GOLD
     elif ctx.cursor_anim.time // 2 % 2:
       cursor_color = BLUE
-    if not ctx.anims and ctx.items:
+    if not ctx.anims:
       pygame.draw.rect(cursor_image, cursor_color, Rect(0, 0, tile_width, tile_height), width=1)
       sprites.append(Sprite(
         image=cursor_image,
@@ -687,7 +687,7 @@ class InventoryContext(Context):
         pos=(x, y),
         layer="hud"
       ))
-    elif not ctx.anims and ctx.items:
+    elif not ctx.anims:
       if ctx.selection:
         hand_y = cursor_y + tile_height - 3 + ctx.cursor_anim.update() * 2
         sprites.append(Sprite(
