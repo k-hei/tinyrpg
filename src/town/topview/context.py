@@ -43,9 +43,9 @@ class TopViewContext(Context):
     ctx.debug = False
     ctx.time = 0
 
-  def handle_keydown(ctx, key):
+  def handle_press(ctx, key):
     if ctx.child:
-      return ctx.child.handle_keydown(key)
+      return ctx.child.handle_press(key)
     if ctx.anims or ctx.link or ctx.get_head().transits:
       return None
     if key in keyboard.ARROW_DELTAS:
@@ -58,9 +58,9 @@ class TopViewContext(Context):
     if key == pygame.K_b and keyboard.get_pressed(pygame.K_LCTRL):
       return ctx.handle_debug()
 
-  def handle_keyup(ctx, key):
+  def handle_release(ctx, key):
     if ctx.child:
-      return ctx.child.handle_keyup(key)
+      return ctx.child.handle_release(key)
     if key in keyboard.ARROW_DELTAS:
       ctx.handle_stopmove()
 

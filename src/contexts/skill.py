@@ -1,22 +1,24 @@
-from contexts import Context
-from comps.bar import Bar
-import keyboard
-
 import math
 import pygame
 from pygame import Rect, Surface, Color
 from pygame.transform import flip
-from config import TILE_SIZE, WINDOW_HEIGHT
+import keyboard
+import lib.gamepad as gamepad
+from lib.cell import manhattan, add as add_vector
+from lib.lerp import lerp
+from easing.expo import ease_out
+
 from assets import load as use_assets
 from text import render as render_text
 from filters import recolor, replace_color, outline
 from colors.palette import BLACK, WHITE, GRAY, YELLOW
+from config import TILE_SIZE, WINDOW_HEIGHT
+
+from contexts import Context
+from comps.bar import Bar
 from comps.skill import Skill
 from sprite import Sprite
 
-from lib.cell import manhattan, add as add_vector
-from lib.lerp import lerp
-from easing.expo import ease_out
 from anims.sine import SineAnim
 from anims.tween import TweenAnim
 from anims.flicker import FlickerAnim
@@ -32,6 +34,9 @@ def find_closest_cell_in_range(range_cells, target_cell):
     return None
   # TODO: take delta into account during sort
   return sorted(range_cells, key=lambda c: manhattan(c, target_cell))[0]
+
+class NextAnim(TweenAnim): pass
+class PrevAnim(TweenAnim): pass
 
 class SkillContext(Context):
   def __init__(ctx, skills, selected_skill=None, actor=None, on_close=None):
@@ -79,24 +84,27 @@ class SkillContext(Context):
     else:
       ctx.bar.print("No active skills equipped.")
 
-  def handle_keydown(ctx, key):
+  def handle_press(ctx, button):
     if len(ctx.anims):
       return
 
-    if keyboard.get_pressed(key) != 1:
+    if keyboard.get_pressed(button) != 1 and gamepad.get_state(button) != 1:
       return
 
-    if key in keyboard.ARROW_DELTAS:
-      delta = keyboard.ARROW_DELTAS[key]
+    if button in keyboard.ARROW_DELTAS:
+      delta = keyboard.ARROW_DELTAS[button]
       return ctx.handle_direction(delta)
 
-    if key == pygame.K_RETURN or key == pygame.K_SPACE:
+    if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
       return ctx.handle_confirm()
 
-    if key == pygame.K_TAB:
+    if button in (pygame.K_TAB, gamepad.L):
       return ctx.handle_select()
 
-    if key == pygame.K_ESCAPE or key == pygame.K_BACKSPACE:
+    if button == gamepad.R:
+      return ctx.handle_select(reverse=True)
+
+    if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, gamepad.controls.cancel):
       return ctx.exit()
 
   def handle_direction(ctx, delta):
@@ -142,11 +150,17 @@ class SkillContext(Context):
     old_skill = ctx.skill
     if old_skill is None:
       return
-    index = skills.index(old_skill)
-    new_skill = skills[(index + 1) % len(skills)]
+    old_index = skills.index(old_skill)
+    if reverse:
+      new_index = old_index - 1
+      if new_index < 0:
+        new_index += len(skills)
+    else:
+      new_index = (old_index + 1) % len(skills)
+    new_skill = skills[new_index]
     if old_skill != new_skill:
       ctx.print_skill(new_skill)
-      ctx.anims.append(TweenAnim(duration=12, target=options))
+      ctx.anims.append((PrevAnim if reverse else NextAnim)(duration=12, target=options))
       ctx.skill_range = new_skill().find_range(ctx.actor, game.floor)
       pivot_cell = add_vector(hero.cell, tuple([x / 10 for x in hero.facing]))
       ctx.dest = (sorted(ctx.skill_range, key=lambda c: manhattan(c, pivot_cell))[0]
@@ -361,7 +375,12 @@ class SkillContext(Context):
 
       anim = ctx.anims[0] if ctx.anims else None
       if anim and anim.target is options:
-        old_i = (i + 1) % len(options)
+        if type(anim) is NextAnim:
+          old_i = (i + 1) % len(options)
+        else:
+          old_i = i - 1
+          if old_i < 0:
+            old_i += len(options)
         old_x, old_y = get_skill_pos(sprite, old_i)
         new_x, new_y = get_skill_pos(sprite, i)
         t = ease_out(anim.time / anim.duration)

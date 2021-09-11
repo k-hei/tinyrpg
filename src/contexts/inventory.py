@@ -8,6 +8,7 @@ from comps.hud import Hud
 from comps.invdesc import InventoryDescription
 from assets import load as use_assets
 from filters import replace_color
+import lib.gamepad as gamepad
 import keyboard
 from keyboard import key_times, ARROW_DELTAS
 from colors.palette import BLACK, WHITE, GRAY, BLUE
@@ -169,30 +170,38 @@ class InventoryContext(Context):
     col, row = cell
     return col >= 0 and col < cols and row >= 0 and row < rows
 
-  def handle_keydown(ctx, key):
+  def handle_press(ctx, button):
     if next((a for a in ctx.anims if a.blocking), None):
       return False
 
     if ctx.child:
-      return ctx.child.handle_keydown(key)
+      return ctx.child.handle_press(button)
 
-    if keyboard.get_pressed(key) > 1:
+    if keyboard.get_pressed(button) > 1:
       return False
 
-    if key in ARROW_DELTAS:
-      delta = ARROW_DELTAS[key]
+    if button in ARROW_DELTAS:
+      delta = ARROW_DELTAS[button]
       ctx.handle_move(delta)
 
-    if key == pygame.K_TAB:
-      if keyboard.get_pressed(pygame.K_LSHIFT) or keyboard.get_pressed(pygame.K_RSHIFT):
+    if gamepad.get_state(gamepad.L):
+      ctx.handle_tab(delta=-1)
+
+    if gamepad.get_state(gamepad.R):
+      ctx.handle_tab(delta=1)
+
+    if button == pygame.K_TAB:
+      if (keyboard.get_pressed(pygame.K_LSHIFT)
+      or keyboard.get_pressed(pygame.K_RSHIFT)
+      ):
         ctx.handle_tab(delta=-1)
       else:
         ctx.handle_tab(delta=1)
 
-    if key == pygame.K_RETURN or key == pygame.K_SPACE:
+    if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
       ctx.handle_choose()
 
-    if key == pygame.K_BACKSPACE or key == pygame.K_ESCAPE:
+    if button in (pygame.K_BACKSPACE, pygame.K_ESCAPE, gamepad.controls.cancel, gamepad.controls.item):
       ctx.exit()
 
   def handle_move(ctx, delta):

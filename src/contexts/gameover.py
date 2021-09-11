@@ -104,9 +104,9 @@ class GameOverContext(Context):
       ctx.cache_bg.blit(triangle_image, (x, 0))
       x += triangle_image.get_width()
 
-  def handle_keydown(ctx, key):
+  def handle_press(ctx, key):
     if ctx.child:
-      return ctx.child.handle_keydown(key)
+      return ctx.child.handle_press(key)
     if keyboard.get_pressed(key) > 1:
       return
     if key == pygame.K_UP:

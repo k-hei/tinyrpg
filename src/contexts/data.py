@@ -273,12 +273,12 @@ class DataContext(Context):
       choice and choice.text == "Yes" and ctx.exit()
     ))
 
-  def handle_keydown(ctx, key):
+  def handle_press(ctx, key):
     if ctx.anims:
       return False
 
     if ctx.child:
-      return ctx.child.handle_keydown(key)
+      return ctx.child.handle_press(key)
 
     if keyboard.get_pressed(key) > 1:
       return

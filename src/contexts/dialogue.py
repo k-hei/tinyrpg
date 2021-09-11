@@ -4,6 +4,7 @@ from pygame import Rect, Surface
 import config
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 import keyboard
+import lib.gamepad as gamepad
 from contexts import Context
 from assets import load as use_assets
 from comps.log import Log
@@ -106,14 +107,16 @@ class DialogueContext(Context):
     else:
       ctx.log.print(text)
 
-  def handle_keydown(ctx, key):
+  def handle_press(ctx, button):
     if ctx.anim:
       return
     if ctx.child:
-      return ctx.child.handle_keydown(key)
-    if keyboard.get_pressed(key) != 1:
+      return ctx.child.handle_press(button)
+    if button == gamepad.controls.cancel:
+      ctx.handle_next()
+    if keyboard.get_pressed(button) != 1 and gamepad.get_state(button) != 1:
       return
-    if key in (pygame.K_SPACE, pygame.K_RETURN):
+    if button in (pygame.K_SPACE, pygame.K_RETURN, gamepad.controls.confirm):
       ctx.handle_next()
 
   def handle_next(ctx):

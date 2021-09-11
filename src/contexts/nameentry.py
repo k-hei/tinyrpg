@@ -315,12 +315,12 @@ class NameEntryContext(Context):
     )))
     return True
 
-  def handle_keydown(ctx, key):
+  def handle_press(ctx, key):
     if ctx.anims:
       return
 
     if ctx.child:
-      return ctx.child.handle_keydown(key)
+      return ctx.child.handle_press(key)
 
     key_time = keyboard.get_pressed(key)
     if (key in keyboard.ARROW_DELTAS

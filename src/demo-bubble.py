@@ -19,8 +19,8 @@ class BubbleContext(Context):
   def init(ctx):
     ctx.bubble.print(ctx.message())
 
-  def handle_keydown(ctx, key):
-    if super().handle_keydown(key) != None:
+  def handle_press(ctx, key):
+    if super().handle_press(key) != None:
       return
     if keyboard.get_pressed(key) > 1:
       return

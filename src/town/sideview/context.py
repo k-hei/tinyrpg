@@ -120,9 +120,9 @@ class SideViewContext(Context):
     ctx.open(DialogueContext(script=message, on_close=stop_talk))
     return True
 
-  def handle_keydown(ctx, key):
+  def handle_press(ctx, key):
     if ctx.child:
-      return ctx.child.handle_keydown(key)
+      return ctx.child.handle_press(key)
     if ctx.link or ctx.anims or ctx.get_head().transits:
       return False
     if key in (pygame.K_LEFT, pygame.K_a):
@@ -138,7 +138,7 @@ class SideViewContext(Context):
     if key in (pygame.K_SPACE, pygame.K_RETURN):
       return ctx.handle_talk()
 
-  def handle_keyup(ctx, key):
+  def handle_release(ctx, key):
     if key in (pygame.K_LEFT, pygame.K_a, pygame.K_RIGHT, pygame.K_d):
       for actor in ctx.party:
         actor.stop_move()

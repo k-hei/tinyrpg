@@ -16,7 +16,7 @@ class PortraitContext(Context):
     super().__init__()
     ctx.portrait = MiraPortrait()
 
-  def handle_keydown(ctx, key):
+  def handle_press(ctx, key):
     if keyboard.get_pressed(key) > 1:
       return
 

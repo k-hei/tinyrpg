@@ -79,7 +79,7 @@ class TextBubble:
       ctx.cursor_anim = SineAnim(period=30, amplitude=2)
       ctx.anims = []
 
-    def handle_keydown(ctx, key):
+    def handle_press(ctx, key):
       if ctx.anims:
         return False
       if keyboard.get_pressed(key) > 1:

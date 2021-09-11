@@ -17,6 +17,7 @@ from config import (
   ENABLED_COMBAT_LOG,
 )
 
+import lib.gamepad as gamepad
 import keyboard
 from keyboard import ARROW_DELTAS, key_times
 
@@ -144,7 +145,7 @@ class DungeonContext(Context):
     game.commands = []
     game.vfx = []
     game.numbers = []
-    game.keys_rejected = {}
+    game.buttons_rejected = {}
     game.seeds = []
     game.lights = False
     game.god_mode = False
@@ -599,73 +600,98 @@ class DungeonContext(Context):
       and not hero.allied(e)
     )]
 
-  def handle_keyup(game, key):
-    if key in game.keys_rejected:
-      del game.keys_rejected[key]
-
-  def handle_keydown(game, key):
+  def handle_release(game, button):
     if game.child:
-      return game.child.handle_keydown(key)
+      return game.child.handle_release(button)
+    if button in game.buttons_rejected:
+      del game.buttons_rejected[button]
+
+  def handle_press(game, button=None):
+    if game.child:
+      return game.child.handle_press(button)
 
     # debug functionality
     ctrl = keyboard.get_pressed(pygame.K_LCTRL) or keyboard.get_pressed(pygame.K_RCTRL)
     shift = keyboard.get_pressed(pygame.K_LSHIFT) or keyboard.get_pressed(pygame.K_RSHIFT)
-    if keyboard.get_pressed(key) == 1 and ctrl:
-      game.keys_rejected[key] = True
-      if key == pygame.K_ESCAPE:
+    if keyboard.get_pressed(button) == 1 and ctrl:
+      game.buttons_rejected[button] = True
+      if button == pygame.K_ESCAPE:
         return game.toggle_lights()
-      if key == pygame.K_s and shift:
+      if button == pygame.K_s and shift:
         return print(game.parent.seeds)
-      if key == pygame.K_s:
+      if button == pygame.K_s:
         return print(game.floor.seed)
-      if key == pygame.K_d and shift:
+      if button == pygame.K_d and shift:
         return game.handle_debug_toggle()
-      if key == pygame.K_d:
+      if button == pygame.K_d:
         return game.handle_debug()
-      if key == pygame.K_c:
+      if button == pygame.K_c:
         return print([a.__dict__ for g in game.anims for a in g], game.commands, game.get_head().transits, game.hero and game.hero.core.anims, game.hero.command)
-      if key == pygame.K_p:
+      if button == pygame.K_p:
         return print(game.hero.cell)
 
     if game.anims or game.commands or game.get_head().transits or game.hero and game.hero.core.anims:
       return False
 
-    if key in ARROW_DELTAS:
-      delta = ARROW_DELTAS[key]
-      if ctrl:
+    delta = None
+    directions = [d for d in (gamepad.LEFT, gamepad.RIGHT, gamepad.UP, gamepad.DOWN) if gamepad.get_state(d)]
+    if directions:
+      directions = sorted(directions, key=lambda d: gamepad.get_state(d))
+      direction = directions[0]
+      delta = ARROW_DELTAS[direction]
+
+    if button in ARROW_DELTAS:
+      delta = ARROW_DELTAS[button]
+
+    if delta:
+      if ctrl or gamepad.get_state(gamepad.controls.turn):
         return game.handle_turn(delta)
-      moved = game.handle_move(delta, run=shift)
+      moved = game.handle_move(delta, run=shift or gamepad.get_state(gamepad.controls.run))
       if not moved:
-        if key not in game.keys_rejected:
-          game.keys_rejected[key] = 0
-        game.keys_rejected[key] += 1
-        if game.keys_rejected[key] >= 30:
+        if button not in game.buttons_rejected:
+          game.buttons_rejected[button] = 0
+        game.buttons_rejected[button] += 1
+        if game.buttons_rejected[button] >= 30:
           return game.handle_push()
       return moved
 
-    if ((key == pygame.K_BACKSLASH or key == pygame.K_BACKQUOTE)
-    and keyboard.get_pressed(key) > 30):
+    if gamepad.get_state(gamepad.controls.wait) > 30 or (
+    button in (pygame.K_BACKSLASH, pygame.K_BACKQUOTE) and keyboard.get_pressed(button) > 30):
       return game.handle_sleep()
 
-    if keyboard.get_pressed(key) != 1:
-      return False
+    if keyboard.get_pressed(button) != 1 and gamepad.get_state(button) != 1:
+      return None
 
-    if key == pygame.K_TAB:
-      return game.handle_switch()
-
-    if key == pygame.K_f:
+    if button == pygame.K_f:
       return game.handle_examine()
 
-    if key == pygame.K_m:
+    if button == pygame.K_m or gamepad.get_state(gamepad.controls.minimap):
       return game.handle_minimap()
 
     if game.hero.is_dead() or game.hero.ailment == "sleep":
       return False
 
-    if key == pygame.K_BACKSLASH or key == pygame.K_BACKQUOTE:
+    if button in (pygame.K_TAB, gamepad.controls.ally):
+      return game.handle_switch()
+
+    if button in (pygame.K_BACKSLASH, pygame.K_BACKQUOTE) or gamepad.get_state(gamepad.controls.wait):
       return game.handle_wait()
 
-    if key in (pygame.K_RETURN, pygame.K_SPACE):
+    if gamepad.get_state(gamepad.controls.skill):
+      return game.handle_skill()
+
+    if gamepad.get_state(gamepad.controls.throw):
+      return game.handle_throw() or game.handle_pickup()
+
+    if gamepad.get_state(gamepad.controls.action):
+      if game.hero.item:
+        game.handle_place()
+      elif game.handle_action():
+        return True
+      else:
+        return game.handle_pickup()
+
+    if button in (pygame.K_RETURN, pygame.K_SPACE):
       if game.hero.item:
         if shift:
           return game.handle_throw()
@@ -680,9 +706,9 @@ class DungeonContext(Context):
           return game.handle_descend()
         elif game.floor.get_tile_at(game.hero.cell) is Stage.EXIT:
           return game.handle_exit()
-        elif key == pygame.K_RETURN:
+        elif button == pygame.K_RETURN:
           return game.handle_skill()
-        elif key == pygame.K_SPACE:
+        elif button == pygame.K_SPACE:
           if game.handle_action():
             return True
           else:
@@ -791,7 +817,6 @@ class DungeonContext(Context):
       # deplete sp
       if target_tile is not Stage.OASIS:
         game.store.sp -= 1 / 100
-
 
     moved = game.move(actor=hero, delta=delta, run=run, on_end=on_move)
     if hero.facing != delta:

@@ -7,6 +7,7 @@ import pygame
 from pygame.transform import scale
 from pygame.time import get_ticks
 import keyboard
+import lib.gamepad as gamepad
 import assets
 from contexts import Context
 from contexts.loading import LoadingContext
@@ -41,6 +42,10 @@ class App(Context):
     app.rescale(WINDOW_SCALE_INIT)
     app.display.fill((0, 0, 0))
     pygame.display.flip()
+    gamepad.init()
+    pygame.joystick.init()
+    joystick = pygame.joystick.Joystick(0) # we need this both inside and outside of the gamepad lib?
+    joystick.init()
     pygame.key.set_repeat(1000 // FPS)
     app.surface = pygame.Surface(app.size)
     app.clock = pygame.time.Clock()
@@ -81,11 +86,13 @@ class App(Context):
 
   def update(app):
     keyboard.update()
+    gamepad.update()
     if app.paused:
       return
     try:
       app.handle_events()
       super().update()
+      app.handle_press()
       if app.transits:
         transit = app.transits[0]
         if transit.done:
@@ -182,46 +189,49 @@ class App(Context):
       app.display = pygame.display.set_mode(app.size_scaled)
 
   def handle_events(app):
+    pygame.event.pump()
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
         app.done = True
         break
       elif event.type == pygame.KEYDOWN:
-        app.handle_keydown(event.key)
+        app.handle_press(event.key)
       elif event.type == pygame.KEYUP:
-        app.handle_keyup(event.key)
+        app.handle_release(event.key)
+      if gamepad.handle_event(app, event): continue
 
-  def handle_keydown(app, key):
-    keyboard.handle_keydown(key)
-    tapping = keyboard.get_pressed(key) == 1
-    ctrl = (keyboard.get_pressed(pygame.K_LCTRL)
-      or keyboard.get_pressed(pygame.K_RCTRL))
-    shift = (keyboard.get_pressed(pygame.K_LSHIFT)
-      or keyboard.get_pressed(pygame.K_RSHIFT))
-    if key == pygame.K_MINUS and ctrl:
-      return tapping and app.rescale(app.scale - 1)
-    if key == pygame.K_EQUALS and ctrl:
-      return tapping and app.rescale(app.scale + 1)
-    if key == pygame.K_r and ctrl and shift:
-      return tapping and app.reload()
-    if key == pygame.K_r and ctrl:
-      return tapping and app.reset()
-    if key == pygame.K_a and ctrl:
-      return tapping and app.print_contexts()
-    if key == pygame.K_BACKQUOTE and ctrl and shift:
-      return tapping and app.toggle_slowdown()
-    if key == pygame.K_BACKQUOTE and ctrl:
-      return tapping and app.toggle_speedup()
-    if key == pygame.K_f and ctrl:
-      return tapping and app.toggle_fullscreen()
-    if key == pygame.K_t and ctrl:
-      return tapping and app.print_transits()
-    if key == pygame.K_p and ctrl:
-      return tapping and app.toggle_pause()
+  def handle_press(app, button=None):
+    if button:
+      keyboard.handle_press(button)
+      tapping = keyboard.get_pressed(button) == 1
+      ctrl = (keyboard.get_pressed(pygame.K_LCTRL)
+        or keyboard.get_pressed(pygame.K_RCTRL))
+      shift = (keyboard.get_pressed(pygame.K_LSHIFT)
+        or keyboard.get_pressed(pygame.K_RSHIFT))
+      if button == pygame.K_MINUS and ctrl:
+        return tapping and app.rescale(app.scale - 1)
+      if button == pygame.K_EQUALS and ctrl:
+        return tapping and app.rescale(app.scale + 1)
+      if button == pygame.K_r and ctrl and shift:
+        return tapping and app.reload()
+      if button == pygame.K_r and ctrl:
+        return tapping and app.reset()
+      if button == pygame.K_a and ctrl:
+        return tapping and app.print_contexts()
+      if button == pygame.K_BACKQUOTE and ctrl and shift:
+        return tapping and app.toggle_slowdown()
+      if button == pygame.K_BACKQUOTE and ctrl:
+        return tapping and app.toggle_speedup()
+      if button == pygame.K_f and ctrl:
+        return tapping and app.toggle_fullscreen()
+      if button == pygame.K_t and ctrl:
+        return tapping and app.print_transits()
+      if button == pygame.K_p and ctrl:
+        return tapping and app.toggle_pause()
     if app.child:
-      return app.child.handle_keydown(key)
+      return app.child.handle_press(button)
 
-  def handle_keyup(app, key):
-    keyboard.handle_keyup(key)
+  def handle_release(app, key):
+    keyboard.handle_release(key)
     if app.child:
-      return app.child.handle_keyup(key)
+      return app.child.handle_release(key)

@@ -325,9 +325,9 @@ class SellContext(Context):
     ctx.card.spin(duration=10)
     ctx.on_animate = ctx.close
 
-  def handle_keydown(ctx, key):
+  def handle_press(ctx, key):
     if ctx.child:
-      return super().handle_keydown(key)
+      return super().handle_press(key)
 
     if next((a for a in ctx.anims if a.blocking), None) or ctx.tablist.anims:
       return
@@ -372,7 +372,7 @@ class SellContext(Context):
       else:
         return ctx.handle_close()
 
-  def handle_keyup(ctx, key):
+  def handle_release(ctx, key):
     if key == pygame.K_TAB:
       control = next((c for c in ctx.controls if c.value == "Tab"), None)
       control.release("L")

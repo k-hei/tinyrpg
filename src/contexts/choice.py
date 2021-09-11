@@ -6,7 +6,8 @@ from pygame import Surface, Rect
 from assets import load as use_assets
 from text import render as render_text
 from contexts import Context
-from keyboard import key_times
+import lib.gamepad as gamepad
+import keyboard
 from filters import recolor, replace_color
 from colors.palette import BLACK, WHITE, GRAY, YELLOW
 
@@ -67,22 +68,22 @@ class ChoiceContext(Context):
     if ctx.on_close:
       ctx.on_close(ctx.choice)
 
-  def handle_keydown(ctx, key):
+  def handle_press(ctx, button):
     if ctx.anims or ctx.choice:
       return False
 
-    if key not in key_times or key_times[key] != 1:
+    if keyboard.get_pressed(button) > 1:
       return False
 
-    if key == pygame.K_UP or key == pygame.K_w:
+    if button in (pygame.K_UP, pygame.K_w, gamepad.UP):
       return ctx.handle_move(-1)
-    elif key == pygame.K_DOWN or key == pygame.K_s:
+    elif button in (pygame.K_DOWN, pygame.K_s, gamepad.DOWN):
       return ctx.handle_move(1)
 
-    if key == pygame.K_RETURN or key == pygame.K_SPACE:
+    if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
       return ctx.handle_choose()
 
-    if key == pygame.K_BACKSPACE or key == pygame.K_ESCAPE:
+    if button in (pygame.K_BACKSPACE, pygame.K_ESCAPE, gamepad.controls.cancel):
       return ctx.handle_close()
 
   def handle_move(ctx, delta):

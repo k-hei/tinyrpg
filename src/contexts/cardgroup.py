@@ -86,9 +86,9 @@ class CardContext(Context):
       if not card.exiting:
         card.warp()
 
-  def handle_keydown(ctx, key):
+  def handle_press(ctx, key):
     if ctx.child:
-      return ctx.child.handle_keydown(key)
+      return ctx.child.handle_press(key)
 
     if (next((c for c in ctx.cards if c.anims), None)
     or next((a for a in ctx.anims if a.blocking), None)

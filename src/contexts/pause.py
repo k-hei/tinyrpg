@@ -20,7 +20,7 @@ HUD_MARGIN = 8
 class PauseContext(Context):
   choices = ["item", "equip", "status", "quest", "option"]
 
-  def handle_keydown(ctx, key):
+  def handle_press(ctx, key):
     if keyboard.get_pressed(key) > 1:
       return False
     if key == pygame.K_ESCAPE:

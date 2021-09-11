@@ -1,5 +1,7 @@
 import pygame
 import keyboard
+import lib.gamepad as gamepad
+import game.controls as controls
 from config import WINDOW_SIZE, DEBUG, KNIGHT_BUILD, MAGE_BUILD, ROGUE_BUILD
 from contexts import Context
 from contexts.load import LoadContext
@@ -21,6 +23,8 @@ from skills import get_skill_order
 from game.data import GameData
 from savedata.resolve import resolve_item, resolve_skill, resolve_elem
 from transits.dissolve import DissolveOut
+
+gamepad.config(preset=controls.TYPE_A)
 
 class GameContext(Context):
   def __init__(ctx, data=None, feature=None, floor=None, *args, **kwargs):
@@ -156,17 +160,17 @@ class GameContext(Context):
     for core in ctx.store.party:
       ctx.load_build(actor=core, build=ctx.store.builds[type(core).__name__])
 
-  def handle_keydown(ctx, key):
-    if super().handle_keydown(key) != None:
+  def handle_press(ctx, button):
+    if super().handle_press(button) != None:
       return
-    if keyboard.get_pressed(key) > 1 or (
+    if keyboard.get_pressed(button) > 1 or (
       type(ctx.child) is DungeonContext and ctx.child.get_depth() > 0
       or type(ctx.child) is TownContext and ctx.child.get_depth() > 1
     ):
       return
-    if key in (pygame.K_ESCAPE, pygame.K_BACKSPACE):
+    if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE) or gamepad.get_state(gamepad.controls.item):
       return ctx.handle_inventory()
-    if key == pygame.K_b:
+    if button == pygame.K_b or gamepad.get_state(gamepad.controls.equip):
       return ctx.handle_custom()
 
   def handle_pause(ctx):

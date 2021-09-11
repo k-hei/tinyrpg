@@ -1,20 +1,23 @@
+import pygame
+from pygame import Rect, SRCALPHA
+import keyboard
+import lib.gamepad as gamepad
+
+from filters import replace_color, recolor, outline
+from text import render as render_text
+from colors import darken_color
+from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, YELLOW, DARKYELLOW, BLUE, DARKBLUE
+from config import WINDOW_WIDTH, WINDOW_HEIGHT
+
 from assets import load as use_assets
 from contexts import Context
 from comps.bar import Bar
 from comps.skill import Skill
-from filters import replace_color, recolor, outline
-from text import render as render_text
-import pygame
-from pygame import Rect, SRCALPHA
-from colors import darken_color
-from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, YELLOW, DARKYELLOW, BLUE, DARKBLUE
-import keyboard
 from comps.piece import Piece
 from comps.hud import Hud
 from comps.minimap import Minimap
 from comps.spmeter import SpMeter
 from comps.floorno import FloorNo
-from config import WINDOW_WIDTH, WINDOW_HEIGHT
 from sprite import Sprite
 
 from cores.knight import Knight as Knight
@@ -206,39 +209,39 @@ class CustomContext(Context):
       build.pop(index)
       menu.cursor = (0, 0)
 
-  def handle_keydown(menu, key):
+  def handle_press(menu, button):
     blocking = False
     for group in menu.anims:
       for anim in group:
         if type(anim) in (EnterAnim, ExitAnim, CallAnim, RecallAnim):
           blocking = True
           break
-    if blocking or keyboard.get_pressed(key) != 1:
+    if blocking or keyboard.get_pressed(button) != 1 and gamepad.get_state(button) != 1:
       return
 
     if menu.arrange:
-      if key in keyboard.ARROW_DELTAS:
-        menu.handle_move_piece(delta=keyboard.ARROW_DELTAS[key])
+      if button in keyboard.ARROW_DELTAS:
+        menu.handle_move_piece(delta=keyboard.ARROW_DELTAS[button])
 
-      if key == pygame.K_RETURN or key == pygame.K_SPACE:
+      if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
         menu.handle_place_piece()
 
-      if key == pygame.K_ESCAPE or key == pygame.K_BACKSPACE:
+      if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, gamepad.controls.cancel, gamepad.controls.equip):
         menu.handle_recall_piece()
     else:
-      if key == pygame.K_TAB:
+      if button in (pygame.K_TAB, gamepad.L, gamepad.R):
         menu.handle_swap_char()
 
-      if key == pygame.K_UP or key == pygame.K_w:
+      if button in (pygame.K_UP, pygame.K_w, gamepad.UP):
         menu.handle_move_index(-1)
 
-      if key == pygame.K_DOWN or key == pygame.K_s:
+      if button in (pygame.K_DOWN, pygame.K_s, gamepad.DOWN):
         menu.handle_move_index(1)
 
-      if key == pygame.K_RETURN or key == pygame.K_SPACE:
+      if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
         menu.handle_select_piece()
 
-      if key == pygame.K_ESCAPE or key == pygame.K_BACKSPACE:
+      if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, gamepad.controls.cancel, gamepad.controls.equip):
         return menu.close()
 
   def render(menu):

@@ -1,4 +1,5 @@
 import pygame
+import lib.gamepad as gamepad
 from contexts import Context
 from comps.minimap import Minimap
 
@@ -21,11 +22,15 @@ class MinimapContext(Context):
     ctx.minimap.shrink()
     ctx.close()
 
-  def handle_keydown(ctx, key):
+  def handle_press(ctx, key):
     if ctx.minimap.anims or ctx.lock:
       return False
 
     if key == pygame.K_BACKSPACE or key == pygame.K_ESCAPE:
+      return ctx.handle_close()
+
+  def handle_release(ctx, button):
+    if button == gamepad.controls.minimap:
       return ctx.handle_close()
 
   def handle_close(ctx):

@@ -17,7 +17,7 @@ class PortraitsContext(Context):
   def update(ctx):
     ctx.group.update()
 
-  def handle_keydown(ctx, key):
+  def handle_press(ctx, key):
     if ctx.group.anims or keyboard.get_pressed(key) > 1:
       return
     if key == pygame.K_TAB:

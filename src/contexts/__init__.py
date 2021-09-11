@@ -31,13 +31,13 @@ class Context:
     else:
       return depth
 
-  def handle_keydown(ctx, key):
+  def handle_press(ctx, key):
     if ctx.child:
-      return ctx.child.handle_keydown(key)
+      return ctx.child.handle_press(key)
 
-  def handle_keyup(ctx, key):
+  def handle_release(ctx, key):
     if ctx.child:
-      return ctx.child.handle_keyup(key)
+      return ctx.child.handle_release(key)
 
   def enter(ctx):
     pass
