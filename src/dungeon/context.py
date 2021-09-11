@@ -1895,7 +1895,7 @@ class DungeonContext(Context):
     if game.talkbubble:
       game.talkbubble.done = True
       game.talkbubble = None
-    if facing_elem and not game.anims:
+    if facing_elem and not game.anims and not hero.item:
       bubble_cell = facing_cell
       game.talkbubble = TalkBubble(cell=bubble_cell, elev=Tile.get_elev(game.floor.get_tile_at(facing_cell)))
       game.vfx.append(game.talkbubble)
