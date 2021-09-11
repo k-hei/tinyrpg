@@ -91,6 +91,9 @@ class Room(Feature):
   def get_doors(room, stage):
     return [e for e in [stage.get_elem_at(c, superclass=Door) for c in room.get_border()] if e]
 
+  def get_doorways(room, stage):
+    return [e for e in room.get_edges() if stage.get_tile_at(e) is not stage.WALL]
+
   def get_slots(room, cell=None):
     room_x, room_y = cell or room.cell or (0, 0)
     slots = []

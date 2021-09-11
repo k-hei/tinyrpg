@@ -441,6 +441,63 @@ def gen_elems(stage, room, elems, doors=[]):
         valid_cells.remove(neighbor)
   return spawn_count
 
+def gen_islandroom(stage, room):
+  room_doorways = room.get_doorways(stage)
+  if next((d for d in room_doorways if next((c for c in room.get_corners() if is_adjacent(c, d)), None)), None):
+    return False
+  for cell in room.get_cells():
+    if next((door for door in room_doorways if is_adjacent(cell, door)), None):
+      continue
+    if next((n for n in neighborhood(cell) if stage.get_tile_at(n) is stage.WALL), None):
+      stage.set_tile_at(cell, stage.PIT)
+  return True
+
+def gen_mazeroom(stage, room):
+  # carve out all cells in room except for one cell
+  room_cells = room.get_cells()
+  pivot = choice(room_cells)
+  pivot_neighbors = neighborhood(pivot, diagonals=True)
+  for cell in room_cells:
+    if cell in pivot_neighbors:
+      continue
+    stage.set_tile_at(cell, stage.PIT)
+
+  # paint floors from each doorway to pivot
+  room_doorways = room.get_doorways(stage)
+  for door in room_doorways:
+    start = next((n for n in neighborhood(door) if n in room_cells), None)
+    if not start:
+      continue
+    cur_x, cur_y = start
+    pivot_x, pivot_y = pivot
+    # TODO: dumb pather function for reuse
+    while (cur_x, cur_y) != pivot:
+      stage.set_tile_at((cur_x, cur_y), stage.FLOOR)
+      if cur_x - pivot_x and cur_y - pivot_y:
+        if randint(0, 1):
+          if cur_x < pivot_x:
+            cur_x += 1
+          elif cur_x > pivot_x:
+            cur_x -= 1
+        else:
+          if cur_y < pivot_y:
+            cur_y += 1
+          elif cur_y > pivot_y:
+            cur_y -= 1
+      elif cur_x < pivot_x:
+        cur_x += 1
+      elif cur_x > pivot_x:
+        cur_x -= 1
+      elif cur_y < pivot_y:
+        cur_y += 1
+      elif cur_y > pivot_y:
+        cur_y -= 1
+
+  # draw some extra floors around pivot
+  # draw some extra floors around random cells in door paths??
+  # spawn some vases
+  return True
+
 def gen_floor(
   features=FloorGraph(),
   entrance=None,
@@ -612,17 +669,9 @@ def gen_floor(
     enemy_rooms = [r for i, r in enumerate(empty_rooms) if i < len(empty_rooms) * 0.6]
     item_rooms = [r for r in empty_rooms if r not in enemy_rooms]
 
-    for room in empty_rooms:
-      if type(room) is not Room:
-        continue
-      room_doors = [e for e in room.get_edges() if stage.get_tile_at(e) is not stage.WALL]
-      if next((d for d in room_doors if next((c for c in room.get_corners() if is_adjacent(c, d)), None)), None):
-        continue
-      for cell in room.get_cells():
-        if next((door for door in room_doors if is_adjacent(cell, door)), None):
-          continue
-        if next((n for n in neighborhood(cell) if stage.get_tile_at(n) is stage.WALL), None):
-          stage.set_tile_at(cell, stage.PIT)
+    plain_rooms = [r for r in empty_rooms if type(r) is Room]
+    plain_rooms = [r for r in plain_rooms if not gen_islandroom(stage, r)]
+    plain_rooms = [r for r in plain_rooms if not gen_mazeroom(stage, r)]
 
     debug("Attempting to spawn {} enemy rooms".format(len(enemy_rooms)))
     for room in enemy_rooms:
