@@ -1,6 +1,7 @@
 import random
 import pygame
 from pygame import Surface, Rect, SRCALPHA
+from pygame.transform import rotate
 
 from contexts import Context
 from contexts.choice import ChoiceContext, Choice
@@ -11,7 +12,7 @@ from filters import replace_color
 import lib.gamepad as gamepad
 import keyboard
 from keyboard import key_times, ARROW_DELTAS
-from colors.palette import BLACK, WHITE, GRAY, BLUE
+from colors.palette import BLACK, WHITE, GRAY, BLUE, GOLD
 from sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, INVENTORY_COLS, INVENTORY_ROWS
 
@@ -65,6 +66,7 @@ class InventoryContext(Context):
     ctx.tab = 0
     ctx.cursor = (0, 0)
     ctx.cursor_anim = SineAnim(period=30)
+    ctx.selection = None
     ctx.active = True
     ctx.anims = []
     ctx.box = InventoryDescription()
@@ -73,7 +75,7 @@ class InventoryContext(Context):
     ctx.update_items()
 
   def enter(ctx, on_end=None):
-    ctx.select()
+    ctx.describe_item()
     ctx.active = True
     ctx.box.enter()
     ctx.anims.append(TweenAnim(duration=DURATION_BELTENTER, target="belt"))
@@ -92,6 +94,11 @@ class InventoryContext(Context):
           delay=ENTER_STAGGER * index,
           target=(col, row)
         ))
+    ctx.anims.append(TweenAnim(
+      duration=ENTER_DURATION,
+      delay=ENTER_STAGGER * (index + 1),
+      target=(col + 1, row)
+    ))
     for i, tab in enumerate(ctx.tabs):
       if i == ctx.tab:
         duration = 15
@@ -129,6 +136,11 @@ class InventoryContext(Context):
           delay=EXIT_STAGGER * index,
           target=(col, row)
         ))
+    ctx.anims.append(TweenAnim(
+      duration=EXIT_DURATION,
+      delay=EXIT_STAGGER * (index + 1),
+      target=(col + 1, row)
+    ))
     for i, tab in enumerate(ctx.tabs):
       if i == ctx.tab:
         duration = 8
@@ -157,7 +169,7 @@ class InventoryContext(Context):
   def get_selected_item(ctx):
     return ctx.get_item_at(ctx.cursor)
 
-  def select(ctx, item=None):
+  def describe_item(ctx, item=None):
     if item is None:
       item = ctx.get_item_at(ctx.cursor)
     if item:
@@ -182,36 +194,46 @@ class InventoryContext(Context):
 
     if button in ARROW_DELTAS:
       delta = ARROW_DELTAS[button]
-      ctx.handle_move(delta)
+      return ctx.handle_move(delta)
 
-    if button == gamepad.L:
-      ctx.handle_tab(delta=-1)
+    if button in (pygame.K_SPACE, gamepad.controls.manage):
+      return ctx.handle_select()
 
-    if button == gamepad.R:
-      ctx.handle_tab(delta=1)
+    if ctx.selection:
+      if button in (pygame.K_BACKSPACE, pygame.K_ESCAPE, gamepad.controls.cancel):
+        return ctx.handle_select()
+    else:
+      if button == gamepad.L:
+        return ctx.handle_tab(delta=-1)
 
-    if button == pygame.K_TAB:
-      if (keyboard.get_pressed(pygame.K_LSHIFT)
-      or keyboard.get_pressed(pygame.K_RSHIFT)
-      ):
-        ctx.handle_tab(delta=-1)
-      else:
-        ctx.handle_tab(delta=1)
+      if button == gamepad.R:
+        return ctx.handle_tab(delta=1)
 
-    if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
-      ctx.handle_choose()
+      if button == pygame.K_TAB:
+        if (keyboard.get_pressed(pygame.K_LSHIFT)
+        or keyboard.get_pressed(pygame.K_RSHIFT)
+        ):
+          return ctx.handle_tab(delta=-1)
+        else:
+          return ctx.handle_tab(delta=1)
 
-    if button in (pygame.K_BACKSPACE, pygame.K_ESCAPE, gamepad.controls.cancel, gamepad.controls.item):
-      ctx.exit()
+      if button in (pygame.K_RETURN, gamepad.controls.confirm):
+        return ctx.handle_menu()
+
+      if button in (pygame.K_BACKSPACE, pygame.K_ESCAPE, gamepad.controls.cancel, gamepad.controls.item):
+        return ctx.exit()
 
   def handle_move(ctx, delta):
     delta_x, delta_y = delta
     cursor_x, cursor_y = ctx.cursor
     target_cell = (cursor_x + delta_x, cursor_y + delta_y)
+    extra_slot = (ctx.grid_size[0], ctx.grid_size[1] - 1)
+    if not ctx.contains(target_cell) and target_cell != extra_slot:
+      return False
     target_item = ctx.get_item_at(target_cell)
-    if target_item:
-      ctx.cursor = target_cell
-      ctx.select(target_item)
+    ctx.cursor = target_cell
+    if target_item and not ctx.selection:
+      ctx.describe_item(target_item)
 
   def handle_tab(ctx, delta=1):
     old_tab = ctx.tab
@@ -242,9 +264,9 @@ class InventoryContext(Context):
   def update_items(ctx):
     ctx.items = InventoryContext.filter_items(ctx.store.items, ctx.tabs[ctx.tab])
     ctx.cursor = (0, 0)
-    ctx.select()
+    ctx.describe_item()
 
-  def handle_choose(ctx):
+  def handle_menu(ctx):
     if ctx.get_item_at(ctx.cursor) is None:
       return False
     ctx.open(ChoiceContext(choices=[
@@ -257,6 +279,31 @@ class InventoryContext(Context):
       or choice.text == "Drop" and ctx.drop_item()
     )))
     return True
+
+  def handle_select(ctx):
+    if ctx.selection:
+      def map_cell_to_store(cell):
+        cols, rows = ctx.grid_size
+        col, row = cell
+        index = row * cols + col
+        item = ctx.items[index] if index < len(ctx.items) else None
+        if not item:
+          return -1
+        tab_index = next((j for j, (i, _) in enumerate([(i, x) for i, x in enumerate(ctx.items) if x is item]) if i == index), None)
+        store_index = [(i, x) for i, x in enumerate(ctx.store.items) if x is item][tab_index][0]
+        return store_index
+      a = map_cell_to_store(ctx.selection)
+      b = map_cell_to_store(ctx.cursor)
+      if b == -1:
+        ctx.store.items.append(ctx.store.items.pop(a))
+      elif a != -1:
+        ctx.store.items[a], ctx.store.items[b] = ctx.store.items[b], ctx.store.items[a]
+      ctx.items = InventoryContext.filter_items(ctx.store.items, ctx.tabs[ctx.tab])
+      ctx.selection = None
+    else:
+      if ctx.get_item_at(ctx.cursor) is None:
+        return False
+      ctx.selection = ctx.cursor
 
   def use_item(ctx, item=None):
     item = item or ctx.get_selected_item()
@@ -381,11 +428,13 @@ class InventoryContext(Context):
     cells_x = Hud.MARGIN_LEFT + sprite_belt.get_width() - 2
     cells_y = Hud.MARGIN_TOP + sprite_hud.get_height()
     for row in range(rows):
-      for col in range(cols):
+      for col in range(cols + 1):
+        if col == cols and row != rows - 1:
+          continue
         cell = (col, row)
         if col == 0:
           sprite = sprite_tileleft
-        elif col == cols - 1:
+        elif col >= cols - 1:
           sprite = sprite_tileright
         else:
           sprite = sprite_tile
@@ -407,12 +456,22 @@ class InventoryContext(Context):
           pos=(x, y),
           layer="ui"
         ))
-        item = ctx.get_item_at(cell)
+        item = None
+        if ctx.selection and cell == ctx.cursor:
+          item = ctx.get_item_at(ctx.selection)
+        elif not ctx.selection or cell != ctx.selection:
+          item = ctx.get_item_at(cell)
+        elif ctx.selection and cell == ctx.selection and ctx.cursor_anim.time % 2:
+          item = ctx.get_item_at(ctx.cursor)
         if item and not anim:
+          layer = "ui"
+          if ctx.selection and cell == ctx.cursor:
+            y -= 4
+            layer = "hud"
           sprites.append(Sprite(
             image=item().render(),
             pos=(x, y),
-            layer="ui"
+            layer=layer
           ))
 
     # tabs
@@ -447,11 +506,11 @@ class InventoryContext(Context):
       if tab_width:
         tab_image = Surface((tab_width, 16), SRCALPHA)
         pygame.draw.rect(tab_image, BLACK, Rect((0, 0),
-          (tab_width - 1, tab_image.get_height() - 1)))
+          (tab_width - 1, tab_image.get_height() - 3)))
         tab_image.blit(icon_image, (3, 3))
         if text_image:
           tab_image.blit(text_image, (
-            3 + icon_image.get_width() + 3,
+            3 + icon_image.get_width() + 4,
             tab_image.get_height() / 2 - text_image.get_height() / 2 - 1))
         tab_image.blit(tabend_image, (tab_width - tabend_image.get_width(), 0))
         if i != ctx.tab:
@@ -461,14 +520,33 @@ class InventoryContext(Context):
           pos=(x, y),
           layer="ui"
         ))
-      y += tab_image.get_height() + 1
+      y += tab_image.get_height() - 2
+
+    # selection
+    if ctx.selection:
+      cursor_image = Surface((tile_width, tile_height), SRCALPHA)
+      cursor_col, cursor_row = ctx.selection
+      cursor_x = cells_x + tile_width * cursor_col
+      cursor_y = cells_y + tile_height * cursor_row
+      cursor_color = BLUE
+      if not ctx.anims and ctx.items:
+        pygame.draw.rect(cursor_image, cursor_color, Rect(0, 0, tile_width, tile_height), width=1)
+        sprites.append(Sprite(
+          image=cursor_image,
+          pos=(cursor_x, cursor_y),
+          layer="ui"
+        ))
 
     # cursor
     cursor_image = Surface((tile_width, tile_height), SRCALPHA)
     cursor_col, cursor_row = ctx.cursor
     cursor_x = cells_x + tile_width * cursor_col
     cursor_y = cells_y + tile_height * cursor_row
-    cursor_color = BLUE if ctx.cursor_anim.time % 2 or type(ctx.child) is ChoiceContext else WHITE
+    cursor_color = WHITE
+    if type(ctx.child) is ChoiceContext:
+      cursor_color = BLUE
+    elif ctx.cursor_anim.time // 2 % 2:
+      cursor_color = GOLD if ctx.selection else BLUE
     if not ctx.anims and ctx.items:
       pygame.draw.rect(cursor_image, cursor_color, Rect(0, 0, tile_width, tile_height), width=1)
       sprites.append(Sprite(
@@ -509,11 +587,19 @@ class InventoryContext(Context):
         layer="hud"
       ))
     elif not ctx.anims and ctx.items:
-      hand_x = cursor_x + tile_width - 3 + ctx.cursor_anim.update() * 2
-      sprites.append(Sprite(
-        image=sprite_hand,
-        pos=(hand_x, cursor_y),
-        layer="hud"
-      ))
+      if ctx.selection:
+        hand_y = cursor_y + tile_height - 3 + ctx.cursor_anim.update() * 2
+        sprites.append(Sprite(
+          image=rotate(sprite_hand, -90),
+          pos=(cursor_x, hand_y),
+          layer="hud"
+        ))
+      else:
+        hand_x = cursor_x + tile_width - 3 + ctx.cursor_anim.update() * 2
+        sprites.append(Sprite(
+          image=sprite_hand,
+          pos=(hand_x, cursor_y),
+          layer="hud"
+        ))
 
     return sprites + super().view()

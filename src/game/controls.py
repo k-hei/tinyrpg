@@ -5,7 +5,8 @@ import lib.gamepad as gamepad
 class ControlPreset:
   confirm: str
   cancel: str
-  action: list[str]
+  manage: str
+  action: str
   run: str
   turn: str
   throw: list[str]
@@ -19,8 +20,9 @@ class ControlPreset:
 TYPE_A = ControlPreset(
   confirm=gamepad.CIRCLE,
   cancel=gamepad.CROSS,
-  action=[gamepad.CIRCLE],
-  run=[gamepad.CROSS],
+  manage=gamepad.SQUARE,
+  action=gamepad.CIRCLE,
+  run=gamepad.CROSS,
   turn=gamepad.R,
   throw=[gamepad.R, gamepad.CIRCLE],
   wait=[gamepad.R, gamepad.CROSS],
