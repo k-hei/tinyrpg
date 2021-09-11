@@ -84,8 +84,6 @@ class DungeonElement:
     return (offset_x, offset_y)
 
   def view(elem, sprites, anims=[]):
-    if not sprites:
-      return []
     will_enter = anims and next((g for g in anims if g is not anims[0] and next((a for a in g if (
       a.target is elem
       and (type(a) is WarpInAnim or type(a) is DropAnim)
@@ -96,9 +94,14 @@ class DungeonElement:
       sprites = Sprite(image=sprites, layer="elems")
     if type(sprites) is Sprite:
       sprites = [sprites]
-    sprite = sprites[0]
-    sprite_width, sprite_height = sprite.size or sprite.image.get_size()
-    sprite_layer = sprite.layer or "elems"
+    if sprites:
+      sprite = sprites[0]
+      sprite_width, sprite_height = sprite.size or sprite.image.get_size()
+      sprite_layer = sprite.layer or "elems"
+    else:
+      sprite = None
+      sprite_width, sprite_height = (0, 0)
+      sprite_layer = "elems"
     offset_x, offset_y = elem.find_move_offset(anims)
     item = None
     moving = next((g for g in anims if next((a for a in g if a.target is elem and type(a) is MoveAnim), None)), None)
@@ -146,7 +149,8 @@ class DungeonElement:
       if type(anim) is JumpAnim:
         offset_y += anim.offset
 
-    sprite.size = (sprite_width, sprite_height)
-    sprite.layer = sprite_layer
-    sprite.move((offset_x, offset_y))
+    if sprite:
+      sprite.size = (sprite_width, sprite_height)
+      sprite.layer = sprite_layer
+      sprite.move((offset_x, offset_y))
     return sprites

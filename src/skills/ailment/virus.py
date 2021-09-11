@@ -27,7 +27,7 @@ class Virus(AilmentSkill):
 
   def spawn_cloud(game, cell, inclusive=False, on_end=None):
     target_area = neighborhood(cell, radius=2, inclusive=inclusive, predicate=lambda cell: (
-      not Tile.is_solid(game.floor.get_tile_at(cell))
+      (not Tile.is_solid(game.floor.get_tile_at(cell)) or game.floor.get_tile_at(cell) is game.floor.PIT)
       and not next((e for e in game.floor.get_elems_at(cell) if not isinstance(e, DungeonActor) and e.solid), None)
     ))
     targets = [e for e in game.floor.elems if (

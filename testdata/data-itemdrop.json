@@ -28,6 +28,6 @@
     ]
   },
   "skills": [],
-  "party": ["knight"],
-  "builds": { "knight": {} }
+  "party": ["Knight"],
+  "builds": { "Knight": {} }
 }

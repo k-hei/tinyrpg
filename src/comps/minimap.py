@@ -10,6 +10,7 @@ from dungeon.actors.npc import Npc
 from dungeon.props.chest import Chest
 from dungeon.props.rarechest import RareChest
 from dungeon.props.coffin import Coffin
+from dungeon.props.vase import Vase
 from dungeon.props.itemdrop import ItemDrop
 from dungeon.props.soul import Soul
 from dungeon.props.door import Door
@@ -160,7 +161,7 @@ class Minimap:
           color = 0x7F007F
         else:
           color = (0xFF00FF, 0x7F007F)[blink]
-      elif type(elem) is Chest or type(elem) is RareChest or type(elem) is Coffin:
+      elif type(elem) in (Chest, RareChest, Coffin, Vase):
         if elem.opened:
           color = 0x7F7F00
         else:

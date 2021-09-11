@@ -7,8 +7,8 @@ TOP_FLOOR = 3
 MAX_LOOPS = 0
 MAX_ROOM_FAILS = 3
 FLOOR_SIZE = (27, 27)
-ROOM_WIDTHS = (3, 5, 7)
-ROOM_HEIGHTS = (4, 7)
+ROOM_WIDTHS = (3, 5, 7, 9)
+ROOM_HEIGHTS = (4, 7, 10)
 
 # game settings
 FPS = 60

@@ -8,7 +8,7 @@ class Prop(DungeonElement):
 
   def view(prop, sprites, anims):
     if not sprites:
-      return []
+      return super().view([], anims)
     sprite = sprites[0]
     prop_xoffset, prop_yoffset = (0, 0)
     move_anim = anims and next((a for a in anims[0] if a.target is prop and isinstance(a, MoveAnim)), None)

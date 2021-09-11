@@ -6,7 +6,7 @@ from lib.cell import is_odd, add, is_adjacent, manhattan, neighborhood
 import config
 from config import ROOM_WIDTHS, ROOM_HEIGHTS
 
-from dungeon.stage import Stage
+from dungeon.stage import Stage, Tile
 from dungeon.gen.floorgraph import FloorGraph
 from dungeon.features.maze import Maze
 from dungeon.features.room import Room
@@ -20,6 +20,7 @@ from dungeon.features.coffinroom import CoffinRoom
 from dungeon.features.pitroom import PitRoom
 from dungeon.features.elevroom import ElevRoom
 
+from dungeon.actors import DungeonActor
 from dungeon.actors.knight import Knight
 from dungeon.actors.mage import Mage
 from dungeon.actors.eyeball import Eyeball
@@ -33,6 +34,7 @@ from dungeon.actors.npc import Npc
 from dungeon.actors.genie import Genie
 
 from dungeon.props.chest import Chest
+from dungeon.props.vase import Vase
 from dungeon.props.bag import Bag
 from dungeon.props.door import Door
 from dungeon.props.battledoor import BattleDoor
@@ -431,6 +433,10 @@ def gen_elems(stage, room, elems, doors=[]):
   valid_cells = [c for c in room.get_cells() if (
     not next((d for d in doors if manhattan(d, c) <= 2), None)
     and stage.is_cell_empty(c)
+    and not (
+      len([c for c in neighborhood(c, diagonals=True) if not Tile.is_solid(stage.get_tile_at(c))]) < 5
+      and next((e for e in elems if not isinstance(e, DungeonActor)), None)
+    )
   )]
   while elems and valid_cells:
     cell = choice(valid_cells)
@@ -456,7 +462,7 @@ def gen_mazeroom(stage, room):
   # carve out all cells in room except for one cell
   room_cells = room.get_cells()
   pivot = choice(room_cells)
-  pivot_neighbors = neighborhood(pivot, diagonals=True)
+  pivot_neighbors = neighborhood(pivot, diagonals=True, inclusive=True)
   for cell in room_cells:
     if cell in pivot_neighbors:
       continue
@@ -467,6 +473,7 @@ def gen_mazeroom(stage, room):
   for door in room_doorways:
     start = next((n for n in neighborhood(door) if n in room_cells), None)
     if not start:
+      print(door)
       continue
     cur_x, cur_y = start
     pivot_x, pivot_y = pivot
@@ -670,7 +677,7 @@ def gen_floor(
     item_rooms = [r for r in empty_rooms if r not in enemy_rooms]
 
     plain_rooms = [r for r in empty_rooms if type(r) is Room]
-    plain_rooms = [r for r in plain_rooms if not gen_islandroom(stage, r)]
+    # plain_rooms = [r for r in plain_rooms if not gen_islandroom(stage, r)]
     plain_rooms = [r for r in plain_rooms if not gen_mazeroom(stage, r)]
 
     debug("Attempting to spawn {} enemy rooms".format(len(enemy_rooms)))
@@ -684,7 +691,7 @@ def gen_floor(
     debug("Attempting to spawn {} item rooms".format(len(item_rooms)))
     for room in item_rooms:
       items_spawned = gen_elems(stage, room,
-        elems=[Chest(choice(items)) for _ in range(randint(1, 3))],
+        elems=[Vase(choice(items)) for _ in range(randint(1, 3))],
         doors=door_cells
       )
       debug("Spawned {} items at {} {}".format(items_spawned, room, room.cell))
