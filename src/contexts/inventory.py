@@ -222,10 +222,13 @@ class InventoryContext(Context):
         else:
           return ctx.handle_tab(delta=1)
 
+      if button in (pygame.K_BACKSLASH, pygame.K_BACKQUOTE, gamepad.controls.item):
+        return ctx.handle_sort()
+
       if button in (pygame.K_RETURN, gamepad.controls.confirm):
         return ctx.handle_menu()
 
-      if button in (pygame.K_BACKSPACE, pygame.K_ESCAPE, gamepad.controls.cancel, gamepad.controls.item):
+      if button in (pygame.K_BACKSPACE, pygame.K_ESCAPE, gamepad.controls.cancel):
         return ctx.exit()
 
   def handle_move(ctx, delta):
@@ -332,6 +335,15 @@ class InventoryContext(Context):
       if ctx.get_item_at(ctx.cursor) is None:
         return False
       ctx.selection = ctx.cursor
+
+  def handle_sort(ctx):
+    ITEM_ORDER = ["HpItem", "SpItem", "AilmentItem", "DungeonItem"]
+    ctx.store.items = sorted(ctx.store.items, key=lambda item: (
+      ITEM_ORDER.index(item.__bases__[0].__name__) * 255 * 26
+      + (255 - item.color[0]) * 26
+      + ord(item.__name__[0])
+    ))
+    ctx.items = InventoryContext.filter_items(ctx.store.items, ctx.tabs[ctx.tab])
 
   def use_item(ctx, item=None):
     item = item or ctx.get_selected_item()

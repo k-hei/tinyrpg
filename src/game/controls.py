@@ -12,8 +12,8 @@ class ControlPreset:
   throw: list[str]
   wait: list[str]
   ally: str
-  skill: list[str]
-  item: list[str]
+  skill: str
+  item: str
   equip: str
   minimap: str
 
@@ -27,8 +27,8 @@ TYPE_A = ControlPreset(
   throw=[gamepad.R, gamepad.CIRCLE],
   wait=[gamepad.R, gamepad.CROSS],
   ally=gamepad.L,
-  skill=[gamepad.SQUARE],
-  item=[gamepad.TRIANGLE],
+  skill=gamepad.SQUARE,
+  item=gamepad.TRIANGLE,
   equip=gamepad.START,
   minimap=gamepad.SELECT,
 )
