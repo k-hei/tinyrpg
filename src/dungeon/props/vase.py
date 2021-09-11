@@ -31,10 +31,11 @@ class Vase(Prop):
 
   def effect(vase, game, *_):
     if vase.opened:
-      return False
+      return None
     item = vase.open(game)
     drop = ItemDrop(item)
     game.floor.spawn_elem_at(vase.cell, drop)
+    not game.anims and game.anims.append([])
     game.anims[0] += [
       Vase.OpenAnim(target=vase),
       JumpAnim(target=drop, duration=20)

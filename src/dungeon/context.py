@@ -448,7 +448,7 @@ class DungeonContext(Context):
       return on_end and on_end()
     actor, commands = game.commands[0]
     step = lambda: (
-      not (game.commands and game.commands[0] and game.commands[0][1]) and (
+      game.commands and not (game.commands[0] and game.commands[0][1]) and (
         game.commands.pop(0),
         game.end_turn(actor),
       ),
@@ -909,19 +909,19 @@ class DungeonContext(Context):
       return False
     if game.talkbubble:
       game.talkbubble.hide()
-    def bump():
-      anim = AttackAnim(
+    effect_result = target_elem and target_elem.effect(game)
+    if effect_result != None and (
+      not game.anims
+      or not next((a for a in game.anims[0] if a.target is hero), None)
+    ):
+      not game.anims and game.anims.append([])
+      game.anims[-1].append(AttackAnim(
         duration=DungeonContext.ATTACK_DURATION,
         target=hero,
         src=hero.cell,
         dest=target_cell
-      )
-      not game.anims and game.anims.append([])
-      game.anims[-1].append(anim)
-    if not game.anims or not next((a for a in game.anims[0] if a.target is hero), None):
-      bump()
-    effect_result = target_elem and target_elem.effect(game)
-    if effect_result == True:
+      ))
+    elif effect_result == True:
       game.step()
     return effect_result
 

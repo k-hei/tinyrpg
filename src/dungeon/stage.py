@@ -1,4 +1,6 @@
+from math import inf
 from dataclasses import dataclass
+from lib.cell import neighborhood, manhattan
 
 @dataclass
 class Tile:
@@ -227,3 +229,39 @@ class Stage:
     (width, height) = stage.size
     (x, y) = cell
     return x >= 0 and y >= 0 and x < width and y < height
+
+  def pathfind(stage, start, goal, whitelist=None):
+    if start == goal:
+      return [goal]
+    path = []
+    open_cells = [start]
+    open_set = {}
+    closed_set = {}
+    f = { start: manhattan(start, goal) }
+    g = { start: 0 }
+    parent = {}
+    while open_cells:
+      open_cells.sort(key=lambda c: f[c] if c in f else inf)
+      cell = open_cells.pop(0)
+      if cell == goal:
+        while cell != start:
+          path.insert(0, cell)
+          cell = parent[cell]
+        path.insert(0, cell)
+        return path
+      open_set[cell] = False
+      closed_set[cell] = True
+      for neighbor in neighborhood(cell):
+        if neighbor in closed_set or not stage.contains(neighbor) or not stage.is_cell_empty(neighbor):
+          continue
+        if neighbor not in open_set or not open_set[neighbor]:
+          open_set[neighbor] = True
+          open_cells.append(neighbor)
+        if neighbor in g and g[cell] + 1 >= g[neighbor]:
+          continue
+        parent[neighbor] = cell
+        g[neighbor] = g[cell] + 1
+        f[neighbor] = g[neighbor] + manhattan(neighbor, goal)
+        if whitelist and neighbor in whitelist:
+          f[neighbor] //= 2
+    return []

@@ -24,6 +24,9 @@ class Room(Feature):
     _, height = room.get_size()
     return height
 
+  def get_area(room):
+    return room.get_width() * room.get_height()
+
   def get_size(room):
     return room.size
 
