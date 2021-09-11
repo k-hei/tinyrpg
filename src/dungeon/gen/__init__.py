@@ -608,8 +608,8 @@ def gen_floor(
       empty_rooms.remove(key_room)
       stage.spawn_elem_at(key_room.get_center(), Chest(Key))
 
-    empty_rooms += [n for n in tree.nodes if n.empty and not next((r for r in empty_rooms if n.cell == r.cell), None)]
-    enemy_rooms = choices(empty_rooms, k=int(len(empty_rooms) * 0.6))
+    empty_rooms += [n for n in tree.nodes if n.empty]
+    enemy_rooms = [r for i, r in enumerate(empty_rooms) if i < len(empty_rooms) * 0.6]
     item_rooms = [r for r in empty_rooms if r not in enemy_rooms]
 
     debug("Attempting to spawn {} enemy rooms".format(len(enemy_rooms)))
