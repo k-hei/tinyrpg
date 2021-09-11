@@ -177,17 +177,17 @@ class InventoryContext(Context):
     if ctx.child:
       return ctx.child.handle_press(button)
 
-    if keyboard.get_pressed(button) > 1:
+    if keyboard.get_pressed(button) > 1 or gamepad.get_state(button) > 1:
       return False
 
     if button in ARROW_DELTAS:
       delta = ARROW_DELTAS[button]
       ctx.handle_move(delta)
 
-    if gamepad.get_state(gamepad.L):
+    if button == gamepad.L:
       ctx.handle_tab(delta=-1)
 
-    if gamepad.get_state(gamepad.R):
+    if button == gamepad.R:
       ctx.handle_tab(delta=1)
 
     if button == pygame.K_TAB:
