@@ -158,10 +158,15 @@ class InventoryContext(Context):
     if not ctx.anims and ctx.on_animate:
       ctx.on_animate()
 
+  def find_extra_slot(ctx):
+    return (ctx.grid_size[0], ctx.grid_size[1] - 1)
+
   def get_item_at(ctx, cell):
     cols, rows = ctx.grid_size
     col, row = cell
     index = row * cols + col
+    if cell == ctx.find_extra_slot() and ctx.get_hero():
+      return ctx.store.place.hero.item
     if index >= len(ctx.items) or not ctx.contains(cell):
       return None
     return ctx.items[index]
@@ -227,8 +232,7 @@ class InventoryContext(Context):
     delta_x, delta_y = delta
     cursor_x, cursor_y = ctx.cursor
     target_cell = (cursor_x + delta_x, cursor_y + delta_y)
-    extra_slot = (ctx.grid_size[0], ctx.grid_size[1] - 1)
-    if not ctx.contains(target_cell) and target_cell != extra_slot:
+    if not ctx.contains(target_cell) and target_cell != ctx.find_extra_slot():
       return False
     target_item = ctx.get_item_at(target_cell)
     ctx.cursor = target_cell
@@ -266,12 +270,15 @@ class InventoryContext(Context):
     ctx.cursor = (0, 0)
     ctx.describe_item()
 
+  def get_hero(ctx):
+    return type(ctx.store.place).__name__.startswith("Dungeon") and ctx.store.place.hero
+
   def handle_menu(ctx):
     if ctx.get_item_at(ctx.cursor) is None:
       return False
     ctx.open(ChoiceContext(choices=[
       Choice(text="Use"),
-      Choice(text="Carry"),
+      Choice(text="Carry", disabled=lambda: ctx.cursor == ctx.find_extra_slot()),
       Choice(text="Drop", closing=True)
     ], on_choose=lambda choice: (
       choice.text == "Use" and ctx.use_item()
@@ -280,24 +287,45 @@ class InventoryContext(Context):
     )))
     return True
 
+  def map_cell_to_store(ctx, cell):
+    cols, rows = ctx.grid_size
+    col, row = cell
+    index = row * cols + col
+    item = ctx.items[index] if index < len(ctx.items) else None
+    if not item:
+      return -1
+    tab_index = next((j for j, (i, _) in enumerate([(i, x) for i, x in enumerate(ctx.items) if x is item]) if i == index), None)
+    store_index = [(i, x) for i, x in enumerate(ctx.store.items) if x is item][tab_index][0]
+    return store_index
+
   def handle_select(ctx):
     if ctx.selection:
-      def map_cell_to_store(cell):
-        cols, rows = ctx.grid_size
-        col, row = cell
-        index = row * cols + col
-        item = ctx.items[index] if index < len(ctx.items) else None
-        if not item:
-          return -1
-        tab_index = next((j for j, (i, _) in enumerate([(i, x) for i, x in enumerate(ctx.items) if x is item]) if i == index), None)
-        store_index = [(i, x) for i, x in enumerate(ctx.store.items) if x is item][tab_index][0]
-        return store_index
-      a = map_cell_to_store(ctx.selection)
-      b = map_cell_to_store(ctx.cursor)
-      if b == -1:
-        ctx.store.items.append(ctx.store.items.pop(a))
-      elif a != -1:
-        ctx.store.items[a], ctx.store.items[b] = ctx.store.items[b], ctx.store.items[a]
+      hero = ctx.get_hero()
+      if ctx.cursor != ctx.selection and ctx.selection == ctx.find_extra_slot() and hero:
+        # swap from extra slot to inventory
+        cursor_index = ctx.map_cell_to_store(ctx.cursor)
+        old_item = ctx.get_item_at(ctx.cursor)
+        if old_item:
+          ctx.store.items[cursor_index] = hero.item
+          hero.item = old_item
+        else:
+          ctx.store.items.append(hero.item)
+          hero.item = None
+      elif ctx.cursor != ctx.selection and ctx.cursor == ctx.find_extra_slot() and hero:
+        # swap from inventory to extra slot
+        selection_index = ctx.map_cell_to_store(ctx.selection)
+        old_item = ctx.get_item_at(ctx.cursor)
+        hero.item = ctx.store.items.pop(selection_index)
+        if old_item:
+          ctx.store.items.insert(selection_index, old_item)
+      else:
+        a = ctx.map_cell_to_store(ctx.selection)
+        b = ctx.map_cell_to_store(ctx.cursor)
+        if b == -1:
+          ctx.store.items.append(ctx.store.items.pop(a))
+        elif a != -1:
+          ctx.store.items[a], ctx.store.items[b] = ctx.store.items[b], ctx.store.items[a]
+
       ctx.items = InventoryContext.filter_items(ctx.store.items, ctx.tabs[ctx.tab])
       ctx.selection = None
     else:
@@ -320,7 +348,9 @@ class InventoryContext(Context):
 
   def carry_item(ctx, item=None):
     item = item or ctx.get_selected_item()
-    if "carry_item" in dir(ctx.parent):
+    if ctx.cursor == ctx.find_extra_slot():
+      success, message = False, "You're already carrying this!"
+    elif "carry_item" in dir(ctx.parent):
       success, message = ctx.parent.carry_item(item)
     else:
       success, message = False, "You can't carry that here!"
@@ -339,7 +369,10 @@ class InventoryContext(Context):
     else:
       success, message = False, "You can't drop that here!"
     if success:
-      ctx.store.discard_item(item)
+      if ctx.cursor == ctx.find_extra_slot() and ctx.get_hero():
+        ctx.get_hero().item = None
+      else:
+        ctx.store.discard_item(item)
       ctx.exit()
       return True
     else:
@@ -456,13 +489,17 @@ class InventoryContext(Context):
           pos=(x, y),
           layer="ui"
         ))
+
         item = None
         if ctx.selection and cell == ctx.cursor:
           item = ctx.get_item_at(ctx.selection)
+        elif not ctx.selection and cell == ctx.find_extra_slot() and ctx.get_hero():
+          item = ctx.get_hero().item
         elif not ctx.selection or cell != ctx.selection:
           item = ctx.get_item_at(cell)
         elif ctx.selection and cell == ctx.selection and ctx.cursor_anim.time % 2:
           item = ctx.get_item_at(ctx.cursor)
+
         if item and not anim:
           layer = "ui"
           if ctx.selection and cell == ctx.cursor:
@@ -528,7 +565,7 @@ class InventoryContext(Context):
       cursor_col, cursor_row = ctx.selection
       cursor_x = cells_x + tile_width * cursor_col
       cursor_y = cells_y + tile_height * cursor_row
-      cursor_color = BLUE
+      cursor_color = GOLD
       if not ctx.anims and ctx.items:
         pygame.draw.rect(cursor_image, cursor_color, Rect(0, 0, tile_width, tile_height), width=1)
         sprites.append(Sprite(
@@ -544,9 +581,9 @@ class InventoryContext(Context):
     cursor_y = cells_y + tile_height * cursor_row
     cursor_color = WHITE
     if type(ctx.child) is ChoiceContext:
-      cursor_color = BLUE
+      cursor_color = GOLD
     elif ctx.cursor_anim.time // 2 % 2:
-      cursor_color = GOLD if ctx.selection else BLUE
+      cursor_color = BLUE
     if not ctx.anims and ctx.items:
       pygame.draw.rect(cursor_image, cursor_color, Rect(0, 0, tile_width, tile_height), width=1)
       sprites.append(Sprite(
