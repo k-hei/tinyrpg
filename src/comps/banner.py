@@ -27,7 +27,7 @@ class Banner:
   MARGIN = 12
   SPACING_TEXT = 5
   SPACING_ICON = 12
-  FONT_NAME = "english"
+  FONT_NAME = "normal"
 
   def render(**controls):
     assets = use_assets()

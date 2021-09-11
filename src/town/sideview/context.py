@@ -147,6 +147,8 @@ class SideViewContext(Context):
       return ctx.handle_talk()
 
   def handle_release(ctx, button):
+    if ctx.child:
+      return ctx.child.handle_release(button)
     if button in (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_a, pygame.K_d, gamepad.LEFT, gamepad.RIGHT):
       for actor in ctx.party:
         actor.stop_move()

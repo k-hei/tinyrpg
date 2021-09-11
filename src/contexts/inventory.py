@@ -7,6 +7,7 @@ from contexts import Context
 from contexts.choice import ChoiceContext, Choice
 from comps.hud import Hud
 from comps.invdesc import InventoryDescription
+from comps.control import Control
 from assets import load as use_assets
 from filters import replace_color
 import lib.gamepad as gamepad
@@ -43,6 +44,9 @@ DURATION_CHARENTER = ENTER_DURATION
 STAGGER_CHARENTER = 4
 DURATION_CHAREXIT = 6
 STAGGER_CHAREXIT = 2
+BANNER_ENTER_DURATION = 7
+BANNER_ENTER_DELAY = 30
+BANNER_EXIT_DURATION = 7
 
 class SelectAnim(TweenAnim): blocking = False
 class DeselectAnim(TweenAnim): blocking = False
@@ -72,6 +76,11 @@ class InventoryContext(Context):
     ctx.box = InventoryDescription()
     ctx.grid_size = (INVENTORY_COLS, INVENTORY_ROWS)
     ctx.items = []
+    ctx.controls = [
+      Control(key=("X"), value="Arrange"),
+      Control(key=("Y"), value="Sort"),
+      Control(key=("L", "R"), value="Tab")
+    ]
     ctx.update_items()
 
   def enter(ctx, on_end=None):
@@ -109,6 +118,7 @@ class InventoryContext(Context):
         delay=rows * ENTER_STAGGER + i * 8,
         target=tab
       ))
+    ctx.anims.append(TweenAnim(duration=BANNER_ENTER_DURATION, delay=BANNER_ENTER_DELAY, target="controls"))
 
   def exit(ctx):
     ctx.active = False
@@ -151,6 +161,7 @@ class InventoryContext(Context):
         delay=i * 4,
         target=tab
       ))
+    ctx.anims.append(TweenAnim(duration=BANNER_EXIT_DURATION, target="controls"))
 
   def remove_anim(ctx, anim):
     if anim in ctx.anims:
@@ -202,27 +213,39 @@ class InventoryContext(Context):
       return ctx.handle_move(delta)
 
     if button in (pygame.K_SPACE, gamepad.controls.manage):
+      arrange_control = next((c for c in ctx.controls if c.value == "Arrange"), None)
+      arrange_control.press()
       return ctx.handle_select()
 
+    tab_control = next((c for c in ctx.controls if c.value == "Tab"), None)
+    sort_control = next((c for c in ctx.controls if c.value == "Sort"), None)
     if ctx.selection:
+      tab_control.disable()
+      sort_control.disable()
       if button in (pygame.K_BACKSPACE, pygame.K_ESCAPE, gamepad.controls.cancel):
         return ctx.handle_select()
     else:
+      tab_control.enable()
+      sort_control.enable()
       if button == gamepad.L:
+        tab_control.press("L")
         return ctx.handle_tab(delta=-1)
-
-      if button == gamepad.R:
+      elif button == gamepad.R:
+        tab_control.press("R")
         return ctx.handle_tab(delta=1)
 
       if button == pygame.K_TAB:
         if (keyboard.get_pressed(pygame.K_LSHIFT)
         or keyboard.get_pressed(pygame.K_RSHIFT)
         ):
+          tab_control.press("L")
           return ctx.handle_tab(delta=-1)
         else:
+          tab_control.press("R")
           return ctx.handle_tab(delta=1)
 
       if button in (pygame.K_BACKSLASH, pygame.K_BACKQUOTE, gamepad.controls.item):
+        sort_control.press()
         return ctx.handle_sort()
 
       if button in (pygame.K_RETURN, gamepad.controls.confirm):
@@ -230,6 +253,31 @@ class InventoryContext(Context):
 
       if button in (pygame.K_BACKSPACE, pygame.K_ESCAPE, gamepad.controls.cancel):
         return ctx.exit()
+
+  def handle_release(ctx, button):
+    if button in (pygame.K_SPACE, gamepad.controls.manage):
+      arrange_control = next((c for c in ctx.controls if c.value == "Arrange"), None)
+      arrange_control.release()
+      return
+
+    if button in (pygame.K_BACKSLASH, pygame.K_BACKQUOTE, gamepad.controls.item):
+      sort_control = next((c for c in ctx.controls if c.value == "Sort"), None)
+      sort_control.release()
+      return
+
+    tab_control = next((c for c in ctx.controls if c.value == "Tab"), None)
+    if button == pygame.K_TAB:
+      tab_control.release("L")
+      tab_control.release("R")
+      return
+
+    if button == gamepad.L:
+      tab_control.release("L")
+      return
+
+    if button == gamepad.R:
+      tab_control.release("R")
+      return
 
   def handle_move(ctx, delta):
     delta_x, delta_y = delta
@@ -653,5 +701,45 @@ class InventoryContext(Context):
           pos=(hand_x, cursor_y),
           layer="hud"
         ))
+
+    # controls
+    controls_anim = next((a for a in ctx.anims if a.target == "controls"), None)
+    if ctx.active or controls_anim:
+      controls_width = cells_x + 8
+      controls_height = 21
+      controls_y = WINDOW_HEIGHT - 20
+
+      for control in ctx.controls:
+        control_image = control.render()
+        controls_width += control_image.get_width() + 12
+
+      if controls_anim:
+        if ctx.active:
+          controls_height *= controls_anim.pos
+        else:
+          controls_height *= 1 - controls_anim.pos
+
+      if not controls_anim:
+        controls_x = cells_x
+        for control in ctx.controls:
+          control_image = control.render()
+          sprites.append(Sprite(
+            image=control_image,
+            pos=(controls_x, controls_y),
+            origin=("left", "center"),
+            layer="hud",
+            offset=16
+          ))
+          controls_x += control_image.get_width() + 12
+
+      controls_image = Surface((controls_width, controls_height), SRCALPHA)
+      pygame.draw.rect(controls_image, BLACK, Rect(0, 0, controls_image.get_width() - 1, controls_image.get_height()))
+      pygame.draw.rect(controls_image, BLACK, Rect(controls_image.get_width() - 1, 1, 1, controls_image.get_height() - 2))
+      sprites.insert(0, Sprite(
+        image=controls_image,
+        pos=(0, controls_y),
+        origin=("left", "center"),
+        layer="hud",
+      ))
 
     return sprites + super().view()
