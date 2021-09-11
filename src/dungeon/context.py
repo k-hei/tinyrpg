@@ -576,15 +576,14 @@ class DungeonContext(Context):
       enemies.sort(key=lambda e: manhattan(e.cell, actor.cell) + random() / 2)
     return enemies[0]
 
-  def find_closest_visible_enemy(game, actor):
-    hero = game.hero
+  def find_closest_visible_enemy(game, actor, cell=None):
     floor = game.floor
-    visible_elems = [floor.get_elem_at(c) for c in hero.visible_cells if floor.get_elem_at(c)]
+    visible_elems = [floor.get_elem_at(c) for c in actor.visible_cells if floor.get_elem_at(c)]
     visible_enemies = [e for e in visible_elems if isinstance(e, DungeonActor) and not e.allied(actor)]
     if len(visible_enemies) == 0:
       return None
     if len(visible_enemies) > 1:
-      visible_enemies.sort(key=lambda e: manhattan(e.cell, hero.cell))
+      visible_enemies.sort(key=lambda e: manhattan(e.cell, cell or actor.cell))
     return visible_enemies[0]
 
   def find_room_enemies(game):

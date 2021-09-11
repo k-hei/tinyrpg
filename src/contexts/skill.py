@@ -29,10 +29,11 @@ MARGIN = 8
 OFFSET = 4
 SPACING = 10
 
-def find_closest_cell_in_range(range_cells, target_cell):
+def find_closest_cell_in_range(range_cells, target_cell, delta=None):
   if not range_cells:
     return None
-  # TODO: take delta into account during sort
+  if delta:
+    target_cell = add_vector(target_cell, tuple([x / 10 for x in delta]))
   return sorted(range_cells, key=lambda c: manhattan(c, target_cell))[0]
 
 class NextAnim(TweenAnim): pass
@@ -76,7 +77,7 @@ class SkillContext(Context):
     if skill.range_type == "linear" and skill.range_max > 1:
       ctx.dest = ctx.skill_range[-1]
     else:
-      ctx.dest = find_closest_cell_in_range(ctx.skill_range, target_cell)
+      ctx.dest = find_closest_cell_in_range(ctx.skill_range, target_cell, delta=hero.facing)
 
   def print_skill(ctx, skill=None):
     if skill:
@@ -118,7 +119,7 @@ class SkillContext(Context):
       return False
     cursor_x, cursor_y = ctx.dest
     delta_x, delta_y = delta
-    ctx.dest = find_closest_cell_in_range(ctx.skill_range, target_cell=(cursor_x + delta_x, cursor_y + delta_y))
+    ctx.dest = find_closest_cell_in_range(ctx.skill_range, target_cell=(cursor_x + delta_x, cursor_y + delta_y), delta=delta)
     ctx.actor.face(ctx.dest)
 
   def handle_turn(ctx, delta):
@@ -133,13 +134,20 @@ class SkillContext(Context):
     skill = ctx.skill
     if skill and ctx.bar.message != skill().text():
       ctx.print_skill()
-    if skill:
+
+    ctx.dest = None
+    if hero and skill:
       ctx.skill_range = skill().find_range(hero, floor)
-      if skill.range_max > 1:
-        ctx.dest = ctx.skill_range[-1]
-      else:
-        ctx.dest = target_cell
-    elif hero:
+      if ctx.skill_range:
+        get_enemies_at_cell = lambda c: (e for e in floor.get_elems_at(c) if isinstance(e, DungeonActor) and not e.allied(hero))
+        enemy_cells = [c for c in ctx.skill_range if next(get_enemies_at_cell, None)]
+        target_cell = sorted(enemy_cells, key=lambda c: manhattan(c, target_cell))[0]
+        if target_cell in ctx.skill_range:
+          ctx.dest = target_cell
+        else:
+          ctx.dest = ctx.skill_range[-1]
+
+    if hero and not ctx.dest:
       ctx.dest = hero.cell
 
   def handle_select(ctx, reverse=False):
