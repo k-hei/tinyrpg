@@ -39,9 +39,14 @@ def recolor_walls():
     if key.startswith("wall"):
       assets.sprites[key] = replace_color(assets.sprites[key], WHITE, COLOR_TILE)
 
-def get_tile_visited_state(cell, visited_cells):
+def get_tile_visited_state(stage, cell, visited_cells):
   x, y = cell
   return [
+    stage.get_tile_at(cell),
+    stage.get_tile_at((x - 1, y)),
+    stage.get_tile_at((x + 1, y)),
+    stage.get_tile_at((x, y - 1)),
+    stage.get_tile_at((x, y + 1)),
     (x - 1, y - 1) in visited_cells,
     (    x, y - 1) in visited_cells,
     (x + 1, y - 1) in visited_cells,
@@ -90,7 +95,7 @@ class StageView:
     if not tile:
       return False
 
-    tile_visited_state = get_tile_visited_state(cell, visited_cells)
+    tile_visited_state = get_tile_visited_state(stage, cell, visited_cells)
     if cell in self.tile_cache and tile_visited_state != self.tile_cache[cell][0]:
       del self.tile_cache[cell]
     if cell in self.tile_sprites and tile is not self.tile_sprites[cell][0]:

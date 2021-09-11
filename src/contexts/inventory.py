@@ -385,13 +385,14 @@ class InventoryContext(Context):
       ctx.selection = ctx.cursor
 
   def handle_sort(ctx):
-    ITEM_ORDER = ["HpItem", "SpItem", "AilmentItem", "DungeonItem"]
+    ITEM_ORDER = ["HpItem", "SpItem", "AilmentItem", "DungeonItem", "MaterialItem"]
     ctx.store.items = sorted(ctx.store.items, key=lambda item: (
       ITEM_ORDER.index(item.__bases__[0].__name__) * 255 * 26
       + (255 - item.color[0]) * 26
       + ord(item.__name__[0])
     ))
     ctx.items = InventoryContext.filter_items(ctx.store.items, ctx.tabs[ctx.tab])
+    ctx.describe_item()
 
   def use_item(ctx, item=None):
     item = item or ctx.get_selected_item()

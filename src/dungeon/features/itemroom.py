@@ -13,6 +13,5 @@ class ItemRoom(Room):
     if not super().place(stage, cell, connectors):
       return False
     gen_elems(stage, room,
-      elems=[Chest(Item) for Item in room.items],
-      doors=connectors)
+      elems=[Chest(Item) for Item in room.items])
     return True

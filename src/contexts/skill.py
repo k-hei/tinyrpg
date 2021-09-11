@@ -140,7 +140,7 @@ class SkillContext(Context):
       ctx.skill_range = skill().find_range(hero, floor)
       if ctx.skill_range:
         get_enemies_at_cell = lambda c: (e for e in floor.get_elems_at(c) if isinstance(e, DungeonActor) and not e.allied(hero))
-        enemy_cells = [c for c in ctx.skill_range if next(get_enemies_at_cell, None)]
+        enemy_cells = [c for c in ctx.skill_range if next(get_enemies_at_cell(c), None)]
         target_cell = sorted(enemy_cells, key=lambda c: manhattan(c, target_cell))[0]
         if target_cell in ctx.skill_range:
           ctx.dest = target_cell
