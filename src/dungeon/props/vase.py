@@ -74,5 +74,6 @@ class Vase(Prop):
     vase_image = replace_color(vase_image, (0xFF, 0x00, 0x00), DARKBLUE)
     return super().view([Sprite(
       image=vase_image,
-      layer="tiles" if vase.opened else "elems"
+      layer="tiles" if vase.opened else "elems",
+      offset=16 if vase.opened else 0
     )], anims, *args, **kwargs)

@@ -428,15 +428,16 @@ def gen_features(floor, feature_graph):
         floor.tree.add(neighbor)
   return True
 
-def gen_elems(stage, room, elems, doors=[]):
+def gen_elems(stage, room, elems):
   spawn_count = 0
+  room_doorways = room.get_doorways(stage)
   valid_cells = [c for c in room.get_cells() if (
-    not next((d for d in doors if manhattan(d, c) <= 2), None)
+    not next((d for d in room_doorways if manhattan(d, c) <= 2), None)
     and stage.is_cell_empty(c)
-    and not (
-      len([c for c in neighborhood(c, diagonals=True) if not Tile.is_solid(stage.get_tile_at(c))]) < 5
-      and next((e for e in elems if not isinstance(e, DungeonActor)), None)
-    )
+    and (next((e for e in elems if isinstance(e, DungeonActor)), None) or (
+      len([c for c in neighborhood(c) if stage.is_cell_empty(c)]) in (2, 3)
+      and len([c for c in neighborhood(c, diagonals=True) if stage.is_cell_empty(c)]) >= 4
+    ))
   )]
   while elems and valid_cells:
     cell = choice(valid_cells)
@@ -676,23 +677,20 @@ def gen_floor(
     enemy_rooms = [r for i, r in enumerate(empty_rooms) if i < len(empty_rooms) * 0.6]
     item_rooms = [r for r in empty_rooms if r not in enemy_rooms]
 
-    plain_rooms = [r for r in empty_rooms if type(r) is Room]
-    # plain_rooms = [r for r in plain_rooms if not gen_islandroom(stage, r)]
+    plain_rooms = empty_rooms.copy()
     plain_rooms = [r for r in plain_rooms if not gen_mazeroom(stage, r)]
 
     debug("Attempting to spawn {} enemy rooms".format(len(enemy_rooms)))
     for room in enemy_rooms:
       enemies_spawned = gen_elems(stage, room,
-        elems=[choice(enemies)() for _ in range(randint(2, 6))],
-        doors=door_cells
+        elems=[choice(enemies)() for _ in range(randint(2, 6))]
       )
       debug("Spawned {} enemies at {} {}".format(enemies_spawned, room, room.cell))
 
     debug("Attempting to spawn {} item rooms".format(len(item_rooms)))
     for room in item_rooms:
       items_spawned = gen_elems(stage, room,
-        elems=[Vase(choice(items)) for _ in range(randint(1, 3))],
-        doors=door_cells
+        elems=[Vase(choice(items)) for _ in range(randint(1, 3))]
       )
       debug("Spawned {} items at {} {}".format(items_spawned, room, room.cell))
 

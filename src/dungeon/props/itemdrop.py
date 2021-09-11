@@ -27,7 +27,7 @@ class ItemDrop(Prop):
       return super().view([], anims)
     anim_group = [a for a in anims[0] if a.target is drop] if anims else []
     offset_x, offset_y = (0, -8)
-    offset_layer = "elems"
+    offset_layer = "tiles" if drop.obtained else "elems"
     for anim in anim_group:
       if type(anim) is ItemDrop.ThrownAnim:
         col, row = anim.offset
