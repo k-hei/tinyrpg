@@ -15,7 +15,8 @@ from lib.lerp import lerp
 from filters import outline
 from transits.dissolve import DissolveIn, DissolveOut
 from colors.palette import BLACK, WHITE
-import keyboard
+import lib.keyboard as keyboard
+import lib.gamepad as gamepad
 from cores.knight import Knight
 from cores.mage import Mage
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT, LABEL_FRAMES
@@ -43,25 +44,31 @@ class TopViewContext(Context):
     ctx.debug = False
     ctx.time = 0
 
-  def handle_press(ctx, key):
+  def handle_press(ctx, button):
     if ctx.child:
-      return ctx.child.handle_press(key)
+      return ctx.child.handle_press(button)
     if ctx.anims or ctx.link or ctx.get_head().transits:
       return None
-    if key in keyboard.ARROW_DELTAS:
-      delta = keyboard.ARROW_DELTAS[key]
+
+    directions = not button and [d for d in (gamepad.LEFT, gamepad.RIGHT, gamepad.UP, gamepad.DOWN) if gamepad.get_state(d)]
+    if directions:
+      directions = sorted(directions, key=lambda d: gamepad.get_state(d))
+      button = directions[0]
+    delta = keyboard.ARROW_DELTAS[button] if button in keyboard.ARROW_DELTAS else None
+    if delta:
       return ctx.handle_move(delta)
-    if keyboard.get_pressed(key) > 1:
+
+    if keyboard.get_pressed(button) + gamepad.get_state(button) > 1:
       return None
-    if key in (pygame.K_SPACE, pygame.K_RETURN):
+    if button in (pygame.K_SPACE, pygame.K_RETURN, gamepad.controls.action):
       return ctx.handle_talk()
-    if key == pygame.K_b and keyboard.get_pressed(pygame.K_LCTRL):
+    if button == pygame.K_b and keyboard.get_pressed(pygame.K_LCTRL):
       return ctx.handle_debug()
 
-  def handle_release(ctx, key):
+  def handle_release(ctx, button):
     if ctx.child:
-      return ctx.child.handle_release(key)
-    if key in keyboard.ARROW_DELTAS:
+      return ctx.child.handle_release(button)
+    if button in keyboard.ARROW_DELTAS:
       ctx.handle_stopmove()
 
   def handle_move(ctx, delta):

@@ -2,7 +2,7 @@ import pygame
 from pygame import Surface, Color, SRCALPHA
 from pygame.transform import flip
 
-import keyboard
+import lib.keyboard as keyboard
 from contexts import Context
 from assets import load as use_assets
 from filters import outline, recolor, replace_color

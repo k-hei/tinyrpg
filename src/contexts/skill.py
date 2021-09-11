@@ -2,7 +2,7 @@ import math
 import pygame
 from pygame import Rect, Surface, Color
 from pygame.transform import flip
-import keyboard
+import lib.keyboard as keyboard
 import lib.gamepad as gamepad
 from lib.cell import manhattan, add as add_vector
 from lib.lerp import lerp

@@ -7,7 +7,7 @@ from assets import load as use_assets
 from text import render as render_text
 from contexts import Context
 import lib.gamepad as gamepad
-import keyboard
+import lib.keyboard as keyboard
 from filters import recolor, replace_color
 from colors.palette import BLACK, WHITE, GRAY, GOLD
 

@@ -2,7 +2,7 @@ from assets import load as use_assets
 from contexts import Context
 import config
 import pygame
-import keyboard
+import lib.keyboard as keyboard
 
 class ExamineContext(Context):
   def __init__(ctx, parent=None, on_close=None):

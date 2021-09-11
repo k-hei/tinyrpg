@@ -2,7 +2,8 @@ from math import sin, pi
 from random import randrange, randint
 import pygame
 from pygame import Surface, Rect, SRCALPHA
-import keyboard
+import lib.keyboard as keyboard
+import lib.gamepad as gamepad
 from contexts import Context
 from contexts.load import LoadContext
 from sprite import Sprite
@@ -104,16 +105,16 @@ class GameOverContext(Context):
       ctx.cache_bg.blit(triangle_image, (x, 0))
       x += triangle_image.get_width()
 
-  def handle_press(ctx, key):
+  def handle_press(ctx, button):
     if ctx.child:
-      return ctx.child.handle_press(key)
-    if keyboard.get_pressed(key) > 1:
+      return ctx.child.handle_press(button)
+    if keyboard.get_pressed(button) > 1 and gamepad.get_state(button) > 1:
       return
-    if key == pygame.K_UP:
+    if button in (pygame.K_UP, pygame.K_w, gamepad.UP):
       return ctx.handle_move(-1)
-    if key == pygame.K_DOWN:
+    if button in (pygame.K_DOWN, pygame.K_s, gamepad.DOWN):
       return ctx.handle_move(1)
-    if key in (pygame.K_RETURN, pygame.K_SPACE):
+    if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
       return ctx.handle_choose()
 
   def handle_move(ctx, delta):

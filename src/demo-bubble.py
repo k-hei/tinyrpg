@@ -3,7 +3,7 @@ from contexts.app import App
 from contexts.choice import Choice
 from comps.textbubble import TextBubble
 import pygame
-import keyboard
+import lib.keyboard as keyboard
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 
 class BubbleContext(Context):

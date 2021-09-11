@@ -17,7 +17,8 @@ from filters import replace_color, outline
 from colors.palette import BLACK, WHITE, BLUE
 from transits.dissolve import DissolveIn, DissolveOut
 from anims import Anim
-import keyboard
+import lib.keyboard as keyboard
+import lib.gamepad as gamepad
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT, LABEL_FRAMES
 
 class FollowAnim(Anim): pass
@@ -120,26 +121,33 @@ class SideViewContext(Context):
     ctx.open(DialogueContext(script=message, on_close=stop_talk))
     return True
 
-  def handle_press(ctx, key):
+  def handle_press(ctx, button):
     if ctx.child:
-      return ctx.child.handle_press(key)
+      return ctx.child.handle_press(button)
     if ctx.link or ctx.anims or ctx.get_head().transits:
       return False
-    if key in (pygame.K_LEFT, pygame.K_a):
+
+    if not button:
+      if gamepad.get_state(gamepad.LEFT):
+        ctx.handle_move(-1)
+      elif gamepad.get_state(gamepad.RIGHT):
+        ctx.handle_move(1)
+
+    if button in (pygame.K_LEFT, pygame.K_a):
       return ctx.handle_move(-1)
-    if key in (pygame.K_RIGHT, pygame.K_d):
+    if button in (pygame.K_RIGHT, pygame.K_d, gamepad.RIGHT):
       return ctx.handle_move(1)
-    if keyboard.get_pressed(key) > 1:
+    if keyboard.get_pressed(button) > 1 and gamepad.get_state(button) > 1:
       return
-    if key in (pygame.K_UP, pygame.K_w):
+    if button in (pygame.K_UP, pygame.K_w, gamepad.UP):
       return ctx.handle_zmove(-1)
-    if key in (pygame.K_DOWN, pygame.K_s):
+    if button in (pygame.K_DOWN, pygame.K_s, gamepad.DOWN):
       return ctx.handle_zmove(1)
-    if key in (pygame.K_SPACE, pygame.K_RETURN):
+    if button in (pygame.K_SPACE, pygame.K_RETURN, gamepad.controls.action):
       return ctx.handle_talk()
 
-  def handle_release(ctx, key):
-    if key in (pygame.K_LEFT, pygame.K_a, pygame.K_RIGHT, pygame.K_d):
+  def handle_release(ctx, button):
+    if button in (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_a, pygame.K_d, gamepad.LEFT, gamepad.RIGHT):
       for actor in ctx.party:
         actor.stop_move()
       return True

@@ -1,19 +1,21 @@
 from math import sin, pi
+from functools import partial
 import pygame
 from pygame import Surface, SRCALPHA
 from pygame.transform import rotate
+import lib.keyboard as keyboard
+import lib.gamepad as gamepad
+from lib.lerp import lerp
+from easing.expo import ease_out
+from colors.palette import RED, BLUE
+from config import WINDOW_WIDTH, WINDOW_HEIGHT
+
 from contexts import Context
 from comps.card import Card, CARD_BUY, CARD_SELL, CARD_EXIT
 from assets import load as use_assets
-from colors.palette import RED, BLUE
 from sprite import Sprite
 from filters import darken_image
 from anims.tween import TweenAnim
-from easing.expo import ease_out
-from lib.lerp import lerp
-from config import WINDOW_WIDTH, WINDOW_HEIGHT
-from functools import partial
-import keyboard
 
 CARD_LIFT = 4
 CARD_SPACING = 2
@@ -86,23 +88,23 @@ class CardContext(Context):
       if not card.exiting:
         card.warp()
 
-  def handle_press(ctx, key):
+  def handle_press(ctx, button):
     if ctx.child:
-      return ctx.child.handle_press(key)
+      return ctx.child.handle_press(button)
 
     if (next((c for c in ctx.cards if c.anims), None)
     or next((a for a in ctx.anims if a.blocking), None)
     or ctx.chosen):
       return False
 
-    if keyboard.get_pressed(key) > 1:
+    if keyboard.get_pressed(button) > 1 and gamepad.get_state(button) > 1:
       return
 
-    if key in (pygame.K_LEFT, pygame.K_a):
+    if button in (pygame.K_LEFT, pygame.K_a, gamepad.LEFT):
       ctx.handle_move(-1)
-    if key in (pygame.K_RIGHT, pygame.K_d):
+    if button in (pygame.K_RIGHT, pygame.K_d, gamepad.RIGHT):
       ctx.handle_move(1)
-    if key in (pygame.K_RETURN, pygame.K_SPACE):
+    if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
       ctx.handle_choose()
 
   def handle_move(ctx, delta):

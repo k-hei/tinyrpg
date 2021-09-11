@@ -50,7 +50,6 @@ def handle_event(app, event):
 
 def handle_press(app, button):
   timings[button] = 1
-  print(button)
   if app.child:
     app.child.handle_press(button)
 

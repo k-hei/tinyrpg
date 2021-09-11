@@ -2,7 +2,8 @@ from math import sin, cos, pi
 import pygame
 from pygame import Surface, SRCALPHA
 from pygame.transform import scale, flip
-import keyboard
+import lib.keyboard as keyboard
+import lib.gamepad as gamepad
 from assets import assets
 from comps.textbox import TextBox
 from comps.log import Message
@@ -79,16 +80,16 @@ class TextBubble:
       ctx.cursor_anim = SineAnim(period=30, amplitude=2)
       ctx.anims = []
 
-    def handle_press(ctx, key):
+    def handle_press(ctx, button):
       if ctx.anims:
         return False
-      if keyboard.get_pressed(key) > 1:
+      if keyboard.get_pressed(button) > 1:
         return
-      if key in (pygame.K_LEFT, pygame.K_a):
+      if button in (pygame.K_LEFT, pygame.K_a, gamepad.LEFT):
         return ctx.handle_move(delta=-1)
-      if key in (pygame.K_RIGHT, pygame.K_d):
+      if button in (pygame.K_RIGHT, pygame.K_d, gamepad.RIGHT):
         return ctx.handle_move(delta=1)
-      if key in (pygame.K_RETURN, pygame.K_SPACE):
+      if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
         return ctx.handle_choose()
 
     def handle_move(ctx, delta):

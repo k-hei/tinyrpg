@@ -4,7 +4,7 @@ from comps.portraitgroup import PortraitGroup
 from portraits.husband import HusbandPortrait
 from portraits.wife import WifePortrait
 import pygame
-import keyboard
+import lib.keyboard as keyboard
 
 class PortraitsContext(Context):
   def __init__(ctx, portraits):

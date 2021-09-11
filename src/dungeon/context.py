@@ -18,8 +18,8 @@ from config import (
 )
 
 import lib.gamepad as gamepad
-import keyboard
-from keyboard import ARROW_DELTAS, key_times
+import lib.keyboard as keyboard
+from lib.keyboard import ARROW_DELTAS, key_times
 
 import debug
 
@@ -632,16 +632,12 @@ class DungeonContext(Context):
     if game.anims or game.commands or game.get_head().transits or game.hero and game.hero.core.anims:
       return False
 
-    directions = [d for d in (gamepad.LEFT, gamepad.RIGHT, gamepad.UP, gamepad.DOWN) if gamepad.get_state(d)]
+    directions = not button and [d for d in (gamepad.LEFT, gamepad.RIGHT, gamepad.UP, gamepad.DOWN) if gamepad.get_state(d)]
     if directions:
       directions = sorted(directions, key=lambda d: gamepad.get_state(d))
       button = directions[0]
 
-    if button in ARROW_DELTAS:
-      delta = ARROW_DELTAS[button]
-    else:
-      delta = None
-
+    delta = ARROW_DELTAS[button] if button in ARROW_DELTAS else None
     if delta:
       if ctrl or gamepad.get_state(gamepad.controls.turn):
         return game.handle_turn(delta)
@@ -687,6 +683,12 @@ class DungeonContext(Context):
         game.handle_place()
       elif game.handle_action():
         return True
+      elif game.floor.get_tile_at(game.hero.cell) is Stage.STAIRS_UP:
+        return game.handle_ascend()
+      elif game.floor.get_tile_at(game.hero.cell) is Stage.STAIRS_DOWN:
+        return game.handle_descend()
+      elif game.floor.get_tile_at(game.hero.cell) is Stage.EXIT:
+        return game.handle_exit()
       else:
         return game.handle_pickup()
 

@@ -7,7 +7,7 @@ from assets import load as use_assets
 from colors.palette import WHITE
 from anims.frame import FrameAnim
 from portraits.mira import MiraPortrait
-import keyboard
+import lib.keyboard as keyboard
 
 WINDOW_SIZE = (160, 128)
 

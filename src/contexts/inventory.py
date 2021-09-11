@@ -10,8 +10,8 @@ from comps.invdesc import InventoryDescription
 from assets import load as use_assets
 from filters import replace_color
 import lib.gamepad as gamepad
-import keyboard
-from keyboard import key_times, ARROW_DELTAS
+import lib.keyboard as keyboard
+from lib.keyboard import key_times, ARROW_DELTAS
 from colors.palette import BLACK, WHITE, GRAY, BLUE, GOLD
 from sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, INVENTORY_COLS, INVENTORY_ROWS
@@ -194,7 +194,7 @@ class InventoryContext(Context):
     if ctx.child:
       return ctx.child.handle_press(button)
 
-    if keyboard.get_pressed(button) > 1 or gamepad.get_state(button) > 1:
+    if keyboard.get_pressed(button) + gamepad.get_state(button) > 1:
       return False
 
     if button in ARROW_DELTAS:

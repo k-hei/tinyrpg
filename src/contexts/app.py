@@ -6,7 +6,7 @@ import debug
 import pygame
 from pygame.transform import scale
 from pygame.time import get_ticks
-import keyboard
+import lib.keyboard as keyboard
 import lib.gamepad as gamepad
 import assets
 from contexts import Context

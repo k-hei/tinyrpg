@@ -17,7 +17,7 @@ from comps.hud import Hud
 from assets import load as use_assets
 from filters import replace_color, darken_image
 from colors.palette import BLACK, WHITE, RED, BLUE, DARKBLUE, GOLD, ORANGE
-import keyboard
+import lib.keyboard as keyboard
 from anims import Anim
 from anims.tween import TweenAnim
 from easing.expo import ease_out

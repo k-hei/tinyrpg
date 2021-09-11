@@ -5,7 +5,9 @@ from math import cos, pi
 import pygame
 from pygame import Surface, Rect, SRCALPHA
 
-import keyboard
+import lib.keyboard as keyboard
+import lib.gamepad as gamepad
+
 from contexts import Context
 from contexts.prompt import PromptContext, Choice
 from contexts.dialogue import DialogueContext
@@ -284,6 +286,8 @@ class NameEntryContext(Context):
     return True
 
   def handle_confirm(ctx):
+    if not ctx.name:
+      return ctx.handle_cancel()
     if not ctx.is_name_valid():
       return False
     ctx.banner.exit()
@@ -315,29 +319,39 @@ class NameEntryContext(Context):
     )))
     return True
 
-  def handle_press(ctx, key):
+  def handle_press(ctx, button):
     if ctx.anims:
       return
 
     if ctx.child:
-      return ctx.child.handle_press(key)
+      return ctx.child.handle_press(button)
 
-    key_time = keyboard.get_pressed(key)
-    if (key in keyboard.ARROW_DELTAS
-    and (key_time == 1 or key_time > 30 and key_time % 2)):
-      delta = keyboard.ARROW_DELTAS[key]
+    directions = not button and [d for d in (gamepad.LEFT, gamepad.RIGHT, gamepad.UP, gamepad.DOWN) if gamepad.get_state(d)]
+    if directions:
+      directions = sorted(directions, key=lambda d: gamepad.get_state(d))
+      button = directions[0]
+      press_time = gamepad.get_state(button)
+      if press_time == 1 or press_time > 30 and press_time % 2:
+        delta = keyboard.ARROW_DELTAS[button]
+        return ctx.handle_move(delta)
+
+    delta = keyboard.ARROW_DELTAS[button] if button in keyboard.ARROW_DELTAS else None
+    press_time = keyboard.get_pressed(button)
+    if (button in keyboard.ARROW_DELTAS
+    and (press_time == 1 or press_time > 30 and press_time % 2)):
+      delta = keyboard.ARROW_DELTAS[button]
       return ctx.handle_move(delta)
 
-    if key_time > 1:
+    if press_time > 1:
       return
 
-    if key == pygame.K_SPACE:
+    if button in (pygame.K_SPACE, gamepad.controls.confirm):
       return ctx.handle_enter()
-    if key == pygame.K_BACKSPACE:
+    if button in (pygame.K_BACKSPACE, gamepad.controls.cancel):
       return ctx.handle_delete()
-    if key == pygame.K_RETURN:
+    if button in (pygame.K_RETURN, gamepad.START):
       return ctx.handle_confirm()
-    if key == pygame.K_ESCAPE:
+    if button in (pygame.K_ESCAPE, gamepad.SELECT):
       return ctx.handle_cancel()
 
   def view(ctx):

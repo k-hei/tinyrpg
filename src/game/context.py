@@ -1,5 +1,5 @@
 import pygame
-import keyboard
+import lib.keyboard as keyboard
 import lib.gamepad as gamepad
 import game.controls as controls
 from config import WINDOW_SIZE, DEBUG, KNIGHT_BUILD, MAGE_BUILD, ROGUE_BUILD
@@ -163,7 +163,7 @@ class GameContext(Context):
   def handle_press(ctx, button):
     if super().handle_press(button) != None:
       return
-    if keyboard.get_pressed(button) > 1 or (
+    if keyboard.get_pressed(button) + gamepad.get_state(button) > 1 or (
       type(ctx.child) is DungeonContext and ctx.child.get_depth() > 0
       or type(ctx.child) is TownContext and ctx.child.get_depth() > 1
     ):

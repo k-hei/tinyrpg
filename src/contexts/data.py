@@ -18,7 +18,8 @@ from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
 import savedata
-import keyboard
+import lib.keyboard as keyboard
+import lib.gamepad as gamepad
 from sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
 
@@ -273,25 +274,25 @@ class DataContext(Context):
       choice and choice.text == "Yes" and ctx.exit()
     ))
 
-  def handle_press(ctx, key):
+  def handle_press(ctx, button):
     if ctx.anims:
       return False
 
     if ctx.child:
-      return ctx.child.handle_press(key)
+      return ctx.child.handle_press(button)
 
-    if keyboard.get_pressed(key) > 1:
+    if keyboard.get_pressed(button) > 1 and gamepad.get_state(button):
       return
 
-    if key == pygame.K_UP:
+    if button in (pygame.K_UP, pygame.K_w, gamepad.UP):
       return ctx.handle_move(-1)
-    if key == pygame.K_DOWN:
+    if button in (pygame.K_DOWN, pygame.K_s, gamepad.DOWN):
       return ctx.handle_move(1)
-    if key in (pygame.K_RETURN, pygame.K_SPACE):
+    if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
       return ctx.handle_action()
-    if key == pygame.K_BACKSPACE:
+    if button in (pygame.K_BACKSPACE, gamepad.controls.manage):
       return ctx.handle_delete()
-    if key == pygame.K_ESCAPE:
+    if button in (pygame.K_ESCAPE, gamepad.controls.cancel):
       return ctx.handle_close()
 
   def update(ctx):

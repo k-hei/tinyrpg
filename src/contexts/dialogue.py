@@ -3,7 +3,7 @@ import pygame
 from pygame import Rect, Surface
 import config
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
-import keyboard
+import lib.keyboard as keyboard
 import lib.gamepad as gamepad
 from contexts import Context
 from assets import load as use_assets

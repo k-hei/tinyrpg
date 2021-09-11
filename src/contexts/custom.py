@@ -1,6 +1,6 @@
 import pygame
 from pygame import Rect, SRCALPHA
-import keyboard
+import lib.keyboard as keyboard
 import lib.gamepad as gamepad
 
 from filters import replace_color, recolor, outline

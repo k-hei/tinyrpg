@@ -12,7 +12,8 @@ from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, BLUE, GOLD, CYAN
 from filters import replace_color
 from assets import load as use_assets
 from inventory import Inventory
-import keyboard
+import lib.keyboard as keyboard
+import lib.gamepad as gamepad
 from cores.knight import Knight
 from anims import Anim
 from anims.tween import TweenAnim
@@ -325,63 +326,73 @@ class SellContext(Context):
     ctx.card.spin(duration=10)
     ctx.on_animate = ctx.close
 
-  def handle_press(ctx, key):
+  def handle_press(ctx, button):
     if ctx.child:
-      return super().handle_press(key)
+      return super().handle_press(button)
 
     if next((a for a in ctx.anims if a.blocking), None) or ctx.tablist.anims:
       return
 
-    key_time = keyboard.get_pressed(key)
-    if (key_time == 1
-    or key_time > 30 and key_time % 2):
-      if key in (pygame.K_UP, pygame.K_w):
+    press_time = keyboard.get_pressed(button) or gamepad.get_state(button)
+    if (press_time == 1
+    or press_time > 30 and press_time % 2):
+      if button in (pygame.K_UP, pygame.K_w, gamepad.UP):
         return ctx.handle_move(-1)
-      if key in (pygame.K_DOWN, pygame.K_s):
+      if button in (pygame.K_DOWN, pygame.K_s, gamepad.DOWN):
         return ctx.handle_move(1)
-      if key in (pygame.K_LEFT, pygame.K_a):
+      if button in (pygame.K_LEFT, pygame.K_a, gamepad.LEFT):
         return ctx.handle_move(-5)
-      if key in (pygame.K_RIGHT, pygame.K_d):
+      if button in (pygame.K_RIGHT, pygame.K_d, gamepad.RIGHT):
         return ctx.handle_move(5)
-      if key == pygame.K_SPACE and not key in ctx.requires_release:
+      if button in (pygame.K_SPACE, gamepad.controls.manage) and button not in ctx.requires_release:
         control = next((c for c in ctx.controls if c.value == "Multi"), None)
         control.press("X")
         if not ctx.handle_select() or not ctx.handle_move(1):
-          ctx.requires_release[key] = True
+          ctx.requires_release[button] = True
         return True
 
-    if key_time > 1:
+    if press_time > 1:
       return
 
-    if key == pygame.K_TAB:
-      control = next((c for c in ctx.controls if c.value == "Tab"), None)
+    tab_control = next((c for c in ctx.controls if c.value == "Tab"), None)
+    if button == gamepad.L:
+      tab_control.press("L")
+      return ctx.handle_tab(delta=-1)
+    elif button == gamepad.R:
+      tab_control.press("R")
+      return ctx.handle_tab(delta=1)
+    if button == pygame.K_TAB:
       if (keyboard.get_pressed(pygame.K_LSHIFT)
       or keyboard.get_pressed(pygame.K_RSHIFT)):
-        control.press("L")
+        tab_control.press("L")
         return ctx.handle_tab(delta=-1)
       else:
-        control.press("R")
+        tab_control.press("R")
         return ctx.handle_tab(delta=1)
 
-    if key == pygame.K_RETURN:
+    if button in (pygame.K_RETURN, gamepad.START):
       ctx.handle_sell()
 
-    if key in (pygame.K_BACKSPACE, pygame.K_ESCAPE):
+    if button in (pygame.K_BACKSPACE, pygame.K_ESCAPE, gamepad.controls.cancel):
       if ctx.selection:
         return ctx.handle_clear()
       else:
         return ctx.handle_close()
 
-  def handle_release(ctx, key):
-    if key == pygame.K_TAB:
-      control = next((c for c in ctx.controls if c.value == "Tab"), None)
-      control.release("L")
-      control.release("R")
-    elif key == pygame.K_SPACE:
-      control = next((c for c in ctx.controls if c.value == "Multi"), None)
-      control.release("X")
-      if key in ctx.requires_release:
-        del ctx.requires_release[key]
+  def handle_release(ctx, button):
+    tab_control = next((c for c in ctx.controls if c.value == "Tab"), None)
+    if button == gamepad.L:
+      tab_control.release("L")
+    elif button == gamepad.R:
+      tab_control.release("R")
+    elif button == pygame.K_TAB:
+      tab_control.release("L")
+      tab_control.release("R")
+    elif button in (pygame.K_SPACE, gamepad.controls.manage):
+      multi_control = next((c for c in ctx.controls if c.value == "Multi"), None)
+      multi_control.release("X")
+      if button in ctx.requires_release:
+        del ctx.requires_release[button]
 
   def handle_move(ctx, delta):
     old_index = ctx.cursor

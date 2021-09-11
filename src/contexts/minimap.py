@@ -22,11 +22,11 @@ class MinimapContext(Context):
     ctx.minimap.shrink()
     ctx.close()
 
-  def handle_press(ctx, key):
+  def handle_press(ctx, button):
     if ctx.minimap.anims or ctx.lock:
       return False
 
-    if key == pygame.K_BACKSPACE or key == pygame.K_ESCAPE:
+    if button in (pygame.K_BACKSPACE, pygame.K_ESCAPE):
       return ctx.handle_close()
 
   def handle_release(ctx, button):
