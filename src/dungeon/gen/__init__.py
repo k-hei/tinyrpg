@@ -608,8 +608,8 @@ def gen_floor(
       empty_rooms.remove(key_room)
       stage.spawn_elem_at(key_room.get_center(), Chest(Key))
 
-    empty_rooms += [n for n in tree.nodes if n.empty]
-    enemy_rooms = choices(empty_rooms, k=int(len(empty_rooms) * 0.75))
+    empty_rooms += [n for n in tree.nodes if n.empty and not next((r for r in empty_rooms if n.cell == r.cell), None)]
+    enemy_rooms = choices(empty_rooms, k=int(len(empty_rooms) * 0.6))
     item_rooms = [r for r in empty_rooms if r not in enemy_rooms]
 
     debug("Attempting to spawn {} enemy rooms".format(len(enemy_rooms)))
@@ -618,7 +618,7 @@ def gen_floor(
         elems=[choice(enemies)() for _ in range(randint(2, 6))],
         doors=door_cells
       )
-      debug("Spawned {} enemies".format(enemies_spawned))
+      debug("Spawned {} enemies at {} {}".format(enemies_spawned, room, room.cell))
 
     debug("Attempting to spawn {} item rooms".format(len(item_rooms)))
     for room in item_rooms:
@@ -626,7 +626,7 @@ def gen_floor(
         elems=[Chest(choice(items)) for _ in range(randint(1, 3))],
         doors=door_cells
       )
-      debug("Spawned {} items".format(items_spawned))
+      debug("Spawned {} items at {} {}".format(items_spawned, room, room.cell))
 
     debug("-- Generation succeeded in {iters} iteration{s} --".format(
       iters=iters,

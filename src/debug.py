@@ -1,6 +1,8 @@
 from config import DEBUG
+from pygame.time import get_ticks
 
 buffer = ""
+benches = {}
 
 def log(*args):
   if DEBUG:
@@ -18,6 +20,17 @@ def write():
   debug_file = open("debug.log", "w")
   debug_file.write(buffer)
   debug_file.close()
+
+def bench(tag, quiet=False):
+  if tag not in benches:
+    benches[tag] = get_ticks()
+    return 0
+  else:
+    diff = get_ticks() - benches[tag]
+    del benches[tag]
+    if not quiet:
+      log("{} in {}ms".format(tag, diff))
+    return diff
 
 def dictify(obj):
   {key: getattr(obj, key) for key in dir(obj) if (

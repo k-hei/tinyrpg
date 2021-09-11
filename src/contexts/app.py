@@ -5,6 +5,7 @@ import traceback
 import debug
 import pygame
 from pygame.transform import scale
+from pygame.time import get_ticks
 import keyboard
 import assets
 from contexts import Context

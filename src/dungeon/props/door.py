@@ -100,9 +100,7 @@ class Door(Prop):
     ))
     return True
 
-  def update(door, game):
-    if not game.room or door not in game.room.get_doors(game.floor):
-      return
+  def align(door, game):
     door_x, door_y = door.cell
     origin_x, origin_y = door.origin
     focus_x, focus_y = door.focus or door.cell

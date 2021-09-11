@@ -1911,8 +1911,14 @@ class DungeonContext(Context):
     game.update_camera()
 
     for elem in game.floor.elems:
+      elem_type = type(elem).__name__
+      bench_tag = "update {}".format(elem_type)
+      debug.bench(bench_tag)
       vfx = elem.update(game) or []
       vfx and game.vfx.extend(vfx)
+      bench_diff = debug.bench(bench_tag, quiet=True)
+      if bench_diff > 1:
+        debug.log("update {} in {}ms".format(elem_type, bench_diff))
 
     for fx in game.vfx:
       if fx.kind:
