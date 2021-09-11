@@ -1519,22 +1519,23 @@ class DungeonContext(Context):
     ]
     game.anims[0].extend(anims) if game.anims else game.anims.append(anims)
 
-  def use_item(game, item):
-    game.anims.append([
-      ItemAnim(
-        duration=30,
-        target=game.hero,
-        item=item()
-      ),
-      PauseAnim(
-        duration=60,
-        on_end=game.step
-      ),
-    ])
+  def use_item(game, item, discard=True):
+    if discard:
+      game.anims.append([
+        ItemAnim(
+          duration=30,
+          target=game.hero,
+          item=item()
+        ),
+        PauseAnim(
+          duration=60,
+          on_end=game.step
+        ),
+      ])
     if issubclass(item, MaterialItem):
       success, message = False, "You can't use this item!"
     else:
-      success, message = game.store.use_item(item)
+      success, message = game.store.use_item(item, discard=discard)
     if success:
       game.log.print(("Used ", item.token(item)))
       game.log.print(message)

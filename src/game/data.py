@@ -130,9 +130,9 @@ class GameData:
       return True
     return Inventory.append(store.items, item)
 
-  def use_item(store, item):
+  def use_item(store, item, discard=True):
     success, message = item().use(store)
-    if success:
+    if success and discard:
       store.items.remove(item)
     return success, message
 

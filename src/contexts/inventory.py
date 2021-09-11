@@ -335,11 +335,14 @@ class InventoryContext(Context):
 
   def use_item(ctx, item=None):
     item = item or ctx.get_selected_item()
+    is_using_from_extra_slot = ctx.cursor == ctx.find_extra_slot()
     if "use_item" in dir(ctx.parent):
-      success, message = ctx.parent.use_item(item)
+      success, message = ctx.parent.use_item(item, discard=not is_using_from_extra_slot)
     else:
-      success, message = ctx.parent.store.use_item(item)
+      success, message = ctx.parent.store.use_item(item, discard=not is_using_from_extra_slot)
     if success:
+      if is_using_from_extra_slot and ctx.get_hero():
+        ctx.get_hero().item = None
       ctx.exit()
       return True
     else:
