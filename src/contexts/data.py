@@ -11,7 +11,7 @@ from comps.banner import Banner
 from comps.log import Log
 from config import WINDOW_SIZE
 import assets
-from colors.palette import BLACK, WHITE, GOLD, BLUE, YELLOW
+from colors.palette import BLACK, WHITE, GOLD, BLUE, GOLD
 from filters import recolor, replace_color, darken_image, outline, shadow_lite as shadow
 from text import render as render_text
 from anims.tween import TweenAnim
@@ -77,7 +77,7 @@ class Slot:
 
   def redraw(slot):
     tag_image = render_text("FILE {}".format(slot.number), assets.fonts["smallcaps"])
-    tag_image = recolor(tag_image, YELLOW)
+    tag_image = recolor(tag_image, GOLD)
     tag_image = outline(tag_image, BLACK)
     tag_image = shadow(tag_image, BLACK)
     slot.cache_tag = tag_image

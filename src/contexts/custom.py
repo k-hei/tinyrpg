@@ -6,7 +6,7 @@ import lib.gamepad as gamepad
 from filters import replace_color, recolor, outline
 from text import render as render_text
 from colors import darken_color
-from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, YELLOW, DARKYELLOW, BLUE, DARKBLUE
+from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, GOLD, DARKGOLD, BLUE, DARKBLUE
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 
 from assets import load as use_assets
@@ -466,7 +466,7 @@ class CustomContext(Context):
 
     if not entering:
       text = render_text("SKILL", assets.fonts["smallcaps"])
-      text = recolor(text, YELLOW)
+      text = recolor(text, GOLD)
       text = outline(text, (0, 0, 0))
       x = deck.get_width() + SPACING_X
       y = deck_y - text.get_height() - SKILL_SPACING - 1
@@ -521,7 +521,7 @@ class CustomContext(Context):
           sprite.get_width() - Skill.PADDING_X * 2,
           sprite.get_height() - Skill.PADDING_Y * 2
         ))
-        sprite = replace_color(sprite, WHITE, YELLOW)
+        sprite = replace_color(sprite, WHITE, GOLD)
         sprite.blit(subspr, (Skill.PADDING_X, Skill.PADDING_Y))
         x += SKILL_NUDGE_LEFT
 
@@ -535,12 +535,12 @@ class CustomContext(Context):
           surface.blit(sprite, (x, y))
           if not entering:
             text = render_text("ON", assets.fonts["smallcaps"])
-            text = recolor(text, YELLOW)
+            text = recolor(text, GOLD)
             text = outline(text, (0, 0, 0))
             badges.append((text, x + sprite.get_width() - text.get_width() - 6, y + sprite.get_height() - 6))
         elif skill in menu.store.new_skills and not entering:
           text = render_text("NEW", assets.fonts["smallcaps"])
-          text = recolor(text, YELLOW if menu.renders % 60 >= 30 else DARKYELLOW)
+          text = recolor(text, GOLD if menu.renders % 60 >= 30 else DARKGOLD)
           text = outline(text, (0, 0, 0))
           badges.append((text, x + sprite.get_width() - text.get_width() - 6, y + sprite.get_height() - 6))
 

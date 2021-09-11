@@ -9,7 +9,7 @@ from contexts import Context
 import lib.gamepad as gamepad
 import keyboard
 from filters import recolor, replace_color
-from colors.palette import BLACK, WHITE, GRAY, YELLOW
+from colors.palette import BLACK, WHITE, GRAY, GOLD
 
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
@@ -124,7 +124,7 @@ class ChoiceContext(Context):
   def render(ctx):
     assets = use_assets()
     font = assets.ttf["normal"]
-    cursor = replace_color(assets.sprites["cursor"], WHITE, YELLOW)
+    cursor = replace_color(assets.sprites["cursor"], WHITE, GOLD)
 
     choice_widths = map(lambda c: font.width(c.text), ctx.choices)
     INNER_WIDTH = max(*choice_widths)
@@ -167,7 +167,7 @@ class ChoiceContext(Context):
         visible = True
         color = WHITE
         if choice is ctx.choices[ctx.index]:
-          color = YELLOW
+          color = GOLD
         if choice.is_disabled():
           color = GRAY
         text = font.render(choice.text, color)

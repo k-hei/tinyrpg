@@ -31,7 +31,7 @@ import assets
 from assets import load as load_assets
 from sprite import Sprite
 from filters import recolor, replace_color, outline
-from colors.palette import BLACK, WHITE, RED, GREEN, BLUE, YELLOW, CYAN, PURPLE
+from colors.palette import BLACK, WHITE, RED, GREEN, BLUE, GOLD, CYAN, PURPLE
 from text import render as render_text
 from transits.dissolve import DissolveIn, DissolveOut
 
@@ -1424,7 +1424,7 @@ class DungeonContext(Context):
         text="CRITICAL!",
         cell=target.cell,
         offset=(4, -4 - target.elev * TILE_SIZE),
-        color=YELLOW,
+        color=GOLD,
         delay=15
       ))
       game.vfx.append(FlashVfx())
