@@ -45,7 +45,7 @@ class Ghost(DungeonActor):
   def __init__(ghost, *args, **kwargs):
     super().__init__(GhostCore(
       skills=[Tackle, Somnus]
-    ), *args, **kwargs)
+    ), floating=True, *args, **kwargs)
     ghost.damaged = False
 
   def damage(ghost, *args, **kwargs):

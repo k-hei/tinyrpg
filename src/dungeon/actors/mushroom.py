@@ -13,6 +13,7 @@ from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from anims.shake import ShakeAnim
+from anims.bounce import BounceAnim
 from config import PUSH_DURATION
 
 class Mushroom(DungeonActor):
@@ -91,6 +92,9 @@ class Mushroom(DungeonActor):
       elif type(anim) is Mushroom.ChargeAnim:
         mushroom_image = assets.sprites["mushroom_move"]
         offset_x += anim.offset
+        break
+      elif type(anim) is BounceAnim:
+        mushroom_image = assets.sprites["mushroom_move"]
         break
     else:
       if mushroom.ailment == "sleep" or mushroom.get_hp() < mushroom.get_hp_max() / 2:

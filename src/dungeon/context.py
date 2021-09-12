@@ -1081,7 +1081,7 @@ class DungeonContext(Context):
     facing_x = -1 if delta_x < 0 else 1 if delta_x > 0 else 0
     facing_y = -1 if delta_y < 0 else 1 if delta_y > 0 else 0
     actor.facing = (facing_x, facing_y)
-    if (target_tile and not target_tile.solid
+    if (target_tile and (not target_tile.solid or target_tile is game.floor.PIT and actor.floating)
     and (not origin_tile or abs(target_tile.elev - origin_tile.elev) < 1
       and (target_tile.direction == (0, 0) and origin_tile.direction == (0, 0)
       or normalize_direction(delta) == normalize_direction(origin_tile.direction)
@@ -1149,18 +1149,24 @@ class DungeonContext(Context):
     target_x, target_y = dest
     floor = game.floor
 
+    is_cell_walkable = lambda cell: (
+      (not Tile.is_solid(game.floor.get_tile_at(cell)) or game.floor.get_tile_at(cell) is game.floor.PIT
+        and not next((e for e in game.floor.get_elems_at(cell) if e.solid), None)
+      ) if actor.floating else game.floor.is_cell_empty(cell)
+    )
+
     def select_x():
-      if target_x < actor_x and game.floor.is_cell_empty((actor_x - 1, actor_y)):
+      if target_x < actor_x and is_cell_walkable((actor_x - 1, actor_y)):
         return -1
-      elif target_x > actor_x and game.floor.is_cell_empty((actor_x + 1, actor_y)):
+      elif target_x > actor_x and is_cell_walkable((actor_x + 1, actor_y)):
         return 1
       else:
         return 0
 
     def select_y():
-      if target_y < actor_y and game.floor.is_cell_empty((actor_x, actor_y - 1)):
+      if target_y < actor_y and is_cell_walkable((actor_x, actor_y - 1)):
         return -1
-      elif target_y > actor_y and game.floor.is_cell_empty((actor_x, actor_y + 1)):
+      elif target_y > actor_y and is_cell_walkable((actor_x, actor_y + 1)):
         return 1
       else:
         return 0

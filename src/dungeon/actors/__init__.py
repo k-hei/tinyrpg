@@ -58,6 +58,7 @@ class DungeonActor(DungeonElement):
     rare=False,
     behavior="chase",
     facing=None,
+    floating=False,
     aggro=0,
     ailment=None,
     ailment_turns=0,
@@ -74,6 +75,7 @@ class DungeonActor(DungeonElement):
     actor.bubble = HpBubble(actor.core)
 
     actor.anims = []
+    actor.floating = floating
     actor.aggro = aggro
     actor.ailment = None
     actor.ailment_turns = 0
