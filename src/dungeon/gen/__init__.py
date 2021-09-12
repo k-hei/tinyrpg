@@ -7,6 +7,7 @@ from lib.cell import is_odd, add, is_adjacent, manhattan, neighborhood
 import config
 from config import ROOM_WIDTHS, ROOM_HEIGHTS
 
+from dungeon.gen.path import gen_path
 
 from dungeon.stage import Stage, Tile
 from dungeon.gen.floorgraph import FloorGraph
@@ -446,30 +447,6 @@ def gen_elems(stage, room, elems):
     spawn_count += 1
     valid_cells.remove(cell)
   return spawn_count
-
-def gen_path(start, goal, predicate=None):
-  path = [start]
-  cell = start
-  goal_x, goal_y = goal
-  while cell != goal:
-    x, y = cell
-    dist_x = goal_x - x
-    dist_y = goal_y - y
-    if dist_x and dist_y:
-      if randint(0, 1):
-        x += dist_x / abs(dist_x)
-      else:
-        y += dist_y / abs(dist_y)
-    elif dist_x:
-      x += dist_x / abs(dist_x)
-    else:
-      y += dist_y / abs(dist_y)
-    next_cell = (int(x), int(y))
-    if predicate and not predicate(next_cell):
-      continue
-    cell = next_cell
-    path.append(cell)
-  return path
 
 def gen_mazeroom(stage, room):
   # carve out all cells in room except for one cell

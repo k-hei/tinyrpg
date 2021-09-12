@@ -121,6 +121,21 @@ class Stage:
         cells.append((x, y))
     return cells
 
+  def get_border(stage):
+    border = []
+    width, height = stage.size
+    for y in range(height):
+      border += [
+        (0, y),
+        (width - 1, y)
+      ]
+    for x in range(height):
+      border += [
+        (x, 0),
+        (x, height - 1)
+      ]
+    return border
+
   def get_visible_cells(stage):
     cells = []
     for room in stage.rooms:

@@ -71,6 +71,7 @@ class App(Context):
     app.open(deepcopy(app.child_init))
 
   def reload(app):
+    pygame.quit()
     os.execl(sys.executable, sys.executable, *sys.argv)
 
   def loop(app):

@@ -1,6 +1,7 @@
 from math import inf, ceil
 from random import randint, choice
 from lib.cell import neighborhood, add as add_vector
+from lib.bounds import find_bounds
 from dungeon.stage import Stage
 
 MIN_ROOM_AREA = 120
@@ -10,52 +11,42 @@ BIRTH_THRESHOLD = 4
 DEATH_THRESHOLD = 3
 NUM_OF_GENERATIONS = 5
 
-def gen_size():
+def gen_size(min_area, max_area):
   room_width = 7 + 2 * randint(0, 10)
-  min_height = MIN_ROOM_AREA / room_width
-  max_height = MAX_ROOM_AREA / room_width
+  min_height = min_area / room_width
+  max_height = max_area / room_width
   room_height = 1 + 3 * randint(ceil((min_height - 1) / 3), (max_height - 1) // 3)
   return (room_width, room_height)
 
-def gen_blob(size=None):
-  size = size or gen_size()
-  sandbox = Stage(size)
-  valid_cells = sandbox.get_cells()
-  wall_count = int(len(valid_cells) * SEED_WALL_RATIO)
-  while wall_count:
-    cell = choice(valid_cells)
-    valid_cells.remove(cell)
-    sandbox.set_tile_at(cell, Stage.WALL)
-    wall_count -= 1
+def gen_blob(size=None, min_area=MIN_ROOM_AREA, max_area=MAX_ROOM_AREA):
+  lkg = None
+  while lkg is None:
+    size = size or gen_size(min_area=min_area, max_area=max_area)
+    sandbox = Stage(size)
+    valid_cells = sandbox.get_cells()
+    wall_count = int(len(valid_cells) * SEED_WALL_RATIO)
+    while wall_count:
+      cell = choice(valid_cells)
+      valid_cells.remove(cell)
+      sandbox.set_tile_at(cell, Stage.WALL)
+      wall_count -= 1
 
-  for i in range(NUM_OF_GENERATIONS):
-    sandbox = life(sandbox, birth_threshold=BIRTH_THRESHOLD, death_threshold=DEATH_THRESHOLD)
+    for i in range(NUM_OF_GENERATIONS):
+      sandbox = life(sandbox, birth_threshold=BIRTH_THRESHOLD, death_threshold=DEATH_THRESHOLD)
 
-  islands = find_islands(sandbox)
-  if not islands:
-    return None
+    islands = find_islands(sandbox)
+    if not islands:
+      yield None
+      continue
 
-  for island in islands[1:]:
-    for cell in island:
-      sandbox.set_tile_at(cell, Stage.STAIRS_UP)
+    for island in islands[1:]:
+      for cell in island:
+        sandbox.set_tile_at(cell, Stage.STAIRS_UP)
 
-  left, top, right, bottom = find_bounds(islands[0])
-  sandbox.set_tile_at((left, top), Stage.STAIRS_UP)
-  sandbox.set_tile_at((right, top), Stage.STAIRS_UP)
-  sandbox.set_tile_at((left, bottom), Stage.STAIRS_UP)
-  sandbox.set_tile_at((right, bottom), Stage.STAIRS_UP)
+    island_rect = find_bounds(islands[0])
+    lkg = [add_vector(c, (-island_rect.left, -island_rect.top)) for c in islands[0]]
 
-  width = right - left + 1
-  height = bottom - top + 1
-  stage = Stage((width + 2, height + 2))
-  stage.fill(stage.WALL)
-  for cell in stage.get_cells():
-    offset = add_vector(cell, (left, top))
-    tile = sandbox.get_tile_at(offset)
-    if tile:
-      stage.set_tile_at(add_vector(cell, (1, 1)), tile)
-
-  return stage
+  yield lkg
 
 def life(stage, birth_threshold, death_threshold):
   stage_copy = Stage(size=stage.size, data=stage.data)
@@ -88,19 +79,3 @@ def find_islands(stage):
       islands.append(island)
       island_cells += island
   return islands
-
-def find_bounds(cells):
-  left = inf
-  top = inf
-  right = -inf
-  bottom = -inf
-  for (x, y) in cells:
-    if x < left:
-      left = x
-    elif x > right:
-      right = x
-    if y < top:
-      top = y
-    elif y > bottom:
-      bottom = y
-  return (left, top, right, bottom)
