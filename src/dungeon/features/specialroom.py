@@ -68,7 +68,7 @@ class SpecialRoom(Room):
     return True
 
   def create_floor(feature, use_edge=True, on_end=None):
-    floor = Stage(size=(feature.get_width() + 2, feature.get_height() * 2))
+    floor = Stage(size=(feature.get_width() + 2, feature.get_height() + 2))
     floor.fill(Stage.WALL)
     feature.place(floor, cell=(1, 1), connectors=[])
     edge = choice([(x, y) for (x, y) in feature.get_entrances() if y >= 0 and y <= feature.get_height() + 1])

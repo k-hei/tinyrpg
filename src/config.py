@@ -1,4 +1,5 @@
 DEBUG = True
+DEBUG_GEN = False
 CUTSCENES = True
 
 # dungeon generation

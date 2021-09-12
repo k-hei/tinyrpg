@@ -1,5 +1,7 @@
 from random import randint
 from dungeon.floors import Floor
+from dungeon.features.vertroom import VerticalRoom
+from dungeon.features.irregularroom import IrregularRoom
 from dungeon.features.oasisroom import OasisRoom
 from dungeon.features.raretreasureroom import RareTreasureRoom
 from dungeon.gen import gen_floor, gen_enemy, FloorGraph
@@ -24,10 +26,13 @@ from skills.weapon.longinus import Longinus
 
 class GenericFloor(Floor):
   def generate(store):
+    entry_room = VerticalRoom(size=(3, 4), degree=2)
     return gen_floor(
       size=(27, 27),
       features=[
-        *(randint(1, 5) == 1 and [OasisRoom()] or []),
+        entry_room,
+        *[IrregularRoom() for _ in range(randint(0, 2))]
+        *([OasisRoom()] if randint(1, 5) == 1 else []),
         *(Longinus not in store.skills and randint(1, 2) == 1 and [RareTreasureRoom()] or []),
       ],
       items=[

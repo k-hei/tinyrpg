@@ -8,6 +8,7 @@ import json
 
 import config
 from config import (
+  DEBUG_GEN,
   WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE,
   MOVE_DURATION, RUN_DURATION, JUMP_DURATION, PUSH_DURATION, NUDGE_DURATION, FLICKER_DURATION,
   LABEL_FRAMES,
@@ -153,7 +154,7 @@ class DungeonContext(Context):
     game.log = None
     game.minimap = None
     game.comps = []
-    game.debug = False
+    game.debug = DEBUG_GEN
     game.time = 0
     game.talkbubble = None
 

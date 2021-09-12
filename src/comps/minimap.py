@@ -22,7 +22,7 @@ from anims.warpin import WarpInAnim
 from easing.expo import ease_out, ease_in_out
 from lib.lerp import lerp
 from sprite import Sprite
-from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
+from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE, DEBUG_GEN
 
 MARGIN_X = 8
 MARGIN_Y = 6
@@ -118,8 +118,8 @@ class Minimap:
     minimap.time += 1
 
     floor = game.floor
-    visible_cells = hero.visible_cells
-    visited_cells = game.get_visited_cells()
+    visible_cells = game.floor.get_cells() if DEBUG_GEN else hero.visible_cells
+    visited_cells = game.floor.get_cells() if DEBUG_GEN else game.get_visited_cells()
     for cell in visited_cells:
       x, y = cell
       tile = game.floor.get_tile_at(cell)
