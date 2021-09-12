@@ -493,17 +493,15 @@ def gen_mazeroom(stage, room):
 
 def get_room_bonus_cells(room, stage):
   room_cells = room.get_cells()
-  room_doorways = [next((n for n in neighborhood(d) if n in room_cells), None) for d in room.get_doorways(stage)]
-  room_doorways = [d for d in room_doorways if d]
-  room_mainlands = [c for c in room_cells if not next((n for n in neighborhood(cell=c, diagonals=True, inclusive=True) if stage.get_tile_at(n) is not stage.FLOOR), None)]
-  path_cells = []
-  for a, b in permutations(room_doorways + room_mainlands, r=2):
-    path = stage.pathfind(start=a, goal=b, whitelist=path_cells)
-    path_cells += path
-
-  floor_cells = [c for c in room_cells if stage.get_tile_at(c) is stage.FLOOR]
-  bonus_cells = set(floor_cells) - set(path_cells)
-  return list(bonus_cells)
+  is_wall = lambda x, y: stage.get_tile_at((x, y)) is Stage.WALL or stage.get_tile_at((x, y)) is Stage.PIT
+  is_floor = lambda x, y: stage.get_tile_at((x, y)) is Stage.FLOOR
+  bonus_cells = [(x, y) for x, y in room_cells if is_floor(x, y) and (
+    is_wall(x - 1, y - 1) and is_wall(x - 1, y) and is_wall(x, y - 1) and is_floor(x + 1, y + 1)
+    or is_wall(x + 1, y - 1) and is_wall(x + 1, y) and is_wall(x, y - 1) and is_floor(x - 1, y + 1)
+    or is_wall(x - 1, y + 1) and is_wall(x - 1, y) and is_wall(x, y + 1) and is_floor(x + 1, y - 1)
+    or is_wall(x + 1, y + 1) and is_wall(x + 1, y) and is_wall(x, y + 1) and is_floor(x - 1, y - 1)
+  )]
+  return bonus_cells
 
 def gen_floor(
   features=FloorGraph(),

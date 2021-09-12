@@ -31,7 +31,7 @@ class GenContext(Context):
     ctx.updates = 0
 
   def handle_press(ctx, button):
-    if ctx.result is not None and button in (pygame.K_SPACE, pygame.K_RETURN):
+    if ctx.result is False and button in (pygame.K_SPACE, pygame.K_RETURN):
       ctx.start()
 
   def start(ctx):

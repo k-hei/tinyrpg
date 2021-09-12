@@ -213,6 +213,7 @@ def gen_floor(
         stage.entrance = choice(entrances)
         stage.set_tile_at(stage.entrance, Stage.STAIRS_UP)
         empty_rooms.remove(room)
+        yield stage, f"Spawned entrance at {stage.entrance}"
         break
     else:
       yield stage, "Failed to spawn entrance"
@@ -231,7 +232,7 @@ def gen_floor(
     lkg = stage
     break
 
-  yield stage, "Complete"
+  yield stage, ""
 
 def find_border(cells):
   border = set()
