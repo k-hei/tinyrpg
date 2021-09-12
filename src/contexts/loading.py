@@ -40,7 +40,11 @@ class LoadingContext(Context):
         ctx.anims.remove(anim)
 
     if ctx.loader:
-      result, *message = next(ctx.loader)
+      try:
+        result, *message = next(ctx.loader)
+      except TypeError:
+        print(result, ctx.loader)
+        raise
       message and message[0] and debug.log(*message)
       if result is not None:
         ctx.loader = None

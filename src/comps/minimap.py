@@ -56,7 +56,7 @@ class Minimap:
   BLACKOUT_DELAY = 120
 
   def render_surface(floor, size=None, focus=None, visible_cells=None, visited_cells=None, anims=[], blink=False):
-    sprite_size = size or floor.size
+    sprite_size = tuple(map(ceil, size or floor.size))
     sprite_width, sprite_height = sprite_size
     floor_width, floor_height = floor.size
     visible_cells = visible_cells or floor.get_cells()
@@ -78,8 +78,8 @@ class Minimap:
 
       if focus:
         focus_x, focus_y = focus
-        x = int(x - focus_x + sprite_width // 2)
-        y = int(y - focus_y + sprite_height // 2)
+        x = int(x - focus_x + sprite_width / 2)
+        y = int(y - focus_y + sprite_height / 2)
         if x < 0 or y < 0 or x >= sprite_width or y >= sprite_height:
           continue
 
@@ -160,7 +160,7 @@ class Minimap:
         try:
           pixels[x, y] = color
         except IndexError:
-          print((x, y))
+          print((x, y), sprite_size)
           raise
 
     pixels.close()
