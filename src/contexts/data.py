@@ -23,7 +23,10 @@ import lib.gamepad as gamepad
 from sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
 
-def view_time(secs):
+def view_ticks(ticks, ms=False):
+  display_ms = ms
+  secs = ticks // 1000
+  ms = (ticks - secs * 1000) // 10
   mins = secs // 60
   secs = secs % 60
   hours = mins // 60
@@ -31,7 +34,13 @@ def view_time(secs):
   hours = "0{}".format(hours) if hours < 10 else str(hours)
   mins = "0{}".format(mins) if mins < 10 else str(mins)
   secs = "0{}".format(secs) if secs < 10 else str(secs)
-  return "{}:{}:{}".format(hours, mins, secs)
+  ms = "0{}".format(ms) if ms < 10 else str(ms)
+  return (display_ms
+    and f"{hours}:{mins}:{secs}.{ms}"
+    or f"{hours}:{mins}:{secs}")
+
+def view_time(secs):
+  return view_ticks(secs * 1000)
 
 def get_char_spacing(old_char, new_char):
   if old_char == " ": return -10

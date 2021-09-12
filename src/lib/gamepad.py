@@ -38,8 +38,9 @@ def handle_event(app, event):
   global inited
   if not inited:
     inited = True
-    gamepad = pygame.joystick.Joystick(0)
-    gamepad.init()
+    if pygame.joystick.get_count():
+      gamepad = pygame.joystick.Joystick(0)
+      gamepad.init()
   if event.type == pygame.JOYBUTTONDOWN:
     handle_press(app, mappings[event.button])
     return True

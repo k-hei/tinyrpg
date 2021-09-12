@@ -44,8 +44,9 @@ class App(Context):
     pygame.display.flip()
     gamepad.init()
     pygame.joystick.init()
-    joystick = pygame.joystick.Joystick(0) # we need this both inside and outside of the gamepad lib?
-    joystick.init()
+    if pygame.joystick.get_count(): # we need this both inside and outside of the gamepad lib?
+      joystick = pygame.joystick.Joystick(0)
+      joystick.init()
     pygame.key.set_repeat(1000 // FPS)
     app.surface = pygame.Surface(app.size)
     app.clock = pygame.time.Clock()

@@ -1,6 +1,7 @@
 from math import ceil
 import pygame
 from pygame import Surface, Rect, PixelArray, SRCALPHA
+from pygame.transform import scale
 from dungeon.stage import Stage
 from dungeon.actors.knight import Knight
 from dungeon.actors import DungeonActor
@@ -33,6 +34,7 @@ SHRINK_DURATION = 10
 BLACKOUT_DURATION = 10
 BLACKOUT_DELAY = 60
 BLACKOUT_FRAMES = 3
+COLOR_KEY = (255, 0, 255)
 
 class EnterAnim(TweenAnim):
   def __init__(anim):
@@ -53,91 +55,36 @@ class Minimap:
   SCALE_EXPAND = 5
   BLACKOUT_DELAY = 120
 
-  def __init__(minimap, parent):
-    minimap.parent = parent
-    minimap.time = 0
-    minimap.active = False
-    minimap.expanded = 0
-    minimap.sprite = None
-    minimap.anims = []
-    minimap.enter()
+  def render_surface(floor=None):
+    floor_width, floor_height = floor.size
+    visible_cells = floor.get_cells()
+    visited_cells = visible_cells
 
-  def enter(minimap):
-    minimap.active = True
-    minimap.anims.append(EnterAnim())
-
-  def exit(minimap):
-    minimap.active = False
-    minimap.anims.append(ExitAnim())
-
-  def expand(minimap):
-    minimap.expanded = 1
-    minimap.anims.append(ExpandAnim())
-
-  def shrink(minimap):
-    minimap.expanded = 0
-    minimap.anims.append(ShrinkAnim())
-
-  def is_focused(minimap):
-    return minimap.expanded >= BLACKOUT_DELAY + BLACKOUT_FRAMES
-
-  def render(minimap, t=None):
-    if t is None:
-      t = 1 if minimap.expanded else 0
-
-    start_width, start_height = Minimap.SIZE_INIT
-    end_width, end_height = minimap.parent.floor.size
-    start_scale, end_scale = Minimap.SCALE_INIT, Minimap.SCALE_EXPAND
-    while end_height * end_scale > WINDOW_HEIGHT:
-      end_scale -= 1
-
-    sprite_width = lerp(start_width, end_width, t)
-    sprite_height = lerp(start_height, end_height, t)
-    sprite_scale = lerp(start_scale, end_scale, t)
-
-    # requires: game.hero, game.floor, game.memory?
-    game = minimap.parent
-    hero = game.hero
-    if not hero or not hero.cell:
-      return minimap.sprite
-
-    start_x, start_y = hero.cell
-    end_x, end_y = sprite_width // 2, sprite_height // 2
-    focus_x = round(lerp(start_x, end_x, t))
-    focus_y = round(lerp(start_y, end_y, t))
-
-    scaled_width = round(sprite_width * sprite_scale)
-    scaled_height = round(sprite_height * sprite_scale)
-    scaled_size = (scaled_width, scaled_height)
-    COLOR_KEY = (255, 0, 255)
-    surface = Surface(scaled_size)
+    surface = Surface(floor.size)
     surface.fill(COLOR_KEY)
     surface.set_colorkey(COLOR_KEY)
-    temp_surface = Surface((ceil(sprite_width), ceil(sprite_height)))
-    temp_surface.fill(COLOR_KEY)
-    temp_surface.set_colorkey(COLOR_KEY)
-    pixels = PixelArray(temp_surface)
-    minimap.time += 1
+    pixels = PixelArray(surface)
 
-    floor = game.floor
-    visible_cells = game.floor.get_cells() if DEBUG_GEN else hero.visible_cells
-    visited_cells = game.floor.get_cells() if DEBUG_GEN else game.get_visited_cells()
     for cell in visited_cells:
       x, y = cell
-      tile = game.floor.get_tile_at(cell)
-      tile_above = game.floor.get_tile_at((x, y - 1))
-      tile_below = game.floor.get_tile_at((x, y + 1))
-      if x < 0 or y < 0 or x >= game.floor.get_width() or y >= game.floor.get_height():
+      if x < 0 or y < 0 or x >= floor_width or y >= floor_height:
         continue
-      x = int(x - focus_x + sprite_width // 2)
-      y = int(y - focus_y + sprite_height // 2)
-      if x < 0 or y < 0 or x >= sprite_width or y >= sprite_height:
-        continue
-      elem = game.floor.get_elem_at(cell)
-      if next((g for g in game.anims if next((a for a in g if type(a) is WarpInAnim and a.target is elem), None)), None):
-        elem = None
+
+      tile = floor.get_tile_at(cell)
+      tile_above = floor.get_tile_at((x, y - 1))
+      tile_below = floor.get_tile_at((x, y + 1))
+
+      # x = int(x - focus_x + floor_width // 2)
+      # y = int(y - focus_y + floor_height // 2)
+      # if x < 0 or y < 0 or x >= floor_width or y >= floor_height:
+      #   continue
+
+      elem = floor.get_elem_at(cell)
+      # if next((g for g in game.anims if next((a for a in g if type(a) is WarpInAnim and a.target is elem), None)), None):
+      #   elem = None
+
       color = None
-      blink = minimap.time % 60 >= 30
+      blink = 0 # minimap.time % 60 >= 30
       if isinstance(elem, DungeonActor) and elem.faction == "player" and cell in visible_cells:
         color = (0x3399FF, 0x0066CC)[blink]
       elif isinstance(elem, DungeonActor) and elem.faction == "ally" and cell in visible_cells:
@@ -204,15 +151,81 @@ class Minimap:
           color = 0x003399
         else:
           color = 0x000066
+
       if color is not None:
         pixels[x, y] = color
 
     pixels.close()
-    surface.blit(pygame.transform.scale(temp_surface, scaled_size), (0, 0))
+    return surface
+
+  def __init__(minimap, floor):
+    minimap.floor = floor
+    minimap.focus = None
+    minimap.time = 0
+    minimap.active = False
+    minimap.expanded = 0
+    minimap.sprite = None
+    minimap.anims = []
+    minimap.enter()
+
+  def enter(minimap):
+    minimap.active = True
+    minimap.anims.append(EnterAnim())
+
+  def exit(minimap):
+    minimap.active = False
+    minimap.anims.append(ExitAnim())
+
+  def expand(minimap):
+    minimap.expanded = 1
+    minimap.anims.append(ExpandAnim())
+
+  def shrink(minimap):
+    minimap.expanded = 0
+    minimap.anims.append(ShrinkAnim())
+
+  def is_focused(minimap):
+    return minimap.expanded >= BLACKOUT_DELAY + BLACKOUT_FRAMES
+
+  def render(minimap, t=None):
+    if t is None:
+      t = 1 if minimap.expanded else 0
+
+    start_width, start_height = Minimap.SIZE_INIT
+    end_width, end_height = minimap.parent.floor.size
+    start_scale, end_scale = Minimap.SCALE_INIT, Minimap.SCALE_EXPAND
+    while end_height * end_scale > WINDOW_HEIGHT:
+      end_scale -= 1
+
+    sprite_width = lerp(start_width, end_width, t)
+    sprite_height = lerp(start_height, end_height, t)
+    sprite_scale = lerp(start_scale, end_scale, t)
+
+    # requires: game.hero, game.floor, game.memory?
+    game = minimap.parent
+    hero = game.hero
+    if not hero or not hero.cell:
+      return minimap.sprite
+
+    start_x, start_y = hero.cell
+    end_x, end_y = sprite_width // 2, sprite_height // 2
+    focus_x = round(lerp(start_x, end_x, t))
+    focus_y = round(lerp(start_y, end_y, t))
+
+    scaled_width = round(sprite_width * sprite_scale)
+    scaled_height = round(sprite_height * sprite_scale)
+    scaled_size = (scaled_width, scaled_height)
+
+    surface = Surface(scaled_size)
+    surface.fill(COLOR_KEY)
+    surface.set_colorkey(COLOR_KEY)
+    surface.blit(scale(Minimap.render_surface(floor=game.floor), scaled_size), (0, 0))
     return surface
 
   def view(minimap):
     sprites = []
+    minimap.time += 1
+
     if minimap.sprite is None:
       minimap.sprite = minimap.render()
       redrawn = True

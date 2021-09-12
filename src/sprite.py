@@ -4,6 +4,12 @@ from pygame.transform import flip, scale
 
 @dataclass
 class Sprite:
+  ORIGIN_CENTER = ("center", "center")
+  ORIGIN_TOPLEFT = ("left", "top")
+  ORIGIN_TOPRIGHT = ("right", "top")
+  ORIGIN_BOTTOMLEFT = ("left", "bottom")
+  ORIGIN_BOTTOMRIGHT = ("right", "bottom")
+
   image: Surface = None
   pos: tuple[int, int] = (0, 0)
   size: tuple[int, int] = None
