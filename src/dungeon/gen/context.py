@@ -20,6 +20,7 @@ class GenContext(Context):
     super().__init__(*args, **kwargs)
     ctx.generator = generator
     ctx.floor = None
+    ctx.minimap = None
     ctx.log = []
     ctx.iters = 0
     ctx.attempts = 0
@@ -58,7 +59,9 @@ class GenContext(Context):
       ctx.start()
     try:
       floor, message = next(ctx.generator)
-      if floor: ctx.floor = floor
+      if floor:
+        ctx.floor = floor
+        ctx.minimap = None
       if message:
         ctx.log.append(message)
         if message.startswith("Failed"):
@@ -117,7 +120,9 @@ class GenContext(Context):
     floor = ctx.floor
     if floor:
       # Minimap
-      floor_image = Minimap.render_surface(floor)
+      if not ctx.minimap:
+        ctx.minimap = Minimap.render_surface(floor)
+      floor_image = ctx.minimap
       sprites.insert(0, Sprite(
         image=floor_image,
         pos=(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2),

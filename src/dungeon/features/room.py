@@ -129,13 +129,13 @@ class Room(Feature):
     room.focused = True
     for door in room.get_doors(game.floor):
       door.focus = game.hero.cell
-      door.align(game)
+      # door.align(game)
     return True
 
   def on_blur(room, game):
     for door in room.get_doors(game.floor):
       door.focus = game.hero.cell
-      door.align(game)
+      # door.align(game)
 
   def on_enter(room, game):
     if room.entered:

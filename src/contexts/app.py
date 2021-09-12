@@ -47,6 +47,9 @@ class App(Context):
     if pygame.joystick.get_count(): # we need this both inside and outside of the gamepad lib?
       joystick = pygame.joystick.Joystick(0)
       joystick.init()
+      debug.log("Found joystick", joystick)
+    else:
+      debug.log("No joysticks found")
     pygame.key.set_repeat(1000 // FPS)
     app.surface = pygame.Surface(app.size)
     app.clock = pygame.time.Clock()

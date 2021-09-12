@@ -31,9 +31,10 @@ class GenericFloor(Floor):
       size=(27, 27),
       features=[
         entry_room,
-        *[IrregularRoom() for _ in range(randint(0, 2))],
         *([OasisRoom()] if randint(1, 5) == 1 else []),
-        *(Longinus not in store.skills and randint(1, 2) == 1 and [RareTreasureRoom()] or []),
+        *(Longinus not in store.skills and randint(1, 2) == 1
+          and [RareTreasureRoom()]
+          or [IrregularRoom() for _ in range(randint(1, 2))]),
       ],
       items=[
         Amethyst,

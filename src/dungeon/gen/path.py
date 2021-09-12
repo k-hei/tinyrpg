@@ -23,6 +23,4 @@ def gen_path(start, goal, predicate=None, attempts=256):
       continue
     cell = next_cell
     path.append(cell)
-  if not attempts:
-    return []
-  return path
+  return path if cell == goal else []

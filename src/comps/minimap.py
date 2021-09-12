@@ -55,12 +55,14 @@ class Minimap:
   SCALE_EXPAND = 5
   BLACKOUT_DELAY = 120
 
-  def render_surface(floor=None):
+  def render_surface(floor, size=None, focus=None, visible_cells=None, visited_cells=None, anims=[], blink=False):
+    sprite_size = size or floor.size
+    sprite_width, sprite_height = sprite_size
     floor_width, floor_height = floor.size
-    visible_cells = floor.get_cells()
-    visited_cells = visible_cells
+    visible_cells = visible_cells or floor.get_cells()
+    visited_cells = visited_cells or visible_cells
 
-    surface = Surface(floor.size)
+    surface = Surface(sprite_size)
     surface.fill(COLOR_KEY)
     surface.set_colorkey(COLOR_KEY)
     pixels = PixelArray(surface)
@@ -74,17 +76,19 @@ class Minimap:
       tile_above = floor.get_tile_at((x, y - 1))
       tile_below = floor.get_tile_at((x, y + 1))
 
-      # x = int(x - focus_x + floor_width // 2)
-      # y = int(y - focus_y + floor_height // 2)
-      # if x < 0 or y < 0 or x >= floor_width or y >= floor_height:
-      #   continue
+      if focus:
+        focus_x, focus_y = focus
+        x = int(x - focus_x + sprite_width // 2)
+        y = int(y - focus_y + sprite_height // 2)
+        if x < 0 or y < 0 or x >= sprite_width or y >= sprite_height:
+          continue
 
       elem = floor.get_elem_at(cell)
-      # if next((g for g in game.anims if next((a for a in g if type(a) is WarpInAnim and a.target is elem), None)), None):
-      #   elem = None
+      if next((g for g in anims if next((a for a in g if type(a) is WarpInAnim and a.target is elem), None)), None):
+        elem = None
 
+      # f(floor, cell, visible_cells=None, blink=False) -> color
       color = None
-      blink = 0 # minimap.time % 60 >= 30
       if isinstance(elem, DungeonActor) and elem.faction == "player" and cell in visible_cells:
         color = (0x3399FF, 0x0066CC)[blink]
       elif isinstance(elem, DungeonActor) and elem.faction == "ally" and cell in visible_cells:
@@ -153,13 +157,17 @@ class Minimap:
           color = 0x000066
 
       if color is not None:
-        pixels[x, y] = color
+        try:
+          pixels[x, y] = color
+        except IndexError:
+          print((x, y))
+          raise
 
     pixels.close()
     return surface
 
-  def __init__(minimap, floor):
-    minimap.floor = floor
+  def __init__(minimap, parent):
+    minimap.parent = parent
     minimap.focus = None
     minimap.time = 0
     minimap.active = False
@@ -202,6 +210,11 @@ class Minimap:
     sprite_scale = lerp(start_scale, end_scale, t)
 
     # requires: game.hero, game.floor, game.memory?
+    # updates whenever any of the following occur:
+    # - data changes
+    # - visited cells change
+    # - camera position (hero cell) changes
+
     game = minimap.parent
     hero = game.hero
     if not hero or not hero.cell:
@@ -212,6 +225,16 @@ class Minimap:
     focus_x = round(lerp(start_x, end_x, t))
     focus_y = round(lerp(start_y, end_y, t))
 
+    minimap_image = Minimap.render_surface(
+      floor=game.floor,
+      size=(sprite_width, sprite_height),
+      focus=(focus_x, focus_y),
+      visible_cells=game.hero.visible_cells,
+      visited_cells=game.get_visited_cells(),
+      anims=game.anims,
+      blink=minimap.time % 60 >= 30
+    )
+
     scaled_width = round(sprite_width * sprite_scale)
     scaled_height = round(sprite_height * sprite_scale)
     scaled_size = (scaled_width, scaled_height)
@@ -219,7 +242,7 @@ class Minimap:
     surface = Surface(scaled_size)
     surface.fill(COLOR_KEY)
     surface.set_colorkey(COLOR_KEY)
-    surface.blit(scale(Minimap.render_surface(floor=game.floor), scaled_size), (0, 0))
+    surface.blit(scale(minimap_image, scaled_size), (0, 0))
     return surface
 
   def view(minimap):

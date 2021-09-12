@@ -1,12 +1,13 @@
+import pygame
+import debug
 from contexts import Context
 from cores.knight import Knight
 from anims.walk import WalkAnim
 from anims.jump import JumpAnim
 from anims.pause import PauseAnim
-from config import WINDOW_WIDTH, WINDOW_HEIGHT
 from assets import load as use_assets
 from sprite import Sprite
-import pygame
+from config import WINDOW_WIDTH, WINDOW_HEIGHT
 
 class LoadingContext(Context):
   LOADING_TEXT = "Now Loading..."
@@ -39,7 +40,8 @@ class LoadingContext(Context):
         ctx.anims.remove(anim)
 
     if ctx.loader:
-      result = next(ctx.loader)
+      result, *message = next(ctx.loader)
+      message and message[0] and debug.log(*message)
       if result is not None:
         ctx.loader = None
         ctx.anims = [PauseAnim(duration=30, on_end=lambda: (

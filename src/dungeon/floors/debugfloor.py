@@ -4,6 +4,7 @@ from pygame.time import get_ticks
 from lib.cell import neighborhood, manhattan, is_adjacent, add as add_vector, subtract as subtract_vector
 from lib.bounds import find_bounds
 import debug
+from config import FPS
 
 from dungeon.floors import Floor
 from dungeon.features.room import Room
@@ -14,7 +15,7 @@ from dungeon.gen.floorgraph import FloorGraph
 from dungeon.stage import Stage
 from dungeon.props.door import Door
 
-from config import FPS
+ROOM_COUNT = 7
 
 class DebugFloor(Floor):
   def generate(store=None):
@@ -33,21 +34,22 @@ def GenRooms(count):
 def PlaceRooms(rooms):
   if not rooms:
     yield True
+  total_blob = rooms[0]
   prev_room = rooms[0]
   placed_rooms = [prev_room]
   connections = {}
   for i, room in enumerate(rooms[1:]):
     # TODO: cache room props internally (subject to change on dependency reset)
     room_rect = room.rect
-    prev_rect = prev_room.rect
-    prev_hitbox = prev_room.hitbox
-    prev_region = prev_room.region
+    total_rect = total_blob.rect
+    total_hitbox = total_blob.hitbox
+    total_region = total_blob.region
 
     PADDING = 3
     left = -room_rect.width - PADDING
-    right = prev_rect.right + PADDING
+    right = total_rect.right + PADDING
     top = -room_rect.height - PADDING
-    bottom = prev_rect.bottom + PADDING
+    bottom = total_rect.bottom + PADDING
     width = right - left + 1
     height = bottom - top + 1
 
@@ -60,11 +62,13 @@ def PlaceRooms(rooms):
     while valid_origins:
       room.origin = choice(valid_origins)
       valid_origins.remove(room.origin)
-      body_overlap = prev_hitbox & room.hitbox
+      body_overlap = total_hitbox & room.hitbox
       if not body_overlap: # rooms aren't too close
-        region_overlap = prev_region & room.region
+        region_overlap = total_region & room.region
         if region_overlap: # rooms aren't too far
-          connections[i] = room.origin
+          connector = [*region_overlap][0]
+          closest_room = sorted(placed_rooms, key=lambda r: manhattan(r.find_closest_cell(connector), connector))[0]
+          connections[i] = (room.origin, room, closest_room, connector)
       if (get_ticks() - ticks) > 1000 / FPS * 2:
         ticks = get_ticks()
         percent = int((1 - len(valid_origins) / (width * height)) * 100)
@@ -73,8 +77,10 @@ def PlaceRooms(rooms):
     if i not in connections:
       yield False, "Failed to place rooms"
 
-    room.origin = connections[i]
-    prev_room = Blob(prev_room.cells + room.cells)
+    room.origin = connections[i][0]
+    total_blob = Blob(total_blob.cells + room.cells)
+    prev_room = room
+    placed_rooms.append(room)
 
   yield connections, ""
 
@@ -82,7 +88,7 @@ def gen_floor():
   lkg = None
   while lkg is None:
     rooms = None
-    gen_rooms = GenRooms(count=4)
+    gen_rooms = GenRooms(count=ROOM_COUNT)
     while rooms is None:
       rooms = next(gen_rooms)
       yield None, "Generating rooms"
@@ -111,13 +117,10 @@ def gen_floor():
     stage.fill(Stage.WALL)
     for cell in stage_blob.cells:
       stage.set_tile_at(cell, Stage.FLOOR)
-    stage.entrance = choice(rooms[0].cells)
-    stage.set_tile_at(stage.entrance, Stage.STAIRS_UP)
 
     connected = True
     door_paths = []
-    for i, room in enumerate(rooms[1:]):
-      connector = connections[i]
+    for i, (_, prev_room, room, connector) in connections.items():
       connector = subtract_vector(connector, stage_offset)
 
       distance_from_connector = lambda e: manhattan(e, connector)
@@ -126,9 +129,9 @@ def gen_floor():
         and len([n for n in neighborhood(e) if stage.get_tile_at(n) is Stage.WALL]) == 3
         and len([n for n in neighborhood(e, diagonals=True) if stage.get_tile_at(n) is Stage.WALL]) in (5, 6, 7)
         and not next((c for c in [c for r in [r for r in rooms if r is not room] for c in r.outline] if is_adjacent(c, e)), None)
+        and not e in stage.get_border()
       )
 
-      prev_room = rooms[i]
       prev_edges = [e for e in prev_room.edges if is_edge_usable(e, room=prev_room)]
       if not prev_edges:
         yield stage, f"Failed to find usable edges for room {i + 1}"
@@ -145,6 +148,10 @@ def gen_floor():
 
       room_outlines = [c for r in rooms for c in r.outline]
       for door1, door2 in product(prev_edges, room_edges):
+        if (door1 in prev_edges and door2 in prev_edges
+        or door1 in room_edges and door2 in room_edges):
+          continue
+
         door1_neighbor = next((n for n in neighborhood(door1) if n in prev_room.cells), None)
         door1_delta = subtract_vector(door1, door1_neighbor)
         door1_start = add_vector(door1, door1_delta)
@@ -167,13 +174,24 @@ def gen_floor():
       stage.spawn_elem_at(door1, Door())
       stage.spawn_elem_at(door2, Door())
       for cell in door_path:
-        stage.set_tile_at(cell, Stage.STAIRS_UP)
+        stage.set_tile_at(cell, Stage.FLOOR)
       door_paths += door_path
-
-      # gen_mazeroom(stage, room)
+      gen_mazeroom(stage, room)
 
     if not connected:
       continue
+
+    for room in sorted(rooms, key=lambda r: r.get_area()):
+      entrances = [c for c in room.cells if not next((n for n in neighborhood(c, radius=2) if stage.get_tile_at(n) is not Stage.FLOOR), None)]
+      if entrances:
+        stage.entrance = choice(entrances)
+        stage.set_tile_at(stage.entrance, Stage.STAIRS_UP)
+        break
+    else:
+      yield stage, "Failed to spawn entrance"
+
+    # for cell in [c for r in rooms for c in r.get_outline()]:
+    #   stage.set_tile_at(cell, Stage.STAIRS_DOWN)
 
     stage.rooms = rooms
     lkg = stage
@@ -202,7 +220,7 @@ class Blob(Room):
   def hitbox(blob):
     hitbox = []
     for cell in blob.cells:
-      neighbors = neighborhood(cell, diagonals=True)
+      neighbors = neighborhood(cell, diagonals=True, radius=2)
       hitbox += neighbors
     return set(hitbox)
 
@@ -259,4 +277,13 @@ class Blob(Room):
     return blob.edges
 
   def get_border(blob):
-    return blob.outline
+    return list(blob.outline)
+
+  def get_center(blob):
+    return blob.rect.center
+
+  def get_outline(blob):
+    return list(blob.outline)
+
+  def find_closest_cell(blob, dest):
+    return sorted(blob.cells, key=lambda c: manhattan(c, dest))[0]
