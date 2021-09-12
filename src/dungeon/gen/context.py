@@ -28,6 +28,7 @@ class GenContext(Context):
     ctx.ms_start = 0
     ctx.ms_now = 0
     ctx.ms_end = 0
+    ctx.updates = 0
 
   def handle_press(ctx, button):
     if ctx.result is not None and button in (pygame.K_SPACE, pygame.K_RETURN):
@@ -53,6 +54,7 @@ class GenContext(Context):
     ctx.result = False
 
   def update(ctx):
+    ctx.updates += 1
     if ctx.result != None:
       return False
     if not ctx.ms_start:
@@ -88,8 +90,10 @@ class GenContext(Context):
     # Elapsed time
     ms_elapsed = (ctx.ms_end or get_ticks()) - ctx.ms_start
     time_text = view_ticks(ms_elapsed, ms=True)
+    time_color = RESULT_COLORS[ctx.result] if ctx.result != None else WHITE
+    time_color = darken_color(time_color) if ctx.result != None and ctx.updates % 60 >= 30 else time_color
     sprites.append(Sprite(
-      image=font.render(time_text, color=RESULT_COLORS[ctx.result] if ctx.result != None else WHITE),
+      image=font.render(time_text, color=time_color),
       pos=(WINDOW_WIDTH - font.width("00:00:00.00"), WINDOW_HEIGHT),
       origin=Sprite.ORIGIN_BOTTOMLEFT
     ))

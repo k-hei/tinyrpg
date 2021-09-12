@@ -8,14 +8,31 @@ from config import FPS
 
 from dungeon.floors import Floor
 from dungeon.features.room import Room
-from dungeon.gen import gen_mazeroom
+from dungeon.gen import gen_mazeroom, gen_elems
 from dungeon.gen.blob import gen_blob
 from dungeon.gen.path import gen_path
 from dungeon.gen.floorgraph import FloorGraph
 from dungeon.stage import Stage
 from dungeon.props.door import Door
+from dungeon.props.vase import Vase
 
-ROOM_COUNT = 7
+from dungeon.actors.eyeball import Eyeball
+from dungeon.actors.mushroom import Mushroom
+from dungeon.actors.ghost import Ghost
+from dungeon.actors.mummy import Mummy
+
+from items.hp.potion import Potion
+from items.sp.cheese import Cheese
+from items.sp.bread import Bread
+from items.sp.fish import Fish
+from items.dungeon.key import Key
+from items.ailment.antidote import Antidote
+from items.ailment.musicbox import MusicBox
+from items.ailment.lovepotion import LovePotion
+from items.ailment.booze import Booze
+
+MIN_ROOM_COUNT = 7
+MAX_ROOM_COUNT = 11
 
 class DebugFloor(Floor):
   def generate(store=None):
@@ -59,7 +76,7 @@ def PlaceRooms(rooms):
         valid_origins.append((x, y))
 
     ticks = get_ticks()
-    while valid_origins:
+    while valid_origins and i not in connections:
       room.origin = choice(valid_origins)
       valid_origins.remove(room.origin)
       body_overlap = total_hitbox & room.hitbox
@@ -69,9 +86,9 @@ def PlaceRooms(rooms):
           connector = [*region_overlap][0]
           closest_room = sorted(placed_rooms, key=lambda r: manhattan(r.find_closest_cell(connector), connector))[0]
           connections[i] = (room.origin, room, closest_room, connector)
-      if (get_ticks() - ticks) > 1000 / FPS * 2:
+      if (get_ticks() - ticks) > 1000 / FPS * 2 or i in connections:
         ticks = get_ticks()
-        percent = int((1 - len(valid_origins) / (width * height)) * 100)
+        percent = int((1 - (len(valid_origins) + 1) / (width * height)) * 100)
         yield connections, f"Placing room {len(connections) + 1} of {len(rooms)} ({percent}%)" # Performance breakpoint
 
     if i not in connections:
@@ -84,11 +101,14 @@ def PlaceRooms(rooms):
 
   yield connections, ""
 
-def gen_floor():
+def gen_floor(
+  enemies=[Eyeball, Mushroom, Ghost, Mummy],
+  items=[Potion, Cheese, Bread, Fish, Antidote, MusicBox, LovePotion, Booze],
+):
   lkg = None
   while lkg is None:
     rooms = None
-    gen_rooms = GenRooms(count=ROOM_COUNT)
+    gen_rooms = GenRooms(count=randint(MIN_ROOM_COUNT, MAX_ROOM_COUNT))
     while rooms is None:
       rooms = next(gen_rooms)
       yield None, "Generating rooms"
@@ -180,27 +200,39 @@ def gen_floor():
           tile = Stage.FLOOR
         stage.set_tile_at(cell, tile)
       door_paths += door_path
+      yield stage, f"Connected rooms {rooms.index(prev_room) + 1} and {rooms.index(room) + 1}"
       gen_mazeroom(stage, room)
 
     if not connected:
       continue
 
+    empty_rooms = rooms.copy()
     for room in sorted(rooms, key=lambda r: r.get_area()):
-      entrances = [c for c in room.cells if not next((n for n in neighborhood(c, radius=2) if stage.get_tile_at(n) is not Stage.FLOOR), None)]
+      entrances = [c for c in room.cells if not next((n for n in neighborhood(c, radius=1) if stage.get_tile_at(n) is not Stage.FLOOR), None)]
       if entrances:
         stage.entrance = choice(entrances)
         stage.set_tile_at(stage.entrance, Stage.STAIRS_UP)
+        empty_rooms.remove(room)
         break
     else:
       yield stage, "Failed to spawn entrance"
 
-    # for cell in [c for r in rooms for c in r.get_outline()]:
-    #   stage.set_tile_at(cell, Stage.STAIRS_DOWN)
+    for i, room in enumerate(empty_rooms):
+      yield stage, f"Spawning items for room {i + 1}"
+      items_spawned = gen_elems(stage, room,
+        elems=[Vase(choice(items)) for _ in range(min(3, room.get_area() // 20))]
+      )
+      yield stage, f"Spawning enemies for room {i + 1}"
+      enemies_spawned = gen_elems(stage, room,
+        elems=[choice(enemies)() for _ in range(min(6, room.get_area() // 20))]
+      )
 
     stage.rooms = rooms
     lkg = stage
+    break
 
-  yield lkg, ""
+  print(stage)
+  yield stage, "Complete"
 
 def find_border(cells):
   border = set()

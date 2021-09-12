@@ -16,6 +16,7 @@ class LoadingContext(Context):
     super().__init__(*args, **kwargs)
     ctx.loader = loader
     ctx.on_end = on_end
+    ctx.result = None
     ctx.anims = []
     ctx.knight = Knight(anims=[
       WalkAnim(period=30)
@@ -42,15 +43,13 @@ class LoadingContext(Context):
     if ctx.loader:
       try:
         result, *message = next(ctx.loader)
-      except TypeError:
-        print(result, ctx.loader)
-        raise
-      message and message[0] and debug.log(*message)
-      if result is not None:
+        message and message[0] and debug.log(*message)
+        ctx.result = result
+      except StopIteration:
         ctx.loader = None
         ctx.anims = [PauseAnim(duration=30, on_end=lambda: (
           ctx.close(),
-          ctx.on_end(result)
+          ctx.on_end(ctx.result)
         ))]
 
   def view(ctx):
