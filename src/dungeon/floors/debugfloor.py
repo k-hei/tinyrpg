@@ -174,7 +174,11 @@ def gen_floor():
       stage.spawn_elem_at(door1, Door())
       stage.spawn_elem_at(door2, Door())
       for cell in door_path:
-        stage.set_tile_at(cell, Stage.FLOOR)
+        if cell in (door1, door1_start, door2, door2_start):
+          tile = Stage.DOOR_WAY
+        else:
+          tile = Stage.FLOOR
+        stage.set_tile_at(cell, tile)
       door_paths += door_path
       gen_mazeroom(stage, room)
 

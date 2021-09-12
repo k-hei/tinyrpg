@@ -435,7 +435,7 @@ def render_tile(stage, cell, visited_cells=[]):
           break
     if tile_below is stage.FLOOR_ELEV:
       return Sprite(image=assets.sprites["wall_bottom"], pos=(0, -TILE_SIZE))
-    elif ((tile_below is stage.FLOOR or tile_below is stage.PIT)
+    elif ((tile_below is stage.FLOOR or tile_below is stage.PIT or tile_below is stage.DOOR_WAY)
     and (x, y + 1) in visited_cells
     and not stage.get_elem_at((x, y + 1), superclass=Door)):
       if x % (3 + y % 2) == 0:
