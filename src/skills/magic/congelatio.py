@@ -51,7 +51,6 @@ class Congelatio(MagicSkill):
     targets = [e for e in [floor.get_elem_at(c, superclass=DungeonActor) for c in target_cells] if e]
 
     pause_anim = PauseAnim()
-
     def on_connect():
       game.vfx += [(lambda cell, target: IceSpikeVfx(
         cell=cell,

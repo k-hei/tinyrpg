@@ -42,12 +42,14 @@ class Glacio(MagicSkill):
       target_cells.append(cell)
       dist += 1
 
+    pause_anim = PauseAnim()
     def on_connect():
       damage = 8 + randint(-2, 2)
       block = game.can_block(attacker=user, defender=target)
       if block:
         target.block()
         damage /= 2
+      pause_anim.end(),
       game.flinch(
         target=target,
         damage=damage,
@@ -74,6 +76,7 @@ class Glacio(MagicSkill):
         duration=15 + delay,
         on_end=lambda: (
           ENABLED_COMBAT_LOG and game.log.print("But nothing happened..."),
+          pause_anim.end(),
           game.anims[0].append(PauseAnim(
             duration=30,
             on_end=on_end
@@ -81,13 +84,16 @@ class Glacio(MagicSkill):
         )
       ))
 
-    game.anims.append([AttackAnim(
-      duration=ATTACK_DURATION,
-      target=user,
-      src=user.cell,
-      dest=bump_dest,
-      on_connect=on_bump,
-      on_end=target is None and on_bump_end
-    )])
+    game.anims.append([
+      AttackAnim(
+        duration=ATTACK_DURATION,
+        target=user,
+        src=user.cell,
+        dest=bump_dest,
+        on_connect=on_bump,
+        on_end=target is None and on_bump_end
+      ),
+      pause_anim
+    ])
 
     return dest
