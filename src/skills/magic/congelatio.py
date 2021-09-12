@@ -8,6 +8,10 @@ from anims.attack import AttackAnim
 from anims.frame import FrameAnim
 from anims.pause import PauseAnim
 from vfx.icespike import IceSpikeVfx
+from vfx.snowflake import SnowflakeVfx
+from vfx.snowdrift import SnowdriftVfx
+from vfx.particle import ParticleVfx
+from vfx.smoke import SmokeVfx
 from colors.palette import CYAN
 from config import ENABLED_COMBAT_LOG
 
@@ -54,7 +58,15 @@ class Congelatio(MagicSkill):
         delay=i * 5,
         color=CYAN,
         on_connect=(lambda: (
-          pause_anim.end(),
+          not pause_anim.done and (
+            pause_anim.end(),
+            game.vfx.extend([
+              SnowflakeVfx(cell=dest),
+              *([SnowdriftVfx(cell=dest) for i in range(5)]),
+              *([SmokeVfx(cell=dest) for i in range(20)]),
+              *([ParticleVfx(cell=dest, linger=True) for i in range(30)]),
+            ])
+          ),
           target.inflict_ailment("freeze"),
           game.flinch(
             target=target,

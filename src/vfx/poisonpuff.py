@@ -82,10 +82,10 @@ class PoisonPuffVfx(Vfx):
       puff_image = assets.sprites["fx_smallspark"]
       puff_image = replace_color(puff_image, BLACK, VIOLET)
     elif puff.size == "medium":
-      puff_image = assets.sprites["fx_poisonpuff_small"]
+      puff_image = assets.sprites["fx_smoke_small"]
       puff_image = replace_color(puff_image, WHITE, DARKBLUE)
     elif puff.size == "large":
-      puff_image = assets.sprites["fx_poisonpuff_large"]
+      puff_image = assets.sprites["fx_smoke_large"]
       puff_image = replace_color(puff_image, WHITE, VIOLET)
     if type(puff.anim) is OffsetMoveAnim:
       puff_layer = "elems"
