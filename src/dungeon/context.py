@@ -957,7 +957,7 @@ class DungeonContext(Context):
         src=hero.cell,
         dest=target_cell
       ))
-    elif effect_result == True:
+    if effect_result == True:
       game.step()
     return effect_result
 
