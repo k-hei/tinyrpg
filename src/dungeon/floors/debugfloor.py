@@ -231,7 +231,6 @@ def gen_floor(
     lkg = stage
     break
 
-  print(stage)
   yield stage, "Complete"
 
 def find_border(cells):

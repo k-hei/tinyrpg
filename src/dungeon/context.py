@@ -895,24 +895,27 @@ class DungeonContext(Context):
     return True
 
   def obtain(game, item, target=None, on_end=None):
-    obtained = game.store.obtain(item)
-    if obtained:
-      game.anims.append([
-        item_anim := ItemAnim(
-          target=target,
-          item=item()
-        )
-      ])
-      game.open(child=DialogueContext(
-        lite=True,
-        script=[
-          ("", ("Obtained ", item().token(), "."))
-        ]
-      ), on_close=lambda: (
-        on_end and on_end(),
-        item_anim and item_anim.end()
-      ))
+    if game.hero.item:
+      obtained = False
     else:
+      obtained = game.store.obtain(item)
+      if obtained:
+        game.anims.append([
+          item_anim := ItemAnim(
+            target=target,
+            item=item()
+          )
+        ])
+        game.open(child=DialogueContext(
+          lite=True,
+          script=[
+            ("", ("Obtained ", item().token(), "."))
+          ]
+        ), on_close=lambda: (
+          on_end and on_end(),
+          item_anim and item_anim.end()
+        ))
+    if not obtained:
       game.log.clear()
       game.log.print(("You're standing on ", item().token(), "."))
     return obtained
