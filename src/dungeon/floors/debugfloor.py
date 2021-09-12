@@ -4,6 +4,7 @@ from lib.bounds import find_bounds
 import debug
 
 from dungeon.floors import Floor
+from dungeon.features.room import Room
 from dungeon.gen.blob import gen_blob
 from dungeon.gen.path import gen_path
 from dungeon.stage import Stage
@@ -105,6 +106,7 @@ def gen_floor():
       stage.set_tile_at(cell, Stage.FLOOR)
 
     stage.entrance = choice(blob1.cells)
+    stage.rooms += [blob1, blob2]
     lkg = stage
 
   yield lkg
@@ -115,11 +117,13 @@ def find_border(cells):
     border |= neighborhood(cell)
   return list(border)
 
-class Blob:
+class Blob(Room):
   def __init__(blob, cells, origin=None):
-    left, top = find_bounds(cells).topleft
+    rect = find_bounds(cells)
+    left, top = rect.topleft
     blob.origin = origin or (left, top)
     blob._cells = [add_vector(c, (-left, -top)) for c in cells]
+    super().__init__(size=rect.size, cell=blob.origin)
 
   @property
   def cells(blob):
@@ -164,3 +168,23 @@ class Blob:
   @property
   def rect(blob):
     return find_bounds(blob.cells)
+
+  @property
+  def cell(blob):
+    return blob.origin
+
+  @cell.setter
+  def cell(blob, cell):
+    blob.origin = cell
+
+  def get_width(blob):
+    return blob.rect.width
+
+  def get_height(blob):
+    return blob.rect.height
+
+  def get_cells(blob):
+    return blob.cells
+
+  def get_border(blob):
+    return blob.outline
