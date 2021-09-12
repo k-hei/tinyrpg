@@ -1,4 +1,5 @@
 from random import randint, choice
+from pygame.time import get_ticks
 from lib.cell import neighborhood, manhattan, is_adjacent, add as add_vector, subtract as subtract_vector
 from lib.bounds import find_bounds
 import debug
@@ -7,106 +8,144 @@ from dungeon.floors import Floor
 from dungeon.features.room import Room
 from dungeon.gen.blob import gen_blob
 from dungeon.gen.path import gen_path
+from dungeon.gen.floorgraph import FloorGraph
 from dungeon.stage import Stage
 from dungeon.props.door import Door
+
+from config import FPS
 
 class DebugFloor(Floor):
   def generate(store):
     return gen_floor()
 
+def GenRooms():
+  rooms = []
+  while len(rooms) < 4:
+    cells = next(gen_blob(min_area=80, max_area=200))
+    if cells:
+      room = Blob(cells)
+      rooms.append(room)
+    yield None # Performance breakpoint
+  yield rooms
+
+def PlaceRooms(rooms):
+  if not rooms:
+    yield True
+  prev_room = rooms[0]
+  placed_rooms = [prev_room]
+  connections = {}
+  for i, room in enumerate(rooms[1:]):
+    connections[i] = {}
+    # TODO: cache room props internally (subject to change on dependency reset)
+    room_rect = room.rect
+    prev_rect = prev_room.rect
+    prev_hitbox = prev_room.hitbox
+    prev_border = prev_room.border
+    ticks = get_ticks()
+    for y in range(-room_rect.height - 1, prev_rect.bottom + 1):
+      for x in range(-room_rect.width - 1, prev_rect.right + 1):
+        room.origin = (x, y)
+        body_overlap = set(prev_hitbox) & set(room.hitbox)
+        if not body_overlap:
+          border_overlap = set(prev_border) & set(room.border)
+          if border_overlap:
+            connections[i][(x, y)] = border_overlap
+        if get_ticks() - ticks > 1000 / FPS:
+          ticks = get_ticks()
+          yield None # Performance breakpoint
+    if not connections[i]:
+      yield False
+    room.origin = choice([*connections[i].keys()])
+    prev_room = Blob(prev_room.cells + room.cells)
+  yield connections
+
 def gen_floor():
   lkg = None
   while lkg is None:
-    blob1 = next(gen_blob())
-    if blob1 is None:
-      debug.log("Failed to generate room")
+    rooms = None
+    gen_rooms = GenRooms()
+    while rooms is None:
+      rooms = next(gen_rooms)
       yield None
-      continue
-    blob1 = Blob(blob1)
-    yield None # Performance breakpoint
 
-    blob2 = next(gen_blob(min_area=60, max_area=120))
-    if blob2 is None:
-      debug.log("Failed to generate room")
+    connections = None
+    place_rooms = PlaceRooms(rooms)
+    while connections is None:
+      connections = next(place_rooms)
       yield None
-      continue
-    blob2 = Blob(blob2)
-    yield None # Performance breakpoint
-
-    connections = {}
-    for y in range(-blob2.rect.height, blob1.rect.bottom):
-      for x in range(-blob2.rect.width, blob1.rect.right):
-        blob2.origin = (x, y)
-        body_overlap = set(blob1.hitbox) & set(blob2.hitbox)
-        if not body_overlap:
-          border_overlap = set(blob1.border) & set(blob2.border)
-          if border_overlap:
-            connections[(x, y)] = border_overlap
-      yield None # Performance breakpoint
-
-    if not connections:
-      debug.log("Failed to connect rooms")
-      yield None
+    if connections is False:
+      debug.log("Failed to place rooms")
       continue
 
-    origin = choice(list(connections.keys()))
-    blob2.origin = origin
-    blob3_cells = blob1.cells + blob2.cells
-    blob3_offset = add_vector(find_bounds(blob3_cells).topleft, (-1, -1))
-    blob3 = Blob(blob3_cells, origin=(1, 1))
-    blob1.origin = add_vector(blob1.origin, tuple([-x for x in blob3_offset]))
-    blob2.origin = add_vector(blob2.origin, tuple([-x for x in blob3_offset]))
+    stage_cells = []
+    for room in rooms:
+      stage_cells += room.cells
 
-    stage = Stage(add_vector(blob3.rect.size, (2, 2)))
+    stage_offset = subtract_vector(find_bounds(stage_cells).topleft, (1, 1))
+    stage_blob = Blob(stage_cells, origin=(1, 1))
+    stage = Stage(add_vector(stage_blob.rect.size, (2, 2)))
     stage.fill(Stage.WALL)
-    for cell in blob3.cells:
+    for cell in stage_blob.cells:
       stage.set_tile_at(cell, Stage.FLOOR)
+    stage.entrance = (0, 0)
 
-    connector = choice([*connections[origin]])
-    connector = add_vector(connector, tuple([-x for x in blob3_offset]))
+    # Origin is used to key into connections map
+    rooms[0].origin = subtract_vector(rooms[0].origin, stage_offset)
 
-    distance_from_connector = lambda e: manhattan(e, connector)
-    is_edge_usable = lambda e, other_blob: (
-      not next((n for n in neighborhood(e, radius=2) if next((e for e in stage.get_elems_at(n) if isinstance(e, Door)), None)), None)
-      and len([n for n in neighborhood(e) if stage.get_tile_at(n) is Stage.WALL]) == 3
-      and len([n for n in neighborhood(e, diagonals=True) if stage.get_tile_at(n) is Stage.WALL]) in (5, 6, 7)
-      and not next((c for c in other_blob.outline if is_adjacent(c, e)), None)
-    )
+    connected = True
+    door_paths = []
+    for i, room in enumerate(rooms[1:]):
+      connector = choice([*connections[i][room.origin]])
+      connector = subtract_vector(connector, stage_offset)
+      room.origin = subtract_vector(room.origin, stage_offset)
+      distance_from_connector = lambda e: manhattan(e, connector)
+      is_edge_usable = lambda e, other_room: (
+        not next((n for n in neighborhood(e, radius=2) if next((e for e in stage.get_elems_at(n) if isinstance(e, Door)), None)), None)
+        and len([n for n in neighborhood(e) if stage.get_tile_at(n) is Stage.WALL]) == 3
+        and len([n for n in neighborhood(e, diagonals=True) if stage.get_tile_at(n) is Stage.WALL]) in (5, 6, 7)
+        and not next((c for c in other_room.outline if is_adjacent(c, e)), None)
+      )
 
-    blob1_edges = [e for e in blob1.edges if is_edge_usable(e, other_blob=blob2)]
-    if not blob1_edges:
-      debug.log("Failed to create usable door edges")
+      prev_room = rooms[i]
+      prev_edges = [e for e in prev_room.edges if is_edge_usable(e, other_room=room)]
+      if not prev_edges:
+        debug.log("Failed to create usable door edges")
+        connected = False
+        break
+      door1 = sorted(prev_edges, key=distance_from_connector)[0]
+      door1_neighbor = next((n for n in neighborhood(door1) if n in prev_room.cells), None)
+      door1_delta = subtract_vector(door1, door1_neighbor)
+      door1_start = add_vector(door1, door1_delta)
+      stage.spawn_elem_at(door1, Door())
+
+      room_edges = [e for e in room.edges if is_edge_usable(e, other_room=prev_room)]
+      if not room_edges:
+        debug.log("Failed to create usable door edges")
+        connected = False
+        break
+      door2 = sorted(room_edges, key=distance_from_connector)[0]
+      door2_neighbor = next((n for n in neighborhood(door2) if n in room.cells), None)
+      door2_delta = subtract_vector(door2, door2_neighbor)
+      door2_start = add_vector(door2, door2_delta)
+      stage.spawn_elem_at(door2, Door())
+
+      path_blacklist = set(prev_room.outline + room.outline + stage.get_border() + door_paths) - {door1_start, door2_start}
+      door_path = gen_path(door1_start, door2_start, predicate=lambda cell: cell not in path_blacklist)
+      if not door_path:
+        debug.log(f"Failed to path between doors {i} and {i + 1}")
+        connected = False
+        break
+      door_path = [door1] + door_path + [door2]
+      for cell in door_path:
+        stage.set_tile_at(cell, Stage.FLOOR)
+      door_paths += door_path
+
+    if not connected:
       yield None
       continue
-    door1 = sorted(blob1_edges, key=distance_from_connector)[0]
-    door1_neighbor = next((n for n in neighborhood(door1) if n in blob1.cells), None)
-    door1_delta = subtract_vector(door1, door1_neighbor)
-    door1_start = add_vector(door1, door1_delta)
-    stage.spawn_elem_at(door1, Door())
 
-    blob2_edges = [e for e in blob2.edges if is_edge_usable(e, other_blob=blob1)]
-    if not blob2_edges:
-      debug.log("Failed to create usable door edges")
-      yield None
-      continue
-    door2 = sorted(blob2_edges, key=distance_from_connector)[0]
-    door2_neighbor = next((n for n in neighborhood(door2) if n in blob2.cells), None)
-    door2_delta = subtract_vector(door2, door2_neighbor)
-    door2_start = add_vector(door2, door2_delta)
-    stage.spawn_elem_at(door2, Door())
-
-    path_blacklist = set(blob1.outline + blob2.outline + stage.get_border()) - {door1_start, door2_start}
-    door_path = gen_path(door1_start, door2_start, predicate=lambda cell: cell not in path_blacklist)
-    if not door_path:
-      debug.log("Failed to path between doors")
-      yield None
-      continue
-    door_path = [door1] + door_path + [door2]
-    for cell in door_path:
-      stage.set_tile_at(cell, Stage.FLOOR)
-
-    stage.entrance = choice(blob1.cells)
-    stage.rooms += [blob1, blob2]
+    stage.entrance = choice(rooms[0].cells)
+    stage.rooms = rooms
     lkg = stage
 
   yield lkg
@@ -160,7 +199,7 @@ class Blob(Room):
       neighbors = (
         neighborhood(cell, diagonals=True)
         + neighborhood(add_vector(cell, (0, -1)), diagonals=True)
-        + neighborhood(add_vector(cell, (0, 1)), diagonals=True)
+        # + neighborhood(add_vector(cell, (0, 1)), diagonals=True)
       )
       outline.update(neighbors)
     return list(outline)

@@ -73,6 +73,22 @@ class Room(Feature):
       (x + width - 1, y + height - 1),
     ]
 
+  def get_outline(room):
+    left, top = room.cell
+    right = left + room.get_width()
+    bottom = top + room.get_height()
+
+    edges = []
+    for x in range(left - 1, right + 1):
+      edges.append((x, top - 1))
+      edges.append((x, bottom))
+
+    for y in range(top, bottom):
+      edges.append((left - 1, y))
+      edges.append((right, y))
+
+    return edges
+
   def get_border(room):
     left, top = room.cell
     right = left + room.get_width()

@@ -286,7 +286,7 @@ class DungeonContext(Context):
 
     def is_within_room(room, cell):
       _, room_y = room.cell
-      room_cells = room.get_cells() + room.get_border()
+      room_cells = room.get_cells() + room.get_outline()
       return hero.cell in [(x, y) for (x, y) in room_cells if (
         y != room_y + room.get_height() + 1
         and y != room_y - 2
