@@ -412,7 +412,11 @@ def render_tile(stage, cell, visited_cells=[]):
     elevfloor_image.fill(COLOR_TILE)
     elevfloor_image.blit(assets.sprites["floor"], (0, 0))
     elevfloor_image.blit(assets.sprites["wall_elev"], (0, TILE_SIZE))
+    elevfloor_image = replace_color(elevfloor_image, DARKGRAY, GRAY)
     assets.sprites["floor_elev"] = elevfloor_image
+  if "floor_fancy_elev" not in assets.sprites:
+    elevfloor_image = replace_color(assets.sprites["floor_fancy"], DARKGRAY, GRAY)
+    assets.sprites["floor_fancy_elev"] = elevfloor_image
   if "stairs_right" not in assets.sprites:
     assets.sprites["stairs_right"] = flip(assets.sprites["stairs_left"], True, False)
   if assets.sprites["stairs"].get_height() < TILE_SIZE * 2:
@@ -452,7 +456,7 @@ def render_tile(stage, cell, visited_cells=[]):
     and stage.get_tile_at((x - 1, y + 1)) is stage.FLOOR_ELEV
     and stage.get_tile_at((x + 1, y + 1)) is stage.FLOOR_ELEV):
     return Sprite(
-      image=assets.sprites["floor_fancy"],
+      image=assets.sprites["floor_fancy_elev"],
       origin=("left", "bottom"),
       pos=(0, -TILE_SIZE),
       layer="elems"

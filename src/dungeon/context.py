@@ -726,10 +726,10 @@ class DungeonContext(Context):
     if hero.ailment:
       return False
     if visible_enemies:
-      game.log.print("There are enemies nearby!")
+      game.open(DialogueContext([("", "There are enemies nearby!")]))
       return False
-    if game.store.sp:
-      game.log.print("You're too hungry to sleep right now...")
+    if not game.store.sp:
+      game.open(DialogueContext([("", "You're too hungry to sleep right now...")]))
       return False
     hero.inflict_ailment("sleep")
     hero.command = None

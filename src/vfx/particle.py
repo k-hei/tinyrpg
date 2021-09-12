@@ -12,7 +12,7 @@ from config import TILE_SIZE
 class ParticleVfx(Vfx):
   def __init__(fx, pos=None, cell=None, color=WHITE, linger=False, *args, **kwargs):
     angle = 2 * pi * random()
-    speed = random() + (1.5 if linger else 0)
+    speed = random() + (1 if linger else 0)
     super().__init__(
       kind=None,
       pos=tuple([(x + 0.5) * TILE_SIZE for x in cell]) if cell else pos,
@@ -29,7 +29,7 @@ class ParticleVfx(Vfx):
     fx.anim = FrameAnim(
       frames=[replace_color(s, BLACK, fx.color) for s in assets.sprites["fx_particle"]],
       duration=45,
-      delay=randint(0, 30)
+      delay=randint(0, 45)
     )
 
   def update(fx, *_):
@@ -40,11 +40,12 @@ class ParticleVfx(Vfx):
       vel_x, vel_y = fx.vel
       fx.pos = (fx_x + vel_x, fx_y + vel_y)
       if type(fx.anim) is FrameAnim:
-        fx.vel = (vel_x * 0.925, vel_y * 0.925)
+        friction = 0.95 if fx.linger else 0.925
+        fx.vel = (vel_x * friction, vel_y * friction)
     if fx.anim.done:
       if fx.linger:
         fx.linger = False
-        fx.anim = FlickerAnim(duration=randint(90, 120))
+        fx.anim = FlickerAnim(duration=randint(90, 150))
         fx.vel = (0, 0.1)
       else:
         fx.anim = None

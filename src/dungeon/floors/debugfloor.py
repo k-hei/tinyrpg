@@ -6,6 +6,7 @@ import debug
 
 from dungeon.floors import Floor
 from dungeon.features.room import Room
+from dungeon.gen import gen_mazeroom
 from dungeon.gen.blob import gen_blob
 from dungeon.gen.path import gen_path
 from dungeon.gen.floorgraph import FloorGraph
@@ -98,6 +99,7 @@ def gen_floor():
       connector = choice([*connections[i][room.origin]])
       connector = subtract_vector(connector, stage_offset)
       room.origin = subtract_vector(room.origin, stage_offset)
+
       distance_from_connector = lambda e: manhattan(e, connector)
       is_edge_usable = lambda e, other_room: (
         not next((n for n in neighborhood(e, radius=2) if next((e for e in stage.get_elems_at(n) if isinstance(e, Door)), None)), None)
@@ -137,8 +139,9 @@ def gen_floor():
         break
       door_path = [door1] + door_path + [door2]
       for cell in door_path:
-        stage.set_tile_at(cell, Stage.FLOOR)
+        stage.set_tile_at(cell, Stage.STAIRS_UP)
       door_paths += door_path
+      # gen_mazeroom(stage, room)
 
     if not connected:
       yield None
@@ -224,6 +227,9 @@ class Blob(Room):
 
   def get_cells(blob):
     return blob.cells
+
+  def get_edges(blob):
+    return blob.edges
 
   def get_border(blob):
     return blob.outline

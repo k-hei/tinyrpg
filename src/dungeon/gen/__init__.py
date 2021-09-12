@@ -478,7 +478,7 @@ def gen_mazeroom(stage, room):
       stage.set_tile_at(cell, stage.FLOOR)
     room_pathcells += path
 
-  if randint(0, 1) and room.get_area() > 7 * 4:
+  if randint(0, 1) and room.get_area() > 7 * 4 and room_pathcells:
     pivot = choice(room_cells)
     pivot_neighbors = neighborhood(pivot, diagonals=True, inclusive=True)
     for cell in pivot_neighbors:

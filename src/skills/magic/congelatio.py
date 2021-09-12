@@ -64,7 +64,7 @@ class Congelatio(MagicSkill):
               SnowflakeVfx(cell=dest),
               *([SnowdriftVfx(cell=dest) for i in range(5)]),
               *([SmokeVfx(cell=dest) for i in range(20)]),
-              *([ParticleVfx(cell=dest, linger=True) for i in range(30)]),
+              *([ParticleVfx(cell=dest, linger=True) for i in range(40)]),
             ])
           ),
           target.inflict_ailment("freeze"),
