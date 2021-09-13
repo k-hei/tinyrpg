@@ -8,7 +8,7 @@ from contexts import Context
 from contexts.load import LoadContext
 from sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
-from colors.palette import BLACK
+from colors.palette import BLACK, WHITE
 from filters import recolor, outline
 from assets import load as use_assets
 from anims import Anim
@@ -28,6 +28,7 @@ class ChooseAnim(FlickerAnim): blocking = True
 class ScrollAnim(Anim):
   speed = 2
   offset = 48
+  blocking = True
 
 def get_title_char_offset(a, b):
   if a == "g" and b == "a": return -7
@@ -57,6 +58,7 @@ class GameOverContext(Context):
   def __init__(ctx, *args, **kwargs):
     super().__init__(*args, **kwargs)
     ctx.choice_index = 0
+    ctx.chosen = False
     ctx.anims = [
       SineAnim(target="hand", period=30, amplitude=2),
       ScrollAnim(),
@@ -108,7 +110,9 @@ class GameOverContext(Context):
   def handle_press(ctx, button):
     if ctx.child:
       return ctx.child.handle_press(button)
-    if keyboard.get_pressed(button) > 1 and gamepad.get_state(button) > 1:
+    if (keyboard.get_pressed(button) + gamepad.get_state(button) > 1
+    or next((a for a in ctx.anims if a.blocking), None)
+    or ctx.chosen):
       return
     if button in (pygame.K_UP, pygame.K_w, gamepad.UP):
       return ctx.handle_move(-1)
@@ -131,16 +135,17 @@ class GameOverContext(Context):
 
   def handle_choose(ctx):
     choice = ctx.choices[ctx.choice_index]
+    ctx.chosen = True
     ctx.anims.append(ChooseAnim(target="hand", duration=30, on_end=lambda: (
       choice == "Continue" and (
         game := ctx.get_parent(cls="GameContext"),
-        game and game.load(),
+        game and game.load() or ctx.close(choice),
         ctx.get_head().transition([DissolveOut()])
       ),
       choice == "Load Game" and ctx.open(LoadContext(), on_close=lambda *data: (
         data and (
           game := ctx.get_parent(cls="GameContext"),
-          game and game.load(savedata=data[0])
+          game and game.load(savedata=data[0]) or ctx.close(choice)
         )
       ))
     )))
@@ -240,9 +245,10 @@ class GameOverContext(Context):
 
     choice_y = OPTIONS_Y
     choice_sprites = []
-    for choice in ctx.choices:
+    for i, choice in enumerate(ctx.choices):
+      choice_color = WHITE if not flicker_anim or i == ctx.choice_index and flicker_anim.visible else BLACK
       choice_sprites.append(Sprite(
-        image=assets.ttf["english"].render(choice.upper()),
+        image=assets.ttf["english"].render(choice.upper(), color=choice_color),
         pos=(OPTIONS_X, choice_y),
         layer="ui",
       ))
