@@ -1,5 +1,6 @@
 import pygame
 from pygame.time import get_ticks
+import debug
 from contexts import Context
 from contexts.data import view_ticks
 from comps.minimap import Minimap
@@ -16,9 +17,10 @@ RESULT_COLORS = {
 }
 
 class GenContext(Context):
-  def __init__(ctx, generator, *args, **kwargs):
+  def __init__(ctx, generator, seed=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
     ctx.generator = generator
+    ctx.seed = seed
     ctx.floor = None
     ctx.minimap = None
     ctx.log = []
@@ -34,20 +36,25 @@ class GenContext(Context):
     if ctx.result is False and button in (pygame.K_SPACE, pygame.K_RETURN):
       ctx.start()
 
+  def print(ctx, message):
+    ctx.log.append(message)
+    debug.log(message)
+
   def start(ctx):
     if ctx.iters:
       ctx.attempts += 1
     if not ctx.attempts:
-      ctx.generator = ctx.generator.generate()
+      ctx.generator = ctx.generator.generate(seed=ctx.seed)
     ctx.iters = 0
     ctx.result = None
     ctx.ms_start = get_ticks()
     ctx.ms_end = 0
+    ctx.print(f"Failed {ctx.floor.seed} in {view_ticks(ctx.ms_end - ctx.ms_start, ms=True)}")
 
   def complete(ctx):
     ctx.ms_end = get_ticks()
     ctx.result = True
-    ctx.log.append(f"Completed in {view_ticks(ctx.ms_end - ctx.ms_start, ms=True)}")
+    ctx.print(f"Completed {ctx.floor.seed} in {view_ticks(ctx.ms_end - ctx.ms_start, ms=True)}")
 
   def fail(ctx):
     ctx.ms_end = get_ticks()
@@ -65,7 +72,7 @@ class GenContext(Context):
         ctx.floor = floor
         ctx.minimap = None
       if message:
-        ctx.log.append(message)
+        ctx.print(message)
         if message.startswith("Failed"):
           ctx.fail()
       ctx.iters += 1

@@ -535,26 +535,22 @@ def gen_floor(
     seed = None
 
     if not gen_features(floor, feature_graph=features):
-      debug("Feature placement failed")
-      yield None
+      yield None, "Feature placement failed"
       continue
 
     empty_rooms = floor.gen_rooms()
     if not empty_rooms:
-      debug("No usable rooms generated")
-      yield None
+      yield None, "No usable rooms generated"
       continue
 
     floor.gen_mazes()
 
     if not floor.connect():
-      debug("Failed to connect feature graph")
-      yield None
+      yield None, "Failed to connect feature graph"
       continue
 
     if not floor.span():
-      debug("Failed to satisfy feature degree constraints")
-      yield None
+      yield None, "Failed to satisfy feature degree constraints"
       continue
 
     floor.gen_loops()
@@ -563,8 +559,7 @@ def gen_floor(
 
     isolated = [f for f in features.nodes if f not in tree.nodes]
     if isolated:
-      debug("Failed to connect all features")
-      yield None
+      yield None, "Failed to connect all features"
       continue
 
     secrets = [n for n in tree.nodes if n.secret]
@@ -574,8 +569,7 @@ def gen_floor(
         maze = neighbors[0]
         door = tree.connectors(node, maze)[0]
         if [e for e in maze.get_ends() if is_adjacent(e, door)]:
-          debug("Hidden room connected to dead end")
-          yield None
+          yield None, "Hidden room connected to dead end"
           continue
 
     for feature in graph.nodes:
@@ -608,8 +602,7 @@ def gen_floor(
     else:
       empty_leaves = [n for n in empty_rooms if tree.degree(n) == 1]
       if not empty_leaves:
-        debug("No empty leaves to spawn entrance at")
-        yield None
+        yield None, "No empty leaves to spawn entrance at"
         continue
       entry_room = choice(empty_leaves)
     stage.entrance = entry_room.get_center()
@@ -622,8 +615,7 @@ def gen_floor(
     if not stage.exit:
       empty_leaves = [n for n in empty_rooms if tree.degree(n) == 1]
       if not empty_leaves and not features.nodes:
-        debug("No empty leaves to spawn exit at")
-        yield None
+        yield None, "No empty leaves to spawn exit at"
         continue
       if empty_leaves:
         exit_room = choice(empty_leaves)
@@ -663,8 +655,7 @@ def gen_floor(
     if next((d for d in doors if type(d) is TreasureDoor), None):
       empty_leaves = [r for r in tree.nodes if tree.degree(r) == 1 and r in empty_rooms]
       if not empty_leaves:
-        debug("No empty rooms to spawn key at")
-        yield None
+        yield None, "No empty rooms to spawn key at"
         continue
       key_room = choice(empty_leaves)
       empty_rooms.remove(key_room)
@@ -693,7 +684,7 @@ def gen_floor(
     ))
     lkg = stage
 
-  yield lkg
+  yield lkg, ""
 
 def gen_enemy(Enemy, *args, **kwargs):
   return Enemy(

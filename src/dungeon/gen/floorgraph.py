@@ -5,6 +5,9 @@ class FloorGraph(Graph):
     super().__init__(*args, **kwargs)
     graph.conns = {}
 
+  def connections(graph):
+    return graph.conns.items()
+
   def connect(graph, node1, node2, conn):
     edge = (node1, node2)
     graph.edges.append(edge)

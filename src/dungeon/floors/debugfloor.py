@@ -1,5 +1,6 @@
 from itertools import product
-from random import randint, choice
+import random
+from random import randint, getrandbits, choice
 from pygame.time import get_ticks
 from lib.cell import neighborhood, manhattan, is_adjacent, add as add_vector, subtract as subtract_vector
 from lib.bounds import find_bounds
@@ -31,12 +32,12 @@ from items.ailment.musicbox import MusicBox
 from items.ailment.lovepotion import LovePotion
 from items.ailment.booze import Booze
 
-MIN_ROOM_COUNT = 7
-MAX_ROOM_COUNT = 11
+MIN_ROOM_COUNT = 3
+MAX_ROOM_COUNT = 5
 
 class DebugFloor(Floor):
-  def generate(store=None):
-    return gen_floor()
+  def generate(store=None, seed=None):
+    return gen_floor(seed=seed)
 
 def GenRooms(count):
   rooms = []
@@ -48,12 +49,19 @@ def GenRooms(count):
     yield None # Performance breakpoint
   yield rooms
 
+def find_connectors(room1, room2):
+  inner_overlap = room1.hitbox & room2.hitbox
+  if not inner_overlap: # rooms aren't too close
+    outer_overlap = room1.hitbox & room2.region
+    if outer_overlap: # rooms aren't too far
+      return outer_overlap
+  return set()
+
 def PlaceRooms(rooms):
   if not rooms:
     yield True
+  graph = FloorGraph(nodes=[rooms[0]])
   total_blob = rooms[0]
-  prev_room = rooms[0]
-  placed_rooms = [prev_room]
   connections = {}
   for i, room in enumerate(rooms[1:]):
     # TODO: cache room props internally (subject to change on dependency reset)
@@ -76,35 +84,43 @@ def PlaceRooms(rooms):
         valid_origins.append((x, y))
 
     ticks = get_ticks()
-    while valid_origins and i not in connections:
+    while valid_origins and room not in graph.nodes:
       room.origin = choice(valid_origins)
       valid_origins.remove(room.origin)
-      body_overlap = total_hitbox & room.hitbox
-      if not body_overlap: # rooms aren't too close
-        region_overlap = total_region & room.region
-        if region_overlap: # rooms aren't too far
-          connector = [*region_overlap][0]
-          closest_room = sorted(placed_rooms, key=lambda r: manhattan(r.find_closest_cell(connector), connector))[0]
-          connections[i] = (room.origin, room, closest_room, connector)
-      if (get_ticks() - ticks) > 1000 / FPS * 2 or i in connections:
+      inner_overlap = total_hitbox & room.hitbox
+      if not inner_overlap: # rooms aren't too close
+        neighbor_connectors = { n: c for n, c in [(n, find_connectors(n, room)) for n in graph.nodes] if c }
+        if len(graph.nodes) < 2:
+          if neighbor_connectors:
+            neighbor, connectors = [*neighbor_connectors.items()][0]
+            graph.add(room)
+            graph.connect(room, neighbor, [*connectors][0])
+        elif len(neighbor_connectors) >= 2:
+          for neighbor, connectors in neighbor_connectors.items():
+            graph.add(room)
+            graph.connect(room, neighbor, [*connectors][0])
+      if (get_ticks() - ticks) > 1000 / FPS * 2:
         ticks = get_ticks()
-        percent = int((1 - (len(valid_origins) + 1) / (width * height)) * 100)
-        yield connections, f"Placing room {len(connections) + 1} of {len(rooms)} ({percent}%)" # Performance breakpoint
+        if room in graph.nodes:
+          yield graph, f"Placed room {len(graph.nodes)} of {len(rooms)}"
+        else:
+          yield graph, f"Placing room {len(graph.nodes) + 1} of {len(rooms)} ({width * height - len(valid_origins)}/{width * height})"
 
-    if i not in connections:
+    if room not in graph.nodes:
       yield False, "Failed to place rooms"
 
-    room.origin = connections[i][0]
     total_blob = Blob(total_blob.cells + room.cells)
-    prev_room = room
-    placed_rooms.append(room)
 
-  yield connections, ""
+  yield graph, ""
 
 def gen_floor(
   enemies=[Eyeball, Mushroom, Ghost, Mummy],
   items=[Potion, Cheese, Bread, Fish, Antidote, MusicBox, LovePotion, Booze],
+  seed=None
 ):
+  seed = seed or getrandbits(32)
+  random.seed(seed)
+
   lkg = None
   while lkg is None:
     rooms = None
@@ -113,16 +129,12 @@ def gen_floor(
       rooms = next(gen_rooms)
       yield None, "Generating rooms"
 
-    connections, message = {}, "*"
-    connections_size = 0
+    graph, message = {}, "*"
     place_rooms = PlaceRooms(rooms)
-    while message and connections is not False:
-      if len(connections) != connections_size:
-        connections_size = len(connections)
-      connections, message = next(place_rooms)
-      yield None, message
-    if connections is False:
-      continue
+    while message and graph is not False:
+      graph, message = next(place_rooms)
+      if graph is not False:
+        yield None, message
 
     stage_cells = []
     for room in rooms:
@@ -134,13 +146,18 @@ def gen_floor(
 
     stage_blob = Blob(stage_cells, origin=(1, 1))
     stage = Stage(add_vector(stage_blob.rect.size, (2, 2)))
+    stage.seed = seed
     stage.fill(Stage.WALL)
     for cell in stage_blob.cells:
       stage.set_tile_at(cell, Stage.FLOOR)
 
+    if graph is False:
+      yield stage, message
+      continue
+
     connected = True
-    door_paths = []
-    for i, (_, prev_room, room, connector) in connections.items():
+    door_paths = set()
+    for i, ((room1, room2), [connector]) in enumerate(graph.connections()):
       connector = subtract_vector(connector, stage_offset)
 
       distance_from_connector = lambda e: manhattan(e, connector)
@@ -148,45 +165,46 @@ def gen_floor(
         not next((n for n in neighborhood(e, radius=2) if next((e for e in stage.get_elems_at(n) if isinstance(e, Door)), None)), None)
         and len([n for n in neighborhood(e) if stage.get_tile_at(n) is Stage.WALL]) == 3
         and len([n for n in neighborhood(e, diagonals=True) if stage.get_tile_at(n) is Stage.WALL]) in (5, 6, 7)
-        and not next((c for c in [c for r in [r for r in rooms if r is not room] for c in r.outline] if is_adjacent(c, e)), None)
+        # and not next((c for c in [c for r in [r for r in rooms if r is not room] for c in r.outline] if is_adjacent(c, e)), None)
         and not e in stage.get_border()
       )
 
-      prev_edges = [e for e in prev_room.edges if is_edge_usable(e, room=prev_room)]
+      prev_edges = [e for e in room1.edges if is_edge_usable(e, room=room1)]
       if not prev_edges:
         yield stage, f"Failed to find usable edges for room {i + 1}"
         connected = False
         break
       prev_edges.sort(key=distance_from_connector)
 
-      room_edges = [e for e in room.edges if is_edge_usable(e, room)]
+      room_edges = [e for e in room2.edges if is_edge_usable(e, room=room2)]
       if not room_edges:
         yield stage, f"Failed to find usable edges for room {i + 2}"
         connected = False
         break
       room_edges.sort(key=distance_from_connector)
 
+      print(f"Connecting {room1.origin} and {room2.origin} using {connector}")
       room_outlines = [c for r in rooms for c in r.outline]
       for door1, door2 in product(prev_edges, room_edges):
         if (door1 in prev_edges and door2 in prev_edges
         or door1 in room_edges and door2 in room_edges):
           continue
 
-        door1_neighbor = next((n for n in neighborhood(door1) if n in prev_room.cells), None)
+        door1_neighbor = next((n for n in neighborhood(door1) if n in room1.cells), None)
         door1_delta = subtract_vector(door1, door1_neighbor)
         door1_start = add_vector(door1, door1_delta)
 
-        door2_neighbor = next((n for n in neighborhood(door2) if n in room.cells), None)
+        door2_neighbor = next((n for n in neighborhood(door2) if n in room2.cells), None)
         door2_delta = subtract_vector(door2, door2_neighbor)
         door2_start = add_vector(door2, door2_delta)
 
-        path_blacklist = set(room_outlines + stage.get_border() + door_paths) - {door1_start, door2_start}
+        path_blacklist = (set(room_outlines + stage.get_border()) - {door1_start, door2_start}) | door_paths
         door_path = gen_path(door1_start, door2_start, predicate=lambda cell: cell not in path_blacklist)
         if door_path:
           break
 
       if not door_path:
-        yield stage, "Failed to path between rooms"
+        yield stage, f"Failed to path between rooms {rooms.index(room1) + 1} and {rooms.index(room2) + 1}"
         connected = False
         break
 
@@ -199,12 +217,15 @@ def gen_floor(
         else:
           tile = Stage.FLOOR
         stage.set_tile_at(cell, tile)
-      door_paths += door_path
-      yield stage, f"Connected rooms {rooms.index(prev_room) + 1} and {rooms.index(room) + 1}"
-      gen_mazeroom(stage, room)
+        door_paths.update(neighborhood(cell, inclusive=True, diagonals=True))
+      print(f"Connected {room1.origin} and {room2.origin} using {connector} via {door1} and {door2}")
+      yield stage, f"Connected rooms {rooms.index(room1) + 1} and {rooms.index(room2) + 1}"
 
     if not connected:
       continue
+
+    for room in rooms:
+      gen_mazeroom(stage, room)
 
     empty_rooms = rooms.copy()
     for room in sorted(rooms, key=lambda r: r.get_area()):
@@ -219,11 +240,11 @@ def gen_floor(
       yield stage, "Failed to spawn entrance"
 
     for i, room in enumerate(empty_rooms):
-      yield stage, f"Spawning items for room {i + 1}"
+      yield stage, f"Spawning items for room {i + 2}"
       items_spawned = gen_elems(stage, room,
         elems=[Vase(choice(items)) for _ in range(min(3, room.get_area() // 20))]
       )
-      yield stage, f"Spawning enemies for room {i + 1}"
+      yield stage, f"Spawning enemies for room {i + 2}"
       enemies_spawned = gen_elems(stage, room,
         elems=[choice(enemies)() for _ in range(min(6, room.get_area() // 20))]
       )
