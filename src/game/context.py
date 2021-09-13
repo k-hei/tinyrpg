@@ -170,9 +170,9 @@ class GameContext(Context):
     or type(ctx.child) is TownContext and ctx.child.get_depth() > 1
     ):
       return
-    if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE) or gamepad.get_state(gamepad.controls.item):
+    if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, pygame.K_q) or gamepad.get_state(gamepad.controls.item):
       return ctx.handle_inventory()
-    if button == pygame.K_b or gamepad.get_state(gamepad.controls.equip):
+    if button in (pygame.K_b, pygame.K_c) or gamepad.get_state(gamepad.controls.equip):
       return ctx.handle_custom()
 
   def handle_pause(ctx):

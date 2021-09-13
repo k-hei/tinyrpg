@@ -11,6 +11,7 @@ class ControlPreset:
   turn: str
   throw: list[str]
   wait: list[str]
+  use: list[str]
   ally: str
   skill: str
   item: str
@@ -26,6 +27,7 @@ TYPE_A = ControlPreset(
   turn=gamepad.R,
   throw=[gamepad.R, gamepad.CIRCLE],
   wait=[gamepad.R, gamepad.CROSS],
+  use=[gamepad.R, gamepad.TRIANGLE],
   ally=gamepad.L,
   skill=gamepad.SQUARE,
   item=gamepad.TRIANGLE,

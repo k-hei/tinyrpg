@@ -674,6 +674,9 @@ class DungeonContext(Context):
     if button in (pygame.K_BACKSLASH, pygame.K_BACKQUOTE) or gamepad.get_state(gamepad.controls.wait):
       return game.handle_wait()
 
+    if button == pygame.K_q and ctrl or gamepad.get_state(gamepad.controls.use):
+      return game.use_item()
+
     if gamepad.get_state(gamepad.controls.skill):
       return game.handle_skill()
 
@@ -1537,7 +1540,15 @@ class DungeonContext(Context):
     ]
     game.anims[0].extend(anims) if game.anims else game.anims.append(anims)
 
-  def use_item(game, item, discard=True):
+  def use_item(game, item=None, discard=True):
+    carry_item = game.hero and game.hero.item
+    if carry_item and item:
+      return False, "Your hands are full!"
+    elif carry_item:
+      item = carry_item
+      game.hero.item = None
+    if not item:
+      return False, "No item to use."
     if discard:
       game.anims.append([
         ItemAnim(
