@@ -99,6 +99,7 @@ class Stage:
     stage.entrance = None
     stage.exit = None
     stage.generator = None
+    stage.seed = None
 
   def fill(stage, data):
     width, height = stage.size
@@ -267,7 +268,10 @@ class Stage:
       open_set[cell] = False
       closed_set[cell] = True
       for neighbor in neighborhood(cell):
-        if neighbor in closed_set or not stage.contains(neighbor) or not stage.is_cell_empty(neighbor):
+        if (neighbor in closed_set
+        or not stage.contains(neighbor)
+        or (not stage.is_cell_empty(neighbor) and neighbor not in whitelist)
+        ):
           continue
         if neighbor not in open_set or not open_set[neighbor]:
           open_set[neighbor] = True

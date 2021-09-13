@@ -32,8 +32,8 @@ from items.ailment.musicbox import MusicBox
 from items.ailment.lovepotion import LovePotion
 from items.ailment.booze import Booze
 
-MIN_ROOM_COUNT = 3
-MAX_ROOM_COUNT = 5
+MIN_ROOM_COUNT = 4
+MAX_ROOM_COUNT = 6
 
 class DebugFloor(Floor):
   def generate(store=None, seed=None):
@@ -54,8 +54,8 @@ def find_connectors(room1, room2):
   if not inner_overlap: # rooms aren't too close
     outer_overlap = room1.hitbox & room2.region
     if outer_overlap: # rooms aren't too far
-      return outer_overlap
-  return set()
+      return list(outer_overlap)
+  return []
 
 def PlaceRooms(rooms):
   if not rooms:
@@ -78,13 +78,15 @@ def PlaceRooms(rooms):
     width = right - left + 1
     height = bottom - top + 1
 
-    valid_origins = []
+    all_origins = []
     for y in range(top, bottom + 1):
       for x in range(left, right + 1):
-        valid_origins.append((x, y))
+        all_origins.append((x, y))
 
     ticks = get_ticks()
-    while valid_origins and room not in graph.nodes:
+    desperate = False
+    valid_origins = all_origins.copy()
+    while room not in graph.nodes and valid_origins:
       room.origin = choice(valid_origins)
       valid_origins.remove(room.origin)
       inner_overlap = total_hitbox & room.hitbox
@@ -94,17 +96,21 @@ def PlaceRooms(rooms):
           if neighbor_connectors:
             neighbor, connectors = [*neighbor_connectors.items()][0]
             graph.add(room)
-            graph.connect(room, neighbor, [*connectors][0])
-        elif len(neighbor_connectors) >= 2:
+            graph.connect(room, neighbor, connectors)
+        elif len(neighbor_connectors) >= 2 or desperate:
           for neighbor, connectors in neighbor_connectors.items():
             graph.add(room)
-            graph.connect(room, neighbor, [*connectors][0])
+            graph.connect(room, neighbor, connectors)
       if (get_ticks() - ticks) > 1000 / FPS * 2:
         ticks = get_ticks()
         if room in graph.nodes:
           yield graph, f"Placed room {len(graph.nodes)} of {len(rooms)}"
         else:
           yield graph, f"Placing room {len(graph.nodes) + 1} of {len(rooms)} ({width * height - len(valid_origins)}/{width * height})"
+      if room not in graph.nodes and not valid_origins and not desperate:
+        valid_origins += all_origins # TODO: cache single connectors to avoid recalculations
+        desperate = True
+        debug.log("WARNING: Recalculating connectors")
 
     if room not in graph.nodes:
       yield False, "Failed to place rooms"
@@ -157,79 +163,112 @@ def gen_floor(
 
     connected = True
     door_paths = set()
-    for i, ((room1, room2), [connector]) in enumerate(graph.connections()):
-      connector = subtract_vector(connector, stage_offset)
+    door_jointdiagonals = set()
+    for i, ((room1, room2), connectors) in enumerate(graph.connections()):
+      for j, connector in enumerate(connectors):
+        connector = connectors[j] = subtract_vector(connector, stage_offset)
 
-      distance_from_connector = lambda e: manhattan(e, connector)
-      is_edge_usable = lambda e, room: (
-        not next((n for n in neighborhood(e, radius=2) if next((e for e in stage.get_elems_at(n) if isinstance(e, Door)), None)), None)
-        and len([n for n in neighborhood(e) if stage.get_tile_at(n) is Stage.WALL]) == 3
-        and len([n for n in neighborhood(e, diagonals=True) if stage.get_tile_at(n) is Stage.WALL]) in (5, 6, 7)
-        # and not next((c for c in [c for r in [r for r in rooms if r is not room] for c in r.outline] if is_adjacent(c, e)), None)
-        and not e in stage.get_border()
-      )
+      if len(connectors) > 1:
+        connectors.sort(key=lambda c: manhattan(c, room1.find_closest_cell(c)) + manhattan(c, room2.find_closest_cell(c)))
+        c = connectors[0]
+        print(f"Closest connector for {room1.origin} and {room2.origin} is at {c}")
 
-      prev_edges = [e for e in room1.edges if is_edge_usable(e, room=room1)]
-      if not prev_edges:
-        yield stage, f"Failed to find usable edges for room {i + 1}"
-        connected = False
-        break
-      prev_edges.sort(key=distance_from_connector)
+      for j, connector in enumerate(connectors):
+        distance_from_connector = lambda e: manhattan(e, connector)
+        is_edge_usable = lambda e, room: (
+          next((e for e in stage.get_elems_at(e) if isinstance(e, Door)), None)
+          or (
+            not next((n for n in neighborhood(e, radius=2) if next((e for e in stage.get_elems_at(n) if isinstance(e, Door)), None)), None)
+            and len([n for n in neighborhood(e) if stage.get_tile_at(n) is Stage.WALL]) == 3
+            and len([n for n in neighborhood(e, diagonals=True) if stage.get_tile_at(n) is Stage.WALL]) in (5, 6, 7)
+            # and not next((c for c in [c for r in [r for r in rooms if r is not room] for c in r.outline] if is_adjacent(c, e)), None)
+            and not e in stage.get_border()
+          )
+        )
 
-      room_edges = [e for e in room2.edges if is_edge_usable(e, room=room2)]
-      if not room_edges:
-        yield stage, f"Failed to find usable edges for room {i + 2}"
-        connected = False
-        break
-      room_edges.sort(key=distance_from_connector)
+        prev_edges = [e for e in room1.edges if is_edge_usable(e, room=room1)]
+        if not prev_edges:
+          yield stage, f"Failed to find usable edges for room {i + 1}"
+          connected = False
+          break
+        prev_edges.sort(key=distance_from_connector)
 
-      print(f"Connecting {room1.origin} and {room2.origin} using {connector}")
-      room_outlines = [c for r in rooms for c in r.outline]
-      for door1, door2 in product(prev_edges, room_edges):
-        if (door1 in prev_edges and door2 in prev_edges
-        or door1 in room_edges and door2 in room_edges):
-          continue
+        room_edges = [e for e in room2.edges if is_edge_usable(e, room=room2)]
+        if not room_edges:
+          yield stage, f"Failed to find usable edges for room {i + 2}"
+          connected = False
+          break
+        room_edges.sort(key=distance_from_connector)
 
-        door1_neighbor = next((n for n in neighborhood(door1) if n in room1.cells), None)
-        door1_delta = subtract_vector(door1, door1_neighbor)
-        door1_start = add_vector(door1, door1_delta)
+        print(f"Connecting {room1.origin} and {room2.origin} using {connector}")
+        room_outlines = [c for r in rooms for c in r.outline]
+        for door1, door2 in product(prev_edges, room_edges):
+          if (door1 in prev_edges and door2 in prev_edges
+          or door1 in room_edges and door2 in room_edges):
+            continue
 
-        door2_neighbor = next((n for n in neighborhood(door2) if n in room2.cells), None)
-        door2_delta = subtract_vector(door2, door2_neighbor)
-        door2_start = add_vector(door2, door2_delta)
+          door1_neighbor = next((n for n in neighborhood(door1) if n in room1.cells), None)
+          door1_delta = subtract_vector(door1, door1_neighbor)
+          door1_start = add_vector(door1, door1_delta)
 
-        path_blacklist = (set(room_outlines + stage.get_border()) - {door1_start, door2_start}) | door_paths
-        door_path = gen_path(door1_start, door2_start, predicate=lambda cell: cell not in path_blacklist)
+          door2_neighbor = next((n for n in neighborhood(door2) if n in room2.cells), None)
+          door2_delta = subtract_vector(door2, door2_neighbor)
+          door2_start = add_vector(door2, door2_delta)
+
+          path_blacklist = (set(room_outlines) - {
+            *([door1_start] if door1_delta == (0, -1) else []),
+            *([door2_start] if door2_delta == (0, -1) else []),
+          }) | set(stage.get_border())
+          path_whitelist = [c for c in stage.get_cells() if (
+            c not in path_blacklist
+            and (
+              stage.get_tile_at(c) is stage.WALL
+              or c in door_paths
+            )
+          )]
+          door_path = stage.pathfind(start=door1_start, goal=door2_start, whitelist=path_whitelist)
+          if door_path:
+            break
+
         if door_path:
           break
+        else:
+          stage.spawn_elem_at(connector, Eyeball())
+          yield stage, f"Skipping unusable connector {connector} - {len(connectors) - j - 1} left"
 
       if not door_path:
-        yield stage, f"Failed to path between rooms {rooms.index(room1) + 1} and {rooms.index(room2) + 1}"
         connected = False
+        yield stage, f"Failed to path between rooms {rooms.index(room1) + 1} and {rooms.index(room2) + 1}"
         break
 
+      # TODO: cache this path and only draw after all paths are cached (fail tolerance)
+      # need to be able to trace conflicting cells back to the connectors that made them(?)
       door_path = [door1] + door_path + [door2]
       stage.spawn_elem_at(door1, Door())
       stage.spawn_elem_at(door2, Door())
+      prev_cell = None
+      prev_delta = None
       for cell in door_path:
-        if cell in (door1, door1_start, door2, door2_start):
-          tile = Stage.DOOR_WAY
+        if prev_cell:
+          delta = subtract_vector(cell, prev_cell)
         else:
-          tile = Stage.FLOOR
-        stage.set_tile_at(cell, tile)
-        door_paths.update(neighborhood(cell, inclusive=True, diagonals=True))
+          delta = None
+        stage.set_tile_at(cell, Stage.DOOR_WAY)
+        if prev_delta and delta != prev_delta:
+          print(f"{prev_delta}->{delta} Register joint at {prev_cell}")
+          door_jointdiagonals.update(neighborhood(prev_cell, diagonals=True, adjacents=False))
+        prev_cell = cell
+        prev_delta = delta
+      door_paths.update(door_path)
       print(f"Connected {room1.origin} and {room2.origin} using {connector} via {door1} and {door2}")
       yield stage, f"Connected rooms {rooms.index(room1) + 1} and {rooms.index(room2) + 1}"
 
     if not connected:
       continue
 
-    for room in rooms:
-      gen_mazeroom(stage, room)
-
     empty_rooms = rooms.copy()
     for room in sorted(rooms, key=lambda r: r.get_area()):
-      entrances = [c for c in room.cells if not next((n for n in neighborhood(c, radius=1) if stage.get_tile_at(n) is not Stage.FLOOR), None)]
+      entrances = [c for c in room.cells if not next((n for n in neighborhood(c, radius=1, diagonals=True) if stage.get_tile_at(n) is not Stage.FLOOR), None)]
       if entrances:
         stage.entrance = choice(entrances)
         stage.set_tile_at(stage.entrance, Stage.STAIRS_UP)
@@ -238,6 +277,9 @@ def gen_floor(
         break
     else:
       yield stage, "Failed to spawn entrance"
+
+    for room in empty_rooms:
+      gen_mazeroom(stage, room)
 
     for i, room in enumerate(empty_rooms):
       yield stage, f"Spawning items for room {i + 2}"
@@ -304,7 +346,6 @@ class Blob(Room):
       neighbors = (
         neighborhood(cell, diagonals=True)
         + neighborhood(add_vector(cell, (0, -1)), diagonals=True)
-        # + neighborhood(add_vector(cell, (0, 1)), diagonals=True)
       )
       outline += neighbors
     return set(outline) - set(blob.cells)

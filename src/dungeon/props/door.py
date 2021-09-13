@@ -79,10 +79,8 @@ class Door(Prop):
       frames=door.sprites.opening_frames,
       target=door
     )
-    if game.anims:
-      game.anims[-1].append(anim)
-    else:
-      game.anims.append([anim])
+    not game.anims and game.anims.append([])
+    game.anims[0].append(anim)
     return True
 
   def close(door):

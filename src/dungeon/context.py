@@ -212,6 +212,7 @@ class DungeonContext(Context):
     )
 
   def use_floor(game, floor, direction=1, generator=None):
+    debug.log(f"Using floor with seed {floor.seed}")
     floor.generator = floor.generator or generator and generator.__name__
     if floor not in game.floors:
       new_index = next((i for i, g in enumerate(DungeonContext.FLOORS) if g.__name__ == floor.generator), None)

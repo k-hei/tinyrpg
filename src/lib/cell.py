@@ -43,15 +43,17 @@ def is_odd(cell):
   x, y = cell
   return x % 2 == 1 and y % 2 == 1
 
-def neighborhood(cell, radius=1, diagonals=False, inclusive=False, predicate=None):
+def neighborhood(cell, radius=1, adjacents=True, diagonals=False, inclusive=False, predicate=None):
   if radius == 1:
     x, y = cell
     return [
-      (x - 1, y),
-      (x, y - 1),
-      (x + 1, y),
-      (x, y + 1),
       *([cell] if inclusive else []),
+      *([
+        (x - 1, y),
+        (x, y - 1),
+        (x + 1, y),
+        (x, y + 1),
+      ] if adjacents else []),
       *([
         (x - 1, y - 1),
         (x + 1, y - 1),

@@ -27,12 +27,13 @@ from transits.dissolve import DissolveOut
 gamepad.config(preset=controls.TYPE_A)
 
 class GameContext(Context):
-  def __init__(ctx, data=None, feature=None, floor=None, *args, **kwargs):
+  def __init__(ctx, data=None, feature=None, floor=None, seed=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
     ctx.store = None
     ctx.savedata = None
     ctx.feature = feature
     ctx.floor = floor
+    ctx.seed = seed
     if data is None:
       ctx.open(LoadContext(), on_close=lambda *data: ctx.load(*data))
     elif type(data) is GameData:
@@ -71,7 +72,7 @@ class GameContext(Context):
       ctx.floor = None
       app = ctx.get_head()
       return app.load(
-        loader=Floor.generate(ctx.store),
+        loader=Floor.generate(ctx.store, seed=ctx.seed),
         on_end=lambda floor: (
           ctx.goto_dungeon(floors=[floor], generator=Floor),
           app.transition([DissolveOut()])
