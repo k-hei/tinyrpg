@@ -8,10 +8,13 @@ class FloorGraph(Graph):
   def connections(graph):
     return graph.conns.items()
 
-  def connect(graph, node1, node2, conn):
+  def connect(graph, node1, node2, *conns):
     edge = (node1, node2)
     graph.edges.append(edge)
-    graph.conns[edge] = conn
+    if edge not in graph.conns:
+      graph.conns[edge] = conns
+    else:
+      graph.conns[edge] += conns
 
   def disconnect(graph, node1, node2=None):
     super().disconnect(node1, node2)

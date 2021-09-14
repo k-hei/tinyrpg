@@ -58,7 +58,8 @@ class GenContext(Context):
   def fail(ctx):
     ctx.ms_end = get_ticks()
     ctx.result = False
-    ctx.print(f"Failed generation #{ctx.floor.seed} in {view_ticks(ctx.ms_end - ctx.ms_start, ms=True)}")
+    if ctx.floor:
+      ctx.print(f"Failed generation #{ctx.floor.seed} in {view_ticks(ctx.ms_end - ctx.ms_start, ms=True)}")
 
   def update(ctx):
     ctx.updates += 1
@@ -133,12 +134,13 @@ class GenContext(Context):
       # Minimap
       if not ctx.minimap:
         ctx.minimap = Minimap.render_surface(floor)
-      floor_image = ctx.minimap
+      minimap_image = ctx.minimap
+      minimap_scale = WINDOW_HEIGHT * 3 / 4 // minimap_image.get_height()
       sprites.insert(0, Sprite(
-        image=floor_image,
+        image=minimap_image,
         pos=(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2),
         origin=Sprite.ORIGIN_CENTER,
-        size=(floor_image.get_width() * 3, floor_image.get_height() * 3)
+        size=(minimap_image.get_width() * minimap_scale, minimap_image.get_height() * minimap_scale)
       ))
 
       # Floor size

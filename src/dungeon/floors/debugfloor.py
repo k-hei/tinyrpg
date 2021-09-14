@@ -32,8 +32,9 @@ from items.ailment.musicbox import MusicBox
 from items.ailment.lovepotion import LovePotion
 from items.ailment.booze import Booze
 
-MIN_ROOM_COUNT = 3
-MAX_ROOM_COUNT = 3
+ENABLE_LOOPLESS_LAYOUTS = False
+MIN_ROOM_COUNT = 12 if ENABLE_LOOPLESS_LAYOUTS else 3
+MAX_ROOM_COUNT = MIN_ROOM_COUNT + 2
 
 class DebugFloor(Floor):
   def generate(store=None, seed=None):
@@ -55,7 +56,7 @@ def gen_rooms(count):
 def find_connectors(room1, room2):
   inner_overlap = room1.hitbox & room2.hitbox
   if not inner_overlap: # rooms aren't too close
-    outer_overlap = room1.hitbox & room2.region
+    outer_overlap = room1.region & room2.region
     if outer_overlap: # rooms aren't too far
       return list(outer_overlap)
   return []
@@ -86,7 +87,7 @@ def place_rooms(rooms):
         all_origins.append((x, y))
 
     ticks = get_ticks()
-    desperate = False
+    desperate = ENABLE_LOOPLESS_LAYOUTS
     valid_origins = all_origins.copy()
     while room not in graph.nodes and valid_origins:
       room.origin = choice(valid_origins)
@@ -98,11 +99,11 @@ def place_rooms(rooms):
           if len(graph.nodes) < 2:
             neighbor, connectors = [*neighbor_connectors.items()][0]
             graph.add(room)
-            graph.connect(room, neighbor, connectors)
+            graph.connect(room, neighbor, *connectors)
           elif len(neighbor_connectors) >= 2 or desperate:
             for neighbor, connectors in neighbor_connectors.items():
               graph.add(room)
-              graph.connect(room, neighbor, connectors)
+              graph.connect(room, neighbor, *connectors)
 
       if room in graph.nodes or (get_ticks() - ticks) > 1000 / FPS * 2:
         ticks = get_ticks()
@@ -113,7 +114,7 @@ def place_rooms(rooms):
           yield None, f"Placing room {i + 2} of {len(rooms)} ({iteration}/{width * height})"
 
       if room not in graph.nodes and not valid_origins and not desperate:
-        valid_origins += all_origins # TODO: cache single connectors to avoid recalculations
+        valid_origins += all_origins # TODO: cache single connectors to avoid recalculations - need
         desperate = True
         debug.log("WARNING: Recalculating connectors")
 
@@ -136,23 +137,45 @@ def create_stage(rooms):
     stage.set_tile_at(cell, Stage.FLOOR)
   return stage, stage_offset
 
-def span_graph(graph, start=None):
+def gen_tree(graph, start=None):
   tree = FloorGraph()
   if start is None:
     start = choice(graph.nodes)
-  queue = [start]
-  while queue:
-    node = queue[-1]
+  stack = [start]
+  while stack:
+    node = stack[0]
     tree.add(node)
-    neighbors = [n for n in graph.neighbors(node) if not tree.connectors(n, node)]
-    if not neighbors:
-      queue.pop(0)
-    for neighbor in neighbors:
+    neighbors = [n for n in graph.neighbors(node) if tree.degree(n) == 0]
+    if neighbors:
+      neighbor = choice(neighbors)
       connectors = graph.connectors(node, neighbor)
       connector = choice(connectors)
       tree.connect(node, neighbor, connector)
-      queue.append(neighbor)
+      stack.insert(0, neighbor)
+    else:
+      stack.pop(0)
   return tree
+
+def gen_loop(tree, graph):
+  ends = tree.ends()
+  if not ends:
+    return False
+  node = choice(ends)
+  neighbors = [n for n in graph.neighbors(node) if (
+    n not in tree.neighbors(node)
+    and tree.distance(node, n) > 2
+  )]
+  if neighbors:
+    neighbor = choice(neighbors)
+    connectors = graph.connectors(node, neighbor)
+    connector = choice(connectors)
+    tree.connect(node, neighbor, connector)
+    return True
+  else:
+    return False
+
+def gen_loops(tree, graph):
+  while gen_loop(tree, graph): pass
 
 def gen_floor(
   enemies=[Eyeball, Mushroom, Ghost, Mummy],
@@ -197,13 +220,14 @@ def gen_floor(
       yield stage, message
       continue
 
-    # tree = span_graph(graph)
+    tree = gen_tree(graph)
+    gen_loops(tree, graph)
 
     # DrawRooms(stage)
     connected = True
     door_paths = set()
     door_jointdiagonals = set()
-    for i, ((room1, room2), connectors) in enumerate(graph.connections()):
+    for i, ((room1, room2), connectors) in enumerate(tree.connections()):
       connectors = [subtract_vector(c, stage_offset) for c in connectors]
       if len(connectors) > 1:
         connectors.sort(key=lambda c: (
@@ -212,11 +236,10 @@ def gen_floor(
         ))
 
       for j, connector in enumerate(connectors):
-        distance_from_connector = lambda e: manhattan(e, connector)
         is_edge_usable = lambda e, room: (
           next((e for e in stage.get_elems_at(e) if isinstance(e, Door)), None)
           or (
-            not next((n for n in neighborhood(e, radius=2) if next((e for e in stage.get_elems_at(n) if isinstance(e, Door)), None)), None)
+            not next((n for n in neighborhood(e) if next((e for e in stage.get_elems_at(n) if isinstance(e, Door)), None)), None)
             and len([n for n in neighborhood(e) if stage.get_tile_at(n) is Stage.WALL]) == 3
             and len([n for n in neighborhood(e, diagonals=True) if stage.get_tile_at(n) is Stage.WALL]) in (5, 6, 7)
             # and not next((c for c in [c for r in [r for r in rooms if r is not room] for c in r.outline] if is_adjacent(c, e)), None)
@@ -229,16 +252,17 @@ def gen_floor(
           yield stage, f"Failed to find usable edges for room {i + 1}"
           connected = False
           break
-        prev_edges.sort(key=distance_from_connector)
+        prev_edges.sort(key=lambda e: manhattan(e, connector))
 
         room_edges = [e for e in room2.edges if is_edge_usable(e, room=room2)]
         if not room_edges:
           yield stage, f"Failed to find usable edges for room {i + 2}"
           connected = False
           break
-        room_edges.sort(key=distance_from_connector)
+        room_edges.sort(key=lambda e: manhattan(e, connector))
 
-        room_outlines = [c for r in rooms for c in r.outline]
+        room_outlines = set([c for r in rooms for c in r.outline])
+        path_blacklist = room_outlines | set(stage.get_border())
         for door1, door2 in product(prev_edges, room_edges):
           if (door1 in prev_edges and door2 in prev_edges
           or door1 in room_edges and door2 in room_edges):
@@ -252,18 +276,10 @@ def gen_floor(
           door2_delta = subtract_vector(door2, door2_neighbor)
           door2_start = add_vector(door2, door2_delta)
 
-          path_blacklist = (set(room_outlines) - {
-            *([door1_start] if door1_delta == (0, -1) else []),
-            *([door2_start] if door2_delta == (0, -1) else []),
-          }) | set(stage.get_border())
-          path_whitelist = [c for c in stage.get_cells() if (
-            c not in path_blacklist
-            and (
-              stage.get_tile_at(c) is stage.WALL
-              or c in door_paths
-            )
-          )]
-          door_path = stage.pathfind(start=door1_start, goal=door2_start, whitelist=path_whitelist)
+          if {door1_start, door2_start} & room_outlines:
+            continue
+
+          door_path = gen_path(start=door1_start, goal=door2_start, predicate=lambda c: c not in path_blacklist)
           if door_path:
             break
 
@@ -296,7 +312,6 @@ def gen_floor(
         prev_cell = cell
         prev_delta = delta
       door_paths.update(door_path)
-      stage.set_tile_at(connector, Stage.STAIRS_DOWN)
       yield stage, f"Connected rooms {rooms.index(room1) + 1} and {rooms.index(room2) + 1} at {connector}"
 
     if not connected:
@@ -327,7 +342,7 @@ def gen_floor(
       )
       yield stage, f"Spawning enemies for room {i + 2}"
       enemies_spawned = gen_elems(stage, room,
-        elems=[choice(enemies)() for _ in range(min(6, room.get_area() // 20))]
+        elems=[choice(enemies)() for _ in range(min(5, room.get_area() // 20))]
       )
 
     stage.rooms = rooms
@@ -349,20 +364,20 @@ class Blob(Room):
     return [add_vector(c, blob.origin) for c in blob._cells]
 
   @property
-  def hitbox(blob):
-    hitbox = []
-    for cell in blob.cells:
-      neighbors = neighborhood(cell, inclusive=True, diagonals=True, radius=2)
-      hitbox += neighbors
-    return set(hitbox)
-
-  @property
   def edges(blob):
     edges = set()
     for cell in blob.cells:
       neighbors = neighborhood(cell)
       edges.update(neighbors)
     return list(edges - set(blob.cells))
+
+  @property
+  def hitbox(blob):
+    hitbox = []
+    for cell in blob.cells:
+      neighbors = neighborhood(cell, inclusive=True, radius=2)
+      hitbox += neighbors
+    return set(hitbox)
 
   @property
   def region(blob):
@@ -376,10 +391,7 @@ class Blob(Room):
   def outline(blob):
     outline = []
     for cell in blob.cells:
-      neighbors = (
-        neighborhood(cell, diagonals=True)
-        + neighborhood(add_vector(cell, (0, -1)), diagonals=True)
-      )
+      neighbors = neighborhood(cell, diagonals=True)
       outline += neighbors
     return set(outline) - set(blob.cells)
 
