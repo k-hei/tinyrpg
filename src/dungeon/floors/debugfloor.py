@@ -375,25 +375,33 @@ class Blob(Room):
   def hitbox(blob):
     hitbox = []
     for cell in blob.cells:
-      neighbors = neighborhood(cell, inclusive=True, radius=2)
-      hitbox += neighbors
+      hitbox += neighborhood(cell, inclusive=True, radius=2)
     return set(hitbox)
 
   @property
   def region(blob):
     region = []
     for cell in blob.cells:
-      neighbors = neighborhood(cell, radius=3)
-      region += neighbors
+      region += neighborhood(cell, radius=3)
     return set(region)
 
   @property
   def outline(blob):
     outline = []
     for cell in blob.cells:
-      neighbors = neighborhood(cell, diagonals=True)
-      outline += neighbors
+      outline += neighborhood(cell, diagonals=True)
     return set(outline) - set(blob.cells)
+
+  @property
+  def visible_outline(blob):
+    visible_outline = []
+    for cell in blob.cells:
+      neighbors = (
+        neighborhood(cell, diagonals=True)
+        + neighborhood(add_vector(cell, (0, -1)), diagonals=True)
+      )
+      visible_outline += neighbors
+    return set(visible_outline) - set(blob.cells)
 
   @property
   def rect(blob):
@@ -426,7 +434,7 @@ class Blob(Room):
     return blob.rect.center
 
   def get_outline(blob):
-    return list(blob.outline)
+    return list(blob.visible_outline)
 
   def find_closest_cell(blob, dest):
     return sorted(blob.cells, key=lambda c: manhattan(c, dest))[0]
