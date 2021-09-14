@@ -32,8 +32,8 @@ from items.ailment.musicbox import MusicBox
 from items.ailment.lovepotion import LovePotion
 from items.ailment.booze import Booze
 
-MIN_ROOM_COUNT = 4
-MAX_ROOM_COUNT = 6
+MIN_ROOM_COUNT = 3
+MAX_ROOM_COUNT = 3
 
 class DebugFloor(Floor):
   def generate(store=None, seed=None):
@@ -93,16 +93,16 @@ def place_rooms(rooms):
       valid_origins.remove(room.origin)
       inner_overlap = total_hitbox & room.hitbox
       if not inner_overlap: # rooms aren't too close
-        neighbor_connectors = { n: c for n, c in [(n, find_connectors(n, room)) for n in graph.nodes] if c }
-        if len(graph.nodes) < 2:
-          if neighbor_connectors:
+        neighbor_connectors = { n: cs for n, cs in [(n, find_connectors(n, room)) for n in graph.nodes] if cs }
+        if neighbor_connectors:
+          if len(graph.nodes) < 2:
             neighbor, connectors = [*neighbor_connectors.items()][0]
             graph.add(room)
             graph.connect(room, neighbor, connectors)
-        elif len(neighbor_connectors) >= 2 or desperate:
-          for neighbor, connectors in neighbor_connectors.items():
-            graph.add(room)
-            graph.connect(room, neighbor, connectors)
+          elif len(neighbor_connectors) >= 2 or desperate:
+            for neighbor, connectors in neighbor_connectors.items():
+              graph.add(room)
+              graph.connect(room, neighbor, connectors)
 
       if room in graph.nodes or (get_ticks() - ticks) > 1000 / FPS * 2:
         ticks = get_ticks()
@@ -128,17 +128,12 @@ def create_stage(rooms):
   stage_cells = []
   for room in rooms:
     stage_cells += room.cells
-
   stage_offset = subtract_vector(find_bounds(stage_cells).topleft, (1, 1))
-  for room in rooms:
-    room.origin = subtract_vector(room.origin, stage_offset)
-
   stage_blob = Blob(stage_cells, origin=(1, 1))
   stage = Stage(add_vector(stage_blob.rect.size, (2, 2)))
   stage.fill(Stage.WALL)
   for cell in stage_blob.cells:
     stage.set_tile_at(cell, Stage.FLOOR)
-
   return stage, stage_offset
 
 def span_graph(graph, start=None):
@@ -195,6 +190,9 @@ def gen_floor(
     stage, stage_offset = create_stage(rooms)
     stage.seed = seed
 
+    for room in rooms:
+      room.origin = subtract_vector(room.origin, stage_offset)
+
     if graph is False:
       yield stage, message
       continue
@@ -206,12 +204,12 @@ def gen_floor(
     door_paths = set()
     door_jointdiagonals = set()
     for i, ((room1, room2), connectors) in enumerate(graph.connections()):
-      for j, connector in enumerate(connectors):
-        connector = connectors[j] = subtract_vector(connector, stage_offset)
-
+      connectors = [subtract_vector(c, stage_offset) for c in connectors]
       if len(connectors) > 1:
-        connectors.sort(key=lambda c: manhattan(c, room1.find_closest_cell(c)) + manhattan(c, room2.find_closest_cell(c)))
-        c = connectors[0]
+        connectors.sort(key=lambda c: (
+          manhattan(c, room1.find_closest_cell(c))
+          + manhattan(c, room2.find_closest_cell(c))
+        ))
 
       for j, connector in enumerate(connectors):
         distance_from_connector = lambda e: manhattan(e, connector)
@@ -298,7 +296,8 @@ def gen_floor(
         prev_cell = cell
         prev_delta = delta
       door_paths.update(door_path)
-      yield stage, f"Connected rooms {rooms.index(room1) + 1} and {rooms.index(room2) + 1}"
+      stage.set_tile_at(connector, Stage.STAIRS_DOWN)
+      yield stage, f"Connected rooms {rooms.index(room1) + 1} and {rooms.index(room2) + 1} at {connector}"
 
     if not connected:
       continue
