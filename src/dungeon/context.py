@@ -315,7 +315,7 @@ class DungeonContext(Context):
 
       if room and room not in game.room_entrances:
         if next((r for r in game.floor.rooms if r in game.room_entrances), None):
-          room_cells = room.get_cells() + room.get_border()
+          room_cells = room.get_cells() + room.get_outline()
           tween_duration = game.camera.illuminate(room, actor=game.hero)
           if tween_duration:
             game.log.exit()
@@ -348,7 +348,7 @@ class DungeonContext(Context):
         return room is None or room in game.room_entrances
       visible_cells = [c for c in visible_cells if is_cell_within_visited_room(c)]
       if game.room:
-        visible_cells += game.room.get_cells() + game.room.get_border()
+        visible_cells += game.room.get_cells() + game.room.get_outline()
 
     if not game.camera.anims:
       hero.visible_cells = visible_cells

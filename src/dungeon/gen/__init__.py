@@ -473,7 +473,9 @@ def gen_mazeroom(stage, room):
     path = stage.pathfind(start=door, goal=pivot, whitelist=room_cells)
     for cell in path:
       stage.set_tile_at(cell, stage.FLOOR)
-      stage.set_tile_at(choice(neighborhood(cell)), stage.FLOOR)
+      neighbors = [n for n in neighborhood(cell) if n in room_cells]
+      if neighbors:
+        stage.set_tile_at(choice(neighbors), stage.FLOOR)
     return path
 
   pivot = create_platform()
