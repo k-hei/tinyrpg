@@ -454,40 +454,37 @@ def gen_mazeroom(stage, room):
   for cell in room_cells:
     stage.set_tile_at(cell, stage.PIT)
 
-  pivot = choice(room_cells)
-  pivot_neighbors = neighborhood(pivot, radius=randint(1, 2), diagonals=True, inclusive=True)
-  for cell in pivot_neighbors:
-    if cell in room_cells:
-      stage.set_tile_at(cell, stage.FLOOR)
-
   # paint floors from each doorway to pivot
   room_doorways = [next((n for n in neighborhood(d) if n in room_cells), None) for d in room.get_doorways(stage)]
   room_doorways = [d for d in room_doorways if d]
   room_pathcells = []
-  for door in room_doorways:
-    if room.get_area() > 5 * 4:
-      if randint(0, 1):
-        door_neighbors = neighborhood(door, radius=randint(1, 2), diagonals=True, inclusive=True)
-      else:
-        door_neighbors = neighborhood(door, radius=2, diagonals=False, inclusive=True)
-      for cell in door_neighbors:
-        if cell in room_cells:
-          stage.set_tile_at(cell, stage.FLOOR)
-    path = stage.pathfind(start=door, goal=pivot, whitelist=room_cells)
-    for cell in path:
-      stage.set_tile_at(cell, stage.FLOOR)
-    room_pathcells += path
 
-  if randint(0, 1) and room.get_area() > 7 * 4 and room_pathcells:
-    pivot = choice(room_cells)
-    pivot_neighbors = neighborhood(pivot, diagonals=True, inclusive=True)
+  def create_platform(cell=None):
+    pivot = cell or choice(room_cells)
+    diagonals = randint(0, 1)
+    radius = randint(1, 2) if diagonals else 2
+    pivot_neighbors = neighborhood(pivot, radius=radius, diagonals=diagonals, inclusive=True)
     for cell in pivot_neighbors:
       if cell in room_cells:
         stage.set_tile_at(cell, stage.FLOOR)
-    path = stage.pathfind(start=choice(room_pathcells), goal=pivot, whitelist=room_cells)
+    return pivot
+
+  def draw_path(start, goal):
+    path = stage.pathfind(start=door, goal=pivot, whitelist=room_cells)
     for cell in path:
       stage.set_tile_at(cell, stage.FLOOR)
-    room_pathcells += path
+      stage.set_tile_at(choice(neighborhood(cell)), stage.FLOOR)
+    return path
+
+  pivot = create_platform()
+  for door in room_doorways:
+    if room.get_area() > 5 * 4:
+      create_platform(cell=door)
+    room_pathcells += draw_path(start=door, goal=pivot)
+
+  if randint(0, 1) and room.get_area() > 7 * 4 and room_pathcells:
+    pivot = create_platform()
+    room_pathcells += draw_path(start=choice(room_pathcells), goal=pivot)
 
   return True
 

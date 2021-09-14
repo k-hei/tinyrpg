@@ -3,7 +3,7 @@ DEBUG_GEN = False
 CUTSCENES = True
 
 # dungeon generation
-SEED = 599604124 # 679607945 # 818379701
+SEED = None
 TOP_FLOOR = 3
 MAX_LOOPS = 0
 MAX_ROOM_FAILS = 3
