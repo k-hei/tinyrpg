@@ -25,6 +25,7 @@ from lib.lerp import lerp
 from comps.log import Token
 from comps.hpbubble import HpBubble
 from config import TILE_SIZE
+from vfx.icepiece import IcePieceVfx
 
 from contexts import Context
 from contexts.dialogue import DialogueContext
@@ -250,12 +251,15 @@ class DungeonActor(DungeonElement):
     actor.ailment_turns -= 1
     if actor.ailment == "poison":
       damage = int(actor.get_hp_max() * DungeonActor.POISON_STRENGTH)
-      game.flinch(actor, damage, delayed=True, on_end=actor.dispel_ailment if actor.ailment_turns == 0 else None)
-    else:
-      if actor.ailment == "sleep":
-        actor.regen(actor.get_hp_max() / 50)
-      if actor.ailment_turns == 0:
-        actor.dispel_ailment()
+      return game.flinch(actor, damage, delayed=True, on_end=actor.dispel_ailment if actor.ailment_turns == 0 else None)
+    if actor.ailment == "sleep":
+      actor.regen(actor.get_hp_max() / 50)
+    if actor.ailment_turns == 0:
+      if actor.ailment == "freeze":
+        game.vfx += [IcePieceVfx( # this belongs in actor view
+          pos=tuple([(x + 0.5) * TILE_SIZE for x in actor.cell]),
+        ) for _ in range(randint(3, 4))]
+      actor.dispel_ailment()
 
   def dispel_ailment(actor):
     if actor.ailment == "sleep":

@@ -44,7 +44,7 @@ class IceSpikeVfx(Vfx):
         return [IcePieceVfx(
           pos=(fx_x, fx_y),
           color=fx.color
-        ) for _ in range(randint(2, 3))]
+        ) for _ in range(randint(3, 4))]
       elif fx.on_connect:
         fx.on_connect()
         return [ParticleVfx(

@@ -12,7 +12,7 @@ from config import TILE_SIZE
 class ParticleVfx(Vfx):
   def __init__(fx, pos=None, cell=None, color=WHITE, linger=False, *args, **kwargs):
     angle = 2 * pi * random()
-    speed = random() + (1 if linger else 0)
+    speed = random() + 1
     super().__init__(
       kind=None,
       pos=tuple([(x + 0.5) * TILE_SIZE for x in cell]) if cell else pos,
