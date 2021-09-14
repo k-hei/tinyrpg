@@ -9,14 +9,16 @@ from colors.palette import BLACK, WHITE
 from config import TILE_SIZE
 
 class SmokeVfx(Vfx):
-  def __init__(fx, cell, color=WHITE, angle=None, size=None, *args, **kwargs):
+  def __init__(fx, cell=None, pos=None, color=WHITE, angle=None, size=None, *args, **kwargs):
     angle = 2 * pi * random() if angle is None else angle
-    speed = random()
-    col, row = cell
+    speed = random() + 0.25
+    if not pos:
+      col, row = cell
+      pos = ((col + 0.5) * TILE_SIZE, (row + 0.5) * TILE_SIZE)
     super().__init__(
       kind=None,
-      pos=((col + 0.5) * TILE_SIZE, (row + 0.5) * TILE_SIZE),
-      vel=(cos(angle) * speed, sin(angle) * speed),
+      pos=pos,
+      vel=(cos(angle) * speed, sin(angle) * speed / 2),
       *args,
       **kwargs
     )

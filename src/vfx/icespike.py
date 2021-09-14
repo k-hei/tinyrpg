@@ -9,6 +9,8 @@ from filters import replace_color
 import assets
 from vfx.icepiece import IcePieceVfx
 from vfx.particle import ParticleVfx
+from vfx.smoke import SmokeVfx
+from vfx.snowdrift import SnowdriftVfx
 
 class IceSpikeVfx(Vfx):
   def __init__(fx, cell, delay=0, color=CYAN, on_connect=None, *args, **kwargs):
@@ -19,6 +21,7 @@ class IceSpikeVfx(Vfx):
       *args,
       **kwargs
     )
+    fx.cell = cell
     fx.delay = delay
     fx.color = color
     fx.on_connect = on_connect
@@ -47,10 +50,15 @@ class IceSpikeVfx(Vfx):
         ) for _ in range(randint(3, 4))]
       elif fx.on_connect:
         fx.on_connect()
-        return [ParticleVfx(
-          pos=(fx_x, fx_y),
-          color=WHITE
-        ) for _ in range(randint(20, 30))]
+        return [
+          *([SnowdriftVfx(cell=fx.cell) for i in range(5)]),
+          *([SmokeVfx(cell=fx.cell) for i in range(20)]),
+          *[ParticleVfx(
+            pos=(fx_x, fx_y),
+            color=WHITE,
+            linger=True
+          ) for _ in range(randint(20, 30))]
+        ]
       else:
         return []
     else:
