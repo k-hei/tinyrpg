@@ -746,21 +746,26 @@ class DungeonContext(Context):
     game.update_bubble()
     return True
 
+  def handle_struggle(game, actor):
+    if actor.ailment != "freeze":
+      return False
+    actor.step_status(game)
+    game.anims.append([
+      ShakeAnim(duration=15, target=actor)
+    ])
+    if actor.ailment:
+      game.step(moving=True)
+      return True
+    else:
+      return False
+
   def handle_move(game, delta, run=False):
     hero = game.hero
     ally = game.ally
     floor = game.floor
 
     if hero.ailment == "freeze":
-      hero.step_status(game)
-      game.anims.append([
-        ShakeAnim(duration=15, target=hero)
-      ])
-      if hero.ailment:
-        game.step(moving=True)
-        return True
-      else:
-        return
+      game.handle_struggle(actor=hero)
 
     if not hero.can_step():
       return False
@@ -935,6 +940,8 @@ class DungeonContext(Context):
 
   def handle_action(game):
     hero = game.hero
+    if hero.ailment == "freeze":
+      game.handle_struggle(actor=hero)
     target_cell = add_vector(hero.cell, hero.facing)
     target_actor = game.floor.get_elem_at(target_cell, superclass=DungeonActor)
     if target_actor and not hero.allied(target_actor):

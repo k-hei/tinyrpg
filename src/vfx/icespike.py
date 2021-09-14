@@ -52,7 +52,7 @@ class IceSpikeVfx(Vfx):
         fx.on_connect()
         return [
           *([SnowdriftVfx(cell=fx.cell) for i in range(5)]),
-          *([SmokeVfx(cell=fx.cell) for i in range(20)]),
+          *([SmokeVfx(cell=fx.cell) for i in range(7)]),
           *[ParticleVfx(
             pos=(fx_x, fx_y),
             color=WHITE,
