@@ -206,7 +206,7 @@ def gen_floor(
         yield None, message
       elif graph.order() != room_count:
         room_count = graph.order()
-        stage, _ = create_stage(graph.nodes) # perf bottleneck - use debug flag to toggle (scope to config or generator)
+        stage, _ = create_stage(graph.nodes) # perf bottleneck - use debug flag to toggle (scope to config or generator?)
         yield stage, message
 
     # create_stage(rooms) -> stage

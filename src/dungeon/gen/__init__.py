@@ -473,7 +473,7 @@ def gen_mazeroom(stage, room):
       for cell in door_neighbors:
         if cell in room_cells:
           stage.set_tile_at(cell, stage.FLOOR)
-    path = gen_path(start=door, goal=pivot, predicate=lambda cell: stage.get_tile_at(cell) is not stage.WALL)
+    path = stage.pathfind(start=door, goal=pivot, whitelist=room_cells)
     for cell in path:
       stage.set_tile_at(cell, stage.FLOOR)
     room_pathcells += path
@@ -484,7 +484,7 @@ def gen_mazeroom(stage, room):
     for cell in pivot_neighbors:
       if cell in room_cells:
         stage.set_tile_at(cell, stage.FLOOR)
-    path = gen_path(start=choice(room_pathcells), goal=pivot, predicate=lambda cell: stage.get_tile_at(cell) is not stage.WALL)
+    path = stage.pathfind(start=choice(room_pathcells), goal=pivot, whitelist=room_cells)
     for cell in path:
       stage.set_tile_at(cell, stage.FLOOR)
     room_pathcells += path
