@@ -53,12 +53,12 @@ class GenContext(Context):
   def complete(ctx):
     ctx.ms_end = get_ticks()
     ctx.result = True
-    ctx.print(f"Completed {ctx.floor.seed} in {view_ticks(ctx.ms_end - ctx.ms_start, ms=True)}")
+    ctx.print(f"Completed generation #{ctx.floor.seed} in {view_ticks(ctx.ms_end - ctx.ms_start, ms=True)}")
 
   def fail(ctx):
     ctx.ms_end = get_ticks()
     ctx.result = False
-    ctx.print(f"Failed {ctx.floor.seed} in {view_ticks(ctx.ms_end - ctx.ms_start, ms=True)}")
+    ctx.print(f"Failed generation #{ctx.floor.seed} in {view_ticks(ctx.ms_end - ctx.ms_start, ms=True)}")
 
   def update(ctx):
     ctx.updates += 1

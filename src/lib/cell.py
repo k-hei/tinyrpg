@@ -68,7 +68,7 @@ def neighborhood(cell, radius=1, adjacents=True, diagonals=False, inclusive=Fals
   stack = [(start, 0)]
   while stack:
     cell, steps = stack.pop()
-    neighbors = neighborhood(cell)
+    neighbors = neighborhood(cell, adjacents=adjacents, diagonals=diagonals)
     for neighbor in neighbors:
       if neighbor not in cells and neighbor != start and (not predicate or predicate(neighbor)):
         cells.append(neighbor)

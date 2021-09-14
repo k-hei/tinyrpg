@@ -44,9 +44,13 @@ def gen_blob(size=None, min_area=MIN_ROOM_AREA, max_area=MAX_ROOM_AREA):
         sandbox.set_tile_at(cell, Stage.STAIRS_UP)
 
     island_rect = find_bounds(islands[0])
-    lkg = [add_vector(c, (-island_rect.left, -island_rect.top)) for c in islands[0]]
+    if island_rect.width * island_rect.height < min_area // 4:
+      yield None
+      continue
 
-  yield lkg
+    lkg = [add_vector(c, (-island_rect.left, -island_rect.top)) for c in islands[0]]
+    yield lkg
+
 
 def life(stage, birth_threshold, death_threshold):
   stage_copy = Stage(size=stage.size, data=stage.data)

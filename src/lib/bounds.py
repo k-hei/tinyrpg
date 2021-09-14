@@ -9,10 +9,10 @@ def find_bounds(cells):
   for (x, y) in cells:
     if x < left:
       left = x
-    elif x > right:
+    if x > right:
       right = x
     if y < top:
       top = y
-    elif y > bottom:
+    if y > bottom:
       bottom = y
   return Rect(left, top, right - left + 1, bottom - top + 1)
