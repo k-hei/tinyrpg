@@ -223,7 +223,7 @@ def gen_floor(
     tree = gen_tree(graph)
     gen_loops(tree, graph)
 
-    # DrawRooms(stage)
+    # DrawConnectors(stage, tree)
     connected = True
     door_paths = set()
     door_jointdiagonals = set()

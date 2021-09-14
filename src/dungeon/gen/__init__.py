@@ -484,9 +484,10 @@ def gen_mazeroom(stage, room):
       create_platform(cell=door)
     room_pathcells += draw_path(start=door, goal=pivot)
 
-  if randint(0, 1) and room.get_area() > 7 * 4 and room_pathcells:
-    pivot = create_platform()
-    room_pathcells += draw_path(start=choice(room_pathcells), goal=pivot)
+  if room_pathcells and room.get_area() > 7 * 4:
+    for i in range(randint(1, 3)):
+      pivot = create_platform()
+      room_pathcells += draw_path(start=choice(room_pathcells), goal=pivot)
 
   return True
 
