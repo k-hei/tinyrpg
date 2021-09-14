@@ -153,7 +153,7 @@ class GameContext(Context):
 
   def load_build(ctx, actor, build):
     ctx.store.builds[type(actor).__name__] = build
-    actor.skills = [skill for skill, cell in build]
+    actor.skills = sorted([skill for skill, cell in build], key=get_skill_order)
     active_skills = actor.get_active_skills()
     ctx.set_skill(actor, active_skills[0] if active_skills else None)
 
