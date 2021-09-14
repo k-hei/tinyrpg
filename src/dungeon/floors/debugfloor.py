@@ -33,7 +33,7 @@ from items.ailment.lovepotion import LovePotion
 from items.ailment.booze import Booze
 
 ENABLE_LOOPLESS_LAYOUTS = False
-MIN_ROOM_COUNT = 12 if ENABLE_LOOPLESS_LAYOUTS else 3
+MIN_ROOM_COUNT = 12 if ENABLE_LOOPLESS_LAYOUTS else 4
 MAX_ROOM_COUNT = MIN_ROOM_COUNT + 2
 
 class DebugFloor(Floor):
@@ -317,18 +317,32 @@ def gen_floor(
     if not connected:
       continue
 
-    # SpawnEntrance(stage) -> room
+    rooms.sort(key=lambda r: r.get_area())
     empty_rooms = rooms.copy()
-    for room in sorted(rooms, key=lambda r: r.get_area()):
+
+    # SpawnEntrance(stage) -> room
+    for room in rooms:
       entrances = [c for c in room.cells if not next((n for n in neighborhood(c, radius=1, diagonals=True) if stage.get_tile_at(n) is not Stage.FLOOR), None)]
       if entrances:
         stage.entrance = choice(entrances)
-        stage.set_tile_at(stage.entrance, Stage.STAIRS_UP)
+        stage.set_tile_at(stage.entrance, Stage.STAIRS_DOWN)
         empty_rooms.remove(room)
         yield stage, f"Spawned entrance at {stage.entrance}"
         break
     else:
       yield stage, "Failed to spawn entrance"
+
+    # SpawnExit(stage) -> room
+    for room in empty_rooms:
+      exits = [c for c in room.cells if not next((n for n in neighborhood(c, radius=1, diagonals=True) if stage.get_tile_at(n) is not Stage.FLOOR), None)]
+      if exits:
+        stage.exit = choice(exits)
+        stage.set_tile_at(stage.exit, Stage.STAIRS_UP)
+        empty_rooms.remove(room)
+        yield stage, f"Spawned exit at {stage.exit}"
+        break
+    else:
+      yield stage, "Failed to spawn exit"
 
     # draw room terrain
     for room in empty_rooms:

@@ -104,7 +104,7 @@ from contexts.gameover import GameOverContext
 from dungeon.floors.floor1 import Floor1
 from dungeon.floors.floor2 import Floor2
 from dungeon.floors.floor3 import Floor3
-from dungeon.floors.genericfloor import GenericFloor
+from dungeon.floors.debugfloor import DebugFloor
 
 from dungeon.data import DungeonData
 from dungeon.command import MoveCommand, MoveToCommand, PushCommand, SkillCommand
@@ -297,7 +297,7 @@ class DungeonContext(Context):
     new_room = None
     if moving:
       rooms = [room for room in floor.rooms if is_within_room(room, hero.cell)]
-      room_within = next((r for r in floor.rooms if hero.cell in r.get_cells()), None)
+      room_within = next((r for r in floor.rooms if hero.cell in r.get_cells() + r.get_edges()), None)
       if len(rooms) == 1:
         room = rooms[0]
       else:
@@ -555,7 +555,7 @@ class DungeonContext(Context):
       floor = game.floor
       target = game.find_closest_enemy(enemy)
       room = next((r for r in floor.rooms if enemy.cell in r.get_cells()), None)
-      if (target and room and enemy.cell in room.get_cells() + room.get_border()
+      if (target and room and target.cell in room.get_cells() + room.get_border()
       or target and game.is_cell_in_vision_range(actor=enemy, cell=target.cell)
       ):
         print("alert ally from dungeon step")
@@ -1542,7 +1542,7 @@ class DungeonContext(Context):
 
   def use_item(game, item=None, discard=True):
     carry_item = game.hero and game.hero.item
-    if carry_item and item:
+    if carry_item and item and carry_item is not item:
       return False, "Your hands are full!"
     elif carry_item:
       item = carry_item
@@ -1863,7 +1863,7 @@ class DungeonContext(Context):
       if gen_index is not None:
         Floor = DungeonContext.FLOORS[gen_index + direction]
       else:
-        Floor = GenericFloor
+        Floor = DebugFloor
       app = game.get_head()
       app.transition(
         transits=(DissolveIn(), DissolveOut()),
