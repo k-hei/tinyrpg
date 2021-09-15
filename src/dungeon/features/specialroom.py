@@ -87,7 +87,7 @@ class SpecialRoom(Room):
     else:
       floor.entrance = feature.get_center()
     floor.generator = type(feature).__name__
-    yield floor
+    yield floor, ""
 
   def encode(room):
     return [room.cell, type(room).__name__]

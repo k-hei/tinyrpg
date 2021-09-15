@@ -17,6 +17,7 @@ class Camera:
   def __init__(camera, size):
     camera.size = size
     camera.pos = None
+    camera.vel = (0, 0)
     camera.cell = None
     camera.flag = None
     camera.room = None
@@ -185,9 +186,15 @@ class Camera:
       camera_x, camera_y = camera.upscale((focus_x, focus_y))
       if camera.pos:
         old_camera_x, old_camera_y = camera.pos
+        camera_xvel, camera_yvel = camera.vel
         camera_speed = camera.speed or camera_speed
-        camera_x = old_camera_x + (camera_x - old_camera_x) / camera_speed
-        camera_y = old_camera_y + (camera_y - old_camera_y) / camera_speed
+        target_xvel = (camera_x - old_camera_x) / camera_speed * 2
+        target_yvel = (camera_y - old_camera_y) / camera_speed * 2
+        camera_xvel = (target_xvel - camera_xvel) / 2
+        camera_yvel = (target_yvel - camera_yvel) / 2
+        camera_x = old_camera_x + camera_xvel
+        camera_y = old_camera_y + camera_yvel
+        camera.vel = (camera_xvel, camera_yvel)
 
     camera.pos = (camera_x, camera_y)
     camera.cell = (target_x, target_y)

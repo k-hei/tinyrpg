@@ -97,8 +97,8 @@ class Glacio(MagicSkill):
         target=user,
         src=user.cell,
         dest=bump_dest,
-        on_start=(
-          lambda: game.camera.focus(dest, force=True),
+        on_start=lambda: (
+          game.camera.focus(dest, force=True),
           game.display_skill(Glacio, user),
         ),
         on_connect=on_bump,

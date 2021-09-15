@@ -93,7 +93,7 @@ class AltarRoom(SpecialRoom):
     floor = next(super().create_floor(use_edge=False, *args, **kwargs))
     floor.entrance = room.get_edges()[0]
     floor.set_tile_at(floor.entrance, floor.EXIT)
-    yield floor
+    yield floor, ""
 
 def cutscene(room, game):
   return [
