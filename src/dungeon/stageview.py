@@ -21,6 +21,7 @@ from dungeon.props.soul import Soul
 from dungeon.props.palm import Palm
 from dungeon.props.door import Door
 
+from anims import Anim
 from anims.move import MoveAnim
 from anims.jump import JumpAnim
 from anims.attack import AttackAnim
@@ -64,6 +65,7 @@ class StageView:
   VARIABLE_TILES = [Stage.WALL, Stage.FLOOR, Stage.OASIS, Stage.PIT] # Tiles with more than one possible image
 
   class FadeAnim(TweenAnim): pass
+  class DarkenAnim(Anim): pass
 
   def order(sprite):
     _, sprite_y = sprite.pos
@@ -87,6 +89,7 @@ class StageView:
     self.stage = None
     self.facings = {}
     self.anim = None
+    self.darkened = False
 
   def redraw_tile(self, stage, cell, visible_cells, visited_cells, anims=[], dry=False):
     tile_col, tile_row = cell
@@ -203,17 +206,14 @@ class StageView:
       self.tile_cache = {}
       recolor_walls()
 
-    fade_anim = None
-    for group in anims:
-      fade_anim = next((a for a in group if type(a) is StageView.FadeAnim), None)
-      if fade_anim:
-        break
+    darken_anim = self.darkened # next((a for g in anims for a in g if type(a) is StageView.DarkenAnim), None)
+    fade_anim = next((a for g in anims for a in g if type(a) is StageView.FadeAnim), None)
     anim_cells = fade_anim.target.copy() if fade_anim else []
 
     for row in range(top, bottom + 1):
       for col in range(left, right + 1):
         cell = (col, row)
-        if cell in visible_cells + anim_cells:
+        if cell in visible_cells + anim_cells and not darken_anim:
           self.redraw_tile(stage, cell, visible_cells, visited_cells, anims)
           if cell in anim_cells:
             anim_cells.remove(cell)

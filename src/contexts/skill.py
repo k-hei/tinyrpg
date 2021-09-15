@@ -202,7 +202,7 @@ class SkillContext(Context):
   def exit(ctx, skill=None, dest=None):
     def close():
       if "camera" in dir(ctx.parent):
-        ctx.parent.camera.blur()
+        # ctx.parent.camera.blur()
         ctx.parent.child = None
       if ctx.on_close:
         ctx.on_close(skill, dest)

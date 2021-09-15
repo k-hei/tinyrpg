@@ -1,4 +1,5 @@
 import math
+from math import inf
 from random import random, randint, choice
 import pygame
 from pygame import Rect
@@ -387,6 +388,23 @@ class DungeonContext(Context):
 
     if new_room:
       new_room.on_enter(game)
+
+  def darken(game, duration=inf):
+    game.floor_view.darkened = True
+    game.redraw_tiles(force=True)
+    # not game.anims and game.anims.append([])
+    # game.anims[0].append(StageView.DarkenAnim(duration=duration))
+
+  def darken_end(game):
+    game.floor_view.darkened = False
+    # for group in game.anims:
+    #   for anim in group:
+    #     if type(anim) is StageView.DarkenAnim:
+    #       group.remove(anim)
+    #       if not group:
+    #         game.anims.remove(group)
+    #       return True
+    # return False
 
   def step(game, run=False, moving=False):
     commands = {}
@@ -1801,17 +1819,6 @@ class DungeonContext(Context):
           )
         ])
     else:
-      if ENABLED_COMBAT_LOG:
-        game.log.print((actor.token(), " uses ", skill().token()))
-      elif skill.name:
-        game.log.exit()
-        prev_skill_banner = next((c for c in game.comps if type(c) is SkillBanner), None)
-        if prev_skill_banner:
-          prev_skill_banner.exit()
-        game.comps.append(SkillBanner(
-          text=skill.name,
-          color=actor.color(),
-        ))
       target_cell = skill.effect(actor, dest, game, on_end=lambda: (
         on_end() if on_end else (
           camera.blur(),
@@ -1821,6 +1828,22 @@ class DungeonContext(Context):
       ))
       if target_cell:
         camera.focus(target_cell, force=True)
+        if ENABLED_COMBAT_LOG:
+          game.log.print((actor.token(), " uses ", skill().token()))
+        elif skill.name:
+          game.log.exit()
+          game.display_skill(skill, user=actor)
+      else:
+        camera.focus(actor.cell, speed=8, force=True)
+
+  def display_skill(game, skill, user):
+    prev_skill_banner = next((c for c in game.comps if type(c) is SkillBanner), None)
+    if prev_skill_banner:
+      prev_skill_banner.exit()
+    game.comps.append(SkillBanner(
+      text=skill.name,
+      color=user.color(),
+    ))
 
   def full_restore(game, actor=None):
     if actor is None:

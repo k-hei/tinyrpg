@@ -47,5 +47,5 @@ class SmokeVfx(Vfx):
       pos=tuple([x // 2 * 2 for x in fx.pos]),
       origin=("center", "center"),
       offset=-16,
-      layer="vfx"
+      layer="elems"
     )]
