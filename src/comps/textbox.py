@@ -79,8 +79,11 @@ class TextBox:
         box.index += 1
       if box.index == 0 or char in (" ", "\n"):
         next_space = box.message.find(" ", box.index + 1)
-        if next_space == -1:
-          next_space = box.message.find("\n", box.index + 1)
+        next_newline = box.message.find("\n", box.index + 1)
+        if next_space != -1 and next_newline != -1:
+          next_space = min(next_space, next_newline)
+        elif next_space == -1:
+          next_space = next_newline
         if next_space == -1:
           word = box.message[box.index+1:]
         else:
