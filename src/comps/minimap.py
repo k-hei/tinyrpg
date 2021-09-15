@@ -22,6 +22,8 @@ from anims.tween import TweenAnim
 from anims.warpin import WarpInAnim
 from easing.expo import ease_out, ease_in_out
 from lib.lerp import lerp
+from lib.bounds import find_bounds
+from lib.cell import subtract as subtract_vector
 from sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE, DEBUG_GEN
 
@@ -56,11 +58,13 @@ class Minimap:
   BLACKOUT_DELAY = 120
 
   def render_surface(floor, size=None, focus=None, visible_cells=None, visited_cells=None, anims=[], blink=False):
-    sprite_size = tuple(map(ceil, size or floor.size))
-    sprite_width, sprite_height = sprite_size
     floor_width, floor_height = floor.size
+    filled = not visible_cells
     visible_cells = visible_cells or floor.get_cells()
     visited_cells = visited_cells or visible_cells
+    bounds = filled and Rect((0, 0), floor.size) or find_bounds(visited_cells)
+    sprite_size = tuple(map(ceil, size or bounds.size))
+    sprite_width, sprite_height = sprite_size
 
     surface = Surface(sprite_size)
     surface.fill(COLOR_KEY)
@@ -199,8 +203,24 @@ class Minimap:
     if t is None:
       t = 1 if minimap.expanded else 0
 
+    # requires: game.hero, game.floor, game.memory?
+    # updates whenever any of the following occur:
+    # - data changes
+    # - visited cells change
+    # - camera position (hero cell) changes
+
+    game = minimap.parent
+    floor = game.floor
+    hero = game.hero
+    if not hero or not hero.cell:
+      return minimap.sprite
+
+    visible_cells = game.hero.visible_cells
+    visited_cells = game.get_visited_cells()
+
+    bounds = find_bounds(visited_cells) if t else Rect((0, 0), floor.size)
     start_width, start_height = Minimap.SIZE_INIT
-    end_width, end_height = minimap.parent.floor.size
+    end_width, end_height = bounds.size
     start_scale, end_scale = Minimap.SCALE_INIT, Minimap.SCALE_EXPAND
     while end_height * end_scale > WINDOW_HEIGHT:
       end_scale -= 1
@@ -209,28 +229,19 @@ class Minimap:
     sprite_height = lerp(start_height, end_height, t)
     sprite_scale = lerp(start_scale, end_scale, t)
 
-    # requires: game.hero, game.floor, game.memory?
-    # updates whenever any of the following occur:
-    # - data changes
-    # - visited cells change
-    # - camera position (hero cell) changes
-
-    game = minimap.parent
-    hero = game.hero
-    if not hero or not hero.cell:
-      return minimap.sprite
-
+    start_xoffset, start_yoffset = (0, 0)
+    end_xoffset, end_yoffset = subtract_vector((0, 0), bounds.topleft)
     start_x, start_y = hero.cell
     end_x, end_y = sprite_width // 2, sprite_height // 2
-    focus_x = round(lerp(start_x, end_x, t))
-    focus_y = round(lerp(start_y, end_y, t))
+    focus_x = round(lerp(start_x, end_x, t) - lerp(start_xoffset, end_xoffset, t))
+    focus_y = round(lerp(start_y, end_y, t) - lerp(start_yoffset, end_yoffset, t))
 
     minimap_image = Minimap.render_surface(
-      floor=game.floor,
+      floor=floor,
       size=(sprite_width, sprite_height),
       focus=(focus_x, focus_y),
-      visible_cells=game.hero.visible_cells,
-      visited_cells=game.get_visited_cells(),
+      visible_cells=visible_cells,
+      visited_cells=visited_cells,
       anims=game.anims,
       blink=minimap.time % 60 >= 30
     )
