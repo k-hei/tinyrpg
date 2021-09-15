@@ -1279,9 +1279,11 @@ class DungeonContext(Context):
       and target.facing != actor.facing
       and ((target.aggro > 1 or target.faction == "player") and not game.roll_hit(attacker=actor, defender=target))
       and (not block or randint(0, 1)))
-    crit = (actor.facing == target.facing
-      or target.ailment == "sleep"
-      or game.roll_crit(attacker=actor, defender=target))
+    crit = (not target.ailment == "freeze" and (
+      target.ailment == "sleep"
+      or actor.facing == target.facing
+      or game.roll_crit(attacker=actor, defender=target)
+    ))
     if miss:
       damage = None
     elif block:
