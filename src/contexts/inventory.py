@@ -81,10 +81,10 @@ class InventoryContext(Context):
       Control(key=("Y"), value="Sort"),
       Control(key=("L", "R"), value="Tab")
     ]
-    ctx.update_items()
+    ctx.update_items(reset=True)
 
   def enter(ctx, on_end=None):
-    ctx.describe_item()
+    ctx.describe_item(force=True)
     ctx.active = True
     ctx.box.enter()
     ctx.anims.append(TweenAnim(duration=DURATION_BELTENTER, target="belt"))
@@ -185,12 +185,12 @@ class InventoryContext(Context):
   def get_selected_item(ctx):
     return ctx.get_item_at(ctx.cursor)
 
-  def describe_item(ctx, item=None):
+  def describe_item(ctx, item=None, force=False):
     if item is None:
       item = ctx.get_item_at(ctx.cursor)
     if item:
       ctx.box.print(item)
-    else:
+    elif force:
       ctx.box.print("You have no items in this category.")
 
   def contains(ctx, cell):
@@ -299,7 +299,7 @@ class InventoryContext(Context):
       new_tab = 0
     if old_tab != new_tab:
       ctx.tab = new_tab
-      ctx.update_items()
+      ctx.update_items(reset=True)
       ctx.anims.append(DeselectAnim(
         duration=12,
         target=ctx.tabs[old_tab]
@@ -316,9 +316,10 @@ class InventoryContext(Context):
           target=(i % cols, i // cols)
         ))
 
-  def update_items(ctx):
+  def update_items(ctx, reset=False):
+    if reset:
+      ctx.cursor = (0, 0)
     ctx.items = InventoryContext.filter_items(ctx.store.items, ctx.tabs[ctx.tab])
-    ctx.cursor = (0, 0)
     ctx.describe_item()
 
   def get_hero(ctx):
@@ -377,7 +378,7 @@ class InventoryContext(Context):
         elif a != -1:
           ctx.store.items[a], ctx.store.items[b] = ctx.store.items[b], ctx.store.items[a]
 
-      ctx.items = InventoryContext.filter_items(ctx.store.items, ctx.tabs[ctx.tab])
+      ctx.update_items()
       ctx.selection = None
     else:
       if ctx.get_item_at(ctx.cursor) is None:
@@ -391,8 +392,7 @@ class InventoryContext(Context):
       + (255 - item.color[0]) * 26
       + ord(item.__name__[0])
     ))
-    ctx.items = InventoryContext.filter_items(ctx.store.items, ctx.tabs[ctx.tab])
-    ctx.describe_item()
+    ctx.update_items()
 
   def use_item(ctx, item=None):
     item = item or ctx.get_selected_item()
@@ -401,14 +401,19 @@ class InventoryContext(Context):
       success, message = ctx.parent.use_item(item, discard=not is_using_from_extra_slot)
     else:
       success, message = ctx.parent.store.use_item(item, discard=not is_using_from_extra_slot)
-    if success:
-      if is_using_from_extra_slot and ctx.get_hero():
-        ctx.get_hero().item = None
-      ctx.exit()
-      return True
-    else:
+    if success is False:
       ctx.box.print(message)
       return False
+    else:
+      if is_using_from_extra_slot and ctx.get_hero():
+        ctx.get_hero().item = None
+      if success is True:
+        ctx.exit()
+      else:
+        print(message)
+        ctx.box.print(message)
+        ctx.update_items()
+      return success
 
   def carry_item(ctx, item=None):
     item = item or ctx.get_selected_item()

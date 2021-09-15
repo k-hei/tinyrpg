@@ -968,7 +968,7 @@ class DungeonContext(Context):
         src=hero.cell,
         dest=target_cell
       ))
-    if effect_result == True:
+    if effect_result is True:
       game.step()
     return effect_result
 
@@ -1574,13 +1574,15 @@ class DungeonContext(Context):
       success, message = False, "You can't use this item!"
     else:
       success, message = game.store.use_item(item, discard=discard)
-    if success:
-      game.log.print(("Used ", item.token(item)))
-      game.log.print(message)
-      return True, None
-    else:
+    if success is False:
       game.anims.pop()
       return False, message
+    elif success is True:
+      game.log.print(("Used ", item.token(item)))
+      game.log.print(message)
+      return True, ""
+    else:
+      return None, ("Used ", item.token(item), "\n", message)
 
   def carry_item(game, item):
     if not game.hero.item:

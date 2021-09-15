@@ -115,12 +115,12 @@ class Banner:
       return banner_image
 
     banner_image.fill(BLACK)
-    if banner.state == False:
+    if banner.state is False:
       text_image = font.render("Please enter a name.")
       x = banner_width // 2 - text_image.get_width() // 2
       y = banner_height // 2 - text_image.get_height() // 2
       banner_image.blit(text_image, (x, y))
-    elif banner.state == True:
+    elif banner.state is True:
       can_confirm = True
       confirm_color = WHITE if can_confirm else GRAY
       confirm_image = font.render("Confirm", confirm_color)

@@ -10,6 +10,6 @@ class SpItem(Item):
   def use(item, store):
     if store.sp < store.sp_max:
       store.sp += item.sp
-      return True, "Restored " + str(item.sp) + " SP."
+      return None, "Restored " + str(item.sp) + " SP."
     else:
       return False, "Your stamina is already full!"

@@ -11,6 +11,6 @@ class HpItem(Item):
     hero = store.party[0]
     if hero.get_hp() < hero.get_hp_max():
       hero.heal(item.hp)
-      return True, "Restored " + str(item.hp) + " HP."
+      return None, "Restored " + str(item.hp) + " HP."
     else:
       return False, "Your health is already full!"

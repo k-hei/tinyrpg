@@ -18,7 +18,7 @@ class AilmentItem(Item):
     if hero.ailment == item.ailment or item.ailment == "any" and hero.ailment != None:
       ailment = hero.ailment
       hero.dispel_ailment()
-      return True, (hero.token(), "'s {} was cured.".format(ailment))
+      return None, (hero.token(), "'s {} was cured.".format(ailment))
     elif item.ailment == "any":
       return False, "Nothing to dispel!"
     else:

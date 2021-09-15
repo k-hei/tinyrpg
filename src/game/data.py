@@ -132,7 +132,7 @@ class GameData:
 
   def use_item(store, item, discard=True):
     success, message = item().use(store)
-    if success and discard:
+    if success is not False and discard:
       store.items.remove(item)
     return success, message
 
@@ -168,10 +168,10 @@ class GameData:
     store.party.append(store.party.pop(0))
 
   def is_quest_accepted(store, quest):
-    return quest in store.quests and store.quests[quest] == False
+    return quest in store.quests and store.quests[quest] is False
 
   def is_quest_completed(store, quest):
-    return quest in store.quests and store.quests[quest] == True
+    return quest in store.quests and store.quests[quest] is True
 
   def accept_quest(store, quest):
     store.quests[quest] = False
