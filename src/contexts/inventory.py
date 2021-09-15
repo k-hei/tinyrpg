@@ -410,7 +410,6 @@ class InventoryContext(Context):
       if success is True:
         ctx.exit()
       else:
-        print(message)
         ctx.box.print(message)
         ctx.update_items()
       return success

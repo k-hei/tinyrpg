@@ -224,6 +224,8 @@ class Log:
     return sprites
 
 def expand_tokens(tokens):
+  if type(tokens) is str:
+    return [Token(text=tokens)]
   result = []
   for token in tokens:
     if type(token) is tuple:
