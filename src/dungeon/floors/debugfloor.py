@@ -226,7 +226,6 @@ def gen_floor(
     # DrawConnectors(stage, tree)
     connected = True
     door_paths = set()
-    door_jointdiagonals = set()
     for i, ((room1, room2), connectors) in enumerate(tree.connections()):
       connectors = [subtract_vector(c, stage_offset) for c in connectors]
       if len(connectors) > 1:
@@ -262,7 +261,7 @@ def gen_floor(
         room_edges.sort(key=lambda e: manhattan(e, connector))
 
         room_outlines = set([c for r in rooms for c in r.outline])
-        path_blacklist = room_outlines | set(stage.get_border())
+        path_blacklist = room_outlines | door_paths | set(stage.get_border())
         for door1, door2 in product(prev_edges, room_edges):
           if (door1 in prev_edges and door2 in prev_edges
           or door1 in room_edges and door2 in room_edges):
@@ -299,19 +298,9 @@ def gen_floor(
       door_path = [door1] + door_path + [door2]
       stage.spawn_elem_at(door1, Door())
       stage.spawn_elem_at(door2, Door())
-      prev_cell = None
-      prev_delta = None
       for cell in door_path:
-        if prev_cell:
-          delta = subtract_vector(cell, prev_cell)
-        else:
-          delta = None
         stage.set_tile_at(cell, Stage.DOOR_WAY)
-        if prev_delta and delta != prev_delta:
-          door_jointdiagonals.update(neighborhood(prev_cell, diagonals=True, adjacents=False))
-        prev_cell = cell
-        prev_delta = delta
-      door_paths.update(door_path)
+        door_paths.update(neighborhood(cell, inclusive=True, diagonals=True))
       yield stage, f"Connected rooms {rooms.index(room1) + 1} and {rooms.index(room2) + 1} at {connector}"
 
     if not connected:
