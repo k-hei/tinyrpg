@@ -1608,7 +1608,7 @@ class DungeonContext(Context):
     item = actor.item
     target_cell = add_vector(actor.cell, actor.facing)
     if (Tile.is_solid(game.floor.get_tile_at(target_cell))
-    or next((e for e in game.floor.get_elems_at(target_cell) if e.solid or isinstance(item, ItemDrop)), None)):
+    or next((e for e in game.floor.get_elems_at(target_cell) if e.solid or isinstance(e, ItemDrop)), None)):
       return False
     game.floor.spawn_elem_at(target_cell, ItemDrop(item))
     if not game.anims:
