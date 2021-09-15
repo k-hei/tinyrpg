@@ -63,7 +63,8 @@ class IceSpikeVfx(Vfx):
         return []
     else:
       anim.update()
-    return []
+      if type(anim) is FrameAnim and anim.time > 5 and anim.time % 4 == 0:
+        return [SmokeVfx(cell=fx.cell)]
 
   def view(fx):
     fx_anim = fx.anims[0] if fx.anims and type(fx.anims[0]) is FrameAnim else None

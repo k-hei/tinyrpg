@@ -7,6 +7,7 @@ from anims.attack import AttackAnim
 from anims.frame import FrameAnim
 from anims.pause import PauseAnim
 from vfx.icespike import IceSpikeVfx
+from vfx.iceemblem import IceEmblemVfx
 from colors.palette import CYAN
 from config import ENABLED_COMBAT_LOG
 
@@ -63,12 +64,14 @@ class Glacio(MagicSkill):
       )
 
     def on_bump():
-      game.vfx += [IceSpikeVfx(
-        cell=cell,
-        delay=i * 10,
-        color=CYAN,
-        on_connect=target and cell == target_cells[-1] and on_connect
-      ) for i, cell in enumerate(target_cells)]
+      game.vfx += [
+        *[IceSpikeVfx(
+          cell=cell,
+          delay=i * 10,
+          color=CYAN,
+          on_connect=target and cell == target_cells[-1] and on_connect
+        ) for i, cell in enumerate(target_cells)]
+      ]
 
     def on_bump_end():
       delay = len(target_cells) * 10 + 10
@@ -84,16 +87,21 @@ class Glacio(MagicSkill):
         )
       ))
 
+    user.core.anims.append(Mage.CastAnim())
+    game.vfx += [IceEmblemVfx(cell=user.cell, delay=15)]
+
     game.anims.append([
+      PauseAnim(duration=90, on_end=lambda: user.core.anims.clear()),
       AttackAnim(
         duration=ATTACK_DURATION,
         target=user,
         src=user.cell,
         dest=bump_dest,
+        on_start=lambda: game.camera.focus(dest, force=True),
         on_connect=on_bump,
         on_end=target is None and on_bump_end
       ),
       pause_anim
     ])
 
-    return dest
+    return user.cell

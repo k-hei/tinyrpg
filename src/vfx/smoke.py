@@ -14,7 +14,7 @@ class SmokeVfx(Vfx):
     speed = random() + 0.25
     if not pos:
       col, row = cell
-      pos = ((col + 0.5) * TILE_SIZE, (row + 0.5) * TILE_SIZE)
+      pos = ((col + 0.5) * TILE_SIZE, (row + 1) * TILE_SIZE)
     super().__init__(
       kind=None,
       pos=pos,

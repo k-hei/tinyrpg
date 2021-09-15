@@ -1,5 +1,7 @@
 from math import sin, cos, pi
 from random import random, randint
+from lib.cell import add as add_vector
+
 from vfx import Vfx
 import assets
 from anims.frame import FrameAnim
@@ -10,16 +12,28 @@ from colors.palette import BLACK, WHITE
 from config import TILE_SIZE
 
 class ParticleVfx(Vfx):
-  def __init__(fx, pos=None, cell=None, color=WHITE, linger=False, *args, **kwargs):
+  def __init__(fx, pos=None, cell=None, offset=0, color=WHITE, linger=False, *args, **kwargs):
     angle = 2 * pi * random()
     speed = random() + 1
+    if cell:
+      col, row = cell
+      pos = ((col + 0.5) * TILE_SIZE, (row + 0.5) * TILE_SIZE)
+    if offset:
+      pos = add_vector(pos, (
+        cos(angle) * offset,
+        sin(angle) * offset
+      ))
     super().__init__(
       kind=None,
-      pos=tuple([(x + 0.5) * TILE_SIZE for x in cell]) if cell else pos,
-      vel=(cos(angle) * speed, sin(angle) * speed),
+      pos=pos,
+      vel=(
+        cos(angle) * speed,
+        sin(angle) * speed
+      ),
       *args,
       **kwargs
     )
+    fx.offset = offset
     fx.color = color
     fx.blinking = False if linger else randint(0, 1)
     fx.linger = linger
@@ -29,7 +43,7 @@ class ParticleVfx(Vfx):
     fx.anim = FrameAnim(
       frames=[replace_color(s, BLACK, fx.color) for s in assets.sprites["fx_particle"]],
       duration=45,
-      delay=randint(0, 45)
+      delay=randint(0, 45) if not fx.offset else 0
     )
 
   def update(fx, *_):
@@ -57,8 +71,9 @@ class ParticleVfx(Vfx):
   def view(fx):
     if not fx.anim or (fx.blinking or type(fx.anim) is FlickerAnim) and fx.anim.time % 2:
       return []
+    fx_image = fx.anim.frame() if type(fx) is FrameAnim else replace_color(assets.sprites["fx_particle_small"], BLACK, fx.color)
     return [Sprite(
-      image=fx.anim.frame() if type(fx) is FrameAnim else replace_color(assets.sprites["fx_particle_small"], BLACK, WHITE),
+      image=fx_image,
       pos=fx.pos,
       origin=("center", "center"),
       layer="vfx"
