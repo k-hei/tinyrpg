@@ -24,7 +24,7 @@ from lib.keyboard import ARROW_DELTAS, key_times
 
 import debug
 
-from lib.cell import add as add_vector, is_adjacent, manhattan, normal
+from lib.cell import add as add_vector, subtract as subtract_vector, is_adjacent, manhattan, normal, neighborhood
 from lib.direction import invert as invert_direction, normalize as normalize_direction
 from lib.compose import compose
 
@@ -80,6 +80,7 @@ from anims.shake import ShakeAnim
 from anims.move import MoveAnim
 from anims.jump import JumpAnim
 from anims.pause import PauseAnim
+from anims.path import PathAnim
 
 from comps.damage import DamageValue
 from comps.hud import Hud
@@ -295,7 +296,10 @@ class DungeonContext(Context):
 
     door = None
     new_room = None
-    if moving:
+    hallway = None
+    path_anim = game.anims and next((a for g in game.anims for a in g if type(a) is PathAnim and not a.done), None)
+
+    if moving and not path_anim:
       rooms = [room for room in floor.rooms if is_within_room(room, hero.cell)]
       room_within = next((r for r in floor.rooms if hero.cell in r.get_cells() + r.get_edges()), None)
       if len(rooms) == 1:
@@ -314,7 +318,9 @@ class DungeonContext(Context):
         new_room = room_within
 
       if room and room not in game.room_entrances:
-        if next((r for r in game.floor.rooms if r in game.room_entrances), None):
+        already_illuminated_once_this_floor = next((r for r in game.floor.rooms if r in game.room_entrances), None)
+        game.room_entrances[room] = hero.cell
+        if already_illuminated_once_this_floor:
           room_cells = room.get_cells() + room.get_outline()
           tween_duration = game.camera.illuminate(room, actor=game.hero)
           if tween_duration:
@@ -333,7 +339,6 @@ class DungeonContext(Context):
               )],
               [PauseAnim(duration=15)]
             ]
-        game.room_entrances[room] = hero.cell
       game.room = room
       game.room_within = room_within
 
@@ -341,6 +346,9 @@ class DungeonContext(Context):
       if not game.floor_cells:
         game.floor_cells = game.floor.get_visible_cells()
       visible_cells = game.floor_cells
+    elif path_anim:
+      hallway = [c for c in path_anim.path if not next((e for e in game.floor.get_elems_at(c) if isinstance(e, Door)), None)]
+      visible_cells = list(set([n for c in hallway for n in neighborhood(c, inclusive=True, diagonals=True)]))
     elif not game.camera.anims:
       visible_cells = shadowcast(floor, hero.cell, VISION_RANGE)
       def is_cell_within_visited_room(cell):
@@ -558,7 +566,6 @@ class DungeonContext(Context):
       if (target and room and target.cell in room.get_cells() + room.get_border()
       or target and game.is_cell_in_vision_range(actor=enemy, cell=target.cell)
       ):
-        print("alert ally from dungeon step")
         enemy.alert()
       else:
         enemy.aggro = 0
@@ -759,6 +766,23 @@ class DungeonContext(Context):
     else:
       return False
 
+  def find_hallway(game, cell):
+    floor = game.floor
+    if floor.get_tile_at(cell) is not Stage.DOOR_WAY:
+      return []
+    hallway = [cell]
+    stack = [cell]
+    while stack:
+      cell = stack.pop()
+      neighbors = [n for n in neighborhood(cell) if (
+        floor.get_tile_at(n) is Stage.DOOR_WAY
+        and n not in hallway
+      )]
+      for neighbor in neighbors:
+        stack.append(neighbor)
+        hallway.append(neighbor)
+    return hallway
+
   def handle_move(game, delta, run=False):
     hero = game.hero
     ally = game.ally
@@ -770,8 +794,9 @@ class DungeonContext(Context):
     if not hero.can_step():
       return False
 
-    old_cell = hero.cell
-    hero_x, hero_y = old_cell
+    origin_cell = hero.cell
+    origin_tile = floor.get_tile_at(origin_cell)
+    hero_x, hero_y = origin_cell
     delta_x, delta_y = delta
     acted = False
     target_cell = (hero_x + delta_x, hero_y + delta_y)
@@ -843,8 +868,24 @@ class DungeonContext(Context):
 
     game.is_hero_running = bool(run)
     if moved:
-      ally and game.step_ally(ally, run, old_cell)
-      game.step(moving=True)
+      ally and game.step_ally(ally, run, origin_cell)
+      if target_tile is Stage.DOOR_WAY:
+        hallway = game.find_hallway(origin_cell if origin_tile is Stage.DOOR_WAY else target_cell)
+        if hallway:
+          game.room = None
+          game.hero.cell = hallway[-1]
+          door = next((e for e in game.floor.get_elems_at(hallway[-1]) if isinstance(e, Door)), None)
+          game.anims.append([
+            PathAnim(
+              target=game.hero,
+              path=hallway[1:] if origin_tile is Stage.DOOR_WAY else hallway,
+              on_step=lambda cell: cell == hallway[-2] and door and not door.opened and door.effect(game),
+              on_end=lambda: game.step(moving=True)
+            )
+          ])
+          game.refresh_fov()
+      else:
+        game.step(moving=True)
     elif target_tile is Stage.PIT:
       moved = game.jump_pit(hero, run, on_move)
       if moved:
@@ -1115,7 +1156,10 @@ class DungeonContext(Context):
       anim_kind = JumpAnim if jump else MoveAnim
       src_cell = (*actor.cell, max(0, origin_tile.elev))
       dest_cell = (*target_cell, max(0, target_tile.elev))
+      def unset_command():
+        actor.command = None
       command = MoveCommand(direction=delta, on_end=compose(on_end, lambda: (
+        unset_command(),
         origin_elem and origin_elem.on_leave(game),
         next((e for e in game.floor.get_elems_at(target_cell) if not e.solid and not isinstance(e, Door) and e.effect(game, actor)), None),
       )))
@@ -1287,7 +1331,6 @@ class DungeonContext(Context):
     if miss:
       damage = None
     elif block:
-      print(damage)
       damage = max(0, damage - target.find_shield().en)
       target.block()
     elif crit:

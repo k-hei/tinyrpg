@@ -169,13 +169,16 @@ class Camera:
         move_anim = next((a for a in anims if (
           not a.done
           and a.target is hero
-          and isinstance(a, MoveAnim)
+          and (isinstance(a, MoveAnim) or isinstance(a, PathAnim))
         )), None)
         if move_anim:
           focus_x, focus_y, *focus_z = move_anim.cell
           focus_z = max(0, focus_z and focus_z[0] or 0)
           focus_y -= focus_z
-          target_x, target_y, *target_z = move_anim.dest
+          if isinstance(move_anim, MoveAnim):
+            target_x, target_y, *target_z = move_anim.dest
+          elif isinstance(move_anim, PathAnim):
+            target_x, target_y, *target_z = move_anim.next_cell
           target_z = max(0, target_z and target_z[0] or 0)
           target_y -= target_z
 
