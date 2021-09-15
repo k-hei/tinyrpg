@@ -316,11 +316,12 @@ class InventoryContext(Context):
           target=(i % cols, i // cols)
         ))
 
-  def update_items(ctx, reset=False):
+  def update_items(ctx, reset=False, silent=False):
     if reset:
       ctx.cursor = (0, 0)
     ctx.items = InventoryContext.filter_items(ctx.store.items, ctx.tabs[ctx.tab])
-    ctx.describe_item()
+    if not silent:
+      ctx.describe_item()
 
   def get_hero(ctx):
     return type(ctx.store.place).__name__.startswith("Dungeon") and ctx.store.place.hero
@@ -411,7 +412,8 @@ class InventoryContext(Context):
         ctx.exit()
       else:
         ctx.box.print(message)
-        ctx.update_items()
+        ctx.update_items(silent=True)
+        ctx.child.exit()
       return success
 
   def carry_item(ctx, item=None):

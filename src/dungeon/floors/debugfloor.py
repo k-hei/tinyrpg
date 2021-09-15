@@ -33,7 +33,7 @@ from items.ailment.lovepotion import LovePotion
 from items.ailment.booze import Booze
 
 ENABLE_LOOPLESS_LAYOUTS = False
-MIN_ROOM_COUNT = 12 if ENABLE_LOOPLESS_LAYOUTS else 4
+MIN_ROOM_COUNT = 12 if ENABLE_LOOPLESS_LAYOUTS else 5
 MAX_ROOM_COUNT = MIN_ROOM_COUNT + 2
 
 class DebugFloor(Floor):
