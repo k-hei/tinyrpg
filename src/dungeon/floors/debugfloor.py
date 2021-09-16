@@ -35,6 +35,7 @@ from items.ailment.booze import Booze
 ENABLE_LOOPLESS_LAYOUTS = False
 MIN_ROOM_COUNT = 12 if ENABLE_LOOPLESS_LAYOUTS else 5
 MAX_ROOM_COUNT = MIN_ROOM_COUNT + 2
+REGION_PADDING = 3
 
 class DebugFloor(Floor):
   def generate(store=None, seed=None):
@@ -61,6 +62,23 @@ def find_connectors(room1, room2):
       return list(outer_overlap)
   return []
 
+def find_origins(room1, room2):
+  rect1 = room1.rect
+  rect2 = room2.rect
+
+  left = -rect2.width + rect1.left - REGION_PADDING
+  top = -rect2.height + rect1.top - REGION_PADDING
+  right = rect1.right + REGION_PADDING
+  bottom = rect1.bottom + REGION_PADDING
+  width = right - left + 1
+  height = bottom - top + 1
+
+  origins = []
+  for y in range(top, bottom + 1):
+    for x in range(left, right + 1):
+      origins.append((x, y))
+  return origins
+
 def place_rooms(rooms):
   if not rooms:
     yield True
@@ -70,31 +88,22 @@ def place_rooms(rooms):
   for i, room in enumerate(rooms[1:]):
     # TODO: cache room props internally (subject to change on dependency reset)
     room_rect = room.rect
-    total_rect = total_blob.rect
     total_hitbox = total_blob.hitbox
 
-    PADDING = 3
-    left = -room_rect.width - PADDING
-    top = -room_rect.height - PADDING
-    right = total_rect.right - total_rect.left + PADDING
-    bottom = total_rect.bottom - total_rect.top + PADDING
-    width = right - left + 1
-    height = bottom - top + 1
-
     all_origins = []
-    for y in range(top, bottom + 1):
-      for x in range(left, right + 1):
-        all_origins.append((x, y))
+    for prev_room in graph.nodes:
+      all_origins += find_origins(room1=prev_room, room2=room)
+    all_origins = set(all_origins)
 
     ticks = get_ticks()
     desperate = ENABLE_LOOPLESS_LAYOUTS
-    valid_origins = all_origins.copy()
+    valid_origins = list(all_origins)
     while room not in graph.nodes and valid_origins:
       room.origin = choice(valid_origins)
       valid_origins.remove(room.origin)
       inner_overlap = total_hitbox & room.hitbox
       if not inner_overlap: # rooms aren't too close
-        neighbor_connectors = { n: cs for n, cs in [(n, find_connectors(n, room)) for n in graph.nodes] if cs }
+        neighbor_connectors = { n: cs for n, cs in [(n, find_connectors(room1=n, room2=room)) for n in graph.nodes] if cs }
         if neighbor_connectors:
           if len(graph.nodes) < 2:
             neighbor, connectors = [*neighbor_connectors.items()][0]
@@ -107,11 +116,11 @@ def place_rooms(rooms):
 
       if room in graph.nodes or (get_ticks() - ticks) > 1000 / FPS * 2:
         ticks = get_ticks()
-        iteration = width * height - len(valid_origins)
+        iteration = len(all_origins) - len(valid_origins)
         if room in graph.nodes:
           yield graph, f"Placed room {i + 2} of {len(rooms)} at {room.origin} after {iteration} iteration(s)"
         else:
-          yield None, f"Placing room {i + 2} of {len(rooms)} ({iteration}/{width * height})"
+          yield None, f"Placing room {i + 2} of {len(rooms)} ({iteration}/{len(all_origins)})"
 
       if room not in graph.nodes and not valid_origins and not desperate:
         valid_origins += all_origins # TODO: cache single connectors to avoid recalculations - need
@@ -385,7 +394,7 @@ class Blob(Room):
   def region(blob):
     region = []
     for cell in blob.cells:
-      region += neighborhood(cell, radius=3)
+      region += neighborhood(cell, radius=REGION_PADDING)
     return set(region)
 
   @property

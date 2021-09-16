@@ -188,10 +188,10 @@ class Camera:
         old_camera_x, old_camera_y = camera.pos
         camera_xvel, camera_yvel = camera.vel
         camera_speed = camera.speed or camera_speed
-        target_xvel = (camera_x - old_camera_x) / camera_speed * 2
-        target_yvel = (camera_y - old_camera_y) / camera_speed * 2
-        camera_xvel = (target_xvel - camera_xvel) / 2
-        camera_yvel = (target_yvel - camera_yvel) / 2
+        target_xvel = (camera_x - old_camera_x) / camera_speed * 8
+        target_yvel = (camera_y - old_camera_y) / camera_speed * 8
+        camera_xvel = (target_xvel - camera_xvel) / 8
+        camera_yvel = (target_yvel - camera_yvel) / 8
         camera_x = old_camera_x + camera_xvel
         camera_y = old_camera_y + camera_yvel
         camera.vel = (camera_xvel, camera_yvel)

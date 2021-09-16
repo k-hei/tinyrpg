@@ -37,6 +37,7 @@ BLACKOUT_DURATION = 10
 BLACKOUT_DELAY = 60
 BLACKOUT_FRAMES = 3
 COLOR_KEY = (255, 0, 255)
+COLOR_WALL = 0x00CCFF
 
 class EnterAnim(TweenAnim):
   def __init__(anim):
@@ -67,7 +68,7 @@ class Minimap:
     sprite_width, sprite_height = sprite_size
 
     surface = Surface(sprite_size)
-    surface.fill(COLOR_KEY)
+    surface.fill(COLOR_WALL if filled else COLOR_KEY)
     surface.set_colorkey(COLOR_KEY)
     pixels = PixelArray(surface)
 
@@ -129,7 +130,9 @@ class Minimap:
         color = (0xFFFF00, 0x7F7F00)[blink]
       elif tile is Stage.WALL or isinstance(elem, Door) and elem.locked or type(elem) is Pillar:
         if cell in visible_cells:
-          color = 0x00CCFF
+          if filled:
+            continue
+          color = COLOR_WALL
         else:
           color = 0x0066CC
       elif isinstance(elem, Door) and not elem.opened:
