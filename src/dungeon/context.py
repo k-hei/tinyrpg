@@ -349,7 +349,10 @@ class DungeonContext(Context):
       visible_cells = game.floor_cells
     elif path_anim:
       hallway = [c for c in path_anim.path if not next((e for e in game.floor.get_elems_at(c) if isinstance(e, Door)), None)]
-      visible_cells = list(set([n for c in hallway for n in neighborhood(c, inclusive=True, diagonals=True)]))
+      visible_cells = list(set([n for c in hallway for n in (
+        neighborhood(c, inclusive=True, diagonals=True)
+        + neighborhood(add_vector(c, (0, -1)), inclusive=True, diagonals=True)
+      ) if game.floor.get_tile_at(n) is Stage.WALL or game.floor.get_tile_at(n) is Stage.DOOR_WAY]))
     elif not game.camera.anims:
       visible_cells = shadowcast(floor, hero.cell, VISION_RANGE)
       def is_cell_within_visited_room(cell):

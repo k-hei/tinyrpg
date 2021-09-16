@@ -284,7 +284,7 @@ def gen_floor(
           door2_delta = subtract_vector(door2, door2_neighbor)
           door2_start = add_vector(door2, door2_delta)
 
-          if {door1_start, door2_start} & room_outlines:
+          if {door1_start, door2_start} & path_blacklist:
             continue
 
           door_path = gen_path(start=door1_start, goal=door2_start, predicate=lambda c: c not in path_blacklist)
