@@ -46,6 +46,7 @@ from dungeon.props.coffin import Coffin
 from dungeon.props.soul import Soul
 from dungeon.props.pushblock import PushBlock
 from dungeon.props.pushtile import PushTile
+from dungeon.props.pillar import Pillar
 
 from items.hp.potion import Potion
 from items.sp.cheese import Cheese
@@ -467,6 +468,15 @@ def gen_mazeroom(stage, room):
     for cell in pivot_neighbors:
       if cell in room_cells:
         stage.set_tile_at(cell, stage.FLOOR)
+      if diagonals and radius == 2 and (
+        cell in neighborhood(pivot, diagonals=True)
+        and cell not in neighborhood(pivot, inclusive=True)
+        and not next((n for n in neighborhood(cell, diagonals=True) if (
+          n not in room_cells
+          or not stage.is_cell_empty(n)
+        )), None)
+      ):
+        stage.spawn_elem_at(cell, Pillar(broken=randint(1, 3) == 1))
     return pivot
 
   def draw_path(start, goal):
