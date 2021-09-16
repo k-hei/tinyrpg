@@ -4,7 +4,6 @@ from lib.lerp import lerp
 
 class PathAnim(Anim):
   def __init__(anim, path, period=WALK_DURATION, duration=None, on_step=None, *args, **kwargs):
-    super().__init__(duration=duration, *args, **kwargs)
     anim.period = period
     anim.path = path
     anim.src = path[0]
@@ -12,6 +11,15 @@ class PathAnim(Anim):
     anim.next_cell = path[1] if len(path) > 1 else None
     anim.facing = (0, 0)
     anim.on_step = on_step
+    super().__init__(duration=duration, *args, **kwargs)
+
+  @property
+  def duration(anim):
+    return len(anim.path) * anim.period
+
+  @duration.setter
+  def duration(anim, duration):
+    return
 
   def update(anim):
     if anim.done:

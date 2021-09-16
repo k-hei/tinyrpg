@@ -347,12 +347,12 @@ def gen_floor(
       gen_mazeroom(stage, room)
 
     # populate rooms
-    for i, room in enumerate(empty_rooms):
-      yield stage, f"Spawning items for room {i + 2}"
+    for i, room in enumerate(rooms):
       items_spawned = gen_elems(stage, room,
         elems=[Vase(choice(items)) for _ in range(min(3, room.get_area() // 20))]
       )
-      yield stage, f"Spawning enemies for room {i + 2}"
+
+    for i, room in enumerate(empty_rooms):
       enemies_spawned = gen_elems(stage, room,
         elems=[choice(enemies)() for _ in range(min(5, room.get_area() // 20))]
       )
