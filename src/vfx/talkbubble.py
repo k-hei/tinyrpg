@@ -1,17 +1,23 @@
 from pygame.transform import flip
 from vfx import Vfx
-from anims import Anim
+from anims.frame import FrameAnim
 from sprite import Sprite
 import assets
 from config import TILE_SIZE
 
 class TalkBubble(Vfx):
-  def __init__(bubble, cell, elev=0, duration=None, flipped=False):
+  class Anim(FrameAnim):
+    frames = assets.sprites["bubble_talk"]
+    frames_duration = 10
+    loop = True
+
+  def __init__(bubble, cell, elev=0, duration=None, target=None, flipped=False):
     x, y = cell
     super().__init__(kind=None, pos=(x * TILE_SIZE, (y - elev) * TILE_SIZE))
-    bubble.anim = duration and Anim(duration=duration) or None
-    bubble.shown = True
+    bubble.anim = TalkBubble.Anim(duration=duration)
+    bubble.target = target
     bubble.flipped = flipped
+    bubble.shown = True
 
   def show(bubble):
     bubble.shown = True
@@ -19,7 +25,7 @@ class TalkBubble(Vfx):
   def hide(bubble):
     bubble.shown = False
 
-  def update(bubble, _):
+  def update(bubble, *_):
     if bubble.anim:
       if bubble.anim.done:
         bubble.anim = None
@@ -30,15 +36,15 @@ class TalkBubble(Vfx):
   def view(bubble):
     if not bubble.shown:
       return []
-    bubble_image = assets.sprites["bubble_talk"]
+
+    bubble_image = bubble.anim.frame()
     bubble_x, bubble_y = bubble.pos
+    bubble_x += TILE_SIZE - 4
     if bubble.flipped:
-      bubble_x += TILE_SIZE - 8
       bubble_y += 28
       bubble_origin = Sprite.ORIGIN_TOPLEFT
       bubble_image = flip(bubble_image, False, True)
     else:
-      bubble_x += TILE_SIZE - 8
       bubble_y += 8
       bubble_origin = Sprite.ORIGIN_BOTTOMLEFT
 

@@ -7,7 +7,7 @@ class FrameAnim(Anim):
 
   def __init__(anim, frames=[], frames_duration=inf, duration=0, delay=0, *args, **kwargs):
     super().__init__(duration=duration, delay=delay, *args, **kwargs)
-    if not anim.frames:
+    if frames:
       anim.frames = frames
     if not anim.frames_duration:
       anim.frames_duration = frames_duration
@@ -40,7 +40,8 @@ class FrameAnim(Anim):
       frame_duration = anim.frames_duration or anim.duration / len(anim.frames)
       anim_duration = frame_duration * len(anim.frames)
       frame_index = int(time % anim_duration / anim_duration * len(anim.frames))
-      if time >= anim_duration and not anim.loop:
+      if (time >= anim_duration and not anim.loop
+      or anim.duration and time >= anim.duration):
         anim.end()
         return None
     anim.frame_index = frame_index

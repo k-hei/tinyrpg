@@ -129,6 +129,11 @@ class Camera:
       and abs(row - center_row) <= Camera.MAX_RADIUS_Y
     )
 
+  def is_cell_beyond_yrange(camera, cell):
+    _, row = cell
+    _, center_row = camera.cell
+    return row - center_row <= -Camera.MAX_RADIUS_Y
+
   def update(camera, game):
     camera_anim = camera.anims[0] if camera.anims else None
     if camera_anim:

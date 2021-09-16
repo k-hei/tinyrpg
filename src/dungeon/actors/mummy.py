@@ -81,6 +81,7 @@ class Mummy(DungeonActor):
         )])
       else:
         on_end and on_end()
+      return False
 
   def __init__(soldier, name="Mummy", *args, **kwargs):
     super().__init__(Core(

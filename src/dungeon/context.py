@@ -2042,17 +2042,19 @@ class DungeonContext(Context):
       and e.active
       and (not isinstance(e, DungeonActor) or e.faction == "ally")
     )), None)
-    if game.talkbubble:
-      game.talkbubble.done = True
-      game.talkbubble = None
-    if facing_elem and not facing_elem.hidden and not game.anims and not hero.item:
-      bubble_cell = facing_cell
-      game.talkbubble = TalkBubble(
-        cell=bubble_cell,
-        elev=Tile.get_elev(game.floor.get_tile_at(facing_cell)),
-        flipped=not game.camera.is_cell_visible(bubble_cell),
-      )
-      game.vfx.append(game.talkbubble)
+    if not game.talkbubble or facing_elem is not game.talkbubble.target:
+      if game.talkbubble:
+        game.talkbubble.done = True
+        game.talkbubble = None
+      if facing_elem and not facing_elem.hidden and not game.anims and not hero.item:
+        bubble_cell = facing_cell
+        game.talkbubble = TalkBubble(
+          target=facing_elem,
+          cell=bubble_cell,
+          elev=Tile.get_elev(game.floor.get_tile_at(facing_cell)),
+          flipped=game.camera.is_cell_beyond_yrange(bubble_cell),
+        )
+        game.vfx.append(game.talkbubble)
 
   def show_bubble(game):
     game.talkbubble and game.talkbubble.show()
