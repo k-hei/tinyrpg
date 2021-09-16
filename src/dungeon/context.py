@@ -260,12 +260,11 @@ class DungeonContext(Context):
     game.room = None
     game.anims = []
     game.commands = []
-    game.refresh_fov(moving=True)
     game.rooms_entered.append(game.room)
     game.camera.reset()
     game.camera.update(game)
     game.floor_view = StageView(WINDOW_SIZE)
-    game.redraw_tiles()
+    game.refresh_fov(moving=True)
     game.time = 0
 
   def create_floor(game):
@@ -322,24 +321,30 @@ class DungeonContext(Context):
         already_illuminated_once_this_floor = next((r for r in game.floor.rooms if r in game.room_entrances), None)
         game.room_entrances[room] = hero.cell
         if already_illuminated_once_this_floor:
-          room_cells = room.get_cells() + room.get_outline()
+          room_cellset = set(room.get_cells() + room.get_outline())
+          visible_cellset = room_cellset & set(hero.visible_cells)
+          anim_cells = list(room_cellset - visible_cellset)
+          visible_cells = list(visible_cellset)
+          room_cells = list(room_cellset)
+
           tween_duration = game.camera.illuminate(room, actor=game.hero)
           if tween_duration:
-            game.log.exit()
-            def illuminate():
-              hero.visible_cells = room_cells
-              game.redraw_tiles(force=True)
             not game.anims and game.anims.append([])
             game.anims[0].append(PauseAnim(duration=tween_duration))
-            game.anims += [
-              [StageView.FadeAnim(
-                target=room_cells,
-                duration=15,
-                on_start=lambda: game.update_visited_cells(room_cells),
-                on_end=illuminate
-              )],
-              [PauseAnim(duration=15)]
-            ]
+
+          game.log.exit()
+          game.anims += [
+            [StageView.FadeAnim(
+              target=anim_cells,
+              duration=15,
+              on_start=lambda: game.update_visited_cells(anim_cells),
+              on_end=lambda: (
+                game.redraw_tiles(force=True),
+                setattr(hero, "visible_cells", room_cells),
+              )
+            )],
+            [PauseAnim(duration=15)]
+          ]
       game.room = room
       game.room_within = room_within
 
@@ -353,7 +358,7 @@ class DungeonContext(Context):
         neighborhood(c, inclusive=True, diagonals=True)
         + neighborhood(add_vector(c, (0, -1)), inclusive=True, diagonals=True)
       ) if game.floor.get_tile_at(n) is Stage.WALL or game.floor.get_tile_at(n) is Stage.DOOR_WAY]))
-    elif not game.camera.anims:
+    elif not game.camera.anims and not next((a for g in game.anims for a in g if type(a) is StageView.FadeAnim), None):
       visible_cells = shadowcast(floor, hero.cell, VISION_RANGE)
       def is_cell_within_visited_room(cell):
         room = next((r for r in game.floor.rooms if cell in r.get_cells()), None)
@@ -362,9 +367,8 @@ class DungeonContext(Context):
       if game.room:
         visible_cells += game.room.get_cells() + game.room.get_outline()
 
-    if not game.camera.anims:
-      hero.visible_cells = visible_cells
-      game.update_visited_cells(visible_cells)
+    hero.visible_cells = visible_cells
+    game.update_visited_cells(visible_cells)
 
     if door is not None:
       return
@@ -391,6 +395,7 @@ class DungeonContext(Context):
 
     if new_room:
       new_room.on_enter(game)
+      game.redraw_tiles(force=True)
 
   def darken(game, duration=inf):
     game.floor_view.darkened = True
@@ -2040,7 +2045,7 @@ class DungeonContext(Context):
     if game.talkbubble:
       game.talkbubble.done = True
       game.talkbubble = None
-    if facing_elem and not game.anims and not hero.item:
+    if facing_elem and not facing_elem.hidden and not game.anims and not hero.item:
       bubble_cell = facing_cell
       game.talkbubble = TalkBubble(cell=bubble_cell, elev=Tile.get_elev(game.floor.get_tile_at(facing_cell)))
       game.vfx.append(game.talkbubble)

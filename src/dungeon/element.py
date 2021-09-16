@@ -21,12 +21,14 @@ class DungeonElement:
   opaque = False
   static = False
   active = False
+  hidden = False
 
-  def __init__(elem, solid=False, opaque=False, static=False, active=False):
-    if not elem.solid: elem.solid = solid
-    if not elem.opaque: elem.opaque = opaque
-    if not elem.static: elem.static = static
-    if not elem.active: elem.active = active
+  def __init__(elem, solid=False, opaque=False, static=False, active=False, hidden=False):
+    if solid: elem.solid = solid
+    if opaque: elem.opaque = opaque
+    if static: elem.static = static
+    if active: elem.active = active
+    if hidden: elem.hidden = hidden
     elem.cell = None
     elem.size = (1, 1)
     elem.elev = 0

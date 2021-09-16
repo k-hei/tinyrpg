@@ -15,6 +15,7 @@ from dungeon.gen.path import gen_path
 from dungeon.gen.floorgraph import FloorGraph
 from dungeon.stage import Stage
 from dungeon.props.door import Door
+from dungeon.props.secretdoor import SecretDoor
 from dungeon.props.vase import Vase
 
 from dungeon.actors.eyeball import Eyeball
@@ -184,7 +185,7 @@ def gen_loop(tree, graph):
     return False
 
 def gen_loops(tree, graph):
-  while gen_loop(tree, graph): pass
+  while len(tree.ends()) > 1 and gen_loop(tree, graph): pass
 
 def gen_floor(
   enemies=[Eyeball, Mushroom, Ghost, Mummy],
@@ -319,28 +320,44 @@ def gen_floor(
     empty_rooms = rooms.copy()
 
     # SpawnEntrance(stage) -> room
+    entry_room = None
     for room in rooms:
       entrances = [c for c in room.cells if not next((n for n in neighborhood(c, radius=1, diagonals=True) if stage.get_tile_at(n) is not Stage.FLOOR), None)]
       if entrances:
         stage.entrance = choice(entrances)
         stage.set_tile_at(stage.entrance, Stage.STAIRS_DOWN)
         empty_rooms.remove(room)
+        entry_room = room
         yield stage, f"Spawned entrance at {stage.entrance}"
         break
     else:
       yield stage, "Failed to spawn entrance"
 
     # SpawnExit(stage) -> room
+    exit_room = None
     for room in empty_rooms:
       exits = [c for c in room.cells if not next((n for n in neighborhood(c, radius=1, diagonals=True) if stage.get_tile_at(n) is not Stage.FLOOR), None)]
       if exits:
         stage.exit = choice(exits)
         stage.set_tile_at(stage.exit, Stage.STAIRS_UP)
         empty_rooms.remove(room)
+        exit_room = room
         yield stage, f"Spawned exit at {stage.exit}"
         break
     else:
       yield stage, "Failed to spawn exit"
+
+    secrets = [e for e in tree.ends() if e not in (entry_room, exit_room)]
+    for secret in secrets:
+      neighbor = tree.neighbors(secret)[0]
+      connector = [subtract_vector(c, stage_offset) for c in tree.connectors(secret, neighbor)][0]
+      doorways = neighbor.get_doorways(stage)
+      doorway = sorted(doorways, key=lambda d: manhattan(d, connector))[0]
+      door = next((e for e in stage.get_elems_at(doorway) if isinstance(e, Door)), None)
+      stage.remove_elem(door)
+      stage.spawn_elem_at(doorway, SecretDoor())
+      if neighbor is entry_room:
+        print("Spawned secret beside entry room")
 
     # draw room terrain
     for room in empty_rooms:

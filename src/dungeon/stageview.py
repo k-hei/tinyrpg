@@ -20,6 +20,8 @@ from dungeon.props.chest import Chest
 from dungeon.props.soul import Soul
 from dungeon.props.palm import Palm
 from dungeon.props.door import Door
+from dungeon.props.secretdoor import SecretDoor
+from dungeon.render.wall import render_wall
 
 from anims import Anim
 from anims.move import MoveAnim
@@ -56,6 +58,8 @@ def get_tile_visited_state(stage, cell, visited_cells):
     (x - 1, y + 1) in visited_cells,
     (    x, y + 1) in visited_cells,
     (x + 1, y + 1) in visited_cells,
+    next((e for e in stage.get_elems_at((x - 1, y)) if type(e) is SecretDoor and e.hidden), None),
+    next((e for e in stage.get_elems_at((x + 1, y)) if type(e) is SecretDoor and e.hidden), None),
   ]
 
 class StageView:
@@ -156,8 +160,8 @@ class StageView:
       if fade_anim:
         break
     if fade_anim:
-      anim_cells = not fade_anim.done and fade_anim.target or []
-      if cell in (set(anim_cells) - set(visible_cells)):
+      anim_cells = fade_anim.target if not fade_anim.done else []
+      if cell in anim_cells:
         if fade_anim.time:
           tile_image = darken_image(tile_image) if tile_sprite else self.tile_cache[cell][2]
         else:
@@ -254,7 +258,13 @@ class StageView:
       sprites.append(decor_sprite)
     return sprites
 
-  def view_elem(self, elem, anims):
+  def view_elem(self, elem, stage, visited_cells, anims):
+    if type(elem) is SecretDoor and elem.hidden:
+      return [Sprite(
+        image=render_wall(stage, elem.cell, visited_cells),
+        pos=tuple([x * TILE_SIZE for x in elem.cell]),
+        layer="tiles"
+      )]
     sprites = elem.view(anims)
     if sprites:
       for sprite in sprites:
@@ -272,7 +282,7 @@ class StageView:
     else:
       return []
 
-  def view_elems(self, elems, hero, camera, visible_cells, anims):
+  def view_elems(self, elems, stage, hero, camera, visible_cells, visited_cells, anims):
     time_start = get_ticks()
     sprites = []
     camera = camera.get_rect()
@@ -296,7 +306,7 @@ class StageView:
     visible_elems = [e for e in elems if is_visible(e)]
     for elem in visible_elems:
       try:
-        sprites += self.view_elem(elem, anims)
+        sprites += self.view_elem(elem, stage, visited_cells, anims)
       except:
         raise
     time_end = get_ticks()
@@ -369,7 +379,7 @@ class StageView:
     elems = stage.elems
     decors = stage.decors
     sprites += self.view_decors(decors, visible_cells, visited_cells)
-    sprites += self.view_elems(elems, hero, camera, visible_cells, anims)
+    sprites += self.view_elems(elems, stage, hero, camera, visible_cells, visited_cells, anims)
     sprites += self.view_vfx(vfx, camera)
     sprites += self.view_numbers(numbers, camera)
     camera_offset = None
@@ -435,7 +445,11 @@ def render_tile(stage, cell, visited_cells=[]):
           break
     if tile_below is stage.FLOOR_ELEV:
       return Sprite(image=assets.sprites["wall_bottom"], pos=(0, -TILE_SIZE))
-    elif ((tile_below is stage.FLOOR or tile_below is stage.PIT or tile_below is stage.DOOR_WAY)
+    elif ((
+      tile_below is stage.FLOOR
+      or tile_below is stage.PIT
+      or tile_below is stage.DOOR_WAY
+    )
     and (x, y + 1) in visited_cells
     and not stage.get_elem_at((x, y + 1), superclass=Door)):
       if x % (3 + y % 2) == 0:
@@ -528,100 +542,6 @@ def render_tile(stage, cell, visited_cells=[]):
   elif tile is stage.OASIS:
     return render_oasis(stage, cell)
   return assets.sprites[sprite_name] if sprite_name else None
-
-def render_wall(stage, cell, visited_cells=[]):
-  assets = use_assets()
-  x, y = cell
-  def is_wall(x, y):
-    door = stage.get_elem_at((x, y), superclass=Door)
-    return (
-      (x, y) not in visited_cells
-      or stage.get_tile_at((x, y)) is None
-      or stage.get_tile_at((x, y)) is stage.WALL and (
-        (x, y + 1) not in visited_cells
-        or stage.get_tile_at((x, y + 1)) is None
-        or stage.get_tile_at((x, y + 1)) is stage.WALL
-        or stage.get_elem_at((x, y + 1), superclass=Door))
-    )
-  is_door = lambda x, y: stage.get_elem_at((x, y), superclass=Door)
-
-  sprite = Surface((TILE_SIZE, TILE_SIZE), SRCALPHA)
-  sprite.fill(BLACK)
-
-  edge_left = assets.sprites["wall_edge"]
-  if "wall_edge_bottom" not in assets.sprites:
-    assets.sprites["wall_edge_bottom"] = rotate(edge_left, 90)
-  edge_bottom = assets.sprites["wall_edge_bottom"]
-  if "wall_edge_right" not in assets.sprites:
-    assets.sprites["wall_edge_right"] = rotate(edge_left, 180)
-  edge_top = assets.sprites["wall_edge_right"]
-  if "wall_edge_top" not in assets.sprites:
-    assets.sprites["wall_edge_top"] = rotate(edge_left, 270)
-  edge_top = assets.sprites["wall_edge_top"]
-
-  corner_nw = assets.sprites["wall_corner"]
-  if "wall_corner_sw" not in assets.sprites:
-    assets.sprites["wall_corner_sw"] = rotate(corner_nw, 90)
-  corner_sw = assets.sprites["wall_corner_sw"]
-  if "wall_corner_se" not in assets.sprites:
-    assets.sprites["wall_corner_se"] = rotate(corner_nw, 180)
-  corner_se = assets.sprites["wall_corner_se"]
-  if "wall_corner_ne" not in assets.sprites:
-    assets.sprites["wall_corner_ne"] = rotate(corner_nw, 270)
-  corner_ne = assets.sprites["wall_corner_ne"]
-
-  edge_right = rotate(edge_left, 180)
-  link = assets.sprites["wall_link"]
-
-  if not is_wall(x - 1, y):
-    sprite.blit(edge_left, (0, 0))
-    if is_wall(x, y - 1):
-      sprite.blit(link, (0, 0))
-    if is_wall(x, y + 1):
-      sprite.blit(flip(link, False, True), (0, 0))
-
-  if not is_wall(x + 1, y):
-    sprite.blit(edge_right, (0, 0))
-    if is_wall(x, y - 1):
-      sprite.blit(flip(link, True, False), (0, 0))
-    if is_wall(x, y + 1):
-      sprite.blit(flip(link, True, True), (0, 0))
-
-  if not is_wall(x, y - 1):
-    sprite.blit(edge_top, (0, 0))
-
-  if not is_wall(x, y + 1):
-    sprite.blit(edge_bottom, (0, 0))
-
-  if (is_wall(x - 1, y) and is_wall(x, y - 1) and not is_wall(x - 1, y - 1)
-  or not is_wall(x - 1, y) and not is_wall(x, y - 1)):
-    sprite.blit(corner_nw, (0, 0))
-
-  if (is_wall(x + 1, y) and is_wall(x, y - 1) and not is_wall(x + 1, y - 1)
-  or not is_wall(x + 1, y) and not is_wall(x, y - 1)):
-    sprite.blit(corner_ne, (0, 0))
-
-  if (is_wall(x - 1, y) and is_wall(x, y + 1) and not is_wall(x - 1, y + 1)
-  or not is_wall(x - 1, y) and not is_wall(x, y + 1)):
-    sprite.blit(corner_sw, (0, 0))
-
-  if (is_wall(x + 1, y) and is_wall(x, y + 1) and not is_wall(x + 1, y + 1)
-  or not is_wall(x + 1, y) and not is_wall(x, y + 1)):
-    sprite.blit(corner_se, (0, 0))
-
-  if not is_wall(x, y - 1) and is_wall(x - 1, y):
-    sprite.blit(rotate(flip(link, False, True), -90), (0, 0))
-
-  if not is_wall(x, y - 1) and is_wall(x + 1, y):
-    sprite.blit(rotate(link, -90), (0, 0))
-
-  if is_wall(x - 1, y) and not is_wall(x, y + 1):
-    sprite.blit(rotate(link, 90), (0, 0))
-
-  if is_wall(x + 1, y) and not is_wall(x, y + 1):
-    sprite.blit(rotate(flip(link, True, False), -90), (0, 0))
-
-  return sprite
 
 def render_oasis(stage, cell):
   sprites = use_assets().sprites

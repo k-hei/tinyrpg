@@ -109,8 +109,8 @@ class Door(Prop):
 
   def view(door, anims):
     sprites = use_assets().sprites
-    will_open = next((g for g in anims if next((a for a in g if a.target is door and type(a) is DoorOpenAnim), None)), None)
-    will_close = next((g for g in anims if next((a for a in g if a.target is door and type(a) is DoorCloseAnim), None)), None)
+    will_open = next((a for g in anims for a in g if a.target is door and type(a) is DoorOpenAnim), None)
+    will_close = next((a for g in anims for a in g if a.target is door and type(a) is DoorCloseAnim), None)
     anim_group = [a for a in anims[0] if a.target is door] if anims else []
     for anim in anim_group:
       if isinstance(anim, DoorAnim):

@@ -15,6 +15,7 @@ from dungeon.props.vase import Vase
 from dungeon.props.itemdrop import ItemDrop
 from dungeon.props.soul import Soul
 from dungeon.props.door import Door
+from dungeon.props.secretdoor import SecretDoor
 from dungeon.props.pillar import Pillar
 from dungeon.props.altar import Altar
 from colors.palette import GREEN, DARKGREEN, VIOLET, DARKVIOLET
@@ -60,7 +61,7 @@ class Minimap:
 
   def render_surface(floor, size=None, focus=None, visible_cells=None, visited_cells=None, anims=[], blink=False):
     floor_width, floor_height = floor.size
-    filled = not visible_cells
+    filled = not visible_cells and not visited_cells
     visible_cells = visible_cells or floor.get_cells()
     visited_cells = visited_cells or visible_cells
     bounds = filled and Rect((0, 0), floor.size) or find_bounds(visited_cells)
@@ -128,7 +129,11 @@ class Minimap:
         color = (0xFFFF00, 0x7F7F00)[blink]
       elif type(elem) is Altar:
         color = (0xFFFF00, 0x7F7F00)[blink]
-      elif tile is Stage.WALL or isinstance(elem, Door) and elem.locked or type(elem) is Pillar:
+      elif (tile is Stage.WALL
+      or isinstance(elem, Door) and elem.locked
+      or type(elem) is SecretDoor
+      or type(elem) is Pillar
+      ):
         if cell in visible_cells:
           if filled:
             continue
