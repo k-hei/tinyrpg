@@ -1829,8 +1829,9 @@ class DungeonContext(Context):
           game.refresh_fov()
         )
       ))
-      if target_cell:
-        camera.focus(target_cell, force=True)
+      if target_cell or target_cell is False:
+        if target_cell:
+          camera.focus(target_cell, force=True)
         if ENABLED_COMBAT_LOG:
           game.log.print((actor.token(), " uses ", skill().token()))
         elif skill.name:
