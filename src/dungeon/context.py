@@ -406,6 +406,7 @@ class DungeonContext(Context):
 
   def darken_end(game):
     game.floor_view.darkened = False
+    game.redraw_tiles(force=True)
     # for group in game.anims:
     #   for anim in group:
     #     if type(anim) is StageView.DarkenAnim:

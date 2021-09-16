@@ -4,7 +4,7 @@ from pygame.transform import rotate, flip, scale
 from pygame.time import get_ticks
 
 from lib.lerp import lerp
-from lib.cell import add as add_vector
+from lib.cell import add as add_vector, neighborhood
 import debug
 import assets
 from assets import load as use_assets
@@ -501,6 +501,7 @@ def render_tile(stage, cell, visited_cells=[]):
     and stage.get_tile_at((x + 1, y - 1)) is stage.FLOOR
     and stage.get_tile_at((x - 1, y + 1)) is stage.FLOOR
     and stage.get_tile_at((x + 1, y + 1)) is stage.FLOOR
+    or next((n for n in neighborhood(cell) for e in stage.get_elems_at(n) if isinstance(e, Door) and not isinstance(e, SecretDoor)), None)
   ):
     sprite_name = "floor_fancy"
   elif tile is stage.FLOOR:
