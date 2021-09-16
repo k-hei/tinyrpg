@@ -1614,7 +1614,7 @@ class DungeonContext(Context):
     carry_item = game.hero and game.hero.item
     if carry_item and item and carry_item is not item:
       return False, "Your hands are full!"
-    elif carry_item:
+    elif carry_item and not discard:
       item = carry_item
       game.hero.item = None
     if not item:
