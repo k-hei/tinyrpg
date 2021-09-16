@@ -74,20 +74,22 @@ class Minimap:
     pixels = PixelArray(surface)
 
     for cell in visited_cells:
-      x, y = cell
-      if x < 0 or y < 0 or x >= floor_width or y >= floor_height:
+      col, row = cell
+      if col < 0 or row < 0 or col >= floor_width or row >= floor_height:
         continue
 
       tile = floor.get_tile_at(cell)
-      tile_above = floor.get_tile_at((x, y - 1))
-      tile_below = floor.get_tile_at((x, y + 1))
+      tile_above = floor.get_tile_at((col, row - 1))
+      tile_below = floor.get_tile_at((col, row + 1))
 
       if focus:
         focus_x, focus_y = focus
-        x = int(x - focus_x + sprite_width / 2)
-        y = int(y - focus_y + sprite_height / 2)
+        x = int(col - focus_x + sprite_width / 2)
+        y = int(row - focus_y + sprite_height / 2)
         if x < 0 or y < 0 or x >= sprite_width or y >= sprite_height:
           continue
+      else:
+        x, y = col, row
 
       elem = floor.get_elem_at(cell)
       if next((g for g in anims if next((a for a in g if type(a) is WarpInAnim and a.target is elem), None)), None):
@@ -131,7 +133,8 @@ class Minimap:
         color = (0xFFFF00, 0x7F7F00)[blink]
       elif (tile is Stage.WALL
       or isinstance(elem, Door) and elem.locked
-      or type(elem) is SecretDoor
+      or type(elem) is SecretDoor and elem.hidden
+      or tile is Stage.HALLWAY and SecretDoor.exists_at(floor, (col, row + 1))
       or type(elem) is Pillar
       ):
         if cell in visible_cells:

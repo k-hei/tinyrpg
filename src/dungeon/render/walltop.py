@@ -6,25 +6,18 @@ from dungeon.props.secretdoor import SecretDoor
 from colors.palette import BLACK
 from config import TILE_SIZE
 
-def render_wall(stage, cell, visited_cells=[]):
+def render_walltop(stage, cell, visited_cells=[]):
   x, y = cell
-  def is_wall(x, y):
-    door = stage.get_elem_at((x, y), superclass=Door)
-    return (
-      (x, y) not in visited_cells
-      or stage.get_tile_at((x, y)) is None
-      or stage.get_tile_at((x, y)) is stage.WALL and (
-        (x, y + 1) not in visited_cells
-        or stage.get_tile_at((x, y + 1)) is None
-        or stage.get_tile_at((x, y + 1)) is stage.WALL
-        or stage.get_elem_at((x, y + 1), superclass=Door)
-      )
-      or next((e for e in stage.get_elems_at((x, y)) if type(e) is SecretDoor and e.hidden), None)
-      or stage.get_tile_at((x, y)) is stage.DOOR_WAY and (
-        next((e for e in stage.get_elems_at((x, y - 1)) if type(e) is SecretDoor and e.hidden), None)
-        or next((e for e in stage.get_elems_at((x, y + 1)) if type(e) is SecretDoor and e.hidden), None)
-      )
+  is_wall = lambda x, y: (
+    (x, y) not in visited_cells
+    or stage.get_tile_at((x, y)) is None
+    or (stage.get_tile_at((x, y)) is stage.WALL or SecretDoor.exists_at(stage, (x, y))) and (
+      (x, y + 1) not in visited_cells
+      or stage.get_tile_at((x, y + 1)) is None
+      or stage.get_tile_at((x, y + 1)) is stage.WALL
+      or stage.get_elem_at((x, y + 1), superclass=Door)
     )
+  )
   is_door = lambda x, y: stage.get_elem_at((x, y), superclass=Door)
 
   sprite = Surface((TILE_SIZE, TILE_SIZE), SRCALPHA)

@@ -28,6 +28,6 @@ class PushBlockRoom(SpecialRoom, VerticalRoom):
       return False
     if connectors:
       pushtile_cell = add_cell(connectors[1], (0, 1))
-      stage.set_tile_at(pushtile_cell, stage.DOOR_WAY)
+      stage.set_tile_at(pushtile_cell, stage.HALLWAY)
       stage.spawn_elem_at(pushtile_cell, PushTile())
     return True

@@ -309,7 +309,7 @@ def gen_floor(
       stage.spawn_elem_at(door1, Door())
       stage.spawn_elem_at(door2, Door())
       for cell in door_path:
-        stage.set_tile_at(cell, Stage.DOOR_WAY)
+        stage.set_tile_at(cell, Stage.HALLWAY)
         door_paths.update(neighborhood(cell, inclusive=True, diagonals=True))
       yield stage, f"Connected rooms {rooms.index(room1) + 1} and {rooms.index(room2) + 1} at {connector}"
 

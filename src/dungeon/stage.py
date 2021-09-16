@@ -61,7 +61,7 @@ class Stage:
     solid = True
     opaque = False
 
-  class DOOR_WAY(Tile):
+  class HALLWAY(Tile):
     solid = False
     opaque = False
 
@@ -87,7 +87,7 @@ class Stage:
     solid = False
     opaque = False
 
-  TILES = [PIT, FLOOR, WALL, STAIRS_DOWN, STAIRS_UP, DOOR_WAY, OASIS, OASIS_STAIRS]
+  TILES = [PIT, FLOOR, WALL, STAIRS_DOWN, STAIRS_UP, HALLWAY, OASIS, OASIS_STAIRS]
 
   def __init__(stage, size, data=None, elems=None):
     width, height = size

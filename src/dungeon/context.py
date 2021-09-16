@@ -357,7 +357,7 @@ class DungeonContext(Context):
       visible_cells = list(set([n for c in hallway for n in (
         neighborhood(c, inclusive=True, diagonals=True)
         + neighborhood(add_vector(c, (0, -1)), inclusive=True, diagonals=True)
-      ) if game.floor.get_tile_at(n) is Stage.WALL or game.floor.get_tile_at(n) is Stage.DOOR_WAY]))
+      ) if game.floor.get_tile_at(n) is Stage.WALL or game.floor.get_tile_at(n) is Stage.HALLWAY]))
     elif not game.camera.anims and not next((a for g in game.anims for a in g if type(a) is StageView.FadeAnim), None):
       visible_cells = shadowcast(floor, hero.cell, VISION_RANGE)
       def is_cell_within_visited_room(cell):
@@ -794,14 +794,14 @@ class DungeonContext(Context):
 
   def find_hallway(game, cell):
     floor = game.floor
-    if floor.get_tile_at(cell) is not Stage.DOOR_WAY:
+    if floor.get_tile_at(cell) is not Stage.HALLWAY:
       return []
     hallway = [cell]
     stack = [cell]
     while stack:
       cell = stack.pop()
       neighbors = [n for n in neighborhood(cell) if (
-        floor.get_tile_at(n) is Stage.DOOR_WAY
+        floor.get_tile_at(n) is Stage.HALLWAY
         and n not in hallway
       )]
       for neighbor in neighbors:
@@ -895,8 +895,8 @@ class DungeonContext(Context):
     game.is_hero_running = bool(run)
     if moved:
       ally and game.step_ally(ally, run, origin_cell)
-      if target_tile is Stage.DOOR_WAY:
-        hallway = game.find_hallway(origin_cell if origin_tile is Stage.DOOR_WAY else target_cell)
+      if target_tile is Stage.HALLWAY:
+        hallway = game.find_hallway(origin_cell if origin_tile is Stage.HALLWAY else target_cell)
         if hallway:
           game.room = None
           game.hero.cell = hallway[-1]
@@ -904,7 +904,7 @@ class DungeonContext(Context):
           game.anims.append([
             PathAnim(
               target=game.hero,
-              path=hallway[1:] if origin_tile is Stage.DOOR_WAY else hallway,
+              path=hallway[1:] if origin_tile is Stage.HALLWAY else hallway,
               on_step=lambda cell: cell == hallway[-2] and door and not door.opened and door.effect(game),
               on_end=lambda: game.step(moving=True)
             )

@@ -267,8 +267,8 @@ class Floor:
       elif stage.get_tile_at((x, y + 1)) is stage.WALL:
         doorway_cell = (x, y + 1)
     if doorway_cell:
-      stage.set_tile_at(doorway_cell, stage.DOOR_WAY)
-    stage.set_tile_at(door_cell, stage.DOOR_WAY)
+      stage.set_tile_at(doorway_cell, stage.HALLWAY)
+    stage.set_tile_at(door_cell, stage.HALLWAY)
     stage.spawn_elem_at(door_cell, door)
 
   def connect(floor):

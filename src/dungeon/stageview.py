@@ -21,7 +21,7 @@ from dungeon.props.soul import Soul
 from dungeon.props.palm import Palm
 from dungeon.props.door import Door
 from dungeon.props.secretdoor import SecretDoor
-from dungeon.render.wall import render_wall
+from dungeon.render.walltop import render_walltop
 
 from anims import Anim
 from anims.move import MoveAnim
@@ -58,8 +58,8 @@ def get_tile_visited_state(stage, cell, visited_cells):
     (x - 1, y + 1) in visited_cells,
     (    x, y + 1) in visited_cells,
     (x + 1, y + 1) in visited_cells,
-    next((e for e in stage.get_elems_at((x - 1, y)) if type(e) is SecretDoor and e.hidden), None),
-    next((e for e in stage.get_elems_at((x + 1, y)) if type(e) is SecretDoor and e.hidden), None),
+    SecretDoor.exists_at(stage, (x - 1, y)),
+    SecretDoor.exists_at(stage, (x + 1, y)),
   ]
 
 class StageView:
@@ -404,8 +404,8 @@ class StageView:
     return sprites
 
 def render_tile(stage, cell, visited_cells=[]):
-  x, y = cell
   sprite_name = None
+  x, y = cell
   tile = stage.get_tile_at(cell)
   tile_above = stage.get_tile_at((x, y - 1))
   tile_below = stage.get_tile_at((x, y + 1))
@@ -436,30 +436,7 @@ def render_tile(stage, cell, visited_cells=[]):
     assets.sprites["stairs"] = stairs_image
 
   if tile is stage.WALL:
-    room = next((r for r in stage.rooms if cell in r.get_cells() + r.get_border()), None)
-    elev = 0
-    if room:
-      for c in room.get_cells():
-        if stage.get_tile_at(c) is stage.FLOOR_ELEV:
-          elev = 1
-          break
-    if tile_below is stage.FLOOR_ELEV:
-      return Sprite(image=assets.sprites["wall_bottom"], pos=(0, -TILE_SIZE))
-    elif ((
-      tile_below is stage.FLOOR
-      or tile_below is stage.PIT
-      or tile_below is stage.DOOR_WAY
-    )
-    and (x, y + 1) in visited_cells
-    and not stage.get_elem_at((x, y + 1), superclass=Door)):
-      if x % (3 + y % 2) == 0:
-        sprite_name = "wall_torch"
-      else:
-        sprite_name = "wall_bottom"
-    elif (tile_base is not stage.WALL) and elev == 1:
-      sprite_name = "wall_top"
-    else:
-      return render_wall(stage, cell, visited_cells)
+    return render_wall(stage, cell, visited_cells)
   elif tile is stage.FLOOR_ELEV and (
     stage.get_tile_at((x - 1, y)) is stage.FLOOR_ELEV
     and stage.get_tile_at((x + 1, y)) is stage.FLOOR_ELEV
@@ -542,6 +519,38 @@ def render_tile(stage, cell, visited_cells=[]):
   elif tile is stage.OASIS:
     return render_oasis(stage, cell)
   return assets.sprites[sprite_name] if sprite_name else None
+
+def render_wall(stage, cell, visited_cells):
+  x, y = cell
+  tile = stage.get_tile_at(cell)
+  tile_below = stage.get_tile_at((x, y + 1))
+  tile_base = stage.get_tile_at((x, y + 2))
+  room = next((r for r in stage.rooms if cell in r.get_cells() + r.get_border()), None)
+
+  elev = 0
+  if room:
+    for c in room.get_cells():
+      if stage.get_tile_at(c) is stage.FLOOR_ELEV:
+        elev = 1
+        break
+
+  if tile_below is stage.FLOOR_ELEV:
+    return Sprite(image=assets.sprites["wall_bottom"], pos=(0, -TILE_SIZE))
+  elif ((
+    tile_below is stage.FLOOR
+    or tile_below is stage.PIT
+    or tile_below is stage.HALLWAY
+  )
+  and (x, y + 1) in visited_cells
+  and not stage.get_elem_at((x, y + 1), superclass=Door)):
+    if x % (3 + y % 2) == 0 or SecretDoor.exists_at(stage, cell):
+      return assets.sprites["wall_torch"]
+    else:
+      return assets.sprites["wall_bottom"]
+  elif (tile_base is not stage.WALL) and elev == 1:
+    return assets.sprites["wall_top"]
+  else:
+    return render_walltop(stage, cell, visited_cells)
 
 def render_oasis(stage, cell):
   sprites = use_assets().sprites
