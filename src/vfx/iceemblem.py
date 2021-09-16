@@ -25,8 +25,8 @@ class IceEmblemVfx(Vfx):
     )
     fx.color = color
     fx.anims = [
-      EnterAnim(duration=100, delay=delay),
-      FlickerAnim(duration=45)
+      EnterAnim(duration=64, delay=delay),
+      FlickerAnim(duration=30)
     ]
 
   def update(fx, *_):
@@ -57,20 +57,31 @@ class IceEmblemVfx(Vfx):
       if anim.time < 15:
         offset_y = (1 - ease_out(anim.time / 15)) * TILE_SIZE / 4
       w = 1 - (cos(min(40, anim.time) % 16 / 16 * 2 * pi) + 1) / 2
+      h = 1
     elif type(anim) is FlickerAnim:
       if not anim.visible:
         return []
-      t = max(0, anim.time - 30) / (anim.duration - 30)
-      offset_y += t * -TILE_SIZE / 4
+      t = max(0, anim.time - 15) / (anim.duration - 15)
+      # offset_y += t * -TILE_SIZE / 4
       w = 1 - t
+      h = 1 - t
 
     emblem_image = assets.sprites["ice_emblem"]
     if fx.color != BLACK:
       emblem_image = replace_color(emblem_image, BLACK, fx.color)
-    return [Sprite(
-      image=emblem_image,
-      pos=add_vector(fx.pos, (0, -TILE_SIZE + offset_y)),
-      size=(emblem_image.get_width() * w, emblem_image.get_height()),
-      origin=("center", "center"),
-      layer="vfx"
-    )]
+    emblem_y = add_vector(fx.pos, (0, -TILE_SIZE + offset_y))
+    return [
+      *([Sprite(
+        image=replace_color(assets.sprites["emblem_glow"], BLACK, fx.color),
+        pos=emblem_y,
+        origin=("center", "center"),
+        layer="vfx"
+      )] if anim.time % 2 else []),
+      Sprite(
+        image=emblem_image,
+        pos=emblem_y,
+        size=(emblem_image.get_width() * w, emblem_image.get_height() * h),
+        origin=("center", "center"),
+        layer="vfx"
+      )
+    ]

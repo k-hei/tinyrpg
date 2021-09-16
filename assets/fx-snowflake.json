@@ -2,5 +2,6 @@
   "fx_snowflake": [0, 0, 48, 48],
   "fx_snowflake_small": [0, 48, 16, 16],
   "ice_emblem": [16, 48, 32, 32],
+  "emblem_glow": [48, 48, 32, 32],
   "magic_circle": [48, 0, 48, 48]
 }

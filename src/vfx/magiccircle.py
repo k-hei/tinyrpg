@@ -41,8 +41,8 @@ class MagicCircleVfx(Vfx):
     fx_image = rotate(fx_image, fx.anim.time // 5 * 5)
     return [Sprite(
       image=fx_image,
-      pos=add_vector(fx.pos, (0, TILE_SIZE / 2)),
-      size=(fx_image.get_width(), fx_image.get_height() / 2),
+      pos=add_vector(fx.pos, (0, TILE_SIZE / 3)),
+      size=(fx_image.get_width(), fx_image.get_height() * 2 / 3),
       origin=("center", "center"),
       offset=-16,
       layer="elems"
