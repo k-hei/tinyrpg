@@ -261,10 +261,11 @@ class DungeonContext(Context):
     game.anims = []
     game.commands = []
     game.rooms_entered.append(game.room)
+    game.floor_view = StageView(WINDOW_SIZE)
     game.camera.reset()
     game.camera.update(game)
-    game.floor_view = StageView(WINDOW_SIZE)
     game.refresh_fov(moving=True)
+    game.camera.reset()
     game.time = 0
 
   def create_floor(game):

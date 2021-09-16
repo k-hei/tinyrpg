@@ -12,11 +12,10 @@ ARROW_PERIOD = 300
 
 class ArrowTrap(Prop):
   solid = True
-  static = True
   active = False
 
-  def __init__(trap, facing, delay=0, *args, **kwargs):
-    super().__init__(*args, **kwargs)
+  def __init__(trap, facing, delay=0, static=True, *args, **kwargs):
+    super().__init__(static=static, *args, **kwargs)
     trap.facing = facing
     trap.delay = delay
     trap.anim = Anim(duration=trap.delay or ARROW_PERIOD, delay=trap.delay)

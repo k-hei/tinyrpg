@@ -60,6 +60,8 @@ def get_tile_visited_state(stage, cell, visited_cells):
     (x + 1, y + 1) in visited_cells,
     SecretDoor.exists_at(stage, (x - 1, y)),
     SecretDoor.exists_at(stage, (x + 1, y)),
+    SecretDoor.exists_at(stage, (x, y - 1)),
+    SecretDoor.exists_at(stage, (x, y + 1)),
   ]
 
 class StageView:

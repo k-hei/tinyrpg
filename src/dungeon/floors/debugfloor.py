@@ -1,3 +1,4 @@
+from math import inf
 from itertools import product
 import random
 from random import randint, getrandbits, choice
@@ -17,6 +18,7 @@ from dungeon.stage import Stage
 from dungeon.props.door import Door
 from dungeon.props.secretdoor import SecretDoor
 from dungeon.props.vase import Vase
+from dungeon.props.arrowtrap import ArrowTrap
 
 from dungeon.actors.eyeball import Eyeball
 from dungeon.actors.mushroom import Mushroom
@@ -347,6 +349,10 @@ def gen_floor(
     else:
       yield stage, "Failed to spawn exit"
 
+    # draw room terrain
+    for room in empty_rooms:
+      gen_mazeroom(stage, room)
+
     secrets = [e for e in tree.ends() if e not in (entry_room, exit_room)]
     for secret in secrets:
       neighbor = tree.neighbors(secret)[0]
@@ -356,17 +362,24 @@ def gen_floor(
       door = next((e for e in stage.get_elems_at(doorway) if isinstance(e, Door)), None)
       stage.remove_elem(door)
       stage.spawn_elem_at(doorway, SecretDoor())
-      if neighbor is entry_room:
-        print("Spawned secret beside entry room")
 
-    # draw room terrain
-    for room in empty_rooms:
-      gen_mazeroom(stage, room)
+      neighbor = next((n for n in neighborhood(doorway) if stage.get_tile_at(n) is Stage.FLOOR), None)
+      neighbor_x, neighbor_y = neighbor
+
+      door_delta = subtract_vector(neighbor, doorway)
+      door_xdelta, door_ydelta = door_delta
+      if (door_delta
+      and stage.is_cell_empty((neighbor_x - door_ydelta, neighbor_y - door_xdelta))
+      and stage.is_cell_empty((neighbor_x + door_ydelta, neighbor_y + door_xdelta))
+      ):
+        stage.spawn_elem_at(neighbor, ArrowTrap(facing=door_delta, delay=inf, static=False))
+
+      empty_rooms.remove(secret)
 
     # populate rooms
     for i, room in enumerate(rooms):
       items_spawned = gen_elems(stage, room,
-        elems=[Vase(choice(items)) for _ in range(min(3, room.get_area() // 20))]
+        elems=[Vase(choice(items)) for _ in range(min(8 if room in secrets else 3, room.get_area() // 20))]
       )
 
     for i, room in enumerate(empty_rooms):
