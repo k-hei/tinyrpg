@@ -41,6 +41,7 @@ class Ghost(DungeonActor):
           )
         )
       )])
+      return False
 
   def __init__(ghost, *args, **kwargs):
     super().__init__(GhostCore(
