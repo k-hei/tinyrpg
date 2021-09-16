@@ -25,20 +25,48 @@ from dungeon.actors.mushroom import Mushroom
 from dungeon.actors.ghost import Ghost
 from dungeon.actors.mummy import Mummy
 
-from items.hp.potion import Potion
-from items.sp.cheese import Cheese
-from items.sp.bread import Bread
-from items.sp.fish import Fish
-from items.dungeon.key import Key
+from items.ailment.amethyst import Amethyst
 from items.ailment.antidote import Antidote
-from items.ailment.musicbox import MusicBox
-from items.ailment.lovepotion import LovePotion
 from items.ailment.booze import Booze
+from items.ailment.lovepotion import LovePotion
+from items.ailment.musicbox import MusicBox
+from items.ailment.topaz import Topaz
+from items.dungeon.balloon import Balloon
+from items.dungeon.emerald import Emerald
+from items.hp.ankh import Ankh
+from items.hp.elixir import Elixir
+from items.hp.potion import Potion
+from items.hp.ruby import Ruby
+from items.sp.berry import Berry
+from items.sp.bread import Bread
+from items.sp.cheese import Cheese
+from items.sp.fish import Fish
+from items.sp.sapphire import Sapphire
+from skills.weapon.longinus import Longinus
 
 ENABLE_LOOPLESS_LAYOUTS = False
 MIN_ROOM_COUNT = 12 if ENABLE_LOOPLESS_LAYOUTS else 5
 MAX_ROOM_COUNT = MIN_ROOM_COUNT + 2
 REGION_PADDING = 3
+ALL_ITEMS = [
+  Amethyst,
+  Antidote, Antidote,
+  Booze,
+  LovePotion,
+  MusicBox,
+  Topaz,
+  Balloon,
+  Emerald,
+  Ankh,
+  Elixir,
+  Potion, Potion,
+  Ruby,
+  Berry,
+  Bread, Bread,
+  Cheese, Cheese,
+  Fish, Fish,
+  Sapphire
+]
 
 class DebugFloor(Floor):
   def generate(store=None, seed=None):
@@ -378,9 +406,13 @@ def gen_floor(
 
     # populate rooms
     for i, room in enumerate(rooms):
-      items_spawned = gen_elems(stage, room,
-        elems=[Vase(choice(items)) for _ in range(min(8 if room in secrets else 3, room.get_area() // 20))]
-      )
+      if room in secrets:
+        item_count = min(8, room.get_area() // 20)
+        room_items = [Vase(choice(ALL_ITEMS)) for _ in range(item_count)]
+      else:
+        item_count = min(3, room.get_area() // 20)
+        room_items = [Vase(choice(items)) for _ in range(item_count)]
+      gen_elems(stage, room, elems=room_items)
 
     for i, room in enumerate(empty_rooms):
       enemies_spawned = gen_elems(stage, room,
