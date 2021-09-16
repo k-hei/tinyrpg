@@ -2047,7 +2047,11 @@ class DungeonContext(Context):
       game.talkbubble = None
     if facing_elem and not facing_elem.hidden and not game.anims and not hero.item:
       bubble_cell = facing_cell
-      game.talkbubble = TalkBubble(cell=bubble_cell, elev=Tile.get_elev(game.floor.get_tile_at(facing_cell)))
+      game.talkbubble = TalkBubble(
+        cell=bubble_cell,
+        elev=Tile.get_elev(game.floor.get_tile_at(facing_cell)),
+        flipped=not game.camera.is_cell_visible(bubble_cell),
+      )
       game.vfx.append(game.talkbubble)
 
   def show_bubble(game):
