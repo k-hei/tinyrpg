@@ -451,13 +451,18 @@ def gen_elems(stage, room, elems):
 
 def get_room_bonus_cells(room, stage):
   room_cells = room.get_cells()
+  room_doorways = room.get_doorways(stage)
   is_wall = lambda x, y: not stage.is_cell_empty((x, y))
   is_floor = lambda x, y: stage.get_tile_at((x, y)) is Stage.FLOOR
-  bonus_cells = [(x, y) for x, y in room_cells if is_floor(x, y) and (
-    is_wall(x - 1, y - 1) and is_wall(x - 1, y) and is_wall(x, y - 1) and is_floor(x + 1, y + 1)
-    or is_wall(x + 1, y - 1) and is_wall(x + 1, y) and is_wall(x, y - 1) and is_floor(x - 1, y + 1)
-    or is_wall(x - 1, y + 1) and is_wall(x - 1, y) and is_wall(x, y + 1) and is_floor(x + 1, y - 1)
-    or is_wall(x + 1, y + 1) and is_wall(x + 1, y) and is_wall(x, y + 1) and is_floor(x - 1, y - 1)
+  bonus_cells = [(x, y) for x, y in room_cells if (
+    is_floor(x, y)
+    and not next((d for d in room_doorways if manhattan(d, (x, y)) <= 2), None)
+    and (
+      is_wall(x - 1, y - 1) and is_wall(x - 1, y) and is_wall(x, y - 1) and is_floor(x + 1, y + 1)
+      or is_wall(x + 1, y - 1) and is_wall(x + 1, y) and is_wall(x, y - 1) and is_floor(x - 1, y + 1)
+      or is_wall(x - 1, y + 1) and is_wall(x - 1, y) and is_wall(x, y + 1) and is_floor(x + 1, y - 1)
+      or is_wall(x + 1, y + 1) and is_wall(x + 1, y) and is_wall(x, y + 1) and is_floor(x - 1, y - 1)
+    )
   )]
   return bonus_cells
 
