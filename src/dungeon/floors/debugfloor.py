@@ -10,7 +10,7 @@ from config import FPS
 
 from dungeon.floors import Floor
 from dungeon.features.room import Room
-from dungeon.gen import gen_mazeroom, gen_elems
+from dungeon.gen import gen_terrain, gen_elems
 from dungeon.gen.blob import gen_blob
 from dungeon.gen.path import gen_path
 from dungeon.gen.floorgraph import FloorGraph
@@ -341,6 +341,8 @@ def gen_floor(
       for cell in door_path:
         stage.set_tile_at(cell, Stage.HALLWAY)
         door_paths.update(neighborhood(cell, inclusive=True, diagonals=True))
+
+      tree.reconnect(room1, room2, door1, door2)
       yield stage, f"Connected rooms {rooms.index(room1) + 1} and {rooms.index(room2) + 1} at {connector}"
 
     if not connected:
@@ -377,32 +379,32 @@ def gen_floor(
     else:
       yield stage, "Failed to spawn exit"
 
-    # draw room terrain
-    for room in empty_rooms:
-      gen_mazeroom(stage, room)
-
     secrets = [e for e in tree.ends() if e not in (entry_room, exit_room)]
     for secret in secrets:
       neighbor = tree.neighbors(secret)[0]
-      connector = [subtract_vector(c, stage_offset) for c in tree.connectors(secret, neighbor)][0]
+      doors = tree.connectors(secret, neighbor)
       doorways = neighbor.get_doorways(stage)
-      doorway = sorted(doorways, key=lambda d: manhattan(d, connector))[0]
+      doorway = next((d for d in doorways if d in doors), None)
       door = next((e for e in stage.get_elems_at(doorway) if isinstance(e, Door)), None)
       stage.remove_elem(door)
       stage.spawn_elem_at(doorway, SecretDoor())
 
       neighbor = next((n for n in neighborhood(doorway) if stage.get_tile_at(n) is Stage.FLOOR), None)
-      neighbor_x, neighbor_y = neighbor
-
-      door_delta = subtract_vector(neighbor, doorway)
-      door_xdelta, door_ydelta = door_delta
-      if (door_delta
-      and stage.is_cell_empty((neighbor_x - door_ydelta, neighbor_y - door_xdelta))
-      and stage.is_cell_empty((neighbor_x + door_ydelta, neighbor_y + door_xdelta))
-      ):
-        stage.spawn_elem_at(neighbor, ArrowTrap(facing=door_delta, delay=inf, static=False))
+      if neighbor:
+        neighbor_x, neighbor_y = neighbor
+        door_delta = subtract_vector(neighbor, doorway)
+        door_xdelta, door_ydelta = door_delta
+        if (door_delta
+        and stage.is_cell_empty((neighbor_x - door_ydelta, neighbor_y - door_xdelta))
+        and stage.is_cell_empty((neighbor_x + door_ydelta, neighbor_y + door_xdelta))
+        ):
+          stage.spawn_elem_at(neighbor, ArrowTrap(facing=door_delta, delay=inf, static=False))
 
       empty_rooms.remove(secret)
+
+    # draw room terrain
+    for room in empty_rooms:
+      gen_terrain(stage, room, tree)
 
     # populate rooms
     for i, room in enumerate(rooms):

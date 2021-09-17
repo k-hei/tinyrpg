@@ -1,9 +1,13 @@
 from math import inf as infinity
+from copy import deepcopy
 
 class Graph:
   def __init__(graph, nodes=None, edges=None):
     graph.nodes = nodes or []
     graph.edges = edges or []
+
+  def copy(graph):
+    return Graph(nodes=graph.nodes.copy(), edges=graph.edges.copy())
 
   def order(graph):
     return len(graph.nodes)
@@ -13,9 +17,6 @@ class Graph:
 
   def ends(graph):
     return [n for n in graph.nodes if graph.degree(n) == 1]
-
-  def copy(graph):
-    return Graph(graph.nodes.copy(), graph.edges.copy())
 
   def degree(graph, node):
     return len(graph.neighbors(node))
@@ -28,6 +29,7 @@ class Graph:
     graph.disconnect(node)
     if node in graph.nodes:
       graph.nodes.remove(node)
+    graph.edges = [(n1, n2) for n1, n2 in graph.edges if n1 is not node and n2 is not node]
 
   def neighbors(graph, node):
     neighbors = set()
@@ -64,7 +66,7 @@ class Graph:
       return 0
     distance = infinity
     for neighbor in graph.neighbors(start):
-      subgraph = graph.copy()
+      subgraph = deepcopy(graph)
       subgraph.remove(start)
       d = 1 + subgraph.distance(neighbor, goal)
       if d < distance:
@@ -83,5 +85,5 @@ class Graph:
         continue
       subpath = [start] + subpath
       if not path or len(subpath) < len(path):
-        path += subpath
+        path = subpath
     return path

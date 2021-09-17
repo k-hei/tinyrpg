@@ -11,6 +11,7 @@ from dungeon.gen.path import gen_path
 
 from dungeon.stage import Stage, Tile
 from dungeon.gen.floorgraph import FloorGraph
+from dungeon.gen.terrain import gen_terrain
 from dungeon.features.maze import Maze
 from dungeon.features.room import Room
 from dungeon.features.exitroom import ExitRoom
@@ -46,7 +47,6 @@ from dungeon.props.coffin import Coffin
 from dungeon.props.soul import Soul
 from dungeon.props.pushblock import PushBlock
 from dungeon.props.pushtile import PushTile
-from dungeon.props.pillar import Pillar
 
 from items.hp.potion import Potion
 from items.sp.cheese import Cheese
@@ -449,61 +449,9 @@ def gen_elems(stage, room, elems):
     valid_cells.remove(cell)
   return spawn_count
 
-def gen_mazeroom(stage, room):
-  # carve out all cells in room except for one cell
-  room_cells = room.get_cells()
-  for cell in room_cells:
-    stage.set_tile_at(cell, stage.PIT)
-
-  # paint floors from each doorway to pivot
-  room_doorways = [next((n for n in neighborhood(d) if n in room_cells), None) for d in room.get_doorways(stage)]
-  room_doorways = [d for d in room_doorways if d]
-  room_pathcells = []
-
-  def create_platform(cell=None):
-    pivot = cell or choice(room_cells)
-    diagonals = randint(0, 1)
-    radius = randint(1, 2) if diagonals else 2
-    pivot_neighbors = neighborhood(pivot, radius=radius, diagonals=diagonals, inclusive=True)
-    for cell in pivot_neighbors:
-      if cell in room_cells:
-        stage.set_tile_at(cell, stage.FLOOR)
-      if diagonals and radius == 2 and (
-        cell in neighborhood(pivot, diagonals=True)
-        and cell not in neighborhood(pivot, inclusive=True)
-        and not next((n for n in neighborhood(cell, diagonals=True) if (
-          n not in room_cells
-          or not stage.is_cell_empty(n)
-        )), None)
-      ):
-        stage.spawn_elem_at(cell, Pillar(broken=randint(1, 3) == 1))
-    return pivot
-
-  def draw_path(start, goal):
-    path = stage.pathfind(start=door, goal=pivot, whitelist=room_cells)
-    for cell in path:
-      stage.set_tile_at(cell, stage.FLOOR)
-      neighbors = [n for n in neighborhood(cell) if n in room_cells]
-      if neighbors:
-        stage.set_tile_at(choice(neighbors), stage.FLOOR)
-    return path
-
-  pivot = create_platform()
-  for door in room_doorways:
-    if room.get_area() > 5 * 4:
-      create_platform(cell=door)
-    room_pathcells += draw_path(start=door, goal=pivot)
-
-  if room_pathcells and room.get_area() > 7 * 4:
-    for i in range(randint(1, 3)):
-      pivot = create_platform()
-      room_pathcells += draw_path(start=choice(room_pathcells), goal=pivot)
-
-  return True
-
 def get_room_bonus_cells(room, stage):
   room_cells = room.get_cells()
-  is_wall = lambda x, y: stage.get_tile_at((x, y)) is Stage.WALL or stage.get_tile_at((x, y)) is Stage.PIT
+  is_wall = lambda x, y: not stage.is_cell_empty((x, y))
   is_floor = lambda x, y: stage.get_tile_at((x, y)) is Stage.FLOOR
   bonus_cells = [(x, y) for x, y in room_cells if is_floor(x, y) and (
     is_wall(x - 1, y - 1) and is_wall(x - 1, y) and is_wall(x, y - 1) and is_floor(x + 1, y + 1)
@@ -672,7 +620,7 @@ def gen_floor(
       stage.spawn_elem_at(key_room.get_center(), Chest(Key))
 
     empty_rooms += [n for n in tree.nodes if n.empty]
-    plain_rooms = [r for r in empty_rooms if not gen_mazeroom(stage, r)]
+    plain_rooms = [r for r in empty_rooms if not gen_terrain(stage, r)]
 
     debug("Attempting to spawn {} item rooms".format(len(empty_rooms)))
     for room in empty_rooms:

@@ -8,6 +8,12 @@ class FloorGraph(Graph):
   def connections(graph):
     return graph.conns.items()
 
+  def remove(graph, node):
+    super().remove(node)
+    for n1, n2 in graph.conns:
+      if n1 is node or n2 is node:
+        del graph.conns[(n1, n2)]
+
   def connect(graph, node1, node2, *conns):
     edge = (node1, node2)
     graph.edges.append(edge)
@@ -23,6 +29,14 @@ class FloorGraph(Graph):
         del graph.conns[(node1, node2)]
       if (node2, node1) in graph.conns:
         del graph.conns[(node2, node1)]
+
+  def reconnect(graph, node1, node2, *conns):
+    if (node1, node2) in graph.edges:
+      graph.conns[(node1, node2)] = conns
+    elif (node2, node1) in graph.edges:
+      graph.conns[(node2, node1)] = conns
+    else:
+      graph.connect(node1, node2, *conns)
 
   def connectors(graph, node1, node2=None):
     connectors = []
