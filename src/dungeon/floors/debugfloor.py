@@ -45,7 +45,7 @@ from items.sp.sapphire import Sapphire
 from skills.weapon.longinus import Longinus
 
 ENABLE_LOOPLESS_LAYOUTS = False
-MIN_ROOM_COUNT = 12 if ENABLE_LOOPLESS_LAYOUTS else 5
+MIN_ROOM_COUNT = 12 if ENABLE_LOOPLESS_LAYOUTS else 7
 MAX_ROOM_COUNT = MIN_ROOM_COUNT + 2
 REGION_PADDING = 3
 ALL_ITEMS = [
@@ -197,13 +197,13 @@ def gen_tree(graph, start=None):
   return tree
 
 def gen_loop(tree, graph):
-  ends = tree.ends()
+  ends = tree.ends() if randint(0, 1) else [n for n in tree.nodes if tree.degree(n) <= 2]
   if not ends:
     return False
   node = choice(ends)
   neighbors = [n for n in graph.neighbors(node) if (
     n not in tree.neighbors(node)
-    and tree.distance(node, n) > 2
+    and tree.distance(node, n) > 3
   )]
   if neighbors:
     neighbor = choice(neighbors)
@@ -403,7 +403,9 @@ def gen_floor(
       empty_rooms.remove(secret)
 
     # draw room terrain
-    for room in empty_rooms:
+    for room in rooms:
+      if room is entry_room or room is exit_room:
+        continue
       gen_terrain(stage, room, tree)
 
     # populate rooms

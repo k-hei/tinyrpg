@@ -50,7 +50,7 @@ def gen_terrain(stage, room, tree=None):
   pivot = create_platform()
   for door in room_doorways:
     create_platform(cell=door)
-    if len(room.get_doorways(stage)) > 1 and room.get_area() > 7 * 4 and room_pathcells:
+    if len(room.get_doorways(stage)) > 1 and room.get_area() > 7 * 4 and room_pathcells and randint(0, 1):
       doorway = next((d for d in room.get_doorways(stage) if d in neighborhood(door)), None)
       neighbor = find_connected_room(room, doorway)
       subtree = tree.copy()
