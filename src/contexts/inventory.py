@@ -13,7 +13,7 @@ from filters import replace_color
 import lib.gamepad as gamepad
 import lib.keyboard as keyboard
 from lib.keyboard import key_times, ARROW_DELTAS
-from colors.palette import BLACK, WHITE, GRAY, BLUE, GOLD
+from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, BLUE, GOLD
 from sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, INVENTORY_COLS, INVENTORY_ROWS
 
@@ -371,7 +371,7 @@ class InventoryContext(Context):
         hero.item = ctx.store.items.pop(selection_index)
         if old_item:
           ctx.store.items.insert(selection_index, old_item)
-      else:
+      elif ctx.cursor != ctx.selection:
         a = ctx.map_cell_to_store(ctx.selection)
         b = ctx.map_cell_to_store(ctx.cursor)
         if b == -1:
@@ -560,6 +560,14 @@ class InventoryContext(Context):
           layer="ui"
         ))
 
+        if cell == ctx.find_extra_slot():
+          sprites.append(Sprite(
+            image=replace_color(assets.sprites["icon_fist"], WHITE, DARKGRAY),
+            pos=(x + tile_width // 2 - 1, y + tile_height // 2 + 1),
+            origin=Sprite.ORIGIN_CENTER,
+            layer="ui"
+          ))
+
         item = None
         if ctx.selection and cell == ctx.cursor:
           item = ctx.get_item_at(ctx.selection)
@@ -578,7 +586,8 @@ class InventoryContext(Context):
           sprites.append(Sprite(
             image=item().render(),
             pos=(x, y),
-            layer=layer
+            layer=layer,
+            offset=16
           ))
 
     # tabs
