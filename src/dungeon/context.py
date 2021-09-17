@@ -993,9 +993,6 @@ class DungeonContext(Context):
           on_end and on_end(),
           item_anim and item_anim.end()
         ))
-    if not obtained:
-      game.log.clear()
-      game.log.print(("You're standing on ", item().token(), "."))
     return obtained
 
   def jump_pit(game, actor, run=False, on_end=None):

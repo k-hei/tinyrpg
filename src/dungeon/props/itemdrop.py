@@ -12,15 +12,24 @@ class ItemDrop(Prop):
     drop.obtained = False
 
   def effect(drop, game, actor):
-    if actor is game.hero:
+    if actor is not game.hero:
+      return None
+
+    obtained = False
+    if not game.is_hero_running:
       obtained = game.obtain(
         item=drop.item,
         target=drop,
         on_end=lambda: obtained and game.floor.remove_elem(drop)
       )
-      if obtained:
-        drop.obtained = True
-      return obtained
+
+    if obtained:
+      drop.obtained = True
+    else:
+      game.log.clear()
+      game.log.print(("You're standing on ", drop.item().token(), "."))
+
+    return obtained
 
   def view(drop, anims):
     if drop.obtained:
