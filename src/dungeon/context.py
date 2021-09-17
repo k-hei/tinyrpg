@@ -325,7 +325,7 @@ class DungeonContext(Context):
           room_cellset = set(room.get_cells() + room.get_outline())
           visible_cellset = room_cellset & set(hero.visible_cells)
           anim_cells = list(room_cellset - visible_cellset)
-          visible_cells = list(visible_cellset)
+          visible_cells = list(visible_cellset) + neighborhood(hero.cell)
           room_cells = list(room_cellset)
 
           tween_duration = game.camera.illuminate(room, actor=game.hero)
@@ -798,18 +798,33 @@ class DungeonContext(Context):
     floor = game.floor
     if floor.get_tile_at(cell) is not Stage.HALLWAY:
       return []
-    hallway = [cell]
-    stack = [cell]
+
+    hallways = []
+    stack = []
+    for neighbor in neighborhood(cell):
+      if floor.get_tile_at(neighbor) is Stage.HALLWAY:
+        hallway = [cell]
+        hallways.append(hallway)
+        stack.append((hallway, neighbor))
+
+    if not hallways:
+      return []
+
     while stack:
-      cell = stack.pop()
+      hallway, cell = stack.pop()
+      hallway.append(cell)
       neighbors = [n for n in neighborhood(cell) if (
         floor.get_tile_at(n) is Stage.HALLWAY
         and n not in hallway
       )]
       for neighbor in neighbors:
-        stack.append(neighbor)
-        hallway.append(neighbor)
-    return hallway
+        stack.append((hallway, neighbor))
+
+    if len(hallways) == 1:
+      return hallways[0]
+
+    hallways.sort(key=len)
+    return list(reversed(hallways[0]))[:-1] + hallways[1]
 
   def handle_move(game, delta, run=False):
     hero = game.hero
@@ -900,17 +915,41 @@ class DungeonContext(Context):
       if target_tile is Stage.HALLWAY:
         hallway = game.find_hallway(origin_cell if origin_tile is Stage.HALLWAY else target_cell)
         if hallway:
-          game.room = None
-          game.hero.cell = hallway[-1]
           door = next((e for e in game.floor.get_elems_at(hallway[-1]) if isinstance(e, Door)), None)
-          game.anims.append([
-            PathAnim(
-              target=game.hero,
-              path=hallway[1:] if origin_tile is Stage.HALLWAY else hallway,
-              on_step=lambda cell: cell == hallway[-2] and door and not door.opened and door.effect(game),
-              on_end=lambda: game.step(moving=True)
-            )
-          ])
+          hero_path = hallway[hallway.index(game.hero.cell):]
+          has_ally = game.ally and not game.ally.is_immobile() and manhattan(game.ally.cell, game.hero.cell) <= 2
+          if has_ally:
+            if game.ally.cell in hallway and ally.cell == origin_cell:
+              ally_path = hallway[hallway.index(game.ally.cell):-1]
+            elif game.ally.cell in hallway:
+              ally_path = hallway[hallway.index(game.ally.cell)+1:-1]
+            else:
+              ally_path = [origin_cell] + hallway[:-1]
+          else:
+            ally_path = []
+          game.anims += [
+            [
+              PathAnim(
+                target=game.hero,
+                path=hero_path,
+                on_step=lambda cell: cell == hallway[-2] and door and not door.opened and door.effect(game)
+              ),
+              *([PathAnim(
+                target=game.ally,
+                path=ally_path,
+              )] if ally_path else [])
+            ],
+            [
+              PauseAnim(
+                duration=1,
+                on_end=lambda: game.step(moving=True)
+              )
+            ]
+          ]
+          game.hero.cell = hero_path[-1]
+          if ally_path:
+            game.ally.cell = ally_path[-1]
+          game.room = None
           game.refresh_fov()
       else:
         game.step(moving=True)

@@ -270,7 +270,7 @@ class Stage:
       for neighbor in neighborhood(cell):
         if (neighbor in closed_set
         or not stage.contains(neighbor)
-        or (not stage.is_cell_empty(neighbor) and neighbor not in whitelist)
+        or (not stage.is_cell_empty(neighbor) and (not whitelist or neighbor not in whitelist))
         ):
           continue
         if neighbor not in open_set or not open_set[neighbor]:
