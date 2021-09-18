@@ -12,6 +12,6 @@ class RoomData:
     width, height = roomdata.size
     for y in range(height):
       for x in range(width):
-        if roomdata.tiles[y * width + x] == 0:
+        if roomdata.tiles[y * width + x] != 1:
           cells.append((x, y))
     return cells

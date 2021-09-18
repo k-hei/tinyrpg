@@ -20,6 +20,7 @@ from dungeon.stage import Stage
 from dungeon.props.door import Door
 from dungeon.props.secretdoor import SecretDoor
 from dungeon.props.vase import Vase
+from dungeon.props.chest import Chest
 from dungeon.props.arrowtrap import ArrowTrap
 
 from dungeon.actors.eyeball import Eyeball
@@ -411,6 +412,7 @@ def gen_floor(
     # populate rooms
     for i, room in enumerate(plain_rooms):
       if room in secrets:
+        stage.spawn_elem_at(room.get_center(), Chest(Elixir))
         item_count = min(8, room.get_area() // 20)
         room_items = [Vase(choice(ALL_ITEMS)) for _ in range(item_count)]
       else:
@@ -420,7 +422,9 @@ def gen_floor(
 
     for i, room in enumerate(empty_rooms):
       enemies_spawned = gen_elems(stage, room,
-        elems=[choice(enemies)() for _ in range(min(5, room.get_area() // 20))]
+        elems=[choice(enemies)(
+          ailment=("sleep" if randint(1, 3) == 1 else None)
+        ) for _ in range(min(5, room.get_area() // 20))]
       )
 
     stage.rooms = rooms

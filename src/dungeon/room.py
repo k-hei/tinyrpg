@@ -73,6 +73,14 @@ class Blob(Room):
     return find_bounds(room.cells)
 
   @property
+  def width(room):
+    return room.data and room.data.size[0] or room.rect.width
+
+  @property
+  def height(room):
+    return room.data and room.data.size[1] or room.rect.height
+
+  @property
   def cell(room):
     return room.origin
 

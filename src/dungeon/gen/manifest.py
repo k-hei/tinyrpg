@@ -12,6 +12,14 @@ def manifest_stage(rooms):
   stage_blob = Blob(stage_cells, origin=(1, 1))
   stage = Stage(add_vector(stage_blob.rect.size, (2, 2)))
   stage.fill(Stage.WALL)
-  for cell in stage_blob.cells:
-    stage.set_tile_at(cell, Stage.FLOOR)
+  for room in rooms:
+    for cell in room.cells:
+      x, y = subtract_vector(cell, room.origin)
+      cell = add_vector(cell, stage_offset)
+      if room.data:
+        tile_id = room.data.tiles[y * room.width + x]
+        tile = Stage.TILE_ORDER[tile_id]
+        stage.set_tile_at(cell, tile)
+      else:
+        stage.set_tile_at(cell, Stage.FLOOR)
   return stage, stage_offset

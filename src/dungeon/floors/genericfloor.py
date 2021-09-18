@@ -1,10 +1,11 @@
 from random import randint
+
 from dungeon.floors import Floor
 from dungeon.features.vertroom import VerticalRoom
 from dungeon.features.irregularroom import IrregularRoom
 from dungeon.features.oasisroom import OasisRoom
 from dungeon.features.raretreasureroom import RareTreasureRoom
-from dungeon.gen import gen_floor, gen_enemy, FloorGraph
+from dungeon.gen import gen_floor
 
 from items.ailment.amethyst import Amethyst
 from items.ailment.antidote import Antidote

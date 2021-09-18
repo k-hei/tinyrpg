@@ -66,7 +66,7 @@ def get_tile_visited_state(stage, cell, visited_cells):
 
 class StageView:
   LAYERS = ["tiles", "decors", "elems", "vfx", "numbers", "ui"]
-  SPECIAL_TILES = [Stage.OASIS, Stage.OASIS_STAIRS]
+  SPECIAL_TILES = [] # Tiles that appear white (subject to change)
   ELEVATED_TILES = [Stage.FLOOR_ELEV, Stage.WALL_ELEV, Stage.STAIRS, Stage.STAIRS_LEFT, Stage.STAIRS_RIGHT]
   VARIABLE_TILES = [Stage.WALL, Stage.FLOOR, Stage.OASIS, Stage.PIT] # Tiles with more than one possible image
 
@@ -570,9 +570,9 @@ def render_oasis(stage, cell):
     return sprites["oasis_edge_top"]
   elif o(x - 1, y) and o(x + 1, y) and not o(x, y + 1):
     return sprites["oasis_edge_bottom"]
-  elif o(x + 1, y) and o(x, y + 1) and not o(x - 1, y - 1):
+  elif o(x + 1, y) and o(x, y + 1) and not o(x - 1, y - 1) and not o(x - 1, y) and not o(x, y - 1):
     return sprites["oasis_corner_top"]
-  elif o(x - 1, y) and o(x, y + 1) and not o(x + 1, y - 1):
+  elif o(x - 1, y) and o(x, y + 1) and not o(x + 1, y - 1) and not o(x + 1, y) and not o(x, y - 1):
     return flip(sprites["oasis_corner_top"], True, False)
   elif o(x + 1, y) and o(x, y - 1) and not o(x - 1, y + 1):
     return sprites["oasis_corner_bottom"]

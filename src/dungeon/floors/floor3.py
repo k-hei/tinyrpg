@@ -1,6 +1,8 @@
 from random import randint
+from lib.graph import Graph
+
 from dungeon.floors import Floor
-from dungeon.gen import gen_floor, gen_enemy, FloorGraph
+from dungeon.gen import gen_floor
 from dungeon.features.vertroom import VerticalRoom
 from dungeon.features.hallroom import HallRoom
 from dungeon.features.magebossroom import MageBossRoom
@@ -15,7 +17,7 @@ class Floor3(Floor):
     return gen_floor(
       size=(21, 72),
       entrance=entry_room,
-      features=FloorGraph(
+      features=Graph(
         nodes=[entry_room, hall_room, mageboss_room, emerald_room],
         edges=[
           (entry_room, hall_room),

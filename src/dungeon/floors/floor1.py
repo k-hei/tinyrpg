@@ -19,7 +19,8 @@ from items.dungeon.emerald import Emerald
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
 from anims.flicker import FlickerAnim
-from dungeon.gen import gen_floor, gen_enemy, FloorGraph
+from lib.graph import Graph
+from dungeon.gen import gen_floor
 from dungeon.floors import Floor
 
 class Floor1(Floor):
@@ -68,7 +69,7 @@ class Floor1(Floor):
 
     return gen_floor(
       entrance=entry_room,
-      features=FloorGraph(
+      features=Graph(
         nodes=[fork_room, entry_room, enemy_room1, item_room1, lock_room, exit_room, enemy_room2, item_room2, enemy_room3],
         edges=[
           (fork_room, entry_room),

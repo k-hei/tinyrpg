@@ -88,6 +88,7 @@ class Stage:
     opaque = False
 
   TILES = [PIT, FLOOR, WALL, STAIRS_DOWN, STAIRS_UP, HALLWAY, OASIS, OASIS_STAIRS]
+  TILE_ORDER = [FLOOR, WALL, PIT, STAIRS_DOWN, STAIRS_UP, HALLWAY, OASIS, OASIS_STAIRS]
 
   def __init__(stage, size, data=None, elems=None):
     width, height = size

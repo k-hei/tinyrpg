@@ -1,6 +1,8 @@
 from random import randint
+from lib.graph import Graph
+
 from dungeon.floors import Floor
-from dungeon.gen import gen_floor, gen_enemy, FloorGraph
+from dungeon.gen import gen_floor
 from dungeon.features.vertroom import VerticalRoom
 from dungeon.features.exitroom import ExitRoom
 from dungeon.features.arenaroom import ArenaRoom
@@ -102,7 +104,7 @@ class Floor2(Floor):
       size=(43, 27),
       entrance=entry_room,
       enemies=[Eyeball, Mushroom, Ghost, Mummy],
-      features=FloorGraph(
+      features=Graph(
         nodes=[
           entry_room,
           coffin_room,
