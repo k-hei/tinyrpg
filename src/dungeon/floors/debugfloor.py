@@ -45,7 +45,7 @@ from items.sp.sapphire import Sapphire
 from skills.weapon.longinus import Longinus
 
 ENABLE_LOOPLESS_LAYOUTS = False
-MIN_ROOM_COUNT = 12 if ENABLE_LOOPLESS_LAYOUTS else 7
+MIN_ROOM_COUNT = 12 if ENABLE_LOOPLESS_LAYOUTS else 5
 MAX_ROOM_COUNT = MIN_ROOM_COUNT + 2
 REGION_PADDING = 3
 ALL_ITEMS = [
@@ -131,7 +131,7 @@ def place_rooms(rooms):
           neighbor_connectors = { n: cs for n, cs in [(n, list(set(n.connectors) & set(room.connectors))) for n in graph.nodes] if cs }
           if neighbor_connectors:
             valid_edges[o] = neighbor_connectors
-            if len(neighbor_connectors) >= 2 or len(graph.nodes) < 2:
+            if len(neighbor_connectors) >= 2 or len(graph.nodes) < 3:
               for neighbor, connectors in neighbor_connectors.items():
                 graph.add(room)
                 graph.connect(room, neighbor, *connectors)
@@ -202,7 +202,6 @@ def gen_loop(tree, graph):
   )]
   if neighbors:
     neighbor = choice(neighbors)
-    print(f"looping {node.origin} and {neighbor.origin} with tree distance {tree.distance(node, neighbor)}")
     connectors = graph.connectors(node, neighbor)
     connector = choice(connectors)
     tree.connect(node, neighbor, connector)
@@ -226,7 +225,7 @@ def gen_floor(
     stage = None
 
     rooms = []
-    max_rooms = 7 # randint(MIN_ROOM_COUNT, MAX_ROOM_COUNT)
+    max_rooms = randint(MIN_ROOM_COUNT, MAX_ROOM_COUNT)
     rooms_gen = gen_rooms(count=max_rooms)
     while len(rooms) < max_rooms:
       rooms = next(rooms_gen)
@@ -315,7 +314,11 @@ def gen_floor(
           if {door1_start, door2_start} & path_blacklist:
             continue
 
-          door_path = gen_path(start=door1_start, goal=door2_start, predicate=lambda c: c not in path_blacklist)
+          if set(neighborhood(door1_start)) & set(neighborhood(door2_start)):
+            door_path = [door1_start, add_vector(door1_start, door1_delta), door2_start]
+            break
+
+          door_path = gen_path(start=door1_start, goal=door2_start, predicate=lambda c: c not in path_blacklist, straight=True)
           if door_path:
             break
 
