@@ -3,100 +3,103 @@ from lib.bounds import find_bounds
 from lib.cell import neighborhood, manhattan, add as add_vector, subtract as subtract_vector
 
 class Blob(Room):
-  def __init__(blob, cells=None, origin=None, data=None):
+  def __init__(room, cells=None, origin=None, data=None, *args, **kwargs):
     if not cells:
       cells = data.extract_cells()
     rect = find_bounds(cells)
-    blob._cells = [subtract_vector(c, rect.topleft) for c in cells]
-    blob.origin = origin or rect.topleft
-    blob.data = data
-    super().__init__(size=rect.size, cell=blob.origin)
+    room._cells = [subtract_vector(c, rect.topleft) for c in cells]
+    room.origin = origin or rect.topleft
+    room.data = data
+    super().__init__(size=rect.size, cell=room.origin, *args, **kwargs)
 
   @property
-  def cells(blob):
-    return [add_vector(c, blob.origin) for c in blob._cells]
+  def cells(room):
+    return [add_vector(c, room.origin) for c in room._cells]
 
   @property
-  def border(blob):
-    blob_cells = blob.cells
-    return list({n for c in blob_cells for n in neighborhood(c) if n not in blob_cells})
+  def border(room):
+    room_cells = room.cells
+    return list({n for c in room_cells for n in neighborhood(c) if n not in room_cells})
 
   @property
-  def edges(blob):
-    blob_cells = blob.cells
-    return [e for e in blob.border if len([n for n in neighborhood(e) if n in blob_cells]) == 1 and blob.find_connector(e)]
+  def edges(room):
+    room_cells = room.cells
+    if room.data:
+      return [add_vector(e, room.origin) for e, d in room.data.doors]
+    else:
+      return [e for e in room.border if len([n for n in neighborhood(e) if n in room_cells]) == 1 and room.find_connector(e)]
 
-  def find_connector(blob, edge):
-    blob_cells = blob.cells
-    neighbor = next((n for n in neighborhood(edge) if n in blob_cells), None)
+  def find_connector(room, edge):
+    room_cells = room.cells
+    neighbor = next((n for n in neighborhood(edge) if n in room_cells), None)
     delta_x, delta_y = subtract_vector(edge, neighbor)
     connector = add_vector(edge, (delta_x * 2, delta_y * 2))
-    if next((n for n in neighborhood(connector, diagonals=True) if n in blob_cells), None):
+    if next((n for n in neighborhood(connector, diagonals=True) if n in room_cells), None):
       return None
     else:
       return connector
 
   @property
-  def connectors(blob):
-    return list({blob.find_connector(e) for e in blob.edges})
+  def connectors(room):
+    return list({room.find_connector(e) for e in room.edges})
 
   @property
-  def hitbox(blob):
+  def hitbox(room):
     hitbox = []
-    for cell in blob.cells:
+    for cell in room.cells:
       hitbox += neighborhood(cell, inclusive=True, radius=2)
     return set(hitbox)
 
   @property
-  def outline(blob):
+  def outline(room):
     outline = []
-    for cell in blob.cells:
+    for cell in room.cells:
       outline += neighborhood(cell, diagonals=True)
-    return set(outline) - set(blob.cells)
+    return set(outline) - set(room.cells)
 
   @property
-  def visible_outline(blob):
+  def visible_outline(room):
     visible_outline = []
-    for cell in blob.cells:
+    for cell in room.cells:
       neighbors = (
         neighborhood(cell, diagonals=True)
         + neighborhood(add_vector(cell, (0, -1)), diagonals=True)
       )
       visible_outline += neighbors
-    return set(visible_outline) - set(blob.cells)
+    return set(visible_outline) - set(room.cells)
 
   @property
-  def rect(blob):
-    return find_bounds(blob.cells)
+  def rect(room):
+    return find_bounds(room.cells)
 
   @property
-  def cell(blob):
-    return blob.origin
+  def cell(room):
+    return room.origin
 
   @cell.setter
-  def cell(blob, cell):
-    blob.origin = cell
+  def cell(room, cell):
+    room.origin = cell
 
-  def get_width(blob):
-    return blob.rect.width
+  def get_width(room):
+    return room.rect.width
 
-  def get_height(blob):
-    return blob.rect.height
+  def get_height(room):
+    return room.rect.height
 
-  def get_cells(blob):
-    return blob.cells
+  def get_cells(room):
+    return room.cells
 
-  def get_edges(blob):
-    return blob.edges
+  def get_edges(room):
+    return room.edges
 
-  def get_border(blob):
-    return list(blob.outline)
+  def get_border(room):
+    return list(room.outline)
 
-  def get_center(blob):
-    return blob.rect.center
+  def get_center(room):
+    return room.rect.center
 
-  def get_outline(blob):
-    return list(blob.visible_outline)
+  def get_outline(room):
+    return list(room.visible_outline)
 
-  def find_closest_cell(blob, dest):
-    return sorted(blob.cells, key=lambda c: manhattan(c, dest))[0]
+  def find_closest_cell(room, dest):
+    return sorted(room.cells, key=lambda c: manhattan(c, dest))[0]

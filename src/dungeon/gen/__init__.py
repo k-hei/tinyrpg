@@ -88,6 +88,7 @@ def place_rooms(rooms):
     yield True
   graph = FloorGraph(nodes=[rooms[0]])
   total_blob = rooms[0]
+  total_connectors = []
   for i, room in enumerate(rooms[1:]):
     total_hitbox = total_blob.hitbox
     ticks = get_ticks()
@@ -106,7 +107,7 @@ def place_rooms(rooms):
         iters += 1
         room.origin = o
         if not (room.hitbox & total_hitbox):
-          neighbor_connectors = { n: cs for n, cs in [(n, list(set(n.connectors) & set(room.connectors))) for n in graph.nodes] if cs }
+          neighbor_connectors = { n: cs for n, cs in [(n, [c for c in set(n.connectors) & set(room.connectors) if c not in total_connectors]) for n in graph.nodes] if cs }
           if neighbor_connectors:
             valid_edges[o] = neighbor_connectors
             if len(neighbor_connectors) >= 2 or len(graph.nodes) < 3:
@@ -133,6 +134,7 @@ def place_rooms(rooms):
 
     if room in graph.nodes:
       total_blob = Blob(total_blob.cells + room.cells)
+      total_connectors += connectors
       yield graph, f"Placed room {i + 2} of {len(graph.nodes)} at {room.origin}"
     else:
       yield False, "Failed to place rooms"
