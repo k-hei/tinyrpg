@@ -50,7 +50,7 @@ from skills.weapon.longinus import Longinus
 from resolve.elem import resolve_elem
 
 ENABLE_LOOPLESS_LAYOUTS = False
-MIN_ROOM_COUNT = 12 if ENABLE_LOOPLESS_LAYOUTS else 7
+MIN_ROOM_COUNT = 12 if ENABLE_LOOPLESS_LAYOUTS else 8
 MAX_ROOM_COUNT = MIN_ROOM_COUNT + 2
 ALL_ITEMS = [
   Amethyst,
@@ -76,9 +76,9 @@ def gen_rooms(count, init=None):
   rooms = init or []
   while len(rooms) < count:
     blob_gen = (
-      len(rooms) % 2
-      and gen_blob(min_area=150, max_area=240)
-      or gen_blob(min_area=80, max_area=130)
+      len(rooms) > count // 3
+      and gen_blob(min_area=80, max_area=100)
+      or gen_blob(min_area=150, max_area=240)
     )
     cells = None
     while not cells:
@@ -192,6 +192,7 @@ def gen_loops(tree, graph):
   for node in tree.nodes:
     if tree.degree(node) <= 2:
       loops |= gen_loop(tree, graph, node, min_distance=3)
+      break
   if not loops:
     for node in tree.nodes:
       if tree.degree(node) <= 2 and gen_loop(tree, graph, node, min_distance=2):
@@ -310,10 +311,13 @@ def gen_floor(
           if {door1_start, door2_start} & path_blacklist:
             continue
 
-          if set(neighborhood(door1_start)) & set(neighborhood(door2_start)):
+          neighborhood_overlap = set(neighborhood(door1_start)) & set(neighborhood(door2_start))
+          if neighborhood_overlap:
             door_neighbor = add_vector(door1_start, door1_delta)
             if door_neighbor not in neighborhood(door2_start):
               door_neighbor = add_vector(door2_start, door2_delta)
+            if door_neighbor not in neighborhood(door1_start):
+              door_neighbor = [*neighborhood_overlap][0]
             door_path = [door1_start, door_neighbor, door2_start]
             break
 
