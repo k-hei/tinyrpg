@@ -9,7 +9,7 @@ from cores import Core
 from contexts import Context
 from dungeon.data import DungeonData
 from savedata import SaveData
-from savedata.resolve import resolve_item, resolve_skill, resolve_elem, resolve_core
+from savedata.resolve import resolve_item, resolve_skill, resolve_elem, resolve_char
 from config import (
   MAX_SP,
   INVENTORY_COLS, INVENTORY_ROWS,
@@ -80,7 +80,7 @@ class GameData:
     )
 
   def decode(savedata):
-    party = [resolve_core(n)(faction="player") for n in savedata.party]
+    party = [resolve_char(n)(faction="player") for n in savedata.party]
     builds = {}
     for name, build in savedata.builds.items():
       builds[name] = []

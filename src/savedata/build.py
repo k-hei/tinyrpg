@@ -76,7 +76,7 @@ def build_buffer(items, skills, cores, elems, actors, materials):
   for key in skills.keys():
     buffer += "  if key == \"{key}\": return {key}\n".format(key=key)
 
-  buffer += "\ndef resolve_core(key):\n"
+  buffer += "\ndef resolve_char(key):\n"
   for key in cores.keys():
     if not key.endswith("Core"):
       buffer += "  if key == \"{key}\": return {key}Core\n".format(key=key)

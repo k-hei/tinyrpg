@@ -1,0 +1,38 @@
+from random import choice
+from lib.cell import manhattan
+from dungeon.actors import DungeonActor
+from dungeon.stage import Stage
+
+def gen_elems(stage, room, elems):
+  spawn_count = 0
+  room_doorways = room.get_doorways(stage)
+  if next((e for e in elems if isinstance(e, DungeonActor)), None):
+    valid_cells = [c for c in room.get_cells() if (
+      not next((d for d in room_doorways if manhattan(d, c) <= 2), None)
+      and stage.is_cell_empty(c)
+    )]
+  else:
+    valid_cells = get_room_bonus_cells(room, stage)
+  while elems and valid_cells:
+    cell = choice(valid_cells)
+    stage.spawn_elem_at(cell, elems.pop(0))
+    spawn_count += 1
+    valid_cells.remove(cell)
+  return spawn_count
+
+def get_room_bonus_cells(room, stage):
+  room_cells = room.get_cells()
+  room_doorways = room.get_doorways(stage)
+  is_wall = lambda x, y: not stage.is_cell_empty((x, y))
+  is_floor = lambda x, y: stage.get_tile_at((x, y)) is Stage.FLOOR
+  bonus_cells = [(x, y) for x, y in room_cells if (
+    is_floor(x, y)
+    and not next((d for d in room_doorways if manhattan(d, (x, y)) <= 2), None)
+    and (
+      is_wall(x - 1, y - 1) and is_wall(x - 1, y) and is_wall(x, y - 1) and is_floor(x + 1, y + 1)
+      or is_wall(x + 1, y - 1) and is_wall(x + 1, y) and is_wall(x, y - 1) and is_floor(x - 1, y + 1)
+      or is_wall(x - 1, y + 1) and is_wall(x - 1, y) and is_wall(x, y + 1) and is_floor(x + 1, y - 1)
+      or is_wall(x + 1, y + 1) and is_wall(x + 1, y) and is_wall(x, y + 1) and is_floor(x - 1, y - 1)
+    )
+  )]
+  return bonus_cells

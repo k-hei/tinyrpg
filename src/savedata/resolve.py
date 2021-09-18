@@ -189,7 +189,7 @@ def resolve_skill(key):
   if key == "Buckler": return Buckler
   if key == "HpUp": return HpUp
 
-def resolve_core(key):
+def resolve_char(key):
   if key == "Genie": return GenieCore
   if key == "Rogue": return RogueCore
   if key == "Beetle": return BeetleCore

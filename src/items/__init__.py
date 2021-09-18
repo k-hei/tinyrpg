@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from assets import load as use_assets
+import assets
 from filters import replace_color
 from comps.log import Token
 from colors.palette import BLACK
@@ -17,10 +17,9 @@ class Item:
     return Token(item.name, item.color)
 
   def render(item):
-    sprites = use_assets().sprites
     sprite_name = item.sprite or item.name.lower()
     sprite_key = "item_" + sprite_name
-    sprite = sprites[sprite_key if sprite_key in sprites else "item_orb"]
+    sprite = assets.sprites[sprite_key if sprite_key in assets.sprites else "item_orb"]
     if item.color == BLACK:
       return sprite
     else:
