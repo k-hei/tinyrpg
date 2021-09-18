@@ -15,7 +15,9 @@ def gen_size(min_area, max_area):
   room_width = 7 + 2 * randint(0, 10)
   min_height = min_area / room_width
   max_height = max_area / room_width
-  room_height = 1 + 3 * randint(ceil((min_height - 1) / 3), (max_height - 1) // 3)
+  min_factor = ceil((min_height - 1) / 3)
+  max_factor = (max_height - 1) // 3
+  room_height = 1 + 3 * (randint if max_factor > min_factor else max)(min_factor, max_factor)
   return (room_width, room_height)
 
 def gen_blob(size=None, min_area=MIN_ROOM_AREA, max_area=MAX_ROOM_AREA):

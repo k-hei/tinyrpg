@@ -49,7 +49,7 @@ from skills.weapon.longinus import Longinus
 from resolve.elem import resolve_elem
 
 ENABLE_LOOPLESS_LAYOUTS = False
-MIN_ROOM_COUNT = 12 if ENABLE_LOOPLESS_LAYOUTS else 5
+MIN_ROOM_COUNT = 12 if ENABLE_LOOPLESS_LAYOUTS else 7
 MAX_ROOM_COUNT = MIN_ROOM_COUNT + 2
 ALL_ITEMS = [
   Amethyst,
@@ -74,7 +74,11 @@ ALL_ITEMS = [
 def gen_rooms(count, init=None):
   rooms = init or []
   while len(rooms) < count:
-    blob_gen = gen_blob(min_area=80, max_area=200)
+    blob_gen = (
+      len(rooms) % 2
+      and gen_blob(min_area=150, max_area=240)
+      or gen_blob(min_area=80, max_area=130)
+    )
     cells = None
     while not cells:
       cells = next(blob_gen)
@@ -86,6 +90,7 @@ def gen_rooms(count, init=None):
 def place_rooms(rooms):
   if not rooms:
     yield True
+  rooms.sort(key=lambda r: -r.get_area())
   graph = FloorGraph(nodes=[rooms[0]])
   total_blob = rooms[0]
   total_connectors = []
@@ -99,6 +104,8 @@ def place_rooms(rooms):
     valid_edges = {}
     shuffle(graph.nodes)
     for neighbor in graph.nodes:
+      if neighbor.degree and graph.degree(neighbor) >= neighbor.degree:
+        continue
       combinations = [*product(connectors, neighbor.connectors)]
       origins = [subtract_vector(c2, subtract_vector(c1, origin)) for c1, c2 in combinations]
       shuffle(combinations)
@@ -107,7 +114,7 @@ def place_rooms(rooms):
         iters += 1
         room.origin = o
         if not (room.hitbox & total_hitbox):
-          neighbor_connectors = { n: cs for n, cs in [(n, [c for c in set(n.connectors) & set(room.connectors) if c not in total_connectors]) for n in graph.nodes] if cs }
+          neighbor_connectors = { n: cs for n, cs in [(n, [c for c in set(n.connectors) & set(room.connectors) if not next((t for t in total_connectors if t in neighborhood(c, inclusive=True, diagonals=True)), None)]) for n in graph.nodes] if cs }
           if neighbor_connectors:
             valid_edges[o] = neighbor_connectors
             if len(neighbor_connectors) >= 2 or len(graph.nodes) < 3:
@@ -160,14 +167,15 @@ def gen_tree(graph, start=None):
       stack.pop(0)
   return tree
 
-def gen_loop(tree, graph):
-  ends = tree.ends() if randint(0, 1) else [n for n in tree.nodes if tree.degree(n) <= 2]
-  if not ends:
-    return False
-  node = choice(ends)
+def gen_loop(tree, graph, node=None, min_distance=3):
+  if not node:
+    ends = tree.ends()
+    if not ends:
+      return False
+    node = choice(ends)
   neighbors = [n for n in graph.neighbors(node) if (
     n not in tree.neighbors(node)
-    and tree.distance(node, n) > 2
+    and tree.distance(node, n) >= min_distance
   )]
   if neighbors:
     neighbor = choice(neighbors)
@@ -179,7 +187,15 @@ def gen_loop(tree, graph):
     return False
 
 def gen_loops(tree, graph):
-  while len(tree.ends()) > 1 and gen_loop(tree, graph): pass
+  loops = 0
+  for node in tree.nodes:
+    if tree.degree(node) <= 2:
+      loops |= gen_loop(tree, graph, node, min_distance=3)
+  if not loops:
+    for node in tree.nodes:
+      if tree.degree(node) <= 2 and gen_loop(tree, graph, node, min_distance=2):
+        break
+
 
 def gen_floor(
   rooms=[],
@@ -201,9 +217,9 @@ def gen_floor(
     while len(rooms) < max_rooms:
       rooms = next(rooms_gen)
       if len(rooms) == max_rooms:
-        yield None, f"Generating room {len(rooms) + 1} of {max_rooms}"
-      else:
         yield None, f"Room generation succeeded"
+      else:
+        yield None, f"Generating room {len(rooms) + 1} of {max_rooms}"
 
     # place rooms
     graph, message = {}, "*"
@@ -294,7 +310,10 @@ def gen_floor(
             continue
 
           if set(neighborhood(door1_start)) & set(neighborhood(door2_start)):
-            door_path = [door1_start, add_vector(door1_start, door1_delta), door2_start]
+            door_neighbor = add_vector(door1_start, door1_delta)
+            if door_neighbor not in neighborhood(door2_start):
+              door_neighbor = add_vector(door2_start, door2_delta)
+            door_path = [door1_start, door_neighbor, door2_start]
             break
 
           door_path = gen_path(start=door1_start, goal=door2_start, predicate=lambda c: c not in path_blacklist, straight=True)
@@ -328,11 +347,12 @@ def gen_floor(
       continue
 
     rooms.sort(key=lambda r: r.get_area())
-    empty_rooms = rooms.copy()
+    plain_rooms = [r for r in rooms if r.data not in features]
+    empty_rooms = plain_rooms.copy()
 
     # SpawnEntrance(stage) -> room
     entry_room = None
-    for room in rooms:
+    for room in empty_rooms:
       entrances = [c for c in room.cells if not next((n for n in neighborhood(c, inclusive=True, diagonals=True) if not stage.is_cell_empty(n)), None)]
       if entrances:
         stage.entrance = choice(entrances)
@@ -358,7 +378,7 @@ def gen_floor(
     else:
       yield stage, "Failed to spawn exit"
 
-    secrets = [e for e in tree.ends() if e not in (entry_room, exit_room)]
+    secrets = [e for e in tree.ends() if e in empty_rooms if e.get_area() <= 50]
     for secret in secrets:
       neighbor = tree.neighbors(secret)[0]
       doors = tree.connectors(secret, neighbor)
@@ -379,16 +399,17 @@ def gen_floor(
         ):
           stage.spawn_elem_at(neighbor, ArrowTrap(facing=door_delta, delay=inf, static=False))
 
+      print(f"Spawned secret with area {secret.get_area()}")
       empty_rooms.remove(secret)
 
     # draw room terrain
-    for room in rooms:
+    for room in plain_rooms:
       if room is entry_room or room is exit_room:
         continue
       gen_terrain(stage, room, tree)
 
     # populate rooms
-    for i, room in enumerate(rooms):
+    for i, room in enumerate(plain_rooms):
       if room in secrets:
         item_count = min(8, room.get_area() // 20)
         room_items = [Vase(choice(ALL_ITEMS)) for _ in range(item_count)]
