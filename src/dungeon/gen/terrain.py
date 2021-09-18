@@ -17,7 +17,7 @@ def gen_terrain(stage, room, tree=None):
   def create_platform(cell=None):
     pivot = cell or choice(room_cells)
     diagonals = randint(0, 1)
-    radius = randint(1, 2) if diagonals else 2
+    radius = randint(1, 3) if diagonals else randint(2, 3)
     pivot_neighbors = neighborhood(pivot, radius=radius, diagonals=diagonals, inclusive=True)
     for cell in pivot_neighbors:
       if cell in room_cells:

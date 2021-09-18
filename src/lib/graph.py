@@ -1,4 +1,4 @@
-from math import inf as infinity
+from math import inf
 from copy import deepcopy
 
 class Graph:
@@ -64,9 +64,9 @@ class Graph:
   def distance(graph, start, goal):
     if start is goal:
       return 0
-    distance = infinity
+    distance = inf
     for neighbor in graph.neighbors(start):
-      subgraph = deepcopy(graph)
+      subgraph = graph.copy()
       subgraph.remove(start)
       d = 1 + subgraph.distance(neighbor, goal)
       if d < distance:
