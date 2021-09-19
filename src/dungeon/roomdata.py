@@ -8,7 +8,7 @@ class RoomData:
   edges: list[list] = field(default_factory=lambda: [])
   doors: str = "Door"
   degree: int = 0
-  events: dict[str, str] = field(default_factory=lambda: {})
+  hooks: dict[str, str] = field(default_factory=lambda: {})
 
   def extract_cells(roomdata):
     cells = []

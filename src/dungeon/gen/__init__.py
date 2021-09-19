@@ -48,7 +48,7 @@ from items.sp.sapphire import Sapphire
 from skills.weapon.longinus import Longinus
 
 from resolve.elem import resolve_elem
-from resolve.event import resolve_event
+from resolve.hook import resolve_hook
 
 ENABLE_LOOPLESS_LAYOUTS = False
 MIN_ROOM_COUNT = 12 if ENABLE_LOOPLESS_LAYOUTS else 5
@@ -356,8 +356,8 @@ def gen_floor(
     empty_rooms = plain_rooms.copy()
 
     for room in feature_rooms:
-      if "on_place" in room.data.events:
-        on_place = resolve_event(room.data.events["on_place"])
+      if "on_place" in room.data.hooks:
+        on_place = resolve_hook(room.data.hooks["on_place"])
         on_place and on_place(room, stage)
 
     # SpawnEntrance(stage) -> room

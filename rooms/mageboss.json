@@ -20,7 +20,7 @@
   ],
   "doors": "BattleDoor",
   "degree": 1,
-  "events": {
+  "hooks": {
     "on_focus": "mageboss.focus"
   }
 }

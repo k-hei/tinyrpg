@@ -1,5 +1,5 @@
 from dungeon.features.exitroom import ExitRoom
-from dungeon.props.treasuredoor import TreasureDoor
+from dungeon.props.raretreasuredoor import RareTreasureDoor
 
 class LockedExitRoom(ExitRoom):
-  EntryDoor = TreasureDoor
+  EntryDoor = RareTreasureDoor

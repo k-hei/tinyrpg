@@ -50,6 +50,7 @@ from dungeon.props.pushtile import PushTile
 from dungeon.props.itemdrop import ItemDrop
 from dungeon.props.puzzledoor import PuzzleDoor
 from dungeon.props.pillar import Pillar
+from dungeon.props.raretreasuredoor import RareTreasureDoor
 from dungeon.props.chest import Chest
 from dungeon.features.oasisroom import OasisRoom
 from dungeon.features.emeraldroom import EmeraldRoom
@@ -226,6 +227,7 @@ def resolve_elem(key):
   if key == "ItemDrop": return ItemDrop
   if key == "PuzzleDoor": return PuzzleDoor
   if key == "Pillar": return Pillar
+  if key == "RareTreasureDoor": return RareTreasureDoor
   if key == "Chest": return Chest
   if key == "OasisRoom": return OasisRoom
   if key == "EmeraldRoom": return EmeraldRoom

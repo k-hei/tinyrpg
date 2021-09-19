@@ -20,7 +20,8 @@
   "edges": [
     [3, -1]
   ],
-  "events": {
+  "doors": "TreasureDoor",
+  "hooks": {
     "on_place": "oasis.place"
   }
 }

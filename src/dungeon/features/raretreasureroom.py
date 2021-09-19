@@ -5,14 +5,14 @@ from dungeon.features.room import Room
 from dungeon.props.rarechest import RareChest
 from dungeon.props.vcoffin import VCoffin
 from dungeon.props.pillar import Pillar
-from dungeon.props.treasuredoor import TreasureDoor
+from dungeon.props.raretreasuredoor import RareTreasureDoor
 from dungeon.actors.mushroom import Mushroom
 from skills.weapon.longinus import Longinus
 from skills.ailment.virus import Virus
 from anims.drop import DropAnim
 
 class RareTreasureRoom(SpecialRoom):
-  EntryDoor = TreasureDoor
+  EntryDoor = RareTreasureDoor
 
   def __init__(feature):
     super().__init__(degree=1, shape=[

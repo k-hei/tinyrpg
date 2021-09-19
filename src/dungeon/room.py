@@ -1,7 +1,7 @@
 from dungeon.features.room import Room
 from lib.bounds import find_bounds
 from lib.cell import neighborhood, manhattan, add as add_vector, subtract as subtract_vector
-from resolve.event import resolve_event
+from resolve.hook import resolve_hook
 
 class Blob(Room):
   def __init__(room, cells=None, origin=None, data=None, *args, **kwargs):
@@ -126,8 +126,8 @@ class Blob(Room):
   def on_focus(room, game):
     if not super().on_focus(game):
       return False
-    if room.data and "on_focus" in room.data.events:
-      on_focus = resolve_event(room.data.events["on_focus"])
+    if room.data and "on_focus" in room.data.hooks:
+      on_focus = resolve_hook(room.data.hooks["on_focus"])
       return on_focus and on_focus(room, game)
     else:
       return False

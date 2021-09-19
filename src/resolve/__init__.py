@@ -48,44 +48,44 @@ def build_elems(elems):
 def build_floors(floors):
   write_mapping(name="floor", mapping=floors)
 
-def collect_events(path):
-  events = {}
+def collect_hooks(path):
+  hooks = {}
   for f in listdir(path):
     if f.startswith("__"):
       continue
-    event_path = join(path, f)
-    if isfile(event_path):
-      event_key, _ = splitext(f)
-      event_file = open(event_path, "r")
-      event_body = event_file.read()
-      event_file.close()
-      events[event_key] = event_body
+    hook_path = join(path, f)
+    if isfile(hook_path):
+      hook_key, _ = splitext(f)
+      hook_file = open(hook_path, "r")
+      hook_body = hook_file.read()
+      hook_file.close()
+      hooks[hook_key] = hook_body
     else:
-      events[f] = collect_events(join(path, f))
-  return events
+      hooks[f] = collect_hooks(join(path, f))
+  return hooks
 
-def build_events(path):
-  events = collect_events(path)
+def build_hooks(path):
+  hooks = collect_hooks(path)
   imports_buffer = ""
-  body_buffer = "\ndef resolve_event(key):\n"
+  body_buffer = "\ndef resolve_hook(key):\n"
   pattern = re.compile("def (\w+)\(\w+")
-  stack = [*events.items()]
+  stack = [*hooks.items()]
   while stack:
     key, val = stack.pop()
     if type(val) is str:
       match = pattern.search(val)
-      event_name = match.group(1)
-      event_path = key
-      event_key = key.replace(".", "")
-      imports_buffer += "from {import_path} import {event_name} as {event_key}\n".format(
-        import_path=".".join(path.split("/")[1:] + [event_path]),
-        event_name=event_name,
-        event_key=event_key
+      hook_name = match.group(1)
+      hook_path = key
+      hook_key = key.replace(".", "")
+      imports_buffer += "from {import_path} import {hook_name} as {hook_key}\n".format(
+        import_path=".".join(path.split("/")[1:] + [hook_path]),
+        hook_name=hook_name,
+        hook_key=hook_key
       )
-      body_buffer += f"  if key == \"{event_path}\": return {event_key}\n"
+      body_buffer += f"  if key == \"{hook_path}\": return {hook_key}\n"
     elif type(val) is dict:
       stack += [(key + "." + k, v) for k, v in val.items()]
-  output_file = open(f"src/resolve/event.py", "w")
+  output_file = open(f"src/resolve/hook.py", "w")
   output_file.write(imports_buffer + body_buffer)
   output_file.close()
 
@@ -144,7 +144,7 @@ if __name__ == "__main__":
   build_chars(chars=collect_imports("src/cores", root=True))
   build_elems(elems=collect_imports("src/dungeon", exclude=["features", "floors", "gen"]))
   build_floors(floors=collect_imports("src/dungeon", prefix="floors"))
-  build_events(path="src/dungeon/events")
+  build_hooks(path="src/dungeon/hooks")
   build_materials(
     items=collect_imports("src/items"),
     actors=collect_imports("src/dungeon", prefix="actors"),
