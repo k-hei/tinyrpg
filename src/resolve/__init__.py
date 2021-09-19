@@ -53,6 +53,8 @@ def build_events(path):
   body_buffer = "\ndef resolve_event(key):\n"
   pattern = re.compile("def (\w+)\(\w+")
   for f in listdir(path):
+    if f.startswith("__"):
+      continue
     event_key, _ = splitext(f)
     item_path = join(path, f)
     item_file = open(item_path, "r")

@@ -205,6 +205,7 @@ def gen_floor(
   items=[Potion, Cheese, Bread, Fish, Antidote, MusicBox, LovePotion, Booze],
   seed=None
 ):
+  features = rooms
   seed = seed if seed is not None else getrandbits(32)
   random.seed(seed)
 
@@ -212,7 +213,6 @@ def gen_floor(
   while lkg is None:
     stage = None
 
-    features = rooms
     rooms = [Blob(data=r) for r in features]
     max_rooms = 4 # randint(MIN_ROOM_COUNT, MAX_ROOM_COUNT)
     rooms_gen = gen_rooms(init=rooms, count=max_rooms)
@@ -352,7 +352,7 @@ def gen_floor(
     for room in feature_rooms:
       if "on_place" in room.data.events:
         on_place = resolve_event(room.data.events["on_place"])
-        on_place and on_place(stage, room)
+        on_place and on_place(room, stage)
 
     # SpawnEntrance(stage) -> room
     entry_room = None

@@ -126,7 +126,7 @@ def load():
 
   for f in listdir(ROOMS_PATH):
     room_id, _ = splitext(f)
-    rooms[room_id] = load_room(ROOMS_PATH, room_id)
+    rooms[room_id.replace("-", "_")] = load_room(ROOMS_PATH, room_id)
 
   assets.sprites = sprites
   assets.fonts = fonts

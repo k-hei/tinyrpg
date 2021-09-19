@@ -3,7 +3,7 @@ from lib.cell import subtract as subtract_vector, neighborhood
 from dungeon.props.palm import Palm
 from dungeon.props.door import Door
 
-def on_place(stage, room):
+def on_place(room, stage):
   palms_left = 3
   valid_cells = [c for c in room.cells if (
     stage.get_tile_at(c) == stage.FLOOR
