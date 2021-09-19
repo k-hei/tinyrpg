@@ -47,7 +47,7 @@ from items.sp.fish import Fish
 from items.sp.sapphire import Sapphire
 from skills.weapon.longinus import Longinus
 
-from resolve.elem import resolve_elem
+from resolve.event import resolve_event
 
 ENABLE_LOOPLESS_LAYOUTS = False
 MIN_ROOM_COUNT = 12 if ENABLE_LOOPLESS_LAYOUTS else 8
@@ -214,7 +214,7 @@ def gen_floor(
 
     features = rooms
     rooms = [Blob(data=r) for r in features]
-    max_rooms = randint(MIN_ROOM_COUNT, MAX_ROOM_COUNT)
+    max_rooms = 4 # randint(MIN_ROOM_COUNT, MAX_ROOM_COUNT)
     rooms_gen = gen_rooms(init=rooms, count=max_rooms)
     while len(rooms) < max_rooms:
       rooms = next(rooms_gen)
@@ -233,20 +233,13 @@ def gen_floor(
         yield None, message
       elif graph.order() != room_count:
         room_count = graph.order()
-        stage, _ = manifest_stage(graph.nodes) # possibly a perf bottleneck - use debug flag to toggle (scope to config or generator?)
+        stage, _ = manifest_stage(graph.nodes, dry=True) # possibly a perf bottleneck - use debug flag to toggle (scope to config or generator?)
         stage.seed = seed
         yield stage, message
 
     # manifest_stage(rooms) -> stage
     stage, stage_offset = manifest_stage(rooms)
     stage.seed = seed
-
-    for room in rooms:
-      room.origin = add_vector(room.origin, stage_offset)
-      if room.data:
-        for cell, elem_id, *props in room.data.elems:
-          props = props[0] if props else {}
-          stage.spawn_elem_at(add_vector(room.origin, cell), resolve_elem(elem_id)(**props))
 
     if graph is False:
       yield stage, message
@@ -352,8 +345,14 @@ def gen_floor(
       continue
 
     rooms.sort(key=lambda r: r.get_area())
-    plain_rooms = [r for r in rooms if r.data not in features]
+    feature_rooms = [r for r in rooms if r.data in features]
+    plain_rooms = [r for r in rooms if r not in feature_rooms]
     empty_rooms = plain_rooms.copy()
+
+    for room in feature_rooms:
+      if "on_place" in room.data.events:
+        on_place = resolve_event(room.data.events["on_place"])
+        on_place and on_place(stage, room)
 
     # SpawnEntrance(stage) -> room
     entry_room = None
@@ -368,20 +367,6 @@ def gen_floor(
         break
     else:
       yield stage, "Failed to spawn entrance"
-
-    # SpawnExit(stage) -> room
-    exit_room = None
-    for room in empty_rooms:
-      exits = [c for c in room.cells if not next((n for n in neighborhood(c, inclusive=True, diagonals=True) if not stage.is_cell_empty(n)), None)]
-      if exits:
-        stage.exit = choice(exits)
-        stage.set_tile_at(stage.exit, Stage.STAIRS_UP)
-        empty_rooms.remove(room)
-        exit_room = room
-        yield stage, f"Spawned exit at {stage.exit}"
-        break
-    else:
-      yield stage, "Failed to spawn exit"
 
     secrets = [e for e in tree.ends() if e in empty_rooms if e.get_area() <= 50]
     for secret in secrets:
@@ -409,12 +394,10 @@ def gen_floor(
 
     # draw room terrain
     for room in plain_rooms:
-      if room is entry_room or room is exit_room:
-        continue
       gen_terrain(stage, room, tree)
 
     # populate rooms
-    for i, room in enumerate(plain_rooms):
+    for i, room in enumerate(rooms):
       if room in secrets:
         stage.spawn_elem_at(room.get_center(), Chest(Elixir))
         item_count = min(8, room.get_area() // 20)

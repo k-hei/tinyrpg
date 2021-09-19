@@ -1,12 +1,13 @@
 from dungeon.props import Prop
+import assets
 from anims.flicker import FlickerAnim
-from config import FLICKER_DURATION
-from assets import load as use_assets
 from sprite import Sprite
+from filters import replace_color
+from config import FLICKER_DURATION
+from colors.palette import WHITE, BLUE
 
 class Palm(Prop):
-  def __init__(palm):
-    super().__init__(solid=False)
+  solid = False
 
   def vanish(palm, game):
     game.anims.append([FlickerAnim(
@@ -16,8 +17,10 @@ class Palm(Prop):
     )])
 
   def view(coffin, anims):
+    palm_image = assets.sprites["oasis_palm"]
+    palm_image = replace_color(palm_image, WHITE, BLUE)
     return super().view([Sprite(
-      image=use_assets().sprites["oasis_palm"],
+      image=palm_image,
       layer="elems",
       offset=-16
     )], anims)

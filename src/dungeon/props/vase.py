@@ -2,7 +2,7 @@ import assets
 from sprite import Sprite
 from dungeon.props import Prop
 from dungeon.props.itemdrop import ItemDrop
-from colors.palette import WHITE, DARKBLUE
+from colors.palette import WHITE, BLUE
 from filters import replace_color
 from anims.frame import FrameAnim
 from anims.jump import JumpAnim
@@ -72,7 +72,7 @@ class Vase(Prop):
         break
       if isinstance(anim, FlickerAnim) and not anim.visible:
         return super().view([], anims, *args, **kwargs)
-    vase_image = replace_color(vase_image, (0xFF, 0x00, 0x00), DARKBLUE)
+    vase_image = replace_color(vase_image, (0xFF, 0x00, 0x00), BLUE)
     return super().view([Sprite(
       image=vase_image,
       layer="tiles" if vase.opened else "elems",

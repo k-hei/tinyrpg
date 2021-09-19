@@ -4,7 +4,7 @@ from dungeon.stage import Stage
 from dungeon.room import Blob
 from resolve.elem import resolve_elem
 
-def manifest_stage(rooms):
+def manifest_stage(rooms, dry=False):
   stage_cells = []
   for room in rooms:
     stage_cells += room.cells
@@ -14,12 +14,16 @@ def manifest_stage(rooms):
   stage.fill(Stage.WALL)
   for room in rooms:
     for cell in room.cells:
-      x, y = subtract_vector(cell, room.origin)
-      cell = add_vector(cell, stage_offset)
       if room.data:
-        tile_id = room.data.tiles[y * room.width + x]
+        tile_id = room.get_tile_at(subtract_vector(cell, room.origin))
         tile = Stage.TILE_ORDER[tile_id]
-        stage.set_tile_at(cell, tile)
+        stage.set_tile_at(add_vector(cell, stage_offset), tile)
       else:
-        stage.set_tile_at(cell, Stage.FLOOR)
+        stage.set_tile_at(add_vector(cell, stage_offset), Stage.FLOOR)
+    if not dry:
+      room.origin = add_vector(room.origin, stage_offset)
+      if room.data:
+        for cell, elem_id, *props in room.data.elems:
+          props = props[0] if props else {}
+          stage.spawn_elem_at(add_vector(room.origin, cell), resolve_elem(elem_id)(**props))
   return stage, stage_offset

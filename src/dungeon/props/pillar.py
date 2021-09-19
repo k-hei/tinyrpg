@@ -1,8 +1,9 @@
+from random import randint
 from dungeon.props import Prop
 import assets
+from sprite import Sprite
 from filters import replace_color
 from colors.palette import WHITE, SAFFRON
-from sprite import Sprite
 
 class Pillar(Prop):
   solid = True
@@ -10,7 +11,7 @@ class Pillar(Prop):
 
   def __init__(pillar, broken=False):
     super().__init__()
-    pillar.broken = broken
+    pillar.broken = randint(0, 1)
 
   def view(pillar, anims):
     if pillar.broken:

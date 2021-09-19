@@ -48,6 +48,32 @@ def build_elems(elems):
 def build_floors(floors):
   write_mapping(name="floor", mapping=floors)
 
+def build_events(path):
+  imports_buffer = ""
+  body_buffer = "\ndef resolve_event(key):\n"
+  pattern = re.compile("def (\w+)\(\w+")
+  for f in listdir(path):
+    event_key, _ = splitext(f)
+    item_path = join(path, f)
+    item_file = open(item_path, "r")
+    item_contents = item_file.read()
+    item_file.close()
+    event_body = item_contents[item_contents.index("def"):]
+    match = pattern.search(item_contents)
+    if match:
+      event_name = match.group(1)
+    else:
+      continue
+    imports_buffer += "from {import_path} import {event_name} as {event_key}\n".format(
+      import_path=".".join(path.split("/")[1:] + [event_key]),
+      event_name=event_name,
+      event_key=event_key
+    )
+    body_buffer += f"  if key == \"{event_key}\": return {event_key}\n"
+  output_file = open(f"src/resolve/event.py", "w")
+  output_file.write(imports_buffer + body_buffer)
+  output_file.close()
+
 def collect_materials(materials_path, actors_path):
   materials = {}
 
@@ -103,6 +129,7 @@ if __name__ == "__main__":
   build_chars(chars=collect_imports("src/cores", root=True))
   build_elems(elems=collect_imports("src/dungeon", exclude=["features", "floors", "gen"]))
   build_floors(floors=collect_imports("src/dungeon", prefix="floors"))
+  build_events(path="src/dungeon/events")
   build_materials(
     items=collect_imports("src/items"),
     actors=collect_imports("src/dungeon", prefix="actors"),

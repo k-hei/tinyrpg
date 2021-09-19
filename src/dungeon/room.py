@@ -89,10 +89,10 @@ class Blob(Room):
     room.origin = cell
 
   def get_width(room):
-    return room.rect.width
+    return room.width
 
   def get_height(room):
-    return room.rect.height
+    return room.height
 
   def get_cells(room):
     return room.cells
@@ -111,3 +111,9 @@ class Blob(Room):
 
   def find_closest_cell(room, dest):
     return sorted(room.cells, key=lambda c: manhattan(c, dest))[0]
+
+  def get_tile_at(room, cell):
+    if not room.data:
+      return None
+    x, y = cell
+    return room.data.tiles[y * room.width + x]

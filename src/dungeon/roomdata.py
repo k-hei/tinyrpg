@@ -6,6 +6,8 @@ class RoomData:
   tiles: list[int]
   elems: list[list] = field(default_factory=lambda: [])
   doors: list[list] = field(default_factory=lambda: [])
+  degree: int = 0
+  events: dict[str, str] = field(default_factory=lambda: {})
 
   def extract_cells(roomdata):
     cells = []

@@ -35,6 +35,7 @@ from dungeon.props.bag import Bag
 from dungeon.props.treasuredoor import TreasureDoor
 from dungeon.props.palm import Palm
 from dungeon.props.battledoor import BattleDoor
+from dungeon.props.secretdoor import SecretDoor
 from dungeon.props.poisonpuff import PoisonPuff
 from dungeon.props.coffin import Coffin
 from dungeon.props.vcoffin import VCoffin
@@ -43,6 +44,7 @@ from dungeon.props.soul import Soul
 from dungeon.props.pushblock import PushBlock
 from dungeon.props.arrowtrap import ArrowTrap
 from dungeon.props.altar import Altar
+from dungeon.props.rarechest import RareChest
 from dungeon.props.door import Door
 from dungeon.props.pushtile import PushTile
 from dungeon.props.itemdrop import ItemDrop
@@ -59,6 +61,7 @@ from dungeon.features.genieroom import GenieRoom
 from dungeon.features.altarroom import AltarRoom
 from dungeon.features.coffinroom import CoffinRoom
 from dungeon.features.hallroom import HallRoom
+from dungeon.features.irregularroom import IrregularRoom
 from dungeon.features.pushblockroom import PushBlockRoom
 from dungeon.features.battleroom import BattleRoom
 from dungeon.features.gauntletroom import GauntletRoom
@@ -69,6 +72,7 @@ from dungeon.features.magebossroom import MageBossRoom
 from dungeon.features.raretreasureroom import RareTreasureRoom
 from dungeon.features.itemroom import ItemRoom
 from dungeon.features.vertroom import VerticalRoom
+from dungeon.features.carvedroom import CarvedRoom
 from dungeon.features.lockedexitroom import LockedExitRoom
 from dungeon.features.specialroom import SpecialRoom
 from dungeon.features.depthsroom import DepthsRoom
@@ -207,6 +211,7 @@ def resolve_elem(key):
   if key == "TreasureDoor": return TreasureDoor
   if key == "Palm": return Palm
   if key == "BattleDoor": return BattleDoor
+  if key == "SecretDoor": return SecretDoor
   if key == "PoisonPuff": return PoisonPuff
   if key == "Coffin": return Coffin
   if key == "VCoffin": return VCoffin
@@ -215,6 +220,7 @@ def resolve_elem(key):
   if key == "PushBlock": return PushBlock
   if key == "ArrowTrap": return ArrowTrap
   if key == "Altar": return Altar
+  if key == "RareChest": return RareChest
   if key == "Door": return Door
   if key == "PushTile": return PushTile
   if key == "ItemDrop": return ItemDrop
@@ -231,6 +237,7 @@ def resolve_elem(key):
   if key == "AltarRoom": return AltarRoom
   if key == "CoffinRoom": return CoffinRoom
   if key == "HallRoom": return HallRoom
+  if key == "IrregularRoom": return IrregularRoom
   if key == "PushBlockRoom": return PushBlockRoom
   if key == "BattleRoom": return BattleRoom
   if key == "GauntletRoom": return GauntletRoom
@@ -241,6 +248,7 @@ def resolve_elem(key):
   if key == "RareTreasureRoom": return RareTreasureRoom
   if key == "ItemRoom": return ItemRoom
   if key == "VerticalRoom": return VerticalRoom
+  if key == "CarvedRoom": return CarvedRoom
   if key == "LockedExitRoom": return LockedExitRoom
   if key == "SpecialRoom": return SpecialRoom
   if key == "DepthsRoom": return DepthsRoom
