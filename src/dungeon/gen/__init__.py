@@ -399,7 +399,9 @@ def gen_floor(
       gen_terrain(stage, room, tree)
 
     # populate rooms
-    for i, room in enumerate(rooms):
+    for room in rooms:
+      if room.data and not room.data.spawns_vases:
+        continue
       if room in secrets:
         stage.spawn_elem_at(room.get_center(), Chest(Elixir))
         item_count = min(8, room.get_area() // 20)
@@ -409,7 +411,9 @@ def gen_floor(
         room_items = [Vase(choice(items)) for _ in range(item_count)]
       gen_elems(stage, room, elems=room_items)
 
-    for i, room in enumerate(empty_rooms):
+    for i, room in enumerate(rooms):
+      if room.data and not room.data.spawns_enemies:
+        continue
       enemies_spawned = gen_elems(stage, room,
         elems=[choice(enemies)(
           ailment=("sleep" if randint(1, 3) == 1 else None)

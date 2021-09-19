@@ -1,14 +1,18 @@
 from dataclasses import dataclass, field
 
+# TODO: move room json loading out of assets so we can resolve hooks post-init
+
 @dataclass
 class RoomData:
-  size: tuple[int, int]
-  tiles: list[int]
-  elems: list[list] = field(default_factory=lambda: [])
-  edges: list[list] = field(default_factory=lambda: [])
-  doors: str = "Door"
-  degree: int = 0
-  hooks: dict[str, str] = field(default_factory=lambda: {})
+  size: tuple[int, int] = None                              # default: generated interior
+  tiles: list[int] = field(default_factory=lambda: [])      # default: generated interior
+  elems: list[list] = field(default_factory=lambda: [])     # default: no elements
+  spawns_vases: bool = False                                # default: no vases spawn
+  spawns_enemies: bool = False                              # default: no enemies spawn
+  edges: list[list] = field(default_factory=lambda: [])     # default: all edges
+  doors: str = "Door"                                       # default: standard door
+  degree: int = 0                                           # default: arbitrary degree
+  hooks: dict[str, str] = field(default_factory=lambda: {}) # default: no hooks
 
   def extract_cells(roomdata):
     cells = []

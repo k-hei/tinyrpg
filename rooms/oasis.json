@@ -17,6 +17,7 @@
     [[2, 2], "Pillar"],
     [[4, 2], "Pillar"]
   ],
+  "spawns_vases": true,
   "edges": [
     [3, -1]
   ],
