@@ -5,7 +5,8 @@ class RoomData:
   size: tuple[int, int]
   tiles: list[int]
   elems: list[list] = field(default_factory=lambda: [])
-  doors: list[list] = field(default_factory=lambda: [])
+  edges: list[list] = field(default_factory=lambda: [])
+  doors: str = "Door"
   degree: int = 0
   events: dict[str, str] = field(default_factory=lambda: {})
 

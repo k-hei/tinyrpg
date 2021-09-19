@@ -15,9 +15,10 @@
     [[4, 5], "Pillar"],
     [[1, 4], "Pillar"]
   ],
-  "doors": [
-    [[3, 7], "Door"]
+  "edges": [
+    [3, 7]
   ],
+  "doors": "BattleDoor",
   "degree": 1,
   "events": {
     "on_focus": "mageboss.focus"

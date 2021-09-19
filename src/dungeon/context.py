@@ -932,7 +932,7 @@ class DungeonContext(Context):
               PathAnim(
                 target=game.hero,
                 path=hero_path,
-                on_step=lambda cell: cell == hallway[-2] and door and not door.opened and door.effect(game)
+                on_step=lambda cell: cell == hallway[-2] and door and not door.opened and door.handle_open(game)
               ),
               *([PathAnim(
                 target=game.ally,

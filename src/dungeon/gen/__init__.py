@@ -47,11 +47,12 @@ from items.sp.fish import Fish
 from items.sp.sapphire import Sapphire
 from skills.weapon.longinus import Longinus
 
+from resolve.elem import resolve_elem
 from resolve.event import resolve_event
 
 ENABLE_LOOPLESS_LAYOUTS = False
-MIN_ROOM_COUNT = 12 if ENABLE_LOOPLESS_LAYOUTS else 8
-MAX_ROOM_COUNT = MIN_ROOM_COUNT + 2
+MIN_ROOM_COUNT = 12 if ENABLE_LOOPLESS_LAYOUTS else 5
+MAX_ROOM_COUNT = MIN_ROOM_COUNT + 0
 ALL_ITEMS = [
   Amethyst,
   Antidote, Antidote,
@@ -214,7 +215,7 @@ def gen_floor(
     stage = None
 
     rooms = [Blob(data=r) for r in features]
-    max_rooms = 4 # randint(MIN_ROOM_COUNT, MAX_ROOM_COUNT)
+    max_rooms = randint(MIN_ROOM_COUNT, MAX_ROOM_COUNT)
     rooms_gen = gen_rooms(init=rooms, count=max_rooms)
     while len(rooms) < max_rooms:
       rooms = next(rooms_gen)
@@ -332,8 +333,13 @@ def gen_floor(
       # TODO: cache this path and only draw after all paths are cached (fail tolerance)
       # need to be able to trace conflicting cells back to the connectors that made them(?)
       door_path = [door1] + door_path + [door2]
-      stage.spawn_elem_at(door1, Door())
-      stage.spawn_elem_at(door2, Door())
+      door = Door
+      if room1.data and resolve_elem(room1.data.doors) is not Door:
+        door = resolve_elem(room1.data.doors)
+      if room2.data and resolve_elem(room2.data.doors) is not Door:
+        door = resolve_elem(room2.data.doors)
+      stage.spawn_elem_at(door1, door())
+      stage.spawn_elem_at(door2, door())
       for cell in door_path:
         stage.set_tile_at(cell, Stage.HALLWAY)
         door_paths.update(neighborhood(cell, inclusive=True, diagonals=True))

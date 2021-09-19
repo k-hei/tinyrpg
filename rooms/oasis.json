@@ -17,8 +17,8 @@
     [[2, 2], "Pillar"],
     [[4, 2], "Pillar"]
   ],
-  "doors": [
-    [[3, -1], "Door"]
+  "edges": [
+    [3, -1]
   ],
   "events": {
     "on_place": "oasis.place"

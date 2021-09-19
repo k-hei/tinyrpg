@@ -26,7 +26,7 @@ class Blob(Room):
   def edges(room):
     room_cells = room.cells
     if room.data:
-      return [add_vector(e, room.origin) for e, d in room.data.doors]
+      return [add_vector(e, room.origin) for e in room.data.edges]
     else:
       return [e for e in room.border if len([n for n in neighborhood(e) if n in room_cells]) == 1 and room.find_connector(e)]
 
@@ -128,7 +128,6 @@ class Blob(Room):
       return False
     if room.data and "on_focus" in room.data.events:
       on_focus = resolve_event(room.data.events["on_focus"])
-      print(on_focus)
       return on_focus and on_focus(room, game)
     else:
       return False
