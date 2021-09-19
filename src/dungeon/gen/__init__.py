@@ -50,8 +50,7 @@ from skills.weapon.longinus import Longinus
 from resolve.elem import resolve_elem
 from resolve.hook import resolve_hook
 
-ENABLE_LOOPLESS_LAYOUTS = False
-MIN_ROOM_COUNT = 12 if ENABLE_LOOPLESS_LAYOUTS else 5
+MIN_ROOM_COUNT = 7
 MAX_ROOM_COUNT = MIN_ROOM_COUNT + 0
 ALL_ITEMS = [
   Amethyst,
@@ -92,7 +91,7 @@ def gen_rooms(count, init=None):
 def place_rooms(rooms):
   if not rooms:
     yield True
-  rooms.sort(key=lambda r: -r.get_area())
+  rooms.sort(key=lambda r: -r.get_area() + (1000000 if r.data else 0))
   graph = FloorGraph(nodes=[rooms[0]])
   total_blob = rooms[0]
   total_connectors = []
@@ -198,7 +197,6 @@ def gen_loops(tree, graph):
     for node in tree.nodes:
       if tree.degree(node) <= 2 and gen_loop(tree, graph, node, min_distance=2):
         break
-
 
 def gen_floor(
   rooms=[],
@@ -356,9 +354,7 @@ def gen_floor(
     empty_rooms = plain_rooms.copy()
 
     for room in feature_rooms:
-      if "on_place" in room.data.hooks:
-        on_place = resolve_hook(room.data.hooks["on_place"])
-        on_place and on_place(room, stage)
+      room.on_place(stage)
 
     # SpawnEntrance(stage) -> room
     entry_room = None

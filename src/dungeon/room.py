@@ -124,12 +124,18 @@ class Blob(Room):
     x, y = cell
     return room.data.tiles[y * room.width + x]
 
+  def on_place(room, stage):
+    if room.data and "on_place" in room.data.hooks:
+      on_place = resolve_hook(room.data.hooks["on_place"])
+      not on_place and debug.log("Failed to resolve \"on_place\" hook \"{}\"".format(room.data.hooks["on_place"]))
+      return on_place and on_place(room, stage)
+
   def on_focus(room, *args, **kwargs):
     if not super().on_focus(*args, **kwargs):
       return False
     if room.data and "on_focus" in room.data.hooks:
       on_focus = resolve_hook(room.data.hooks["on_focus"])
-      not on_focus and debug.log("Failed to resolve \"on_focus\" hook")
+      not on_focus and debug.log("Failed to resolve \"on_focus\" hook \"{}\"".format(room.data.hooks["on_focus"]))
       return on_focus and on_focus(room, *args, **kwargs)
     else:
       return False
@@ -139,7 +145,7 @@ class Blob(Room):
       return False
     if room.data and "on_enter" in room.data.hooks:
       on_enter = resolve_hook(room.data.hooks["on_enter"])
-      not on_enter and debug.log("Failed to resolve \"on_enter\" hook")
+      not on_enter and debug.log("Failed to resolve \"on_enter\" hook \"{}\"".format(room.data.hooks["on_enter"]))
       return on_enter and on_enter(room, *args, **kwargs)
     else:
       return False
@@ -147,7 +153,7 @@ class Blob(Room):
   def on_defeat(room, *args, **kwargs):
     if room.data and "on_defeat" in room.data.hooks:
       on_defeat = resolve_hook(room.data.hooks["on_defeat"])
-      not on_defeat and debug.log("Failed to resolve \"on_defeat\" hook")
+      not on_defeat and debug.log("Failed to resolve \"on_defeat\" hook \"{}\"".format(room.data.hooks["on_defeat"]))
       return on_defeat and on_defeat(room, *args, **kwargs)
     else:
       return super().on_defeat(*args, **kwargs)

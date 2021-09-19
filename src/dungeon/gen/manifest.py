@@ -2,6 +2,7 @@ from lib.bounds import find_bounds
 from lib.cell import add as add_vector, subtract as subtract_vector
 from dungeon.stage import Stage
 from dungeon.room import Blob
+from dungeon.decoder import decode_elem
 from resolve.elem import resolve_elem
 
 def manifest_stage(rooms, dry=False):
@@ -22,8 +23,8 @@ def manifest_stage(rooms, dry=False):
         stage.set_tile_at(add_vector(cell, stage_offset), Stage.FLOOR)
     if not dry:
       room.origin = add_vector(room.origin, stage_offset)
-      if room.data:
-        for cell, elem_id, *props in room.data.elems:
-          props = props[0] if props else {}
-          stage.spawn_elem_at(add_vector(room.origin, cell), resolve_elem(elem_id)(**props))
+      for elem_cell, elem_name, *elem_props in (room.data.elems if room.data else []):
+        elem_props = elem_props[0] if elem_props else {}
+        elem = decode_elem(elem_cell, elem_name, elem_props)
+        stage.spawn_elem_at(add_vector(room.origin, elem_cell), elem)
   return stage, stage_offset

@@ -2,7 +2,9 @@ from dungeon.stage import Stage
 from dungeon.decor import Decor
 from dungeon.features.specialroom import SpecialRoom
 from dungeon.features.vertroom import VerticalRoom
-from savedata.resolve import resolve_elem, resolve_item, resolve_skill
+from resolve.elem import resolve_elem
+from resolve.item import resolve_item
+from resolve.skill import resolve_skill
 import debug
 
 def decode_floor(floor_data):
@@ -41,19 +43,22 @@ def decode_floor(floor_data):
 
   for elem_cell, elem_name, *elem_props in floor_data["elems"]:
     elem_props = elem_props[0] if elem_props else {}
-    if "contents" in elem_props:
-      elem_contents = elem_props["contents"]
-      elem_props["contents"] = resolve_item(elem_contents) or resolve_skill(elem_contents)
-    if "message" in elem_props:
-      message_key = elem_props["message"]
-      elem_props["message"] = next((s for s in resolve_elem(floor_data["generator"]).scripts if s[0] == message_key), None)
-    if "charge_skill" in elem_props:
-      elem_props["charge_skill"] = resolve_skill(elem_props["charge_skill"])
-    try:
-      elem = resolve_elem(elem_name)(**elem_props)
-    except:
-      debug.log("WARNING: Failed to resolve {} {}".format(elem_name, elem_props))
-      raise
+    elem = decode_elem(elem_cell, elem_name, elem_props)
     floor.spawn_elem_at(tuple(elem_cell), elem)
 
   return floor
+
+def decode_elem(elem_cell, elem_name, elem_props):
+  if "contents" in elem_props:
+    elem_contents = elem_props["contents"]
+    elem_props["contents"] = resolve_item(elem_contents) or resolve_skill(elem_contents)
+  # if "message" in elem_props:
+  #   message_key = elem_props["message"]
+  #   elem_props["message"] = next((s for s in resolve_elem(floor_data["generator"]).scripts if s[0] == message_key), None)
+  if "charge_skill" in elem_props:
+    elem_props["charge_skill"] = resolve_skill(elem_props["charge_skill"])
+  try:
+    return resolve_elem(elem_name)(**elem_props)
+  except:
+    debug.log(f"WARNING: Failed to resolve {elem_name} {elem_props}")
+    raise

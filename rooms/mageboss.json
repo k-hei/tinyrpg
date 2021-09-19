@@ -16,10 +16,11 @@
     [[1, 4], "Pillar"]
   ],
   "edges": [
+    [3, -1],
     [3, 7]
   ],
   "doors": "BattleDoor",
-  "degree": 1,
+  "degree": 2,
   "hooks": {
     "on_focus": "mageboss.focus",
     "on_enter": "mageboss.enter",

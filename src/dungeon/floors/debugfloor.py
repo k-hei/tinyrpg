@@ -9,6 +9,7 @@ class DebugFloor(Floor):
         assets.rooms["exit"],
         assets.rooms["oasis"],
         assets.rooms["mageboss"],
+        assets.rooms["emerald"],
       ],
       seed=seed
     )
