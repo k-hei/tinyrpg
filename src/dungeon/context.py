@@ -302,7 +302,7 @@ class DungeonContext(Context):
 
     if moving and not path_anim:
       rooms = [room for room in floor.rooms if is_within_room(room, hero.cell)]
-      room_within = next((r for r in floor.rooms if hero.cell in r.get_cells() + r.get_edges()), None)
+      room_within = next((r for r in floor.rooms if hero.cell in r.get_cells()), None)
       if len(rooms) == 1:
         room = rooms[0]
       else:
@@ -1529,7 +1529,7 @@ class DungeonContext(Context):
 
     def respond():
       if target.is_dead() or game.floor.get_tile_at(target.cell) is Stage.PIT:
-        if not game.room or game.room.on_kill(game, target):
+        if not game.room or game.room.on_defeat(game, target):
           game.kill(target, on_end)
       elif on_end:
         on_end()

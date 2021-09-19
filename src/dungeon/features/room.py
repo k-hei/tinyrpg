@@ -2,6 +2,7 @@ from random import choice
 from math import ceil
 from lib.cell import add
 from dungeon.features import Feature
+from dungeon.actors import DungeonActor
 from dungeon.props.door import Door
 from config import ROOM_WIDTHS, ROOM_HEIGHTS
 
@@ -113,6 +114,11 @@ class Room(Feature):
   def get_doorways(room, stage):
     return [e for e in room.get_edges() if stage.get_tile_at(e) is not stage.WALL]
 
+  def get_enemies(room, stage):
+    return [e for c in room.get_cells() for e in stage.get_elems_at(c) if (
+      e and isinstance(e, DungeonActor) and e.faction == "enemy"
+    )]
+
   def get_slots(room, cell=None):
     room_x, room_y = cell or room.cell or (0, 0)
     slots = []
@@ -122,6 +128,14 @@ class Room(Feature):
         if col % 2 == 1 and row % 3 == 1:
           slots.append((col, row))
     return slots
+
+  def lock(room, game):
+    for door in room.get_doors(game.floor):
+      door.handle_close(game)
+
+  def unlock(room, game):
+    for door in room.get_doors(game.floor):
+      door.handle_open(game)
 
   def on_focus(room, game):
     if room.focused:
@@ -145,7 +159,7 @@ class Room(Feature):
 
   def on_exit(room, game): pass
 
-  def on_kill(room, game, target):
+  def on_defeat(room, game, target):
     return True
 
   def on_death(room, game, target): pass

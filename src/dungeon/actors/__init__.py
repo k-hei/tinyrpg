@@ -98,7 +98,7 @@ class DungeonActor(DungeonElement):
     actor.updates = 0
     actor.rare = rare
     actor.visible_cells = []
-    actor.on_kill = None
+    actor.on_defeat = None
     actor.flipped = False
 
     if rare:

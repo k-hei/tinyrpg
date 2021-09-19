@@ -4,7 +4,8 @@ from dungeon.actors.mage import Mage
 def on_focus(room, game):
   if "minxia" in game.store.story:
     return False
-  game.floor.spawn_elem_at(add_vector(room.center, (0, -1)), Mage(
+  room.mage = Mage(
     faction="ally",
     facing=(0, -1)
-  ))
+  )
+  game.floor.spawn_elem_at(add_vector(room.center, (0, -1)), room.mage)

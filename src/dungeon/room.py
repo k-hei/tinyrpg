@@ -2,6 +2,7 @@ from dungeon.features.room import Room
 from lib.bounds import find_bounds
 from lib.cell import neighborhood, manhattan, add as add_vector, subtract as subtract_vector
 from resolve.hook import resolve_hook
+import debug
 
 class Blob(Room):
   def __init__(room, cells=None, origin=None, data=None, *args, **kwargs):
@@ -123,11 +124,30 @@ class Blob(Room):
     x, y = cell
     return room.data.tiles[y * room.width + x]
 
-  def on_focus(room, game):
-    if not super().on_focus(game):
+  def on_focus(room, *args, **kwargs):
+    if not super().on_focus(*args, **kwargs):
       return False
     if room.data and "on_focus" in room.data.hooks:
       on_focus = resolve_hook(room.data.hooks["on_focus"])
-      return on_focus and on_focus(room, game)
+      not on_focus and debug.log("Failed to resolve \"on_focus\" hook")
+      return on_focus and on_focus(room, *args, **kwargs)
     else:
       return False
+
+  def on_enter(room, *args, **kwargs):
+    if not super().on_enter(*args, **kwargs):
+      return False
+    if room.data and "on_enter" in room.data.hooks:
+      on_enter = resolve_hook(room.data.hooks["on_enter"])
+      not on_enter and debug.log("Failed to resolve \"on_enter\" hook")
+      return on_enter and on_enter(room, *args, **kwargs)
+    else:
+      return False
+
+  def on_defeat(room, *args, **kwargs):
+    if room.data and "on_defeat" in room.data.hooks:
+      on_defeat = resolve_hook(room.data.hooks["on_defeat"])
+      not on_defeat and debug.log("Failed to resolve \"on_defeat\" hook")
+      return on_defeat and on_defeat(room, *args, **kwargs)
+    else:
+      return super().on_defeat(*args, **kwargs)

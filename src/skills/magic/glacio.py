@@ -75,7 +75,8 @@ class Glacio(MagicSkill):
 
     def on_bump_end():
       delay = len(target_cells) * 10 + 10
-      game.anims[0].append(PauseAnim(
+      print("But nothing happened...")
+      game.anims[0].insert(0, PauseAnim(
         duration=15 + delay,
         on_end=lambda: (
           ENABLED_COMBAT_LOG and game.log.print("But nothing happened..."),

@@ -44,14 +44,6 @@ class MageBossRoom(SpecialRoom):
       e and e.faction == "enemy"
     )]
 
-  def lock(room, game):
-    for door in room.get_doors(game.floor):
-      door.handle_close(game)
-
-  def unlock(room, game):
-    for door in room.get_doors(game.floor):
-      door.handle_open(game)
-
   def on_focus(room, game):
     if not super().on_focus(game) or "minxia" in game.store.story:
       return False
@@ -76,7 +68,7 @@ class MageBossRoom(SpecialRoom):
     )])
     return True
 
-  def on_kill(room, game, actor):
+  def on_defeat(room, game, actor):
     if actor is room.mage:
       room.on_complete(game)
       return False

@@ -11,7 +11,7 @@ class Pillar(Prop):
 
   def __init__(pillar, broken=False):
     super().__init__()
-    pillar.broken = randint(0, 1)
+    pillar.broken = not randint(0, 2)
 
   def view(pillar, anims):
     if pillar.broken:

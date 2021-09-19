@@ -21,6 +21,8 @@
   "doors": "BattleDoor",
   "degree": 1,
   "hooks": {
-    "on_focus": "mageboss.focus"
+    "on_focus": "mageboss.focus",
+    "on_enter": "mageboss.enter",
+    "on_defeat": "mageboss.defeat"
   }
 }
