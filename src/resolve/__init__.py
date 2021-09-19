@@ -48,30 +48,43 @@ def build_elems(elems):
 def build_floors(floors):
   write_mapping(name="floor", mapping=floors)
 
-def build_events(path):
-  imports_buffer = ""
-  body_buffer = "\ndef resolve_event(key):\n"
-  pattern = re.compile("def (\w+)\(\w+")
+def collect_events(path):
+  events = {}
   for f in listdir(path):
     if f.startswith("__"):
       continue
-    event_key, _ = splitext(f)
-    item_path = join(path, f)
-    item_file = open(item_path, "r")
-    item_contents = item_file.read()
-    item_file.close()
-    event_body = item_contents[item_contents.index("def"):]
-    match = pattern.search(item_contents)
-    if match:
-      event_name = match.group(1)
+    event_path = join(path, f)
+    if isfile(event_path):
+      event_key, _ = splitext(f)
+      event_file = open(event_path, "r")
+      event_body = event_file.read()
+      event_file.close()
+      events[event_key] = event_body
     else:
-      continue
-    imports_buffer += "from {import_path} import {event_name} as {event_key}\n".format(
-      import_path=".".join(path.split("/")[1:] + [event_key]),
-      event_name=event_name,
-      event_key=event_key
-    )
-    body_buffer += f"  if key == \"{event_key}\": return {event_key}\n"
+      events[f] = collect_events(join(path, f))
+  return events
+
+def build_events(path):
+  events = collect_events(path)
+  imports_buffer = ""
+  body_buffer = "\ndef resolve_event(key):\n"
+  pattern = re.compile("def (\w+)\(\w+")
+  stack = [*events.items()]
+  while stack:
+    key, val = stack.pop()
+    if type(val) is str:
+      match = pattern.search(val)
+      event_name = match.group(1)
+      event_path = key
+      event_key = key.replace(".", "")
+      imports_buffer += "from {import_path} import {event_name} as {event_key}\n".format(
+        import_path=".".join(path.split("/")[1:] + [event_path]),
+        event_name=event_name,
+        event_key=event_key
+      )
+      body_buffer += f"  if key == \"{event_path}\": return {event_key}\n"
+    elif type(val) is dict:
+      stack += [(key + "." + k, v) for k, v in val.items()]
   output_file = open(f"src/resolve/event.py", "w")
   output_file.write(imports_buffer + body_buffer)
   output_file.close()

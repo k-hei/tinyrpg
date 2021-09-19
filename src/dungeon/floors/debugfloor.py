@@ -6,9 +6,9 @@ class DebugFloor(Floor):
   def generate(store=None, seed=None):
     return gen_floor(
       rooms=[
-        assets.rooms["exit_room"],
-        assets.rooms["oasis_room"],
-        assets.rooms["mageboss_room"],
+        assets.rooms["exit"],
+        assets.rooms["oasis"],
+        assets.rooms["mageboss"],
       ],
       seed=seed
     )

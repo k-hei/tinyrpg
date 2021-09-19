@@ -21,6 +21,6 @@
     [[3, -1], "Door"]
   ],
   "events": {
-    "on_place": "oasisplace"
+    "on_place": "oasis.place"
   }
 }

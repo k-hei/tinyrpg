@@ -20,6 +20,6 @@
   ],
   "degree": 1,
   "events": {
-    "on_focus": "magebossfocus"
+    "on_focus": "mageboss.focus"
   }
 }
