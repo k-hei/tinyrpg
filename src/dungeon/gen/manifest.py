@@ -15,7 +15,7 @@ def manifest_stage(rooms, dry=False):
   stage.fill(Stage.WALL)
   for room in rooms:
     for cell in room.cells:
-      if room.data:
+      if room.data and room.data.tiles:
         tile_id = room.get_tile_at(subtract_vector(cell, room.origin))
         tile = Stage.TILE_ORDER[tile_id]
         stage.set_tile_at(add_vector(cell, stage_offset), tile)

@@ -5,14 +5,16 @@ from resolve.hook import resolve_hook
 import debug
 
 class Blob(Room):
-  def __init__(room, cells=None, origin=None, data=None, *args, **kwargs):
+  def __init__(room, cells=None, origin=None, data=None, degree=0, *args, **kwargs):
     if not cells:
       cells = data.extract_cells()
+    if data:
+      degree = data.degree
     rect = find_bounds(cells)
     room._cells = [subtract_vector(c, rect.topleft) for c in cells]
     room.origin = origin or rect.topleft
     room.data = data
-    super().__init__(size=rect.size, cell=room.origin, *args, **kwargs)
+    super().__init__(size=rect.size, cell=room.origin, degree=degree, *args, **kwargs)
 
   @property
   def cells(room):
@@ -26,7 +28,7 @@ class Blob(Room):
   @property
   def edges(room):
     room_cells = room.cells
-    if room.data:
+    if room.data and room.data.edges:
       return [add_vector(e, room.origin) for e in room.data.edges]
     else:
       return [e for e in room.border if len([n for n in neighborhood(e) if n in room_cells]) == 1 and room.find_connector(e)]
@@ -80,11 +82,11 @@ class Blob(Room):
 
   @property
   def width(room):
-    return room.data and room.data.size[0] or room.rect.width
+    return room.data and room.data.size and room.data.size[0] or room.rect.width
 
   @property
   def height(room):
-    return room.data and room.data.size[1] or room.rect.height
+    return room.data and room.data.size and room.data.size[1] or room.rect.height
 
   @property
   def cell(room):

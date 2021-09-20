@@ -1,21 +1,27 @@
 from lib.graph import Graph
 import assets
 from dungeon.floors import Floor
+from dungeon.room import Blob as Room
+from dungeon.roomdata import RoomData
 from dungeon.gen import gen_floor
+from dungeon.gen.blob import gen_blob
 
 class DebugFloor(Floor):
   def generate(store=None, seed=None):
     return gen_floor(
       features=Graph(
         nodes=[
-          assets.rooms["exit"],
-          assets.rooms["oasis"],
-          assets.rooms["mageboss"],
-          assets.rooms["emerald"],
+          mageboss_room := Room(data=assets.rooms["mageboss"]),
+          emerald_room := Room(data=assets.rooms["emerald"]),
+          buffer_room := Room(cells=gen_blob(min_area=80, max_area=100), data=RoomData(spawns_vases=True)),
+          Room(data=assets.rooms["exit"]),
+          Room(data=assets.rooms["oasis"]),
+          Room(cells=gen_blob(min_area=80, max_area=120), data=RoomData(spawns_enemies=True)),
+          Room(cells=gen_blob(min_area=120, max_area=160), data=RoomData(spawns_vases=True, spawns_enemies=True)),
         ],
         edges=[
-          [assets.rooms["exit"], assets.rooms["oasis"]],
-          [assets.rooms["mageboss"], assets.rooms["emerald"]],
+          (mageboss_room, emerald_room),
+          (mageboss_room, buffer_room)
         ]
       ),
       seed=seed

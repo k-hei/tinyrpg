@@ -21,8 +21,7 @@ def gen_size(min_area, max_area):
   return (room_width, room_height)
 
 def gen_blob(size=None, min_area=MIN_ROOM_AREA, max_area=MAX_ROOM_AREA):
-  lkg = None
-  while lkg is None:
+  while True:
     size = size or gen_size(min_area=min_area, max_area=max_area)
     sandbox = Stage(size)
     valid_cells = sandbox.get_cells()
@@ -38,7 +37,6 @@ def gen_blob(size=None, min_area=MIN_ROOM_AREA, max_area=MAX_ROOM_AREA):
 
     islands = find_islands(sandbox)
     if not islands:
-      yield None
       continue
 
     for island in islands[1:]:
@@ -47,11 +45,9 @@ def gen_blob(size=None, min_area=MIN_ROOM_AREA, max_area=MAX_ROOM_AREA):
 
     island_rect = find_bounds(islands[0])
     if island_rect.width * island_rect.height < min_area // 4:
-      yield None
       continue
 
-    lkg = [add_vector(c, (-island_rect.left, -island_rect.top)) for c in islands[0]]
-    yield lkg
+    return [add_vector(c, (-island_rect.left, -island_rect.top)) for c in islands[0]]
 
 
 def life(stage, birth_threshold, death_threshold):

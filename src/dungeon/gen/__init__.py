@@ -10,7 +10,7 @@ import assets
 from config import FPS
 
 from dungeon.floors import Floor
-from dungeon.room import Blob
+from dungeon.room import Blob as Room
 from dungeon.gen.terrain import gen_terrain
 from dungeon.gen.elems import gen_elems
 from dungeon.gen.blob import gen_blob
@@ -76,18 +76,13 @@ ALL_ITEMS = [
 def gen_rooms(count, init=None):
   rooms = init or []
   while len(rooms) < count:
-    blob_gen = (
-      len(rooms) > count // 3
+    cells = (len(rooms) > count // 3
       and gen_blob(min_area=80, max_area=100)
       or gen_blob(min_area=150, max_area=240)
     )
-    cells = None
-    while not cells:
-      cells = next(blob_gen)
-      if cells:
-        room = Blob(cells)
-        rooms.append(room)
-    yield rooms
+    room = Room(cells)
+    rooms.append(room)
+  return rooms
 
 def place_rooms(rooms):
   if not rooms:
@@ -141,7 +136,7 @@ def place_rooms(rooms):
       print("Using cached edge")
 
     if room in graph.nodes:
-      total_blob = Blob(total_blob.cells + room.cells)
+      total_blob = Room(total_blob.cells + room.cells)
       total_connectors += connectors
       yield graph, f"Placed room {i + 2} of {len(graph.nodes)} at {room.origin}"
     else:
@@ -149,72 +144,70 @@ def place_rooms(rooms):
 
   yield graph, ""
 
+def find_chunks(graph):
+  chunks = []
+  for node in graph.nodes:
+    if (next((n for c in chunks for n in c.nodes if n is node), None)
+    or next(((n1, n2) for c in chunks for n1, n2 in c.edges if n1 is node or n2 is node), None)):
+      continue
+    chunk = Graph(nodes=[node])
+    stack = [node]
+    while stack:
+      node = stack.pop()
+      for neighbor in graph.neighbors(node):
+        if neighbor in chunk.nodes:
+          continue
+        chunk.nodes.append(neighbor)
+        chunk.edges.append((node, neighbor))
+        stack.append(neighbor)
+    chunks.append(chunk)
+  return chunks
+
 def gen_place(graph, parent, child):
   graph_hitbox = {c for n in graph.nodes for c in n.cells}
-  child = next((n for n in graph.nodes if n.data is child), None) or Blob(data=child)
-  initial_origin = child.origin
-  connector_origins = [(c1, subtract_vector(c1, subtract_vector(c2, child.origin))) for c1, c2 in product(parent.connectors, child.connectors)]
-  shuffle(connector_origins)
-  for connector, origin in connector_origins:
+  init_origin = child.origin
+  origins = [(subtract_vector(c1, subtract_vector(c2, child.origin)), c1) for c1, c2 in product(parent.connectors, child.connectors)]
+  shuffle(origins)
+  for origin, connector in origins:
     child.origin = origin
     if not child.hitbox & graph_hitbox:
       child not in graph.nodes and graph.add(child)
       graph.connect(parent, child, connector)
       return connector
-  child.origin = initial_origin
+  child.origin = init_origin
   return None
 
-def find_chunks(graph):
-  chunks = []
-  for node in graph.nodes:
-    if (next((n for s in chunks for n in s.nodes if n is node), None)
-    or next(((n1, n2) for s in chunks for n1, n2 in s.edges if n1 is node or n2 is node), None)):
-      continue
-    nodes = []
-    edges = []
-    stack = [node]
-    while stack:
-      node = stack.pop()
-      nodes.append(node)
-      for neighbor in graph.neighbors(node):
-        if neighbor in nodes:
-          continue
-        edges.append((node, neighbor))
-        stack.append(neighbor)
-    chunks.append(Graph(nodes=nodes, edges=edges))
-  return chunks
-
-# Assemble a feature data graph using physical connections
 def assemble_graph(feature_graph):
   parent = sorted(feature_graph.nodes, key=feature_graph.degree)[-1]
-  parent = Blob(data=parent)
   floor_graph = FloorGraph(nodes=[parent])
   if feature_graph.order() == 1:
     return floor_graph
   stack = [parent]
   while stack:
     node = stack.pop(0)
-    for neighbor in feature_graph.neighbors(node.data):
-      if next((n for n in floor_graph.nodes if n.data is neighbor), None):
+    for neighbor in feature_graph.neighbors(node):
+      if neighbor in floor_graph.nodes:
         continue
       connector = gen_place(graph=floor_graph, parent=node, child=neighbor)
       if connector:
-        stack.append(next((n for n in floor_graph.nodes if n.data is neighbor), None))
+        stack.append(neighbor)
       else:
         debug.log("Connection failed", neighbor)
   return floor_graph
 
 def assemble_graphs(graphs):
-  graphs = sorted(graphs, key=lambda g: g.order(), reverse=True)
+  is_graph_dead_end = lambda g: not next((n for n in g.nodes if n.degree != 1), None)
+  graphs = sorted(graphs, key=lambda g: g.order() + random.random() / 2 + (-100 if is_graph_dead_end(g) else 0), reverse=True)
   g1 = graphs[0]
   find_connectors = lambda g: {c: n for n in g.nodes for c in n.connectors if n.degree == 0 or g.degree(n) < n.degree}
   for g2 in graphs[1:]:
-    b1 = Blob(cells=[c for n in g1.nodes for c in n.cells])
-    b2 = Blob(cells=[c for n in g2.nodes for c in n.cells])
+    b1 = Room(cells=[c for n in g1.nodes for c in n.cells])
+    b2 = Room(cells=[c for n in g2.nodes for c in n.cells])
     g1_connectors = {c: n for n in g1.nodes for c in n.connectors if n.degree == 0 or g1.degree(n) < n.degree}
     g2_connectors = {c: n for n in g2.nodes for c in n.connectors if n.degree == 0 or g2.degree(n) < n.degree}
     init_origin = b2.origin
     origins = [(subtract_vector(c1, c2), n1, n2, c1) for (c1, n1), (c2, n2) in product(g1_connectors.items(), g2_connectors.items())]
+    shuffle(origins)
     for origin, room1, room2, connector in origins:
       delta = subtract_vector(origin, init_origin)
       b2.origin = add_vector(init_origin, delta)
@@ -227,8 +220,9 @@ def assemble_graphs(graphs):
           g2.reconnect(*edge, add_vector(connector, delta))
       g1.merge(g2)
       g1.connect(room1, room2, connector)
-      break
-  return g1
+      graphs = [g for g in graphs if g is not g2]
+      return assemble_graphs(graphs) if len(graphs) >= 2 else g1
+    debug.log("Failed to connect graph", [n.data for n in g2.nodes])
 
 def gen_tree(graph, start=None):
   tree = FloorGraph()
@@ -291,15 +285,11 @@ def gen_floor(
   if not isinstance(features, Graph):
     features = Graph(nodes=features, edges=[])
 
-  data_chunks = find_chunks(features)
-  floor_chunks = [assemble_graph(s) for s in data_chunks]
-  graph = assemble_graphs(floor_chunks)
-
   lkg = None
   while lkg is None:
     stage = None
 
-    # rooms = [Blob(data=r) for r in features.nodes]
+    # rooms = [Room(data=r) for r in features.nodes]
     # max_rooms = randint(MIN_ROOM_COUNT, MAX_ROOM_COUNT)
     # rooms_gen = gen_rooms(init=rooms, count=max_rooms)
     # while len(rooms) < max_rooms:
@@ -325,6 +315,13 @@ def gen_floor(
     #     yield stage, message
 
     # manifest_stage(rooms) -> stage
+    feature_chunks = find_chunks(features)
+    floor_chunks = [assemble_graph(s) for s in feature_chunks]
+    graph = assemble_graphs(floor_chunks)
+    if graph is None:
+      yield None, "Failed to assemble graphs"
+      continue
+
     rooms = graph.nodes
     stage, stage_offset = manifest_stage(rooms)
     stage.seed = seed
@@ -439,7 +436,7 @@ def gen_floor(
       continue
 
     rooms.sort(key=lambda r: r.get_area())
-    feature_rooms = [r for r in rooms if r.data in features.nodes]
+    feature_rooms = features.nodes
     plain_rooms = [r for r in rooms if r not in feature_rooms]
     empty_rooms = plain_rooms.copy()
 

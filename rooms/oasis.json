@@ -22,6 +22,7 @@
     [3, -1]
   ],
   "doors": "TreasureDoor",
+  "degree": 1,
   "hooks": {
     "on_place": "oasis.place"
   }
