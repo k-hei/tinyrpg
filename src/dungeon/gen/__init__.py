@@ -447,7 +447,7 @@ def gen_floor(
     if not stage.entrance:
       yield stage, "Failed to spawn entrance"
 
-    secrets = [e for e in tree.ends() if e in empty_rooms if e.get_area() <= 50]
+    secrets = [e for e in tree.ends() if e in empty_rooms if e.get_area() <= 50 and e.data.doors == "Door"]
     for secret in secrets:
       neighbor = tree.neighbors(secret)[0]
       doors = tree.connectors(secret, neighbor)

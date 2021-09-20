@@ -14,14 +14,16 @@ class DebugFloor(Floor):
           mageboss_room := Room(data=assets.rooms["mageboss"]),
           emerald_room := Room(data=assets.rooms["emerald"]),
           buffer_room := Room(cells=gen_blob(min_area=80, max_area=100), data=RoomData(spawns_vases=True)),
+          treasure_room := Room(cells=gen_blob(min_area=80, max_area=100), data=RoomData(spawns_vases=True, doors="TreasureDoor", degree=1)),
+          enemy_room := Room(cells=gen_blob(min_area=120, max_area=160), data=RoomData(spawns_enemies=True)),
+          Room(cells=gen_blob(min_area=120, max_area=160), data=RoomData(spawns_vases=True, spawns_enemies=True)),
           Room(data=assets.rooms["exit"]),
           Room(data=assets.rooms["oasis"]),
-          Room(cells=gen_blob(min_area=120, max_area=160), data=RoomData(spawns_enemies=True)),
-          Room(cells=gen_blob(min_area=120, max_area=160), data=RoomData(spawns_vases=True, spawns_enemies=True)),
         ],
         edges=[
           (mageboss_room, emerald_room),
-          (mageboss_room, buffer_room)
+          (mageboss_room, buffer_room),
+          (enemy_room, treasure_room),
         ]
       ),
       seed=seed
