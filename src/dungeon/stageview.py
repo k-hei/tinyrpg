@@ -518,7 +518,10 @@ def render_tile(stage, cell, visited_cells=[]):
     else:
       return None
   elif tile is stage.OASIS_STAIRS:
-    sprite_name = "oasis_stairs"
+    if stage.get_tile_at((x, y - 1)) is stage.FLOOR:
+      sprite_name = "oasis_stairs_down"
+    else:
+      sprite_name = "oasis_stairs_up"
   elif tile is stage.OASIS:
     return render_oasis(stage, cell)
   return assets.sprites[sprite_name] if sprite_name else None
@@ -543,6 +546,7 @@ def render_wall(stage, cell, visited_cells):
     tile_below is stage.FLOOR
     or tile_below is stage.PIT
     or tile_below is stage.HALLWAY
+    or tile_below is stage.OASIS
   )
   and (x, y + 1) in visited_cells
   and not stage.get_elem_at((x, y + 1), superclass=Door)):
@@ -574,7 +578,7 @@ def render_oasis(stage, cell):
     return sprites["oasis_corner_top"]
   elif o(x - 1, y) and o(x, y + 1) and not o(x + 1, y - 1) and not o(x + 1, y) and not o(x, y - 1):
     return flip(sprites["oasis_corner_top"], True, False)
-  elif o(x + 1, y) and o(x, y - 1) and not o(x - 1, y + 1):
+  elif o(x + 1, y) and o(x, y - 1) and not o(x - 1, y + 1) and not o(x - 1, y) and not o(x, y + 1):
     return sprites["oasis_corner_bottom"]
-  elif o(x - 1, y) and o(x, y - 1) and not o(x + 1, y + 1):
+  elif o(x - 1, y) and o(x, y - 1) and not o(x + 1, y + 1) and not o(x + 1, y) and not o(x, y + 1):
     return flip(sprites["oasis_corner_bottom"], True, False)

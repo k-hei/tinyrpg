@@ -1,3 +1,4 @@
+from random import choice
 from dungeon.features.room import Room
 from lib.bounds import find_bounds
 from lib.cell import neighborhood, manhattan, add as add_vector, subtract as subtract_vector
@@ -6,10 +7,12 @@ import debug
 
 class Blob(Room):
   def __init__(room, cells=None, origin=None, data=None, degree=0, *args, **kwargs):
-    if not cells:
-      cells = data.extract_cells()
+    if type(data) is list:
+      data = choice(data)
     if data:
       degree = data.degree
+    if not cells:
+      cells = data.extract_cells()
     rect = find_bounds(cells)
     room._cells = [subtract_vector(c, rect.topleft) for c in cells]
     room.origin = origin or rect.topleft

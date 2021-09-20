@@ -299,6 +299,7 @@ class DungeonContext(Context):
     new_room = None
     hallway = None
     path_anim = game.anims and next((a for g in game.anims for a in g if type(a) is PathAnim and not a.done), None)
+    is_cell_not_unvisited = lambda c: not next((r for r in game.floor.rooms if c in r.get_cells() and r not in game.room_entrances), None)
 
     if moving and not path_anim:
       rooms = [room for room in floor.rooms if is_within_room(room, hero.cell)]
@@ -322,7 +323,7 @@ class DungeonContext(Context):
         already_illuminated_once_this_floor = next((r for r in game.floor.rooms if r in game.room_entrances), None)
         game.room_entrances[room] = hero.cell
         if already_illuminated_once_this_floor:
-          room_cellset = set(room.get_cells() + room.get_outline())
+          room_cellset = {c for c in room.get_cells() + room.get_outline() if is_cell_not_unvisited(c)}
           visible_cellset = room_cellset & set(hero.visible_cells)
           anim_cells = list(room_cellset - visible_cellset)
           visible_cells = list(visible_cellset) + neighborhood(hero.cell)
@@ -368,7 +369,7 @@ class DungeonContext(Context):
       if game.room:
         visible_cells += game.room.get_cells() + game.room.get_outline()
 
-    hero.visible_cells = visible_cells
+    hero.visible_cells = [c for c in visible_cells if is_cell_not_unvisited(c)]
     game.update_visited_cells(visible_cells)
 
     if door is not None:

@@ -10,7 +10,7 @@
     [             "",      "coffin",   "door_beetle",      "door_beetle_turn", "door_beetle_opening",    "door_beetle_open",                  "",            ""],
     [             "", "coffin_open",              "",                 "floor",           "push_tile",    "oasis_corner_top",    "oasis_edge_top",      "stairs"],
     [             "",  "coffin_lid",              "",                      "",                    "", "oasis_corner_bottom", "oasis_edge_bottom",      "ladder"],
-    [             "",            "",              "",                      "",                    "",        "oasis_stairs",                  "",         "pit"]
+    [             "",            "",              "",                      "",                    "",   "oasis_stairs_down",   "oasis_stairs_up",         "pit"]
   ],
   "stairs_left": [80, 128, 32, 64],
   "sand_pile": [48, 192, 32, 32],

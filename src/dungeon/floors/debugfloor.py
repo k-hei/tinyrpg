@@ -16,7 +16,7 @@ class DebugFloor(Floor):
           buffer_room := Room(cells=gen_blob(min_area=80, max_area=100), data=RoomData(spawns_vases=True)),
           Room(data=assets.rooms["exit"]),
           Room(data=assets.rooms["oasis"]),
-          Room(cells=gen_blob(min_area=80, max_area=120), data=RoomData(spawns_enemies=True)),
+          Room(cells=gen_blob(min_area=120, max_area=160), data=RoomData(spawns_enemies=True)),
           Room(cells=gen_blob(min_area=120, max_area=160), data=RoomData(spawns_vases=True, spawns_enemies=True)),
         ],
         edges=[

@@ -89,7 +89,10 @@ def load_room(path, key):
     return None
   finally:
     room_file and room_file.close()
-  return RoomData(**room_data)
+  if type(room_data) is list:
+    return [RoomData(**d) for d in room_data]
+  else:
+    return RoomData(**room_data)
 
 def load():
   if assets.sprites:

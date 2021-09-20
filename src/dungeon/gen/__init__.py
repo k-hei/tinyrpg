@@ -437,25 +437,15 @@ def gen_floor(
 
     rooms.sort(key=lambda r: r.get_area())
     feature_rooms = features.nodes
-    plain_rooms = [r for r in rooms if r not in feature_rooms]
+    plain_rooms = [r for r in rooms if r not in feature_rooms or not r.data.tiles]
     empty_rooms = plain_rooms.copy()
 
     for room in feature_rooms:
       room.on_place(stage)
 
-    # SpawnEntrance(stage) -> room
-    # entry_room = None
-    # for room in empty_rooms:
-    #   entrances = [c for c in room.cells if not next((n for n in neighborhood(c, inclusive=True, diagonals=True) if not stage.is_cell_empty(n)), None)]
-    #   if entrances:
-    #     stage.entrance = choice(entrances)
-    #     stage.set_tile_at(stage.entrance, Stage.STAIRS_DOWN)
-    #     empty_rooms.remove(room)
-    #     entry_room = room
-    #     yield stage, f"Spawned entrance at {stage.entrance}"
-    #     break
-    # else:
-    #   yield stage, "Failed to spawn entrance"
+    stage.entrance = stage.find_tile(stage.STAIRS_DOWN)
+    if not stage.entrance:
+      yield stage, "Failed to spawn entrance"
 
     secrets = [e for e in tree.ends() if e in empty_rooms if e.get_area() <= 50]
     for secret in secrets:
