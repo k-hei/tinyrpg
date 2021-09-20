@@ -1,10 +1,11 @@
+from dataclasses import dataclass, field
 from math import inf
 from copy import deepcopy
 
+@dataclass
 class Graph:
-  def __init__(graph, nodes=None, edges=None):
-    graph.nodes = nodes or []
-    graph.edges = edges or []
+  nodes: list = field(default_factory=lambda: [])
+  edges: list = field(default_factory=lambda: [])
 
   def copy(graph):
     return Graph(nodes=graph.nodes.copy(), edges=graph.edges.copy())
@@ -32,13 +33,13 @@ class Graph:
     graph.edges = [(n1, n2) for n1, n2 in graph.edges if n1 is not node and n2 is not node]
 
   def neighbors(graph, node):
-    neighbors = set()
+    neighbors = []
     for n1, n2 in graph.edges:
-      if n1 is node:
-        neighbors.add(n2)
-      elif n2 is node:
-        neighbors.add(n1)
-    return tuple(neighbors)
+      if n1 is node and n1 not in neighbors:
+        neighbors.append(n2)
+      elif n2 is node and n2 not in neighbors:
+        neighbors.append(n1)
+    return neighbors
 
   def tail(graph, head):
     for n1, n2 in graph.edges:

@@ -136,7 +136,7 @@ class GenContext(Context):
         ctx.minimap = Minimap.render_surface(floor)
       minimap_image = ctx.minimap
       minimap_xscale = WINDOW_WIDTH * 2 / 3 // minimap_image.get_width()
-      minimap_yscale = WINDOW_HEIGHT * 2 / 3 // minimap_image.get_height()
+      minimap_yscale = WINDOW_HEIGHT * 3 / 4 // minimap_image.get_height()
       minimap_scale = min(minimap_xscale, minimap_yscale)
       sprites.insert(0, Sprite(
         image=minimap_image,

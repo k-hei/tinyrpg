@@ -1,9 +1,9 @@
+from dataclasses import dataclass, field
 from lib.graph import Graph
 
+@dataclass
 class FloorGraph(Graph):
-  def __init__(graph, *args, **kwargs):
-    super().__init__(*args, **kwargs)
-    graph.conns = {}
+  conns: dict = field(default_factory=lambda: {})
 
   def connections(graph):
     return graph.conns.items()
@@ -66,3 +66,9 @@ class FloorGraph(Graph):
       return None
     g2 = flood_fill(n2, FloorGraph())
     return g1, g2
+
+  def merge(graph1, graph2):
+    graph1.nodes += graph2.nodes
+    graph1.edges += graph2.edges
+    graph1.conns = dict([*graph1.conns.items(), *graph2.conns.items()])
+    return graph1

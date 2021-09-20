@@ -11,7 +11,7 @@ def manifest_stage(rooms, dry=False):
     stage_cells += room.cells
   stage_blob = Blob(stage_cells, origin=(1, 2))
   stage_offset = subtract_vector(stage_blob.origin, find_bounds(stage_cells).topleft)
-  stage = Stage(add_vector(stage_blob.rect.size, (2, 2)))
+  stage = Stage(add_vector(stage_blob.rect.size, (2, 3)))
   stage.fill(Stage.WALL)
   for room in rooms:
     for cell in room.cells:

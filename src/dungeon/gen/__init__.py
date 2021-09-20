@@ -4,6 +4,7 @@ import random
 from random import randint, getrandbits, choice, shuffle
 from pygame.time import get_ticks
 from lib.cell import neighborhood, manhattan, is_adjacent, add as add_vector, subtract as subtract_vector
+from lib.graph import Graph
 import debug
 import assets
 from config import FPS
@@ -91,7 +92,6 @@ def gen_rooms(count, init=None):
 def place_rooms(rooms):
   if not rooms:
     yield True
-  rooms.sort(key=lambda r: -r.get_area() + (1000000 if r.data else 0))
   graph = FloorGraph(nodes=[rooms[0]])
   total_blob = rooms[0]
   total_connectors = []
@@ -149,6 +149,87 @@ def place_rooms(rooms):
 
   yield graph, ""
 
+def gen_place(graph, parent, child):
+  graph_hitbox = {c for n in graph.nodes for c in n.cells}
+  child = next((n for n in graph.nodes if n.data is child), None) or Blob(data=child)
+  initial_origin = child.origin
+  connector_origins = [(c1, subtract_vector(c1, subtract_vector(c2, child.origin))) for c1, c2 in product(parent.connectors, child.connectors)]
+  shuffle(connector_origins)
+  for connector, origin in connector_origins:
+    child.origin = origin
+    if not child.hitbox & graph_hitbox:
+      child not in graph.nodes and graph.add(child)
+      graph.connect(parent, child, connector)
+      return connector
+  child.origin = initial_origin
+  return None
+
+def find_chunks(graph):
+  chunks = []
+  for node in graph.nodes:
+    if (next((n for s in chunks for n in s.nodes if n is node), None)
+    or next(((n1, n2) for s in chunks for n1, n2 in s.edges if n1 is node or n2 is node), None)):
+      continue
+    nodes = []
+    edges = []
+    stack = [node]
+    while stack:
+      node = stack.pop()
+      nodes.append(node)
+      for neighbor in graph.neighbors(node):
+        if neighbor in nodes:
+          continue
+        edges.append((node, neighbor))
+        stack.append(neighbor)
+    chunks.append(Graph(nodes=nodes, edges=edges))
+  return chunks
+
+# Assemble a feature data graph using physical connections
+def assemble_graph(feature_graph):
+  parent = sorted(feature_graph.nodes, key=feature_graph.degree)[-1]
+  parent = Blob(data=parent)
+  floor_graph = FloorGraph(nodes=[parent])
+  if feature_graph.order() == 1:
+    return floor_graph
+  stack = [parent]
+  while stack:
+    node = stack.pop(0)
+    for neighbor in feature_graph.neighbors(node.data):
+      if next((n for n in floor_graph.nodes if n.data is neighbor), None):
+        continue
+      connector = gen_place(graph=floor_graph, parent=node, child=neighbor)
+      if connector:
+        stack.append(next((n for n in floor_graph.nodes if n.data is neighbor), None))
+      else:
+        debug.log("Connection failed", neighbor)
+  return floor_graph
+
+def assemble_graphs(graphs):
+  graphs = sorted(graphs, key=lambda g: g.order(), reverse=True)
+  g1 = graphs[0]
+  find_connectors = lambda g: {c: n for n in g.nodes for c in n.connectors if n.degree == 0 or g.degree(n) < n.degree}
+  for g2 in graphs[1:]:
+    b1 = Blob(cells=[c for n in g1.nodes for c in n.cells])
+    b2 = Blob(cells=[c for n in g2.nodes for c in n.cells])
+    g1_connectors = {c: n for n in g1.nodes for c in n.connectors if n.degree == 0 or g1.degree(n) < n.degree}
+    g2_connectors = {c: n for n in g2.nodes for c in n.connectors if n.degree == 0 or g2.degree(n) < n.degree}
+    init_origin = b2.origin
+    origins = [(subtract_vector(c1, c2), n1, n2, c1) for (c1, n1), (c2, n2) in product(g1_connectors.items(), g2_connectors.items())]
+    for origin, room1, room2, connector in origins:
+      delta = subtract_vector(origin, init_origin)
+      b2.origin = add_vector(init_origin, delta)
+      if b1.hitbox & b2.hitbox:
+        continue
+      for node in g2.nodes:
+        node.origin = add_vector(node.origin, delta)
+      for edge in g2.edges:
+        for connector in g2.conns[edge]:
+          g2.reconnect(*edge, add_vector(connector, delta))
+      g1.merge(g2)
+      g1.connect(room1, room2, connector)
+      break
+  return g1
+
 def gen_tree(graph, start=None):
   tree = FloorGraph()
   if start is None:
@@ -199,53 +280,62 @@ def gen_loops(tree, graph):
         break
 
 def gen_floor(
-  rooms=[],
+  features=[],
   enemies=[Eyeball, Mushroom, Ghost, Mummy],
   items=[Potion, Cheese, Bread, Fish, Antidote, MusicBox, LovePotion, Booze],
   seed=None
 ):
-  features = rooms
   seed = seed if seed is not None else getrandbits(32)
   random.seed(seed)
+
+  if not isinstance(features, Graph):
+    features = Graph(nodes=features, edges=[])
+
+  data_chunks = find_chunks(features)
+  floor_chunks = [assemble_graph(s) for s in data_chunks]
+  graph = assemble_graphs(floor_chunks)
 
   lkg = None
   while lkg is None:
     stage = None
 
-    rooms = [Blob(data=r) for r in features]
-    max_rooms = randint(MIN_ROOM_COUNT, MAX_ROOM_COUNT)
-    rooms_gen = gen_rooms(init=rooms, count=max_rooms)
-    while len(rooms) < max_rooms:
-      rooms = next(rooms_gen)
-      if len(rooms) == max_rooms:
-        yield None, f"Room generation succeeded"
-      else:
-        yield None, f"Generating room {len(rooms) + 1} of {max_rooms}"
+    # rooms = [Blob(data=r) for r in features.nodes]
+    # max_rooms = randint(MIN_ROOM_COUNT, MAX_ROOM_COUNT)
+    # rooms_gen = gen_rooms(init=rooms, count=max_rooms)
+    # while len(rooms) < max_rooms:
+    #   rooms = next(rooms_gen)
+    #   if len(rooms) < max_rooms:
+    #     yield None, f"Generating room {len(rooms) + 1} of {max_rooms}"
+    #   else:
+    #     yield None, f"Room generation succeeded"
 
-    # place rooms
-    graph, message = {}, "*"
-    room_count = 0
-    place_gen = place_rooms(rooms)
-    while graph is not False and message:
-      graph, message = next(place_gen)
-      if not graph:
-        yield None, message
-      elif graph.order() != room_count:
-        room_count = graph.order()
-        stage, _ = manifest_stage(graph.nodes, dry=True) # possibly a perf bottleneck - use debug flag to toggle (scope to config or generator?)
-        stage.seed = seed
-        yield stage, message
+    # # place rooms
+    # graph, message = {}, "*"
+    # room_count = 0
+    # rooms.sort(key=lambda r: -r.get_area() + (1000000 if r.data else 0))
+    # place_gen = place_rooms(rooms)
+    # while graph is not False and message:
+    #   graph, message = next(place_gen)
+    #   if not graph:
+    #     yield None, message
+    #   elif graph.order() != room_count:
+    #     room_count = graph.order()
+    #     stage, _ = manifest_stage(graph.nodes, dry=True) # possibly a perf bottleneck - use debug flag to toggle (scope to config or generator?)
+    #     stage.seed = seed
+    #     yield stage, message
 
     # manifest_stage(rooms) -> stage
+    rooms = graph.nodes
     stage, stage_offset = manifest_stage(rooms)
     stage.seed = seed
 
-    if graph is False:
-      yield stage, message
-      continue
+    # if graph is False:
+    #   yield stage, message
+    #   continue
 
-    tree = gen_tree(graph)
-    gen_loops(tree, graph)
+    tree = graph
+    # tree = gen_tree(graph)
+    # gen_loops(tree, graph)
 
     # DrawConnectors(stage, stage_offset, tree)
     connected = True
@@ -349,7 +439,7 @@ def gen_floor(
       continue
 
     rooms.sort(key=lambda r: r.get_area())
-    feature_rooms = [r for r in rooms if r.data in features]
+    feature_rooms = [r for r in rooms if r.data in features.nodes]
     plain_rooms = [r for r in rooms if r not in feature_rooms]
     empty_rooms = plain_rooms.copy()
 
@@ -357,18 +447,18 @@ def gen_floor(
       room.on_place(stage)
 
     # SpawnEntrance(stage) -> room
-    entry_room = None
-    for room in empty_rooms:
-      entrances = [c for c in room.cells if not next((n for n in neighborhood(c, inclusive=True, diagonals=True) if not stage.is_cell_empty(n)), None)]
-      if entrances:
-        stage.entrance = choice(entrances)
-        stage.set_tile_at(stage.entrance, Stage.STAIRS_DOWN)
-        empty_rooms.remove(room)
-        entry_room = room
-        yield stage, f"Spawned entrance at {stage.entrance}"
-        break
-    else:
-      yield stage, "Failed to spawn entrance"
+    # entry_room = None
+    # for room in empty_rooms:
+    #   entrances = [c for c in room.cells if not next((n for n in neighborhood(c, inclusive=True, diagonals=True) if not stage.is_cell_empty(n)), None)]
+    #   if entrances:
+    #     stage.entrance = choice(entrances)
+    #     stage.set_tile_at(stage.entrance, Stage.STAIRS_DOWN)
+    #     empty_rooms.remove(room)
+    #     entry_room = room
+    #     yield stage, f"Spawned entrance at {stage.entrance}"
+    #     break
+    # else:
+    #   yield stage, "Failed to spawn entrance"
 
     secrets = [e for e in tree.ends() if e in empty_rooms if e.get_area() <= 50]
     for secret in secrets:
