@@ -15,8 +15,8 @@
       6, 6, 6, 6, 6, 6, 6
     ],
     "elems": [
-      [[2, 2], "Pillar"],
-      [[4, 2], "Pillar"]
+      [[2, 2], "Column"],
+      [[4, 2], "Column"]
     ],
     "spawns_vases": true,
     "edges": [
@@ -45,8 +45,8 @@
       1, 1, 0, 0, 0, 0, 1, 1
     ],
     "elems": [
-      [[3, 7], "Pillar"],
-      [[5, 7], "Pillar"]
+      [[3, 7], "Column"],
+      [[5, 7], "Column"]
     ],
     "spawns_vases": true,
     "edges": [
