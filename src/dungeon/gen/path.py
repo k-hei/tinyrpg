@@ -1,15 +1,15 @@
 from random import randint
 
-def gen_path(start, goal, predicate=None, straight=False, attempts=256):
+def gen_path(start, goal, delta=False, predicate=None, attempts=256):
   path = [start]
   cell = start
   goal_x, goal_y = goal
-  delta_x, delta_y = 0, 0
+  delta_x, delta_y = delta or (0, 0)
   while cell != goal and attempts:
     x, y = cell
     dist_x = goal_x - x
     dist_y = goal_y - y
-    if straight:
+    if delta:
       if dist_x and delta_x:
         delta_x = dist_x / abs(dist_x)
         delta_y = 0

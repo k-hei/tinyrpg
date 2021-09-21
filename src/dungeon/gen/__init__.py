@@ -155,10 +155,12 @@ def find_chunks(graph):
     while stack:
       node = stack.pop()
       for neighbor in graph.neighbors(node):
+        if (node, neighbor) in chunk.edges or (neighbor, node) in chunk.edges:
+          continue
+        chunk.edges.append((node, neighbor))
         if neighbor in chunk.nodes:
           continue
         chunk.nodes.append(neighbor)
-        chunk.edges.append((node, neighbor))
         stack.append(neighbor)
     chunks.append(chunk)
   return chunks
@@ -166,14 +168,17 @@ def find_chunks(graph):
 def gen_place(graph, parent, child):
   graph_hitbox = {c for n in graph.nodes for c in n.cells}
   init_origin = child.origin
-  origins = [(subtract_vector(c1, subtract_vector(c2, child.origin)), c1) for c1, c2 in product(parent.connectors, child.connectors)]
-  shuffle(origins)
-  for origin, connector in origins:
+  origins = [subtract_vector(c1, subtract_vector(c2, child.origin)) for c1, c2 in product(parent.connectors, child.connectors)]
+  # shuffle(origins)
+  for origin in origins:
     child.origin = origin
-    if not child.hitbox & graph_hitbox:
-      child not in graph.nodes and graph.add(child)
-      graph.connect(parent, child, connector)
-      return connector
+    if child.hitbox & graph_hitbox:
+      continue
+    connectors = list(set(parent.connectors) & set(child.connectors))
+    connector = connectors[0] if connectors else (0, 0)
+    child not in graph.nodes and graph.add(child)
+    graph.connect(parent, child, connector)
+    return connector
   child.origin = init_origin
   return None
 
@@ -186,13 +191,14 @@ def assemble_graph(feature_graph):
   while stack:
     node = stack.pop(0)
     for neighbor in feature_graph.neighbors(node):
-      if neighbor in floor_graph.nodes:
+      if (node, neighbor) in floor_graph.edges or (neighbor, node) in floor_graph.edges:
         continue
       connector = gen_place(graph=floor_graph, parent=node, child=neighbor)
       if connector:
         stack.append(neighbor)
       else:
-        debug.log("Connection failed", neighbor)
+        debug.log("Connection failed", neighbor.data)
+        return None
   return floor_graph
 
 def assemble_graphs(graphs):
@@ -203,23 +209,29 @@ def assemble_graphs(graphs):
   for g2 in graphs[1:]:
     b1 = Room(cells=[c for n in g1.nodes for c in n.cells])
     b2 = Room(cells=[c for n in g2.nodes for c in n.cells])
-    g1_connectors = {c: n for n in g1.nodes for c in n.connectors if n.degree == 0 or g1.degree(n) < n.degree}
-    g2_connectors = {c: n for n in g2.nodes for c in n.connectors if n.degree == 0 or g2.degree(n) < n.degree}
+    g1_connections = {c: n for n in g1.nodes for c in n.connectors if n.degree == 0 or g1.degree(n) < n.degree}
+    g2_connections = {c: n for n in g2.nodes for c in n.connectors if n.degree == 0 or g2.degree(n) < n.degree}
     init_origin = b2.origin
-    origins = [(subtract_vector(c1, c2), n1, n2, c1) for (c1, n1), (c2, n2) in product(g1_connectors.items(), g2_connectors.items())]
-    shuffle(origins)
-    for origin, room1, room2, connector in origins:
+    origins = [(subtract_vector(c1, subtract_vector(c2, b2.origin)), n1, n2) for (c1, n1), (c2, n2) in product(g1_connections.items(), g2_connections.items())]
+    # shuffle(origins)
+    for origin, room1, room2 in origins:
       delta = subtract_vector(origin, init_origin)
       b2.origin = add_vector(init_origin, delta)
       if b1.hitbox & b2.hitbox:
         continue
       for node in g2.nodes:
         node.origin = add_vector(node.origin, delta)
-      for edge in g2.edges:
-        for connector in g2.conns[edge]:
-          g2.reconnect(*edge, add_vector(connector, delta))
-      g1.merge(g2)
+      connectors = list(set(room1.connectors) & set(room2.connectors))
+      g1_connectors = [c for cs in g1.conns.values() for c in cs]
+      connector = next((c for c in connectors if not next((n for n in neighborhood(c, diagonals=True, inclusive=True) if n in g1_connectors), None)), None)
+      if not connector:
+        continue
       g1.connect(room1, room2, connector)
+      for edge in g2.edges:
+        del g2.conns[edge]
+        n1, n2 = edge
+        g2.conns[edge] = tuple(set(n1.connectors) & set(n2.connectors))
+      g1.merge(g2)
       graphs = [g for g in graphs if g is not g2]
       return assemble_graphs(graphs) if len(graphs) >= 2 else g1
     debug.log("Failed to connect graph", [n.data for n in g2.nodes])
@@ -316,7 +328,18 @@ def gen_floor(
 
     # manifest_stage(rooms) -> stage
     feature_chunks = find_chunks(features)
-    floor_chunks = [assemble_graph(s) for s in feature_chunks]
+    yield None, f"Found {len(feature_chunks)} feature chunk(s)"
+
+    floor_chunks = []
+    for i, feature_chunk in enumerate(feature_chunks):
+      chunk_id = f"{i + 1}/{len(feature_chunks)}"
+      floor_chunk = assemble_graph(feature_chunk)
+      if not floor_chunk:
+        yield None, f"Failed to assemble chunk {chunk_id}"
+        continue
+      floor_chunks.append(floor_chunk)
+      yield None, f"Assembled chunk {chunk_id}"
+
     graph = assemble_graphs(floor_chunks)
     if graph is None:
       yield None, "Failed to assemble graphs"
@@ -400,14 +423,14 @@ def gen_floor(
             door_path = [door1_start, door_neighbor, door2_start]
             break
 
-          door_path = gen_path(start=door1_start, goal=door2_start, predicate=lambda c: c not in path_blacklist, straight=True)
+          door_path = gen_path(start=door1_start, goal=door2_start, delta=door1_delta, predicate=lambda c: c not in path_blacklist)
           if door_path:
             break
 
         if door_path:
           break
         else:
-          stage.spawn_elem_at(connector, Eyeball())
+          stage.spawn_elem_at(connector, Mummy())
           yield stage, f"Skipping unusable connector {connector} - {len(connectors) - j - 1} left"
 
       if not door_path:
