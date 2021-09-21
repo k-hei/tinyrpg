@@ -113,7 +113,7 @@ def place_rooms(rooms):
           neighbor_connectors = { n: cs for n, cs in [(n, [c for c in set(n.connectors) & set(room.connectors) if not next((t for t in total_connectors if t in neighborhood(c, inclusive=True, diagonals=True)), None)]) for n in graph.nodes] if cs }
           if neighbor_connectors:
             valid_edges[o] = neighbor_connectors
-            if len(neighbor_connectors) >= 2 or len(graph.nodes) < 3:
+            if len(neighbor_connectors) >= 2 or len(graph.nodes) < 2:
               for neighbor, connectors in neighbor_connectors.items():
                 graph.add(room)
                 graph.connect(room, neighbor, *connectors)
@@ -183,11 +183,37 @@ def gen_place(graph, parent, child):
   child.origin = init_origin
   return None
 
-def assemble_graph(feature_graph):
+def gen_joint_connect(feature_graph):
+  graph, message = None, "*"
+  room_count = 0
+  rooms = feature_graph.nodes
+  rooms.sort(key=lambda r: r.get_area(), reverse=True)
+  place_gen = place_rooms(rooms)
+  while graph is not False:
+    try:
+      graph, _ = next(place_gen)
+      yield graph
+    except StopIteration:
+      break
+
+def gen_connect(feature_graph):
+  print(f"Connect {feature_graph.order()}")
   parent = sorted(feature_graph.nodes, key=feature_graph.degree)[-1]
   floor_graph = FloorGraph(nodes=[parent])
   if feature_graph.order() == 1:
-    return floor_graph
+    yield floor_graph
+    return
+  if len(feature_graph.nodes) == len(feature_graph.edges):
+    print(f"Joint connect {feature_graph.order()}")
+    connect_gen = gen_joint_connect(feature_graph)
+    while floor_graph is not False:
+      try:
+        floor_graph = next(connect_gen)
+        yield floor_graph
+      except StopIteration:
+        break
+    return
+
   stack = [parent]
   while stack:
     node = stack.pop(0)
@@ -197,10 +223,10 @@ def assemble_graph(feature_graph):
       connector = gen_place(graph=floor_graph, parent=node, child=neighbor)
       if connector:
         stack.append(neighbor)
+        yield floor_graph
       else:
         debug.log("Connection failed", neighbor.data)
-        return None
-  return floor_graph
+        return
 
 def merge_graphs(graph1, graph2):
   blob1 = Room(cells=[c for n in graph1.nodes for c in n.cells])
@@ -241,6 +267,7 @@ def gen_assemble(graphs):
       success = merge_graphs(g1, g2)
       if not success:
         yield False
+        yield g1
       break
     graphs = [g for g in graphs if g is not g2]
     yield [g for g in graphs if g is not g1]
@@ -321,43 +348,35 @@ def gen_floor(
     #   else:
     #     yield None, f"Room generation succeeded"
 
-    # # place rooms
-    # graph, message = {}, "*"
-    # room_count = 0
-    # rooms.sort(key=lambda r: -r.get_area() + (1000000 if r.data else 0))
-    # place_gen = place_rooms(rooms)
-    # while graph is not False and message:
-    #   graph, message = next(place_gen)
-    #   if not graph:
-    #     yield None, message
-    #   elif graph.order() != room_count:
-    #     room_count = graph.order()
-    #     stage, _ = manifest_stage(graph.nodes, dry=True) # possibly a perf bottleneck - use debug flag to toggle (scope to config or generator?)
-    #     stage.seed = seed
-    #     yield stage, message
-
     feature_chunks = find_chunks(features)
     yield None, f"Found {len(feature_chunks)} feature chunk(s)"
 
     floor_chunks = []
     for i, feature_chunk in enumerate(feature_chunks):
       chunk_id = f"{i + 1}/{len(feature_chunks)}"
-      floor_chunk = assemble_graph(feature_chunk)
+      connect_gen = gen_connect(feature_chunk)
+      floor_chunk = None
+      stage = None
+      while floor_chunk is not False:
+        try:
+          floor_chunk = next(connect_gen)
+        except StopIteration:
+          break
+        if floor_chunk:
+          stage = manifest_stage(floor_chunk.nodes, dry=True, seed=seed)[0]
       if not floor_chunk:
-        yield None, f"Failed to assemble chunk {chunk_id}"
-        continue
+        yield stage, f"Failed to assemble chunk {chunk_id} ({len(feature_chunk.nodes)})"
       floor_chunks.append(floor_chunk)
       yield None, f"Assembled chunk {chunk_id}"
 
     graphs_left = floor_chunks
     assemble_gen = gen_assemble(floor_chunks)
     while graphs_left:
+      yield None, f"Coalescing graph {len(floor_chunks) - len(graphs_left)}"
       graphs_left = next(assemble_gen)
-      if graphs_left is not False:
-        yield None, f"Coalesced graph {len(floor_chunks) - len(graphs_left)}"
 
     if graphs_left is False:
-      yield None, "Failed to assemble graphs"
+      yield manifest_stage(next(assemble_gen).nodes, seed=seed)[0], "Failed to assemble graphs"
       continue
 
     graph = next(assemble_gen)

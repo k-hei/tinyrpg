@@ -13,7 +13,6 @@ def gen_elems(stage, room, elems):
     )]
   else:
     valid_cells = get_room_bonus_cells(room, stage)
-  print(room.size, len(valid_cells))
   shuffle(valid_cells)
   while elems and valid_cells:
     cell = valid_cells.pop(0)
