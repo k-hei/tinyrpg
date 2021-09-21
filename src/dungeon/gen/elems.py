@@ -1,5 +1,5 @@
-from random import choice
-from lib.cell import manhattan
+from random import shuffle
+from lib.cell import manhattan, is_adjacent
 from dungeon.actors import DungeonActor
 from dungeon.stage import Stage
 
@@ -13,11 +13,12 @@ def gen_elems(stage, room, elems):
     )]
   else:
     valid_cells = get_room_bonus_cells(room, stage)
+  print(room.size, len(valid_cells))
+  shuffle(valid_cells)
   while elems and valid_cells:
-    cell = choice(valid_cells)
+    cell = valid_cells.pop(0)
     stage.spawn_elem_at(cell, elems.pop(0))
     spawn_count += 1
-    valid_cells.remove(cell)
   return spawn_count
 
 def get_room_bonus_cells(room, stage):
@@ -27,7 +28,7 @@ def get_room_bonus_cells(room, stage):
   is_floor = lambda x, y: stage.get_tile_at((x, y)) is Stage.FLOOR
   bonus_cells = [(x, y) for x, y in room_cells if (
     is_floor(x, y)
-    and not next((d for d in room_doorways if manhattan(d, (x, y)) == 1), None)
+    and not next((d for d in room_doorways if is_adjacent(d, (x, y))), None)
     and (
       is_wall(x - 1, y - 1) and is_wall(x - 1, y) and is_wall(x, y - 1) and is_floor(x + 1, y + 1)
       or is_wall(x + 1, y - 1) and is_wall(x + 1, y) and is_wall(x, y - 1) and is_floor(x - 1, y + 1)

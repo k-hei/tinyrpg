@@ -176,7 +176,7 @@ def gen_place(graph, parent, child):
       continue
     connectors = list(set(parent.connectors) & set(child.connectors))
     used_connectors = [c for cs in graph.conns.values() for c in cs]
-    connector = next((c for c in connectors if c not in used_connectors), None)
+    connector = next((c for c in connectors if not next((n for n in neighborhood(c, diagonals=True, inclusive=True) if n in used_connectors), None)), None)
     child not in graph.nodes and graph.add(child)
     graph.connect(parent, child, connector)
     return connector
@@ -218,8 +218,8 @@ def merge_graphs(graph1, graph2):
     for node in graph2.nodes:
       node.origin = add_vector(node.origin, delta)
     connectors = list(set(room1.connectors) & set(room2.connectors))
-    graph1_connectors = [c for cs in graph1.conns.values() for c in cs]
-    connector = next((c for c in connectors if not next((n for n in neighborhood(c, diagonals=True, inclusive=True) if n in graph1_connectors), None)), None)
+    used_connectors = [c for cs in graph1.conns.values() for c in cs]
+    connector = next((c for c in connectors if not next((n for n in neighborhood(c, diagonals=True, inclusive=True) if n in used_connectors), None)), None)
     if not connector:
       continue
     graph1.connect(room1, room2, connector)
@@ -520,10 +520,10 @@ def gen_floor(
         continue
       if room in secrets:
         stage.spawn_elem_at(room.get_center(), Chest(Elixir))
-        item_count = min(8, room.get_area() // 20)
+        item_count = min(8, room.get_area() // 16)
         room_items = [Vase(choice(ALL_ITEMS)) for _ in range(item_count)]
       else:
-        item_count = min(3, room.get_area() // 20)
+        item_count = min(3, room.get_area() // 16)
         room_items = [Vase(choice(items)) for _ in range(item_count)]
       gen_elems(stage, room, elems=room_items)
 
