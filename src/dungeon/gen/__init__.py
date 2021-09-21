@@ -175,7 +175,8 @@ def gen_place(graph, parent, child):
     if child.hitbox & graph_hitbox:
       continue
     connectors = list(set(parent.connectors) & set(child.connectors))
-    connector = connectors[0] if connectors else (0, 0)
+    used_connectors = [c for cs in graph.conns.values() for c in cs]
+    connector = next((c for c in connectors if c not in used_connectors), None)
     child not in graph.nodes and graph.add(child)
     graph.connect(parent, child, connector)
     return connector
@@ -201,40 +202,49 @@ def assemble_graph(feature_graph):
         return None
   return floor_graph
 
-def assemble_graphs(graphs):
+def merge_graphs(graph1, graph2):
+  blob1 = Room(cells=[c for n in graph1.nodes for c in n.cells])
+  blob2 = Room(cells=[c for n in graph2.nodes for c in n.cells])
+  graph1_connections = {c: n for n in graph1.nodes for c in n.connectors if n.degree == 0 or graph1.degree(n) < n.degree}
+  graph2_connections = {c: n for n in graph2.nodes for c in n.connectors if n.degree == 0 or graph2.degree(n) < n.degree}
+  init_origin = blob2.origin
+  origins = [(subtract_vector(c1, subtract_vector(c2, blob2.origin)), n1, n2) for (c1, n1), (c2, n2) in product(graph1_connections.items(), graph2_connections.items())]
+  # shuffle(origins)
+  for origin, room1, room2 in origins:
+    delta = subtract_vector(origin, init_origin)
+    blob2.origin = add_vector(init_origin, delta)
+    if blob1.hitbox & blob2.hitbox:
+      continue
+    for node in graph2.nodes:
+      node.origin = add_vector(node.origin, delta)
+    connectors = list(set(room1.connectors) & set(room2.connectors))
+    graph1_connectors = [c for cs in graph1.conns.values() for c in cs]
+    connector = next((c for c in connectors if not next((n for n in neighborhood(c, diagonals=True, inclusive=True) if n in graph1_connectors), None)), None)
+    if not connector:
+      continue
+    graph1.connect(room1, room2, connector)
+    for edge in graph2.edges:
+      del graph2.conns[edge]
+      n1, n2 = edge
+      graph2.conns[edge] = tuple(set(n1.connectors) & set(n2.connectors))
+    graph1.merge(graph2)
+    return graph1
+  else:
+    return None
+
+def gen_assemble(graphs):
   is_graph_dead_end = lambda g: not next((n for n in g.nodes if n.degree != 1), None)
   graphs = sorted(graphs, key=lambda g: g.order() + random.random() / 2 + (-100 if is_graph_dead_end(g) else 0), reverse=True)
-  g1 = graphs[0]
-  find_connectors = lambda g: {c: n for n in g.nodes for c in n.connectors if n.degree == 0 or g.degree(n) < n.degree}
-  for g2 in graphs[1:]:
-    b1 = Room(cells=[c for n in g1.nodes for c in n.cells])
-    b2 = Room(cells=[c for n in g2.nodes for c in n.cells])
-    g1_connections = {c: n for n in g1.nodes for c in n.connectors if n.degree == 0 or g1.degree(n) < n.degree}
-    g2_connections = {c: n for n in g2.nodes for c in n.connectors if n.degree == 0 or g2.degree(n) < n.degree}
-    init_origin = b2.origin
-    origins = [(subtract_vector(c1, subtract_vector(c2, b2.origin)), n1, n2) for (c1, n1), (c2, n2) in product(g1_connections.items(), g2_connections.items())]
-    # shuffle(origins)
-    for origin, room1, room2 in origins:
-      delta = subtract_vector(origin, init_origin)
-      b2.origin = add_vector(init_origin, delta)
-      if b1.hitbox & b2.hitbox:
-        continue
-      for node in g2.nodes:
-        node.origin = add_vector(node.origin, delta)
-      connectors = list(set(room1.connectors) & set(room2.connectors))
-      g1_connectors = [c for cs in g1.conns.values() for c in cs]
-      connector = next((c for c in connectors if not next((n for n in neighborhood(c, diagonals=True, inclusive=True) if n in g1_connectors), None)), None)
-      if not connector:
-        continue
-      g1.connect(room1, room2, connector)
-      for edge in g2.edges:
-        del g2.conns[edge]
-        n1, n2 = edge
-        g2.conns[edge] = tuple(set(n1.connectors) & set(n2.connectors))
-      g1.merge(g2)
-      graphs = [g for g in graphs if g is not g2]
-      return assemble_graphs(graphs) if len(graphs) >= 2 else g1
-    debug.log("Failed to connect graph", [n.data for n in g2.nodes])
+  while len(graphs) > 1:
+    g1 = graphs[0]
+    for g2 in graphs[1:]:
+      success = merge_graphs(g1, g2)
+      if not success:
+        yield False
+      break
+    graphs = [g for g in graphs if g is not g2]
+    yield [g for g in graphs if g is not g1]
+  yield g1
 
 def gen_tree(graph, start=None):
   tree = FloorGraph()
@@ -326,7 +336,6 @@ def gen_floor(
     #     stage.seed = seed
     #     yield stage, message
 
-    # manifest_stage(rooms) -> stage
     feature_chunks = find_chunks(features)
     yield None, f"Found {len(feature_chunks)} feature chunk(s)"
 
@@ -340,11 +349,18 @@ def gen_floor(
       floor_chunks.append(floor_chunk)
       yield None, f"Assembled chunk {chunk_id}"
 
-    graph = assemble_graphs(floor_chunks)
-    if graph is None:
+    graphs_left = floor_chunks
+    assemble_gen = gen_assemble(floor_chunks)
+    while graphs_left:
+      graphs_left = next(assemble_gen)
+      if graphs_left is not False:
+        yield None, f"Coalesced graph {len(floor_chunks) - len(graphs_left)}"
+
+    if graphs_left is False:
       yield None, "Failed to assemble graphs"
       continue
 
+    graph = next(assemble_gen)
     rooms = graph.nodes
     stage, stage_offset = manifest_stage(rooms)
     stage.seed = seed
