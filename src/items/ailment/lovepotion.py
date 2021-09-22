@@ -25,3 +25,4 @@ class LovePotion(AilmentItem):
     actor.aggro = False
     actor.behavior = "chase"
     actor.dispel_ailment()
+    game.room and game.room.on_defeat(game, actor)

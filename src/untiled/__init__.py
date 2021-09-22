@@ -104,7 +104,7 @@ def parse_item(room, cell, item):
     room.tiles[index] = get_id(Stage.WALL)
   elif item in IDS_DOOR:
     room.tiles[index] = get_id(Stage.HALLWAY)
-    room.edges.insert(0, (x, y))
+    room.edges.insert((x, y))
     room.degree += 1
     if item in IDS_ELEM:
       room.doors = IDS_ELEM[item]

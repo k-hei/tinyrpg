@@ -44,13 +44,12 @@ for elem_cell, elem_name, *elem_props in room.data.elems:
   stage.spawn_elem_at(tuple([x + 1 for x in elem_cell]), elem)
 
 for i in range(max(1, room.data.degree)):
-  door_cell = tuple([x + 1 for x in room.data.edges[i]])
+  door_cell = tuple([x + 1 for x in room.data.edges[-i]])
   door = resolve_elem(room.data.doors)()
   stage.set_tile_at(door_cell, Stage.HALLWAY)
   stage.spawn_elem_at(door_cell, door)
-  if not stage.entrance:
-    stage.entrance = door_cell
-    door.open()
+stage.entrance = door_cell
+door.open()
 
 room.on_place(stage)
 
