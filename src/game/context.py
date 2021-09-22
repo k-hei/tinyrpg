@@ -27,12 +27,13 @@ from transits.dissolve import DissolveOut
 gamepad.config(preset=controls.TYPE_A)
 
 class GameContext(Context):
-  def __init__(ctx, data=None, feature=None, floor=None, seed=None, *args, **kwargs):
+  def __init__(ctx, data=None, feature=None, floor=None, stage=None, seed=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
     ctx.store = None
     ctx.savedata = None
     ctx.feature = feature
     ctx.floor = floor
+    ctx.stage = stage
     ctx.seed = seed
     if data is None:
       ctx.open(LoadContext(), on_close=lambda *data: ctx.load(*data))
@@ -54,6 +55,11 @@ class GameContext(Context):
     floor = None
     ctx.store = GameData.decode(savedata)
     ctx.update_skills()
+
+    if ctx.stage:
+      stage = ctx.stage
+      ctx.stage = None
+      return ctx.goto_dungeon(floors=[stage])
 
     if ctx.feature:
       feature = ctx.feature
