@@ -39,9 +39,6 @@ class DungeonElement:
   def effect(elem, game):
     pass
 
-  def on_leave(elem, game):
-    pass
-
   def on_nudge(elem, game): pass
   def on_push(elem, game): pass
   def on_enter(elem, game): pass

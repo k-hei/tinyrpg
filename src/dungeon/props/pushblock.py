@@ -9,6 +9,39 @@ from filters import replace_color
 from colors.palette import BLACK, WHITE, PURPLE, SAFFRON, DARKBLUE
 
 class PushBlock(Prop):
+  solid = True
+
+  class SinkAnim(Anim):
+    GRAVITY_ACCEL = 0.0625
+    GRAVITY_FACTOR = 1.0625
+    DEPTH = 12
+    BOUNCE = 0.75
+    BOUNCES_MAX = 3
+
+    def __init__(anim, *args, **kwargs):
+      super().__init__(*args, **kwargs)
+      anim.z = 0
+      anim.vel = 0
+      anim.bounces = 0
+
+    def update(anim):
+      super().update()
+      if anim.time < 0:
+        return
+      if anim.vel <= 0 or anim.bounces:
+        anim.vel += anim.GRAVITY_ACCEL
+      else:
+        anim.vel *= anim.GRAVITY_FACTOR
+      anim.z += anim.vel
+      if anim.z > anim.DEPTH:
+        anim.z = anim.DEPTH
+        if anim.bounces < anim.BOUNCES_MAX:
+          anim.vel *= -anim.BOUNCE
+          anim.bounces += 1
+        else:
+          anim.done = True
+      return anim.z
+
   def __init__(block, placed=False):
     super().__init__(static=placed)
 
@@ -25,10 +58,10 @@ class PushBlock(Prop):
     if type(target_elem) is PushTile:
       block.static = True
       game.anims.append([
-        SinkAnim(target=block)
+        PushBlock.SinkAnim(target=block)
       ])
       if target_elem:
-        target_elem.effect(game)
+        target_elem.effect(game, block)
     return True
 
   def view(block, anims):
@@ -37,10 +70,10 @@ class PushBlock(Prop):
     block_z = 0
     anim_group = [a for a in anims[0] if a.target is block] if anims else []
     for anim in anim_group:
-      if type(anim) is SinkAnim:
+      if type(anim) is PushBlock.SinkAnim:
         block_z = anim.z
     if not anim_group and block.static:
-      block_z = SinkAnim.DEPTH
+      block_z = PushBlock.SinkAnim.DEPTH
       block_image = assets.sprites["push_block_open"]
       block_image = replace_color(block_image, WHITE, PURPLE)
       block_image = replace_color(block_image, BLACK, DARKBLUE)
@@ -56,32 +89,3 @@ class PushBlock(Prop):
       pos=(0, 0),
       layer="elems"
     )], anims)
-
-class SinkAnim(Anim):
-  GRAVITY_ACCEL = 0.0625
-  GRAVITY_FACTOR = 1.0625
-  DEPTH = 12
-  BOUNCE = 0.75
-  BOUNCES_MAX = 3
-
-  def __init__(anim, *args, **kwargs):
-    super().__init__(*args, **kwargs)
-    anim.z = 0
-    anim.vel = 0
-    anim.bounces = 0
-
-  def update(anim):
-    super().update()
-    if anim.vel <= 0 or anim.bounces:
-      anim.vel += SinkAnim.GRAVITY_ACCEL
-    else:
-      anim.vel *= SinkAnim.GRAVITY_FACTOR
-    anim.z += anim.vel
-    if anim.z > SinkAnim.DEPTH:
-      anim.z = SinkAnim.DEPTH
-      if anim.bounces < SinkAnim.BOUNCES_MAX:
-        anim.vel *= -SinkAnim.BOUNCE
-        anim.bounces += 1
-      else:
-        anim.done = True
-    return anim.z

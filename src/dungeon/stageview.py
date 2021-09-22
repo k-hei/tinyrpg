@@ -20,6 +20,7 @@ from dungeon.props.chest import Chest
 from dungeon.props.soul import Soul
 from dungeon.props.palm import Palm
 from dungeon.props.door import Door
+from dungeon.props.pushtile import PushTile
 from dungeon.props.secretdoor import SecretDoor
 from dungeon.render.walltop import render_walltop
 
@@ -493,15 +494,7 @@ def render_tile(stage, cell, visited_cells=[]):
       offset=-TILE_SIZE
     )
   elif tile is stage.FLOOR and (
-    stage.get_tile_at((x - 1, y)) is stage.FLOOR
-    and stage.get_tile_at((x + 1, y)) is stage.FLOOR
-    and stage.get_tile_at((x, y - 1)) is stage.FLOOR
-    and stage.get_tile_at((x, y + 1)) is stage.FLOOR
-    and stage.get_tile_at((x - 1, y - 1)) is stage.FLOOR
-    and stage.get_tile_at((x + 1, y - 1)) is stage.FLOOR
-    and stage.get_tile_at((x - 1, y + 1)) is stage.FLOOR
-    and stage.get_tile_at((x + 1, y + 1)) is stage.FLOOR
-    or next((n for n in neighborhood(cell) for e in stage.get_elems_at(n) if isinstance(e, Door) and not isinstance(e, SecretDoor)), None)
+    next((n for n in neighborhood(cell) for e in stage.get_elems_at(n) if isinstance(e, Door) and not isinstance(e, SecretDoor)), None)
   ):
     sprite_name = "floor_fancy"
   elif tile is stage.FLOOR:
@@ -511,7 +504,10 @@ def render_tile(stage, cell, visited_cells=[]):
         image=replace_color(assets.sprites["floor"], GRAY, DARKGRAY),
         layer="elems",
       )
-    sprite_name = "floor"
+    elif next((e for e in stage.get_elems_at(cell) if type(e) is PushTile), None):
+      return None
+    else:
+      sprite_name = "floor"
   elif tile is stage.PIT:
     if tile_above and tile_above is not stage.PIT:
       sprite_name = "pit"

@@ -1192,7 +1192,7 @@ class DungeonContext(Context):
   def move(game, actor, delta, run=False, jump=False, duration=0, is_animated=True, on_end=None):
     origin_cell = actor.cell
     origin_tile = game.floor.get_tile_at(actor.cell)
-    origin_elem = game.floor.get_elem_at(origin_cell, exclude=[Door])
+    origin_elem = game.floor.get_elem_at(origin_cell, exclude=[type(actor), Door])
     origin_elev = origin_tile and origin_tile.elev
     actor_x, actor_y = actor.cell
     delta_x, delta_y = delta
