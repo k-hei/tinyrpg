@@ -84,7 +84,7 @@ def gen_rooms(count, init=None):
     rooms.append(room)
   return rooms
 
-def place_rooms(rooms):
+def place_rooms(rooms, force_connect=False):
   if not rooms:
     yield True
   graph = FloorGraph(nodes=[rooms[0]])
@@ -136,7 +136,7 @@ def place_rooms(rooms):
       if room in graph.nodes:
         break
 
-    if room not in graph.nodes and valid_edges:
+    if room not in graph.nodes and valid_edges and not (force_connect and (room.degree == 0 or room.degree >= 3)):
       origin, neighbor_connectors = [*valid_edges.items()][0]
       neighbor, connectors = [*neighbor_connectors.items()][0]
       room.origin = origin
@@ -196,7 +196,7 @@ def gen_joint_connect(feature_graph):
   room_count = 0
   rooms = feature_graph.nodes
   rooms.sort(key=lambda r: r.get_area(), reverse=True)
-  place_gen = place_rooms(rooms)
+  place_gen = place_rooms(rooms) # , force_connect=True)
   while graph is not False:
     try:
       graph, _ = next(place_gen)
@@ -274,7 +274,7 @@ def gen_assemble(graphs):
       success = merge_graphs(g1, g2)
       if not success:
         yield False
-        yield g1
+        yield graphs
       break
     graphs = [g for g in graphs if g is not g2]
     yield [g for g in graphs if g is not g1]
@@ -373,8 +373,12 @@ def gen_floor(
           stage = manifest_stage(floor_chunk.nodes, dry=True, seed=seed)[0]
       if not floor_chunk:
         yield stage, f"Failed to assemble chunk {chunk_id} ({len(feature_chunk.nodes)})"
+        break
       floor_chunks.append(floor_chunk)
       yield None, f"Assembled chunk {chunk_id}"
+
+    if len(floor_chunks) != len(feature_chunks):
+      continue
 
     graphs_left = floor_chunks
     assemble_gen = gen_assemble(floor_chunks)
@@ -384,7 +388,7 @@ def gen_floor(
       graphs_left = next(assemble_gen)
 
     if graphs_left is False:
-      yield manifest_stage(next(assemble_gen).nodes, seed=seed)[0], "Failed to assemble graphs"
+      yield manifest_stage([n for g in next(assemble_gen) for n in g.nodes], seed=seed)[0], "Failed to assemble graphs"
       continue
 
     graph = next(assemble_gen)
@@ -506,9 +510,6 @@ def gen_floor(
     plain_rooms = [r for r in rooms if r not in feature_rooms or not r.data.tiles]
     empty_rooms = plain_rooms.copy()
 
-    for room in feature_rooms:
-      room.on_place(stage)
-
     stage.entrance = stage.find_tile(stage.STAIRS_DOWN)
     if not stage.entrance:
       yield stage, "Failed to spawn entrance"
@@ -562,6 +563,9 @@ def gen_floor(
           ailment=("sleep" if randint(1, 3) == 1 else None)
         ) for _ in range(min(5, room.get_area() // 20))]
       )
+
+    for room in feature_rooms:
+      room.on_place(stage)
 
     stage.rooms = rooms
     lkg = stage

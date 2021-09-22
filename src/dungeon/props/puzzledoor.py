@@ -1,6 +1,5 @@
-from dataclasses import dataclass
 from dungeon.props.door import Door
-from colors.palette import PURPLE, SAFFRON
+from colors.palette import DARKBLUE, SAFFRON
 from filters import replace_color
 
 class PuzzleDoor(Door):
@@ -11,5 +10,5 @@ class PuzzleDoor(Door):
     sprites = super().view(anims)
     if not door.locked and sprites:
       sprite = sprites[0]
-      sprite.image = replace_color(sprite.image, SAFFRON, PURPLE)
+      sprite.image = replace_color(sprite.image, SAFFRON, DARKBLUE)
     return sprites

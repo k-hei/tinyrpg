@@ -34,8 +34,8 @@ class Mummy(DungeonActor):
       dest_x, dest_y = dest
       dist_x = dest_x - user_x
       dist_y = dest_y - user_y
-      delta_x = dist_x // abs(dist_x)
-      delta_y = dist_y // abs(dist_y)
+      delta_x = dist_x // abs(dist_x or 1)
+      delta_y = dist_y // abs(dist_y or 1)
       cell = (user_x + delta_x, user_y + delta_y)
       while (cell != dest
       and not Tile.is_solid(game.floor.get_tile_at(cell))

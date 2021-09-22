@@ -21,8 +21,8 @@ class LovePotion(AilmentItem):
     actor = actor or game.hero
     if actor.faction != "enemy":
       return False
+    game.room and game.room.on_defeat(game, actor)
     actor.faction = "ally"
     actor.aggro = False
     actor.behavior = "chase"
     actor.dispel_ailment()
-    game.room and game.room.on_defeat(game, actor)
