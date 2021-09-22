@@ -13,12 +13,12 @@ class DebugFloor(Floor):
         nodes=[
           mageboss_room := Room(data=assets.rooms["mageboss"]),
           emerald_room := Room(data=assets.rooms["emerald"]),
-          buffer_room := Room(cells=gen_blob(min_area=60, max_area=100), data=RoomData(spawns_vases=True, degree=2)),
-          enemy_room1 := Room(cells=gen_blob(min_area=120, max_area=160), data=RoomData(spawns_enemies=True, spawns_vases=True)),
-          enemy_room2 := Room(cells=gen_blob(min_area=120, max_area=160), data=RoomData(spawns_enemies=True, spawns_vases=True)),
-          enemy_room3 := Room(cells=gen_blob(min_area=120, max_area=160), data=RoomData(spawns_enemies=True, spawns_vases=True)),
-          entry_room := Room(data=assets.rooms["entry"]),
+          buffer_room := Room(cells=gen_blob(min_area=60, max_area=100), data=RoomData(spawns_vases=True, degree=3)),
           oasis_room := Room(data=assets.rooms["oasis"]),
+          entry_room := Room(data=assets.rooms["entry"]),
+          enemy_room1 := Room(cells=gen_blob(min_area=120, max_area=160), data=RoomData(spawns_enemies=True, spawns_vases=True, degree=3)),
+          enemy_room2 := Room(cells=gen_blob(min_area=120, max_area=160), data=RoomData(spawns_enemies=True, spawns_vases=True, degree=3)),
+          enemy_room3 := Room(cells=gen_blob(min_area=120, max_area=160), data=RoomData(spawns_enemies=True, spawns_vases=True, degree=3)),
           treasure_room := Room(cells=gen_blob(min_area=80, max_area=100), data=RoomData(spawns_vases=True, doors="TreasureDoor", degree=1)),
           # arena_room := Room(cells=gen_blob(min_area=120, max_area=160), data=RoomData(spawns_enemies=True)),
           # Room(cells=gen_blob(min_area=120, max_area=160), data=RoomData(spawns_vases=True, spawns_enemies=True)),
@@ -26,11 +26,12 @@ class DebugFloor(Floor):
         edges=[
           (mageboss_room, emerald_room),
           (mageboss_room, buffer_room),
+          (buffer_room, oasis_room),
           (enemy_room1, enemy_room2),
           (enemy_room2, enemy_room3),
           (enemy_room3, enemy_room1),
-          # (entry_room, buffer_room),
-          # (arena_room, treasure_room),
+          (enemy_room1, entry_room),
+          (enemy_room2, treasure_room),
         ]
       ),
       seed=seed

@@ -91,6 +91,8 @@ def place_rooms(rooms):
   total_blob = rooms[0]
   total_connectors = []
   for i, room in enumerate(rooms[1:]):
+    if room.degree and graph.degree(room) >= room.degree:
+      continue
     total_hitbox = total_blob.hitbox
     ticks = get_ticks()
     iters = 0
@@ -110,7 +112,14 @@ def place_rooms(rooms):
         iters += 1
         room.origin = o
         if not (room.hitbox & total_hitbox):
-          neighbor_connectors = { n: cs for n, cs in [(n, [c for c in set(n.connectors) & set(room.connectors) if not next((t for t in total_connectors if t in neighborhood(c, inclusive=True, diagonals=True)), None)]) for n in graph.nodes] if cs }
+          neighbor_connectors = { n: cs for n, cs in [
+            (n, [
+              c for c in set(n.connectors) & set(room.connectors) if not next(
+                (t for t in total_connectors if t in neighborhood(c, inclusive=True, diagonals=True)),
+                None
+              )
+            ]) for n in graph.nodes if not n.degree or graph.degree(n) < n.degree
+          ] if cs }
           if neighbor_connectors:
             valid_edges[o] = neighbor_connectors
             if len(neighbor_connectors) >= 2 or len(graph.nodes) < 2:
@@ -133,7 +142,6 @@ def place_rooms(rooms):
       room.origin = origin
       graph.add(room)
       graph.connect(room, neighbor, *connectors)
-      print("Using cached edge")
 
     if room in graph.nodes:
       total_blob = Room(total_blob.cells + room.cells)
@@ -197,14 +205,12 @@ def gen_joint_connect(feature_graph):
       break
 
 def gen_connect(feature_graph):
-  print(f"Connect {feature_graph.order()}")
   parent = sorted(feature_graph.nodes, key=feature_graph.degree)[-1]
   floor_graph = FloorGraph(nodes=[parent])
   if feature_graph.order() == 1:
     yield floor_graph
     return
-  if len(feature_graph.nodes) == len(feature_graph.edges):
-    print(f"Joint connect {feature_graph.order()}")
+  if len(feature_graph.edges) >= len(feature_graph.nodes):
     connect_gen = gen_joint_connect(feature_graph)
     while floor_graph is not False:
       try:
@@ -226,6 +232,7 @@ def gen_connect(feature_graph):
         yield floor_graph
       else:
         debug.log("Connection failed", neighbor.data)
+        yield False
         return
 
 def merge_graphs(graph1, graph2):
@@ -372,7 +379,8 @@ def gen_floor(
     graphs_left = floor_chunks
     assemble_gen = gen_assemble(floor_chunks)
     while graphs_left:
-      yield None, f"Coalescing graph {len(floor_chunks) - len(graphs_left)}"
+      graph_id = len(floor_chunks) - len(graphs_left) if len(graphs_left) != len(floor_chunks) else 1
+      yield None, f"Coalescing graph {graph_id}"
       graphs_left = next(assemble_gen)
 
     if graphs_left is False:

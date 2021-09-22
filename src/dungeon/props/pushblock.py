@@ -10,6 +10,7 @@ from colors.palette import BLACK, WHITE, PURPLE, SAFFRON, DARKBLUE
 
 class PushBlock(Prop):
   solid = True
+  active = True
 
   class SinkAnim(Anim):
     GRAVITY_ACCEL = 0.0625
