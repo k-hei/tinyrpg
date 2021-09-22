@@ -2,6 +2,8 @@ from math import inf
 from pygame import Rect
 
 def find_bounds(cells):
+  if not cells:
+    return Rect(0, 0, 0, 0)
   left = inf
   top = inf
   right = -inf

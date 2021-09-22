@@ -44,6 +44,8 @@ class PushBlock(Prop):
       block_image = assets.sprites["push_block_open"]
       block_image = replace_color(block_image, WHITE, PURPLE)
       block_image = replace_color(block_image, BLACK, DARKBLUE)
+    else:
+      block_image = replace_color(block_image, WHITE, SAFFRON)
     if block_z:
       block_image = block_image.subsurface(Rect(
         (0, 0),

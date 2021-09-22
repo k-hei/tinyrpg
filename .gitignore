@@ -13,3 +13,4 @@ build
 .pytest_cache
 debug.*
 src/data01.json
+src/untiled/*.json

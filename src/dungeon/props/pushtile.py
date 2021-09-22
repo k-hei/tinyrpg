@@ -42,7 +42,7 @@ class PushTile(DungeonElement):
     tile_image = assets.sprites["push_tile"]
     tile_image = replace_color(tile_image, GRAY, DARKGRAY)
     if tile.pushed:
-      tile_image = replace_color(tile_image, WHITE, PURPLE)
+      tile_image = replace_color(tile_image, DARKGRAY, PURPLE)
       tile_image = replace_color(tile_image, BLACK, DARKBLUE)
     return super().view([Sprite(
       image=tile_image,
