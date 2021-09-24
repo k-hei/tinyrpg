@@ -13,12 +13,12 @@ class TreasureDoor(Door):
     ]
   )
 
-  def __init__(door, opened=False, locked=False, *args, **kwargs):
-    super().__init__(opened=opened, locked=(not opened or locked), *args, **kwargs)
+  def __init__(door, opened=False, locked=None, *args, **kwargs):
+    super().__init__(opened=opened, locked=locked, *args, **kwargs)
 
   def view(door, anims):
     sprites = super().view(anims)
-    if not door.locked and sprites:
+    if door.locked is False and sprites:
       sprite = sprites[0]
       sprite.image = replace_color(sprite.image, SAFFRON, DARKBLUE)
     return sprites

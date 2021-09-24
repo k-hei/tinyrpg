@@ -133,10 +133,13 @@ class Room(Feature):
     for door in room.get_doors(game.floor):
       door.handle_close(game)
 
-  def unlock(room, game):
+  def unlock(room, game, open=False):
     for door in room.get_doors(game.floor):
       if door.locked:
-        door.handle_open(game)
+        if open:
+          door.handle_open(game)
+        else:
+          door.unlock()
 
   def on_focus(room, game):
     if room.focused:

@@ -1,11 +1,11 @@
 from random import randint
-
+from lib.graph import Graph
+import assets
 from dungeon.floors import Floor
-from dungeon.features.vertroom import VerticalRoom
-from dungeon.features.irregularroom import IrregularRoom
-from dungeon.features.oasisroom import OasisRoom
-from dungeon.features.raretreasureroom import RareTreasureRoom
+from dungeon.room import Blob as Room
+from dungeon.roomdata import RoomData
 from dungeon.gen import gen_floor
+from dungeon.gen.blob import gen_blob
 
 from items.ailment.amethyst import Amethyst
 from items.ailment.antidote import Antidote
@@ -24,20 +24,16 @@ from items.sp.bread import Bread
 from items.sp.cheese import Cheese
 from items.sp.fish import Fish
 from items.sp.sapphire import Sapphire
-from skills.weapon.longinus import Longinus
 
 class GenericFloor(Floor):
-  def generate(store):
-    entry_room = VerticalRoom(size=(3, 4), degree=2)
+  def generate(store=None, seed=None):
     return gen_floor(
-      size=(27, 27),
       features=[
-        entry_room,
-        *([OasisRoom()] if randint(1, 5) == 1 else []),
-        *(Longinus not in store.skills and randint(1, 2) == 1
-          and [RareTreasureRoom()]
-          or [IrregularRoom() for _ in range(randint(1, 2))]),
+        Room(data=assets.rooms["entry"]),
+        Room(data=assets.rooms["exit"]),
+        *([Room(data=assets.rooms["oasis"])] if randint(1, 3) == 1 else []),
       ],
+      extra_room_count=4 + randint(0, 1),
       items=[
         Amethyst,
         Antidote, Antidote,
@@ -56,4 +52,6 @@ class GenericFloor(Floor):
         Cheese, Cheese,
         Fish, Fish,
         Sapphire
-      ])
+      ],
+      seed=seed
+    )

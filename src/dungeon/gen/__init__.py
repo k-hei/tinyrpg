@@ -192,8 +192,7 @@ def gen_place(graph, parent, child):
   return None
 
 def gen_joint_connect(feature_graph):
-  graph, message = None, "*"
-  room_count = 0
+  graph = None
   rooms = feature_graph.nodes
   rooms.sort(key=lambda r: r.get_area(), reverse=True)
   place_gen = place_rooms(rooms) # , force_connect=True)
@@ -333,6 +332,7 @@ def gen_floor(
   features=[],
   enemies=[Eyeball, Mushroom, Ghost, Mummy],
   items=[Potion, Cheese, Bread, Fish, Antidote, MusicBox, LovePotion, Booze],
+  extra_room_count=0,
   seed=None
 ):
   seed = seed if seed is not None else getrandbits(32)
@@ -344,16 +344,6 @@ def gen_floor(
   lkg = None
   while lkg is None:
     stage = None
-
-    # rooms = [Room(data=r) for r in features.nodes]
-    # max_rooms = randint(MIN_ROOM_COUNT, MAX_ROOM_COUNT)
-    # rooms_gen = gen_rooms(init=rooms, count=max_rooms)
-    # while len(rooms) < max_rooms:
-    #   rooms = next(rooms_gen)
-    #   if len(rooms) < max_rooms:
-    #     yield None, f"Generating room {len(rooms) + 1} of {max_rooms}"
-    #   else:
-    #     yield None, f"Room generation succeeded"
 
     feature_chunks = find_chunks(features)
     yield None, f"Found {len(feature_chunks)} feature chunk(s)"
@@ -380,34 +370,53 @@ def gen_floor(
     if len(floor_chunks) != len(feature_chunks):
       continue
 
-    graphs_left = floor_chunks
-    assemble_gen = gen_assemble(floor_chunks)
-    while graphs_left:
-      graph_id = len(floor_chunks) - len(graphs_left) if len(graphs_left) != len(floor_chunks) else 1
-      yield None, f"Coalescing graph {graph_id}"
-      graphs_left = next(assemble_gen)
+    extra_rooms = []
+    while len(extra_rooms) < extra_room_count:
+      room_cells = gen_blob(min_area=80, max_area=120)
+      room = Room(cells=room_cells)
+      extra_rooms.append(room)
+      if len(extra_rooms) < extra_room_count:
+        yield None, f"Generating room {len(extra_rooms) + 1} of {extra_room_count}"
+      else:
+        yield None, f"Room generation succeeded"
 
-    if graphs_left is False:
-      yield manifest_stage([n for g in next(assemble_gen) for n in g.nodes], seed=seed)[0], "Failed to assemble graphs"
-      continue
+    if extra_rooms:
+      place_gen = place_rooms(rooms=extra_rooms)
+      extra_graph = None
+      while extra_graph is not False:
+        try:
+          extra_graph, _ = next(place_gen)
+          if extra_graph:
+            yield extra_graph, f"Placing room {len(extra_graph.nodes)} of {len(extra_rooms)}"
+        except StopIteration:
+          break
+      tree = gen_tree(extra_graph)
+      gen_loops(tree, extra_graph)
+      floor_chunks.insert(0, tree)
 
-    graph = next(assemble_gen)
+    if len(floor_chunks) > 1:
+      graphs_left = floor_chunks
+      assemble_gen = gen_assemble(floor_chunks)
+      while graphs_left:
+        graph_id = len(floor_chunks) - len(graphs_left) if len(graphs_left) != len(floor_chunks) else 1
+        yield None, f"Coalescing graph {graph_id}"
+        graphs_left = next(assemble_gen)
+
+      if graphs_left is False:
+        yield manifest_stage([n for g in next(assemble_gen) for n in g.nodes], seed=seed)[0], "Failed to assemble graphs"
+        continue
+      graph = next(assemble_gen)
+    else:
+      graph = floor_chunks[0]
+
     rooms = graph.nodes
     stage, stage_offset = manifest_stage(rooms)
     stage.seed = seed
 
-    # if graph is False:
-    #   yield stage, message
-    #   continue
-
-    tree = graph
-    # tree = gen_tree(graph)
-    # gen_loops(tree, graph)
-
     # DrawConnectors(stage, stage_offset, tree)
     connected = True
     door_paths = set()
-    for i, ((room1, room2), connectors) in enumerate(tree.connections()):
+    for i, ((room1, room2), connectors) in enumerate(graph.connections()):
       connectors = [add_vector(c, stage_offset) for c in connectors]
       if len(connectors) > 1:
         connectors.sort(key=lambda c: (
@@ -499,7 +508,7 @@ def gen_floor(
         stage.set_tile_at(cell, Stage.HALLWAY)
         door_paths.update(neighborhood(cell, inclusive=True, diagonals=True))
 
-      tree.reconnect(room1, room2, door1, door2)
+      graph.reconnect(room1, room2, door1, door2)
       yield stage, f"Connected rooms {rooms.index(room1) + 1} and {rooms.index(room2) + 1} at {connector}"
 
     if not connected:
@@ -514,10 +523,10 @@ def gen_floor(
     if not stage.entrance:
       yield stage, "Failed to spawn entrance"
 
-    secrets = [e for e in tree.ends() if e in empty_rooms if e.get_area() <= 50 and e.data.doors == "Door"]
+    secrets = [e for e in graph.ends() if e in empty_rooms if e.get_area() <= 60 and (not e.data or e.data.doors == "Door")]
     for secret in secrets:
-      neighbor = tree.neighbors(secret)[0]
-      doors = tree.connectors(secret, neighbor)
+      neighbor = graph.neighbors(secret)[0]
+      doors = graph.connectors(secret, neighbor)
       doorways = neighbor.get_doorways(stage)
       doorway = next((d for d in doorways if d in doors), None)
       door = next((e for e in stage.get_elems_at(doorway) if isinstance(e, Door)), None)
@@ -540,7 +549,7 @@ def gen_floor(
 
     # draw room terrain
     for room in plain_rooms:
-      gen_terrain(stage, room, tree)
+      gen_terrain(stage, room, graph)
 
     # populate rooms
     for room in rooms:

@@ -42,7 +42,8 @@ class Door(Prop):
     return [door.origin or cell, kind, *(props and [props] or [])]
 
   def unlock(door):
-    door.locked = False
+    if door.locked:
+      door.locked = False
 
   def lock(door):
     door.locked = True
@@ -68,7 +69,8 @@ class Door(Prop):
     door.solid = False
     door.opened = True
     door.opaque = False
-    door.locked = False
+    if door.locked:
+      door.locked = False
 
   def handle_open(door, game):
     if door.opened:

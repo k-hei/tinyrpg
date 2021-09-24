@@ -141,24 +141,13 @@ class Stage:
   def get_visible_cells(stage):
     cells = []
     for room in stage.rooms:
-      cells += room.get_cells() + room.get_border()
+      cells += room.get_cells() + room.get_outline()
     width, height = stage.size
-    maze_cells = []
     for y in range(height):
       for x in range(width):
-        if stage.get_tile_at((x, y)) is stage.FLOOR:
-          maze_cells.append((x - 1, y - 1))
-          maze_cells.append((x + 0, y - 1))
-          maze_cells.append((x + 1, y - 1))
-          maze_cells.append((x - 1, y + 0))
-          maze_cells.append((x + 0, y + 0))
-          maze_cells.append((x + 1, y + 0))
-          maze_cells.append((x - 1, y + 1))
-          maze_cells.append((x + 0, y + 1))
-          maze_cells.append((x + 1, y + 1))
-    cells += maze_cells
-    cells = list(set(cells))
-    return cells
+        if stage.get_tile_at((x, y)) is stage.HALLWAY:
+          cells += neighborhood((x, y), inclusive=True, diagonals=True)
+    return [*set(cells)]
 
   def is_cell_empty(stage, cell):
     target_tile = stage.get_tile_at(cell)
