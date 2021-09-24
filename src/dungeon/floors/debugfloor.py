@@ -12,9 +12,8 @@ class DebugFloor(Floor):
     return gen_floor(
       features=[
         Room(data=assets.rooms["entry"]),
-        Room(data=assets.rooms["exit"]),
-        *([Room(data=assets.rooms["oasis"])] if randint(1, 3) == 1 else []),
+        Room(data=assets.rooms["emerald"]),
       ],
-      extra_room_count=4 + randint(0, 1),
+      extra_room_count=1,
       seed=seed
     )

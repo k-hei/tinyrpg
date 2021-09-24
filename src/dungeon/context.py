@@ -298,7 +298,7 @@ class DungeonContext(Context):
     door = None
     new_room = None
     hallway = None
-    path_anim = game.anims and next((a for g in game.anims for a in g if type(a) is PathAnim and not a.done), None)
+    path_anim = next((a for g in game.anims for a in g if type(a) is PathAnim and not a.done), None)
     is_cell_not_unvisited = lambda c: not next((r for r in game.floor.rooms if c in r.get_cells() and r not in game.room_entrances), None)
 
     if moving and not path_anim:
@@ -972,7 +972,6 @@ class DungeonContext(Context):
         hero.command.on_end = None
         if isinstance(target_elem, DungeonActor) and target_elem.faction == "ally":
           target_elem.command = command
-        game.refresh_fov(moving=True)
         game.step(moving=True)
       pushed = game.push(
         actor=hero,
@@ -1068,7 +1067,7 @@ class DungeonContext(Context):
       or not next((a for a in game.anims[0] if a.target is hero), None)
     ):
       not game.anims and game.anims.append([])
-      game.anims[-1].append(AttackAnim(
+      game.anims[0].append(AttackAnim(
         duration=DungeonContext.ATTACK_DURATION,
         target=hero,
         src=hero.cell,
@@ -2081,7 +2080,7 @@ class DungeonContext(Context):
       and e.active
       and (not isinstance(e, DungeonActor) or e.faction == "ally")
     )), None)
-    if not game.talkbubble or facing_elem is not game.talkbubble.target:
+    if not game.talkbubble or facing_elem is not game.talkbubble.target or game.anims:
       if game.talkbubble:
         game.talkbubble.done = True
         game.talkbubble = None
