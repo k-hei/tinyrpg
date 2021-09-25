@@ -1,0 +1,27 @@
+{
+  "tiles": [
+    "..···..",
+    "..···..",
+    "..···..",
+    "...-...",
+    "#.....#",
+    "#.....#",
+    "#.....#"
+  ],
+  "elems": [
+    [[3, 1], "RareChest", { "contents": "Key" }],
+    [[2, 3], "Pillar"],
+    [[4, 3], "Pillar"],
+    [[2, 5], "Pillar"],
+    [[4, 5], "Pillar"],
+    [[1, 0], "VCoffin"],
+    [[5, 0], "VCoffin"],
+    [[3, 0], "VCoffin"]
+  ],
+  "edges": [
+    [3, 7]
+  ],
+  "doors": "TreasureDoor",
+  "degree": 1,
+  "spawns_vases": true
+}

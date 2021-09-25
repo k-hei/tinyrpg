@@ -16,6 +16,7 @@ from skills.ailment.virus import Virus
 class RareChest(Prop):
   solid = True
   active = True
+  static = True
 
   def __init__(chest, contents=None, opened=False, on_open=None):
     super().__init__()
@@ -37,7 +38,7 @@ class RareChest(Prop):
     chest.opened = True
     return contents
 
-  def effect(chest, game):
+  def effect(chest, game, *_):
     script = []
     contents = chest.contents
     item_anim = None
@@ -110,4 +111,6 @@ class RareChest(Prop):
       else:
         chest_image = assets.sprites["rarechest"]
     chest_image = replace_color(chest_image, BLACK, GOLD)
-    return super().view([Sprite(image=chest_image)], anims)
+    return super().view([Sprite(
+      image=chest_image
+    )], anims)

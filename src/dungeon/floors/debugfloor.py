@@ -19,10 +19,7 @@ class DebugFloor(Floor):
             spawns_enemies=[Eyeball(), Eyeball()],
             degree=3
           )),
-          key_room := Room(cells=gen_blob(min_area=80, max_area=100), data=RoomData(
-            spawns_vases=True,
-            degree=1
-          )),
+          key_room := Room(data=RoomData(**rooms["key"])),
         ],
         edges=[
           (entry_room, intro_room),

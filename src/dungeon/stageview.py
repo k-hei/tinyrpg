@@ -433,28 +433,14 @@ def render_tile(stage, cell, visited_cells=[]):
   if "stairs_right" not in assets.sprites:
     assets.sprites["stairs_right"] = flip(assets.sprites["stairs_left"], True, False)
   if assets.sprites["stairs"].get_height() < TILE_SIZE * 2:
+    stairs_template = replace_color(assets.sprites["stairs"], DARKGRAY, GRAY)
     stairs_image = Surface((TILE_SIZE, TILE_SIZE * 2), SRCALPHA)
-    stairs_image.blit(assets.sprites["stairs"], (0, 0))
-    stairs_image.blit(assets.sprites["stairs"], (0, TILE_SIZE))
+    stairs_image.blit(stairs_template, (0, 0))
+    stairs_image.blit(stairs_template, (0, TILE_SIZE))
     assets.sprites["stairs"] = stairs_image
 
   if tile is stage.WALL:
     return render_wall(stage, cell, visited_cells)
-  elif tile is stage.FLOOR_ELEV and (
-    stage.get_tile_at((x - 1, y)) is stage.FLOOR_ELEV
-    and stage.get_tile_at((x + 1, y)) is stage.FLOOR_ELEV
-    and stage.get_tile_at((x, y - 1)) is stage.FLOOR_ELEV
-    and stage.get_tile_at((x, y + 1)) is stage.FLOOR_ELEV
-    and stage.get_tile_at((x - 1, y - 1)) is stage.FLOOR_ELEV
-    and stage.get_tile_at((x + 1, y - 1)) is stage.FLOOR_ELEV
-    and stage.get_tile_at((x - 1, y + 1)) is stage.FLOOR_ELEV
-    and stage.get_tile_at((x + 1, y + 1)) is stage.FLOOR_ELEV):
-    return Sprite(
-      image=assets.sprites["floor_fancy_elev"],
-      origin=("left", "bottom"),
-      pos=(0, -TILE_SIZE),
-      layer="elems"
-    )
   elif tile is stage.FLOOR_ELEV:
     return Sprite(
       image=assets.sprites["floor_elev"],
@@ -527,14 +513,8 @@ def render_wall(stage, cell, visited_cells):
   tile = stage.get_tile_at(cell)
   tile_below = stage.get_tile_at((x, y + 1))
   tile_base = stage.get_tile_at((x, y + 2))
-  room = next((r for r in stage.rooms if cell in r.get_cells() + r.get_border()), None)
-
-  elev = 0
-  if room:
-    for c in room.get_cells():
-      if stage.get_tile_at(c) is stage.FLOOR_ELEV:
-        elev = 1
-        break
+  room = next((r for r in stage.rooms if cell in r.get_cells() + r.get_outline()), None)
+  elev = 1 if room and next((c for c in room.get_cells() if stage.get_tile_at(c) is stage.FLOOR_ELEV), None) else 0
 
   if tile_below is stage.FLOOR_ELEV:
     return Sprite(image=assets.sprites["wall_bottom"], pos=(0, -TILE_SIZE))
@@ -550,7 +530,7 @@ def render_wall(stage, cell, visited_cells):
       return assets.sprites["wall_torch"]
     else:
       return assets.sprites["wall_bottom"]
-  elif (tile_base is not stage.WALL) and elev == 1:
+  elif elev == 1 and tile_below is stage.WALL and not (tile_base is None or tile_base is stage.WALL):
     return assets.sprites["wall_top"]
   else:
     return render_walltop(stage, cell, visited_cells)

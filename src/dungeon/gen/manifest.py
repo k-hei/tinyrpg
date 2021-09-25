@@ -55,7 +55,6 @@ def manifest_stage_from_room(room):
   door_cell = None
   if room.data.edges:
     room.data.edges.sort(key=lambda c: c[1])
-    print(room.data.edges)
     for i in range(max(1, room.data.degree)):
       door_cell = add_vector(room.origin, room.data.edges[i])
       door = resolve_elem(room.data.doors)()
