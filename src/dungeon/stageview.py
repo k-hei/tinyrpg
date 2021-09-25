@@ -477,7 +477,7 @@ def render_tile(stage, cell, visited_cells=[]):
     sprite_name = "stairs_up"
   elif tile is stage.STAIRS_DOWN:
     sprite_name = "stairs_down"
-  elif tile is stage.EXIT:
+  elif tile is stage.STAIRS_EXIT:
     sprite_name = "stairs_up"
   elif tile is stage.STAIRS_LEFT:
     return Sprite(

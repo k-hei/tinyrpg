@@ -728,7 +728,7 @@ class DungeonContext(Context):
         return game.handle_ascend()
       elif game.floor.get_tile_at(game.hero.cell) is Stage.STAIRS_DOWN:
         return game.handle_descend()
-      elif game.floor.get_tile_at(game.hero.cell) is Stage.EXIT:
+      elif game.floor.get_tile_at(game.hero.cell) is Stage.STAIRS_EXIT:
         return game.handle_exit()
       else:
         return game.handle_pickup()
@@ -746,7 +746,7 @@ class DungeonContext(Context):
           return game.handle_ascend()
         elif game.floor.get_tile_at(game.hero.cell) is Stage.STAIRS_DOWN:
           return game.handle_descend()
-        elif game.floor.get_tile_at(game.hero.cell) is Stage.EXIT:
+        elif game.floor.get_tile_at(game.hero.cell) is Stage.STAIRS_EXIT:
           return game.handle_exit()
         elif button == pygame.K_RETURN:
           return game.handle_skill()
@@ -856,7 +856,7 @@ class DungeonContext(Context):
 
       if target_tile is Stage.OASIS:
         game.use_oasis()
-      elif target_tile is Stage.EXIT:
+      elif target_tile is Stage.STAIRS_EXIT:
         game.log.print("There's a staircase leading out of the dungeon here.")
       elif target_tile is Stage.STAIRS_UP:
         game.log.print("There's a staircase going up here.")
@@ -1943,7 +1943,7 @@ class DungeonContext(Context):
     game.ascend()
 
   def handle_exit(game):
-    if game.floor.get_tile_at(game.hero.cell) is not Stage.EXIT:
+    if game.floor.get_tile_at(game.hero.cell) is not Stage.STAIRS_EXIT:
       return game.log.print("There's nowhere to go up here!")
     game.leave_dungeon()
 

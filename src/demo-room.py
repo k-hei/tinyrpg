@@ -43,13 +43,19 @@ for elem_cell, elem_name, *elem_props in room.data.elems:
   elem = decode_elem(elem_cell, elem_name, elem_props)
   stage.spawn_elem_at(tuple([x + 1 for x in elem_cell]), elem)
 
-for i in range(max(1, room.data.degree)):
-  door_cell = tuple([x + 1 for x in room.data.edges[-i]])
-  door = resolve_elem(room.data.doors)()
-  stage.set_tile_at(door_cell, Stage.HALLWAY)
-  stage.spawn_elem_at(door_cell, door)
-stage.entrance = door_cell
-door.open()
+door_cell = None
+if room.data.edges:
+  for i in range(max(1, room.data.degree)):
+    door_cell = tuple([x + 1 for x in room.data.edges[-i]])
+    door = resolve_elem(room.data.doors)()
+    stage.set_tile_at(door_cell, Stage.HALLWAY)
+    stage.spawn_elem_at(door_cell, door)
+
+if door_cell:
+  stage.entrance = door_cell
+  door.open()
+else:
+  stage.entrance = stage.find_tile(stage.STAIRS_EXIT)
 
 room.on_place(stage)
 

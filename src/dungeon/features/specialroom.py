@@ -24,7 +24,7 @@ class SpecialRoom(Room):
     if char == "O": return Stage.OASIS
     if char == "V": return Stage.OASIS_STAIRS
     if char == "·": return Stage.FLOOR_ELEV
-    if char == "E": return Stage.EXIT
+    if char == "E": return Stage.STAIRS_EXIT
     return Stage.FLOOR
 
   def get_width(feature):
