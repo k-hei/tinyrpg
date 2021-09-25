@@ -153,6 +153,7 @@ class DungeonContext(Context):
     game.buttons_rejected = {}
     game.seeds = []
     game.lights = False
+    game.can_regen = False
     game.god_mode = False
     game.camera = Camera(WINDOW_SIZE)
     game.log = None
@@ -771,6 +772,9 @@ class DungeonContext(Context):
     visible_enemies = [e for e in visible_actors if e and not e.allied(hero)]
     if hero.ailment:
       return False
+    if not game.can_regen:
+      game.open(DialogueContext([("", "Sleeping is disabled. Toggle Regen in DEBUG MODE to enable.")]))
+      return False
     if visible_enemies:
       game.open(DialogueContext([("", "There are enemies nearby!")]))
       return False
@@ -900,7 +904,7 @@ class DungeonContext(Context):
             ])
 
       # regen hp
-      if game.store.sp:
+      if game.store.sp and game.can_regen:
         if not hero.is_dead() and not hero.ailment == "sleep":
           hero.regen()
         if ally and not ally.is_dead() and not ally.ailment == "sleep":
@@ -1159,12 +1163,14 @@ class DungeonContext(Context):
       choices=lambda: [
         Choice(text="Cutscenes: {}".format(config.CUTSCENES and "ON" or "OFF")),
         Choice(text="Lights: {}".format(game.lights and "ON" or "OFF")),
+        Choice(text="Regen: {}".format(game.can_regen and "ON" or "OFF")),
         Choice(text="Ailment: {}".format("None" if game.hero.ailment is None else ailments[game.hero.ailment])),
         Choice(text="GodMode: {}".format(game.god_mode and "ON" or "OFF")),
       ],
       on_choose=lambda choice: (
         choice.text.startswith("Cutscenes") and game.toggle_cutscenes(),
         choice.text.startswith("Lights") and game.toggle_lights(),
+        choice.text.startswith("Regen") and setattr(game, "can_regen", not game.can_regen),
         choice.text.startswith("Ailment") and cycle_ailment(),
         choice.text.startswith("GodMode") and game.toggle_god_mode()
       ) and False
