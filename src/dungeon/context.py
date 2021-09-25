@@ -462,9 +462,18 @@ class DungeonContext(Context):
       if actor not in commands:
         game.end_turn(actor)
 
-    step_status = lambda: game.end_turn(hero)
-    end_exec = lambda: game.end_step(moving=moving)
-    start_exec = lambda: game.next_command(on_end=end_exec)
+    step_status = lambda: (
+      game.end_turn(hero),
+    )
+
+    end_exec = lambda: (
+      game.end_step(moving=moving),
+    )
+
+    start_exec = lambda: (
+      game.next_command(on_end=end_exec),
+    )
+
     if commands:
       COMMAND_PRIORITY = ["move", "move_to", "use_skill", "attack", "wait"]
       game.commands = sorted(commands.items(), key=lambda item: COMMAND_PRIORITY.index(item[1][0][0]))
@@ -1235,7 +1244,7 @@ class DungeonContext(Context):
           target=actor,
           src=src_cell,
           dest=dest_cell,
-          on_end=lambda: command.on_end and command.on_end()
+          on_end=command.on_end
         )
         move_group = game.find_move_group()
         if move_group:
@@ -2105,14 +2114,10 @@ class DungeonContext(Context):
     game.update_camera()
 
     for elem in game.floor.elems:
-      elem_type = type(elem).__name__
-      bench_tag = "update {}".format(elem_type)
-      debug.bench(bench_tag)
+      debug.bench(bench_tag := f"update {type(elem).__name__}")
       vfx = elem.update(game) or []
       vfx and game.vfx.extend(vfx)
-      bench_diff = debug.bench(bench_tag, quiet=True)
-      if bench_diff > 1:
-        debug.log("update {} in {}ms".format(elem_type, bench_diff))
+      debug.bench(bench_tag, print_threshold=1)
 
     for fx in game.vfx:
       if fx.kind:
@@ -2128,16 +2133,22 @@ class DungeonContext(Context):
         if anim is None:
           group.remove(anim)
           continue
+        debug.bench(bench_tag := f"update anim {type(anim).__name__}")
         anim.update()
+        debug.bench(bench_tag, print_threshold=100)
         if type(anim) is PauseAnim:
           break
+
       game.anims[0] = [a for a in game.anims[0] if not a.done]
       while game.anims and not game.anims[0]:
         game.anims.pop(0)
+
     for comp in game.comps:
       if "done" in dir(comp) and comp.done:
         game.comps.remove(comp)
+
     game.time += 1
+
 
   def view(game):
     sprites = []

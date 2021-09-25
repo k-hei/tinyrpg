@@ -21,16 +21,16 @@ def write():
   debug_file.write(buffer)
   debug_file.close()
 
-def bench(tag, quiet=False):
-  if tag not in benches:
+def bench(tag, reset=False, print_threshold=0):
+  if tag not in benches or reset:
     benches[tag] = get_ticks()
     return 0
   else:
-    diff = get_ticks() - benches[tag]
+    delta = get_ticks() - benches[tag]
     del benches[tag]
-    if not quiet:
-      log("{} in {}ms".format(tag, diff))
-    return diff
+    if delta >= print_threshold:
+      log(f"{tag} in {delta}ms")
+    return delta
 
 def dictify(obj):
   {key: getattr(obj, key) for key in dir(obj) if (
