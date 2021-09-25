@@ -1,28 +1,28 @@
-from cores.genie import GenieCore
-from cores.rogue import RogueCore
-from cores.beetle import BeetleCore
-from cores.mage import MageCore
-from cores.husband import HusbandCore
-from cores.wife import WifeCore
+from cores.genie import Genie
+from cores.rogue import Rogue
+from cores.beetle import Beetle
+from cores.mage import Mage
+from cores.husband import Husband
+from cores.wife import Wife
 from cores.biped import BipedCore
-from cores.knight import KnightCore
-from cores.radhead import RadheadCore
+from cores.knight import Knight
+from cores.radhead import Radhead
 from cores.mira import MiraCore
-from cores.beetless import BeetlessCore
-from cores.ghost import GhostCore
-from cores.rat import RatCore
+from cores.beetless import Beetless
+from cores.ghost import Ghost
+from cores.rat import Rat
 
 def resolve_char(key):
-  if key == "GenieCore": return GenieCore
-  if key == "RogueCore": return RogueCore
-  if key == "BeetleCore": return BeetleCore
-  if key == "MageCore": return MageCore
-  if key == "HusbandCore": return HusbandCore
-  if key == "WifeCore": return WifeCore
+  if key == "Genie": return Genie
+  if key == "Rogue": return Rogue
+  if key == "Beetle": return Beetle
+  if key == "Mage": return Mage
+  if key == "Husband": return Husband
+  if key == "Wife": return Wife
   if key == "BipedCore": return BipedCore
-  if key == "KnightCore": return KnightCore
-  if key == "RadheadCore": return RadheadCore
+  if key == "Knight": return Knight
+  if key == "Radhead": return Radhead
   if key == "MiraCore": return MiraCore
-  if key == "BeetlessCore": return BeetlessCore
-  if key == "GhostCore": return GhostCore
-  if key == "RatCore": return RatCore
+  if key == "Beetless": return Beetless
+  if key == "Ghost": return Ghost
+  if key == "Rat": return Rat

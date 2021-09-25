@@ -3,9 +3,7 @@ from contexts.cutscene import CutsceneContext
 from anims.fall import FallAnim
 from anims.pause import PauseAnim
 from anims.shake import ShakeAnim
-from dungeon.props.altar import Altar
 from dungeon.actors.mage import Mage
-from dungeon.floors.genericfloor import GenericFloor
 from transits.dissolve import DissolveIn, DissolveOut
 from config import TILE_SIZE
 
@@ -13,7 +11,7 @@ def on_collapse(room, game):
   floor = game.floor
   hero = game.hero
   mage = floor.find_elem(Mage)
-  altar = floor.find_elem(Altar)
+  altar = floor.find_elem(cls="Altar")
   if not altar:
     return False
   game.open(CutsceneContext(script=[
@@ -79,6 +77,9 @@ def on_collapse(room, game):
           on_end=step
         )]
       ])
+    ),
+    lambda step: (
+      game.follow_link("GenericFloor", on_end=step)
     )
   ]))
   return True

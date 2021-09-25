@@ -9,7 +9,10 @@ from cores import Core
 from contexts import Context
 from dungeon.data import DungeonData
 from savedata import SaveData
-from savedata.resolve import resolve_item, resolve_skill, resolve_elem, resolve_char
+from resolve.item import resolve_item
+from resolve.skill import resolve_skill
+from resolve.elem import resolve_elem
+from resolve.char import resolve_char
 from config import (
   MAX_SP,
   INVENTORY_COLS, INVENTORY_ROWS,

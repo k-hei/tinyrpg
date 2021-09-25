@@ -222,14 +222,10 @@ class Stage:
     return None
 
   def find_elem(stage, cls):
-    width, height = stage.size
-    for y in range(height):
-      for x in range(width):
-        cell = (x, y)
-        elem = stage.get_elem_at(cell, superclass=cls)
-        if elem:
-          return elem
-    return None
+    return next((e for c in stage.get_cells() for e in stage.get_elems_at(c) if (
+      type(cls) is type and isinstance(e, cls)
+      or type(cls) is str and type(e).__name__ == cls
+    )), None)
 
   def contains(stage, cell):
     (width, height) = stage.size

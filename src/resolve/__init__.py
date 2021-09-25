@@ -40,7 +40,7 @@ def build_skills(skills):
   write_mapping(name="skill", mapping=skills)
 
 def build_chars(chars):
-  write_mapping(name="char", mapping={(k + "Core" if not k.endswith("Core") else k): p for k, p in chars.items()})
+  write_mapping(name="char", mapping=chars)
 
 def build_elems(elems):
   write_mapping(name="elem", mapping=elems)

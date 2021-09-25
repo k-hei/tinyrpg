@@ -111,6 +111,8 @@ from dungeon.floors.debugfloor import DebugFloor
 from dungeon.data import DungeonData
 from dungeon.command import MoveCommand, MoveToCommand, PushCommand, SkillCommand
 
+from resolve.floor import resolve_floor
+
 def manifest(core):
   if type(core) is Knight: return KnightActor(core=core)
   if type(core) is Mage: return MageActor(core=core)
@@ -371,7 +373,6 @@ class DungeonContext(Context):
 
     hero.visible_cells = [c for c in visible_cells if is_cell_not_unvisited(c)]
     game.update_visited_cells(visible_cells)
-    print("update visible cells")
 
     if door is not None:
       return
@@ -1978,6 +1979,17 @@ class DungeonContext(Context):
 
   def descend(game):
     game.handle_floorchange(-1)
+
+  def follow_link(game, link_id, on_end=None):
+    Floor = resolve_floor(link_id)
+    game.get_head().transition(
+      transits=(DissolveIn(), DissolveOut()),
+      loader=Floor.generate(game.store),
+      on_end=lambda floor: (
+        game.use_floor(floor, generator=Floor),
+        on_end and on_end()
+      )
+    )
 
   def change_floors(game, direction):
     exit_tile = Stage.STAIRS_UP if direction == 1 else Stage.STAIRS_DOWN
