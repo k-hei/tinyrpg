@@ -37,7 +37,7 @@ class AltarRoom(SpecialRoom):
       "           .                     ",
       "           .                     ",
     ], elems=[
-      (altar_cell := (11, 5), altar := Altar(on_effect=room.on_trigger)),
+      (altar_cell := (11, 5), altar := Altar(on_action=room.on_trigger)),
       (add_cell(altar_cell, (0, 1)), mage := Mage(faction="ally", facing=(0, -1))),
       (add_cell(altar_cell, (-2, -3)), Pillar()),
       (add_cell(altar_cell, (-3, -2)), Pillar(broken=True)),

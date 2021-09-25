@@ -5,6 +5,7 @@ from dungeon.features.vertroom import VerticalRoom
 from resolve.elem import resolve_elem
 from resolve.item import resolve_item
 from resolve.skill import resolve_skill
+from resolve.hook import resolve_hook
 import debug
 
 def decode_floor(floor_data):
@@ -50,8 +51,9 @@ def decode_floor(floor_data):
 
 def decode_elem(elem_cell, elem_name, elem_props):
   if "contents" in elem_props:
-    elem_contents = elem_props["contents"]
-    elem_props["contents"] = resolve_item(elem_contents) or resolve_skill(elem_contents)
+    elem_props["contents"] = resolve_item(elem_props["contents"]) or resolve_skill(elem_props["contents"])
+  if "on_action" in elem_props:
+    elem_props["on_action"] = resolve_hook(elem_props["on_action"])
   # if "message" in elem_props:
   #   message_key = elem_props["message"]
   #   elem_props["message"] = next((s for s in resolve_elem(floor_data["generator"]).scripts if s[0] == message_key), None)

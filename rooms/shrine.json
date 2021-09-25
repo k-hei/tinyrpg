@@ -26,7 +26,7 @@
     "                                 "
   ],
   "elems": [
-    [[11, 7], "Altar"],
+    [[11, 7], "Altar", { "on_action": "shrine.collapse" }],
     [[9, 10], "Pillar"],
     [[13, 10], "Pillar"],
     [[14, 9], "Pillar"],

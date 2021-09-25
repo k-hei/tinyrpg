@@ -371,6 +371,7 @@ class DungeonContext(Context):
 
     hero.visible_cells = [c for c in visible_cells if is_cell_not_unvisited(c)]
     game.update_visited_cells(visible_cells)
+    print("update visible cells")
 
     if door is not None:
       return
@@ -1321,6 +1322,8 @@ class DungeonContext(Context):
       return False
 
   def redraw_tiles(game, force=False):
+    # if force:
+      # print(game.get_visible_cells())
     game.floor_view.redraw_tiles(
       stage=game.floor,
       camera=game.camera,
@@ -2117,7 +2120,7 @@ class DungeonContext(Context):
       debug.bench(bench_tag := f"update {type(elem).__name__}")
       vfx = elem.update(game) or []
       vfx and game.vfx.extend(vfx)
-      debug.bench(bench_tag, print_threshold=1)
+      debug.bench(bench_tag, print_threshold=2)
 
     for fx in game.vfx:
       if fx.kind:
@@ -2133,9 +2136,7 @@ class DungeonContext(Context):
         if anim is None:
           group.remove(anim)
           continue
-        debug.bench(bench_tag := f"update anim {type(anim).__name__}")
         anim.update()
-        debug.bench(bench_tag, print_threshold=100)
         if type(anim) is PauseAnim:
           break
 
@@ -2148,7 +2149,6 @@ class DungeonContext(Context):
         game.comps.remove(comp)
 
     game.time += 1
-
 
   def view(game):
     sprites = []

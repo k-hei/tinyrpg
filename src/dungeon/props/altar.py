@@ -10,14 +10,17 @@ class Altar(DungeonElement):
   static = True
   active = True
 
-  def __init__(altar, on_effect=None, *args, **kwargs):
+  def __init__(altar, on_action=None, *args, **kwargs):
     super().__init__(static=True, *args, **kwargs)
-    altar.on_effect = on_effect
+    altar.on_action = on_action
     altar.opened = False
 
   def effect(altar, game):
+    if altar.opened:
+      return False
     altar.opened = True
-    altar.on_effect and altar.on_effect(game)
+    altar.on_action and altar.on_action(game.room, game)
+    return False
 
   def view(altar, anims):
     altar_image = assets.sprites["altar"]
