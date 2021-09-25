@@ -11,6 +11,7 @@ from config import FPS
 
 from dungeon.floors import Floor
 from dungeon.room import Blob as Room
+from dungeon.roomdata import load_rooms
 from dungeon.gen.terrain import gen_terrain
 from dungeon.gen.elems import gen_elems
 from dungeon.gen.blob import gen_blob
@@ -52,6 +53,8 @@ from skills.weapon.longinus import Longinus
 
 from resolve.elem import resolve_elem
 from resolve.hook import resolve_hook
+
+load_rooms()
 
 MIN_ROOM_COUNT = 7
 MAX_ROOM_COUNT = MIN_ROOM_COUNT + 0
@@ -212,6 +215,7 @@ def gen_connect(feature_graph):
     yield floor_graph
     return
   if len(feature_graph.edges) >= len(feature_graph.nodes):
+    print(f"Joint connect with {len(feature_graph.nodes)} nodes")
     connect_gen = gen_joint_connect(feature_graph)
     while floor_graph is not False:
       try:
@@ -479,6 +483,8 @@ def gen_floor(
               door_neighbor = add_vector(door2_start, door2_delta)
             if door_neighbor not in neighborhood(door1_start):
               door_neighbor = [*neighborhood_overlap][0]
+            if door_neighbor in path_blacklist:
+              continue
             door_path = [door1_start, door_neighbor, door2_start]
             break
 
@@ -575,7 +581,7 @@ def gen_floor(
       continue
 
     shuffle(island_centers)
-    island_centers.sort(key=lambda c: 0 if island_rooms[c] in graph.ends() else 1)
+    island_centers.sort(key=lambda c: graph.degree(island_rooms[c]))
     key_cells = island_centers[:key_count]
     for cell in key_cells:
       stage.spawn_elem_at(cell, Chest(Key))
@@ -588,7 +594,7 @@ def gen_floor(
         item_count = min(8, room.get_area() // 16)
         room_items = [Vase(choice(ALL_ITEMS)) for _ in range(item_count)]
       else:
-        item_count = min(3, room.get_area() // 16)
+        item_count = max(1, min(3, room.get_area() // 24))
         room_items = [Vase(choice(items)) for _ in range(item_count)]
       gen_elems(stage, room, elems=room_items)
 

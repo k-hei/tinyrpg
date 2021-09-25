@@ -102,7 +102,7 @@ class Soul(Prop):
       game.log.exit()
     return True
 
-  def update(soul, *_):
+  def update(soul, game):
     soul.anim.update()
     pos_x, pos_y = soul.pos
     particles = []
@@ -129,7 +129,7 @@ class Soul(Prop):
       ty = soul.anim.time % Soul.ANIM_FLOAT_PERIOD / Soul.ANIM_FLOAT_PERIOD
       pos_x = cos(pi * 2 * tx) * Soul.ANIM_SWIVEL_AMP
       pos_y = sin(pi * 2 * ty) * Soul.ANIM_FLOAT_AMP
-      if soul.anim.time % randint(30, 45) < 5:
+      if soul.anim.time % randint(30, 45) < 5 and soul.cell in game.get_visible_cells():
         col, row = soul.cell
         x = col * TILE_SIZE + pos_x + random() * 6
         y = row * TILE_SIZE + pos_y + random() * 6 + 8

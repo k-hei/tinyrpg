@@ -1,3 +1,4 @@
+from math import sqrt
 from copy import deepcopy
 from random import randint, choice
 from lib.cell import neighborhood
@@ -66,8 +67,7 @@ def gen_terrain(stage, room, tree=None):
     room_pathcells += draw_path(start=door, goal=pivot)
 
   island_centers = []
-  island_count = randint(0, room.get_area() // 20)
-  print(room.size, room.get_area(), island_count)
+  island_count = randint(0, sqrt(room.get_area()) // 3)
   if room_pathcells and island_count and not disconnected:
     for i in range(island_count):
       pivot = create_platform()
