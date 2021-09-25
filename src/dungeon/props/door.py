@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from dungeon.props import Prop
-from assets import load as use_assets
+import assets
 from anims.frame import FrameAnim
 from colors.palette import WHITE, SAFFRON
 from filters import replace_color
@@ -110,19 +110,18 @@ class Door(Prop):
       door.cell = (door_x, door_y + 1)
 
   def view(door, anims):
-    sprites = use_assets().sprites
     will_open = next((a for g in anims for a in g if a.target is door and type(a) is DoorOpenAnim), None)
     will_close = next((a for g in anims for a in g if a.target is door and type(a) is DoorCloseAnim), None)
     anim_group = [a for a in anims[0] if a.target is door] if anims else []
     for anim in anim_group:
       if isinstance(anim, DoorAnim):
-        image = sprites[anim.frame()]
+        image = assets.sprites[anim.frame()]
         break
     else:
       if door.opened or will_close:
-        image = sprites[door.sprites.opened]
+        image = assets.sprites[door.sprites.opened]
       elif not door.opened or will_open:
-        image = sprites[door.sprites.closed]
+        image = assets.sprites[door.sprites.closed]
     image = replace_color(image, WHITE, SAFFRON)
     return super().view([Sprite(
       image=image,

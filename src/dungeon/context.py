@@ -109,9 +109,12 @@ from dungeon.floors.floor3 import Floor3
 from dungeon.floors.debugfloor import DebugFloor
 
 from dungeon.data import DungeonData
+from dungeon.roomdata import load_rooms
 from dungeon.command import MoveCommand, MoveToCommand, PushCommand, SkillCommand
 
 from resolve.floor import resolve_floor
+
+load_rooms()
 
 def manifest(core):
   if type(core) is Knight: return KnightActor(core=core)

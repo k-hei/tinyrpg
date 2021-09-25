@@ -7,15 +7,13 @@ from typing import Dict
 import pygame
 from pygame import Surface, Rect
 from text import Font, Ttf
-from dungeon.roomdata import RoomData
-from config import ASSETS_PATH, ROOMS_PATH, WINDOW_SIZE
+from config import ASSETS_PATH, WINDOW_SIZE
 
 @dataclass
 class Assets:
   sprites: Dict[str, Surface] = None
   fonts: Dict[str, Font] = None
   ttf: Dict[str, Ttf] = None
-  rooms: Dict[str, RoomData] = None
 
 def load_image(path, key, sprites):
   try:
@@ -79,21 +77,6 @@ def load_ttf(path, key, size):
   font = pygame.font.Font(join(path, key) + ".ttf", size)
   return Ttf(font)
 
-def load_room(path, key):
-  try:
-    room_file = open(join(path, key) + ".json", "r")
-    room_data = json.loads(room_file.read())
-  except FileNotFoundError:
-    room_file = None
-    print(f"FileNotFoundError: Failed to find file {key}.json at {path}")
-    return None
-  finally:
-    room_file and room_file.close()
-  if type(room_data) is list:
-    return [RoomData(**d) for d in room_data]
-  else:
-    return RoomData(**room_data)
-
 def load():
   if assets.sprites:
     return assets
@@ -127,20 +110,14 @@ def load():
   ttf["normal"] = load_ttf(ttf_path, "PCPaintNormalSmall", 8)
   ttf["special"] = load_ttf(ttf_path, "PCPaintSpecialMedium", 12)
 
-  for f in listdir(ROOMS_PATH):
-    room_id, _ = splitext(f)
-    rooms[room_id.replace("-", "_")] = load_room(ROOMS_PATH, room_id)
-
   assets.sprites = sprites
   assets.fonts = fonts
   assets.ttf = ttf
-  assets.rooms = rooms
 
 sprites = {}
 fonts = {}
 ttf = {}
-rooms = {}
-assets = Assets(sprites, fonts, ttf, rooms)
+assets = Assets(sprites, fonts, ttf)
 load()
 
 def trace(sprite):

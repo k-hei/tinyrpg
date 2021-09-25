@@ -1,7 +1,33 @@
+import json
+from os import listdir
+from os.path import join, splitext
 from dataclasses import dataclass, field
 from dungeon.stage import Stage
+from resolve.hook import resolve_hook
+from config import ROOMS_PATH
 
 # TODO: move room json loading out of assets so we can resolve hooks post-init
+rooms = {}
+
+def load_room(path, key):
+  try:
+    room_file = open(join(path, key) + ".json", "r")
+    room_data = json.loads(room_file.read())
+  except FileNotFoundError:
+    room_file = None
+    print(f"FileNotFoundError: Failed to find file {key}.json at {path}")
+    return None
+  finally:
+    room_file and room_file.close()
+  if type(room_data) is list:
+    return [RoomData(**d) for d in room_data]
+  else:
+    return RoomData(**room_data)
+
+def load_rooms():
+  for f in listdir(ROOMS_PATH):
+    room_id, _ = splitext(f)
+    rooms[room_id.replace("-", "_")] = load_room(ROOMS_PATH, room_id)
 
 def resolve_tile(char):
   if char == "#": return Stage.WALL
@@ -35,6 +61,7 @@ class RoomData:
     if roomdata.tiles and type(roomdata.tiles[0]) is str:
       roomdata.size = (len(roomdata.tiles[0]), len(roomdata.tiles))
       roomdata.tiles = [Stage.TILE_ORDER.index(resolve_tile(c)) for s in roomdata.tiles for c in s]
+    roomdata.hooks = { hook_key: resolve_hook(hook_name) for hook_key, hook_name in roomdata.hooks.items() }
 
   def extract_cells(roomdata):
     cells = []

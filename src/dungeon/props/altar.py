@@ -4,6 +4,7 @@ from filters import replace_color
 from colors.palette import WHITE, BLACK, GOLD, VIOLET
 from sprite import Sprite
 from anims.frame import FrameAnim
+from resolve.hook import resolve_hook
 
 class Altar(DungeonElement):
   solid = True
