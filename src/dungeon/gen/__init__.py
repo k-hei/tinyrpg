@@ -551,14 +551,15 @@ def gen_floor(
 
     # draw room terrain
     for room in plain_rooms:
-      gen_terrain(stage, room, graph)
+      island_centers = gen_terrain(stage, room, graph)
+      if island_centers and room in secrets:
+        stage.spawn_elem_at(choice(island_centers), Chest(Elixir))
 
     # populate rooms
     for room in rooms:
       if room.data and not room.data.spawns_vases:
         continue
       if room in secrets:
-        stage.spawn_elem_at(room.get_center(), Chest(Elixir))
         item_count = min(8, room.get_area() // 16)
         room_items = [Vase(choice(ALL_ITEMS)) for _ in range(item_count)]
       else:
