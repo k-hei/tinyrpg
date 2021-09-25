@@ -19,6 +19,16 @@ class Blob(Room):
     super().__init__(size=rect.size, cell=room.origin, degree=degree, *args, **kwargs)
 
   @property
+  def origin(room):
+    return room._origin
+
+  @origin.setter
+  def origin(room, origin):
+    room._origin = origin
+    room._outline = None
+    room._visible_outline = None
+
+  @property
   def cells(room):
     return [add_vector(c, room.origin) for c in room._cells]
 
@@ -58,21 +68,25 @@ class Blob(Room):
 
   @property
   def outline(room):
-    outline = []
-    for cell in room.cells:
-      outline += neighborhood(cell, diagonals=True)
-    return set(outline) - set(room.cells)
+    if not room._outline:
+      outline = []
+      for cell in room.cells:
+        outline += neighborhood(cell, diagonals=True)
+      room._outline = set(outline) - set(room.cells)
+    return room._outline
 
   @property
   def visible_outline(room):
-    visible_outline = []
-    for cell in room.cells:
-      neighbors = (
-        neighborhood(cell, diagonals=True)
-        + neighborhood(add_vector(cell, (0, -1)), diagonals=True)
-      )
-      visible_outline += neighbors
-    return set(visible_outline) - set(room.cells)
+    if not room._visible_outline:
+      visible_outline = []
+      for cell in room.cells:
+        neighbors = (
+          neighborhood(cell, diagonals=True)
+          + neighborhood(add_vector(cell, (0, -1)), diagonals=True)
+        )
+        visible_outline += neighbors
+      room._visible_outline = set(visible_outline) - set(room.cells)
+    return room._visible_outline
 
   @property
   def rect(room):

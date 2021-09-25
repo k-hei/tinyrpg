@@ -539,8 +539,10 @@ def gen_floor(
         door_delta = subtract_vector(neighbor, doorway)
         door_xdelta, door_ydelta = door_delta
         if (door_delta
+        and door_delta != (0, -1)
         and stage.is_cell_empty((neighbor_x - door_ydelta, neighbor_y - door_xdelta))
         and stage.is_cell_empty((neighbor_x + door_ydelta, neighbor_y + door_xdelta))
+        and randint(0, 1)
         ):
           stage.spawn_elem_at(neighbor, ArrowTrap(facing=door_delta, delay=inf, static=False))
 
@@ -567,11 +569,15 @@ def gen_floor(
     for i, room in enumerate(rooms):
       if room.data and not room.data.spawns_enemies:
         continue
-      enemies_spawned = gen_elems(stage, room,
-        elems=[choice(enemies)(
+      if room.data and type(room.data.spawns_enemies) is list:
+        for enemy in room.data.spawns_enemies:
+          if randint(1, 3) == 1:
+            enemy.ailment = "sleep"
+      if not room.data or type(room.data.spawns_enemies) is bool:
+        elems = [choice(enemies)(
           ailment=("sleep" if randint(1, 3) == 1 else None)
         ) for _ in range(min(5, room.get_area() // 20))]
-      )
+      enemies_spawned = gen_elems(stage, room, elems)
 
     for room in feature_rooms:
       room.on_place(stage)

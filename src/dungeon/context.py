@@ -292,49 +292,39 @@ class DungeonContext(Context):
     floor = game.floor
     visible_cells = []
 
-    def is_within_room(room, cell):
-      _, room_y = room.cell
-      room_cells = room.get_cells() + room.get_edges()
-      return hero.cell in [(x, y) for (x, y) in room_cells if (
-        y != room_y + room.get_height() + 1
-        and y != room_y - 2
-      )]
+    debug.bench("cache cellmap")
+    room_cellmap = { r: r.get_cells() for r in game.floor.rooms }
+    debug.bench("cache cellmap", print_threshold=5)
 
     door = None
     new_room = None
     hallway = None
     path_anim = next((a for g in game.anims for a in g if type(a) is PathAnim and not a.done), None)
-    is_cell_not_unvisited = lambda c: not next((r for r in game.floor.rooms if c in r.get_cells() and r not in game.room_entrances), None)
+    is_cell_not_unvisited = lambda c: not next((r for r in game.floor.rooms if c in room_cellmap[r] and r not in game.room_entrances), None)
 
+    debug.bench("calculate new room")
     if moving and not path_anim:
-      rooms = [room for room in floor.rooms if is_within_room(room, hero.cell)]
-      room_within = next((r for r in floor.rooms if hero.cell in r.get_cells()), None)
-      if len(rooms) == 1:
-        room = rooms[0]
-      else:
-        room = next((room for room in rooms if room is not game.room), None)
-
-      if room is not game.room:
+      focused_room = next((r for r in floor.rooms if hero.cell in (room_cellmap[r] + r.get_border())), None)
+      if focused_room is not game.room:
         game.oasis_used = False
-        if room:
-          room.on_focus(game)
+        new_room = focused_room
+        if new_room:
+          new_room.on_focus(game)
         if game.room:
           game.room.on_focus(game)
+        game.room = new_room
 
-      if room_within is not game.room_within:
-        new_room = room_within
-
-      if room and room not in game.room_entrances:
+      if new_room and new_room not in game.room_entrances:
         already_illuminated_once_this_floor = next((r for r in game.floor.rooms if r in game.room_entrances), None)
-        game.room_entrances[room] = hero.cell
+        game.room_entrances[new_room] = hero.cell
         if already_illuminated_once_this_floor:
-          room_cellset = {c for c in room.get_cells() + room.get_outline() if is_cell_not_unvisited(c)}
+          room_cellset = {c for c in room_cellmap[new_room] + new_room.get_outline() if is_cell_not_unvisited(c)}
           visible_cellset = room_cellset & set(hero.visible_cells)
           anim_cells = list(room_cellset - visible_cellset)
           visible_cells = list(visible_cellset) + neighborhood(hero.cell)
           room_cells = list(room_cellset)
 
-          tween_duration = game.camera.illuminate(room, actor=game.hero)
+          tween_duration = game.camera.illuminate(new_room, actor=game.hero)
           if tween_duration:
             not game.anims and game.anims.append([])
             game.anims[0].append(PauseAnim(duration=tween_duration))
@@ -352,8 +342,8 @@ class DungeonContext(Context):
             )],
             [PauseAnim(duration=15)]
           ]
-      game.room = room
-      game.room_within = room_within
+
+    debug.bench("calculate new room", print_threshold=5)
 
     if game.lights:
       if not game.floor_cells:
@@ -366,20 +356,23 @@ class DungeonContext(Context):
         + neighborhood(add_vector(c, (0, -1)), inclusive=True, diagonals=True)
       ) if game.floor.get_tile_at(n) is Stage.WALL or game.floor.get_tile_at(n) is Stage.HALLWAY]))
     elif not game.camera.anims and not next((a for g in game.anims for a in g if type(a) is StageView.FadeAnim), None):
-      visible_cells = shadowcast(floor, hero.cell, VISION_RANGE)
-      def is_cell_within_visited_room(cell):
-        room = next((r for r in game.floor.rooms if cell in r.get_cells()), None)
-        return room is None or room in game.room_entrances
-      visible_cells = [c for c in visible_cells if is_cell_within_visited_room(c)]
+      debug.bench("calculate visible cells")
       if game.room:
-        visible_cells += game.room.get_cells() + game.room.get_outline()
+        visible_cells = room_cellmap[game.room] + game.room.get_outline()
+      else:
+        visible_cells = shadowcast(floor, hero.cell, VISION_RANGE)
+      debug.bench("calculate visible cells", print_threshold=5)
 
-    hero.visible_cells = [c for c in visible_cells if is_cell_not_unvisited(c)]
-    game.update_visited_cells(visible_cells)
+    debug.bench("update_visited_cells")
+    if not game.room or new_room:
+      hero.visible_cells = visible_cells
+      game.update_visited_cells(visible_cells)
+    debug.bench("update_visited_cells", print_threshold=5)
 
     if door is not None:
       return
 
+    debug.bench("post-refresh")
     hero = game.hero
     camera = game.camera
     nearby_enemies = [e for e in game.floor.elems if (
@@ -403,6 +396,8 @@ class DungeonContext(Context):
     if new_room:
       new_room.on_enter(game)
       game.redraw_tiles(force=True)
+
+    debug.bench("post-refresh", print_threshold=5)
 
   def darken(game, duration=inf):
     game.floor_view.darkened = True
@@ -467,9 +462,14 @@ class DungeonContext(Context):
       if actor not in commands:
         game.end_turn(actor)
 
-    def step_status(): game.end_turn(hero)
-    def end_exec(): game.end_step(moving=moving)
-    def start_exec(): game.next_command(on_end=end_exec)
+    def step_status():
+      game.end_turn(hero)
+
+    def end_exec():
+      game.end_step(moving=moving)
+
+    def start_exec():
+      game.next_command(on_end=end_exec)
 
     if commands:
       COMMAND_PRIORITY = ["move", "move_to", "use_skill", "attack", "wait"]
@@ -549,7 +549,10 @@ class DungeonContext(Context):
         hero.regen(amount=1)
     if hero.ailment != "sleep":
       game.is_hero_sleeping = False
+
+    debug.bench("refresh_fov")
     game.refresh_fov(moving=moving)
+    debug.bench("refresh_fov", print_threshold=10)
 
   def step_ally(game, ally, run=False, old_hero_cell=None):
     if not ally or not ally.can_step():
@@ -1241,7 +1244,7 @@ class DungeonContext(Context):
           target=actor,
           src=src_cell,
           dest=dest_cell,
-          on_end=command.on_end
+          on_end=lambda: command.on_end and command.on_end()
         )
         move_group = game.find_move_group()
         if move_group:
