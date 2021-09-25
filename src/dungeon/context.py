@@ -467,17 +467,9 @@ class DungeonContext(Context):
       if actor not in commands:
         game.end_turn(actor)
 
-    step_status = lambda: (
-      game.end_turn(hero),
-    )
-
-    end_exec = lambda: (
-      game.end_step(moving=moving),
-    )
-
-    start_exec = lambda: (
-      game.next_command(on_end=end_exec),
-    )
+    def step_status(): game.end_turn(hero)
+    def end_exec(): game.end_step(moving=moving)
+    def start_exec(): game.next_command(on_end=end_exec)
 
     if commands:
       COMMAND_PRIORITY = ["move", "move_to", "use_skill", "attack", "wait"]
