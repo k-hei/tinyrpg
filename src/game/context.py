@@ -13,6 +13,7 @@ from dungeon.stage import Stage
 from dungeon.decor import Decor
 from dungeon.features.room import Room
 from dungeon.features.altarroom import AltarRoom
+from dungeon.gen.manifest import manifest_stage_from_room
 from dungeon.decoder import decode_floor
 from town.context import TownContext
 from cores.knight import Knight
@@ -20,6 +21,7 @@ from cores.mage import Mage
 from cores.rogue import Rogue
 from inventory import Inventory
 from skills import get_skill_order
+import assets
 from game.data import GameData
 from savedata.resolve import resolve_item, resolve_skill, resolve_elem
 from transits.dissolve import DissolveOut
@@ -124,13 +126,9 @@ class GameContext(Context):
       ctx.open(dungeon)
     else:
       app = ctx.get_head()
-      app.load(
-        loader=AltarRoom().create_floor(),
-        on_end=lambda floor: (
-          ctx.goto_dungeon(floors=[floor]),
-          not app.transits and app.transition([DissolveOut()])
-        )
-      )
+      stage = manifest_stage_from_room(room=assets.rooms["shrine"])
+      ctx.goto_dungeon(floors=[stage]),
+      not app.transits and app.transition([DissolveOut()])
 
   def goto_town(ctx, returning=False):
     town = TownContext(store=ctx.store, returning=returning)
