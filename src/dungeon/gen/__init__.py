@@ -625,7 +625,7 @@ def gen_floor(
         ) for _ in range(min(5, room.get_area() // 20))]
       enemies_spawned = gen_elems(stage, room, elems)
 
-    for room in feature_rooms:
+    for room in rooms:
       room.on_place(stage)
 
     stage.rooms = rooms

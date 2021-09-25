@@ -943,7 +943,10 @@ class DungeonContext(Context):
               PathAnim(
                 target=game.hero,
                 path=hero_path,
-                on_step=lambda cell: cell == hallway[-2] and door and not door.opened and door.handle_open(game)
+                on_step=lambda cell: cell == hallway[-2] and door and not door.opened and (
+                  door.handle_open(game),
+                  setattr(door, "locked", None)
+                )
               ),
               *([PathAnim(
                 target=game.ally,
@@ -1506,7 +1509,7 @@ class DungeonContext(Context):
       if target in game.floor.elems:
         game.floor.elems.remove(target)
       if game.room:
-        game.room.on_death(game, target)
+        game.room.on_defeat(game, target)
       if target is hero:
         game.anims[0].append(PauseAnim(
           duration=DungeonContext.PAUSE_DEATH_DURATION,

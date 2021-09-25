@@ -115,7 +115,7 @@ class CoffinRoom(SpecialRoom):
     ]))
     return True
 
-  def on_death(room, game, actor):
+  def on_defeat(room, game, actor):
     if room.get_enemies(game.floor):
       return False
     game.anims.append([

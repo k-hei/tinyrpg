@@ -142,7 +142,23 @@ class Blob(Room):
     x, y = cell
     return room.data.tiles[y * room.width + x]
 
+  def lock_special_doors(room, stage):
+    if room.should_unlock(stage):
+      return
+    for door in room.get_doors(stage):
+      if type(door).__name__ == "TreasureDoor":
+        door.lock()
+
+  def should_unlock(room, stage):
+    enemies = room.get_enemies(stage)
+    pushtile = next((e for c in room.get_cells() for e in stage.get_elems_at(c) if type(e).__name__ == "PushTile"), None)
+    return (
+      not enemies
+      and not pushtile
+    )
+
   def on_place(room, stage):
+    room.lock_special_doors(stage)
     if room.data and "on_place" in room.data.hooks:
       on_place = room.data.hooks["on_place"]
       not on_place and debug.log("Failed to resolve \"on_place\" hook \"{}\"".format(room.data.hooks["on_place"]))
@@ -168,10 +184,12 @@ class Blob(Room):
     else:
       return False
 
-  def on_defeat(room, *args, **kwargs):
+  def on_defeat(room, game, actor):
+    if room.should_unlock(game.floor):
+      room.unlock(game)
     if room.data and "on_defeat" in room.data.hooks:
       on_defeat = room.data.hooks["on_defeat"]
       not on_defeat and debug.log("Failed to resolve \"on_defeat\" hook \"{}\"".format(room.data.hooks["on_defeat"]))
-      return on_defeat and on_defeat(room, *args, **kwargs)
+      return on_defeat and on_defeat(room, game, actor)
     else:
-      return super().on_defeat(*args, **kwargs)
+      return super().on_defeat(game, actor)

@@ -127,7 +127,7 @@ class ArenaRoom(SpecialRoom):
     )])
     return True
 
-  def on_death(feature, game, actor):
+  def on_defeat(feature, game, actor):
     if feature.get_enemies(game.floor):
       return False
     if feature.waves:

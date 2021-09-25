@@ -166,8 +166,6 @@ class Room(Feature):
   def on_defeat(room, game, target):
     return True
 
-  def on_death(room, game, target): pass
-
   def validate(room, cell, slots):
     for slot in room.get_slots(cell):
       if slot not in slots:
