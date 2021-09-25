@@ -18,7 +18,8 @@ from dungeon.gen.path import gen_path
 from dungeon.gen.manifest import manifest_stage
 from dungeon.gen.floorgraph import FloorGraph
 from dungeon.stage import Stage
-from dungeon.props.door import Door
+from dungeon.props.door import Door as GenericDoor
+from dungeon.props.raretreasuredoor import RareTreasureDoor
 from dungeon.props.secretdoor import SecretDoor
 from dungeon.props.vase import Vase
 from dungeon.props.chest import Chest
@@ -37,6 +38,7 @@ from items.ailment.musicbox import MusicBox
 from items.ailment.topaz import Topaz
 from items.dungeon.balloon import Balloon
 from items.dungeon.emerald import Emerald
+from items.dungeon.key import Key
 from items.hp.ankh import Ankh
 from items.hp.elixir import Elixir
 from items.hp.potion import Potion
@@ -415,6 +417,7 @@ def gen_floor(
 
     # DrawConnectors(stage, stage_offset, tree)
     connected = True
+    key_count = 0
     door_paths = set()
     for i, ((room1, room2), connectors) in enumerate(graph.connections()):
       connectors = [add_vector(c, stage_offset) for c in connectors]
@@ -426,9 +429,9 @@ def gen_floor(
 
       for j, connector in enumerate(connectors):
         is_edge_usable = lambda e, room: (
-          next((e for e in stage.get_elems_at(e) if isinstance(e, Door)), None)
+          next((e for e in stage.get_elems_at(e) if isinstance(e, GenericDoor)), None)
           or (
-            not next((n for n in neighborhood(e) if next((e for e in stage.get_elems_at(n) if isinstance(e, Door)), None)), None)
+            not next((n for n in neighborhood(e) if next((e for e in stage.get_elems_at(n) if isinstance(e, GenericDoor)), None)), None)
             and len([n for n in neighborhood(e) if stage.get_tile_at(n) is Stage.WALL]) == 3
             and len([n for n in neighborhood(e, diagonals=True) if stage.get_tile_at(n) is Stage.WALL]) in (5, 6, 7)
             # and not next((c for c in [c for r in [r for r in rooms if r is not room] for c in r.outline] if is_adjacent(c, e)), None)
@@ -453,18 +456,18 @@ def gen_floor(
         door_path = None
         room_outlines = set([c for r in rooms for c in r.outline])
         path_blacklist = room_outlines | door_paths | set(stage.get_border())
-        for door1, door2 in product(prev_edges, room_edges):
-          if (door1 in prev_edges and door2 in prev_edges
-          or door1 in room_edges and door2 in room_edges):
+        for door1_cell, door2_cell in product(prev_edges, room_edges):
+          if (door1_cell in prev_edges and door2_cell in prev_edges
+          or door1_cell in room_edges and door2_cell in room_edges):
             continue
 
-          door1_neighbor = next((n for n in neighborhood(door1) if n in room1.cells), None)
-          door1_delta = subtract_vector(door1, door1_neighbor)
-          door1_start = add_vector(door1, door1_delta)
+          door1_neighbor = next((n for n in neighborhood(door1_cell) if n in room1.cells), None)
+          door1_delta = subtract_vector(door1_cell, door1_neighbor)
+          door1_start = add_vector(door1_cell, door1_delta)
 
-          door2_neighbor = next((n for n in neighborhood(door2) if n in room2.cells), None)
-          door2_delta = subtract_vector(door2, door2_neighbor)
-          door2_start = add_vector(door2, door2_delta)
+          door2_neighbor = next((n for n in neighborhood(door2_cell) if n in room2.cells), None)
+          door2_delta = subtract_vector(door2_cell, door2_neighbor)
+          door2_start = add_vector(door2_cell, door2_delta)
 
           if {door1_start, door2_start} & path_blacklist:
             continue
@@ -496,19 +499,24 @@ def gen_floor(
 
       # TODO: cache this path and only draw after all paths are cached (fail tolerance)
       # need to be able to trace conflicting cells back to the connectors that made them(?)
-      door_path = [door1] + door_path + [door2]
-      door = Door
-      if room1.data and resolve_elem(room1.data.doors) is not Door:
-        door = resolve_elem(room1.data.doors)
-      if room2.data and resolve_elem(room2.data.doors) is not Door:
-        door = resolve_elem(room2.data.doors)
-      stage.spawn_elem_at(door1, door())
-      stage.spawn_elem_at(door2, door())
+      door_path = [door1_cell] + door_path + [door2_cell]
+
+      Door1 = resolve_elem(room1.data.doors) if room1.data else GenericDoor
+      Door2 = resolve_elem(room2.data.doors) if room2.data else GenericDoor
+      Door = (Door1 if Door1 is not GenericDoor
+        else Door2 if Door2 is not GenericDoor
+        else GenericDoor)
+
+      if Door is RareTreasureDoor:
+        key_count += 1
+
+      stage.spawn_elem_at(door1_cell, Door())
+      stage.spawn_elem_at(door2_cell, Door())
       for cell in door_path:
         stage.set_tile_at(cell, Stage.HALLWAY)
         door_paths.update(neighborhood(cell, inclusive=True, diagonals=True))
 
-      graph.reconnect(room1, room2, door1, door2)
+      graph.reconnect(room1, room2, door1_cell, door2_cell)
       yield stage, f"Connected rooms {rooms.index(room1) + 1} and {rooms.index(room2) + 1} at {connector}"
 
     if not connected:
@@ -522,6 +530,7 @@ def gen_floor(
     stage.entrance = stage.find_tile(stage.STAIRS_DOWN)
     if not stage.entrance:
       yield stage, "Failed to spawn entrance"
+      continue
 
     secrets = [e for e in graph.ends() if e in empty_rooms if e.get_area() <= 60 and (not e.data or e.data.doors == "Door")]
     for secret in secrets:
@@ -550,10 +559,26 @@ def gen_floor(
       empty_rooms.remove(secret)
 
     # draw room terrain
+    island_rooms = {}
     for room in plain_rooms:
       island_centers = gen_terrain(stage, room, graph)
-      if island_centers and room in secrets:
-        stage.spawn_elem_at(choice(island_centers), Chest(Elixir))
+      if island_centers:
+        if room in secrets:
+          stage.spawn_elem_at(choice(island_centers), Chest(Elixir))
+        else:
+          for cell in island_centers:
+            island_rooms[cell] = room
+
+    island_centers = [*island_rooms.keys()]
+    if len(island_centers) < key_count:
+      yield stage, "Failed to spawn keys"
+      continue
+
+    shuffle(island_centers)
+    island_centers.sort(key=lambda c: 0 if island_rooms[c] in graph.ends() else 1)
+    key_cells = island_centers[:key_count]
+    for cell in key_cells:
+      stage.spawn_elem_at(cell, Chest(Key))
 
     # populate rooms
     for room in rooms:

@@ -36,7 +36,7 @@ class Chest(Prop):
     chest.opened = True
     return contents
 
-  def effect(chest, game):
+  def effect(chest, game, *_):
     anims = []
     script = []
     item = chest.contents

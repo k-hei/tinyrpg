@@ -6,7 +6,6 @@ from dungeon.stage import Stage
 from resolve.hook import resolve_hook
 from config import ROOMS_PATH
 
-# TODO: move room json loading out of assets so we can resolve hooks post-init
 rooms = {}
 
 def load_room(path, key):
@@ -19,15 +18,12 @@ def load_room(path, key):
     return None
   finally:
     room_file and room_file.close()
-  if type(room_data) is list:
-    return [RoomData(**d) for d in room_data]
-  else:
-    return RoomData(**room_data)
+  return room_data
 
 def load_rooms():
   for f in listdir(ROOMS_PATH):
     room_id, _ = splitext(f)
-    rooms[room_id.replace("-", "_")] = load_room(ROOMS_PATH, room_id)
+    rooms[room_id.replace("-", "_")] = load_room(path=ROOMS_PATH, key=room_id)
 
 def resolve_tile(char):
   if char == "#": return Stage.WALL

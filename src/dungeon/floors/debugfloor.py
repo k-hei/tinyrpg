@@ -12,12 +12,18 @@ class DebugFloor(Floor):
   def generate(store=None, seed=None):
     return gen_floor(
       features=[
-        Room(data=rooms["entry"]),
+        Room(data=RoomData(**rooms["entry"])),
+        Room(data=RoomData(**rooms["exit"], doors="RareTreasureDoor")),
+        Room(cells=gen_blob(min_area=80, max_area=100), data=RoomData(
+          spawns_vases=True,
+          degree=1
+        )),
         Room(cells=gen_blob(min_area=80, max_area=100), data=RoomData(
           spawns_enemies=[Eyeball(rare=True), Mushroom(), Mushroom()],
-          spawns_vases=True
+          spawns_vases=True,
+          degree=1
         )),
       ],
-      # extra_room_count=4 + randint(0, 2),
+      extra_room_count=1, # 4 + randint(0, 2),
       seed=seed
     )

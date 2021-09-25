@@ -16,7 +16,7 @@ class RareTreasureDoor(Door):
     ]
   )
 
-  def effect(door, game):
+  def effect(door, game, *args, **kwargs):
     effect = super().effect
     if door.opened:
       return
@@ -28,7 +28,7 @@ class RareTreasureDoor(Door):
       ], on_close=lambda choice: (
         choice and choice.text == "Yes" and (
           inventory.remove(Key),
-          effect(game)
+          effect(game, *args, **kwargs)
         )
       )))
     else:

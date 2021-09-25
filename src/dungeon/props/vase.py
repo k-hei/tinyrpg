@@ -27,6 +27,7 @@ class Vase(Prop):
       return None
     vase.opened = True
     vase.solid = False
+    vase.active = False
     return vase.contents
 
   def effect(vase, game, *_):

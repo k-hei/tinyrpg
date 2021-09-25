@@ -364,7 +364,7 @@ class DungeonContext(Context):
       debug.bench("calculate visible cells", print_threshold=5)
 
     debug.bench("update_visited_cells")
-    if not game.room or new_room:
+    if not game.room or new_room or game.lights:
       hero.visible_cells = visible_cells
       game.update_visited_cells(visible_cells)
     debug.bench("update_visited_cells", print_threshold=5)

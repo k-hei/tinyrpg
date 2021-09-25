@@ -66,8 +66,10 @@ def gen_terrain(stage, room, tree=None):
     room_pathcells += draw_path(start=door, goal=pivot)
 
   island_centers = []
-  if room_pathcells and room.get_area() > 7 * 4 and not disconnected:
-    for i in range(randint(1, 3)):
+  island_count = randint(0, room.get_area() // 20)
+  print(room.size, room.get_area(), island_count)
+  if room_pathcells and island_count and not disconnected:
+    for i in range(island_count):
       pivot = create_platform()
       room_pathcells += draw_path(start=choice(room_pathcells), goal=pivot)
       island_centers.append(pivot)
