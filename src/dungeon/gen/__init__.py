@@ -190,6 +190,8 @@ def gen_place(graph, parent, child):
     connectors = list(set(parent.connectors) & set(child.connectors))
     used_connectors = [c for cs in graph.conns.values() for c in cs]
     connector = next((c for c in connectors if not next((n for n in neighborhood(c, diagonals=True, inclusive=True) if n in used_connectors), None)), None)
+    if not connector:
+      continue
     child not in graph.nodes and graph.add(child)
     graph.connect(parent, child, connector)
     return connector
@@ -236,7 +238,7 @@ def gen_connect(feature_graph):
         stack.append(neighbor)
         yield floor_graph
       else:
-        debug.log("Connection failed", neighbor.data)
+        debug.log("Connection failed", node.data, neighbor.data)
         yield False
         return
 
@@ -333,6 +335,7 @@ def gen_loops(tree, graph):
     for node in tree.nodes:
       if tree.degree(node) <= 2 and gen_loop(tree, graph, node, min_distance=2):
         break
+  return loops
 
 def gen_floor(
   features=[],
@@ -366,9 +369,12 @@ def gen_floor(
         except StopIteration:
           break
         if floor_chunk:
-          stage = manifest_stage(floor_chunk.nodes, dry=True, seed=seed)[0]
+          stage, stage_offset = manifest_stage(floor_chunk.nodes, dry=True, seed=seed)
       if not floor_chunk:
-        yield stage, f"Failed to assemble chunk {chunk_id} ({len(feature_chunk.nodes)})"
+        for connector in stage.rooms[-1].connectors:
+          connector = add_vector(connector, stage_offset)
+          stage.spawn_elem_at(connector, Eyeball())
+        yield stage, f"Failed to assemble chunk {chunk_id} ({len(feature_chunk.nodes)} nodes)"
         break
       floor_chunks.append(floor_chunk)
       yield None, f"Assembled chunk {chunk_id}"
@@ -393,12 +399,15 @@ def gen_floor(
         try:
           extra_graph, _ = next(place_gen)
           if extra_graph:
-            yield extra_graph, f"Placing room {len(extra_graph.nodes)} of {len(extra_rooms)}"
+            yield manifest_stage(extra_graph.nodes, dry=True, seed=seed)[0], f"Placing room {len(extra_graph.nodes)} of {len(extra_rooms)}"
         except StopIteration:
           break
       tree = gen_tree(extra_graph)
-      gen_loops(tree, extra_graph)
+      loops = gen_loops(tree, extra_graph)
       floor_chunks.insert(0, tree)
+      if not loops and extra_room_count >= 3:
+        yield manifest_stage(extra_graph.nodes, dry=True, seed=seed)[0], "Failed to create loops"
+        continue
 
     if len(floor_chunks) > 1:
       graphs_left = floor_chunks
@@ -538,7 +547,11 @@ def gen_floor(
       yield stage, "Failed to spawn entrance"
       continue
 
-    secrets = [e for e in graph.ends() if e in empty_rooms if e.get_area() <= 60 and (not e.data or e.data.doors == "Door")]
+    secrets = [e for e in graph.ends() if e in empty_rooms if (e.data and e.data.secret) or (
+      e.get_area() <= 60
+      and not (e.data and e.data.doors != "Door")
+      and not next((n for n in graph.neighbors(e) if n.data and n.data.doors != "Door"), None)
+    )]
     for secret in secrets:
       neighbor = graph.neighbors(secret)[0]
       doors = graph.connectors(secret, neighbor)

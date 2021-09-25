@@ -16,7 +16,10 @@ def gen_terrain(stage, room, tree=None):
   room_pathcells = []
 
   def create_platform(cell=None):
-    pivot = cell or choice(room_cells)
+    valid_cells = [c for c in room_cells if not next((n for n in neighborhood(c, inclusive=True, radius=2) if n in room_doorways), None)]
+    if not valid_cells:
+      return None
+    pivot = cell or choice(valid_cells)
     large = room.get_area() > 120
     diagonals = randint(0, 1)
     radius = randint(1 + (1 - diagonals) + large, 2 + large)
@@ -71,6 +74,8 @@ def gen_terrain(stage, room, tree=None):
   if room_pathcells and island_count and not disconnected:
     for i in range(island_count):
       pivot = create_platform()
+      if not pivot:
+        break
       room_pathcells += draw_path(start=choice(room_pathcells), goal=pivot)
       island_centers.append(pivot)
 

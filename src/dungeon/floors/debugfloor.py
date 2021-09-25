@@ -31,7 +31,8 @@ class DebugFloor(Floor):
           Room(cells=gen_blob(min_area=80, max_area=100), data=RoomData(
             spawns_enemies=[Eyeball(rare=True), Mushroom(), Mushroom()],
             spawns_vases=True,
-            degree=1
+            degree=1,
+            secret=True
           )),
         ],
         edges=[

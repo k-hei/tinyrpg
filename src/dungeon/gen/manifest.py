@@ -13,6 +13,7 @@ def manifest_stage(rooms, dry=False, seed=None):
   stage_blob = Room(stage_cells, origin=(1, 2))
   stage_offset = subtract_vector(stage_blob.origin, find_bounds(stage_cells).topleft)
   stage = Stage(add_vector(stage_blob.rect.size, (2, 3)))
+  stage.rooms = rooms
   stage.seed = seed
   stage.fill(Stage.WALL)
   for room in rooms:

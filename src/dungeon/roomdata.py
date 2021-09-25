@@ -50,6 +50,7 @@ class RoomData:
   spawns_enemies: bool = False                              # default: no enemies spawn
   edges: list[list] = field(default_factory=lambda: [])     # default: all edges
   doors: str = "Door"                                       # default: standard door
+  secret: bool = False                                      # default: arbitrary (could use ternary?)
   degree: int = 0                                           # default: arbitrary degree
   hooks: dict[str, str] = field(default_factory=lambda: {}) # default: no hooks
 
