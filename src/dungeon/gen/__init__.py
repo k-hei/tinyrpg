@@ -570,9 +570,10 @@ def gen_floor(
       if room.data and not room.data.spawns_enemies:
         continue
       if room.data and type(room.data.spawns_enemies) is list:
-        for enemy in room.data.spawns_enemies:
+        elems = room.data.spawns_enemies
+        for enemy in elems:
           if randint(1, 3) == 1:
-            enemy.ailment = "sleep"
+            enemy.inflict_ailment("sleep")
       if not room.data or type(room.data.spawns_enemies) is bool:
         elems = [choice(enemies)(
           ailment=("sleep" if randint(1, 3) == 1 else None)

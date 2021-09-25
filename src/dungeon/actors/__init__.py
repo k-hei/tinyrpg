@@ -308,6 +308,7 @@ class DungeonActor(DungeonElement):
       actor.core.hp += 5
     actor.core.stats.st += 1
     actor.core.stats.en += 1
+    actor.core.stats.ag += 4
     actor.stats = copy(actor.core.stats)
 
   def regen(actor, amount=None):

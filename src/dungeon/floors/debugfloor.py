@@ -6,6 +6,7 @@ from dungeon.roomdata import RoomData, rooms
 from dungeon.gen import gen_floor
 from dungeon.gen.blob import gen_blob
 from dungeon.actors.eyeball import Eyeball
+from dungeon.actors.mushroom import Mushroom
 
 class DebugFloor(Floor):
   def generate(store=None, seed=None):
@@ -13,7 +14,7 @@ class DebugFloor(Floor):
       features=[
         Room(data=rooms["entry"]),
         Room(cells=gen_blob(min_area=80, max_area=100), data=RoomData(
-          spawns_enemies=True, # [Eyeball(rare=True)],
+          spawns_enemies=[Eyeball(rare=True), Mushroom(), Mushroom()],
           spawns_vases=True
         )),
       ],
