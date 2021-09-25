@@ -9,7 +9,7 @@ from comps.hud import Hud
 from comps.invdesc import InventoryDescription
 from comps.control import Control
 from assets import load as use_assets
-from filters import replace_color
+from filters import replace_color, stroke
 import lib.gamepad as gamepad
 import lib.keyboard as keyboard
 from lib.keyboard import key_times, ARROW_DELTAS
@@ -584,8 +584,8 @@ class InventoryContext(Context):
             y -= 4
             layer = "hud"
           sprites.append(Sprite(
-            image=item().render(),
-            pos=(x, y),
+            image=stroke(item().render(), WHITE),
+            pos=(x - 1, y - 1),
             layer=layer,
             offset=16
           ))
