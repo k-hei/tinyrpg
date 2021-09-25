@@ -1,5 +1,6 @@
-from math import cos, sin, pi
+from math import cos, sin, pi, sqrt
 from random import random, randint, randrange, choice
+from lib.cell import add as add_vector, subtract as subtract_vector
 from dungeon.props import Prop
 from assets import load as use_assets
 from anims.frame import FrameAnim
@@ -9,9 +10,9 @@ from comps.skill import Skill
 from contexts.dialogue import DialogueContext
 from vfx import Vfx
 from vfx.burst import BurstVfx
-from colors.palette import BLACK
+from colors.palette import BLACK, WHITE
 from sprite import Sprite
-import config
+from config import TILE_SIZE
 
 class Soul(Prop):
   ANIM_FRAMES = 5
@@ -24,15 +25,16 @@ class Soul(Prop):
   ACCEL = 0.25
   FRAMES = ["fx_soul0", "fx_soul1", "fx_soul2", "fx_soul3", "fx_soul4"]
 
+  active = True
+
   def __init__(soul, contents=None):
     super().__init__(solid=False)
     soul.skill = contents
-    soul.obtaining = False
-    soul.anim = FrameAnim(frames=Soul.FRAMES, duration=45, loop=True)
+    soul.obtain_target = False
+    soul.anim = FrameAnim(frames=Soul.FRAMES, frames_duration=9, loop=True)
     soul.pos = (0, 0)
     soul.norm = (0, 0)
     soul.vel = 0
-    soul.vpos = 0
     soul.vfx = []
     soul.on_end = None
 
@@ -48,11 +50,10 @@ class Soul(Prop):
     ))
 
   def burst(soul, game):
-    col, row = soul.cell
-    x = col * config.TILE_SIZE
-    y = row * config.TILE_SIZE
+    target_cell = add_vector(soul.cell, tuple([x // TILE_SIZE for x in soul.obtain_target]))
+    x, y = tuple([x * TILE_SIZE for x in target_cell])
     game.vfx.append(BurstVfx(
-      cell=soul.cell,
+      cell=target_cell,
       color=soul.skill.color,
     ))
     r = 0
@@ -80,13 +81,18 @@ class Soul(Prop):
         )
       ))
 
+  # TODO: more vector helpers
   def effect(soul, game, actor):
     if actor != game.hero:
       return False
-    r = 2 * pi * random()
-    soul.norm = (cos(r), sin(r))
+    target_x, target_y = tuple([x * TILE_SIZE for x in subtract_vector(actor.cell, soul.cell)])
+    pos_x, pos_y = soul.pos
+    dist_x = target_x - pos_x
+    dist_y = target_y - pos_y
+    dist = sqrt(dist_x * dist_x + dist_y * dist_y) or 1
+    soul.norm = (-dist_x / dist, -dist_y / dist)
     soul.vel = Soul.BOUNCE_AMP
-    soul.obtaining = True
+    soul.obtain_target = (target_x, target_y)
     soul.on_end = lambda: (
       soul.burst(game),
       soul.obtain(game)
@@ -99,39 +105,52 @@ class Soul(Prop):
   def update(soul, *_):
     soul.anim.update()
     pos_x, pos_y = soul.pos
-    if soul.obtaining:
+    particles = []
+    if soul.obtain_target:
+      target_x, target_y = soul.obtain_target
+      dist_x = target_x - pos_x
+      dist_y = target_y - pos_y
       norm_x, norm_y = soul.norm
       pos_x += norm_x * soul.vel
       pos_y += norm_y * soul.vel
-      soul.vpos += soul.vel
+      postdist_x = target_x - pos_x
+      postdist_y = target_y - pos_y
+      if soul.vel and (
+        dist_x / abs(dist_x or 1) != postdist_x / abs(postdist_x or 1)
+        or dist_y / abs(dist_y or 1) != postdist_y / abs(postdist_y or 1)
+      ):
+        soul.on_end and soul.on_end()
       soul.vel -= Soul.ACCEL
-      if soul.vpos <= 0 and soul.on_end:
-        soul.on_end()
+      if soul.vel == 0:
+        dist = sqrt(dist_x * dist_x + dist_y * dist_y) or 1
+        soul.norm = (-dist_x / dist, -dist_y / dist)
     else:
       tx = soul.anim.time % Soul.ANIM_SWIVEL_PERIOD / Soul.ANIM_SWIVEL_PERIOD
       ty = soul.anim.time % Soul.ANIM_FLOAT_PERIOD / Soul.ANIM_FLOAT_PERIOD
       pos_x = cos(pi * 2 * tx) * Soul.ANIM_SWIVEL_AMP
       pos_y = sin(pi * 2 * ty) * Soul.ANIM_FLOAT_AMP
-      if soul.anim.time % randint(30, 45) == 0:
+      if soul.anim.time % randint(30, 45) < 5:
         col, row = soul.cell
-        x = (col + 0.5) * config.TILE_SIZE + pos_x + random()
-        y = (row + 0.5) * config.TILE_SIZE + pos_y + random() + 8
+        x = col * TILE_SIZE + pos_x + random() * 6
+        y = row * TILE_SIZE + pos_y + random() * 6 + 8
         kind = choice(("spark", "smallspark"))
-        soul.vfx.append(Vfx(
+        particles.append(Vfx(
           kind=kind,
           pos=(x, y),
           vel=(0, 0.25),
-          color=soul.skill.color,
+          color=choice([soul.skill.color, WHITE]),
+          flicker=randint(0, 1),
           anim=FrameAnim(
             duration=60,
-            frames=[
-              "fx_{}0".format(kind),
-              "fx_{}1".format(kind),
-              "fx_{}2".format(kind)
-            ]
+            frames=choice([
+              ["fx_spark1", "fx_spark2", "fx_spark3", "fx_spark3"],
+              ["fx_smallspark1", "fx_smallspark2", "fx_smallspark2"],
+              ["fx_particle_small"],
+            ])
           )
         ))
     soul.pos = (pos_x, pos_y)
+    return particles
 
   def view(soul, anims):
     sprites = []
@@ -155,6 +174,7 @@ class Soul(Prop):
         image=fx_image,
         pos=fx.pos,
         origin=("center", "center"),
-        layer="elems"
+        layer="elems",
+        offset=16
       ))
     return super().view(sprites, anims)

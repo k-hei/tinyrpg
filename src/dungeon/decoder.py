@@ -50,9 +50,9 @@ def decode_floor(floor_data):
   return floor
 
 def decode_elem(elem_cell, elem_name, elem_props):
-  if "contents" in elem_props:
+  if "contents" in elem_props and type(elem_props["contents"]) is str:
     elem_props["contents"] = resolve_item(elem_props["contents"]) or resolve_skill(elem_props["contents"])
-  if "on_action" in elem_props:
+  if "on_action" in elem_props and type(elem_props["on_action"]) is str:
     elem_props["on_action"] = resolve_hook(elem_props["on_action"])
   # if "message" in elem_props:
   #   message_key = elem_props["message"]

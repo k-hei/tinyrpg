@@ -1,12 +1,13 @@
 from colors.palette import BLACK
 
 class Vfx:
-  def __init__(vfx, pos, kind=None, anim=None, color=BLACK, vel=(0, 0)):
+  def __init__(vfx, pos, kind=None, anim=None, color=BLACK, vel=(0, 0), flicker=False):
     vfx.kind = kind
     vfx.pos = pos
     vfx.anim = anim
     vfx.color = color
     vfx.vel = vel
+    vfx.flicker = flicker
     vfx.done = False
 
   def update(vfx, *_):
@@ -20,4 +21,6 @@ class Vfx:
         vfx.done = True
       else:
         vfx.anim.update()
+        if vfx.flicker and vfx.anim.time // 2 % 2:
+          return None
       return vfx.anim.frame()

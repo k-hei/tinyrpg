@@ -70,7 +70,9 @@ def load_image(path, key, sprites):
 
 def load_pngfont(path, key):
   typeface = pygame.image.load(join(path, key) + ".png").convert_alpha()
-  metadata = json.loads(open(join(path, key) + ".json", "r").read())
+  metafile = open(join(path, key) + ".json", "r")
+  metadata = json.loads(metafile.read())
+  metafile.close()
   return Font(typeface, **metadata)
 
 def load_ttf(path, key, size):

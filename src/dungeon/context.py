@@ -1070,13 +1070,13 @@ class DungeonContext(Context):
       return False
     if game.talkbubble:
       game.talkbubble.hide()
-    effect_result = target_elem and target_elem.effect(game)
+    effect_result = target_elem and target_elem.effect(game, hero)
     if effect_result != None and (
       not game.anims
       or not next((a for a in game.anims[0] if a.target is hero), None)
     ):
       not game.anims and game.anims.append([])
-      game.anims[0].append(AttackAnim(
+      game.anims[0].insert(0, AttackAnim(
         duration=DungeonContext.ATTACK_DURATION,
         target=hero,
         src=hero.cell,
@@ -2098,8 +2098,7 @@ class DungeonContext(Context):
     facing_cell = add_vector(hero.cell, hero.facing)
     facing_elems = game.floor.get_elems_at(facing_cell)
     facing_elem = next((e for e in facing_elems if (
-      e.solid
-      and e.active
+      e.active
       and (not isinstance(e, DungeonActor) or e.faction == "ally")
     )), None)
     if not game.talkbubble or facing_elem is not game.talkbubble.target or game.anims:
