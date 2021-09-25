@@ -25,5 +25,24 @@
     "                                 ",
     "                                 "
   ],
-  "elems": []
+  "elems": [
+    [[11, 7], "Altar"],
+    [[9, 10], "Pillar"],
+    [[13, 10], "Pillar"],
+    [[14, 9], "Pillar"],
+    [[14, 7], "Pillar"],
+    [[14, 5], "Pillar"],
+    [[13, 4], "Pillar"],
+    [[9, 4], "Pillar"],
+    [[8, 5], "Pillar"],
+    [[8, 7], "Pillar"],
+    [[8, 9], "Pillar"],
+    [[6, 6], "Column"],
+    [[16, 8], "Column"],
+    [[12, 2], "Column"],
+    [[9, 17], "Column"],
+    [[13, 17], "Column"],
+    [[9, 19], "Column"],
+    [[13, 19], "Column"]
+  ]
 }
