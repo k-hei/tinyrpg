@@ -5,8 +5,8 @@ from random import randint, getrandbits, choice, shuffle
 from pygame.time import get_ticks
 from lib.cell import neighborhood, manhattan, is_adjacent, add as add_vector, subtract as subtract_vector
 from lib.graph import Graph
-import debug
 import assets
+from debug import bench
 from config import FPS
 
 from dungeon.floors import Floor
@@ -117,21 +117,23 @@ def place_rooms(rooms, force_connect=False):
         iters += 1
         room.origin = o
         if not (room.hitbox & total_hitbox):
-          neighbor_connectors = { n: cs for n, cs in [
-            (n, [
-              c for c in set(n.connectors) & set(room.connectors) if not next(
-                (t for t in total_connectors if t in neighborhood(c, inclusive=True, diagonals=True)),
-                None
-              )
-            ]) for n in graph.nodes if not n.degree or graph.degree(n) < n.degree
-          ] if cs }
+          neighbor_connectors = {
+            n: cs for n, cs in [
+              (n, [
+                c for c in set(n.connectors) & set(room.connectors) if not next(
+                  (t for t in total_connectors if t in neighborhood(c, inclusive=True, diagonals=True)),
+                  None
+                )
+              ]) for n in graph.nodes if not n.degree or graph.degree(n) < n.degree
+            ] if cs
+          }
           if neighbor_connectors:
             valid_edges[o] = neighbor_connectors
             if len(neighbor_connectors) >= 2 or len(graph.nodes) < 2:
               for neighbor, connectors in neighbor_connectors.items():
                 graph.add(room)
                 graph.connect(room, neighbor, *connectors)
-        if room in graph.nodes or (get_ticks() - ticks) > 1000 / FPS * 2:
+        if room in graph.nodes or (get_ticks() - ticks) > 1000 / FPS:
           ticks = get_ticks()
           if room not in graph.nodes:
             yield None, f"Placing room {i + 2} of {len(rooms)} ({iters}/{iters_max})"
@@ -238,11 +240,11 @@ def gen_connect(feature_graph):
         stack.append(neighbor)
         yield floor_graph
       else:
-        debug.log("Connection failed", node.data, neighbor.data)
+        print("Connection failed", node.data, neighbor.data)
         yield False
         return
 
-def merge_graphs(graph1, graph2):
+def gen_merge(graph1, graph2):
   blob1 = Room(cells=[c for n in graph1.nodes for c in n.cells])
   blob2 = Room(cells=[c for n in graph2.nodes for c in n.cells])
   graph1_connections = {c: n for n in graph1.nodes for c in n.connectors if n.degree == 0 or graph1.degree(n) < n.degree}
@@ -250,10 +252,15 @@ def merge_graphs(graph1, graph2):
   init_origin = blob2.origin
   origins = [(subtract_vector(c1, subtract_vector(c2, blob2.origin)), n1, n2) for (c1, n1), (c2, n2) in product(graph1_connections.items(), graph2_connections.items())]
   # shuffle(origins)
+
+  time_start = get_ticks()
   for origin, room1, room2 in origins:
     delta = subtract_vector(origin, init_origin)
     blob2.origin = add_vector(init_origin, delta)
     if blob1.hitbox & blob2.hitbox:
+      if get_ticks() - time_start > 1000 / FPS:
+        time_start = get_ticks()
+        yield None
       continue
     for node in graph2.nodes:
       node.origin = add_vector(node.origin, delta)
@@ -268,20 +275,26 @@ def merge_graphs(graph1, graph2):
       n1, n2 = edge
       graph2.conns[edge] = tuple(set(n1.connectors) & set(n2.connectors))
     graph1.merge(graph2)
-    return graph1
+    yield graph1
   else:
-    return None
+    yield False
 
 def gen_assemble(graphs):
   is_graph_dead_end = lambda g: not next((n for n in g.nodes if n.degree != 1), None)
   graphs = sorted(graphs, key=lambda g: g.order() + random.random() / 2 + (-100 if is_graph_dead_end(g) else 0), reverse=True)
   while len(graphs) > 1:
     g1 = graphs[0]
+    result = None
     for g2 in graphs[1:]:
-      success = merge_graphs(g1, g2)
-      if not success:
+      merge_gen = gen_merge(g1, g2)
+      while result is None:
+        result = next(merge_gen)
+        yield [g for g in graphs if g is not g1]
+      if result is False:
         yield False
-        yield graphs
+        yield g1
+      break
+    if result is False:
       break
     graphs = [g for g in graphs if g is not g2]
     yield [g for g in graphs if g is not g1]
@@ -342,7 +355,8 @@ def gen_floor(
   enemies=[Eyeball, Mushroom, Ghost, Mummy],
   items=[Potion, Cheese, Bread, Fish, Antidote, MusicBox, LovePotion, Booze],
   extra_room_count=0,
-  seed=None
+  seed=None,
+  debug=False
 ):
   seed = seed if seed is not None else getrandbits(32)
   random.seed(seed)
@@ -418,7 +432,11 @@ def gen_floor(
         graphs_left = next(assemble_gen)
 
       if graphs_left is False:
-        yield manifest_stage([n for g in next(assemble_gen) for n in g.nodes], seed=seed)[0], "Failed to assemble graphs"
+        graph = next(assemble_gen)
+        stage = manifest_stage(graph.nodes, seed=seed)[0] if debug else None
+        if stage and next((x for x in stage.size if x > 100), None):
+          stage = None # TODO: figure out why failures generate massive stages
+        yield stage, "Failed to assemble graphs"
         continue
       graph = next(assemble_gen)
     else:
@@ -441,6 +459,9 @@ def gen_floor(
         ))
 
       for j, connector in enumerate(connectors):
+        # stage.spawn_elem_at(connector, Eyeball(faction="ally"))
+        if not stage.contains(connector):
+          print(f"WARNING: Connector {connector} out of bounds")
         is_edge_usable = lambda e, room: (
           next((e for e in stage.get_elems_at(e) if isinstance(e, GenericDoor)), None)
           or (
@@ -588,16 +609,25 @@ def gen_floor(
           for cell in island_centers:
             island_rooms[cell] = room
 
-    island_centers = [*island_rooms.keys()]
-    if len(island_centers) < key_count:
-      yield stage, "Failed to spawn keys"
-      continue
+    key_containers = [
+      e for r in rooms
+        for c in r.cells
+          for e in stage.get_elems_at(c)
+            if "contents" in dir(e) and e.contents is Key
+    ]
+    key_count = max(0, key_count - len(key_containers))
 
-    shuffle(island_centers)
-    island_centers.sort(key=lambda c: graph.degree(island_rooms[c]))
-    key_cells = island_centers[:key_count]
-    for cell in key_cells:
-      stage.spawn_elem_at(cell, Chest(Key))
+    if key_count:
+      island_centers = [*island_rooms.keys()]
+      if len(island_centers) < key_count:
+        yield stage, "Failed to spawn keys"
+        continue
+
+      shuffle(island_centers)
+      island_centers.sort(key=lambda c: graph.degree(island_rooms[c]))
+      key_cells = island_centers[:key_count]
+      for cell in key_cells:
+        stage.spawn_elem_at(cell, Chest(Key))
 
     # populate rooms
     for room in rooms:

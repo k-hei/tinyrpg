@@ -28,5 +28,6 @@ class DebugFloor(Floor):
         ]
       ),
       # extra_room_count=1, # 4 + randint(0, 2),
-      seed=seed
+      seed=seed,
+      debug=True
     )

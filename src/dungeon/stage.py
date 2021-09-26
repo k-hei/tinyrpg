@@ -228,8 +228,8 @@ class Stage:
     )), None)
 
   def contains(stage, cell):
-    (width, height) = stage.size
-    (x, y) = cell
+    width, height = stage.size
+    x, y = cell
     return x >= 0 and y >= 0 and x < width and y < height
 
   def pathfind(stage, start, goal, whitelist=None):
