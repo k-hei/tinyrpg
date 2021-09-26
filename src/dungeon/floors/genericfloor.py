@@ -25,6 +25,26 @@ from items.sp.cheese import Cheese
 from items.sp.fish import Fish
 from items.sp.sapphire import Sapphire
 
+ITEM_SET = [
+  Amethyst,
+  Antidote, Antidote,
+  Booze,
+  LovePotion,
+  MusicBox,
+  Topaz,
+  Balloon,
+  Emerald,
+  Ankh,
+  Elixir,
+  Potion, Potion,
+  Ruby,
+  Berry,
+  Bread, Bread,
+  Cheese, Cheese,
+  Fish, Fish,
+  Sapphire
+]
+
 class GenericFloor(Floor):
   def generate(store=None, seed=None):
     return gen_floor(
@@ -32,26 +52,14 @@ class GenericFloor(Floor):
         Room(data=RoomData(**rooms["entry"])),
         Room(data=RoomData(**rooms["exit"])),
         *([Room(data=RoomData(**choice(rooms["oasis"])))] if randint(1, 3) == 1 else []),
+        *([Room(cells=gen_blob(min_area=60), data=RoomData(
+          terrain=False,
+          degree=1,
+          items=[choice(ITEM_SET) for i in range(randint(3, 5))],
+          doors="TreasureDoor"
+        ))] if randint(1, 3) == 1 else []),
       ],
       extra_room_count=5 + randint(0, 1),
-      items=[
-        Amethyst,
-        Antidote, Antidote,
-        Booze,
-        LovePotion,
-        MusicBox,
-        Topaz,
-        Balloon,
-        Emerald,
-        Ankh,
-        Elixir,
-        Potion, Potion,
-        Ruby,
-        Berry,
-        Bread, Bread,
-        Cheese, Cheese,
-        Fish, Fish,
-        Sapphire
-      ],
+      items=ITEM_SET,
       seed=seed
     )

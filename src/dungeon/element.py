@@ -15,6 +15,7 @@ from anims.path import PathAnim
 from lib.lerp import lerp
 import lib.vector as vector
 from config import ITEM_OFFSET, TILE_SIZE, PUSH_DURATION, NUDGE_DURATION
+import debug
 
 class DungeonElement:
   solid = False
@@ -29,6 +30,9 @@ class DungeonElement:
     if not elem.static: elem.static = static
     if not elem.active: elem.active = active
     if not elem.hidden: elem.hidden = hidden
+    if type(size) is not tuple:
+      debug.log(f"WARNING: Create element {type(elem).__name__} with size {size}")
+      size = (1, 1)
     elem.size = size
     elem.cell = None
     elem.elev = 0

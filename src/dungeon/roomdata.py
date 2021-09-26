@@ -45,7 +45,7 @@ def resolve_tile(char):
 class RoomData:
   size: tuple[int, int] = None                              # default: generated size
   tiles: list[int] = field(default_factory=lambda: [])      # default: generated shape
-  terrain: bool = True                                      # default: generated terrain
+  terrain: bool = None                                      # default: use tiles var
   elems: list[list] = field(default_factory=lambda: [])     # default: no elements
   items: bool = False                                # default: no vases spawn
   spawns_enemies: bool = False                              # default: no enemies spawn
@@ -59,6 +59,10 @@ class RoomData:
     if roomdata.tiles and type(roomdata.tiles[0]) is str:
       roomdata.size = (len(roomdata.tiles[0]), len(roomdata.tiles))
       roomdata.tiles = [Stage.TILE_ORDER.index(resolve_tile(c)) for s in roomdata.tiles for c in s]
+
+    if not roomdata.tiles and roomdata.terrain is None:
+      roomdata.terrain = True
+
     roomdata.hooks = { k: resolve_hook(h) if type(h) is str else h for k, h in roomdata.hooks.items() }
 
   def extract_cells(roomdata):

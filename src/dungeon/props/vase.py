@@ -17,7 +17,7 @@ class Vase(Prop):
     frames_duration = 5
 
   def __init__(vase, contents=None, opened=False, *args, **kwargs):
-    super().__init__(vase, *args, **kwargs)
+    super().__init__(*args, **kwargs)
     vase.contents = contents
     vase.opened = opened
     vase.anims = []

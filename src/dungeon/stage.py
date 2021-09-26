@@ -168,7 +168,10 @@ class Stage:
   def get_elems_at(stage, cell):
     return [e for e in stage.elems if (
       e.cell == cell
-      or e.size != (1, 1) and Rect(e.cell, e.size).collidepoint(cell)
+      or (
+        e.size != (1, 1)
+        and Rect(e.cell, e.size).collidepoint(cell)
+      )
     )]
 
   def get_elem_at(stage, cell, superclass=None, exclude=[]):
