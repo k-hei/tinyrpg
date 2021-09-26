@@ -25,6 +25,8 @@ class Blob(Room):
   @origin.setter
   def origin(room, origin):
     room._origin = origin
+    room._edges = None
+    room._connectors = None
     room._outline = None
     room._visible_outline = None
 
@@ -39,11 +41,13 @@ class Blob(Room):
 
   @property
   def edges(room):
-    room_cells = room.cells
-    if room.data and room.data.edges:
-      return [add_vector(e, room.origin) for e in room.data.edges]
-    else:
-      return [e for e in room.border if len([n for n in neighborhood(e) if n in room_cells]) == 1 and room.find_connector(e)]
+    if not room._edges:
+      if room.data and room.data.edges:
+        room._edges = [add_vector(e, room.origin) for e in room.data.edges]
+      else:
+        room_cells = room.cells
+        room._edges = [e for e in room.border if len([n for n in neighborhood(e) if n in room_cells]) == 1 and room.find_connector(e)]
+    return room._edges
 
   def find_connector(room, edge):
     room_cells = room.cells
@@ -57,7 +61,9 @@ class Blob(Room):
 
   @property
   def connectors(room):
-    return list({room.find_connector(e) for e in room.edges})
+    if not room._connectors:
+      room._connectors = list({room.find_connector(e) for e in room.edges})
+    return room._connectors
 
   @property
   def hitbox(room):
