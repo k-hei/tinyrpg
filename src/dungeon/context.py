@@ -1500,7 +1500,7 @@ class DungeonContext(Context):
         game.parent.record_kill(target)
         if (target_drops
         and not (not target_skill or target.rare)
-        and randint(1, 3) == 1
+        and randint(1, 5) == 1
         and not game.floor.get_tile_at(target.cell) is Stage.PIT
         and not game.floor.get_elem_at(target.cell, superclass=Bag)
         ):
@@ -2111,7 +2111,7 @@ class DungeonContext(Context):
       if game.talkbubble:
         game.talkbubble.done = True
         game.talkbubble = None
-      if facing_elem and not facing_elem.hidden and not game.anims and not hero.item:
+      if facing_elem and not game.anims and not hero.item:
         bubble_cell = facing_cell
         game.talkbubble = TalkBubble(
           target=facing_elem,

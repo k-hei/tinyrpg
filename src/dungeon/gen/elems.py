@@ -24,7 +24,7 @@ def gen_elems(stage, room, elems):
 def get_room_bonus_cells(room, stage):
   room_cells = room.get_cells()
   room_doorways = room.get_doorways(stage)
-  is_wall = lambda x, y: not stage.is_cell_empty((x, y))
+  is_wall = lambda x, y: not stage.is_cell_empty((x, y)) or stage.get_tile_at((x, y)) is Stage.PIT
   is_floor = lambda x, y: stage.get_tile_at((x, y)) is Stage.FLOOR
   bonus_cells = [(x, y) for x, y in room_cells if (
     is_floor(x, y)
