@@ -19,6 +19,15 @@ from anims.pause import PauseAnim
 from comps.log import Token
 from colors.palette import GRAY, RED, BLUE, GREEN
 
+def has_weapon(game):
+  return next((s for s in game.store.skills if issubclass(s, Weapon)), None)
+
+def has_weapon_equipped(game):
+  return next((s for n, b in game.store.builds.items() for s, c in b if n == type(game.hero).__name__ and issubclass(s, Weapon)), None)
+
+def find_unvisited_secret(game):
+  return next((r for r in game.floor.rooms if r not in game.room_entrances and r.data and r.data.secret), None)
+
 class Floor1(Floor):
   def generate(store=None, seed=None):
     return gen_floor(
@@ -34,7 +43,7 @@ class Floor1(Floor):
                 game.floor.spawn_elem_at(genie_cell, genie := Genie(
                   name=(genie_name := "Brajin"),
                   color=GREEN,
-                  message=lambda *_: next((r for r in game.floor.rooms if r not in game.room_entrances and r.data and r.data.secret), None) and [
+                  message=lambda *_: find_unvisited_secret(game) and [
                     (genie_name, ("It looks like there's ", Token(text="a secret room", color=GREEN), " on this floor that you haven't found yet.")),
                     (genie_name, (Token(text="Search every corner", color=BLUE), " of the map for walls that look suspicious.")),
                     (genie_name, "The secret may be closer than you think..."),
@@ -60,15 +69,15 @@ class Floor1(Floor):
             spawns_enemies=[Eyeball(), Eyeball()],
             degree=3,
             hooks={
-              "on_enter": lambda room, game: "minxia" not in game.store.story and (
+              "on_enter": lambda room, game: "minxia" not in game.store.story and not has_weapon_equipped(game) and (
                 genie_cell := sorted(get_room_bonus_cells(room, game.floor), key=lambda c: manhattan(c, game.hero.cell))[0],
                 game.floor.spawn_elem_at(genie_cell, genie := Genie(
                   name=(genie_name := "Joshin"),
-                  message=lambda *_: not next((s for s in game.store.skills if issubclass(s, Weapon)), None) and [
+                  message=lambda *_: not has_weapon(game) and [
                     (genie_name, "It doesn't look like you have a weapon on you."),
                     (genie_name, "Why don't you try looking around some more?"),
                     (genie_name, "There's bound to be something you can use around here somewhere..."),
-                  ] or not next((s for n, b in game.store.builds.items() for s, c in b if n == "Knight" and issubclass(s, Weapon)), None) and [
+                  ] or not has_weapon_equipped(game) and [
                     (genie_name, ("You'll need to ", Token(text="equip a weapon", color=GRAY), " before you can use it.")),
                     (genie_name, ("Open ", Token(text="the EQUIP menu", color=BLUE), " with the START button (E).")),
                   ] or [
