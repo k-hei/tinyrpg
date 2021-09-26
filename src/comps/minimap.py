@@ -238,7 +238,7 @@ class Minimap:
     start_width, start_height = Minimap.SIZE_INIT
     end_width, end_height = bounds.size
     start_scale, end_scale = Minimap.SCALE_INIT, Minimap.SCALE_EXPAND
-    while end_height * end_scale > WINDOW_HEIGHT:
+    while end_height * end_scale > WINDOW_HEIGHT * 3 / 4:
       end_scale -= 1
 
     sprite_width = lerp(start_width, end_width, t)

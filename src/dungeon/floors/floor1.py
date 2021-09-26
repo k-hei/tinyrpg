@@ -31,9 +31,9 @@ def find_unvisited_secret(game):
 class Floor1(Floor):
   def generate(store=None, seed=None):
     return gen_floor(
-      features=Graph(
+      features=lambda: Graph(
         nodes=[
-          entry_room := Room(data=RoomData(**rooms["entry"])),
+          entry_room := Room(data=RoomData(**rooms["trapbase"])),
           exit_room := Room(
             data=RoomData(**rooms["exit"],
             doors="RareTreasureDoor",
@@ -61,7 +61,7 @@ class Floor1(Floor):
             }
           )),
           puzzle_room := Room(data=RoomData(**rooms["pzlt1"])),
-          buffer_room := Room(cells=gen_blob(min_area=80, max_area=100), data=RoomData(
+          buffer_room := Room(cells=gen_blob(min_area=60, max_area=60), data=RoomData(
             items=[Potion, RustyBlade],
             degree=2
           )),
@@ -97,8 +97,8 @@ class Floor1(Floor):
             }
           )),
           key_room := Room(data=RoomData(**rooms["key"])),
-          Room(cells=gen_blob(min_area=80, max_area=100), data=RoomData(
-            spawns_enemies=[Eyeball(rare=True), Mushroom(), Mushroom()],
+          secret_room := Room(cells=gen_blob(min_area=80, max_area=100), data=RoomData(
+            spawns_enemies=[Eyeball(rare=True), Eyeball(), Eyeball(), Eyeball(), Eyeball()],
             items=True,
             degree=1,
             secret=True

@@ -22,6 +22,7 @@ from items.hp.potion import Potion
 from items.dungeon.key import Key
 from items.dungeon.emerald import Emerald
 from items.dungeon.balloon import Balloon
+from items.equipment.rustyblade import RustyBlade
 from dungeon.actors.genie import Genie
 from dungeon.actors.mummy import Mummy
 from dungeon.actors.npc import Npc

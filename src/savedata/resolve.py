@@ -123,6 +123,7 @@ from items.hp.potion import Potion as PotionItem
 from items.dungeon.key import Key as KeyItem
 from items.dungeon.emerald import Emerald as EmeraldItem
 from items.dungeon.balloon import Balloon as BalloonItem
+from items.equipment.rustyblade import RustyBlade as RustyBladeItem
 from cores.genie import Genie as GenieCore
 from cores.rogue import Rogue as RogueCore
 from cores.beetle import Beetle as BeetleCore
@@ -160,6 +161,7 @@ def resolve_item(key):
   if key == "Key": return KeyItem
   if key == "Emerald": return EmeraldItem
   if key == "Balloon": return BalloonItem
+  if key == "RustyBlade": return RustyBladeItem
 
 def resolve_skill(key):
   if key == "Virus": return Virus

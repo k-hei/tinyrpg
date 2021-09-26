@@ -22,6 +22,7 @@ from items.hp.potion import Potion
 from items.dungeon.key import Key
 from items.dungeon.emerald import Emerald
 from items.dungeon.balloon import Balloon
+from items.equipment.rustyblade import RustyBlade
 
 def resolve_item(key):
   if key == "Booze": return Booze
@@ -48,3 +49,4 @@ def resolve_item(key):
   if key == "Key": return Key
   if key == "Emerald": return Emerald
   if key == "Balloon": return Balloon
+  if key == "RustyBlade": return RustyBlade

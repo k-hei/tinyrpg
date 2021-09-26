@@ -187,7 +187,13 @@ def find_chunks(graph):
 def gen_place(graph, parent, child):
   graph_hitbox = {c for n in graph.nodes for c in n.cells}
   init_origin = child.origin
-  origins = [subtract_vector(c1, subtract_vector(c2, child.origin)) for c1, c2 in product(parent.connectors, child.connectors)]
+  origins = [
+    subtract_vector(c1, subtract_vector(c2, child.origin))
+      for c1, c2 in product(parent.connectors, child.connectors)
+        if (c1 in parent.connector_deltas
+        and c2 in child.connector_deltas
+        and parent.connector_deltas[c1] != child.connector_deltas[c2])
+  ]
   # shuffle(origins)
   for origin in origins:
     child.origin = origin
@@ -217,7 +223,7 @@ def gen_joint_connect(feature_graph):
       break
 
 def gen_connect(feature_graph):
-  parent = sorted(feature_graph.nodes, key=feature_graph.degree)[-1]
+  parent = feature_graph.edges[0][0] if feature_graph.edges else sorted(feature_graph.nodes, key=feature_graph.degree)[-1]
   floor_graph = FloorGraph(nodes=[parent])
   if feature_graph.order() == 1:
     yield floor_graph
@@ -389,15 +395,18 @@ def gen_floor(
   seed = seed if seed is not None else getrandbits(32)
   random.seed(seed)
 
-  if not isinstance(features, Graph):
-    features = Graph(nodes=features, edges=[])
-
   lkg = None
   while lkg is None:
     stage = None
 
+    if callable(features):
+      feature_graph = features()
+
+    if not isinstance(feature_graph, Graph):
+      feature_graph = Graph(nodes=feature_graph, edges=[])
+
     # resolve feature graph chunks
-    feature_chunks = find_chunks(features)
+    feature_chunks = find_chunks(feature_graph)
     yield None, f"Found {len(feature_chunks)} feature chunk(s)"
 
     # assemble feature graph chunks
@@ -415,9 +424,10 @@ def gen_floor(
         if floor_chunk:
           stage, stage_offset = manifest_stage(floor_chunk.nodes, dry=True, seed=seed)
       if not floor_chunk:
-        for connector in stage.rooms[-1].connectors:
-          connector = add_vector(connector, stage_offset)
-          stage.spawn_elem_at(connector, Eyeball())
+        if stage:
+          for connector in stage.rooms[-1].connectors:
+            connector = add_vector(connector, stage_offset)
+            stage.spawn_elem_at(connector, Eyeball())
         yield stage, f"Failed to assemble chunk {chunk_id} ({len(feature_chunk.nodes)} nodes)"
         break
       floor_chunks.append(floor_chunk)
@@ -593,14 +603,9 @@ def gen_floor(
       continue
 
     rooms.sort(key=lambda r: r.get_area())
-    feature_rooms = features.nodes
+    feature_rooms = feature_graph.nodes
     plain_rooms = [r for r in rooms if r not in feature_rooms or not r.data.tiles]
     empty_rooms = plain_rooms.copy()
-
-    stage.entrance = stage.find_tile(stage.STAIRS_DOWN)
-    if not stage.entrance:
-      yield stage, "Failed to spawn entrance"
-      continue
 
     secrets = [e for e in graph.ends() if e in empty_rooms if (e.data and e.data.secret) or (
       e.get_area() <= 60
@@ -612,9 +617,10 @@ def gen_floor(
       doors = graph.connectors(secret, neighbor)
       doorways = neighbor.get_doorways(stage)
       doorway = next((d for d in doorways if d in doors), None)
-      door = next((e for e in stage.get_elems_at(doorway) if isinstance(e, Door)), None)
-      stage.remove_elem(door)
-      stage.spawn_elem_at(doorway, SecretDoor())
+      door = next((e for e in stage.get_elems_at(doorway) if isinstance(e, GenericDoor)), None)
+      if door:
+        stage.remove_elem(door)
+        stage.spawn_elem_at(doorway, SecretDoor())
 
       neighbor = next((n for n in neighborhood(doorway) if stage.get_tile_at(n) is Stage.FLOOR), None)
       if neighbor:
@@ -642,6 +648,11 @@ def gen_floor(
         else:
           for cell in island_centers:
             island_rooms[cell] = room
+      else:
+        break
+
+    if not island_centers:
+      yield stage, "Failed to draw terrain"
 
     key_containers = [
       e for r in rooms
@@ -693,6 +704,13 @@ def gen_floor(
 
     for room in rooms:
       room.on_place(stage)
+
+    if not stage.entrance:
+      stage.entrance = stage.find_tile(stage.STAIRS_DOWN)
+
+    if not stage.entrance:
+      yield stage, "Failed to spawn entrance"
+      continue
 
     stage.rooms = rooms
     lkg = stage

@@ -5,6 +5,9 @@ from lib.cell import neighborhood, manhattan, add as add_vector, subtract as sub
 import debug
 
 class Blob(Room):
+  def find_border(cells):
+    return list({n for c in cells for n in neighborhood(c) if n not in cells})
+
   def __init__(room, cells=None, origin=None, data=None, degree=0, *args, **kwargs):
     if type(data) is list:
       data = choice(data)
@@ -37,13 +40,14 @@ class Blob(Room):
 
   @property
   def border(room):
-    room_cells = room.cells
-    return list({n for c in room_cells for n in neighborhood(c) if n not in room_cells})
+    return Blob.find_border(room.cells)
 
   @property
   def edges(room):
     if not room._edges:
-      if room.data and room.data.edges:
+      if room.data and callable(room.data.edges):
+        room._edges = room.data.edges(room)
+      elif room.data and room.data.edges:
         room._edges = [add_vector(e, room.origin) for e in room.data.edges]
       else:
         room_cells = room.cells
