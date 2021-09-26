@@ -58,7 +58,7 @@ class RoomData:
     if roomdata.tiles and type(roomdata.tiles[0]) is str:
       roomdata.size = (len(roomdata.tiles[0]), len(roomdata.tiles))
       roomdata.tiles = [Stage.TILE_ORDER.index(resolve_tile(c)) for s in roomdata.tiles for c in s]
-    roomdata.hooks = { hook_key: resolve_hook(hook_name) for hook_key, hook_name in roomdata.hooks.items() }
+    roomdata.hooks = { k: resolve_hook(h) if type(h) is str else h for k, h in roomdata.hooks.items() }
 
   def extract_cells(roomdata):
     cells = []

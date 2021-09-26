@@ -316,7 +316,7 @@ class DungeonActor(DungeonElement):
       amount = actor.get_hp_max() / 200
     actor.set_hp(min(actor.get_hp_max(), actor.get_hp() + amount))
 
-  def effect(actor, game):
+  def effect(actor, game, trigger):
     if actor.is_immobile():
       return None
     return actor.talk(game)
