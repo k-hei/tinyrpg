@@ -5,13 +5,14 @@ from lib.bounds import find_bounds
 from dungeon.stage import Stage
 
 MIN_ROOM_AREA = 120
-MAX_ROOM_AREA = 200
 SEED_WALL_RATIO = 0.3
 BIRTH_THRESHOLD = 4
 DEATH_THRESHOLD = 3
 NUM_OF_GENERATIONS = 5
 
-def gen_size(min_area, max_area):
+def gen_size(min_area, max_area=None):
+  if max_area is None:
+    max_area = min_area + 20
   room_width = 7 + 2 * randint(0, 10)
   min_height = min_area / room_width
   max_height = max_area / room_width
@@ -20,7 +21,7 @@ def gen_size(min_area, max_area):
   room_height = 1 + 3 * (randint if max_factor > min_factor else max)(min_factor, max_factor)
   return (room_width, room_height)
 
-def gen_blob(size=None, min_area=MIN_ROOM_AREA, max_area=MAX_ROOM_AREA):
+def gen_blob(size=None, min_area=MIN_ROOM_AREA, max_area=None):
   while True:
     size = size or gen_size(min_area=min_area, max_area=max_area)
     sandbox = Stage(size)

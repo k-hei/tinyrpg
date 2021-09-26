@@ -43,8 +43,9 @@ def resolve_tile(char):
 
 @dataclass
 class RoomData:
-  size: tuple[int, int] = None                              # default: generated interior
-  tiles: list[int] = field(default_factory=lambda: [])      # default: generated interior
+  size: tuple[int, int] = None                              # default: generated size
+  tiles: list[int] = field(default_factory=lambda: [])      # default: generated shape
+  terrain: bool = True                                      # default: generated terrain
   elems: list[list] = field(default_factory=lambda: [])     # default: no elements
   items: bool = False                                # default: no vases spawn
   spawns_enemies: bool = False                              # default: no enemies spawn

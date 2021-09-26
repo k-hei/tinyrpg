@@ -1,6 +1,7 @@
 from pygame import Surface, SRCALPHA
 from pygame.transform import rotate, flip
 import assets
+from lib.cell import neighborhood
 from dungeon.props.door import Door
 from dungeon.props.secretdoor import SecretDoor
 from colors.palette import BLACK
@@ -17,6 +18,7 @@ def render_walltop(stage, cell, visited_cells=[]):
       or stage.get_tile_at((x, y + 1)) is stage.WALL
       or stage.get_elem_at((x, y + 1), superclass=Door)
     )
+    or stage.get_tile_at((x, y)) is stage.HALLWAY and next((n for n in neighborhood((x, y)) if SecretDoor.exists_at(stage, n)), None)
   )
   is_door = lambda x, y: stage.get_elem_at((x, y), superclass=Door)
 

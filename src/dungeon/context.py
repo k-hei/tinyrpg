@@ -923,18 +923,22 @@ class DungeonContext(Context):
       if target_tile is Stage.HALLWAY:
         hallway = game.find_hallway(origin_cell if origin_tile is Stage.HALLWAY else target_cell)
         if hallway:
-          door = next((e for e in game.floor.get_elems_at(hallway[-1]) if isinstance(e, Door)), None)
           hero_path = hallway[hallway.index(game.hero.cell):]
-          has_ally = game.ally and not game.ally.is_immobile() and manhattan(game.ally.cell, game.hero.cell) <= 2
+          has_ally = ally and not ally.is_immobile() and manhattan(ally.cell, game.hero.cell) <= 2
           if has_ally:
-            if game.ally.cell in hallway and ally.cell == origin_cell:
-              ally_path = hallway[hallway.index(game.ally.cell):-1]
-            elif game.ally.cell in hallway:
-              ally_path = hallway[hallway.index(game.ally.cell)+1:-1]
+            if ally.cell in hallway and ally.cell == origin_cell:
+              ally_path = hallway[hallway.index(ally.cell):-1]
+            elif ally.cell in hallway:
+              ally_path = hallway[hallway.index(ally.cell)+1:-1]
             else:
               ally_path = [origin_cell] + hallway[:-1]
           else:
             ally_path = []
+
+          door = next((e for e in game.floor.get_elems_at(hallway[-1]) if isinstance(e, Door)), None)
+          if door.hidden:
+            door.hidden = False
+
           game.anims += [
             [
               PathAnim(

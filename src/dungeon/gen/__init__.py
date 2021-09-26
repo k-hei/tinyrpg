@@ -493,6 +493,7 @@ def gen_floor(
     key_count = 0
     door_paths = set()
     for i, ((room1, room2), connectors) in enumerate(graph.connections()):
+      bench("Connect rooms", reset=True)
       connectors = [add_vector(c, stage_offset) for c in connectors]
       if len(connectors) > 1:
         connectors.sort(key=lambda c: (
@@ -598,35 +599,37 @@ def gen_floor(
       if Door is RareTreasureDoor:
         key_count += 1
 
-      stage.spawn_elem_at(door1_cell, Door())
-      stage.spawn_elem_at(door2_cell, Door())
+      door1, door2 = Door(), Door()
+      stage.spawn_elem_at(door1_cell, door1)
+      stage.spawn_elem_at(door2_cell, door2)
       for cell in door_path:
         stage.set_tile_at(cell, Stage.HALLWAY)
         door_paths.update(neighborhood(cell, inclusive=True, diagonals=True))
 
-      graph.reconnect(room1, room2, door1_cell, door2_cell)
-      yield stage, f"Connected rooms {rooms.index(room1) + 1} and {rooms.index(room2) + 1} at {connector}"
+      graph.reconnect(room1, room2, door1, door2)
+      time_delta = bench("Connect rooms", print_threshold=inf)
+      yield stage, f"Connected rooms {rooms.index(room1) + 1} and {rooms.index(room2) + 1} at {connector} in {time_delta}ms"
 
     if not connected:
       continue
 
     rooms.sort(key=lambda r: r.get_area())
     feature_rooms = feature_graph.nodes
-    plain_rooms = [r for r in rooms if r not in feature_rooms or not r.data.tiles]
-    empty_rooms = plain_rooms.copy()
+    plain_rooms = [r for r in rooms if not r.data or r.data.terrain]
+    empty_rooms = [r for r in rooms if r not in feature_rooms or not r.data.tiles]
 
-    secrets = [e for e in graph.ends() if e in empty_rooms if (e.data and e.data.secret) or (
-      e.get_area() <= 60
-      and not (e.data and e.data.doors != "Door")
-      and not next((n for n in graph.neighbors(e) if n.data and n.data.doors != "Door"), None)
+    secrets = [e for e in rooms if (
+      e.data and e.data.secret
+      or e in empty_rooms and graph.degree(e) == 1 and (
+        e.get_area() <= 60
+        and not (e.data and e.data.doors != "Door")
+        and not next((n for n in graph.neighbors(e) if n.data and n.data.doors != "Door"), None)
+      )
     )]
     for secret in secrets:
       neighbor = graph.neighbors(secret)[0]
-      doors = graph.connectors(secret, neighbor)
-      doorways = neighbor.get_doorways(stage)
-      doorway = next((d for d in doorways if d in doors), None)
-      door = next((e for e in stage.get_elems_at(doorway) if isinstance(e, GenericDoor)), None)
-      if door:
+      for door in graph.connectors(secret, neighbor):
+        doorway = door.cell
         stage.remove_elem(door)
         stage.spawn_elem_at(doorway, SecretDoor())
 
@@ -639,28 +642,31 @@ def gen_floor(
         and door_delta != (0, -1)
         and stage.is_cell_empty((neighbor_x - door_ydelta, neighbor_y - door_xdelta))
         and stage.is_cell_empty((neighbor_x + door_ydelta, neighbor_y + door_xdelta))
+        and stage.get_tile_at((neighbor_x + door_xdelta * 2, neighbor_y + door_ydelta * 2)) is not Stage.WALL
         and randint(0, 1)
         ):
           stage.spawn_elem_at(neighbor, ArrowTrap(facing=door_delta, delay=inf, static=False))
 
       print(f"Spawned secret with area {secret.get_area()}")
-      empty_rooms.remove(secret)
+      if secret in empty_rooms:
+        empty_rooms.remove(secret)
 
     # draw room terrain
     island_rooms = {}
     for room in plain_rooms:
       island_centers = gen_terrain(stage, room, graph)
       if island_centers:
-        if room in secrets:
-          stage.spawn_elem_at(choice(island_centers), Chest(Elixir))
-        else:
-          for cell in island_centers:
-            island_rooms[cell] = room
+        # if room in secrets:
+        #   stage.spawn_elem_at(choice(island_centers), Chest(Elixir))
+        # else:
+        for cell in island_centers:
+          island_rooms[cell] = room
       else:
         break
 
     if not island_centers:
       yield stage, "Failed to draw terrain"
+      continue
 
     key_containers = [
       e for r in rooms

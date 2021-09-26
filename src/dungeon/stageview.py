@@ -69,7 +69,7 @@ class StageView:
   LAYERS = ["tiles", "decors", "elems", "vfx", "numbers", "ui"]
   SPECIAL_TILES = [] # Tiles that appear white (subject to change)
   ELEVATED_TILES = [Stage.FLOOR_ELEV, Stage.WALL_ELEV, Stage.STAIRS, Stage.STAIRS_LEFT, Stage.STAIRS_RIGHT]
-  VARIABLE_TILES = [Stage.WALL, Stage.FLOOR, Stage.OASIS, Stage.PIT] # Tiles with more than one possible image
+  VARIABLE_TILES = [Stage.WALL, Stage.FLOOR, Stage.OASIS, Stage.PIT, Stage.HALLWAY] # Tiles with more than one possible image (generic cache override)
 
   class FadeAnim(TweenAnim): pass
   class DarkenAnim(Anim): pass
@@ -441,6 +441,11 @@ def render_tile(stage, cell, visited_cells=[]):
 
   if tile is stage.WALL:
     return render_wall(stage, cell, visited_cells)
+  elif tile is stage.HALLWAY:
+    if SecretDoor.exists_at(stage, (x, y + 1)):
+      return render_wall(stage, cell, visited_cells)
+    else:
+      return None
   elif tile is stage.FLOOR_ELEV:
     return Sprite(
       image=assets.sprites["floor_elev"],
