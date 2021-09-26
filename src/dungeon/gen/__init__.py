@@ -244,23 +244,28 @@ def gen_connect(feature_graph):
         yield False
         return
 
-def gen_merge(graph1, graph2):
+def gen_merge(graph1, graph2, indices=None):
   blob1 = Room(cells=[c for n in graph1.nodes for c in n.cells])
   blob2 = Room(cells=[c for n in graph2.nodes for c in n.cells])
   graph1_connections = {c: n for n in graph1.nodes for c in n.connectors if n.degree == 0 or graph1.degree(n) < n.degree}
   graph2_connections = {c: n for n in graph2.nodes for c in n.connectors if n.degree == 0 or graph2.degree(n) < n.degree}
   init_origin = blob2.origin
   origins = [(subtract_vector(c1, subtract_vector(c2, blob2.origin)), n1, n2) for (c1, n1), (c2, n2) in product(graph1_connections.items(), graph2_connections.items())]
-  # shuffle(origins)
+  shuffle(origins)
 
+  index_ids = f"{indices[0] + 1} and {indices[1] + 1}" if indices else ""
+
+  bench("Merging graphs")
   time_start = get_ticks()
-  for origin, room1, room2 in origins:
+  for i, (origin, room1, room2) in enumerate(origins):
     delta = subtract_vector(origin, init_origin)
     blob2.origin = add_vector(init_origin, delta)
     if blob1.hitbox & blob2.hitbox:
       if get_ticks() - time_start > 1000 / FPS:
         time_start = get_ticks()
-        yield None
+        yield None, (index_ids
+          and f"Merging graphs {index_ids} ({i + 1}/{len(origins)})"
+          or f"Testing graph merge origin {i + 1}/{len(origins)}")
       continue
     for node in graph2.nodes:
       node.origin = add_vector(node.origin, delta)
@@ -275,29 +280,31 @@ def gen_merge(graph1, graph2):
       n1, n2 = edge
       graph2.conns[edge] = tuple(set(n1.connectors) & set(n2.connectors))
     graph1.merge(graph2)
-    yield graph1
+    time_delta = bench("Merging graphs", print_threshold=inf)
+    yield graph1, "Successfully merged graphs" + (f" {index_ids}" if index_ids else "") + f" in {time_delta}ms"
   else:
-    yield False
+    yield False, "Failed to merge graphs" + (f" {index_ids}" if index_ids else "")
 
 def gen_assemble(graphs):
   is_graph_dead_end = lambda g: not next((n for n in g.nodes if n.degree != 1), None)
-  graphs = sorted(graphs, key=lambda g: g.order() + random.random() / 2 + (-100 if is_graph_dead_end(g) else 0), reverse=True)
+  original_graphs = sorted(graphs, key=lambda g: g.order() + random.random() / 2 + (-100 if is_graph_dead_end(g) else 0), reverse=True)
+  graphs = original_graphs.copy()
   while len(graphs) > 1:
     g1 = graphs[0]
     result = None
     for g2 in graphs[1:]:
-      merge_gen = gen_merge(g1, g2)
+      merge_gen = gen_merge(g1, g2, indices=(original_graphs.index(g1), original_graphs.index(g2)))
       while result is None:
-        result = next(merge_gen)
-        yield [g for g in graphs if g is not g1]
+        result, message = next(merge_gen)
+        yield [g for g in graphs if g is not g1], message
       if result is False:
-        yield False
+        yield False, "Failed to assemble graphs"
         yield g1
       break
     if result is False:
       break
     graphs = [g for g in graphs if g is not g2]
-    yield [g for g in graphs if g is not g1]
+    yield [g for g in graphs if g is not g1], ""
   yield g1
 
 def gen_tree(graph, start=None):
@@ -378,9 +385,11 @@ def gen_floor(
   while lkg is None:
     stage = None
 
+    # resolve feature graph chunks
     feature_chunks = find_chunks(features)
     yield None, f"Found {len(feature_chunks)} feature chunk(s)"
 
+    # assemble feature graph chunks
     floor_chunks = []
     for i, feature_chunk in enumerate(feature_chunks):
       chunk_id = f"{i + 1}/{len(feature_chunks)}"
@@ -406,6 +415,7 @@ def gen_floor(
     if len(floor_chunks) != len(feature_chunks):
       continue
 
+    # generate extra rooms
     extra_rooms = []
     while len(extra_rooms) < extra_room_count:
       room_cells = gen_blob(min_area=80, max_area=120)
@@ -416,6 +426,7 @@ def gen_floor(
       else:
         yield None, f"Room generation succeeded"
 
+    # assemble extra rooms
     if extra_rooms:
       place_gen = place_rooms(rooms=extra_rooms)
       extra_graph, message = None, "*"
@@ -434,19 +445,20 @@ def gen_floor(
         yield manifest_stage(extra_graph.nodes, dry=True, seed=seed)[0], "Failed to create loops"
         continue
 
+    # assemble graphs
     if len(floor_chunks) > 1:
-      graphs_left = floor_chunks
+      graphs_left, message = floor_chunks, ""
       assemble_gen = gen_assemble(floor_chunks)
       while graphs_left:
         graph_id = len(floor_chunks) - len(graphs_left) if len(graphs_left) != len(floor_chunks) else 1
-        yield None, f"Coalescing graph {graph_id}"
-        graphs_left = next(assemble_gen)
+        yield None, message
+        graphs_left, message = next(assemble_gen)
 
       if graphs_left is False:
         graph = next(assemble_gen)
         stage = manifest_stage(graph.nodes, seed=seed)[0] if debug else None
         if stage and next((x for x in stage.size if x > 100), None):
-          stage = None # TODO: figure out why failures generate massive stages
+          stage = None # HACK: need to figure out why failures generate massive stages
         yield stage, "Failed to assemble graphs"
         continue
       graph = next(assemble_gen)

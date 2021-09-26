@@ -11,7 +11,6 @@ class ControlPreset:
   turn: str
   throw: list[str]
   wait: list[str]
-  use: list[str]
   ally: str
   skill: str
   item: str
