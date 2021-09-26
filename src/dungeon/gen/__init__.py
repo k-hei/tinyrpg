@@ -399,9 +399,7 @@ def gen_floor(
   while lkg is None:
     stage = None
 
-    if callable(features):
-      feature_graph = features()
-
+    feature_graph = features() if callable(features) else features
     if not isinstance(feature_graph, Graph):
       feature_graph = Graph(nodes=feature_graph, edges=[])
 
@@ -586,6 +584,16 @@ def gen_floor(
       Door = (Door1 if Door1 is not GenericDoor
         else Door2 if Door2 is not GenericDoor
         else GenericDoor)
+
+      exit_room = (
+        room1 if next((c for c in room1.cells if stage.get_tile_at(c) is Stage.STAIRS_UP), None)
+        else room2 if next((c for c in room2.cells if stage.get_tile_at(c) is Stage.STAIRS_UP), None)
+        else None
+      )
+      if exit_room:
+        entry_room = next((r for r in rooms for c in r.cells if stage.get_tile_at(c) is Stage.STAIRS_DOWN), None)
+        if entry_room and graph.distance(entry_room, exit_room) == 2:
+          Door = RareTreasureDoor
 
       if Door is RareTreasureDoor:
         key_count += 1

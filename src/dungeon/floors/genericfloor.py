@@ -1,11 +1,11 @@
-from random import randint
+from random import randint, choice
 from lib.graph import Graph
 import assets
 from dungeon.floors import Floor
 from dungeon.room import Blob as Room
+from dungeon.roomdata import RoomData, rooms
 from dungeon.gen import gen_floor
 from dungeon.gen.blob import gen_blob
-from dungeon.roomdata import rooms
 
 from items.ailment.amethyst import Amethyst
 from items.ailment.antidote import Antidote
@@ -28,12 +28,12 @@ from items.sp.sapphire import Sapphire
 class GenericFloor(Floor):
   def generate(store=None, seed=None):
     return gen_floor(
-      features=[
-        Room(data=rooms["entry"]),
-        Room(data=rooms["exit"]),
-        *([Room(data=rooms["oasis"])] if randint(1, 3) == 1 else []),
+      features=lambda: [
+        Room(data=RoomData(**rooms["entry"])),
+        Room(data=RoomData(**rooms["exit"])),
+        *([Room(data=RoomData(**choice(rooms["oasis"])))] if randint(1, 3) == 1 else []),
       ],
-      extra_room_count=4 + randint(0, 1),
+      extra_room_count=5 + randint(0, 1),
       items=[
         Amethyst,
         Antidote, Antidote,

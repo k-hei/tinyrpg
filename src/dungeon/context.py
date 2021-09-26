@@ -106,7 +106,7 @@ from contexts.gameover import GameOverContext
 from dungeon.floors.floor1 import Floor1
 from dungeon.floors.floor2 import Floor2
 from dungeon.floors.floor3 import Floor3
-from dungeon.floors.debugfloor import DebugFloor
+from dungeon.floors.genericfloor import GenericFloor
 
 from dungeon.data import DungeonData
 from dungeon.command import MoveCommand, MoveToCommand, PushCommand, SkillCommand
@@ -2012,7 +2012,7 @@ class DungeonContext(Context):
       if gen_index is not None:
         Floor = DungeonContext.FLOORS[gen_index + direction]
       else:
-        Floor = DebugFloor
+        Floor = GenericFloor
       app = game.get_head()
       app.transition(
         transits=(DissolveIn(), DissolveOut()),
