@@ -17,7 +17,7 @@ from anims.warpin import WarpInAnim
 from anims.flicker import FlickerAnim
 from anims.pause import PauseAnim
 from comps.log import Token
-from colors.palette import GRAY, RED, BLUE
+from colors.palette import GRAY, RED, BLUE, GREEN
 
 class Floor1(Floor):
   def generate(store=None, seed=None):
@@ -25,7 +25,32 @@ class Floor1(Floor):
       features=Graph(
         nodes=[
           entry_room := Room(data=RoomData(**rooms["entry"])),
-          exit_room := Room(data=RoomData(**rooms["exit"], doors="RareTreasureDoor")),
+          exit_room := Room(
+            data=RoomData(**rooms["exit"],
+            doors="RareTreasureDoor",
+            hooks={
+              "on_enter": lambda room, game: "minxia" not in game.store.story and (
+                genie_cell := sorted(get_room_bonus_cells(room, game.floor), key=lambda c: manhattan(c, game.hero.cell))[0],
+                game.floor.spawn_elem_at(genie_cell, genie := Genie(
+                  name=(genie_name := "Brajin"),
+                  color=GREEN,
+                  message=lambda *_: next((r for r in game.floor.rooms if r not in game.room_entrances and r.data and r.data.secret), None) and [
+                    (genie_name, ("It looks like there's ", Token(text="a secret room", color=GREEN), " on this floor that you haven't found yet.")),
+                    (genie_name, (Token(text="Search every corner", color=BLUE), " of the map for walls that look suspicious.")),
+                    (genie_name, "The secret may be closer than you think..."),
+                    lambda: game.anims.append([FlickerAnim(
+                      target=genie,
+                      duration=30,
+                      on_end=lambda: game.floor.remove_elem(genie)
+                    )])
+                  ]
+                )),
+                game.anims.append([
+                  WarpInAnim(target=genie, delay=15)
+                ])
+              )
+            }
+          )),
           puzzle_room := Room(data=RoomData(**rooms["pzlt1"])),
           buffer_room := Room(cells=gen_blob(min_area=80, max_area=100), data=RoomData(
             items=[Potion, RustyBlade],
@@ -77,6 +102,7 @@ class Floor1(Floor):
           (puzzle_room, key_room),
         ]
       ),
+      enemies=[Eyeball, Eyeball, Mushroom],
       extra_room_count=4, # 4 + randint(0, 2),
       seed=seed
     )
