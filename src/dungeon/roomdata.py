@@ -46,7 +46,7 @@ class RoomData:
   size: tuple[int, int] = None                              # default: generated interior
   tiles: list[int] = field(default_factory=lambda: [])      # default: generated interior
   elems: list[list] = field(default_factory=lambda: [])     # default: no elements
-  spawns_vases: bool = False                                # default: no vases spawn
+  items: bool = False                                # default: no vases spawn
   spawns_enemies: bool = False                              # default: no enemies spawn
   edges: list[list] = field(default_factory=lambda: [])     # default: all edges
   doors: str = "Door"                                       # default: standard door

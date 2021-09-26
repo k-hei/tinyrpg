@@ -22,6 +22,7 @@ from cores.rogue import Rogue
 from inventory import Inventory
 from skills import get_skill_order
 import assets
+from debug import bench
 from game.data import GameData
 from savedata.resolve import resolve_item, resolve_skill, resolve_elem
 from transits.dissolve import DissolveOut
@@ -79,9 +80,11 @@ class GameContext(Context):
       Floor = ctx.floor
       ctx.floor = None
       app = ctx.get_head()
+      bench("Generate floor")
       return app.load(
         loader=Floor.generate(ctx.store, seed=ctx.seed),
         on_end=lambda floor: (
+          bench("Generate floor"),
           ctx.goto_dungeon(floors=[floor], generator=Floor),
           app.transition([DissolveOut()])
         )
@@ -176,7 +179,7 @@ class GameContext(Context):
       return
     if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, pygame.K_q) or gamepad.get_state(gamepad.controls.item):
       return ctx.handle_inventory()
-    if button in (pygame.K_b, pygame.K_c) or gamepad.get_state(gamepad.controls.equip):
+    if button == pygame.K_e or gamepad.get_state(gamepad.controls.equip):
       return ctx.handle_custom()
 
   def handle_pause(ctx):

@@ -23,5 +23,5 @@
   ],
   "doors": "TreasureDoor",
   "degree": 1,
-  "spawns_vases": true
+  "items": true
 }

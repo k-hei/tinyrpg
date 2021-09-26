@@ -642,9 +642,11 @@ def gen_floor(
 
     # populate rooms
     for room in rooms:
-      if room.data and not room.data.spawns_vases:
+      if room.data and not room.data.items:
         continue
-      if room in secrets:
+      if room.data and type(room.data.items) is list:
+        room_items = [Vase(i) for i in room.data.items]
+      elif room in secrets:
         item_count = min(8, room.get_area() // 16)
         room_items = [Vase(choice(ALL_ITEMS)) for _ in range(item_count)]
       else:

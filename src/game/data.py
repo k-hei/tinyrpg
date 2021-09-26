@@ -3,6 +3,7 @@ import json
 from dataclasses import dataclass, field
 from items import Item
 from items.gold import Gold
+from items.equipment import EquipmentItem
 from inventory import Inventory
 from skills import Skill, get_skill_order
 from cores import Core
@@ -119,7 +120,7 @@ class GameData:
     store._sp = max(0, min(store.sp_max, sp))
 
   def obtain(store, target):
-    if isinstance(target, Item) or issubclass(target, Item):
+    if isinstance(target, Item) or type(target) is type and issubclass(target, Item):
       return store.obtain_item(item=target)
     elif issubclass(target, Skill):
       return store.learn_skill(skill=target)
@@ -131,6 +132,8 @@ class GameData:
     if type(item) is Gold:
       store.gold += item.amount
       return True
+    if type(item) is EquipmentItem or type(item) is type and issubclass(item, EquipmentItem):
+      return store.learn_skill(skill=item.skill)
     return Inventory.append(store.items, item)
 
   def use_item(store, item, discard=True):
