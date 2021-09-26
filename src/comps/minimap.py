@@ -17,6 +17,7 @@ from dungeon.props.soul import Soul
 from dungeon.props.door import Door
 from dungeon.props.secretdoor import SecretDoor
 from dungeon.props.pillar import Pillar
+from dungeon.props.table import Table
 from dungeon.props.altar import Altar
 from colors.palette import GREEN, DARKGREEN, VIOLET, DARKVIOLET
 from anims.tween import TweenAnim
@@ -91,7 +92,7 @@ class Minimap:
       else:
         x, y = col, row
 
-      elem = floor.get_elem_at(cell)
+      elem = next((e for e in floor.get_elems_at(cell)), None)
       if next((g for g in anims if next((a for a in g if type(a) is WarpInAnim and a.target is elem), None)), None):
         elem = None
 
@@ -136,6 +137,7 @@ class Minimap:
       or type(elem) is SecretDoor and elem.hidden
       or tile is Stage.HALLWAY and SecretDoor.exists_at(floor, (col, row + 1))
       or type(elem) is Pillar
+      or type(elem) is Table and Rect(elem.cell, elem.size).collidepoint(cell)
       ):
         if cell in visible_cells:
           if filled:

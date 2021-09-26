@@ -1,5 +1,6 @@
 from math import inf
 from dataclasses import dataclass
+from pygame import Rect
 from lib.cell import neighborhood, manhattan
 
 @dataclass
@@ -165,7 +166,10 @@ class Stage:
     return elem and elem.opaque
 
   def get_elems_at(stage, cell):
-    return [e for e in stage.elems if e.cell == cell]
+    return [e for e in stage.elems if (
+      e.cell == cell
+      or e.size != (1, 1) and Rect(e.cell, e.size).collidepoint(cell)
+    )]
 
   def get_elem_at(stage, cell, superclass=None, exclude=[]):
     if superclass:

@@ -1207,13 +1207,13 @@ class DungeonContext(Context):
   def move(game, actor, delta, run=False, jump=False, duration=0, is_animated=True, on_end=None):
     origin_cell = actor.cell
     origin_tile = game.floor.get_tile_at(actor.cell)
-    origin_elem = game.floor.get_elem_at(origin_cell, exclude=[type(actor), Door])
+    origin_elem = next((e for e in game.floor.get_elems_at(origin_cell) if not isinstance(e, type(actor)) and not isinstance(e, Door)), None)
     origin_elev = origin_tile and origin_tile.elev
     actor_x, actor_y = actor.cell
     delta_x, delta_y = delta
     target_cell = (actor_x + delta_x, actor_y + delta_y)
     target_tile = game.floor.get_tile_at(target_cell)
-    target_elem = game.floor.get_elem_at(target_cell)
+    target_elem = next((e for e in game.floor.get_elems_at(target_cell)), None)
     facing_x = -1 if delta_x < 0 else 1 if delta_x > 0 else 0
     facing_y = -1 if delta_y < 0 else 1 if delta_y > 0 else 0
     actor.facing = (facing_x, facing_y)

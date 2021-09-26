@@ -23,14 +23,14 @@ class DungeonElement:
   active = False
   hidden = False
 
-  def __init__(elem, solid=False, opaque=False, static=False, active=False, hidden=False):
+  def __init__(elem, size=(1, 1), solid=False, opaque=False, static=False, active=False, hidden=False):
     if not elem.solid: elem.solid = solid
     if not elem.opaque: elem.opaque = opaque
     if not elem.static: elem.static = static
     if not elem.active: elem.active = active
     if not elem.hidden: elem.hidden = hidden
+    elem.size = size
     elem.cell = None
-    elem.size = (1, 1)
     elem.elev = 0
 
   def encode(elem):

@@ -64,8 +64,13 @@ def manifest_stage_from_room(room):
   if door_cell:
     stage.entrance = door_cell
     door.open()
-  else:
-    stage.entrance = stage.find_tile(stage.STAIRS_EXIT)
+
+  if not stage.entrance:
+    stage.entrance = (
+      stage.find_tile(stage.STAIRS_EXIT)
+      or stage.find_tile(stage.STAIRS_DOWN)
+      or stage.find_tile(stage.STAIRS_UP)
+    )
 
   room.on_place(stage)
   return stage

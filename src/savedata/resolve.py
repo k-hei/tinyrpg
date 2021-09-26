@@ -48,6 +48,7 @@ from dungeon.props.rarechest import RareChest
 from dungeon.props.door import Door
 from dungeon.props.pushtile import PushTile
 from dungeon.props.itemdrop import ItemDrop
+from dungeon.props.table import Table
 from dungeon.props.puzzledoor import PuzzleDoor
 from dungeon.props.pillar import Pillar
 from dungeon.props.column import Column
@@ -228,6 +229,7 @@ def resolve_elem(key):
   if key == "Door": return Door
   if key == "PushTile": return PushTile
   if key == "ItemDrop": return ItemDrop
+  if key == "Table": return Table
   if key == "PuzzleDoor": return PuzzleDoor
   if key == "Pillar": return Pillar
   if key == "Column": return Column

@@ -11,6 +11,6 @@ build
 *.zip
 *.pyc
 .pytest_cache
-debug.*
+/debug.*
 src/data01.json
 src/untiled/*.json
