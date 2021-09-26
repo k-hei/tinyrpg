@@ -340,14 +340,24 @@ def gen_loop(tree, graph, node=None, min_distance=3):
 
 def gen_loops(tree, graph):
   loops = 0
+
   for node in tree.nodes:
     if tree.degree(node) <= 2:
       loops |= gen_loop(tree, graph, node, min_distance=3)
       break
+
   if not loops:
     for node in tree.nodes:
       if tree.degree(node) <= 2 and gen_loop(tree, graph, node, min_distance=2):
+        loops += 1
         break
+
+  if not loops:
+    for node in tree.nodes:
+      if gen_loop(tree, graph, node, min_distance=2):
+        loops += 1
+        break
+
   return loops
 
 def gen_floor(
@@ -408,12 +418,13 @@ def gen_floor(
 
     if extra_rooms:
       place_gen = place_rooms(rooms=extra_rooms)
-      extra_graph = None
-      while extra_graph is not False:
+      extra_graph, message = None, "*"
+      while extra_graph is not False and message:
         try:
-          extra_graph, _ = next(place_gen)
+          extra_graph, message = next(place_gen)
           if extra_graph:
-            yield manifest_stage(extra_graph.nodes, dry=True, seed=seed)[0], f"Placing room {len(extra_graph.nodes)} of {len(extra_rooms)}"
+            stage = manifest_stage(extra_graph.nodes, dry=True, seed=seed)[0]
+          yield stage, message # f"Placing room {len(extra_graph.nodes)} of {len(extra_rooms)}"
         except StopIteration:
           break
       tree = gen_tree(extra_graph)
