@@ -25,10 +25,11 @@ class Blob(Room):
   @origin.setter
   def origin(room, origin):
     room._origin = origin
-    room._edges = None
-    room._connectors = None
     room._outline = None
     room._visible_outline = None
+    room._edges = None
+    room._connectors = None
+    room.connector_deltas = {}
 
   @property
   def cells(room):
@@ -57,6 +58,7 @@ class Blob(Room):
     if next((n for n in neighborhood(connector, diagonals=True) if n in room_cells), None):
       return None
     else:
+      room.connector_deltas[connector] = (delta_x, delta_y)
       return connector
 
   @property
@@ -67,10 +69,7 @@ class Blob(Room):
 
   @property
   def hitbox(room):
-    hitbox = []
-    for cell in room.cells:
-      hitbox += neighborhood(cell, inclusive=True, radius=2)
-    return set(hitbox)
+    return room.visible_outline
 
   @property
   def outline(room):
@@ -86,11 +85,10 @@ class Blob(Room):
     if not room._visible_outline:
       visible_outline = []
       for cell in room.cells:
-        neighbors = (
+        visible_outline += (
           neighborhood(cell, diagonals=True)
           + neighborhood(add_vector(cell, (0, -1)), diagonals=True)
         )
-        visible_outline += neighbors
       room._visible_outline = set(visible_outline) - set(room.cells)
     return room._visible_outline
 

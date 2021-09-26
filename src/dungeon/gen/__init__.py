@@ -109,10 +109,15 @@ def place_rooms(rooms, force_connect=False):
     for neighbor in graph.nodes:
       if neighbor.degree and graph.degree(neighbor) >= neighbor.degree:
         continue
-      combinations = [*product(connectors, neighbor.connectors)]
-      origins = [subtract_vector(c2, subtract_vector(c1, origin)) for c1, c2 in combinations]
-      shuffle(combinations)
-      iters_max += len(combinations)
+      origins = [
+        subtract_vector(c2, subtract_vector(c1, origin))
+          for c1, c2 in product(connectors, neighbor.connectors)
+            if (c1 in room.connector_deltas
+            and c2 in neighbor.connector_deltas
+            and room.connector_deltas[c1] != neighbor.connector_deltas[c2])
+      ]
+      shuffle(origins)
+      iters_max += len(origins)
       for o in origins:
         iters += 1
         room.origin = o
@@ -138,7 +143,6 @@ def place_rooms(rooms, force_connect=False):
           if room not in graph.nodes:
             yield None, f"Placing room {i + 2} of {len(rooms)} ({iters}/{iters_max})"
           else:
-            yield graph, f"Placed room {i + 2} of {len(rooms)} at {room.origin} after {iters} iteration(s)"
             break
       if room in graph.nodes:
         break
@@ -153,7 +157,7 @@ def place_rooms(rooms, force_connect=False):
     if room in graph.nodes:
       total_blob = Room(total_blob.cells + room.cells)
       total_connectors += connectors
-      yield graph, f"Placed room {i + 2} of {len(graph.nodes)} at {room.origin}"
+      yield graph, f"Placed room {i + 2} of {len(rooms)} at {room.origin} after {iters} iteration(s)"
     else:
       yield False, "Failed to place rooms"
 
@@ -250,7 +254,14 @@ def gen_merge(graph1, graph2, indices=None):
   graph1_connections = {c: n for n in graph1.nodes for c in n.connectors if n.degree == 0 or graph1.degree(n) < n.degree}
   graph2_connections = {c: n for n in graph2.nodes for c in n.connectors if n.degree == 0 or graph2.degree(n) < n.degree}
   init_origin = blob2.origin
-  origins = [(subtract_vector(c1, subtract_vector(c2, blob2.origin)), n1, n2) for (c1, n1), (c2, n2) in product(graph1_connections.items(), graph2_connections.items())]
+  origins = [
+    (subtract_vector(c1, subtract_vector(c2, blob2.origin)), n1, n2)
+      for (c1, n1), (c2, n2) in product(graph1_connections.items(), graph2_connections.items())
+        if (c1 in n1.connector_deltas
+        and c2 in n2.connector_deltas
+        and n1.connector_deltas[c1] != n2.connector_deltas[c2])
+  ]
+
   shuffle(origins)
 
   index_ids = f"{indices[0] + 1} and {indices[1] + 1}" if indices else ""
