@@ -8,14 +8,14 @@ class BattleDoor(Door):
     opening_frames=["door_battle", "door_battle_opening", "door_battle_open"]
   )
 
-  def effect(door, game):
+  def effect(door, game, *args, **kwargs):
     effect = super().effect
     if door.locked:
-      return effect(game)
+      return effect(game, *args, **kwargs)
     elif not door.opened:
       game.open(PromptContext("Open the door and enter?", [
         Choice("Yes"),
         Choice("No", default=True, closing=True)
       ], on_close=lambda choice: (
-        choice and choice.text == "Yes" and effect(game)
+        choice and choice.text == "Yes" and effect(game, *args, **kwargs)
       )))
