@@ -1,5 +1,6 @@
 from dungeon.stage import Stage
 from dungeon.decor import Decor
+from dungeon.features.room import Room
 from dungeon.features.specialroom import SpecialRoom
 from dungeon.features.vertroom import VerticalRoom
 from resolve.elem import resolve_elem
@@ -30,7 +31,7 @@ def decode_floor(floor_data):
 
   for (x, y, *size), room_kind, *room_props in floor_data["rooms"]:
     room_props = room_props[0] if room_props else {}
-    RoomType = resolve_elem(room_kind)
+    RoomType = resolve_elem(room_kind) or Room
     is_special = (isinstance(RoomType, SpecialRoom)
       or isinstance(RoomType, (SpecialRoom, VerticalRoom)))
     try:

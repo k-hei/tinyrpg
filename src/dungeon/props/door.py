@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from dungeon.props import Prop
 import assets
 from anims.frame import FrameAnim
-from colors.palette import WHITE, SAFFRON
+from colors.palette import WHITE, SAFFRON, DARKBLUE
 from filters import replace_color
 from sprite import Sprite
 from config import TILE_SIZE
@@ -24,7 +24,7 @@ class Door(Prop):
     opening_frames=["door_puzzle", "door_puzzle_opening", "door_puzzle_open"]
   )
 
-  def __init__(door, opened=False, locked=False):
+  def __init__(door, opened=False, locked=None):
     super().__init__(solid=(not opened), opaque=(not opened))
     door.opened = opened
     door.locked = locked
@@ -93,13 +93,14 @@ class Door(Prop):
     door.active = True
 
   def handle_close(door, game):
-    door.close()
-    not game.anims and game.anims.append([])
-    game.anims[0].append(DoorCloseAnim(
-      duration=30,
-      frames=list(reversed(door.sprites.opening_frames)),
-      target=door
-    ))
+    if door.opened:
+      door.close()
+      not game.anims and game.anims.append([])
+      game.anims[0].append(DoorCloseAnim(
+        duration=30,
+        frames=list(reversed(door.sprites.opening_frames)),
+        target=door
+      ))
     return True
 
   def align(door, game):
@@ -124,7 +125,9 @@ class Door(Prop):
         image = assets.sprites[door.sprites.opened]
       elif not door.opened or will_open:
         image = assets.sprites[door.sprites.closed]
-    image = replace_color(image, WHITE, SAFFRON)
+
+    door_color = DARKBLUE if door.locked is False else SAFFRON
+    image = replace_color(image, WHITE, door_color)
     return super().view([Sprite(
       image=image,
       layer="decors"

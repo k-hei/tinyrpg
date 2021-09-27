@@ -17,6 +17,7 @@
   "degree": 4,
   "doors": "BattleDoor",
   "elems": [
+    [[4, 0], "Mage", { "facing": [0, -1] }],
     [[1, 1], "Coffin"],
     [[5, 1], "Coffin"],
     [[1, 3], "Coffin"],
@@ -25,5 +26,9 @@
     [[5, 5], "Coffin"],
     [[2, 0], "VCoffin"],
     [[4, 0], "VCoffin"]
-  ]
+  ],
+  "hooks": {
+    "on_enter": "coffin.enter",
+    "on_defeat": "coffin.defeat"
+  }
 }

@@ -2,8 +2,8 @@ from anims.tween import TweenAnim
 from lib.lerp import lerp
 
 class WarpInAnim(TweenAnim):
-  def __init__(anim, *args, **kwargs):
-    super().__init__(duration=15, *args, **kwargs)
+  def __init__(anim, duration=15, *args, **kwargs):
+    super().__init__(duration=duration, *args, **kwargs)
     anim.scale = (0, 3)
 
   def update(anim):

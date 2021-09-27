@@ -5,6 +5,9 @@ from dungeon.room import Blob as Room
 from dungeon.roomdata import RoomData, rooms
 from dungeon.gen import gen_floor
 from dungeon.gen.blob import gen_blob
+from dungeon.actors.skeleton import Skeleton
+from dungeon.actors.mummy import Mummy
+
 from items.sets import SPECIAL_ITEMS
 
 class DebugFloor(Floor):
@@ -35,6 +38,13 @@ class DebugFloor(Floor):
             degree=1,
             items=[choice(SPECIAL_ITEMS) for i in range(randint(3, 5))],
             doors="TreasureDoor"
+          )),
+          Room(cells=gen_blob(min_area=60), data=RoomData(
+            terrain=False,
+            degree=1,
+            items=[choice(SPECIAL_ITEMS) for i in range(randint(3, 5))],
+            enemies=[Skeleton(), Mummy(), Mummy()],
+            secret=True
           ))
         ],
         edges=[

@@ -1,126 +1,65 @@
-from random import randint
+from random import randint, choice
 from lib.graph import Graph
-
 from dungeon.floors import Floor
+from dungeon.room import Blob as Room
+from dungeon.roomdata import RoomData, rooms
 from dungeon.gen import gen_floor
-from dungeon.features.vertroom import VerticalRoom
-from dungeon.features.exitroom import ExitRoom
-from dungeon.features.arenaroom import ArenaRoom
-from dungeon.features.coffinroom import CoffinRoom
-from dungeon.features.pushblockroom import PushBlockRoom
-from dungeon.features.puzzleroom import PuzzleRoom
-from dungeon.features.oasisroom import OasisRoom
-from dungeon.features.enemyroom import EnemyRoom
-from dungeon.features.traproom import TrapRoom
-from dungeon.actors.eyeball import Eyeball
-from dungeon.actors.mushroom import Mushroom
-from dungeon.actors.ghost import Ghost
-from dungeon.actors.mummy import Mummy
+from dungeon.gen.blob import gen_blob
 from dungeon.actors.skeleton import Skeleton
-from dungeon.actors.genie import Genie
+from dungeon.actors.mummy import Mummy
 
-from lib.cell import add as add_cell
-from anims.flicker import FlickerAnim
-from contexts.dialogue import DialogueContext
-from contexts.cutscene import CutsceneContext
+from items.sets import SPECIAL_ITEMS
 
 class Floor2(Floor):
-  scripts = [
-    ("tiles", lambda game: CutsceneContext(script=[
-      lambda step: game.child.open(DialogueContext(script=[
-        (game.talkee.name, "The tiles you stand on can have different combat effects."),
-        (game.talkee.name, "Use the environment to boost your chances of survival in the dungeon.")
-      ]), on_close=step),
-      lambda step: (
-        game.anims.append([FlickerAnim(
-          target=game.talkee,
-          duration=45,
-          on_end=lambda: (
-            game.floor.remove_elem(game.talkee),
-            step()
-          )
-        )])
-      )
-    ])),
-    ("items", lambda game: CutsceneContext(script=[
-      lambda step: game.child.open(DialogueContext(script=[
-        (game.talkee.name, "How are you doing on items?"),
-        (game.talkee.name, "You may want to make sure you're well stocked up before proceeding.")
-      ]), on_close=step),
-      lambda step: (
-        game.anims.append([FlickerAnim(
-          target=game.talkee,
-          duration=45,
-          on_end=lambda: (
-            game.floor.remove_elem(game.talkee),
-            step()
-          )
-        )])
-      )
-    ]))
-  ]
-
-  def generate(store):
-    entry_room = VerticalRoom(size=(3, 4), degree=1)
-    coffin_room = CoffinRoom()
-    pushblock_room = PushBlockRoom(degree=2)
-    buffer_room1 = VerticalRoom(
-      size=(3, 4),
-      degree=2,
-      on_place=lambda room, stage: (
-        "minxia" not in store.story and stage.spawn_elem_at(add_cell((0, 0), room.cell), Genie(
-          name="Joshin",
-          message=next((s for s in Floor2.scripts if s[0] == "tiles"), None)
-        ))
-      )
-    )
-    buffer_room2 = EnemyRoom(size=(5, 7), degree=2, enemies=[
-      gen_enemy(Skeleton),
-      gen_enemy(Mushroom),
-      gen_enemy(Eyeball),
-    ])
-    puzzle_room = PuzzleRoom(degree=2)
-    buffer_room3 = VerticalRoom(
-      size=(3, 4),
-      degree=3,
-      on_place=lambda room, stage: (
-        stage.spawn_elem_at(add_cell((room.get_width() - 1, 0), room.cell), Genie(
-          name="Joshin",
-          message=next((s for s in Floor2.scripts if s[0] == "items"), None)
-        ))
-      )
-    )
-    arena_room = ArenaRoom()
-    exit_room = ExitRoom(degree=1)
-    oasis_room = OasisRoom()
-    enemy_room = EnemyRoom(size=(3, 4), degree=1, enemies=[
-      gen_enemy(Skeleton, rare=True),
-      gen_enemy(Eyeball),
-      gen_enemy(Eyeball),
-    ])
-    trap_room = TrapRoom(degree=2)
-
+  def generate(store=None, seed=None):
     return gen_floor(
-      size=(43, 27),
-      entrance=entry_room,
-      enemies=[Eyeball, Mushroom, Ghost, Mummy],
       features=Graph(
         nodes=[
-          entry_room,
-          coffin_room,
-          trap_room,
-          oasis_room,
-          buffer_room3,
-          arena_room,
-          exit_room,
-          enemy_room
+          entry_room := Room(data=RoomData(**rooms["2f_entry"])),
+          coffin_room := Room(data=RoomData(**rooms["coffin"])),
+          enemy_room1 := Room(cells=gen_blob(min_area=80), data=RoomData(enemies=True)),
+          enemy_room2 := Room(cells=gen_blob(min_area=80), data=RoomData(enemies=True)),
+          enemy_room3 := Room(cells=gen_blob(min_area=80), data=RoomData(enemies=True)),
+          enemy_room4 := Room(cells=gen_blob(min_area=120), data=RoomData(enemies=True, items=True, degree=3)),
+          exit_room := Room(data=RoomData(**{
+            **rooms["exit"],
+            "edges": [
+              [2, 5]
+            ]
+          })),
+          arena_room := Room(data=RoomData(**rooms["arena"])),
+          buffer_room := Room(cells=gen_blob(min_area=60), data=RoomData(
+            degree=2,
+            items=True
+          )),
+          Room(data=RoomData(**choice(rooms["oasis"]))),
+          Room(cells=gen_blob(min_area=60), data=RoomData(
+            terrain=False,
+            degree=1,
+            items=[choice(SPECIAL_ITEMS) for i in range(randint(3, 5))],
+            doors="TreasureDoor"
+          )),
+          Room(cells=gen_blob(min_area=60), data=RoomData(
+            terrain=False,
+            degree=1,
+            items=[choice(SPECIAL_ITEMS) for i in range(randint(3, 5))],
+            enemies=[Skeleton(), Mummy(), Mummy()],
+            secret=True
+          ))
         ],
         edges=[
           (entry_room, coffin_room),
-          (coffin_room, oasis_room),
-          (coffin_room, trap_room),
-          (buffer_room3, arena_room),
-          (arena_room, exit_room),
+          (coffin_room, enemy_room1),
+          (coffin_room, enemy_room2),
+          (coffin_room, enemy_room3),
+          (enemy_room2, enemy_room4),
+          (enemy_room4, enemy_room3),
+          (exit_room, arena_room),
+          (arena_room, buffer_room),
+          (buffer_room, enemy_room4),
         ]
-      )
+      ),
+      # extra_room_count=5, # 4 + randint(0, 2),
+      seed=seed,
+      debug=True
     )

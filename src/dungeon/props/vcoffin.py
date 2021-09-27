@@ -17,6 +17,5 @@ class VCoffin(Prop):
     return super().view([Sprite(
       image=coffin.image,
       pos=(0, -24),
-      offset=16,
       layer="elems"
     )], *args, **kwargs)

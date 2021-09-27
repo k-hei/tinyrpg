@@ -268,7 +268,7 @@ class Stage:
           continue
         if neighbor not in open_set or not open_set[neighbor]:
           open_set[neighbor] = True
-          open_cells.append(neighbor)
+          open_cells.insert(0, neighbor)
         if neighbor in g and g[cell] + 1 >= g[neighbor]:
           continue
         parent[neighbor] = cell

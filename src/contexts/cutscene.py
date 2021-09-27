@@ -30,8 +30,10 @@ class CutsceneContext(Context):
     ctx.script_idx += 1
     if ctx.script_idx == len(ctx.script):
       ctx.exit()
-    else:
+    elif ctx.script[ctx.script_idx]:
       ctx.script[ctx.script_idx](ctx.next)
+    else:
+      ctx.next()
 
   def enter(ctx):
     ctx.anim = EnterAnim(duration=15)

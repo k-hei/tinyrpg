@@ -16,11 +16,11 @@ class Skeleton(DungeonActor):
       name="Skeleton",
       faction="enemy",
       stats=Stats(
-        hp=16,
-        st=13,
+        hp=23,
+        st=16,
         dx=7,
         ag=5,
-        en=11,
+        en=12,
       ),
       skills=[ Club, ShieldBash ]
     ), *args, **kwargs)

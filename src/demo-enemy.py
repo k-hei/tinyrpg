@@ -11,7 +11,7 @@ if argc < 2:
 
 enemy_name = sys.argv[1]
 is_rare = argc == 3 and sys.argv[2] in ("--rare", "-r")
-savedata = load("src/data-debug.json", "testdata/data-arena.json")
+savedata = load("src/data-debug.json", "test/data-arena.json")
 savedata.dungeon["floors"][0]["elems"].append([[4, 3], enemy_name, *(is_rare and [{ "rare": True }] or []) ])
 
 App(title="{} demo".format(enemy_name.lower()),

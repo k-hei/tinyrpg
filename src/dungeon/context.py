@@ -852,9 +852,10 @@ class DungeonContext(Context):
     acted = False
     target_cell = (hero_x + delta_x, hero_y + delta_y)
     target_tile = floor.get_tile_at(target_cell)
-    target_elem = floor.get_elem_at(target_cell)
-    if isinstance(target_elem, Door) and not target_elem.solid:
-      target_elem = floor.get_elem_at(target_cell, exclude=[Door])
+    target_elem = (
+      next((e for e in floor.get_elems_at(target_cell) if e.solid), None)
+      or next((e for e in floor.get_elems_at(target_cell) if not isinstance(e, Door)), None)
+    )
 
     moved = False
     def on_move():

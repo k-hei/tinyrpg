@@ -31,13 +31,14 @@ from contexts import Context
 from contexts.dialogue import DialogueContext
 
 class DungeonActor(DungeonElement):
-  active = True
   POISON_DURATION = 5
   POISON_STRENGTH = 1 / 7
   FREEZE_DURATION = 7
   SLEEP_DURATION = 256
   INVULNERABLE_DURATION = 16
   COOLDOWN_DURATION = 1
+  active = True
+  solid = True
   skill = None
   drops = []
 
