@@ -1214,7 +1214,10 @@ class DungeonContext(Context):
     delta_x, delta_y = delta
     target_cell = (actor_x + delta_x, actor_y + delta_y)
     target_tile = game.floor.get_tile_at(target_cell)
-    target_elem = next((e for e in game.floor.get_elems_at(target_cell)), None)
+    target_elem = (
+      next((e for e in game.floor.get_elems_at(target_cell) if e.solid), None)
+      or next((e for e in game.floor.get_elems_at(target_cell) if not isinstance(e, Door)), None)
+    )
     facing_x = -1 if delta_x < 0 else 1 if delta_x > 0 else 0
     facing_y = -1 if delta_y < 0 else 1 if delta_y > 0 else 0
     actor.facing = (facing_x, facing_y)
