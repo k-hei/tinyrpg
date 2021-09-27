@@ -32,10 +32,10 @@ def get_room_bonus_cells(room, stage):
     is_floor(x, y)
     and not next((d for d in room_doorways if is_adjacent(d, (x, y))), None)
     and (
-      is_wall(x - 1, y - 1) and is_wall(x - 1, y) and is_wall(x, y - 1) and is_floor(x + 1, y + 1)
-      or is_wall(x + 1, y - 1) and is_wall(x + 1, y) and is_wall(x, y - 1) and is_floor(x - 1, y + 1)
-      or is_wall(x - 1, y + 1) and is_wall(x - 1, y) and is_wall(x, y + 1) and is_floor(x + 1, y - 1)
-      or is_wall(x + 1, y + 1) and is_wall(x + 1, y) and is_wall(x, y + 1) and is_floor(x - 1, y - 1)
+      is_wall(x - 1, y - 1) and is_wall(x - 1, y) and is_wall(x, y - 1) and not is_wall(x + 1, y + 1) and is_floor(x + 1, y + 1)
+      or is_wall(x + 1, y - 1) and is_wall(x + 1, y) and is_wall(x, y - 1) and not is_wall(x - 1, y + 1) and is_floor(x - 1, y + 1)
+      or is_wall(x - 1, y + 1) and is_wall(x - 1, y) and is_wall(x, y + 1) and not is_wall(x + 1, y - 1) and is_floor(x + 1, y - 1)
+      or is_wall(x + 1, y + 1) and is_wall(x + 1, y) and is_wall(x, y + 1) and not is_wall(x - 1, y - 1) and is_floor(x - 1, y - 1)
     )
   )]
   return bonus_cells

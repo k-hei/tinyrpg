@@ -66,7 +66,7 @@ class Floor1(Floor):
             degree=2
           )),
           intro_room := Room(cells=gen_blob(min_area=80, max_area=100), data=RoomData(
-            spawns_enemies=[Eyeball(), Eyeball()],
+            enemies=[Eyeball(), Eyeball()],
             degree=3,
             hooks={
               "on_enter": lambda room, game: "minxia" not in game.store.story and not has_weapon_equipped(game) and (
@@ -98,7 +98,7 @@ class Floor1(Floor):
           )),
           key_room := Room(data=RoomData(**rooms["key"])),
           secret_room := Room(cells=gen_blob(min_area=80, max_area=100), data=RoomData(
-            spawns_enemies=[Eyeball(rare=True), Eyeball(), Eyeball(), Eyeball(), Eyeball()],
+            enemies=[Eyeball(rare=True), Eyeball(), Eyeball(), Eyeball(), Eyeball()],
             items=True,
             degree=1,
             secret=True

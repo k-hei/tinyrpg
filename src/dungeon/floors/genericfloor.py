@@ -59,7 +59,7 @@ class GenericFloor(Floor):
           doors="TreasureDoor"
         ))] if randint(1, 3) == 1 else []),
       ],
-      extra_room_count=5 + randint(0, 1),
+      extra_room_count=4 + randint(0, 1),
       items=ITEM_SET,
       seed=seed
     )

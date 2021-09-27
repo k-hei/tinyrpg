@@ -25,6 +25,7 @@ from dungeon.props.secretdoor import SecretDoor
 from dungeon.props.vase import Vase
 from dungeon.props.chest import Chest
 from dungeon.props.arrowtrap import ArrowTrap
+from dungeon.props.table import Table
 
 from dungeon.actors.eyeball import Eyeball
 from dungeon.actors.mushroom import Mushroom
@@ -690,6 +691,18 @@ def gen_floor(
 
     # populate rooms
     for room in rooms:
+      table_length = randint(2, 3)
+      find_table_cells = lambda c: (
+        table_length == 2 and [c, add_vector(c, (1, 0))]
+        or table_length == 3 and [c, add_vector(c, (1, 0)), add_vector(c, (2, 0))]
+      )
+      table_cell = next((c for c in sorted(room.cells, key=lambda c: random.random()) if (
+        not next((n for t in find_table_cells(c) for n in neighborhood(t, diagonals=True) if (
+          not stage.is_cell_empty(n) or stage.get_tile_at(n) is not stage.FLOOR
+        )), None)
+      )), None)
+      if table_cell and randint(0, 1):
+        stage.spawn_elem_at(table_cell, Table(length=table_length))
       if room.data and not room.data.items:
         continue
       if room.data and type(room.data.items) is list:
@@ -703,14 +716,14 @@ def gen_floor(
       gen_elems(stage, room, elems=room_items)
 
     for i, room in enumerate(rooms):
-      if room.data and not room.data.spawns_enemies:
+      if room.data and not room.data.enemies:
         continue
-      if room.data and type(room.data.spawns_enemies) is list:
-        elems = room.data.spawns_enemies
+      if room.data and type(room.data.enemies) is list:
+        elems = room.data.enemies
         for enemy in elems:
           if randint(1, 3) == 1:
             enemy.inflict_ailment("sleep")
-      if not room.data or type(room.data.spawns_enemies) is bool:
+      if not room.data or type(room.data.enemies) is bool:
         elems = [choice(enemies)(
           ailment=("sleep" if randint(1, 3) == 1 else None)
         ) for _ in range(min(5, room.get_area() // 20))]

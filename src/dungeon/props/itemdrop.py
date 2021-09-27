@@ -8,6 +8,7 @@ class ItemDrop(Prop):
   ThrownAnim = OffsetMoveAnim
 
   def __init__(drop, contents):
+    super().__init__()
     drop.item = contents
     drop.obtained = False
 

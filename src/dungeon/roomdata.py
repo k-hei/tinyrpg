@@ -48,7 +48,7 @@ class RoomData:
   terrain: bool = None                                      # default: use tiles var
   elems: list[list] = field(default_factory=lambda: [])     # default: no elements
   items: bool = False                                # default: no vases spawn
-  spawns_enemies: bool = False                              # default: no enemies spawn
+  enemies: bool = False                              # default: no enemies spawn
   edges: list[list] = field(default_factory=lambda: [])     # default: all edges
   doors: str = "Door"                                       # default: standard door
   secret: bool = False                                      # default: arbitrary (could use ternary?)

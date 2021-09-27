@@ -16,7 +16,7 @@ class DebugFloor(Floor):
           entry_room := Room(data=RoomData(**rooms["entry"])),
           puzzle_room := Room(data=RoomData(**rooms["pzlt1"])),
           intro_room := Room(cells=gen_blob(min_area=80, max_area=100), data=RoomData(
-            spawns_enemies=[Eyeball(), Eyeball()],
+            enemies=[Eyeball(), Eyeball()],
             degree=3
           )),
           key_room := Room(data=RoomData(**rooms["key"])),

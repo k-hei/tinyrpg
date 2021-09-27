@@ -10,14 +10,15 @@ from anims.pause import PauseAnim
 from anims.flicker import FlickerAnim
 
 class Vase(Prop):
+  solid = True
   active = True
 
   class OpenAnim(FrameAnim):
     frames = assets.sprites["vase_opening"]
     frames_duration = 5
 
-  def __init__(vase, contents=None, opened=False, *args, **kwargs):
-    super().__init__(*args, **kwargs)
+  def __init__(vase, contents=None, opened=False):
+    super().__init__()
     vase.contents = contents
     vase.opened = opened
     vase.anims = []
