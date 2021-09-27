@@ -152,22 +152,18 @@ def cutscene(room, game):
       ]), on_close=step),
     ),
     lambda step: (
-      print(mage.cell, room.edges[0], game.floor.pathfind(
-        start=mage.cell,
-        goal=room.edges[0],
-        whitelist=room.cells + room.edges
-      )),
+      goal_cell := sorted(room.edges, key=lambda e: e[1])[0],
       game.anims.clear(),
       game.anims.append([PathAnim(
         target=mage,
         period=RUN_DURATION,
         path=game.floor.pathfind(
           start=mage.cell,
-          goal=room.edges[0],
+          goal=goal_cell,
           whitelist=room.cells + room.edges
         ),
         on_end=lambda: (
-          mage.move_to(room.edges[0]),
+          mage.move_to(goal_cell),
           step()
         )
       )])
@@ -212,22 +208,18 @@ def cutscene(room, game):
       ]), on_close=step)
     ),
     lambda step: (
-      path := game.floor.pathfind(
-        start=hero.cell,
-        goal=room.edges[0],
-        whitelist=room.cells + room.edges
-      )[:-1],
+      goal_cell := vector.add(sorted(room.edges, key=lambda e: e[1])[0], (0, 1)),
       game.anims.clear(),
       game.anims.append([PathAnim(
         target=hero,
         period=RUN_DURATION,
-        path=path,
+        path=game.floor.pathfind(start=hero.cell, goal=goal_cell),
         on_end=step
       ), PauseAnim(
         duration=45,
         on_end=lambda: room.lock(game)
       )]),
-      hero.move_to(path[-1]),
+      hero.move_to(goal_cell),
     ),
     lambda step: (
       setattr(hero, "facing", (0, -1)),
