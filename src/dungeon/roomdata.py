@@ -45,13 +45,13 @@ def resolve_tile(char):
 class RoomData:
   size: tuple[int, int] = None                              # default: generated size
   tiles: list[int] = field(default_factory=lambda: [])      # default: generated shape
-  terrain: bool = None                                      # default: use tiles var
+  terrain: bool = None                                      # default: true when tiles var is false
   elems: list[list] = field(default_factory=lambda: [])     # default: no elements
-  items: bool = False                                # default: no vases spawn
-  enemies: bool = False                              # default: no enemies spawn
+  items: bool = False                                       # default: no vases spawn
+  enemies: bool = False                                     # default: no enemies spawn
   edges: list[list] = field(default_factory=lambda: [])     # default: all edges
-  doors: str = "Door"                                       # default: standard door
-  secret: bool = False                                      # default: arbitrary (could use ternary?)
+  doors: str = "Door"                                       # default: generic door
+  secret: bool = None                                       # default: arbitrary secrecy
   degree: int = 0                                           # default: arbitrary degree
   hooks: dict[str, str] = field(default_factory=lambda: {}) # default: no hooks
 

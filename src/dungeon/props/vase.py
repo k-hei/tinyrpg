@@ -35,13 +35,15 @@ class Vase(Prop):
     if vase.opened:
       return None
     item = vase.open(game)
-    drop = ItemDrop(item)
-    game.floor.spawn_elem_at(vase.cell, drop)
+    drop = None
+    if item:
+      drop = ItemDrop(item)
+      game.floor.spawn_elem_at(vase.cell, drop)
     not game.anims and game.anims.append([])
-    game.anims[0] += [
+    game.anims[0] = [
       Vase.OpenAnim(target=vase),
-      JumpAnim(target=drop, duration=20)
-    ]
+      *([JumpAnim(target=drop, duration=20)] if drop else [])
+    ] + game.anims[0]
     vase.anims = [
       PauseAnim(duration=30),
       FlickerAnim(

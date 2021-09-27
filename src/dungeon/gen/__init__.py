@@ -32,25 +32,8 @@ from dungeon.actors.mushroom import Mushroom
 from dungeon.actors.ghost import Ghost
 from dungeon.actors.mummy import Mummy
 
-from items.ailment.amethyst import Amethyst
-from items.ailment.antidote import Antidote
-from items.ailment.booze import Booze
-from items.ailment.lovepotion import LovePotion
-from items.ailment.musicbox import MusicBox
-from items.ailment.topaz import Topaz
-from items.dungeon.balloon import Balloon
-from items.dungeon.emerald import Emerald
+from items.sets import NORMAL_ITEMS, SPECIAL_ITEMS
 from items.dungeon.key import Key
-from items.hp.ankh import Ankh
-from items.hp.elixir import Elixir
-from items.hp.potion import Potion
-from items.hp.ruby import Ruby
-from items.sp.berry import Berry
-from items.sp.bread import Bread
-from items.sp.cheese import Cheese
-from items.sp.fish import Fish
-from items.sp.sapphire import Sapphire
-from skills.weapon.longinus import Longinus
 
 from resolve.elem import resolve_elem
 from resolve.hook import resolve_hook
@@ -59,25 +42,6 @@ load_rooms()
 
 MIN_ROOM_COUNT = 7
 MAX_ROOM_COUNT = MIN_ROOM_COUNT + 0
-ALL_ITEMS = [
-  Amethyst,
-  Antidote, Antidote,
-  Booze,
-  LovePotion,
-  MusicBox,
-  Topaz,
-  Balloon,
-  Emerald,
-  Ankh,
-  Elixir,
-  Potion, Potion,
-  Ruby,
-  Berry,
-  Bread, Bread,
-  Cheese, Cheese,
-  Fish, Fish,
-  Sapphire
-]
 
 def gen_rooms(count, init=None):
   rooms = init or []
@@ -126,11 +90,11 @@ def place_rooms(rooms, force_connect=False):
           neighbor_connectors = {
             n: cs for n, cs in [
               (n, [
-                c for c in set(n.connectors) & set(room.connectors) if not next(
-                  (t for t in total_connectors if t in neighborhood(c, inclusive=True, diagonals=True)),
-                  None
+                c for c in set(n.connectors) & set(room.connectors) if (
+                  not next((t for t in total_connectors if t in neighborhood(c, inclusive=True, diagonals=True)), None)
                 )
-              ]) for n in graph.nodes if not n.degree or graph.degree(n) < n.degree
+              ]) for n in graph.nodes
+                if not n.degree or graph.degree(n) < n.degree
             ] if cs
           }
           if neighbor_connectors:
@@ -185,8 +149,9 @@ def find_chunks(graph):
     chunks.append(chunk)
   return chunks
 
-def gen_place(graph, parent, child):
-  graph_hitbox = {c for n in graph.nodes for c in n.cells}
+def gen_place(graph, parent, child, sibling=None):
+  graph_blob = Room(cells=[c for n in graph.nodes for c in n.cells])
+  used_connectors = [c for cs in graph.conns.values() for c in cs]
   init_origin = child.origin
   origins = [
     subtract_vector(c1, subtract_vector(c2, child.origin))
@@ -195,43 +160,64 @@ def gen_place(graph, parent, child):
         and c2 in child.connector_deltas
         and parent.connector_deltas[c1] != child.connector_deltas[c2])
   ]
-  # shuffle(origins)
+  sibling and print("INFO: Connecting with sibling")
+  shuffle(origins)
   for origin in origins:
     child.origin = origin
-    if child.hitbox & graph_hitbox:
+    if child.hitbox & graph_blob.hitbox:
       continue
-    connectors = list(set(parent.connectors) & set(child.connectors))
-    used_connectors = [c for cs in graph.conns.values() for c in cs]
-    connector = next((c for c in connectors if not next((n for n in neighborhood(c, diagonals=True, inclusive=True) if n in used_connectors), None)), None)
-    if not connector:
-      continue
-    child not in graph.nodes and graph.add(child)
-    graph.connect(parent, child, connector)
-    return connector
+    if sibling:
+      neighbor_connectors = {
+        n: cs for n, cs in [
+          (n, [
+            c for c in set(n.connectors) & set(child.connectors)
+              if not next((n for n in neighborhood(c, inclusive=True, diagonals=True) if n in used_connectors), None)
+          ]) for n in graph.nodes
+            if not n.degree or graph.degree(n) < n.degree
+        ] if cs
+      }
+      if neighbor_connectors and (len(neighbor_connectors) >= 2 or len(graph.nodes) < 2):
+        for neighbor, connectors in neighbor_connectors.items():
+          graph.add(child)
+          graph.connect(child, neighbor, *connectors)
+        return [c for cs in neighbor_connectors.values() for c in cs]
+    else:
+      connectors = list(set(parent.connectors) & set(child.connectors))
+      connector = next((c for c in connectors if not next((n for n in neighborhood(c, diagonals=True, inclusive=True) if n in used_connectors), None)), None)
+      if not connector:
+        continue
+      child not in graph.nodes and graph.add(child)
+      graph.connect(parent, child, connector)
+      return connector
   child.origin = init_origin
   return None
 
 def gen_joint_connect(feature_graph):
-  graph = None
-  rooms = feature_graph.nodes
-  rooms.sort(key=lambda r: r.get_area(), reverse=True)
-  place_gen = place_rooms(rooms) # , force_connect=True)
-  while graph is not False:
-    try:
-      graph, _ = next(place_gen)
-      yield graph
-    except StopIteration:
-      break
+  start = feature_graph.edges[0][0] if feature_graph.edges else sorted(feature_graph.nodes, key=feature_graph.degree)[-1]
+  graph = FloorGraph(nodes=[start])
+  stack = [start]
+  while stack:
+    node = stack.pop(0)
+    for neighbor in feature_graph.neighbors(node):
+      neighbor_neighbors = feature_graph.neighbors(neighbor)
+      siblings = set(neighbor_neighbors) & set(graph.nodes)
+      if neighbor in graph.nodes:
+        continue
+      sibling = next((n for n in neighbor_neighbors if n is not node), None) if len(siblings) >= 2 else None
+      connector = gen_place(graph, parent=node, child=neighbor, sibling=sibling)
+      if connector:
+        stack.append(neighbor)
+        yield graph
+      else:
+        print("Connection failed", node.data, neighbor.data)
+        yield False
+        return
 
 def gen_connect(feature_graph):
-  parent = feature_graph.edges[0][0] if feature_graph.edges else sorted(feature_graph.nodes, key=feature_graph.degree)[-1]
-  floor_graph = FloorGraph(nodes=[parent])
-  if feature_graph.order() == 1:
-    yield floor_graph
-    return
   if len(feature_graph.edges) >= len(feature_graph.nodes):
     print(f"Joint connect with {len(feature_graph.nodes)} nodes")
     connect_gen = gen_joint_connect(feature_graph)
+    floor_graph = None
     while floor_graph is not False:
       try:
         floor_graph = next(connect_gen)
@@ -240,7 +226,13 @@ def gen_connect(feature_graph):
         break
     return
 
-  stack = [parent]
+  start = feature_graph.edges[0][0] if feature_graph.edges else sorted(feature_graph.nodes, key=feature_graph.degree)[-1]
+  floor_graph = FloorGraph(nodes=[start])
+  if feature_graph.order() == 1:
+    yield floor_graph
+    return
+
+  stack = [start]
   while stack:
     node = stack.pop(0)
     for neighbor in feature_graph.neighbors(node):
@@ -388,7 +380,7 @@ def gen_loops(tree, graph):
 def gen_floor(
   features=[],
   enemies=[Eyeball, Mushroom, Ghost, Mummy],
-  items=[Potion, Cheese, Bread, Fish, Antidote, MusicBox, LovePotion, Booze],
+  items=NORMAL_ITEMS,
   extra_room_count=0,
   seed=None,
   debug=False
@@ -657,15 +649,12 @@ def gen_floor(
     for room in plain_rooms:
       island_centers = gen_terrain(stage, room, graph)
       if island_centers:
-        # if room in secrets:
-        #   stage.spawn_elem_at(choice(island_centers), Chest(Elixir))
-        # else:
         for cell in island_centers:
           island_rooms[cell] = room
       else:
         break
 
-    if not island_centers:
+    if island_rooms and not island_centers:
       yield stage, "Failed to draw terrain"
       continue
 
@@ -709,7 +698,7 @@ def gen_floor(
         room_items = [Vase(contents=i) for i in room.data.items]
       elif room in secrets:
         item_count = min(8, room.get_area() // 16)
-        room_items = [Vase(contents=choice(ALL_ITEMS)) for _ in range(item_count)]
+        room_items = [Vase(contents=choice(SPECIAL_ITEMS)) for _ in range(item_count)]
       else:
         item_count = max(1, min(3, room.get_area() // 24))
         room_items = [Vase(contents=choice(items)) for _ in range(item_count)]
@@ -726,7 +715,7 @@ def gen_floor(
       if not room.data or type(room.data.enemies) is bool:
         elems = [choice(enemies)(
           ailment=("sleep" if randint(1, 3) == 1 else None)
-        ) for _ in range(min(5, room.get_area() // 20))]
+        ) for _ in range(min(5, room.get_area() // 16))]
       enemies_spawned = gen_elems(stage, room, elems)
 
     for room in rooms:

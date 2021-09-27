@@ -6,44 +6,7 @@ from dungeon.room import Blob as Room
 from dungeon.roomdata import RoomData, rooms
 from dungeon.gen import gen_floor
 from dungeon.gen.blob import gen_blob
-
-from items.ailment.amethyst import Amethyst
-from items.ailment.antidote import Antidote
-from items.ailment.booze import Booze
-from items.ailment.lovepotion import LovePotion
-from items.ailment.musicbox import MusicBox
-from items.ailment.topaz import Topaz
-from items.dungeon.balloon import Balloon
-from items.dungeon.emerald import Emerald
-from items.hp.ankh import Ankh
-from items.hp.elixir import Elixir
-from items.hp.potion import Potion
-from items.hp.ruby import Ruby
-from items.sp.berry import Berry
-from items.sp.bread import Bread
-from items.sp.cheese import Cheese
-from items.sp.fish import Fish
-from items.sp.sapphire import Sapphire
-
-ITEM_SET = [
-  Amethyst,
-  Antidote, Antidote,
-  Booze,
-  LovePotion,
-  MusicBox,
-  Topaz,
-  Balloon,
-  Emerald,
-  Ankh,
-  Elixir,
-  Potion, Potion,
-  Ruby,
-  Berry,
-  Bread, Bread,
-  Cheese, Cheese,
-  Fish, Fish,
-  Sapphire
-]
+from items.sets import SPECIAL_ITEMS
 
 class GenericFloor(Floor):
   def generate(store=None, seed=None):
@@ -55,11 +18,11 @@ class GenericFloor(Floor):
         *([Room(cells=gen_blob(min_area=60), data=RoomData(
           terrain=False,
           degree=1,
-          items=[choice(ITEM_SET) for i in range(randint(3, 5))],
+          items=[choice(SPECIAL_ITEMS) for i in range(randint(3, 5))],
           doors="TreasureDoor"
         ))] if randint(1, 3) == 1 else []),
       ],
       extra_room_count=4 + randint(0, 1),
-      items=ITEM_SET,
+      items=SPECIAL_ITEMS,
       seed=seed
     )
