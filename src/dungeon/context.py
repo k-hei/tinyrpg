@@ -2025,6 +2025,7 @@ class DungeonContext(Context):
         Floor = DungeonContext.FLOORS[gen_index + direction]
       else:
         Floor = GenericFloor
+      print(Floor)
       app = game.get_head()
       app.transition(
         transits=(DissolveIn(), DissolveOut()),

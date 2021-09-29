@@ -290,7 +290,7 @@ class DataContext(Context):
     if ctx.child:
       return ctx.child.handle_press(button)
 
-    if keyboard.get_pressed(button) > 1 and gamepad.get_state(button):
+    if keyboard.get_pressed(button) > 1 or gamepad.get_state(button) > 1:
       return
 
     if button in (pygame.K_UP, pygame.K_w, gamepad.UP):
