@@ -23,9 +23,7 @@ def trigger_cutscene(room, game):
   mage_struggle = sequence_mage_struggle(room, game)
   mage_spin = sequence_mage_spin(room, game)
   mage_bump = sequence_mage_bump(room, game)
-  if not config.CUTSCENES:
-    game.floor.remove_elem(mage)
-    room.mage = None
+  if "minxia" in game.store.story or not config.CUTSCENES:
     return
   game.open(CutsceneContext([
     lambda step: (

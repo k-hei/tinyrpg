@@ -28,6 +28,13 @@
   "elems": [
     [[11, 6], "Altar", { "on_action": "shrine.collapse" }],
     [[11, 8], "Mage", { "facing": [0, -1] }],
+    [[16, 8], "Column"],
+    [[12, 2], "Column"],
+    [[6, 6], "Column"],
+    [[9, 17], "Column"],
+    [[13, 17], "Column"],
+    [[9, 19], "Column"],
+    [[13, 19], "Column"],
     [[9, 10], "Pillar"],
     [[13, 10], "Pillar"],
     [[14, 9], "Pillar"],
@@ -37,14 +44,7 @@
     [[9, 4], "Pillar"],
     [[8, 5], "Pillar"],
     [[8, 7], "Pillar"],
-    [[8, 9], "Pillar"],
-    [[6, 6], "Column"],
-    [[16, 8], "Column"],
-    [[12, 2], "Column"],
-    [[9, 17], "Column"],
-    [[13, 17], "Column"],
-    [[9, 19], "Column"],
-    [[13, 19], "Column"]
+    [[8, 9], "Pillar"]
   ],
   "hooks": {
     "on_enter": "shrine.enter",
