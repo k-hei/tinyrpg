@@ -16,8 +16,12 @@
     2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2
   ],
   "elems": [
-    [[9, 6], "RareChest", { "contents": "Emerald" }]
+    [[9, 6], "RareChest", { "contents": "Emerald" }],
+    [[8, 4], "Genie", { "name": "Joshin" }]
   ],
   "edges": [[9, 13]],
-  "degree": 1
+  "degree": 1,
+  "hooks": {
+    "on_enter": "emerald.enter"
+  }
 }
