@@ -15,7 +15,7 @@ class Floor3(Floor):
         nodes=[
           mageboss_room := Room(data=RoomData(**rooms["mageboss"])),
           emerald_room := Room(data=RoomData(**rooms["emerald"])),
-          buffer_room := Room(cells=gen_blob(min_area=60, max_area=100), data=RoomData(items=True)),
+          hall_room := Room(data=RoomData(**rooms["hall"])),
           entry_room := Room(cells=gen_blob(min_area=60), data=RoomData(
             secret=True,
             terrain=False,
@@ -42,9 +42,9 @@ class Floor3(Floor):
         ],
         edges=[
           (emerald_room, mageboss_room),
-          (mageboss_room, buffer_room),
+          (mageboss_room, hall_room),
+          (hall_room, entry_room),
         ]
       ),
-      extra_room_count=4,
       seed=seed
     )

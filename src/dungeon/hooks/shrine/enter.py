@@ -22,7 +22,12 @@ def on_enter(room, game):
 
   game.open(CutsceneContext(script=[
     lambda step: (
-      game.camera.focus(vector.add(altar.cell, (0, 1)), force=True, tween=True),
+      game.camera.focus(
+        cell=vector.add(altar.cell, (0, 1)),
+        force=True,
+        tween=True,
+        speed=1,
+      ),
       step()
     ),
     *(mage_struggle * 2),
