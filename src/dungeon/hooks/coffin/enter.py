@@ -276,7 +276,7 @@ def take_battle_position(room, game):
       )]),
       hero.move_to(goal_cell),
       game.camera.focus(
-        cell=hero.cell,
+        cell=vector.add(hero.cell, (0, -0.5)),
         speed=75 if mage else 60,
         tween=bool(mage),
         on_end=step
@@ -299,5 +299,5 @@ def spawn_enemies(room, game):
       e for c in room.cells
         for e in game.floor.get_elems_at(c)
           if isinstance(e, Coffin)
-    ]) if i in (0, 3, 4)
+    ]) if i == 0 # in (0, 3, 4)
   ]

@@ -19,11 +19,11 @@
   "elems": [
     [[4, 0], "Mage", { "facing": [0, -1] }],
     [[1, 1], "Coffin"],
-    [[5, 1], "Coffin"],
-    [[1, 3], "Coffin"],
+    [[5, 1], "Coffin", { "contents": "Buckler" }],
+    [[1, 3], "Coffin", { "contents": "Diamond" }],
     [[5, 3], "Coffin"],
-    [[1, 5], "Coffin"],
-    [[5, 5], "Coffin"],
+    [[1, 5], "Coffin", { "contents": "Beetle" }],
+    [[5, 5], "Coffin", { "contents": "Potion" }],
     [[2, 0], "VCoffin"],
     [[4, 0], "VCoffin"]
   ],
