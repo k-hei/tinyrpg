@@ -33,6 +33,8 @@ def manifest_stage(rooms, dry=False, seed=None):
   return stage, stage_offset
 
 def manifest_stage_from_room(room):
+  if type(room) is dict:
+    room = RoomData(**room)
   if type(room) is RoomData:
     room = Room(data=room)
 

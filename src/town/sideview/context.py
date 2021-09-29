@@ -288,9 +288,9 @@ class SideViewContext(Context):
       npc_sprite = next((s for s in sprites if s.target is npc), None)
       if npc_sprite:
         npc_x, npc_y = npc_sprite.pos
-        bubble_image = assets.sprites["bubble_talk"]
-        bubble_x = npc_x + TILE_SIZE * 0.25
-        bubble_y = npc_y - TILE_SIZE * 0.75
+        bubble_image = assets.sprites["bubble_talk"][0]
+        bubble_x = npc_x + TILE_SIZE * 0.5
+        bubble_y = npc_y - TILE_SIZE * 1.25
         sprites.append(Sprite(
           image=bubble_image,
           pos=(bubble_x, bubble_y),

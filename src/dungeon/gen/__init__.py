@@ -11,7 +11,6 @@ from config import FPS
 
 from dungeon.floors import Floor
 from dungeon.room import Blob as Room
-from dungeon.roomdata import load_rooms
 from dungeon.gen.terrain import gen_terrain
 from dungeon.gen.elems import gen_elems
 from dungeon.gen.blob import gen_blob
@@ -37,8 +36,6 @@ from items.dungeon.key import Key
 
 from resolve.elem import resolve_elem
 from resolve.hook import resolve_hook
-
-load_rooms()
 
 MIN_ROOM_COUNT = 7
 MAX_ROOM_COUNT = MIN_ROOM_COUNT + 0

@@ -15,6 +15,7 @@ from dungeon.features.room import Room
 from dungeon.features.altarroom import AltarRoom
 from dungeon.gen.manifest import manifest_stage_from_room
 from dungeon.decoder import decode_floor
+from dungeon.roomdata import load_rooms, rooms
 from town.context import TownContext
 from cores.knight import Knight
 from cores.mage import Mage
@@ -27,6 +28,7 @@ from game.data import GameData
 from savedata.resolve import resolve_item, resolve_skill, resolve_elem
 from transits.dissolve import DissolveOut
 
+load_rooms()
 gamepad.config(preset=controls.TYPE_A)
 
 class GameContext(Context):
@@ -129,7 +131,7 @@ class GameContext(Context):
       ctx.open(dungeon)
     else:
       app = ctx.get_head()
-      stage = manifest_stage_from_room(room=assets.rooms["shrine"])
+      stage = manifest_stage_from_room(room=rooms["shrine"])
       ctx.goto_dungeon(floors=[stage]),
       not app.transits and app.transition([DissolveOut()])
 
