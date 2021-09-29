@@ -26,7 +26,7 @@
     "                                 "
   ],
   "elems": [
-    [[11, 7], "Altar", { "on_action": "shrine.collapse" }],
+    [[11, 6], "Altar", { "on_action": "shrine.collapse" }],
     [[11, 8], "Mage", { "facing": [0, -1] }],
     [[9, 10], "Pillar"],
     [[13, 10], "Pillar"],

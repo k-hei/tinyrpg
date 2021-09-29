@@ -1,4 +1,4 @@
-from lib.cell import add as add_vector
+import lib.vector as vector
 from contexts.cutscene import CutsceneContext
 from anims.fall import FallAnim
 from anims.pause import PauseAnim
@@ -17,7 +17,7 @@ def on_collapse(room, game):
   game.open(CutsceneContext(script=[
     lambda step: (
       game.camera.focus(
-        cell=altar.cell,
+        cell=vector.add(altar.cell, (0, 0.5)),
         tween=True,
         speed=30,
         on_end=lambda: (
@@ -26,10 +26,10 @@ def on_collapse(room, game):
       )
     ),
     *[(lambda cell: lambda step: (
-      floor.set_tile_at(add_vector(altar.cell, cell), floor.PIT),
+      floor.set_tile_at(vector.add(altar.cell, cell), floor.PIT),
       game.redraw_tiles(force=True),
       game.anims.append([PauseAnim(duration=5, on_end=step)]),
-    ))(c) for c in [(-1, -2), (0, -2), (1, -2), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1)]],
+    ))(c) for c in [(-1, -1), (0, -1), (1, -1), (1, -0), (1, 1), (1, 2), (0, 2), (-1, 2), (-1, 1), (-1, 0)]],
     lambda step: game.anims.append([PauseAnim(duration=30, on_end=step)]),
     lambda step: (
       game.anims.extend([
@@ -79,7 +79,7 @@ def on_collapse(room, game):
       ])
     ),
     lambda step: (
-      game.follow_link("GenericFloor", on_end=step)
+      game.follow_link("Floor1", on_end=step)
     )
   ]))
   return True

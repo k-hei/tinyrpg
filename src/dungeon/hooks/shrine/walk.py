@@ -10,9 +10,10 @@ from anims.attack import AttackAnim
 from anims.jump import JumpAnim
 from anims.shake import ShakeAnim
 from anims.pause import PauseAnim
+import config
 
 def on_walk(room, game, cell):
-  if cell == vector.add(room.altar.cell, (0, 3)):
+  if cell == vector.add(room.altar.cell, (0, 4)):
     trigger_cutscene(room, game)
 
 def trigger_cutscene(room, game):
@@ -22,6 +23,10 @@ def trigger_cutscene(room, game):
   mage_struggle = sequence_mage_struggle(room, game)
   mage_spin = sequence_mage_spin(room, game)
   mage_bump = sequence_mage_bump(room, game)
+  if not config.CUTSCENES:
+    game.floor.remove_elem(mage)
+    room.mage = None
+    return
   game.open(CutsceneContext([
     lambda step: (
       game.anims.append([PauseAnim(duration=30, on_end=step)]),
@@ -29,7 +34,7 @@ def trigger_cutscene(room, game):
     ),
     lambda step: (
       game.camera.focus(
-        cell=altar.cell,
+        cell=vector.add(altar.cell, (0, 1.5)),
         force=True,
         tween=True,
         speed=60,
@@ -42,20 +47,14 @@ def trigger_cutscene(room, game):
       (mage.name, "to open this darn thing..."),
       (mage.name, "somewhere!"),
       lambda: stop_sequence(mage_struggle),
-      lambda: setattr(mage, "cell", vector.add(altar.cell, (-1, -1))),
+      lambda: setattr(mage, "cell", vector.add(altar.cell, (-1, 0))),
       lambda: setattr(mage, "facing", (1, 0)),
-      lambda: game.camera.focus(
-        cell=vector.add(altar.cell, (0, 1)),
-        force=True,
-        tween=True,
-        speed=60
-      ),
       lambda: game.anims.append([
         ShakeAnim(target=mage, duration=30),
         MoveAnim(
           target=hero,
           src=hero.cell,
-          dest=(hero_dest := vector.add(altar.cell, (0, 1))),
+          dest=(hero_dest := vector.add(altar.cell, (0, 2))),
           on_end=lambda: setattr(hero, "cell", hero_dest)
         )
       ]),
@@ -81,20 +80,9 @@ def trigger_cutscene(room, game):
       lambda: mage.core.anims.clear(),
       lambda: game.anims.append([JumpAnim(target=mage)]),
       lambda: game.anims.extend([
-        [PauseAnim(duration=30)],
         [PauseAnim(duration=30, on_end=lambda: setattr(mage, "facing", (1, 0)))],
-        [AttackAnim(
-          target=mage,
-          src=mage.cell,
-          dest=vector.add(mage.cell, (1, 0))
-        )],
-        [AttackAnim(
-          target=mage,
-          src=mage.cell,
-          dest=vector.add(mage.cell, (1, 0))
-        )]
+        [PauseAnim(duration=30, on_end=lambda: play_sequence(mage_bump))]
       ]),
-      lambda: play_sequence(mage_bump),
       (mage.name, "Hey, stickwad, I'm just looking for a place to hide from those cretins outside!"),
       (mage.name, "Just let me crawl in this box and be on your damn way!"),
       lambda: stop_sequence(mage_bump),

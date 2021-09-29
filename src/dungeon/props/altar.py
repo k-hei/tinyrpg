@@ -1,10 +1,11 @@
 from dungeon.element import DungeonElement
+from resolve.hook import resolve_hook
 import assets
-from filters import replace_color
-from colors.palette import WHITE, BLACK, GOLD, VIOLET
 from sprite import Sprite
 from anims.frame import FrameAnim
-from resolve.hook import resolve_hook
+from filters import replace_color
+from colors.palette import WHITE, BLACK, GOLD, VIOLET
+from config import TILE_SIZE
 
 class Altar(DungeonElement):
   solid = True
@@ -12,7 +13,7 @@ class Altar(DungeonElement):
   active = True
 
   def __init__(altar, on_action=None, *args, **kwargs):
-    super().__init__(static=True, *args, **kwargs)
+    super().__init__(static=True, size=(1, 2), *args, **kwargs)
     altar.on_action = on_action
     altar.opened = False
 
@@ -30,6 +31,8 @@ class Altar(DungeonElement):
     altar_image = replace_color(altar_image, WHITE, GOLD)
     altar_sprite = Sprite(
       image=replace_color(altar_image, WHITE, GOLD),
+      pos=(0, TILE_SIZE),
+      offset=-TILE_SIZE,
       layer="elems"
     )
     return super().view([altar_sprite], anims)

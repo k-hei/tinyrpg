@@ -7,7 +7,7 @@ def sequence_mage_struggle(room, game):
   mage = room.mage
   return [
     lambda step: (
-      setattr(mage, "cell", vector.add(altar.cell, (0, 1))),
+      setattr(mage, "cell", vector.add(altar.cell, (0, 2))),
       setattr(mage, "facing", (0, -1)),
       game.anims.append([
         JumpAnim(target=mage),
@@ -15,7 +15,7 @@ def sequence_mage_struggle(room, game):
       ])
     ),
     lambda step: (
-      setattr(mage, "cell", vector.add(altar.cell, (1, 0))),
+      setattr(mage, "cell", vector.add(altar.cell, (1, 1))),
       setattr(mage, "facing", (-1, 0)),
       game.anims.append([
         JumpAnim(target=mage),
@@ -23,7 +23,7 @@ def sequence_mage_struggle(room, game):
       ])
     ),
     lambda step: (
-      setattr(mage, "cell", vector.add(altar.cell, (-1, -1))),
+      setattr(mage, "cell", vector.add(altar.cell, (-1, 0))),
       setattr(mage, "facing", (1, 0)),
       game.anims.append([
         JumpAnim(target=mage),

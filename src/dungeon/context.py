@@ -1067,7 +1067,7 @@ class DungeonContext(Context):
     if hero.ailment == "freeze":
       game.handle_struggle(actor=hero)
     target_cell = add_vector(hero.cell, hero.facing)
-    target_actor = game.floor.get_elem_at(target_cell, superclass=DungeonActor)
+    target_actor = next((e for e in game.floor.get_elems_at(target_cell) if isinstance(e, DungeonActor)), None)
     if target_actor and not hero.allied(target_actor):
       if not hero.weapon:
         hero.weapon = hero.find_weapon()
@@ -1075,8 +1075,8 @@ class DungeonContext(Context):
         game.store.sp -= hero.weapon.cost
         return game.attack(hero, target_actor, on_end=game.step)
       return False
-    target_elem = game.floor.get_elem_at(target_cell)
-    if not target_elem or not target_elem.active:
+    target_elem = next((e for e in game.floor.get_elems_at(target_cell) if e.active), None)
+    if not target_elem:
       return False
     if game.talkbubble:
       game.talkbubble.hide()
