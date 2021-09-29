@@ -23,6 +23,11 @@ class Mage(BipedCore):
     frames_duration = 30
     loop = True
 
+  class ThinkAnim(FrameAnim):
+    frames = [assets.sprites["mage_sleep"][0]]
+    frames_duration = 1
+    loop = True
+
   class CastAnim(FrameAnim):
     frames = assets.sprites["mage_cast"]
     frames_duration = 10

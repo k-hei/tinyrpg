@@ -27,6 +27,7 @@
   ],
   "elems": [
     [[11, 7], "Altar", { "on_action": "shrine.collapse" }],
+    [[11, 8], "Mage", { "facing": [0, -1] }],
     [[9, 10], "Pillar"],
     [[13, 10], "Pillar"],
     [[14, 9], "Pillar"],
@@ -44,5 +45,9 @@
     [[13, 17], "Column"],
     [[9, 19], "Column"],
     [[13, 19], "Column"]
-  ]
+  ],
+  "hooks": {
+    "on_enter": "shrine.enter",
+    "on_walk": "shrine.walk"
+  }
 }

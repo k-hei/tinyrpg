@@ -51,7 +51,7 @@ def cutscene(room, game):
         lambda: game.anims.append([ShakeAnim(target=mage, duration=15)]),
         (hero.name.upper(), "You sure like running, don't you?"),
         lambda: game.anims.append([JumpAnim(target=mage)]),
-        (mage.name.upper(), "Eep!"),
+        (mage.name.upper(), "Ack!"),
       ]), on_close=step)
     ),
     lambda step: (

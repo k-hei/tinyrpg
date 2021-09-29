@@ -165,39 +165,37 @@ class Blob(Room):
       and not pushtile
     )
 
+  def trigger_hook(room, hook, *args, **kwargs):
+    hook_id = hook
+    if room.data and hook_id in room.data.hooks:
+      hook = room.data.hooks[hook_id]
+      not hook and debug.log(f"Failed to resolve \"{hook_id}\" hook \"{hook}\"")
+      return hook and hook(room, *args, **kwargs)
+    else:
+      return False
+
   def on_place(room, stage):
     room.lock_special_doors(stage)
-    if room.data and "on_place" in room.data.hooks:
-      on_place = room.data.hooks["on_place"]
-      not on_place and debug.log("Failed to resolve \"on_place\" hook \"{}\"".format(room.data.hooks["on_place"]))
-      return on_place and on_place(room, stage)
+    return room.trigger_hook("on_place", stage)
 
   def on_focus(room, *args, **kwargs):
     if not super().on_focus(*args, **kwargs):
       return False
-    if room.data and "on_focus" in room.data.hooks:
-      on_focus = room.data.hooks["on_focus"]
-      not on_focus and debug.log("Failed to resolve \"on_focus\" hook \"{}\"".format(room.data.hooks["on_focus"]))
-      return on_focus and on_focus(room, *args, **kwargs)
-    else:
-      return False
+    return room.trigger_hook("on_focus", *args, **kwargs)
 
   def on_enter(room, *args, **kwargs):
     if not super().on_enter(*args, **kwargs):
       return False
-    if room.data and "on_enter" in room.data.hooks:
-      on_enter = room.data.hooks["on_enter"]
-      not on_enter and debug.log("Failed to resolve \"on_enter\" hook \"{}\"".format(room.data.hooks["on_enter"]))
-      return on_enter and on_enter(room, *args, **kwargs)
-    else:
-      return False
+    return room.trigger_hook("on_enter", *args, **kwargs)
+
+  def on_walk(room, *args, **kwargs):
+    return room.trigger_hook("on_walk", *args, **kwargs)
 
   def on_defeat(room, game, actor):
     if room.should_unlock(game.floor):
       room.unlock(game)
-    if room.data and "on_defeat" in room.data.hooks:
-      on_defeat = room.data.hooks["on_defeat"]
-      not on_defeat and debug.log("Failed to resolve \"on_defeat\" hook \"{}\"".format(room.data.hooks["on_defeat"]))
-      return on_defeat and on_defeat(room, game, actor)
+    result = room.trigger_hook("on_defeat", game, actor)
+    if result:
+      return result
     else:
       return super().on_defeat(game, actor)

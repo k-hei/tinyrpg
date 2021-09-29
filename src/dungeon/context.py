@@ -102,6 +102,7 @@ from contexts.skill import SkillContext
 from contexts.dialogue import DialogueContext
 from contexts.prompt import PromptContext, Choice
 from contexts.gameover import GameOverContext
+from contexts.cutscene import CutsceneContext
 
 from dungeon.floors.floor1 import Floor1
 from dungeon.floors.floor2 import Floor2
@@ -245,7 +246,7 @@ class DungeonContext(Context):
       hero.core = game.store.party[0]
     else:
       hero = game.hero
-      hero.facing = (1, 0)
+      hero.facing = (0, 1)
       floor.spawn_elem_at(direction == 1 and floor.entrance or floor.exit, hero)
 
       ally = game.ally
@@ -268,7 +269,8 @@ class DungeonContext(Context):
     game.camera.reset()
     game.camera.update(game)
     game.refresh_fov(moving=True)
-    game.camera.reset()
+    if not game.child:
+      game.camera.reset()
     game.time = 0
 
   def create_floor(game):
@@ -370,7 +372,6 @@ class DungeonContext(Context):
     if door is not None:
       return
 
-    debug.bench("post-refresh")
     hero = game.hero
     camera = game.camera
     nearby_enemies = [e for e in game.floor.elems if (
@@ -387,15 +388,15 @@ class DungeonContext(Context):
       mid_x = (hero_x + enemy_x) / 2
       mid_y = (hero_y + enemy_y) / 2
       camera.focus((mid_x, mid_y), force=True)
-    else:
+    elif not game.child:
       camera.blur()
     game.update_bubble()
 
+    debug.bench("post-refresh redraw")
     if new_room:
       new_room.on_enter(game)
       game.redraw_tiles(force=True)
-
-    debug.bench("post-refresh", print_threshold=5)
+    debug.bench("post-refresh redraw", print_threshold=5)
 
   def darken(game, duration=inf):
     game.floor_view.darkened = True
@@ -911,6 +912,9 @@ class DungeonContext(Context):
       # deplete sp
       if target_tile is not Stage.OASIS:
         game.store.sp -= 1 / 100
+
+      if game.room:
+        game.room.on_walk(game, cell=hero.cell)
 
     moved = game.move(actor=hero, delta=delta, run=run, on_end=on_move)
     if hero.facing != delta:
@@ -2199,7 +2203,7 @@ class DungeonContext(Context):
         game.show_bubble()
         game.update_bubble()
 
-    if game.time < LABEL_FRAMES and not game.child:
+    if game.time < LABEL_FRAMES and (not game.child or type(game.child) is CutsceneContext):
       label_image = assets.ttf["normal"].render("Dungeon {}F".format(game.get_floor_no()), WHITE)
       label_image = outline(label_image, BLACK)
       label_image = outline(label_image, WHITE)

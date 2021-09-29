@@ -16,7 +16,7 @@ class Altar(DungeonElement):
     altar.on_action = on_action
     altar.opened = False
 
-  def effect(altar, game):
+  def effect(altar, game, *_):
     if altar.opened:
       return False
     altar.opened = True
