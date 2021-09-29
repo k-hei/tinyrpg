@@ -677,18 +677,19 @@ def gen_floor(
 
     # populate rooms
     for room in rooms:
-      table_length = randint(2, 3)
-      find_table_cells = lambda c: (
-        table_length == 2 and [c, add_vector(c, (1, 0))]
-        or table_length == 3 and [c, add_vector(c, (1, 0)), add_vector(c, (2, 0))]
-      )
-      table_cell = next((c for c in sorted(room.cells, key=lambda c: random.random()) if (
-        not next((n for t in find_table_cells(c) for n in neighborhood(t, diagonals=True) if (
-          not stage.is_cell_empty(n) or stage.get_tile_at(n) is not stage.FLOOR
+      if not (room.data and room.data.tiles) and randint(0, 1):
+        table_length = randint(2, 3)
+        find_table_cells = lambda c: (
+          table_length == 2 and [c, add_vector(c, (1, 0))]
+          or table_length == 3 and [c, add_vector(c, (1, 0)), add_vector(c, (2, 0))]
+        )
+        table_cell = next((c for c in sorted(room.cells, key=lambda c: random.random()) if (
+          not next((n for t in find_table_cells(c) for n in neighborhood(t, diagonals=True) if (
+            not stage.is_cell_empty(n) or stage.get_tile_at(n) is not stage.FLOOR
+          )), None)
         )), None)
-      )), None)
-      if table_cell and randint(0, 1):
-        stage.spawn_elem_at(table_cell, Table(length=table_length))
+        if table_cell:
+          stage.spawn_elem_at(table_cell, Table(length=table_length))
       if room.data and not room.data.items:
         continue
       if room.data and type(room.data.items) is list:
