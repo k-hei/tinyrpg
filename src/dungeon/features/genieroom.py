@@ -10,11 +10,11 @@ from vfx.alertbubble import AlertBubble
 class GenieRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
     super().__init__(degree=2, shape=[
-      "###·###",
-      "  ·····",
-      "  ·····",
-      "  ·····",
-      "  .../·",
+      "###^###",
+      "  ^^^^^",
+      "  ^^^^^",
+      "  ^^^^^",
+      "  .../^",
       "  .....",
       "  .....",
     ], elems=[

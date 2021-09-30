@@ -21,9 +21,12 @@ def load_room(path, key):
   return room_data
 
 def load_rooms():
+  if rooms:
+    return False
   for f in listdir(ROOMS_PATH):
     room_id, _ = splitext(f)
     rooms[room_id.replace("-", "_")] = load_room(path=ROOMS_PATH, key=room_id)
+  return True
 
 def resolve_tile(char):
   if char == "#": return Stage.WALL
@@ -37,7 +40,7 @@ def resolve_tile(char):
   if char == "=": return Stage.LADDER
   if char == "O": return Stage.OASIS
   if char == "V": return Stage.OASIS_STAIRS
-  if char == "·": return Stage.FLOOR_ELEV
+  if char == "^": return Stage.FLOOR_ELEV
   if char == "E": return Stage.STAIRS_EXIT
   return Stage.PIT
 
@@ -70,6 +73,9 @@ class RoomData:
     width, height = roomdata.size
     for y in range(height):
       for x in range(width):
-        if roomdata.tiles[y * width + x] != 1:
+        i = y * width + x
+        if i >= len(roomdata.tiles):
+          continue
+        if roomdata.tiles[i] != 1:
           cells.append((x, y))
     return cells

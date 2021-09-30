@@ -8,11 +8,11 @@ from items.sp.fish import Fish
 class TrapRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):
     super().__init__(shape=[
-      "     .../··",
-      "      ...··",
-      ".....  ..··",
-      "..  .  ..··",
-      "..  .....··",
+      "     .../^^",
+      "      ...^^",
+      ".....  ..^^",
+      "..  .  ..^^",
+      "..  .....^^",
       "   ..  ....",
       "   ..      ",
     ], elems=[
