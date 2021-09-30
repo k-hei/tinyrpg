@@ -13,14 +13,16 @@ def on_enter(room, game):
     [Eyeball, Mushroom, Mushroom, Mummy],
   ]
   room.lock(game)
-  if not config.CUTSCENES:
-    return
   eyeballs = [e for c in room.cells for e in game.floor.get_elems_at(c) if isinstance(e, Eyeball)]
   eyeballs.sort(key=lambda e: (
     0 if e.rare
     else 1 if not e.ailment == "sleep"
     else 2
   ))
+  if not config.CUTSCENES:
+    for eyeball in eyeballs:
+      eyeball.aggro = 1
+    return
   game.open(CutsceneContext([
     lambda step: (
       setattr(eyeballs[0], "facing", (1, 0)),

@@ -1,7 +1,7 @@
 from dungeon.props.coffin import Coffin
 
 def on_defeat(room, game, actor):
-  if room.get_enemies(game.floor) or actor.faction != "enemy":
+  if [e for e in room.get_enemies(game.floor) if e is not actor] or actor.faction != "enemy":
     return True
 
   for cell in room.cells:
