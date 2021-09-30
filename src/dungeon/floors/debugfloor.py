@@ -1,65 +1,17 @@
-from random import randint, choice
 from lib.graph import Graph
 from dungeon.floors import Floor
 from dungeon.room import Blob as Room
 from dungeon.roomdata import RoomData, rooms
 from dungeon.gen import gen_floor
-from dungeon.gen.blob import gen_blob
-from dungeon.actors.skeleton import Skeleton
-from dungeon.actors.mummy import Mummy
-
-from items.sets import SPECIAL_ITEMS
 
 class DebugFloor(Floor):
   def generate(store=None, seed=None):
     return gen_floor(
-      features=Graph(
+      features=lambda: Graph(
         nodes=[
-          entry_room := Room(data=RoomData(**rooms["entry2f"])),
-          coffin_room := Room(data=RoomData(**rooms["coffin"])),
-          enemy_room1 := Room(cells=gen_blob(min_area=80), data=RoomData(enemies=True)),
-          enemy_room2 := Room(cells=gen_blob(min_area=80), data=RoomData(enemies=True)),
-          enemy_room3 := Room(cells=gen_blob(min_area=80), data=RoomData(enemies=True)),
-          enemy_room4 := Room(cells=gen_blob(min_area=120), data=RoomData(enemies=True, items=True, degree=3)),
-          exit_room := Room(data=RoomData(**{
-            **rooms["exit"],
-            "edges": [
-              [2, 5]
-            ]
-          })),
-          arena_room := Room(data=RoomData(**rooms["arena"])),
-          buffer_room := Room(cells=gen_blob(min_area=60), data=RoomData(
-            degree=2,
-            items=True
-          )),
-          Room(data=RoomData(**choice(rooms["oasis"]))),
-          Room(cells=gen_blob(min_area=60), data=RoomData(
-            terrain=False,
-            degree=1,
-            items=[choice(SPECIAL_ITEMS) for i in range(randint(3, 5))],
-            doors="TreasureDoor"
-          )),
-          Room(cells=gen_blob(min_area=60), data=RoomData(
-            terrain=False,
-            degree=1,
-            items=[choice(SPECIAL_ITEMS) for i in range(randint(3, 5))],
-            enemies=[Skeleton(), Mummy(), Mummy()],
-            secret=True
-          ))
-        ],
-        edges=[
-          (entry_room, coffin_room),
-          (coffin_room, enemy_room1),
-          (coffin_room, enemy_room2),
-          (coffin_room, enemy_room3),
-          (enemy_room2, enemy_room4),
-          (enemy_room4, enemy_room3),
-          (exit_room, arena_room),
-          (arena_room, buffer_room),
-          (buffer_room, enemy_room4),
+          entry_room := Room(data=RoomData(**rooms["entry1f"])),
+          puzzle_room := Room(data=RoomData(**rooms["pzlt1"]))
         ]
       ),
-      # extra_room_count=5, # 4 + randint(0, 2),
-      seed=seed,
-      debug=True
+      seed=seed
     )

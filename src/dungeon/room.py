@@ -1,7 +1,8 @@
 from random import choice
 from dungeon.features.room import Room
 from lib.bounds import find_bounds
-from lib.cell import neighborhood, manhattan, add as add_vector, subtract as subtract_vector
+from lib.cell import neighborhood, manhattan, subtract as subtract_vector
+import lib.vector as vector
 import debug
 
 class Blob(Room):
@@ -36,7 +37,7 @@ class Blob(Room):
 
   @property
   def cells(room):
-    return [add_vector(c, room.origin) for c in room._cells]
+    return [vector.add(c, room.origin) for c in room._cells]
 
   @property
   def border(room):
@@ -48,7 +49,7 @@ class Blob(Room):
       if room.data and callable(room.data.edges):
         room._edges = room.data.edges(room)
       elif room.data and room.data.edges:
-        room._edges = [add_vector(e, room.origin) for e in room.data.edges]
+        room._edges = [vector.add(e, room.origin) for e in room.data.edges]
       else:
         room_cells = room.cells
         room._edges = [e for e in room.border if len([n for n in neighborhood(e) if n in room_cells]) == 1 and room.find_connector(e)]
@@ -58,7 +59,7 @@ class Blob(Room):
     room_cells = room.cells
     neighbor = next((n for n in neighborhood(edge) if n in room_cells), None)
     delta_x, delta_y = subtract_vector(edge, neighbor)
-    connector = add_vector(edge, (delta_x * 2, delta_y * 2))
+    connector = vector.add(edge, (delta_x * 2, delta_y * 2))
     if next((n for n in neighborhood(connector, diagonals=True) if n in room_cells), None):
       return None
     else:
@@ -91,7 +92,7 @@ class Blob(Room):
       for cell in room.cells:
         visible_outline += (
           neighborhood(cell, diagonals=True)
-          + neighborhood(add_vector(cell, (0, -1)), diagonals=True)
+          + neighborhood(vector.add(cell, (0, -1)), diagonals=True)
         )
       room._visible_outline = set(visible_outline) - set(room.cells)
     return room._visible_outline
@@ -181,10 +182,17 @@ class Blob(Room):
     room.lock_special_doors(stage)
     return room.trigger_hook("on_place", stage)
 
-  def on_focus(room, *args, **kwargs):
-    if not super().on_focus(*args, **kwargs):
+  def on_focus(room, game):
+    pushblock = next((e for c in room.cells for e in game.floor.get_elems_at(c) if (
+      type(e).__name__ == "PushBlock"
+      and not e.static
+    )), None)
+    if pushblock and room.data:
+      pushblock_spawn = next((c for c, e in room.data.elems if e == "PushBlock"), None)
+      pushblock.cell = vector.add(room.origin, pushblock_spawn)
+    if not super().on_focus(game):
       return False
-    return room.trigger_hook("on_focus", *args, **kwargs)
+    return room.trigger_hook("on_focus", game)
 
   def on_enter(room, *args, **kwargs):
     if not super().on_enter(*args, **kwargs):
