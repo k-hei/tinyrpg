@@ -33,7 +33,7 @@ class Floor1(Floor):
     return gen_floor(
       features=lambda: Graph(
         nodes=[
-          entry_room := Room(data=RoomData(**rooms["trapbase"])),
+          entry_room := Room(data=RoomData(**rooms["entry1f"])),
           exit_room := Room(
             data=RoomData(**rooms["exit"],
             doors="RareTreasureDoor",

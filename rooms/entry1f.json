@@ -20,6 +20,7 @@
     [3, -1]
   ],
   "hooks": {
-    "on_place": "trapbase.place"
+    "on_place": "entry1f.place",
+    "on_focus": "entry1f.focus"
   }
 }

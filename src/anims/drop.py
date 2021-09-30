@@ -3,13 +3,13 @@ from config import WINDOW_HEIGHT, TILE_SIZE
 
 class DropAnim(Anim):
   GRAVITY = 0.2
-  BOUNCES = 5
 
-  def __init__(anim, y=(WINDOW_HEIGHT / 2 + TILE_SIZE * 2), *args, **kwargs):
+  def __init__(anim, y=(WINDOW_HEIGHT / 2 + TILE_SIZE * 2), bounces=5, *args, **kwargs):
     super().__init__(*args, **kwargs)
     anim.y = y
     anim.vel = 0
     anim.bounces = 0
+    anim.bounces_max = bounces or 1
 
   def update(anim):
     if anim.done:
@@ -27,6 +27,6 @@ class DropAnim(Anim):
     if anim.y <= 0:
       anim.y = 0
       anim.bounces += 1
-    if anim.bounces == DropAnim.BOUNCES:
+    if anim.bounces == anim.bounces_max:
       anim.end()
     return anim.y

@@ -11,6 +11,12 @@ def sequence_mage_bump(room, game):
         src=mage.cell,
         dest=vector.add(mage.cell, mage.facing)
       )],
-      [PauseAnim(duration=15, on_end=step)]
+      [PauseAnim(duration=10, on_end=step)],
+      [AttackAnim(
+        target=mage,
+        src=mage.cell,
+        dest=vector.add(mage.cell, mage.facing)
+      )],
+      [PauseAnim(duration=35, on_end=step)],
     ])
   ]
