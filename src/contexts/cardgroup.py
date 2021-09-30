@@ -97,7 +97,7 @@ class CardContext(Context):
     or ctx.chosen):
       return False
 
-    if keyboard.get_pressed(button) > 1 and gamepad.get_state(button) > 1:
+    if keyboard.get_pressed(button) > 1 or gamepad.get_state(button) > 1:
       return
 
     if button in (pygame.K_LEFT, pygame.K_a, gamepad.LEFT):
