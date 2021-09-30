@@ -1,4 +1,5 @@
 import pygame
+import debug
 
 inited = False
 timings = {}
@@ -30,6 +31,11 @@ mappings = [SELECT, L3, R3, START, UP, RIGHT, DOWN, LEFT, L2, R2, L1, R1, TRIANG
 def init():
   pygame.joystick.init()
 
+def init_gamepad(device_index):
+  if pygame.joystick.get_count():
+      gamepad = pygame.joystick.Joystick(device_index)
+      gamepad.init()
+
 def config(preset=None):
   global controls
   controls = preset
@@ -38,14 +44,16 @@ def handle_event(app, event):
   global inited
   if not inited:
     inited = True
-    if pygame.joystick.get_count():
-      gamepad = pygame.joystick.Joystick(0)
-      gamepad.init()
+    init_gamepad(0)
   if event.type == pygame.JOYBUTTONDOWN:
     handle_press(app, mappings[event.button])
     return True
   if event.type == pygame.JOYBUTTONUP:
     handle_release(app, mappings[event.button])
+    return True
+  if event.type == pygame.JOYDEVICEADDED:
+    pygame.joystick.init() # TODO: figure out why hotplugging is broken (related to duplicate code in app init)
+    init_gamepad(0)
     return True
   return False
 

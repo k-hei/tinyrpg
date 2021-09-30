@@ -255,7 +255,7 @@ class TopViewContext(Context):
         bubble_x, bubble_y = elem.get_rect().topright
         bubble_y -= TILE_SIZE // 4
         sprites.append(Sprite(
-          image=assets.sprites["bubble_talk"],
+          image=assets.sprites["bubble_talk"][0],
           pos=(bubble_x, bubble_y),
           origin=("left", "bottom"),
           layer="markers"
