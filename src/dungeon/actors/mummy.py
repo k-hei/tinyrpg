@@ -38,8 +38,9 @@ class Mummy(DungeonActor):
       delta_y = dist_y // abs(dist_y or 1)
       cell = (user_x + delta_x, user_y + delta_y)
       while (cell != dest
-      and not Tile.is_solid(game.floor.get_tile_at(cell))
-      and not [e for e in game.floor.get_elems_at(cell) if e.solid]):
+      and not (Tile.is_solid(game.floor.get_tile_at(cell)) and not game.floor.get_tile_at(cell) is game.floor.PIT)
+      and not next((e for e in game.floor.get_elems_at(cell) if e.solid), None)
+      ):
         x, y = cell
         cell = (x + delta_x, y + delta_y)
       dest = cell
