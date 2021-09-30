@@ -207,6 +207,7 @@ class DataContext(Context):
     ctx.cache_chars = {}
     ctx.anims = []
     ctx.time = 0
+    ctx.can_close = True
 
   def init_view(ctx):
     ctx.bg = Bg(WINDOW_SIZE)
@@ -276,6 +277,8 @@ class DataContext(Context):
     savedata.delete("src/data0{}.json".format(ctx.index))
 
   def handle_close(ctx):
+    if not ctx.can_close:
+      return False
     ctx.open(PromptContext("Return to the game?", [
       Choice("Yes", closing=True),
       Choice("No", default=True, closing=True)
