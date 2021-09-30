@@ -2,7 +2,7 @@ from dungeon.hooks.shrine.walk import on_walk as shrinewalk
 from dungeon.hooks.shrine.magestruggle import sequence_mage_struggle as shrinemagestruggle
 from dungeon.hooks.shrine.magespin import sequence_mage_spin as shrinemagespin
 from dungeon.hooks.shrine.magebump import sequence_mage_bump as shrinemagebump
-from dungeon.hooks.shrine.focus import on_enter as shrinefocus
+from dungeon.hooks.shrine.focus import on_focus as shrinefocus
 from dungeon.hooks.shrine.collapse import on_collapse as shrinecollapse
 from dungeon.hooks.oasis.place import on_place as oasisplace
 from dungeon.hooks.mageboss.focus import on_focus as magebossfocus
