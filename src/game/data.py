@@ -164,7 +164,6 @@ class GameData:
       "Mage": MAGE_BUILD,
       "Rogue": ROGUE_BUILD,
     }[core_id])
-    print(store.builds)
     if len(store.party) == 1:
       store.party.append(core)
     else:

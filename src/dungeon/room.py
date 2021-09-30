@@ -197,7 +197,7 @@ class Blob(Room):
   def on_defeat(room, game, actor):
     if room.resolve_hook("on_defeat"):
       result = room.trigger_hook("on_defeat", game, actor)
-      if result: return result
+      if result is not None: return result
     elif room.should_unlock(game.floor, actor):
       room.unlock(game)
       return True

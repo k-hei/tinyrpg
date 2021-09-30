@@ -1116,6 +1116,7 @@ class DungeonContext(Context):
   def recruit(game, actor):
     game.store.recruit(actor.core)
     game.ally = actor
+    game.parent.update_skills()
 
   def handle_skill(game):
     game.log.exit()
