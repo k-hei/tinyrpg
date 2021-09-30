@@ -157,8 +157,8 @@ class Blob(Room):
       if type(door).__name__ == "TreasureDoor":
         door.lock()
 
-  def should_unlock(room, stage):
-    enemies = room.get_enemies(stage)
+  def should_unlock(room, stage, actor=None):
+    enemies = [e for e in room.get_enemies(stage) if e is not actor]
     pushtile = next((e for c in room.get_cells() for e in stage.get_elems_at(c) if type(e).__name__ == "PushTile"), None)
     return (
       not enemies
@@ -197,9 +197,8 @@ class Blob(Room):
   def on_defeat(room, game, actor):
     if room.resolve_hook("on_defeat"):
       result = room.trigger_hook("on_defeat", game, actor)
-      if result:
-        return result
-      else:
-        return super().on_defeat(game, actor)
-    elif room.should_unlock(game.floor):
+      if result: return result
+    elif room.should_unlock(game.floor, actor):
       room.unlock(game)
+      return True
+    return super().on_defeat(game, actor)

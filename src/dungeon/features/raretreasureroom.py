@@ -35,7 +35,7 @@ class RareTreasureRoom(SpecialRoom):
     ], elems=[
       ((5, 0), VCoffin()),
       ((7, 0), VCoffin()),
-      ((6, 3), RareChest(contents=Virus, on_open=feature.spawn_enemies)),
+      ((6, 3), RareChest(contents=Virus, on_action=feature.spawn_enemies)),
       ((4, 1), Pillar()),
       ((8, 1), Pillar()),
       ((4, 5), Pillar()),

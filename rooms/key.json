@@ -9,7 +9,7 @@
     "#.....#"
   ],
   "elems": [
-    [[3, 1], "RareChest", { "contents": "Key" }],
+    [[3, 1], "RareChest", { "contents": "Key", "on_action": "key.spawnghost" }],
     [[2, 3], "Pillar"],
     [[4, 3], "Pillar"],
     [[2, 5], "Pillar"],

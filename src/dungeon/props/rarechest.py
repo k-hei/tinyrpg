@@ -18,11 +18,11 @@ class RareChest(Prop):
   active = True
   static = True
 
-  def __init__(chest, contents=None, opened=False, on_open=None):
+  def __init__(chest, contents=None, opened=False, on_action=None):
     super().__init__()
     chest.contents = contents
     chest.opened = opened
-    chest.on_open = on_open
+    chest.on_action = on_action
 
   def encode(chest):
     [cell, kind, *props] = super().encode()
@@ -84,7 +84,7 @@ class RareChest(Prop):
               ]
             ]),
             lambda step: (
-              chest.on_open(game, on_end=step) if chest.on_open else step()
+              chest.on_action(game.room, game, on_end=step) if chest.on_action else step()
             )
           ]
         ))
