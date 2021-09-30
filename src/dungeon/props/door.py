@@ -93,13 +93,13 @@ class Door(Prop):
     door.active = True
 
   def handle_close(door, game):
+    door.close()
     if door.opened:
-      door.close()
       not game.anims and game.anims.append([])
       game.anims[0].append(DoorCloseAnim(
+        target=door,
         duration=30,
         frames=list(reversed(door.sprites.opening_frames)),
-        target=door
       ))
     return True
 

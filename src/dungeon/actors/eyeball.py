@@ -111,10 +111,11 @@ class Eyeball(DungeonActor):
         )])
       return user.cell
 
-  def __init__(eyeball, name="Eyeball", faction="enemy", rare=False, clones=0, cloned=False, *args, **kwargs):
+  def __init__(eyeball, name="Eyeball", faction="enemy", facing=(0, 1), rare=False, clones=0, cloned=False, *args, **kwargs):
     super().__init__(Core(
       name=name,
       faction=faction,
+      facing=facing,
       stats=Stats(
         hp=17,
         st=12,

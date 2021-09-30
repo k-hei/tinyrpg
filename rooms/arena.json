@@ -26,8 +26,15 @@
     [[0, 0], "Vase"],
     [[12, 0], "Vase", { "contents": "Potion" }],
     [[0, 12], "Vase", { "contents": "Antidote" }],
-    [[12, 12], "Vase"]
+    [[12, 12], "Vase"],
+    [[4, 5], "Eyeball", { "facing": [1, 0], "rare": true } ],
+    [[7, 4], "Eyeball", { "facing": [0, 1], "ailment": "sleep" } ],
+    [[8, 7], "Eyeball", { "facing": [0, -1] }]
   ],
   "doors": "BattleDoor",
-  "degree": 2
+  "degree": 2,
+  "hooks": {
+    "on_enter": "arena.enter",
+    "on_defeat": "arena.defeat"
+  }
 }

@@ -304,15 +304,16 @@ class DungeonContext(Context):
 
     debug.bench("calculate new room")
     if moving and not path_anim:
-      focused_room = next((r for r in floor.rooms if hero.cell in (room_cellmap[r] + r.get_border())), None)
-      if focused_room is not game.room:
+      room_focused = next((r for r in floor.rooms if hero.cell in (room_cellmap[r] + r.get_border())), None)
+      if room_focused is not game.room:
+        room_focused and room_focused.on_focus(game)
+        game.room = new_room = room_focused
         game.oasis_used = False
-        new_room = focused_room
-        if new_room:
-          new_room.on_focus(game)
-        if game.room:
-          game.room.on_focus(game)
-        game.room = new_room
+
+      room_entered = next((r for r in floor.rooms if hero.cell in room_cellmap[r]), None)
+      if room_entered is not game.room_within:
+        room_entered and room_entered.on_enter(game)
+        game.room_within = room_entered
 
       if new_room and new_room not in game.room_entrances:
         already_illuminated_once_this_floor = next((r for r in game.floor.rooms if r in game.room_entrances), None)
@@ -394,7 +395,6 @@ class DungeonContext(Context):
 
     debug.bench("post-refresh redraw")
     if new_room:
-      new_room.on_enter(game)
       game.redraw_tiles(force=True)
     debug.bench("post-refresh redraw", print_threshold=5)
 
@@ -1517,8 +1517,6 @@ class DungeonContext(Context):
           game.floor.spawn_elem_at(target.cell, Bag(contents=drop))
       if target in game.floor.elems:
         game.floor.elems.remove(target)
-      if game.room:
-        game.room.on_defeat(game, target)
       if target is hero:
         game.anims[0].append(PauseAnim(
           duration=DungeonContext.PAUSE_DEATH_DURATION,
@@ -1893,7 +1891,7 @@ class DungeonContext(Context):
     else:
       target_cell = skill.effect(actor, dest, game, on_end=lambda: (
         on_end() if on_end else (
-          camera.blur(),
+          not game.child and camera.blur(),
           actor is game.hero and game.step(),
           game.refresh_fov()
         )

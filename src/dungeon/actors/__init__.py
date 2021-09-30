@@ -20,6 +20,7 @@ from anims.flicker import FlickerAnim
 from anims.bounce import BounceAnim
 from anims.frame import FrameAnim
 from anims.drop import DropAnim
+from anims.warpin import WarpInAnim
 from lib.cell import is_adjacent, manhattan, add as add_vector
 from lib.lerp import lerp
 from comps.log import Token
@@ -434,6 +435,7 @@ class DungeonActor(DungeonElement):
       if isinstance(anim, FrameAnim):
         sprite.image = anim.frame()
 
+    warpin_anim = next((a for a in anim_group if type(a) is WarpInAnim), None)
     drop_anim = next((a for a in anim_group if type(a) is DropAnim), None)
     move_anim = next((a for a in anim_group if isinstance(a, MoveAnim)), None)
     move_offset = actor.find_move_offset(anims)
@@ -478,7 +480,7 @@ class DungeonActor(DungeonElement):
       sprites += bubble_sprites
 
     # aggro icon
-    if actor.aggro in (1, 2) and actor.faction == "enemy" and not actor.ailment == "freeze":
+    if actor.aggro in (1, 2) and actor.faction == "enemy" and not actor.ailment == "freeze" and not warpin_anim:
       marker_image = assets.sprites["aggro_mark"]
       marker_image = replace_color(marker_image, BLACK, RED)
       marker_sprite = Sprite(

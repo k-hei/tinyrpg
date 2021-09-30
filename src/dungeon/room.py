@@ -165,6 +165,9 @@ class Blob(Room):
       and not pushtile
     )
 
+  def resolve_hook(room, hook):
+    return room.data and hook in room.data.hooks and room.data.hooks[hook]
+
   def trigger_hook(room, hook, *args, **kwargs):
     hook_id = hook
     if room.data and hook_id in room.data.hooks:
@@ -192,10 +195,11 @@ class Blob(Room):
     return room.trigger_hook("on_walk", *args, **kwargs)
 
   def on_defeat(room, game, actor):
-    if room.should_unlock(game.floor):
+    if room.resolve_hook("on_defeat"):
+      result = room.trigger_hook("on_defeat", game, actor)
+      if result:
+        return result
+      else:
+        return super().on_defeat(game, actor)
+    elif room.should_unlock(game.floor):
       room.unlock(game)
-    result = room.trigger_hook("on_defeat", game, actor)
-    if result:
-      return result
-    else:
-      return super().on_defeat(game, actor)
