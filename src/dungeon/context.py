@@ -284,7 +284,7 @@ class DungeonContext(Context):
     floor.set_tile_at(cell, tile)
     floor_view.redraw_tile(floor, cell, game.get_visited_cells())
 
-  def refresh_fov(game, moving=False):
+  def refresh_fov(game, moving=False, switching=False):
     if game.floor is None:
       return
 
@@ -303,7 +303,7 @@ class DungeonContext(Context):
     is_cell_not_unvisited = lambda c: not next((r for r in game.floor.rooms if c in room_cellmap[r] and r not in game.room_entrances), None)
 
     debug.bench("calculate new room")
-    if moving and not path_anim:
+    if (moving or switching) and not path_anim:
       room_focused = next((r for r in floor.rooms if hero.cell in (room_cellmap[r] + r.get_border())), None)
       if room_focused is not game.room:
         room_focused and room_focused.on_focus(game)
@@ -367,7 +367,7 @@ class DungeonContext(Context):
       debug.bench("calculate visible cells", print_threshold=5)
 
     debug.bench("update_visited_cells")
-    if not game.room or new_room or game.lights:
+    if not game.room or new_room or game.lights or switching:
       hero.visible_cells = visible_cells
       game.update_visited_cells(visible_cells)
     debug.bench("update_visited_cells", print_threshold=5)
@@ -1107,7 +1107,7 @@ class DungeonContext(Context):
     game.hero, game.ally = game.ally, game.hero
     game.store.switch_chars()
     game.party.reverse()
-    game.refresh_fov(moving=True)
+    game.refresh_fov(switching=True)
     return True
 
   def handle_switch(game):
