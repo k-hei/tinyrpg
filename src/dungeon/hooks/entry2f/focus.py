@@ -1,0 +1,85 @@
+import lib.vector as vector
+from contexts.cutscene import CutsceneContext
+from dungeon.actors.mage import Mage
+from anims.pause import PauseAnim
+from anims.path import PathAnim
+from anims.attack import AttackAnim
+from config import MOVE_DURATION
+
+def on_focus(room, game):
+  mage = next((e for c in room.cells for e in game.floor.get_elems_at(c) if type(e) is Mage))
+  door = room.get_doors(game.floor)[0]
+  game.open(CutsceneContext([
+    lambda step: (
+      setattr(mage, "facing", (-1, 0)),
+      game.camera.focus(
+        cell=mage.cell,
+        force=True,
+        tween=True,
+        speed=1,
+      ),
+      game.anims.append([PauseAnim(duration=30, on_end=step)])
+    ),
+    lambda step: (
+      setattr(mage, "facing", (1, 0)),
+      game.anims.append([PauseAnim(duration=30, on_end=step)])
+    ),
+    lambda step: (
+      setattr(mage, "facing", (0, -1)),
+      game.anims.append([PauseAnim(duration=10, on_end=step)])
+    ),
+    lambda step: (
+      setattr(mage, "facing", (-1, 0)),
+      game.anims.append([PauseAnim(duration=30, on_end=step)])
+    ),
+    lambda step: (
+      setattr(mage, "facing", (0, -1)),
+      game.anims.append([PauseAnim(duration=15, on_end=step)])
+    ),
+    lambda step: (
+      game.anims.append([
+        PathAnim(
+          target=mage,
+          path=game.floor.pathfind(
+            start=mage.cell,
+            goal=(goal_cell := vector.add(door.cell, (0, 1)))
+          ),
+          on_end=lambda: (
+            setattr(mage, "cell", goal_cell),
+            step()
+          )
+        )
+      ])
+    ),
+    lambda step: (
+      game.anims.extend([
+        [PauseAnim(duration=5)],
+        [AttackAnim(
+          target=mage,
+          src=mage.cell,
+          dest=vector.add(mage.cell, mage.facing),
+          on_connect=lambda: door.handle_open(game)
+        )],
+        [PauseAnim(duration=5)],
+        [PathAnim(
+          target=mage,
+          path=(path := [
+            mage.cell,
+            vector.add(mage.cell, (0, -1)),
+            vector.add(mage.cell, (0, -2)),
+          ]),
+          on_end=lambda: (
+            setattr(mage, "cell", path[-1]),
+            door.handle_close(game, lock=None),
+            game.floor.remove_elem(mage),
+            step()
+          )
+        )]
+      ])
+    ),
+    lambda step: (
+      game.camera.blur(),
+      setattr(game.hero, "facing", (0, -1)),
+      step()
+    )
+  ]))

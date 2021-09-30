@@ -15,7 +15,7 @@ class DebugFloor(Floor):
     return gen_floor(
       features=Graph(
         nodes=[
-          entry_room := Room(data=RoomData(**rooms["2f_entry"])),
+          entry_room := Room(data=RoomData(**rooms["entry2f"])),
           coffin_room := Room(data=RoomData(**rooms["coffin"])),
           enemy_room1 := Room(cells=gen_blob(min_area=80), data=RoomData(enemies=True)),
           enemy_room2 := Room(cells=gen_blob(min_area=80), data=RoomData(enemies=True)),

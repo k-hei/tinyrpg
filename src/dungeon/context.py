@@ -356,7 +356,9 @@ class DungeonContext(Context):
         neighborhood(c, inclusive=True, diagonals=True)
         + neighborhood(add_vector(c, (0, -1)), inclusive=True, diagonals=True)
       ) if game.floor.get_tile_at(n) is Stage.WALL or game.floor.get_tile_at(n) is Stage.HALLWAY]))
-    elif not game.camera.anims and not next((a for g in game.anims for a in g if type(a) is StageView.FadeAnim), None):
+    elif (not next((a for g in game.anims for a in g if type(a) is StageView.FadeAnim), None)
+      and (not game.camera.anims or new_room)
+    ):
       debug.bench("calculate visible cells")
       if game.room:
         visible_cells = room_cellmap[game.room] + game.room.get_outline()

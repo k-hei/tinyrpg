@@ -47,7 +47,7 @@
     [[8, 9], "Pillar"]
   ],
   "hooks": {
-    "on_enter": "shrine.enter",
+    "on_focus": "shrine.focus",
     "on_walk": "shrine.walk"
   }
 }

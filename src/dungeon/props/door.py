@@ -86,14 +86,14 @@ class Door(Prop):
     game.anims[0].append(anim)
     return True
 
-  def close(door):
+  def close(door, lock=True):
     door.solid = True
     door.opened = False
-    door.locked = True
+    door.locked = lock
     door.active = True
 
-  def handle_close(door, game):
-    door.close()
+  def handle_close(door, game, lock=True):
+    door.close(lock=lock)
     if door.opened:
       not game.anims and game.anims.append([])
       game.anims[0].append(DoorCloseAnim(
