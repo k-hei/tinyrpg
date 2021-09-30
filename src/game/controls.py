@@ -1,22 +1,23 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import lib.gamepad as gamepad
 
 @dataclass
 class ControlPreset:
-  confirm: str
-  cancel: str
-  manage: str
-  action: str
-  run: str
-  turn: str
-  throw: list[str]
-  wait: list[str]
-  ally: str
-  skill: str
-  item: str
-  equip: str
-  minimap: str
+  confirm: str = ""
+  cancel: str = ""
+  manage: str = ""
+  action: str = ""
+  run: str = ""
+  turn: str = ""
+  throw: list[str] = field(default_factory=lambda: [])
+  wait: list[str] = field(default_factory=lambda: [])
+  ally: str = ""
+  skill: str = ""
+  item: str = ""
+  equip: str = ""
+  minimap: str = ""
 
+TYPE_NULL = ControlPreset()
 TYPE_A = ControlPreset(
   confirm=gamepad.CIRCLE,
   cancel=gamepad.CROSS,

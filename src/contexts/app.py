@@ -8,6 +8,7 @@ from pygame.transform import scale
 from pygame.time import get_ticks
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
+import game.controls as controls
 import assets
 from contexts import Context
 from contexts.loading import LoadingContext
@@ -17,6 +18,8 @@ from config import (
   WINDOW_SIZE, WINDOW_SCALE_INIT, WINDOW_SCALE_MAX,
   ASSETS_PATH
 )
+
+gamepad.config(preset=controls.TYPE_NULL)
 
 class App(Context):
   def __init__(app, size=WINDOW_SIZE, title="Untitled", context=None):
