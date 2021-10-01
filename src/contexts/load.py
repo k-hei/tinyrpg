@@ -1,6 +1,9 @@
+import pygame
+import lib.keyboard as keyboard
 from contexts.data import DataContext
 from contexts.dialogue import DialogueContext
 from contexts.prompt import PromptContext, Choice
+from contexts.controls import ControlsContext
 from transits.dissolve import DissolveIn, DissolveOut
 from game.data import GameData
 
@@ -15,6 +18,16 @@ class LoadContext(DataContext):
     ctx.anims[-1].on_end = lambda: ctx.open(
       DialogueContext(script=["Please select a file to load."], lite=True)
     )
+
+  def handle_press(ctx, button):
+    if super().handle_press(button):
+      return
+
+    if not ctx.can_close and button == pygame.K_ESCAPE and keyboard.get_pressed(button) == 1:
+      ctx.handle_controls()
+
+  def handle_controls(ctx):
+    ctx.hide(on_end=lambda: ctx.open(ControlsContext(), on_close=ctx.show))
 
   def handle_action(ctx):
     savedata = ctx.slots[ctx.index].data

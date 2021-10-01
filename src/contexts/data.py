@@ -15,7 +15,7 @@ from colors.palette import BLACK, WHITE, GOLD, BLUE, GOLD
 from filters import recolor, replace_color, darken_image, outline, shadow_lite as shadow
 from text import render as render_text
 from anims.tween import TweenAnim
-from easing.expo import ease_out
+from easing.expo import ease_in, ease_out
 from lib.lerp import lerp
 import savedata
 import lib.keyboard as keyboard
@@ -51,7 +51,12 @@ def get_char_spacing(old_char, new_char):
 
 class EnterAnim(TweenAnim): pass
 class ExitAnim(TweenAnim): pass
-class TitleEnterAnim(TweenAnim): pass
+class TitleAnim(TweenAnim): pass
+class TitleEnterAnim(TitleAnim): pass
+class TitleExitAnim(TitleAnim): pass
+class TitleBgAnim(TweenAnim): pass
+class TitleBgEnterAnim(TitleBgAnim): pass
+class TitleBgExitAnim(TitleBgAnim): pass
 
 class Slot:
   ICON_X = 12
@@ -210,6 +215,7 @@ class DataContext(Context):
     ctx.anims = []
     ctx.time = 0
     ctx.can_close = True
+    ctx.hidden = False
 
   def init_view(ctx):
     ctx.bg = Bg(WINDOW_SIZE)
@@ -230,16 +236,39 @@ class DataContext(Context):
 
   def enter(ctx):
     ctx.anims.append(EnterAnim(duration=20, target=ctx))
-    ctx.anims.append(EnterAnim(duration=20, target="TitleBg"))
+    ctx.enter_title()
+    ctx.enter_slots()
+
+  def enter_title(ctx):
+    ctx.anims.append(TitleBgEnterAnim(duration=20))
     for i, char in enumerate(ctx.TITLE):
       ctx.anims.append(TitleEnterAnim(
         duration=7,
         delay=i * 2,
         target=i
       ))
+
+  def exit_title(ctx):
+    ctx.anims.append(TitleBgExitAnim(duration=10, delay=15))
+    for i, char in enumerate(ctx.TITLE):
+      ctx.anims.append(TitleExitAnim(
+        duration=7,
+        delay=i * 2,
+        target=i
+      ))
+
+  def enter_slots(ctx):
     for i, slot in enumerate(ctx.slots):
       ctx.anims.append(EnterAnim(
         duration=30,
+        delay=i * 7,
+        target=slot
+      ))
+
+  def exit_slots(ctx):
+    for i, slot in enumerate(ctx.slots):
+      ctx.anims.append(ExitAnim(
+        duration=15,
         delay=i * 7,
         target=slot
       ))
@@ -250,6 +279,17 @@ class DataContext(Context):
       target=ctx,
       on_end=ctx.close
     ))
+
+  def hide(ctx, on_end=None):
+    ctx.hidden = True
+    ctx.exit_title()
+    ctx.exit_slots()
+    ctx.anims[-1].on_end = on_end
+
+  def show(ctx, on_end=False):
+    ctx.hidden = False
+    ctx.enter_title()
+    ctx.enter_slots()
 
   def handle_move(ctx, delta):
     old_index = ctx.index
@@ -280,7 +320,7 @@ class DataContext(Context):
 
   def handle_close(ctx):
     if not ctx.can_close:
-      return False
+      return None
     ctx.open(PromptContext("Return to the game?", [
       Choice("Yes", closing=True),
       Choice("No", default=True, closing=True)
@@ -310,6 +350,7 @@ class DataContext(Context):
       return ctx.handle_close()
 
   def update(ctx):
+    super().update()
     for anim in ctx.anims:
       if anim.done:
         ctx.anims.remove(anim)
@@ -338,36 +379,56 @@ class DataContext(Context):
       slot_anim = next((a for a in ctx.anims if a.target is slot), None)
       from_x = -slot_image.get_width()
       to_x = slot_x
-      if slot_anim:
+      if type(slot_anim) is EnterAnim:
         t = slot_anim.pos
         t = ease_out(t)
         x = lerp(from_x, to_x, t)
-      else:
+      elif type(slot_anim) is ExitAnim:
+        t = slot_anim.pos
+        t = ease_in(t)
+        x = lerp(to_x, from_x, t)
+      elif not ctx.hidden:
         x = to_x
-      if i != ctx.index:
-        slot_image = darken_image(slot_image)
-      surface_clip.blit(slot_image, (x, slot_y))
+      else:
+        x = None
+
+      if x is not None:
+        if i != ctx.index:
+          slot_image = darken_image(slot_image)
+        surface_clip.blit(slot_image, (x, slot_y))
+
       slot_y += slot_image.get_height() + ctx.SLOT_SPACING
 
-    titlebg_anim = next((a for a in ctx.anims if a.target == "TitleBg"), None)
+    titlebg_anim = next((a for a in ctx.anims if isinstance(a, TitleBgAnim)), None)
     titlebg_width = 168
-    if titlebg_anim:
+    if type(titlebg_anim) is TitleBgEnterAnim:
       titlebg_width *= ease_out(titlebg_anim.pos)
-    pygame.draw.rect(surface_clip, BLUE, Rect(0, 24, titlebg_width, 16))
+    elif type(titlebg_anim) is TitleBgExitAnim:
+      titlebg_width *= 1 - ease_in(titlebg_anim.pos)
+    elif ctx.hidden:
+      titlebg_width = 0
+    if titlebg_width:
+      pygame.draw.rect(surface_clip, BLUE, Rect(0, 24, titlebg_width, 16))
 
-    char_anims = [a for a in ctx.anims if type(a) is TitleEnterAnim]
+    char_anims = [a for a in ctx.anims if isinstance(a, TitleAnim)]
     x = 16
     for i, char in enumerate(ctx.TITLE):
       anim = next((a for a in char_anims if a.target == i), None)
       char_image = ctx.cache_chars[char]
       from_y = -char_image.get_height()
       to_y = 16
-      if anim:
+      if type(anim) is TitleEnterAnim:
         t = ease_out(anim.pos)
         y = lerp(from_y, to_y, t)
-      else:
+      elif type(anim) is TitleExitAnim:
+        t = ease_in(anim.pos)
+        y = lerp(to_y, from_y, t)
+      elif not ctx.hidden:
         y = to_y
-      surface_clip.blit(char_image, (x, y))
+      else:
+        y = None
+      if y is not None:
+        surface_clip.blit(char_image, (x, y))
       if i + 1 < len(ctx.TITLE):
         x += char_image.get_width() + get_char_spacing(char, ctx.TITLE[i + 1])
 

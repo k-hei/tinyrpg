@@ -49,9 +49,10 @@ CURSOR_BOUNCE_AMP = 2
 CURSOR_BOUNCE_PERIOD = 30
 CURSOR_SLIDE_DURATION = 4
 PADDING = 24
+PADDING_TOP = 0
 OPTIONS_X = WINDOW_WIDTH * 2 / 5
 CONTROL_OFFSET = 8
-CONTROLS_VISIBLE = (WINDOW_HEIGHT - PADDING * 2) // LINE_HEIGHT - 2
+CONTROLS_VISIBLE = (WINDOW_HEIGHT - PADDING * 2 - PADDING_TOP) // LINE_HEIGHT - 1
 PLUS_SPACING = 2
 BUFFER_FRAMES = 15
 CONTROL_SPACING = 8
@@ -59,6 +60,7 @@ CONTROL_SPACING = 8
 def is_valid_button(button):
   return type(button) in (str, list)
 
+class EnterAnim(Anim): blocking = True
 class CursorSlideAnim(TweenAnim): pass
 class CursorBounceAnim(SineAnim):
   period = CURSOR_BOUNCE_PERIOD
@@ -83,6 +85,9 @@ class ControlsContext(Context):
   @property
   def wait_timeout(ctx):
     return (5 - (get_ticks() - ctx.waiting) // 1000) if ctx.waiting else None
+
+  def enter(ctx):
+    ctx.anims.append(EnterAnim(duration=len(controls)))
 
   def close(ctx):
     super().close(ctx.preset)
@@ -132,6 +137,9 @@ class ControlsContext(Context):
 
     if button == pygame.K_BACKSPACE:
       return ctx.handle_reset()
+
+    if button == pygame.K_ESCAPE:
+      return ctx.handle_close()
 
   def handle_release(ctx, button):
     if button == pygame.K_TAB:
@@ -187,6 +195,7 @@ class ControlsContext(Context):
     ctx.button_combo = []
     for control in ctx.controls:
       control.enable()
+    return True
 
   def handle_config(ctx, button):
     ctx.handle_endconfig()
@@ -230,6 +239,15 @@ class ControlsContext(Context):
     ctx.scroll_index_drawn = 0
     ctx.cursor_index = 0
 
+  def handle_close(ctx):
+    ctx.open(PromptContext("Is this setup OK?", [
+      Choice("Yes"),
+      Choice("No", default=True)
+    ]), on_close=lambda choice: (
+      choice and choice.text == "Yes" and ctx.close()
+    ))
+    return True
+
   def update(ctx):
     super().update()
     ctx.scroll_index_drawn += (ctx.scroll_index - ctx.scroll_index_drawn) / 4
@@ -249,11 +267,19 @@ class ControlsContext(Context):
     sprites = []
 
     # controls
-    for i in range(ctx.scroll_index, min(len(controls), ctx.scroll_index + CONTROLS_VISIBLE + 1)):
+    max_scroll = min(len(controls), ctx.scroll_index + CONTROLS_VISIBLE + 1)
+
+    enter_anim = next((a for a in ctx.anims if type(a) is EnterAnim), None)
+    if enter_anim:
+      max_scroll = min(enter_anim.time, max_scroll)
+
+    for i in range(ctx.scroll_index, max_scroll):
       control_id, control_name = controls[i]
       is_control_selected = i == ctx.cursor_index and ctx.waiting
+      control_y = (i - ctx.scroll_index_drawn) * LINE_HEIGHT + PADDING + PADDING_TOP + font.height() / 2
+      if control_y < PADDING or control_y > WINDOW_HEIGHT - PADDING:
+        continue
       control_color = GOLD if is_control_selected else WHITE
-      control_y = (i - ctx.scroll_index_drawn) * LINE_HEIGHT + PADDING + font.height() / 2
       button = is_control_selected and ctx.button_combo or getattr(ctx.preset, control_id)
       button_image = (
         font.render(f"Waiting for input... ({ctx.wait_timeout})")
@@ -302,7 +328,7 @@ class ControlsContext(Context):
       cursor_x += cursor_bounce_anim.pos * CURSOR_BOUNCE_AMP
       cursor_y -= ctx.scroll_index_drawn
       cursor_y *= LINE_HEIGHT
-      cursor_y += PADDING + font.height() / 2
+      cursor_y += PADDING + PADDING_TOP + font.height() / 2
       cursor_image = flip(assets.sprites["hand"], True, False)
       sprites.append(Sprite(
         image=cursor_image,
@@ -321,6 +347,10 @@ class ControlsContext(Context):
         origin=Sprite.ORIGIN_RIGHT
       ))
       controls_x -= control_image.get_width() + CONTROL_SPACING
+
+    for sprite in sprites:
+      if not sprite.layer:
+        sprite.layer = "ui"
 
     return sprites + super().view()
 

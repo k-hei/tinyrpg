@@ -40,7 +40,7 @@ class Banner:
     banner_image.fill(BLACK)
 
     x = banner_width - Banner.PADDING_X
-    for button, action in reversed(controls.inventorys()):
+    for button, action in reversed(controls.items()):
       text_image = font.render(action)
       x -= text_image.get_width()
       y = Banner.PADDING_Y

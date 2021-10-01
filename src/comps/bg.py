@@ -1,3 +1,4 @@
+from math import ceil
 from pygame import Surface
 from assets import load as use_assets
 
@@ -10,8 +11,8 @@ class Bg:
     tile_width = tile_image.get_width()
     tile_height = tile_image.get_height()
     tile_surface = Surface((width + tile_width, height + tile_height))
-    for row in range(tile_surface.get_height() // tile_height):
-      for col in range(tile_surface.get_width() // tile_width):
+    for row in range(ceil(tile_surface.get_height() / tile_height)):
+      for col in range(ceil(tile_surface.get_width() / tile_width)):
         x = col * tile_width
         y = row * tile_height
         tile_surface.blit(tile_image, (x, y))
