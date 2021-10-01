@@ -244,7 +244,7 @@ class InventoryContext(Context):
           tab_control.press("R")
           return ctx.handle_tab(delta=1)
 
-      if button in (pygame.K_BACKSLASH, pygame.K_BACKQUOTE, gamepad.controls.item):
+      if button in (pygame.K_BACKSLASH, pygame.K_BACKQUOTE, gamepad.controls.inventory):
         sort_control.press()
         return ctx.handle_sort()
 
@@ -260,7 +260,7 @@ class InventoryContext(Context):
       arrange_control.release()
       return
 
-    if button in (pygame.K_BACKSLASH, pygame.K_BACKQUOTE, gamepad.controls.item):
+    if button in (pygame.K_BACKSLASH, pygame.K_BACKQUOTE, gamepad.controls.inventory):
       sort_control = next((c for c in ctx.controls if c.value == "Sort"), None)
       sort_control.release()
       return

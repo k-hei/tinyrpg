@@ -5,6 +5,10 @@ from pygame.transform import flip, scale
 @dataclass
 class Sprite:
   ORIGIN_CENTER = ("center", "center")
+  ORIGIN_LEFT = ("left", "center")
+  ORIGIN_RIGHT = ("right", "center")
+  ORIGIN_TOP = ("center", "top")
+  ORIGIN_BOTTOM = ("center", "bottom")
   ORIGIN_TOPLEFT = ("left", "top")
   ORIGIN_TOPRIGHT = ("right", "top")
   ORIGIN_BOTTOMLEFT = ("left", "bottom")

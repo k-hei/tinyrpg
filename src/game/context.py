@@ -41,7 +41,7 @@ class GameContext(Context):
     ctx.stage = stage
     ctx.seed = seed
     if data is None:
-      ctx.open(LoadContext(), on_close=lambda *data: ctx.load(*data))
+      ctx.open(LoadContext(), on_close=lambda *data: data and ctx.load(*data))
     elif type(data) is GameData:
       ctx.store = data
       ctx.savedata = GameData.encode(data)
@@ -179,7 +179,7 @@ class GameContext(Context):
     or type(ctx.child) is TownContext and ctx.child.get_depth() > 1
     ):
       return
-    if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, pygame.K_q) or gamepad.get_state(gamepad.controls.item):
+    if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, pygame.K_q) or gamepad.get_state(gamepad.controls.inventory):
       return ctx.handle_inventory()
     if button == pygame.K_e or gamepad.get_state(gamepad.controls.equip):
       return ctx.handle_custom()

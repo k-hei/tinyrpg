@@ -191,7 +191,9 @@ class DataContext(Context):
   HAND_Y = 16
   HAND_PERIOD = 30
   HAND_AMP = 2
-  title = "MANAGE DATA"
+  EXTRA_CONTROLS = {}
+  TITLE = "MANAGE DATA"
+  ACTION = ""
 
   def __init__(ctx, on_close=None):
     super().__init__(on_close=on_close)
@@ -212,13 +214,13 @@ class DataContext(Context):
   def init_view(ctx):
     ctx.bg = Bg(WINDOW_SIZE)
     ctx.bg.init()
-    ctx.banner = Banner(a=ctx.action, y="Delete")
+    ctx.banner = Banner(**ctx.EXTRA_CONTROLS, a=ctx.ACTION, y="Delete")
     ctx.banner.init()
     for slot in ctx.slots:
       slot.init()
       slot.enter()
     ctx.cache_surface = Surface(WINDOW_SIZE)
-    for char in ctx.title:
+    for char in ctx.TITLE:
       if char not in ctx.cache_chars:
         char_image = assets.ttf["roman_large"].render(char)
         char_image = outline(char_image, BLUE)
@@ -229,7 +231,7 @@ class DataContext(Context):
   def enter(ctx):
     ctx.anims.append(EnterAnim(duration=20, target=ctx))
     ctx.anims.append(EnterAnim(duration=20, target="TitleBg"))
-    for i, char in enumerate(ctx.title):
+    for i, char in enumerate(ctx.TITLE):
       ctx.anims.append(TitleEnterAnim(
         duration=7,
         delay=i * 2,
@@ -355,7 +357,7 @@ class DataContext(Context):
 
     char_anims = [a for a in ctx.anims if type(a) is TitleEnterAnim]
     x = 16
-    for i, char in enumerate(ctx.title):
+    for i, char in enumerate(ctx.TITLE):
       anim = next((a for a in char_anims if a.target == i), None)
       char_image = ctx.cache_chars[char]
       from_y = -char_image.get_height()
@@ -366,8 +368,8 @@ class DataContext(Context):
       else:
         y = to_y
       surface_clip.blit(char_image, (x, y))
-      if i + 1 < len(ctx.title):
-        x += char_image.get_width() + get_char_spacing(char, ctx.title[i + 1])
+      if i + 1 < len(ctx.TITLE):
+        x += char_image.get_width() + get_char_spacing(char, ctx.TITLE[i + 1])
 
     hand_image = assets.sprites["hand"]
     hand_image = flip(hand_image, True, False)

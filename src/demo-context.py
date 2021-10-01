@@ -6,7 +6,7 @@ import game.controls
 
 argc = len(sys.argv)
 if argc != 2:
-  print("usage: demo-context.py ExampleContext")
+  print("usage: demo-context.py Example")
   exit()
 
 context_name = sys.argv[1]

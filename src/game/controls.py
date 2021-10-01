@@ -3,17 +3,21 @@ import lib.gamepad as gamepad
 
 @dataclass
 class ControlPreset:
+  left: str = ""
+  right: str = ""
+  up: str = ""
+  down: str = ""
   confirm: str = ""
   cancel: str = ""
   manage: str = ""
   action: str = ""
   run: str = ""
   turn: str = ""
-  throw: list[str] = field(default_factory=lambda: [])
+  item: list[str] = field(default_factory=lambda: [])
   wait: list[str] = field(default_factory=lambda: [])
   ally: str = ""
   skill: str = ""
-  item: str = ""
+  inventory: str = ""
   equip: str = ""
   minimap: str = ""
 
@@ -25,11 +29,11 @@ TYPE_A = ControlPreset(
   action=gamepad.CIRCLE,
   run=gamepad.CROSS,
   turn=gamepad.R,
-  throw=[gamepad.R, gamepad.TRIANGLE],
+  item=[gamepad.R, gamepad.TRIANGLE],
   wait=[gamepad.R, gamepad.CIRCLE],
   ally=gamepad.L,
   skill=gamepad.SQUARE,
-  item=gamepad.TRIANGLE,
+  inventory=gamepad.TRIANGLE,
   equip=gamepad.START,
   minimap=gamepad.SELECT,
 )

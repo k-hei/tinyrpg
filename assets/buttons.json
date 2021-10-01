@@ -6,5 +6,10 @@
   "button_l":      [ 0, 13, 13, 13],
   "button_r":      [ 0, 26, 13, 13],
   "button_select": [13, 13, 29, 13],
-  "button_start":  [13, 26, 25, 13]
+  "button_start":  [13, 26, 25, 13],
+  "button_esc":    [ 0, 39, 17, 13],
+  "button_left":   [ 0, 52, 11, 13],
+  "button_right":  [11, 52, 11, 13],
+  "button_up":     [22, 52, 11, 13],
+  "button_down":   [33, 52, 11, 13]
 }

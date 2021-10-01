@@ -723,7 +723,7 @@ class DungeonContext(Context):
     if gamepad.get_state(gamepad.controls.skill):
       return game.handle_skill()
 
-    if gamepad.get_state(gamepad.controls.throw):
+    if gamepad.get_state(gamepad.controls.item):
       return game.handle_throw() or game.handle_pickup()
 
     if gamepad.get_state(gamepad.controls.action):

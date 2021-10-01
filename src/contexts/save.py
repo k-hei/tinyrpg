@@ -4,8 +4,8 @@ from contexts.prompt import PromptContext, Choice
 import savedata
 
 class SaveContext(DataContext):
-  title = "SAVE DATA"
-  action = "Save"
+  TITLE = "SAVE DATA"
+  ACTION = "Save"
 
   def __init__(ctx, data, on_close=None):
     super().__init__(on_close=on_close)
