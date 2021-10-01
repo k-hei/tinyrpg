@@ -103,6 +103,7 @@ from contexts.dialogue import DialogueContext
 from contexts.prompt import PromptContext, Choice
 from contexts.gameover import GameOverContext
 from contexts.cutscene import CutsceneContext
+from contexts.controls import ControlsContext
 
 from dungeon.floors.floor1 import Floor1
 from dungeon.floors.floor2 import Floor2
@@ -1178,13 +1179,15 @@ class DungeonContext(Context):
         Choice(text="Regen: {}".format(game.can_regen and "ON" or "OFF")),
         Choice(text="Ailment: {}".format("None" if game.hero.ailment is None else ailments[game.hero.ailment])),
         Choice(text="GodMode: {}".format(game.god_mode and "ON" or "OFF")),
+        Choice(text="Controls"),
       ],
       on_choose=lambda choice: (
         choice.text.startswith("Cutscenes") and game.toggle_cutscenes(),
         choice.text.startswith("Lights") and game.toggle_lights(),
         choice.text.startswith("Regen") and setattr(game, "can_regen", not game.can_regen),
         choice.text.startswith("Ailment") and cycle_ailment(),
-        choice.text.startswith("GodMode") and game.toggle_god_mode()
+        choice.text.startswith("GodMode") and game.toggle_god_mode(),
+        choice.text.startswith("Controls") and game.open(ControlsContext())
       ) and False
     ))
     return True
