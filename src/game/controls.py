@@ -23,6 +23,10 @@ class ControlPreset:
 
 TYPE_NULL = ControlPreset()
 TYPE_A = ControlPreset(
+  left=gamepad.LEFT,
+  right=gamepad.RIGHT,
+  up=gamepad.UP,
+  down=gamepad.DOWN,
   confirm=gamepad.CIRCLE,
   cancel=gamepad.CROSS,
   manage=gamepad.SQUARE,

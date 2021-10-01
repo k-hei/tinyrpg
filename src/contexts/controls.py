@@ -1,4 +1,6 @@
+from copy import copy
 import pygame
+from pygame import Surface
 from pygame.transform import flip
 from pygame.time import get_ticks
 import lib.keyboard as keyboard
@@ -6,7 +8,7 @@ import lib.gamepad as gamepad
 from lib.lerp import lerp
 from contexts import Context
 import assets
-from game.controls import ControlPreset
+from game.controls import TYPE_A
 from sprite import Sprite
 from anims import Anim
 from anims.tween import TweenAnim
@@ -34,6 +36,7 @@ controls = [*{
   "equip": "Change equipment",
   "minimap": "View minimap"
 }.items()]
+hold_controls = ["run", "turn"]
 
 font = assets.ttf["normal"]
 LINE_SPACING = 8
@@ -46,6 +49,7 @@ PADDING = 24
 OPTIONS_X = WINDOW_WIDTH * 2 / 5
 CONTROL_OFFSET = 8
 CONTROLS_VISIBLE = (WINDOW_HEIGHT - PADDING * 2) // LINE_HEIGHT
+PLUS_SPACING = 2
 
 class CursorSlideAnim(TweenAnim): pass
 class CursorBounceAnim(SineAnim):
@@ -54,7 +58,7 @@ class CursorBounceAnim(SineAnim):
 class ControlsContext(Context):
   def __init__(ctx, *args, **kwargs):
     super().__init__(*args, **kwargs)
-    ctx.preset = ControlPreset()
+    ctx.preset = copy(TYPE_A)
     ctx.waiting = None
     ctx.scroll_index = 0
     ctx.scroll_index_drawn = 0
@@ -143,14 +147,10 @@ class ControlsContext(Context):
       is_control_selected = i == ctx.cursor_index and ctx.waiting
       control_color = GOLD if is_control_selected else WHITE
       control_y = (i - ctx.scroll_index_drawn) * LINE_HEIGHT + PADDING + font.height() / 2
-      button_id = getattr(ctx.preset, control_id)
-      button_name = f"button_{button_id}"
+      button = getattr(ctx.preset, control_id)
       button_image = (
-        is_control_selected
-          and font.render(f"Waiting for input... ({ctx.wait_timeout})")
-          or button_id and button_name in assets.sprites
-            and replace_color(assets.sprites[button_name], BLACK, BLUE)
-            or font.render("-", color=GRAY)
+        font.render(f"Waiting for input... ({ctx.wait_timeout})") if is_control_selected
+          else render_button(button) or font.render("-", color=GRAY)
       )
       sprites += [
         Sprite(
@@ -158,11 +158,11 @@ class ControlsContext(Context):
           pos=(OPTIONS_X, control_y),
           origin=Sprite.ORIGIN_RIGHT
         ),
-        Sprite(
+        *([Sprite(
           image=button_image,
           pos=(OPTIONS_X + CONTROL_OFFSET, control_y),
           origin=Sprite.ORIGIN_LEFT
-        )
+        )] if button_image else [])
       ]
 
     # cursor
@@ -192,3 +192,25 @@ class ControlsContext(Context):
     ))
 
     return sprites
+
+def render_button(button):
+  if type(button) is str:
+    return f"button_{button}" in assets.sprites and replace_color(assets.sprites[f"button_{button}"], BLACK, BLUE)
+  elif type(button) is list:
+    return render_buttons(buttons=button)
+
+def render_buttons(buttons):
+  button_images = [render_button(b) for b in buttons]
+  plus_image = font.render("+")
+  plus_width = plus_image.get_width() * (len(button_images) - 1)
+  buttons_width = sum([b.get_width() for b in button_images]) + plus_width + PLUS_SPACING * len(button_images)
+  buttons_height = button_images[0].get_height()
+  buttons_surface = Surface((buttons_width, buttons_height))
+  buttons_x = 0
+  for i, button_image in enumerate(button_images):
+    if i:
+      buttons_surface.blit(plus_image, (buttons_x, buttons_height / 2 - plus_image.get_height() / 2))
+      buttons_x += plus_image.get_width() + PLUS_SPACING
+    buttons_surface.blit(button_image, (buttons_x, 0))
+    buttons_x += button_image.get_width() + PLUS_SPACING
+  return buttons_surface
