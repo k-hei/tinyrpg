@@ -6,9 +6,12 @@ from pygame.time import get_ticks
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
 from lib.lerp import lerp
+
 from contexts import Context
+from contexts.prompt import PromptContext, Choice
 import assets
 from game.controls import TYPE_A
+from comps.control import Control
 from sprite import Sprite
 from anims import Anim
 from anims.tween import TweenAnim
@@ -48,9 +51,10 @@ CURSOR_SLIDE_DURATION = 4
 PADDING = 24
 OPTIONS_X = WINDOW_WIDTH * 2 / 5
 CONTROL_OFFSET = 8
-CONTROLS_VISIBLE = (WINDOW_HEIGHT - PADDING * 2) // LINE_HEIGHT
+CONTROLS_VISIBLE = (WINDOW_HEIGHT - PADDING * 2) // LINE_HEIGHT - 2
 PLUS_SPACING = 2
 BUFFER_FRAMES = 15
+CONTROL_SPACING = 8
 
 def is_valid_button(button):
   return type(button) in (str, list)
@@ -71,6 +75,10 @@ class ControlsContext(Context):
     ctx.scroll_index_drawn = 0
     ctx.cursor_index = 0
     ctx.anims = [CursorBounceAnim()]
+    ctx.controls = [
+      Control(key=["Select"], value="Reset"),
+      Control(key=["Start"], value="Multi"),
+    ]
 
   @property
   def wait_timeout(ctx):
@@ -80,10 +88,26 @@ class ControlsContext(Context):
     super().close(ctx.preset)
 
   def handle_press(ctx, button):
+    if ctx.child:
+      return ctx.child.handle_press(button)
+
     press_time = keyboard.get_pressed(button) or gamepad.get_state(button)
 
-    if press_time == 1 and ctx.waiting and is_valid_button(button) and button not in ctx.button_combo:
-      return ctx.button_combo.append(button)
+    if press_time == 1 and ctx.waiting:
+      if button == pygame.K_ESCAPE:
+        return ctx.handle_endconfig()
+      elif is_valid_button(button) and button not in ctx.button_combo:
+        return ctx.button_combo.append(button)
+      else:
+        return None
+
+    if button == pygame.K_TAB and not ctx.waiting:
+      multi_control = next((c for c in ctx.controls if c.value == "Multi"), None)
+      multi_control and multi_control.press()
+
+    if button == pygame.K_BACKSPACE and not ctx.waiting:
+      reset_control = next((c for c in ctx.controls if c.value == "Reset"), None)
+      reset_control and reset_control.press()
 
     if (press_time == 1
     or press_time > 30 and press_time % 2):
@@ -95,13 +119,29 @@ class ControlsContext(Context):
     if press_time > 1:
       return
 
+    if button == pygame.K_DELETE:
+      return ctx.handle_config(button=None)
+
     if button in (pygame.K_SPACE, pygame.K_RETURN, gamepad.START):
-      ctx.handle_startconfig()
+      ctx.buffer_release()
+      return ctx.handle_startconfig()
 
     if button == pygame.K_TAB:
-      ctx.handle_multiconfig()
+      ctx.buffer_release()
+      return ctx.handle_multiconfig()
+
+    if button == pygame.K_BACKSPACE:
+      return ctx.handle_reset()
 
   def handle_release(ctx, button):
+    if button == pygame.K_TAB:
+      multi_control = next((c for c in ctx.controls if c.value == "Multi"), None)
+      return multi_control and multi_control.release()
+
+    if button == pygame.K_BACKSPACE:
+      reset_control = next((c for c in ctx.controls if c.value == "Reset"), None)
+      return reset_control and reset_control.release()
+
     if ctx.buffering:
       return False
 
@@ -135,14 +175,21 @@ class ControlsContext(Context):
 
   def handle_startconfig(ctx):
     ctx.waiting = get_ticks()
+    for control in ctx.controls:
+      control.disable()
 
   def handle_multiconfig(ctx):
     ctx.handle_startconfig()
     ctx.multi_mode = True
 
-  def handle_config(ctx, button):
+  def handle_endconfig(ctx):
     ctx.waiting = None
     ctx.button_combo = []
+    for control in ctx.controls:
+      control.enable()
+
+  def handle_config(ctx, button):
+    ctx.handle_endconfig()
     if ctx.config_control(controls[ctx.cursor_index][0], button):
       if not ctx.handle_move(delta=1):
         ctx.multi_mode = False
@@ -153,12 +200,35 @@ class ControlsContext(Context):
       return False
 
   def config_control(ctx, control, button):
+    if button is None:
+      button = ""
+
     if is_valid_button(button):
       setattr(ctx.preset, control, button)
       gamepad.config(preset=ctx.preset)
       return True
     else:
       return False
+
+  def handle_reset(ctx):
+    for control in ctx.controls:
+      control.disable()
+    ctx.open(PromptContext("Reset controls to defaults?", [
+      Choice("Yes"),
+      Choice("No", default=True)
+    ]), on_close=lambda choice: (
+      choice and choice.text == "Yes" and ctx.reset_controls(),
+      [c.enable() for c in ctx.controls]
+    ))
+
+  def reset_controls(ctx):
+    ctx.preset = copy(TYPE_A)
+    ctx.reset_scroll()
+
+  def reset_scroll(ctx):
+    ctx.scroll_index = 0
+    ctx.scroll_index_drawn = 0
+    ctx.cursor_index = 0
 
   def update(ctx):
     super().update()
@@ -214,32 +284,45 @@ class ControlsContext(Context):
       ]
 
     # cursor
-    cursor_bounce_anim = next((a for a in ctx.anims if type(a) is CursorBounceAnim), None)
-    cursor_slide_anim = next((a for a in ctx.anims if type(a) is CursorSlideAnim), None)
-    if cursor_slide_anim:
-      old_index, new_index = cursor_slide_anim.target
-      cursor_x = lerp(
-        a=font.width(controls[old_index][1]),
-        b=font.width(controls[new_index][1]),
-        t=cursor_slide_anim.pos
-      )
-      cursor_y = lerp(old_index, new_index, cursor_slide_anim.pos)
-    else:
-      cursor_x = font.width(controls[ctx.cursor_index][1])
-      cursor_y = ctx.cursor_index
-    cursor_x = -cursor_x + OPTIONS_X + CURSOR_OFFSET
-    cursor_x += cursor_bounce_anim.pos * CURSOR_BOUNCE_AMP
-    cursor_y -= ctx.scroll_index_drawn
-    cursor_y *= LINE_HEIGHT
-    cursor_y += PADDING + font.height() / 2
-    cursor_image = flip(assets.sprites["hand"], True, False)
-    sprites.append(Sprite(
-      image=cursor_image,
-      pos=(cursor_x, cursor_y),
-      origin=Sprite.ORIGIN_RIGHT
-    ))
+    if not ctx.child:
+      cursor_bounce_anim = next((a for a in ctx.anims if type(a) is CursorBounceAnim), None)
+      cursor_slide_anim = next((a for a in ctx.anims if type(a) is CursorSlideAnim), None)
+      if cursor_slide_anim:
+        old_index, new_index = cursor_slide_anim.target
+        cursor_x = lerp(
+          a=font.width(controls[old_index][1]),
+          b=font.width(controls[new_index][1]),
+          t=cursor_slide_anim.pos
+        )
+        cursor_y = lerp(old_index, new_index, cursor_slide_anim.pos)
+      else:
+        cursor_x = font.width(controls[ctx.cursor_index][1])
+        cursor_y = ctx.cursor_index
+      cursor_x = -cursor_x + OPTIONS_X + CURSOR_OFFSET
+      cursor_x += cursor_bounce_anim.pos * CURSOR_BOUNCE_AMP
+      cursor_y -= ctx.scroll_index_drawn
+      cursor_y *= LINE_HEIGHT
+      cursor_y += PADDING + font.height() / 2
+      cursor_image = flip(assets.sprites["hand"], True, False)
+      sprites.append(Sprite(
+        image=cursor_image,
+        pos=(cursor_x, cursor_y),
+        origin=Sprite.ORIGIN_RIGHT
+      ))
 
-    return sprites
+    # controls
+    controls_x = WINDOW_WIDTH - 24
+    controls_y = WINDOW_HEIGHT - 20
+    for control in ctx.controls:
+      control_image = control.render()
+      sprites.append(Sprite(
+        image=control_image,
+        pos=(controls_x, controls_y),
+        origin=Sprite.ORIGIN_RIGHT
+      ))
+      controls_x -= control_image.get_width() + CONTROL_SPACING
+
+    return sprites + super().view()
 
 def render_button(button, color=BLUE):
   if type(button) is str:
