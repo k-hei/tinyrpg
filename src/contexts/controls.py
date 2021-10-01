@@ -15,7 +15,7 @@ from anims.tween import TweenAnim
 from anims.sine import SineAnim
 from filters import replace_color
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
-from colors.palette import BLACK, WHITE, GRAY, BLUE, GOLD
+from colors.palette import BLACK, WHITE, GRAY, BLUE, GOLD, GREEN
 
 controls = [*{
   "left": "Left",
@@ -51,6 +51,9 @@ CONTROL_OFFSET = 8
 CONTROLS_VISIBLE = (WINDOW_HEIGHT - PADDING * 2) // LINE_HEIGHT
 PLUS_SPACING = 2
 
+def is_valid_button(button):
+  return type(button) in (str, list)
+
 class CursorSlideAnim(TweenAnim): pass
 class CursorBounceAnim(SineAnim):
   period = CURSOR_BOUNCE_PERIOD
@@ -60,6 +63,7 @@ class ControlsContext(Context):
     super().__init__(*args, **kwargs)
     ctx.preset = copy(TYPE_A)
     ctx.waiting = None
+    ctx.button_combo = []
     ctx.scroll_index = 0
     ctx.scroll_index_drawn = 0
     ctx.cursor_index = 0
@@ -71,14 +75,14 @@ class ControlsContext(Context):
   def handle_press(ctx, button):
     press_time = keyboard.get_pressed(button) or gamepad.get_state(button)
 
-    if ctx.waiting and press_time == 1:
-      return ctx.handle_config(button)
+    if press_time == 1 and ctx.waiting and is_valid_button(button) and button not in ctx.button_combo:
+      return ctx.button_combo.append(button)
 
     if (press_time == 1
     or press_time > 30 and press_time % 2):
-      if button == pygame.K_UP:
+      if button in (pygame.K_UP, gamepad.controls.up):
         return ctx.handle_move(delta=-1)
-      if button == pygame.K_DOWN:
+      if button in (pygame.K_DOWN, gamepad.controls.down):
         return ctx.handle_move(delta=1)
 
     if press_time > 1:
@@ -86,6 +90,13 @@ class ControlsContext(Context):
 
     if button in (pygame.K_SPACE, pygame.K_RETURN):
       ctx.handle_startconfig()
+
+  def handle_release(ctx, button):
+    if ctx.waiting and is_valid_button(button):
+      button = ctx.button_combo
+      if type(button) is list and len(button) == 1:
+        button = button[0]
+      return ctx.handle_config(button)
 
   def handle_move(ctx, delta):
     old_index = ctx.cursor_index
@@ -109,6 +120,7 @@ class ControlsContext(Context):
 
   def handle_config(ctx, button):
     ctx.waiting = None
+    ctx.button_combo = []
     if ctx.config_control(controls[ctx.cursor_index][0], button):
       ctx.handle_move(delta=1)
       return True
@@ -116,8 +128,9 @@ class ControlsContext(Context):
       return False
 
   def config_control(ctx, control, button):
-    if type(button) is str:
+    if is_valid_button(button):
       setattr(ctx.preset, control, button)
+      gamepad.config(preset=ctx.preset)
       return True
     else:
       return False
@@ -147,10 +160,17 @@ class ControlsContext(Context):
       is_control_selected = i == ctx.cursor_index and ctx.waiting
       control_color = GOLD if is_control_selected else WHITE
       control_y = (i - ctx.scroll_index_drawn) * LINE_HEIGHT + PADDING + font.height() / 2
-      button = getattr(ctx.preset, control_id)
+      button = is_control_selected and ctx.button_combo or getattr(ctx.preset, control_id)
       button_image = (
-        font.render(f"Waiting for input... ({ctx.wait_timeout})") if is_control_selected
-          else render_button(button) or font.render("-", color=GRAY)
+        font.render(f"Waiting for input... ({ctx.wait_timeout})")
+          if is_control_selected and not ctx.button_combo
+          else render_button(button, color=(
+            GOLD
+              if is_control_selected and ctx.button_combo
+              else GREEN
+                if control_id in hold_controls
+                else BLUE
+          )) or font.render("-", color=GRAY)
       )
       sprites += [
         Sprite(
@@ -193,24 +213,27 @@ class ControlsContext(Context):
 
     return sprites
 
-def render_button(button):
+def render_button(button, color=BLUE):
   if type(button) is str:
-    return f"button_{button}" in assets.sprites and replace_color(assets.sprites[f"button_{button}"], BLACK, BLUE)
+    return (f"button_{button}" in assets.sprites
+      and replace_color(assets.sprites[f"button_{button}"], BLACK, color)
+      or None)
   elif type(button) is list:
-    return render_buttons(buttons=button)
+    return render_buttons(buttons=button, color=color)
 
-def render_buttons(buttons):
-  button_images = [render_button(b) for b in buttons]
+def render_buttons(buttons, color=BLUE):
+  button_images = [render_button(button=b, color=color) for b in buttons]
   plus_image = font.render("+")
   plus_width = plus_image.get_width() * (len(button_images) - 1)
-  buttons_width = sum([b.get_width() for b in button_images]) + plus_width + PLUS_SPACING * len(button_images)
-  buttons_height = button_images[0].get_height()
+  buttons_width = sum([b.get_width() if b else 0 for b in button_images]) + plus_width + PLUS_SPACING * len(button_images)
+  buttons_height = button_images[0].get_height() if button_images and button_images[0] else 0
   buttons_surface = Surface((buttons_width, buttons_height))
   buttons_x = 0
   for i, button_image in enumerate(button_images):
     if i:
       buttons_surface.blit(plus_image, (buttons_x, buttons_height / 2 - plus_image.get_height() / 2))
       buttons_x += plus_image.get_width() + PLUS_SPACING
-    buttons_surface.blit(button_image, (buttons_x, 0))
-    buttons_x += button_image.get_width() + PLUS_SPACING
+    if button_image:
+      buttons_surface.blit(button_image, (buttons_x, 0))
+      buttons_x += button_image.get_width() + PLUS_SPACING
   return buttons_surface
