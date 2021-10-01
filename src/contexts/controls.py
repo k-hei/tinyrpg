@@ -1,5 +1,6 @@
 import pygame
 from pygame.transform import flip
+from pygame.time import get_ticks
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
 from lib.lerp import lerp
@@ -7,6 +8,7 @@ from contexts import Context
 import assets
 from game.controls import ControlPreset
 from sprite import Sprite
+from anims import Anim
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
 from filters import replace_color
@@ -20,6 +22,7 @@ controls = [*{
   "down": "Down",
   "confirm": "Confirm",
   "cancel": "Cancel",
+  "manage": "Manage",
   "action": "Action",
   "item": "Carry/Throw",
   "wait": "Wait",
@@ -44,18 +47,15 @@ OPTIONS_X = WINDOW_WIDTH * 2 / 5
 CONTROL_OFFSET = 8
 CONTROLS_VISIBLE = (WINDOW_HEIGHT - PADDING * 2) // LINE_HEIGHT
 
+class CursorSlideAnim(TweenAnim): pass
 class CursorBounceAnim(SineAnim):
   period = CURSOR_BOUNCE_PERIOD
-  blocking = False
-
-class CursorSlideAnim(TweenAnim):
-  blocking = True
 
 class ControlsContext(Context):
   def __init__(ctx, *args, **kwargs):
     super().__init__(*args, **kwargs)
     ctx.preset = ControlPreset()
-    ctx.waiting = False
+    ctx.waiting = None
     ctx.scroll_index = 0
     ctx.scroll_index_drawn = 0
     ctx.cursor_index = 0
@@ -68,9 +68,7 @@ class ControlsContext(Context):
     press_time = keyboard.get_pressed(button) or gamepad.get_state(button)
 
     if ctx.waiting and press_time == 1:
-      ctx.waiting = False
-      print(button)
-      return ctx.config_control(controls[ctx.cursor_index][0], button)
+      return ctx.handle_config(button)
 
     if (press_time == 1
     or press_time > 30 and press_time % 2):
@@ -83,7 +81,7 @@ class ControlsContext(Context):
       return
 
     if button in (pygame.K_SPACE, pygame.K_RETURN):
-      ctx.waiting = True
+      ctx.handle_startconfig()
 
   def handle_move(ctx, delta):
     old_index = ctx.cursor_index
@@ -102,11 +100,27 @@ class ControlsContext(Context):
     ))
     return True
 
+  def handle_startconfig(ctx):
+    ctx.waiting = get_ticks()
+
+  def handle_config(ctx, button):
+    ctx.waiting = None
+    if ctx.config_control(controls[ctx.cursor_index][0], button):
+      ctx.handle_move(delta=1)
+      return True
+    else:
+      return False
+
   def config_control(ctx, control, button):
-    setattr(ctx.preset, control, button)
-    return True
-    # if type(button) is str:
-    # else:
+    if type(button) is str:
+      setattr(ctx.preset, control, button)
+      return True
+    else:
+      return False
+
+  @property
+  def wait_timeout(ctx):
+    return (5 - (get_ticks() - ctx.waiting) // 1000) if ctx.waiting else None
 
   def update(ctx):
     super().update()
@@ -116,6 +130,9 @@ class ControlsContext(Context):
         anim.update()
       else:
         ctx.anims.remove(anim)
+
+    if ctx.wait_timeout == 0:
+      ctx.waiting = None
 
   def view(ctx):
     sprites = []
@@ -130,7 +147,7 @@ class ControlsContext(Context):
       button_name = f"button_{button_id}"
       button_image = (
         is_control_selected
-          and font.render("Waiting for input...")
+          and font.render(f"Waiting for input... ({ctx.wait_timeout})")
           or button_id and button_name in assets.sprites
             and replace_color(assets.sprites[button_name], BLACK, BLUE)
             or font.render("-", color=GRAY)
