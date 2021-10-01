@@ -13,7 +13,7 @@ from sprite import Sprite
 from anims import Anim
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
-from filters import replace_color
+from filters import replace_color, darken_image
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 from colors.palette import BLACK, WHITE, GRAY, BLUE, GOLD, GREEN
 
@@ -50,6 +50,7 @@ OPTIONS_X = WINDOW_WIDTH * 2 / 5
 CONTROL_OFFSET = 8
 CONTROLS_VISIBLE = (WINDOW_HEIGHT - PADDING * 2) // LINE_HEIGHT
 PLUS_SPACING = 2
+BUFFER_FRAMES = 15
 
 def is_valid_button(button):
   return type(button) in (str, list)
@@ -64,10 +65,16 @@ class ControlsContext(Context):
     ctx.preset = copy(TYPE_A)
     ctx.waiting = None
     ctx.button_combo = []
+    ctx.multi_mode = False
+    ctx.buffering = 0
     ctx.scroll_index = 0
     ctx.scroll_index_drawn = 0
     ctx.cursor_index = 0
     ctx.anims = [CursorBounceAnim()]
+
+  @property
+  def wait_timeout(ctx):
+    return (5 - (get_ticks() - ctx.waiting) // 1000) if ctx.waiting else None
 
   def close(ctx):
     super().close(ctx.preset)
@@ -88,15 +95,26 @@ class ControlsContext(Context):
     if press_time > 1:
       return
 
-    if button in (pygame.K_SPACE, pygame.K_RETURN):
+    if button in (pygame.K_SPACE, pygame.K_RETURN, gamepad.START):
       ctx.handle_startconfig()
 
+    if button == pygame.K_TAB:
+      ctx.handle_multiconfig()
+
   def handle_release(ctx, button):
+    if ctx.buffering:
+      return False
+
     if ctx.waiting and is_valid_button(button):
       button = ctx.button_combo
       if type(button) is list and len(button) == 1:
         button = button[0]
+      else:
+        ctx.buffer_release()
       return ctx.handle_config(button)
+
+  def buffer_release(ctx):
+    ctx.buffering = BUFFER_FRAMES
 
   def handle_move(ctx, delta):
     old_index = ctx.cursor_index
@@ -118,11 +136,18 @@ class ControlsContext(Context):
   def handle_startconfig(ctx):
     ctx.waiting = get_ticks()
 
+  def handle_multiconfig(ctx):
+    ctx.handle_startconfig()
+    ctx.multi_mode = True
+
   def handle_config(ctx, button):
     ctx.waiting = None
     ctx.button_combo = []
     if ctx.config_control(controls[ctx.cursor_index][0], button):
-      ctx.handle_move(delta=1)
+      if not ctx.handle_move(delta=1):
+        ctx.multi_mode = False
+      if ctx.multi_mode:
+        ctx.handle_startconfig()
       return True
     else:
       return False
@@ -135,10 +160,6 @@ class ControlsContext(Context):
     else:
       return False
 
-  @property
-  def wait_timeout(ctx):
-    return (5 - (get_ticks() - ctx.waiting) // 1000) if ctx.waiting else None
-
   def update(ctx):
     super().update()
     ctx.scroll_index_drawn += (ctx.scroll_index - ctx.scroll_index_drawn) / 4
@@ -148,7 +169,10 @@ class ControlsContext(Context):
       else:
         ctx.anims.remove(anim)
 
-    if ctx.wait_timeout == 0:
+    if ctx.buffering:
+      ctx.buffering = max(0, ctx.buffering - 1)
+
+    if ctx.wait_timeout == 0 and not ctx.button_combo:
       ctx.waiting = None
 
   def view(ctx):
@@ -172,9 +196,13 @@ class ControlsContext(Context):
                 else BLUE
           )) or font.render("-", color=GRAY)
       )
+      control_image = font.render(control_name, color=control_color)
+      if ctx.waiting and ctx.multi_mode and i > ctx.cursor_index:
+        control_image = darken_image(control_image)
+        button_image = darken_image(button_image)
       sprites += [
         Sprite(
-          image=font.render(control_name, color=control_color),
+          image=control_image,
           pos=(OPTIONS_X, control_y),
           origin=Sprite.ORIGIN_RIGHT
         ),
@@ -225,8 +253,10 @@ def render_buttons(buttons, color=BLUE):
   button_images = [render_button(button=b, color=color) for b in buttons]
   plus_image = font.render("+")
   plus_width = plus_image.get_width() * (len(button_images) - 1)
-  buttons_width = sum([b.get_width() if b else 0 for b in button_images]) + plus_width + PLUS_SPACING * len(button_images)
+  buttons_width = sum([b.get_width() if b else 0 for b in button_images]) + plus_width + PLUS_SPACING * len(button_images) * 2
   buttons_height = button_images[0].get_height() if button_images and button_images[0] else 0
+  if not buttons_width or not buttons_height:
+    return None
   buttons_surface = Surface((buttons_width, buttons_height))
   buttons_x = 0
   for i, button_image in enumerate(button_images):
