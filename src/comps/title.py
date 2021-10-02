@@ -110,7 +110,8 @@ class Title(Component):
       if y is not None:
         sprites.append(Sprite(
           image=char_image,
-          pos=(x, y)
+          pos=(x, y),
+          offset=32
         ))
       if i + 1 < len(title.text):
         x += char_image.get_width() + get_char_spacing(char, title.text[i + 1])

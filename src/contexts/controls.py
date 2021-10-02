@@ -1,6 +1,6 @@
 from copy import copy
 import pygame
-from pygame import Surface
+from pygame import Surface, SRCALPHA
 from pygame.transform import flip
 from pygame.time import get_ticks
 import lib.keyboard as keyboard
@@ -53,7 +53,7 @@ PADDING = 24
 PADDING_TOP = 36
 OPTIONS_X = WINDOW_WIDTH * 2 / 5
 CONTROL_OFFSET = 8
-CONTROLS_VISIBLE = (WINDOW_HEIGHT - PADDING * 2 - PADDING_TOP) // LINE_HEIGHT - 1
+CONTROLS_VISIBLE = (WINDOW_HEIGHT - PADDING * 2 - PADDING_TOP) // LINE_HEIGHT - 2
 PLUS_SPACING = 2
 BUFFER_FRAMES = 15
 CONTROL_SPACING = 8
@@ -375,11 +375,11 @@ def render_buttons(buttons, color=BLUE):
   button_images = [render_button(button=b, color=color) for b in buttons]
   plus_image = font.render("+")
   plus_width = plus_image.get_width() * (len(button_images) - 1)
-  buttons_width = sum([b.get_width() if b else 0 for b in button_images]) + plus_width + PLUS_SPACING * len(button_images) * 2
+  buttons_width = sum([b.get_width() if b else 0 for b in button_images]) + plus_width + PLUS_SPACING * max(2, len(button_images) * 2 - 1)
   buttons_height = button_images[0].get_height() if button_images and button_images[0] else 0
   if not buttons_width or not buttons_height:
     return None
-  buttons_surface = Surface((buttons_width, buttons_height))
+  buttons_surface = Surface((buttons_width, buttons_height), flags=SRCALPHA)
   buttons_x = 0
   for i, button_image in enumerate(button_images):
     if i:
