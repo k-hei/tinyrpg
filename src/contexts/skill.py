@@ -79,6 +79,9 @@ class SkillContext(Context):
     else:
       ctx.dest = find_closest_cell_in_range(ctx.skill_range, target_cell, delta=hero.facing)
 
+  def close(ctx, *args):
+    super().close(*(args or [None, None]))
+
   def print_skill(ctx, skill=None):
     if skill:
       ctx.bar.print(skill().text())
