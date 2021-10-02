@@ -26,7 +26,10 @@ X = "b"
 SQUARE = "x"
 MENU = "menu"
 PS = "menu"
-mappings = [SELECT, L3, R3, START, UP, RIGHT, DOWN, LEFT, L2, R2, L1, R1, TRIANGLE, CIRCLE, CROSS, SQUARE, MENU]
+OPTIONS = "options"
+TOUCH = "touch"
+SHARE = "share"
+mappings = [SELECT, L3, R3, START, UP, RIGHT, DOWN, LEFT, L2, R2, L1, R1, TRIANGLE, CIRCLE, CROSS, SQUARE, MENU, OPTIONS, TOUCH, SHARE]
 
 def init():
   pygame.joystick.init()
