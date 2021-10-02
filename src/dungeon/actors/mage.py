@@ -29,10 +29,8 @@ class Mage(DungeonActor):
       ailment=ailment,
       ailment_turns=ailment_turns,
       aggro=3,
-      behavior="guard"
+      behavior="guard" if faction == "ally" else "chase"
     )
-    if faction == "enemy":
-      mage.behavior = "chase"
 
   def encode(mage):
     [cell, kind, *props] = super().encode()
@@ -46,10 +44,14 @@ class Mage(DungeonActor):
   @DungeonActor.faction.setter
   def faction(mage, faction):
     DungeonActor.faction.fset(mage, faction)
-    if faction == "enemy":
+    if faction in ("player", "enemy"):
       mage.behavior = "chase"
     else:
       mage.behavior = "guard"
+
+  def spawn(mage, stage, cell):
+    super().spawn(stage, cell)
+    mage.faction = mage.faction
 
   def charge(mage, *args, **kwargs):
     super().charge(*args, **kwargs)

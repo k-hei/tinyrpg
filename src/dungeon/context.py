@@ -574,17 +574,17 @@ class DungeonContext(Context):
     elif old_hero_cell and (
       is_adjacent(ally.cell, old_hero_cell)
       or manhattan(ally.cell, old_hero_cell) == 2 and game.is_pit_between(ally.cell, old_hero_cell)
-    ):
+    ) and ally.behavior == "chase":
       ally_x, ally_y = ally.cell
       old_x, old_y = old_hero_cell
       ally_delta = (old_x - ally_x, old_y - ally_y)
       jump = game.is_pit_between(ally.cell, old_hero_cell)
       game.move(actor=ally, delta=ally_delta, run=run, jump=jump)
-    elif visible_enemies and not is_adjacent(ally.cell, hero.cell):
+    elif visible_enemies and not is_adjacent(ally.cell, hero.cell) and ally.behavior == "chase":
       visible_enemies.sort(key=lambda e: e.get_hp())
       enemy = visible_enemies[0]
       ally.command = game.move_to(ally, enemy.cell)
-    elif not is_adjacent(ally.cell, hero.cell):
+    elif not is_adjacent(ally.cell, hero.cell) and ally.behavior == "chase":
       ally.command = game.move_to(ally, hero.cell, run)
 
   def is_pit_between(game, a, b):
@@ -1290,7 +1290,7 @@ class DungeonContext(Context):
         command.on_end and command.on_end()
       actor.cell = target_cell
       actor.elev = target_tile.elev
-      if isinstance(target_elem, DungeonActor) and target_elem.faction == "ally" and target_elem.can_step():
+      if isinstance(target_elem, DungeonActor) and target_elem.faction in ("player", "ally") and target_elem.can_step():
         game.move_to(actor=target_elem, cell=origin_cell, run=run)
       return True
     else:

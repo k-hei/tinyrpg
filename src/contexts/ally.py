@@ -17,10 +17,6 @@ from config import TILE_SIZE
 
 LABEL_FONT = "normal"
 LABEL_OFFSET = 8
-LABEL_IMAGES = [
-  outline(assets.ttf[LABEL_FONT].render(l), BLACK)
-    for l in ["Change", "Move", "Skill", "AI (Follow)"]
-]
 
 def find_relative_actor_pos(game, actor):
   actor_col, actor_row = actor.cell
@@ -72,6 +68,7 @@ class AllyContext(Context):
       "x": (pygame.K_RETURN,),
       "y": (pygame.K_q,),
     }
+    ctx.cached_labels = None
 
   def enter(ctx):
     ctx.exiting = False
@@ -89,6 +86,7 @@ class AllyContext(Context):
       ButtonsEnterAnim(easing=ease_out),
       LabelsEnterAnim(easing=ease_out, delay=ButtonsEnterAnim.duration)
     ]
+    ctx.cache_labels()
 
   def exit(ctx):
     ctx.exiting = True
@@ -106,13 +104,18 @@ class AllyContext(Context):
     if next((a for a in ctx.anims if a.blocking), None):
       return False
 
+    if keyboard.get_state(button) + gamepad.get_state(button) > 1:
+      return False
+
     if button in keyboard.ARROW_DELTAS:
       delta = keyboard.ARROW_DELTAS[button]
-      ctx.handle_face(delta)
+      return ctx.handle_face(delta)
 
     match = next((k for k, v in ctx.button_mappings.items() if button in v), None)
     if match:
       ctx.button_presses.add(match)
+      if match == "y":
+        return ctx.handle_ai()
 
   def handle_release(ctx, button):
     if button in (pygame.K_TAB, gamepad.controls.ally):
@@ -122,7 +125,7 @@ class AllyContext(Context):
       return False
 
     match = next((k for k, v in ctx.button_mappings.items() if button in v), None)
-    if match:
+    if match and match in ctx.button_presses:
       ctx.button_presses.remove(match)
 
   def handle_face(ctx, delta):
@@ -130,6 +133,28 @@ class AllyContext(Context):
     ally = game.ally
     if not ally.is_immobile():
       ally.facing = delta
+
+  def handle_ai(ctx):
+    game = ctx.parent
+    ally = game.ally
+    if ally.behavior == "chase":
+      ally.behavior = "guard"
+    elif ally.behavior == "guard":
+      ally.behavior = "chase"
+    ctx.cache_labels()
+
+  def cache_labels(ctx):
+    game = ctx.parent
+    ally = game.ally
+    ctx.cached_labels = [
+      outline(assets.ttf[LABEL_FONT].render(l), BLACK)
+        for l in [
+          "Change",
+          "Move",
+          "Skill",
+          "AI ({})".format("Follow" if ally.behavior == "chase" else "Stay")
+        ]
+    ]
 
   def update(ctx):
     ctx.anims = [a for a in ctx.anims if not a.done and [a.update()]]
@@ -213,5 +238,5 @@ class AllyContext(Context):
           buttons_y + buttons_dist * sin(buttons_rads + (pi / 2) * i)
         ),
         origin=(Sprite.ORIGIN_RIGHT if i == 2 else Sprite.ORIGIN_LEFT),
-      ) for i, l in enumerate(LABEL_IMAGES)] if not buttons_anim else []),
+      ) for i, l in enumerate(ctx.cached_labels)] if not buttons_anim else []),
     ]
