@@ -12,6 +12,7 @@ from contexts.prompt import PromptContext, Choice
 import assets
 from game.controls import TYPE_A
 from comps.control import Control
+from comps.title import Title
 from sprite import Sprite
 from anims import Anim
 from anims.tween import TweenAnim
@@ -49,7 +50,7 @@ CURSOR_BOUNCE_AMP = 2
 CURSOR_BOUNCE_PERIOD = 30
 CURSOR_SLIDE_DURATION = 4
 PADDING = 24
-PADDING_TOP = 0
+PADDING_TOP = 36
 OPTIONS_X = WINDOW_WIDTH * 2 / 5
 CONTROL_OFFSET = 8
 CONTROLS_VISIBLE = (WINDOW_HEIGHT - PADDING * 2 - PADDING_TOP) // LINE_HEIGHT - 1
@@ -76,6 +77,7 @@ class ControlsContext(Context):
     ctx.scroll_index = 0
     ctx.scroll_index_drawn = 0
     ctx.cursor_index = 0
+    ctx.title = Title(text="CONTROLS")
     ctx.anims = [CursorBounceAnim()]
     ctx.controls = [
       Control(key=["Select"], value="Reset"),
@@ -87,7 +89,11 @@ class ControlsContext(Context):
     return (5 - (get_ticks() - ctx.waiting) // 1000) if ctx.waiting else None
 
   def enter(ctx):
+    ctx.title.enter()
     ctx.anims.append(EnterAnim(duration=len(controls)))
+
+  def exit(ctx):
+    ctx.title.exit(on_end=ctx.close)
 
   def close(ctx):
     super().close(ctx.preset)
@@ -244,7 +250,7 @@ class ControlsContext(Context):
       Choice("Yes"),
       Choice("No", default=True)
     ]), on_close=lambda choice: (
-      choice and choice.text == "Yes" and ctx.close()
+      choice and choice.text == "Yes" and ctx.exit()
     ))
     return True
 
@@ -256,6 +262,8 @@ class ControlsContext(Context):
         anim.update()
       else:
         ctx.anims.remove(anim)
+
+    ctx.title.update()
 
     if ctx.buffering:
       ctx.buffering = max(0, ctx.buffering - 1)
@@ -277,7 +285,7 @@ class ControlsContext(Context):
       control_id, control_name = controls[i]
       is_control_selected = i == ctx.cursor_index and ctx.waiting
       control_y = (i - ctx.scroll_index_drawn) * LINE_HEIGHT + PADDING + PADDING_TOP + font.height() / 2
-      if control_y < PADDING or control_y > WINDOW_HEIGHT - PADDING:
+      if control_y < PADDING + PADDING_TOP or control_y > WINDOW_HEIGHT - PADDING:
         continue
       control_color = GOLD if is_control_selected else WHITE
       button = is_control_selected and ctx.button_combo or getattr(ctx.preset, control_id)
@@ -348,6 +356,8 @@ class ControlsContext(Context):
       ))
       controls_x -= control_image.get_width() + CONTROL_SPACING
 
+    sprites += ctx.title.view()
+
     for sprite in sprites:
       if not sprite.layer:
         sprite.layer = "ui"
@@ -359,7 +369,7 @@ def render_button(button, color=BLUE):
     return replace_color(assets.sprites[f"button_{button}"], BLACK, color)
   elif type(button) is list:
     return render_buttons(buttons=button, color=color)
-  return font.render("????")
+  return font.render(f"???? ({button})")
 
 def render_buttons(buttons, color=BLUE):
   button_images = [render_button(button=b, color=color) for b in buttons]

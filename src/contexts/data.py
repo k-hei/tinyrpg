@@ -7,6 +7,7 @@ from contexts import Context
 from contexts.prompt import PromptContext, Choice
 from contexts.dialogue import DialogueContext
 from comps.bg import Bg
+from comps.title import Title
 from comps.banner import Banner
 from comps.log import Log
 from config import WINDOW_SIZE
@@ -209,10 +210,12 @@ class DataContext(Context):
     ]
     ctx.hand_y = None
     ctx.bg = None
+    ctx.title = None
     ctx.banner = None
     ctx.cache_surface = None
     ctx.cache_chars = {}
     ctx.anims = []
+    ctx.comps = []
     ctx.time = 0
     ctx.can_close = True
     ctx.hidden = False
@@ -220,42 +223,19 @@ class DataContext(Context):
   def init_view(ctx):
     ctx.bg = Bg(WINDOW_SIZE)
     ctx.bg.init()
+    ctx.title = Title(text=ctx.TITLE)
+    ctx.title.enter()
     ctx.banner = Banner(**ctx.EXTRA_CONTROLS, a=ctx.ACTION, y="Delete")
     ctx.banner.init()
     for slot in ctx.slots:
       slot.init()
       slot.enter()
+    ctx.comps = [ctx.title]
     ctx.cache_surface = Surface(WINDOW_SIZE)
-    for char in ctx.TITLE:
-      if char not in ctx.cache_chars:
-        char_image = assets.ttf["roman_large"].render(char)
-        char_image = outline(char_image, BLUE)
-        char_image = shadow(char_image, BLUE)
-        char_image = outline(char_image, WHITE)
-        ctx.cache_chars[char] = char_image
 
   def enter(ctx):
     ctx.anims.append(EnterAnim(duration=20, target=ctx))
-    ctx.enter_title()
     ctx.enter_slots()
-
-  def enter_title(ctx):
-    ctx.anims.append(TitleBgEnterAnim(duration=20))
-    for i, char in enumerate(ctx.TITLE):
-      ctx.anims.append(TitleEnterAnim(
-        duration=7,
-        delay=i * 2,
-        target=i
-      ))
-
-  def exit_title(ctx):
-    ctx.anims.append(TitleBgExitAnim(duration=10, delay=15))
-    for i, char in enumerate(ctx.TITLE):
-      ctx.anims.append(TitleExitAnim(
-        duration=7,
-        delay=i * 2,
-        target=i
-      ))
 
   def enter_slots(ctx):
     for i, slot in enumerate(ctx.slots):
@@ -282,13 +262,13 @@ class DataContext(Context):
 
   def hide(ctx, on_end=None):
     ctx.hidden = True
-    ctx.exit_title()
+    ctx.title.exit()
     ctx.exit_slots()
     ctx.anims[-1].on_end = on_end
 
   def show(ctx, on_end=False):
     ctx.hidden = False
-    ctx.enter_title()
+    ctx.title.enter()
     ctx.enter_slots()
 
   def handle_move(ctx, delta):
@@ -329,7 +309,7 @@ class DataContext(Context):
     ))
 
   def handle_press(ctx, button):
-    if ctx.anims:
+    if ctx.anims or next((c for c in ctx.comps if c.anims), None):
       return False
 
     if ctx.child:
@@ -360,6 +340,7 @@ class DataContext(Context):
     else:
       for slot in ctx.slots:
         slot.update()
+    ctx.title.update()
     ctx.time += 1
 
   def view(ctx):
@@ -399,38 +380,7 @@ class DataContext(Context):
 
       slot_y += slot_image.get_height() + ctx.SLOT_SPACING
 
-    titlebg_anim = next((a for a in ctx.anims if isinstance(a, TitleBgAnim)), None)
-    titlebg_width = 168
-    if type(titlebg_anim) is TitleBgEnterAnim:
-      titlebg_width *= ease_out(titlebg_anim.pos)
-    elif type(titlebg_anim) is TitleBgExitAnim:
-      titlebg_width *= 1 - ease_in(titlebg_anim.pos)
-    elif ctx.hidden:
-      titlebg_width = 0
-    if titlebg_width:
-      pygame.draw.rect(surface_clip, BLUE, Rect(0, 24, titlebg_width, 16))
-
-    char_anims = [a for a in ctx.anims if isinstance(a, TitleAnim)]
-    x = 16
-    for i, char in enumerate(ctx.TITLE):
-      anim = next((a for a in char_anims if a.target == i), None)
-      char_image = ctx.cache_chars[char]
-      from_y = -char_image.get_height()
-      to_y = 16
-      if type(anim) is TitleEnterAnim:
-        t = ease_out(anim.pos)
-        y = lerp(from_y, to_y, t)
-      elif type(anim) is TitleExitAnim:
-        t = ease_in(anim.pos)
-        y = lerp(to_y, from_y, t)
-      elif not ctx.hidden:
-        y = to_y
-      else:
-        y = None
-      if y is not None:
-        surface_clip.blit(char_image, (x, y))
-      if i + 1 < len(ctx.TITLE):
-        x += char_image.get_width() + get_char_spacing(char, ctx.TITLE[i + 1])
+    sprites += ctx.title.view()
 
     hand_image = assets.sprites["hand"]
     hand_image = flip(hand_image, True, False)
@@ -462,10 +412,14 @@ class DataContext(Context):
       height = WINDOW_HEIGHT * t
       y = WINDOW_HEIGHT // 2 - height // 2
       surface_rect = Rect((0, y), (WINDOW_WIDTH, height))
-    sprites.append(Sprite(
+
+    sprites.insert(0, Sprite(
       image=surface_clip,
       pos=(0, surface_rect.top),
       size=surface_rect.size,
-      layer="ui",
     ))
+
+    for sprite in sprites:
+      sprite.layer = "ui"
+
     return sprites + super().view()

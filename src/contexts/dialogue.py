@@ -118,6 +118,8 @@ class DialogueContext(Context):
       return
     if button in (pygame.K_SPACE, pygame.K_RETURN, gamepad.controls.confirm):
       ctx.handle_next()
+    if button == pygame.K_ESCAPE:
+      return False
 
   def handle_next(ctx):
     if not ctx.log.clean:
