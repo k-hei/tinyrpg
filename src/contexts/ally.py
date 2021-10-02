@@ -12,7 +12,7 @@ from anims import Anim
 from anims.tween import TweenAnim
 from anims.frame import FrameAnim
 from filters import replace_color, outline
-from colors.palette import BLACK, BLUE
+from colors.palette import BLACK, BLUE, GOLD
 from config import TILE_SIZE
 
 LABEL_FONT = "normal"
@@ -65,6 +65,13 @@ class AllyContext(Context):
     super().__init__(*args, **kwargs)
     ctx.anims = []
     ctx.exiting = False
+    ctx.button_presses = set()
+    ctx.button_mappings = {
+      "a": (pygame.K_SPACE,),
+      "b": (pygame.K_LSHIFT, pygame.K_RSHIFT),
+      "x": (pygame.K_RETURN,),
+      "y": (pygame.K_q,),
+    }
 
   def enter(ctx):
     ctx.exiting = False
@@ -103,9 +110,20 @@ class AllyContext(Context):
       delta = keyboard.ARROW_DELTAS[button]
       ctx.handle_face(delta)
 
+    match = next((k for k, v in ctx.button_mappings.items() if button in v), None)
+    if match:
+      ctx.button_presses.add(match)
+
   def handle_release(ctx, button):
     if button in (pygame.K_TAB, gamepad.controls.ally):
       ctx.exit()
+
+    if next((a for a in ctx.anims if a.blocking), None):
+      return False
+
+    match = next((k for k, v in ctx.button_mappings.items() if button in v), None)
+    if match:
+      ctx.button_presses.remove(match)
 
   def handle_face(ctx, delta):
     game = ctx.parent
@@ -176,7 +194,7 @@ class AllyContext(Context):
         offset=-16,
       )],
       *[Sprite(
-        image=replace_color(assets.sprites[f"button_{b}"], BLACK, BLUE),
+        image=replace_color(assets.sprites[f"button_{b}"], BLACK, GOLD if b in ctx.button_presses else BLUE),
         pos=(
           buttons_x + buttons_dist * cos(buttons_rads + (pi / 2) * i),
           buttons_y + buttons_dist * sin(buttons_rads + (pi / 2) * i)
