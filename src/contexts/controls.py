@@ -84,8 +84,8 @@ class ControlsContext(Context):
     ctx.title = Title(text="CONTROLS")
     ctx.anims = [CursorBounceAnim()]
     ctx.controls = [
-      Control(key=["Select"], value="Reset"),
-      Control(key=["Start"], value="Multi"),
+      Control(key=("Select",), value="Reset"),
+      Control(key=("Tab",), value="Multi"),
     ]
 
   @property
