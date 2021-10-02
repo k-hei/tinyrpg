@@ -77,9 +77,9 @@ class InventoryContext(Context):
     ctx.grid_size = (INVENTORY_COLS, INVENTORY_ROWS)
     ctx.items = []
     ctx.controls = [
-      Control(key=("X"), value="Arrange"),
-      Control(key=("Y"), value="Sort"),
-      Control(key=("L", "R"), value="Tab")
+      Control(key=(gamepad.controls.manage,), value="Arrange"),
+      Control(key=(gamepad.controls.inventory,), value="Sort"),
+      Control(key=(gamepad.controls.L, gamepad.controls.R), value="Tab")
     ]
     ctx.update_items(reset=True)
 
@@ -228,20 +228,20 @@ class InventoryContext(Context):
       tab_control.enable()
       sort_control.enable()
       if button == gamepad.L:
-        tab_control.press("L")
+        tab_control.press(gamepad.controls.L)
         return ctx.handle_tab(delta=-1)
       elif button == gamepad.R:
-        tab_control.press("R")
+        tab_control.press(gamepad.controls.R)
         return ctx.handle_tab(delta=1)
 
       if button == pygame.K_TAB:
         if (keyboard.get_pressed(pygame.K_LSHIFT)
         or keyboard.get_pressed(pygame.K_RSHIFT)
         ):
-          tab_control.press("L")
+          tab_control.press(gamepad.controls.L)
           return ctx.handle_tab(delta=-1)
         else:
-          tab_control.press("R")
+          tab_control.press(gamepad.controls.R)
           return ctx.handle_tab(delta=1)
 
       if button in (pygame.K_BACKSLASH, pygame.K_BACKQUOTE, gamepad.controls.inventory):
@@ -267,16 +267,16 @@ class InventoryContext(Context):
 
     tab_control = next((c for c in ctx.controls if c.value == "Tab"), None)
     if button == pygame.K_TAB:
-      tab_control.release("L")
-      tab_control.release("R")
+      tab_control.release(gamepad.controls.L)
+      tab_control.release(gamepad.controls.R)
       return
 
     if button == gamepad.L:
-      tab_control.release("L")
+      tab_control.release(gamepad.controls.L)
       return
 
     if button == gamepad.R:
-      tab_control.release("R")
+      tab_control.release(gamepad.controls.R)
       return
 
   def handle_move(ctx, delta):

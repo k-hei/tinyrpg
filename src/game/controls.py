@@ -7,6 +7,8 @@ class ControlPreset:
   right: str = ""
   up: str = ""
   down: str = ""
+  L: str = ""
+  R: str = ""
   confirm: str = ""
   cancel: str = ""
   manage: str = ""
@@ -27,6 +29,8 @@ TYPE_A = ControlPreset(
   right=gamepad.RIGHT,
   up=gamepad.UP,
   down=gamepad.DOWN,
+  L=gamepad.L,
+  R=gamepad.R,
   confirm=gamepad.CIRCLE,
   cancel=gamepad.CROSS,
   manage=gamepad.SQUARE,

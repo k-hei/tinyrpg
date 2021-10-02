@@ -49,14 +49,17 @@ class Title(Component):
 
   def exit(title, on_end=None):
     super().exit()
-    title.anims.append(BgExitAnim(duration=10, delay=15))
+    title.anims.append(BgExitAnim(
+      duration=10,
+      delay=15,
+      on_end=on_end
+    ))
     for i, char in enumerate(title.text):
       title.anims.append(CharExitAnim(
         duration=7,
         delay=i * 2,
         target=i
       ))
-    title.anims[-1].on_end = on_end
 
   def update(title):
     for anim in title.anims:

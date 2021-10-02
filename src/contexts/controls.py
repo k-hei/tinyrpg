@@ -26,6 +26,8 @@ controls = [*{
   "right": "Right",
   "up": "Up",
   "down": "Down",
+  "L": "Cycle left",
+  "R": "Cycle right",
   "confirm": "Confirm",
   "cancel": "Cancel",
   "manage": "Manage",
@@ -150,11 +152,11 @@ class ControlsContext(Context):
   def handle_release(ctx, button):
     if button == pygame.K_TAB:
       multi_control = next((c for c in ctx.controls if c.value == "Multi"), None)
-      return multi_control and multi_control.release()
+      multi_control and multi_control.release()
 
     if button == pygame.K_BACKSPACE:
       reset_control = next((c for c in ctx.controls if c.value == "Reset"), None)
-      return reset_control and reset_control.release()
+      reset_control and reset_control.release()
 
     if ctx.buffering:
       return False
@@ -369,7 +371,7 @@ def render_button(button, color=BLUE):
     return replace_color(assets.sprites[f"button_{button}"], BLACK, color)
   elif type(button) is list:
     return render_buttons(buttons=button, color=color)
-  return font.render(f"???? ({button})")
+  return font.render(f"[{button}]")
 
 def render_buttons(buttons, color=BLUE):
   button_images = [render_button(button=b, color=color) for b in buttons]

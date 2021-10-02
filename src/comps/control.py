@@ -53,8 +53,12 @@ class Control:
     x = 0
     for key in control.key:
       icon_color = GOLD if control.pressed[key] else BLUE
-      icon_image = assets.sprites["button_" + key.lower()]
-      icon_image = replace_color(icon_image, BLACK, icon_color)
+      icon_id = "button_" + str(key).lower()
+      if icon_id in assets.sprites:
+        icon_image = assets.sprites[icon_id]
+        icon_image = replace_color(icon_image, BLACK, icon_color)
+      else:
+        icon_image = font.render(f"[{key}]")
       nodes.append((icon_image, x, 0))
       x += icon_image.get_width() + 2
     x += 2
