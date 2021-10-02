@@ -26,7 +26,7 @@ class PromptContext(Context):
       on_choose=ctx.on_choose,
       on_close=ctx.exit))
 
-  def close(ctx, choice):
+  def close(ctx, choice=None):
     super().close(choice)
 
   def view(ctx):

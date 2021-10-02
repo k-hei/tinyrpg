@@ -105,6 +105,9 @@ class ControlsContext(Context):
     super().close(ctx.preset)
 
   def handle_press(ctx, button):
+    if ctx.exiting or next((a for a in ctx.anims if a.blocking), None):
+      return False
+
     if ctx.child:
       return ctx.child.handle_press(button)
 
