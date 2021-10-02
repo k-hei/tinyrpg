@@ -1801,7 +1801,11 @@ class DungeonContext(Context):
       next_tile = game.floor.get_tile_at(next_cell)
       next_elem = next((e for e in game.floor.get_elems_at(next_cell) if e.solid), None)
       if (not next_tile is game.floor.PIT and Tile.is_solid(next_tile)
-      or next((e for e in game.floor.get_elems_at(next_cell) if e.solid and not isinstance(e, DungeonActor)), None)
+        or next((e for e in game.floor.get_elems_at(next_cell) if (
+          e.solid
+          and not isinstance(e, DungeonActor)
+          and not isinstance(e, ItemDrop)
+        )), None)
       ):
         throwing = False
         break
