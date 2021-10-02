@@ -114,9 +114,9 @@ class GameOverContext(Context):
     or next((a for a in ctx.anims if a.blocking), None)
     or ctx.chosen):
       return
-    if button in (pygame.K_UP, pygame.K_w, gamepad.UP):
+    if button in (pygame.K_UP, pygame.K_w, gamepad.controls.up):
       return ctx.handle_move(-1)
-    if button in (pygame.K_DOWN, pygame.K_s, gamepad.DOWN):
+    if button in (pygame.K_DOWN, pygame.K_s, gamepad.controls.down):
       return ctx.handle_move(1)
     if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
       return ctx.handle_choose()

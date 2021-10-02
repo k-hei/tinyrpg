@@ -99,10 +99,10 @@ class SkillContext(Context):
     if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
       return ctx.handle_confirm()
 
-    if button in (pygame.K_TAB, gamepad.R):
+    if button in (pygame.K_TAB, gamepad.controls.R):
       return ctx.handle_select()
 
-    if button == gamepad.L:
+    if button == gamepad.controls.L:
       return ctx.handle_select(reverse=True)
 
     if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, gamepad.controls.cancel):

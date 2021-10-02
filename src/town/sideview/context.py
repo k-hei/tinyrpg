@@ -128,20 +128,20 @@ class SideViewContext(Context):
       return False
 
     if not button:
-      if gamepad.get_state(gamepad.LEFT):
+      if gamepad.get_state(gamepad.controls.left):
         ctx.handle_move(-1)
-      elif gamepad.get_state(gamepad.RIGHT):
+      elif gamepad.get_state(gamepad.controls.right):
         ctx.handle_move(1)
 
     if button in (pygame.K_LEFT, pygame.K_a):
       return ctx.handle_move(-1)
-    if button in (pygame.K_RIGHT, pygame.K_d, gamepad.RIGHT):
+    if button in (pygame.K_RIGHT, pygame.K_d, gamepad.controls.right):
       return ctx.handle_move(1)
     if keyboard.get_pressed(button) > 1 or gamepad.get_state(button) > 1:
       return
-    if button in (pygame.K_UP, pygame.K_w, gamepad.UP):
+    if button in (pygame.K_UP, pygame.K_w, gamepad.controls.up):
       return ctx.handle_zmove(-1)
-    if button in (pygame.K_DOWN, pygame.K_s, gamepad.DOWN):
+    if button in (pygame.K_DOWN, pygame.K_s, gamepad.controls.down):
       return ctx.handle_zmove(1)
     if button in (pygame.K_SPACE, pygame.K_RETURN, gamepad.controls.action):
       return ctx.handle_talk()
@@ -149,7 +149,7 @@ class SideViewContext(Context):
   def handle_release(ctx, button):
     if ctx.child:
       return ctx.child.handle_release(button)
-    if button in (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_a, pygame.K_d, gamepad.LEFT, gamepad.RIGHT):
+    if button in (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_a, pygame.K_d, gamepad.controls.left, gamepad.controls.right):
       for actor in ctx.party:
         actor.stop_move()
       return True

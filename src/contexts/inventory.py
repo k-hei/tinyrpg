@@ -227,10 +227,10 @@ class InventoryContext(Context):
     else:
       tab_control.enable()
       sort_control.enable()
-      if button == gamepad.L:
+      if button == gamepad.controls.L:
         tab_control.press(gamepad.controls.L)
         return ctx.handle_tab(delta=-1)
-      elif button == gamepad.R:
+      elif button == gamepad.controls.R:
         tab_control.press(gamepad.controls.R)
         return ctx.handle_tab(delta=1)
 
@@ -271,11 +271,11 @@ class InventoryContext(Context):
       tab_control.release(gamepad.controls.R)
       return
 
-    if button == gamepad.L:
+    if button == gamepad.controls.L:
       tab_control.release(gamepad.controls.L)
       return
 
-    if button == gamepad.R:
+    if button == gamepad.controls.R:
       tab_control.release(gamepad.controls.R)
       return
 

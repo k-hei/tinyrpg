@@ -75,9 +75,9 @@ class ChoiceContext(Context):
     if keyboard.get_pressed(button) > 1:
       return False
 
-    if button in (pygame.K_UP, pygame.K_w, gamepad.UP):
+    if button in (pygame.K_UP, pygame.K_w, gamepad.controls.up):
       return ctx.handle_move(-1)
-    elif button in (pygame.K_DOWN, pygame.K_s, gamepad.DOWN):
+    elif button in (pygame.K_DOWN, pygame.K_s, gamepad.controls.down):
       return ctx.handle_move(1)
 
     if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):

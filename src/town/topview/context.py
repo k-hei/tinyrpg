@@ -50,7 +50,7 @@ class TopViewContext(Context):
     if ctx.anims or ctx.link or ctx.get_head().transits:
       return None
 
-    directions = not button and [d for d in (gamepad.LEFT, gamepad.RIGHT, gamepad.UP, gamepad.DOWN) if gamepad.get_state(d)]
+    directions = not button and [d for d in (gamepad.controls.left, gamepad.controls.right, gamepad.controls.up, gamepad.controls.down) if gamepad.get_state(d)]
     if directions:
       directions = sorted(directions, key=lambda d: gamepad.get_state(d))
       button = directions[0]

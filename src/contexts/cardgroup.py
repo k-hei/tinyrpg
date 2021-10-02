@@ -100,9 +100,9 @@ class CardContext(Context):
     if keyboard.get_pressed(button) > 1 or gamepad.get_state(button) > 1:
       return
 
-    if button in (pygame.K_LEFT, pygame.K_a, gamepad.LEFT):
+    if button in (pygame.K_LEFT, pygame.K_a, gamepad.controls.left):
       ctx.handle_move(-1)
-    if button in (pygame.K_RIGHT, pygame.K_d, gamepad.RIGHT):
+    if button in (pygame.K_RIGHT, pygame.K_d, gamepad.controls.right):
       ctx.handle_move(1)
     if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
       ctx.handle_choose()

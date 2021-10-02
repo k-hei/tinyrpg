@@ -336,13 +336,13 @@ class SellContext(Context):
     press_time = keyboard.get_pressed(button) or gamepad.get_state(button)
     if (press_time == 1
     or press_time > 30 and press_time % 2):
-      if button in (pygame.K_UP, pygame.K_w, gamepad.UP):
+      if button in (pygame.K_UP, pygame.K_w, gamepad.controls.up):
         return ctx.handle_move(-1)
-      if button in (pygame.K_DOWN, pygame.K_s, gamepad.DOWN):
+      if button in (pygame.K_DOWN, pygame.K_s, gamepad.controls.down):
         return ctx.handle_move(1)
-      if button in (pygame.K_LEFT, pygame.K_a, gamepad.LEFT):
+      if button in (pygame.K_LEFT, pygame.K_a, gamepad.controls.left):
         return ctx.handle_move(-5)
-      if button in (pygame.K_RIGHT, pygame.K_d, gamepad.RIGHT):
+      if button in (pygame.K_RIGHT, pygame.K_d, gamepad.controls.right):
         return ctx.handle_move(5)
       if button in (pygame.K_SPACE, gamepad.controls.manage) and button not in ctx.requires_release:
         control = next((c for c in ctx.controls if c.value == "Multi"), None)
@@ -355,10 +355,10 @@ class SellContext(Context):
       return
 
     tab_control = next((c for c in ctx.controls if c.value == "Tab"), None)
-    if button == gamepad.L:
+    if button == gamepad.controls.L:
       tab_control.press("L")
       return ctx.handle_tab(delta=-1)
-    elif button == gamepad.R:
+    elif button == gamepad.controls.R:
       tab_control.press("R")
       return ctx.handle_tab(delta=1)
     if button == pygame.K_TAB:
@@ -381,9 +381,9 @@ class SellContext(Context):
 
   def handle_release(ctx, button):
     tab_control = next((c for c in ctx.controls if c.value == "Tab"), None)
-    if button == gamepad.L:
+    if button == gamepad.controls.L:
       tab_control.release("L")
-    elif button == gamepad.R:
+    elif button == gamepad.controls.R:
       tab_control.release("R")
     elif button == pygame.K_TAB:
       tab_control.release("L")

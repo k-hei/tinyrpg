@@ -681,7 +681,7 @@ class DungeonContext(Context):
     if game.anims or game.commands or game.get_head().transits or game.hero and game.hero.core.anims:
       return False
 
-    directions = not button and [d for d in (gamepad.LEFT, gamepad.RIGHT, gamepad.UP, gamepad.DOWN) if gamepad.get_state(d)]
+    directions = not button and [d for d in (gamepad.controls.left, gamepad.controls.right, gamepad.controls.up, gamepad.controls.down) if gamepad.get_state(d)]
     if directions:
       directions = sorted(directions, key=lambda d: gamepad.get_state(d))
       button = directions[0]

@@ -229,13 +229,13 @@ class CustomContext(Context):
       if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, gamepad.controls.cancel, gamepad.controls.equip):
         menu.handle_recall_piece()
     else:
-      if button in (pygame.K_TAB, gamepad.L, gamepad.R):
+      if button in (pygame.K_TAB, gamepad.controls.L, gamepad.controls.R):
         menu.handle_swap_char()
 
-      if button in (pygame.K_UP, pygame.K_w, gamepad.UP):
+      if button in (pygame.K_UP, pygame.K_w, gamepad.controls.up):
         menu.handle_move_index(-1)
 
-      if button in (pygame.K_DOWN, pygame.K_s, gamepad.DOWN):
+      if button in (pygame.K_DOWN, pygame.K_s, gamepad.controls.down):
         menu.handle_move_index(1)
 
       if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
