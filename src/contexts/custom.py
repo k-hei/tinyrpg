@@ -232,10 +232,10 @@ class CustomContext(Context):
       if button in (pygame.K_TAB, gamepad.controls.L, gamepad.controls.R):
         menu.handle_swap_char()
 
-      if button in (pygame.K_UP, pygame.K_w, gamepad.controls.up):
+      if button in (pygame.K_UP, pygame.K_w, gamepad.controls.UP):
         menu.handle_move_index(-1)
 
-      if button in (pygame.K_DOWN, pygame.K_s, gamepad.controls.down):
+      if button in (pygame.K_DOWN, pygame.K_s, gamepad.controls.DOWN):
         menu.handle_move_index(1)
 
       if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):

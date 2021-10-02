@@ -3,16 +3,21 @@ import lib.gamepad as gamepad
 
 @dataclass
 class ControlPreset:
-  left: str = ""
-  right: str = ""
-  up: str = ""
-  down: str = ""
+  LEFT: str = ""
+  RIGHT: str = ""
+  UP: str = ""
+  DOWN: str = ""
+  A: str = ""
+  B: str = ""
+  X: str = ""
+  Y: str = ""
   L: str = ""
   R: str = ""
+  SELECT: str = ""
+  START: str = ""
   confirm: str = ""
   cancel: str = ""
   manage: str = ""
-  action: str = ""
   run: str = ""
   turn: str = ""
   item: list[str] = field(default_factory=lambda: [])
@@ -25,16 +30,21 @@ class ControlPreset:
 
 TYPE_NULL = ControlPreset()
 TYPE_A = ControlPreset(
-  left=gamepad.LEFT,
-  right=gamepad.RIGHT,
-  up=gamepad.UP,
-  down=gamepad.DOWN,
+  LEFT=gamepad.LEFT,
+  RIGHT=gamepad.RIGHT,
+  UP=gamepad.UP,
+  DOWN=gamepad.DOWN,
+  A=gamepad.A,
+  B=gamepad.B,
+  X=gamepad.X,
+  Y=gamepad.Y,
   L=gamepad.L,
   R=gamepad.R,
+  SELECT=gamepad.SELECT,
+  START=gamepad.START,
   confirm=gamepad.CIRCLE,
   cancel=gamepad.CROSS,
   manage=gamepad.SQUARE,
-  action=gamepad.CIRCLE,
   run=gamepad.CROSS,
   turn=gamepad.R,
   item=[gamepad.R, gamepad.TRIANGLE],

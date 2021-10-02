@@ -336,13 +336,13 @@ class SellContext(Context):
     press_time = keyboard.get_pressed(button) or gamepad.get_state(button)
     if (press_time == 1
     or press_time > 30 and press_time % 2):
-      if button in (pygame.K_UP, pygame.K_w, gamepad.controls.up):
+      if button in (pygame.K_UP, pygame.K_w, gamepad.controls.UP):
         return ctx.handle_move(-1)
-      if button in (pygame.K_DOWN, pygame.K_s, gamepad.controls.down):
+      if button in (pygame.K_DOWN, pygame.K_s, gamepad.controls.DOWN):
         return ctx.handle_move(1)
-      if button in (pygame.K_LEFT, pygame.K_a, gamepad.controls.left):
+      if button in (pygame.K_LEFT, pygame.K_a, gamepad.controls.LEFT):
         return ctx.handle_move(-5)
-      if button in (pygame.K_RIGHT, pygame.K_d, gamepad.controls.right):
+      if button in (pygame.K_RIGHT, pygame.K_d, gamepad.controls.RIGHT):
         return ctx.handle_move(5)
       if button in (pygame.K_SPACE, gamepad.controls.manage) and button not in ctx.requires_release:
         control = next((c for c in ctx.controls if c.value == "Multi"), None)

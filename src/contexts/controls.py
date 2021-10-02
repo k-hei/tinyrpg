@@ -23,21 +23,26 @@ from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
 from colors.palette import BLACK, WHITE, GRAY, BLUE, GOLD, GREEN
 
 controls = [*{
-  "left": "Left",
-  "right": "Right",
-  "up": "Up",
-  "down": "Down",
-  "L": "Cycle left",
-  "R": "Cycle right",
-  "confirm": "Confirm",
+  "LEFT": "Left",
+  "RIGHT": "Right",
+  "UP": "Up",
+  "DOWN": "Down",
+  "A": "A",
+  "B": "B",
+  "X": "X",
+  "Y": "Y",
+  "L": "L",
+  "R": "R",
+  "SELECT": "Select",
+  "START": "Start",
+  "confirm": "Confirm/Action",
   "cancel": "Cancel",
   "manage": "Manage",
-  "action": "Action",
-  "item": "Carry/Throw",
-  "wait": "Wait",
   "run": "Run",
   "turn": "Turn",
-  "ally": "Switch chars",
+  "wait": "Wait",
+  "item": "Carry/Throw",
+  "ally": "Switch hero",
   "skill": "Use skill",
   "inventory": "Open inventory",
   "equip": "Change equipment",
@@ -135,9 +140,9 @@ class ControlsContext(Context):
 
     if (press_time == 1
     or press_time > 30 and press_time % 2):
-      if button in (pygame.K_UP, gamepad.controls.up):
+      if button in (pygame.K_UP, gamepad.controls.UP):
         return ctx.handle_move(delta=-1)
-      if button in (pygame.K_DOWN, gamepad.controls.down):
+      if button in (pygame.K_DOWN, gamepad.controls.DOWN):
         return ctx.handle_move(delta=1)
 
     if press_time > 1:
@@ -306,7 +311,7 @@ class ControlsContext(Context):
       button_image = (
         font.render(f"Waiting for input... ({ctx.wait_timeout})")
           if is_control_selected and not ctx.button_combo
-          else render_button(button, color=(
+          else render_button(button, mappings=(None if control_id == control_id.upper() else ctx.preset.__dict__), color=(
             GOLD
               if is_control_selected and ctx.button_combo
               else GREEN
@@ -378,15 +383,17 @@ class ControlsContext(Context):
 
     return sprites + super().view()
 
-def render_button(button, color=BLUE):
-  if type(button) is str and f"button_{button}" in assets.sprites:
-    return replace_color(assets.sprites[f"button_{button}"], BLACK, color)
+def render_button(button, mappings=None, color=BLUE):
+  if type(button) is str:
+    button_id = next((k.lower() for k, v in mappings.items() if v == button), button) if mappings else button
+    if f"button_{button_id}" in assets.sprites:
+      return replace_color(assets.sprites[f"button_{button_id}"], BLACK, color)
   elif type(button) is list:
-    return render_buttons(buttons=button, color=color)
-  return font.render(f"[{button}]")
+    return render_buttons(buttons=button, mappings=mappings, color=color)
+  return font.render(f"[{str(button).upper()}]")
 
-def render_buttons(buttons, color=BLUE):
-  button_images = [render_button(button=b, color=color) for b in buttons]
+def render_buttons(buttons, mappings, color=BLUE):
+  button_images = [render_button(button=b, mappings=mappings, color=color) for b in buttons]
   plus_image = font.render("+")
   plus_width = plus_image.get_width() * (len(button_images) - 1)
   buttons_width = sum([b.get_width() if b else 0 for b in button_images]) + plus_width + PLUS_SPACING * max(2, len(button_images) * 2 - 1)

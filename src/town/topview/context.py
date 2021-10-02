@@ -50,7 +50,7 @@ class TopViewContext(Context):
     if ctx.anims or ctx.link or ctx.get_head().transits:
       return None
 
-    directions = not button and [d for d in (gamepad.controls.left, gamepad.controls.right, gamepad.controls.up, gamepad.controls.down) if gamepad.get_state(d)]
+    directions = not button and [d for d in (gamepad.controls.LEFT, gamepad.controls.RIGHT, gamepad.controls.UP, gamepad.controls.DOWN) if gamepad.get_state(d)]
     if directions:
       directions = sorted(directions, key=lambda d: gamepad.get_state(d))
       button = directions[0]
@@ -60,7 +60,7 @@ class TopViewContext(Context):
 
     if keyboard.get_pressed(button) + gamepad.get_state(button) > 1:
       return None
-    if button in (pygame.K_SPACE, pygame.K_RETURN, gamepad.controls.action):
+    if button in (pygame.K_SPACE, pygame.K_RETURN, gamepad.controls.confirm):
       return ctx.handle_talk()
     if button == pygame.K_b and keyboard.get_pressed(pygame.K_LCTRL):
       return ctx.handle_debug()

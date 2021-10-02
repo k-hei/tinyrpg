@@ -8,7 +8,7 @@
   "button_select":   [ 0, 13, 29, 13],
   "button_start":    [29, 13, 25, 13],
   "button_options":  [ 0, 26, 33, 13],
-  "button_share":    [25, 26, 25, 13],
+  "button_share":    [33, 26, 25, 13],
   "button_esc":      [ 0, 39, 17, 13],
   "button_tab":      [17, 39, 17, 13],
   "button_left":     [ 0, 52, 11, 13],

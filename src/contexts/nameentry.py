@@ -326,7 +326,7 @@ class NameEntryContext(Context):
     if ctx.child:
       return ctx.child.handle_press(button)
 
-    directions = not button and [d for d in (gamepad.controls.left, gamepad.controls.right, gamepad.controls.up, gamepad.controls.down) if gamepad.get_state(d)]
+    directions = not button and [d for d in (gamepad.controls.LEFT, gamepad.controls.RIGHT, gamepad.controls.UP, gamepad.controls.DOWN) if gamepad.get_state(d)]
     if directions:
       directions = sorted(directions, key=lambda d: gamepad.get_state(d))
       button = directions[0]

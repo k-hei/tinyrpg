@@ -321,9 +321,9 @@ class DataContext(Context):
     if keyboard.get_pressed(button) > 1 or gamepad.get_state(button) > 1:
       return
 
-    if button in (pygame.K_UP, pygame.K_w, gamepad.controls.up):
+    if button in (pygame.K_UP, pygame.K_w, gamepad.controls.UP):
       return ctx.handle_move(-1)
-    if button in (pygame.K_DOWN, pygame.K_s, gamepad.controls.down):
+    if button in (pygame.K_DOWN, pygame.K_s, gamepad.controls.DOWN):
       return ctx.handle_move(1)
     if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
       return ctx.handle_action()
