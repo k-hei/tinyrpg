@@ -425,9 +425,10 @@ class DungeonContext(Context):
     commands = {}
     ally = game.ally
     if ally:
-      command = game.step_ally(ally)
-      if type(command) is tuple:
-        commands[ally] = [command]
+      if not ally.command:
+        game.step_ally(ally)
+      if type(ally.command) is tuple:
+        commands[ally] = [ally.command]
 
     hero = game.hero
     actors = [e for e in game.floor.elems if isinstance(e, DungeonActor) and e is not hero]
@@ -559,7 +560,12 @@ class DungeonContext(Context):
     debug.bench("refresh_fov", print_threshold=10)
 
   def step_ally(game, ally, run=False, old_hero_cell=None):
-    if not ally or not ally.can_step():
+    if not ally:
+      return False
+    if ally.charge_skill:
+      ally.command = ally.step_charge()
+      return ally.command
+    if not ally.can_step():
       return False
     hero = game.hero
     actors = [e for e in game.floor.elems if isinstance(e, DungeonActor)]

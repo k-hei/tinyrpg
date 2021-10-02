@@ -17,6 +17,7 @@ class Skill:
   users = ()
   blocks = ((0, 0),)
   color = BLACK
+  charge_turns = 1
 
   def effect(user, dest, game, on_end=None):
     user_x, user_y = user.cell

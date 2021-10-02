@@ -3,9 +3,11 @@ import pygame
 from pygame import Rect
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
+from lib.compose import compose
 from easing.expo import ease_out
 
 from contexts import Context
+from contexts.skill import SkillContext
 from sprite import Sprite
 import assets
 from anims import Anim
@@ -89,17 +91,17 @@ class AllyContext(Context):
     ]
     ctx.cache_labels()
 
-  def exit(ctx):
+  def exit(ctx, blur=False, on_end=None):
     ctx.exiting = True
     game = ctx.parent
-    if game:
+    if game and blur:
       game.camera.blur()
     game.darken_end()
     ctx.anims = [
       CursorExitAnim(),
       ButtonsExitAnim(),
     ]
-    sorted(ctx.anims, key=lambda a: a.duration + a.delay)[-1].on_end = ctx.close
+    sorted(ctx.anims, key=lambda a: a.duration + a.delay)[-1].on_end = compose(ctx.close, on_end)
 
   def handle_press(ctx, button):
     if next((a for a in ctx.anims if a.blocking), None):
@@ -115,14 +117,15 @@ class AllyContext(Context):
     match = next((k for k, v in ctx.button_mappings.items() if button in v), None)
     if match:
       ctx.button_presses.add(match)
-      if match == "a":
-        return ctx.handle_switch()
-      elif match == "y":
+      if match == "y":
         return ctx.handle_ai()
 
   def handle_release(ctx, button):
+    if ctx.exiting:
+      return False
+
     if button in (pygame.K_TAB, gamepad.controls.ally):
-      ctx.exit()
+      ctx.exit(blur=True)
 
     if next((a for a in ctx.anims if a.blocking), None):
       return False
@@ -130,6 +133,10 @@ class AllyContext(Context):
     match = next((k for k, v in ctx.button_mappings.items() if button in v), None)
     if match and match in ctx.button_presses:
       ctx.button_presses.remove(match)
+      if match == "a":
+        return ctx.handle_switch()
+      elif match == "x":
+        return ctx.handle_skill()
 
   def handle_face(ctx, delta):
     ally = ctx.ally
@@ -140,6 +147,21 @@ class AllyContext(Context):
     game = ctx.parent
     game.handle_switch()
     ctx.exit()
+
+  def handle_skill(ctx):
+    game = ctx.parent
+    ally = ctx.ally
+    ctx.exit(on_end=lambda: (
+      game.open(SkillContext(
+        actor=ally,
+        skills=ally.get_active_skills(),
+        selected_skill=game.parent.get_skill(ally.core),
+        on_close=lambda skill, dest: (
+          skill and ally.charge(skill, dest),
+          game.camera.blur(),
+        )
+      ))
+    ))
 
   def handle_ai(ctx):
     ally = ctx.ally
