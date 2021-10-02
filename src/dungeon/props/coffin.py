@@ -25,13 +25,13 @@ class Coffin(Prop):
     coffin.opened = False
 
   def effect(coffin, game, *_):
-    contents = coffin.open()
-    coffin.contents = None
+    contents = coffin.contents
     script = None
     item_anim = None
     success = False
     if contents:
       if isinstance(contents, DungeonActor):
+        coffin.open()
         neighbor = coffin.cell
         game.anims.append([JumpAnim(
           target=contents,
@@ -40,6 +40,7 @@ class Coffin(Prop):
           on_start=lambda: game.floor.spawn_elem_at(neighbor, contents)
         )])
       elif game.store.obtain(contents):
+        coffin.open()
         if type(contents) is type:
           contents = contents()
         game.anims.append([
@@ -68,7 +69,9 @@ class Coffin(Prop):
 
   def open(coffin):
     coffin.opened = True
-    return coffin.contents
+    contents = coffin.contents
+    coffin.contents = None
+    return contents
 
   def view(coffin, anims):
     if coffin.opened:
