@@ -57,7 +57,6 @@ OPTIONS_X = WINDOW_WIDTH * 2 / 5
 CONTROL_OFFSET = 8
 CONTROLS_VISIBLE = (WINDOW_HEIGHT - PADDING * 2 - PADDING_TOP) // LINE_HEIGHT - 2
 PLUS_SPACING = 2
-BUFFER_FRAMES = 15
 CONTROL_SPACING = 8
 
 def is_valid_button(button):
@@ -76,7 +75,6 @@ class ControlsContext(Context):
     ctx.waiting = None
     ctx.button_combo = []
     ctx.multi_mode = False
-    ctx.buffering = 0
     ctx.exiting = False
     ctx.scroll_index = 0
     ctx.scroll_index_drawn = 0
@@ -87,6 +85,7 @@ class ControlsContext(Context):
       Control(key=("Select",), value="Reset"),
       Control(key=("Tab",), value="Multi"),
     ]
+    ctx.buttons_rejected = set()
 
   @property
   def wait_timeout(ctx):
@@ -141,11 +140,11 @@ class ControlsContext(Context):
       return ctx.handle_config(button=None)
 
     if button in (pygame.K_SPACE, pygame.K_RETURN, gamepad.START):
-      ctx.buffer_release()
+      ctx.buttons_rejected.add(button)
       return ctx.handle_startconfig()
 
     if button == pygame.K_TAB:
-      ctx.buffer_release()
+      ctx.buttons_rejected.add(button)
       return ctx.handle_multiconfig()
 
     if button == pygame.K_BACKSPACE:
@@ -163,19 +162,14 @@ class ControlsContext(Context):
       reset_control = next((c for c in ctx.controls if c.value == "Reset"), None)
       reset_control and reset_control.release()
 
-    if ctx.buffering:
+    if button in ctx.buttons_rejected:
+      ctx.buttons_rejected.remove(button)
       return False
 
     if ctx.waiting and is_valid_button(button):
-      button = ctx.button_combo
-      if type(button) is list and len(button) == 1:
-        button = button[0]
-      else:
-        ctx.buffer_release()
+      ctx.buttons_rejected |= {b for b in ctx.button_combo if b != button}
+      button = ctx.button_combo if len(ctx.button_combo) > 1 else ctx.button_combo[0]
       return ctx.handle_config(button)
-
-  def buffer_release(ctx):
-    ctx.buffering = BUFFER_FRAMES
 
   def handle_move(ctx, delta):
     old_index = ctx.cursor_index
@@ -271,9 +265,6 @@ class ControlsContext(Context):
         ctx.anims.remove(anim)
 
     ctx.title.update()
-
-    if ctx.buffering:
-      ctx.buffering = max(0, ctx.buffering - 1)
 
     if ctx.wait_timeout == 0 and not ctx.button_combo:
       ctx.waiting = None
