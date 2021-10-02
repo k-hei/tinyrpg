@@ -9,10 +9,19 @@ class FrameAnim(Anim):
     super().__init__(duration=duration, delay=delay, *args, **kwargs)
     if frames:
       anim.frames = frames
+
     if not anim.frames_duration:
       anim.frames_duration = frames_duration
       if frames_duration == inf and duration:
+        anim.duration = duration
         anim.frames_duration = duration // len(frames)
+
+    if not duration:
+      if type(frames_duration) is list:
+        anim.duration = sum(frames_duration)
+      else:
+        anim.duration = frames_duration * len(frames)
+
     anim.frame_index = None if delay else 0
 
   def frame(anim): # method instead of prop for serialization

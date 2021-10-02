@@ -2,11 +2,11 @@ from math import inf
 
 class Anim:
   blocking = False
-  duration = 0
+  duration = 1
   loop = False
 
-  def __init__(anim, duration=inf, delay=0, loop=False, target=None, on_start=None, on_end=None):
-    anim.duration = anim.duration or duration
+  def __init__(anim, duration=0, delay=0, loop=False, target=None, on_start=None, on_end=None):
+    anim.duration = duration or anim.duration
     anim.time = -delay
     anim.delay = delay
     if loop: anim.loop = loop
