@@ -261,6 +261,7 @@ class DungeonContext(Context):
       if Enemy.skill and Enemy.skill not in game.store.skills and kills >= 5 and spawned_enemies:
         enemy = choice(spawned_enemies)
         enemy.promote()
+        break
 
     game.room = None
     game.anims = []
