@@ -83,7 +83,7 @@ def get_state(binding):
     return 0
 
 def get_mapping(button):
-  return mappings[button] if button in mappings else str(button)
+  return mappings[button] if button < len(mappings) else str(button)
 
 def update():
   for button in timings:

@@ -71,7 +71,7 @@ class CursorBounceAnim(SineAnim):
 class ControlsContext(Context):
   def __init__(ctx, *args, **kwargs):
     super().__init__(*args, **kwargs)
-    ctx.preset = copy(TYPE_A)
+    ctx.preset = copy(gamepad.controls)
     ctx.waiting = None
     ctx.button_combo = []
     ctx.multi_mode = False
@@ -143,14 +143,14 @@ class ControlsContext(Context):
       ctx.buttons_rejected.add(button)
       return ctx.handle_startconfig()
 
-    if button == pygame.K_TAB:
+    if button in (pygame.K_TAB, gamepad.controls.equip):
       ctx.buttons_rejected.add(button)
       return ctx.handle_multiconfig()
 
-    if button == pygame.K_BACKSPACE:
+    if button in (pygame.K_BACKSPACE, gamepad.controls.minimap):
       return ctx.handle_reset()
 
-    if button == pygame.K_ESCAPE:
+    if button in (pygame.K_ESCAPE, gamepad.controls.cancel):
       return ctx.handle_close()
 
   def handle_release(ctx, button):
