@@ -61,6 +61,7 @@ class AllyContext(Context):
     super().__init__(*args, **kwargs)
     ctx.anims = []
     ctx.exiting = False
+    ctx.ally = None
     ctx.button_presses = set()
     ctx.button_mappings = {
       "a": (pygame.K_SPACE,),
@@ -73,7 +74,7 @@ class AllyContext(Context):
   def enter(ctx):
     ctx.exiting = False
     game = ctx.parent
-    ally = game.ally
+    ally = ctx.ally = game.ally
     game.darken()
     game.camera.focus(
       cell=ally.cell,
@@ -114,7 +115,9 @@ class AllyContext(Context):
     match = next((k for k, v in ctx.button_mappings.items() if button in v), None)
     if match:
       ctx.button_presses.add(match)
-      if match == "y":
+      if match == "a":
+        return ctx.handle_switch()
+      elif match == "y":
         return ctx.handle_ai()
 
   def handle_release(ctx, button):
@@ -129,14 +132,17 @@ class AllyContext(Context):
       ctx.button_presses.remove(match)
 
   def handle_face(ctx, delta):
-    game = ctx.parent
-    ally = game.ally
+    ally = ctx.ally
     if not ally.is_immobile():
       ally.facing = delta
 
-  def handle_ai(ctx):
+  def handle_switch(ctx):
     game = ctx.parent
-    ally = game.ally
+    game.handle_switch()
+    ctx.exit()
+
+  def handle_ai(ctx):
+    ally = ctx.ally
     if ally.behavior == "chase":
       ally.behavior = "guard"
     elif ally.behavior == "guard":
@@ -144,8 +150,7 @@ class AllyContext(Context):
     ctx.cache_labels()
 
   def cache_labels(ctx):
-    game = ctx.parent
-    ally = game.ally
+    ally = ctx.ally
     ctx.cached_labels = [
       outline(assets.ttf[LABEL_FONT].render(l), BLACK)
         for l in [
@@ -171,7 +176,7 @@ class AllyContext(Context):
 
   def view_cursor(ctx):
     game = ctx.parent
-    ally = game.ally
+    ally = ctx.ally
     cursor_x, cursor_y = find_relative_actor_pos(game, ally)
     cursor_anim = next((a for a in ctx.anims if isinstance(a, CursorAnim)), None)
     cursor_image = assets.sprites["cursor_cell"][0]
@@ -193,7 +198,7 @@ class AllyContext(Context):
 
   def view_buttons(ctx):
     game = ctx.parent
-    ally = game.ally
+    ally = ctx.ally
     buttons_x, buttons_y = tuple([x + TILE_SIZE for x in find_relative_actor_pos(game, ally)])
     buttons_anim = next((a for a in ctx.anims if isinstance(a, ButtonsAnim)), None)
     buttons_dist = TILE_SIZE / 2
