@@ -336,7 +336,7 @@ class NameEntryContext(Context):
         return ctx.handle_move(delta)
 
     delta = keyboard.ARROW_DELTAS[button] if button in keyboard.ARROW_DELTAS else None
-    press_time = keyboard.get_pressed(button)
+    press_time = keyboard.get_state(button)
     if (button in keyboard.ARROW_DELTAS
     and (press_time == 1 or press_time > 30 and press_time % 2)):
       delta = keyboard.ARROW_DELTAS[button]

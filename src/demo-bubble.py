@@ -22,7 +22,7 @@ class BubbleContext(Context):
   def handle_press(ctx, key):
     if super().handle_press(key) != None:
       return
-    if keyboard.get_pressed(key) > 1:
+    if keyboard.get_state(key) > 1:
       return
     if key == pygame.K_SPACE:
       return ctx.handle_next()

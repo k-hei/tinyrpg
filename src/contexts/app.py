@@ -211,11 +211,11 @@ class App(Context):
   def handle_press(app, button=None):
     if button:
       keyboard.handle_press(button)
-      tapping = keyboard.get_pressed(button) == 1
-      ctrl = (keyboard.get_pressed(pygame.K_LCTRL)
-        or keyboard.get_pressed(pygame.K_RCTRL))
-      shift = (keyboard.get_pressed(pygame.K_LSHIFT)
-        or keyboard.get_pressed(pygame.K_RSHIFT))
+      tapping = keyboard.get_state(button) == 1
+      ctrl = (keyboard.get_state(pygame.K_LCTRL)
+        or keyboard.get_state(pygame.K_RCTRL))
+      shift = (keyboard.get_state(pygame.K_LSHIFT)
+        or keyboard.get_state(pygame.K_RSHIFT))
       if button == pygame.K_MINUS and ctrl:
         return tapping and app.rescale(app.scale - 1)
       if button == pygame.K_EQUALS and ctrl:

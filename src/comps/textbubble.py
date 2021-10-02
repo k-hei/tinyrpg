@@ -83,7 +83,7 @@ class TextBubble:
     def handle_press(ctx, button):
       if ctx.anims:
         return False
-      if keyboard.get_pressed(button) > 1:
+      if keyboard.get_state(button) > 1:
         return
       if button in (pygame.K_LEFT, pygame.K_a, gamepad.controls.LEFT):
         return ctx.handle_move(delta=-1)

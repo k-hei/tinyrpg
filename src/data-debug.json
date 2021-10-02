@@ -9,7 +9,8 @@
   "new_skills": [],
   "selected_skill": {},
   "party": [
-    "Knight"
+    "Knight",
+    "Mage"
   ],
   "builds": {
     "Knight": {
@@ -23,6 +24,6 @@
     }
   },
   "kills": {},
-  "story": [],
+  "story": ["minxia"],
   "quests": {}
 }

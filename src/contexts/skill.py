@@ -92,7 +92,7 @@ class SkillContext(Context):
     if len(ctx.anims):
       return
 
-    if keyboard.get_pressed(button) != 1 and gamepad.get_state(button) != 1:
+    if keyboard.get_state(button) != 1 and gamepad.get_state(button) != 1:
       return
 
     if button in keyboard.ARROW_DELTAS:
@@ -310,18 +310,14 @@ class SkillContext(Context):
 
       if anim and anim.target == "cursor":
         if anim.visible:
-          cursor_sprite = assets.sprites["cursor_cell1"]
+          cursor_sprite = assets.sprites["cursor_cell"][1]
         else:
           cursor_sprite = None
         if anim.done:
           ctx.anims.remove(anim)
       else:
         t = min(2, math.floor((t + 1) / 2 * 3))
-        cursor_sprite = assets.sprites["cursor_cell"]
-        if t == 1:
-          cursor_sprite = assets.sprites["cursor_cell1"]
-        elif t == 2:
-          cursor_sprite = assets.sprites["cursor_cell2"]
+        cursor_sprite = assets.sprites["cursor_cell"][t]
 
       new_cursor_col, new_cursor_row = cursor
       cursor_tile = floor.get_tile_at(cursor)

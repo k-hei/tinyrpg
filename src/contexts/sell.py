@@ -333,7 +333,7 @@ class SellContext(Context):
     if next((a for a in ctx.anims if a.blocking), None) or ctx.tablist.anims:
       return
 
-    press_time = keyboard.get_pressed(button) or gamepad.get_state(button)
+    press_time = keyboard.get_state(button) or gamepad.get_state(button)
     if (press_time == 1
     or press_time > 30 and press_time % 2):
       if button in (pygame.K_UP, pygame.K_w, gamepad.controls.UP):
@@ -362,8 +362,8 @@ class SellContext(Context):
       tab_control.press("R")
       return ctx.handle_tab(delta=1)
     if button == pygame.K_TAB:
-      if (keyboard.get_pressed(pygame.K_LSHIFT)
-      or keyboard.get_pressed(pygame.K_RSHIFT)):
+      if (keyboard.get_state(pygame.K_LSHIFT)
+      or keyboard.get_state(pygame.K_RSHIFT)):
         tab_control.press("L")
         return ctx.handle_tab(delta=-1)
       else:

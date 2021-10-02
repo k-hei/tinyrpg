@@ -19,7 +19,7 @@ class ExamineContext(Context):
     if ctx.child:
       return ctx.child.handle_press(key)
 
-    key_time = keyboard.get_pressed(key)
+    key_time = keyboard.get_state(key)
     if key in keyboard.ARROW_DELTAS and (
       key_time == 1
       or (key_time > 30 and key_time % 2)
@@ -39,7 +39,7 @@ class ExamineContext(Context):
 
   def draw(ctx, surface):
     assets = use_assets()
-    sprite = assets.sprites["cursor_cell"]
+    sprite = assets.sprites["cursor_cell"][0]
     game = ctx.parent
     camera = game.camera
     camera_x, camera_y = camera.pos

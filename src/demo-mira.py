@@ -17,7 +17,7 @@ class PortraitContext(Context):
     ctx.portrait = MiraPortrait()
 
   def handle_press(ctx, key):
-    if keyboard.get_pressed(key) > 1:
+    if keyboard.get_state(key) > 1:
       return
 
     if key == pygame.K_SPACE:

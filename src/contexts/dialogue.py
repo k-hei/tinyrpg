@@ -114,7 +114,7 @@ class DialogueContext(Context):
       return ctx.child.handle_press(button)
     if button == gamepad.controls.cancel:
       ctx.handle_next()
-    if keyboard.get_pressed(button) != 1 and gamepad.get_state(button) != 1:
+    if keyboard.get_state(button) != 1 and gamepad.get_state(button) != 1:
       return
     if button in (pygame.K_SPACE, pygame.K_RETURN, gamepad.controls.confirm):
       ctx.handle_next()

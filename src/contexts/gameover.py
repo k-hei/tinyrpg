@@ -110,7 +110,7 @@ class GameOverContext(Context):
   def handle_press(ctx, button):
     if ctx.child:
       return ctx.child.handle_press(button)
-    if (keyboard.get_pressed(button) + gamepad.get_state(button) > 1
+    if (keyboard.get_state(button) + gamepad.get_state(button) > 1
     or next((a for a in ctx.anims if a.blocking), None)
     or ctx.chosen):
       return

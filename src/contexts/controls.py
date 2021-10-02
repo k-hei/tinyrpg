@@ -120,7 +120,7 @@ class ControlsContext(Context):
     if ctx.child:
       return ctx.child.handle_press(button)
 
-    press_time = keyboard.get_pressed(button) or gamepad.get_state(button)
+    press_time = keyboard.get_state(button) or gamepad.get_state(button)
 
     if press_time == 1 and ctx.waiting:
       if button == pygame.K_ESCAPE:

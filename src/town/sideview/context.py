@@ -137,7 +137,7 @@ class SideViewContext(Context):
       return ctx.handle_move(-1)
     if button in (pygame.K_RIGHT, pygame.K_d, gamepad.controls.RIGHT):
       return ctx.handle_move(1)
-    if keyboard.get_pressed(button) > 1 or gamepad.get_state(button) > 1:
+    if keyboard.get_state(button) > 1 or gamepad.get_state(button) > 1:
       return
     if button in (pygame.K_UP, pygame.K_w, gamepad.controls.UP):
       return ctx.handle_zmove(-1)

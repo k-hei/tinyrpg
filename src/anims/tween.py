@@ -1,10 +1,12 @@
+from math import inf
 from anims import Anim
 
 class TweenAnim(Anim):
   blocking = True
+  duration = 0
 
-  def __init__(anim, easing=None, *args, **kwargs):
-    super().__init__(*args, **kwargs)
+  def __init__(anim, easing=None, duration=inf, *args, **kwargs):
+    super().__init__(duration=anim.duration or duration, *args, **kwargs)
     anim.easing = easing
     anim.pos = 0
 

@@ -104,6 +104,7 @@ from contexts.prompt import PromptContext, Choice
 from contexts.gameover import GameOverContext
 from contexts.cutscene import CutsceneContext
 from contexts.controls import ControlsContext
+from contexts.ally import AllyContext
 
 from dungeon.floors.floor1 import Floor1
 from dungeon.floors.floor2 import Floor2
@@ -652,6 +653,7 @@ class DungeonContext(Context):
   def handle_release(game, button):
     if game.child:
       return game.child.handle_release(button)
+
     if button in game.buttons_rejected:
       del game.buttons_rejected[button]
 
@@ -660,9 +662,9 @@ class DungeonContext(Context):
       return game.child.handle_press(button)
 
     # debug functionality
-    ctrl = keyboard.get_pressed(pygame.K_LCTRL) or keyboard.get_pressed(pygame.K_RCTRL)
-    shift = keyboard.get_pressed(pygame.K_LSHIFT) or keyboard.get_pressed(pygame.K_RSHIFT)
-    if keyboard.get_pressed(button) == 1 and ctrl:
+    ctrl = keyboard.get_state(pygame.K_LCTRL) or keyboard.get_state(pygame.K_RCTRL)
+    shift = keyboard.get_state(pygame.K_LSHIFT) or keyboard.get_state(pygame.K_RSHIFT)
+    if keyboard.get_state(button) == 1 and ctrl:
       game.buttons_rejected[button] = True
       if button == pygame.K_ESCAPE:
         return game.toggle_lights()
@@ -701,10 +703,10 @@ class DungeonContext(Context):
       return moved
 
     if gamepad.get_state(gamepad.controls.wait) > 30 or (
-    button in (pygame.K_BACKSLASH, pygame.K_BACKQUOTE) and keyboard.get_pressed(button) > 30):
+    button in (pygame.K_BACKSLASH, pygame.K_BACKQUOTE) and keyboard.get_state(button) > 30):
       return game.handle_sleep()
 
-    if keyboard.get_pressed(button) != 1 and gamepad.get_state(button) != 1:
+    if keyboard.get_state(button) != 1 and gamepad.get_state(button) != 1:
       return None
 
     if button == pygame.K_f:
@@ -717,7 +719,7 @@ class DungeonContext(Context):
       return False
 
     if button in (pygame.K_TAB, gamepad.controls.ally):
-      return game.handle_switch()
+      return game.handle_ally()
 
     if button in (pygame.K_BACKSLASH, pygame.K_BACKQUOTE) or gamepad.get_state(gamepad.controls.wait):
       return game.handle_wait()
@@ -1114,6 +1116,11 @@ class DungeonContext(Context):
 
   def handle_switch(game):
     return game.switch_chars()
+
+  def handle_ally(game):
+    if not game.ally:
+      return False
+    game.open(AllyContext())
 
   def recruit(game, actor):
     actor.reset_charge()
@@ -2194,7 +2201,9 @@ class DungeonContext(Context):
               type(comp) is Hud
               or type(comp) is SpMeter
               or type(comp) is Minimap
-            ))):
+            ))
+            and not (type(game.child) is AllyContext and type(comp) is Hud)
+            ):
               comp.exit()
               game.hide_bubble()
       else:

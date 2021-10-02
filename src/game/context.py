@@ -173,7 +173,7 @@ class GameContext(Context):
   def handle_press(ctx, button):
     if super().handle_press(button) != None:
       return
-    if (keyboard.get_pressed(button) + gamepad.get_state(button) > 1
+    if (keyboard.get_state(button) + gamepad.get_state(button) > 1
     or type(ctx.child) not in (DungeonContext, TownContext)
     or type(ctx.child) is DungeonContext and ctx.child.get_depth() > 0
     or type(ctx.child) is TownContext and ctx.child.get_depth() > 1

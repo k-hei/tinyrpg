@@ -205,7 +205,7 @@ class InventoryContext(Context):
     if ctx.child:
       return ctx.child.handle_press(button)
 
-    if keyboard.get_pressed(button) + gamepad.get_state(button) > 1:
+    if keyboard.get_state(button) + gamepad.get_state(button) > 1:
       return False
 
     if button in ARROW_DELTAS:
@@ -235,8 +235,8 @@ class InventoryContext(Context):
         return ctx.handle_tab(delta=1)
 
       if button == pygame.K_TAB:
-        if (keyboard.get_pressed(pygame.K_LSHIFT)
-        or keyboard.get_pressed(pygame.K_RSHIFT)
+        if (keyboard.get_state(pygame.K_LSHIFT)
+        or keyboard.get_state(pygame.K_RSHIFT)
         ):
           tab_control.press(gamepad.controls.L)
           return ctx.handle_tab(delta=-1)

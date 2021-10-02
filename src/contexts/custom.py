@@ -216,7 +216,7 @@ class CustomContext(Context):
         if type(anim) in (EnterAnim, ExitAnim, CallAnim, RecallAnim):
           blocking = True
           break
-    if blocking or keyboard.get_pressed(button) != 1 and gamepad.get_state(button) != 1:
+    if blocking or keyboard.get_state(button) != 1 and gamepad.get_state(button) != 1:
       return
 
     if menu.arrange:

@@ -39,7 +39,7 @@ def handle_release(key):
   if not inited: init()
   key_times[key] = 0
 
-def get_pressed(key):
+def get_state(key):
   if key not in key_times:
     return 0
   return key_times[key]

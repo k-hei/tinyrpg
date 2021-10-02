@@ -21,7 +21,7 @@ class PauseContext(Context):
   choices = ["item", "equip", "status", "quest", "option"]
 
   def handle_press(ctx, key):
-    if keyboard.get_pressed(key) > 1:
+    if keyboard.get_state(key) > 1:
       return False
     if key == pygame.K_ESCAPE:
       return ctx.close()

@@ -58,11 +58,11 @@ class TopViewContext(Context):
     if delta:
       return ctx.handle_move(delta)
 
-    if keyboard.get_pressed(button) + gamepad.get_state(button) > 1:
+    if keyboard.get_state(button) + gamepad.get_state(button) > 1:
       return None
     if button in (pygame.K_SPACE, pygame.K_RETURN, gamepad.controls.confirm):
       return ctx.handle_talk()
-    if button == pygame.K_b and keyboard.get_pressed(pygame.K_LCTRL):
+    if button == pygame.K_b and keyboard.get_state(pygame.K_LCTRL):
       return ctx.handle_debug()
 
   def handle_release(ctx, button):
