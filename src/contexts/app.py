@@ -240,6 +240,6 @@ class App(Context):
       return app.child.handle_press(button)
 
   def handle_release(app, key):
-    keyboard.handle_release(key)
     if app.child:
-      return app.child.handle_release(key)
+      app.child.handle_release(key)
+    keyboard.handle_release(key)

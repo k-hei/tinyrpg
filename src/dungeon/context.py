@@ -657,6 +657,10 @@ class DungeonContext(Context):
     if button in game.buttons_rejected:
       del game.buttons_rejected[button]
 
+    if button in (pygame.K_TAB, gamepad.controls.ally) and (
+      keyboard.get_state(button) + gamepad.get_state(button) < 15
+    ): game.handle_switch()
+
   def handle_press(game, button=None):
     if game.child:
       return game.child.handle_press(button)
@@ -665,7 +669,7 @@ class DungeonContext(Context):
     ctrl = keyboard.get_state(pygame.K_LCTRL) or keyboard.get_state(pygame.K_RCTRL)
     shift = keyboard.get_state(pygame.K_LSHIFT) or keyboard.get_state(pygame.K_RSHIFT)
     if keyboard.get_state(button) == 1 and ctrl:
-      game.buttons_rejected[button] = True
+      game.buttons_rejected[button] = 0
       if button == pygame.K_ESCAPE:
         return game.toggle_lights()
       if button == pygame.K_s and shift:
@@ -697,16 +701,19 @@ class DungeonContext(Context):
       if not moved:
         if button not in game.buttons_rejected:
           game.buttons_rejected[button] = 0
-        game.buttons_rejected[button] += 1
-        if game.buttons_rejected[button] >= 30:
+        elif game.buttons_rejected[button] >= 30:
           return game.handle_push()
       return moved
 
     if gamepad.get_state(gamepad.controls.wait) > 30 or (
-    button in (pygame.K_BACKSLASH, pygame.K_BACKQUOTE) and keyboard.get_state(button) > 30):
-      return game.handle_sleep()
+      button in (pygame.K_BACKSLASH, pygame.K_BACKQUOTE) and keyboard.get_state(button) > 30
+    ): return game.handle_sleep()
 
-    if keyboard.get_state(button) != 1 and gamepad.get_state(button) != 1:
+    if gamepad.get_state(gamepad.controls.ally) > 15 or (
+      button == pygame.K_TAB and keyboard.get_state(button) > 15
+    ): return game.handle_ally()
+
+    if keyboard.get_state(button) + gamepad.get_state(button) > 1:
       return None
 
     if button == pygame.K_f:
@@ -717,9 +724,6 @@ class DungeonContext(Context):
 
     if game.hero.is_dead() or game.hero.ailment == "sleep":
       return False
-
-    if button in (pygame.K_TAB, gamepad.controls.ally):
-      return game.handle_ally()
 
     if button in (pygame.K_BACKSLASH, pygame.K_BACKQUOTE) or gamepad.get_state(gamepad.controls.wait):
       return game.handle_wait()
@@ -2179,6 +2183,9 @@ class DungeonContext(Context):
     for comp in game.comps:
       if "done" in dir(comp) and comp.done:
         game.comps.remove(comp)
+
+    for button in game.buttons_rejected:
+      game.buttons_rejected[button] += 1
 
     game.time += 1
 
