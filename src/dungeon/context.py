@@ -1931,7 +1931,7 @@ class DungeonContext(Context):
     actor.regen(actor.get_hp_max())
     actor.dispel_ailment()
     game.numbers.append(DamageValue(actor.get_hp_max(), add_vector(actor.cell, (0, -0.25)), color=GREEN))
-    game.numbers.append(DamageValue(game.get_sp_max(), actor.cell, color=CYAN))
+    game.numbers.append(DamageValue(game.store.sp, actor.cell, color=CYAN))
     game.store.sp = game.store.sp_max
 
   def use_oasis(game):
@@ -2074,19 +2074,6 @@ class DungeonContext(Context):
     game.lights = not game.lights
     game.refresh_fov()
     return True
-
-  def get_gold(game):
-    return game.store.gold
-
-  def change_gold(game, amount):
-    game.store.gold += amount
-    return game.store.gold
-
-  def get_sp(game):
-    return game.store.sp
-
-  def get_sp_max(game):
-    return MAX_SP
 
   def get_visible_cells(game, actor=None):
     return (actor or game.hero).visible_cells
