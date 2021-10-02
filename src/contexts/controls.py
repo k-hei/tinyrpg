@@ -13,12 +13,13 @@ import assets
 from game.controls import TYPE_A
 from comps.control import Control
 from comps.title import Title
+from comps.bg import Bg
 from sprite import Sprite
 from anims import Anim
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
 from filters import replace_color, darken_image
-from config import WINDOW_WIDTH, WINDOW_HEIGHT
+from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
 from colors.palette import BLACK, WHITE, GRAY, BLUE, GOLD, GREEN
 
 controls = [*{
@@ -69,7 +70,7 @@ class CursorBounceAnim(SineAnim):
   period = CURSOR_BOUNCE_PERIOD
 
 class ControlsContext(Context):
-  def __init__(ctx, *args, **kwargs):
+  def __init__(ctx, bg=False, *args, **kwargs):
     super().__init__(*args, **kwargs)
     ctx.preset = copy(gamepad.controls)
     ctx.waiting = None
@@ -80,6 +81,7 @@ class ControlsContext(Context):
     ctx.scroll_index_drawn = 0
     ctx.cursor_index = 0
     ctx.title = Title(text="CONTROLS")
+    ctx.bg = Bg(WINDOW_SIZE) if bg else None
     ctx.anims = [CursorBounceAnim()]
     ctx.controls = [
       Control(key=("Select",), value="Reset"),
@@ -94,11 +96,13 @@ class ControlsContext(Context):
   def enter(ctx):
     ctx.exiting = False
     ctx.title.enter()
+    ctx.bg and ctx.bg.enter()
     ctx.anims.append(EnterAnim(duration=len(controls)))
 
   def exit(ctx):
     ctx.exiting = True
     ctx.title.exit(on_end=ctx.close)
+    ctx.bg and ctx.bg.exit()
     ctx.anims.append(ExitAnim(duration=CONTROLS_VISIBLE))
 
   def close(ctx):
@@ -274,6 +278,9 @@ class ControlsContext(Context):
 
   def view(ctx):
     sprites = []
+
+    if ctx.bg:
+      sprites += ctx.bg.view()
 
     # controls
     max_scroll = min(len(controls), ctx.scroll_index + CONTROLS_VISIBLE + 1)

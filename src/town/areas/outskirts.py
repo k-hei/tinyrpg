@@ -7,6 +7,7 @@ from config import TILE_SIZE
 from contexts.prompt import PromptContext, Choice
 from contexts.load import LoadContext
 from contexts.save import SaveContext
+from contexts.controls import ControlsContext
 from contexts.nameentry import NameEntryContext
 
 class OutskirtsArea(Area):
@@ -27,6 +28,7 @@ class OutskirtsArea(Area):
         ("Doshin", "Hail, traveler!"),
         prompt := lambda: PromptContext("How fares the exploration?", (
           Choice("Manage data", closing=True),
+          Choice("Edit controls"),
           Choice("Change name"),
           Choice("Nothing", closing=True)
         ), required=True, on_close=lambda choice: (
@@ -50,6 +52,8 @@ class OutskirtsArea(Area):
                 )
               ] or choice.text == "Nothing" and [prompt]
             ))
+          ] or choice.text == "Edit controls" and [
+            lambda: ControlsContext(bg=True)
           ] or choice.text == "Change name" and [
             ("Doshin", "Hm? A name change?"),
             ("Doshin", "Awfully finnicky, aren't we?"),
