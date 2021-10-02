@@ -1,14 +1,25 @@
+from math import pi, sin, cos
 import pygame
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
+from easing.expo import ease_out
 
 from contexts import Context
 from sprite import Sprite
 import assets
-from config import TILE_SIZE
 from anims import Anim
 from anims.tween import TweenAnim
 from anims.frame import FrameAnim
+from filters import replace_color
+from colors.palette import BLACK, BLUE
+from config import TILE_SIZE
+
+def find_relative_actor_pos(game, actor):
+  actor_col, actor_row = actor.cell
+  camera_x, camera_y = game.camera.pos
+  cursor_x = (actor_col + 0.5) * TILE_SIZE - round(camera_x)
+  cursor_y = (actor_row + 0.5) * TILE_SIZE - round(camera_y)
+  return (cursor_x, cursor_y)
 
 class CursorAnim(Anim): pass
 
@@ -25,6 +36,16 @@ class CursorFrameAnim(CursorAnim, FrameAnim):
   frames_duration = 10
   loop = True
 
+class ButtonsAnim(Anim): pass
+
+class ButtonsEnterAnim(ButtonsAnim, TweenAnim):
+  blocking = True
+  duration = 15
+
+class ButtonsExitAnim(ButtonsAnim, TweenAnim):
+  blocking = True
+  duration = 4
+
 class AllyContext(Context):
   def __init__(ctx, *args, **kwargs):
     super().__init__(*args, **kwargs)
@@ -35,20 +56,30 @@ class AllyContext(Context):
     ctx.exiting = False
     game = ctx.parent
     ally = game.ally
+    game.darken()
     game.camera.focus(
       cell=ally.cell,
       force=True,
       speed=8
     )
-    ctx.anims = [CursorEnterAnim(), CursorFrameAnim()]
+    ctx.anims = [
+      CursorEnterAnim(),
+      CursorFrameAnim(),
+      ButtonsEnterAnim(easing=ease_out),
+      ButtonsExitAnim(),
+    ]
 
   def exit(ctx):
     ctx.exiting = True
     game = ctx.parent
     if game:
       game.camera.blur()
-    ctx.anims = [CursorExitAnim()]
-    ctx.anims[-1].on_end = ctx.close
+    game.darken_end()
+    ctx.anims = [
+      CursorExitAnim(),
+      ButtonsExitAnim(),
+    ]
+    sorted(ctx.anims, key=lambda a: a.duration + a.delay)[-1].on_end = ctx.close
 
   def handle_press(ctx, button):
     if next((a for a in ctx.anims if a.blocking), None):
@@ -65,14 +96,17 @@ class AllyContext(Context):
   def handle_face(ctx, delta):
     game = ctx.parent
     ally = game.ally
-    ally.facing = delta
+    if not ally.is_immobile():
+      ally.facing = delta
 
   def update(ctx):
     ctx.anims = [a for a in ctx.anims if not a.done and [a.update()]]
 
   def view(ctx):
-    sprites = []
-    sprites += ctx.view_cursor()
+    sprites = (
+      ctx.view_cursor()
+      + ctx.view_buttons()
+    )
     for sprite in sprites:
       if not sprite.layer:
         sprite.layer = "ui"
@@ -81,11 +115,8 @@ class AllyContext(Context):
   def view_cursor(ctx):
     game = ctx.parent
     ally = game.ally
-    ally_col, ally_row = ally.cell
-    camera_x, camera_y = game.camera.pos
-    cursor_x = (ally_col + 0.5) * TILE_SIZE - round(camera_x)
-    cursor_y = (ally_row + 0.5) * TILE_SIZE - round(camera_y)
-    cursor_anim = next((a for a in ctx.anims if isinstance(a, CursorAnim)))
+    cursor_x, cursor_y = find_relative_actor_pos(game, ally)
+    cursor_anim = next((a for a in ctx.anims if isinstance(a, CursorAnim)), None)
     cursor_image = assets.sprites["cursor_cell"][0]
     cursor_size = cursor_image.get_size()
     if type(cursor_anim) is CursorEnterAnim:
@@ -99,6 +130,30 @@ class AllyContext(Context):
     return [Sprite(
       image=cursor_image,
       pos=(cursor_x, cursor_y),
-      size=cursor_size,
       origin=Sprite.ORIGIN_CENTER,
+      size=cursor_size,
     )]
+
+  def view_buttons(ctx):
+    game = ctx.parent
+    ally = game.ally
+    buttons_x, buttons_y = tuple([x + TILE_SIZE for x in find_relative_actor_pos(game, ally)])
+    buttons_anim = next((a for a in ctx.anims if isinstance(a, ButtonsAnim)), None)
+    buttons_dist = TILE_SIZE / 2
+    buttons_rads = 0
+    if type(buttons_anim) is ButtonsEnterAnim:
+      buttons_dist *= buttons_anim.pos
+      buttons_rads = -2 * pi + 2 * pi * buttons_anim.pos
+    elif type(buttons_anim) is ButtonsExitAnim:
+      buttons_dist *= 1 - buttons_anim.pos
+      buttons_rads = pi / 2 * buttons_anim.pos
+    elif ctx.exiting:
+      return []
+    return [Sprite(
+      image=replace_color(assets.sprites[f"button_{b}"], BLACK, BLUE),
+      pos=(
+        buttons_x + buttons_dist * cos(buttons_rads + (pi / 2) * i),
+        buttons_y + buttons_dist * sin(buttons_rads + (pi / 2) * i)
+      ),
+      origin=Sprite.ORIGIN_CENTER
+    ) for i, b in enumerate(["a", "b", "x", "y"])]

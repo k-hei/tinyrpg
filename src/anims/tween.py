@@ -3,10 +3,10 @@ from anims import Anim
 
 class TweenAnim(Anim):
   blocking = True
-  duration = 0
+  duration = 1
 
-  def __init__(anim, easing=None, duration=inf, *args, **kwargs):
-    super().__init__(duration=anim.duration or duration, *args, **kwargs)
+  def __init__(anim, easing=None, duration=0, *args, **kwargs):
+    super().__init__(duration=duration or anim.duration, *args, **kwargs)
     anim.easing = easing
     anim.pos = 0
 
