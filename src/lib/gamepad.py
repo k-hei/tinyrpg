@@ -49,10 +49,10 @@ def handle_event(app, event):
     inited = True
     init_gamepad(0)
   if event.type == pygame.JOYBUTTONDOWN:
-    handle_press(app, mappings[event.button])
+    handle_press(app, get_mapping(event.button))
     return True
   if event.type == pygame.JOYBUTTONUP:
-    handle_release(app, mappings[event.button])
+    handle_release(app, get_mapping(event.button))
     return True
   if event.type == pygame.JOYDEVICEADDED:
     pygame.joystick.init() # TODO: figure out why hotplugging is broken (related to duplicate code in app init)
@@ -81,6 +81,9 @@ def get_state(binding):
     return timings[binding]
   else:
     return 0
+
+def get_mapping(button):
+  return mappings[button] if button in mappings else str(button)
 
 def update():
   for button in timings:

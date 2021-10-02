@@ -58,7 +58,7 @@ BUFFER_FRAMES = 15
 CONTROL_SPACING = 8
 
 def is_valid_button(button):
-  return type(button) in (str, list)
+  return True # type(button) in (str, list)
 
 class EnterAnim(Anim): blocking = True
 class CursorSlideAnim(TweenAnim): pass
@@ -355,12 +355,11 @@ class ControlsContext(Context):
     return sprites + super().view()
 
 def render_button(button, color=BLUE):
-  if type(button) is str:
-    return (f"button_{button}" in assets.sprites
-      and replace_color(assets.sprites[f"button_{button}"], BLACK, color)
-      or None)
+  if type(button) is str and f"button_{button}" in assets.sprites:
+    return replace_color(assets.sprites[f"button_{button}"], BLACK, color)
   elif type(button) is list:
     return render_buttons(buttons=button, color=color)
+  return font.render("????")
 
 def render_buttons(buttons, color=BLUE):
   button_images = [render_button(button=b, color=color) for b in buttons]
