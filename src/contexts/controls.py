@@ -64,7 +64,8 @@ def is_valid_button(button):
   return True # type(button) in (str, list)
 
 class EnterAnim(Anim): blocking = True
-class CursorSlideAnim(TweenAnim): pass
+class ExitAnim(Anim): blocking = True
+class CursorSlideAnim(TweenAnim): blocking = False
 class CursorBounceAnim(SineAnim):
   period = CURSOR_BOUNCE_PERIOD
 
@@ -76,6 +77,7 @@ class ControlsContext(Context):
     ctx.button_combo = []
     ctx.multi_mode = False
     ctx.buffering = 0
+    ctx.exiting = False
     ctx.scroll_index = 0
     ctx.scroll_index_drawn = 0
     ctx.cursor_index = 0
@@ -91,11 +93,14 @@ class ControlsContext(Context):
     return (5 - (get_ticks() - ctx.waiting) // 1000) if ctx.waiting else None
 
   def enter(ctx):
+    ctx.exiting = False
     ctx.title.enter()
     ctx.anims.append(EnterAnim(duration=len(controls)))
 
   def exit(ctx):
+    ctx.exiting = True
     ctx.title.exit(on_end=ctx.close)
+    ctx.anims.append(ExitAnim(duration=CONTROLS_VISIBLE))
 
   def close(ctx):
     super().close(ctx.preset)
@@ -283,6 +288,12 @@ class ControlsContext(Context):
     if enter_anim:
       max_scroll = min(enter_anim.time, max_scroll)
 
+    exit_anim = next((a for a in ctx.anims if type(a) is ExitAnim), None)
+    if exit_anim:
+      max_scroll = max(ctx.scroll_index, max_scroll - exit_anim.time)
+    elif ctx.exiting:
+      max_scroll = 0
+
     for i in range(ctx.scroll_index, max_scroll):
       control_id, control_name = controls[i]
       is_control_selected = i == ctx.cursor_index and ctx.waiting
@@ -319,8 +330,8 @@ class ControlsContext(Context):
         )] if button_image else [])
       ]
 
-    # cursor
-    if not ctx.child:
+    if not ctx.child and not next((a for a in ctx.anims + ctx.title.anims if a.blocking), None):
+      # cursor
       cursor_bounce_anim = next((a for a in ctx.anims if type(a) is CursorBounceAnim), None)
       cursor_slide_anim = next((a for a in ctx.anims if type(a) is CursorSlideAnim), None)
       if cursor_slide_anim:
@@ -346,17 +357,17 @@ class ControlsContext(Context):
         origin=Sprite.ORIGIN_RIGHT
       ))
 
-    # controls
-    controls_x = WINDOW_WIDTH - 24
-    controls_y = WINDOW_HEIGHT - 20
-    for control in ctx.controls:
-      control_image = control.render()
-      sprites.append(Sprite(
-        image=control_image,
-        pos=(controls_x, controls_y),
-        origin=Sprite.ORIGIN_RIGHT
-      ))
-      controls_x -= control_image.get_width() + CONTROL_SPACING
+      # controls
+      controls_x = WINDOW_WIDTH - 24
+      controls_y = WINDOW_HEIGHT - 20
+      for control in ctx.controls:
+        control_image = control.render()
+        sprites.append(Sprite(
+          image=control_image,
+          pos=(controls_x, controls_y),
+          origin=Sprite.ORIGIN_RIGHT
+        ))
+        controls_x -= control_image.get_width() + CONTROL_SPACING
 
     sprites += ctx.title.view()
 

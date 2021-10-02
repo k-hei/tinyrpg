@@ -14,7 +14,7 @@ class LoadContext(DataContext):
 
   def enter(ctx):
     super().enter()
-    ctx.can_close = type(ctx.parent).__name__ == "GameContext"
+    ctx.can_close = type(ctx.parent).__name__ == "GameContext" and ctx.parent.savedata
     ctx.anims[-1].on_end = lambda: ctx.open(
       DialogueContext(script=["Please select a file to load."], lite=True)
     )
