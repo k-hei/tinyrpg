@@ -1115,6 +1115,7 @@ class DungeonContext(Context):
     return game.switch_chars()
 
   def recruit(game, actor):
+    actor.reset_charge()
     game.store.recruit(actor.core)
     game.ally = actor
     game.parent.update_skills()
