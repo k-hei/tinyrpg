@@ -1121,15 +1121,18 @@ class DungeonContext(Context):
     game.parent.update_skills()
 
   def handle_skill(game):
+    hero = game.hero
+    if hero.ailment == "freeze":
+      return game.handle_struggle(actor=hero)
     game.log.exit()
     game.open(SkillContext(
-      skills=game.hero.get_active_skills(),
-      selected_skill=game.parent.get_skill(game.hero.core),
-      actor=game.hero,
+      skills=hero.get_active_skills(),
+      selected_skill=game.parent.get_skill(hero.core),
+      actor=hero,
       on_close=lambda skill, dest: (
         skill and (
-          game.parent.set_skill(game.hero.core, skill),
-          game.use_skill(game.hero, skill, dest)
+          game.parent.set_skill(hero.core, skill),
+          game.use_skill(hero, skill, dest)
         ) or game.refresh_fov()
       )
     ))

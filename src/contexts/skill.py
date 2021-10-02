@@ -202,15 +202,9 @@ class SkillContext(Context):
     ctx.print_skill(ctx.skill)
 
   def exit(ctx, skill=None, dest=None):
-    def close():
-      if "camera" in dir(ctx.parent):
-        # ctx.parent.camera.blur()
-        ctx.parent.child = None
-      if ctx.on_close:
-        ctx.on_close(skill, dest)
-
     ctx.exiting = True
     index = 0
+    close = lambda: ctx.close(skill, dest)
     for option in ctx.skills:
       is_last = skill is None and index == len(ctx.skills) - 1
       ctx.anims.append(TweenAnim(
