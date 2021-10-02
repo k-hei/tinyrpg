@@ -299,5 +299,5 @@ def spawn_enemies(room, game):
       e for c in room.cells
         for e in game.floor.get_elems_at(c)
           if isinstance(e, Coffin)
-    ]) if i == 0 # in (0, 3, 4)
+    ]) if i in (0, 3, 4)
   ]

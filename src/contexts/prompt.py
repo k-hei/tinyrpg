@@ -20,6 +20,13 @@ class PromptContext(Context):
   def exit(ctx, choice):
     ctx.log.exit(on_end=lambda: ctx.close(choice))
 
+  def handle_press(ctx, button):
+    if super().handle_press(button) != None:
+      return False
+
+    if ctx.log.anim or not ctx.log.clean:
+      return False
+
   def open(ctx):
     super().open(ChoiceContext(ctx.choices,
       required=ctx.required,

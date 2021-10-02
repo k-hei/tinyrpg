@@ -72,7 +72,7 @@ class ChoiceContext(Context):
     if ctx.anims or ctx.choice:
       return False
 
-    if keyboard.get_pressed(button) > 1:
+    if keyboard.get_pressed(button) + gamepad.get_state(button) > 1:
       return False
 
     if button in (pygame.K_UP, pygame.K_w, gamepad.controls.up):

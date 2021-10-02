@@ -38,8 +38,8 @@ class LoadContext(DataContext):
     ctx.open(PromptContext("Load this file?", [
       Choice("Yes"),
       Choice("No", closing=True)
-    ], on_close=lambda *choice:
-      choice and choice[0].text == "Yes" and ctx.open(DialogueContext(
+    ], on_close=lambda choice:
+      choice and choice.text == "Yes" and ctx.open(DialogueContext(
         script=["Save data loaded successfully."],
         lite=True,
         on_close=lambda: ctx.get_head().transition([

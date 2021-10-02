@@ -312,7 +312,7 @@ class DataContext(Context):
     ))
 
   def handle_press(ctx, button):
-    if ctx.anims or ctx.exiting or next((c for c in ctx.comps if c.anims), None):
+    if ctx.anims or ctx.exiting or next((c for c in ctx.comps if c.anims), None) or ctx.get_head().transits:
       return False
 
     if ctx.child:
