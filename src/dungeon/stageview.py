@@ -140,6 +140,8 @@ class StageView:
         self.tile_cache[cell] = (tile_visited_state, tile_image, darken_image(tile_image))
       if tile_name not in self.tile_cache:
         self.tile_cache[tile_name] = tile_image
+    elif cell not in self.tile_cache and tile_sprite.image.get_height() == TILE_SIZE:
+      self.tile_cache[cell] = (tile_visited_state, tile_sprite.image, darken_image(tile_sprite.image))
 
     offset_col, offset_row = self.tile_offset
     tile_x = (tile_col - offset_col) * TILE_SIZE + tile_xoffset
@@ -281,6 +283,8 @@ class StageView:
         else:
           sprite.offset += elem.elev * TILE_SIZE
         sprite.origin = ("center", "bottom")
+        if self.darkened and elem.static and not elem.active:
+          sprite.image = darken_image(sprite.image)
       return sprites
     else:
       return []
