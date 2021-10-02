@@ -10,11 +10,13 @@ from game.data import GameData
 class LoadContext(DataContext):
   TITLE = "LOAD DATA"
   ACTION = "Load"
-  EXTRA_CONTROLS = { "esc": "Controls" }
+  EXTRA_CONTROLS = {}
 
   def enter(ctx):
     super().enter()
-    ctx.can_close = type(ctx.parent).__name__ == "GameContext" and ctx.parent.savedata
+    ctx.can_close = type(ctx.parent).__name__ not in ("AppContext", "GameContext")
+    if not ctx.can_close:
+      ctx.EXTRA_CONTROLS = { "esc": "Controls" }
     ctx.anims[-1].on_end = lambda: ctx.open(
       DialogueContext(script=["Please select a file to load."], lite=True)
     )
@@ -36,8 +38,8 @@ class LoadContext(DataContext):
     ctx.open(PromptContext("Load this file?", [
       Choice("Yes"),
       Choice("No", closing=True)
-    ], on_close=lambda choice:
-      choice.text == "Yes" and ctx.open(DialogueContext(
+    ], on_close=lambda *choice:
+      choice and choice[0].text == "Yes" and ctx.open(DialogueContext(
         script=["Save data loaded successfully."],
         lite=True,
         on_close=lambda: ctx.get_head().transition([

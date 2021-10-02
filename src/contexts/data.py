@@ -219,6 +219,7 @@ class DataContext(Context):
     ctx.time = 0
     ctx.can_close = True
     ctx.hidden = False
+    ctx.exiting = False
 
   def init_view(ctx):
     ctx.bg = Bg(WINDOW_SIZE)
@@ -234,6 +235,7 @@ class DataContext(Context):
     ctx.cache_surface = Surface(WINDOW_SIZE)
 
   def enter(ctx):
+    ctx.exiting = False
     ctx.anims.append(EnterAnim(duration=20, target=ctx))
     ctx.enter_slots()
 
@@ -254,6 +256,7 @@ class DataContext(Context):
       ))
 
   def exit(ctx):
+    ctx.exiting = True
     ctx.anims.append(ExitAnim(
       duration=10,
       target=ctx,
@@ -309,7 +312,7 @@ class DataContext(Context):
     ))
 
   def handle_press(ctx, button):
-    if ctx.anims or next((c for c in ctx.comps if c.anims), None):
+    if ctx.anims or ctx.exiting or next((c for c in ctx.comps if c.anims), None):
       return False
 
     if ctx.child:
@@ -331,6 +334,7 @@ class DataContext(Context):
 
   def update(ctx):
     super().update()
+
     for anim in ctx.anims:
       if anim.done:
         ctx.anims.remove(anim)
@@ -340,7 +344,10 @@ class DataContext(Context):
     else:
       for slot in ctx.slots:
         slot.update()
-    ctx.title.update()
+
+    for comp in ctx.comps:
+      comp.update()
+
     ctx.time += 1
 
   def view(ctx):
