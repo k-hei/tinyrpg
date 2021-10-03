@@ -176,7 +176,7 @@ class DungeonContext(Context):
 
     game.log = Log(align="left")
     game.minimap = Minimap(parent=game)
-    game.skill_badge = SkillBadge(skill=game.parent.get_skill(game.hero.core), pos=(46, 42))
+    game.reload_skill_badge()
     game.comps = [
       game.log,
       game.minimap,
@@ -196,6 +196,12 @@ class DungeonContext(Context):
       game.parent.transits = []
       game.handle_minimap(lock=True)
       game.refresh_fov()
+
+  def reload_skill_badge(game, skill=None, delay=0):
+    skill = skill or game.parent.get_skill(game.hero.core)
+    game.skill_badge = game.skill_badge or SkillBadge(skill)
+    game.skill_badge.reload(skill=skill, delay=delay)
+    game.skill_badge.pos = (60, 52) if game.ally else (46, 42)
 
   def open(game, *args, **kwargs):
     super().open(*args, **kwargs)
@@ -1132,7 +1138,9 @@ class DungeonContext(Context):
     return True
 
   def handle_switch(game):
-    return game.switch_chars()
+    result = game.switch_chars()
+    game.reload_skill_badge()
+    return result
 
   def handle_ally(game):
     if not game.ally:
@@ -1144,6 +1152,7 @@ class DungeonContext(Context):
     game.store.recruit(actor.core)
     game.ally = actor
     game.parent.update_skills()
+    game.reload_skill_badge()
 
   def handle_skill(game):
     hero = game.hero
@@ -1158,7 +1167,7 @@ class DungeonContext(Context):
         skill and (
           game.parent.set_skill(hero.core, skill),
           game.use_skill(hero, skill, dest),
-          game.skill_badge.reload(skill, delay=120),
+          game.reload_skill_badge(skill, delay=120),
         ) or game.refresh_fov()
       )
     ))
@@ -2230,7 +2239,7 @@ class DungeonContext(Context):
               game.hide_bubble()
       else:
         for comp in game.comps:
-          if type(comp) is Log or comp.active:
+          if type(comp) is Log or comp.active or comp.anims:
             continue
           comp.enter()
         game.show_bubble()

@@ -24,15 +24,15 @@ def render_label(text):
   return label
 
 class BadgeAnim: pass
-class BadgeEnterAnim(BadgeAnim, TweenAnim): duration = 15
-class BadgeExitAnim(BadgeAnim, TweenAnim): duration = 7
+class BadgeEnterAnim(BadgeAnim, TweenAnim): duration = 12
+class BadgeExitAnim(BadgeAnim, TweenAnim): duration = 6
 
 class LabelAnim: pass
-class LabelEnterAnim(LabelAnim, TweenAnim): duration = 15
-class LabelExitAnim(LabelAnim, TweenAnim): duration = 7
+class LabelEnterAnim(LabelAnim, TweenAnim): duration = 12
+class LabelExitAnim(LabelAnim, TweenAnim): duration = 6
 
 class Miniskill(Component):
-  def __init__(comp, skill, *args, **kwargs):
+  def __init__(comp, skill=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
     comp.skill = skill
     comp.anims = []
@@ -41,7 +41,13 @@ class Miniskill(Component):
 
   def reload(comp, skill, delay=0):
     comp.skill = skill
-    comp.enter(delay=delay)
+    if comp.exiting and not comp.anims:
+      comp.enter(delay=delay)
+    else:
+      comp.exit()
+      # comp.exit(on_end=lambda: (
+      #   comp.enter(delay=delay)
+      # ))
 
   def enter(comp, delay=0):
     comp.active = True
@@ -60,7 +66,7 @@ class Miniskill(Component):
       BadgeExitAnim(),
       LabelExitAnim(),
     ]
-    sorted(comp.anims, key=lambda a: a.duration + a.delay)[0].on_end = on_end
+    sorted(comp.anims, key=lambda a: a.duration + a.delay)[-1].on_end = on_end
 
   def update(comp):
     comp.anims = [a for a in comp.anims if not a.done and [a.update()]]
