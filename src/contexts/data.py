@@ -13,7 +13,7 @@ from comps.log import Log
 from config import WINDOW_SIZE
 import assets
 from colors.palette import BLACK, WHITE, GOLD, BLUE, GOLD
-from filters import recolor, replace_color, darken_image, outline, shadow_lite as shadow
+from lib.filters import recolor, replace_color, darken_image, outline, shadow_lite as shadow
 from text import render as render_text
 from anims.tween import TweenAnim
 from easing.expo import ease_in, ease_out

@@ -5,7 +5,7 @@ from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
 from comps.hud import render_numbers
-from filters import recolor, replace_color
+from lib.filters import recolor, replace_color
 from colors.palette import RED, WHITE, BLUE
 from sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT

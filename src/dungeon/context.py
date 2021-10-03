@@ -32,7 +32,7 @@ from lib.compose import compose
 import assets
 from assets import load as load_assets
 from sprite import Sprite
-from filters import recolor, replace_color, outline
+from lib.filters import recolor, replace_color, outline
 from colors.palette import BLACK, WHITE, RED, GREEN, BLUE, GOLD, CYAN, PURPLE
 from text import render as render_text
 from transits.dissolve import DissolveIn, DissolveOut

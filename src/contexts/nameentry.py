@@ -14,7 +14,7 @@ from contexts.dialogue import DialogueContext
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
 from assets import load as use_assets
 from colors.palette import BLACK, WHITE, GRAY, BLUE
-from filters import replace_color, darken_image
+from lib.filters import replace_color, darken_image
 from comps.log import Token
 from anims.walk import WalkAnim
 from anims.tween import TweenAnim

@@ -1,7 +1,7 @@
 from pygame import Surface, SRCALPHA
 from assets import load as use_assets
 from colors.palette import BLACK, BLUE, GOLD
-from filters import replace_color, darken_image
+from lib.filters import replace_color, darken_image
 
 class Control:
   def __init__(control, key, value):

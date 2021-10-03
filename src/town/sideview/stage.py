@@ -1,7 +1,7 @@
 from math import sin, pi
 from dataclasses import dataclass
 from assets import load as use_assets
-from filters import stroke, replace_color, darken_image
+from lib.filters import stroke, replace_color, darken_image
 from colors.palette import BLACK, WHITE, GRAY, BLUE
 from config import TILE_SIZE, WINDOW_WIDTH
 from sprite import Sprite

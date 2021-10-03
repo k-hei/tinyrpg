@@ -2,7 +2,7 @@ from random import randint
 from dungeon.props import Prop
 from dungeon.actors import DungeonActor
 import assets
-from filters import replace_color
+from lib.filters import replace_color
 from anims.item import ItemAnim
 from items.gold import Gold
 from contexts.dialogue import DialogueContext

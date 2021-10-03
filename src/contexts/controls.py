@@ -18,7 +18,7 @@ from sprite import Sprite
 from anims import Anim
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
-from filters import replace_color, darken_image
+from lib.filters import replace_color, darken_image
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
 from colors.palette import BLACK, WHITE, GRAY, BLUE, GOLD, GREEN
 

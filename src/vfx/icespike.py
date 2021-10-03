@@ -5,7 +5,7 @@ from anims.frame import FrameAnim
 from anims.pause import PauseAnim
 from sprite import Sprite
 from colors.palette import BLACK, WHITE, CYAN
-from filters import replace_color
+from lib.filters import replace_color
 import assets
 from vfx.icepiece import IcePieceVfx
 from vfx.particle import ParticleVfx

@@ -10,7 +10,7 @@ from skills.weapon import Weapon
 from colors import darken_color
 from colors.palette import BLACK, WHITE, GRAY, RED, GREEN, BLUE, CYAN, VIOLET, GOLD, DARKBLUE
 from assets import assets
-from filters import replace_color, darken_image
+from lib.filters import replace_color, darken_image
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
 from anims.jump import JumpAnim

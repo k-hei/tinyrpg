@@ -2,7 +2,7 @@ import math
 import pygame
 from pygame import Surface, Rect, Color, SRCALPHA
 from assets import load as use_assets
-from filters import replace_color, outline
+from lib.filters import replace_color, outline
 from colors.palette import WHITE
 
 class Piece:

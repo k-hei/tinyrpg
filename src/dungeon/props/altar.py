@@ -3,7 +3,7 @@ from resolve.hook import resolve_hook
 import assets
 from sprite import Sprite
 from anims.frame import FrameAnim
-from filters import replace_color
+from lib.filters import replace_color
 from colors.palette import WHITE, BLACK, GOLD, VIOLET
 from config import TILE_SIZE
 

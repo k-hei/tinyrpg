@@ -3,7 +3,7 @@ from sprite import Sprite
 from dungeon.props import Prop
 from dungeon.props.itemdrop import ItemDrop
 from colors.palette import WHITE, BLUE
-from filters import replace_color
+from lib.filters import replace_color
 from anims.frame import FrameAnim
 from anims.jump import JumpAnim
 from anims.pause import PauseAnim

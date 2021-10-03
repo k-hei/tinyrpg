@@ -2,7 +2,7 @@ from math import pi, sin, cos
 from pygame.transform import rotate
 from lib.cell import add as add_vector
 from easing.circ import ease_out
-from filters import replace_color
+from lib.filters import replace_color
 
 from vfx import Vfx
 from vfx.particle import ParticleVfx

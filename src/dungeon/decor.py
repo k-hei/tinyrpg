@@ -3,7 +3,7 @@ from colors.palette import WHITE
 from sprite import Sprite
 from assets import load as use_assets
 from config import TILE_SIZE
-from filters import replace_color
+from lib.filters import replace_color
 
 @dataclass
 class Decor:

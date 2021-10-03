@@ -2,7 +2,7 @@ from pygame import Rect
 from easing.expo import ease_out
 from sprite import Sprite
 from anims.tween import TweenAnim
-from filters import replace_color, outline, shadow_lite as shadow
+from lib.filters import replace_color, outline, shadow_lite as shadow
 from colors.palette import BLACK
 
 from comps import Component

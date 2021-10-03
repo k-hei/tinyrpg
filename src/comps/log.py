@@ -1,7 +1,7 @@
 from pygame import Surface, Rect, SRCALPHA
 from assets import load as use_assets
 from text import render as render_text, find_width as find_text_width
-from filters import recolor, outline, shadow
+from lib.filters import recolor, outline, shadow
 from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in
 from config import WINDOW_WIDTH, WINDOW_HEIGHT

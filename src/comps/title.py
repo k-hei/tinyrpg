@@ -7,7 +7,7 @@ import assets
 from comps import Component
 from anims.tween import TweenAnim
 from sprite import Sprite
-from filters import outline, shadow
+from lib.filters import outline, shadow
 from colors.palette import WHITE, BLUE
 
 BG_Y = 24

@@ -2,7 +2,7 @@ from math import pi, sin
 from cores import Core
 import assets
 from sprite import Sprite
-from filters import ripple, replace_color
+from lib.filters import ripple, replace_color
 from colors.palette import BLACK, ORANGE
 
 FLOAT_PERIOD = 180

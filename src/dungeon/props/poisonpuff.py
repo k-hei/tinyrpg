@@ -6,7 +6,7 @@ import assets
 from sprite import Sprite
 from anims.offsetmove import OffsetMoveAnim
 from config import TILE_SIZE
-from filters import replace_color
+from lib.filters import replace_color
 
 class PoisonPuff(Prop):
   MAX_TURNS = 7

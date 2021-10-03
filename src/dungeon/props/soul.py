@@ -5,7 +5,7 @@ from dungeon.props import Prop
 from assets import load as use_assets
 from anims.frame import FrameAnim
 from anims.pause import PauseAnim
-from filters import replace_color, recolor
+from lib.filters import replace_color, recolor
 from comps.skill import Skill
 from contexts.dialogue import DialogueContext
 from vfx import Vfx

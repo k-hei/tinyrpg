@@ -13,7 +13,7 @@ import assets
 from anims import Anim
 from anims.tween import TweenAnim
 from anims.frame import FrameAnim
-from filters import replace_color, outline
+from lib.filters import replace_color, outline
 from colors.palette import BLACK, BLUE, GOLD
 from config import TILE_SIZE
 

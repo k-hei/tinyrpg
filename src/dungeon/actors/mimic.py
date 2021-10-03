@@ -4,7 +4,7 @@ from skills.weapon.tackle import Tackle
 from dungeon.props.chest import Chest
 from assets import load as use_assets
 from anims.activate import ActivateAnim
-from filters import replace_color
+from lib.filters import replace_color
 from colors.palette import BLACK, RED
 
 class Mimic(DungeonActor):

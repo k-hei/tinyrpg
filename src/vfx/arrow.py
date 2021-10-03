@@ -4,7 +4,7 @@ from pygame.transform import flip
 from sprite import Sprite
 from vfx import Vfx
 import assets
-from filters import replace_color
+from lib.filters import replace_color
 from anims.frame import FrameAnim
 from anims.flinch import FlinchAnim
 from dungeon.actors import DungeonActor

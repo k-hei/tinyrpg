@@ -15,7 +15,7 @@ from comps.card import Card
 from comps.portraitgroup import PortraitGroup
 from comps.hud import Hud
 from assets import load as use_assets
-from filters import replace_color, darken_image
+from lib.filters import replace_color, darken_image
 from colors.palette import BLACK, WHITE, RED, BLUE, DARKBLUE, GOLD, ORANGE
 import lib.keyboard as keyboard
 from anims import Anim

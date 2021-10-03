@@ -1,6 +1,6 @@
 from assets import load as use_assets
 from text import render as render_text
-from filters import recolor, outline, replace_color
+from lib.filters import recolor, outline, replace_color
 from pygame import Rect, Surface, SRCALPHA
 import pygame
 from colors import darken_color

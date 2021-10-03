@@ -1,6 +1,6 @@
 from random import randint
 from assets import load as use_assets
-from filters import recolor, outline
+from lib.filters import recolor, outline
 from text import render as render_text
 from lib.lerp import lerp
 from lib.cell import add as add_vector

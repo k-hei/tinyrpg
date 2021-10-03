@@ -8,7 +8,7 @@ from text import render as render_text
 from contexts import Context
 import lib.gamepad as gamepad
 import lib.keyboard as keyboard
-from filters import recolor, replace_color
+from lib.filters import recolor, replace_color
 from colors.palette import BLACK, WHITE, GRAY, GOLD
 
 from anims.tween import TweenAnim

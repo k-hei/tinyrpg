@@ -2,7 +2,7 @@ from math import pi, sin
 from cores import Core, Stats
 import assets
 from sprite import Sprite
-from filters import ripple
+from lib.filters import ripple
 from anims.frame import FrameAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim

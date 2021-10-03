@@ -10,7 +10,7 @@ from easing.expo import ease_out
 
 from assets import load as use_assets
 from text import render as render_text
-from filters import recolor, replace_color, outline
+from lib.filters import recolor, replace_color, outline
 from colors.palette import BLACK, WHITE, GRAY, GOLD
 from config import TILE_SIZE, WINDOW_HEIGHT
 

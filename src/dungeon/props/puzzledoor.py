@@ -1,6 +1,6 @@
 from dungeon.props.door import Door
 from colors.palette import DARKBLUE, SAFFRON
-from filters import replace_color
+from lib.filters import replace_color
 
 class PuzzleDoor(Door):
   def __init__(door, opened=False, locked=True, *args, **kwargs):

@@ -1,4 +1,4 @@
-from filters import replace_color
+from lib.filters import replace_color
 from colors.palette import WHITE, ORANGE
 
 class Portrait:

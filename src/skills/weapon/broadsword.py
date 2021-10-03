@@ -1,7 +1,7 @@
 from skills.weapon import Weapon
 from cores.knight import Knight
 from colors.palette import BLACK, GRAY
-from filters import replace_color
+from lib.filters import replace_color
 import assets
 
 class BroadSword(Weapon):

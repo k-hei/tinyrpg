@@ -4,7 +4,7 @@ from dungeon.actors import DungeonActor
 from dungeon.props.door import Door
 import assets
 from sprite import Sprite
-from filters import replace_color
+from lib.filters import replace_color
 from anims.pause import PauseAnim
 from colors.palette import BLACK, WHITE, GRAY, PURPLE, DARKGRAY, DARKBLUE
 from config import PUSH_DURATION

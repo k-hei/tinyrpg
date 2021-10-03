@@ -5,7 +5,7 @@ from pygame.transform import rotate
 import assets
 from sprite import Sprite
 from anims import Anim
-from filters import replace_color
+from lib.filters import replace_color
 from colors.palette import BLACK, WHITE, CYAN
 from config import TILE_SIZE
 

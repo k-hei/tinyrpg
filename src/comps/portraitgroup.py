@@ -1,6 +1,6 @@
 from sprite import Sprite
 from config import WINDOW_WIDTH
-from filters import darken_image
+from lib.filters import darken_image
 from anims.tween import TweenAnim
 from lib.lerp import lerp
 from easing.circ import ease_out

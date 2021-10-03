@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import assets
-from filters import replace_color
+from lib.filters import replace_color
 from comps.log import Token
 from colors.palette import BLACK
 

@@ -2,7 +2,7 @@ from skills.armor import Armor
 from cores import Core
 from cores.knight import Knight
 import assets
-from filters import replace_color
+from lib.filters import replace_color
 from colors.palette import BLACK, ORANGE
 
 class Buckler(Armor):

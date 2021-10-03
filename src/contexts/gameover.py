@@ -9,7 +9,7 @@ from contexts.load import LoadContext
 from sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
 from colors.palette import BLACK, WHITE
-from filters import recolor, outline
+from lib.filters import recolor, outline
 from assets import load as use_assets
 from anims import Anim
 from anims.sine import SineAnim

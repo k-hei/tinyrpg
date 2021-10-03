@@ -7,7 +7,7 @@ from vfx.particle import ParticleVfx
 from anims.frame import FrameAnim
 from sprite import Sprite
 import assets
-from filters import replace_color
+from lib.filters import replace_color
 from colors.palette import BLACK, WHITE, RED
 from config import TILE_SIZE
 

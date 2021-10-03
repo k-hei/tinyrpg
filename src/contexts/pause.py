@@ -5,7 +5,7 @@ from pygame.transform import flip
 import lib.keyboard as keyboard
 from contexts import Context
 from assets import load as use_assets
-from filters import outline, recolor, replace_color
+from lib.filters import outline, recolor, replace_color
 from colors.palette import WHITE, BLUE, BLACK, GOLD
 from config import WINDOW_SIZE, WINDOW_HEIGHT
 from sprite import Sprite

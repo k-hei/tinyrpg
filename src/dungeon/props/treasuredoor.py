@@ -1,6 +1,6 @@
 from dungeon.props.door import Door, SpriteMap
 from colors.palette import DARKBLUE, SAFFRON
-from filters import replace_color
+from lib.filters import replace_color
 
 class TreasureDoor(Door):
   sprites = SpriteMap(

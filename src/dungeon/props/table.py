@@ -1,6 +1,6 @@
 from pygame import Surface
 from pygame.transform import flip
-from filters import replace_color
+from lib.filters import replace_color
 from colors.palette import WHITE, SAFFRON
 
 import assets

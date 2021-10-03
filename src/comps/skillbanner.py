@@ -2,7 +2,7 @@ from comps import Component
 from anims.tween import TweenAnim
 from anims.pause import PauseAnim
 from sprite import Sprite
-from filters import replace_color
+from lib.filters import replace_color
 import assets
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 

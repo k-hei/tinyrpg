@@ -5,7 +5,7 @@ from assets import load as use_assets
 from sprite import Sprite
 from config import TILE_SIZE
 from random import randint, choice
-from filters import replace_color
+from lib.filters import replace_color
 
 class ElevRoom(SpecialRoom):
   def __init__(room, *args, **kwargs):

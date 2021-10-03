@@ -9,7 +9,7 @@ from comps.hud import Hud
 from comps.invdesc import InventoryDescription
 from comps.control import Control
 from assets import load as use_assets
-from filters import replace_color, stroke
+from lib.filters import replace_color, stroke
 import lib.gamepad as gamepad
 import lib.keyboard as keyboard
 from lib.keyboard import key_times, ARROW_DELTAS

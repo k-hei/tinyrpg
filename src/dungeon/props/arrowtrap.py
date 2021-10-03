@@ -4,7 +4,7 @@ from vfx.arrow import Arrow
 from anims import Anim
 from sprite import Sprite
 import assets
-from filters import replace_color
+from lib.filters import replace_color
 from colors.palette import WHITE, SAFFRON
 from config import TILE_SIZE
 

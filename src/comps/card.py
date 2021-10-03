@@ -7,7 +7,7 @@ from easing.expo import ease_out
 from lib.lerp import lerp
 from sprite import Sprite
 from colors.palette import BLACK, BLUE
-from filters import replace_color, darken_image
+from lib.filters import replace_color, darken_image
 
 class EnterAnim(TweenAnim): pass
 class ExitAnim(TweenAnim): pass

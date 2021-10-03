@@ -12,7 +12,7 @@ from sprite import Sprite
 from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
-from filters import outline
+from lib.filters import outline
 from transits.dissolve import DissolveIn, DissolveOut
 from colors.palette import BLACK, WHITE
 import lib.keyboard as keyboard

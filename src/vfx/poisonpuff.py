@@ -8,7 +8,7 @@ from sprite import Sprite
 from anims import Anim
 from anims.flicker import FlickerAnim
 from anims.offsetmove import OffsetMoveAnim
-from filters import replace_color
+from lib.filters import replace_color
 from colors.palette import WHITE, BLACK, VIOLET, DARKBLUE
 from config import TILE_SIZE
 import debug

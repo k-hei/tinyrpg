@@ -8,7 +8,7 @@ from sprite import Sprite
 from config import TILE_SIZE
 from random import randint, randrange, choice
 from colors.palette import WHITE, SEAGREEN, GREEN
-from filters import replace_color
+from lib.filters import replace_color
 from lib.cell import neighborhood
 from contexts.dialogue import DialogueContext
 from contexts.prompt import PromptContext, Choice

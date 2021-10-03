@@ -7,7 +7,7 @@ import assets
 from anims import Anim
 from anims.flicker import FlickerAnim
 from sprite import Sprite
-from filters import replace_color
+from lib.filters import replace_color
 from colors.palette import BLACK, CYAN
 from config import TILE_SIZE
 

@@ -9,7 +9,7 @@ from comps.card import Card
 from comps.textbubble import TextBubble, Choice
 from comps.hud import Hud
 from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, BLUE, GOLD, CYAN
-from filters import replace_color
+from lib.filters import replace_color
 from assets import load as use_assets
 from inventory import Inventory
 import lib.keyboard as keyboard

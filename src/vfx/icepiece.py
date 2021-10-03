@@ -5,7 +5,7 @@ from assets import load as use_assets
 from anims.flicker import FlickerAnim
 from sprite import Sprite
 from colors.palette import BLACK, CYAN
-from filters import replace_color
+from lib.filters import replace_color
 
 class IcePieceVfx(Vfx):
   def __init__(fx, pos, color=CYAN, *args, **kwargs):

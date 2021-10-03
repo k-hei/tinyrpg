@@ -3,7 +3,7 @@ from pygame import Rect, SRCALPHA
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
 
-from filters import replace_color, recolor, outline
+from lib.filters import replace_color, recolor, outline
 from text import render as render_text
 from colors import darken_color
 from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, GOLD, DARKGOLD, BLUE, DARKBLUE

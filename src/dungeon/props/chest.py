@@ -1,6 +1,6 @@
 from dungeon.props import Prop
 import assets
-from filters import replace_color
+from lib.filters import replace_color
 from anims.attack import AttackAnim
 from anims.shake import ShakeAnim
 from anims.jump import JumpAnim

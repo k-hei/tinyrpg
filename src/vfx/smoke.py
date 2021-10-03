@@ -4,7 +4,7 @@ from vfx import Vfx
 import assets
 from sprite import Sprite
 from anims import Anim
-from filters import replace_color
+from lib.filters import replace_color
 from colors.palette import BLACK, WHITE
 from config import TILE_SIZE
 

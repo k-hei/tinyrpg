@@ -4,7 +4,7 @@ from operator import add
 from pygame import Surface
 from pygame.transform import flip
 from colors.palette import BLACK, RED, GREEN, BLUE, DARKGOLD
-from filters import replace_color
+from lib.filters import replace_color
 from comps.log import Token
 
 @dataclass

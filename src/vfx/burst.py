@@ -5,7 +5,7 @@ from anims.frame import FrameAnim
 import assets
 from sprite import Sprite
 from config import TILE_SIZE
-from filters import replace_color
+from lib.filters import replace_color
 from colors.palette import BLACK, WHITE
 
 class BurstVfx(Vfx):

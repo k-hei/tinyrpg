@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from dungeon.props.door import Door
-from filters import replace_color
+from lib.filters import replace_color
 
 class SecretDoor(Door):
   def exists_at(stage, cell):

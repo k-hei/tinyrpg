@@ -14,7 +14,7 @@ from contexts import Context
 from comps.card import Card, CARD_BUY, CARD_SELL, CARD_EXIT
 from assets import load as use_assets
 from sprite import Sprite
-from filters import darken_image
+from lib.filters import darken_image
 from anims.tween import TweenAnim
 
 CARD_LIFT = 4

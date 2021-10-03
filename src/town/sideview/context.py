@@ -13,7 +13,7 @@ from cores.knight import Knight
 from comps.hud import Hud
 from assets import load as use_assets
 from sprite import Sprite
-from filters import replace_color, outline
+from lib.filters import replace_color, outline
 from colors.palette import BLACK, WHITE, BLUE
 from transits.dissolve import DissolveIn, DissolveOut
 from anims import Anim

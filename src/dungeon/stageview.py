@@ -8,7 +8,7 @@ from lib.cell import add as add_vector, neighborhood
 import debug
 import assets
 from assets import load as use_assets
-from filters import replace_color, darken_image
+from lib.filters import replace_color, darken_image
 from colors import darken_color
 from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, COLOR_TILE
 from config import ITEM_OFFSET, TILE_SIZE, DEBUG, WINDOW_HEIGHT, DEPTH_SIZE
