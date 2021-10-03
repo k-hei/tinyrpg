@@ -3,14 +3,15 @@ import pygame
 from pygame import Rect
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
+import lib.vector as vector
 from lib.compose import compose
+from lib.sprite import Sprite
 from easing.expo import ease_out
 
 from contexts import Context
 from contexts.skill import SkillContext
-from lib.sprite import Sprite
+from comps.miniskill import Miniskill as SkillBadge
 import assets
-from anims import Anim
 from anims.tween import TweenAnim
 from anims.frame import FrameAnim
 from lib.filters import replace_color, outline
@@ -27,7 +28,7 @@ def find_relative_actor_pos(game, actor):
   cursor_y = (actor_row + 0.5) * TILE_SIZE - round(camera_y)
   return (cursor_x, cursor_y)
 
-class CursorAnim(Anim): pass
+class CursorAnim: pass
 
 class CursorEnterAnim(CursorAnim, TweenAnim):
   blocking = True
@@ -42,7 +43,7 @@ class CursorFrameAnim(CursorAnim, FrameAnim):
   frames_duration = 10
   loop = True
 
-class ButtonsAnim(Anim): pass
+class ButtonsAnim: pass
 
 class ButtonsEnterAnim(ButtonsAnim, TweenAnim):
   blocking = True
@@ -52,7 +53,7 @@ class ButtonsExitAnim(ButtonsAnim, TweenAnim):
   blocking = True
   duration = 4
 
-class LabelsAnim(Anim): pass
+class LabelsAnim: pass
 
 class LabelsEnterAnim(LabelsAnim, TweenAnim):
   blocking = True
@@ -71,6 +72,7 @@ class AllyContext(Context):
       "x": (pygame.K_RETURN,),
       "y": (pygame.K_q,),
     }
+    ctx.skill_badge = None
     ctx.cached_labels = None
 
   def enter(ctx):
@@ -90,6 +92,8 @@ class AllyContext(Context):
       LabelsEnterAnim(easing=ease_out, delay=ButtonsEnterAnim.duration)
     ]
     ctx.cache_labels()
+    ctx.skill_badge = SkillBadge(skill=ally.charge_skill) if ally.charge_skill else None
+    ctx.skill_badge and ctx.skill_badge.enter()
 
   def exit(ctx, blur=False, on_end=None):
     ctx.exiting = True
@@ -101,6 +105,7 @@ class AllyContext(Context):
       CursorExitAnim(),
       ButtonsExitAnim(),
     ]
+    ctx.skill_badge and ctx.skill_badge.exit()
     sorted(ctx.anims, key=lambda a: a.duration + a.delay)[-1].on_end = compose(ctx.close, on_end)
 
   def handle_press(ctx, button):
@@ -185,11 +190,13 @@ class AllyContext(Context):
 
   def update(ctx):
     ctx.anims = [a for a in ctx.anims if not a.done and [a.update()]]
+    ctx.skill_badge and ctx.skill_badge.update()
 
   def view(ctx):
     sprites = (
       ctx.view_cursor()
       + ctx.view_buttons()
+      + ctx.view_skill()
     )
     for sprite in sprites:
       if not sprite.layer:
@@ -267,3 +274,11 @@ class AllyContext(Context):
         origin=(Sprite.ORIGIN_RIGHT if i == 2 else Sprite.ORIGIN_LEFT),
       ) for i, l in enumerate(ctx.cached_labels)] if not buttons_anim else []),
     ]
+
+  def view_skill(ctx):
+    if not ctx.skill_badge:
+      return []
+    skill_view = ctx.skill_badge.view()
+    skill_pos = find_relative_actor_pos(game=ctx.parent, actor=ctx.ally)
+    skill_pos = vector.add(skill_pos, (TILE_SIZE / 2, -8))
+    return Sprite.move_all(skill_view, skill_pos)
