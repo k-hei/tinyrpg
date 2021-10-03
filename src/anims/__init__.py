@@ -2,7 +2,7 @@ from math import inf
 
 class Anim:
   blocking = False
-  duration = 1
+  duration = inf
   loop = False
 
   def __init__(anim, duration=0, delay=0, loop=False, target=None, on_start=None, on_end=None):
