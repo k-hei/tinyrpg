@@ -1,7 +1,7 @@
 import lib.vector as vector
 from random import randint
 from pygame.transform import flip
-from sprite import Sprite
+from lib.sprite import Sprite
 from vfx import Vfx
 import assets
 from lib.filters import replace_color

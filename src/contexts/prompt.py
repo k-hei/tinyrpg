@@ -3,7 +3,7 @@ from contexts import Context
 from contexts.choice import ChoiceContext, Choice
 from comps.log import Log
 from config import WINDOW_HEIGHT
-from sprite import Sprite
+from lib.sprite import Sprite
 
 class PromptContext(Context):
   def __init__(ctx, message, choices, required=False, on_choose=None, on_close=None):

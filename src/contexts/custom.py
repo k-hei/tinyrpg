@@ -18,7 +18,7 @@ from comps.hud import Hud
 from comps.minimap import Minimap
 from comps.spmeter import SpMeter
 from comps.floorno import FloorNo
-from sprite import Sprite
+from lib.sprite import Sprite
 
 from cores.knight import Knight as Knight
 from cores.mage import Mage as Mage

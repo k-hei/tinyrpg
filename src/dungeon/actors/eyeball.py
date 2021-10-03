@@ -17,7 +17,7 @@ from anims.shake import ShakeAnim
 from anims.pause import PauseAnim
 from vfx.alertbubble import AlertBubble
 from items.materials.angeltears import AngelTears
-from sprite import Sprite
+from lib.sprite import Sprite
 from lib.filters import replace_color
 from colors.palette import BLACK, CYAN
 from config import PUSH_DURATION

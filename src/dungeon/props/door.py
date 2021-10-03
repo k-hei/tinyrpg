@@ -4,7 +4,7 @@ import assets
 from anims.frame import FrameAnim
 from colors.palette import WHITE, SAFFRON, DARKBLUE
 from lib.filters import replace_color
-from sprite import Sprite
+from lib.sprite import Sprite
 from config import TILE_SIZE
 from dungeon.stage import Stage, Tile
 

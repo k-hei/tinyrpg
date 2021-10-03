@@ -2,7 +2,7 @@ from town.sideview.stage import Area, AreaLink
 from town.sideview.actor import Actor
 from cores.genie import Genie
 from assets import load as use_assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from config import TILE_SIZE
 from contexts.prompt import PromptContext, Choice
 from contexts.load import LoadContext

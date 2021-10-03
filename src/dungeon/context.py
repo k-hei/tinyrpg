@@ -31,7 +31,7 @@ from lib.compose import compose
 
 import assets
 from assets import load as load_assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from lib.filters import recolor, replace_color, outline
 from colors.palette import BLACK, WHITE, RED, GREEN, BLUE, GOLD, CYAN, PURPLE
 from text import render as render_text
@@ -90,6 +90,7 @@ from comps.minimap import Minimap
 from comps.spmeter import SpMeter
 from comps.floorno import FloorNo
 from comps.skillbanner import SkillBanner
+from comps.miniskill import Miniskill as SkillBadge
 from vfx.flash import FlashVfx
 from vfx.talkbubble import TalkBubble
 
@@ -161,6 +162,7 @@ class DungeonContext(Context):
     game.camera = Camera(WINDOW_SIZE)
     game.log = None
     game.minimap = None
+    game.skill_badge = None
     game.comps = []
     game.debug = DEBUG_GEN
     game.time = 0
@@ -171,18 +173,23 @@ class DungeonContext(Context):
       game.use_floor(game.floor)
     else:
       game.create_floor()
+
     game.log = Log(align="left")
     game.minimap = Minimap(parent=game)
+    game.skill_badge = SkillBadge(skill=game.parent.get_skill(game.hero.core), pos=(46, 42))
     game.comps = [
       game.log,
       game.minimap,
+      game.skill_badge,
       Hud(party=game.store.party, hp=True),
       FloorNo(parent=game),
       SpMeter(store=game.store)
     ]
+
     for comp in game.comps:
       comp.active = False
       comp.anims = []
+
     if game.debug:
       game.lights = True
       game.floor_cells = game.floor.get_visible_cells()
@@ -1150,7 +1157,8 @@ class DungeonContext(Context):
       on_close=lambda skill, dest: (
         skill and (
           game.parent.set_skill(hero.core, skill),
-          game.use_skill(hero, skill, dest)
+          game.use_skill(hero, skill, dest),
+          game.skill_badge.reload(skill, delay=120),
         ) or game.refresh_fov()
       )
     ))
@@ -2187,6 +2195,9 @@ class DungeonContext(Context):
         game.anims.pop(0)
 
     for comp in game.comps:
+      if type(comp) is SkillBadge:
+        comp.update()
+
       if "done" in dir(comp) and comp.done:
         game.comps.remove(comp)
 
@@ -2201,8 +2212,6 @@ class DungeonContext(Context):
     if game.debug:
       sprites += game.minimap.view()
     else:
-      for comp in game.comps:
-        sprites += comp.view()
       if game.child or game.get_head().transits:
         if type(game.child) is InventoryContext:
           game.hide_bubble()
@@ -2220,11 +2229,14 @@ class DungeonContext(Context):
               comp.exit()
               game.hide_bubble()
       else:
-        for comp in [c for c in game.comps if not c.active]:
-          if type(comp) is not Log:
-            comp.enter()
+        for comp in game.comps:
+          if type(comp) is Log or comp.active:
+            continue
+          comp.enter()
         game.show_bubble()
         game.update_bubble()
+      for comp in game.comps:
+        sprites += comp.view()
 
     if game.time < LABEL_FRAMES and (not game.child or type(game.child) is CutsceneContext):
       label_image = assets.ttf["normal"].render("Dungeon {}F".format(game.get_floor_no()), WHITE)

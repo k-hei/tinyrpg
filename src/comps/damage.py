@@ -4,7 +4,7 @@ from lib.filters import recolor, outline
 from text import render as render_text
 from lib.lerp import lerp
 from lib.cell import add as add_vector
-from sprite import Sprite
+from lib.sprite import Sprite
 import config
 import pygame
 from colors.palette import WHITE, BLACK

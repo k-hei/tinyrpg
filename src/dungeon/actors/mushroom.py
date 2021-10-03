@@ -6,7 +6,7 @@ from skills.ailment.virus import Virus
 from skills.weapon.tackle import Tackle
 from items.materials.redferrule import RedFerrule
 import assets
-from sprite import Sprite
+from lib.sprite import Sprite
 
 from anims.move import MoveAnim
 from anims.attack import AttackAnim

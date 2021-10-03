@@ -1,6 +1,6 @@
 from vfx import Vfx
 from anims import Anim
-from sprite import Sprite
+from lib.sprite import Sprite
 from assets import load as use_assets
 from config import TILE_SIZE
 

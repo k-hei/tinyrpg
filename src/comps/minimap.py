@@ -26,7 +26,7 @@ from easing.expo import ease_out, ease_in_out
 from lib.lerp import lerp
 from lib.bounds import find_bounds
 from lib.cell import subtract as subtract_vector
-from sprite import Sprite
+from lib.sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE, DEBUG_GEN
 
 MARGIN_X = 8

@@ -5,7 +5,7 @@ from lib.filters import recolor, outline, shadow
 from anims.tween import TweenAnim
 from easing.expo import ease_out, ease_in
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
-from sprite import Sprite
+from lib.sprite import Sprite
 from colors.palette import BLACK
 
 class EnterAnim(TweenAnim): pass

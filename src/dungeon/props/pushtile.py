@@ -3,7 +3,7 @@ from dungeon.element import DungeonElement
 from dungeon.actors import DungeonActor
 from dungeon.props.door import Door
 import assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from lib.filters import replace_color
 from anims.pause import PauseAnim
 from colors.palette import BLACK, WHITE, GRAY, PURPLE, DARKGRAY, DARKBLUE

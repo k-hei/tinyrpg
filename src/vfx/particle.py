@@ -6,7 +6,7 @@ from vfx import Vfx
 import assets
 from anims.frame import FrameAnim
 from anims.flicker import FlickerAnim
-from sprite import Sprite
+from lib.sprite import Sprite
 from lib.filters import replace_color
 from colors.palette import BLACK, WHITE
 from config import TILE_SIZE

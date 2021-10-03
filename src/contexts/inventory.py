@@ -14,7 +14,7 @@ import lib.gamepad as gamepad
 import lib.keyboard as keyboard
 from lib.keyboard import key_times, ARROW_DELTAS
 from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, BLUE, GOLD
-from sprite import Sprite
+from lib.sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, INVENTORY_COLS, INVENTORY_ROWS
 
 from anims.tween import TweenAnim

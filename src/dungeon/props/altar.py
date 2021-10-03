@@ -1,7 +1,7 @@
 from dungeon.element import DungeonElement
 from resolve.hook import resolve_hook
 import assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from anims.frame import FrameAnim
 from lib.filters import replace_color
 from colors.palette import WHITE, BLACK, GOLD, VIOLET

@@ -2,7 +2,7 @@ from dungeon.features.specialroom import SpecialRoom
 from dungeon.stage import Stage
 from dungeon.actors.eyeball import Eyeball
 from assets import load as use_assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from config import TILE_SIZE
 from random import randint, choice
 from lib.filters import replace_color

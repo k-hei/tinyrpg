@@ -1,6 +1,6 @@
 from town.topview.element import Element
 from assets import load as use_assets
-from sprite import Sprite
+from lib.sprite import Sprite
 
 class Planter(Element):
   size = (16, 16)

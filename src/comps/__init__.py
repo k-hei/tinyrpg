@@ -1,5 +1,6 @@
 class Component:
-  def __init__(comp):
+  def __init__(comp, pos=(0, 0)):
+    comp.pos = pos
     comp.active = True
     comp.exiting = False
     comp.done = False

@@ -4,7 +4,7 @@ from cores.mage import Mage
 
 from assets import load as use_assets
 from config import TILE_SIZE, WINDOW_WIDTH
-from sprite import Sprite
+from lib.sprite import Sprite
 
 from contexts.prompt import PromptContext, Choice
 from contexts.nameentry import NameEntryContext

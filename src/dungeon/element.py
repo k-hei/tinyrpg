@@ -1,6 +1,6 @@
 from math import sin, pi
 from pygame import Surface
-from sprite import Sprite
+from lib.sprite import Sprite
 from anims import Anim
 from anims.move import MoveAnim
 from anims.item import ItemAnim

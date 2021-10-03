@@ -12,7 +12,7 @@ from collections.abc import Iterable
 from colors.palette import BLACK
 from anims.tween import TweenAnim
 from easing.expo import ease_out
-from sprite import Sprite
+from lib.sprite import Sprite
 import debug
 
 class EnterAnim(TweenAnim): pass

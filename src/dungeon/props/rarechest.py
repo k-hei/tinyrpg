@@ -9,7 +9,7 @@ from anims.frame import FrameAnim
 from colors.palette import GOLD, BLACK
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
-from sprite import Sprite
+from lib.sprite import Sprite
 from inventory import Inventory
 from skills.ailment.virus import Virus
 

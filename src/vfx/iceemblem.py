@@ -6,7 +6,7 @@ from easing.circ import ease_out
 import assets
 from anims import Anim
 from anims.flicker import FlickerAnim
-from sprite import Sprite
+from lib.sprite import Sprite
 from lib.filters import replace_color
 from colors.palette import BLACK, CYAN
 from config import TILE_SIZE

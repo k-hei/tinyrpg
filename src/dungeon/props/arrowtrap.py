@@ -2,7 +2,7 @@ from pygame.transform import flip
 from dungeon.props import Prop
 from vfx.arrow import Arrow
 from anims import Anim
-from sprite import Sprite
+from lib.sprite import Sprite
 import assets
 from lib.filters import replace_color
 from colors.palette import WHITE, SAFFRON

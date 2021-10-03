@@ -3,7 +3,7 @@ from contexts import Context
 from anims.tween import TweenAnim
 from colors.palette import BLACK
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
-from sprite import Sprite
+from lib.sprite import Sprite
 from easing.expo import ease_out
 
 class EnterAnim(TweenAnim): pass

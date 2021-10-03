@@ -1,6 +1,6 @@
 from pygame import Rect
 from easing.expo import ease_out
-from sprite import Sprite
+from lib.sprite import Sprite
 from anims.tween import TweenAnim
 from lib.filters import replace_color, outline, shadow_lite as shadow
 from colors.palette import BLACK
@@ -32,21 +32,29 @@ class LabelEnterAnim(LabelAnim, TweenAnim): duration = 15
 class LabelExitAnim(LabelAnim, TweenAnim): duration = 7
 
 class Miniskill(Component):
-  def __init__(comp, skill):
+  def __init__(comp, skill, *args, **kwargs):
+    super().__init__(*args, **kwargs)
     comp.skill = skill
     comp.anims = []
     comp.cached_badge = None
+    comp.cached_label = None
 
-  def enter(comp):
+  def reload(comp, skill, delay=0):
+    comp.skill = skill
+    comp.enter(delay=delay)
+
+  def enter(comp, delay=0):
+    comp.active = True
     comp.exiting = False
     comp.cached_badge = render_badge(skill=comp.skill)
     comp.cached_label = render_label(text=comp.skill.name)
     comp.anims = [
-      BadgeEnterAnim(easing=ease_out),
-      LabelEnterAnim(easing=ease_out, delay=BadgeEnterAnim.duration // 2),
+      BadgeEnterAnim(easing=ease_out, delay=delay),
+      LabelEnterAnim(easing=ease_out, delay=delay + BadgeEnterAnim.duration // 2),
     ]
 
   def exit(comp, on_end=None):
+    comp.active = False
     comp.exiting = True
     comp.anims = [
       BadgeExitAnim(),
@@ -58,10 +66,13 @@ class Miniskill(Component):
     comp.anims = [a for a in comp.anims if not a.done and [a.update()]]
 
   def view(comp):
-    return (
+    sprites = Sprite.move_all((
       comp.view_badge()
       + comp.view_label()
-    )
+    ), comp.pos)
+    for sprite in sprites:
+      sprite.layer = "ui"
+    return sprites
 
   def view_badge(comp):
     badge_image = comp.cached_badge
@@ -71,6 +82,8 @@ class Miniskill(Component):
       badge_yscale = badge_anim.pos
     elif type(badge_anim) is BadgeExitAnim:
       badge_yscale = 1 - badge_anim.pos
+    elif comp.exiting:
+      return []
     return [Sprite(
       image=badge_image,
       origin=Sprite.ORIGIN_LEFT,
@@ -85,6 +98,8 @@ class Miniskill(Component):
       label_width *= label_anim.pos
     elif type(label_anim) is LabelExitAnim:
       label_width *= 1 - label_anim.pos
+    elif comp.exiting:
+      return []
     label_image = label_image.subsurface(Rect(
       (label_image.get_width() - label_width, 0),
       (label_width, label_image.get_height())

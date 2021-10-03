@@ -12,7 +12,7 @@ from anims.drop import DropAnim
 from anims.path import PathAnim
 from anims.fall import FallAnim
 from anims.pause import PauseAnim
-from sprite import Sprite
+from lib.sprite import Sprite
 
 class Knight(DungeonActor):
   def __init__(knight, core=None, ailment=None, ailment_turns=0, *args, **kwargs):

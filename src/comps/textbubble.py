@@ -14,7 +14,7 @@ from anims.tween import TweenAnim
 from anims.sine import SineAnim
 from anims.flicker import FlickerAnim
 from lib.lerp import lerp
-from sprite import Sprite
+from lib.sprite import Sprite
 from colors.palette import BLACK
 
 class Bubble:

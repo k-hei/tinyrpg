@@ -7,7 +7,7 @@ from pygame.transform import scale
 from colors.palette import BLACK, WHITE, BLUE, RED, CYAN, GRAY
 from assets import load as use_assets
 from lib.filters import replace_color, recolor, outline
-from sprite import Sprite
+from lib.sprite import Sprite
 from text import render_char, render as render_text, find_width as find_text_width
 
 from cores.knight import Knight

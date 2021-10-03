@@ -7,7 +7,7 @@ from lib.lerp import lerp
 from comps.hud import render_numbers
 from lib.filters import recolor, replace_color
 from colors.palette import RED, WHITE, BLUE
-from sprite import Sprite
+from lib.sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 
 MARGIN_X = 12

@@ -1,7 +1,7 @@
 from math import ceil
 from pygame import Surface
 import assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from anims.tween import TweenAnim
 from lib.lerp import lerp
 from easing.expo import ease_out

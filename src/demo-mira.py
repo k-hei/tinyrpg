@@ -1,6 +1,6 @@
 import pygame
 from pygame import Surface
-from sprite import Sprite
+from lib.sprite import Sprite
 from contexts import Context
 from contexts.app import App
 from assets import load as use_assets

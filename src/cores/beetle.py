@@ -1,7 +1,7 @@
 from pygame.transform import flip
 from cores import Core, Stats
 import assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from contexts.dialogue import DialogueContext
 from anims.move import MoveAnim
 from colors.palette import GREEN

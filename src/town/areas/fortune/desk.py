@@ -1,6 +1,6 @@
 from town.topview.element import Element
 from assets import load as use_assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from config import TILE_SIZE
 from lib.filters import replace_color
 from colors.palette import WHITE, ORANGE

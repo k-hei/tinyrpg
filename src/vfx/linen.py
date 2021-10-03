@@ -5,7 +5,7 @@ from pygame.transform import rotate
 from vfx import Vfx
 from vfx.particle import ParticleVfx
 from anims.frame import FrameAnim
-from sprite import Sprite
+from lib.sprite import Sprite
 import assets
 from lib.filters import replace_color
 from colors.palette import BLACK, WHITE, RED

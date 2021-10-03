@@ -4,7 +4,7 @@ from lib.cell import add as add_vector
 from easing.circ import ease_out
 from vfx import Vfx
 import assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from anims import Anim
 from anims.flicker import FlickerAnim
 from anims.offsetmove import OffsetMoveAnim

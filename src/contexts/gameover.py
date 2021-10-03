@@ -6,7 +6,7 @@ import lib.keyboard as keyboard
 import lib.gamepad as gamepad
 from contexts import Context
 from contexts.load import LoadContext
-from sprite import Sprite
+from lib.sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
 from colors.palette import BLACK, WHITE
 from lib.filters import recolor, outline

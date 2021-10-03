@@ -1,6 +1,6 @@
 import math
 from pygame import Surface, PixelArray, SRCALPHA
-from sprite import Sprite
+from lib.sprite import Sprite
 from config import WINDOW_SIZE
 
 # a node is a diamond. has form (x, y, t) where t is the size based on renders

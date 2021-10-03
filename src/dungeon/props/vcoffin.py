@@ -3,7 +3,7 @@ from pygame.transform import rotate
 from dungeon.props import Prop
 import assets
 from lib.filters import replace_color
-from sprite import Sprite
+from lib.sprite import Sprite
 from config import TILE_SIZE
 from colors.palette import WHITE, COLOR_TILE
 

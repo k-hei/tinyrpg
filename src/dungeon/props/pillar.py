@@ -1,7 +1,7 @@
 from random import randint
 from dungeon.props import Prop
 import assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from lib.filters import replace_color
 from colors.palette import WHITE, SAFFRON
 

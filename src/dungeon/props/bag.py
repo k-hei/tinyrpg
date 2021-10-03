@@ -1,6 +1,6 @@
 from dungeon.props import Prop
 from assets import load as use_assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from anims.flicker import FlickerAnim
 from skills import Skill
 from contexts.dialogue import DialogueContext

@@ -11,7 +11,7 @@ from contexts.dialogue import DialogueContext
 from vfx import Vfx
 from vfx.burst import BurstVfx
 from colors.palette import BLACK, WHITE
-from sprite import Sprite
+from lib.sprite import Sprite
 from config import TILE_SIZE
 
 class Soul(Prop):

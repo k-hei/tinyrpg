@@ -3,7 +3,7 @@ from lib.cell import add as add_vector
 from dungeon.props import Prop
 from vfx.poisonpuff import PoisonPuffVfx
 import assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from anims.offsetmove import OffsetMoveAnim
 from config import TILE_SIZE
 from lib.filters import replace_color

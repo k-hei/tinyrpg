@@ -5,7 +5,7 @@ from text import render as render_text
 from lib.filters import recolor
 from colors.palette import WHITE
 from config import WINDOW_HEIGHT
-from sprite import Sprite
+from lib.sprite import Sprite
 
 from anims.tween import TweenAnim
 from easing.expo import ease_out

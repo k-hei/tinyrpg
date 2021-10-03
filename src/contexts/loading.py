@@ -6,7 +6,7 @@ from anims.walk import WalkAnim
 from anims.jump import JumpAnim
 from anims.pause import PauseAnim
 from assets import load as use_assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 
 class LoadingContext(Context):

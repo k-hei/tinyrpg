@@ -1,5 +1,5 @@
 from cores import Core
-from sprite import Sprite
+from lib.sprite import Sprite
 import assets
 
 class Radhead(Core):

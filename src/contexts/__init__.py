@@ -1,5 +1,5 @@
 from pygame import Surface, SRCALPHA
-from sprite import Sprite
+from lib.sprite import Sprite
 from config import WINDOW_SIZE
 
 class Context:

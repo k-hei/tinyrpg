@@ -1,5 +1,5 @@
 import assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from dungeon.props import Prop
 from dungeon.props.itemdrop import ItemDrop
 from colors.palette import WHITE, BLUE

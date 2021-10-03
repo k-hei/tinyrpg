@@ -3,7 +3,7 @@ from random import randint
 from pygame import Rect
 from comps import Component
 import assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from lib.filters import replace_color
 from colors.palette import WHITE, RED
 from anims import Anim

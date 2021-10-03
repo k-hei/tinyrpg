@@ -2,7 +2,7 @@ from vfx import Vfx
 from anims.frame import FrameAnim
 import assets
 from config import TILE_SIZE
-from sprite import Sprite
+from lib.sprite import Sprite
 
 class ClawVfx(Vfx):
   class ClawAnim(FrameAnim):

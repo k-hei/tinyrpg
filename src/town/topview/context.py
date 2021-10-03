@@ -8,7 +8,7 @@ from comps.hud import Hud
 from assets import load as use_assets
 from town.topview.stage import Stage, Tile
 from town.topview.actor import Actor
-from sprite import Sprite
+from lib.sprite import Sprite
 from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lib.lerp import lerp

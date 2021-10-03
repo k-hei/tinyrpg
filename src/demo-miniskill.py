@@ -9,7 +9,7 @@ from skills.magic.glacio import Glacio
 from skills.ailment.virus import Virus
 from skills.support.sana import Sana
 from colors.palette import WHITE
-from sprite import Sprite
+from lib.sprite import Sprite
 
 WINDOW_SIZE = (128, 32)
 

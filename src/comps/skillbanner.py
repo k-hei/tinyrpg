@@ -1,7 +1,7 @@
 from comps import Component
 from anims.tween import TweenAnim
 from anims.pause import PauseAnim
-from sprite import Sprite
+from lib.sprite import Sprite
 from lib.filters import replace_color
 import assets
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
@@ -12,6 +12,8 @@ class EnterAnim(TweenAnim): pass
 class ExitAnim(TweenAnim): pass
 
 class SkillBanner(Component):
+  duration = 120
+
   def __init__(banner, text, color, *args, **kwargs):
     super().__init__(*args, **kwargs)
     banner.anims = [
@@ -55,7 +57,7 @@ class SkillBanner(Component):
         banner_height *= (1 - banner_anim.pos)
     return [Sprite(
       image=(type(banner_anim) is PauseAnim and banner.image_written or banner.image),
-      pos=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 4),
+      pos=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 3),
       size=(banner.image.get_width(), banner_height),
       origin=("center", "center"),
       layer="ui"

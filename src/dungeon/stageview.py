@@ -12,7 +12,7 @@ from lib.filters import replace_color, darken_image
 from colors import darken_color
 from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, COLOR_TILE
 from config import ITEM_OFFSET, TILE_SIZE, DEBUG, WINDOW_HEIGHT, DEPTH_SIZE
-from sprite import Sprite
+from lib.sprite import Sprite
 
 from dungeon.actors import DungeonActor
 from dungeon.stage import Stage

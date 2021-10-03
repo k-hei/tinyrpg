@@ -1,7 +1,7 @@
 from contexts import Context
 from savedata.resolve import resolve_item
 import assets
-from sprite import Sprite
+from lib.sprite import Sprite
 
 def view_item_sticky(item):
   sticky_image = assets.sprites["buy_sticky"]

@@ -1,7 +1,7 @@
 from dungeon.props import Prop
 import assets
 from anims.flicker import FlickerAnim
-from sprite import Sprite
+from lib.sprite import Sprite
 from lib.filters import replace_color
 from config import FLICKER_DURATION
 from colors.palette import WHITE, GOLD

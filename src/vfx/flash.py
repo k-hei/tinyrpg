@@ -1,6 +1,6 @@
 from pygame import Surface, Color, SRCALPHA
 from vfx import Vfx
-from sprite import Sprite
+from lib.sprite import Sprite
 from colors.palette import WHITE
 from config import WINDOW_SIZE
 

@@ -13,7 +13,7 @@ from config import WINDOW_WIDTH, WINDOW_HEIGHT
 from contexts import Context
 from comps.card import Card, CARD_BUY, CARD_SELL, CARD_EXIT
 from assets import load as use_assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from lib.filters import darken_image
 from anims.tween import TweenAnim
 

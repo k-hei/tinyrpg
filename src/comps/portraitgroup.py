@@ -1,4 +1,4 @@
-from sprite import Sprite
+from lib.sprite import Sprite
 from config import WINDOW_WIDTH
 from lib.filters import darken_image
 from anims.tween import TweenAnim

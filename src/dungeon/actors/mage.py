@@ -14,7 +14,7 @@ from anims.drop import DropAnim
 from anims.frame import FrameAnim
 from anims.fall import FallAnim
 from anims.pause import PauseAnim
-from sprite import Sprite
+from lib.sprite import Sprite
 from skills.magic.glacio import Glacio
 from skills.magic.congelatio import Congelatio
 from skills.magic.accerso import Accerso

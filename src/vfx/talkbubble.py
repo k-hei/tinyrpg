@@ -1,7 +1,7 @@
 from pygame.transform import flip
 from vfx import Vfx
 from anims.frame import FrameAnim
-from sprite import Sprite
+from lib.sprite import Sprite
 import assets
 from config import TILE_SIZE
 

@@ -8,7 +8,7 @@ from easing.expo import ease_out
 
 from contexts import Context
 from contexts.skill import SkillContext
-from sprite import Sprite
+from lib.sprite import Sprite
 import assets
 from anims import Anim
 from anims.tween import TweenAnim

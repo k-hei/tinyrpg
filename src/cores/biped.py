@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from cores import Core
-from sprite import Sprite
+from lib.sprite import Sprite
 from assets import load as use_assets
 from anims.walk import WalkAnim
 

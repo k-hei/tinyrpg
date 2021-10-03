@@ -21,7 +21,7 @@ from lib.lerp import lerp
 import savedata
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
-from sprite import Sprite
+from lib.sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
 
 def view_ticks(ticks, ms=False):

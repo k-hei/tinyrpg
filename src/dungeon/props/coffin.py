@@ -8,7 +8,7 @@ from items.gold import Gold
 from contexts.dialogue import DialogueContext
 from config import TILE_SIZE
 from colors.palette import WHITE, COLOR_TILE, DARKBLUE
-from sprite import Sprite
+from lib.sprite import Sprite
 from lib.cell import neighborhood
 from anims.jump import JumpAnim
 

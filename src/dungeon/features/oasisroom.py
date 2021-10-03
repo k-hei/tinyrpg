@@ -4,7 +4,7 @@ from dungeon.decor import Decor
 from dungeon.props.palm import Palm
 from dungeon.actors.genie import Genie
 from assets import load as use_assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from config import TILE_SIZE
 from random import randint, randrange, choice
 from colors.palette import WHITE, SEAGREEN, GREEN

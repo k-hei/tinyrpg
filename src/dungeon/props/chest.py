@@ -8,7 +8,7 @@ from anims.item import ItemAnim
 from anims.frame import FrameAnim
 from colors.palette import PINK, GOLD, BLACK
 from contexts.dialogue import DialogueContext
-from sprite import Sprite
+from lib.sprite import Sprite
 from inventory import Inventory
 
 class Chest(Prop):

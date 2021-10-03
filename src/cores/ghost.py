@@ -1,7 +1,7 @@
 from math import pi, sin
 from cores import Core, Stats
 import assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from lib.filters import ripple
 from anims.frame import FrameAnim
 from anims.flinch import FlinchAnim

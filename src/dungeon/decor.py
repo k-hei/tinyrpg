@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from colors.palette import WHITE
-from sprite import Sprite
+from lib.sprite import Sprite
 from assets import load as use_assets
 from config import TILE_SIZE
 from lib.filters import replace_color

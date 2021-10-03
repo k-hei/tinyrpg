@@ -1,6 +1,6 @@
 from vfx import Vfx
 import assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from lib.filters import replace_color
 from colors.palette import BLACK, CYAN
 from config import TILE_SIZE

@@ -5,7 +5,7 @@ from contexts import Context
 from contexts.data import view_ticks
 from comps.minimap import Minimap
 import assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from colors import darken_color
 from colors.palette import WHITE, GRAY, GREEN, RED, GOLD
 from config import WINDOW_WIDTH, WINDOW_HEIGHT

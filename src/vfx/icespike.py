@@ -3,7 +3,7 @@ from vfx import Vfx
 from config import TILE_SIZE
 from anims.frame import FrameAnim
 from anims.pause import PauseAnim
-from sprite import Sprite
+from lib.sprite import Sprite
 from colors.palette import BLACK, WHITE, CYAN
 from lib.filters import replace_color
 import assets

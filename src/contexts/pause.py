@@ -8,7 +8,7 @@ from assets import load as use_assets
 from lib.filters import outline, recolor, replace_color
 from colors.palette import WHITE, BLUE, BLACK, GOLD
 from config import WINDOW_SIZE, WINDOW_HEIGHT
-from sprite import Sprite
+from lib.sprite import Sprite
 
 MARGIN_X = 48
 MARGIN_Y = 48

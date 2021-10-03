@@ -5,7 +5,7 @@ from assets import load as use_assets
 from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
-from sprite import Sprite
+from lib.sprite import Sprite
 from colors.palette import BLACK, BLUE
 from lib.filters import replace_color, darken_image
 

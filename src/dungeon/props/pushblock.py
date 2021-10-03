@@ -2,7 +2,7 @@ from pygame import Rect
 from dungeon.props import Prop
 from dungeon.props.pushtile import PushTile
 from assets import load as use_assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from anims.move import MoveAnim
 from anims import Anim
 from lib.filters import replace_color

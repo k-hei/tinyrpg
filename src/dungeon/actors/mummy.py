@@ -9,7 +9,7 @@ from skills.weapon.club import Club
 from lib.cell import is_adjacent, add as add_vector
 from lib.compose import compose
 from lib.direction import invert as invert_direction
-from sprite import Sprite
+from lib.sprite import Sprite
 import assets
 from anims.move import MoveAnim
 from anims.jump import JumpAnim

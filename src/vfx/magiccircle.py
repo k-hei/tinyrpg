@@ -8,7 +8,7 @@ from vfx import Vfx
 from vfx.particle import ParticleVfx
 import assets
 from anims import Anim
-from sprite import Sprite
+from lib.sprite import Sprite
 from colors.palette import BLACK, CYAN
 from config import TILE_SIZE
 

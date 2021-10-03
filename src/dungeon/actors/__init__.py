@@ -1,6 +1,6 @@
 from random import randint
 from pygame import Surface
-from sprite import Sprite
+from lib.sprite import Sprite
 from copy import copy
 
 from dungeon.element import DungeonElement

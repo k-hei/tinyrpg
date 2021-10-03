@@ -5,7 +5,7 @@ from items.materials.beetle import Beetle as BeetleItem
 from anims.item import ItemAnim
 from anims.pause import PauseAnim
 from contexts.dialogue import DialogueContext
-from sprite import Sprite
+from lib.sprite import Sprite
 from config import ATTACK_DURATION
 
 class Beetle(DungeonActor):

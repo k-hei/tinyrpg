@@ -24,7 +24,7 @@ from items.materials import MaterialItem
 from comps.hud import Hud
 from savedata.resolve import resolve_material
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
-from sprite import Sprite
+from lib.sprite import Sprite
 
 class SelectAnim(TweenAnim): blocking = False
 class DeselectAnim(TweenAnim): blocking = False

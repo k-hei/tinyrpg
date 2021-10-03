@@ -5,7 +5,7 @@ from lib.lerp import lerp
 from text import render as render_text
 from lib.filters import recolor, replace_color
 from colors.palette import BLACK
-from sprite import Sprite
+from lib.sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 
 MARGIN_X = 12

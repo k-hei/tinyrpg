@@ -7,7 +7,7 @@ from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from anims.pause import PauseAnim
-from sprite import Sprite
+from lib.sprite import Sprite
 import assets
 from skills import Skill
 from lib.cell import is_adjacent, manhattan

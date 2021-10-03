@@ -1,6 +1,6 @@
 from math import sqrt
 from dungeon.props import Prop
-from sprite import Sprite
+from lib.sprite import Sprite
 from config import TILE_SIZE
 from anims.offsetmove import OffsetMoveAnim
 

@@ -14,7 +14,7 @@ from game.controls import TYPE_A
 from comps.control import Control
 from comps.title import Title
 from comps.bg import Bg
-from sprite import Sprite
+from lib.sprite import Sprite
 from anims import Anim
 from anims.tween import TweenAnim
 from anims.sine import SineAnim

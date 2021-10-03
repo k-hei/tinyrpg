@@ -17,7 +17,7 @@ from config import TILE_SIZE, WINDOW_HEIGHT
 from contexts import Context
 from comps.bar import Bar
 from comps.skill import Skill
-from sprite import Sprite
+from lib.sprite import Sprite
 
 from anims.sine import SineAnim
 from anims.tween import TweenAnim

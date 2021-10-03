@@ -26,7 +26,7 @@ from lib.lerp import lerp
 from portraits import Portrait
 from portraits.mira import MiraPortrait
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
-from sprite import Sprite
+from lib.sprite import Sprite
 from transits.slide import SlideDown
 
 class CursorAnim(Anim): blocking = False

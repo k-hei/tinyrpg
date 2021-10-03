@@ -2,7 +2,7 @@ from math import sin, cos, pi
 from random import random, randint, choice
 from vfx import Vfx
 import assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from anims import Anim
 from lib.filters import replace_color
 from colors.palette import BLACK, WHITE

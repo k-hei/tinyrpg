@@ -20,7 +20,7 @@ from anims.walk import WalkAnim
 from anims.tween import TweenAnim
 from anims.flicker import FlickerAnim
 from easing.expo import ease_out
-from sprite import Sprite
+from lib.sprite import Sprite
 
 SPACING_FACTOR = 2
 TITLE_SPACING = 16

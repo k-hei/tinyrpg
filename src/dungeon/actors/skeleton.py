@@ -5,7 +5,7 @@ from skills.attack.shieldbash import ShieldBash
 from skills.weapon.club import Club
 from lib.cell import is_adjacent
 import random
-from sprite import Sprite
+from lib.sprite import Sprite
 
 class Skeleton(DungeonActor):
   skill = ShieldBash

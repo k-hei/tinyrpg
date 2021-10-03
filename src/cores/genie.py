@@ -1,7 +1,7 @@
 from math import pi, sin
 from cores import Core
 import assets
-from sprite import Sprite
+from lib.sprite import Sprite
 from lib.filters import ripple, replace_color
 from colors.palette import BLACK, ORANGE
 
