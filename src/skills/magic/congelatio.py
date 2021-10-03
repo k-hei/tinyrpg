@@ -47,7 +47,7 @@ class Congelatio(MagicSkill):
     target_cells = [c for c in target_cells if (
       not Tile.is_solid(floor.get_tile_at(c))
       and not next((e for e in floor.get_elems_at(c) if not isinstance(e, DungeonActor) and e.solid), None)
-      and (user.faction != "player" or c in user.visible_cells)
+      and not (user.faction == "player" and c not in game.hero.visible_cells)
     )]
     target_cells = sorted(target_cells, key=lambda cell: 0 if cell == dest else 1 + random())
     targets = [e for e in [floor.get_elem_at(c, superclass=DungeonActor) for c in target_cells] if e]
