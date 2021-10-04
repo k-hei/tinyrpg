@@ -155,6 +155,17 @@ class Eyeball(DungeonActor):
     valid_cells = game.floor.find_walkable_room_cells(cell=eyeball.cell)
     return choice(valid_cells) if valid_cells else None
 
+  def find_attack_target(eyeball, game):
+    cell = eyeball.cell
+    elem = None
+    while (not Tile.is_opaque(game.floor.get_tile_at(cell))
+    and elem is None
+    and manhattan(cell, eyeball.cell) <= Eyeball.VISION_RANGE
+    ):
+      cell = vector.add(cell, eyeball.facing)
+      elem = next((e for e in game.floor.get_elems_at(cell) if isinstance(e, DungeonActor) and not eyeball.allied(e)), None)
+    return elem
+
   def step_look(eyeball, game):
     if not eyeball.ai_target:
       eyeball.ai_mode = DungeonActor.AI_MOVE
@@ -188,16 +199,9 @@ class Eyeball(DungeonActor):
       command = eyeball.step_look(game)
     elif eyeball.ai_mode == DungeonActor.AI_MOVE:
       command = eyeball.step_move(game)
-    cell = eyeball.cell
-    elem = None
-    while (not Tile.is_opaque(game.floor.get_tile_at(cell))
-    and elem is None
-    and manhattan(cell, eyeball.cell) <= Eyeball.VISION_RANGE
-    ):
-      cell = vector.add(cell, eyeball.facing)
-      elem = next((e for e in game.floor.get_elems_at(cell) if isinstance(e, DungeonActor) and not eyeball.allied(e)), None)
-    if elem:
-      eyeball.alert(cell)
+    attack_target = eyeball.find_attack_target(game)
+    if attack_target:
+      eyeball.alert(cell=attack_target.cell)
       return None
     return command
 
@@ -213,7 +217,13 @@ class Eyeball(DungeonActor):
     and (not eyeball.cloned or Eyeball.CLONES_CAN_CLONE)
     and randint(1, 3) == 1):
       return eyeball.charge(Eyeball.Meyetosis)
-    elif eyeball.ai_mode == DungeonActor.AI_MOVE and is_adjacent(eyeball.cell, eyeball.ai_target) and (
+
+    target = eyeball.find_attack_target(game)
+    if target and eyeball.ai_target != target.cell:
+      eyeball.ai_target = target.cell
+      eyeball.ai_path = None
+
+    if eyeball.ai_mode == DungeonActor.AI_MOVE and is_adjacent(eyeball.cell, eyeball.ai_target) and (
     enemy := next((e for e in game.floor.get_elems_at(eyeball.ai_target) if (
       isinstance(e, DungeonActor)
       and not eyeball.allied(e)

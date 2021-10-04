@@ -1377,9 +1377,10 @@ class DungeonContext(Context):
   def move_to(game, actor, dest, run=False, is_animated=True, on_end=None):
     if actor.cell == dest or actor.ai_path and actor.cell == actor.ai_path[-1]:
       actor.ai_path = None
-      actor.ai_mode = DungeonActor.AI_LOOK
-      actor.aggro = 0
-      if actor.cell == dest:
+      if actor.cell == actor.ai_target:
+        actor.ai_mode = DungeonActor.AI_LOOK
+        actor.aggro = 0
+      elif actor.cell == dest:
         on_end and on_end()
         return False
 
@@ -1393,7 +1394,10 @@ class DungeonContext(Context):
     delta = game.find_move_to_delta(actor, dest)
     if actor.ai_path:
       cell_index = actor.ai_path.index(actor.cell) if actor.cell in actor.ai_path else -1
-      next_cell = actor.ai_path[cell_index + 1] if cell_index != -1 else None
+      next_cell = actor.ai_path[cell_index + 1] if (
+        cell_index != -1
+        and cell_index + 1 < len(actor.ai_path)
+      ) else None
       delta = vector.subtract(next_cell, actor.cell) if next_cell else delta
 
     moved = False
