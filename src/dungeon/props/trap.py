@@ -3,6 +3,7 @@ from dungeon.props import Prop
 from lib.sprite import Sprite
 import assets
 from anims.pause import PauseAnim
+from anims.shake import ShakeAnim
 from vfx.geyser import GeyserVfx
 
 class Trap(Prop):
@@ -15,11 +16,17 @@ class Trap(Prop):
       return False
     trap.triggered = True
     game.vfx.append(GeyserVfx(cell=trap.cell, delay=15))
-    game.anims.append([
-      PauseAnim(duration=30, on_end=lambda: (
-        actor.inflict_ailment("sleep"),
-        game.step()
-      ))
+    game.anims.extend([
+      [PauseAnim(
+        duration=15
+      )], [ShakeAnim(
+        target=actor,
+        duration=30,
+        on_end=lambda: (
+          actor.inflict_ailment("sleep"),
+          game.step()
+        )
+      )]
     ])
     return True
 
