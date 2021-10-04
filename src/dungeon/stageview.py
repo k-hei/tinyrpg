@@ -21,6 +21,7 @@ from dungeon.props.soul import Soul
 from dungeon.props.palm import Palm
 from dungeon.props.door import Door
 from dungeon.props.pushtile import PushTile
+from dungeon.props.trap import Trap
 from dungeon.props.secretdoor import SecretDoor
 from dungeon.render.walltop import render_walltop
 
@@ -499,7 +500,7 @@ def render_tile(stage, cell, visited_cells=[]):
         image=replace_color(assets.sprites["floor"], GRAY, DARKGRAY),
         layer="elems",
       )
-    elif next((e for e in stage.get_elems_at(cell) if type(e) is PushTile), None):
+    elif next((e for e in stage.get_elems_at(cell) if type(e) is PushTile or isinstance(e, Trap)), None):
       return None
     else:
       sprite_name = "floor"

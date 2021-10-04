@@ -557,10 +557,12 @@ class DungeonContext(Context):
     game.old_hero_cell = hero.cell
     if hero.ailment == "sleep":
       if (game.is_hero_sleeping and hero.get_hp() == hero.get_hp_max()
-      or not game.is_hero_sleeping and game.find_closest_visible_enemy(hero) is None):
+      # or not game.is_hero_sleeping and game.find_closest_visible_enemy(hero) is None
+      ):
         hero.dispel_ailment()
+        game.anims.append([AwakenAnim(target=hero)])
       else:
-        SLEEP_TURN_DURATION = 9 if game.is_hero_sleeping else 2
+        SLEEP_TURN_DURATION = 9 if game.is_hero_sleeping else 5
         game.anims.append([PauseAnim(
           duration=SLEEP_TURN_DURATION,
           on_end=game.step
@@ -821,7 +823,7 @@ class DungeonContext(Context):
     return True
 
   def handle_struggle(game, actor):
-    if actor.ailment != "freeze":
+    if actor.ailment not in ("freeze", "sleep"):
       return False
     actor.step_status(game)
     game.anims.append([

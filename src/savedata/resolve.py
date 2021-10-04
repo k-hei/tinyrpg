@@ -44,6 +44,7 @@ from dungeon.props.soul import Soul
 from dungeon.props.pushblock import PushBlock
 from dungeon.props.arrowtrap import ArrowTrap
 from dungeon.props.altar import Altar
+from dungeon.props.trap import Trap
 from dungeon.props.rarechest import RareChest
 from dungeon.props.door import Door
 from dungeon.props.pushtile import PushTile
@@ -225,6 +226,7 @@ def resolve_elem(key):
   if key == "PushBlock": return PushBlock
   if key == "ArrowTrap": return ArrowTrap
   if key == "Altar": return Altar
+  if key == "Trap": return Trap
   if key == "RareChest": return RareChest
   if key == "Door": return Door
   if key == "PushTile": return PushTile

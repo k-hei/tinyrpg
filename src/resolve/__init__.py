@@ -74,6 +74,9 @@ def build_hooks(path):
     key, val = stack.pop()
     if type(val) is str:
       match = pattern.search(val)
+      if not match:
+        print(f"WARNING: Failed to match {key}")
+        continue
       hook_name = match.group(1)
       hook_path = key
       hook_key = key.replace(".", "")

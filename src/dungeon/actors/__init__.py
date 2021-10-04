@@ -243,7 +243,7 @@ class DungeonActor(DungeonElement):
     elif ailment == "sleep":
       if actor.ailment == "sleep":
         return False
-      actor.ailment_turns = DungeonActor.SLEEP_DURATION
+      actor.ailment_turns = 16 if actor.faction == "player" else DungeonActor.SLEEP_DURATION
       actor.anims = [DungeonActor.SleepAnim()]
       if "SleepAnim" in dir(actor.core):
         actor.core.anims = [actor.core.SleepAnim()]
@@ -274,6 +274,7 @@ class DungeonActor(DungeonElement):
           pos=tuple([(x + 0.5) * TILE_SIZE for x in actor.cell]),
         ) for _ in range(randint(3, 4))]
       actor.dispel_ailment()
+      game.anims.append([AwakenAnim(target=actor)])
 
   def dispel_ailment(actor):
     if actor.ailment == "sleep":
