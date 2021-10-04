@@ -4,7 +4,7 @@ import pygame
 from pygame import Rect, Surface, SRCALPHA
 from pygame.transform import scale
 
-from colors.palette import BLACK, WHITE, BLUE, RED, CYAN, GRAY
+from colors.palette import BLACK, WHITE, GREEN, BLUE, RED, CYAN, GRAY
 from assets import load as use_assets
 from lib.filters import replace_color, recolor, outline
 from lib.sprite import Sprite
@@ -198,10 +198,10 @@ class Hud:
     hero_hp_pos = (HP_BAR_X, HP_BAR_Y1)
     if hud.draws_hp and hero.get_hp() <= hud.hp_hero:
       sprite.blit(render_bar(hud.hp_hero / hero.get_hp_max(), RED), hero_hp_pos)
-      sprite.blit(render_bar(hero.get_hp() / hero.get_hp_max(), WHITE), hero_hp_pos)
+      sprite.blit(render_bar(hero.get_hp() / hero.get_hp_max(), GREEN), hero_hp_pos)
     else:
       sprite.blit(render_bar(hero.get_hp() / hero.get_hp_max(), CYAN), hero_hp_pos)
-      sprite.blit(render_bar(hud.hp_hero / hero.get_hp_max(), WHITE), hero_hp_pos)
+      sprite.blit(render_bar(hud.hp_hero / hero.get_hp_max(), GREEN), hero_hp_pos)
 
     if ally:
       sprite.blit(ally_scaled, (
@@ -211,10 +211,10 @@ class Hud:
       ally_hp_pos = (HP_BAR_X, HP_BAR_Y2)
       if hud.draws_hp and ally.get_hp() <= hud.hp_ally:
         sprite.blit(render_bar(hud.hp_ally / ally.get_hp_max(), RED), ally_hp_pos)
-        sprite.blit(render_bar(ally.get_hp() / ally.get_hp_max(), WHITE), ally_hp_pos)
+        sprite.blit(render_bar(ally.get_hp() / ally.get_hp_max(), GREEN), ally_hp_pos)
       else:
         sprite.blit(render_bar(ally.get_hp() / ally.get_hp_max(), CYAN), ally_hp_pos)
-        sprite.blit(render_bar(hud.hp_ally / ally.get_hp_max(), WHITE), ally_hp_pos)
+        sprite.blit(render_bar(hud.hp_ally / ally.get_hp_max(), GREEN), ally_hp_pos)
 
     if hud.draws_hp:
       sprite.blit(assets.sprites["hp"], (HP_X, HP_Y))
