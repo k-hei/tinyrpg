@@ -201,8 +201,8 @@ class DungeonContext(Context):
   def reload_skill_badge(game, skill=None, delay=0):
     skill = skill or game.parent.get_skill(game.hero.core)
     game.skill_badge = game.skill_badge or SkillBadge(skill)
-    game.skill_badge.reload(skill=skill, delay=delay)
     game.skill_badge.pos = (60, 52) if game.ally else (46, 42)
+    skill and game.skill_badge.reload(skill=skill, delay=delay)
 
   def open(game, *args, **kwargs):
     super().open(*args, **kwargs)
@@ -736,9 +736,6 @@ class DungeonContext(Context):
     if keyboard.get_state(button) + gamepad.get_state(button) > 1:
       return None
 
-    if button == pygame.K_f:
-      return game.handle_examine()
-
     if button == pygame.K_m or gamepad.get_state(gamepad.controls.minimap):
       return game.handle_minimap()
 
@@ -768,7 +765,10 @@ class DungeonContext(Context):
       else:
         return game.handle_pickup()
 
-    if button in (pygame.K_RETURN, pygame.K_SPACE):
+    if button in (pygame.K_x, gamepad.get_state(gamepad.controls.shortcut)):
+      return game.handle_shortcut()
+
+    if button in (pygame.K_RETURN, pygame.K_SPACE, pygame.K_z):
       if game.hero.item:
         if shift:
           return game.handle_throw()
@@ -785,7 +785,7 @@ class DungeonContext(Context):
           return game.handle_exit()
         elif button == pygame.K_RETURN:
           return game.handle_skill()
-        elif button == pygame.K_SPACE:
+        elif button in (pygame.K_SPACE, pygame.K_z):
           if game.handle_action():
             return True
           else:
@@ -1155,6 +1155,20 @@ class DungeonContext(Context):
     game.parent.update_skills()
     game.reload_skill_badge()
 
+  def handle_shortcut(game):
+    hero = game.hero
+    if not hero:
+      return False
+
+    skill = game.parent.get_skill(hero.core)
+    if not skill:
+      return False
+
+    if skill.range_min > 1:
+      game.handle_skill()
+    else:
+      game.use_skill(hero, skill)
+
   def handle_skill(game):
     hero = game.hero
     if hero.ailment == "freeze":
@@ -1166,7 +1180,7 @@ class DungeonContext(Context):
       actor=hero,
       on_close=lambda skill, dest: (
         skill and (
-          game.parent.set_skill(hero.core, skill),
+          not issubclass(skill, Weapon) and game.parent.set_skill(hero.core, skill),
           game.use_skill(hero, skill, dest),
           game.reload_skill_badge(skill, delay=120),
         ) or game.refresh_fov()
@@ -2272,7 +2286,10 @@ class DungeonContext(Context):
         for comp in game.comps:
           if type(comp) is Log or comp.active or comp.anims:
             continue
-          comp.enter()
+          if type(comp) is SkillBadge:
+            game.reload_skill_badge()
+          else:
+            comp.enter()
         game.show_bubble()
         game.update_bubble()
       for comp in game.comps:

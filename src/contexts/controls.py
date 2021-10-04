@@ -42,8 +42,9 @@ controls = [*{
   "turn": "Turn",
   "wait": "Wait",
   "item": "Carry/Throw",
-  "ally": "Switch hero",
+  "shortcut": "Skill shortcut",
   "skill": "Use skill",
+  "ally": "Switch hero",
   "inventory": "Open inventory",
   "equip": "Change equipment",
   "minimap": "View minimap"

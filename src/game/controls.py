@@ -23,6 +23,7 @@ class ControlPreset:
   item: list[str] = field(default_factory=lambda: [])
   wait: list[str] = field(default_factory=lambda: [])
   ally: str = ""
+  shortcut: str = ""
   skill: str = ""
   inventory: str = ""
   equip: str = ""
@@ -49,6 +50,7 @@ TYPE_A = ControlPreset(
   turn=gamepad.R,
   item=[gamepad.R, gamepad.TRIANGLE],
   wait=[gamepad.R, gamepad.CIRCLE],
+  shortcut=[gamepad.R, gamepad.SQUARE],
   ally=gamepad.L,
   skill=gamepad.SQUARE,
   inventory=gamepad.TRIANGLE,

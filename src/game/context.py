@@ -22,6 +22,7 @@ from cores.mage import Mage
 from cores.rogue import Rogue
 from inventory import Inventory
 from skills import get_skill_order
+from skills.weapon import Weapon
 import assets
 from debug import bench
 from game.data import GameData
@@ -164,7 +165,7 @@ class GameContext(Context):
     ctx.store.builds[type(actor).__name__] = build
     actor.skills = sorted([skill for skill, cell in build], key=get_skill_order)
     active_skills = actor.get_active_skills()
-    ctx.set_skill(actor, active_skills[0] if active_skills else None)
+    ctx.set_skill(actor, skill=next((s for s in active_skills if not issubclass(s, Weapon)), None))
 
   def update_skills(ctx):
     for core in ctx.store.party:
