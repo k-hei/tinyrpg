@@ -21,7 +21,7 @@ def on_enter(room, game):
   ))
   if not config.CUTSCENES:
     for eyeball in eyeballs:
-      eyeball.aggro = 1
+      eyeball.alert(cell=game.hero.cell)
     return
   game.open(CutsceneContext([
     lambda step: (

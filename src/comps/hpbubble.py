@@ -67,7 +67,7 @@ def render_bubblefill(value, color=WHITE):
   ))
   return Sprite(
     image=fill_image,
-    pos=(1, -5),
+    pos=(0, -5),
     offset=32,
     layer="vfx"
   )

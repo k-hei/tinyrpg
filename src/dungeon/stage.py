@@ -150,6 +150,14 @@ class Stage:
           cells += neighborhood((x, y), inclusive=True, diagonals=True)
     return [*set(cells)]
 
+  def find_walkable_room_cells(stage, room=None, cell=None, ignore_actors=False):
+    room = room or next((r for r in stage.rooms if cell in r.cells), None)
+    return [c for c in room.get_cells() if (
+      (not Tile.is_solid(stage.get_tile_at(c))
+        and not next((e for e in stage.get_elems_at(cell) if e.static and e.solid), None)
+      ) if ignore_actors else stage.is_cell_empty(c)
+    )] if room else []
+
   def is_cell_empty(stage, cell):
     target_tile = stage.get_tile_at(cell)
     if not target_tile or target_tile.solid:

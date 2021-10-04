@@ -25,7 +25,8 @@ from lib.keyboard import ARROW_DELTAS, key_times
 
 import debug
 
-from lib.cell import add as add_vector, subtract as subtract_vector, is_adjacent, manhattan, normal, neighborhood
+import lib.vector as vector
+from lib.cell import is_adjacent, manhattan, normal, neighborhood
 from lib.direction import invert as invert_direction, normalize as normalize_direction
 from lib.compose import compose
 
@@ -370,7 +371,7 @@ class DungeonContext(Context):
       hallway = [c for c in path_anim.path if not next((e for e in game.floor.get_elems_at(c) if isinstance(e, Door)), None)]
       visible_cells = list(set([n for c in hallway for n in (
         neighborhood(c, inclusive=True, diagonals=True)
-        + neighborhood(add_vector(c, (0, -1)), inclusive=True, diagonals=True)
+        + neighborhood(vector.add(c, (0, -1)), inclusive=True, diagonals=True)
       ) if game.floor.get_tile_at(n) is Stage.WALL or game.floor.get_tile_at(n) is Stage.HALLWAY]))
     elif (not next((a for g in game.anims for a in g if type(a) is StageView.FadeAnim), None)
       and (not game.camera.anims or new_room)
@@ -627,7 +628,7 @@ class DungeonContext(Context):
       if (target and room and target.cell in room.get_cells() + room.get_border()
       or target and game.is_cell_in_vision_range(actor=enemy, cell=target.cell)
       ):
-        enemy.alert()
+        enemy.alert(cell=target.cell)
       else:
         enemy.aggro = 0
         return ("move_to", game.old_hero_cell)
@@ -914,7 +915,7 @@ class DungeonContext(Context):
         if enemy:
           enemy.wake_up()
           if is_adjacent(hero.cell, enemy.cell):
-            enemy.alert()
+            enemy.alert(cell=hero.cell)
           if game.camera.is_cell_visible(enemy.cell):
             is_waking_up = True
             game.anims.append([
@@ -1010,7 +1011,7 @@ class DungeonContext(Context):
 
   def handle_push(game):
     hero = game.hero
-    target_cell = add_vector(hero.cell, hero.facing)
+    target_cell = vector.add(hero.cell, hero.facing)
     target_elem = next((e for e in game.floor.get_elems_at(target_cell) if (
       e.solid and not e.static
     )), None)
@@ -1036,7 +1037,7 @@ class DungeonContext(Context):
   def push(game, actor, target, on_end=None):
     origin_cell = target.cell
     origin_tile = game.floor.get_tile_at(origin_cell)
-    target_cell = add_vector(origin_cell, actor.facing)
+    target_cell = vector.add(origin_cell, actor.facing)
     target_tile = game.floor.get_tile_at(target_cell)
     target_elem = game.floor.get_elem_at(target_cell)
     if target.static or target_tile is None or target_tile.solid or origin_tile.elev != target_tile.elev or target_elem and target_elem.solid:
@@ -1056,7 +1057,7 @@ class DungeonContext(Context):
     target.on_push(game)
     if isinstance(target, DungeonActor) and target.ailment == "sleep":
       target.wake_up()
-      target.alert()
+      target.alert(cell=actor.cell)
     return True
 
   def obtain(game, item, target=None, on_end=None):
@@ -1095,7 +1096,7 @@ class DungeonContext(Context):
     hero = game.hero
     if hero.ailment == "freeze":
       game.handle_struggle(actor=hero)
-    target_cell = add_vector(hero.cell, hero.facing)
+    target_cell = vector.add(hero.cell, hero.facing)
     target_actor = next((e for e in game.floor.get_elems_at(target_cell) if isinstance(e, DungeonActor)), None)
     if target_actor and not hero.allied(target_actor):
       if not hero.weapon:
@@ -1139,7 +1140,7 @@ class DungeonContext(Context):
 
   def handle_switch(game):
     result = game.switch_chars()
-    game.reload_skill_badge()
+    result and game.reload_skill_badge()
     return result
 
   def handle_ally(game):
@@ -1271,16 +1272,20 @@ class DungeonContext(Context):
     facing_y = -1 if delta_y < 0 else 1 if delta_y > 0 else 0
     actor.facing = (facing_x, facing_y)
     if (target_tile and (not target_tile.solid or target_tile is game.floor.PIT and actor.floating)
-    and (not origin_tile or abs(target_tile.elev - origin_tile.elev) < 1
+    and (
+      not origin_tile or abs(target_tile.elev - origin_tile.elev) < 1
       and (target_tile.direction == (0, 0) and origin_tile.direction == (0, 0)
       or normalize_direction(delta) == normalize_direction(origin_tile.direction)
       or normalize_direction(delta) == normalize_direction(target_tile.direction)
-    )) and (target_elem is None
+    )) and (
+      target_elem is None
       or not target_elem.solid
-      or (actor is game.hero
-        and isinstance(target_elem, DungeonActor)
-        and (target_elem.faction == "player"
-          or target_elem.faction == "ally" and target_elem.behavior != "guard")
+      or (
+        isinstance(target_elem, DungeonActor)
+        and (actor.allied(target_elem) and (
+          target_elem.faction == "player"
+          or target_elem.behavior != "guard"
+        ))
         and target_elem.can_step()
       )
     )):
@@ -1317,8 +1322,8 @@ class DungeonContext(Context):
         command.on_end and command.on_end()
       actor.cell = target_cell
       actor.elev = target_tile.elev
-      if isinstance(target_elem, DungeonActor) and target_elem.faction in ("player", "ally") and target_elem.can_step():
-        game.move_to(actor=target_elem, cell=origin_cell, run=run)
+      if isinstance(target_elem, DungeonActor) and target_elem.allied(actor) and target_elem.can_step():
+        game.move_to(actor=target_elem, dest=origin_cell, run=run)
       return True
     else:
       on_end and on_end()
@@ -1369,16 +1374,38 @@ class DungeonContext(Context):
 
     return (delta_x, delta_y)
 
-  def move_to(game, actor, cell, run=False, is_animated=True, on_end=None):
-    if actor.cell == cell:
-      return False
+  def move_to(game, actor, dest, run=False, is_animated=True, on_end=None):
+    if actor.cell == dest or actor.ai_path and actor.cell == actor.ai_path[-1]:
+      actor.ai_path = None
+      actor.ai_mode = DungeonActor.AI_LOOK
+      actor.aggro = 0
+      if actor.cell == dest:
+        on_end and on_end()
+        return False
 
-    delta_x, delta_y = game.find_move_to_delta(actor, dest=cell)
-    if delta_x or delta_y:
-      return game.move(actor=actor, delta=(delta_x, delta_y), run=run, is_animated=is_animated, on_end=on_end)
-    else:
+    if not actor.ai_path:
+      actor.ai_path = game.floor.pathfind(
+        start=actor.cell,
+        goal=dest,
+        whitelist=game.floor.find_walkable_room_cells(cell=actor.cell, ignore_actors=True)
+      )
+
+    delta = game.find_move_to_delta(actor, dest)
+    if actor.ai_path:
+      cell_index = actor.ai_path.index(actor.cell) if actor.cell in actor.ai_path else -1
+      next_cell = actor.ai_path[cell_index + 1] if cell_index != -1 else None
+      delta = vector.subtract(next_cell, actor.cell) if next_cell else delta
+
+    moved = False
+    if next((x for x in delta if x), None):
+      moved = game.move(actor=actor, delta=delta, run=run, is_animated=is_animated, on_end=on_end)
+
+    if not moved:
+      actor.ai_path = None
+      actor.ai_target = None
+      actor.ai_mode = DungeonActor.AI_LOOK
       on_end and on_end()
-      return False
+    return moved
 
   def redraw_tiles(game, force=False):
     # if force:
@@ -1484,6 +1511,7 @@ class DungeonContext(Context):
         if target.counter:
           real_target = actor
           real_damage = DungeonActor.find_damage(actor, actor)
+        target.alert(cell=actor.cell)
         game.flinch(
           target=real_target,
           damage=real_damage,
@@ -1520,7 +1548,7 @@ class DungeonContext(Context):
     floor = game.floor
     source_cell = actor.cell
     source_tile = game.floor.get_tile_at(source_cell)
-    target_cell = add_vector(source_cell, direction)
+    target_cell = vector.add(source_cell, direction)
     target_tile = game.floor.get_tile_at(target_cell)
     if not floor.is_cell_empty(target_cell) and floor.get_tile_at(target_cell) is not floor.PIT:
       return False
@@ -1600,8 +1628,8 @@ class DungeonContext(Context):
       if target.is_dead() or game.floor.get_tile_at(target.cell) is Stage.PIT:
         if not game.room or game.room.on_defeat(game, target):
           game.kill(target, on_end)
-      elif on_end:
-        on_end()
+      else:
+        on_end and on_end()
 
     if target is game.hero and game.god_mode:
       damage = 0
@@ -1782,7 +1810,7 @@ class DungeonContext(Context):
     if not item and not actor.item:
       return False
     item = actor.item
-    target_cell = add_vector(actor.cell, actor.facing)
+    target_cell = vector.add(actor.cell, actor.facing)
     if (Tile.is_solid(game.floor.get_tile_at(target_cell))
     or next((e for e in game.floor.get_elems_at(target_cell) if e.solid or isinstance(e, ItemDrop)), None)):
       return False
@@ -1804,7 +1832,7 @@ class DungeonContext(Context):
     return game.pickup_item(actor=game.hero)
 
   def pickup_item(game, actor, itemdrop=None):
-    target_cell = add_vector(actor.cell, actor.facing)
+    target_cell = vector.add(actor.cell, actor.facing)
     itemdrop = itemdrop or next((e for e in game.floor.get_elems_at(target_cell) if isinstance(e, ItemDrop)), None)
     if not itemdrop:
       return False
@@ -1826,13 +1854,13 @@ class DungeonContext(Context):
     if not item and not actor.item:
       return False
     item = actor.item
-    facing_cell = add_vector(actor.cell, actor.facing)
+    facing_cell = vector.add(actor.cell, actor.facing)
     target_elem = None
     target_cell = actor.cell
     nonpit_cell = actor.cell
     throwing = True
     while throwing:
-      next_cell = add_vector(target_cell, actor.facing)
+      next_cell = vector.add(target_cell, actor.facing)
       next_tile = game.floor.get_tile_at(next_cell)
       next_elem = next((e for e in game.floor.get_elems_at(next_cell) if e.solid), None)
       if (not next_tile is game.floor.PIT and Tile.is_solid(next_tile)
@@ -1972,7 +2000,7 @@ class DungeonContext(Context):
       return
     actor.regen(actor.get_hp_max())
     actor.dispel_ailment()
-    game.numbers.append(DamageValue(actor.get_hp_max(), add_vector(actor.cell, (0, -0.25)), color=GREEN))
+    game.numbers.append(DamageValue(actor.get_hp_max(), vector.add(actor.cell, (0, -0.25)), color=GREEN))
     game.numbers.append(DamageValue(game.store.sp, actor.cell, color=CYAN))
     game.store.sp = game.store.sp_max
 
@@ -1999,7 +2027,7 @@ class DungeonContext(Context):
     if ally:
       if ally.is_dead():
         ally.revive()
-        floor.spawn_elem_at(add_vector(hero.cell, (-1, 0)), ally)
+        floor.spawn_elem_at(vector.add(hero.cell, (-1, 0)), ally)
       game.full_restore(ally)
       game.log.print("The party's HP and SP has been restored.")
     else:
@@ -2072,7 +2100,6 @@ class DungeonContext(Context):
         Floor = DungeonContext.FLOORS[gen_index + direction]
       else:
         Floor = GenericFloor
-      print(Floor)
       app = game.get_head()
       app.transition(
         transits=(DissolveIn(), DissolveOut()),
@@ -2145,7 +2172,7 @@ class DungeonContext(Context):
 
   def update_bubble(game):
     hero = game.hero
-    facing_cell = add_vector(hero.cell, hero.facing)
+    facing_cell = vector.add(hero.cell, hero.facing)
     facing_elems = game.floor.get_elems_at(facing_cell)
     facing_elem = next((e for e in facing_elems if (
       e.active

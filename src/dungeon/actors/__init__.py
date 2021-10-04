@@ -25,8 +25,9 @@ from lib.cell import is_adjacent, manhattan, add as add_vector
 from lib.lerp import lerp
 from comps.log import Token
 from comps.hpbubble import HpBubble
-from config import TILE_SIZE
 from vfx.icepiece import IcePieceVfx
+import config
+from config import TILE_SIZE
 
 from contexts import Context
 from contexts.dialogue import DialogueContext
@@ -38,6 +39,11 @@ class DungeonActor(DungeonElement):
   SLEEP_DURATION = 256
   INVULNERABLE_DURATION = 16
   COOLDOWN_DURATION = 1
+  VISION_RANGE = config.VISION_RANGE
+
+  AI_MOVE = "move"
+  AI_LOOK = "look"
+
   active = True
   solid = True
   skill = None
@@ -102,6 +108,10 @@ class DungeonActor(DungeonElement):
     actor.visible_cells = []
     actor.on_defeat = None
     actor.flipped = False
+
+    actor.ai_mode = None
+    actor.ai_target = None
+    actor.ai_path = None
 
     if rare:
       actor.promote()
@@ -190,7 +200,9 @@ class DungeonActor(DungeonElement):
       else:
         return ("wait",)
 
-  def alert(actor):
+  def alert(actor, cell=None):
+    actor.ai_target = cell
+    actor.ai_mode = DungeonActor.AI_MOVE
     if actor.aggro == 0:
       actor.aggro = 1
       actor.turns = 0
@@ -365,7 +377,6 @@ class DungeonActor(DungeonElement):
       target.kill()
     elif target.ailment == "sleep":
       target.wake_up()
-    target.alert()
     return damage
 
   def find_damage(actor, target, modifier=1):
@@ -384,7 +395,7 @@ class DungeonActor(DungeonElement):
       if enemy and game.is_cell_in_vision_range(actor, cell=enemy.cell):
         if actor.faction == "ally":
           print("alert ally from actor step")
-        actor.alert()
+        actor.alert(cell=enemy.cell)
       return None
     if is_adjacent(actor.cell, enemy.cell) and actor.elev == enemy.elev:
       return ("attack", enemy)
@@ -475,7 +486,7 @@ class DungeonActor(DungeonElement):
       bubble_sprites = actor.bubble.view()
       actor.bubble.color = actor.color()
       for bubble_sprite in bubble_sprites:
-        bubble_sprite.move((24, -20 - offset_z))
+        bubble_sprite.move((24, -21 - offset_z))
         bubble_sprite.move(move_offset)
       sprites += bubble_sprites
 
