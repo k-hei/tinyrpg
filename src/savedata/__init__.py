@@ -1,8 +1,6 @@
 import json
 import os
 from dataclasses import dataclass
-from items import Item
-from skills import Skill
 from dungeon.data import DungeonData
 import debug
 
@@ -12,10 +10,10 @@ class SaveData:
   sp: int
   sp_max: int
   gold: int
-  items: list[Item]
-  skills: list[Skill]
-  new_skills: list[Skill]
-  selected_skill: dict[str, Skill]
+  items: list[str]
+  skills: list[str]
+  new_skills: list[str]
+  selected_skill: dict[str, str]
   party: list[str]
   builds: dict[str, dict]
   kills: dict[str, int]
@@ -23,6 +21,7 @@ class SaveData:
   quests: dict[str, bool]
   place: str
   dungeon: dict[str, dict] = None
+  controls: dict[str, str] = None
 
 def load(*paths):
   try:

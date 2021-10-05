@@ -10,6 +10,7 @@ from cores import Core
 from contexts import Context
 from dungeon.data import DungeonData
 from savedata import SaveData
+from game.controls import ControlPreset
 from resolve.item import resolve_item
 from resolve.skill import resolve_skill
 from resolve.elem import resolve_elem
@@ -48,6 +49,7 @@ class GameData:
   quests: dict[str, bool] = field(default_factory=lambda: {})
   place: Context = None
   dungeon: DungeonData = None
+  controls: ControlPreset = None
 
   class Encoder(json.JSONEncoder):
     def default(encoder, obj):
@@ -80,7 +82,8 @@ class GameData:
       place=place,
       dungeon=(store.place.save()
         if store.place and place == "dungeon"
-        else None)
+        else None),
+      controls=store.controls.__dict__
     )
 
   def decode(savedata):
@@ -108,7 +111,8 @@ class GameData:
       place=savedata.place,
       dungeon=(DungeonData(**savedata.dungeon)
         if savedata.dungeon and type(savedata.dungeon) is not DungeonData
-        else savedata.dungeon)
+        else savedata.dungeon),
+      controls=ControlPreset(**(savedata.controls or {})),
     )
 
   @property

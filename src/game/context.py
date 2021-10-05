@@ -61,6 +61,7 @@ class GameContext(Context):
     floor = None
     ctx.store = GameData.decode(savedata)
     ctx.update_skills()
+    ctx.store.controls and gamepad.config(preset=ctx.store.controls)
 
     if ctx.stage:
       stage = ctx.stage
@@ -112,6 +113,8 @@ class GameContext(Context):
       ctx.goto_town()
 
   def save(ctx):
+    if gamepad.controls is not controls.TYPE_A:
+      ctx.store.controls = gamepad.controls
     ctx.savedata = ctx.store.encode()
     return ctx.savedata
 
