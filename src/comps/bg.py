@@ -52,7 +52,10 @@ class Bg:
 
   def draw(bg, surface):
     bg_sprite = bg.view()[0]
-    surface.blit(bg_sprite.image, bg_sprite.pos)
+    surface.blit(bg_sprite.image, (
+      bg_sprite.pos[0],
+      bg_sprite.pos[1] - bg.size[1] / 2
+    ))
 
   def view(bg):
     bg.update()
