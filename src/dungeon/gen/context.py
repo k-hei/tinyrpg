@@ -32,6 +32,9 @@ class GenContext(Context):
     ctx.ms_end = 0
     ctx.updates = 0
 
+  def enter(ctx):
+    ctx.get_head().fps_shown = True
+
   def handle_press(ctx, button):
     if ctx.result is False and button in (pygame.K_SPACE, pygame.K_RETURN):
       ctx.start()
@@ -83,17 +86,6 @@ class GenContext(Context):
   def view(ctx):
     sprites = []
     font = assets.ttf["normal"]
-
-    # FPS counter
-    ms_elapsed = get_ticks() - ctx.ms_now
-    if ctx.ms_now and ms_elapsed:
-      fps = int(1000 / ms_elapsed)
-      sprites.append(Sprite(
-        image=font.render(f"FPS: {fps}"),
-        pos=(WINDOW_WIDTH, 0),
-        origin=Sprite.ORIGIN_TOPRIGHT
-      ))
-    ctx.ms_now = get_ticks()
 
     # Elapsed time
     ms_elapsed = (ctx.ms_end or get_ticks()) - ctx.ms_start
