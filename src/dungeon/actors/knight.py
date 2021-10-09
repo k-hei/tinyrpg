@@ -22,6 +22,10 @@ class Knight(DungeonActor):
       ailment_turns=ailment_turns
     )
 
+  def charge(knight, *args, **kwargs):
+    super().charge(*args, **kwargs)
+    knight.core.anims.append(KnightCore.ChargeAnim())
+
   def block(knight):
     if knight.core.anims:
       return
@@ -39,7 +43,9 @@ class Knight(DungeonActor):
       knight_image = assets.sprites["knight_down"]
     else:
       knight_image = assets.sprites["knight"]
+    knight_xoffset = 0
     anim_group = [a for a in anims[0] if a.target is knight] if anims else []
+    anim_group += knight.core.anims
     for anim in anim_group:
       if type(anim) is PauseAnim:
         break
@@ -83,6 +89,13 @@ class Knight(DungeonActor):
       elif type(anim) in (FlinchAnim, FlickerAnim, ShakeAnim, DropAnim, FallAnim):
         knight_image = assets.sprites["knight_flinch"]
         break
+      elif type(anim) is KnightCore.ChargeAnim:
+        knight_image = assets.sprites["knight_blockdown"][1]
+        knight_xoffset = anim.offset
     if knight.ailment == "freeze":
       knight_image = assets.sprites["knight_flinch"]
-    return super().view([Sprite(key="knight", image=knight_image)], anims)
+    return super().view([Sprite(
+      key="knight",
+      image=knight_image,
+      pos=(knight_xoffset, 0),
+    )], anims)

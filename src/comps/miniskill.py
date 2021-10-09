@@ -52,8 +52,6 @@ class Miniskill(Component):
   def enter(comp, delay=0):
     comp.active = True
     comp.exiting = False
-    comp.cached_badge = render_badge(skill=comp.skill)
-    comp.cached_label = render_label(text=comp.skill.name)
     comp.anims = [
       BadgeEnterAnim(easing=ease_out, delay=delay),
       LabelEnterAnim(easing=ease_out, delay=delay + BadgeEnterAnim.duration // 2),
@@ -81,6 +79,8 @@ class Miniskill(Component):
     return sprites
 
   def view_badge(comp):
+    if not comp.cached_badge:
+      comp.cached_badge = render_badge(skill=comp.skill)
     badge_image = comp.cached_badge
     badge_anim = next((a for a in comp.anims if isinstance(a, BadgeAnim)), None)
     badge_yscale = 1
@@ -97,6 +97,8 @@ class Miniskill(Component):
     )]
 
   def view_label(comp):
+    if not comp.cached_label:
+      comp.cached_label = render_label(text=comp.skill.name)
     label_image = comp.cached_label
     label_anim = next((a for a in comp.anims if isinstance(a, LabelAnim)), None)
     label_width = label_image.get_width()

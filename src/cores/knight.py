@@ -3,6 +3,7 @@ from cores.biped import BipedCore, SpriteMap
 from config import KNIGHT_NAME, KNIGHT_HP
 import assets
 from anims.frame import FrameAnim
+from anims.shake import ShakeAnim
 
 class Knight(BipedCore):
   sprites = SpriteMap(
@@ -30,6 +31,8 @@ class Knight(BipedCore):
   class BlockDownAnim(FrameAnim):
     frames = assets.sprites["knight_blockdown"]
     frames_duration = [6, 6, 28]
+
+  class ChargeAnim(ShakeAnim): pass
 
   def __init__(knight, name=KNIGHT_NAME, faction="player", hp=KNIGHT_HP, *args, **kwargs):
     super().__init__(

@@ -78,11 +78,15 @@ def handle_release(app, button):
 
 def get_state(binding):
   if type(binding) in (tuple, list):
+    button = None
     for button in binding:
       if not get_state(button):
         return 0
     else:
-      return get_state(button)
+      if button:
+        return get_state(button)
+      else:
+        return 0
   if binding in timings:
     return timings[binding]
   else:
