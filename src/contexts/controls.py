@@ -22,7 +22,7 @@ from lib.filters import replace_color, darken_image
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
 from colors.palette import BLACK, WHITE, GRAY, BLUE, GOLD, GREEN
 
-controls = [*{
+mappings = [*{
   "LEFT": "Left",
   "RIGHT": "Right",
   "UP": "Up",
@@ -35,6 +35,12 @@ controls = [*{
   "R": "R",
   "SELECT": "Select",
   "START": "Start",
+  # "OPTIONS": "Options",
+  # "SHARE": "Share",
+  # "TOUCH": "Touch",
+}.items()]
+
+controls = [*{
   "confirm": "Confirm/Action",
   "cancel": "Cancel",
   "manage": "Manage",
@@ -49,6 +55,12 @@ controls = [*{
   "equip": "Change equipment",
   "minimap": "View minimap"
 }.items()]
+
+groups = {
+  "Buttons": mappings,
+  "Commands": controls,
+}
+
 hold_controls = ["run", "turn"]
 
 font = assets.ttf["normal"]
@@ -60,14 +72,39 @@ CURSOR_BOUNCE_PERIOD = 30
 CURSOR_SLIDE_DURATION = 4
 PADDING = 24
 PADDING_TOP = 36
+HEADINGS_Y = PADDING + PADDING_TOP
+CONTROLS_Y = HEADINGS_Y + 20
 OPTIONS_X = WINDOW_WIDTH * 2 / 5
 CONTROL_OFFSET = 8
-CONTROLS_VISIBLE = (WINDOW_HEIGHT - PADDING * 2 - PADDING_TOP) // LINE_HEIGHT - 2
+CONTROLS_VISIBLE = (WINDOW_HEIGHT - PADDING * 2 - PADDING_TOP) // LINE_HEIGHT - 3
 PLUS_SPACING = 2
 CONTROL_SPACING = 8
+GROUP_SPACING = 8
 
 def is_valid_button(button):
   return True # type(button) in (str, list)
+
+def find_total_control_count():
+  length = 0
+  for _, group in groups.items():
+    length += len(group)
+  return length
+
+def find_nearest_group_start(index):
+  start = 0
+  for _, group in groups.items():
+    if index < len(group):
+      return start
+    index -= len(group)
+    start += len(group)
+  return start
+
+def transpose_index(index):
+  for i, (title, group) in enumerate(groups.items()):
+    if index < len(group):
+      return i, group[index]
+    index -= len(group)
+  return None, None
 
 class EnterAnim(Anim): blocking = True
 class ExitAnim(Anim): blocking = True
@@ -89,7 +126,7 @@ class ControlsContext(Context):
     ctx.title = Title(text="CONTROLS")
     ctx.bg = Bg(WINDOW_SIZE) if bg else None
     ctx.anims = [CursorBounceAnim()]
-    ctx.controls = [
+    ctx.hints = [
       Control(key=("Select",), value="Reset"),
       Control(key=("Tab",), value="Multi"),
     ]
@@ -103,7 +140,7 @@ class ControlsContext(Context):
     ctx.exiting = False
     ctx.title.enter()
     ctx.bg and ctx.bg.enter()
-    ctx.anims.append(EnterAnim(duration=len(controls)))
+    ctx.anims.append(EnterAnim(duration=find_total_control_count()))
 
   def exit(ctx):
     ctx.exiting = True
@@ -132,12 +169,12 @@ class ControlsContext(Context):
         return None
 
     if button == pygame.K_TAB and not ctx.waiting:
-      multi_control = next((c for c in ctx.controls if c.value == "Multi"), None)
-      multi_control and multi_control.press()
+      multi_hint = next((c for c in ctx.hints if c.value == "Multi"), None)
+      multi_hint and multi_hint.press()
 
     if button == pygame.K_BACKSPACE and not ctx.waiting:
-      reset_control = next((c for c in ctx.controls if c.value == "Reset"), None)
-      reset_control and reset_control.press()
+      reset_hint = next((c for c in ctx.hints if c.value == "Reset"), None)
+      reset_hint and reset_hint.press()
 
     if (press_time == 1
     or press_time > 30 and press_time % 2):
@@ -145,6 +182,10 @@ class ControlsContext(Context):
         return ctx.handle_move(delta=-1)
       if button in (pygame.K_DOWN, gamepad.controls.DOWN):
         return ctx.handle_move(delta=1)
+      if button in (pygame.K_LEFT, gamepad.controls.LEFT):
+        return ctx.handle_skip(delta=-1)
+      if button in (pygame.K_RIGHT, gamepad.controls.RIGHT):
+        return ctx.handle_skip(delta=1)
 
     if press_time > 1:
       return
@@ -168,12 +209,12 @@ class ControlsContext(Context):
 
   def handle_release(ctx, button):
     if button == pygame.K_TAB:
-      multi_control = next((c for c in ctx.controls if c.value == "Multi"), None)
-      multi_control and multi_control.release()
+      multi_hint = next((c for c in ctx.hints if c.value == "Multi"), None)
+      multi_hint and multi_hint.release()
 
     if button == pygame.K_BACKSPACE:
-      reset_control = next((c for c in ctx.controls if c.value == "Reset"), None)
-      reset_control and reset_control.release()
+      reset_hint = next((c for c in ctx.hints if c.value == "Reset"), None)
+      reset_hint and reset_hint.release()
 
     if button in ctx.buttons_rejected:
       ctx.buttons_rejected.remove(button)
@@ -184,26 +225,47 @@ class ControlsContext(Context):
       button = ctx.button_combo if len(ctx.button_combo) > 1 else ctx.button_combo[0]
       return ctx.handle_config(button)
 
-  def handle_move(ctx, delta):
+  def scroll_to(ctx, index):
     old_index = ctx.cursor_index
-    ctx.cursor_index += delta
-    if ctx.cursor_index < 0:
-      ctx.cursor_index = 0
-      return False
-    elif ctx.cursor_index > len(controls) - 1:
-      ctx.cursor_index = len(controls) - 1
-      return False
-
-    ctx.scroll_index = max(0, min(len(controls) - 1 - CONTROLS_VISIBLE, ctx.cursor_index - CONTROLS_VISIBLE // 2))
+    new_index = index
+    max_index = find_total_control_count() - 1
+    ctx.cursor_index = new_index
+    ctx.scroll_index = max(find_nearest_group_start(new_index), min(max_index - CONTROLS_VISIBLE, new_index - CONTROLS_VISIBLE // 2))
     ctx.anims.append(CursorSlideAnim(
-      target=(old_index, ctx.cursor_index),
+      target=(old_index, new_index),
       duration=CURSOR_SLIDE_DURATION
     ))
+
+  def handle_move(ctx, delta):
+    old_index = ctx.cursor_index
+    max_index = find_total_control_count() - 1
+    if ctx.cursor_index + delta < 0:
+      ctx.cursor_index = 0
+      return False
+    elif ctx.cursor_index + delta > max_index:
+      ctx.cursor_index = max_index
+      return False
+    ctx.scroll_to(ctx.cursor_index + delta)
+    return True
+
+  def handle_skip(ctx, delta):
+    group_id, _ = transpose_index(ctx.cursor_index)
+    if group_id + delta < 0:
+      index = 0
+    elif group_id + delta > len(groups) - 1:
+      index = find_total_control_count() - 1
+    else:
+      index = 0
+      for i, (_, group) in enumerate(groups.items()):
+        if i == group_id + delta:
+          break
+        index += len(group)
+    ctx.scroll_to(index)
     return True
 
   def handle_startconfig(ctx):
     ctx.waiting = get_ticks()
-    for control in ctx.controls:
+    for control in ctx.hints:
       control.disable()
 
   def handle_multiconfig(ctx):
@@ -213,13 +275,14 @@ class ControlsContext(Context):
   def handle_endconfig(ctx):
     ctx.waiting = None
     ctx.button_combo = []
-    for control in ctx.controls:
+    for control in ctx.hints:
       control.enable()
     return True
 
   def handle_config(ctx, button):
     ctx.handle_endconfig()
-    if ctx.config_control(controls[ctx.cursor_index][0], button):
+    _, (control_id, _) = transpose_index(ctx.cursor_index)
+    if ctx.config_control(control_id, button):
       if not ctx.handle_move(delta=1):
         ctx.multi_mode = False
       if ctx.multi_mode:
@@ -240,17 +303,17 @@ class ControlsContext(Context):
       return False
 
   def handle_reset(ctx):
-    for control in ctx.controls:
+    for control in ctx.hints:
       control.disable()
     ctx.open(PromptContext("Reset controls to defaults?", [
       Choice("Yes"),
       Choice("No", default=True)
     ]), on_close=lambda choice: (
-      choice and choice.text == "Yes" and ctx.reset_controls(),
-      [c.enable() for c in ctx.controls]
+      choice and choice.text == "Yes" and ctx.reset_hints(),
+      [c.enable() for c in ctx.hints]
     ))
 
-  def reset_controls(ctx):
+  def reset_hints(ctx):
     ctx.preset = copy(TYPE_A)
     ctx.reset_scroll()
 
@@ -288,8 +351,23 @@ class ControlsContext(Context):
     if ctx.bg:
       sprites += ctx.bg.view()
 
+    scroll_group_id, _ = transpose_index(ctx.scroll_index)
+    cursor_group_id, _ = transpose_index(ctx.cursor_index)
+
+    heading_font = assets.ttf["english"]
+    heading_x = OPTIONS_X - heading_font.width([*groups.items()][0][0])
+    heading_y = HEADINGS_Y
+    for i, (heading, group) in enumerate(groups.items()):
+      heading_color = WHITE if i == cursor_group_id else GRAY
+      heading_image = heading_font.render(heading, color=heading_color)
+      sprites.append(Sprite(
+        image=heading_image,
+        pos=(heading_x, heading_y),
+      ))
+      heading_x += heading_image.get_width() + CONTROL_OFFSET
+
     # controls
-    max_scroll = min(len(controls), ctx.scroll_index + CONTROLS_VISIBLE + 1)
+    max_scroll = min(find_total_control_count(), ctx.scroll_index + CONTROLS_VISIBLE + 1)
 
     enter_anim = next((a for a in ctx.anims if type(a) is EnterAnim), None)
     if enter_anim:
@@ -302,10 +380,10 @@ class ControlsContext(Context):
       max_scroll = 0
 
     for i in range(ctx.scroll_index, max_scroll):
-      control_id, control_name = controls[i]
+      group_id, (control_id, control_name) = transpose_index(i)
       is_control_selected = i == ctx.cursor_index and ctx.waiting
-      control_y = (i - ctx.scroll_index_drawn) * LINE_HEIGHT + PADDING + PADDING_TOP + font.height() / 2
-      if control_y < PADDING + PADDING_TOP or control_y > WINDOW_HEIGHT - PADDING:
+      control_y = (i - ctx.scroll_index_drawn) * LINE_HEIGHT + CONTROLS_Y + font.height() / 2 + GROUP_SPACING * (group_id - scroll_group_id)
+      if control_y < CONTROLS_Y or control_y > WINDOW_HEIGHT - PADDING:
         continue
       control_color = GOLD if is_control_selected else WHITE
       button = is_control_selected and ctx.button_combo or getattr(ctx.preset, control_id)
@@ -343,38 +421,44 @@ class ControlsContext(Context):
       cursor_slide_anim = next((a for a in ctx.anims if type(a) is CursorSlideAnim), None)
       if cursor_slide_anim:
         old_index, new_index = cursor_slide_anim.target
+        old_groupid, (_, old_control) = transpose_index(old_index)
+        new_groupid, (_, new_control) = transpose_index(new_index)
         cursor_x = lerp(
-          a=font.width(controls[old_index][1]),
-          b=font.width(controls[new_index][1]),
+          a=font.width(old_control),
+          b=font.width(new_control),
           t=cursor_slide_anim.pos
         )
         cursor_y = lerp(old_index, new_index, cursor_slide_anim.pos)
+        group_id = lerp(old_groupid, new_groupid, cursor_slide_anim.pos)
       else:
-        cursor_x = font.width(controls[ctx.cursor_index][1])
+        group_id, (_, control_name) = transpose_index(ctx.cursor_index)
+        cursor_x = font.width(control_name)
         cursor_y = ctx.cursor_index
       cursor_x = -cursor_x + OPTIONS_X + CURSOR_OFFSET
       cursor_x += cursor_bounce_anim.pos * CURSOR_BOUNCE_AMP
       cursor_y -= ctx.scroll_index_drawn
       cursor_y *= LINE_HEIGHT
-      cursor_y += PADDING + PADDING_TOP + font.height() / 2
-      cursor_image = flip(assets.sprites["hand"], True, False)
-      sprites.append(Sprite(
-        image=cursor_image,
-        pos=(cursor_x, cursor_y),
-        origin=Sprite.ORIGIN_RIGHT
-      ))
-
-      # controls
-      controls_x = WINDOW_WIDTH - 24
-      controls_y = WINDOW_HEIGHT - 20
-      for control in ctx.controls:
-        control_image = control.render()
+      cursor_y += CONTROLS_Y + font.height() / 2
+      cursor_y += GROUP_SPACING * (group_id - scroll_group_id)
+      if cursor_y > CONTROLS_Y:
+        cursor_image = flip(assets.sprites["hand"], True, False)
         sprites.append(Sprite(
-          image=control_image,
-          pos=(controls_x, controls_y),
+          image=cursor_image,
+          pos=(cursor_x, cursor_y),
           origin=Sprite.ORIGIN_RIGHT
         ))
-        controls_x -= control_image.get_width() + CONTROL_SPACING
+
+      # hints
+      hints_x = WINDOW_WIDTH - 24
+      hints_y = WINDOW_HEIGHT - 20
+      for hint in ctx.hints:
+        hint_image = hint.render()
+        sprites.append(Sprite(
+          image=hint_image,
+          pos=(hints_x, hints_y),
+          origin=Sprite.ORIGIN_RIGHT
+        ))
+        hints_x -= hint_image.get_width() + CONTROL_SPACING
 
     sprites += ctx.title.view()
 
@@ -398,7 +482,7 @@ def render_buttons(buttons, mappings, color=BLUE):
   plus_image = font.render("+")
   plus_width = plus_image.get_width() * (len(button_images) - 1)
   buttons_width = sum([b.get_width() if b else 0 for b in button_images]) + plus_width + PLUS_SPACING * max(2, len(button_images) * 2 - 1)
-  buttons_height = button_images[0].get_height() if button_images and button_images[0] else 0
+  buttons_height = max([b.get_height() for b in button_images]) or 0
   if not buttons_width or not buttons_height:
     return None
   buttons_surface = Surface((buttons_width, buttons_height), flags=SRCALPHA)
@@ -408,6 +492,6 @@ def render_buttons(buttons, mappings, color=BLUE):
       buttons_surface.blit(plus_image, (buttons_x, buttons_height / 2 - plus_image.get_height() / 2))
       buttons_x += plus_image.get_width() + PLUS_SPACING
     if button_image:
-      buttons_surface.blit(button_image, (buttons_x, 0))
+      buttons_surface.blit(button_image, (buttons_x, buttons_height / 2 - button_image.get_height() / 2))
       buttons_x += button_image.get_width() + PLUS_SPACING
   return buttons_surface
