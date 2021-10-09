@@ -957,7 +957,7 @@ class DungeonContext(Context):
     game.is_hero_running = bool(run)
     if moved:
       ally and game.step_ally(ally, run, origin_cell)
-      if target_tile is Stage.HALLWAY:
+      if target_tile is Stage.HALLWAY and not next((e for e in game.floor.get_elems_at(target_cell) if isinstance(e, Door)), None):
         hallway = game.find_hallway(origin_cell if origin_tile is Stage.HALLWAY else target_cell)
         if hallway:
           hero_path = hallway[hallway.index(game.hero.cell):]
