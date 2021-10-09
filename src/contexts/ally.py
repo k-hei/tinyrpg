@@ -163,6 +163,7 @@ class AllyContext(Context):
         selected_skill=game.parent.get_skill(ally.core),
         on_close=lambda skill, dest: (
           skill and ally.charge(skill, dest),
+          game.parent.set_skill(ally.core, skill),
           game.camera.blur(),
         )
       ))

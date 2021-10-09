@@ -44,12 +44,11 @@ class Miniskill(Component):
     if comp.exiting and not comp.anims:
       comp.enter(delay=delay)
     else:
-      comp.exit(on_end=lambda: (
-        setattr(comp, "cached_badge", None),
-        setattr(comp, "cached_label", None),
-      ))
+      comp.exit()
 
   def enter(comp, delay=0):
+    comp.cached_badge = None
+    comp.cached_label = None
     comp.active = True
     comp.exiting = False
     comp.anims = [
