@@ -14,7 +14,8 @@ from comps.miniskill import Miniskill as SkillBadge
 import assets
 from anims.tween import TweenAnim
 from anims.frame import FrameAnim
-from lib.filters import replace_color, outline
+from lib.filters import recolor, replace_color, outline, shadow
+from text import render as render_text
 from colors.palette import BLACK, BLUE, GOLD
 from config import TILE_SIZE
 
@@ -74,6 +75,7 @@ class AllyContext(Context):
     }
     ctx.skill_badge = None
     ctx.cached_labels = None
+    ctx.cached_tag = None
 
   def enter(ctx):
     ctx.exiting = False
@@ -108,8 +110,12 @@ class AllyContext(Context):
     ctx.skill_badge and ctx.skill_badge.exit()
     sorted(ctx.anims, key=lambda a: a.duration + a.delay)[-1].on_end = compose(ctx.close, on_end)
 
+  @property
+  def animating(ctx):
+    return next((bool(a) for a in ctx.anims if a.blocking), False)
+
   def handle_press(ctx, button):
-    if next((a for a in ctx.anims if a.blocking), None):
+    if ctx.animating:
       return False
 
     if keyboard.get_state(button) + gamepad.get_state(button) > 1:
@@ -279,7 +285,19 @@ class AllyContext(Context):
   def view_skill(ctx):
     if not ctx.skill_badge:
       return []
-    skill_view = ctx.skill_badge.view()
+    if not ctx.cached_tag:
+      ctx.cached_tag = render_text("COMMAND", assets.fonts["smallcaps"])
+      ctx.cached_tag = recolor(ctx.cached_tag, GOLD)
+      ctx.cached_tag = outline(ctx.cached_tag, BLACK)
+      ctx.cached_tag = shadow(ctx.cached_tag, BLACK)
+    skill_view = (
+      ctx.skill_badge.view()
+      + ([Sprite(
+        image=ctx.cached_tag,
+        pos=(0, -8),
+        origin=Sprite.ORIGIN_BOTTOMLEFT,
+      )] if not ctx.animating else [])
+    )
     skill_pos = find_relative_actor_pos(game=ctx.parent, actor=ctx.ally)
     skill_pos = vector.add(skill_pos, (TILE_SIZE / 2, -8))
     return Sprite.move_all(skill_view, skill_pos)

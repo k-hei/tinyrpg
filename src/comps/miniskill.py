@@ -113,6 +113,6 @@ class Miniskill(Component):
     ))
     return [Sprite(
       image=label_image,
-      pos=(comp.cached_badge.get_width() + 2, 0),
+      pos=(comp.cached_badge.get_width() + 1, 0),
       origin=Sprite.ORIGIN_LEFT
     )]
