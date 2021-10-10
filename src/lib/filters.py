@@ -71,11 +71,12 @@ def shadow(surface, color):
   new_surface.blit(surface, (0, 0))
   return new_surface
 
-def shadow_lite(surface, color):
+def shadow_lite(surface, color, i=1):
   width, height = surface.get_size()
-  new_surface = Surface((width + 1, height + 1), SRCALPHA)
+  new_surface = Surface((width + i, height + i), SRCALPHA)
   recolored_surface = recolor(surface, color)
-  new_surface.blit(recolored_surface, (1, 1))
+  for x in range(1, i + 1):
+    new_surface.blit(recolored_surface, (x, x))
   new_surface.blit(surface, (0, 0))
   return new_surface
 
