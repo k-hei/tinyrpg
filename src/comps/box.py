@@ -1,25 +1,35 @@
 from pygame import Surface
-from assets import load as use_assets
-from colors.palette import BLACK
+from colors.palette import WHITE
+import assets
 
 class Box:
   TILE_SIZE = 8
 
-  def render(size):
-    sprites = use_assets().sprites
-    surface = Surface(size)
-    surface.fill(BLACK)
-    width, height = size
-    cols = width // Box.TILE_SIZE
-    rows = height // Box.TILE_SIZE
-    for row in range(rows):
-      surface.blit(sprites["item_tile_w"], (0, row * Box.TILE_SIZE))
-      surface.blit(sprites["item_tile_e"], (width - Box.TILE_SIZE, row * Box.TILE_SIZE))
-    surface.blit(sprites["item_tile_nw"], (0, 0))
-    surface.blit(sprites["item_tile_sw"], (0, height - Box.TILE_SIZE))
-    surface.blit(sprites["item_tile_ne"], (width - Box.TILE_SIZE, 0))
-    surface.blit(sprites["item_tile_se"], (width - Box.TILE_SIZE, height - Box.TILE_SIZE))
-    return surface
-
-  def __init__(box, size):
+  def __init__(box, sprite_prefix, size, tile_size=0):
+    box.sprite_prefix = sprite_prefix
     box.size = size
+    box.tile_size = tile_size
+
+  def render(box):
+    surface = Surface(box.size)
+    surface.fill(WHITE)
+
+    sprite_prefix = box and box.sprite_prefix
+    tile_size = box and box.tile_size or Box.TILE_SIZE
+    width, height = box.size
+
+    cols = width // tile_size
+    for col in range(cols):
+      surface.blit(assets.sprites[f"{sprite_prefix}_n"], (col * tile_size, 0))
+      surface.blit(assets.sprites[f"{sprite_prefix}_s"], (col * tile_size, height - tile_size))
+
+    rows = height // tile_size
+    for row in range(rows):
+      surface.blit(assets.sprites[f"{sprite_prefix}_w"], (0, row * tile_size))
+      surface.blit(assets.sprites[f"{sprite_prefix}_e"], (width - tile_size, row * tile_size))
+
+    surface.blit(assets.sprites[f"{sprite_prefix}_nw"], (0, 0))
+    surface.blit(assets.sprites[f"{sprite_prefix}_sw"], (0, height - tile_size))
+    surface.blit(assets.sprites[f"{sprite_prefix}_ne"], (width - tile_size, 0))
+    surface.blit(assets.sprites[f"{sprite_prefix}_se"], (width - tile_size, height - tile_size))
+    return surface
