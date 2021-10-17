@@ -4,6 +4,7 @@ from items.ailment.musicbox import MusicBox
 from items.ailment.antidote import Antidote
 from items.ailment.amethyst import Amethyst
 from items.ailment.lovepotion import LovePotion
+from items.sp.vino import Vino
 from items.sp.bread import Bread
 from items.sp.berry import Berry
 from items.sp.cheese import Cheese

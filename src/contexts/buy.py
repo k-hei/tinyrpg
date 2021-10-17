@@ -86,6 +86,9 @@ class ItemStickyGrid:
     return True
 
   def view(grid):
+    return grid.view_items() + grid.view_cursor()
+
+  def view_items(grid):
     sprites = []
     item_x = 0
     item_y = 0
@@ -98,6 +101,20 @@ class ItemStickyGrid:
         item_x = 0
         item_y += ITEM_HEIGHT
     return sprites
+
+  def view_cursor(grid):
+    cursor_x = grid.selection % grid.cols
+    cursor_y = grid.selection // grid.cols
+    cursor_image = assets.sprites["hand"]
+    return [Sprite(
+      image=cursor_image,
+      pos=(
+        cursor_x * ITEM_WIDTH + 8,
+        (cursor_y + 0.5) * ITEM_HEIGHT
+      ),
+      origin=Sprite.ORIGIN_RIGHT,
+      flip=(True, False)
+    )]
 
 class GridContext(Context):
   def __init__(ctx, items, height=0, *args, **kwargs):
@@ -137,10 +154,8 @@ class GridContext(Context):
     bg_image = Surface(WINDOW_SIZE, flags=SRCALPHA)
     bg_image.fill(WHITE)
     bg_view = [Sprite(image=bg_image)]
+    box_view = [Sprite(image=ctx.box.render())]
     itemgrid_view = ctx.itemgrid.view()
-    box_view = [Sprite(
-      image=ctx.box.render()
-    )]
     return bg_view + Sprite.move_all(
       box_view + Sprite.move_all(
         itemgrid_view,
@@ -152,5 +167,5 @@ class GridContext(Context):
 class BuyContext(Context):
   def enter(ctx):
     ctx.open(child=GridContext(
-      items=[resolve_item(i) for i in ("Potion", "Ankh", "Fish", "Cheese", "Bread", "Antidote", "MusicBox", "Balloon", "Emerald", "Key")]
+      items=[resolve_item(i) for i in ("Potion", "Ankh", "Elixir", "Fish", "Cheese", "Bread", "Vino", "Antidote", "MusicBox", "LovePotion", "Balloon", "Emerald", "Key")]
     ))
