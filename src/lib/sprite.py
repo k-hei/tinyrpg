@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-from pygame import Surface
+from pygame import Surface, SRCALPHA
 from pygame.transform import flip, scale
+import lib.vector as vector
 
 @dataclass
 class Sprite:
@@ -38,9 +39,7 @@ class Sprite:
     )
 
   def move(sprite, offset):
-    x, y = sprite.pos
-    offset_x, offset_y = offset
-    sprite.pos = (x + offset_x, y + offset_y)
+    sprite.pos = vector.add(sprite.pos, offset)
 
   def move_all(sprites, offset):
     for sprite in sprites:
@@ -93,3 +92,24 @@ class Sprite:
     except ValueError:
       depth = 0
     return depth * 1000 + y + sprite.offset
+
+
+class SpriteMask(Sprite):
+  def __init__(mask, size, children, pos=(0, 0)):
+    super().__init__(size=size, pos=pos)
+    mask.image = None
+    mask.children = children
+
+  def move(mask, offset):
+    Sprite.move(mask, offset)
+
+  def render(mask):
+    if not mask.image:
+      mask.image = Surface(mask.size, flags=SRCALPHA)
+    mask.image.fill((0, 0, 0, 0))
+    for sprite in mask.children:
+      sprite.draw(mask.image)
+
+  def draw(mask, surface):
+    mask.render()
+    surface.blit(mask.image, mask.pos)

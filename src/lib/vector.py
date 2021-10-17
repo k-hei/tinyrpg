@@ -18,5 +18,8 @@ def subtract(*vectors):
     c.append(x)
   return tuple(c)
 
+def negate(vector):
+  return subtract(tuple([0] * len(vector)), vector)
+
 def scale(vector, scalar):
   return tuple([v * scalar for v in vector])

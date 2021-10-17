@@ -5,7 +5,7 @@ from pygame.draw import rect as draw_rect
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
 import lib.vector as vector
-from lib.sprite import Sprite
+from lib.sprite import Sprite, SpriteMask
 from lib.filters import stroke, darken_image, shadow_lite as shadow
 from colors.palette import BLACK, WHITE, CYAN, CORAL
 
@@ -58,23 +58,22 @@ def view_item_sticky(item, selected=False):
       image=pricetag_image,
       pos=(sticky_image.get_width() / 2 + 1, 3),
       origin=Sprite.ORIGIN_LEFT,
-      layer="hud"
+      layer="hud",
+      key="pricetag"
     )
   ]
 
 class ItemStickyGrid:
-  def __init__(grid, items, cols):
+  def __init__(grid, items, cols, height=0):
     grid.items = items
     grid.cols = cols
     grid.selection = 0
+    grid.scroll = 0
+    grid.height = height or (ceil(len(grid.items) / grid.cols) // 1 * ITEM_HEIGHT)
 
   @property
   def width(grid):
     return grid.cols * ITEM_WIDTH
-
-  @property
-  def height(grid):
-    return ceil(len(grid.items) / grid.cols) // 1 * ITEM_HEIGHT
 
   def select(grid, cell):
     col, row = cell
@@ -86,7 +85,15 @@ class ItemStickyGrid:
     return True
 
   def view(grid):
-    return grid.view_items() + grid.view_cursor()
+    items_view = grid.view_items()
+    return (
+      [SpriteMask(
+        size=(grid.width, grid.height),
+        children=[s for s in items_view if s.key != "pricetag"]
+      )]
+      + [s for s in items_view if s.key == "pricetag" if s.pos[1] < grid.height]
+      + grid.view_cursor()
+    )
 
   def view_items(grid):
     sprites = []
@@ -123,13 +130,14 @@ class GridContext(Context):
     ctx.itemgrid = ItemStickyGrid(
       cols=GRID_COLS,
       items=items,
+      height=height and (height - ITEMGRID_YPADDING * 2) or 0
     )
     ctx.box = Box(
       sprite_prefix="buy_box",
       tile_size=16,
       size=(
         ctx.itemgrid.width + ITEMGRID_XPADDING * 2,
-        height or ctx.itemgrid.height + ITEMGRID_YPADDING * 2
+        ctx.itemgrid.height + ITEMGRID_YPADDING * 2
       )
     )
     ctx.cursor = (0, 0)
@@ -167,5 +175,6 @@ class GridContext(Context):
 class BuyContext(Context):
   def enter(ctx):
     ctx.open(child=GridContext(
-      items=[resolve_item(i) for i in ("Potion", "Ankh", "Elixir", "Fish", "Cheese", "Bread", "Vino", "Antidote", "MusicBox", "LovePotion", "Balloon", "Emerald", "Key")]
+      items=[resolve_item(i) for i in ("Potion", "Ankh", "Elixir", "Fish", "Cheese", "Bread", "Vino", "Antidote", "MusicBox", "LovePotion", "Balloon", "Emerald", "Key")],
+      height=112
     ))
