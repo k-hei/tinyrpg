@@ -10,6 +10,14 @@ class Box:
     box.size = size
     box.tile_size = tile_size
 
+  @property
+  def width(box):
+    return box.size[0]
+
+  @property
+  def height(box):
+    return box.size[1]
+
   def render(box):
     surface = Surface(box.size)
     surface.fill(WHITE)

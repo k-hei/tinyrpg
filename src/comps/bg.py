@@ -32,6 +32,14 @@ class Bg:
     bg.time = 0
     bg.anims = []
 
+  @property
+  def width(bg):
+    return bg.size[0]
+
+  @property
+  def height(bg):
+    return bg.size[1]
+
   def init(bg):
     bg.surface = Bg.render(bg.size)
 

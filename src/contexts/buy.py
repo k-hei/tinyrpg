@@ -10,11 +10,12 @@ from lib.filters import stroke, darken_image, shadow_lite as shadow
 from colors.palette import BLACK, WHITE, CYAN, CORAL
 
 from contexts import Context
+from comps.bg import Bg
 from comps.box import Box
 from anims.sine import SineAnim
 from savedata.resolve import resolve_item
 import assets
-from config import WINDOW_SIZE
+from config import WINDOW_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
 
 GRID_COLS = 3
 ITEM_WIDTH = 32
@@ -23,6 +24,8 @@ ITEMGRID_XPADDING = 12
 ITEMGRID_YPADDING = 12
 PRICETAG_XPADDING = 3
 PRICETAG_YPADDING = 2
+BOX_XMARGIN = 24
+BOX_YMARGIN = 24
 
 class CursorAnim(SineAnim): pass
 
@@ -184,6 +187,7 @@ class GridContext(Context):
         ctx.itemgrid.height + ITEMGRID_YPADDING * 2
       )
     )
+    ctx.bg = Bg((ctx.box.width + BOX_XMARGIN * 2, WINDOW_HEIGHT))
     ctx.cursor = (0, 0)
 
   def handle_press(ctx, button):
@@ -202,17 +206,28 @@ class GridContext(Context):
     return selected
 
   def view(ctx):
-    bg_image = Surface(WINDOW_SIZE, flags=SRCALPHA)
-    bg_image.fill(WHITE)
-    bg_view = [Sprite(image=bg_image)]
-    box_view = [Sprite(image=ctx.box.render())]
+    backdrop_image = Surface(WINDOW_SIZE, flags=SRCALPHA)
+    backdrop_image.fill(WHITE)
+    backdrop_view = [Sprite(image=backdrop_image)]
+    bg_view = Sprite.move_all(
+      sprites=ctx.bg.view(),
+      offset=(WINDOW_WIDTH - ctx.bg.width, 0),
+      origin=Sprite.ORIGIN_TOPRIGHT,
+    )
+    # bg_view = [SpriteMask(
+    #   pos=(WINDOW_WIDTH - ctx.bg.width, 0),
+    #   size=ctx.bg.size,
+    #   children=ctx.bg.view(),
+    # )]
+    box_image = ctx.box.render()
+    box_view = [Sprite(image=box_image)]
     itemgrid_view = ctx.itemgrid.view()
-    return bg_view + Sprite.move_all(
+    return backdrop_view + bg_view + Sprite.move_all(
       box_view + Sprite.move_all(
         itemgrid_view,
         (ITEMGRID_XPADDING, ITEMGRID_YPADDING)
       ),
-      (24, 24)
+      (WINDOW_WIDTH - box_image.get_width() - 24, 24)
     )
 
 class BuyContext(Context):

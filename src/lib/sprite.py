@@ -46,7 +46,7 @@ class Sprite:
   def move(sprite, offset):
     sprite.pos = vector.add(sprite.pos, offset)
 
-  def move_all(sprites, offset):
+  def move_all(sprites, offset, origin=ORIGIN_TOPLEFT):
     for sprite in sprites:
       sprite.move(offset)
     return sprites
