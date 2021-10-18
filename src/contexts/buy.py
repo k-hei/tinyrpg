@@ -81,6 +81,14 @@ class ItemStickyGrid:
   def width(grid):
     return grid.cols * ITEM_WIDTH
 
+  @property
+  def rows(grid):
+    return ceil(len(grid.items) / grid.cols)
+
+  @property
+  def visible_rows(grid):
+    return ceil(grid.height / ITEM_HEIGHT)
+
   def flatten_cell(grid, cell):
     col, row = cell
     index = row * grid.cols + col
@@ -104,7 +112,10 @@ class ItemStickyGrid:
     if index == -1:
       return False
     grid.selection = index
-    grid.scroll = row
+    if row < grid.scroll + 1:
+      grid.scroll = max(0, row - 1)
+    elif row > grid.scroll + (grid.visible_rows - 2):
+      grid.scroll = row - grid.visible_rows // 2
     return True
 
   def view(grid):
@@ -208,5 +219,5 @@ class BuyContext(Context):
   def enter(ctx):
     ctx.open(child=GridContext(
       items=[resolve_item(i) for i in ("Potion", "Ankh", "Elixir", "Fish", "Cheese", "Bread", "Vino", "Antidote", "MusicBox", "LovePotion", "Balloon", "Emerald", "Key")],
-      height=112
+      height=128
     ))
