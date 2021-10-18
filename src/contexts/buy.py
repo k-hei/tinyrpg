@@ -67,32 +67,57 @@ class ItemStickyGrid:
   def __init__(grid, items, cols, height=0):
     grid.items = items
     grid.cols = cols
+    grid.height = height or (ceil(len(grid.items) / grid.cols) // 1 * ITEM_HEIGHT)
     grid.selection = 0
     grid.scroll = 0
-    grid.height = height or (ceil(len(grid.items) / grid.cols) // 1 * ITEM_HEIGHT)
+    grid.scroll_drawn = 0
 
   @property
   def width(grid):
     return grid.cols * ITEM_WIDTH
 
-  def select(grid, cell):
+  def flatten_cell(grid, cell):
     col, row = cell
     index = row * grid.cols + col
     if (index < 0 or index >= len(grid.items)
     or col < 0 or col >= grid.cols):
+      return -1
+    return index
+
+  def project_index(grid, index):
+    if index < 0 or index >= len(grid.items):
+      return None
+    col = index % grid.cols
+    row = index // grid.cols
+    if col < 0 or col >= grid.cols:
+      return -1
+    return (col, row)
+
+  def select(grid, cell):
+    col, row = cell
+    index = grid.flatten_cell(cell)
+    if index == -1:
       return False
-    grid.selection = row * grid.cols + col
+    grid.selection = index
+    grid.scroll = row
     return True
 
   def view(grid):
     items_view = grid.view_items()
-    return (
-      [SpriteMask(
-        size=(grid.width, grid.height),
-        children=[s for s in items_view if s.key != "pricetag"]
-      )]
-      + [s for s in items_view if s.key == "pricetag" if s.pos[1] < grid.height]
-      + grid.view_cursor()
+    grid.scroll_drawn += (grid.scroll - grid.scroll_drawn) / 8
+    scroll_offset = (0, grid.scroll_drawn * -ITEM_HEIGHT)
+    return [SpriteMask(
+      size=(grid.width + ITEMGRID_XPADDING * 2, grid.height),
+      children=Sprite.move_all(
+        [s for s in items_view if s.key != "pricetag"],
+        scroll_offset
+      )
+    )] + Sprite.move_all(
+      [s for s in (
+        [s for s in items_view if s.key == "pricetag"]
+        + grid.view_cursor()
+      ) if s.pos[1] + scroll_offset[1] >= 0 and s.pos[1] + scroll_offset[1] < grid.height],
+      scroll_offset
     )
 
   def view_items(grid):
@@ -110,14 +135,13 @@ class ItemStickyGrid:
     return sprites
 
   def view_cursor(grid):
-    cursor_x = grid.selection % grid.cols
-    cursor_y = grid.selection // grid.cols
+    cursor_col, cursor_row = grid.project_index(grid.selection)
     cursor_image = assets.sprites["hand"]
     return [Sprite(
       image=cursor_image,
       pos=(
-        cursor_x * ITEM_WIDTH + 8,
-        (cursor_y + 0.5) * ITEM_HEIGHT
+        cursor_col * ITEM_WIDTH + 8,
+        (cursor_row + 0.5) * ITEM_HEIGHT
       ),
       origin=Sprite.ORIGIN_RIGHT,
       flip=(True, False)
@@ -141,7 +165,6 @@ class GridContext(Context):
       )
     )
     ctx.cursor = (0, 0)
-    ctx.scroll = 0
 
   def handle_press(ctx, button):
     if keyboard.get_state(button) + gamepad.get_state(button) > 1:
