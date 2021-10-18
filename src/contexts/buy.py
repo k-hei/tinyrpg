@@ -11,6 +11,7 @@ from colors.palette import BLACK, WHITE, CYAN, CORAL
 
 from contexts import Context
 from comps.box import Box
+from anims.sine import SineAnim
 from savedata.resolve import resolve_item
 import assets
 from config import WINDOW_SIZE
@@ -22,6 +23,8 @@ ITEMGRID_XPADDING = 12
 ITEMGRID_YPADDING = 12
 PRICETAG_XPADDING = 3
 PRICETAG_YPADDING = 2
+
+class CursorAnim(SineAnim): pass
 
 def view_item_sticky(item, selected=False):
   sticky_image = assets.sprites["buy_sticky"]
@@ -69,6 +72,8 @@ class ItemStickyGrid:
     grid.cols = cols
     grid.height = height or (ceil(len(grid.items) / grid.cols) // 1 * ITEM_HEIGHT)
     grid.selection = 0
+    grid.cursor_drawn = grid.project_index(0)
+    grid.cursor_anim = CursorAnim(period=30)
     grid.scroll = 0
     grid.scroll_drawn = 0
 
@@ -113,10 +118,8 @@ class ItemStickyGrid:
         scroll_offset
       )
     )] + Sprite.move_all(
-      [s for s in (
-        [s for s in items_view if s.key == "pricetag"]
-        + grid.view_cursor()
-      ) if s.pos[1] + scroll_offset[1] >= 0 and s.pos[1] + scroll_offset[1] < grid.height],
+      [s for s in items_view if s.key == "pricetag" if s.rect.top + scroll_offset[1] >= 0 and s.rect.top + scroll_offset[1] < grid.height]
+        + grid.view_cursor(),
       scroll_offset
     )
 
@@ -135,16 +138,22 @@ class ItemStickyGrid:
     return sprites
 
   def view_cursor(grid):
-    cursor_col, cursor_row = grid.project_index(grid.selection)
+    selection_col, selection_row = grid.project_index(grid.selection)
+    drawn_col, drawn_row = grid.cursor_drawn
+    drawn_col += (selection_col - drawn_col) / 4
+    drawn_row += (selection_row - drawn_row) / 4
+    grid.cursor_drawn = (drawn_col, drawn_row)
+    grid.cursor_anim.update()
     cursor_image = assets.sprites["hand"]
     return [Sprite(
       image=cursor_image,
       pos=(
-        cursor_col * ITEM_WIDTH + 8,
-        (cursor_row + 0.5) * ITEM_HEIGHT
+        drawn_col * ITEM_WIDTH + 8 + grid.cursor_anim.pos * 2,
+        (drawn_row + 0.5) * ITEM_HEIGHT
       ),
       origin=Sprite.ORIGIN_RIGHT,
-      flip=(True, False)
+      flip=(True, False),
+      layer="hud"
     )]
 
 class GridContext(Context):

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from pygame import Surface, SRCALPHA
+from pygame import Rect, Surface, SRCALPHA
 from pygame.transform import flip, scale
 import lib.vector as vector
 
@@ -24,6 +24,11 @@ class Sprite:
   layer: str = None
   target: any = None
   key: str = None
+
+  @property
+  def rect(sprite):
+    size = sprite.size or sprite.image.get_size()
+    return Rect(*sprite.pos, *size)
 
   def copy(sprite):
     return Sprite(
