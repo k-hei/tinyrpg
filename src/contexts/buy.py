@@ -26,7 +26,7 @@ ITEMGRID_YPADDING = 12
 PRICETAG_XPADDING = 3
 PRICETAG_YPADDING = 2
 BOX_XMARGIN = 24
-BOX_YMARGIN = 24
+BOX_YMARGIN = 48
 TEXTBOX_XPADDING = 12
 TEXTBOX_YPADDING = 12
 TEXTBOX_TITLE_MARGIN = 5
@@ -197,9 +197,11 @@ class ItemTextBox:
 
   def view(box):
     item = box.item
+    box_image = box.bg.render()
     title_image = assets.ttf["english"].render(item.name, item.color)
+    price_image = assets.ttf["english"].render(f"{item.value}G", BLACK)
     return [
-      Sprite(image=box.bg.render()),
+      Sprite(image=box_image),
       Sprite(
         image=title_image,
         pos=(TEXTBOX_XPADDING, TEXTBOX_YPADDING),
@@ -207,6 +209,10 @@ class ItemTextBox:
       Sprite(
         image=box.textbox.render(),
         pos=(TEXTBOX_XPADDING, TEXTBOX_YPADDING + title_image.get_height() + TEXTBOX_TITLE_MARGIN),
+      ),
+      Sprite(
+        image=price_image,
+        pos=(box_image.get_width() - price_image.get_width() - TEXTBOX_XPADDING, TEXTBOX_YPADDING),
       ),
     ]
 
@@ -268,7 +274,7 @@ class GridContext(Context):
         itemgrid_view,
         (ITEMGRID_XPADDING, ITEMGRID_YPADDING)
       ),
-      (WINDOW_WIDTH - box_image.get_width() - 24, 24)
+      (WINDOW_WIDTH - box_image.get_width() - BOX_XMARGIN, BOX_YMARGIN)
     )
 
 class BuyContext(Context):
