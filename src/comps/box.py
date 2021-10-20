@@ -5,10 +5,9 @@ import assets
 class Box:
   TILE_SIZE = 8
 
-  def __init__(box, sprite_prefix, size, tile_size=0):
+  def __init__(box, sprite_prefix, size):
     box.sprite_prefix = sprite_prefix
     box.size = size
-    box.tile_size = tile_size
 
   @property
   def width(box):
@@ -23,7 +22,7 @@ class Box:
     surface.fill(WHITE)
 
     sprite_prefix = box and box.sprite_prefix
-    tile_size = box and box.tile_size or Box.TILE_SIZE
+    tile_size = assets.sprites[f"{sprite_prefix}_c"].get_width()
     width, height = box.size
 
     cols = width // tile_size

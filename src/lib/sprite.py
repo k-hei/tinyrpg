@@ -61,6 +61,19 @@ class Sprite:
     sprite.pos = vector.add(sprite.pos, offset)
 
   def move_all(sprites, offset, origin=ORIGIN_TOPLEFT):
+    if origin != Sprite.ORIGIN_TOPLEFT:
+      bounds = sprites[0].rect.unionall([s.rect for s in sprites])
+      origin_x, origin_y = origin
+      offset_x, offset_y = 0, 0
+      if origin_x == "center":
+        offset_x -= bounds.width // 2
+      if origin_x == "right":
+        offset_x -= bounds.width
+      if origin_y == "center":
+        offset_y -= bounds.height // 2
+      if origin_y == "bottom":
+        offset_y -= bounds.height
+      offset = vector.add(offset, (offset_x, offset_y))
     for sprite in sprites:
       sprite.move(offset)
     return sprites

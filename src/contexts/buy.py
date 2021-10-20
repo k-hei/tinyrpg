@@ -12,6 +12,7 @@ from colors.palette import BLACK, WHITE, CYAN, CORAL
 from contexts import Context
 from comps.bg import Bg
 from comps.box import Box
+from comps.textbox import TextBox
 from anims.sine import SineAnim
 from savedata.resolve import resolve_item
 import assets
@@ -26,6 +27,10 @@ PRICETAG_XPADDING = 3
 PRICETAG_YPADDING = 2
 BOX_XMARGIN = 24
 BOX_YMARGIN = 24
+TEXTBOX_XPADDING = 12
+TEXTBOX_YPADDING = 12
+TEXTBOX_TITLE_MARGIN = 5
+TEXTBOX_XMARGIN = 4
 
 class CursorAnim(SineAnim): pass
 
@@ -91,6 +96,10 @@ class ItemStickyGrid:
   @property
   def visible_rows(grid):
     return ceil(grid.height / ITEM_HEIGHT)
+
+  @property
+  def item(grid):
+    return grid.items[grid.selection]
 
   def flatten_cell(grid, cell):
     col, row = cell
@@ -170,8 +179,39 @@ class ItemStickyGrid:
       layer="hud"
     )]
 
+class ItemTextBox:
+  def __init__(box, size):
+    box.bg = Box(
+      sprite_prefix="buy_textbox",
+      size=size,
+    )
+    box.textbox = TextBox(
+      font="normal",
+      size=vector.subtract(size, (TEXTBOX_XPADDING * 2, TEXTBOX_YPADDING * 2))
+    )
+    box.item = None
+
+  def reload(box, item):
+    box.item = item
+    box.textbox.print(item.desc)
+
+  def view(box):
+    item = box.item
+    title_image = assets.ttf["english"].render(item.name, item.color)
+    return [
+      Sprite(image=box.bg.render()),
+      Sprite(
+        image=title_image,
+        pos=(TEXTBOX_XPADDING, TEXTBOX_YPADDING),
+      ),
+      Sprite(
+        image=box.textbox.render(),
+        pos=(TEXTBOX_XPADDING, TEXTBOX_YPADDING + title_image.get_height() + TEXTBOX_TITLE_MARGIN),
+      ),
+    ]
+
 class GridContext(Context):
-  def __init__(ctx, items, height=0, *args, **kwargs):
+  def __init__(ctx, items, height=0, on_change_item=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
     ctx.height = height
     ctx.itemgrid = ItemStickyGrid(
@@ -181,7 +221,6 @@ class GridContext(Context):
     )
     ctx.box = Box(
       sprite_prefix="buy_box",
-      tile_size=16,
       size=(
         ctx.itemgrid.width + ITEMGRID_XPADDING * 2,
         ctx.itemgrid.height + ITEMGRID_YPADDING * 2
@@ -189,6 +228,12 @@ class GridContext(Context):
     )
     ctx.bg = Bg((ctx.box.width + BOX_XMARGIN * 2, WINDOW_HEIGHT))
     ctx.cursor = (0, 0)
+    ctx.on_change_item = on_change_item
+    on_change_item and on_change_item(ctx.item)
+
+  @property
+  def item(ctx):
+    return ctx.itemgrid.item
 
   def handle_press(ctx, button):
     if keyboard.get_state(button) + gamepad.get_state(button) > 1:
@@ -203,6 +248,7 @@ class GridContext(Context):
     selected = ctx.itemgrid.select(cell=target_cell)
     if selected:
       ctx.cursor = target_cell
+      ctx.on_change_item and ctx.on_change_item(ctx.item)
     return selected
 
   def view(ctx):
@@ -226,8 +272,21 @@ class GridContext(Context):
     )
 
 class BuyContext(Context):
-  def enter(ctx):
-    ctx.open(child=GridContext(
+  def __init__(ctx, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    ctx.textbox = ItemTextBox(size=(128, 58))
+    ctx.gridctx = GridContext(
       items=[resolve_item(i) for i in ("Potion", "Ankh", "Elixir", "Fish", "Cheese", "Bread", "Vino", "Antidote", "MusicBox", "LovePotion", "Balloon", "Emerald", "Key")],
-      height=128
-    ))
+      height=128,
+      on_change_item=ctx.textbox.reload
+    )
+
+  def enter(ctx):
+    ctx.open(child=ctx.gridctx)
+
+  def view(ctx):
+    return super().view() + Sprite.move_all(
+      sprites=ctx.textbox.view(),
+      offset=(WINDOW_WIDTH - BOX_XMARGIN - ctx.gridctx.box.width - TEXTBOX_XMARGIN, BOX_YMARGIN),
+      origin=Sprite.ORIGIN_TOPRIGHT,
+    )
