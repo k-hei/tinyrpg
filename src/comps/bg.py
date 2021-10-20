@@ -1,5 +1,5 @@
 from math import ceil
-from pygame import Surface
+from pygame import Surface, SRCALPHA
 import assets
 from lib.sprite import Sprite
 from anims.tween import TweenAnim
@@ -17,7 +17,7 @@ class Bg:
     tile_image = assets.sprites["bg_tile"]
     tile_width = tile_image.get_width()
     tile_height = tile_image.get_height()
-    tile_surface = Surface((width + tile_width * 2, height + tile_height * 2))
+    tile_surface = Surface((width + tile_width * 2, height + tile_height * 2), flags=SRCALPHA)
     for row in range(ceil(tile_surface.get_height() / tile_height)):
       for col in range(ceil(tile_surface.get_width() / tile_width)):
         x = col * tile_width
@@ -83,5 +83,5 @@ class Bg:
       image=bg_image,
       pos=(x, x + bg.size[1] / 2),
       size=(bg_image.get_width(), bg_height),
-      origin=Sprite.ORIGIN_LEFT,
+      origin=Sprite.ORIGIN_LEFT
     )]

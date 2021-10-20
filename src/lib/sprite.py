@@ -26,9 +26,23 @@ class Sprite:
   key: str = None
 
   @property
+  def topleft(sprite):
+    x, y = sprite.pos
+    origin_x, origin_y = sprite.origin or Sprite.ORIGIN_TOPLEFT
+    if origin_x == "center":
+      x -= sprite.image.get_width() // 2
+    if origin_x == "right":
+      x -= sprite.image.get_width()
+    if origin_y == "center":
+      y -= sprite.image.get_height() // 2
+    if origin_y == "bottom":
+      y -= sprite.image.get_height()
+    return (x, y)
+
+  @property
   def rect(sprite):
     size = sprite.size or sprite.image.get_size()
-    return Rect(*sprite.pos, *size)
+    return Rect(*sprite.topleft, *size)
 
   def copy(sprite):
     return Sprite(
@@ -53,20 +67,22 @@ class Sprite:
 
   def draw(sprite, surface, offset=(0, 0), origin=None):
     image = sprite.image
+
     flip_x, flip_y = sprite.flip
     if flip_x or flip_y:
       image = flip(image, flip_x, flip_y)
+
     width, height = sprite.size or (None, None)
     if sprite.size and (width != image.get_width() or height != image.get_height()):
       scaled_image = scale(image, (int(width), int(height)))
     else:
       scaled_image = image
+
     if scaled_image is None:
       return
 
     x, y = sprite.pos
-
-    origin_x, origin_y = sprite.origin or ("top", "left")
+    origin_x, origin_y = sprite.origin or Sprite.ORIGIN_TOPLEFT
     if origin_x == "center":
       x -= scaled_image.get_width() // 2
     if origin_x == "right":
@@ -100,8 +116,8 @@ class Sprite:
 
 
 class SpriteMask(Sprite):
-  def __init__(mask, size, children, pos=(0, 0)):
-    super().__init__(size=size, pos=pos)
+  def __init__(mask, size, children, pos=(0, 0), *args, **kwargs):
+    super().__init__(size=size, pos=pos, *args, **kwargs)
     mask.image = None
     mask.children = children
 
@@ -111,9 +127,9 @@ class SpriteMask(Sprite):
   def render(mask):
     if not mask.image:
       mask.image = Surface(mask.size, flags=SRCALPHA)
-    mask.image.fill((0, 0, 0, 0))
     for sprite in mask.children:
-      sprite.draw(mask.image)
+      sprite.draw(surface=mask.image)
+    return mask.image
 
   def draw(mask, surface):
     mask.render()

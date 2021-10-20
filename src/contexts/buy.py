@@ -126,13 +126,13 @@ class ItemStickyGrid:
     grid.scroll_drawn += (grid.scroll - grid.scroll_drawn) / 8
     scroll_offset = (0, grid.scroll_drawn * -ITEM_HEIGHT)
     return [SpriteMask(
-      size=(grid.width + ITEMGRID_XPADDING * 2, grid.height),
+      size=(grid.width, grid.height),
       children=Sprite.move_all(
         [s for s in items_view if s.key != "pricetag"],
         scroll_offset
       )
     )] + Sprite.move_all(
-      [s for s in items_view if s.key == "pricetag" if s.rect.top + scroll_offset[1] >= 0 and s.rect.top + scroll_offset[1] < grid.height]
+      [s for s in items_view if s.key == "pricetag" if s.rect.bottom + scroll_offset[1] >= 0 and s.rect.top + scroll_offset[1] < grid.height]
         + grid.view_cursor(),
       scroll_offset
     )
@@ -209,16 +209,11 @@ class GridContext(Context):
     backdrop_image = Surface(WINDOW_SIZE, flags=SRCALPHA)
     backdrop_image.fill(WHITE)
     backdrop_view = [Sprite(image=backdrop_image)]
-    bg_view = Sprite.move_all(
-      sprites=ctx.bg.view(),
-      offset=(WINDOW_WIDTH - ctx.bg.width, 0),
-      origin=Sprite.ORIGIN_TOPRIGHT,
-    )
-    # bg_view = [SpriteMask(
-    #   pos=(WINDOW_WIDTH - ctx.bg.width, 0),
-    #   size=ctx.bg.size,
-    #   children=ctx.bg.view(),
-    # )]
+    bg_view = [SpriteMask(
+      pos=(WINDOW_WIDTH - ctx.bg.width, 0),
+      size=ctx.bg.size,
+      children=ctx.bg.view(),
+    )]
     box_image = ctx.box.render()
     box_view = [Sprite(image=box_image)]
     itemgrid_view = ctx.itemgrid.view()

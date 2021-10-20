@@ -123,7 +123,11 @@ class App(Context):
         sprites += transit.view(sprites)
 
       UI_LAYERS = ["ui", "log", "transits", "hud"]
-      sprite_order = lambda sprite: UI_LAYERS.index(sprite.layer) + 1 if sprite.layer in UI_LAYERS else 0
+      sprite_order = lambda sprite: (
+        UI_LAYERS.index(sprite.layer) + 1
+          if sprite.layer in UI_LAYERS
+          else 0
+      )
       sprites.sort(key=sprite_order)
 
       if app.fps_shown:
