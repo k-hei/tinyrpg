@@ -19,18 +19,21 @@ class Box:
 
   def render(box):
     surface = Surface(box.size)
-    surface.fill(WHITE)
 
     sprite_prefix = box and box.sprite_prefix
     tile_size = assets.sprites[f"{sprite_prefix}_c"].get_width()
     width, height = box.size
 
+    rows = height // tile_size
     cols = width // tile_size
+    for row in range(rows):
+      for col in range(cols):
+        surface.blit(assets.sprites[f"{sprite_prefix}_c"], (col * tile_size, row * tile_size))
+
     for col in range(cols):
       surface.blit(assets.sprites[f"{sprite_prefix}_n"], (col * tile_size, 0))
       surface.blit(assets.sprites[f"{sprite_prefix}_s"], (col * tile_size, height - tile_size))
 
-    rows = height // tile_size
     for row in range(rows):
       surface.blit(assets.sprites[f"{sprite_prefix}_w"], (0, row * tile_size))
       surface.blit(assets.sprites[f"{sprite_prefix}_e"], (width - tile_size, row * tile_size))

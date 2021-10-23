@@ -341,7 +341,7 @@ class ShopContext(Context):
             char_width = title_font.width(char)
           char_x += char_width
 
-    box_image = Box.render((116, 48))
+    box_image = Box(sprite_prefix="item_tile", size=(116, 48)).render()
     box_x = 128
     box_y = 120
     box_anim = next((a for a in ctx.anims if isinstance(a, BoxAnim)), None)
@@ -354,7 +354,7 @@ class ShopContext(Context):
       box_x = lerp(WINDOW_WIDTH, box_x, t)
     if box_anim or not ctx.blurring and not ctx.exiting:
       sprites.append(Sprite(
-        image=Box.render((116, 48)),
+        image=box_image,
         pos=(box_x, box_y)
       ))
       if not box_anim:
