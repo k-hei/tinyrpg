@@ -31,8 +31,9 @@ PRICETAG_YPADDING = 2
 BOX_XMARGIN = 24
 BOX_YMARGIN = 36
 TEXTBOX_XPADDING = 12
-TEXTBOX_YPADDING = 12
+TEXTBOX_YPADDING = 9
 TEXTBOX_TITLE_MARGIN = 5
+TEXTBOX_DESC_MARGIN = TEXTBOX_TITLE_MARGIN + 2
 TEXTBOX_XMARGIN = 4
 
 class CursorAnim(SineAnim): pass
@@ -183,14 +184,17 @@ class ItemStickyGrid:
     )]
 
 class ItemTextBox:
-  def __init__(box, size):
+  def __init__(box, width):
+    box.textbox = TextBox(
+      font="normal",
+      size=(width - TEXTBOX_XPADDING * 2, assets.ttf["normal"].height() * 2 + 4)
+    )
+    size = (width, (
+      TEXTBOX_YPADDING * 2 + assets.ttf["normal"].height() * 4 + 4 + TEXTBOX_TITLE_MARGIN + TEXTBOX_DESC_MARGIN
+    ))
     box.bg = Box(
       sprite_prefix="buy_textbox",
       size=size,
-    )
-    box.textbox = TextBox(
-      font="normal",
-      size=vector.subtract(size, (TEXTBOX_XPADDING * 2, TEXTBOX_YPADDING * 2))
     )
     box.item = None
 
@@ -201,23 +205,45 @@ class ItemTextBox:
   def view(box):
     item = box.item
     box_image = box.bg.render()
+
     title_image = assets.ttf["english"].render(item.name, item.color)
+    title_y = TEXTBOX_YPADDING
+
     price_image = assets.ttf["english"].render(f"{item.value}G", BLACK)
+    price_y = title_y
+
+    desc_image = box.textbox.render()
+    desc_y = title_y + title_image.get_height() + TEXTBOX_TITLE_MARGIN
+
+    ownedlabel_image = assets.ttf["english"].render("Own", BLACK)
+    ownedlabel_y = desc_y + desc_image.get_height() + TEXTBOX_DESC_MARGIN
+    ownedlabel_view = [Sprite(
+      image=ownedlabel_image,
+      pos=(TEXTBOX_XPADDING, ownedlabel_y)
+    )]
+
+    ownedvalue_image = assets.ttf["normal"].render("0", BLACK)
+    ownedvalue_x = TEXTBOX_XPADDING + ownedlabel_image.get_width() + 4
+    ownedvalue_view = [Sprite(
+      image=ownedvalue_image,
+      pos=(ownedvalue_x, ownedlabel_y)
+    )]
+
     return [
       Sprite(image=box_image),
       Sprite(
         image=title_image,
-        pos=(TEXTBOX_XPADDING, TEXTBOX_YPADDING),
-      ),
-      Sprite(
-        image=box.textbox.render(),
-        pos=(TEXTBOX_XPADDING, TEXTBOX_YPADDING + title_image.get_height() + TEXTBOX_TITLE_MARGIN),
+        pos=(TEXTBOX_XPADDING, title_y),
       ),
       Sprite(
         image=price_image,
-        pos=(box_image.get_width() - price_image.get_width() - TEXTBOX_XPADDING, TEXTBOX_YPADDING),
+        pos=(box_image.get_width() - price_image.get_width() - TEXTBOX_XPADDING, price_y),
       ),
-    ]
+      Sprite(
+        image=desc_image,
+        pos=(TEXTBOX_XPADDING, desc_y),
+      ),
+    ] + ownedlabel_view + ownedvalue_view
 
 class GridContext(Context):
   def __init__(ctx, items, height=0, on_change_item=None, *args, **kwargs):
@@ -301,7 +327,7 @@ class GridContext(Context):
 class BuyContext(Context):
   def __init__(ctx, hud=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
-    ctx.textbox = ItemTextBox(size=(128, 58))
+    ctx.textbox = ItemTextBox(width=128)
     ctx.gridctx = GridContext(
       items=[resolve_item(i) for i in ("Potion", "Ankh", "Elixir", "Fish", "Cheese", "Bread", "Vino", "Antidote", "MusicBox", "LovePotion", "Balloon", "Emerald", "Key")],
       height=128,
