@@ -6,12 +6,15 @@ import lib.keyboard as keyboard
 import lib.gamepad as gamepad
 import lib.vector as vector
 from lib.sprite import Sprite, SpriteMask
-from lib.filters import stroke, darken_image, shadow_lite as shadow
-from colors.palette import BLACK, WHITE, CYAN, CORAL
+from lib.filters import stroke, outline, darken_image, shadow_lite as shadow
+from colors.palette import BLACK, WHITE, CYAN, CORAL, DARKCORAL
+from portraits.husband import HusbandPortrait
 
 from contexts import Context
+from cores.knight import Knight
 from comps.bg import Bg
 from comps.box import Box
+from comps.hud import Hud
 from comps.textbox import TextBox
 from anims.sine import SineAnim
 from savedata.resolve import resolve_item
@@ -26,7 +29,7 @@ ITEMGRID_YPADDING = 12
 PRICETAG_XPADDING = 3
 PRICETAG_YPADDING = 2
 BOX_XMARGIN = 24
-BOX_YMARGIN = 48
+BOX_YMARGIN = 36
 TEXTBOX_XPADDING = 12
 TEXTBOX_YPADDING = 12
 TEXTBOX_TITLE_MARGIN = 5
@@ -43,7 +46,7 @@ def view_item_sticky(item, selected=False):
     price_image.get_height() + PRICETAG_YPADDING * 2
   ), flags=SRCALPHA)
   pricetag_color = CYAN if selected else BLACK
-  shadow_color = CYAN if selected else CORAL
+  shadow_color = CYAN if selected else DARKCORAL
   draw_rect(pricetag_image, pricetag_color, Rect(
     (2, 0),
     (pricetag_image.get_width() - 4, pricetag_image.get_height())
@@ -265,20 +268,38 @@ class GridContext(Context):
       pos=(WINDOW_WIDTH - ctx.bg.width, 0),
       size=ctx.bg.size,
       children=ctx.bg.view(),
+      key="grid_bg"
     )]
-    box_image = ctx.box.render()
-    box_view = [Sprite(image=box_image)]
+    if "cached_box" not in dir(ctx):
+      ctx.cached_box = ctx.box.render()
+      ctx.cached_box = shadow(ctx.cached_box, BLACK)
+      ctx.cached_box = shadow(ctx.cached_box, BLACK)
+    box_image = ctx.cached_box
+    box_x = WINDOW_WIDTH - box_image.get_width() - BOX_XMARGIN
+    box_y = BOX_YMARGIN
+    box_view = [Sprite(image=box_image, layer="hud")]
+    title_image = assets.ttf["roman_large"].render("Items")
+    title_image = outline(title_image, DARKCORAL)
+    title_image = shadow(title_image, BLACK)
+    title_image = shadow(title_image, BLACK)
+    title_view = [Sprite(
+      image=title_image,
+      pos=(box_x, box_y - 2),
+      origin=Sprite.ORIGIN_BOTTOMLEFT,
+      layer="hud",
+    )]
     itemgrid_view = ctx.itemgrid.view()
     return backdrop_view + bg_view + Sprite.move_all(
       box_view + Sprite.move_all(
-        itemgrid_view,
-        (ITEMGRID_XPADDING, ITEMGRID_YPADDING)
+        sprites=itemgrid_view,
+        offset=(ITEMGRID_XPADDING, ITEMGRID_YPADDING),
+        layer="hud"
       ),
-      (WINDOW_WIDTH - box_image.get_width() - BOX_XMARGIN, BOX_YMARGIN)
-    )
+      (box_x, box_y)
+    ) + title_view
 
 class BuyContext(Context):
-  def __init__(ctx, *args, **kwargs):
+  def __init__(ctx, hud=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
     ctx.textbox = ItemTextBox(size=(128, 58))
     ctx.gridctx = GridContext(
@@ -286,13 +307,32 @@ class BuyContext(Context):
       height=128,
       on_change_item=ctx.textbox.reload
     )
+    ctx.hud = hud or Hud(party=[Knight()])
+    ctx.portrait = HusbandPortrait()
 
   def enter(ctx):
     ctx.open(child=ctx.gridctx)
 
   def view(ctx):
-    return super().view() + Sprite.move_all(
+    grid_view = super().view()
+    bg_mask = next((s for s in grid_view if s.key == "grid_bg"), None)
+    if "cache_bar" not in dir(ctx):
+      ctx.cache_bar = Surface((WINDOW_WIDTH - bg_mask.rect.width, 32), flags=SRCALPHA)
+      ctx.cache_bar.fill(BLACK)
+    return grid_view + Sprite.move_all(
       sprites=ctx.textbox.view(),
       offset=(WINDOW_WIDTH - BOX_XMARGIN - ctx.gridctx.box.width - TEXTBOX_XMARGIN, BOX_YMARGIN),
       origin=Sprite.ORIGIN_TOPRIGHT,
-    )
+    ) + ctx.hud.view() + [
+      Sprite(
+        image=ctx.cache_bar,
+        pos=(0, WINDOW_HEIGHT),
+        origin=Sprite.ORIGIN_BOTTOMLEFT
+      ),
+      Sprite(
+        image=ctx.portrait.render(),
+        pos=vector.add(bg_mask.rect.bottomleft, (64, 0)),
+        origin=Sprite.ORIGIN_BOTTOMRIGHT,
+        layer="ui"
+      )
+    ]

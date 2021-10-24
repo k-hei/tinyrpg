@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pygame import Rect, Surface, SRCALPHA
 from pygame.transform import flip, scale
 import lib.vector as vector
@@ -24,6 +24,7 @@ class Sprite:
   layer: str = None
   target: any = None
   key: str = None
+  children: list = None
 
   @property
   def topleft(sprite):
@@ -60,7 +61,7 @@ class Sprite:
   def move(sprite, offset):
     sprite.pos = vector.add(sprite.pos, offset)
 
-  def move_all(sprites, offset, origin=ORIGIN_TOPLEFT):
+  def move_all(sprites, offset, origin=ORIGIN_TOPLEFT, layer=None):
     if origin != Sprite.ORIGIN_TOPLEFT:
       bounds = sprites[0].rect.unionall([s.rect for s in sprites])
       origin_x, origin_y = origin
@@ -74,8 +75,16 @@ class Sprite:
       if origin_y == "bottom":
         offset_y -= bounds.height
       offset = vector.add(offset, (offset_x, offset_y))
+
     for sprite in sprites:
       sprite.move(offset)
+
+      if layer:
+        sprite.layer = layer
+      if layer and sprite.children:
+        for child in sprite.children:
+          child.layer = layer
+
     return sprites
 
   def draw(sprite, surface, offset=(0, 0), origin=None):
