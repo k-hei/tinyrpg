@@ -36,6 +36,7 @@ TEXTBOX_YPADDING = 9
 TEXTBOX_TITLE_MARGIN = 5
 TEXTBOX_DESC_MARGIN = TEXTBOX_TITLE_MARGIN + 2
 TEXTBOX_XMARGIN = 4
+ENABLED_ITEM_RARITY_STARS = True
 
 class CursorAnim(SineAnim): pass
 
@@ -186,86 +187,92 @@ class ItemStickyGrid:
 
 class ItemTextBox:
   def __init__(box, width):
+    box.width = width
     box.textbox = TextBox(
       font="normal",
       size=(width - TEXTBOX_XPADDING * 2, assets.ttf["normal"].height() * 2 + 4)
-    )
-    size = (width, (0
-      + TEXTBOX_YPADDING
-      + assets.ttf["normal"].height()
-      + TEXTBOX_TITLE_MARGIN
-      + assets.ttf["normal"].height()
-      + 4
-      + assets.ttf["normal"].height()
-      + TEXTBOX_DESC_MARGIN
-      + assets.ttf["normal"].height()
-      + TEXTBOX_YPADDING
-    ))
-    box.bg = Box(
-      sprite_prefix="buy_textbox",
-      size=size,
     )
     box.item = None
 
   def reload(box, item):
     box.item = item
     box.textbox.print(item.desc)
+    box.cache_rarity = None
 
   def view(box):
+    sprites = []
     item = box.item
-    box_image = box.bg.render()
 
-    title_image = assets.ttf["english"].render(item.name, item.color)
-    title_x = TEXTBOX_XPADDING
-    title_y = TEXTBOX_YPADDING
+    if "cache_bg" not in dir(box):
+      box.cache_bg = Box(
+        sprite_prefix="buy_textbox",
+        size=(box.width, (0
+          + TEXTBOX_YPADDING
+          + assets.ttf["normal"].height()
+          + TEXTBOX_TITLE_MARGIN
+          + assets.ttf["normal"].height()
+          + 4
+          + assets.ttf["normal"].height()
+          + TEXTBOX_DESC_MARGIN
+          + assets.ttf["normal"].height()
+          + TEXTBOX_YPADDING
+        )),
+      ).render()
 
-    price_image = assets.ttf["english"].render(f"{item.value}G", BLACK)
-    price_y = title_y
+    sprites.append(box_sprite := Sprite(
+      image=box.cache_bg,
+    ))
 
-    desc_image = box.textbox.render()
-    desc_y = title_y + title_image.get_height() + TEXTBOX_TITLE_MARGIN
+    sprites.append(title_sprite := Sprite(
+      image=(title_image := assets.ttf["english"].render(item.name, item.color)),
+      pos=(TEXTBOX_XPADDING, TEXTBOX_YPADDING),
+    ))
 
-    ownedlabel_image = assets.ttf["english"].render("Own", BLACK)
-    ownedlabel_y = desc_y + desc_image.get_height() + TEXTBOX_DESC_MARGIN
-    ownedlabel_view = [Sprite(
-      image=ownedlabel_image,
-      pos=(TEXTBOX_XPADDING, ownedlabel_y)
-    )]
-
-    ownedvalue_image = assets.ttf["normal"].render("0", BLACK)
-    ownedvalue_x = TEXTBOX_XPADDING + ownedlabel_image.get_width() + 4
-    ownedvalue_view = [Sprite(
-      image=ownedvalue_image,
-      pos=(ownedvalue_x, ownedlabel_y)
-    )]
-
-    rarity_image = Rarity.render(item.rarity)
-    rarity_x = title_x + title_image.get_width() + 4
-    rarity_y = title_y
-    rarity_view = [Sprite(
-      image=rarity_image,
-      pos=(rarity_x, rarity_y)
-    )]
-
-    return [
-      Sprite(image=box_image),
-      Sprite(
-        image=title_image,
-        pos=(TEXTBOX_XPADDING, title_y),
+    sprites.append(price_sprite := Sprite(
+      image=(price_image := assets.ttf["english"].render(f"{item.value}G", BLACK)),
+      pos=(
+        box_sprite.image.get_width() - TEXTBOX_XPADDING,
+        title_sprite.y
       ),
-      Sprite(
-        image=price_image,
-        pos=(box_image.get_width() - price_image.get_width() - TEXTBOX_XPADDING, price_y),
+      origin=Sprite.ORIGIN_TOPRIGHT,
+    ))
+
+    sprites.append(desc_sprite := Sprite(
+      image=(desc_image := box.textbox.render()),
+      pos=(
+        title_sprite.x,
+        title_sprite.rect.bottom + TEXTBOX_TITLE_MARGIN
       ),
-      Sprite(
-        image=desc_image,
-        pos=(TEXTBOX_XPADDING, desc_y),
+    ))
+
+    sprites.append(ownedlabel_sprite := Sprite(
+      image=assets.ttf["english"].render("Own", BLACK),
+      pos=(
+        title_sprite.x,
+        desc_sprite.rect.bottom + TEXTBOX_DESC_MARGIN
       ),
-    ] + ([]
-      + ownedlabel_view
-      + ownedvalue_view
-      + rarity_view
-    )
+    ))
+
+    sprites.append(ownedvalue_sprite := Sprite(
+      image=assets.ttf["normal"].render("0", BLACK),
+      pos=(
+        ownedlabel_sprite.rect.right + 4,
+        ownedlabel_sprite.y
+      ),
+    ))
+
+    if ENABLED_ITEM_RARITY_STARS:
+      if not box.cache_rarity:
+        box.cache_rarity = Rarity.render(item.rarity)
+      sprites.append(rarity_sprite := Sprite(
+        image=box.cache_rarity,
+        pos=(
+          title_sprite.rect.right + 4,
+          title_sprite.y
+        )
+      ))
+
+    return sprites
 
 class GridContext(Context):
   def __init__(ctx, items, height=0, on_change_item=None, *args, **kwargs):
@@ -349,7 +356,7 @@ class GridContext(Context):
 class BuyContext(Context):
   def __init__(ctx, hud=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
-    ctx.textbox = ItemTextBox(width=156)
+    ctx.textbox = ItemTextBox(width=128 + (28 if ENABLED_ITEM_RARITY_STARS else 0))
     ctx.gridctx = GridContext(
       items=[resolve_item(i) for i in ("Potion", "Ankh", "Elixir", "Fish", "Cheese", "Bread", "Vino", "Antidote", "MusicBox", "LovePotion", "Balloon", "Emerald", "Key")],
       height=128,

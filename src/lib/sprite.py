@@ -41,6 +41,14 @@ class Sprite:
     return (x, y)
 
   @property
+  def x(sprite):
+    return sprite.pos[0]
+
+  @property
+  def y(sprite):
+    return sprite.pos[1]
+
+  @property
   def rect(sprite):
     size = sprite.size or sprite.image.get_size()
     return Rect(*sprite.topleft, *size)
