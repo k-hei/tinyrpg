@@ -16,6 +16,7 @@ from comps.bg import Bg
 from comps.box import Box
 from comps.hud import Hud
 from comps.rarity import Rarity
+from comps.shoptag import ShopTag
 from comps.textbox import TextBox
 from anims.sine import SineAnim
 from savedata.resolve import resolve_item
@@ -342,6 +343,7 @@ class GridContext(Context):
       pos=(box_x, box_y - 2),
       origin=Sprite.ORIGIN_BOTTOMLEFT,
       layer="hud",
+      key="title",
     )]
     itemgrid_view = ctx.itemgrid.view()
     return backdrop_view + bg_view + Sprite.move_all(
@@ -362,6 +364,7 @@ class BuyContext(Context):
       height=128,
       on_change_item=ctx.textbox.reload
     )
+    ctx.tag = ShopTag("general_store")
     ctx.hud = hud or Hud(party=[Knight()])
     ctx.portrait = HusbandPortrait()
 
@@ -369,25 +372,47 @@ class BuyContext(Context):
     ctx.open(child=ctx.gridctx)
 
   def view(ctx):
+    sprites = []
+
     grid_view = super().view()
     bg_mask = next((s for s in grid_view if s.key == "grid_bg"), None)
     if "cache_bar" not in dir(ctx):
       ctx.cache_bar = Surface((WINDOW_WIDTH - bg_mask.rect.width, 32), flags=SRCALPHA)
       ctx.cache_bar.fill(BLACK)
-    return grid_view + Sprite.move_all(
+    sprites += grid_view
+
+    sprites += Sprite.move_all(
       sprites=ctx.textbox.view(),
       offset=(WINDOW_WIDTH - BOX_XMARGIN - ctx.gridctx.box.width - TEXTBOX_XMARGIN, BOX_YMARGIN),
       origin=Sprite.ORIGIN_TOPRIGHT,
-    ) + ctx.hud.view() + [
-      Sprite(
-        image=ctx.cache_bar,
-        pos=(0, WINDOW_HEIGHT),
-        origin=Sprite.ORIGIN_BOTTOMLEFT
-      ),
-      Sprite(
-        image=ctx.portrait.render(),
-        pos=vector.add(bg_mask.rect.bottomleft, (64, 0)),
-        origin=Sprite.ORIGIN_BOTTOMRIGHT,
-        layer="ui"
-      )
-    ]
+    )
+
+    if "cache_tag" not in dir(ctx):
+      ctx.cache_tag = ctx.tag.render()
+      ctx.cache_tag = stroke(ctx.cache_tag, BLACK)
+    title_sprite = next((s for s in grid_view if s.key == "title"), None)
+    sprites += [Sprite(
+      image=ctx.cache_tag,
+      pos=(BOX_XMARGIN, title_sprite.rect.top)
+    )]
+
+    sprites += [Sprite(
+      image=ctx.cache_bar,
+      pos=(0, WINDOW_HEIGHT),
+      origin=Sprite.ORIGIN_BOTTOMLEFT
+    )]
+
+    sprites += [Sprite(
+      image=ctx.portrait.render(),
+      pos=vector.add(bg_mask.rect.bottomleft, (64, 0)),
+      origin=Sprite.ORIGIN_BOTTOMRIGHT,
+      layer="ui"
+    )]
+
+    sprites += [Sprite(
+      image=ctx.hud.render(),
+      pos=(BOX_XMARGIN, WINDOW_HEIGHT - 8),
+      origin=Sprite.ORIGIN_BOTTOMLEFT,
+    )]
+
+    return sprites
