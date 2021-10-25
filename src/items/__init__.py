@@ -9,6 +9,7 @@ class Item:
   name: str
   desc: str
   value: int = 0
+  rarity: int = 1
   sprite: str = None
   color: int = BLACK
   fragile: bool = False

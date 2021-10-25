@@ -9,6 +9,7 @@ class Balloon(DungeonItem):
   desc: str = "Ascends to next floor."
   effect: str = "ascend"
   value: int = 40
+  rarity: int = 2
 
   def use(balloon, store):
     if type(store.place).__name__.startswith("Town"):

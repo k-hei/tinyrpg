@@ -9,6 +9,7 @@ class Elixir(HpItem):
   name: str = "Elixir"
   desc: str = "Restores full HP and SP."
   value: int = 200
+  rarity: int = 3
 
   def use(elixir, store):
     if type(store.place).__name__.startswith("Town"):

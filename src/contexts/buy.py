@@ -15,6 +15,7 @@ from cores.knight import Knight
 from comps.bg import Bg
 from comps.box import Box
 from comps.hud import Hud
+from comps.rarity import Rarity
 from comps.textbox import TextBox
 from anims.sine import SineAnim
 from savedata.resolve import resolve_item
@@ -189,8 +190,16 @@ class ItemTextBox:
       font="normal",
       size=(width - TEXTBOX_XPADDING * 2, assets.ttf["normal"].height() * 2 + 4)
     )
-    size = (width, (
-      TEXTBOX_YPADDING * 2 + assets.ttf["normal"].height() * 4 + 4 + TEXTBOX_TITLE_MARGIN + TEXTBOX_DESC_MARGIN
+    size = (width, (0
+      + TEXTBOX_YPADDING
+      + assets.ttf["normal"].height()
+      + TEXTBOX_TITLE_MARGIN
+      + assets.ttf["normal"].height()
+      + 4
+      + assets.ttf["normal"].height()
+      + TEXTBOX_DESC_MARGIN
+      + assets.ttf["normal"].height()
+      + TEXTBOX_YPADDING
     ))
     box.bg = Box(
       sprite_prefix="buy_textbox",
@@ -207,6 +216,7 @@ class ItemTextBox:
     box_image = box.bg.render()
 
     title_image = assets.ttf["english"].render(item.name, item.color)
+    title_x = TEXTBOX_XPADDING
     title_y = TEXTBOX_YPADDING
 
     price_image = assets.ttf["english"].render(f"{item.value}G", BLACK)
@@ -229,6 +239,14 @@ class ItemTextBox:
       pos=(ownedvalue_x, ownedlabel_y)
     )]
 
+    rarity_image = Rarity.render(item.rarity)
+    rarity_x = title_x + title_image.get_width() + 4
+    rarity_y = title_y
+    rarity_view = [Sprite(
+      image=rarity_image,
+      pos=(rarity_x, rarity_y)
+    )]
+
     return [
       Sprite(image=box_image),
       Sprite(
@@ -243,7 +261,11 @@ class ItemTextBox:
         image=desc_image,
         pos=(TEXTBOX_XPADDING, desc_y),
       ),
-    ] + ownedlabel_view + ownedvalue_view
+    ] + ([]
+      + ownedlabel_view
+      + ownedvalue_view
+      + rarity_view
+    )
 
 class GridContext(Context):
   def __init__(ctx, items, height=0, on_change_item=None, *args, **kwargs):
@@ -327,7 +349,7 @@ class GridContext(Context):
 class BuyContext(Context):
   def __init__(ctx, hud=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
-    ctx.textbox = ItemTextBox(width=128)
+    ctx.textbox = ItemTextBox(width=156)
     ctx.gridctx = GridContext(
       items=[resolve_item(i) for i in ("Potion", "Ankh", "Elixir", "Fish", "Cheese", "Bread", "Vino", "Antidote", "MusicBox", "LovePotion", "Balloon", "Emerald", "Key")],
       height=128,

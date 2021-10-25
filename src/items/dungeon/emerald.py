@@ -10,6 +10,7 @@ class Emerald(DungeonItem):
   sprite: str = "gem"
   effect: str = "leave_dungeon"
   value: int = 80
+  rarity: int = 2
 
   def use(emerald, store):
     if type(store.place).__name__.startswith("Town"):
