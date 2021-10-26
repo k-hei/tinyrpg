@@ -1,5 +1,6 @@
 from pygame import Surface, SRCALPHA
-from colors.palette import WHITE
+from colors.palette import BLACK, WHITE
+from lib.filters import shadow_lite as shadow
 import assets
 
 class Box:
@@ -30,11 +31,11 @@ class Box:
       for col in range(1, cols):
         surface.blit(assets.sprites[f"{sprite_prefix}_c"], (col * tile_size, row * tile_size))
 
-    for col in range(cols):
+    for col in range(1, cols):
       surface.blit(assets.sprites[f"{sprite_prefix}_n"], (col * tile_size, 0))
       surface.blit(assets.sprites[f"{sprite_prefix}_s"], (col * tile_size, height - tile_size))
 
-    for row in range(rows):
+    for row in range(1, rows):
       surface.blit(assets.sprites[f"{sprite_prefix}_w"], (0, row * tile_size))
       surface.blit(assets.sprites[f"{sprite_prefix}_e"], (width - tile_size, row * tile_size))
 
@@ -42,4 +43,6 @@ class Box:
     surface.blit(assets.sprites[f"{sprite_prefix}_sw"], (0, height - tile_size))
     surface.blit(assets.sprites[f"{sprite_prefix}_ne"], (width - tile_size, 0))
     surface.blit(assets.sprites[f"{sprite_prefix}_se"], (width - tile_size, height - tile_size))
+    surface = shadow(surface, BLACK)
+    surface = shadow(surface, BLACK)
     return surface
