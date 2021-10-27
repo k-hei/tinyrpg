@@ -14,6 +14,7 @@ from contexts import Context
 from cores.knight import Knight
 from comps.bg import Bg
 from comps.box import Box
+from comps.card import Card
 from comps.hud import Hud
 from comps.rarity import Rarity
 from comps.shoptag import ShopTag
@@ -365,6 +366,7 @@ class BuyContext(Context):
       on_change_item=ctx.textbox.reload
     )
     ctx.tag = ShopTag("general_store")
+    ctx.card = Card("buy")
     ctx.hud = hud or Hud(party=[Knight()])
     ctx.portrait = HusbandPortrait()
 
@@ -391,10 +393,17 @@ class BuyContext(Context):
       ctx.cache_tag = ctx.tag.render()
       ctx.cache_tag = stroke(ctx.cache_tag, BLACK)
     title_sprite = next((s for s in grid_view if s.key == "title"), None)
-    sprites += [Sprite(
+    sprites += [tag_sprite := Sprite(
       image=ctx.cache_tag,
       pos=(BOX_XMARGIN, title_sprite.rect.top)
     )]
+
+    card_sprite = ctx.card.render()
+    card_sprite.pos = vector.add(card_sprite.pos, (
+      card_sprite.rect.width / 2 + tag_sprite.rect.left,
+      card_sprite.rect.height / 2 + tag_sprite.rect.bottom + 2
+    ))
+    sprites.append(card_sprite)
 
     sprites += [Sprite(
       image=ctx.cache_bar,
