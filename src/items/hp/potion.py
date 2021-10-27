@@ -10,6 +10,7 @@ class Potion(HpItem):
   desc: str = "Restores\n20 HP."
   hp: int = 20
   value: int = 25
+  rarity: int = 2
 
   def effect(potion, game, actor=None, cell=None):
     game.vfx.append(BurstVfx(

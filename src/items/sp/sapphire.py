@@ -7,6 +7,7 @@ class Sapphire(SpItem):
   desc: str = "Restores\nfull SP."
   sprite: str = "gem"
   value: int = 100
+  rarity: int = 3
 
   def use(elixir, store):
     if type(store.place).__name__.startswith("Town"):

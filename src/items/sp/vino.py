@@ -7,3 +7,4 @@ class Vino(SpItem):
   desc: str = "Restores\n50 SP."
   sp: int = 50
   value: int = 40
+  rarity: int = 3

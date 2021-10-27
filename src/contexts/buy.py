@@ -40,6 +40,22 @@ TEXTBOX_TITLE_MARGIN = 5
 TEXTBOX_DESC_MARGIN = TEXTBOX_TITLE_MARGIN + 2
 TEXTBOX_XMARGIN = 4
 ENABLED_ITEM_RARITY_STARS = True
+ITEMS = (
+  "Potion",
+  "Ankh",
+  "Elixir",
+  "Fish",
+  "Cheese",
+  "Bread",
+  "Vino",
+  "Berry",
+  "Antidote",
+  "MusicBox",
+  "LovePotion",
+  "Balloon",
+  "Emerald",
+  "Key",
+)
 
 class CursorAnim(SineAnim): pass
 
@@ -360,7 +376,7 @@ class BuyContext(Context):
     super().__init__(*args, **kwargs)
     ctx.textbox = ItemTextBox(width=128 + (28 if ENABLED_ITEM_RARITY_STARS else 0))
     ctx.gridctx = GridContext(
-      items=[resolve_item(i) for i in ("Potion", "Ankh", "Elixir", "Fish", "Cheese", "Bread", "Vino", "Antidote", "MusicBox", "LovePotion", "Balloon", "Emerald", "Key")],
+      items=[resolve_item(i) for i in ITEMS],
       height=128,
       on_change_item=ctx.textbox.reload
     )
