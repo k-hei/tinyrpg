@@ -15,6 +15,7 @@ from cores.knight import Knight
 from comps.bg import Bg
 from comps.box import Box
 from comps.card import Card
+from comps.goldbubble import GoldBubble
 from comps.hud import Hud
 from comps.rarity import Rarity
 from comps.shoptag import ShopTag
@@ -329,16 +330,14 @@ class GridContext(Context):
     )]
     if "cached_box" not in dir(ctx):
       ctx.cached_box = ctx.box.render()
-      ctx.cached_box = shadow(ctx.cached_box, BLACK)
-      ctx.cached_box = shadow(ctx.cached_box, BLACK)
+      ctx.cached_box = shadow(ctx.cached_box, BLACK, i=2)
     box_image = ctx.cached_box
     box_x = WINDOW_WIDTH - box_image.get_width() - BOX_XMARGIN
     box_y = BOX_YMARGIN
     box_view = [Sprite(image=box_image, layer="hud")]
     title_image = assets.ttf["roman_large"].render("Items")
     title_image = outline(title_image, DARKCORAL)
-    title_image = shadow(title_image, BLACK)
-    title_image = shadow(title_image, BLACK)
+    title_image = shadow(title_image, BLACK, i=2)
     title_view = [Sprite(
       image=title_image,
       pos=(box_x, box_y - 2),
@@ -368,6 +367,7 @@ class BuyContext(Context):
     ctx.tag = ShopTag("general_store")
     ctx.card = Card("buy")
     ctx.hud = hud or Hud(party=[Knight()])
+    ctx.goldbubble = GoldBubble(gold=200)
     ctx.portrait = HusbandPortrait()
 
   def enter(ctx):
@@ -418,10 +418,16 @@ class BuyContext(Context):
       layer="ui"
     )]
 
-    sprites += [Sprite(
+    sprites += [hud_sprite := Sprite(
       image=ctx.hud.render(),
       pos=(BOX_XMARGIN, WINDOW_HEIGHT - 8),
       origin=Sprite.ORIGIN_BOTTOMLEFT,
+    )]
+
+    sprites += [Sprite(
+      image=ctx.goldbubble.render(),
+      pos=(hud_sprite.rect.right + 4, hud_sprite.rect.centery),
+      origin=Sprite.ORIGIN_LEFT,
     )]
 
     return sprites
