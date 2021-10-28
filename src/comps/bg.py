@@ -10,11 +10,9 @@ class EnterAnim(TweenAnim): pass
 class ExitAnim(TweenAnim): pass
 
 class Bg:
-  PERIOD = 90
-
-  def render(size):
+  def render(size, sprite_id="bgtile"):
     width, height = size
-    tile_image = assets.sprites["bg_tile"]
+    tile_image = assets.sprites[sprite_id]
     tile_width = tile_image.get_width()
     tile_height = tile_image.get_height()
     tile_surface = Surface((width + tile_width * 2, height + tile_height * 2), flags=SRCALPHA)
@@ -25,8 +23,10 @@ class Bg:
         tile_surface.blit(tile_image, (x, y))
     return tile_surface
 
-  def __init__(bg, size):
+  def __init__(bg, size, sprite_id="bgtile", period=90):
     bg.size = size
+    bg.sprite_id = sprite_id
+    bg.period = period
     bg.surface = None
     bg.exiting = False
     bg.time = 0
@@ -41,7 +41,7 @@ class Bg:
     return bg.size[1]
 
   def init(bg):
-    bg.surface = Bg.render(bg.size)
+    bg.surface = Bg.render(bg.size, bg.sprite_id)
 
   def enter(bg):
     bg.exiting = False
@@ -67,8 +67,8 @@ class Bg:
 
   def view(bg):
     bg.update()
-    tile_size = assets.sprites["bg_tile"].get_width()
-    t = bg.time % bg.PERIOD / bg.PERIOD
+    tile_size = assets.sprites[bg.sprite_id].get_width()
+    t = bg.time % bg.period / bg.period
     x = -t * tile_size
     bg_image = bg.surface
     bg_height = bg_image.get_height()

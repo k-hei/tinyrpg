@@ -309,7 +309,11 @@ class GridContext(Context):
         ctx.itemgrid.height + ITEMGRID_YPADDING * 2
       )
     )
-    ctx.bg = Bg((ctx.box.width + BOX_XMARGIN * 2, WINDOW_HEIGHT))
+    ctx.bg = Bg(
+      size=(ctx.box.width + BOX_XMARGIN * 2, WINDOW_HEIGHT),
+      sprite_id="buy_bgtile",
+      period=180,
+    )
     ctx.cursor = (0, 0)
     ctx.on_change_item = on_change_item
     on_change_item and on_change_item(ctx.item)

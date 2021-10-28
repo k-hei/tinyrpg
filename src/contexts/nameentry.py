@@ -369,7 +369,7 @@ class NameEntryContext(Context):
 
     if ctx.cache.bg is None:
       ctx.cache.bg = _render_bg(WINDOW_SIZE)
-    tile_size = assets.sprites["bg_tile"].get_width()
+    tile_size = assets.sprites["bgtile"].get_width()
     BG_PERIOD = 90
     t = ctx.draws % BG_PERIOD / BG_PERIOD
     x = -t * tile_size
@@ -524,7 +524,7 @@ def _render_chargroup(char, name, draws):
 def _render_bg(size):
   width, height = size
   assets = use_assets()
-  tile_image = assets.sprites["bg_tile"]
+  tile_image = assets.sprites["bgtile"]
   tile_width = tile_image.get_width()
   tile_height = tile_image.get_height()
   tile_surface = Surface((width + tile_width, height + tile_height))

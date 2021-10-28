@@ -19,5 +19,6 @@
   "buy_textbox_se":  [32, 80, 16, 16],
   "buy_sticky":      [48,  0, 24, 28],
   "buy_sticky_null": [48, 28, 24, 28],
-  "rarity_star":     [48, 56, 8, 8]
+  "rarity_star":     [48, 56, 8, 8],
+  "buy_bgtile":      [48, 64, 32, 32]
 }
