@@ -43,5 +43,4 @@ class Box:
     surface.blit(assets.sprites[f"{sprite_prefix}_sw"], (0, height - tile_size))
     surface.blit(assets.sprites[f"{sprite_prefix}_ne"], (width - tile_size, 0))
     surface.blit(assets.sprites[f"{sprite_prefix}_se"], (width - tile_size, height - tile_size))
-    surface = shadow(surface, BLACK, i=2)
     return surface

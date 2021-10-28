@@ -99,7 +99,7 @@ def view_item_sticky(item, selected=False):
     )
   ]
 
-class ItemStickyGrid:
+class ItemGrid:
   def __init__(grid, items, cols, height=0):
     grid.items = items
     grid.cols = cols
@@ -232,12 +232,10 @@ class ItemTextBox:
           + assets.ttf["normal"].height()
           + 4
           + assets.ttf["normal"].height()
-          + TEXTBOX_DESC_MARGIN
-          + assets.ttf["normal"].height()
           + TEXTBOX_YPADDING
         )),
       ).render()
-
+      box.cache_bg = shadow(box.cache_bg, BLACK, i=2)
     sprites.append(box_sprite := Sprite(
       image=box.cache_bg,
     ))
@@ -264,22 +262,6 @@ class ItemTextBox:
       ),
     ))
 
-    sprites.append(ownedlabel_sprite := Sprite(
-      image=assets.ttf["english"].render("Own", BLACK),
-      pos=(
-        title_sprite.x,
-        desc_sprite.rect.bottom + TEXTBOX_DESC_MARGIN
-      ),
-    ))
-
-    sprites.append(ownedvalue_sprite := Sprite(
-      image=assets.ttf["normal"].render("0", BLACK),
-      pos=(
-        ownedlabel_sprite.rect.right + 4,
-        ownedlabel_sprite.y
-      ),
-    ))
-
     if ENABLED_ITEM_RARITY_STARS:
       if not box.cache_rarity:
         box.cache_rarity = Rarity.render(item.rarity)
@@ -297,7 +279,7 @@ class GridContext(Context):
   def __init__(ctx, items, height=0, on_change_item=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
     ctx.height = height
-    ctx.itemgrid = ItemStickyGrid(
+    ctx.itemgrid = ItemGrid(
       cols=GRID_COLS,
       items=items,
       height=height and (height - ITEMGRID_YPADDING * 2) or 0
@@ -310,9 +292,8 @@ class GridContext(Context):
       )
     )
     ctx.bg = Bg(
-      size=(ctx.box.width + BOX_XMARGIN * 2, WINDOW_HEIGHT),
+      size=(WINDOW_WIDTH, 112),
       sprite_id="buy_bgtile",
-      period=180,
     )
     ctx.cursor = (0, 0)
     ctx.on_change_item = on_change_item
@@ -339,11 +320,8 @@ class GridContext(Context):
     return selected
 
   def view(ctx):
-    backdrop_image = Surface(WINDOW_SIZE, flags=SRCALPHA)
-    backdrop_image.fill(WHITE)
-    backdrop_view = [Sprite(image=backdrop_image)]
     bg_view = [SpriteMask(
-      pos=(WINDOW_WIDTH - ctx.bg.width, 0),
+      pos=(0, 32),
       size=ctx.bg.size,
       children=ctx.bg.view(),
       key="grid_bg"
@@ -354,26 +332,20 @@ class GridContext(Context):
     box_image = ctx.cached_box
     box_x = WINDOW_WIDTH - box_image.get_width() - BOX_XMARGIN
     box_y = BOX_YMARGIN
-    box_view = [Sprite(image=box_image, layer="hud")]
-    title_image = assets.ttf["roman_large"].render("Items")
-    title_image = outline(title_image, DARKCORAL)
-    title_image = shadow(title_image, BLACK, i=2)
-    title_view = [Sprite(
-      image=title_image,
-      pos=(box_x, box_y - 2),
-      origin=Sprite.ORIGIN_BOTTOMLEFT,
+    box_view = [Sprite(
+      image=box_image,
       layer="hud",
-      key="title",
+      key="box",
     )]
     itemgrid_view = ctx.itemgrid.view()
-    return backdrop_view + bg_view + Sprite.move_all(
+    return bg_view + Sprite.move_all(
       box_view + Sprite.move_all(
         sprites=itemgrid_view,
         offset=(ITEMGRID_XPADDING, ITEMGRID_YPADDING),
         layer="hud"
       ),
       (box_x, box_y)
-    ) + title_view
+    )
 
 class BuyContext(Context):
   def __init__(ctx, hud=None, *args, **kwargs):
@@ -381,7 +353,7 @@ class BuyContext(Context):
     ctx.textbox = ItemTextBox(width=128 + (28 if ENABLED_ITEM_RARITY_STARS else 0))
     ctx.gridctx = GridContext(
       items=[resolve_item(i) for i in ITEMS],
-      height=128,
+      height=108,
       on_change_item=ctx.textbox.reload
     )
     ctx.tag = ShopTag("general_store")
@@ -397,44 +369,19 @@ class BuyContext(Context):
     sprites = []
 
     grid_view = super().view()
-    bg_mask = next((s for s in grid_view if s.key == "grid_bg"), None)
-    if "cache_bar" not in dir(ctx):
-      ctx.cache_bar = Surface((WINDOW_WIDTH - bg_mask.rect.width, 32), flags=SRCALPHA)
-      ctx.cache_bar.fill(BLACK)
     sprites += grid_view
 
+    box_sprite = next((s for s in grid_view if s.key == "box"), None)
     sprites += Sprite.move_all(
       sprites=ctx.textbox.view(),
-      offset=(WINDOW_WIDTH - BOX_XMARGIN - ctx.gridctx.box.width - TEXTBOX_XMARGIN, BOX_YMARGIN),
+      offset=(box_sprite.rect.right, box_sprite.rect.bottom + 2),
       origin=Sprite.ORIGIN_TOPRIGHT,
     )
 
-    if "cache_tag" not in dir(ctx):
-      ctx.cache_tag = ctx.tag.render()
-      ctx.cache_tag = stroke(ctx.cache_tag, BLACK)
-    title_sprite = next((s for s in grid_view if s.key == "title"), None)
-    sprites += [tag_sprite := Sprite(
-      image=ctx.cache_tag,
-      pos=(BOX_XMARGIN, title_sprite.rect.top)
-    )]
-
-    card_sprite = ctx.card.render()
-    card_sprite.pos = vector.add(card_sprite.pos, (
-      card_sprite.rect.width / 2 + tag_sprite.rect.left,
-      card_sprite.rect.height / 2 + tag_sprite.rect.bottom + 2
-    ))
-    sprites.append(card_sprite)
-
-    sprites += [Sprite(
-      image=ctx.cache_bar,
-      pos=(0, WINDOW_HEIGHT),
-      origin=Sprite.ORIGIN_BOTTOMLEFT
-    )]
-
     sprites += [Sprite(
       image=ctx.portrait.render(),
-      pos=vector.add(bg_mask.rect.bottomleft, (64, 0)),
-      origin=Sprite.ORIGIN_BOTTOMRIGHT,
+      pos=(WINDOW_WIDTH / 2, 32 + 112),
+      origin=Sprite.ORIGIN_BOTTOM,
       layer="ui"
     )]
 
@@ -448,6 +395,16 @@ class BuyContext(Context):
       image=ctx.goldbubble.render(),
       pos=(hud_sprite.rect.right + 4, hud_sprite.rect.centery),
       origin=Sprite.ORIGIN_LEFT,
+    )]
+
+    if "cache_title" not in dir(ctx):
+      ctx.cache_title = assets.ttf["roman_large"].render("Buy items")
+      ctx.cache_title = outline(ctx.cache_title, DARKCORAL)
+    sprites += [Sprite(
+      image=ctx.cache_title,
+      pos=(24, 16),
+      origin=Sprite.ORIGIN_LEFT,
+      layer="hud",
     )]
 
     return sprites

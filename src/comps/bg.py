@@ -23,10 +23,10 @@ class Bg:
         tile_surface.blit(tile_image, (x, y))
     return tile_surface
 
-  def __init__(bg, size, sprite_id="bgtile", period=90):
+  def __init__(bg, size, sprite_id="bgtile", period=0):
     bg.size = size
     bg.sprite_id = sprite_id
-    bg.period = period
+    bg.period = period or assets.sprites[sprite_id].get_width() * 3
     bg.surface = None
     bg.exiting = False
     bg.time = 0
