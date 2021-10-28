@@ -167,7 +167,7 @@ class BagList:
     x = 4
     y = 3
     if bag.box is None:
-      bag.box = Box.render(bag.size)
+      bag.box = Box(sprite_prefix="item_tile", size=bag.size).render()
     if bag.surface is None:
       bag.surface = Surface(bag.box.get_size())
     bag.surface.blit(bag.box, (0, 0))
@@ -622,7 +622,7 @@ class SellContext(Context):
 
     descbox_width = WINDOW_WIDTH - items_image.get_width() - MARGIN * 3
     descbox_height = WINDOW_HEIGHT - menu_y - hud_image.get_height() - MARGIN * 2
-    descbox_image = Box.render((descbox_width, descbox_height))
+    descbox_image = Box(sprite_prefix="item_tile", size=(descbox_width, descbox_height)).render()
     item = ctx.itembox.items and ctx.itembox.items[ctx.cursor]
     desc_anim = next((a for a in ctx.anims if type(a) is ctx.DescAnim), None)
     if item and desc_anim:
