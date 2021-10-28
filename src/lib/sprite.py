@@ -71,7 +71,7 @@ class Sprite:
 
   def move_all(sprites, offset, origin=ORIGIN_TOPLEFT, layer=None):
     if origin != Sprite.ORIGIN_TOPLEFT:
-      bounds = sprites[0].rect.unionall([s.rect for s in sprites])
+      bounds = Sprite.bounds_all(sprites)
       origin_x, origin_y = origin
       offset_x, offset_y = 0, 0
       if origin_x == "center":
@@ -94,6 +94,9 @@ class Sprite:
           child.layer = layer
 
     return sprites
+
+  def bounds_all(sprites):
+    return sprites[0].rect.unionall([s.rect for s in sprites])
 
   def draw(sprite, surface, offset=(0, 0), origin=None):
     image = sprite.image

@@ -26,10 +26,10 @@ import assets
 from config import WINDOW_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
 
 GRID_COLS = 3
-ITEM_WIDTH = 32
+ITEM_WIDTH = 48
 ITEM_HEIGHT = 32
-ITEMGRID_XPADDING = 12
-ITEMGRID_YPADDING = 12
+ITEMGRID_XPADDING = 0
+ITEMGRID_YPADDING = 0
 PRICETAG_XPADDING = 3
 PRICETAG_YPADDING = 2
 BOX_XMARGIN = 24
@@ -59,45 +59,30 @@ ITEMS = (
 
 class CursorAnim(SineAnim): pass
 
-def view_item_sticky(item, selected=False):
-  sticky_image = assets.sprites["buy_sticky"]
+def view_itemcell(item, selected=False):
+  sprites = []
+
+  sheet_image = assets.sprites["buy_itemsheet"]
+  sprites += [sheet_sprite := Sprite(image=sheet_image)]
+
   item_image = item().render()
+  sprites += [item_sprite := Sprite(
+    image=stroke(item_image, WHITE),
+    pos=(sheet_image.get_width() / 2, sheet_image.get_height() / 2),
+    origin=Sprite.ORIGIN_CENTER,
+  )]
+
   price_image = assets.ttf["english"].render(str(item.value))
-  pricetag_image = Surface((
-    price_image.get_width() + PRICETAG_XPADDING * 2,
-    price_image.get_height() + PRICETAG_YPADDING * 2
-  ), flags=SRCALPHA)
-  pricetag_color = CYAN if selected else BLACK
-  shadow_color = CYAN if selected else DARKCORAL
-  draw_rect(pricetag_image, pricetag_color, Rect(
-    (2, 0),
-    (pricetag_image.get_width() - 4, pricetag_image.get_height())
-  ))
-  draw_rect(pricetag_image, pricetag_color, Rect(
-    (1, 1),
-    (pricetag_image.get_width() - 2, pricetag_image.get_height() - 2)
-  ))
-  draw_rect(pricetag_image, pricetag_color, Rect(
-    (0, 2),
-    (pricetag_image.get_width(), pricetag_image.get_height() - 4)
-  ))
-  pricetag_image.blit(price_image, (PRICETAG_XPADDING, PRICETAG_YPADDING))
-  pricetag_image = stroke(pricetag_image, WHITE)
-  return [
-    Sprite(image=shadow(sticky_image, shadow_color, i=2)),
-    Sprite(
-      image=item_image,
-      pos=(sticky_image.get_width() / 2, sticky_image.get_height() / 2 + 1),
-      origin=Sprite.ORIGIN_CENTER,
-    ),
-    Sprite(
-      image=pricetag_image,
-      pos=(sticky_image.get_width() / 2 + 1, 3),
-      origin=Sprite.ORIGIN_LEFT,
-      layer="hud",
-      key="pricetag"
-    )
-  ]
+  price_image = stroke(price_image, BLACK)
+  sprites += [price_sprite := Sprite(
+    image=price_image,
+    pos=(item_sprite.rect.right, item_sprite.rect.bottom),
+    origin=Sprite.ORIGIN_BOTTOMLEFT,
+    layer="hud",
+    key="pricetag"
+  )]
+
+  return sprites
 
 class ItemGrid:
   def __init__(grid, items, cols, height=0):
@@ -176,7 +161,7 @@ class ItemGrid:
     item_x = 0
     item_y = 0
     for i, item in enumerate(grid.items):
-      item_view = view_item_sticky(item, selected=(i == grid.selection))
+      item_view = view_itemcell(item, selected=(i == grid.selection))
       Sprite.move_all(item_view, (item_x, item_y))
       sprites += item_view
       item_x += ITEM_WIDTH
@@ -326,25 +311,16 @@ class GridContext(Context):
       children=ctx.bg.view(),
       key="grid_bg"
     )]
-    if "cached_box" not in dir(ctx):
-      ctx.cached_box = ctx.box.render()
-      ctx.cached_box = shadow(ctx.cached_box, BLACK, i=2)
-    box_image = ctx.cached_box
-    box_x = WINDOW_WIDTH - box_image.get_width() - BOX_XMARGIN
-    box_y = BOX_YMARGIN
-    box_view = [Sprite(
-      image=box_image,
-      layer="hud",
-      key="box",
-    )]
+
     itemgrid_view = ctx.itemgrid.view()
+    itemgrid_bounds = Sprite.bounds_all(itemgrid_view)
+
+    box_x = WINDOW_WIDTH - ctx.itemgrid.width - BOX_XMARGIN + 16
+    box_y = BOX_YMARGIN
     return bg_view + Sprite.move_all(
-      box_view + Sprite.move_all(
-        sprites=itemgrid_view,
-        offset=(ITEMGRID_XPADDING, ITEMGRID_YPADDING),
-        layer="hud"
-      ),
-      (box_x, box_y)
+      sprites=itemgrid_view,
+      offset=vector.add((box_x, box_y), (ITEMGRID_XPADDING, ITEMGRID_YPADDING)),
+      layer="hud"
     )
 
 class BuyContext(Context):
@@ -374,13 +350,13 @@ class BuyContext(Context):
     box_sprite = next((s for s in grid_view if s.key == "box"), None)
     sprites += Sprite.move_all(
       sprites=ctx.textbox.view(),
-      offset=(box_sprite.rect.right, box_sprite.rect.bottom + 2),
-      origin=Sprite.ORIGIN_TOPRIGHT,
+      offset=(WINDOW_WIDTH - BOX_XMARGIN, WINDOW_HEIGHT - 8),
+      origin=Sprite.ORIGIN_BOTTOMRIGHT,
     )
 
     sprites += [Sprite(
       image=ctx.portrait.render(),
-      pos=(WINDOW_WIDTH / 2, 32 + 112),
+      pos=(WINDOW_WIDTH / 2 - 48, 32 + 112),
       origin=Sprite.ORIGIN_BOTTOM,
       layer="ui"
     )]
@@ -400,9 +376,10 @@ class BuyContext(Context):
     if "cache_title" not in dir(ctx):
       ctx.cache_title = assets.ttf["roman_large"].render("Buy items")
       ctx.cache_title = outline(ctx.cache_title, DARKCORAL)
+      ctx.cache_title = shadow(ctx.cache_title, BLACK, i=2)
     sprites += [Sprite(
       image=ctx.cache_title,
-      pos=(24, 16),
+      pos=(24, 16 + 1),
       origin=Sprite.ORIGIN_LEFT,
       layer="hud",
     )]
