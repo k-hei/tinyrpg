@@ -22,14 +22,15 @@ class Box:
     surface = Surface(box.size, flags=SRCALPHA)
 
     sprite_prefix = box and box.sprite_prefix
-    tile_size = assets.sprites[f"{sprite_prefix}_c"].get_width()
+    tile_size = assets.sprites[f"{sprite_prefix}_nw"].get_width()
     width, height = box.size
 
     rows = height // tile_size
     cols = width // tile_size
-    for row in range(1, rows):
-      for col in range(1, cols):
-        surface.blit(assets.sprites[f"{sprite_prefix}_c"], (col * tile_size, row * tile_size))
+    if f"{sprite_prefix}_c" in assets.sprites:
+      for row in range(1, rows):
+        for col in range(1, cols):
+          surface.blit(assets.sprites[f"{sprite_prefix}_c"], (col * tile_size, row * tile_size))
 
     for col in range(1, (width - 1) // tile_size):
       surface.blit(assets.sprites[f"{sprite_prefix}_n"], (col * tile_size, 0))

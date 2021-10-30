@@ -315,12 +315,13 @@ class CounterContext(Context):
   MIN_VALUE = 1
   MAX_VALUE = 9
 
-  def __init__(counter, value=1, *args, **kwargs):
+  def __init__(counter, value=1, on_change=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
     counter.value = 1
     counter.pressed_up = False
     counter.pressed_down = False
     counter.bounce_anim = SineAnim(period=30)
+    counter.on_change = on_change
 
   def handle_press(counter, button):
     press_time = keyboard.get_state(button) + gamepad.get_state(button)
@@ -357,6 +358,7 @@ class CounterContext(Context):
   def handle_increment(counter):
     if counter.can_increment:
       counter.value += 1
+      counter.on_change(counter.value)
       return True
     else:
       return False
@@ -364,6 +366,7 @@ class CounterContext(Context):
   def handle_decrement(counter):
     if counter.can_decrement:
       counter.value -= 1
+      counter.on_change(counter.value)
       return True
     else:
       return False
@@ -380,7 +383,8 @@ class CounterContext(Context):
       layer="counter",
     )]
 
-    value_image = assets.ttf["english"].render(str(counter.value))
+    value_color = WHITE if counter.can_increment else GOLD
+    value_image = assets.ttf["english"].render(str(counter.value), color=value_color)
     value_image = outline(value_image, BLACK)
     sprites += [Sprite(
       image=value_image,
@@ -429,6 +433,7 @@ class GridContext(Context):
     on_change_item=None,
     on_select_item=None,
     on_deselect_item=None,
+    on_change_quantity=None,
     *args, **kwargs
   ):
     super().__init__(*args, **kwargs)
@@ -450,6 +455,7 @@ class GridContext(Context):
     ctx.on_deselect_item = on_deselect_item
     ctx.on_change_item = on_change_item
     on_change_item and on_change_item(ctx.item)
+    ctx.on_change_quantity = on_change_quantity
 
   @property
   def item(ctx):
@@ -479,7 +485,9 @@ class GridContext(Context):
 
   def handle_select(ctx):
     ctx.on_select_item()
-    ctx.open(CounterContext(), on_close=ctx.on_deselect_item)
+    ctx.open(CounterContext(
+      on_change=ctx.on_change_quantity
+    ), on_close=ctx.on_deselect_item)
     return True
 
   def view(ctx):
@@ -503,6 +511,7 @@ class BuyContext(Context):
       on_change_item=ctx.textbox.reload,
       on_select_item=ctx.handle_select,
       on_deselect_item=ctx.handle_deselect,
+      on_change_quantity=ctx.handle_change_quantity,
     )
     ctx.bg = Bg(
       size=(WINDOW_WIDTH, BG_HEIGHT),
@@ -521,9 +530,14 @@ class BuyContext(Context):
 
   def handle_select(ctx):
     ctx.textbubble.print("HOW MANY YOU LOOKIN TO BUY?")
+    ctx.goldbubble.delta = -ctx.gridctx.item.value # use event data?
 
   def handle_deselect(ctx):
     ctx.textbubble.print("ANYTHING ELSE?")
+    ctx.goldbubble.delta = 0 # use event data?
+
+  def handle_change_quantity(ctx, quantity):
+    ctx.goldbubble.delta = -ctx.gridctx.item.value * quantity
 
   def view(ctx):
     sprites = []
@@ -589,12 +603,11 @@ class BuyContext(Context):
       layer="hud",
     )]
 
-    sprites += [goldbubble_sprite := Sprite(
-      image=ctx.goldbubble.render(),
-      pos=(hud_sprite.rect.right + 4, hud_sprite.rect.centery),
-      origin=Sprite.ORIGIN_LEFT,
+    sprites += Sprite.move_all(
+      sprites=ctx.goldbubble.view(),
+      offset=(hud_sprite.rect.right + 4, hud_sprite.rect.centery),
       layer="hud",
-    )]
+    )
 
     if "cache_title" not in dir(ctx):
       ctx.cache_title = assets.ttf["roman_large"].render("Buy items")
