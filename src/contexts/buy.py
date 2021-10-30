@@ -6,8 +6,8 @@ import lib.keyboard as keyboard
 import lib.gamepad as gamepad
 import lib.vector as vector
 from lib.sprite import Sprite, SpriteMask
-from lib.filters import stroke, outline, darken_image, shadow_lite as shadow
-from colors.palette import BLACK, WHITE, YELLOW, CYAN, CORAL, DARKCORAL
+from lib.filters import stroke, outline, replace_color, darken_image, shadow_lite as shadow
+from colors.palette import BLACK, WHITE, YELLOW, GOLD, CYAN, CORAL, BROWN, DARKBROWN
 from portraits.husband import HusbandPortrait
 
 from contexts import Context
@@ -298,33 +298,115 @@ class ItemTextBox:
 
     return sprites
 
-class QuantityCounter:
-  def __init__(counter, value=1):
+class CounterContext(Context):
+  MIN_VALUE = 1
+  MAX_VALUE = 9
+
+  def __init__(counter, value=1, *args, **kwargs):
+    super().__init__(*args, **kwargs)
     counter.value = 1
+    counter.pressed_up = False
+    counter.pressed_down = False
     counter.bounce_anim = SineAnim(period=30)
 
-  def view(counter):
+  def handle_press(counter, button):
+    press_time = keyboard.get_state(button) + gamepad.get_state(button)
+    if not (press_time == 1
+    or press_time >= 30 and press_time % 2):
+      return False
+
+    if button in (pygame.K_UP, gamepad.controls.UP):
+      counter.pressed_up = True
+      return counter.handle_increment()
+
+    if button in (pygame.K_DOWN, gamepad.controls.DOWN):
+      counter.pressed_down = True
+      return counter.handle_decrement()
+
+    if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, gamepad.controls.cancel):
+      return counter.close()
+
+  def handle_release(counter, button):
+    if button in (pygame.K_UP, gamepad.controls.UP):
+      counter.pressed_up = False
+
+    if button in (pygame.K_DOWN, gamepad.controls.DOWN):
+      counter.pressed_down = False
+
+  @property
+  def can_increment(counter):
+    return counter.value < counter.MAX_VALUE
+
+  @property
+  def can_decrement(counter):
+    return counter.value > counter.MIN_VALUE
+
+  def handle_increment(counter):
+    if counter.can_increment:
+      counter.value += 1
+      return True
+    else:
+      return False
+
+  def handle_decrement(counter):
+    if counter.can_decrement:
+      counter.value -= 1
+      return True
+    else:
+      return False
+
+  def update(counter):
     counter.bounce_anim.update()
-    return [Sprite(
+
+  def view(counter):
+    sprites = []
+    sprites += [Sprite(
       image=assets.sprites["buy_quantity_circle"],
       pos=(0, 0),
       origin=Sprite.ORIGIN_CENTER,
-    ), Sprite(
-      image=(lambda: (
-        value_image := assets.ttf["english"].render(str(counter.value)),
-        value_image := outline(value_image, BLACK),
-      )[-1])(),
-      pos=(-1, 0),
-      origin=Sprite.ORIGIN_LEFT,
-    ), Sprite(
-      image=assets.sprites["buy_quantity_uarrow"],
-      pos=(0, -assets.sprites["buy_quantity_circle"].get_height() / 2 - counter.bounce_anim.pos),
-      origin=Sprite.ORIGIN_BOTTOM,
-    ), Sprite(
-      image=assets.sprites["buy_quantity_darrow"],
-      pos=(0, assets.sprites["buy_quantity_circle"].get_height() / 2 + 2 + counter.bounce_anim.pos),
-      origin=Sprite.ORIGIN_TOP,
+      layer="counter",
     )]
+
+    value_image = assets.ttf["english"].render(str(counter.value))
+    value_image = outline(value_image, BLACK)
+    sprites += [Sprite(
+      image=value_image,
+      pos=(0, 1),
+      origin=Sprite.ORIGIN_CENTER,
+      layer="counter",
+    )]
+
+    uarrow_image = assets.sprites["buy_quantity_uarrow"]
+    uarrow_y = -assets.sprites["buy_quantity_circle"].get_height() / 2
+    if counter.pressed_up:
+      uarrow_image = replace_color(uarrow_image, BROWN, GOLD)
+    elif counter.can_increment:
+      uarrow_y -= counter.bounce_anim.pos
+    else:
+      uarrow_image = replace_color(uarrow_image, BROWN, DARKBROWN)
+    sprites += [Sprite(
+      image=uarrow_image,
+      pos=(0, uarrow_y),
+      origin=Sprite.ORIGIN_BOTTOM,
+      layer="counter",
+    )]
+
+    darrow_image = assets.sprites["buy_quantity_darrow"]
+    darrow_y = assets.sprites["buy_quantity_circle"].get_height() / 2 + 2
+    if counter.pressed_down:
+      darrow_image = replace_color(darrow_image, BROWN, GOLD)
+    elif counter.can_decrement:
+      darrow_y += counter.bounce_anim.pos
+    else:
+      darrow_image = replace_color(darrow_image, BROWN, DARKBROWN)
+    sprites += [Sprite(
+      image=darrow_image,
+      pos=(0, darrow_y),
+      origin=Sprite.ORIGIN_TOP,
+      layer="counter",
+    )]
+
+    return sprites
 
 class GridContext(Context):
   def __init__(ctx, items, height=0, on_change_item=None, *args, **kwargs):
@@ -342,10 +424,6 @@ class GridContext(Context):
         ctx.itemgrid.height + ITEMGRID_YPADDING * 2
       )
     )
-    ctx.bg = Bg(
-      size=(WINDOW_WIDTH, BG_HEIGHT),
-      sprite_id="buy_bgtile",
-    )
     ctx.cursor = (0, 0)
     ctx.on_change_item = on_change_item
     on_change_item and on_change_item(ctx.item)
@@ -355,12 +433,18 @@ class GridContext(Context):
     return ctx.itemgrid.item
 
   def handle_press(ctx, button):
+    if ctx.child:
+      return super().handle_press(button)
+
     if keyboard.get_state(button) + gamepad.get_state(button) > 1:
       return
 
     if button in keyboard.ARROW_DELTAS:
       delta = keyboard.ARROW_DELTAS[button]
       return ctx.handle_move(delta)
+
+    if button in (pygame.K_RETURN, gamepad.controls.confirm):
+      return ctx.handle_select()
 
   def handle_move(ctx, delta):
     target_cell = vector.add(ctx.cursor, delta)
@@ -370,23 +454,20 @@ class GridContext(Context):
       ctx.on_change_item and ctx.on_change_item(ctx.item)
     return selected
 
-  def view(ctx):
-    bg_view = [SpriteMask(
-      pos=(0, BG_Y),
-      size=ctx.bg.size,
-      children=ctx.bg.view(),
-      key="grid_bg"
-    )]
+  def handle_select(ctx):
+    ctx.open(CounterContext())
+    return True
 
+  def view(ctx):
     itemgrid_view = ctx.itemgrid.view()
     itemgrid_bounds = Sprite.bounds_all(itemgrid_view)
 
     box_x = WINDOW_WIDTH - ctx.itemgrid.width + (ITEM_WIDTH - assets.sprites["buy_itemsheet"].get_width()) - BOX_XMARGIN
     box_y = BOX_YMARGIN
-    return bg_view + Sprite.move_all(
+    return Sprite.move_all(
       sprites=itemgrid_view,
       offset=vector.add((box_x, box_y), (ITEMGRID_XPADDING, ITEMGRID_YPADDING))
-    )
+    ) + super().view()
 
 class BuyContext(Context):
   def __init__(ctx, hud=None, *args, **kwargs):
@@ -397,10 +478,13 @@ class BuyContext(Context):
       height=108,
       on_change_item=ctx.textbox.reload
     )
+    ctx.bg = Bg(
+      size=(WINDOW_WIDTH, BG_HEIGHT),
+      sprite_id="buy_bgtile",
+    )
     ctx.tag = ShopTag("general_store")
     ctx.card = Card("buy")
     ctx.hud = hud or Hud(party=[Knight()])
-    ctx.counter = QuantityCounter()
     ctx.goldbubble = GoldBubble(gold=200)
     ctx.textbubble = TextBubble(width=96)
     ctx.portrait = HusbandPortrait()
@@ -411,6 +495,13 @@ class BuyContext(Context):
 
   def view(ctx):
     sprites = []
+
+    sprites += [bg_mask := SpriteMask(
+      pos=(0, BG_Y),
+      size=ctx.bg.size,
+      children=ctx.bg.view(),
+      key="grid_bg"
+    )]
 
     grid_view = super().view()
     sprites += grid_view
@@ -450,13 +541,13 @@ class BuyContext(Context):
       layer="textbox",
     )
 
+    counter_view = [s for s in grid_view if s.layer == "counter"]
     sprites += Sprite.move_all(
-      sprites=ctx.counter.view(),
+      sprites=counter_view,
       offset=vector.add(
         portrait_sprite.rect.center,
         (-8, 0)
-      ),
-      layer="counter"
+      )
     )
 
     sprites += [hud_sprite := Sprite(
@@ -475,7 +566,7 @@ class BuyContext(Context):
 
     if "cache_title" not in dir(ctx):
       ctx.cache_title = assets.ttf["roman_large"].render("Buy items")
-      ctx.cache_title = outline(ctx.cache_title, DARKCORAL)
+      ctx.cache_title = outline(ctx.cache_title, BROWN)
       ctx.cache_title = shadow(ctx.cache_title, BLACK, i=2)
     sprites += [title_sprite := Sprite(
       image=ctx.cache_title,
