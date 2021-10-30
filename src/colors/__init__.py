@@ -43,6 +43,7 @@ minus_map = {
   GREEN: DARKGREEN,
   BLUE: DARKBLUE,
   PINK: DARKPINK,
+  BROWN: DARKBROWN,
 }
 
 def hexify(color):

@@ -64,21 +64,34 @@ ITEMS = (
 
 class CursorAnim(SineAnim): pass
 
-def view_itemcell(item, selected=False):
+def view_itemcell(item, selected=True, cache={}):
   sprites = []
 
   sheet_image = assets.sprites["buy_itemsheet"]
+  if not selected:
+    if "sheet" not in cache:
+      cache["sheet"] = darken_image(sheet_image)
+    sheet_image = cache["sheet"]
   sprites += [sheet_sprite := Sprite(image=sheet_image)]
 
   item_image = item().render()
+  item_image = stroke(item_image, WHITE)
+  if not selected:
+    if item not in cache:
+      cache[item] = darken_image(item_image)
+    item_image = cache[item]
   sprites += [item_sprite := Sprite(
-    image=stroke(item_image, WHITE),
+    image=item_image,
     pos=(sheet_image.get_width() / 2, sheet_image.get_height() / 2),
     origin=Sprite.ORIGIN_CENTER,
   )]
 
   price_image = assets.ttf["english"].render(str(item.value))
   price_image = stroke(price_image, BLACK)
+  if not selected:
+    if item.value not in cache:
+      cache[item.value] = darken_image(price_image)
+    price_image = cache[item.value]
   sprites += [price_sprite := Sprite(
     image=price_image,
     pos=(item_sprite.rect.right - 6, item_sprite.rect.bottom + 2),
@@ -145,21 +158,20 @@ class ItemGrid:
       grid.scroll = row - grid.visible_rows // 2
     return True
 
-  def view(grid):
-    items_view = grid.view_items()
+  def view(grid, focused=False):
     grid.scroll_drawn += (grid.scroll - grid.scroll_drawn) / 8
     scroll_offset = (0, grid.scroll_drawn * -ITEM_HEIGHT)
     return Sprite.move_all(
-      items_view + grid.view_cursor(),
+      grid.view_items(focused) + grid.view_cursor(focused),
       scroll_offset
     )
 
-  def view_items(grid):
+  def view_items(grid, focused=None):
     sprites = []
     item_x = 0
     item_y = 0
     for i, item in enumerate(grid.items):
-      item_view = view_itemcell(item, selected=(i == grid.selection))
+      item_view = view_itemcell(item, selected=focused or i == grid.selection)
       Sprite.move_all(item_view, (item_x, item_y))
       sprites += item_view
       item_x += ITEM_WIDTH
@@ -168,24 +180,33 @@ class ItemGrid:
         item_y += ITEM_HEIGHT
     return sprites
 
-  def view_cursor(grid):
+  def view_cursor(grid, focused=True):
+    sprites = []
     selection_col, selection_row = grid.project_index(grid.selection)
 
+    grid.cursor_anim.update()
+    cursor_image = assets.sprites["buy_cursor"][int(grid.cursor_anim.time % 30 / 30 * len(assets.sprites["buy_cursor"]))]
     cursor_col, cursor_row = grid.cursor_drawn
     cursor_col += (selection_col - cursor_col) / 2
     cursor_row += (selection_row - cursor_row) / 2
     grid.cursor_drawn = (cursor_col, cursor_row)
-    grid.cursor_anim.update()
+    sprites += [Sprite(
+      image=cursor_image,
+      pos=vector.add(
+        (cursor_col * ITEM_WIDTH, cursor_row * ITEM_HEIGHT),
+        (cursor_image.get_width() / 2, cursor_image.get_height() / 2)
+      ),
+      origin=Sprite.ORIGIN_CENTER,
+      layer="cursor"
+    )]
 
-    hand_col, hand_row = grid.hand_drawn
-    hand_col += (selection_col - hand_col) / 4
-    hand_row += (selection_row - hand_row) / 4
-    grid.hand_drawn = (hand_col, hand_row)
-
-    hand_image = assets.sprites["hand"]
-    cursor_image = assets.sprites["buy_cursor"][int(grid.cursor_anim.time % 30 / 30 * len(assets.sprites["buy_cursor"]))]
-    return [
-      Sprite(
+    if focused:
+      hand_image = assets.sprites["hand"]
+      hand_col, hand_row = grid.hand_drawn
+      hand_col += (selection_col - hand_col) / 4
+      hand_row += (selection_row - hand_row) / 4
+      grid.hand_drawn = (hand_col, hand_row)
+      sprites += [Sprite(
         image=hand_image,
         pos=(
           hand_col * ITEM_WIDTH + 8 + grid.cursor_anim.pos * 2,
@@ -194,17 +215,9 @@ class ItemGrid:
         origin=Sprite.ORIGIN_RIGHT,
         flip=(True, False),
         layer="hand"
-      ),
-      Sprite(
-        image=cursor_image,
-        pos=vector.add(
-          (cursor_col * ITEM_WIDTH, cursor_row * ITEM_HEIGHT),
-          (cursor_image.get_width() / 2, cursor_image.get_height() / 2)
-        ),
-        origin=Sprite.ORIGIN_CENTER,
-        layer="cursor"
-      )
-    ]
+      )]
+
+    return sprites
 
 class ItemTextBox:
   def __init__(box, width):
@@ -409,7 +422,15 @@ class CounterContext(Context):
     return sprites
 
 class GridContext(Context):
-  def __init__(ctx, items, height=0, on_change_item=None, *args, **kwargs):
+  def __init__(
+    ctx,
+    items,
+    height=0,
+    on_change_item=None,
+    on_select_item=None,
+    on_deselect_item=None,
+    *args, **kwargs
+  ):
     super().__init__(*args, **kwargs)
     ctx.height = height
     ctx.itemgrid = ItemGrid(
@@ -425,6 +446,8 @@ class GridContext(Context):
       )
     )
     ctx.cursor = (0, 0)
+    ctx.on_select_item = on_select_item
+    ctx.on_deselect_item = on_deselect_item
     ctx.on_change_item = on_change_item
     on_change_item and on_change_item(ctx.item)
 
@@ -455,11 +478,12 @@ class GridContext(Context):
     return selected
 
   def handle_select(ctx):
-    ctx.open(CounterContext())
+    ctx.on_select_item()
+    ctx.open(CounterContext(), on_close=ctx.on_deselect_item)
     return True
 
   def view(ctx):
-    itemgrid_view = ctx.itemgrid.view()
+    itemgrid_view = ctx.itemgrid.view(focused=not ctx.child)
     itemgrid_bounds = Sprite.bounds_all(itemgrid_view)
 
     box_x = WINDOW_WIDTH - ctx.itemgrid.width + (ITEM_WIDTH - assets.sprites["buy_itemsheet"].get_width()) - BOX_XMARGIN
@@ -476,7 +500,9 @@ class BuyContext(Context):
     ctx.gridctx = GridContext(
       items=[resolve_item(i) for i in ITEMS],
       height=108,
-      on_change_item=ctx.textbox.reload
+      on_change_item=ctx.textbox.reload,
+      on_select_item=ctx.handle_select,
+      on_deselect_item=ctx.handle_deselect,
     )
     ctx.bg = Bg(
       size=(WINDOW_WIDTH, BG_HEIGHT),
@@ -486,12 +512,18 @@ class BuyContext(Context):
     ctx.card = Card("buy")
     ctx.hud = hud or Hud(party=[Knight()])
     ctx.goldbubble = GoldBubble(gold=200)
-    ctx.textbubble = TextBubble(width=96)
+    ctx.textbubble = TextBubble(width=120)
     ctx.portrait = HusbandPortrait()
 
   def enter(ctx):
     ctx.open(child=ctx.gridctx)
     ctx.textbubble.print("WHAT'S GOT YER EYE?")
+
+  def handle_select(ctx):
+    ctx.textbubble.print("HOW MANY YOU LOOKIN TO BUY?")
+
+  def handle_deselect(ctx):
+    ctx.textbubble.print("ANYTHING ELSE?")
 
   def view(ctx):
     sprites = []
