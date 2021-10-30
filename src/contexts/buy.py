@@ -298,6 +298,34 @@ class ItemTextBox:
 
     return sprites
 
+class QuantityCounter:
+  def __init__(counter, value=1):
+    counter.value = 1
+    counter.bounce_anim = SineAnim(period=30)
+
+  def view(counter):
+    counter.bounce_anim.update()
+    return [Sprite(
+      image=assets.sprites["buy_quantity_circle"],
+      pos=(0, 0),
+      origin=Sprite.ORIGIN_CENTER,
+    ), Sprite(
+      image=(lambda: (
+        value_image := assets.ttf["english"].render(str(counter.value)),
+        value_image := outline(value_image, BLACK),
+      )[-1])(),
+      pos=(-1, 0),
+      origin=Sprite.ORIGIN_LEFT,
+    ), Sprite(
+      image=assets.sprites["buy_quantity_uarrow"],
+      pos=(0, -assets.sprites["buy_quantity_circle"].get_height() / 2 - counter.bounce_anim.pos),
+      origin=Sprite.ORIGIN_BOTTOM,
+    ), Sprite(
+      image=assets.sprites["buy_quantity_darrow"],
+      pos=(0, assets.sprites["buy_quantity_circle"].get_height() / 2 + 2 + counter.bounce_anim.pos),
+      origin=Sprite.ORIGIN_TOP,
+    )]
+
 class GridContext(Context):
   def __init__(ctx, items, height=0, on_change_item=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
@@ -372,8 +400,9 @@ class BuyContext(Context):
     ctx.tag = ShopTag("general_store")
     ctx.card = Card("buy")
     ctx.hud = hud or Hud(party=[Knight()])
+    ctx.counter = QuantityCounter()
     ctx.goldbubble = GoldBubble(gold=200)
-    ctx.textbubble = TextBubble(pos=(WINDOW_WIDTH / 3, WINDOW_HEIGHT / 3), width=96)
+    ctx.textbubble = TextBubble(width=96)
     ctx.portrait = HusbandPortrait()
 
   def enter(ctx):
@@ -407,12 +436,28 @@ class BuyContext(Context):
       layer="bar",
     )]
 
-    sprites += [Sprite(
+    sprites += [portrait_sprite := Sprite(
       image=ctx.portrait.render(),
       pos=(WINDOW_WIDTH / 2 - 48, BG_Y + BG_HEIGHT),
       origin=Sprite.ORIGIN_BOTTOM,
       layer="portrait",
     )]
+
+    textbubble_view = ctx.textbubble.view()
+    sprites += Sprite.move_all(
+      sprites=textbubble_view,
+      offset=portrait_sprite.rect.center,
+      layer="textbox",
+    )
+
+    sprites += Sprite.move_all(
+      sprites=ctx.counter.view(),
+      offset=vector.add(
+        portrait_sprite.rect.center,
+        (-8, 0)
+      ),
+      layer="counter"
+    )
 
     sprites += [hud_sprite := Sprite(
       image=ctx.hud.render(),
@@ -421,7 +466,7 @@ class BuyContext(Context):
       layer="hud",
     )]
 
-    sprites += [Sprite(
+    sprites += [goldbubble_sprite := Sprite(
       image=ctx.goldbubble.render(),
       pos=(hud_sprite.rect.right + 4, hud_sprite.rect.centery),
       origin=Sprite.ORIGIN_LEFT,
@@ -432,19 +477,14 @@ class BuyContext(Context):
       ctx.cache_title = assets.ttf["roman_large"].render("Buy items")
       ctx.cache_title = outline(ctx.cache_title, DARKCORAL)
       ctx.cache_title = shadow(ctx.cache_title, BLACK, i=2)
-    sprites += [Sprite(
+    sprites += [title_sprite := Sprite(
       image=ctx.cache_title,
       pos=(24, 16 + 1),
       origin=Sprite.ORIGIN_LEFT,
       layer="hud",
     )]
 
-    sprites += Sprite.move_all(
-      sprites=ctx.textbubble.view(),
-      layer="textbox",
-    )
-
-    LAYERS = ["bg", "item", "cursor", "pricetag", "hand", "bar", "portrait", "textbox", "hud"]
+    LAYERS = ["bg", "item", "cursor", "pricetag", "hand", "bar", "portrait", "textbox", "counter", "hud"]
     sprites.sort(key=lambda s: (
       LAYERS.index(s.layer) + 1 if s.layer in LAYERS else 0
     ))

@@ -154,7 +154,7 @@ class TextBubble:
       ))
       return sprites
 
-  def __init__(bubble, width, pos):
+  def __init__(bubble, width, pos=(0, 0)):
     bubble.width = width
     bubble.height = None
     bubble.pos = pos

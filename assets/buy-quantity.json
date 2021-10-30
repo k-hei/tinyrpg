@@ -1,0 +1,5 @@
+{
+  "buy_quantity_circle": [ 0,  0, 19, 23],
+  "buy_quantity_uarrow": [ 0, 23, 12, 16],
+  "buy_quantity_darrow": [12, 23, 12, 16]
+}
