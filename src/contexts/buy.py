@@ -35,6 +35,8 @@ PRICETAG_XPADDING = 3
 PRICETAG_YPADDING = 2
 BOX_XMARGIN = 24
 BOX_YMARGIN = 36
+BG_Y = 32
+BG_HEIGHT = 112
 TEXTBOX_LPADDING = 8
 TEXTBOX_RPADDING = 2
 TEXTBOX_YPADDING = 6
@@ -81,8 +83,7 @@ def view_itemcell(item, selected=False):
     image=price_image,
     pos=(item_sprite.rect.right - 6, item_sprite.rect.bottom + 2),
     origin=Sprite.ORIGIN_BOTTOMLEFT,
-    layer="hud",
-    key="pricetag"
+    layer="pricetag",
   )]
 
   return sprites
@@ -93,8 +94,9 @@ class ItemGrid:
     grid.cols = cols
     grid.height = height or (ceil(len(grid.items) / grid.cols) // 1 * ITEM_HEIGHT)
     grid.selection = 0
-    grid.cursor_drawn = grid.project_index(0)
     grid.cursor_anim = CursorAnim(period=30)
+    grid.cursor_drawn = grid.project_index(0)
+    grid.hand_drawn = grid.project_index(0)
     grid.scroll = 0
     grid.scroll_drawn = 0
 
@@ -147,58 +149,62 @@ class ItemGrid:
     items_view = grid.view_items()
     grid.scroll_drawn += (grid.scroll - grid.scroll_drawn) / 8
     scroll_offset = (0, grid.scroll_drawn * -ITEM_HEIGHT)
-    return [SpriteMask(
-      size=(
-        grid.width + ITEM_WIDTH - assets.sprites["buy_itemsheet"].get_width(),
-        grid.height
-      ),
-      children=Sprite.move_all(
-        items_view,
-        scroll_offset
-      )
-    )] + Sprite.move_all(
-      grid.view_cursor(),
+    return Sprite.move_all(
+      items_view + grid.view_cursor(),
       scroll_offset
     )
 
   def view_items(grid):
     sprites = []
-    pricetag_sprites = []
     item_x = 0
     item_y = 0
     for i, item in enumerate(grid.items):
       item_view = view_itemcell(item, selected=(i == grid.selection))
       Sprite.move_all(item_view, (item_x, item_y))
-      for sprite in item_view:
-        if sprite.key == "pricetag":
-          pricetag_sprites.append(sprite)
-        else:
-          sprites.append(sprite)
+      sprites += item_view
       item_x += ITEM_WIDTH
       if item_x >= ITEM_WIDTH * GRID_COLS:
         item_x = 0
         item_y += ITEM_HEIGHT
-    sprites += pricetag_sprites
     return sprites
 
   def view_cursor(grid):
     selection_col, selection_row = grid.project_index(grid.selection)
-    drawn_col, drawn_row = grid.cursor_drawn
-    drawn_col += (selection_col - drawn_col) / 4
-    drawn_row += (selection_row - drawn_row) / 4
-    grid.cursor_drawn = (drawn_col, drawn_row)
+
+    cursor_col, cursor_row = grid.cursor_drawn
+    cursor_col += (selection_col - cursor_col) / 2
+    cursor_row += (selection_row - cursor_row) / 2
+    grid.cursor_drawn = (cursor_col, cursor_row)
     grid.cursor_anim.update()
-    cursor_image = assets.sprites["hand"]
-    return [Sprite(
-      image=cursor_image,
-      pos=(
-        drawn_col * ITEM_WIDTH + 8 + grid.cursor_anim.pos * 2,
-        (drawn_row + 0.5) * ITEM_HEIGHT
+
+    hand_col, hand_row = grid.hand_drawn
+    hand_col += (selection_col - hand_col) / 4
+    hand_row += (selection_row - hand_row) / 4
+    grid.hand_drawn = (hand_col, hand_row)
+
+    hand_image = assets.sprites["hand"]
+    cursor_image = assets.sprites["buy_cursor"][int(grid.cursor_anim.time % 30 / 30 * len(assets.sprites["buy_cursor"]))]
+    return [
+      Sprite(
+        image=hand_image,
+        pos=(
+          hand_col * ITEM_WIDTH + 8 + grid.cursor_anim.pos * 2,
+          (hand_row + 0.5) * ITEM_HEIGHT
+        ),
+        origin=Sprite.ORIGIN_RIGHT,
+        flip=(True, False),
+        layer="hand"
       ),
-      origin=Sprite.ORIGIN_RIGHT,
-      flip=(True, False),
-      layer="hud"
-    )]
+      Sprite(
+        image=cursor_image,
+        pos=vector.add(
+          (cursor_col * ITEM_WIDTH, cursor_row * ITEM_HEIGHT),
+          (cursor_image.get_width() / 2, cursor_image.get_height() / 2)
+        ),
+        origin=Sprite.ORIGIN_CENTER,
+        layer="cursor"
+      )
+    ]
 
 class ItemTextBox:
   def __init__(box, width):
@@ -309,7 +315,7 @@ class GridContext(Context):
       )
     )
     ctx.bg = Bg(
-      size=(WINDOW_WIDTH, 112),
+      size=(WINDOW_WIDTH, BG_HEIGHT),
       sprite_id="buy_bgtile",
     )
     ctx.cursor = (0, 0)
@@ -338,7 +344,7 @@ class GridContext(Context):
 
   def view(ctx):
     bg_view = [SpriteMask(
-      pos=(0, 32),
+      pos=(0, BG_Y),
       size=ctx.bg.size,
       children=ctx.bg.view(),
       key="grid_bg"
@@ -351,8 +357,7 @@ class GridContext(Context):
     box_y = BOX_YMARGIN
     return bg_view + Sprite.move_all(
       sprites=itemgrid_view,
-      offset=vector.add((box_x, box_y), (ITEMGRID_XPADDING, ITEMGRID_YPADDING)),
-      layer="hud"
+      offset=vector.add((box_x, box_y), (ITEMGRID_XPADDING, ITEMGRID_YPADDING))
     )
 
 class BuyContext(Context):
@@ -386,25 +391,41 @@ class BuyContext(Context):
       sprites=ctx.textbox.view(),
       offset=(WINDOW_WIDTH - BOX_XMARGIN, WINDOW_HEIGHT - 8),
       origin=Sprite.ORIGIN_BOTTOMRIGHT,
+      layer="textbox",
     )
+
+    topbar_image = Surface((WINDOW_WIDTH, BG_Y))
+    bottombar_image = Surface((WINDOW_WIDTH, WINDOW_HEIGHT - BG_Y - BG_HEIGHT))
+    sprites += [Sprite(
+      image=topbar_image,
+      pos=(0, 0),
+      layer="bar",
+    ), Sprite(
+      image=bottombar_image,
+      pos=(0, WINDOW_HEIGHT),
+      origin=Sprite.ORIGIN_BOTTOMLEFT,
+      layer="bar",
+    )]
 
     sprites += [Sprite(
       image=ctx.portrait.render(),
-      pos=(WINDOW_WIDTH / 2 - 48, 32 + 112),
+      pos=(WINDOW_WIDTH / 2 - 48, BG_Y + BG_HEIGHT),
       origin=Sprite.ORIGIN_BOTTOM,
-      layer="ui"
+      layer="portrait",
     )]
 
     sprites += [hud_sprite := Sprite(
       image=ctx.hud.render(),
       pos=(BOX_XMARGIN, WINDOW_HEIGHT - 8),
       origin=Sprite.ORIGIN_BOTTOMLEFT,
+      layer="hud",
     )]
 
     sprites += [Sprite(
       image=ctx.goldbubble.render(),
       pos=(hud_sprite.rect.right + 4, hud_sprite.rect.centery),
       origin=Sprite.ORIGIN_LEFT,
+      layer="hud",
     )]
 
     if "cache_title" not in dir(ctx):
@@ -420,7 +441,12 @@ class BuyContext(Context):
 
     sprites += Sprite.move_all(
       sprites=ctx.textbubble.view(),
-      layer="ui"
+      layer="textbox",
     )
+
+    LAYERS = ["bg", "item", "cursor", "pricetag", "hand", "bar", "portrait", "textbox", "hud"]
+    sprites.sort(key=lambda s: (
+      LAYERS.index(s.layer) + 1 if s.layer in LAYERS else 0
+    ))
 
     return sprites
