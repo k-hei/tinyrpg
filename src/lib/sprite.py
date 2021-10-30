@@ -69,7 +69,7 @@ class Sprite:
   def move(sprite, offset):
     sprite.pos = vector.add(sprite.pos, offset)
 
-  def move_all(sprites, offset, origin=ORIGIN_TOPLEFT, layer=None):
+  def move_all(sprites, offset=(0, 0), origin=ORIGIN_TOPLEFT, layer=None):
     if origin != Sprite.ORIGIN_TOPLEFT:
       bounds = Sprite.bounds_all(sprites)
       origin_x, origin_y = origin

@@ -31,11 +31,11 @@ class Box:
       for col in range(1, cols):
         surface.blit(assets.sprites[f"{sprite_prefix}_c"], (col * tile_size, row * tile_size))
 
-    for col in range(1, cols):
+    for col in range(1, (width - 1) // tile_size):
       surface.blit(assets.sprites[f"{sprite_prefix}_n"], (col * tile_size, 0))
       surface.blit(assets.sprites[f"{sprite_prefix}_s"], (col * tile_size, height - tile_size))
 
-    for row in range(1, rows):
+    for row in range(1, (height - 1) // tile_size):
       surface.blit(assets.sprites[f"{sprite_prefix}_w"], (0, row * tile_size))
       surface.blit(assets.sprites[f"{sprite_prefix}_e"], (width - tile_size, row * tile_size))
 
