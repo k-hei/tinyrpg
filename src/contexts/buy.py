@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from math import ceil
 import pygame
 from pygame import Surface, Rect, SRCALPHA
@@ -19,8 +20,9 @@ from comps.goldbubble import GoldBubble
 from comps.hud import Hud
 from comps.rarity import Rarity
 from comps.shoptag import ShopTag
+from comps.log import Token
 from comps.textbox import TextBox
-from comps.textbubble import TextBubble
+from comps.textbubble import TextBubble, Choice
 from anims.sine import SineAnim
 from savedata.resolve import resolve_item
 import assets
@@ -61,6 +63,11 @@ ITEMS = (
   "Emerald",
   "Key",
 )
+
+@dataclass
+class ComponentStore:
+  textbubble: TextBubble = None
+  portraits: list = None
 
 class CursorAnim(SineAnim): pass
 
@@ -315,37 +322,14 @@ class CounterContext(Context):
   MIN_VALUE = 1
   MAX_VALUE = 9
 
-  def __init__(counter, value=1, on_change=None, *args, **kwargs):
+  def __init__(counter, value=1, comps=None, on_change=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
     counter.value = 1
+    counter.comps = comps
     counter.pressed_up = False
     counter.pressed_down = False
     counter.bounce_anim = SineAnim(period=30)
     counter.on_change = on_change
-
-  def handle_press(counter, button):
-    press_time = keyboard.get_state(button) + gamepad.get_state(button)
-    if not (press_time == 1
-    or press_time >= 30 and press_time % 2):
-      return False
-
-    if button in (pygame.K_UP, gamepad.controls.UP):
-      counter.pressed_up = True
-      return counter.handle_increment()
-
-    if button in (pygame.K_DOWN, gamepad.controls.DOWN):
-      counter.pressed_down = True
-      return counter.handle_decrement()
-
-    if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, gamepad.controls.cancel):
-      return counter.close()
-
-  def handle_release(counter, button):
-    if button in (pygame.K_UP, gamepad.controls.UP):
-      counter.pressed_up = False
-
-    if button in (pygame.K_DOWN, gamepad.controls.DOWN):
-      counter.pressed_down = False
 
   @property
   def can_increment(counter):
@@ -371,10 +355,64 @@ class CounterContext(Context):
     else:
       return False
 
+  def handle_choose(ctx):
+    item = ctx.parent.item
+    quantity = ctx.value
+    ctx.comps and ctx.open(ctx.comps.textbubble.prompt(
+      message=(
+        f"YOU WANNA BUY {quantity} ",
+        Token(
+          text=(item.name + ("" if quantity == 1 else "S")).upper(),
+          color=item().color
+        ),
+        "?"
+      ),
+      choices=[
+        Choice("Yes"),
+        Choice("No", default=True, closing=True)
+      ]
+    ), on_close=lambda choice: ctx.comps.textbubble.print("HOW MANY YOU LOOKIN TO BUY?"))
+    return True
+
+  def handle_press(ctx, button):
+    if ctx.child:
+      return super().handle_press(button)
+
+    press_time = keyboard.get_state(button) + gamepad.get_state(button)
+    if not (press_time == 1
+    or press_time >= 30 and press_time % 2):
+      return False
+
+    if button in (pygame.K_UP, gamepad.controls.UP):
+      ctx.pressed_up = True
+      return ctx.handle_increment()
+
+    if button in (pygame.K_DOWN, gamepad.controls.DOWN):
+      ctx.pressed_down = True
+      return ctx.handle_decrement()
+
+    if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
+      return ctx.handle_choose()
+
+    if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, gamepad.controls.cancel):
+      return ctx.close()
+
+  def handle_release(counter, button):
+    if button in (pygame.K_UP, gamepad.controls.UP):
+      counter.pressed_up = False
+
+    if button in (pygame.K_DOWN, gamepad.controls.DOWN):
+      counter.pressed_down = False
+
   def update(counter):
     counter.bounce_anim.update()
 
-  def view(counter):
+  def view(ctx):
+    if ctx.child:
+      return []
+    return ctx.view_counter() + super().view()
+
+  def view_counter(counter):
     sprites = []
     sprites += [Sprite(
       image=assets.sprites["buy_quantity_circle"],
@@ -430,6 +468,7 @@ class GridContext(Context):
     ctx,
     items,
     height=0,
+    comps=None,
     on_change_item=None,
     on_select_item=None,
     on_deselect_item=None,
@@ -438,6 +477,7 @@ class GridContext(Context):
   ):
     super().__init__(*args, **kwargs)
     ctx.height = height
+    ctx.comps = comps
     ctx.itemgrid = ItemGrid(
       cols=GRID_COLS,
       items=items,
@@ -472,7 +512,7 @@ class GridContext(Context):
       delta = keyboard.ARROW_DELTAS[button]
       return ctx.handle_move(delta)
 
-    if button in (pygame.K_RETURN, gamepad.controls.confirm):
+    if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
       return ctx.handle_select()
 
   def handle_move(ctx, delta):
@@ -486,6 +526,7 @@ class GridContext(Context):
   def handle_select(ctx):
     ctx.on_select_item()
     ctx.open(CounterContext(
+      comps=ctx.comps,
       on_change=ctx.on_change_quantity
     ), on_close=ctx.on_deselect_item)
     return True
@@ -504,10 +545,15 @@ class GridContext(Context):
 class BuyContext(Context):
   def __init__(ctx, hud=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
+    ctx.comps = ComponentStore(
+      textbubble=TextBubble(width=120),
+      portraits=HusbandPortrait()
+    )
     ctx.textbox = ItemTextBox(width=160 + (28 if ENABLED_ITEM_RARITY_STARS else 0))
     ctx.gridctx = GridContext(
       items=[resolve_item(i) for i in ITEMS],
       height=108,
+      comps=ctx.comps,
       on_change_item=ctx.textbox.reload,
       on_select_item=ctx.handle_select,
       on_deselect_item=ctx.handle_deselect,
@@ -521,20 +567,18 @@ class BuyContext(Context):
     ctx.card = Card("buy")
     ctx.hud = hud or Hud(party=[Knight()])
     ctx.goldbubble = GoldBubble(gold=200)
-    ctx.textbubble = TextBubble(width=120)
-    ctx.portrait = HusbandPortrait()
 
   def enter(ctx):
     ctx.open(child=ctx.gridctx)
-    ctx.textbubble.print("WHAT'S GOT YER EYE?")
+    ctx.comps.textbubble.print("WHAT'S GOT YER EYE?")
 
   def handle_select(ctx):
-    ctx.textbubble.print("HOW MANY YOU LOOKIN TO BUY?")
+    ctx.comps.textbubble.print("HOW MANY YOU LOOKIN TO BUY?")
     ctx.goldbubble.delta = -ctx.gridctx.item.value # use event data?
 
   def handle_deselect(ctx):
-    ctx.textbubble.print("ANYTHING ELSE?")
-    ctx.goldbubble.delta = 0 # use event data?
+    ctx.comps.textbubble.print("ANYTHING ELSE?")
+    ctx.goldbubble.delta = 0
 
   def handle_change_quantity(ctx, quantity):
     ctx.goldbubble.delta = -ctx.gridctx.item.value * quantity
@@ -562,11 +606,11 @@ class BuyContext(Context):
 
     topbar_image = Surface((WINDOW_WIDTH, BG_Y))
     bottombar_image = Surface((WINDOW_WIDTH, WINDOW_HEIGHT - BG_Y - BG_HEIGHT))
-    sprites += [Sprite(
+    sprites += [topbar_sprite := Sprite(
       image=topbar_image,
       pos=(0, 0),
       layer="bar",
-    ), Sprite(
+    ), bottombar_sprite := Sprite(
       image=bottombar_image,
       pos=(0, WINDOW_HEIGHT),
       origin=Sprite.ORIGIN_BOTTOMLEFT,
@@ -574,32 +618,31 @@ class BuyContext(Context):
     )]
 
     sprites += [portrait_sprite := Sprite(
-      image=ctx.portrait.render(),
+      image=ctx.comps.portraits.render(),
       pos=(WINDOW_WIDTH / 2 - 48, BG_Y + BG_HEIGHT),
       origin=Sprite.ORIGIN_BOTTOM,
       layer="portrait",
     )]
 
-    textbubble_view = ctx.textbubble.view()
+    textbubble_view = ctx.comps.textbubble.view()
+    textbubble_pos = vector.add(portrait_sprite.rect.midbottom, (32, -16))
     sprites += Sprite.move_all(
       sprites=textbubble_view,
-      offset=portrait_sprite.rect.center,
+      offset=textbubble_pos,
       layer="textbox",
     )
 
     counter_view = [s for s in grid_view if s.layer == "counter"]
-    sprites += Sprite.move_all(
-      sprites=counter_view,
-      offset=vector.add(
-        portrait_sprite.rect.center,
-        (-8, 0)
+    if counter_view:
+      sprites += Sprite.move_all(
+        sprites=counter_view,
+        offset=vector.add(textbubble_pos, (-8, 0))
       )
-    )
 
     sprites += [hud_sprite := Sprite(
       image=ctx.hud.render(),
-      pos=(BOX_XMARGIN, WINDOW_HEIGHT - 8),
-      origin=Sprite.ORIGIN_BOTTOMLEFT,
+      pos=(BOX_XMARGIN, bottombar_sprite.rect.centery),
+      origin=Sprite.ORIGIN_LEFT,
       layer="hud",
     )]
 

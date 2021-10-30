@@ -72,7 +72,7 @@ class TextBubble:
   class ResizeAnim(TweenAnim): pass
 
   class PromptContext(Context):
-    def __init__(ctx, choices, *args, **kwargs):
+    def __init__(ctx, choices, required=False, *args, **kwargs):
       super().__init__(*args, **kwargs)
       ctx.choices = choices
       ctx.choice_index = 0
@@ -91,6 +91,8 @@ class TextBubble:
         return ctx.handle_move(delta=1)
       if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
         return ctx.handle_choose()
+      if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, gamepad.controls.cancel):
+        return ctx.handle_cancel()
 
     def handle_move(ctx, delta):
       old_index = ctx.choice_index
@@ -116,6 +118,9 @@ class TextBubble:
         ))
       ctx.choice = choice
       return True
+
+    def handle_cancel(ctx):
+      ctx.close(None)
 
     def update(ctx):
       for anim in ctx.anims:
