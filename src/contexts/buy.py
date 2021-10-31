@@ -14,6 +14,7 @@ from colors.palette import BLACK, WHITE, RED, YELLOW, GOLD, CYAN, CORAL, BROWN, 
 
 from contexts import Context
 from cores.knight import Knight
+from cores.mage import Mage
 from comps.bg import Bg
 from comps.box import Box
 from comps.card import Card
@@ -367,8 +368,10 @@ class CounterContext(Context):
     bagbubble = ctx.comps.bagbubble = TextBubble(
       origin=Sprite.ORIGIN_LEFT,
       inverse=True,
+      flip_tail=len(ctx.store.party) == 2,
     )
-    bagbubble.print(("I have ", Token(text=str(quantity), color=CYAN, bold=True), " of these."))
+    len(ctx.store.party) == 1 and bagbubble.print(("I have ", Token(text=str(quantity), color=CYAN, bold=True), " of these."))
+    len(ctx.store.party) == 2 and bagbubble.print(("We have ", Token(text=str(quantity), color=CYAN, bold=True), "!"))
 
   def hide_bagbubble(ctx):
     if not ctx.comps or not ctx.comps.bagbubble: return
@@ -696,9 +699,12 @@ class GridContext(Context):
 class BuyContext(Context):
   def __init__(ctx, store=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
-    ctx.store = store or GameData()
+    ctx.store = store or GameData(party=[
+      Knight(),
+      # Mage(),
+    ])
     ctx.comps = ComponentStore(
-      hud=Hud(party=[Knight()]),
+      hud=Hud(party=ctx.store.party),
       goldbubble=GoldBubble(gold=200),
       textbubble=TextBubble(width=120, origin=Sprite.ORIGIN_TOP, offset=(32, 0)),
       bagbubble=None,

@@ -182,7 +182,7 @@ class TextBubble:
       ))
       return sprites
 
-  def __init__(bubble, width=0, pos=(0, 0), origin=Sprite.ORIGIN_RIGHT, offset=(0, 0), inverse=False, ypadding=16):
+  def __init__(bubble, width=0, pos=(0, 0), origin=Sprite.ORIGIN_RIGHT, offset=(0, 0), inverse=False, flip_tail=False, ypadding=16):
     bubble.width = width
     bubble.height = 0
     bubble.offset_height = 0
@@ -190,6 +190,7 @@ class TextBubble:
     bubble.origin = origin
     bubble.offset = offset
     bubble.inverse = inverse
+    bubble.flip_tail = flip_tail
     bubble.ypadding = ypadding
     bubble.textbox = None
     bubble.anims = []
@@ -248,7 +249,7 @@ class TextBubble:
       bubble.textbox.print(message, on_end=end_print)
 
     if bubble.is_entering or bubble.is_resizing:
-      bubble.width = bubble.width or (assets.ttf["roman"].width(str(Message(message))) + TextBubble.XPADDING)
+      bubble.width = bubble.width or (assets.ttf["normal"].width(str(Message(message))) + TextBubble.XPADDING * 2)
       bubble.textbox = TextBox((bubble.textbox_width, bubble.textbox_height), color=BLACK if not bubble.inverse else WHITE)
       bubble_height = bubble.textbox_height + bubble.ypadding * 2
       if bubble.is_entering:
@@ -288,14 +289,20 @@ class TextBubble:
     if bubble.origin == Sprite.ORIGIN_RIGHT:
       bubbletail_x -= bubbletail_image.get_width()
       bubbletail_y -= bubbletail_image.get_height() // 2
+      if bubble.flip_tail:
+        bubbletail_image = flip(bubbletail_image, False, True)
 
     if bubble.origin == Sprite.ORIGIN_TOP:
       bubbletail_image = rotate(bubbletail_image, 90)
       bubbletail_x -= bubbletail_image.get_width() // 2
+      if bubble.flip_tail:
+        bubbletail_image = flip(bubbletail_image, True, False)
 
     if bubble.origin == Sprite.ORIGIN_LEFT:
       bubbletail_image = rotate(bubbletail_image, 180)
       bubbletail_y -= bubbletail_image.get_height() // 2
+      if bubble.flip_tail:
+        bubbletail_image = flip(bubbletail_image, False, True)
 
     bubbletail_offset = cos(bubble.ticks % 75 / 75 * 2 * pi)
 
