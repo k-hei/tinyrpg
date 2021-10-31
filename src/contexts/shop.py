@@ -98,11 +98,11 @@ class ShopContext(Context):
     ctx.focuses = 0
     ctx.blurring = False
     ctx.exiting = False
+    ctx.bubble = None
     ctx.textbox = TextBox((96, 32), color=WHITE)
     ctx.hud = hud or Hud(store.party)
     ctx.anims = [CursorAnim()]
     ctx.on_animate = None
-    ctx.bubble = TextBubble(width=104, pos=(240, 40))
     ctx.controls = [
       Control(key=("X"), value="Menu")
     ]
@@ -140,6 +140,7 @@ class ShopContext(Context):
     message = (ctx.focuses == 0
       and ctx.messages["home"]
       or ctx.messages["home_again"])
+    ctx.bubble = TextBubble(width=104, pos=(240, 40))
     ctx.bubble.print(message, on_end=lambda: (
       portrait.stop_talk(),
       ctx.child is None and ctx.open(
@@ -179,7 +180,7 @@ class ShopContext(Context):
 
   def handle_buy(ctx, card):
     ctx.blur()
-    ctx.bubble.exit()
+    ctx.bubble.exit(on_end=lambda: setattr(ctx, "bubble", None))
     ctx.child.open(BuyContext(
       store=ctx.store,
       comps=ComponentStore(
@@ -293,7 +294,8 @@ class ShopContext(Context):
         ))
 
     sprites += ctx.portraitgroup.view()
-    sprites += ctx.bubble.view()
+    if ctx.bubble:
+      sprites += ctx.bubble.view()
 
     title_anim = next((a for a in ctx.anims if (
       isinstance(a, TitleAnim)

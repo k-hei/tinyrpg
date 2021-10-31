@@ -77,7 +77,7 @@ class CursorAnim(SineAnim): pass
 class IconSlideAnim(TweenAnim): pass
 class CardAnim(TweenAnim): duration = 30
 class CardEnterAnim(CardAnim): duration = 30
-class CardExitAnim(CardAnim): duration = 20
+class CardExitAnim(CardAnim): duration = 15
 
 def view_itemcell(item, selected=True, cache={}):
   sprites = []
@@ -626,6 +626,9 @@ class GridContext(Context):
     ]
 
   def handle_press(ctx, button):
+    if ctx.parent.anims:
+      return False
+
     if ctx.child:
       return super().handle_press(button)
 
@@ -668,7 +671,7 @@ class GridContext(Context):
     return True
 
   def handle_close(ctx):
-    ctx.parent.close()
+    ctx.parent.exit()
 
   def update(ctx):
     super().update()
@@ -724,6 +727,7 @@ class BuyContext(Context):
       sprite_id="buy_bgtile",
     )
     ctx.tag = ShopTag("general_store")
+    ctx.cache_cardpos = ctx.comps.card.sprite.pos
     ctx.anims = []
 
   def enter(ctx):
@@ -732,6 +736,13 @@ class BuyContext(Context):
     ctx.anims += [
       CardEnterAnim(target=ctx.comps.card.sprite.pos)
     ]
+
+  def exit(ctx):
+    ctx.comps.textbubble.exit()
+    ctx.anims += [
+      CardExitAnim(target=ctx.cache_cardpos)
+    ]
+    ctx.anims[-1].on_end = ctx.close
 
   def handle_select(ctx):
     ctx.comps.textbubble.print("HOW MANY YOU LOOKIN TO BUY?")
@@ -861,7 +872,7 @@ class BuyContext(Context):
       if type(card_anim) is CardEnterAnim:
         t = ease_out(t)
       elif type(card_anim) is CardExitAnim:
-        t = ease_in_out(t)
+        t = 1 - ease_in_out(t)
       from_x, from_y = card_anim.target
       to_x, to_y = (card_x, card_y)
       card_x = lerp(from_x, to_x, t)
