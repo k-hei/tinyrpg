@@ -24,6 +24,7 @@ from comps.log import Token
 from comps.textbox import TextBox
 from comps.textbubble import TextBubble, Choice
 from anims.sine import SineAnim
+from anims.pause import PauseAnim
 from savedata.resolve import resolve_item
 import assets
 from config import WINDOW_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
@@ -67,6 +68,7 @@ ITEMS = (
 @dataclass
 class ComponentStore:
   textbubble: TextBubble = None
+  goldbubble: GoldBubble = None
   portraits: list = None
 
 class CursorAnim(SineAnim): pass
@@ -371,7 +373,11 @@ class CounterContext(Context):
         Choice("Yes"),
         Choice("No", default=True, closing=True)
       ]
-    ), on_close=lambda *choice: ctx.comps.textbubble.print("HOW MANY YOU LOOKIN TO BUY?"))
+    ), on_close=lambda *choice: (
+      choice := choice and choice[0],
+      choice and choice.text == "Yes" and ctx.close(ctx.value)
+      or ctx.comps.textbubble.print("HOW MANY YOU LOOKIN TO BUY?")
+    ))
     return True
 
   def handle_press(ctx, button):
@@ -395,7 +401,7 @@ class CounterContext(Context):
       return ctx.handle_choose()
 
     if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, gamepad.controls.cancel):
-      return ctx.close()
+      return ctx.close(None)
 
   def handle_release(counter, button):
     if button in (pygame.K_UP, gamepad.controls.UP):
@@ -405,6 +411,7 @@ class CounterContext(Context):
       counter.pressed_down = False
 
   def update(counter):
+    super().update()
     counter.bounce_anim.update()
 
   def view(ctx):
@@ -478,13 +485,13 @@ class GridContext(Context):
     comps=None,
     on_change_item=None,
     on_select_item=None,
-    on_deselect_item=None,
     on_change_quantity=None,
     *args, **kwargs
   ):
     super().__init__(*args, **kwargs)
     ctx.height = height
     ctx.comps = comps
+    ctx.anims = []
     ctx.itemgrid = ItemGrid(
       cols=GRID_COLS,
       items=items,
@@ -499,7 +506,6 @@ class GridContext(Context):
     )
     ctx.cursor = (0, 0)
     ctx.on_select_item = on_select_item
-    ctx.on_deselect_item = on_deselect_item
     ctx.on_change_item = on_change_item
     on_change_item and on_change_item(ctx.item)
     ctx.on_change_quantity = on_change_quantity
@@ -535,8 +541,25 @@ class GridContext(Context):
     ctx.open(CounterContext(
       comps=ctx.comps,
       on_change=ctx.on_change_quantity
-    ), on_close=ctx.on_deselect_item)
+    ), on_close=lambda *quantity: (
+      quantity := len(quantity) and quantity[0],
+      quantity and (
+        ctx.comps.textbubble.print("THANKS!"),
+        ctx.anims.append(PauseAnim(
+          duration=120,
+          on_end=lambda: ctx.comps.textbubble.print("ANYTHING ELSE?")
+        )),
+        setattr(ctx.comps.goldbubble, "gold", ctx.comps.goldbubble.gold + ctx.comps.goldbubble.delta),
+      ) or (
+        ctx.comps.textbubble.print("ANYTHING ELSE?"),
+      ),
+      setattr(ctx.comps.goldbubble, "delta", 0),
+    ))
     return True
+
+  def update(ctx):
+    super().update()
+    ctx.anims = [(a.update(), a)[-1] for a in ctx.anims if not a.done]
 
   def view(ctx):
     itemgrid_view = ctx.itemgrid.view(focused=not ctx.child)
@@ -554,7 +577,8 @@ class BuyContext(Context):
     super().__init__(*args, **kwargs)
     ctx.comps = ComponentStore(
       textbubble=TextBubble(width=120, origin=Sprite.ORIGIN_TOP),
-      portraits=HusbandPortrait()
+      goldbubble=GoldBubble(gold=200),
+      portraits=HusbandPortrait(),
     )
     ctx.textbox = ItemTextBox(width=160 + (28 if ENABLED_ITEM_RARITY_STARS else 0))
     ctx.gridctx = GridContext(
@@ -563,7 +587,6 @@ class BuyContext(Context):
       comps=ctx.comps,
       on_change_item=ctx.textbox.reload,
       on_select_item=ctx.handle_select,
-      on_deselect_item=ctx.handle_deselect,
       on_change_quantity=ctx.handle_change_quantity,
     )
     ctx.bg = Bg(
@@ -573,7 +596,6 @@ class BuyContext(Context):
     ctx.tag = ShopTag("general_store")
     ctx.card = Card("buy")
     ctx.hud = hud or Hud(party=[Knight()])
-    ctx.goldbubble = GoldBubble(gold=200)
 
   def enter(ctx):
     ctx.open(child=ctx.gridctx)
@@ -581,14 +603,10 @@ class BuyContext(Context):
 
   def handle_select(ctx):
     ctx.comps.textbubble.print("HOW MANY YOU LOOKIN TO BUY?")
-    ctx.goldbubble.delta = -ctx.gridctx.item.value # use event data?
-
-  def handle_deselect(ctx):
-    ctx.comps.textbubble.print("ANYTHING ELSE?")
-    ctx.goldbubble.delta = 0
+    ctx.comps.goldbubble.delta = -ctx.gridctx.item.value # use event data?
 
   def handle_change_quantity(ctx, quantity):
-    ctx.goldbubble.delta = -ctx.gridctx.item.value * quantity
+    ctx.comps.goldbubble.delta = -ctx.gridctx.item.value * quantity
 
   def view(ctx):
     sprites = []
@@ -647,7 +665,7 @@ class BuyContext(Context):
     )]
 
     sprites += Sprite.move_all(
-      sprites=ctx.goldbubble.view(),
+      sprites=ctx.comps.goldbubble.view(),
       offset=(hud_sprite.rect.right + 4, hud_sprite.rect.centery),
       layer="hud",
     )
