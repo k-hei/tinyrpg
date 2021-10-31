@@ -58,6 +58,7 @@ class GoldBubble:
     bubble.pos = pos
     bubble.pos_drawn = pos
     bubble.delta = 0
+    bubble.changing = False
 
   @property
   def gold(bubble):
@@ -65,6 +66,8 @@ class GoldBubble:
 
   @gold.setter
   def gold(bubble, gold):
+    if "_gold" in dir(bubble) and bubble._gold != gold:
+      bubble.changing = True
     bubble._gold = gold
 
   @property
@@ -75,6 +78,7 @@ class GoldBubble:
   def delta(bubble, delta):
     if "_delta" in dir(bubble):
       if delta == 0:
+        bubble.changing = False
         bubble.anims.append(GoldBubble.DeltaExitAnim(target=bubble._delta))
       elif bubble._delta == 0:
         bubble.anims.append(GoldBubble.DeltaEnterAnim())
@@ -86,16 +90,24 @@ class GoldBubble:
   def view(bubble):
     bubble.update()
     sprites = []
+
     old_gold_drawn = bubble.gold_drawn
     bubble.gold_drawn += (bubble.gold - bubble.gold_drawn) / 16
     if round(bubble.gold_drawn) == bubble.gold and round(old_gold_drawn) != bubble.gold:
       bubble.delta = 0
+
+    if -bubble.delta > bubble.gold_drawn and not bubble.changing:
+      value_color = RED
+    else:
+      value_color = WHITE
+
     bubble.pos_drawn = vector.add(bubble.pos_drawn, vector.scale(vector.subtract(bubble.pos, bubble.pos_drawn), 1 / 8))
     sprites += [bubble_sprite := Sprite(
-      image=render_gold(round(bubble.gold_drawn), color=RED if -bubble.delta > bubble.gold_drawn else WHITE),
+      image=render_gold(round(bubble.gold_drawn), color=value_color),
       pos=bubble.pos_drawn,
       origin=Sprite.ORIGIN_LEFT
     )]
+
     delta_anim = next((a for a in bubble.anims if isinstance(a, GoldBubble.DeltaAnim)), None)
     if bubble.delta or delta_anim:
       delta_value = bubble.delta
@@ -114,4 +126,5 @@ class GoldBubble:
         ),
         origin=Sprite.ORIGIN_TOPRIGHT
       )]
+
     return sprites
