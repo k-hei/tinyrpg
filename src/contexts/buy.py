@@ -592,6 +592,7 @@ class GridContext(Context):
 
   def buy(ctx, item, quantity):
     price = item.value * quantity
+    ctx.store.gold -= price
     ctx.store.items += [item] * quantity
     ctx.comps.goldbubble.gold -= price
     ctx.comps.textbubble.print("THANKS!")
