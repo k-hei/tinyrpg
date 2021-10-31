@@ -54,6 +54,7 @@ TEXTBOX_ICON_MARGIN = 4
 TEXTBOX_TITLE_MARGIN = 4
 TEXTBOX_DESC_MARGIN = 3
 TEXTBOX_XMARGIN = 4
+PORTRAIT_POS = (WINDOW_WIDTH / 2 - 48, BG_Y + BG_HEIGHT)
 ENABLED_ITEM_RARITY_STARS = False
 ITEMS = (
   "Potion",
@@ -82,7 +83,7 @@ class ComponentStore:
 
 class CursorAnim(SineAnim): pass
 
-class ItemSlideAnim(TweenAnim): pass
+class IconSlideAnim(TweenAnim): pass
 
 def view_itemcell(item, selected=True, cache={}):
   sprites = []
@@ -596,35 +597,39 @@ class GridContext(Context):
     return vector.add((box_x, box_y), (ITEMGRID_XPADDING, ITEMGRID_YPADDING))
 
   def buy(ctx, item, quantity):
+    price = item.value * quantity
     ctx.store.items += [item] * quantity
-    ctx.comps.goldbubble.gold -= item.value * quantity
+    ctx.comps.goldbubble.gold -= price
     ctx.comps.textbubble.print("THANKS!")
-    ctx.anims += [PauseAnim(
-      duration=120,
-      on_end=lambda: (
-        ctx.comps.textbubble.message == "THANKS!"
-        and ctx.comps.textbubble.print("ANYTHING ELSE?")
-      )
-    ), *[ItemSlideAnim(
-      duration=30,
-      delay=i * 5,
-      target=(
-        item,
-        vector.add(
-          ctx.itemgrid_pos,
-          ctx.itemgrid.scroll_offset,
-          vector.multiply(
-            ctx.itemgrid.cursor_drawn,
-            (ITEM_WIDTH, ITEM_HEIGHT)
+    ctx.anims += [
+      PauseAnim(
+        duration=120,
+        on_end=lambda: (
+          ctx.comps.textbubble.message == "THANKS!"
+          and ctx.comps.textbubble.print("ANYTHING ELSE?")
+        )
+      ),
+      *[IconSlideAnim(
+        duration=30,
+        delay=i * 5,
+        target=(
+          item().render(),
+          vector.add(
+            ctx.itemgrid_pos,
+            ctx.itemgrid.scroll_offset,
+            vector.multiply(
+              ctx.itemgrid.cursor_drawn,
+              (ITEM_WIDTH, ITEM_HEIGHT)
+            ),
+            vector.scale(
+              assets.sprites["buy_cursor"][0].get_size(),
+              1 / 2
+            ),
           ),
-          vector.scale(
-            assets.sprites["buy_cursor"][0].get_size(),
-            1 / 2
-          ),
-        ),
-        ctx.comps.hud.pos
-      )
-    ) for i in range(quantity)]]
+          ctx.comps.hud.pos
+        )
+      ) for i in range(quantity)],
+    ]
 
   def handle_press(ctx, button):
     if ctx.child:
@@ -676,14 +681,13 @@ class GridContext(Context):
       offset=ctx.itemgrid_pos
     )
 
-    item_anims = [a for a in ctx.anims if type(a) is ItemSlideAnim]
+    item_anims = [a for a in ctx.anims if type(a) is IconSlideAnim]
     for anim in item_anims:
-      item, start_pos, goal_pos = anim.target
+      item_image, start_pos, goal_pos = anim.target
+      item_image = stroke(item_image, WHITE)
       start_x, start_y = start_pos
       goal_x, goal_y = goal_pos
       t = ease_in_out(anim.pos)
-      item_image = item().render()
-      item_image = stroke(item_image, WHITE)
       sprites.append(Sprite(
         image=item_image,
         pos=(
@@ -701,7 +705,7 @@ class BuyContext(Context):
     super().__init__(*args, **kwargs)
     ctx.store = store or GameData(party=[
       Knight(),
-      # Mage(),
+      Mage(),
     ])
     ctx.comps = ComponentStore(
       hud=Hud(party=ctx.store.party),
@@ -774,7 +778,7 @@ class BuyContext(Context):
 
     portrait_sprite = Sprite(
       image=ctx.comps.portraits[0].render(),
-      pos=(WINDOW_WIDTH / 2 - 48, BG_Y + BG_HEIGHT),
+      pos=PORTRAIT_POS,
       origin=Sprite.ORIGIN_BOTTOM,
       layer="portrait",
     )

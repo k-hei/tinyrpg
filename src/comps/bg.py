@@ -1,10 +1,11 @@
 from math import ceil
 from pygame import Surface, SRCALPHA
 import assets
-from lib.sprite import Sprite
+from lib.sprite import Sprite, SpriteMask
 from anims.tween import TweenAnim
 from lib.lerp import lerp
 from easing.expo import ease_out
+from config import WINDOW_SIZE
 
 class EnterAnim(TweenAnim): pass
 class ExitAnim(TweenAnim): pass
@@ -23,7 +24,7 @@ class Bg:
         tile_surface.blit(tile_image, (x, y))
     return tile_surface
 
-  def __init__(bg, size, sprite_id="bgtile", period=0):
+  def __init__(bg, size=WINDOW_SIZE, sprite_id="bgtile", period=0):
     bg.size = size
     bg.sprite_id = sprite_id
     bg.period = period or assets.sprites[sprite_id].get_width() * 3
@@ -79,9 +80,13 @@ class Bg:
       bg_height *= 1 - bg_anim.pos
     elif bg.exiting:
       return []
-    return [Sprite(
+    bg_sprite = Sprite(
       image=bg_image,
       pos=(x, x + bg.size[1] / 2),
       size=(bg_image.get_width(), bg_height),
       origin=Sprite.ORIGIN_LEFT
+    )
+    return [bg_sprite] if bg.size == WINDOW_SIZE else [SpriteMask(
+      size=bg.size,
+      children=[bg_sprite],
     )]

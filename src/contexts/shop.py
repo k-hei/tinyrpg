@@ -7,6 +7,7 @@ from contexts import Context
 from contexts.cardgroup import CardContext, CARD_BUY, CARD_SELL, CARD_EXIT
 from contexts.sell import SellContext
 from cores.knight import Knight
+from comps.bg import Bg
 from comps.box import Box
 from comps.control import Control
 from comps.textbox import TextBox
@@ -79,6 +80,7 @@ class ShopContext(Context):
     ctx.subtitle = subtitle
     ctx.portraits = PortraitGroup(portraits)
     ctx.cards = cards
+    ctx.bg = None
     ctx.bg_name = bg_name
     ctx.bg_color = bg_color
     ctx.messages = messages
@@ -230,30 +232,36 @@ class ShopContext(Context):
       pos=(0, 0)
     ))
 
-    bg_image = assets.sprites[ctx.bg_name]
-    bg_image = replace_color(bg_image, WHITE, ctx.bg_color)
-    bg_anim = next((a for a in ctx.anims if isinstance(a, BackgroundAnim)), None)
-    if bg_anim:
-      t = bg_anim.pos
-      if type(bg_anim) is BackgroundExitAnim:
-        t = 1 - t
-      if t < 0.5:
-        t = t / 0.5
-        bg_width = int(bg_image.get_width() * t)
-        bg_height = 4
-      else:
-        t = (t - 0.5) / 0.5
-        bg_width = bg_image.get_width()
-        bg_height = int(bg_image.get_height() * t)
-      bg_image = scale(bg_image, (bg_width, bg_height))
-    if bg_anim or not ctx.exiting:
-      sprites.append(Sprite(
-        image=bg_image,
-        pos=(
-          WINDOW_WIDTH / 2 - bg_image.get_width() / 2,
-          128 / 2 - bg_image.get_height() / 2
-        )
-      ))
+    if ctx.bg_name.endswith("bgtile"):
+      if not ctx.bg:
+        ctx.bg = Bg(size=(WINDOW_WIDTH, 128), sprite_id=ctx.bg_name)
+        ctx.bg.enter()
+      sprites += ctx.bg.view()
+    else:
+      bg_image = assets.sprites[ctx.bg_name]
+      bg_image = replace_color(bg_image, WHITE, ctx.bg_color)
+      bg_anim = next((a for a in ctx.anims if isinstance(a, BackgroundAnim)), None)
+      if bg_anim:
+        t = bg_anim.pos
+        if type(bg_anim) is BackgroundExitAnim:
+          t = 1 - t
+        if t < 0.5:
+          t = t / 0.5
+          bg_width = int(bg_image.get_width() * t)
+          bg_height = 4
+        else:
+          t = (t - 0.5) / 0.5
+          bg_width = bg_image.get_width()
+          bg_height = int(bg_image.get_height() * t)
+        bg_image = scale(bg_image, (bg_width, bg_height))
+      if bg_anim or not ctx.exiting:
+        sprites.append(Sprite(
+          image=bg_image,
+          pos=(
+            WINDOW_WIDTH / 2 - bg_image.get_width() / 2,
+            128 / 2 - bg_image.get_height() / 2
+          )
+        ))
 
     sprites += ctx.portraits.view()
     sprites += ctx.bubble.view()

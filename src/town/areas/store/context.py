@@ -7,7 +7,7 @@ from portraits.wife import WifePortrait
 class StoreContext(ShopContext):
   def __init__(ctx, *args, **kwargs):
     super().__init__(
-      title="General Store",
+      title="Market",
       subtitle="All your exploration needs",
       messages={
         "home": Husband.name.upper() + ": How can I help you?",
@@ -20,7 +20,7 @@ class StoreContext(ShopContext):
         },
         "exit": Wife.name.upper() + ": See you soon!"
       },
-      bg_name="store_bg",
+      bg_name="buy_bgtile",
       portraits=[HusbandPortrait(), WifePortrait()],
       cards=[
         ShopCard(name="buy", text="Buy recovery and support items.", portrait=HusbandPortrait),
