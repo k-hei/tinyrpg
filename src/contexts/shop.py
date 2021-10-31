@@ -101,6 +101,7 @@ class ShopContext(Context):
     ctx.bubble = None
     ctx.textbox = TextBox((96, 32), color=WHITE)
     ctx.hud = hud or Hud(store.party)
+    ctx.hud._pos = (8, 8)
     ctx.anims = [CursorAnim()]
     ctx.on_animate = None
     ctx.controls = [
@@ -185,7 +186,7 @@ class ShopContext(Context):
       store=ctx.store,
       comps=ComponentStore(
         hud=ctx.hud,
-        goldbubble=GoldBubble(gold=200),
+        goldbubble=GoldBubble(gold=ctx.store.gold),
         textbubble=TextBubble(width=120, origin=Sprite.ORIGIN_TOP, offset=(32, 0)),
         bagbubble=None,
         portraits=ctx.portraitgroup.portraits,
@@ -233,22 +234,18 @@ class ShopContext(Context):
     MARGIN = 2
     sprites = []
 
-    hud_view = ctx.hud.view()
+    hud = ctx.hud
+    hud_goal = (MARGIN, WINDOW_HEIGHT - MARGIN - hud.render().get_height())
+    if (not ctx.child or isinstance(ctx.get_tail(), CardContext)) and hud.pos != hud_goal:
+      hud.slide(hud.pos, hud_goal)
+    hud_view = hud.view()
     if hud_view:
-      hud_image = hud_view[0].image
-      hud_x = MARGIN
-      hud_y = WINDOW_HEIGHT - MARGIN - hud_image.get_height()
-      hud_anim = next((a for a in ctx.anims if type(a) is HudEnterAnim), None)
-      if hud_anim:
-        t = hud_anim.pos
-        t = ease_out(t)
-        hud_x = lerp(8, hud_x, t)
-        hud_y = lerp(8, hud_y, t)
-      sprites.append(Sprite(
-        image=hud_image,
-        pos=(hud_x, hud_y),
-        layer="hud"
-      ))
+      sprites += Sprite.move_all(
+        sprites=hud_view,
+        offset=(0, hud.image.get_height() / 2),
+        origin=Sprite.ORIGIN_LEFT,
+        layer="hud",
+      )
 
     if ctx.get_head().transits:
       return sprites

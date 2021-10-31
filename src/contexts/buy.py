@@ -818,14 +818,12 @@ class BuyContext(Context):
     # hud (to override)
     hud = ctx.comps.hud
     hud_image = hud.render()
-    hud.pos = vector.add(
-      (BOX_XMARGIN, bottombar_sprite.rect.centery),
-      (hud_image.get_width() / 2, 0)
-    )
+    hud_pos = (BOX_XMARGIN, bottombar_sprite.rect.centery - hud.image.get_height() / 2)
+    if hud.pos != hud_pos:
+      hud.pos = hud_pos
     hud_sprite = Sprite(
       image=hud_image,
       pos=hud.pos,
-      origin=Sprite.ORIGIN_CENTER,
       layer="hud",
     )
     # sprites += [hud_sprite]

@@ -16,8 +16,9 @@ from cores.rogue import Rogue
 
 from anims import Anim
 from anims.tween import TweenAnim
-from easing.expo import ease_out, ease_in
+from easing.expo import ease_out, ease_in, ease_in_out
 from lib.lerp import lerp
+import lib.vector as vector
 
 CIRC16_X = 29
 CIRC16_Y = 26
@@ -34,27 +35,30 @@ HP_WIDTH = 26
 HP_CRITICAL = 5
 SPEED_DEPLETE = 200
 SPEED_RESTORE = 300
-ENTER_DURATION = 15
-EXIT_DURATION = 6
-FLINCH_DURATION = 10
-SWITCHOUT_DURATION = 6
-SWITCHIN_DURATION = 12
 
 class EnterAnim(TweenAnim):
-  def __init__(anim):
-    super().__init__(duration=ENTER_DURATION)
+  duration = 15
+  blocking = True
+
 class ExitAnim(TweenAnim):
-  def __init__(anim):
-    super().__init__(duration=EXIT_DURATION)
+  duration = 6
+  blocking = True
+
 class SwitchOutAnim(TweenAnim):
-  def __init__(anim):
-    super().__init__(duration=SWITCHOUT_DURATION)
+  duration = 6
+  blocking = True
+
 class SwitchInAnim(TweenAnim):
-  def __init__(anim):
-    super().__init__(duration=SWITCHIN_DURATION)
+  duration = 12
+  blocking = True
+
 class FlinchAnim(Anim):
-  def __init__(anim):
-    super().__init__(duration=FLINCH_DURATION)
+  duration = 10
+  blocking = True
+
+class SlideAnim(TweenAnim):
+  duration = 20
+  blocking = False
 
 class Hud:
   MARGIN_LEFT = 8
@@ -67,13 +71,23 @@ class Hud:
     hud.active = True
     hud.anims = []
     hud.offset = (0, 0)
+    hud.pos = (0, 0)
     hud.hero = None
     hud.ally = None
     hud.hp_hero = inf
     hud.hp_ally = inf
     hud.hp_hero_drawn = inf
     hud.hp_ally_drawn = inf
-    hud.enter()
+
+  @property
+  def pos(hud):
+    return hud._pos
+
+  @pos.setter
+  def pos(hud, pos):
+    if "_pos" in dir(hud):
+      hud.anims.append(SlideAnim(target=(hud._pos, pos)))
+    hud._pos = pos
 
   def enter(hud):
     hud.active = True
@@ -82,6 +96,10 @@ class Hud:
   def exit(hud):
     hud.active = False
     hud.anims.append(ExitAnim())
+
+  def slide(hud, start, goal):
+    hud._pos = start
+    hud.pos = goal
 
   def update(hud):
     hero = hud.party[0] if len(hud.party) >= 1 else None
@@ -110,12 +128,7 @@ class Hud:
         hud.anims.append(FlinchAnim())
         if hud.hp_ally == inf:
           hud.hp_ally = ally.get_hp_max()
-      anim = hud.anims[0] if hud.anims else None
-      if anim:
-        if anim.done:
-          hud.anims.pop(0)
-        else:
-          anim.update()
+      anim = next((a for a in hud.anims if a.blocking), None)
       if anim is None and hud.hp_hero > hero.get_hp():
         hud.hp_hero = max(hero.get_hp(), hud.hp_hero - hero.get_hp_max() / SPEED_DEPLETE)
       if anim is None and hud.hp_hero < hero.get_hp():
@@ -124,6 +137,12 @@ class Hud:
         hud.hp_ally = max(ally.get_hp(), hud.hp_ally - ally.get_hp_max() / SPEED_DEPLETE)
       if anim is None and ally and hud.hp_ally < ally.get_hp():
         hud.hp_ally = min(ally.get_hp(), hud.hp_ally + ally.get_hp_max() / SPEED_RESTORE)
+      anim = hud.anims[0] if hud.anims else None
+      if anim:
+        if anim.done:
+          hud.anims.pop(0)
+        else:
+          anim.update()
     hud.hp_hero_drawn = hero.get_hp()
     if ally:
       hud.hp_ally_drawn = ally.get_hp()
@@ -225,36 +244,22 @@ class Hud:
   def view(hud):
     hud.image = hud.render()
     hud.update()
-    from_x, from_y = Hud.MARGIN_LEFT, -hud.image.get_height()
-    to_x, to_y = Hud.MARGIN_LEFT, Hud.MARGIN_TOP
+    hud_x, hud_y = hud.pos
     anim = hud.anims[0] if hud.anims else None
     if anim:
-      if type(anim) is EnterAnim:
-        t = anim.pos
-        t = ease_out(t)
-        start_x, start_y = from_x, from_y
-        target_x, target_y = to_x, to_y
-      elif type(anim) is ExitAnim:
-        t = anim.pos
-        start_x, start_y = to_x, to_y
-        target_x, target_y = from_x, from_y
-      elif type(anim) is FlinchAnim:
+      if type(anim) is FlinchAnim:
         offset_x, offset_y = hud.offset
         while (offset_x, offset_y) == hud.offset:
           offset_x = randint(-1, 1)
           offset_y = randint(-1, 1)
-        hud_x = to_x + offset_x
-        hud_y = to_y + offset_y
-      else:
-        hud_x = to_x
-        hud_y = to_y
-      if type(anim) is EnterAnim or type(anim) is ExitAnim:
+        hud_x += offset_x
+        hud_y += offset_y
+      elif type(anim) is SlideAnim:
+        t = ease_in_out(anim.pos)
+        (start_x, start_y), (target_x, target_y) = anim.target
         hud_x = lerp(start_x, target_x, t)
         hud_y = lerp(start_y, target_y, t)
-    elif hud.active:
-      hud_x = to_x
-      hud_y = to_y
-    else:
+    elif not hud.active:
       return []
     return [Sprite(
       image=hud.image,
