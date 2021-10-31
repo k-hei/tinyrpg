@@ -11,6 +11,7 @@ VALUE_XPADDING = 6
 VALUE_YPADDING = 9
 DELTA_XPADDING = 6
 DELTA_YPADDING = 4
+DELTA_OVERLAP = 7
 
 def render_gold(gold, color=WHITE):
   bubble_surface = assets.sprites["bubble_gold"].copy()
@@ -122,7 +123,7 @@ class GoldBubble:
         image=render_delta(delta_value, t),
         pos=vector.add(
           bubble_sprite.rect.bottomright,
-          (0, -6)
+          (0, -DELTA_OVERLAP)
         ),
         origin=Sprite.ORIGIN_TOPRIGHT
       )]

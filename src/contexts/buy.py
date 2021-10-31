@@ -806,6 +806,13 @@ class BuyContext(Context):
       layer="hud",
     )]
 
+    sprites += [Sprite(
+      image=assets.sprites["gold_bag"],
+      pos=(hud_sprite.rect.left + 8, WINDOW_HEIGHT),
+      origin=Sprite.ORIGIN_BOTTOMLEFT,
+      layer="portrait",
+    )]
+
     goldbubble = ctx.comps.goldbubble
     if type(ctx.get_tail()) is not CounterContext:
       goldbubble_oldpos = goldbubble.pos

@@ -1,9 +1,10 @@
 {
-  "bubble_gold": [0, 0, 53, 26],
-  "box_delta_nw": [ 0, 26, 8, 8],
-  "box_delta_n":  [ 8, 26, 8, 8],
-  "box_delta_ne": [16, 26, 8, 8],
-  "box_delta_sw": [ 0, 34, 8, 8],
-  "box_delta_s":  [ 8, 34, 8, 8],
-  "box_delta_se": [16, 34, 8, 8]
+  "bubble_gold": [0, 0, 54, 26],
+  "box_delta_nw": [54, 0, 8, 8],
+  "box_delta_n":  [62, 0, 8, 8],
+  "box_delta_ne": [70, 0, 8, 8],
+  "box_delta_sw": [54, 8, 8, 8],
+  "box_delta_s":  [62, 8, 8, 8],
+  "box_delta_se": [70, 8, 8, 8],
+  "gold_bag":   [0, 26, 64, 64]
 }
