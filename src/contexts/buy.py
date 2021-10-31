@@ -11,7 +11,6 @@ from lib.filters import stroke, outline, replace_color, darken_image, shadow_lit
 from lib.lerp import lerp
 from easing.expo import ease_in_out
 from colors.palette import BLACK, WHITE, RED, YELLOW, GOLD, CYAN, CORAL, BROWN, DARKBROWN
-from portraits.husband import HusbandPortrait
 
 from contexts import Context
 from cores.knight import Knight
@@ -25,6 +24,8 @@ from comps.shoptag import ShopTag
 from comps.log import Token
 from comps.textbox import TextBox
 from comps.textbubble import TextBubble, Choice
+from portraits.husband import HusbandPortrait
+from portraits.wife import WifePortrait
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
 from anims.pause import PauseAnim
@@ -461,7 +462,11 @@ class CounterContext(Context):
       return []
     goldbubble = ctx.comps.goldbubble
     textbubble = ctx.comps.textbubble
-    goldbubble.pos = vector.add(textbubble.pos, (0, textbubble.height + 8))
+    goldbubble.pos = vector.add(
+      textbubble.pos,
+      (0, textbubble.height + 6),
+      vector.negate(textbubble.offset)
+    )
     return ctx.view_counter() + super().view()
 
   def view_counter(counter):
@@ -469,7 +474,11 @@ class CounterContext(Context):
     counter_pos = (0, 0)
     textbubble = counter.comps and counter.comps.textbubble
     if textbubble and not textbubble.is_resizing:
-      counter_pos = vector.add(textbubble.pos, (textbubble.width / 2, textbubble.height / 2 + 4))
+      counter_pos = vector.add(
+        textbubble.pos,
+        (textbubble.width / 2, textbubble.height / 2 + 4),
+        vector.negate(textbubble.offset)
+      )
     elif counter.comps:
       return []
 
@@ -676,10 +685,11 @@ class BuyContext(Context):
     ctx.comps = ComponentStore(
       hud=Hud(party=[Knight()]),
       goldbubble=GoldBubble(gold=200),
-      textbubble=TextBubble(width=120, origin=Sprite.ORIGIN_TOP),
+      textbubble=TextBubble(width=120, origin=Sprite.ORIGIN_TOP, offset=(32, 0)),
       bagbubble=None,
-      portraits=HusbandPortrait(),
+      portraits=[HusbandPortrait(), WifePortrait()],
     )
+    ctx.comps.portraits[1].darken()
     ctx.textbox = ItemTextBox(width=160 + (28 if ENABLED_ITEM_RARITY_STARS else 0))
     ctx.gridctx = GridContext(
       items=[resolve_item(i) for i in ITEMS],
@@ -740,15 +750,21 @@ class BuyContext(Context):
       layer="bar",
     )]
 
-    sprites += [portrait_sprite := Sprite(
-      image=ctx.comps.portraits.render(),
+    portrait_sprite = Sprite(
+      image=ctx.comps.portraits[0].render(),
       pos=(WINDOW_WIDTH / 2 - 48, BG_Y + BG_HEIGHT),
       origin=Sprite.ORIGIN_BOTTOM,
       layer="portrait",
-    )]
+    )
+    sprites += [Sprite(
+      image=ctx.comps.portraits[1].render(),
+      pos=vector.add(portrait_sprite.rect.bottomleft, (-16, 0)),
+      origin=Sprite.ORIGIN_BOTTOM,
+      layer="portrait",
+    ), portrait_sprite]
 
     textbubble = ctx.comps.textbubble
-    textbubble.pos = vector.add(portrait_sprite.rect.center, (-32, 8))
+    textbubble.pos = vector.add(portrait_sprite.rect.center, (-16, -4))
     textbubble_view = textbubble.view()
     sprites += Sprite.move_all(
       sprites=textbubble_view,

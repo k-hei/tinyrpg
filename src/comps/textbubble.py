@@ -5,6 +5,7 @@ from pygame.transform import scale, flip, rotate
 from lib.filters import replace_color
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
+import lib.vector as vector
 from assets import assets
 from comps.textbox import TextBox
 from comps.log import Message
@@ -181,12 +182,13 @@ class TextBubble:
       ))
       return sprites
 
-  def __init__(bubble, width=0, pos=(0, 0), origin=Sprite.ORIGIN_RIGHT, inverse=False, ypadding=16):
+  def __init__(bubble, width=0, pos=(0, 0), origin=Sprite.ORIGIN_RIGHT, offset=(0, 0), inverse=False, ypadding=16):
     bubble.width = width
     bubble.height = 0
     bubble.offset_height = 0
     bubble.pos = pos
     bubble.origin = origin
+    bubble.offset = offset
     bubble.inverse = inverse
     bubble.ypadding = ypadding
     bubble.textbox = None
@@ -323,7 +325,7 @@ class TextBubble:
       size=(bubble_width + bubble_widthoffset, bubble_height + bubble_heightoffset),
       inverse=bubble.inverse
     )
-    bubble_x, bubble_y = bubbletail_x, bubbletail_y
+    bubble_x, bubble_y = vector.subtract((bubbletail_x, bubbletail_y), bubble.offset)
 
     if bubble.origin == Sprite.ORIGIN_RIGHT:
       bubble_x += -bubble_image.get_width() + 2
