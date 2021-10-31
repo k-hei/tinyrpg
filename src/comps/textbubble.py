@@ -1,7 +1,7 @@
 from math import sin, cos, pi
 import pygame
 from pygame import Surface, SRCALPHA
-from pygame.transform import scale, flip
+from pygame.transform import scale, flip, rotate
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
 from assets import assets
@@ -159,16 +159,35 @@ class TextBubble:
       ))
       return sprites
 
-  def __init__(bubble, width, pos=(0, 0)):
+  def __init__(bubble, width, pos=(0, 0), origin=Sprite.ORIGIN_RIGHT):
     bubble.width = width
-    bubble.height = None
+    bubble.height = 0
+    bubble.offset_height = 0
     bubble.pos = pos
+    bubble.origin = origin
     bubble.textbox = None
     bubble.anims = []
     bubble.ctx = None
+    bubble.message = None
     bubble.printing = False
     bubble.exiting = False
     bubble.ticks = 0
+
+  @property
+  def is_entering(bubble):
+    return bubble.textbox is None
+
+  @property
+  def is_resizing(bubble):
+    return not bubble.is_entering and bubble.height - TextBubble.PADDING_Y * 2 != bubble.textbox_height
+
+  @property
+  def textbox_width(bubble):
+    return bubble.width - TextBubble.PADDING_X * 2
+
+  @property
+  def textbox_height(bubble):
+    return TextBox.height(bubble.message, bubble.textbox_width) + bubble.offset_height
 
   def enter(bubble, on_end=None):
     bubble.anims.append(
@@ -193,8 +212,8 @@ class TextBubble:
     ))
 
   def print(bubble, message, offset_height=0, on_end=None):
-    textbox_width = bubble.width - TextBubble.PADDING_X * 2
-    textbox_height = TextBox.height(message, textbox_width) + offset_height
+    bubble.message = message
+    bubble.offset_height = offset_height
 
     def end_print():
       bubble.printing = False
@@ -204,15 +223,13 @@ class TextBubble:
       bubble.printing = True
       bubble.textbox.print(message, on_end=end_print)
 
-    is_entering = bubble.textbox is None
-    is_resizing = not is_entering and textbox_height != bubble.height - TextBubble.PADDING_Y * 2
-    if is_entering or is_resizing:
-      bubble.textbox = TextBox((textbox_width, textbox_height))
-      bubble_height = textbox_height + TextBubble.PADDING_Y * 2
-      if is_entering:
+    if bubble.is_entering or bubble.is_resizing:
+      bubble.textbox = TextBox((bubble.textbox_width, bubble.textbox_height))
+      bubble_height = bubble.textbox_height + TextBubble.PADDING_Y * 2
+      if bubble.is_entering:
         bubble.height = bubble_height
         bubble.enter(on_end=start_print)
-      elif is_resizing:
+      elif bubble.is_resizing:
         bubble.resize(bubble_height, on_end=start_print)
     else:
       start_print()
@@ -242,8 +259,16 @@ class TextBubble:
 
     bubbletail_x, bubbletail_y = bubble.pos
     bubbletail_image = assets.sprites["bubble_tail"]
-    bubbletail_x -= bubbletail_image.get_width()
-    bubbletail_y -= bubbletail_image.get_height() // 2
+    if bubble.origin == Sprite.ORIGIN_TOP:
+      bubbletail_image = rotate(bubbletail_image, 90)
+
+    if bubble.origin == Sprite.ORIGIN_RIGHT:
+      bubbletail_x -= bubbletail_image.get_width()
+      bubbletail_y -= bubbletail_image.get_height() // 2
+
+    if bubble.origin == Sprite.ORIGIN_TOP:
+      bubbletail_x -= bubbletail_image.get_width() // 2
+
     bubbletail_offset = cos(bubble.ticks % 75 / 75 * 2 * pi)
 
     bubble_width = bubble.width
@@ -269,8 +294,23 @@ class TextBubble:
       bubble_heightoffset = cos(bubble.ticks % 90 / 90 * 2 * pi) * 2
     bubble_image = Bubble.render((bubble_width + bubble_widthoffset, bubble_height + bubble_heightoffset))
     bubble_x, bubble_y = bubbletail_x, bubbletail_y
-    bubble_x += -bubble_image.get_width() + 2
-    bubble_y += bubbletail_image.get_height() // 2 - bubble_image.get_height() // 2
+
+    if bubble.origin == Sprite.ORIGIN_RIGHT:
+      bubble_x += -bubble_image.get_width() + 2
+      bubble_y += bubbletail_image.get_height() // 2 - bubble_image.get_height() // 2
+      bubbletail_xoffset = 0
+      bubbletail_yoffset = bubbletail_offset
+      text_xoffset = bubble_widthoffset
+      text_yoffset = bubble_heightoffset // 2
+
+    if bubble.origin == Sprite.ORIGIN_TOP:
+      bubble_x += bubbletail_image.get_width() // 2 - bubble_image.get_width() // 2
+      bubble_y += bubbletail_image.get_height() // 2 + 2
+      bubbletail_xoffset = bubbletail_offset
+      bubbletail_yoffset = 0
+      text_xoffset = bubble_widthoffset // 2
+      text_yoffset = 0
+
     bubble_xoffset = sin(bubble.ticks % 150 / 150 * 2 * pi) * 3
     bubble_yoffset = sin(bubble.ticks % 75 / 75 * 2 * pi) * 1.5
 
@@ -282,11 +322,11 @@ class TextBubble:
       if bubble_width and bubble_height:
         sprites.append(Sprite(
           image=bubbletail_image,
-          pos=(bubbletail_x + bubble_xoffset, bubbletail_y + bubble_yoffset + bubbletail_offset)
-        ))
+          pos=(bubbletail_x + bubble_xoffset + bubbletail_xoffset, bubbletail_y + bubble_yoffset + bubbletail_yoffset
+        )))
       text_image = bubble.textbox.render()
-      text_x = bubble_x + TextBubble.PADDING_X + bubble_widthoffset
-      text_y = bubble_y + TextBubble.PADDING_Y + bubble_heightoffset // 2
+      text_x = bubble_x + TextBubble.PADDING_X + text_xoffset
+      text_y = bubble_y + TextBubble.PADDING_Y + text_yoffset
       sprites.append(Sprite(
         image=text_image,
         pos=(text_x, text_y)

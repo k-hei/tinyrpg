@@ -371,7 +371,7 @@ class CounterContext(Context):
         Choice("Yes"),
         Choice("No", default=True, closing=True)
       ]
-    ), on_close=lambda choice: ctx.comps.textbubble.print("HOW MANY YOU LOOKIN TO BUY?"))
+    ), on_close=lambda *choice: ctx.comps.textbubble.print("HOW MANY YOU LOOKIN TO BUY?"))
     return True
 
   def handle_press(ctx, button):
@@ -414,9 +414,16 @@ class CounterContext(Context):
 
   def view_counter(counter):
     sprites = []
+    counter_pos = (0, 0)
+    textbubble = counter.comps and counter.comps.textbubble
+    if textbubble and not textbubble.is_resizing:
+      counter_pos = vector.add(textbubble.pos, (textbubble.width / 2, textbubble.height / 2 + 4), (-4, 0))
+    elif counter.comps:
+      return []
+
     sprites += [Sprite(
       image=assets.sprites["buy_quantity_circle"],
-      pos=(0, 0),
+      pos=counter_pos,
       origin=Sprite.ORIGIN_CENTER,
       layer="counter",
     )]
@@ -426,7 +433,7 @@ class CounterContext(Context):
     value_image = outline(value_image, BLACK)
     sprites += [Sprite(
       image=value_image,
-      pos=(0, 1),
+      pos=vector.add(counter_pos, (0, 1)),
       origin=Sprite.ORIGIN_CENTER,
       layer="counter",
     )]
@@ -441,7 +448,7 @@ class CounterContext(Context):
       uarrow_image = replace_color(uarrow_image, BROWN, DARKBROWN)
     sprites += [Sprite(
       image=uarrow_image,
-      pos=(0, uarrow_y),
+      pos=vector.add(counter_pos, (0, uarrow_y)),
       origin=Sprite.ORIGIN_BOTTOM,
       layer="counter",
     )]
@@ -456,7 +463,7 @@ class CounterContext(Context):
       darrow_image = replace_color(darrow_image, BROWN, DARKBROWN)
     sprites += [Sprite(
       image=darrow_image,
-      pos=(0, darrow_y),
+      pos=vector.add(counter_pos, (0, darrow_y)),
       origin=Sprite.ORIGIN_TOP,
       layer="counter",
     )]
@@ -546,7 +553,7 @@ class BuyContext(Context):
   def __init__(ctx, hud=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
     ctx.comps = ComponentStore(
-      textbubble=TextBubble(width=120),
+      textbubble=TextBubble(width=120, origin=Sprite.ORIGIN_TOP),
       portraits=HusbandPortrait()
     )
     ctx.textbox = ItemTextBox(width=160 + (28 if ENABLED_ITEM_RARITY_STARS else 0))
@@ -624,20 +631,13 @@ class BuyContext(Context):
       layer="portrait",
     )]
 
-    textbubble_view = ctx.comps.textbubble.view()
-    textbubble_pos = vector.add(portrait_sprite.rect.midbottom, (32, -16))
+    textbubble = ctx.comps.textbubble
+    textbubble.pos = vector.add(portrait_sprite.rect.center, (-32, 8))
+    textbubble_view = textbubble.view()
     sprites += Sprite.move_all(
       sprites=textbubble_view,
-      offset=textbubble_pos,
       layer="textbox",
     )
-
-    counter_view = [s for s in grid_view if s.layer == "counter"]
-    if counter_view:
-      sprites += Sprite.move_all(
-        sprites=counter_view,
-        offset=vector.add(textbubble_pos, (-8, 0))
-      )
 
     sprites += [hud_sprite := Sprite(
       image=ctx.hud.render(),
