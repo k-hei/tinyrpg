@@ -145,6 +145,10 @@ class ItemGrid:
   def item(grid):
     return grid.items[grid.selection]
 
+  @property
+  def scroll_offset(grid):
+    return (0, grid.scroll_drawn * -ITEM_HEIGHT)
+
   def flatten_cell(grid, cell):
     col, row = cell
     index = row * grid.cols + col
@@ -176,10 +180,9 @@ class ItemGrid:
 
   def view(grid, focused=False):
     grid.scroll_drawn += (grid.scroll - grid.scroll_drawn) / 8
-    scroll_offset = (0, grid.scroll_drawn * -ITEM_HEIGHT)
     return Sprite.move_all(
       grid.view_items(focused) + grid.view_cursor(focused),
-      scroll_offset
+      grid.scroll_offset
     )
 
   def view_items(grid, focused=None):
@@ -573,7 +576,10 @@ class GridContext(Context):
     ctx.comps.textbubble.print("THANKS!")
     ctx.anims += [PauseAnim(
       duration=120,
-      on_end=lambda: ctx.comps.textbubble.print("ANYTHING ELSE?")
+      on_end=lambda: (
+        ctx.comps.textbubble.message == "THANKS!",
+        ctx.comps.textbubble.print("ANYTHING ELSE?")
+      )
     ), *[ItemSlideAnim(
       duration=30,
       delay=i * 5,
@@ -581,6 +587,7 @@ class GridContext(Context):
         item,
         vector.add(
           ctx.itemgrid_pos,
+          ctx.itemgrid.scroll_offset,
           vector.multiply(
             ctx.itemgrid.cursor_drawn,
             (ITEM_WIDTH, ITEM_HEIGHT)
@@ -588,7 +595,7 @@ class GridContext(Context):
           vector.scale(
             assets.sprites["buy_cursor"][0].get_size(),
             1 / 2
-          )
+          ),
         ),
         ctx.comps.hud.pos
       )
@@ -761,8 +768,6 @@ class BuyContext(Context):
       layer="hud",
     )]
 
-    sprites += grid_view
-
     goldbubble = ctx.comps.goldbubble
     if type(ctx.get_tail()) is not CounterContext:
       goldbubble_oldpos = goldbubble.pos
@@ -781,6 +786,8 @@ class BuyContext(Context):
         offset=vector.add(hud_sprite.rect.midright, (4, 0)),
         layer="textbox"
       )
+
+    sprites += grid_view
 
     if "cache_title" not in dir(ctx):
       ctx.cache_title = assets.ttf["roman_large"].render("Buy items")
