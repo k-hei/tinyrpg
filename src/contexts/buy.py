@@ -67,8 +67,10 @@ ITEMS = (
 
 @dataclass
 class ComponentStore:
-  textbubble: TextBubble = None
   goldbubble: GoldBubble = None
+  textbubble: TextBubble = None
+  bagbubble: TextBubble = None
+  hud: Hud = None
   portraits: list = None
 
 class CursorAnim(SineAnim): pass
@@ -333,6 +335,32 @@ class CounterContext(Context):
     counter.bounce_anim = SineAnim(period=30)
     counter.on_change = on_change
 
+  def enter(ctx):
+    ctx.focus()
+
+  def exit(ctx, value):
+    ctx.blur()
+    ctx.close(value)
+
+  def focus(ctx):
+    ctx.show_bagbubble()
+    ctx.comps.textbubble.print("HOW MANY YOU LOOKIN TO BUY?")
+
+  def blur(ctx):
+    ctx.hide_bagbubble()
+
+  def show_bagbubble(ctx):
+    if not ctx.comps: return
+    bagbubble = ctx.comps.bagbubble = TextBubble(
+      origin=Sprite.ORIGIN_LEFT,
+      inverse=True,
+    )
+    bagbubble.print(("I have ", Token(text="3", color=CYAN, bold=True), " of these."))
+
+  def hide_bagbubble(ctx):
+    if not ctx.comps or not ctx.comps.bagbubble: return
+    ctx.comps.bagbubble.exit(on_end=lambda: setattr(ctx.comps, "bagbubble", None))
+
   @property
   def can_increment(counter):
     return counter.value < counter.MAX_VALUE
@@ -364,6 +392,7 @@ class CounterContext(Context):
     if -goldbubble.delta > goldbubble.gold:
       ctx.comps.textbubble.print("YOU DON'T HAVE ENOUGH GEKKEL!")
     else:
+      ctx.blur()
       ctx.comps and ctx.open(ctx.comps.textbubble.prompt(
         message=(
           f"YOU WANNA BUY {quantity} ",
@@ -379,8 +408,9 @@ class CounterContext(Context):
         ]
       ), on_close=lambda *choice: (
         choice := choice and choice[0],
-        choice and choice.text == "Yes" and ctx.close(ctx.value)
-        or ctx.comps.textbubble.print("HOW MANY YOU LOOKIN TO BUY?")
+        choice and choice.text == "Yes" and [
+          ctx.exit(ctx.value)
+        ] or ctx.focus()
       ))
     return True
 
@@ -405,7 +435,7 @@ class CounterContext(Context):
       return ctx.handle_choose()
 
     if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, gamepad.controls.cancel):
-      return ctx.close(None)
+      return ctx.exit(None)
 
   def handle_release(counter, button):
     if button in (pygame.K_UP, gamepad.controls.UP):
@@ -421,6 +451,9 @@ class CounterContext(Context):
   def view(ctx):
     if ctx.child:
       return []
+    goldbubble = ctx.comps.goldbubble
+    textbubble = ctx.comps.textbubble
+    goldbubble.pos = vector.add(textbubble.pos, (0, textbubble.height + 8))
     return ctx.view_counter() + super().view()
 
   def view_counter(counter):
@@ -583,11 +616,13 @@ class GridContext(Context):
     ) + super().view()
 
 class BuyContext(Context):
-  def __init__(ctx, hud=None, *args, **kwargs):
+  def __init__(ctx, *args, **kwargs):
     super().__init__(*args, **kwargs)
     ctx.comps = ComponentStore(
-      textbubble=TextBubble(width=120, origin=Sprite.ORIGIN_TOP),
+      hud=Hud(party=[Knight()]),
       goldbubble=GoldBubble(gold=200),
+      textbubble=TextBubble(width=120, origin=Sprite.ORIGIN_TOP),
+      bagbubble=None,
       portraits=HusbandPortrait(),
     )
     ctx.textbox = ItemTextBox(width=160 + (28 if ENABLED_ITEM_RARITY_STARS else 0))
@@ -605,7 +640,6 @@ class BuyContext(Context):
     )
     ctx.tag = ShopTag("general_store")
     ctx.card = Card("buy")
-    ctx.hud = hud or Hud(party=[Knight()])
 
   def enter(ctx):
     ctx.open(child=ctx.gridctx)
@@ -668,17 +702,30 @@ class BuyContext(Context):
     )
 
     sprites += [hud_sprite := Sprite(
-      image=ctx.hud.render(),
+      image=ctx.comps.hud.render(),
       pos=(BOX_XMARGIN, bottombar_sprite.rect.centery),
       origin=Sprite.ORIGIN_LEFT,
       layer="hud",
     )]
 
+    goldbubble = ctx.comps.goldbubble
+    if type(ctx.get_tail()) is not CounterContext:
+      goldbubble_oldpos = goldbubble.pos
+      goldbubble.pos = (hud_sprite.rect.right + 4, hud_sprite.rect.centery)
+      if goldbubble_oldpos == (0, 0):
+        goldbubble.pos_drawn = goldbubble.pos
     sprites += Sprite.move_all(
       sprites=ctx.comps.goldbubble.view(),
-      offset=(hud_sprite.rect.right + 4, hud_sprite.rect.centery),
       layer="hud",
     )
+
+    bagbubble = ctx.comps.bagbubble
+    if bagbubble:
+      sprites += Sprite.move_all(
+        sprites=bagbubble.view(),
+        offset=vector.add(hud_sprite.rect.midright, (4, 0)),
+        layer="textbox"
+      )
 
     if "cache_title" not in dir(ctx):
       ctx.cache_title = assets.ttf["roman_large"].render("Buy items")

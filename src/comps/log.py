@@ -285,9 +285,10 @@ class Message:
     return str(message).find(sub, start, end)
 
 class Token:
-  def __init__(token, text="", color=None):
+  def __init__(token, text="", color=None, bold=False):
     token.text = text
     token.color = color
+    token.bold = bold
 
   def __len__(token):
     return len(token.text)

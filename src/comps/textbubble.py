@@ -2,6 +2,7 @@ from math import sin, cos, pi
 import pygame
 from pygame import Surface, SRCALPHA
 from pygame.transform import scale, flip, rotate
+from lib.filters import replace_color
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
 from assets import assets
@@ -15,23 +16,45 @@ from anims.sine import SineAnim
 from anims.flicker import FlickerAnim
 from lib.lerp import lerp
 from lib.sprite import Sprite
-from colors.palette import BLACK
+from colors.palette import BLACK, WHITE, RED
+
+def invert(image):
+  inverse = replace_color(image, WHITE, RED)
+  inverse = replace_color(inverse, BLACK, WHITE)
+  inverse = replace_color(inverse, RED, BLACK)
+  return inverse
+
+BUBBLE_SPRITEIDS = [
+  "bubble_nw",
+  "bubble_n",
+  "bubble_ne",
+  "bubble_w",
+  "bubble_c",
+  "bubble_e",
+  "bubble_sw",
+  "bubble_s",
+  "bubble_se",
+  "bubble_tail"
+]
+
+for spriteid in BUBBLE_SPRITEIDS:
+  assets.sprites[f"{spriteid}_inverse"] = invert(assets.sprites[spriteid])
 
 class Bubble:
-  def render(size):
+  def render(size, inverse=False):
     width, height = size
     images = assets.sprites
     surface = Surface(size, SRCALPHA)
 
-    nw_image = images["bubble_nw"]
-    n_image = images["bubble_n"]
-    ne_image = images["bubble_ne"]
-    w_image = images["bubble_w"]
-    c_image = images["bubble_c"]
-    e_image = images["bubble_e"]
-    sw_image = images["bubble_sw"]
-    s_image = images["bubble_s"]
-    se_image = images["bubble_se"]
+    nw_image = images["bubble_nw"] if not inverse else images["bubble_nw_inverse"]
+    n_image = images["bubble_n"] if not inverse else images["bubble_n_inverse"]
+    ne_image = images["bubble_ne"] if not inverse else images["bubble_ne_inverse"]
+    w_image = images["bubble_w"] if not inverse else images["bubble_w_inverse"]
+    c_image = images["bubble_c"] if not inverse else images["bubble_c_inverse"]
+    e_image = images["bubble_e"] if not inverse else images["bubble_e_inverse"]
+    sw_image = images["bubble_sw"] if not inverse else images["bubble_sw_inverse"]
+    s_image = images["bubble_s"] if not inverse else images["bubble_s_inverse"]
+    se_image = images["bubble_se"] if not inverse else images["bubble_se_inverse"]
 
     n_width = int(width - nw_image.get_width() - ne_image.get_width())
     n_height = n_image.get_height()
@@ -64,8 +87,7 @@ class Bubble:
     return surface
 
 class TextBubble:
-  PADDING_X = 12
-  PADDING_Y = 16
+  XPADDING = 12
 
   class EnterAnim(TweenAnim): pass
   class ExitAnim(TweenAnim): pass
@@ -159,12 +181,14 @@ class TextBubble:
       ))
       return sprites
 
-  def __init__(bubble, width, pos=(0, 0), origin=Sprite.ORIGIN_RIGHT):
+  def __init__(bubble, width=0, pos=(0, 0), origin=Sprite.ORIGIN_RIGHT, inverse=False, ypadding=16):
     bubble.width = width
     bubble.height = 0
     bubble.offset_height = 0
     bubble.pos = pos
     bubble.origin = origin
+    bubble.inverse = inverse
+    bubble.ypadding = ypadding
     bubble.textbox = None
     bubble.anims = []
     bubble.ctx = None
@@ -179,11 +203,11 @@ class TextBubble:
 
   @property
   def is_resizing(bubble):
-    return not bubble.is_entering and bubble.height - TextBubble.PADDING_Y * 2 != bubble.textbox_height
+    return not bubble.is_entering and bubble.height - bubble.ypadding * 2 != bubble.textbox_height
 
   @property
   def textbox_width(bubble):
-    return bubble.width - TextBubble.PADDING_X * 2
+    return bubble.width - TextBubble.XPADDING * 2
 
   @property
   def textbox_height(bubble):
@@ -202,14 +226,12 @@ class TextBubble:
     )
 
   def resize(bubble, height, on_end=None):
-    def end():
-      bubble.height = height
-      on_end and on_end()
     bubble.anims.append(TextBubble.ResizeAnim(
       duration=10,
-      target=height,
-      on_end=end
+      target=(bubble.height, height),
+      on_end=on_end
     ))
+    bubble.height = height
 
   def print(bubble, message, offset_height=0, on_end=None):
     bubble.message = message
@@ -224,8 +246,9 @@ class TextBubble:
       bubble.textbox.print(message, on_end=end_print)
 
     if bubble.is_entering or bubble.is_resizing:
-      bubble.textbox = TextBox((bubble.textbox_width, bubble.textbox_height))
-      bubble_height = bubble.textbox_height + TextBubble.PADDING_Y * 2
+      bubble.width = bubble.width or (assets.ttf["roman"].width(str(Message(message))) + TextBubble.XPADDING)
+      bubble.textbox = TextBox((bubble.textbox_width, bubble.textbox_height), color=BLACK if not bubble.inverse else WHITE)
+      bubble_height = bubble.textbox_height + bubble.ypadding * 2
       if bubble.is_entering:
         bubble.height = bubble_height
         bubble.enter(on_end=start_print)
@@ -258,16 +281,19 @@ class TextBubble:
     sprites = []
 
     bubbletail_x, bubbletail_y = bubble.pos
-    bubbletail_image = assets.sprites["bubble_tail"]
-    if bubble.origin == Sprite.ORIGIN_TOP:
-      bubbletail_image = rotate(bubbletail_image, 90)
+    bubbletail_image = assets.sprites["bubble_tail"] if not bubble.inverse else assets.sprites["bubble_tail_inverse"]
 
     if bubble.origin == Sprite.ORIGIN_RIGHT:
       bubbletail_x -= bubbletail_image.get_width()
       bubbletail_y -= bubbletail_image.get_height() // 2
 
     if bubble.origin == Sprite.ORIGIN_TOP:
+      bubbletail_image = rotate(bubbletail_image, 90)
       bubbletail_x -= bubbletail_image.get_width() // 2
+
+    if bubble.origin == Sprite.ORIGIN_LEFT:
+      bubbletail_image = rotate(bubbletail_image, 180)
+      bubbletail_y -= bubbletail_image.get_height() // 2
 
     bubbletail_offset = cos(bubble.ticks % 75 / 75 * 2 * pi)
 
@@ -285,14 +311,18 @@ class TextBubble:
         bubble_width *= t
         bubble_height *= t
       elif type(bubble_anim) is TextBubble.ResizeAnim:
+        start_height, goal_height = bubble_anim.target
         t = ease_out(t)
-        bubble_height = lerp(bubble_height, bubble_anim.target, t)
+        bubble_height = lerp(start_height, goal_height, t)
       bubble_widthoffset = 0
       bubble_heightoffset = 0
     else:
       bubble_widthoffset = sin(bubble.ticks % 90 / 90 * 2 * pi) * 2
       bubble_heightoffset = cos(bubble.ticks % 90 / 90 * 2 * pi) * 2
-    bubble_image = Bubble.render((bubble_width + bubble_widthoffset, bubble_height + bubble_heightoffset))
+    bubble_image = Bubble.render(
+      size=(bubble_width + bubble_widthoffset, bubble_height + bubble_heightoffset),
+      inverse=bubble.inverse
+    )
     bubble_x, bubble_y = bubbletail_x, bubbletail_y
 
     if bubble.origin == Sprite.ORIGIN_RIGHT:
@@ -311,6 +341,14 @@ class TextBubble:
       text_xoffset = bubble_widthoffset // 2
       text_yoffset = 0
 
+    if bubble.origin == Sprite.ORIGIN_LEFT:
+      bubble_x += bubbletail_image.get_width() // 2 + 2
+      bubble_y += bubbletail_image.get_height() // 2 - bubble_image.get_height() // 2
+      bubbletail_xoffset = 0
+      bubbletail_yoffset = bubbletail_offset
+      text_xoffset = 0
+      text_yoffset = bubble_heightoffset // 2
+
     bubble_xoffset = sin(bubble.ticks % 150 / 150 * 2 * pi) * 3
     bubble_yoffset = sin(bubble.ticks % 75 / 75 * 2 * pi) * 1.5
 
@@ -324,17 +362,18 @@ class TextBubble:
           image=bubbletail_image,
           pos=(bubbletail_x + bubble_xoffset + bubbletail_xoffset, bubbletail_y + bubble_yoffset + bubbletail_yoffset
         )))
-      text_image = bubble.textbox.render()
-      text_x = bubble_x + TextBubble.PADDING_X + text_xoffset
-      text_y = bubble_y + TextBubble.PADDING_Y + text_yoffset
-      sprites.append(Sprite(
-        image=text_image,
-        pos=(text_x, text_y)
-      ))
+      if not bubble.exiting:
+        text_image = bubble.textbox.render()
+        text_x = bubble_x + TextBubble.XPADDING + text_xoffset
+        text_y = bubble_y + bubble.ypadding + text_yoffset
+        sprites.append(Sprite(
+          image=text_image,
+          pos=(text_x, text_y)
+        ))
 
     if bubble.ctx and not bubble_anim and not bubble.printing:
-      choices_x = text_x + bubble_width - TextBubble.PADDING_X * 2
-      choices_y = text_y + bubble_height - TextBubble.PADDING_Y * 2
+      choices_x = text_x + bubble_width - TextBubble.XPADDING * 2
+      choices_y = text_y + bubble_height - bubble.ypadding * 2
       choices_view = bubble.ctx.view()
       choices_image = choices_view and choices_view[0].image
       for sprite in choices_view:

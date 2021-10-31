@@ -97,7 +97,7 @@ class TextBox:
       char = box.message[box.index]
       token = box.message.get_token_at(box.index) if type(box.message) is Message else None
       color = token and token.color or box.color
-      char_image = font.render(char, color)
+      char_image = (font if not token.bold else assets.ttf["english"]).render(char, color)
       box.surface.blit(char_image, (cursor_x, cursor_y))
       cursor_x += char_image.get_width()
       box.index += 1
