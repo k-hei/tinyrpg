@@ -8,6 +8,8 @@ import lib.gamepad as gamepad
 import lib.vector as vector
 from lib.sprite import Sprite, SpriteMask
 from lib.filters import stroke, outline, replace_color, darken_image, shadow_lite as shadow
+from lib.lerp import lerp
+from easing.expo import ease_in_out
 from colors.palette import BLACK, WHITE, RED, YELLOW, GOLD, CYAN, CORAL, BROWN, DARKBROWN
 from portraits.husband import HusbandPortrait
 
@@ -23,6 +25,7 @@ from comps.shoptag import ShopTag
 from comps.log import Token
 from comps.textbox import TextBox
 from comps.textbubble import TextBubble, Choice
+from anims.tween import TweenAnim
 from anims.sine import SineAnim
 from anims.pause import PauseAnim
 from savedata.resolve import resolve_item
@@ -74,6 +77,8 @@ class ComponentStore:
   portraits: list = None
 
 class CursorAnim(SineAnim): pass
+
+class ItemSlideAnim(TweenAnim): pass
 
 def view_itemcell(item, selected=True, cache={}):
   sprites = []
@@ -557,6 +562,39 @@ class GridContext(Context):
   def item(ctx):
     return ctx.itemgrid.item
 
+  @property
+  def itemgrid_pos(ctx):
+    box_x = WINDOW_WIDTH - ctx.itemgrid.width + (ITEM_WIDTH - assets.sprites["buy_itemsheet"].get_width()) - BOX_XMARGIN
+    box_y = BOX_YMARGIN
+    return vector.add((box_x, box_y), (ITEMGRID_XPADDING, ITEMGRID_YPADDING))
+
+  def buy(ctx, item, quantity):
+    ctx.comps.goldbubble.gold -= item.value * quantity
+    ctx.comps.goldbubble.delta = 0
+    ctx.comps.textbubble.print("THANKS!")
+    ctx.anims += [PauseAnim(
+      duration=120,
+      on_end=lambda: ctx.comps.textbubble.print("ANYTHING ELSE?")
+    ), *[ItemSlideAnim(
+      duration=30,
+      delay=i * 5,
+      target=(
+        item,
+        vector.add(
+          ctx.itemgrid_pos,
+          vector.multiply(
+            ctx.itemgrid.cursor_drawn,
+            (ITEM_WIDTH, ITEM_HEIGHT)
+          ),
+          vector.scale(
+            assets.sprites["buy_cursor"][0].get_size(),
+            1 / 2
+          )
+        ),
+        ctx.comps.hud.pos
+      )
+    ) for i in range(quantity)]]
+
   def handle_press(ctx, button):
     if ctx.child:
       return super().handle_press(button)
@@ -586,17 +624,12 @@ class GridContext(Context):
       on_change=ctx.on_change_quantity
     ), on_close=lambda *quantity: (
       quantity := len(quantity) and quantity[0],
-      quantity and (
-        ctx.comps.textbubble.print("THANKS!"),
-        ctx.anims.append(PauseAnim(
-          duration=120,
-          on_end=lambda: ctx.comps.textbubble.print("ANYTHING ELSE?")
-        )),
-        setattr(ctx.comps.goldbubble, "gold", ctx.comps.goldbubble.gold + ctx.comps.goldbubble.delta),
-      ) or (
+      quantity and [
+        ctx.buy(item=ctx.item, quantity=quantity)
+      ] or [
         ctx.comps.textbubble.print("ANYTHING ELSE?"),
-      ),
-      setattr(ctx.comps.goldbubble, "delta", 0),
+        setattr(ctx.comps.goldbubble, "delta", 0),
+      ],
     ))
     return True
 
@@ -605,15 +638,31 @@ class GridContext(Context):
     ctx.anims = [(a.update(), a)[-1] for a in ctx.anims if not a.done]
 
   def view(ctx):
-    itemgrid_view = ctx.itemgrid.view(focused=not ctx.child)
-    itemgrid_bounds = Sprite.bounds_all(itemgrid_view)
+    sprites = []
+    sprites += Sprite.move_all(
+      sprites=ctx.itemgrid.view(focused=not ctx.child),
+      offset=ctx.itemgrid_pos
+    )
 
-    box_x = WINDOW_WIDTH - ctx.itemgrid.width + (ITEM_WIDTH - assets.sprites["buy_itemsheet"].get_width()) - BOX_XMARGIN
-    box_y = BOX_YMARGIN
-    return Sprite.move_all(
-      sprites=itemgrid_view,
-      offset=vector.add((box_x, box_y), (ITEMGRID_XPADDING, ITEMGRID_YPADDING))
-    ) + super().view()
+    item_anims = [a for a in ctx.anims if type(a) is ItemSlideAnim]
+    for anim in item_anims:
+      item, start_pos, goal_pos = anim.target
+      start_x, start_y = start_pos
+      goal_x, goal_y = goal_pos
+      t = ease_in_out(anim.pos)
+      item_image = item().render()
+      item_image = stroke(item_image, WHITE)
+      sprites.append(Sprite(
+        image=item_image,
+        pos=(
+          lerp(start_x, goal_x, t),
+          lerp(start_y, goal_y, t)
+        ),
+        origin=Sprite.ORIGIN_CENTER,
+        layer="hud"
+      ))
+
+    return sprites + super().view()
 
 class BuyContext(Context):
   def __init__(ctx, *args, **kwargs):
@@ -663,7 +712,6 @@ class BuyContext(Context):
     )]
 
     grid_view = super().view()
-    sprites += grid_view
 
     box_sprite = next((s for s in grid_view if s.key == "box"), None)
     sprites += Sprite.move_all(
@@ -701,12 +749,20 @@ class BuyContext(Context):
       layer="textbox",
     )
 
+    hud = ctx.comps.hud
+    hud_image = hud.render()
+    hud.pos = vector.add(
+      (BOX_XMARGIN, bottombar_sprite.rect.centery),
+      (hud_image.get_width() / 2, 0)
+    )
     sprites += [hud_sprite := Sprite(
-      image=ctx.comps.hud.render(),
-      pos=(BOX_XMARGIN, bottombar_sprite.rect.centery),
-      origin=Sprite.ORIGIN_LEFT,
+      image=hud_image,
+      pos=hud.pos,
+      origin=Sprite.ORIGIN_CENTER,
       layer="hud",
     )]
+
+    sprites += grid_view
 
     goldbubble = ctx.comps.goldbubble
     if type(ctx.get_tail()) is not CounterContext:
@@ -738,7 +794,7 @@ class BuyContext(Context):
       layer="hud",
     )]
 
-    LAYERS = ["bg", "item", "cursor", "pricetag", "hand", "bar", "portrait", "textbox", "counter", "hud"]
+    LAYERS = ["bg", "item", "cursor", "pricetag", "bar", "portrait", "textbox", "counter", "hand", "hud"]
     sprites.sort(key=lambda s: (
       LAYERS.index(s.layer) + 1 if s.layer in LAYERS else 0
     ))
