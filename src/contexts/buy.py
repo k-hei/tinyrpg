@@ -790,9 +790,18 @@ class BuyContext(Context):
     sprites += grid_view
 
     if "cache_title" not in dir(ctx):
-      ctx.cache_title = assets.ttf["roman_large"].render("Buy items")
-      ctx.cache_title = outline(ctx.cache_title, BROWN)
-      ctx.cache_title = shadow(ctx.cache_title, BLACK, i=2)
+      format_text = lambda image: shadow(outline(image, BROWN), BLACK, i=2)
+      text_buy = assets.ttf["roman_large"].render("Buy")
+      text_buy = format_text(text_buy)
+      text_items = assets.ttf["roman_large"].render("items")
+      text_items = format_text(text_items)
+      text_surface = Surface((
+        text_buy.get_width() + 3 + text_items.get_width(),
+        max(text_buy.get_height(), text_items.get_height())
+      ), flags=SRCALPHA)
+      text_surface.blit(text_buy, (0, 0))
+      text_surface.blit(text_items, (text_buy.get_width() + 3, 0))
+      ctx.cache_title = text_surface
     sprites += [title_sprite := Sprite(
       image=ctx.cache_title,
       pos=(24, 16 + 1),
