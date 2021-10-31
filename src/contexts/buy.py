@@ -29,7 +29,8 @@ from portraits.wife import WifePortrait
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
 from anims.pause import PauseAnim
-from savedata.resolve import resolve_item
+from game.data import GameData
+from resolve.item import resolve_item
 import assets
 from config import WINDOW_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
 
@@ -335,9 +336,10 @@ class CounterContext(Context):
   MIN_VALUE = 1
   MAX_VALUE = 9
 
-  def __init__(counter, value=1, comps=None, on_change=None, *args, **kwargs):
+  def __init__(counter, value=1, store=None, comps=None, on_change=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
     counter.value = 1
+    counter.store = store
     counter.comps = comps
     counter.pressed_up = False
     counter.pressed_down = False
@@ -360,11 +362,12 @@ class CounterContext(Context):
 
   def show_bagbubble(ctx):
     if not ctx.comps: return
+    quantity = len([x for x in ctx.store.items if x == ctx.parent.item])
     bagbubble = ctx.comps.bagbubble = TextBubble(
       origin=Sprite.ORIGIN_LEFT,
       inverse=True,
     )
-    bagbubble.print(("I have ", Token(text="3", color=CYAN, bold=True), " of these."))
+    bagbubble.print(("I have ", Token(text=str(quantity), color=CYAN, bold=True), " of these."))
 
   def hide_bagbubble(ctx):
     if not ctx.comps or not ctx.comps.bagbubble: return
@@ -542,6 +545,7 @@ class GridContext(Context):
     ctx,
     items,
     height=0,
+    store=None,
     comps=None,
     on_change_item=None,
     on_select_item=None,
@@ -550,6 +554,7 @@ class GridContext(Context):
   ):
     super().__init__(*args, **kwargs)
     ctx.height = height
+    ctx.store = store
     ctx.comps = comps
     ctx.anims = []
     ctx.itemgrid = ItemGrid(
@@ -581,13 +586,14 @@ class GridContext(Context):
     return vector.add((box_x, box_y), (ITEMGRID_XPADDING, ITEMGRID_YPADDING))
 
   def buy(ctx, item, quantity):
+    ctx.store.items += [item] * quantity
     ctx.comps.goldbubble.gold -= item.value * quantity
     ctx.comps.textbubble.print("THANKS!")
     ctx.anims += [PauseAnim(
       duration=120,
       on_end=lambda: (
-        ctx.comps.textbubble.message == "THANKS!",
-        ctx.comps.textbubble.print("ANYTHING ELSE?")
+        ctx.comps.textbubble.message == "THANKS!"
+        and ctx.comps.textbubble.print("ANYTHING ELSE?")
       )
     ), *[ItemSlideAnim(
       duration=30,
@@ -635,6 +641,7 @@ class GridContext(Context):
   def handle_select(ctx):
     ctx.on_select_item()
     ctx.open(CounterContext(
+      store=ctx.store,
       comps=ctx.comps,
       on_change=ctx.on_change_quantity
     ), on_close=lambda *quantity: (
@@ -680,8 +687,9 @@ class GridContext(Context):
     return sprites + super().view()
 
 class BuyContext(Context):
-  def __init__(ctx, *args, **kwargs):
+  def __init__(ctx, store=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
+    ctx.store = store or GameData()
     ctx.comps = ComponentStore(
       hud=Hud(party=[Knight()]),
       goldbubble=GoldBubble(gold=200),
@@ -694,6 +702,7 @@ class BuyContext(Context):
     ctx.gridctx = GridContext(
       items=[resolve_item(i) for i in ITEMS],
       height=108,
+      store=ctx.store,
       comps=ctx.comps,
       on_change_item=ctx.textbox.reload,
       on_select_item=ctx.handle_select,
