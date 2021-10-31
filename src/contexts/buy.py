@@ -621,7 +621,7 @@ class GridContext(Context):
               1 / 2
             ),
           ),
-          ctx.comps.hud.pos
+          vector.add(ctx.comps.hud.pos, vector.scale(assets.sprites["hud_circle"].get_size(), 1 / 2))
         )
       ) for i in range(quantity)],
     ]
