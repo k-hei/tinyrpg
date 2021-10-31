@@ -8,7 +8,7 @@ import lib.gamepad as gamepad
 import lib.vector as vector
 from lib.sprite import Sprite, SpriteMask
 from lib.filters import stroke, outline, replace_color, darken_image, shadow_lite as shadow
-from colors.palette import BLACK, WHITE, YELLOW, GOLD, CYAN, CORAL, BROWN, DARKBROWN
+from colors.palette import BLACK, WHITE, RED, YELLOW, GOLD, CYAN, CORAL, BROWN, DARKBROWN
 from portraits.husband import HusbandPortrait
 
 from contexts import Context
@@ -360,24 +360,28 @@ class CounterContext(Context):
   def handle_choose(ctx):
     item = ctx.parent.item
     quantity = ctx.value
-    ctx.comps and ctx.open(ctx.comps.textbubble.prompt(
-      message=(
-        f"YOU WANNA BUY {quantity} ",
-        Token(
-          text=(item.name + ("" if quantity == 1 else "S")).upper(),
-          color=item().color
+    goldbubble = ctx.comps.goldbubble
+    if -goldbubble.delta > goldbubble.gold:
+      ctx.comps.textbubble.print("YOU DON'T HAVE ENOUGH GEKKEL!")
+    else:
+      ctx.comps and ctx.open(ctx.comps.textbubble.prompt(
+        message=(
+          f"YOU WANNA BUY {quantity} ",
+          Token(
+            text=(item.name + ("" if quantity == 1 else "S")).upper(),
+            color=item().color
+          ),
+          "?"
         ),
-        "?"
-      ),
-      choices=[
-        Choice("Yes"),
-        Choice("No", default=True, closing=True)
-      ]
-    ), on_close=lambda *choice: (
-      choice := choice and choice[0],
-      choice and choice.text == "Yes" and ctx.close(ctx.value)
-      or ctx.comps.textbubble.print("HOW MANY YOU LOOKIN TO BUY?")
-    ))
+        choices=[
+          Choice("Yes"),
+          Choice("No", default=True, closing=True)
+        ]
+      ), on_close=lambda *choice: (
+        choice := choice and choice[0],
+        choice and choice.text == "Yes" and ctx.close(ctx.value)
+        or ctx.comps.textbubble.print("HOW MANY YOU LOOKIN TO BUY?")
+      ))
     return True
 
   def handle_press(ctx, button):
@@ -424,7 +428,7 @@ class CounterContext(Context):
     counter_pos = (0, 0)
     textbubble = counter.comps and counter.comps.textbubble
     if textbubble and not textbubble.is_resizing:
-      counter_pos = vector.add(textbubble.pos, (textbubble.width / 2, textbubble.height / 2 + 4), (-4, 0))
+      counter_pos = vector.add(textbubble.pos, (textbubble.width / 2, textbubble.height / 2 + 4))
     elif counter.comps:
       return []
 
@@ -435,7 +439,13 @@ class CounterContext(Context):
       layer="counter",
     )]
 
-    value_color = WHITE if counter.can_increment else GOLD
+    goldbubble = counter.comps.goldbubble
+    if -goldbubble.delta > goldbubble.gold:
+      value_color = RED
+    elif not counter.can_increment:
+      value_color = GOLD
+    else:
+      value_color = WHITE
     value_image = assets.ttf["english"].render(str(counter.value), color=value_color)
     value_image = outline(value_image, BLACK)
     sprites += [Sprite(
