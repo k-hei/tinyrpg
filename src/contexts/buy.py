@@ -570,7 +570,6 @@ class GridContext(Context):
 
   def buy(ctx, item, quantity):
     ctx.comps.goldbubble.gold -= item.value * quantity
-    ctx.comps.goldbubble.delta = 0
     ctx.comps.textbubble.print("THANKS!")
     ctx.anims += [PauseAnim(
       duration=120,
