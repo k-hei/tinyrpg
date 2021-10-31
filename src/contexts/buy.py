@@ -9,7 +9,7 @@ import lib.vector as vector
 from lib.sprite import Sprite, SpriteMask
 from lib.filters import stroke, outline, replace_color, darken_image, shadow_lite as shadow
 from lib.lerp import lerp
-from easing.expo import ease_in_out
+from easing.expo import ease_out, ease_in_out
 from colors.palette import BLACK, WHITE, RED, YELLOW, GOLD, CYAN, CORAL, BROWN, DARKBROWN
 
 from contexts import Context
@@ -73,17 +73,11 @@ ITEMS = (
   "Key",
 )
 
-@dataclass
-class ComponentStore:
-  goldbubble: GoldBubble = None
-  textbubble: TextBubble = None
-  bagbubble: TextBubble = None
-  hud: Hud = None
-  portraits: list = None
-
 class CursorAnim(SineAnim): pass
-
 class IconSlideAnim(TweenAnim): pass
+class CardAnim(TweenAnim): duration = 30
+class CardEnterAnim(CardAnim): duration = 30
+class CardExitAnim(CardAnim): duration = 20
 
 def view_itemcell(item, selected=True, cache={}):
   sprites = []
@@ -707,19 +701,13 @@ class GridContext(Context):
     return sprites + super().view()
 
 class BuyContext(Context):
-  def __init__(ctx, store=None, *args, **kwargs):
+  def __init__(ctx, comps, store=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
     ctx.store = store or GameData(party=[
       Knight(),
       Mage(),
     ])
-    ctx.comps = ComponentStore(
-      hud=Hud(party=ctx.store.party),
-      goldbubble=GoldBubble(gold=200),
-      textbubble=TextBubble(width=120, origin=Sprite.ORIGIN_TOP, offset=(32, 0)),
-      bagbubble=None,
-      portraits=[HusbandPortrait(), WifePortrait()],
-    )
+    ctx.comps = comps
     ctx.comps.portraits[1].darken()
     ctx.textbox = ItemTextBox(width=160 + (28 if ENABLED_ITEM_RARITY_STARS else 0))
     ctx.gridctx = GridContext(
@@ -736,11 +724,14 @@ class BuyContext(Context):
       sprite_id="buy_bgtile",
     )
     ctx.tag = ShopTag("general_store")
-    ctx.card = Card("buy")
+    ctx.anims = []
 
   def enter(ctx):
     ctx.open(child=ctx.gridctx)
     ctx.comps.textbubble.print("WHAT'S GOT YER EYE?")
+    ctx.anims += [
+      CardEnterAnim(target=ctx.comps.card.sprite.pos)
+    ]
 
   def handle_select(ctx):
     ctx.comps.textbubble.print("HOW MANY YOU LOOKIN TO BUY?")
@@ -749,9 +740,14 @@ class BuyContext(Context):
   def handle_change_quantity(ctx, quantity):
     ctx.comps.goldbubble.delta = -ctx.gridctx.item.value * quantity
 
+  def update(ctx):
+    super().update()
+    ctx.anims = [(a.update(), a)[-1] for a in ctx.anims if not a.done]
+
   def view(ctx):
     sprites = []
 
+    # background (to override)
     sprites += [bg_mask := SpriteMask(
       pos=(0, BG_Y),
       size=ctx.bg.size,
@@ -759,8 +755,10 @@ class BuyContext(Context):
       key="grid_bg"
     )]
 
+    # item grid (cache)
     grid_view = super().view()
 
+    # item description
     box_sprite = next((s for s in grid_view if s.key == "box"), None)
     sprites += Sprite.move_all(
       sprites=ctx.textbox.view(),
@@ -769,6 +767,7 @@ class BuyContext(Context):
       layer="textbox",
     )
 
+    # bars
     topbar_image = Surface((WINDOW_WIDTH, BG_Y))
     bottombar_image = Surface((WINDOW_WIDTH, WINDOW_HEIGHT - BG_Y - BG_HEIGHT))
     sprites += [topbar_sprite := Sprite(
@@ -782,6 +781,7 @@ class BuyContext(Context):
       layer="bar",
     )]
 
+    # portraits (to override)
     portrait_sprite = Sprite(
       image=ctx.comps.portraits[0].render(),
       pos=PORTRAIT_POS,
@@ -795,6 +795,7 @@ class BuyContext(Context):
       layer="portrait",
     ), portrait_sprite]
 
+    # textbubble
     textbubble = ctx.comps.textbubble
     textbubble.pos = vector.add(portrait_sprite.rect.center, (-16, -4))
     textbubble_view = textbubble.view()
@@ -803,19 +804,22 @@ class BuyContext(Context):
       layer="textbox",
     )
 
+    # hud (to override)
     hud = ctx.comps.hud
     hud_image = hud.render()
     hud.pos = vector.add(
       (BOX_XMARGIN, bottombar_sprite.rect.centery),
       (hud_image.get_width() / 2, 0)
     )
-    sprites += [hud_sprite := Sprite(
+    hud_sprite = Sprite(
       image=hud_image,
       pos=hud.pos,
       origin=Sprite.ORIGIN_CENTER,
       layer="hud",
-    )]
+    )
+    # sprites += [hud_sprite]
 
+    # gold bag
     sprites += [Sprite(
       image=assets.sprites["gold_bag"],
       pos=(hud_sprite.rect.left + 8, WINDOW_HEIGHT),
@@ -823,6 +827,7 @@ class BuyContext(Context):
       layer="portrait",
     )]
 
+    # gold bubble
     goldbubble = ctx.comps.goldbubble
     if type(ctx.get_tail()) is not CounterContext:
       goldbubble_oldpos = goldbubble.pos
@@ -834,6 +839,7 @@ class BuyContext(Context):
       layer="hud",
     )
 
+    # "in bag" indicator
     bagbubble = ctx.comps.bagbubble
     if bagbubble:
       sprites += Sprite.move_all(
@@ -844,6 +850,28 @@ class BuyContext(Context):
 
     sprites += grid_view
 
+    # card (TODO: merge with sell logic)
+    card_anim = next((a for a in ctx.anims if isinstance(a, CardAnim)), None)
+    card_template = assets.sprites["card_back"]
+    card_x = ctx.comps.card.sprite.image.get_width() / 2 + BOX_XMARGIN
+    card_y = ctx.comps.card.sprite.image.get_height() / 2 + 8
+    card_anim = next((a for a in ctx.anims if isinstance(a, CardAnim)), None)
+    if card_anim:
+      t = card_anim.pos
+      if type(card_anim) is CardEnterAnim:
+        t = ease_out(t)
+      elif type(card_anim) is CardExitAnim:
+        t = ease_in_out(t)
+      from_x, from_y = card_anim.target
+      to_x, to_y = (card_x, card_y)
+      card_x = lerp(from_x, to_x, t)
+      card_y = lerp(from_y, to_y, t)
+    card_sprite = ctx.comps.card.render()
+    card_sprite.pos = (card_x, card_y)
+    card_sprite.layer = "hud"
+    sprites.append(card_sprite)
+
+    # title
     if "cache_title" not in dir(ctx):
       format_text = lambda image: shadow(outline(image, BROWN), BLACK, i=2)
       text_buy = assets.ttf["roman_large"].render("Buy")
@@ -859,8 +887,8 @@ class BuyContext(Context):
       ctx.cache_title = text_surface
     sprites += [title_sprite := Sprite(
       image=ctx.cache_title,
-      pos=(24, 16 + 1),
-      origin=Sprite.ORIGIN_LEFT,
+      pos=(WINDOW_WIDTH - BOX_XMARGIN, 16 + 1),
+      origin=Sprite.ORIGIN_RIGHT,
       layer="hud",
     )]
 

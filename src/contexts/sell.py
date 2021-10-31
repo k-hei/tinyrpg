@@ -301,7 +301,6 @@ class SellContext(Context):
       SellContext.ListEnterAnim(duration=20, delay=25),
     ]
     if ctx.card:
-      # ctx.card.spin(duration=30)
       if ctx.card.sprite:
         ctx.anims.append(SellContext.CardEnterAnim(
           duration=30,
@@ -680,9 +679,9 @@ class SellContext(Context):
         pos=(descbox_x, descbox_y)
       ))
 
-    card_image = assets.sprites["card_back"]
-    card_x = menu_x + items_image.get_width() - card_image.get_width() // 2
-    card_y = menu_y + tabs_image.get_height() - card_image.get_height() // 2 - 1
+    card_template = assets.sprites["card_back"]
+    card_x = menu_x + items_image.get_width() - card_template.get_width() // 2
+    card_y = menu_y + tabs_image.get_height() - card_template.get_height() // 2 - 1
     card_anim = next((a for a in ctx.anims if isinstance(a, SellContext.CardAnim)), None)
     if card_anim:
       t = card_anim.pos

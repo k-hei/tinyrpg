@@ -10,12 +10,13 @@ from contexts.sell import SellContext
 from cores.knight import Knight
 from comps.bg import Bg
 from comps.box import Box
+from comps.card import Card
 from comps.control import Control
+from comps.goldbubble import GoldBubble
+from comps.hud import Hud
+from comps.portraitgroup import PortraitGroup
 from comps.textbox import TextBox
 from comps.textbubble import TextBubble
-from comps.card import Card
-from comps.portraitgroup import PortraitGroup
-from comps.hud import Hud
 from assets import load as use_assets
 from lib.filters import replace_color, darken_image
 from colors.palette import BLACK, WHITE, RED, BLUE, DARKBLUE, GOLD, ORANGE
@@ -63,6 +64,15 @@ class ShopCard:
   text: str
   portrait: Portrait = None
 
+@dataclass
+class ComponentStore:
+  goldbubble: GoldBubble = None
+  textbubble: TextBubble = None
+  bagbubble: TextBubble = None
+  hud: Hud = None
+  portraits: list = None
+  card: Card = None
+
 def animate_text(anim, text, period, stagger=1, delay=0):
   anims = []
   for i, char in enumerate(text):
@@ -79,7 +89,7 @@ class ShopContext(Context):
     ctx.store = store
     ctx.title = title
     ctx.subtitle = subtitle
-    ctx.portraits = PortraitGroup(portraits)
+    ctx.portraitgroup = PortraitGroup(portraits)
     ctx.cards = cards
     ctx.bg = None
     ctx.bg_name = bg_name
@@ -108,13 +118,13 @@ class ShopContext(Context):
         *animate_text(anim=TitleEnterAnim, text=ctx.title, period=5, stagger=3, delay=45),
         BoxEnterAnim(duration=20, delay=90)
       ]),
-      ctx.portraits.enter(on_end=ctx.focus)
+      ctx.portraitgroup.enter(on_end=ctx.focus)
     ))])
 
   def exit(ctx):
     ctx.exiting = True
     ctx.bubble.exit()
-    ctx.portraits.exit()
+    ctx.portraitgroup.exit()
     ctx.child.exit()
     ctx.anims += [
       BackgroundExitAnim(duration=15),
@@ -125,7 +135,7 @@ class ShopContext(Context):
     ctx.on_animate = lambda: ctx.close(None)
 
   def focus(ctx):
-    portrait = ctx.portraits.portraits[0]
+    portrait = ctx.portraitgroup.portraits[0]
     portrait.start_talk()
     message = (ctx.focuses == 0
       and ctx.messages["home"]
@@ -164,13 +174,22 @@ class ShopContext(Context):
   def handle_choose(ctx, card):
     if card.name == "exit": return ctx.handle_exit()
     if card.name == "buy": return ctx.handle_buy(card)
-    ctx.portraits.cycle()
+    ctx.portraitgroup.cycle()
     if card.name == "sell": return ctx.handle_sell(card)
 
   def handle_buy(ctx, card):
     ctx.blur()
+    ctx.bubble.exit()
     ctx.child.open(BuyContext(
-      store=ctx.store
+      store=ctx.store,
+      comps=ComponentStore(
+        hud=ctx.hud,
+        goldbubble=GoldBubble(gold=200),
+        textbubble=TextBubble(width=120, origin=Sprite.ORIGIN_TOP, offset=(32, 0)),
+        bagbubble=None,
+        portraits=ctx.portraitgroup.portraits,
+        card=card,
+      )
     ), on_close=ctx.focus)
 
   def handle_sell(ctx, card):
@@ -178,18 +197,18 @@ class ShopContext(Context):
     ctx.child.open(SellContext(
       store=ctx.store,
       bubble=ctx.bubble,
-      portrait=ctx.portraits.portraits[0],
+      portrait=ctx.portraitgroup.portraits[0],
       messages=ctx.messages["sell"],
       hud=ctx.hud,
       card=card,
       on_close=lambda: (
-        ctx.portraits.stop_cycle(),
+        ctx.portraitgroup.stop_cycle(),
         ctx.focus()
       )
     ))
 
   def handle_exit(ctx):
-    portrait = ctx.portraits.portraits[0]
+    portrait = ctx.portraitgroup.portraits[0]
     portrait.start_talk()
     ctx.bubble.print(ctx.messages["exit"], on_end=lambda: (
       ctx.anims.append(Anim(duration=45, on_end=ctx.exit)),
@@ -198,7 +217,7 @@ class ShopContext(Context):
 
   def update(ctx):
     super().update()
-    ctx.portraits.update()
+    ctx.portraitgroup.update()
     for anim in ctx.anims:
       if anim.done:
         ctx.anims.remove(anim)
@@ -217,7 +236,7 @@ class ShopContext(Context):
     if hud_view:
       hud_image = hud_view[0].image
       hud_x = MARGIN
-      hud_y = WINDOW_HEIGHT - hud_image.get_height() - MARGIN
+      hud_y = WINDOW_HEIGHT - MARGIN - hud_image.get_height()
       hud_anim = next((a for a in ctx.anims if type(a) is HudEnterAnim), None)
       if hud_anim:
         t = hud_anim.pos
@@ -273,7 +292,7 @@ class ShopContext(Context):
           )
         ))
 
-    sprites += ctx.portraits.view()
+    sprites += ctx.portraitgroup.view()
     sprites += ctx.bubble.view()
 
     title_anim = next((a for a in ctx.anims if (
