@@ -29,6 +29,7 @@ from portraits.wife import WifePortrait
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
 from anims.pause import PauseAnim
+from inventory import Inventory
 from game.data import GameData
 from resolve.item import resolve_item
 import assets
@@ -381,6 +382,10 @@ class CounterContext(Context):
   def can_decrement(counter):
     return counter.value > counter.MIN_VALUE
 
+  @property
+  def is_over_capacity(counter):
+    return Inventory.is_full(counter.store.items + [counter.parent.item] * (counter.value - 1), Inventory.tab(counter.parent.item))
+
   def handle_increment(counter):
     if counter.can_increment:
       counter.value += 1
@@ -401,7 +406,9 @@ class CounterContext(Context):
     item = ctx.parent.item
     quantity = ctx.value
     goldbubble = ctx.comps.goldbubble
-    if -goldbubble.delta > goldbubble.gold:
+    if ctx.is_over_capacity:
+      ctx.comps.textbubble.print("YOU'RE OUT OF SPACE!")
+    elif -goldbubble.delta > goldbubble.gold:
       ctx.comps.textbubble.print("YOU DON'T HAVE ENOUGH GEKKEL!")
     else:
       ctx.blur()
@@ -493,7 +500,7 @@ class CounterContext(Context):
     )]
 
     goldbubble = counter.comps.goldbubble
-    if -goldbubble.delta > goldbubble.gold:
+    if -goldbubble.delta > goldbubble.gold or counter.is_over_capacity:
       value_color = RED
     elif not counter.can_increment:
       value_color = GOLD
