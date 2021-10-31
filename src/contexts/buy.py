@@ -645,6 +645,9 @@ class GridContext(Context):
     if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
       return ctx.handle_select()
 
+    if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, gamepad.controls.cancel):
+      return ctx.handle_close()
+
   def handle_move(ctx, delta):
     target_cell = vector.add(ctx.cursor, delta)
     selected = ctx.itemgrid.select(cell=target_cell)
@@ -669,6 +672,9 @@ class GridContext(Context):
       ],
     ))
     return True
+
+  def handle_close(ctx):
+    ctx.parent.close()
 
   def update(ctx):
     super().update()

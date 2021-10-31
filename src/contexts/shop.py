@@ -5,6 +5,7 @@ from pygame import Rect, Surface, Color
 from pygame.transform import rotate, scale
 from contexts import Context
 from contexts.cardgroup import CardContext, CARD_BUY, CARD_SELL, CARD_EXIT
+from contexts.buy import BuyContext
 from contexts.sell import SellContext
 from cores.knight import Knight
 from comps.bg import Bg
@@ -88,7 +89,7 @@ class ShopContext(Context):
     ctx.blurring = False
     ctx.exiting = False
     ctx.textbox = TextBox((96, 32), color=WHITE)
-    ctx.hud = hud or Hud([Knight()])
+    ctx.hud = hud or Hud(store.party)
     ctx.anims = [CursorAnim()]
     ctx.on_animate = None
     ctx.bubble = TextBubble(width=104, pos=(240, 40))
@@ -134,7 +135,7 @@ class ShopContext(Context):
       ctx.child is None and ctx.open(
         CardContext(
           cards=map(lambda data: data.name, ctx.cards),
-          pos=(16, 144),
+          pos=(56, 136),
           on_select=lambda card: (
             text := next((c.text for c in ctx.cards if c.name == card.name), None),
             text and ctx.textbox.print(text)
@@ -153,18 +154,27 @@ class ShopContext(Context):
       ]
     ctx.focuses += 1
 
-  def handle_choose(ctx, card):
-    if card.name == "exit": return ctx.handle_exit()
-    if card.name == "buy": return ctx.focus()
-    ctx.portraits.cycle()
-    if card.name == "sell": return ctx.handle_sell(card)
-
-  def handle_sell(ctx, card):
+  def blur(ctx):
     ctx.blurring = True
     ctx.anims += [
       TitleSlideoutAnim(duration=7),
       BoxExitAnim(duration=7)
     ]
+
+  def handle_choose(ctx, card):
+    if card.name == "exit": return ctx.handle_exit()
+    if card.name == "buy": return ctx.handle_buy(card)
+    ctx.portraits.cycle()
+    if card.name == "sell": return ctx.handle_sell(card)
+
+  def handle_buy(ctx, card):
+    ctx.blur()
+    ctx.child.open(BuyContext(
+      store=ctx.store
+    ), on_close=ctx.focus)
+
+  def handle_sell(ctx, card):
+    ctx.blur()
     ctx.child.open(SellContext(
       store=ctx.store,
       bubble=ctx.bubble,
@@ -350,8 +360,8 @@ class ShopContext(Context):
           char_x += char_width
 
     box_image = Box(sprite_prefix="item_tile", size=(116, 48)).render()
-    box_x = 128
-    box_y = 120
+    box_x = 168
+    box_y = 112
     box_anim = next((a for a in ctx.anims if isinstance(a, BoxAnim)), None)
     if box_anim:
       t = box_anim.pos
