@@ -37,7 +37,7 @@ class PortraitGroup:
     x = 0
     offset = (OFFSET_CYCLING if cycling else OFFSET_STATIC) if len(images) > 1 else 0
     for image in images:
-      xs.append(x + WINDOW_WIDTH - width + offset +  image.get_width() / 2)
+      xs.append(x + WINDOW_WIDTH - width + offset + image.get_width() / 2)
       x += image.get_width() - PORTRAIT_OVERLAP
     return xs
 
@@ -99,6 +99,7 @@ class PortraitGroup:
       ))
       group.anims_xs[portrait] = xs[i]
     group.cycling = True
+    group.portraits_xs = []
 
   def stop_cycle(group):
     portrait_imagemap = dict(map(lambda portrait: (portrait, portrait.render()), group.portraits))
@@ -120,6 +121,7 @@ class PortraitGroup:
         target=portrait
       ))
       group.anims_xs[portrait] = (from_xs[portrait], to_xs[portrait])
+    group.portraits_xs = []
 
   def slide(group, index, x, duration=0):
     portrait = group.portraits[index]

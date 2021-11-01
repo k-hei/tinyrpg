@@ -236,9 +236,6 @@ class SellContext(Context):
   class ListMoveAnim(TweenAnim): blocking = True
   class ListEnterAnim(ListMoveAnim): pass
   class ListExitAnim(ListMoveAnim): pass
-  class TagMoveAnim(TweenAnim): blocking = True
-  class TagEnterAnim(TagMoveAnim): pass
-  class TagExitAnim(TagMoveAnim): pass
   class CardAnim(TweenAnim): blocking = True
   class CardEnterAnim(CardAnim): pass
   class CardExitAnim(CardAnim): pass
@@ -295,7 +292,6 @@ class SellContext(Context):
 
   def enter(ctx):
     ctx.anims += [
-      SellContext.TagEnterAnim(duration=10, delay=40),
       SellContext.GoldEnterAnim(duration=10, delay=40),
       SellContext.DescEnterAnim(duration=20, delay=25),
       SellContext.ListEnterAnim(duration=20, delay=25),
@@ -313,7 +309,6 @@ class SellContext(Context):
   def exit(ctx, on_end=None):
     ctx.exiting = True
     ctx.anims += [
-      SellContext.TagExitAnim(duration=7),
       SellContext.GoldExitAnim(duration=7),
       SellContext.DescExitAnim(duration=7),
       SellContext.ListExitAnim(duration=7),
@@ -506,27 +501,6 @@ class SellContext(Context):
 
     MARGIN = 2
 
-    tagtext_image = assets.sprites["fortune_house"]
-    tag_image = assets.sprites["shop_tag"].copy()
-    tag_image.blit(tagtext_image, (
-      tag_image.get_width() - tagtext_image.get_width() - 2,
-      2
-    ))
-
-    tag_x = WINDOW_WIDTH - tag_image.get_width()
-    tag_y = 0
-    tag_anim = next((a for a in ctx.anims if isinstance(a, SellContext.TagMoveAnim)), None)
-    if tag_anim:
-      t = tag_anim.pos
-      if type(tag_anim) is SellContext.TagExitAnim:
-        t = 1 - t
-      tag_y = lerp(-tag_image.get_height(), 0, t)
-    if tag_anim or not ctx.exiting:
-      sprites.append(Sprite(
-        image=tag_image,
-        pos=(tag_x, tag_y)
-      ))
-
     if ctx.hud.image is None:
       ctx.hud.image = ctx.hud.render()
     hud_image = ctx.hud.image
@@ -598,11 +572,13 @@ class SellContext(Context):
       sprites += [
         Sprite(
           image=tabs_image,
-          pos=(menu_x, menu_anim_y)
+          pos=(menu_x, menu_anim_y),
+          layer="textbox",
         ),
         Sprite(
           image=items_image,
-          pos=(menu_x, menu_anim_y + tabs_image.get_height())
+          pos=(menu_x, menu_anim_y + tabs_image.get_height()),
+          layer="textbox",
         )
       ]
 
@@ -676,7 +652,8 @@ class SellContext(Context):
     if descbox_anim or not ctx.exiting:
       sprites.append(Sprite(
         image=descbox_image,
-        pos=(descbox_x, descbox_y)
+        pos=(descbox_x, descbox_y),
+        layer="textbox",
       ))
 
     card_template = assets.sprites["card_back"]
@@ -713,7 +690,8 @@ class SellContext(Context):
       hand_y += ctx.cursor_drawn * 18
       sprites.append(Sprite(
         image=hand_image,
-        pos=(hand_x, hand_y)
+        pos=(hand_x, hand_y),
+        layer="hand",
       ))
 
     return sprites

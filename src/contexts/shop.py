@@ -238,7 +238,6 @@ class ShopContext(Context):
     MARGIN = 2
     sprites = []
     is_home = not ctx.child or isinstance(ctx.get_tail(), CardContext)
-
     hud = ctx.hud
     hud_goal = (MARGIN, WINDOW_HEIGHT - MARGIN - hud.render().get_height())
     if is_home and hud.pos != hud_goal:
@@ -270,7 +269,7 @@ class ShopContext(Context):
         sprites=ctx.bg.view(),
         offset=(0, -WINDOW_HEIGHT / 2 + BG_HEIGHT / 2)
       )
-      if is_home:
+      if not ctx.child or type(ctx.child.child) is not BuyContext:
         sprites += [Sprite(
           image=Surface((WINDOW_WIDTH, BOTTOMBAR_HEIGHT)),
           pos=(0, BG_HEIGHT)
