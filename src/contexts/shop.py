@@ -17,6 +17,7 @@ from comps.hud import Hud
 from comps.portraitgroup import PortraitGroup
 from comps.textbox import TextBox
 from comps.textbubble import TextBubble
+import assets
 from assets import load as use_assets
 from lib.filters import replace_color, darken_image
 from colors.palette import BLACK, WHITE, RED, BLUE, DARKBLUE, GOLD, ORANGE
@@ -31,6 +32,9 @@ from portraits.mira import MiraPortrait
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 from lib.sprite import Sprite
 from transits.slide import SlideDown
+
+BG_HEIGHT = 128
+BOTTOMBAR_HEIGHT = WINDOW_HEIGHT - BG_HEIGHT
 
 class CursorAnim(Anim): blocking = False
 class HudEnterAnim(TweenAnim): blocking = True
@@ -233,10 +237,11 @@ class ShopContext(Context):
   def view(ctx):
     MARGIN = 2
     sprites = []
+    is_home = not ctx.child or isinstance(ctx.get_tail(), CardContext)
 
     hud = ctx.hud
     hud_goal = (MARGIN, WINDOW_HEIGHT - MARGIN - hud.render().get_height())
-    if (not ctx.child or isinstance(ctx.get_tail(), CardContext)) and hud.pos != hud_goal:
+    if is_home and hud.pos != hud_goal:
       hud.slide(hud.pos, hud_goal)
     hud_view = hud.view()
     if hud_view:
@@ -250,8 +255,6 @@ class ShopContext(Context):
     if ctx.get_head().transits:
       return sprites
 
-    assets = use_assets()
-
     bg_image = Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
     bg_image.fill(BLACK)
     sprites.append(Sprite(
@@ -261,9 +264,17 @@ class ShopContext(Context):
 
     if ctx.bg_name.endswith("bgtile"):
       if not ctx.bg:
-        ctx.bg = Bg(size=(WINDOW_WIDTH, 128), sprite_id=ctx.bg_name)
+        ctx.bg = Bg(sprite_id=ctx.bg_name)
         ctx.bg.enter()
-      sprites += ctx.bg.view()
+      sprites += Sprite.move_all(
+        sprites=ctx.bg.view(),
+        offset=(0, -WINDOW_HEIGHT / 2 + BG_HEIGHT / 2)
+      )
+      if is_home:
+        sprites += [Sprite(
+          image=Surface((WINDOW_WIDTH, BOTTOMBAR_HEIGHT)),
+          pos=(0, BG_HEIGHT)
+        )]
     else:
       bg_image = assets.sprites[ctx.bg_name]
       bg_image = replace_color(bg_image, WHITE, ctx.bg_color)
@@ -290,9 +301,17 @@ class ShopContext(Context):
           )
         ))
 
-    sprites += ctx.portraitgroup.view()
+    if is_home:
+      sprites += Sprite.move_all(
+        sprites=ctx.portraitgroup.view(),
+        layer="portrait",
+      )
+
     if ctx.bubble:
-      sprites += ctx.bubble.view()
+      sprites += Sprite.move_all(
+        sprites=ctx.bubble.view(),
+        layer="textbox",
+      )
 
     title_anim = next((a for a in ctx.anims if (
       isinstance(a, TitleAnim)
@@ -391,15 +410,22 @@ class ShopContext(Context):
     if box_anim or not ctx.blurring and not ctx.exiting:
       sprites.append(Sprite(
         image=box_image,
-        pos=(box_x, box_y)
+        pos=(box_x, box_y),
+        layer="textbox",
       ))
       if not box_anim:
         sprites.append(Sprite(
           image=ctx.textbox.render(),
-          pos=(box_x + 10, box_y + 8)
+          pos=(box_x + 10, box_y + 8),
+          layer="textbox",
         ))
 
     if ctx.child:
-      sprites += ctx.child.view()
+      sprites += super().view()
+
+    LAYERS = ["bg", "item", "cursor", "pricetag", "topbar", "bottombar", "portrait", "textbox", "counter", "card", "hand", "hud"]
+    sprites.sort(key=lambda s: (
+      LAYERS.index(s.layer) + 1 if s.layer in LAYERS else 0
+    ))
 
     return sprites

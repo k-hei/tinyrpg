@@ -47,6 +47,9 @@ BOX_XMARGIN = 24
 BOX_YMARGIN = 36
 BG_Y = 32
 BG_HEIGHT = 112
+TOPBAR_HEIGHT = BG_Y
+BOTTOMBAR_HEIGHT = WINDOW_HEIGHT - BG_HEIGHT - TOPBAR_HEIGHT
+BOTTOMBAR_STARTHEIGHT = WINDOW_HEIGHT - 128 # need to centralize relationship - config var?
 TEXTBOX_LPADDING = 8
 TEXTBOX_RPADDING = 2
 TEXTBOX_YPADDING = 6
@@ -75,48 +78,99 @@ ITEMS = (
 
 class CursorAnim(SineAnim): pass
 class IconSlideAnim(TweenAnim): pass
-class CardAnim(TweenAnim): duration = 30
+
+class CardAnim(TweenAnim): pass
 class CardEnterAnim(CardAnim): duration = 30
 class CardExitAnim(CardAnim): duration = 15
 
-def view_itemcell(item, selected=True, cache={}):
+class TopbarAnim(TweenAnim): pass
+class TopbarEnterAnim(TopbarAnim): duration = 15
+class TopbarExitAnim(TopbarAnim): duration = 7
+
+class BottombarAnim(TweenAnim): pass
+class BottombarEnterAnim(BottombarAnim): duration = 15
+class BottombarExitAnim(BottombarAnim): duration = 7
+
+class TitleAnim(TweenAnim): pass
+class TitleEnterAnim(TitleAnim):
+  duration = 15
+  delay = 10
+class TitleExitAnim(TitleAnim): duration = 7
+
+class GoldBagAnim(TweenAnim): pass
+class GoldBagEnterAnim(GoldBagAnim):
+  duration = 15
+  delay = 20
+class GoldBagExitAnim(GoldBagAnim):
+  duration = 7
+  delay = 5
+
+class DescboxAnim(TweenAnim): pass
+class DescboxEnterAnim(DescboxAnim):
+  duration = 15
+  delay = 15
+class DescboxExitAnim(DescboxAnim):
+  duration = 7
+
+def view_itemcell(item, selected=True, exiting=False, anim=None, cache={}):
   sprites = []
 
+  if type(anim) is ItemGrid.CellEnterAnim:
+    t = ease_out(anim.pos)
+  elif type(anim) is ItemGrid.CellExitAnim:
+    t = 1 - anim.pos
+  elif not exiting:
+    t = 1
+  else:
+    return []
+
   sheet_image = assets.sprites["buy_itemsheet"]
+  sheet_size = tuple([sheet_image.get_width() * t] * 2)
   if not selected:
     if "sheet" not in cache:
       cache["sheet"] = darken_image(sheet_image)
     sheet_image = cache["sheet"]
-  sprites += [sheet_sprite := Sprite(image=sheet_image)]
-
-  item_image = item().render()
-  item_image = stroke(item_image, WHITE)
-  if not selected:
-    if item not in cache:
-      cache[item] = darken_image(item_image)
-    item_image = cache[item]
-  sprites += [item_sprite := Sprite(
-    image=item_image,
-    pos=(sheet_image.get_width() / 2, sheet_image.get_height() / 2),
+  sprites += [sheet_sprite := Sprite(
+    image=sheet_image,
+    size=sheet_size,
+    pos=vector.scale(sheet_image.get_size(), 1 / 2),
     origin=Sprite.ORIGIN_CENTER,
+    layer="item",
   )]
 
-  price_image = assets.ttf["english"].render(str(item.value))
-  price_image = stroke(price_image, BLACK)
-  if not selected:
-    if item.value not in cache:
-      cache[item.value] = darken_image(price_image)
-    price_image = cache[item.value]
-  sprites += [price_sprite := Sprite(
-    image=price_image,
-    pos=(item_sprite.rect.right - 6, item_sprite.rect.bottom + 2),
-    origin=Sprite.ORIGIN_BOTTOMLEFT,
-    layer="pricetag",
-  )]
+  if t == 1:
+    item_image = item().render()
+    item_image = stroke(item_image, WHITE)
+    if not selected:
+      if item not in cache:
+        cache[item] = darken_image(item_image)
+      item_image = cache[item]
+    sprites += [item_sprite := Sprite(
+      image=item_image,
+      pos=(sheet_image.get_width() / 2, sheet_image.get_height() / 2),
+      origin=Sprite.ORIGIN_CENTER,
+      layer="item",
+    )]
+
+    price_image = assets.ttf["english"].render(str(item.value))
+    price_image = stroke(price_image, BLACK)
+    if not selected:
+      if item.value not in cache:
+        cache[item.value] = darken_image(price_image)
+      price_image = cache[item.value]
+    sprites += [price_sprite := Sprite(
+      image=price_image,
+      pos=(item_sprite.rect.right - 6, item_sprite.rect.bottom + 2),
+      origin=Sprite.ORIGIN_BOTTOMLEFT,
+      layer="pricetag",
+    )]
 
   return sprites
 
 class ItemGrid:
+  class CellEnterAnim(TweenAnim): duration = 5
+  class CellExitAnim(TweenAnim): duration = 3
+
   def __init__(grid, items, cols, height=0):
     grid.items = items
     grid.cols = cols
@@ -127,6 +181,7 @@ class ItemGrid:
     grid.hand_drawn = grid.project_index(0)
     grid.scroll = 0
     grid.scroll_drawn = 0
+    grid.exiting = False
 
   @property
   def width(grid):
@@ -165,6 +220,21 @@ class ItemGrid:
       return -1
     return (col, row)
 
+  def enter(grid, on_end=None):
+    grid.anims = [
+      *[ItemGrid.CellEnterAnim(delay=2 * i, target=i)
+        for i, item in enumerate(grid.items)]
+    ]
+    grid.anims[-1].on_end = on_end
+
+  def exit(grid, on_end=None):
+    grid.exiting = True
+    grid.anims = [
+      *[ItemGrid.CellExitAnim(delay=2 * i, target=i)
+        for i, item in enumerate(grid.items)]
+    ]
+    grid.anims[-1].on_end = on_end
+
   def select(grid, cell):
     col, row = cell
     index = grid.flatten_cell(cell)
@@ -177,10 +247,15 @@ class ItemGrid:
       grid.scroll = row - grid.visible_rows // 2
     return True
 
+  def update(grid):
+    grid.anims = [(a.update(), a)[-1] for a in grid.anims if not a.done]
+
   def view(grid, focused=False):
     grid.scroll_drawn += (grid.scroll - grid.scroll_drawn) / 8
     return Sprite.move_all(
-      grid.view_items(focused) + grid.view_cursor(focused),
+      grid.view_items(focused) + (
+        grid.view_cursor(focused) if not (grid.anims or grid.exiting) else []
+      ),
       grid.scroll_offset
     )
 
@@ -189,9 +264,10 @@ class ItemGrid:
     item_x = 0
     item_y = 0
     for i, item in enumerate(grid.items):
-      item_view = view_itemcell(item, selected=focused or i == grid.selection)
-      Sprite.move_all(item_view, (item_x, item_y))
-      sprites += item_view
+      item_anim = next((a for a in grid.anims if a.target == i), None)
+      item_view = view_itemcell(item, selected=focused or i == grid.selection, exiting=grid.exiting, anim=item_anim)
+      if item_view:
+        sprites += Sprite.move_all(item_view, (item_x, item_y))
       item_x += ITEM_WIDTH
       if item_x >= ITEM_WIDTH * GRID_COLS:
         item_x = 0
@@ -567,18 +643,12 @@ class GridContext(Context):
       items=items,
       height=height and (height - ITEMGRID_YPADDING * 2) or 0
     )
-    ctx.box = Box(
-      sprite_prefix="buy_box",
-      size=(
-        ctx.itemgrid.width + ITEMGRID_XPADDING * 2,
-        ctx.itemgrid.height + ITEMGRID_YPADDING * 2
-      )
-    )
     ctx.cursor = (0, 0)
     ctx.on_select_item = on_select_item
     ctx.on_change_item = on_change_item
     on_change_item and on_change_item(ctx.item)
     ctx.on_change_quantity = on_change_quantity
+    ctx.exiting = False
 
   @property
   def item(ctx):
@@ -589,6 +659,13 @@ class GridContext(Context):
     box_x = WINDOW_WIDTH - ctx.itemgrid.width + (ITEM_WIDTH - assets.sprites["buy_itemsheet"].get_width()) - BOX_XMARGIN
     box_y = BOX_YMARGIN
     return vector.add((box_x, box_y), (ITEMGRID_XPADDING, ITEMGRID_YPADDING))
+
+  def enter(ctx):
+    ctx.itemgrid.enter()
+
+  def exit(ctx):
+    ctx.exiting = True
+    ctx.itemgrid.exit(on_end=ctx.parent.exit)
 
   def buy(ctx, item, quantity):
     price = item.value * quantity
@@ -627,7 +704,7 @@ class GridContext(Context):
     ]
 
   def handle_press(ctx, button):
-    if ctx.parent.anims:
+    if ctx.parent.anims or ctx.exiting:
       return False
 
     if ctx.child:
@@ -672,10 +749,11 @@ class GridContext(Context):
     return True
 
   def handle_close(ctx):
-    ctx.parent.exit()
+    ctx.exit()
 
   def update(ctx):
     super().update()
+    ctx.itemgrid.update()
     ctx.anims = [(a.update(), a)[-1] for a in ctx.anims if not a.done]
 
   def view(ctx):
@@ -727,23 +805,36 @@ class BuyContext(Context):
       size=(WINDOW_WIDTH, BG_HEIGHT),
       sprite_id="buy_bgtile",
     )
-    ctx.tag = ShopTag("general_store")
-    ctx.cache_cardpos = ctx.comps.card.sprite.pos
     ctx.anims = []
+    ctx.exiting = False
+    ctx.cache_cardpos = ctx.comps.card.sprite.pos
 
   def enter(ctx):
     ctx.open(child=ctx.gridctx)
-    ctx.comps.textbubble.print("WHAT'S GOT YER EYE?")
     ctx.anims += [
+      TopbarEnterAnim(),
+      BottombarEnterAnim(),
+      TitleEnterAnim(),
+      GoldBagEnterAnim(),
+      DescboxEnterAnim(),
       CardEnterAnim(target=ctx.comps.card.sprite.pos)
     ]
+    ctx.anims[-1].on_end = lambda: (
+      ctx.comps.textbubble.print("WHAT'S GOT YER EYE?")
+    )
 
   def exit(ctx):
+    ctx.exiting = True
     ctx.comps.textbubble.exit()
     ctx.anims += [
-      CardExitAnim(target=ctx.cache_cardpos)
+      TopbarExitAnim(),
+      BottombarExitAnim(),
+      TitleExitAnim(),
+      GoldBagExitAnim(),
+      DescboxExitAnim(),
+      CardExitAnim(target=ctx.cache_cardpos, on_end=ctx.comps.card.spin(30))
     ]
-    ctx.anims[-1].on_end = ctx.close
+    sorted(ctx.anims, key=lambda a: a.duration + a.delay)[-1].on_end = ctx.close
 
   def handle_select(ctx):
     ctx.comps.textbubble.print("HOW MANY YOU LOOKIN TO BUY?")
@@ -759,39 +850,86 @@ class BuyContext(Context):
   def view(ctx):
     sprites = []
 
-    # background (to override)
-    sprites += [bg_mask := SpriteMask(
-      pos=(0, BG_Y),
-      size=ctx.bg.size,
-      children=ctx.bg.view(),
-      key="grid_bg"
-    )]
-
     # item grid (cache)
     grid_view = super().view()
 
     # item description
-    box_sprite = next((s for s in grid_view if s.key == "box"), None)
-    sprites += Sprite.move_all(
-      sprites=ctx.textbox.view(),
-      offset=(WINDOW_WIDTH - BOX_XMARGIN, WINDOW_HEIGHT - 8),
-      origin=Sprite.ORIGIN_BOTTOMRIGHT,
-      layer="textbox",
-    )
+    desc_anim = next((a for a in ctx.anims if isinstance(a, DescboxAnim)), None)
+    desc_view = ctx.textbox.view()
+    desc_xstart = WINDOW_WIDTH + Sprite.bounds_all(desc_view).width
+    desc_xgoal = WINDOW_WIDTH - BOX_XMARGIN
+    desc_y = WINDOW_HEIGHT - 8
+    if type(desc_anim) is DescboxEnterAnim:
+      desc_x = lerp(desc_xstart, desc_xgoal, t=ease_out(desc_anim.pos))
+    elif type(desc_anim) is DescboxExitAnim:
+      desc_x = lerp(desc_xgoal, desc_xstart, t=desc_anim.pos)
+    elif not ctx.exiting:
+      desc_x = desc_xgoal
+    else:
+      desc_view = None
 
-    # bars
+    if desc_view:
+      sprites += Sprite.move_all(
+        sprites=desc_view,
+        offset=(desc_x, desc_y),
+        origin=Sprite.ORIGIN_BOTTOMRIGHT,
+        layer="textbox",
+      )
+
+    # top bar
     topbar_image = Surface((WINDOW_WIDTH, BG_Y))
-    bottombar_image = Surface((WINDOW_WIDTH, WINDOW_HEIGHT - BG_Y - BG_HEIGHT))
-    sprites += [topbar_sprite := Sprite(
-      image=topbar_image,
-      pos=(0, 0),
-      layer="bar",
-    ), bottombar_sprite := Sprite(
-      image=bottombar_image,
-      pos=(0, WINDOW_HEIGHT),
-      origin=Sprite.ORIGIN_BOTTOMLEFT,
-      layer="bar",
-    )]
+    topbar_anim = next((a for a in ctx.anims if isinstance(a, TopbarAnim)), None)
+    if type(topbar_anim) is TopbarEnterAnim:
+      topbar_y = lerp(
+        a=-topbar_image.get_height(),
+        b=0,
+        t=ease_out(topbar_anim.pos)
+      )
+    elif type(topbar_anim) is TopbarExitAnim:
+      topbar_y = lerp(
+        a=0,
+        b=-topbar_image.get_height(),
+        t=topbar_anim.pos
+      )
+    elif not ctx.exiting:
+      topbar_y = 0
+    else:
+      topbar_image = None
+
+    if topbar_image:
+      sprites += [topbar_sprite := Sprite(
+        image=topbar_image,
+        pos=(0, topbar_y),
+        layer="topbar",
+      )]
+
+    # bottom bar
+    bottombar_anim = next((a for a in ctx.anims if isinstance(a, BottombarAnim)), None)
+    if type(bottombar_anim) is BottombarEnterAnim:
+      bottombar_height = lerp(
+        a=BOTTOMBAR_STARTHEIGHT,
+        b=BOTTOMBAR_HEIGHT,
+        t=ease_in_out(bottombar_anim.pos)
+      )
+    elif type(bottombar_anim) is BottombarExitAnim:
+      bottombar_height = lerp(
+        a=BOTTOMBAR_HEIGHT,
+        b=BOTTOMBAR_STARTHEIGHT,
+        t=ease_in_out(bottombar_anim.pos)
+      )
+    elif not ctx.exiting:
+      bottombar_height = BOTTOMBAR_HEIGHT
+    else:
+      bottombar_height = BOTTOMBAR_STARTHEIGHT
+
+    if bottombar_height:
+      bottombar_image = Surface((WINDOW_WIDTH, bottombar_height))
+      sprites += [bottombar_sprite := Sprite(
+        image=bottombar_image,
+        pos=(0, WINDOW_HEIGHT),
+        origin=Sprite.ORIGIN_BOTTOMLEFT,
+        layer="bottombar",
+      )]
 
     # portraits (to override)
     portrait_sprite = Sprite(
@@ -819,7 +957,7 @@ class BuyContext(Context):
     # hud (to override)
     hud = ctx.comps.hud
     hud_image = hud.render()
-    hud_pos = (BOX_XMARGIN, bottombar_sprite.rect.centery - hud.image.get_height() / 2)
+    hud_pos = (BOX_XMARGIN, WINDOW_HEIGHT - BOTTOMBAR_HEIGHT / 2 - hud.image.get_height() / 2)
     if hud.pos != hud_pos:
       hud.pos = hud_pos
     hud_sprite = Sprite(
@@ -830,20 +968,40 @@ class BuyContext(Context):
     # sprites += [hud_sprite]
 
     # gold bag
-    sprites += [Sprite(
-      image=assets.sprites["gold_bag"],
-      pos=(hud_sprite.rect.left + 8, WINDOW_HEIGHT),
-      origin=Sprite.ORIGIN_BOTTOMLEFT,
-      layer="portrait",
-    )]
+    goldbag_image = assets.sprites["gold_bag"]
+    goldbag_x = hud_sprite.rect.left + 8
+    goldbag_ystart = WINDOW_HEIGHT + goldbag_image.get_height()
+    goldbag_ygoal = WINDOW_HEIGHT
+    goldbag_anim = next((a for a in ctx.anims if isinstance(a, GoldBagAnim)), None)
+    if type(goldbag_anim) is GoldBagEnterAnim:
+      goldbag_y = lerp(goldbag_ystart, goldbag_ygoal, t=ease_out(goldbag_anim.pos))
+    elif type(goldbag_anim) is GoldBagExitAnim:
+      goldbag_y = lerp(goldbag_ygoal, goldbag_ystart, t=goldbag_anim.pos)
+    elif not ctx.exiting:
+      goldbag_y = goldbag_ygoal
+    else:
+      goldbag_image = None
+
+    if goldbag_image:
+      sprites += [Sprite(
+        image=goldbag_image,
+        pos=(goldbag_x, goldbag_y),
+        origin=Sprite.ORIGIN_BOTTOMLEFT,
+        layer="portrait",
+      )]
 
     # gold bubble
     goldbubble = ctx.comps.goldbubble
-    if type(ctx.get_tail()) is not CounterContext:
-      goldbubble_oldpos = goldbubble.pos
-      goldbubble.pos = (hud_sprite.rect.right + 4, hud_sprite.rect.centery)
-      if goldbubble_oldpos == (0, 0):
-        goldbubble.pos_drawn = goldbubble.pos
+    goldbubble_x = hud_sprite.rect.right + 4
+    goldbubble_ystart = WINDOW_HEIGHT + assets.sprites["bubble_gold"].get_height() / 2
+    goldbubble_ygoal = hud_sprite.rect.centery
+    if ctx.exiting:
+      if goldbubble.pos == (goldbubble_x, goldbubble_ygoal):
+        goldbubble.pos = (goldbubble_x, goldbubble_ystart)
+    elif type(ctx.get_tail()) is not CounterContext:
+      if goldbubble.pos == (0, 0):
+        goldbubble.pos_drawn = (goldbubble_x, goldbubble_ystart)
+      goldbubble.pos = (goldbubble_x, goldbubble_ygoal)
     sprites += Sprite.move_all(
       sprites=ctx.comps.goldbubble.view(),
       layer="hud",
@@ -871,13 +1029,17 @@ class BuyContext(Context):
       if type(card_anim) is CardEnterAnim:
         t = ease_out(t)
       elif type(card_anim) is CardExitAnim:
-        t = 1 - ease_in_out(t)
+        t = 1 - t
       from_x, from_y = card_anim.target
       to_x, to_y = (card_x, card_y)
       card_x = lerp(from_x, to_x, t)
       card_y = lerp(from_y, to_y, t)
-    card_sprite = ctx.comps.card.render()
-    card_sprite.pos = (card_x, card_y)
+
+    if not (not card_anim and ctx.exiting):
+      card_sprite = ctx.comps.card.render()
+      card_sprite.pos = (card_x, card_y)
+    else:
+      card_sprite = ctx.comps.card.sprite
     card_sprite.layer = "hud"
     sprites.append(card_sprite)
 
@@ -895,16 +1057,27 @@ class BuyContext(Context):
       text_surface.blit(text_buy, (0, 0))
       text_surface.blit(text_items, (text_buy.get_width() + 3, 0))
       ctx.cache_title = text_surface
-    sprites += [title_sprite := Sprite(
-      image=ctx.cache_title,
-      pos=(WINDOW_WIDTH - BOX_XMARGIN, 16 + 1),
-      origin=Sprite.ORIGIN_RIGHT,
-      layer="hud",
-    )]
 
-    LAYERS = ["bg", "item", "cursor", "pricetag", "bar", "portrait", "textbox", "counter", "hand", "hud"]
-    sprites.sort(key=lambda s: (
-      LAYERS.index(s.layer) + 1 if s.layer in LAYERS else 0
-    ))
+    title_image = ctx.cache_title
+    title_x = WINDOW_WIDTH - BOX_XMARGIN
+    title_ystart = -title_image.get_height()
+    title_ygoal = 16 + 1
+    title_anim = next((a for a in ctx.anims if isinstance(a, TitleAnim)), None)
+    if type(title_anim) is TitleEnterAnim:
+      title_y = lerp(title_ystart, title_ygoal, t=ease_out(title_anim.pos))
+    elif type(title_anim) is TitleExitAnim:
+      title_y = lerp(title_ygoal, title_ystart, t=title_anim.pos)
+    elif not ctx.exiting:
+      title_y = title_ygoal
+    else:
+      title_image = None
+
+    if title_image:
+      sprites += [title_sprite := Sprite(
+        image=title_image,
+        pos=(title_x, title_y),
+        origin=Sprite.ORIGIN_RIGHT,
+        layer="hud",
+      )]
 
     return sprites
