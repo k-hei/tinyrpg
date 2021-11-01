@@ -73,8 +73,8 @@ class ComponentStore:
   goldbubble: GoldBubble = None
   textbubble: TextBubble = None
   bagbubble: TextBubble = None
+  portraitgroup: PortraitGroup = None
   hud: Hud = None
-  portraits: list = None
   card: Card = None
 
 def animate_text(anim, text, period, stagger=1, delay=0):
@@ -193,7 +193,7 @@ class ShopContext(Context):
         goldbubble=GoldBubble(gold=ctx.store.gold),
         textbubble=TextBubble(width=120, origin=Sprite.ORIGIN_TOP, offset=(32, 0)),
         bagbubble=None,
-        portraits=ctx.portraitgroup.portraits,
+        portraitgroup=ctx.portraitgroup,
         card=card,
       )
     ), on_close=ctx.focus)
@@ -301,11 +301,10 @@ class ShopContext(Context):
           )
         ))
 
-    if is_home:
-      sprites += Sprite.move_all(
-        sprites=ctx.portraitgroup.view(),
-        layer="portrait",
-      )
+    sprites += Sprite.move_all(
+      sprites=ctx.portraitgroup.view(),
+      layer="portrait",
+    )
 
     if ctx.bubble:
       sprites += Sprite.move_all(

@@ -84,17 +84,17 @@ class CardEnterAnim(CardAnim): duration = 30
 class CardExitAnim(CardAnim): duration = 15
 
 class TopbarAnim(TweenAnim): pass
-class TopbarEnterAnim(TopbarAnim): duration = 15
-class TopbarExitAnim(TopbarAnim): duration = 7
+class TopbarEnterAnim(TopbarAnim): duration = 30
+class TopbarExitAnim(TopbarAnim): duration = 15
 
 class BottombarAnim(TweenAnim): pass
-class BottombarEnterAnim(BottombarAnim): duration = 15
-class BottombarExitAnim(BottombarAnim): duration = 7
+class BottombarEnterAnim(BottombarAnim): duration = 30
+class BottombarExitAnim(BottombarAnim): duration = 15
 
 class TitleAnim(TweenAnim): pass
 class TitleEnterAnim(TitleAnim):
   duration = 15
-  delay = 10
+  delay = 20
 class TitleExitAnim(TitleAnim): duration = 7
 
 class GoldBagAnim(TweenAnim): pass
@@ -168,8 +168,8 @@ def view_itemcell(item, selected=True, exiting=False, anim=None, cache={}):
   return sprites
 
 class ItemGrid:
-  class CellEnterAnim(TweenAnim): duration = 5
-  class CellExitAnim(TweenAnim): duration = 3
+  class CellEnterAnim(TweenAnim): duration = 9
+  class CellExitAnim(TweenAnim): duration = 5
 
   def __init__(grid, items, cols, height=0):
     grid.items = items
@@ -790,7 +790,6 @@ class BuyContext(Context):
       Mage(),
     ])
     ctx.comps = comps
-    ctx.comps.portraits[1].darken()
     ctx.textbox = ItemTextBox(width=160 + (28 if ENABLED_ITEM_RARITY_STARS else 0))
     ctx.gridctx = GridContext(
       items=[resolve_item(i) for i in ITEMS],
@@ -808,6 +807,7 @@ class BuyContext(Context):
     ctx.anims = []
     ctx.exiting = False
     ctx.cache_cardpos = ctx.comps.card.sprite.pos
+    ctx.cache_portraitspos = ctx.comps.portraitgroup.portraits_xs.copy()
 
   def enter(ctx):
     ctx.open(child=ctx.gridctx)
@@ -819,6 +819,12 @@ class BuyContext(Context):
       DescboxEnterAnim(),
       CardEnterAnim(target=ctx.comps.card.sprite.pos)
     ]
+    portraitgroup = ctx.comps.portraitgroup
+    portraitgroup.y = WINDOW_HEIGHT - BOTTOMBAR_HEIGHT
+    portraitgroup.anims[-1].update() # handle natural off by one frame inaccuracy
+    portraitgroup.select(index=0)
+    portraitgroup.slide(index=0, x=PORTRAIT_POS[0])
+    portraitgroup.slide(index=1, x=PORTRAIT_POS[0] - 96)
     ctx.anims[-1].on_end = lambda: (
       ctx.comps.textbubble.print("WHAT'S GOT YER EYE?")
     )
@@ -834,6 +840,12 @@ class BuyContext(Context):
       DescboxExitAnim(),
       CardExitAnim(target=ctx.cache_cardpos, on_end=ctx.comps.card.spin(30))
     ]
+    portraitgroup = ctx.comps.portraitgroup
+    portraitgroup.y = WINDOW_HEIGHT - BOTTOMBAR_STARTHEIGHT
+    portraitgroup.anims[-1].duration = BottombarExitAnim.duration
+    portraitgroup.deselect()
+    portraitgroup.slide(index=0, x=ctx.cache_portraitspos[0])
+    portraitgroup.slide(index=1, x=ctx.cache_portraitspos[1])
     sorted(ctx.anims, key=lambda a: a.duration + a.delay)[-1].on_end = ctx.close
 
   def handle_select(ctx):
@@ -933,17 +945,17 @@ class BuyContext(Context):
 
     # portraits (to override)
     portrait_sprite = Sprite(
-      image=ctx.comps.portraits[0].render(),
+      image=ctx.comps.portraitgroup.portraits[0].render(),
       pos=PORTRAIT_POS,
       origin=Sprite.ORIGIN_BOTTOM,
       layer="portrait",
     )
-    sprites += [Sprite(
-      image=ctx.comps.portraits[1].render(),
-      pos=vector.add(portrait_sprite.rect.bottomleft, (-16, 0)),
-      origin=Sprite.ORIGIN_BOTTOM,
-      layer="portrait",
-    ), portrait_sprite]
+    # sprites += [Sprite(
+    #   image=ctx.comps.portraitgroup.portraits[1].render(),
+    #   pos=vector.add(portrait_sprite.rect.bottomleft, (-16, 0)),
+    #   origin=Sprite.ORIGIN_BOTTOM,
+    #   layer="portrait",
+    # ), portrait_sprite]
 
     # textbubble
     textbubble = ctx.comps.textbubble
