@@ -2251,6 +2251,9 @@ class DungeonContext(Context):
         game.anims.pop(0)
 
     for comp in game.comps:
+      if type(comp) is Hud:
+        comp.update(force=True)
+
       if type(comp) is SkillBadge:
         comp.update()
 
