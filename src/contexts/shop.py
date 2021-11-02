@@ -105,7 +105,8 @@ class ShopContext(Context):
     ctx.bubble = None
     ctx.textbox = TextBox((96, 32), color=WHITE)
     ctx.hud = hud or Hud(store.party)
-    ctx.hud._pos = (8, 8)
+    if ctx.hud._pos == (0, 0):
+      ctx.hud._pos = (8, 8)
     ctx.anims = [CursorAnim()]
     ctx.on_animate = None
     ctx.controls = [
@@ -137,6 +138,9 @@ class ShopContext(Context):
       BoxExitAnim(duration=8),
       TitleSlideoutAnim(duration=8),
     ]
+    if ctx.bg_name.endswith("bgtile"):
+      ctx.bg.exit()
+    ctx.hud.pos = (8, 8)
     ctx.on_animate = lambda: ctx.close(None)
 
   def focus(ctx):
@@ -237,7 +241,7 @@ class ShopContext(Context):
   def view(ctx):
     MARGIN = 2
     sprites = []
-    is_home = not ctx.child or isinstance(ctx.get_tail(), CardContext)
+    is_home = not ctx.child or isinstance(ctx.get_tail(), CardContext) and not ctx.exiting
     hud = ctx.hud
     hud_goal = (MARGIN, WINDOW_HEIGHT - MARGIN - hud.render().get_height())
     if is_home and hud.pos != hud_goal:

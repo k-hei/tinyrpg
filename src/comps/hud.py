@@ -35,6 +35,7 @@ HP_WIDTH = 26
 HP_CRITICAL = 5
 SPEED_DEPLETE = 200
 SPEED_RESTORE = 300
+MARGIN = 8
 
 class EnterAnim(TweenAnim):
   duration = 15
@@ -68,7 +69,7 @@ class Hud:
     hud.party = party
     hud.draws_hp = hp
     hud.image = None
-    hud.active = True
+    hud.active = False
     hud.anims = []
     hud.offset = (0, 0)
     hud.pos = (0, 0)
@@ -78,6 +79,7 @@ class Hud:
     hud.hp_ally = inf
     hud.hp_hero_drawn = inf
     hud.hp_ally_drawn = inf
+    hud.updated = False
 
   @property
   def pos(hud):
@@ -86,22 +88,28 @@ class Hud:
   @pos.setter
   def pos(hud, pos):
     if "_pos" in dir(hud):
-      hud.anims.append(SlideAnim(target=(hud._pos, pos)))
+      hud.anims = [SlideAnim(target=(hud._pos, pos))]
     hud._pos = pos
 
   def enter(hud):
     hud.active = True
-    hud.anims.append(EnterAnim())
+    hud_image = hud.image or hud.render()
+    hud._pos = (MARGIN, -hud_image.get_height())
+    hud.pos = (MARGIN, MARGIN)
 
   def exit(hud):
     hud.active = False
-    hud.anims.append(ExitAnim())
+    hud_image = hud.image or hud.render()
+    hud._pos = (MARGIN, MARGIN)
+    hud.pos = (MARGIN, -hud_image.get_height())
 
   def slide(hud, start, goal):
     hud._pos = start
     hud.pos = goal
 
-  def update(hud):
+  def update(hud, force=False):
+    if hud.updated and not force: return
+    hud.updated = True
     hero = hud.party[0] if len(hud.party) >= 1 else None
     ally = hud.party[1] if len(hud.party) >= 2 else None
     if (hud.image is None

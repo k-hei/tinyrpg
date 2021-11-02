@@ -76,6 +76,7 @@ class SideViewContext(Context):
       actor.stop_move()
       spawn_x -= TILE_SIZE * facing_x
     ctx.area and ctx.area.init(ctx)
+    ctx.hud.enter()
 
   def handle_move(ctx, delta):
     hero, *allies = ctx.party
@@ -256,6 +257,8 @@ class SideViewContext(Context):
       elif not ctx.child:
         ctx.nearby_link = find_nearby_link(hero, ctx.area.links, ctx.get_graph())
         ctx.nearby_npc = find_nearby_npc(hero, ctx.area.actors) if ctx.nearby_link is None else None
+
+    ctx.hud.update(force=True)
     ctx.time += 1
 
   def view(ctx):
