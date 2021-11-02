@@ -96,6 +96,7 @@ class Card:
       image=card_image,
       pos=(0, card_y),
       size=(card_width, card_height),
-      origin=("center", "center")
+      origin=("center", "center"),
+      layer="card",
     )
     return card.sprite

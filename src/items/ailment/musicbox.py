@@ -7,6 +7,7 @@ class MusicBox(AilmentItem):
   desc: str = "Inflicts sleep."
   ailment: str = "sleep"
   value: int = 36
+  rarity: int = 2
 
   def use(item, store):
     if type(store.place).__name__.startswith("Town"):

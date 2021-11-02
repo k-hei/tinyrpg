@@ -8,7 +8,7 @@ from pygame.transform import scale
 from pygame.time import get_ticks
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
-from lib.sprite import Sprite
+from lib.sprite import Sprite, SpriteMask
 import game.controls as controls
 import assets
 from contexts import Context
@@ -123,13 +123,20 @@ class App(Context):
         sprites += transit.view(sprites)
 
       UI_LAYERS = ["ui", "log", "transits", "hud"]
-      sprites.sort(key=lambda sprite: UI_LAYERS.index(sprite.layer) + 1 if sprite.layer in UI_LAYERS else 0)
+      sprite_order = lambda sprite: (
+        UI_LAYERS.index(sprite.layer) + 1
+          if sprite.layer in UI_LAYERS
+          else 0
+      )
+      sprites.sort(key=sprite_order)
 
       if app.fps_shown:
         sprites += app.view_fps()
 
       app.surface.fill(0)
       for sprite in sprites:
+        if type(sprite) is SpriteMask:
+          sprite.children.sort(key=sprite_order)
         sprite.draw(app.surface)
       app.display.blit(scale(app.surface, app.size_scaled), (0, 0))
       pygame.display.flip()

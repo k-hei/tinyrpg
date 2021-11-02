@@ -5,15 +5,19 @@ from pygame import Rect, Surface, Color
 from pygame.transform import rotate, scale
 from contexts import Context
 from contexts.cardgroup import CardContext, CARD_BUY, CARD_SELL, CARD_EXIT
+from contexts.buy import BuyContext
 from contexts.sell import SellContext
 from cores.knight import Knight
+from comps.bg import Bg
 from comps.box import Box
+from comps.card import Card
 from comps.control import Control
+from comps.goldbubble import GoldBubble
+from comps.hud import Hud
+from comps.portraitgroup import PortraitGroup
 from comps.textbox import TextBox
 from comps.textbubble import TextBubble
-from comps.card import Card
-from comps.portraitgroup import PortraitGroup
-from comps.hud import Hud
+import assets
 from assets import load as use_assets
 from lib.filters import replace_color, darken_image
 from colors.palette import BLACK, WHITE, RED, BLUE, DARKBLUE, GOLD, ORANGE
@@ -28,6 +32,9 @@ from portraits.mira import MiraPortrait
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 from lib.sprite import Sprite
 from transits.slide import SlideDown
+
+BG_HEIGHT = 128
+BOTTOMBAR_HEIGHT = WINDOW_HEIGHT - BG_HEIGHT
 
 class CursorAnim(Anim): blocking = False
 class HudEnterAnim(TweenAnim): blocking = True
@@ -61,6 +68,15 @@ class ShopCard:
   text: str
   portrait: Portrait = None
 
+@dataclass
+class ComponentStore:
+  goldbubble: GoldBubble = None
+  textbubble: TextBubble = None
+  bagbubble: TextBubble = None
+  portraitgroup: PortraitGroup = None
+  hud: Hud = None
+  card: Card = None
+
 def animate_text(anim, text, period, stagger=1, delay=0):
   anims = []
   for i, char in enumerate(text):
@@ -77,19 +93,22 @@ class ShopContext(Context):
     ctx.store = store
     ctx.title = title
     ctx.subtitle = subtitle
-    ctx.portraits = PortraitGroup(portraits)
+    ctx.portraitgroup = PortraitGroup(portraits)
     ctx.cards = cards
+    ctx.bg = None
     ctx.bg_name = bg_name
     ctx.bg_color = bg_color
     ctx.messages = messages
     ctx.focuses = 0
     ctx.blurring = False
     ctx.exiting = False
+    ctx.bubble = None
     ctx.textbox = TextBox((96, 32), color=WHITE)
-    ctx.hud = hud or Hud([Knight()])
+    ctx.hud = hud or Hud(store.party)
+    if ctx.hud._pos == (0, 0):
+      ctx.hud._pos = (8, 8)
     ctx.anims = [CursorAnim()]
     ctx.on_animate = None
-    ctx.bubble = TextBubble(width=104, pos=(240, 40))
     ctx.controls = [
       Control(key=("X"), value="Menu")
     ]
@@ -105,13 +124,13 @@ class ShopContext(Context):
         *animate_text(anim=TitleEnterAnim, text=ctx.title, period=5, stagger=3, delay=45),
         BoxEnterAnim(duration=20, delay=90)
       ]),
-      ctx.portraits.enter(on_end=ctx.focus)
+      ctx.portraitgroup.enter(on_end=ctx.focus)
     ))])
 
   def exit(ctx):
     ctx.exiting = True
     ctx.bubble.exit()
-    ctx.portraits.exit()
+    ctx.portraitgroup.exit()
     ctx.child.exit()
     ctx.anims += [
       BackgroundExitAnim(duration=15),
@@ -119,20 +138,24 @@ class ShopContext(Context):
       BoxExitAnim(duration=8),
       TitleSlideoutAnim(duration=8),
     ]
+    if ctx.bg_name.endswith("bgtile"):
+      ctx.bg.exit()
+    ctx.hud.pos = (8, 8)
     ctx.on_animate = lambda: ctx.close(None)
 
   def focus(ctx):
-    portrait = ctx.portraits.portraits[0]
+    portrait = ctx.portraitgroup.portraits[0]
     portrait.start_talk()
     message = (ctx.focuses == 0
       and ctx.messages["home"]
       or ctx.messages["home_again"])
+    ctx.bubble = TextBubble(width=104, pos=(240, 40))
     ctx.bubble.print(message, on_end=lambda: (
       portrait.stop_talk(),
       ctx.child is None and ctx.open(
         CardContext(
           cards=map(lambda data: data.name, ctx.cards),
-          pos=(16, 144),
+          pos=(56, 136),
           on_select=lambda card: (
             text := next((c.text for c in ctx.cards if c.name == card.name), None),
             text and ctx.textbox.print(text)
@@ -151,33 +174,51 @@ class ShopContext(Context):
       ]
     ctx.focuses += 1
 
-  def handle_choose(ctx, card):
-    if card.name == "exit": return ctx.handle_exit()
-    if card.name == "buy": return ctx.focus()
-    ctx.portraits.cycle()
-    if card.name == "sell": return ctx.handle_sell(card)
-
-  def handle_sell(ctx, card):
+  def blur(ctx):
     ctx.blurring = True
     ctx.anims += [
       TitleSlideoutAnim(duration=7),
       BoxExitAnim(duration=7)
     ]
+
+  def handle_choose(ctx, card):
+    if card.name == "exit": return ctx.handle_exit()
+    if card.name == "buy": return ctx.handle_buy(card)
+    ctx.portraitgroup.cycle()
+    if card.name == "sell": return ctx.handle_sell(card)
+
+  def handle_buy(ctx, card):
+    ctx.blur()
+    ctx.bubble.exit(on_end=lambda: setattr(ctx, "bubble", None))
+    ctx.child.open(BuyContext(
+      store=ctx.store,
+      comps=ComponentStore(
+        hud=ctx.hud,
+        goldbubble=GoldBubble(gold=ctx.store.gold),
+        textbubble=TextBubble(width=120, origin=Sprite.ORIGIN_TOP, offset=(32, 0)),
+        bagbubble=None,
+        portraitgroup=ctx.portraitgroup,
+        card=card,
+      )
+    ), on_close=ctx.focus)
+
+  def handle_sell(ctx, card):
+    ctx.blur()
     ctx.child.open(SellContext(
       store=ctx.store,
       bubble=ctx.bubble,
-      portrait=ctx.portraits.portraits[0],
+      portrait=ctx.portraitgroup.portraits[0],
       messages=ctx.messages["sell"],
       hud=ctx.hud,
       card=card,
       on_close=lambda: (
-        ctx.portraits.stop_cycle(),
+        ctx.portraitgroup.stop_cycle(),
         ctx.focus()
       )
     ))
 
   def handle_exit(ctx):
-    portrait = ctx.portraits.portraits[0]
+    portrait = ctx.portraitgroup.portraits[0]
     portrait.start_talk()
     ctx.bubble.print(ctx.messages["exit"], on_end=lambda: (
       ctx.anims.append(Anim(duration=45, on_end=ctx.exit)),
@@ -186,7 +227,7 @@ class ShopContext(Context):
 
   def update(ctx):
     super().update()
-    ctx.portraits.update()
+    ctx.portraitgroup.update()
     for anim in ctx.anims:
       if anim.done:
         ctx.anims.remove(anim)
@@ -200,28 +241,22 @@ class ShopContext(Context):
   def view(ctx):
     MARGIN = 2
     sprites = []
-
-    hud_view = ctx.hud.view()
+    is_home = not ctx.child or isinstance(ctx.get_tail(), CardContext) and not ctx.exiting
+    hud = ctx.hud
+    hud_goal = (MARGIN, WINDOW_HEIGHT - MARGIN - hud.render().get_height())
+    if is_home and hud.pos != hud_goal:
+      hud.slide(hud.pos, hud_goal)
+    hud_view = hud.view()
     if hud_view:
-      hud_image = hud_view[0].image
-      hud_x = MARGIN
-      hud_y = WINDOW_HEIGHT - hud_image.get_height() - MARGIN
-      hud_anim = next((a for a in ctx.anims if type(a) is HudEnterAnim), None)
-      if hud_anim:
-        t = hud_anim.pos
-        t = ease_out(t)
-        hud_x = lerp(8, hud_x, t)
-        hud_y = lerp(8, hud_y, t)
-      sprites.append(Sprite(
-        image=hud_image,
-        pos=(hud_x, hud_y),
-        layer="hud"
-      ))
+      sprites += Sprite.move_all(
+        sprites=hud_view,
+        offset=(0, hud.image.get_height() / 2),
+        origin=Sprite.ORIGIN_LEFT,
+        layer="hud",
+      )
 
     if ctx.get_head().transits:
       return sprites
-
-    assets = use_assets()
 
     bg_image = Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
     bg_image.fill(BLACK)
@@ -230,33 +265,55 @@ class ShopContext(Context):
       pos=(0, 0)
     ))
 
-    bg_image = assets.sprites[ctx.bg_name]
-    bg_image = replace_color(bg_image, WHITE, ctx.bg_color)
-    bg_anim = next((a for a in ctx.anims if isinstance(a, BackgroundAnim)), None)
-    if bg_anim:
-      t = bg_anim.pos
-      if type(bg_anim) is BackgroundExitAnim:
-        t = 1 - t
-      if t < 0.5:
-        t = t / 0.5
-        bg_width = int(bg_image.get_width() * t)
-        bg_height = 4
-      else:
-        t = (t - 0.5) / 0.5
-        bg_width = bg_image.get_width()
-        bg_height = int(bg_image.get_height() * t)
-      bg_image = scale(bg_image, (bg_width, bg_height))
-    if bg_anim or not ctx.exiting:
-      sprites.append(Sprite(
-        image=bg_image,
-        pos=(
-          WINDOW_WIDTH / 2 - bg_image.get_width() / 2,
-          128 / 2 - bg_image.get_height() / 2
-        )
-      ))
+    if ctx.bg_name.endswith("bgtile"):
+      if not ctx.bg:
+        ctx.bg = Bg(sprite_id=ctx.bg_name)
+        ctx.bg.enter()
+      sprites += Sprite.move_all(
+        sprites=ctx.bg.view(),
+        offset=(0, -WINDOW_HEIGHT / 2 + BG_HEIGHT / 2)
+      )
+      if not ctx.child or type(ctx.child.child) is not BuyContext:
+        sprites += [Sprite(
+          image=Surface((WINDOW_WIDTH, BOTTOMBAR_HEIGHT)),
+          pos=(0, BG_HEIGHT)
+        )]
+    else:
+      bg_image = assets.sprites[ctx.bg_name]
+      bg_image = replace_color(bg_image, WHITE, ctx.bg_color)
+      bg_anim = next((a for a in ctx.anims if isinstance(a, BackgroundAnim)), None)
+      if bg_anim:
+        t = bg_anim.pos
+        if type(bg_anim) is BackgroundExitAnim:
+          t = 1 - t
+        if t < 0.5:
+          t = t / 0.5
+          bg_width = int(bg_image.get_width() * t)
+          bg_height = 4
+        else:
+          t = (t - 0.5) / 0.5
+          bg_width = bg_image.get_width()
+          bg_height = int(bg_image.get_height() * t)
+        bg_image = scale(bg_image, (bg_width, bg_height))
+      if bg_anim or not ctx.exiting:
+        sprites.append(Sprite(
+          image=bg_image,
+          pos=(
+            WINDOW_WIDTH / 2 - bg_image.get_width() / 2,
+            128 / 2 - bg_image.get_height() / 2
+          )
+        ))
 
-    sprites += ctx.portraits.view()
-    sprites += ctx.bubble.view()
+    sprites += Sprite.move_all(
+      sprites=ctx.portraitgroup.view(),
+      layer="portrait",
+    )
+
+    if ctx.bubble:
+      sprites += Sprite.move_all(
+        sprites=ctx.bubble.view(),
+        layer="textbox",
+      )
 
     title_anim = next((a for a in ctx.anims if (
       isinstance(a, TitleAnim)
@@ -341,9 +398,9 @@ class ShopContext(Context):
             char_width = title_font.width(char)
           char_x += char_width
 
-    box_image = Box.render((116, 48))
-    box_x = 128
-    box_y = 120
+    box_image = Box(sprite_prefix="item_tile", size=(116, 48)).render()
+    box_x = 168
+    box_y = 112
     box_anim = next((a for a in ctx.anims if isinstance(a, BoxAnim)), None)
     if box_anim:
       t = box_anim.pos
@@ -354,16 +411,23 @@ class ShopContext(Context):
       box_x = lerp(WINDOW_WIDTH, box_x, t)
     if box_anim or not ctx.blurring and not ctx.exiting:
       sprites.append(Sprite(
-        image=Box.render((116, 48)),
-        pos=(box_x, box_y)
+        image=box_image,
+        pos=(box_x, box_y),
+        layer="textbox",
       ))
       if not box_anim:
         sprites.append(Sprite(
           image=ctx.textbox.render(),
-          pos=(box_x + 10, box_y + 8)
+          pos=(box_x + 10, box_y + 8),
+          layer="textbox",
         ))
 
     if ctx.child:
-      sprites += ctx.child.view()
+      sprites += super().view()
+
+    LAYERS = ["bg", "item", "cursor", "pricetag", "topbar", "bottombar", "portrait", "textbox", "counter", "card", "hand", "hud"]
+    sprites.sort(key=lambda s: (
+      LAYERS.index(s.layer) + 1 if s.layer in LAYERS else 0
+    ))
 
     return sprites

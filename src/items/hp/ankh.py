@@ -7,6 +7,7 @@ class Ankh(HpItem):
   name: str = "Ankh"
   desc: str = "Revives ally with 50% HP."
   value: int = 80
+  rarity: int = 2
 
   def use(ankh, store):
     if type(store.place).__name__.startswith("Town"):

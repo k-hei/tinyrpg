@@ -1,0 +1,10 @@
+{
+  "bubble_gold": [0, 0, 54, 26],
+  "box_delta_nw": [54, 0, 8, 8],
+  "box_delta_n":  [62, 0, 8, 8],
+  "box_delta_ne": [70, 0, 8, 8],
+  "box_delta_sw": [54, 8, 8, 8],
+  "box_delta_s":  [62, 8, 8, 8],
+  "box_delta_se": [70, 8, 8, 8],
+  "gold_bag":   [0, 26, 64, 64]
+}

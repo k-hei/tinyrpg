@@ -1,30 +1,42 @@
-from pygame import Surface
-from colors.palette import WHITE
+from pygame import Surface, SRCALPHA
+from colors.palette import BLACK, WHITE
+from lib.filters import shadow_lite as shadow
 import assets
 
 class Box:
   TILE_SIZE = 8
 
-  def __init__(box, sprite_prefix, size, tile_size=0):
+  def __init__(box, sprite_prefix, size):
     box.sprite_prefix = sprite_prefix
     box.size = size
-    box.tile_size = tile_size
+
+  @property
+  def width(box):
+    return box.size[0]
+
+  @property
+  def height(box):
+    return box.size[1]
 
   def render(box):
-    surface = Surface(box.size)
-    surface.fill(WHITE)
+    surface = Surface(box.size, flags=SRCALPHA)
 
     sprite_prefix = box and box.sprite_prefix
-    tile_size = box and box.tile_size or Box.TILE_SIZE
+    tile_size = assets.sprites[f"{sprite_prefix}_nw"].get_width()
     width, height = box.size
 
+    rows = height // tile_size
     cols = width // tile_size
-    for col in range(cols):
+    if f"{sprite_prefix}_c" in assets.sprites:
+      for row in range(1, rows):
+        for col in range(1, cols):
+          surface.blit(assets.sprites[f"{sprite_prefix}_c"], (col * tile_size, row * tile_size))
+
+    for col in range(1, (width - 1) // tile_size):
       surface.blit(assets.sprites[f"{sprite_prefix}_n"], (col * tile_size, 0))
       surface.blit(assets.sprites[f"{sprite_prefix}_s"], (col * tile_size, height - tile_size))
 
-    rows = height // tile_size
-    for row in range(rows):
+    for row in range(1, (height - 1) // tile_size):
       surface.blit(assets.sprites[f"{sprite_prefix}_w"], (0, row * tile_size))
       surface.blit(assets.sprites[f"{sprite_prefix}_e"], (width - tile_size, row * tile_size))
 

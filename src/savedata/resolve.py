@@ -106,6 +106,7 @@ from items.ailment.musicbox import MusicBox as MusicBoxItem
 from items.ailment.antidote import Antidote as AntidoteItem
 from items.ailment.amethyst import Amethyst as AmethystItem
 from items.ailment.lovepotion import LovePotion as LovePotionItem
+from items.sp.vino import Vino as VinoItem
 from items.sp.bread import Bread as BreadItem
 from items.sp.berry import Berry as BerryItem
 from items.sp.cheese import Cheese as CheeseItem
@@ -144,6 +145,7 @@ def resolve_item(key):
   if key == "Antidote": return AntidoteItem
   if key == "Amethyst": return AmethystItem
   if key == "LovePotion": return LovePotionItem
+  if key == "Vino": return VinoItem
   if key == "Bread": return BreadItem
   if key == "Berry": return BerryItem
   if key == "Cheese": return CheeseItem

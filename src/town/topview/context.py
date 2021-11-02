@@ -43,6 +43,7 @@ class TopViewContext(Context):
     ctx.anims = []
     ctx.debug = False
     ctx.time = 0
+    ctx.comps = [ctx.hud]
 
   def handle_press(ctx, button):
     if ctx.child:
@@ -214,16 +215,24 @@ class TopViewContext(Context):
 
   def update(ctx):
     super().update()
+
     if ctx.link:
       for actor in ctx.party:
         actor.move(ctx.link)
+
     for elem in ctx.stage.elems:
       elem.update()
+
     for anim in ctx.anims:
       if anim.done:
         ctx.anims.remove(anim)
       else:
         anim.update()
+
+    for comp in ctx.comps:
+      comp.updated = False
+      comp.update()
+
     ctx.time += 1
 
   def view(ctx):
@@ -279,41 +288,19 @@ class TopViewContext(Context):
       else 1
     ))
 
-    hud_anim = next((a for a in ctx.anims if type(a) is TopViewContext.HudAnim), None)
-    if hud_anim:
-      ctx.hud.active = True
-      ctx.hud.anims = []
-
     if ctx.link or (ctx.child
+      and not isinstance(ctx.child, DialogueContext)
       and not isinstance(ctx.child, InventoryContext)
       and not isinstance(ctx.child.child, ShopContext)
     ):
-      if ctx.hud.active:
-        ctx.hud.exit()
+      ctx.hud.active and ctx.hud.exit()
     else:
-      if not ctx.hud.active and not hud_anim:
-        ctx.hud.enter()
+      not ctx.hud.active and ctx.hud.enter()
 
     for sprite in sprites:
       sprite.move((256 - WINDOW_WIDTH // 2, 0))
 
-    if hud_anim or (ctx.hud.active or ctx.hud.anims) and (not ctx.child or not isinstance(ctx.child.child, ShopContext)):
-      if ctx.hud.anims and not hud_anim:
-        sprites += ctx.hud.view()
-      else:
-        hud_image = ctx.hud.view()[0].image
-        hud_x = 8
-        hud_y = 8
-        if hud_anim:
-          t = hud_anim.pos
-          t = ease_out(t)
-          hud_x = lerp(2, hud_x, t)
-          hud_y = lerp(WINDOW_HEIGHT - 2 - hud_image.get_height(), hud_y, t)
-        sprites.append(Sprite(
-          image=hud_image,
-          pos=(hud_x, hud_y),
-          layer="hud"
-        ))
+    sprites += ctx.hud.view()
 
     if ctx.time < LABEL_FRAMES and not ctx.child:
       label_image = assets.ttf["normal"].render(ctx.area.name, WHITE)

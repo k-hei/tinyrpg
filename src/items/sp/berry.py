@@ -6,7 +6,8 @@ class Berry(SpItem):
   name: str = "Berry"
   desc: str = "Increases max SP."
   sp: int = 10
-  value: int = 10
+  value: int = 399
+  rarity: int = 3
 
   def use(item, store):
     store.sp_max += item.sp

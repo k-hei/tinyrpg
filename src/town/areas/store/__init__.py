@@ -44,6 +44,11 @@ class StoreArea(Stage):
   ]
 
   def __init__(stage, party):
+    open_shop = lambda ctx: [
+      lambda: StoreContext(hud=ctx.hud, store=ctx.store),
+      lambda: ctx.anims.append(ctx.HudAnim()),
+      lambda: ctx.get_head().transition([DissolveOut()])
+    ]
     super().__init__(stage.layout, {
       "0": party,
       "1": Actor(
@@ -55,9 +60,7 @@ class StoreArea(Stage):
         is_shopkeep=True,
         message=lambda talkee, ctx: [
           "{}: Ever get a rebar stuck up your ass?".format(talkee.name.upper()),
-          lambda: StoreContext(hud=ctx.hud, store=ctx.store),
-          lambda: ctx.anims.append(ctx.HudAnim()),
-          lambda: ctx.get_head().transition([DissolveOut()])
+          *open_shop(ctx)
         ]
       ),
       "2": Actor(
@@ -69,9 +72,7 @@ class StoreArea(Stage):
         is_shopkeep=True,
         message=lambda talkee, ctx: [
           "{}: Welcome!".format(talkee.name.upper()),
-          lambda: StoreContext(hud=ctx.hud, store=ctx.store),
-          lambda: ctx.anims.append(ctx.HudAnim()),
-          lambda: ctx.get_head().transition([DissolveOut()])
+          *open_shop(ctx)
         ]
       ),
       "3": Actor(

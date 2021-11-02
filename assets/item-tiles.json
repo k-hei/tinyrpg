@@ -7,5 +7,8 @@
   "item_tile_sw":    [ 0,  8,  8,  8],
   "item_tile_se":    [40,  8,  8,  8],
   "item_tile_w":     [ 0,  4,  8,  8],
-  "item_tile_e":     [40,  4,  8,  8]
+  "item_tile_e":     [40,  4,  8,  8],
+  "item_tile_c":     [ 4,  0,  8,  8],
+  "item_tile_n":     [ 4,  0,  8,  8],
+  "item_tile_s":     [ 4,  0,  8,  8]
 }

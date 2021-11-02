@@ -1,5 +1,7 @@
 {
   "shop_tag": [0, 0, 96, 9],
   "general_store": [0, 9, 70, 5],
-  "fortune_house": [0, 14, 73, 5]
+  "fortune_house": [0, 14, 73, 5],
+  "shop_tag_l": [73, 9, 4, 11],
+  "shop_tag_r": [77, 9, 4, 11]
 }
