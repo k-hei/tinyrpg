@@ -2273,6 +2273,7 @@ class DungeonContext(Context):
     else:
       if game.child or game.get_head().transits:
         if type(game.child) is InventoryContext:
+          game.skill_badge.active and game.skill_badge.exit()
           game.hide_bubble()
         else:
           for comp in [c for c in game.comps if c.active]:
