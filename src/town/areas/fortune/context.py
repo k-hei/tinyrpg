@@ -24,8 +24,7 @@ class FortuneContext(ShopContext):
       bg_color=DARKBLUE,
       portraits=[OraclePortrait()],
       cards=[
-        ShopCard(name="buy", text="Buy recovery and support items."),
-        ShopCard(name="sell", text="Trade in items for gold."),
+        ShopCard(name="sell", text="Trade in artifacts for gold."),
         ShopCard(name="exit", text="Leave the shop.")
       ],
       *args,
