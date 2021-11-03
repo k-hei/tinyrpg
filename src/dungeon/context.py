@@ -1853,8 +1853,9 @@ class DungeonContext(Context):
 
   def pickup_item(game, actor, itemdrop=None):
     target_cell = vector.add(actor.cell, actor.facing)
-    itemdrop = itemdrop or next((e for e in game.floor.get_elems_at(target_cell) if isinstance(e, ItemDrop)), None)
-    if not itemdrop:
+    target_elems = game.floor.get_elems_at(target_cell)
+    itemdrop = itemdrop or next((e for e in target_elems if isinstance(e, ItemDrop)), None)
+    if not itemdrop or next((e for e in target_elems if e.solid), None):
       return False
     game.floor.remove_elem(itemdrop)
     game.hero.item = itemdrop.item

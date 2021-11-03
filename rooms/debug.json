@@ -7,8 +7,7 @@
     "....."
   ],
   "elems": [
-    [[0, 0], "Table", { "length": 1 }],
-    [[2, 0], "Table", { "length": 3 }],
-    [[0, 2], "Table", { "length": 2 }]
+    [[1, 1], "Eyeball", { "ailment": "sleep" }],
+    [[1, 1], "ItemDrop", { "contents": "Potion" }]
   ]
 }
