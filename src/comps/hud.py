@@ -4,7 +4,7 @@ import pygame
 from pygame import Rect, Surface, SRCALPHA
 from pygame.transform import scale
 
-from colors.palette import BLACK, WHITE, GREEN, BLUE, RED, CYAN, GRAY
+from colors.palette import BLACK, WHITE, GREEN, DARKGREEN, BLUE, RED, DARKRED, CYAN, GRAY
 from assets import load as use_assets
 from lib.filters import replace_color, recolor, outline
 from lib.sprite import Sprite
@@ -80,6 +80,7 @@ class Hud:
     hud.hp_hero_drawn = inf
     hud.hp_ally_drawn = inf
     hud.updated = False
+    hud.time = 0
 
   @property
   def pos(hud):
@@ -154,6 +155,7 @@ class Hud:
     hud.hp_hero_drawn = hero.get_hp()
     if ally:
       hud.hp_ally_drawn = ally.get_hp()
+    hud.time += 1
 
   def render(hud):
     hero = hud.party[0] if len(hud.party) >= 1 else None
@@ -222,13 +224,21 @@ class Hud:
       hero_portrait.get_width() // 2 - hero_scaled.get_width() // 2,
       hero_portrait.get_height() // 2 - hero_scaled.get_height() // 2
     ))
+
+    def draw_bar(surface, pos, percent, color):
+      surface.blit(render_bar(percent, color), pos)
+
+    color_blink = WHITE if hud.time // 2 % 2 else CYAN
     hero_hp_pos = (HP_BAR_X, HP_BAR_Y1)
-    if hud.draws_hp and hero.get_hp() <= hud.hp_hero:
-      sprite.blit(render_bar(hud.hp_hero / hero.get_hp_max(), RED), hero_hp_pos)
-      sprite.blit(render_bar(hero.get_hp() / hero.get_hp_max(), GREEN), hero_hp_pos)
-    else:
-      sprite.blit(render_bar(hero.get_hp() / hero.get_hp_max(), CYAN), hero_hp_pos)
-      sprite.blit(render_bar(hud.hp_hero / hero.get_hp_max(), GREEN), hero_hp_pos)
+    if hud.draws_hp:
+      if not hero.dead:
+        draw_bar(sprite, hero_hp_pos, percent=1, color=DARKGREEN)
+      if hero.get_hp() <= hud.hp_hero:
+        draw_bar(sprite, hero_hp_pos, percent=hud.hp_hero / hero.get_hp_max(), color=RED)
+        draw_bar(sprite, hero_hp_pos, percent=hero.get_hp() / hero.get_hp_max(), color=GREEN)
+      else:
+        draw_bar(sprite, hero_hp_pos, percent=hero.get_hp() / hero.get_hp_max(), color=color_blink)
+        draw_bar(sprite, hero_hp_pos, percent=hud.hp_hero / hero.get_hp_max(), color=GREEN)
 
     if ally:
       sprite.blit(ally_scaled, (
@@ -236,16 +246,19 @@ class Hud:
         CIRC16_Y + ally_portrait.get_height() // 2 - ally_scaled.get_height() // 2
       ))
       ally_hp_pos = (HP_BAR_X, HP_BAR_Y2)
-      if hud.draws_hp and ally.get_hp() <= hud.hp_ally:
-        sprite.blit(render_bar(hud.hp_ally / ally.get_hp_max(), RED), ally_hp_pos)
-        sprite.blit(render_bar(ally.get_hp() / ally.get_hp_max(), GREEN), ally_hp_pos)
-      else:
-        sprite.blit(render_bar(ally.get_hp() / ally.get_hp_max(), CYAN), ally_hp_pos)
-        sprite.blit(render_bar(hud.hp_ally / ally.get_hp_max(), GREEN), ally_hp_pos)
+      if hud.draws_hp:
+        if not ally.dead:
+          draw_bar(sprite, ally_hp_pos, percent=1, color=DARKGREEN)
+        if ally.get_hp() <= hud.hp_ally:
+          draw_bar(sprite, ally_hp_pos, percent=hud.hp_ally / ally.get_hp_max(), color=RED)
+          draw_bar(sprite, ally_hp_pos, percent=ally.get_hp() / ally.get_hp_max(), color=GREEN)
+        else:
+          draw_bar(sprite, ally_hp_pos, percent=ally.get_hp() / ally.get_hp_max(), color=color_blink)
+          draw_bar(sprite, ally_hp_pos, percent=hud.hp_ally / ally.get_hp_max(), color=GREEN)
 
     if hud.draws_hp:
       sprite.blit(assets.sprites["hp"], (HP_X, HP_Y))
-      hptext_image = render_numbers(hero.get_hp(), hero.get_hp_max(), HP_CRITICAL)
+      hptext_image = render_numbers(hero.get_hp(), hero.get_hp_max(), HP_CRITICAL, time=hud.time)
       sprite.blit(hptext_image, (HP_VALUE_X, HP_VALUE_Y))
     return sprite
 
@@ -275,20 +288,20 @@ class Hud:
       layer="hud"
     )]
 
-def render_bar(pct, color):
-  surface = Surface((HP_WIDTH, 2), SRCALPHA)
+def render_bar(percent, color):
+  surface = Surface((HP_WIDTH, 3), SRCALPHA)
   pygame.draw.rect(surface, color, Rect(
     (0, 0),
-    (ceil(HP_WIDTH // 2 * min(0.5, pct) / 0.5 - 1), 1)
+    (ceil(HP_WIDTH // 2 * min(0.5, percent) / 0.5), 2)
   ))
-  if pct > 0.5:
+  if percent > 0.5:
     pygame.draw.rect(surface, color, Rect(
       (HP_WIDTH // 2 - 1, 1),
-      (HP_WIDTH // 2 * min(1, (pct - 0.5) / 0.5), 1)
+      (HP_WIDTH // 2 * min(1, (percent - 0.5) / 0.5), 2)
     ))
   return surface
 
-def render_numbers(hp, hp_max, crit_threshold=0):
+def render_numbers(hp, hp_max, crit_threshold=0, time=0):
   assets = use_assets()
 
   hp_text = str(ceil(max(0, hp)))
@@ -321,8 +334,9 @@ def render_numbers(hp, hp_max, crit_threshold=0):
 
   for char in hp_text[1:]:
     number = render_char(char, assets.fonts["numbers13"]).convert_alpha()
+    color_blink = RED if time % 30 < 15 else DARKRED
     if hp <= crit_threshold:
-      number = replace_color(number, BLACK, RED)
+      number = replace_color(number, BLACK, color_blink)
     sprite.blit(number, (x, HP_VALUE_Y))
     x += number.get_width() - 2
 
