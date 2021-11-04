@@ -4,7 +4,7 @@ import pygame
 from pygame import Rect, Surface, SRCALPHA
 from pygame.transform import scale
 
-from colors.palette import BLACK, WHITE, GREEN, DARKGREEN, BLUE, RED, DARKRED, CYAN, GRAY
+from colors.palette import BLACK, WHITE, LIME, DARKGREEN, YELLOW, DARKYELLOW, BLUE, RED, DARKRED, CYAN, DARKCYAN, GRAY
 from assets import load as use_assets
 from lib.filters import replace_color, recolor, outline
 from lib.sprite import Sprite
@@ -228,17 +228,19 @@ class Hud:
     def draw_bar(surface, pos, percent, color):
       surface.blit(render_bar(percent, color), pos)
 
-    color_blink = WHITE if hud.time // 2 % 2 else CYAN
+    color_blink = CYAN if hud.time // 2 % 2 else DARKCYAN
     hero_hp_pos = (HP_BAR_X, HP_BAR_Y1)
     if hud.draws_hp:
+      color_bg = DARKGREEN if hero.get_hp() > HP_CRITICAL else DARKYELLOW
+      color_fg = LIME if hero.get_hp() > HP_CRITICAL else YELLOW
       if not hero.dead:
-        draw_bar(sprite, hero_hp_pos, percent=1, color=DARKGREEN)
+        draw_bar(sprite, hero_hp_pos, percent=1, color=color_bg)
       if hero.get_hp() <= hud.hp_hero:
         draw_bar(sprite, hero_hp_pos, percent=hud.hp_hero / hero.get_hp_max(), color=RED)
-        draw_bar(sprite, hero_hp_pos, percent=hero.get_hp() / hero.get_hp_max(), color=GREEN)
+        draw_bar(sprite, hero_hp_pos, percent=hero.get_hp() / hero.get_hp_max(), color=color_fg)
       else:
         draw_bar(sprite, hero_hp_pos, percent=hero.get_hp() / hero.get_hp_max(), color=color_blink)
-        draw_bar(sprite, hero_hp_pos, percent=hud.hp_hero / hero.get_hp_max(), color=GREEN)
+        draw_bar(sprite, hero_hp_pos, percent=hud.hp_hero / hero.get_hp_max(), color=color_fg)
 
     if ally:
       sprite.blit(ally_scaled, (
@@ -247,18 +249,20 @@ class Hud:
       ))
       ally_hp_pos = (HP_BAR_X, HP_BAR_Y2)
       if hud.draws_hp:
+        color_bg = DARKGREEN if ally.get_hp() > HP_CRITICAL else DARKYELLOW
+        color_fg = LIME if ally.get_hp() > HP_CRITICAL else YELLOW
         if not ally.dead:
-          draw_bar(sprite, ally_hp_pos, percent=1, color=DARKGREEN)
+          draw_bar(sprite, ally_hp_pos, percent=1, color=color_bg)
         if ally.get_hp() <= hud.hp_ally:
           draw_bar(sprite, ally_hp_pos, percent=hud.hp_ally / ally.get_hp_max(), color=RED)
-          draw_bar(sprite, ally_hp_pos, percent=ally.get_hp() / ally.get_hp_max(), color=GREEN)
+          draw_bar(sprite, ally_hp_pos, percent=ally.get_hp() / ally.get_hp_max(), color=color_fg)
         else:
           draw_bar(sprite, ally_hp_pos, percent=ally.get_hp() / ally.get_hp_max(), color=color_blink)
-          draw_bar(sprite, ally_hp_pos, percent=hud.hp_ally / ally.get_hp_max(), color=GREEN)
+          draw_bar(sprite, ally_hp_pos, percent=hud.hp_ally / ally.get_hp_max(), color=color_fg)
 
     if hud.draws_hp:
       sprite.blit(assets.sprites["hp"], (HP_X, HP_Y))
-      hptext_image = render_numbers(hero.get_hp(), hero.get_hp_max(), HP_CRITICAL, time=hud.time)
+      hptext_image = render_numbers(hero.get_hp(), hero.get_hp_max(), crit_threshold=HP_CRITICAL, time=hud.time)
       sprite.blit(hptext_image, (HP_VALUE_X, HP_VALUE_Y))
     return sprite
 
