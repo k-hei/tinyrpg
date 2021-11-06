@@ -1,4 +1,4 @@
-from math import ceil
+from math import inf, ceil
 from pygame import Surface, Rect, SRCALPHA
 from pygame.transform import rotate, flip, scale
 from pygame.time import get_ticks
@@ -76,6 +76,8 @@ class StageView:
   class DarkenAnim(Anim): pass
 
   def order(sprite):
+    if type(sprite) is list:
+      return inf
     _, sprite_y = sprite.pos
     try:
       depth = StageView.LAYERS.index(sprite.layer)

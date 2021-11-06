@@ -13,6 +13,7 @@ import game.controls as controls
 import assets
 from contexts import Context
 from contexts.loading import LoadingContext
+from contexts.debug import DebugContext
 from transits.dissolve import DissolveIn, DissolveOut
 from config import (
   FPS, FPS_SLOW, FPS_FAST,
@@ -123,20 +124,28 @@ class App(Context):
         sprites += transit.view(sprites)
 
       UI_LAYERS = ["ui", "log", "transits", "hud"]
-      sprite_order = lambda sprite: (
-        UI_LAYERS.index(sprite.layer) + 1
-          if sprite.layer in UI_LAYERS
-          else 0
-      )
-      sprites.sort(key=sprite_order)
+      sprites.sort(key=lambda sprite: (
+        len(UI_LAYERS) + 1
+          if type(sprite) is list
+          else UI_LAYERS.index(sprite.layer) + 1
+            if sprite.layer in UI_LAYERS
+            else 0
+      ))
+
+      new_sprites = []
+      for sprite in sprites:
+        if type(sprite) is list:
+          for s in sprite:
+            new_sprites.append(s)
+        else:
+          new_sprites.append(sprite)
+      sprites = new_sprites
 
       if app.fps_shown:
         sprites += app.view_fps()
 
       app.surface.fill(0)
       for sprite in sprites:
-        if type(sprite) is SpriteMask:
-          sprite.children.sort(key=sprite_order)
         sprite.draw(app.surface)
       app.display.blit(scale(app.surface, app.size_scaled), (0, 0))
       pygame.display.flip()
@@ -217,6 +226,9 @@ class App(Context):
   def toggle_pause(app):
     app.paused = not app.paused
 
+  def toggle_debug(app):
+    app.get_tail().open(DebugContext())
+
   def toggle_fullscreen(app):
     app.fullscreen = not app.fullscreen
     if app.fullscreen:
@@ -266,6 +278,8 @@ class App(Context):
         return tapping and app.toggle_speedup()
       if button == pygame.K_f and ctrl:
         return tapping and app.toggle_fps()
+      if button == pygame.K_ESCAPE and ctrl:
+        return tapping and app.toggle_debug()
       if button == pygame.K_RETURN and alt:
         return tapping and app.toggle_fullscreen()
       if button == pygame.K_t and ctrl:
