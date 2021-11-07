@@ -5,20 +5,20 @@ from pygame.transform import flip
 import lib.keyboard as keyboard
 from contexts import Context
 from assets import load as use_assets
-from lib.filters import outline, recolor, replace_color
-from colors.palette import WHITE, BLUE, BLACK, GOLD
+from lib.filters import outline, replace_color
+from colors.palette import WHITE, BLUE, DARKBLUE, BLACK, GOLD
 from config import WINDOW_SIZE, WINDOW_HEIGHT
 from lib.sprite import Sprite
 
 MARGIN_X = 48
-MARGIN_Y = 48
+MARGIN_Y = 32
 SPACING = 4
 GOLD_SPACING = 4
 HAND_SPACING = 4
 HUD_MARGIN = 8
 
 class PauseContext(Context):
-  choices = ["item", "equip", "status", "quest", "option"]
+  choices = ["item", "equip", "status", "quest", "monster", "option"]
 
   def handle_press(ctx, key):
     if keyboard.get_state(key) > 1:
@@ -62,17 +62,20 @@ class PauseContext(Context):
     # choices
     choices_width = 0
     for i, choice in enumerate(ctx.choices):
-      text = choice.upper()
-      text_image = assets.ttf["special"].render(text, WHITE)
-      text_image = outline(text_image, BLUE)
+      text = choice[0].upper() + choice[1:]
+      text_image = assets.ttf["roman_large"].render(text, WHITE)
+      text_image = outline(text_image, BLACK)
       if text_image.get_width() > choices_width:
         choices_width = text_image.get_width()
-      x = MARGIN_X
-      y = i * (text_image.get_height() + SPACING) + MARGIN_Y
-      sprites.append(Sprite(
+      option_x = MARGIN_X
+      option_y = i * (text_image.get_height() + SPACING) + MARGIN_Y
+      sprites += [Sprite(
+        image=replace_color(assets.sprites["pause_option"], WHITE, DARKBLUE),
+        pos=(0, option_y),
+      ), Sprite(
         image=text_image,
-        pos=(x, y)
-      ))
+        pos=(option_x, option_y)
+      )]
 
     # hand
     hand_image = flip(assets.sprites["hand"], True, False)
@@ -89,13 +92,11 @@ class PauseContext(Context):
     hud_y = MARGIN_Y
     sprites += [
       Sprite(image=hud_image, pos=(hud_x, hud_y)),
-      Sprite(image=assets.sprites["circle_knight"], pos=(hud_x, hud_y + 1))
     ]
 
     hud_y += hud_image.get_height() + HUD_MARGIN
     sprites += [
       Sprite(image=hud_image, pos=(hud_x, hud_y)),
-      Sprite(image=assets.sprites["circle_mage"], pos=(hud_x, hud_y + 1))
     ]
 
-    return sprites
+    return [sprites]

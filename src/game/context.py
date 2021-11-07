@@ -2,31 +2,20 @@ import pygame
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
 import game.controls as controls
-from config import WINDOW_SIZE, DEBUG, KNIGHT_BUILD, MAGE_BUILD, ROGUE_BUILD
 from contexts import Context
 from contexts.load import LoadContext
 from contexts.pause import PauseContext
 from contexts.inventory import InventoryContext
 from contexts.custom import CustomContext
-from dungeon.context import DungeonContext, DungeonData
-from dungeon.stage import Stage
-from dungeon.decor import Decor
-from dungeon.features.room import Room
-from dungeon.features.altarroom import AltarRoom
+from dungeon.context import DungeonContext
 from dungeon.gen.manifest import manifest_stage_from_room
 from dungeon.decoder import decode_floor
 from dungeon.roomdata import load_rooms, rooms
 from town.context import TownContext
-from cores.knight import Knight
-from cores.mage import Mage
-from cores.rogue import Rogue
-from inventory import Inventory
 from skills import get_skill_order
 from skills.weapon import Weapon
-import assets
 from debug import bench
 from game.data import GameData
-from savedata.resolve import resolve_item, resolve_skill, resolve_elem
 from transits.dissolve import DissolveOut
 
 load_rooms()
@@ -183,14 +172,15 @@ class GameContext(Context):
     or type(ctx.child) is TownContext and ctx.child.get_depth() > 1
     ):
       return
-    if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, pygame.K_q) or gamepad.get_state(gamepad.controls.inventory):
+    if button in (pygame.K_ESCAPE,):
+      return ctx.handle_pause()
+    if button in (pygame.K_BACKSPACE, pygame.K_q) or gamepad.get_state(gamepad.controls.inventory):
       return ctx.handle_inventory()
     if button == pygame.K_e or gamepad.get_state(gamepad.controls.equip):
       return ctx.handle_custom()
 
   def handle_pause(ctx):
-    child = ctx.get_tail()
-    child.open(PauseContext())
+    ctx.get_tail().open(PauseContext())
 
   def handle_inventory(ctx):
     ctx.get_tail().open(InventoryContext(store=ctx.store))
