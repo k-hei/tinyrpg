@@ -1,34 +1,61 @@
 import pygame
 from pygame import Surface, Color, SRCALPHA
 from pygame.transform import flip
-
 import lib.keyboard as keyboard
-from contexts import Context
-from assets import load as use_assets
+import lib.gamepad as gamepad
+from lib.sprite import Sprite
 from lib.filters import outline, replace_color
+import assets
+
+from contexts import Context
+from anims.sine import SineAnim
 from colors.palette import WHITE, BLUE, DARKBLUE, BLACK, GOLD
 from config import WINDOW_SIZE, WINDOW_HEIGHT
-from lib.sprite import Sprite
 
 MARGIN_X = 48
 MARGIN_Y = 32
-SPACING = 4
+OPTION_SPACING = 4
 GOLD_SPACING = 4
 HAND_SPACING = 4
 HUD_MARGIN = 8
 
+class CursorAnim(SineAnim):
+  period = 30
+  amplitude = 2
+
 class PauseContext(Context):
   choices = ["item", "equip", "status", "quest", "monster", "option"]
 
+  def __init__(ctx, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    ctx.cursor_index = 0
+    ctx.cursor_drawn = 0
+    ctx.anims = [CursorAnim()]
+
   def handle_press(ctx, key):
-    if keyboard.get_state(key) > 1:
+    if keyboard.get_state(key) + gamepad.get_state(key) > 1:
       return False
+    if key in (pygame.K_UP, gamepad.controls.UP):
+      return ctx.handle_move(delta=-1)
+    if key in (pygame.K_DOWN, gamepad.controls.DOWN):
+      return ctx.handle_move(delta=1)
     if key == pygame.K_ESCAPE:
       return ctx.close()
 
+  def handle_move(ctx, delta):
+    if ctx.cursor_index + delta < 0:
+      return False
+    if ctx.cursor_index + delta < 0:
+      return False
+    ctx.cursor_index += delta
+    return True
+
+  def update(ctx):
+    ctx.anims = [(a.update(), a)[-1] for a in ctx.anims if not a.done]
+    ctx.cursor_drawn += (ctx.cursor_index - ctx.cursor_drawn) / 4
+
   def view(ctx):
     sprites = []
-    assets = use_assets()
 
     # tint
     tint = Surface(WINDOW_SIZE, SRCALPHA)
@@ -68,9 +95,11 @@ class PauseContext(Context):
       if text_image.get_width() > choices_width:
         choices_width = text_image.get_width()
       option_x = MARGIN_X
-      option_y = i * (text_image.get_height() + SPACING) + MARGIN_Y
+      option_y = i * (text_image.get_height() + OPTION_SPACING) + MARGIN_Y
+      option_image = assets.sprites["pause_option"]
+      option_image = replace_color(option_image, WHITE, BLUE if i == ctx.cursor_index else DARKBLUE)
       sprites += [Sprite(
-        image=replace_color(assets.sprites["pause_option"], WHITE, DARKBLUE),
+        image=option_image,
         pos=(0, option_y),
       ), Sprite(
         image=text_image,
@@ -80,7 +109,10 @@ class PauseContext(Context):
     # hand
     hand_image = flip(assets.sprites["hand"], True, False)
     hand_x = MARGIN_X - hand_image.get_width() - HAND_SPACING
-    hand_y = MARGIN_Y
+    hand_y = MARGIN_Y + ctx.cursor_drawn * (text_image.get_height() + OPTION_SPACING)
+    hand_anim = next((a for a in ctx.anims if isinstance(a, CursorAnim)), None)
+    if hand_anim:
+      hand_x += hand_anim.pos
     sprites.append(Sprite(
       image=hand_image,
       pos=(hand_x, hand_y)

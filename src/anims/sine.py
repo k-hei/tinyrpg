@@ -3,11 +3,12 @@ from anims import Anim
 
 class SineAnim(Anim):
   period = 0
+  amplitude = 1
 
-  def __init__(anim, period=0, amplitude=1, *args, **kwargs):
+  def __init__(anim, period=0, amplitude=0, *args, **kwargs):
     super().__init__(*args, **kwargs)
     if period: anim.period = period
-    anim.amplitude = amplitude
+    if amplitude: anim.amplitude = amplitude
     anim.pos = 0
 
   def update(anim):
