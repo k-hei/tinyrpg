@@ -5,23 +5,25 @@ import lib.keyboard as keyboard
 import lib.gamepad as gamepad
 import lib.vector as vector
 from lib.sprite import Sprite
-from lib.filters import outline, replace_color, shadow_lite as shadow
+from lib.filters import outline, replace_color, recolor, shadow_lite as shadow
 from lib.animstep import step_anims
+from text import render as render_text
 from easing.expo import ease_out
 import assets
 
 from contexts import Context
+from comps.textbox import TextBox
 from anims import Anim
 from anims.sine import SineAnim
 from anims.tween import TweenAnim
 from colors import darken_color
 from colors.palette import BLACK, WHITE, BLUE, VIOLET, GREEN, SAFFRON, RED, GRAY, GOLD, ORANGE
-from config import WINDOW_SIZE, WINDOW_HEIGHT
+from config import WINDOW_SIZE
 
-MARGIN_X = 48
-MARGIN_Y = 32
+XMARGIN = 48
+YMARGIN = 32
 OPTION_SPACING = 4
-OPTION_OFFSET = 32
+OPTION_OFFSET = 26
 GOLD_SPACING = 4
 HAND_OFFSET = 4
 HUD_XMARGIN = 32
@@ -31,7 +33,7 @@ class CursorAnim(SineAnim):
   period = 30
   amplitude = 2
 
-class OptionSquare:
+class IconSquare:
   class SpinAnim(SineAnim): period = 90
   class EnterAnim(TweenAnim): duration = 15
   class ExitAnim(TweenAnim): duration = 8
@@ -39,13 +41,13 @@ class OptionSquare:
   def __init__(square, y, icon):
     square.y = y
     square.icon = icon
-    square.anims = [OptionSquare.SpinAnim(), OptionSquare.EnterAnim()]
+    square.anims = [IconSquare.SpinAnim(), IconSquare.EnterAnim()]
     square.exiting = False
     square.done = False
 
   def exit(square):
     square.exiting = True
-    square.anims.append(OptionSquare.ExitAnim(on_end=lambda: (
+    square.anims.append(IconSquare.ExitAnim(on_end=lambda: (
       setattr(square, "done", True)
     )))
 
@@ -55,12 +57,12 @@ class OptionSquare:
     square.anims = step_anims(square.anims)
 
   def view(square):
-    square_image = assets.sprites["pause_square"]
+    square_image = assets.sprites["pauseicon_square"]
     square_scale = 1
     square_angle = 0
 
-    enter_anim = next((a for a in square.anims if type(a) is OptionSquare.EnterAnim), None)
-    exit_anim = next((a for a in square.anims if type(a) is OptionSquare.ExitAnim), None)
+    enter_anim = next((a for a in square.anims if type(a) is IconSquare.EnterAnim), None)
+    exit_anim = next((a for a in square.anims if type(a) is IconSquare.ExitAnim), None)
     if enter_anim:
       t = ease_out(enter_anim.pos)
       square_scale *= t
@@ -68,13 +70,13 @@ class OptionSquare:
     elif exit_anim:
       square_scale *= 1 - exit_anim.pos
 
-    spin_anim = next((a for a in square.anims if type(a) is OptionSquare.SpinAnim), None)
+    spin_anim = next((a for a in square.anims if type(a) is IconSquare.SpinAnim), None)
     if spin_anim:
       square_angle -= spin_anim.time
       square_image = rotate(square_image, square_angle % 360)
 
     icon_image = square.icon
-    icon_y = spin_anim.pos * 2
+    icon_y = -spin_anim.pos * 2 - 2
 
     return [Sprite(
       image=square_image,
@@ -89,6 +91,14 @@ class OptionSquare:
 
 class PauseContext(Context):
   choices = ["item", "equip", "status", "quest", "monster", "option"]
+  choice_descs = [
+    "Manage inventory and use items.",
+    "Equip and arrange artifacts.",
+    "View character stats and skills.",
+    "View accepted and completed quests.",
+    "View data on defeated enemies.",
+    "View and change game settings.",
+  ]
   choice_colors = [BLUE, VIOLET, GREEN, SAFFRON, RED, GRAY]
   icon_colors = [RED, GRAY, BLUE, ORANGE, RED, GRAY]
 
@@ -103,7 +113,9 @@ class PauseContext(Context):
     ctx.cursor_drawn = 0
     ctx.choices_xs = { 0: OPTION_OFFSET }
     ctx.anims = [CursorAnim()]
-    ctx.comps = [OptionSquare(y=0, icon=PauseContext.find_icon(0))]
+    ctx.comps = [IconSquare(y=0, icon=PauseContext.find_icon(0))]
+    ctx.textbox = TextBox(size=(112, 20), color=WHITE)
+    ctx.textbox.print(ctx.choice_descs[0])
 
   def handle_press(ctx, key):
     if keyboard.get_state(key) + gamepad.get_state(key) > 1:
@@ -121,10 +133,11 @@ class PauseContext(Context):
       return False
     if new_index > len(ctx.choices) - 1:
       return False
-    square = next((a for a in ctx.comps if type(a) is OptionSquare and a.y == ctx.cursor_index), None)
+    square = next((a for a in ctx.comps if type(a) is IconSquare and a.y == ctx.cursor_index), None)
     square and square.exit()
     ctx.cursor_index = new_index
-    ctx.comps.append(OptionSquare(y=new_index, icon=PauseContext.find_icon(new_index)))
+    ctx.comps.append(IconSquare(y=new_index, icon=PauseContext.find_icon(new_index)))
+    ctx.textbox.print(ctx.choice_descs[new_index])
     return True
 
   def update(ctx):
@@ -143,26 +156,17 @@ class PauseContext(Context):
       pos=(0, 0)
     ))
 
-    # gold
-    gold_image = assets.sprites["item_gold"]
-    gold_image = replace_color(gold_image, BLACK, GOLD)
-    gold_x = MARGIN_X
-    gold_y = WINDOW_HEIGHT - MARGIN_Y
-    sprites.append(Sprite(
-      image=gold_image,
-      pos=(gold_x, gold_y)
-    ))
-
-    game = ctx.get_parent(cls="GameContext")
-    if game:
-      gold_amount = game.store.gold
-      gold_text = assets.ttf["english"].render("{}G".format(gold_amount))
-      gold_x += gold_image.get_width() + GOLD_SPACING
-      gold_y += gold_image.get_height() // 2 - gold_text.get_height() // 2
-      sprites.append(Sprite(
-        image=gold_text,
-        pos=(gold_x, gold_y)
-      ))
+    # title
+    if ctx.anims[0].time % 60 < 45:
+      title_image = render_text("PAUSED", assets.fonts["smallcaps"])
+      title_image = recolor(title_image, GOLD)
+      title_image = outline(title_image, BLACK)
+      title_image = shadow(title_image, BLACK)
+      sprites += [Sprite(
+        image=title_image,
+        pos=(XMARGIN, YMARGIN - 4),
+        origin=Sprite.ORIGIN_BOTTOMLEFT,
+      )]
 
     # choices
     choices_width = 0
@@ -175,8 +179,8 @@ class PauseContext(Context):
         choices_width = text_image.get_width()
       if i not in ctx.choices_xs:
         ctx.choices_xs[i] = 0
-      option_x = MARGIN_X + ctx.choices_xs[i]
-      option_y = i * (text_image.get_height() + OPTION_SPACING) + MARGIN_Y
+      option_x = XMARGIN + ctx.choices_xs[i]
+      option_y = i * (text_image.get_height() + OPTION_SPACING) + YMARGIN
       option_image = assets.sprites["pause_option"]
       if i == ctx.cursor_index:
         ctx.choices_xs[i] += (OPTION_OFFSET - ctx.choices_xs[i]) / 4
@@ -192,12 +196,20 @@ class PauseContext(Context):
         pos=(option_x, option_y)
       )]
 
-    selection_y = ctx.cursor_index * (text_image.get_height() + OPTION_SPACING)
+    selection_y = ctx.cursor_drawn * (text_image.get_height() + OPTION_SPACING)
+
+    # icon square
+    for comp in ctx.comps:
+      comp_y = comp.y * (text_image.get_height() + OPTION_SPACING)
+      sprites += Sprite.move_all(
+        sprites=comp.view(),
+        offset=(XMARGIN + 10, YMARGIN + comp_y + text_image.get_height() / 2),
+      )
 
     # hand
     hand_image = flip(assets.sprites["hand"], True, False)
-    hand_x = MARGIN_X - hand_image.get_width() + HAND_OFFSET
-    hand_y = MARGIN_Y + selection_y
+    hand_x = XMARGIN - hand_image.get_width() + HAND_OFFSET
+    hand_y = YMARGIN + selection_y
     hand_anim = next((a for a in ctx.anims if isinstance(a, CursorAnim)), None)
     if hand_anim:
       hand_x += hand_anim.pos
@@ -206,17 +218,16 @@ class PauseContext(Context):
       pos=(hand_x, hand_y)
     ))
 
-    for comp in ctx.comps:
-      comp_y = comp.y * (text_image.get_height() + OPTION_SPACING)
-      sprites += Sprite.move_all(
-        sprites=comp.view(),
-        offset=(MARGIN_X + 14, MARGIN_Y + comp_y + text_image.get_height() / 2),
-      )
+    # description
+    sprites += [Sprite(
+      image=outline(ctx.textbox.render(), BLACK),
+      pos=(XMARGIN, YMARGIN + len(ctx.choices) * (text_image.get_height() + OPTION_SPACING) + 8),
+    )]
 
-    # hud
+    # huds
     hud_image = assets.sprites["hud_single"]
-    hud_x = MARGIN_X + choices_width + HUD_XMARGIN
-    hud_y = MARGIN_Y
+    hud_x = XMARGIN + choices_width + HUD_XMARGIN
+    hud_y = YMARGIN
     sprites += [
       Sprite(image=hud_image, pos=(hud_x, hud_y)),
     ]
