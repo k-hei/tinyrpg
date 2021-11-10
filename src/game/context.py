@@ -180,7 +180,7 @@ class GameContext(Context):
       return ctx.handle_custom()
 
   def handle_pause(ctx):
-    ctx.get_tail().open(PauseContext())
+    ctx.get_tail().open(PauseContext(store=ctx.store))
 
   def handle_inventory(ctx):
     ctx.get_tail().open(InventoryContext(store=ctx.store))

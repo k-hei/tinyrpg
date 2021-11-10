@@ -12,6 +12,7 @@ from easing.expo import ease_out
 import assets
 
 from contexts import Context
+from comps.hud import Hud
 from comps.textbox import TextBox
 from anims import Anim
 from anims.sine import SineAnim
@@ -107,13 +108,15 @@ class PauseContext(Context):
     icon_image = replace_color(icon_image, BLACK, PauseContext.icon_colors[index])
     return icon_image
 
-  def __init__(ctx, *args, **kwargs):
+  def __init__(ctx, store, *args, **kwargs):
     super().__init__(*args, **kwargs)
+    ctx.store = store
     ctx.cursor_index = 0
     ctx.cursor_drawn = 0
     ctx.choices_xs = { 0: OPTION_OFFSET }
     ctx.anims = [CursorAnim()]
     ctx.comps = [IconSquare(y=0, icon=PauseContext.find_icon(0))]
+    ctx.huds = [Hud(party=[c], hp=True) for c in store.party]
     ctx.textbox = TextBox(size=(112, 20), color=WHITE)
     ctx.textbox.print(ctx.choice_descs[0])
 
@@ -225,16 +228,13 @@ class PauseContext(Context):
     )]
 
     # huds
-    hud_image = assets.sprites["hud_single"]
     hud_x = XMARGIN + choices_width + HUD_XMARGIN
     hud_y = YMARGIN
-    sprites += [
-      Sprite(image=hud_image, pos=(hud_x, hud_y)),
-    ]
-
-    hud_y += hud_image.get_height() + HUD_YMARGIN
-    sprites += [
-      Sprite(image=hud_image, pos=(hud_x, hud_y)),
-    ]
+    for hud in ctx.huds:
+      hud_image = hud.render()
+      sprites += [
+        Sprite(image=hud_image, pos=(hud_x, hud_y)),
+      ]
+      hud_y += hud_image.get_height() + HUD_YMARGIN
 
     return [sprites]
