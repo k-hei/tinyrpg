@@ -5,7 +5,7 @@ import lib.keyboard as keyboard
 import lib.gamepad as gamepad
 import lib.vector as vector
 from lib.sprite import Sprite
-from lib.filters import outline, replace_color, recolor, shadow_lite as shadow
+from lib.filters import stroke, outline, replace_color, recolor, shadow_lite as shadow
 from lib.animstep import step_anims
 from text import render as render_text
 from easing.expo import ease_out
@@ -18,6 +18,7 @@ from comps.textbox import TextBox
 from anims import Anim
 from anims.sine import SineAnim
 from anims.tween import TweenAnim
+from anims.walk import WalkAnim
 from colors import darken_color
 from colors.palette import BLACK, WHITE, BLUE, VIOLET, GREEN, SAFFRON, RED, GRAY, GOLD, ORANGE
 from config import WINDOW_SIZE, WINDOW_WIDTH
@@ -25,7 +26,7 @@ from config import WINDOW_SIZE, WINDOW_WIDTH
 XMARGIN = 48
 YMARGIN = 32
 OPTION_SPACING = 4
-OPTION_OFFSET = 26
+OPTION_OFFSET = 28
 GOLD_SPACING = 4
 HAND_OFFSET = 4
 HUD_XMARGIN = 32
@@ -42,7 +43,7 @@ class IconSquare:
 
   def __init__(square, y, icon):
     square.y = y
-    square.icon = icon
+    square.icon = stroke(icon, BLACK)
     square.anims = [IconSquare.SpinAnim(), IconSquare.EnterAnim()]
     square.exiting = False
     square.done = False
@@ -117,10 +118,24 @@ class PauseContext(Context):
     ctx.choices_xs = { 0: OPTION_OFFSET }
     ctx.anims = [CursorAnim()]
     ctx.comps = [IconSquare(y=0, icon=PauseContext.find_icon(0))]
-    ctx.huds = [Hud(party=[c], hp=True) for c in store.party]
+    ctx.huds = [Hud(party=[c], hp=True, portrait=False) for c in store.party]
+    ctx.party = store.party
     ctx.goldbubble = GoldBubble(gold=store.gold)
     ctx.textbox = TextBox(size=(112, 20), color=WHITE)
+
+  def enter(ctx):
     ctx.textbox.print(ctx.choice_descs[0])
+    ctx.party_facings = { i: char.facing for (i, char) in enumerate(ctx.party) }
+    for char in ctx.party:
+      char.anims = [WalkAnim(period=30)]
+      char.facing = (0, 1)
+
+  def exit(ctx):
+    for i, char in enumerate(ctx.party):
+      char.anims = []
+      char.facing = ctx.party_facings[i]
+    ctx.close()
+    return True
 
   def handle_press(ctx, key):
     if keyboard.get_state(key) + gamepad.get_state(key) > 1:
@@ -130,7 +145,7 @@ class PauseContext(Context):
     if key in (pygame.K_DOWN, gamepad.controls.DOWN):
       return ctx.handle_move(delta=1)
     if key == pygame.K_ESCAPE:
-      return ctx.close()
+      return ctx.exit()
 
   def handle_move(ctx, delta):
     new_index = ctx.cursor_index + delta
@@ -148,7 +163,7 @@ class PauseContext(Context):
   def update(ctx):
     ctx.anims = step_anims(ctx.anims)
     ctx.comps = step_anims(ctx.comps)
-    ctx.cursor_drawn += (ctx.cursor_index - ctx.cursor_drawn) / 4
+    ctx.cursor_drawn += (ctx.cursor_index - ctx.cursor_drawn) / 2
 
   def view(ctx):
     sprites = []
@@ -208,7 +223,7 @@ class PauseContext(Context):
       comp_y = comp.y * (text_image.get_height() + OPTION_SPACING)
       sprites += Sprite.move_all(
         sprites=comp.view(),
-        offset=(XMARGIN + 10, YMARGIN + comp_y + text_image.get_height() / 2),
+        offset=(XMARGIN + 12, YMARGIN + comp_y + text_image.get_height() / 2),
       )
 
     # hand
@@ -239,10 +254,19 @@ class PauseContext(Context):
     # huds
     hud_x = XMARGIN + choices_width + HUD_XMARGIN
     hud_y = YMARGIN
-    for hud in ctx.huds:
+    for i, hud in enumerate(ctx.huds):
       hud_image = hud.render()
+      char_view = ctx.party[i].view()
       sprites += [
         Sprite(image=hud_image, pos=(hud_x, hud_y)),
+        *Sprite.move_all(
+          sprites=char_view,
+          offset=vector.add(
+            (hud_x, hud_y - 2),
+            vector.scale(assets.sprites["hud_circle"].get_size(), 1 / 2),
+          ),
+          origin=Sprite.ORIGIN_CENTER,
+        )
       ]
       hud_y += hud_image.get_height() + HUD_YMARGIN
 
