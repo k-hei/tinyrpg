@@ -3,6 +3,7 @@ from pygame import Surface, Color, SRCALPHA
 from pygame.transform import flip, rotate
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
+import lib.vector as vector
 from lib.sprite import Sprite
 from lib.filters import outline, replace_color, shadow_lite as shadow
 from lib.animstep import step_anims
@@ -14,7 +15,7 @@ from anims import Anim
 from anims.sine import SineAnim
 from anims.tween import TweenAnim
 from colors import darken_color
-from colors.palette import BLACK, WHITE, BLUE, VIOLET, GREEN, SAFFRON, RED, GRAY, GOLD
+from colors.palette import BLACK, WHITE, BLUE, VIOLET, GREEN, SAFFRON, RED, GRAY, GOLD, ORANGE
 from config import WINDOW_SIZE, WINDOW_HEIGHT
 
 MARGIN_X = 48
@@ -23,19 +24,21 @@ OPTION_SPACING = 4
 OPTION_OFFSET = 32
 GOLD_SPACING = 4
 HAND_OFFSET = 4
-HUD_MARGIN = 8
+HUD_XMARGIN = 32
+HUD_YMARGIN = 8
 
 class CursorAnim(SineAnim):
   period = 30
   amplitude = 2
 
 class OptionSquare:
-  class SpinAnim(Anim): pass
+  class SpinAnim(SineAnim): period = 90
   class EnterAnim(TweenAnim): duration = 15
   class ExitAnim(TweenAnim): duration = 8
 
-  def __init__(square, y):
+  def __init__(square, y, icon):
     square.y = y
+    square.icon = icon
     square.anims = [OptionSquare.SpinAnim(), OptionSquare.EnterAnim()]
     square.exiting = False
     square.done = False
@@ -70,15 +73,29 @@ class OptionSquare:
       square_angle -= spin_anim.time
       square_image = rotate(square_image, square_angle % 360)
 
+    icon_image = square.icon
+    icon_y = spin_anim.pos * 2
+
     return [Sprite(
       image=square_image,
       origin=Sprite.ORIGIN_CENTER,
-      size=(square_image.get_width() * square_scale, square_image.get_height() * square_scale)
+      size=vector.scale(square_image.get_size(), square_scale)
+    ), Sprite(
+      image=icon_image,
+      pos=(0, icon_y),
+      origin=Sprite.ORIGIN_CENTER,
+      size=vector.scale(icon_image.get_size(), square_scale)
     )]
 
 class PauseContext(Context):
   choices = ["item", "equip", "status", "quest", "monster", "option"]
   choice_colors = [BLUE, VIOLET, GREEN, SAFFRON, RED, GRAY]
+  icon_colors = [RED, GRAY, BLUE, ORANGE, RED, GRAY]
+
+  def find_icon(index):
+    icon_image = assets.sprites[f"pauseicon_{PauseContext.choices[index]}"]
+    icon_image = replace_color(icon_image, BLACK, PauseContext.icon_colors[index])
+    return icon_image
 
   def __init__(ctx, *args, **kwargs):
     super().__init__(*args, **kwargs)
@@ -86,7 +103,7 @@ class PauseContext(Context):
     ctx.cursor_drawn = 0
     ctx.choices_xs = { 0: OPTION_OFFSET }
     ctx.anims = [CursorAnim()]
-    ctx.comps = [OptionSquare(y=0)]
+    ctx.comps = [OptionSquare(y=0, icon=PauseContext.find_icon(0))]
 
   def handle_press(ctx, key):
     if keyboard.get_state(key) + gamepad.get_state(key) > 1:
@@ -107,7 +124,7 @@ class PauseContext(Context):
     square = next((a for a in ctx.comps if type(a) is OptionSquare and a.y == ctx.cursor_index), None)
     square and square.exit()
     ctx.cursor_index = new_index
-    ctx.comps.append(OptionSquare(y=new_index))
+    ctx.comps.append(OptionSquare(y=new_index, icon=PauseContext.find_icon(new_index)))
     return True
 
   def update(ctx):
@@ -198,13 +215,13 @@ class PauseContext(Context):
 
     # hud
     hud_image = assets.sprites["hud_single"]
-    hud_x = MARGIN_X + choices_width + HUD_MARGIN
+    hud_x = MARGIN_X + choices_width + HUD_XMARGIN
     hud_y = MARGIN_Y
     sprites += [
       Sprite(image=hud_image, pos=(hud_x, hud_y)),
     ]
 
-    hud_y += hud_image.get_height() + HUD_MARGIN
+    hud_y += hud_image.get_height() + HUD_YMARGIN
     sprites += [
       Sprite(image=hud_image, pos=(hud_x, hud_y)),
     ]
