@@ -12,6 +12,7 @@ from easing.expo import ease_out
 import assets
 
 from contexts import Context
+from comps.goldbubble import GoldBubble
 from comps.hud import Hud
 from comps.textbox import TextBox
 from anims import Anim
@@ -19,7 +20,7 @@ from anims.sine import SineAnim
 from anims.tween import TweenAnim
 from colors import darken_color
 from colors.palette import BLACK, WHITE, BLUE, VIOLET, GREEN, SAFFRON, RED, GRAY, GOLD, ORANGE
-from config import WINDOW_SIZE
+from config import WINDOW_SIZE, WINDOW_WIDTH
 
 XMARGIN = 48
 YMARGIN = 32
@@ -117,6 +118,7 @@ class PauseContext(Context):
     ctx.anims = [CursorAnim()]
     ctx.comps = [IconSquare(y=0, icon=PauseContext.find_icon(0))]
     ctx.huds = [Hud(party=[c], hp=True) for c in store.party]
+    ctx.goldbubble = GoldBubble(gold=store.gold)
     ctx.textbox = TextBox(size=(112, 20), color=WHITE)
     ctx.textbox.print(ctx.choice_descs[0])
 
@@ -222,10 +224,17 @@ class PauseContext(Context):
     ))
 
     # description
-    sprites += [Sprite(
+    sprites += [desc_sprite := Sprite(
       image=outline(ctx.textbox.render(), BLACK),
       pos=(XMARGIN, YMARGIN + len(ctx.choices) * (text_image.get_height() + OPTION_SPACING) + 8),
     )]
+
+    # gold
+    sprites += Sprite.move_all(
+      sprites=ctx.goldbubble.view(),
+      offset=(WINDOW_WIDTH - XMARGIN, desc_sprite.rect.centery),
+      origin=Sprite.ORIGIN_TOPRIGHT
+    )
 
     # huds
     hud_x = XMARGIN + choices_width + HUD_XMARGIN
