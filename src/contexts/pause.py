@@ -7,6 +7,7 @@ import lib.vector as vector
 from lib.sprite import Sprite
 from lib.filters import stroke, outline, replace_color, recolor, shadow_lite as shadow
 from lib.animstep import step_anims
+from lib.lerp import lerp
 from text import render as render_text
 from easing.expo import ease_out
 import assets
@@ -92,6 +93,94 @@ class IconSquare:
       size=vector.scale(icon_image.get_size(), square_scale)
     )]
 
+class ChoiceStrip:
+  class EnterAnim(TweenAnim): duration = 15
+  class ExitAnim(TweenAnim): duration = 8
+  class SelectAnim(TweenAnim): duration = 8
+  class DeselectAnim(TweenAnim): duration = 8
+
+  def __init__(choice, color, delay=0):
+    choice.color = color
+    choice.delay = delay
+    choice.selected = False
+    choice.done = False
+    choice.exiting = False
+    choice.anims = []
+    choice.enter()
+
+  def enter(choice):
+    choice.anims = [ChoiceStrip.EnterAnim(delay=choice.delay)]
+    choice.cache_selected = assets.sprites["pause_option_selected"]
+    choice.cache_selected = replace_color(choice.cache_selected, WHITE, choice.color)
+    choice.cache_selected = stroke(choice.cache_selected, BLACK)
+    choice.cache_deselected = assets.sprites["pause_option"]
+    choice.cache_deselected = replace_color(choice.cache_deselected, WHITE, darken_color(choice.color))
+    choice.cache_deselected = stroke(choice.cache_deselected, BLACK)
+
+  def select(choice):
+    choice.selected = True
+    choice.anims.append(ChoiceStrip.SelectAnim())
+
+  def deselect(choice):
+    choice.selected = False
+    choice.anims.append(ChoiceStrip.DeselectAnim())
+
+  def update(choice):
+    choice_anim = choice.anims[0] if choice.anims else None
+    if choice_anim:
+      choice_anim.update()
+      if choice_anim.done:
+        choice.anims.pop(0)
+
+  def view(choice):
+    choice_image = choice.cache_deselected
+    choice_y = choice_image.get_height() / 2
+    choice_anim = choice.anims[0] if choice.anims else None
+    if type(choice_anim) is not ChoiceStrip.EnterAnim and (
+      choice.selected
+      or type(choice_anim) in (ChoiceStrip.SelectAnim, ChoiceStrip.DeselectAnim)
+    ):
+      choice_image = choice.cache_selected
+      choice_y = choice_image.get_height() / 4
+
+    choice_x = -1
+    if type(choice_anim) is ChoiceStrip.EnterAnim:
+      t = ease_out(choice_anim.pos)
+      choice_x = lerp(-choice_image.get_width(), choice_x, t)
+
+    choice_height = choice_image.get_height()
+    if type(choice_anim) is ChoiceStrip.SelectAnim:
+      choice_height = lerp(
+        a=choice.cache_deselected.get_height(),
+        b=choice.cache_selected.get_height(),
+        t=ease_out(choice_anim.pos)
+      )
+      choice_y = choice_height / 4
+      choice_x = lerp(
+        a=-(choice.cache_selected.get_width() - choice.cache_deselected.get_width()),
+        b=choice_x,
+        t=ease_out(choice_anim.pos)
+      )
+    elif type(choice_anim) is ChoiceStrip.DeselectAnim:
+      choice_height = lerp(
+        a=choice_height,
+        b=choice.cache_deselected.get_height(),
+        t=choice_anim.pos
+      )
+      choice_y = choice_height / 4
+      choice_x = lerp(
+        a=choice_x,
+        b=-(choice.cache_selected.get_width() - choice.cache_deselected.get_width()),
+        t=choice_anim.pos
+      )
+
+    return [Sprite(
+      image=choice_image,
+      pos=(choice_x, choice_y),
+      origin=Sprite.ORIGIN_LEFT,
+      size=(choice_image.get_width(), choice_height),
+    )]
+
 class PauseContext(Context):
   choices = ["item", "equip", "status", "quest", "monster", "option"]
   choice_descs = [
@@ -115,7 +204,8 @@ class PauseContext(Context):
     ctx.store = store
     ctx.cursor_index = 0
     ctx.cursor_drawn = 0
-    ctx.choices_xs = { 0: OPTION_OFFSET }
+    ctx.choice_strips = [ChoiceStrip(color=c, delay=i * 5) for i, c in enumerate(ctx.choice_colors)]
+    ctx.choice_text_xs = { 0: OPTION_OFFSET }
     ctx.anims = [CursorAnim()]
     ctx.comps = [IconSquare(y=0, icon=PauseContext.find_icon(0))]
     ctx.huds = [Hud(party=[c], hp=True, portrait=False) for c in store.party]
@@ -129,6 +219,7 @@ class PauseContext(Context):
     for char in ctx.party:
       char.anims = [WalkAnim(period=30)]
       char.facing = (0, 1)
+    ctx.choice_strips[0].select()
 
   def exit(ctx):
     for i, char in enumerate(ctx.party):
@@ -155,15 +246,20 @@ class PauseContext(Context):
       return False
     square = next((a for a in ctx.comps if type(a) is IconSquare and a.y == ctx.cursor_index), None)
     square and square.exit()
+    ctx.choice_strips[ctx.cursor_index].deselect()
     ctx.cursor_index = new_index
     ctx.comps.append(IconSquare(y=new_index, icon=PauseContext.find_icon(new_index)))
+    ctx.choice_strips[ctx.cursor_index].select()
     ctx.textbox.print(ctx.choice_descs[new_index])
     return True
 
   def update(ctx):
     ctx.anims = step_anims(ctx.anims)
     ctx.comps = step_anims(ctx.comps)
+    ctx.choice_strips = step_anims(ctx.choice_strips)
     ctx.cursor_drawn += (ctx.cursor_index - ctx.cursor_drawn) / 2
+    for c in ctx.party:
+      c.update()
 
   def view(ctx):
     sprites = []
@@ -191,29 +287,30 @@ class PauseContext(Context):
     # choices
     choices_width = 0
     for i, choice in enumerate(ctx.choices):
+      is_choice_selected = i == ctx.cursor_index
       text = choice[0].upper() + choice[1:]
-      text_image = assets.ttf["roman_large"].render(text, WHITE if i == ctx.cursor_index else GRAY)
+      text_image = assets.ttf["roman_large"].render(text, WHITE if is_choice_selected else GRAY)
       text_image = outline(text_image, BLACK)
       text_image = shadow(text_image, BLACK)
       if text_image.get_width() > choices_width:
         choices_width = text_image.get_width()
-      if i not in ctx.choices_xs:
-        ctx.choices_xs[i] = 0
-      option_x = XMARGIN + ctx.choices_xs[i]
-      option_y = i * (text_image.get_height() + OPTION_SPACING) + YMARGIN
-      option_image = assets.sprites["pause_option"]
-      if i == ctx.cursor_index:
-        ctx.choices_xs[i] += (OPTION_OFFSET - ctx.choices_xs[i]) / 4
-        option_image = replace_color(option_image, WHITE, ctx.choice_colors[i])
+      if i not in ctx.choice_text_xs:
+        ctx.choice_text_xs[i] = 0
+      text_x = XMARGIN + ctx.choice_text_xs[i]
+
+      if is_choice_selected:
+        ctx.choice_text_xs[i] += (OPTION_OFFSET - ctx.choice_text_xs[i]) / 4
       else:
-        ctx.choices_xs[i] += -ctx.choices_xs[i] / 4
-        option_image = replace_color(option_image, WHITE, darken_color(ctx.choice_colors[i]))
-      sprites += [Sprite(
-        image=option_image,
-        pos=(0, option_y),
-      ), Sprite(
+        ctx.choice_text_xs[i] += -ctx.choice_text_xs[i] / 4
+
+      option_y = i * (text_image.get_height() + OPTION_SPACING) + YMARGIN
+      option_view = ctx.choice_strips[i].view()
+      sprites += Sprite.move_all(
+        sprites=option_view,
+        offset=(0, option_y)
+      ) + [Sprite(
         image=text_image,
-        pos=(option_x, option_y)
+        pos=(text_x, option_y),
       )]
 
     selection_y = ctx.cursor_drawn * (text_image.get_height() + OPTION_SPACING)
@@ -227,16 +324,17 @@ class PauseContext(Context):
       )
 
     # hand
-    hand_image = flip(assets.sprites["hand"], True, False)
-    hand_x = XMARGIN - hand_image.get_width() + HAND_OFFSET
-    hand_y = YMARGIN + selection_y
-    hand_anim = next((a for a in ctx.anims if isinstance(a, CursorAnim)), None)
-    if hand_anim:
-      hand_x += hand_anim.pos
-    sprites.append(Sprite(
-      image=hand_image,
-      pos=(hand_x, hand_y)
-    ))
+    if not next((a for s in ctx.choice_strips for a in s.anims if type(a) is ChoiceStrip.EnterAnim), None):
+      hand_image = flip(assets.sprites["hand"], True, False)
+      hand_x = XMARGIN - hand_image.get_width() + HAND_OFFSET
+      hand_y = YMARGIN + selection_y
+      hand_anim = next((a for a in ctx.anims if isinstance(a, CursorAnim)), None)
+      if hand_anim:
+        hand_x += hand_anim.pos
+      sprites.append(Sprite(
+        image=hand_image,
+        pos=(hand_x, hand_y)
+      ))
 
     # description
     sprites += [desc_sprite := Sprite(
