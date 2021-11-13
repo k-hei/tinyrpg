@@ -1,0 +1,8 @@
+{
+  "pauseicon_item":    [0,  0, 32, 16],
+  "pauseicon_equip":   [0, 16, 32, 16],
+  "pauseicon_status":  [0, 32, 32, 16],
+  "pauseicon_quest":   [0, 48, 32, 16],
+  "pauseicon_monster": [0, 64, 32, 16],
+  "pauseicon_option":  [0, 80, 32, 16]
+}

@@ -201,7 +201,7 @@ class DungeonContext(Context):
   def reload_skill_badge(game, skill=None, delay=0):
     skill = skill or game.parent.get_skill(game.hero.core)
     game.skill_badge = game.skill_badge or SkillBadge(skill)
-    game.skill_badge.pos = (60, 52) if game.ally else (46, 42)
+    game.skill_badge.pos = (60, 54) if game.ally else (46, 42)
     skill and game.skill_badge.reload(skill=skill, delay=delay)
 
   def open(game, *args, **kwargs):

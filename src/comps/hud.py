@@ -65,9 +65,10 @@ class Hud:
   MARGIN_LEFT = 8
   MARGIN_TOP = 8
 
-  def __init__(hud, party, hp=False):
+  def __init__(hud, party, hp=False, portrait=True):
     hud.party = party
     hud.draws_hp = hp
+    hud.draws_portrait = portrait
     hud.image = None
     hud.active = False
     hud.anims = []
@@ -178,26 +179,28 @@ class Hud:
     sprite.blit(sprite_hud, (0, 0))
 
     hero_portrait = None
-    if (type(hero) is Knight and type(anim) is not SwitchOutAnim
-    or type(ally) is Knight and type(anim) is SwitchOutAnim):
-      hero_portrait = assets.sprites["circle_knight"]
-    if (type(hero) is Mage and type(anim) is not SwitchOutAnim
-    or type(ally) is Mage and type(anim) is SwitchOutAnim):
-      hero_portrait = assets.sprites["circle_mage"]
-    if (type(hero) is Rogue and type(anim) is not SwitchOutAnim
-    or type(ally) is Rogue and type(anim) is SwitchOutAnim):
-      hero_portrait = assets.sprites["circle_rogue"]
-
     ally_portrait = None
-    if (type(ally) is Knight and type(anim) is not SwitchOutAnim
-    or type(hero) is Knight and type(anim) is SwitchOutAnim):
-      ally_portrait = assets.sprites["circ16_knight"]
-    if (type(ally) is Mage and type(anim) is not SwitchOutAnim
-    or type(hero) is Mage and type(anim) is SwitchOutAnim):
-      ally_portrait = assets.sprites["circ16_mage"]
-    if (type(ally) is Rogue and type(anim) is not SwitchOutAnim
-    or type(hero) is Rogue and type(anim) is SwitchOutAnim):
-      ally_portrait = assets.sprites["circ16_rogue"]
+
+    if hud.draws_portrait:
+      if (type(hero) is Knight and type(anim) is not SwitchOutAnim
+      or type(ally) is Knight and type(anim) is SwitchOutAnim):
+        hero_portrait = assets.sprites["circle_knight"]
+      if (type(hero) is Mage and type(anim) is not SwitchOutAnim
+      or type(ally) is Mage and type(anim) is SwitchOutAnim):
+        hero_portrait = assets.sprites["circle_mage"]
+      if (type(hero) is Rogue and type(anim) is not SwitchOutAnim
+      or type(ally) is Rogue and type(anim) is SwitchOutAnim):
+        hero_portrait = assets.sprites["circle_rogue"]
+
+      if (type(ally) is Knight and type(anim) is not SwitchOutAnim
+      or type(hero) is Knight and type(anim) is SwitchOutAnim):
+        ally_portrait = assets.sprites["circ16_knight"]
+      if (type(ally) is Mage and type(anim) is not SwitchOutAnim
+      or type(hero) is Mage and type(anim) is SwitchOutAnim):
+        ally_portrait = assets.sprites["circ16_mage"]
+      if (type(ally) is Rogue and type(anim) is not SwitchOutAnim
+      or type(hero) is Rogue and type(anim) is SwitchOutAnim):
+        ally_portrait = assets.sprites["circ16_rogue"]
 
     if hero.dead:
       hero_portrait = replace_color(hero_portrait, WHITE, BLACK)
@@ -206,24 +209,24 @@ class Hud:
       ally_portrait = replace_color(ally_portrait, WHITE, BLACK)
       ally_portrait = replace_color(ally_portrait, BLUE, RED)
 
-    hero_scaled = hero_portrait
-    ally_scaled = ally_portrait
-    if type(anim) in (SwitchOutAnim, SwitchInAnim):
-      t = anim.pos
-      if type(anim) is SwitchInAnim:
-        t = 1 - ease_out(t)
-      hero_width = lerp(hero_portrait.get_width(), 0, t)
-      hero_height = hero_portrait.get_height()
-      hero_scaled = scale(hero_portrait, (int(hero_width), int(hero_height)))
-      if ally:
-        ally_width = lerp(ally_portrait.get_width(), 0, t)
-        ally_height = lerp(ally_portrait.get_height(), 0, t)
-        ally_scaled = scale(ally_portrait, (int(ally_width), int(ally_height)))
-
-    sprite.blit(hero_scaled, (
-      hero_portrait.get_width() // 2 - hero_scaled.get_width() // 2,
-      hero_portrait.get_height() // 2 - hero_scaled.get_height() // 2
-    ))
+    if hud.draws_portrait:
+      hero_scaled = hero_portrait
+      ally_scaled = ally_portrait
+      if type(anim) in (SwitchOutAnim, SwitchInAnim):
+        t = anim.pos
+        if type(anim) is SwitchInAnim:
+          t = 1 - ease_out(t)
+        hero_width = lerp(hero_portrait.get_width(), 0, t)
+        hero_height = hero_portrait.get_height()
+        hero_scaled = scale(hero_portrait, (int(hero_width), int(hero_height)))
+        if ally:
+          ally_width = lerp(ally_portrait.get_width(), 0, t)
+          ally_height = lerp(ally_portrait.get_height(), 0, t)
+          ally_scaled = scale(ally_portrait, (int(ally_width), int(ally_height)))
+      sprite.blit(hero_scaled, (
+        hero_portrait.get_width() // 2 - hero_scaled.get_width() // 2,
+        hero_portrait.get_height() // 2 - hero_scaled.get_height() // 2
+      ))
 
     def draw_bar(surface, pos, percent, color):
       surface.blit(render_bar(percent, color), pos)
@@ -243,10 +246,11 @@ class Hud:
         draw_bar(sprite, hero_hp_pos, percent=hud.hp_hero / hero.get_hp_max(), color=color_fg)
 
     if ally:
-      sprite.blit(ally_scaled, (
-        CIRC16_X + ally_portrait.get_width() // 2 - ally_scaled.get_width() // 2,
-        CIRC16_Y + ally_portrait.get_height() // 2 - ally_scaled.get_height() // 2
-      ))
+      if hud.draws_portrait:
+        sprite.blit(ally_scaled, (
+          CIRC16_X + ally_portrait.get_width() // 2 - ally_scaled.get_width() // 2,
+          CIRC16_Y + ally_portrait.get_height() // 2 - ally_scaled.get_height() // 2
+        ))
       ally_hp_pos = (HP_BAR_X, HP_BAR_Y2)
       if hud.draws_hp:
         color_bg = DARKGREEN if ally.get_hp() > HP_CRITICAL else DARKYELLOW
