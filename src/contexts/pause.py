@@ -13,6 +13,8 @@ from easing.expo import ease_out
 import assets
 
 from contexts import Context
+from contexts.inventory import InventoryContext
+from contexts.custom import CustomContext
 from comps.goldbubble import GoldBubble
 from comps.hud import Hud
 from comps.textbox import TextBox
@@ -235,6 +237,8 @@ class PauseContext(Context):
       return ctx.handle_move(delta=-1)
     if key in (pygame.K_DOWN, gamepad.controls.DOWN):
       return ctx.handle_move(delta=1)
+    if key in (pygame.K_RETURN, pygame.K_SPACE):
+      return ctx.handle_choose()
     if key == pygame.K_ESCAPE:
       return ctx.exit()
 
@@ -252,6 +256,13 @@ class PauseContext(Context):
     ctx.choice_strips[ctx.cursor_index].select()
     ctx.textbox.print(ctx.choice_descs[new_index])
     return True
+
+  def handle_choose(ctx):
+    choice = ctx.choices[ctx.cursor_index]
+    if choice == "item":
+      ctx.parent.open(InventoryContext(store=ctx.store))
+    elif choice == "equip":
+      ctx.parent.open(CustomContext(store=ctx.store))
 
   def update(ctx):
     ctx.anims = step_anims(ctx.anims)
