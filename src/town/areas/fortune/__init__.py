@@ -4,12 +4,8 @@ from town.topview.door import Door
 from town.areas.fortune.stand import FortuneStand
 from town.areas.fortune.desk import FortuneDesk
 from town.areas.fortune.context import FortuneContext
-from contexts.prompt import PromptContext, Choice
-from contexts.shop import ShopContext
 from cores.mira import MiraCore
-from cores.rogue import Rogue
 from transits.dissolve import DissolveOut
-from savedata.resolve import resolve_item
 from colors.palette import BLACK, ORANGE, DARKBLUE
 
 class FortuneArea(Stage):

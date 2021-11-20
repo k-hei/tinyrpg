@@ -13,7 +13,7 @@ def collect_imports(path, prefix="", exclude=[], root=False):
       for key, val in collect_imports(path=path, prefix=join(*prefix, item)).items():
         imports[key] = val
     elif prefix or root:
-      name, ext = splitext(item)
+      name, _ = splitext(item)
       item_file = open(item_path, "r")
       item_contents = item_file.read()
       match = pattern.search(item_contents)
@@ -47,6 +47,32 @@ def build_elems(elems):
 
 def build_floors(floors):
   write_mapping(name="floor", mapping=floors)
+
+def collect_tilesets(path):
+  tilesets = []
+  for f in listdir(path):
+    if f.startswith("__"):
+      continue
+    hook_path = join(path, f)
+    if isfile(hook_path):
+      hook_key, _ = splitext(f)
+    else:
+      hook_key = f
+    tilesets.append(hook_key)
+  return tilesets
+
+def build_tilesets(path):
+  tilesets = collect_tilesets(path)
+  imports_buffer = ""
+  body_buffer = "\ndef resolve_tileset(key):\n"
+
+  for key in tilesets:
+    imports_buffer += f"from tiles.{key} import mappings as {key}_mappings\n"
+    body_buffer += f"  if key == \"{key}\": return {key}_mappings\n"
+
+  output_file = open("src/resolve/tileset.py", "w")
+  output_file.write(imports_buffer + body_buffer)
+  output_file.close()
 
 def collect_hooks(path):
   hooks = {}
@@ -146,6 +172,7 @@ if __name__ == "__main__":
   build_skills(skills=collect_imports("src/skills"))
   build_chars(chars=collect_imports("src/cores", root=True))
   build_elems(elems=collect_imports("src/dungeon", exclude=["features", "floors", "gen"]))
+  build_tilesets(path="src/tiles")
   build_floors(floors=collect_imports("src/dungeon", prefix="floors"))
   build_hooks(path="src/dungeon/hooks")
   build_materials(

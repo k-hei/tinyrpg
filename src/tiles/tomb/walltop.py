@@ -7,23 +7,22 @@ from dungeon.props.secretdoor import SecretDoor
 from colors.palette import BLACK
 from config import TILE_SIZE
 
-def render_walltop(stage, cell, visited_cells=[]):
+def render_walltop(stage, cell, visited_cells=None):
   x, y = cell
+  Wall = stage.get_tile_at(cell)
   is_wall = lambda x, y: (
-    (x, y) not in visited_cells
+    (visited_cells is not None and (x, y) not in visited_cells)
     or stage.get_tile_at((x, y)) is None
-    or (stage.get_tile_at((x, y)) is stage.WALL or SecretDoor.exists_at(stage, (x, y))) and (
-      (x, y + 1) not in visited_cells
+    or (stage.get_tile_at((x, y)) is Wall or SecretDoor.exists_at(stage, (x, y))) and (
+      (visited_cells is not None and (x, y + 1) not in visited_cells)
       or stage.get_tile_at((x, y + 1)) is None
-      or stage.get_tile_at((x, y + 1)) is stage.WALL
-      or stage.get_elem_at((x, y + 1), superclass=Door)
+      or stage.get_tile_at((x, y + 1)) is Wall
+      or next((e for e in stage.get_elems_at((x, y + 1))), None)
     )
-    or stage.get_tile_at((x, y)) is stage.HALLWAY and next((n for n in neighborhood((x, y)) if SecretDoor.exists_at(stage, n)), None)
   )
-  is_door = lambda x, y: stage.get_elem_at((x, y), superclass=Door)
 
-  sprite = Surface((TILE_SIZE, TILE_SIZE), SRCALPHA)
-  sprite.fill(BLACK)
+  surface = Surface((TILE_SIZE, TILE_SIZE), SRCALPHA)
+  surface.fill(BLACK)
 
   edge_left = assets.sprites["wall_edge"]
   if "wall_edge_bottom" not in assets.sprites:
@@ -51,51 +50,51 @@ def render_walltop(stage, cell, visited_cells=[]):
   link = assets.sprites["wall_link"]
 
   if not is_wall(x - 1, y):
-    sprite.blit(edge_left, (0, 0))
+    surface.blit(edge_left, (0, 0))
     if is_wall(x, y - 1):
-      sprite.blit(link, (0, 0))
+      surface.blit(link, (0, 0))
     if is_wall(x, y + 1):
-      sprite.blit(flip(link, False, True), (0, 0))
+      surface.blit(flip(link, False, True), (0, 0))
 
   if not is_wall(x + 1, y):
-    sprite.blit(edge_right, (0, 0))
+    surface.blit(edge_right, (0, 0))
     if is_wall(x, y - 1):
-      sprite.blit(flip(link, True, False), (0, 0))
+      surface.blit(flip(link, True, False), (0, 0))
     if is_wall(x, y + 1):
-      sprite.blit(flip(link, True, True), (0, 0))
+      surface.blit(flip(link, True, True), (0, 0))
 
   if not is_wall(x, y - 1):
-    sprite.blit(edge_top, (0, 0))
+    surface.blit(edge_top, (0, 0))
 
   if not is_wall(x, y + 1):
-    sprite.blit(edge_bottom, (0, 0))
+    surface.blit(edge_bottom, (0, 0))
 
   if (is_wall(x - 1, y) and is_wall(x, y - 1) and not is_wall(x - 1, y - 1)
   or not is_wall(x - 1, y) and not is_wall(x, y - 1)):
-    sprite.blit(corner_nw, (0, 0))
+    surface.blit(corner_nw, (0, 0))
 
   if (is_wall(x + 1, y) and is_wall(x, y - 1) and not is_wall(x + 1, y - 1)
   or not is_wall(x + 1, y) and not is_wall(x, y - 1)):
-    sprite.blit(corner_ne, (0, 0))
+    surface.blit(corner_ne, (0, 0))
 
   if (is_wall(x - 1, y) and is_wall(x, y + 1) and not is_wall(x - 1, y + 1)
   or not is_wall(x - 1, y) and not is_wall(x, y + 1)):
-    sprite.blit(corner_sw, (0, 0))
+    surface.blit(corner_sw, (0, 0))
 
   if (is_wall(x + 1, y) and is_wall(x, y + 1) and not is_wall(x + 1, y + 1)
   or not is_wall(x + 1, y) and not is_wall(x, y + 1)):
-    sprite.blit(corner_se, (0, 0))
+    surface.blit(corner_se, (0, 0))
 
   if not is_wall(x, y - 1) and is_wall(x - 1, y):
-    sprite.blit(rotate(flip(link, False, True), -90), (0, 0))
+    surface.blit(rotate(flip(link, False, True), -90), (0, 0))
 
   if not is_wall(x, y - 1) and is_wall(x + 1, y):
-    sprite.blit(rotate(link, -90), (0, 0))
+    surface.blit(rotate(link, -90), (0, 0))
 
   if is_wall(x - 1, y) and not is_wall(x, y + 1):
-    sprite.blit(rotate(link, 90), (0, 0))
+    surface.blit(rotate(link, 90), (0, 0))
 
   if is_wall(x + 1, y) and not is_wall(x, y + 1):
-    sprite.blit(rotate(flip(link, True, False), -90), (0, 0))
+    surface.blit(rotate(flip(link, True, False), -90), (0, 0))
 
-  return sprite
+  return surface
