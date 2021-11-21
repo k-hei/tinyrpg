@@ -12,8 +12,17 @@ class Stage:
   def get_tile_at(stage, cell):
     return stage.tiles.get(*cell)
 
+  def set_tile_at(stage, cell, tile):
+    return stage.tiles.set(*cell, tile)
+
   def get_elem_at(stage, cell):
     return None
 
   def get_elems_at(stage, cell):
     return []
+
+  def spawn_elem_at(stage, cell, elem):
+    elem.spawn(stage, cell)
+    if elem not in stage.elems:
+      stage.elems.append(elem)
+    return elem

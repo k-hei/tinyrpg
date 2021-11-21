@@ -458,7 +458,7 @@ class DungeonActor(DungeonElement):
     # ailment badge
     if actor.ailment and not drop_anim:
       badge_image = None
-      badge_pos = (12, -20 - offset_z)
+      badge_pos = (4, -20 - offset_z)
       badge_pos = add_vector(badge_pos, move_offset)
 
       if actor.ailment == "sleep":

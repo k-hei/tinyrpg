@@ -20,7 +20,6 @@ class Camera:
     camera.vel = (0, 0)
     camera.cell = None
     camera.flag = None
-    camera.room = None
     camera.speed = None
     camera.anims = []
 
@@ -40,7 +39,6 @@ class Camera:
 
   def reset(camera):
     camera.pos = None
-    camera.room = None
     camera.blur()
 
   def upscale(camera, cell):

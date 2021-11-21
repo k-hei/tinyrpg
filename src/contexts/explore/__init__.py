@@ -20,5 +20,9 @@ class ExploreContext(Context):
 
     ctx.hero.move(delta)
 
+  def update(ctx):
+    for elem in ctx.stage.elems:
+      elem.update(ctx)
+
   def view(ctx):
     return ctx.stage_view.view()
