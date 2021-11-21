@@ -1,5 +1,5 @@
 from math import sin, pi
-from pygame import Surface
+from pygame import Surface, Rect
 from lib.sprite import Sprite
 from anims import Anim
 from anims.move import MoveAnim
@@ -37,6 +37,15 @@ class DungeonElement:
     elem.elev = 0
 
   @property
+  def pos(elem):
+    return elem._pos
+
+  @pos.setter
+  def pos(elem, pos):
+    elem._pos = pos
+    elem._rect = None
+
+  @property
   def cell(elem):
     if elem.pos is None:
       return None
@@ -48,8 +57,24 @@ class DungeonElement:
     col, row = cell
     elem.pos = (
       (col + 0.5) * elem.scale,
-      (row + 1) * elem.scale
+      (row + 0.5) * elem.scale
     )
+
+  @property
+  def rect(elem):
+    if elem._rect:
+      return elem._rect
+
+    if elem.pos is None:
+      return None
+
+    x, y = elem.pos
+    width = TILE_SIZE // 2
+    height = TILE_SIZE // 2
+    left = x - width // 2
+    top = y - height // 2
+    elem._rect = Rect(left, top, width, height)
+    return elem._rect
 
   def encode(elem):
     return [(elem.cell), type(elem).__name__]

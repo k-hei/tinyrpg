@@ -1,5 +1,5 @@
 from random import randint
-from pygame import Surface
+from pygame import Surface, Rect
 from lib.sprite import Sprite
 from copy import copy
 
@@ -128,6 +128,22 @@ class DungeonActor(DungeonElement):
   def faction(actor, faction):
     actor.core.faction = faction
     actor.reset_charge()
+
+  @property
+  def rect(actor):
+    if actor._rect:
+      return actor._rect
+
+    if actor.pos is None:
+      return None
+
+    x, y = actor.pos
+    width = TILE_SIZE // 2
+    height = TILE_SIZE // 2
+    left = x - width // 2
+    top = y
+    actor._rect = Rect(left, top, width, height)
+    return actor._rect
 
   @property
   def facing(actor):
@@ -458,7 +474,7 @@ class DungeonActor(DungeonElement):
     # ailment badge
     if actor.ailment and not drop_anim:
       badge_image = None
-      badge_pos = (4, -20 - offset_z)
+      badge_pos = (4, -4 - offset_z)
       badge_pos = add_vector(badge_pos, move_offset)
 
       if actor.ailment == "sleep":

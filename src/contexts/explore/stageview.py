@@ -50,7 +50,7 @@ class StageView:
         sprites=elem.view(anims=[]),
         offset=elem.pos,
       )
-      elem_sprites[0].origin = Sprite.ORIGIN_BOTTOM
+      elem_sprites[0].origin = Sprite.ORIGIN_CENTER
       sprites += elem_sprites
 
     return sprites

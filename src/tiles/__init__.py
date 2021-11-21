@@ -11,3 +11,6 @@ class Tile:
   direction: tuple = (0, 0)
   sprite: Surface = None
   render: func = None
+
+  def is_solid(tile):
+    return not tile or tile.solid
