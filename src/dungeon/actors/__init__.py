@@ -5,7 +5,6 @@ from copy import copy
 
 from dungeon.element import DungeonElement
 from cores import Core
-from skills.weapon import Weapon
 
 from colors import darken_color
 from colors.palette import BLACK, WHITE, GRAY, RED, GREEN, BLUE, CYAN, VIOLET, GOLD, DARKBLUE
@@ -13,16 +12,13 @@ from assets import assets
 from lib.filters import replace_color, darken_image
 from anims.move import MoveAnim
 from anims.attack import AttackAnim
-from anims.jump import JumpAnim
 from anims.awaken import AwakenAnim
 from anims.flinch import FlinchAnim
-from anims.flicker import FlickerAnim
 from anims.bounce import BounceAnim
 from anims.frame import FrameAnim
 from anims.drop import DropAnim
 from anims.warpin import WarpInAnim
-from lib.cell import is_adjacent, manhattan, add as add_vector
-from lib.lerp import lerp
+from lib.cell import is_adjacent, add as add_vector
 from comps.log import Token
 from comps.hpbubble import HpBubble
 from vfx.icepiece import IcePieceVfx
@@ -379,6 +375,23 @@ class DungeonActor(DungeonElement):
     else:
       context = DialogueContext(script=message)
     game.open(context, on_close=stop_talk)
+
+  def start_move(actor):
+    pass
+
+  def stop_move(actor):
+    pass
+
+  def move(actor, delta):
+    delta_x, delta_y = delta
+    x, y = actor.pos
+    x += delta_x * actor.speed
+    y += delta_y * actor.speed
+    actor.pos = (x, y)
+    actor.facing = delta
+    if not actor.anims:
+      actor.start_move()
+    actor.moved = True
 
   def move_to(actor, dest):
     actor.cell = dest

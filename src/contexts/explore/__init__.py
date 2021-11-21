@@ -2,11 +2,9 @@ import pygame
 from pygame import Surface, SRCALPHA
 from lib.sprite import Sprite
 import lib.input as input
-import lib.vector as vector
 from contexts import Context
 from contexts.explore.stageview import StageView
 from tiles import Tile
-from config import TILE_SIZE, WALK_DURATION
 
 input.config({
   pygame.K_w: "up",
@@ -36,6 +34,11 @@ class ExploreContext(Context):
     if delta:
       return ctx.handle_move(delta)
 
+  def handle_release(ctx, button):
+    delta = input.resolve_delta(button)
+    if delta:
+      return ctx.hero.stop_move()
+
   def handle_move(ctx, delta):
     if not ctx.hero:
       return
@@ -44,14 +47,7 @@ class ExploreContext(Context):
     ctx.collide(ctx.hero, delta)
 
   def move(ctx, actor, delta):
-    actor.facing = delta
-    actor.pos = vector.add(
-      actor.pos,
-      vector.scale(
-        delta,
-        TILE_SIZE / WALK_DURATION
-      )
-    )
+    actor.move(delta)
 
   def collide(ctx, actor, delta):
     delta_x, delta_y = delta

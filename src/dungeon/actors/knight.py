@@ -1,4 +1,3 @@
-import pygame
 from dungeon.actors import DungeonActor
 from cores.knight import Knight as KnightCore
 import assets
@@ -12,15 +11,26 @@ from anims.drop import DropAnim
 from anims.path import PathAnim
 from anims.fall import FallAnim
 from anims.pause import PauseAnim
+from anims.walk import WalkAnim
 from lib.sprite import Sprite
 
 class Knight(DungeonActor):
+  speed = 1.5
+
   def __init__(knight, core=None, ailment=None, ailment_turns=0, *args, **kwargs):
     super().__init__(
       core=core or KnightCore(*args, **kwargs),
       ailment=ailment,
       ailment_turns=ailment_turns
     )
+
+  def start_move(actor):
+    actor.anims = [WalkAnim(period=60)]
+    actor.core.anims = actor.anims.copy()
+
+  def stop_move(actor):
+    actor.anims = []
+    actor.core.anims = []
 
   def charge(knight, *args, **kwargs):
     super().charge(*args, **kwargs)
@@ -49,7 +59,7 @@ class Knight(DungeonActor):
     for anim in anim_group:
       if type(anim) is PauseAnim:
         break
-      if type(anim) is MoveAnim or type(anim) is PathAnim:
+      if type(anim) is MoveAnim or type(anim) is PathAnim or type(anim) is WalkAnim:
         x4_idx = max(0, int((anim.time - 1) % anim.period // (anim.period / 4)))
         if knight.facing == (0, -1):
           knight_image = [
