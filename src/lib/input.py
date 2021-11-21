@@ -1,4 +1,10 @@
 _controls = {}
+ARROW_DELTAS = {
+  "left": (-1, 0),
+  "right": (1, 0),
+  "up": (0, -1),
+  "down": (0, 1),
+}
 
 def config(controls):
   global _controls
@@ -9,4 +15,4 @@ def resolve_button(button):
 
 def resolve_delta(button):
   button = resolve_button(button)
-  return None
+  return ARROW_DELTAS[button] if button in ARROW_DELTAS else None

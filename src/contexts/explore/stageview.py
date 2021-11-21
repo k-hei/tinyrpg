@@ -48,10 +48,7 @@ class StageView:
     for elem in elems:
       elem_sprites = Sprite.move_all(
         sprites=elem.view(anims=[]),
-        offset=vector.scale(
-          vector.add((0.5, 1), elem.cell),
-          view.stage.tile_size
-        ),
+        offset=elem.pos,
       )
       elem_sprites[0].origin = Sprite.ORIGIN_BOTTOM
       sprites += elem_sprites

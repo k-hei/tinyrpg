@@ -13,7 +13,6 @@ from anims.flinch import FlinchAnim
 from anims.fall import FallAnim
 from anims.path import PathAnim
 from lib.lerp import lerp
-import lib.vector as vector
 from config import ITEM_OFFSET, TILE_SIZE, PUSH_DURATION, NUDGE_DURATION
 import debug
 
@@ -34,8 +33,23 @@ class DungeonElement:
       debug.log(f"WARNING: Create element {type(elem).__name__} with size {size}")
       size = (1, 1)
     elem.size = size
-    elem.cell = None
+    elem.pos = None
     elem.elev = 0
+
+  @property
+  def cell(elem):
+    if elem.pos is None:
+      return None
+    x, y = elem.pos
+    return (x // elem.scale, y // elem.scale)
+
+  @cell.setter
+  def cell(elem, cell):
+    col, row = cell
+    elem.pos = (
+      (col + 0.5) * elem.scale,
+      (row + 1) * elem.scale
+    )
 
   def encode(elem):
     return [(elem.cell), type(elem).__name__]
@@ -49,9 +63,11 @@ class DungeonElement:
   def on_leave(elem, game): pass
 
   def spawn(elem, stage, cell):
+    elem.scale = stage.tile_size
     elem.cell = cell
     tile = stage.get_tile_at(cell)
-    if tile: elem.elev = tile.elev
+    if tile:
+      elem.elev = tile.elev
 
   def step(elem, game):
     pass
