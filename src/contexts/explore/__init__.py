@@ -2,9 +2,13 @@ import pygame
 from pygame import Surface, SRCALPHA
 from lib.sprite import Sprite
 import lib.input as input
+import lib.vector as vector
 from contexts import Context
 from contexts.explore.stageview import StageView
+from contexts.dungeon.camera import Camera
+from dungeon.actors import DungeonActor
 from tiles import Tile
+from config import WINDOW_SIZE
 
 input.config({
   pygame.K_w: "up",
@@ -18,12 +22,16 @@ input.config({
 })
 
 class ExploreContext(Context):
-  def __init__(ctx, hero=None,stage=None, stage_view=None, *args, **kwargs):
+  def __init__(ctx, hero=None,stage=None, stage_view=None, camera=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
     ctx.party = [hero]
+    ctx.camera = camera or Camera(WINDOW_SIZE)
     ctx.stage = stage
-    ctx.stage_view = stage_view or StageView(stage=stage)
+    ctx.stage_view = stage_view or StageView(stage=stage, camera=ctx.camera)
     ctx.debug = False
+
+  def init(ctx):
+    ctx.camera.focus(ctx.hero)
 
   @property
   def hero(ctx):
@@ -45,6 +53,9 @@ class ExploreContext(Context):
 
     ctx.move(ctx.hero, delta)
     ctx.collide(ctx.hero, delta)
+    # enemies = [a for a in ctx.stage.elems if isinstance(a, DungeonActor) and a.faction == DungeonActor.FACTION_ENEMY]
+    # for enemy in enemies:
+    #   print(vector.distance(ctx.hero.pos, enemy.pos))
 
   def move(ctx, actor, delta):
     actor.move(delta)
@@ -96,6 +107,7 @@ class ExploreContext(Context):
   def update(ctx):
     for elem in ctx.stage.elems:
       elem.update(ctx)
+    ctx.camera.update()
 
   def view(ctx):
     sprites = ctx.stage_view.view()

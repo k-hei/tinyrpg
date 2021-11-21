@@ -1,3 +1,5 @@
+from math import sqrt
+
 def add(*vectors):
   c = []
   for i in range(max(*[len(v) for v in vectors])):
@@ -34,3 +36,9 @@ def multiply(*vectors):
 
 def scale(vector, scalar):
   return tuple([v * scalar for v in vector])
+
+def distance(a, b):
+  x1, y1 = a
+  x2, y2 = b
+  dx, dy = x2 - x1, y2 - y1
+  return sqrt(dx * dx + dy * dy)

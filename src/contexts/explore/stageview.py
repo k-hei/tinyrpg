@@ -19,8 +19,9 @@ class StageView:
     y = (sprite_y + sprite.offset + 0.5) * DEPTH_SIZE
     return int(depth + y)
 
-  def __init__(view, stage=None):
+  def __init__(view, stage, camera):
     view.stage = stage
+    view.camera = camera
 
   def view_tiles(view, tiles):
     sprites = []
@@ -63,4 +64,9 @@ class StageView:
     sprites += view.view_elems(stage.elems)
 
     sprites.sort(key=StageView.order)
+    sprites = Sprite.move_all(
+      sprites=sprites,
+      offset=vector.negate(view.camera.rect.topleft)
+    )
+
     return sprites

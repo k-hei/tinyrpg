@@ -37,6 +37,10 @@ class DungeonActor(DungeonElement):
   COOLDOWN_DURATION = 1
   VISION_RANGE = config.VISION_RANGE
 
+  FACTION_PLAYER = "player"
+  FACTION_ALLY = "ally"
+  FACTION_ENEMY = "enemy"
+
   AI_MOVE = "move"
   AI_LOOK = "look"
 
