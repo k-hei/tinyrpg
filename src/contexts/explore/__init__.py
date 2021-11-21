@@ -23,7 +23,7 @@ class ExploreContext(Context):
     ctx.party = [hero]
     ctx.stage = stage
     ctx.stage_view = stage_view or StageView(stage=stage)
-    ctx.debug = True
+    ctx.debug = False
 
   @property
   def hero(ctx):

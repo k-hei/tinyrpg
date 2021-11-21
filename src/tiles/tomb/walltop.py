@@ -1,8 +1,6 @@
 from pygame import Surface, SRCALPHA
 from pygame.transform import rotate, flip
-from lib.cell import neighborhood
 import assets
-from dungeon.props.door import Door
 from dungeon.props.secretdoor import SecretDoor
 from colors.palette import BLACK
 from config import TILE_SIZE
@@ -24,29 +22,41 @@ def render_walltop(stage, cell, visited_cells=None):
   surface = Surface((TILE_SIZE, TILE_SIZE), SRCALPHA)
   surface.fill(BLACK)
 
-  edge_left = assets.sprites["wall_edge"]
+  edge = assets.sprites["wall_edge"]
+  if "wall_edge_left" not in assets.sprites:
+    assets.sprites["wall_edge_left"] = edge
+  edge_left = assets.sprites["wall_edge_left"]
+
   if "wall_edge_bottom" not in assets.sprites:
-    assets.sprites["wall_edge_bottom"] = rotate(edge_left, 90)
+    assets.sprites["wall_edge_bottom"] = rotate(edge, 90)
   edge_bottom = assets.sprites["wall_edge_bottom"]
+
   if "wall_edge_right" not in assets.sprites:
-    assets.sprites["wall_edge_right"] = rotate(edge_left, 180)
-  edge_top = assets.sprites["wall_edge_right"]
+    assets.sprites["wall_edge_right"] = rotate(edge, 180)
+  edge_right = assets.sprites["wall_edge_right"]
+
   if "wall_edge_top" not in assets.sprites:
-    assets.sprites["wall_edge_top"] = rotate(edge_left, 270)
+    assets.sprites["wall_edge_top"] = rotate(edge, 270)
   edge_top = assets.sprites["wall_edge_top"]
 
-  corner_nw = assets.sprites["wall_corner"]
+  corner = assets.sprites["wall_corner"]
+
+  if "wall_corner_nw" not in assets.sprites:
+    assets.sprites["wall_corner_nw"] = corner
+  corner_nw = assets.sprites["wall_corner_nw"]
+
   if "wall_corner_sw" not in assets.sprites:
-    assets.sprites["wall_corner_sw"] = rotate(corner_nw, 90)
+    assets.sprites["wall_corner_sw"] = rotate(corner, 90)
   corner_sw = assets.sprites["wall_corner_sw"]
+
   if "wall_corner_se" not in assets.sprites:
-    assets.sprites["wall_corner_se"] = rotate(corner_nw, 180)
+    assets.sprites["wall_corner_se"] = rotate(corner, 180)
   corner_se = assets.sprites["wall_corner_se"]
+
   if "wall_corner_ne" not in assets.sprites:
-    assets.sprites["wall_corner_ne"] = rotate(corner_nw, 270)
+    assets.sprites["wall_corner_ne"] = rotate(corner, 270)
   corner_ne = assets.sprites["wall_corner_ne"]
 
-  edge_right = rotate(edge_left, 180)
   link = assets.sprites["wall_link"]
 
   if not is_wall(x - 1, y):

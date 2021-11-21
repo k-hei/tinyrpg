@@ -1,5 +1,8 @@
 import lib.vector as vector
 from lib.sprite import Sprite
+from lib.filters import replace_color
+from colors.palette import WHITE, COLOR_TILE
+
 from tiles import Tile
 from tiles.tomb.walltop import render_walltop
 from dungeon.props.door import Door
@@ -7,6 +10,22 @@ from dungeon.props.secretdoor import SecretDoor
 import assets
 
 TILE_SIZE = 32
+TILE_IDS = [
+  "tomb_floor",
+  "wall_top",
+  "wall_bottom",
+  "wall_alt",
+  "wall_battle",
+  "wall_battle_alt",
+  "wall_corner",
+  "wall_edge",
+  "wall_link",
+  "stairs_up",
+  "stairs_down",
+]
+
+for tile_id in TILE_IDS:
+  assets.sprites[tile_id] = replace_color(assets.sprites[tile_id], WHITE, COLOR_TILE)
 
 class Floor(Tile):
   sprite = assets.sprites["tomb_floor"]
@@ -22,10 +41,7 @@ class Wall(Tile):
     is_special_room = False
 
     if (
-      (
-        tile_below is Floor
-        or tile_below is Pit
-      )
+      (tile_below is Floor or tile_below is Pit)
       and (visited_cells is None or (x, y + 1) in visited_cells)
       and not next((e for e in stage.get_elems_at((x, y + 1)) if isinstance(e, Door)), None)
     ):
