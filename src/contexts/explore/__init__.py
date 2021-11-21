@@ -53,6 +53,13 @@ class ExploreContext(Context):
 
     ctx.move(ctx.hero, delta)
     ctx.collide(ctx.hero, delta)
+
+    room = next((r for r in ctx.stage.rooms if r.collidepoint(ctx.hero.pos)), None)
+    if room:
+      ctx.camera.focus(room)
+    else:
+      ctx.camera.focus(ctx.hero)
+
     # enemies = [a for a in ctx.stage.elems if isinstance(a, DungeonActor) and a.faction == DungeonActor.FACTION_ENEMY]
     # for enemy in enemies:
     #   print(vector.distance(ctx.hero.pos, enemy.pos))

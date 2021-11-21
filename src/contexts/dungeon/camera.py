@@ -5,7 +5,13 @@ class Camera:
   SPEED = 8
 
   def resolve_target(target):
-    return target if type(target) is tuple else target.pos
+    if type(target) is tuple:
+      return target
+
+    if type(target) is Rect:
+      return target.center
+
+    return target.pos
 
   def __init__(camera, size):
     camera.size = size
@@ -39,10 +45,10 @@ class Camera:
     )
 
   def focus(camera, target):
-    if camera.target == target:
+    if camera.target == target or camera.target is target:
       return
 
-    if target == None:
+    if target is None:
       camera.blur()
       return
 

@@ -1,11 +1,11 @@
 from config import TILE_SIZE
 
 class Stage:
-  def __init__(stage, tiles, elems=None, links=None, tile_size=TILE_SIZE, bg=None):
+  def __init__(stage, tiles, elems=None, rooms=None, links=None, tile_size=TILE_SIZE, bg=None):
     stage.tiles = tiles
     stage.elems = elems or []
     stage.links = links or []
-    stage.rooms = []
+    stage.rooms = rooms or []
     stage.tile_size = tile_size
     stage.bg = bg
 

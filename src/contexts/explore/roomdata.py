@@ -35,6 +35,7 @@ class RoomData:
   size: tuple[int, int] = None                              # default: generated size
   tiles: list[int] = field(default_factory=lambda: [])      # default: generated shape
   elems: list[list] = field(default_factory=lambda: [])     # default: no elements
+  rooms: list[list] = field(default_factory=lambda: [])     # default: no subrooms
   edges: list[list] = field(default_factory=lambda: [])     # default: all edges
   doors: str = "Door"                                       # default: generic door
   secret: bool = None                                       # default: arbitrary secrecy
