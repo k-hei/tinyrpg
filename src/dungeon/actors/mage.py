@@ -3,7 +3,7 @@ import pygame
 from dungeon.actors import DungeonActor
 from cores.mage import Mage as MageCore
 from assets import load as use_assets
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from anims.path import PathAnim
 from anims.jump import JumpAnim
 from anims.attack import AttackAnim
@@ -125,7 +125,7 @@ class Mage(DungeonActor):
     if will_fall and anims[0].index(will_fall) > 0:
       return super().view(sprites["mage_shock"], anims)
     for anim in anim_group:
-      if type(anim) is MoveAnim or type(anim) is PathAnim:
+      if type(anim) is StepAnim or type(anim) is PathAnim:
         x4_idx = max(0, int((anim.time - 1) % anim.period // (anim.period / 4)))
         if mage.facing == (0, -1):
           sprite = [

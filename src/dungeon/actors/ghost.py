@@ -2,7 +2,7 @@ from random import randint
 from dungeon.actors import DungeonActor
 from cores.ghost import Ghost as GhostCore
 from skills.weapon.tackle import Tackle
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
@@ -88,7 +88,7 @@ class Ghost(DungeonActor):
     anim_group += ghost.core.anims
     offset_x, offset_y = (0, 0)
     for anim in anim_group:
-      if type(anim) in (MoveAnim, AttackAnim):
+      if type(anim) in (StepAnim, AttackAnim):
         ghost_image = assets.sprites["ghost_move"]
       elif type(anim) in (FlinchAnim, FlickerAnim):
         ghost_image = assets.sprites["ghost_flinch"]

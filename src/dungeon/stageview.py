@@ -26,7 +26,7 @@ from dungeon.props.secretdoor import SecretDoor
 from dungeon.render.walltop import render_walltop
 
 from anims import Anim
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from anims.jump import JumpAnim
 from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
@@ -278,7 +278,7 @@ class StageView:
       for sprite in sprites:
         elem_x, elem_y = elem.cell
         sprite.move(((elem_x + 0.5) * TILE_SIZE, (elem_y + 1) * TILE_SIZE))
-        move_anim = anims and next((a for a in anims[0] if type(a) is MoveAnim and a.target is elem), None)
+        move_anim = anims and next((a for a in anims[0] if type(a) is StepAnim and a.target is elem), None)
         if move_anim and move_anim.cell:
           _, _, *anim_z = move_anim.cell
           anim_z = anim_z and anim_z[0] or 0

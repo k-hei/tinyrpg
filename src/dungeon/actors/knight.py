@@ -1,7 +1,7 @@
 from dungeon.actors import DungeonActor
 from cores.knight import Knight as KnightCore
 import assets
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from anims.jump import JumpAnim
 from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
@@ -59,7 +59,7 @@ class Knight(DungeonActor):
     for anim in anim_group:
       if type(anim) is PauseAnim:
         break
-      if type(anim) is MoveAnim or type(anim) is PathAnim or type(anim) is WalkAnim:
+      if type(anim) is StepAnim or type(anim) is PathAnim or type(anim) is WalkAnim:
         x4_idx = max(0, int((anim.time - 1) % anim.period // (anim.period / 4)))
         if knight.facing == (0, -1):
           knight_image = [

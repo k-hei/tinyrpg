@@ -10,7 +10,7 @@ from colors import darken_color
 from colors.palette import BLACK, WHITE, GRAY, RED, GREEN, BLUE, CYAN, VIOLET, GOLD, DARKBLUE
 from assets import assets
 from lib.filters import replace_color, darken_image
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from anims.attack import AttackAnim
 from anims.awaken import AwakenAnim
 from anims.flinch import FlinchAnim
@@ -456,12 +456,13 @@ class DungeonActor(DungeonElement):
     offset_x, offset_y, offset_z = (0, 0, 0)
     actor_width, actor_height = sprite.image.get_size()
     actor_cell = actor.cell
-    asleep = actor.ailment == "sleep"
+    is_asleep = actor.ailment == "sleep"
+    is_animating = False
     anim_group = [a for a in anims[0] if a.target is actor] if anims else []
     anim_group += actor.core.anims
     for anim in anim_group:
       if type(anim) is AwakenAnim and anim.visible:
-        asleep = True
+        is_asleep = True
       if type(anim) is AttackAnim and anim.cell:
         offset_x, offset_y = actor.find_move_offset(anim)
       if type(anim) is FlinchAnim and anim.time > 0 and anim.time <= 3:
@@ -477,12 +478,13 @@ class DungeonActor(DungeonElement):
         anim_xscale, anim_yscale = anim.scale
         actor_width *= anim_xscale
         actor_height *= anim_yscale
-      if isinstance(anim, FrameAnim):
+      if isinstance(anim, FrameAnim) and not is_animating:
         sprite.image = anim.frame()
+        is_animating = True
 
     warpin_anim = next((a for a in anim_group if type(a) is WarpInAnim), None)
     drop_anim = next((a for a in anim_group if type(a) is DropAnim), None)
-    move_anim = next((a for a in anim_group if isinstance(a, MoveAnim)), None)
+    move_anim = next((a for a in anim_group if isinstance(a, StepAnim)), None)
     move_offset = actor.find_move_offset(anims)
 
     if actor.elev > 0 and not move_anim:
@@ -555,7 +557,7 @@ class DungeonActor(DungeonElement):
       actor_color = darken_color(actor_color)
     if actor_color != BLACK:
       sprite.image = replace_color(sprite.image, BLACK, actor_color)
-    if asleep:
+    if is_asleep:
       sprite.image = darken_image(sprite.image)
 
     facing_x, _ = actor.facing

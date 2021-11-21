@@ -11,7 +11,7 @@ from lib.compose import compose
 from lib.direction import invert as invert_direction
 from lib.sprite import Sprite
 import assets
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from anims.jump import JumpAnim
 from anims.attack import AttackAnim
 from anims.shake import ShakeAnim
@@ -144,7 +144,7 @@ class Mummy(DungeonActor):
     anim_group = [a for a in anims[0] if a.target is soldier] if anims else []
     anim_group += soldier.core.anims
     for anim in anim_group:
-      if (type(anim) is MoveAnim and anim.duration != PUSH_DURATION
+      if (type(anim) is StepAnim and anim.duration != PUSH_DURATION
       or type(anim) is AttackAnim):
         soldier_image = assets.sprites["soldier_move"]
         break

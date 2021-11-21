@@ -3,7 +3,7 @@ from dungeon.props import Prop
 from dungeon.props.pushtile import PushTile
 from assets import load as use_assets
 from lib.sprite import Sprite
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from anims import Anim
 from lib.filters import replace_color
 from colors.palette import BLACK, WHITE, PURPLE, SAFFRON, DARKBLUE

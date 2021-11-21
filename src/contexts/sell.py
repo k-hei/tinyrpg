@@ -230,12 +230,12 @@ class BagList:
 class SellContext(Context):
   class CursorAnim(Anim): blocking = False
   class DescAnim(Anim): blocking = False
-  class DescMoveAnim(TweenAnim): blocking = True
-  class DescEnterAnim(DescMoveAnim): pass
-  class DescExitAnim(DescMoveAnim): pass
-  class ListMoveAnim(TweenAnim): blocking = True
-  class ListEnterAnim(ListMoveAnim): pass
-  class ListExitAnim(ListMoveAnim): pass
+  class DescStepAnim(TweenAnim): blocking = True
+  class DescEnterAnim(DescStepAnim): pass
+  class DescExitAnim(DescStepAnim): pass
+  class ListStepAnim(TweenAnim): blocking = True
+  class ListEnterAnim(ListStepAnim): pass
+  class ListExitAnim(ListStepAnim): pass
   class CardAnim(TweenAnim): blocking = True
   class CardEnterAnim(CardAnim): pass
   class CardExitAnim(CardAnim): pass
@@ -560,7 +560,7 @@ class SellContext(Context):
     menu_x = WINDOW_WIDTH - items_image.get_width() - MARGIN
     menu_y = WINDOW_HEIGHT - items_image.get_height() - tabs_image.get_height() - 24
     menu_anim_y = menu_y
-    menu_anim = next((a for a in ctx.anims if isinstance(a, SellContext.ListMoveAnim)), None)
+    menu_anim = next((a for a in ctx.anims if isinstance(a, SellContext.ListStepAnim)), None)
     if menu_anim:
       t = menu_anim.pos
       if type(menu_anim) is SellContext.ListEnterAnim:
@@ -639,7 +639,7 @@ class SellContext(Context):
       value_image = assets.ttf["normal"].render(value_text)
       descbox_image.blit(value_image, (label_x + label_image.get_width() + 5, label_y))
 
-    descbox_anim = next((a for a in ctx.anims if isinstance(a, SellContext.DescMoveAnim)), None)
+    descbox_anim = next((a for a in ctx.anims if isinstance(a, SellContext.DescStepAnim)), None)
     descbox_x = MARGIN
     descbox_y = hud_y - MARGIN - descbox_height
     if descbox_anim:

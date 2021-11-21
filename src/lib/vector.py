@@ -1,4 +1,5 @@
 from math import sqrt
+from lib.lerp import lerp as _lerp
 
 def add(*vectors):
   c = []
@@ -42,3 +43,9 @@ def distance(a, b):
   x2, y2 = b
   dx, dy = x2 - x1, y2 - y1
   return sqrt(dx * dx + dy * dy)
+
+def lerp(a, b, t):
+  c = []
+  for i in range(max(len(a), len(b))):
+    c.append(_lerp(a[i], b[i], t))
+  return c

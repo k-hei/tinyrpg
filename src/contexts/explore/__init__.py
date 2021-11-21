@@ -3,6 +3,7 @@ from pygame import Surface, SRCALPHA
 from lib.sprite import Sprite
 import lib.input as input
 import lib.vector as vector
+from helpers.findactor import find_actor
 from contexts import Context
 from contexts.explore.stageview import StageView
 from contexts.dungeon.camera import Camera
@@ -22,20 +23,32 @@ input.config({
 })
 
 class ExploreContext(Context):
-  def __init__(ctx, hero=None,stage=None, stage_view=None, camera=None, *args, **kwargs):
+  COMBAT_THRESHOLD = 112
+
+  def __init__(ctx, store, stage, stage_view=None, on_end=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
-    ctx.party = [hero]
-    ctx.camera = camera or Camera(WINDOW_SIZE)
-    ctx.stage = stage
-    ctx.stage_view = stage_view or StageView(stage=stage, camera=ctx.camera)
+    ctx._headless = stage_view is None
+    if stage_view:
+      ctx.stage = stage_view.stage
+      ctx.camera = stage_view.camera
+      ctx.stage_view = stage_view
+    else:
+      ctx.stage = stage
+      ctx.camera = Camera(WINDOW_SIZE)
+      ctx.stage_view = StageView(stage=stage, camera=ctx.camera)
+    ctx.store = store
+    ctx.on_end = on_end
     ctx.debug = False
 
-  def init(ctx):
+  def enter(ctx):
     ctx.camera.focus(ctx.hero)
 
   @property
   def hero(ctx):
-    return ctx.party[0] if ctx.party else None
+    return find_actor(
+      char=ctx.store.party[0],
+      stage=ctx.stage
+    ) if ctx.store.party else None
 
   def handle_press(ctx, button):
     delta = input.resolve_delta(button)
@@ -60,9 +73,16 @@ class ExploreContext(Context):
     else:
       ctx.camera.focus(ctx.hero)
 
-    # enemies = [a for a in ctx.stage.elems if isinstance(a, DungeonActor) and a.faction == DungeonActor.FACTION_ENEMY]
-    # for enemy in enemies:
-    #   print(vector.distance(ctx.hero.pos, enemy.pos))
+    enemy = next((e for e in ctx.stage.elems if
+      isinstance(e, DungeonActor)
+      and e.faction == DungeonActor.FACTION_ENEMY
+      and vector.distance(ctx.hero.pos, e.pos) < ExploreContext.COMBAT_THRESHOLD
+    ), None)
+    if enemy:
+      ctx.handle_combat()
+
+  def handle_combat(ctx):
+    ctx.on_end and ctx.on_end()
 
   def move(ctx, actor, delta):
     actor.move(delta)
@@ -111,14 +131,11 @@ class ExploreContext(Context):
     else:
       return False
 
-  def update(ctx):
-    for elem in ctx.stage.elems:
-      elem.update(ctx)
-    ctx.camera.update()
-
   def view(ctx):
-    sprites = ctx.stage_view.view()
+    if not ctx._headless:
+      return []
 
+    sprites = ctx.stage_view.view()
     if ctx.debug:
       sprites += [debug_view_elem(e) for e in ctx.stage.elems]
 

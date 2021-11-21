@@ -5,7 +5,7 @@ from contexts.dialogue import DialogueContext
 from dungeon.hooks.shrine.magestruggle import sequence_mage_struggle
 from dungeon.hooks.shrine.magespin import sequence_mage_spin
 from dungeon.hooks.shrine.magebump import sequence_mage_bump
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from anims.attack import AttackAnim
 from anims.jump import JumpAnim
 from anims.shake import ShakeAnim
@@ -49,7 +49,7 @@ def trigger_cutscene(room, game):
       lambda: setattr(mage, "facing", (1, 0)),
       lambda: game.anims.append([
         ShakeAnim(target=mage, duration=30),
-        MoveAnim(
+        StepAnim(
           target=hero,
           src=hero.cell,
           dest=(hero_dest := vector.add(altar.cell, (0, 2))),

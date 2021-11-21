@@ -8,7 +8,7 @@ from items.materials.redferrule import RedFerrule
 import assets
 from lib.sprite import Sprite
 
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
@@ -79,7 +79,7 @@ class Mushroom(DungeonActor):
     anim_group = [a for a in anims[0] if a.target is mushroom] if anims else []
     anim_group += mushroom.core.anims
     for anim in anim_group:
-      if type(anim) is MoveAnim and anim.duration != PUSH_DURATION:
+      if type(anim) is StepAnim and anim.duration != PUSH_DURATION:
         mushroom_image = assets.sprites["mushroom_move"]
         break
       elif (type(anim) is AttackAnim

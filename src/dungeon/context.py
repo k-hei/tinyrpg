@@ -79,7 +79,7 @@ from anims.item import ItemAnim
 from anims.flicker import FlickerAnim
 from anims.flinch import FlinchAnim
 from anims.shake import ShakeAnim
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from anims.jump import JumpAnim
 from anims.pause import PauseAnim
 from anims.path import PathAnim
@@ -1048,7 +1048,7 @@ class DungeonContext(Context):
     target.elev = target_tile.elev
     game.move(actor, delta=actor.facing, duration=PUSH_DURATION, on_end=on_end)
     game.anims[-1] += [
-      MoveAnim(
+      StepAnim(
         target=target,
         duration=PUSH_DURATION,
         src=(*origin_cell, origin_tile.elev),
@@ -1307,7 +1307,7 @@ class DungeonContext(Context):
     )):
       duration = duration or (RUN_DURATION if run else MOVE_DURATION)
       duration = duration * 1.5 if jump else duration
-      anim_kind = JumpAnim if jump else MoveAnim
+      anim_kind = JumpAnim if jump else StepAnim
       src_cell = (*actor.cell, max(0, origin_tile.elev))
       dest_cell = (*target_cell, max(0, target_tile.elev))
       def unset_command():
@@ -1348,7 +1348,7 @@ class DungeonContext(Context):
   def find_move_group(game):
     for group in game.anims:
       for anim in group:
-        if (isinstance(anim, MoveAnim)
+        if (isinstance(anim, StepAnim)
         # and actor.allied(anim.target)
         and isinstance(anim.target, DungeonActor)):
           return group
@@ -1576,11 +1576,11 @@ class DungeonContext(Context):
     actor.elev = target_tile.elev
     # actor.command = True
     if not game.anims: game.anims.append([])
-    move_anim = next((a for a in game.anims[0] if a.target == actor and type(a) is MoveAnim), None)
+    move_anim = next((a for a in game.anims[0] if a.target == actor and type(a) is StepAnim), None)
     if move_anim:
       on_end = compose(on_end, move_anim.on_end)
       game.anims[0].remove(move_anim)
-    game.anims[0].append(MoveAnim(
+    game.anims[0].append(StepAnim(
       duration=NUDGE_DURATION,
       target=actor,
       src=(*source_cell, source_tile.elev),

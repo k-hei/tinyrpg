@@ -9,7 +9,7 @@ from dungeon.props.coffin import Coffin
 from anims.pause import PauseAnim
 from anims.shake import ShakeAnim
 from anims.jump import JumpAnim
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from anims.path import PathAnim
 from anims.attack import AttackAnim
 from anims.warpin import WarpInAnim
@@ -71,7 +71,7 @@ def cutscene(room, game):
         ) and (mage.name.upper(), "Look, I already spent all your little coins on jewelry and makeup."),
         (mage.name.upper(), "You don't have a reason to chase me!"),
         lambda: (
-          game.anims.append([MoveAnim(
+          game.anims.append([StepAnim(
             target=hero,
             duration=PUSH_DURATION,
             src=hero.cell,
@@ -85,7 +85,7 @@ def cutscene(room, game):
         ) and (mage.name.upper(), "Hee hee hee..."),
         lambda: (
           mage.core.anims.clear(),
-          game.anims.append([MoveAnim(target=mage, duration=inf, period=30)])
+          game.anims.append([StepAnim(target=mage, duration=inf, period=30)])
         ) and (mage.name.upper(), "How about I keep it, and you deal with whatever nice fellas might be in here?"),
         (hero.name.upper(), "????"),
         lambda: (
@@ -101,7 +101,7 @@ def cutscene(room, game):
           mage.core.anims.append(mage.core.YellAnim()),
           game.anims.append([
             ShakeAnim(target=mage, magnitude=0.5),
-            MoveAnim(
+            StepAnim(
               target=hero,
               duration=NUDGE_DURATION,
               src=hero.cell,
@@ -136,7 +136,7 @@ def cutscene(room, game):
       game.anims.clear(),
       mage.core.anims.clear(),
       setattr(mage, "facing", (0, 1)),
-      game.anims.append([MoveAnim(target=mage, duration=inf, period=30)]),
+      game.anims.append([StepAnim(target=mage, duration=inf, period=30)]),
       game.camera.focus(
         cell=vector.add(room.get_center(), (0, -room.get_height() // 2 + 2)),
         speed=15,

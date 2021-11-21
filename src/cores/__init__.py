@@ -91,10 +91,11 @@ class Core:
     return Token(text=core.name.upper(), color=core.get_color())
 
   def update(core):
-    for anim in core.anims:
-      if anim.done:
-        core.anims.remove(anim)
+    anim = core.anims[0] if core.anims else None
+    if anim:
       anim.update()
+      if anim.done:
+        core.anims.pop(0)
 
   def view(core, sprites):
     if not sprites:

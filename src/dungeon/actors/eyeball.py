@@ -11,7 +11,7 @@ from skills.weapon.tackle import Tackle
 from skills.armor.hpup import HpUp
 from items.materials.angeltears import AngelTears
 
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
@@ -72,7 +72,7 @@ class Eyeball(DungeonActor):
   CLONES_CAN_CLONE = True
 
   class ChargeAnim(ShakeAnim): pass
-  class SplitAnim(MoveAnim): pass
+  class SplitAnim(StepAnim): pass
   class Meyetosis(Skill):
     name = "Meyetosis"
     charge_turns = 3
@@ -246,7 +246,7 @@ class Eyeball(DungeonActor):
     anim_group = [a for a in anims[0] if a.target is eyeball] if anims else []
     anim_group += eyeball.core.anims
     for anim in anim_group:
-      if isinstance(anim, MoveAnim) and anim.duration != PUSH_DURATION:
+      if isinstance(anim, StepAnim) and anim.duration != PUSH_DURATION:
         if type(anim) is Eyeball.SplitAnim:
           offset_depth = -16
         image = MoveSprite(eyeball.facing)

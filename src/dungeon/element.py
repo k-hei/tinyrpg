@@ -3,6 +3,7 @@ from pygame import Surface, Rect
 from lib.sprite import Sprite
 from anims import Anim
 from anims.move import MoveAnim
+from anims.step import StepAnim
 from anims.item import ItemAnim
 from anims.flicker import FlickerAnim
 from anims.warpin import WarpInAnim
@@ -102,13 +103,18 @@ class DungeonElement:
 
   def find_move_offset(elem, anims):
     if isinstance(anims, Anim):
-      return elem.find_move_anim_offset(anim=anims)
+      return elem.find_step_anim_offset(anim=anims)
+
     for group in anims:
       for anim in group:
-        if anim.target is not elem or not (isinstance(anim, MoveAnim) or type(anim) is PathAnim) or not anim.cell:
+        if anim.target is not elem:
+          continue
+        if isinstance(anim, MoveAnim) and anims.index(group) == 0:
+          return elem.find_move_anim_offset(anim)
+        if not (isinstance(anim, StepAnim) or type(anim) is PathAnim) or not anim.cell:
           continue
         if anims.index(group) == 0:
-          return elem.find_move_anim_offset(anim)
+          return elem.find_step_anim_offset(anim)
         else:
           anim_x, anim_y, *anim_z = anim.src
           anim_z = anim_z and anim_z[0] or 0
@@ -117,9 +123,18 @@ class DungeonElement:
             (anim_x - elem_x) * TILE_SIZE,
             (anim_y - anim_z - elem_y) * TILE_SIZE
           )
+
     return (0, 0)
 
   def find_move_anim_offset(elem, anim):
+    anim_x, anim_y, *anim_z = anim.pos
+    anim_z = max(0, anim_z and anim_z[0] or 0)
+    elem_x, elem_y = elem.pos
+    offset_x = anim_x - elem_x
+    offset_y = anim_y - anim_z - elem_y
+    return (offset_x, offset_y)
+
+  def find_step_anim_offset(elem, anim):
     anim_x, anim_y, *anim_z = anim.cell
     anim_z = max(0, anim_z and anim_z[0] or 0)
     elem_x, elem_y = elem.cell
@@ -148,11 +163,11 @@ class DungeonElement:
       sprite_layer = "elems"
     offset_x, offset_y = elem.find_move_offset(anims)
     item = None
-    moving = next((g for g in anims if next((a for a in g if a.target is elem and type(a) is MoveAnim), None)), None)
+    moving = next((g for g in anims if next((a for a in g if a.target is elem and type(a) is StepAnim), None)), None)
     anim_group = [a for a in anims[0] if a.target is elem] if anims else []
     for anim in anim_group:
-      if (isinstance(anim, MoveAnim) or type(anim) is PathAnim) and anim.cell:
-        if ((type(anim) is MoveAnim or type(anim) is PathAnim)
+      if (isinstance(anim, StepAnim) or type(anim) is PathAnim) and anim.cell:
+        if ((type(anim) is StepAnim or type(anim) is PathAnim)
         and anim.facing != (0, 0)
         and not anim.duration in (PUSH_DURATION, NUDGE_DURATION)
         and not next((a for g in anims for a in g if a.target is elem and type(a) is FlinchAnim), None)):

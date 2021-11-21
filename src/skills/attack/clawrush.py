@@ -3,7 +3,7 @@ from dungeon.actors import DungeonActor
 from cores.knight import Knight as Knight
 from vfx.claw import ClawVfx
 from lib.cell import add as add_vector
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from anims.attack import AttackAnim
 
 class ClawRush(AttackSkill):
@@ -52,7 +52,7 @@ class ClawRush(AttackSkill):
       attack()
     else:
       game.anims.append([
-        MoveAnim(
+        StepAnim(
           target=user,
           src=origin_cell,
           dest=dest_cell,
