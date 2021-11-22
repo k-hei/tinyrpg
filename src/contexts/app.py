@@ -8,6 +8,7 @@ from pygame.transform import scale
 from pygame.time import get_ticks
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
+import lib.input as input
 from lib.sprite import Sprite
 import game.controls as controls
 import assets
@@ -97,6 +98,7 @@ class App(Context):
   def update(app):
     keyboard.update()
     gamepad.update()
+    input.update()
     if app.paused:
       return
     try:
@@ -253,6 +255,7 @@ class App(Context):
   def handle_press(app, button=None):
     if button:
       keyboard.handle_press(button)
+      input.handle_press(button)
       tapping = keyboard.get_state(button) == 1
       ctrl = (keyboard.get_state(pygame.K_LCTRL)
         or keyboard.get_state(pygame.K_RCTRL))
@@ -291,3 +294,4 @@ class App(Context):
     if app.child:
       app.child.handle_release(key)
     keyboard.handle_release(key)
+    input.handle_release(key)

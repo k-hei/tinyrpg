@@ -7,6 +7,7 @@ from contexts.dungeon.camera import Camera
 from contexts.explore.stageview import StageView
 from tiles import Tile
 from anims.move import MoveAnim
+from anims.attack import AttackAnim
 from anims.step import StepAnim
 from config import WINDOW_SIZE
 
@@ -60,20 +61,40 @@ class CombatContext(Context):
       ctx.hero.pos = hero_dest
 
   def handle_press(ctx, button):
-    if button and ctx.stage_view.anims:
+    if ctx.stage_view.anims:
       return
 
     delta = input.resolve_delta(button)
     if delta:
       return ctx.handle_move(delta)
 
+    button = input.resolve_button(button)
+    if input.get_state(button) > 1:
+      return
+
+    if button == input.BUTTON_A:
+      return ctx.handle_attack()
+
   def handle_move(ctx, delta):
-    return ctx.move(ctx.hero, delta)
+    moved = ctx.move(ctx.hero, delta)
+    if moved:
+      return True
+    else:
+      ctx.hero.facing = delta
+      return False
 
   def move(ctx, actor, delta):
     target_cell = vector.add(actor.cell, delta)
+
     target_tile = ctx.stage.get_tile_at(target_cell)
     if Tile.is_solid(target_tile):
+      return False
+
+    target_elem = (
+      next((e for e in ctx.stage.get_elems_at(target_cell) if e.solid), None)
+      or next((e for e in ctx.stage.get_elems_at(target_cell)), None)
+    )
+    if target_elem and target_elem.solid:
       return False
 
     ctx.stage_view.anims.append([StepAnim(
@@ -82,3 +103,18 @@ class CombatContext(Context):
       dest=target_cell,
     )])
     actor.cell = target_cell
+    return True
+
+  def handle_attack(ctx):
+    attack_delay = (ctx.hero.core.AttackAnim.frames_duration[0]
+      if "AttackAnim" in dir(ctx.hero.core) and ctx.hero.facing == (0, 1)
+      else 0
+    )
+    ctx.stage_view.anims.append([AttackAnim(
+      target=ctx.hero,
+      delay=attack_delay,
+      src=ctx.hero.cell,
+      dest=vector.add(ctx.hero.cell, ctx.hero.facing),
+    )])
+    ctx.hero.attack()
+    return True

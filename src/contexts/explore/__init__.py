@@ -11,16 +11,37 @@ from dungeon.actors import DungeonActor
 from tiles import Tile
 from config import WINDOW_SIZE
 
-input.config({
-  pygame.K_w: "up",
-  pygame.K_a: "left",
-  pygame.K_s: "down",
-  pygame.K_d: "right",
-  pygame.K_UP: "up",
-  pygame.K_LEFT: "left",
-  pygame.K_DOWN: "down",
-  pygame.K_RIGHT: "right",
-})
+input.config(
+  buttons={
+    input.BUTTON_UP: [pygame.K_UP, pygame.K_w],
+    input.BUTTON_LEFT: [pygame.K_LEFT, pygame.K_a],
+    input.BUTTON_DOWN: [pygame.K_DOWN, pygame.K_s],
+    input.BUTTON_RIGHT: [pygame.K_RIGHT, pygame.K_d],
+    input.BUTTON_A: [pygame.K_RETURN, pygame.K_SPACE],
+    input.BUTTON_B: [pygame.K_RSHIFT, pygame.K_LSHIFT],
+    input.BUTTON_X: [pygame.K_q],
+    input.BUTTON_Y: [pygame.K_e],
+    input.BUTTON_L: [pygame.K_TAB],
+    input.BUTTON_R: [pygame.K_LALT, pygame.K_RALT],
+    input.BUTTON_START: [pygame.K_ESCAPE, pygame.K_BACKSPACE],
+    input.BUTTON_SELECT: [pygame.K_BACKQUOTE, pygame.K_BACKSLASH],
+  },
+  controls={
+    input.CONTROLS_CONFIRM: [input.BUTTON_A],
+    input.CONTROLS_CANCEL: [input.BUTTON_B],
+    input.CONTROLS_MANAGE: [input.BUTTON_Y],
+    input.CONTROLS_RUN: [input.BUTTON_B],
+    input.CONTROLS_TURN: [input.BUTTON_R],
+    input.CONTROLS_ITEM: [input.BUTTON_R, input.BUTTON_X],
+    input.CONTROLS_WAIT: [input.BUTTON_R, input.BUTTON_A],
+    input.CONTROLS_SHORTCUT: [input.BUTTON_R, input.BUTTON_Y],
+    input.CONTROLS_ALLY: [input.BUTTON_L],
+    input.CONTROLS_SKILL: [input.BUTTON_Y],
+    input.CONTROLS_INVENTORY: [input.BUTTON_X],
+    input.CONTROLS_PAUSE: [input.BUTTON_START],
+    input.CONTROLS_MINIMAP: [input.BUTTON_SELECT],
+  }
+)
 
 class ExploreContext(Context):
   COMBAT_THRESHOLD = 112

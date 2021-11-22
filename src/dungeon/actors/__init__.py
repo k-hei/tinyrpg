@@ -8,7 +8,7 @@ from cores import Core
 
 from colors import darken_color
 from colors.palette import BLACK, WHITE, GRAY, RED, GREEN, BLUE, CYAN, VIOLET, GOLD, DARKBLUE
-from assets import assets
+import assets
 from lib.filters import replace_color, darken_image
 from anims.step import StepAnim
 from anims.attack import AttackAnim
@@ -480,6 +480,9 @@ class DungeonActor(DungeonElement):
         actor_height *= anim_yscale
       if isinstance(anim, FrameAnim) and not is_animating and not move_anim:
         sprite.image = anim.frame()
+        actor_width, actor_height = sprite.image.get_size()
+        offset_x += (actor_width - TILE_SIZE) / 2
+        offset_y += (actor_height - TILE_SIZE) / 2
         is_animating = True
 
     warpin_anim = next((a for a in anim_group if type(a) is WarpInAnim), None)

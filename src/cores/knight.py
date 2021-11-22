@@ -34,12 +34,18 @@ class Knight(BipedCore):
 
   class BrandishAnim(FrameAnim):
     frames = assets.sprites["knight_brandish"]
-    frames_duration = [8, 8, 6]
+    frames_duration = [8, 8, 6, 15, 30]
 
   class IdleDownAnim(FrameAnim):
     frames = assets.sprites["knight_idle_down"]
     frames_duration = 30
     loop = True
+
+  class AttackAnim(FrameAnim):
+    frames_duration = [6, 8, 10]
+
+  class AttackDownAnim(AttackAnim):
+    frames = assets.sprites["knight_attack_down"]
 
   class ChargeAnim(ShakeAnim): pass
 

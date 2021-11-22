@@ -19,7 +19,7 @@ class Stage:
     return None
 
   def get_elems_at(stage, cell):
-    return []
+    return [e for e in stage.elems if e.cell == cell]
 
   def spawn_elem_at(stage, cell, elem):
     elem.spawn(stage, cell)

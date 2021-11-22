@@ -36,6 +36,10 @@ class Knight(DungeonActor):
     super().charge(*args, **kwargs)
     knight.core.anims.append(KnightCore.ChargeAnim())
 
+  def attack(knight):
+    if knight.facing == (0, 1):
+      knight.core.anims = [KnightCore.AttackDownAnim()]
+
   def block(knight):
     if knight.core.anims:
       return
