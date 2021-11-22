@@ -41,4 +41,4 @@ class DungeonContext(Context):
     super().update()
 
   def view(ctx):
-    return ctx.stage_view.view()
+    return ctx.stage_view.view() + super().view()

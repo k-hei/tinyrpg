@@ -8,6 +8,7 @@ from contexts import Context
 from contexts.dungeon.camera import Camera
 from contexts.explore.stageview import StageView
 from comps.damage import DamageValue
+from comps.hud import Hud
 from dungeon.actors import DungeonActor
 from tiles import Tile
 from anims.move import MoveAnim
@@ -43,6 +44,9 @@ class CombatContext(Context):
       ctx.camera = Camera(WINDOW_SIZE)
       ctx.stage_view = StageView(stage=stage, camera=ctx.camera)
     ctx.store = store
+    ctx.comps = [
+      Hud(party=store.party, hp=True)
+    ]
     ctx.on_end = on_end
 
   @property
@@ -59,6 +63,10 @@ class CombatContext(Context):
   @property
   def vfx(ctx):
     return ctx.stage_view.vfx
+
+  @property
+  def hud(ctx):
+    return next((c for c in ctx.comps if type(c) is Hud), None)
 
   def enter(ctx):
     if not ctx.hero:
@@ -90,6 +98,8 @@ class CombatContext(Context):
         )
       )])
       ctx.hero.pos = hero_dest
+
+    ctx.hud.enter()
 
   def handle_press(ctx, button):
     if ctx.anims:
@@ -231,3 +241,10 @@ class CombatContext(Context):
       dest=target_cell
     ))
     return True
+
+  def update(ctx):
+    super().update()
+    [c.update(force=True) for c in ctx.comps]
+
+  def view(ctx):
+    return super().view() + [c.view() for c in ctx.comps]
