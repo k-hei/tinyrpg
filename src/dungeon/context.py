@@ -1275,7 +1275,6 @@ class DungeonContext(Context):
     origin_cell = actor.cell
     origin_tile = game.floor.get_tile_at(actor.cell)
     origin_elem = next((e for e in game.floor.get_elems_at(origin_cell) if not isinstance(e, type(actor)) and not isinstance(e, Door)), None)
-    origin_elev = origin_tile and origin_tile.elev
     actor_x, actor_y = actor.cell
     delta_x, delta_y = delta
     target_cell = (actor_x + delta_x, actor_y + delta_y)

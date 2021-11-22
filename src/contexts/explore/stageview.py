@@ -25,7 +25,8 @@ class StageView:
     view.anims = anims
 
   def update(view):
-    view.anims = [[(a.update(), a)[-1] for a in g if not a.done] for g in view.anims]
+    if view.anims:
+      view.anims[0] = [(a.update(), a)[-1] for a in view.anims[0] if not a.done]
     view.anims = [g for g in view.anims if g]
 
   def view_tiles(view, tiles):

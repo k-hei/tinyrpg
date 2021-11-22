@@ -455,11 +455,11 @@ class DungeonActor(DungeonElement):
     sprite = sprites[0]
     offset_x, offset_y, offset_z = (0, 0, 0)
     actor_width, actor_height = sprite.image.get_size()
-    actor_cell = actor.cell
     is_asleep = actor.ailment == "sleep"
     is_animating = False
     anim_group = [a for a in anims[0] if a.target is actor] if anims else []
     anim_group += actor.core.anims
+    move_anim = next((a for a in anim_group if isinstance(a, StepAnim)), None)
     for anim in anim_group:
       if type(anim) is AwakenAnim and anim.visible:
         is_asleep = True
@@ -478,13 +478,12 @@ class DungeonActor(DungeonElement):
         anim_xscale, anim_yscale = anim.scale
         actor_width *= anim_xscale
         actor_height *= anim_yscale
-      if isinstance(anim, FrameAnim) and not is_animating:
+      if isinstance(anim, FrameAnim) and not is_animating and not move_anim:
         sprite.image = anim.frame()
         is_animating = True
 
     warpin_anim = next((a for a in anim_group if type(a) is WarpInAnim), None)
     drop_anim = next((a for a in anim_group if type(a) is DropAnim), None)
-    move_anim = next((a for a in anim_group if isinstance(a, StepAnim)), None)
     move_offset = actor.find_move_offset(anims)
 
     if actor.elev > 0 and not move_anim:

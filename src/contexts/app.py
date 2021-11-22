@@ -8,17 +8,15 @@ from pygame.transform import scale
 from pygame.time import get_ticks
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
-from lib.sprite import Sprite, SpriteMask
+from lib.sprite import Sprite
 import game.controls as controls
 import assets
 from contexts import Context
 from contexts.loading import LoadingContext
 from contexts.debug import DebugContext
-from transits.dissolve import DissolveIn, DissolveOut
 from config import (
   FPS, FPS_SLOW, FPS_FAST,
   WINDOW_WIDTH, WINDOW_SIZE, WINDOW_SCALE_INIT, WINDOW_SCALE_MAX,
-  ASSETS_PATH
 )
 
 gamepad.config(preset=controls.TYPE_NULL)
@@ -89,8 +87,8 @@ class App(Context):
     try:
       while not app.done:
         app.clock.tick(app.fps)
-        app.redraw()
         app.update()
+        app.redraw()
     except:
       debug.append(traceback.format_exc())
     finally:
@@ -102,8 +100,8 @@ class App(Context):
     if app.paused:
       return
     try:
-      app.handle_events()
       super().update()
+      app.handle_events()
       app.handle_press()
       if app.transits:
         transit = app.transits[0]

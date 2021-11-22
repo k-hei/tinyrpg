@@ -1,11 +1,13 @@
-import pygame
 import lib.vector as vector
+import lib.input as input
 from helpers.findactor import find_actor
 
 from contexts import Context
 from contexts.dungeon.camera import Camera
 from contexts.explore.stageview import StageView
+from tiles import Tile
 from anims.move import MoveAnim
+from anims.step import StepAnim
 from config import WINDOW_SIZE
 
 class CombatContext(Context):
@@ -44,13 +46,39 @@ class CombatContext(Context):
         src=ctx.hero.pos,
         dest=hero_dest,
         speed=2,
-        on_end=lambda: setattr(ctx.hero.core, "anims", [
-          ctx.hero.core.BrandishAnim(),
-          ctx.hero.core.IdleDownAnim(),
-        ])
+        on_end=lambda: (
+          ctx.stage_view.anims.append([
+            ctx.hero.core.BrandishAnim(target=ctx.hero)
+          ]),
+          ctx.hero.anims.clear(),
+          ctx.hero.core.anims.clear(),
+          ctx.hero.core.anims.append(
+            ctx.hero.core.IdleDownAnim(),
+          )
+        )
       )])
       ctx.hero.pos = hero_dest
 
   def handle_press(ctx, button):
-    if button == pygame.K_c:
-      return print(ctx.hero.core.anims, ctx.hero.anims, ctx.stage_view.anims)
+    if button and ctx.stage_view.anims:
+      return
+
+    delta = input.resolve_delta(button)
+    if delta:
+      return ctx.handle_move(delta)
+
+  def handle_move(ctx, delta):
+    return ctx.move(ctx.hero, delta)
+
+  def move(ctx, actor, delta):
+    target_cell = vector.add(actor.cell, delta)
+    target_tile = ctx.stage.get_tile_at(target_cell)
+    if Tile.is_solid(target_tile):
+      return False
+
+    ctx.stage_view.anims.append([StepAnim(
+      target=actor,
+      src=actor.cell,
+      dest=target_cell,
+    )])
+    actor.cell = target_cell

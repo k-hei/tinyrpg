@@ -51,7 +51,10 @@ class DungeonElement:
     if elem.pos is None:
       return None
     x, y = elem.pos
-    return (x // elem.scale, y // elem.scale)
+    return (
+      int(x // elem.scale),
+      int(y // elem.scale)
+    )
 
   @cell.setter
   def cell(elem, cell):
@@ -163,7 +166,7 @@ class DungeonElement:
       sprite_layer = "elems"
     offset_x, offset_y = elem.find_move_offset(anims)
     item = None
-    moving = next((g for g in anims if next((a for a in g if a.target is elem and type(a) is StepAnim), None)), None)
+    is_moving = next((g for g in anims if next((a for a in g if a.target is elem and type(a) is StepAnim), None)), None)
     anim_group = [a for a in anims[0] if a.target is elem] if anims else []
     for anim in anim_group:
       if (isinstance(anim, StepAnim) or type(anim) is PathAnim) and anim.cell:

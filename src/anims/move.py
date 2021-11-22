@@ -9,6 +9,7 @@ class MoveAnim(TweenAnim):
     )
     anim.src = src
     anim.dest = dest
+    anim.pos = src
 
   def update(anim):
     t = super().update()
