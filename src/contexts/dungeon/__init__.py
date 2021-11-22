@@ -11,8 +11,7 @@ class DungeonContext(Context):
     ctx.store = store
     ctx.stage = stage
     ctx.camera = Camera(WINDOW_SIZE)
-    ctx.anims = []
-    ctx.stage_view = StageView(stage=stage, camera=ctx.camera, anims=ctx.anims)
+    ctx.stage_view = StageView(stage=stage, camera=ctx.camera)
 
   def enter(ctx):
     ctx.handle_explore()

@@ -27,6 +27,7 @@ class HpBubble(Component):
       return []
     sprites = [Sprite(
       image=replace_color(assets.sprites["hpbubble"], WHITE, bubble.color),
+      origin=Sprite.ORIGIN_BOTTOM,
       layer="vfx"
     )]
     if bubble.actor.get_hp() < bubble.hp:
@@ -69,5 +70,6 @@ def render_bubblefill(value, color=WHITE):
     image=fill_image,
     pos=(0, -5),
     offset=32,
+    origin=Sprite.ORIGIN_BOTTOM,
     layer="vfx"
   )

@@ -97,7 +97,7 @@ class ExploreContext(Context):
     enemy = next((e for e in ctx.stage.elems if
       isinstance(e, DungeonActor)
       and e.faction == DungeonActor.FACTION_ENEMY
-      and vector.distance(ctx.hero.pos, e.pos) < ExploreContext.COMBAT_THRESHOLD
+      and vector.distance(ctx.hero.pos, e.pos) <= ExploreContext.COMBAT_THRESHOLD
     ), None)
     if enemy:
       ctx.handle_combat()

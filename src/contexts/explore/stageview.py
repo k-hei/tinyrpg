@@ -19,10 +19,11 @@ class StageView:
     y = (sprite_y + sprite.offset + 0.5) * DEPTH_SIZE
     return int(depth + y)
 
-  def __init__(view, stage, camera, anims):
+  def __init__(view, stage, camera):
     view.stage = stage
     view.camera = camera
-    view.anims = anims
+    view.anims = []
+    view.vfx = []
 
   def update(view):
     if view.anims:
@@ -49,18 +50,18 @@ class StageView:
 
     return sprites
 
+  def view_elem(view, elem):
+    elem_sprites = Sprite.move_all(
+      sprites=elem.view(anims=view.anims),
+      offset=elem.pos,
+    )
+    if not elem_sprites:
+      return []
+    elem_sprites[0].origin = Sprite.ORIGIN_CENTER
+    return elem_sprites
+
   def view_elems(view, elems):
-    sprites = []
-
-    for elem in elems:
-      elem_sprites = Sprite.move_all(
-        sprites=elem.view(anims=view.anims),
-        offset=elem.pos,
-      )
-      elem_sprites[0].origin = Sprite.ORIGIN_CENTER
-      sprites += elem_sprites
-
-    return sprites
+    return [s for e in elems for s in view.view_elem(e)]
 
   def view(view):
     stage = view.stage

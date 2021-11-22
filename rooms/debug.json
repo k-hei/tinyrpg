@@ -1,7 +1,7 @@
 {
   "bg": ["tileset", "tomb"],
   "tiles": [
-    "#.....#",
+    "#..>..#",
     ".......",
     ".......",
     ".......",
@@ -19,8 +19,8 @@
     "##...##"
   ],
   "elems": [
-    [[3, 1], "Eyeball", { "ailment": "sleep" }],
-    [[3, 1], "ItemDrop", { "contents": "Potion" }]
+    [[3, 4], "Eyeball", { "ailment": "sleep" }],
+    [[3, 4], "ItemDrop", { "contents": "Potion" }]
   ],
   "rooms": [
     [0, 0, 7, 6]

@@ -1,7 +1,8 @@
 from random import randint
+from copy import copy
 from pygame import Surface, Rect
 from lib.sprite import Sprite
-from copy import copy
+import lib.vector as vector
 
 from dungeon.element import DungeonElement
 from cores import Core
@@ -175,15 +176,18 @@ class DungeonActor(DungeonElement):
   def is_immobile(actor):
     return actor.is_dead() or actor.ailment in ("sleep", "freeze") or actor.charge_skill
 
-  def get_str(actor):
+  @property
+  def st(actor):
     return actor.stats.st + (actor.weapon.st if actor.weapon else 0)
 
-  def get_def(actor, stage=None):
+  @property
+  def en(actor):
     if actor.ailment == "sleep":
       return actor.stats.en // 2
-    if actor.ailment == "freeze":
+    elif actor.ailment == "freeze":
       return int(actor.stats.en * 1.5)
-    return actor.stats.en
+    else:
+      return actor.stats.en
 
   def charge(actor, skill, dest=None, turns=0):
     actor.charge_skill = skill
@@ -414,8 +418,8 @@ class DungeonActor(DungeonElement):
     return damage
 
   def find_damage(actor, target, modifier=1):
-    st = actor.get_str() * modifier
-    en = target.get_def()
+    st = actor.st * modifier
+    en = target.en
     variance = 1 if actor.core.faction == "enemy" else 2
     return max(1, st - en + randint(-variance, variance))
 
@@ -521,11 +525,11 @@ class DungeonActor(DungeonElement):
 
     # hp bubble
     if actor.faction != "player" and not (actor.faction == "ally" and actor.behavior == "guard"):
-      bubble_sprites = actor.bubble.view()
+      bubble_sprites = Sprite.move_all(
+        sprites=actor.bubble.view(),
+        offset=vector.add(move_offset, (24, -4 - offset_z))
+      )
       actor.bubble.color = actor.color()
-      for bubble_sprite in bubble_sprites:
-        bubble_sprite.move((24, -21 - offset_z))
-        bubble_sprite.move(move_offset)
       sprites += bubble_sprites
 
     # aggro icon

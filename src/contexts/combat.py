@@ -1,3 +1,4 @@
+from random import randint
 import lib.vector as vector
 import lib.input as input
 from helpers.findactor import find_actor
@@ -5,11 +6,24 @@ from helpers.findactor import find_actor
 from contexts import Context
 from contexts.dungeon.camera import Camera
 from contexts.explore.stageview import StageView
+from comps.damage import DamageValue
+from dungeon.actors import DungeonActor
 from tiles import Tile
 from anims.move import MoveAnim
-from anims.attack import AttackAnim
 from anims.step import StepAnim
-from config import WINDOW_SIZE
+from anims.attack import AttackAnim
+from anims.flinch import FlinchAnim
+from anims.pause import PauseAnim
+from anims.flicker import FlickerAnim
+from config import WINDOW_SIZE, FLINCH_PAUSE_DURATION, FLICKER_DURATION
+
+def find_damage_text(damage):
+  if damage == 0:
+    return "BLOCK"
+  elif damage == None:
+    return "MISS"
+  else:
+    return int(damage)
 
 class CombatContext(Context):
   def __init__(ctx, store, stage, stage_view=None, on_end=None, *args, **kwargs):
@@ -33,6 +47,10 @@ class CombatContext(Context):
       stage=ctx.stage
     ) if ctx.store.party else None
 
+  @property
+  def anims(ctx):
+    return ctx.stage_view.anims
+
   def enter(ctx):
     if not ctx.hero:
       return
@@ -42,26 +60,30 @@ class CombatContext(Context):
         vector.add((0.5, 0.5), ctx.hero.cell),
         ctx.hero.scale
       )
-      ctx.stage_view.anims.append([MoveAnim(
+      ctx.anims.append([MoveAnim(
         target=ctx.hero,
         src=ctx.hero.pos,
         dest=hero_dest,
         speed=2,
         on_end=lambda: (
-          ctx.stage_view.anims.append([
-            ctx.hero.core.BrandishAnim(target=ctx.hero)
+          ctx.anims.append([
+            ctx.hero.core.BrandishAnim(
+              target=ctx.hero,
+              on_end=lambda: (
+                ctx.hero.anims.clear(),
+                ctx.hero.core.anims.clear(),
+                ctx.hero.core.anims.append(
+                  ctx.hero.core.IdleDownAnim(),
+                )
+              )
+            )
           ]),
-          ctx.hero.anims.clear(),
-          ctx.hero.core.anims.clear(),
-          ctx.hero.core.anims.append(
-            ctx.hero.core.IdleDownAnim(),
-          )
         )
       )])
       ctx.hero.pos = hero_dest
 
   def handle_press(ctx, button):
-    if ctx.stage_view.anims:
+    if ctx.anims:
       return
 
     delta = input.resolve_delta(button)
@@ -97,7 +119,7 @@ class CombatContext(Context):
     if target_elem and target_elem.solid:
       return False
 
-    ctx.stage_view.anims.append([StepAnim(
+    ctx.anims.append([StepAnim(
       target=actor,
       src=actor.cell,
       dest=target_cell,
@@ -106,15 +128,64 @@ class CombatContext(Context):
     return True
 
   def handle_attack(ctx):
-    attack_delay = (ctx.hero.core.AttackAnim.frames_duration[0]
-      if "AttackAnim" in dir(ctx.hero.core) and ctx.hero.facing == (0, 1)
+    target_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
+    target_actor = next((e for e in ctx.stage.get_elems_at(target_cell) if isinstance(e, DungeonActor)), None)
+    return ctx.attack(actor=ctx.hero, target=target_actor)
+
+  def attack(ctx, actor, target=None, modifier=1):
+    if target:
+      damage = ctx.find_damage(actor, target, modifier)
+      actor.face(target.cell)
+
+    attack_delay = (actor.core.AttackAnim.frames_duration[0]
+      if "AttackAnim" in dir(actor.core) and actor.facing == (0, 1)
       else 0
     )
-    ctx.stage_view.anims.append([AttackAnim(
-      target=ctx.hero,
+    ctx.anims.append([AttackAnim(
+      target=actor,
       delay=attack_delay,
-      src=ctx.hero.cell,
-      dest=vector.add(ctx.hero.cell, ctx.hero.facing),
+      src=actor.cell,
+      dest=vector.add(actor.cell, actor.facing),
+      on_connect=lambda: target and ctx.flinch(
+        target=target,
+        damage=damage,
+        direction=actor.facing
+      )
     )])
-    ctx.hero.attack()
+    actor.attack()
     return True
+
+  def find_damage(ctx, actor, target, modifier=1):
+    actor_st = actor.st * modifier
+    target_en = target.en
+    variance = 1
+    return max(1, actor_st - target_en + randint(-variance, variance))
+
+  def flinch(ctx, target, damage, direction):
+    show_text = lambda: ctx.stage_view.vfx.append(DamageValue(
+      text=find_damage_text(damage),
+      cell=target.cell,
+    ))
+    not ctx.anims and ctx.anims.append([])
+    ctx.anims[0] += [
+      FlinchAnim(
+        target=target,
+        direction=direction,
+        on_start=lambda: (
+          target.damage(damage),
+          show_text(),
+        )
+      ),
+      PauseAnim(
+        duration=FLINCH_PAUSE_DURATION,
+        on_end=lambda: target.is_dead() and ctx.kill(target)
+      )
+    ]
+
+  def kill(ctx, target):
+    target.kill(ctx)
+    ctx.anims[0].append(FlickerAnim(
+      target=target,
+      duration=FLICKER_DURATION,
+      on_end=lambda: ctx.stage.elems.remove(target),
+    ))

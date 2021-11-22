@@ -1478,8 +1478,8 @@ class DungeonContext(Context):
     )
 
   def find_damage(game, actor, target, modifier=1):
-    actor_str = actor.get_str() * modifier
-    target_def = target.get_def()
+    actor_str = actor.st * modifier
+    target_def = target.en
     if game.floor.get_elem_at(target.cell, superclass=Door):
       target_def = max(0, target_def - 2)
     variance = 1
