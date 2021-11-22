@@ -1,6 +1,7 @@
 from pygame import Surface, SRCALPHA
 from pygame.transform import rotate, flip
 import assets
+from dungeon.props.door import Door
 from dungeon.props.secretdoor import SecretDoor
 from colors.palette import BLACK
 from config import TILE_SIZE
@@ -15,7 +16,7 @@ def render_walltop(stage, cell, visited_cells=None):
       (visited_cells is not None and (x, y + 1) not in visited_cells)
       or stage.get_tile_at((x, y + 1)) is None
       or stage.get_tile_at((x, y + 1)) is Wall
-      or next((e for e in stage.get_elems_at((x, y + 1))), None)
+      or next((e for e in stage.get_elems_at((x, y + 1)) if isinstance(e, Door)), None)
     )
   )
 
