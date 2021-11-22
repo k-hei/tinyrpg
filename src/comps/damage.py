@@ -70,15 +70,20 @@ class DamageValue:
       value.numbers.append(number)
       value.width += number.sprite.get_width() - 2
 
-  def render(value):
+  def update(value):
+    value.time += 1
+    for i, number in enumerate(value.numbers):
+      number.update()
+      if number.done and i == len(value.numbers) - 1:
+        value.done = True
+
+  def view(value):
     sprites = []
     col, row = value.cell
     offset_x, offset_y = value.offset
     x = (col + 0.5) * config.TILE_SIZE - value.width // 2 + offset_x
     y = row * config.TILE_SIZE - 8 + offset_y
-    value.time += 1
-    for i, number in enumerate(value.numbers):
-      number.update()
+    for number in value.numbers:
       image = number.sprite
       number_width = image.get_width()
       number_height = image.get_height()
@@ -97,6 +102,4 @@ class DamageValue:
           layer="numbers"
         ))
       x += number_width - 2
-      if number.done and i == len(value.numbers) - 1:
-        value.done = True
     return sprites

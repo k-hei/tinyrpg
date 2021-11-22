@@ -1,6 +1,7 @@
 from math import inf
 from pygame import Surface
 from lib.sprite import Sprite
+from lib.animstep import step_anims
 import lib.vector as vector
 from config import WINDOW_HEIGHT, DEPTH_SIZE
 
@@ -29,6 +30,7 @@ class StageView:
     if view.anims:
       view.anims[0] = [(a.update(), a)[-1] for a in view.anims[0] if not a.done]
     view.anims = [g for g in view.anims if g]
+    view.vfx = step_anims(view.vfx)
 
   def view_tiles(view, tiles):
     sprites = []
@@ -63,12 +65,16 @@ class StageView:
   def view_elems(view, elems):
     return [s for e in elems for s in view.view_elem(e)]
 
+  def view_vfx(view, vfx):
+    return [s for v in vfx for s in v.view()]
+
   def view(view):
-    stage = view.stage
     sprites = []
 
+    stage = view.stage
     sprites += view.view_tiles(stage.tiles)
     sprites += view.view_elems(stage.elems)
+    sprites += view.view_vfx(view.vfx)
 
     sprites.sort(key=StageView.order)
     sprites = Sprite.move_all(

@@ -38,6 +38,10 @@ class DungeonActor(DungeonElement):
   COOLDOWN_DURATION = 1
   VISION_RANGE = config.VISION_RANGE
 
+  AILMENT_POISON = "poison"
+  AILMENT_FREEZE = "freeze"
+  AILMENT_SLEEP = "sleep"
+
   FACTION_PLAYER = "player"
   FACTION_ALLY = "ally"
   FACTION_ENEMY = "enemy"

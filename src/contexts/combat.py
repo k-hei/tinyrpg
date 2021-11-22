@@ -1,6 +1,7 @@
 from random import randint
 import lib.vector as vector
 import lib.input as input
+from lib.direction import invert as invert_direction
 from helpers.findactor import find_actor
 
 from contexts import Context
@@ -15,7 +16,11 @@ from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.pause import PauseAnim
 from anims.flicker import FlickerAnim
-from config import WINDOW_SIZE, FLINCH_PAUSE_DURATION, FLICKER_DURATION
+from colors.palette import GOLD
+from config import (
+  WINDOW_SIZE,
+  FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION
+)
 
 def find_damage_text(damage):
   if damage == 0:
@@ -50,6 +55,10 @@ class CombatContext(Context):
   @property
   def anims(ctx):
     return ctx.stage_view.anims
+
+  @property
+  def vfx(ctx):
+    return ctx.stage_view.vfx
 
   def enter(ctx):
     if not ctx.hero:
@@ -134,8 +143,9 @@ class CombatContext(Context):
 
   def attack(ctx, actor, target=None, modifier=1):
     if target:
-      damage = ctx.find_damage(actor, target, modifier)
       actor.face(target.cell)
+      damage = ctx.find_damage(actor, target, modifier)
+      crit = ctx.find_crit(actor, target)
 
     attack_delay = (actor.core.AttackAnim.frames_duration[0]
       if "AttackAnim" in dir(actor.core) and actor.facing == (0, 1)
@@ -149,7 +159,8 @@ class CombatContext(Context):
       on_connect=lambda: target and ctx.flinch(
         target=target,
         damage=damage,
-        direction=actor.facing
+        crit=crit,
+        direction=actor.facing,
       )
     )])
     actor.attack()
@@ -161,17 +172,35 @@ class CombatContext(Context):
     variance = 1
     return max(1, actor_st - target_en + randint(-variance, variance))
 
-  def flinch(ctx, target, damage, direction):
-    show_text = lambda: ctx.stage_view.vfx.append(DamageValue(
+  def find_crit(ctx, actor, target):
+    return (
+      target.ailment == DungeonActor.AILMENT_SLEEP
+      or actor.facing == target.facing
+    )
+
+  def flinch(ctx, target, damage, direction, crit=False):
+    show_text = lambda: ctx.vfx.append(DamageValue(
       text=find_damage_text(damage),
       cell=target.cell,
     ))
+
+    if damage and crit:
+      ctx.vfx.append(DamageValue(
+        text="CRITICAL!",
+        cell=target.cell,
+        offset=(4, -4),
+        color=GOLD,
+        delay=15
+      ))
+      direction and ctx.nudge(target, direction)
+
     not ctx.anims and ctx.anims.append([])
     ctx.anims[0] += [
       FlinchAnim(
         target=target,
         direction=direction,
         on_start=lambda: (
+          setattr(target, "facing", invert_direction(direction)),
           target.damage(damage),
           show_text(),
         )
@@ -189,3 +218,16 @@ class CombatContext(Context):
       duration=FLICKER_DURATION,
       on_end=lambda: ctx.stage.elems.remove(target),
     ))
+
+  def nudge(ctx, actor, direction):
+    source_cell = actor.cell
+    target_cell = vector.add(source_cell, direction)
+    actor.cell = target_cell
+    not ctx.anims and ctx.anims.append([])
+    ctx.anims[0].append(StepAnim(
+      duration=NUDGE_DURATION,
+      target=actor,
+      src=source_cell,
+      dest=target_cell
+    ))
+    return True
