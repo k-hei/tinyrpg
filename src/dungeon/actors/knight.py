@@ -38,7 +38,7 @@ class Knight(DungeonActor):
 
   def attack(knight):
     if knight.facing == (0, 1):
-      knight.core.anims = [KnightCore.AttackDownAnim()]
+      knight.core.anims.append(KnightCore.AttackDownAnim())
 
   def block(knight):
     if knight.core.anims:

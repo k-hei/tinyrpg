@@ -42,7 +42,7 @@ class Knight(BipedCore):
     loop = True
 
   class AttackAnim(FrameAnim):
-    frames_duration = [6, 8, 10]
+    frames_duration = [6, 4, 10]
 
   class AttackDownAnim(AttackAnim):
     frames = assets.sprites["knight_attack_down"]

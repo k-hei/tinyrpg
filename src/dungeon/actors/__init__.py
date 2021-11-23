@@ -491,7 +491,7 @@ class DungeonActor(DungeonElement):
         actor_width, actor_height = sprite.image.get_size()
         offset_x += (actor_width - TILE_SIZE) / 2
         offset_y += (actor_height - TILE_SIZE) / 2
-        is_animating = True
+        # is_animating = True
 
     warpin_anim = next((a for a in anim_group if type(a) is WarpInAnim), None)
     drop_anim = next((a for a in anim_group if type(a) is DropAnim), None)
