@@ -24,8 +24,8 @@ class Knight(DungeonActor):
       ailment_turns=ailment_turns
     )
 
-  def start_move(actor):
-    actor.anims = [WalkAnim(period=60)]
+  def start_move(actor, running):
+    actor.anims = [WalkAnim(period=30 if running else 60)]
     actor.core.anims = actor.anims.copy()
 
   def stop_move(actor):

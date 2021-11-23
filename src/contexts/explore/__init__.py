@@ -27,19 +27,19 @@ input.config(
     input.BUTTON_SELECT: [pygame.K_BACKQUOTE, pygame.K_BACKSLASH],
   },
   controls={
-    input.CONTROLS_CONFIRM: [input.BUTTON_A],
-    input.CONTROLS_CANCEL: [input.BUTTON_B],
-    input.CONTROLS_MANAGE: [input.BUTTON_Y],
-    input.CONTROLS_RUN: [input.BUTTON_B],
-    input.CONTROLS_TURN: [input.BUTTON_R],
-    input.CONTROLS_ITEM: [input.BUTTON_R, input.BUTTON_X],
-    input.CONTROLS_WAIT: [input.BUTTON_R, input.BUTTON_A],
-    input.CONTROLS_SHORTCUT: [input.BUTTON_R, input.BUTTON_Y],
-    input.CONTROLS_ALLY: [input.BUTTON_L],
-    input.CONTROLS_SKILL: [input.BUTTON_Y],
-    input.CONTROLS_INVENTORY: [input.BUTTON_X],
-    input.CONTROLS_PAUSE: [input.BUTTON_START],
-    input.CONTROLS_MINIMAP: [input.BUTTON_SELECT],
+    input.CONTROL_CONFIRM: [input.BUTTON_A],
+    input.CONTROL_CANCEL: [input.BUTTON_B],
+    input.CONTROL_MANAGE: [input.BUTTON_Y],
+    input.CONTROL_RUN: [input.BUTTON_B],
+    input.CONTROL_TURN: [input.BUTTON_R],
+    input.CONTROL_ITEM: [input.BUTTON_R, input.BUTTON_X],
+    input.CONTROL_WAIT: [input.BUTTON_R, input.BUTTON_A],
+    input.CONTROL_SHORTCUT: [input.BUTTON_R, input.BUTTON_Y],
+    input.CONTROL_ALLY: [input.BUTTON_L],
+    input.CONTROL_SKILL: [input.BUTTON_Y],
+    input.CONTROL_INVENTORY: [input.BUTTON_X],
+    input.CONTROL_PAUSE: [input.BUTTON_START],
+    input.CONTROL_MINIMAP: [input.BUTTON_SELECT],
   }
 )
 
@@ -75,38 +75,47 @@ class ExploreContext(Context):
 
     delta_x = 0
     delta_y = 0
+    last_direction = 0
+    running = False
 
     if (input.get_state(input.BUTTON_LEFT)
     and (not input.get_state(input.BUTTON_RIGHT)
       or input.get_state(input.BUTTON_LEFT) < input.get_state(input.BUTTON_RIGHT)
     )):
       delta_x = -1
+      last_direction = max(last_direction, input.get_state(input.BUTTON_LEFT))
     elif (input.get_state(input.BUTTON_RIGHT)
     and (not input.get_state(input.BUTTON_LEFT)
       or input.get_state(input.BUTTON_RIGHT) < input.get_state(input.BUTTON_LEFT)
     )):
       delta_x = 1
+      last_direction = max(last_direction, input.get_state(input.BUTTON_RIGHT))
 
     if (input.get_state(input.BUTTON_UP)
     and (not input.get_state(input.BUTTON_DOWN)
       or input.get_state(input.BUTTON_UP) < input.get_state(input.BUTTON_DOWN)
     )):
       delta_y = -1
+      last_direction = max(last_direction, input.get_state(input.BUTTON_UP))
     elif (input.get_state(input.BUTTON_DOWN)
     and (not input.get_state(input.BUTTON_UP)
       or input.get_state(input.BUTTON_DOWN) < input.get_state(input.BUTTON_UP)
     )):
       delta_y = 1
+      last_direction = max(last_direction, input.get_state(input.BUTTON_DOWN))
+
+    if input.get_state(input.CONTROL_RUN) and input.get_state(input.CONTROL_RUN) > last_direction:
+      running = True
 
     if delta_x or delta_y:
-      ctx.handle_move(delta=(delta_x, delta_y))
+      ctx.handle_move(delta=(delta_x, delta_y), running=running)
 
   def handle_release(ctx, button):
     delta = input.resolve_delta(button)
     if delta:
       return ctx.hero.stop_move()
 
-  def handle_move(ctx, delta):
+  def handle_move(ctx, delta, running=False):
     if not ctx.hero:
       return
 
@@ -114,11 +123,11 @@ class ExploreContext(Context):
     diagonal = delta_x and delta_y
 
     if delta_x:
-      ctx.move(ctx.hero, delta=(delta_x, 0), diagonal=diagonal)
+      ctx.move(ctx.hero, delta=(delta_x, 0), diagonal=diagonal, running=running)
       ctx.collide(ctx.hero, delta=(delta_x, 0))
 
     if delta_y:
-      ctx.move(ctx.hero, delta=(0, delta_y), diagonal=diagonal)
+      ctx.move(ctx.hero, delta=(0, delta_y), diagonal=diagonal, running=running)
       ctx.collide(ctx.hero, delta=(0, delta_y))
 
     room = next((r for r in ctx.stage.rooms if r.collidepoint(ctx.hero.pos)), None)
@@ -138,8 +147,8 @@ class ExploreContext(Context):
   def handle_combat(ctx):
     ctx.on_end and ctx.on_end()
 
-  def move(ctx, actor, delta, diagonal=False):
-    actor.move(delta, diagonal)
+  def move(ctx, actor, delta, diagonal=False, running=False):
+    actor.move(delta, diagonal, running)
 
   def collide(ctx, actor, delta):
     delta_x, delta_y = delta

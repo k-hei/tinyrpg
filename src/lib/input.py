@@ -15,19 +15,19 @@ BUTTON_R = "r"
 BUTTON_START = "start"
 BUTTON_SELECT = "select"
 
-CONTROLS_CONFIRM = "confirm"
-CONTROLS_CANCEL = "cancel"
-CONTROLS_MANAGE = "manage"
-CONTROLS_RUN = "run"
-CONTROLS_TURN = "turn"
-CONTROLS_ITEM = "item"
-CONTROLS_WAIT = "wait"
-CONTROLS_SHORTCUT = "shortcut"
-CONTROLS_ALLY = "ally"
-CONTROLS_SKILL = "skill"
-CONTROLS_INVENTORY = "inventory"
-CONTROLS_PAUSE = "pause"
-CONTROLS_MINIMAP = "minimap"
+CONTROL_CONFIRM = "confirm"
+CONTROL_CANCEL = "cancel"
+CONTROL_MANAGE = "manage"
+CONTROL_RUN = "run"
+CONTROL_TURN = "turn"
+CONTROL_ITEM = "item"
+CONTROL_WAIT = "wait"
+CONTROL_SHORTCUT = "shortcut"
+CONTROL_ALLY = "ally"
+CONTROL_SKILL = "skill"
+CONTROL_INVENTORY = "inventory"
+CONTROL_PAUSE = "pause"
+CONTROL_MINIMAP = "minimap"
 
 ARROW_DELTAS = {
   BUTTON_LEFT: (-1, 0),
@@ -59,7 +59,7 @@ def handle_release(button):
     del timings[button]
 
 def get_state(control):
-  if type(control) is list:
+  if control in _controls:
     button = None
     for button in _controls[control]:
       if not get_state(button):

@@ -389,23 +389,24 @@ class DungeonActor(DungeonElement):
       context = DialogueContext(script=message)
     game.open(context, on_close=stop_talk)
 
-  def start_move(actor):
+  def start_move(actor, running):
     pass
 
   def stop_move(actor):
     pass
 
-  def move(actor, delta, diagonal):
+  def move(actor, delta, diagonal, running):
     delta_x, delta_y = delta
     diagonal = diagonal or delta_x and delta_y
     x, y = actor.pos
-    speed = actor.speed if not diagonal else actor.speed / sqrt(2)
+    speed = actor.speed / sqrt(2) if diagonal else actor.speed
+    speed = speed * 1.5 if running else speed
     x += delta_x * speed
     y += delta_y * speed
     actor.pos = (x, y)
     actor.facing = delta
     if not actor.anims:
-      actor.start_move()
+      actor.start_move(running)
     actor.moved = True
 
   def move_to(actor, dest):
