@@ -300,7 +300,7 @@ def render_bar(percent, color):
   surface = Surface((HP_WIDTH, 3), SRCALPHA)
   pygame.draw.rect(surface, color, Rect(
     (0, 0),
-    (ceil(HP_WIDTH // 2 * min(0.5, percent) / 0.5), 2)
+    (ceil(HP_WIDTH // 2 * min(0.5, percent) / 0.5) - 1, 2)
   ))
   if percent > 0.5:
     pygame.draw.rect(surface, color, Rect(
