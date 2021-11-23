@@ -70,9 +70,36 @@ class ExploreContext(Context):
     ) if ctx.store.party else None
 
   def handle_press(ctx, button):
-    delta = input.resolve_delta(button)
-    if delta:
-      return ctx.handle_move(delta)
+    if button:
+      return
+
+    delta_x = 0
+    delta_y = 0
+
+    if (input.get_state(input.BUTTON_LEFT)
+    and (not input.get_state(input.BUTTON_RIGHT)
+      or input.get_state(input.BUTTON_LEFT) < input.get_state(input.BUTTON_RIGHT)
+    )):
+      delta_x = -1
+    elif (input.get_state(input.BUTTON_RIGHT)
+    and (not input.get_state(input.BUTTON_LEFT)
+      or input.get_state(input.BUTTON_RIGHT) < input.get_state(input.BUTTON_LEFT)
+    )):
+      delta_x = 1
+
+    if (input.get_state(input.BUTTON_UP)
+    and (not input.get_state(input.BUTTON_DOWN)
+      or input.get_state(input.BUTTON_UP) < input.get_state(input.BUTTON_DOWN)
+    )):
+      delta_y = -1
+    elif (input.get_state(input.BUTTON_DOWN)
+    and (not input.get_state(input.BUTTON_UP)
+      or input.get_state(input.BUTTON_DOWN) < input.get_state(input.BUTTON_UP)
+    )):
+      delta_y = 1
+
+    if delta_x or delta_y:
+      ctx.handle_move(delta=(delta_x, delta_y))
 
   def handle_release(ctx, button):
     delta = input.resolve_delta(button)
@@ -83,8 +110,16 @@ class ExploreContext(Context):
     if not ctx.hero:
       return
 
-    ctx.move(ctx.hero, delta)
-    ctx.collide(ctx.hero, delta)
+    delta_x, delta_y = delta
+    diagonal = delta_x and delta_y
+
+    if delta_x:
+      ctx.move(ctx.hero, delta=(delta_x, 0), diagonal=diagonal)
+      ctx.collide(ctx.hero, delta=(delta_x, 0))
+
+    if delta_y:
+      ctx.move(ctx.hero, delta=(0, delta_y), diagonal=diagonal)
+      ctx.collide(ctx.hero, delta=(0, delta_y))
 
     room = next((r for r in ctx.stage.rooms if r.collidepoint(ctx.hero.pos)), None)
     if room:
@@ -103,8 +138,8 @@ class ExploreContext(Context):
   def handle_combat(ctx):
     ctx.on_end and ctx.on_end()
 
-  def move(ctx, actor, delta):
-    actor.move(delta)
+  def move(ctx, actor, delta, diagonal=False):
+    actor.move(delta, diagonal)
 
   def collide(ctx, actor, delta):
     delta_x, delta_y = delta

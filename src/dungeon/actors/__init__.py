@@ -1,5 +1,6 @@
 from random import randint
 from copy import copy
+from math import sqrt
 from pygame import Surface, Rect
 from lib.sprite import Sprite
 import lib.vector as vector
@@ -394,11 +395,13 @@ class DungeonActor(DungeonElement):
   def stop_move(actor):
     pass
 
-  def move(actor, delta):
+  def move(actor, delta, diagonal):
     delta_x, delta_y = delta
+    diagonal = diagonal or delta_x and delta_y
     x, y = actor.pos
-    x += delta_x * actor.speed
-    y += delta_y * actor.speed
+    speed = actor.speed if not diagonal else actor.speed / sqrt(2)
+    x += delta_x * speed
+    y += delta_y * speed
     actor.pos = (x, y)
     actor.facing = delta
     if not actor.anims:
