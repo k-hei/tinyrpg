@@ -19,10 +19,10 @@
     "#######"
   ],
   "elems": [
-    [[3, 11], "Eyeball", { "ailment": "sleep" }],
-    [[3, 11], "ItemDrop", { "contents": "Potion" }]
+    [[3, 13], "Eyeball", { "ailment": "sleep" }],
+    [[3, 13], "ItemDrop", { "contents": "Potion" }]
   ],
   "rooms": [
-    [0, 8, 7, 6]
+    [0, 9, 7, 6]
   ]
 }

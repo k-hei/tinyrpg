@@ -9,7 +9,7 @@ from contexts.explore.stageview import StageView
 from contexts.dungeon.camera import Camera
 from dungeon.actors import DungeonActor
 from tiles import Tile
-from config import WINDOW_SIZE
+from config import WINDOW_SIZE, COMBAT_THRESHOLD
 
 input.config(
   buttons={
@@ -44,8 +44,6 @@ input.config(
 )
 
 class ExploreContext(Context):
-  COMBAT_THRESHOLD = 112
-
   def __init__(ctx, store, stage, stage_view=None, on_end=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
     ctx._headless = stage_view is None
@@ -97,7 +95,7 @@ class ExploreContext(Context):
     enemy = next((e for e in ctx.stage.elems if
       isinstance(e, DungeonActor)
       and e.faction == DungeonActor.FACTION_ENEMY
-      and vector.distance(ctx.hero.pos, e.pos) <= ExploreContext.COMBAT_THRESHOLD
+      and vector.distance(ctx.hero.pos, e.pos) <= COMBAT_THRESHOLD
     ), None)
     if enemy:
       ctx.handle_combat()

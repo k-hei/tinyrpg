@@ -20,7 +20,8 @@ from anims.flicker import FlickerAnim
 from colors.palette import GOLD
 from config import (
   WINDOW_SIZE,
-  FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION
+  FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION,
+  COMBAT_THRESHOLD,
 )
 
 def find_damage_text(damage):
@@ -71,6 +72,7 @@ class CombatContext(Context):
   def enter(ctx):
     if not ctx.hero:
       return
+
     x, y = ctx.hero.pos
     if x % ctx.hero.scale or y % ctx.hero.scale:
       hero_dest = vector.scale(
@@ -100,6 +102,12 @@ class CombatContext(Context):
       ctx.hero.pos = hero_dest
 
     ctx.hud.enter()
+
+  def exit(ctx):
+    ctx.hud.exit(on_end=lambda: (
+      ctx.hero.core.anims.clear(),
+      ctx.on_end()
+    ))
 
   def handle_press(ctx, button):
     if ctx.anims:
@@ -226,7 +234,14 @@ class CombatContext(Context):
     ctx.anims[0].append(FlickerAnim(
       target=target,
       duration=FLICKER_DURATION,
-      on_end=lambda: ctx.stage.elems.remove(target),
+      on_end=lambda: (
+        ctx.stage.elems.remove(target),
+        not next((e for e in ctx.stage.elems if
+          isinstance(e, DungeonActor)
+          and not e.allied(ctx.hero)
+          and vector.distance(ctx.hero.pos, e.pos) < COMBAT_THRESHOLD
+        ), None) and ctx.exit()
+      )
     ))
 
   def nudge(ctx, actor, direction):

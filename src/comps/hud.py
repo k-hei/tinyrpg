@@ -99,11 +99,13 @@ class Hud:
     hud._pos = (MARGIN, -hud_image.get_height())
     hud.pos = (MARGIN, MARGIN)
 
-  def exit(hud):
+  def exit(hud, on_end=None):
     hud.active = False
     hud_image = hud.image or hud.render()
     hud._pos = (MARGIN, MARGIN)
     hud.pos = (MARGIN, -hud_image.get_height())
+    if hud.anims:
+      hud.anims[-1].on_end = on_end
 
   def slide(hud, start, goal):
     hud._pos = start
