@@ -13,9 +13,9 @@ class Camera:
 
     return target.pos
 
-  def __init__(camera, size):
+  def __init__(camera, size, pos=None):
     camera.size = size
-    camera.pos = None
+    camera.pos = pos or None
     camera.vel = (0, 0)
     camera.target = None
 

@@ -9,6 +9,9 @@ class Stage:
     stage.tile_size = tile_size
     stage.bg = bg
 
+  def contains(stage, cell):
+    return stage.tiles.contains(*cell)
+
   def get_tile_at(stage, cell):
     return stage.tiles.get(*cell)
 
@@ -26,3 +29,7 @@ class Stage:
     if elem not in stage.elems:
       stage.elems.append(elem)
     return elem
+
+  def is_cell_opaque(stage, cell):
+    tile = stage.get_tile_at(cell)
+    return not tile or tile.opaque
