@@ -48,6 +48,7 @@ class CombatContext(Context):
     ctx.comps = [
       Hud(party=store.party, hp=True)
     ]
+    ctx.exiting = False
     ctx.on_end = on_end
 
   @property
@@ -104,13 +105,14 @@ class CombatContext(Context):
     ctx.hud.enter()
 
   def exit(ctx):
+    ctx.exiting = True
     ctx.hud.exit(on_end=lambda: (
       ctx.hero.core.anims.clear(),
       ctx.on_end()
     ))
 
   def handle_press(ctx, button):
-    if ctx.anims:
+    if ctx.anims or ctx.exiting:
       return
 
     delta = input.resolve_delta(button)
@@ -146,12 +148,14 @@ class CombatContext(Context):
     if target_elem and target_elem.solid:
       return False
 
-    ctx.anims.append([StepAnim(
+    ctx.anims.append([move_anim := StepAnim(
       target=actor,
       src=actor.cell,
       dest=target_cell,
     )])
+    move_anim.update()
     actor.cell = target_cell
+    actor.facing = delta
     return True
 
   def handle_attack(ctx):
@@ -230,17 +234,20 @@ class CombatContext(Context):
     ]
 
   def kill(ctx, target):
+    ctx.exiting = not next((e for e in ctx.stage.elems if
+      e is not target
+      and isinstance(e, DungeonActor)
+      and not e.allied(ctx.hero)
+      and vector.distance(ctx.hero.pos, e.pos) < COMBAT_THRESHOLD
+    ), None)
+
     target.kill(ctx)
     ctx.anims[0].append(FlickerAnim(
       target=target,
       duration=FLICKER_DURATION,
       on_end=lambda: (
         ctx.stage.elems.remove(target),
-        not next((e for e in ctx.stage.elems if
-          isinstance(e, DungeonActor)
-          and not e.allied(ctx.hero)
-          and vector.distance(ctx.hero.pos, e.pos) < COMBAT_THRESHOLD
-        ), None) and ctx.exit()
+        ctx.exiting and ctx.exit()
       )
     ))
 

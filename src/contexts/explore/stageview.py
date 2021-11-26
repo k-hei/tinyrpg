@@ -170,6 +170,8 @@ class StageView:
       sprites=elem.view(anims=view.anims),
       offset=elem.pos,
     )
+    # if next((a for g in view.anims for a in g if a.target is elem), None):
+      # print([(a.time, a.cell) for g in view.anims for a in g])
     if not elem_sprites:
       return []
     elem_sprites[0].origin = Sprite.ORIGIN_CENTER

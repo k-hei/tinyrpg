@@ -1,8 +1,8 @@
-from anims import Anim
+from anims.tween import TweenAnim
 from lib.lerp import lerp
 from config import WALK_DURATION
 
-class StepAnim(Anim):
+class StepAnim(TweenAnim):
   def __init__(anim, src=None, dest=None, duration=WALK_DURATION, period=0, started=True, *args, **kwargs):
     super().__init__(duration=duration, *args, **kwargs)
     anim.cell = src

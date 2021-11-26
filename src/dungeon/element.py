@@ -1,5 +1,6 @@
 from math import sin, pi
 from pygame import Surface, Rect
+import lib.vector as vector
 from lib.sprite import Sprite
 from anims import Anim
 from anims.move import MoveAnim
@@ -117,7 +118,16 @@ class DungeonElement:
         if not (isinstance(anim, StepAnim) or type(anim) is PathAnim) or not anim.cell:
           continue
         if anims.index(group) == 0:
-          return elem.find_step_anim_offset(anim)
+          anim_x, anim_y, *anim_z = anim.cell
+          elem.pos = vector.scale(
+            vector.add(
+              (anim_x, anim_y),
+              # vector.lerp(anim.src, anim.dest, anim.pos),
+              (0.5, 0.5)
+            ),
+            TILE_SIZE
+          )
+          return (0, 0) # elem.find_step_anim_offset(anim)
         else:
           anim_x, anim_y, *anim_z = anim.src
           anim_z = anim_z and anim_z[0] or 0

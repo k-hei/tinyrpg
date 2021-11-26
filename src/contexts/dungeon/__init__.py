@@ -79,6 +79,7 @@ class DungeonContext(Context):
 
     ctx.camera.update()
     ctx.stage_view.update()
+    # print("update anims", ctx.anims)
     super().update()
 
   def view(ctx):
