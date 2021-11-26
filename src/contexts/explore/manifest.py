@@ -1,9 +1,9 @@
-from pygame import Rect
 from lib.grid import Grid
 import lib.vector as vector
 
 from contexts.explore.stage import Stage
 from contexts.explore.roomdata import RoomData
+from dungeon.room import Blob as Room
 import tiles.default as tileset
 from dungeon.decoder import decode_elem
 
@@ -15,15 +15,14 @@ def manifest_stage(room):
   stage_origin = (1, 2)
   for cell, tile in room_data.tiles.enumerate():
     stage_tiles.set(*vector.add(stage_origin, cell), tile)
+
+  stage_rooms = [Room(cells) for cells in room_data.rooms]
+  for room in stage_rooms:
+    room.origin = vector.add(room.origin, stage_origin)
+
   stage = Stage(
     tiles=stage_tiles,
-    rooms=[Rect(
-      vector.scale(
-        vector.add((col, row), stage_origin),
-        tileset.TILE_SIZE
-      ),
-      (cols * tileset.TILE_SIZE, rows * tileset.TILE_SIZE),
-    ) for col, row, cols, rows in room_data.rooms],
+    rooms=stage_rooms,
   )
 
   for elem_cell, elem_name, *elem_props in room_data.elems:

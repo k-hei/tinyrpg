@@ -49,3 +49,14 @@ def lerp(a, b, t):
   for i in range(max(len(a), len(b))):
     c.append(_lerp(a[i], b[i], t))
   return c
+
+def mean(*vectors):
+  if len(vectors) == 1:
+    return vectors[0]
+  c = []
+  for i in range(max(*[len(v) for v in vectors])):
+    s = 0
+    for v in vectors:
+      s += v[i]
+    c.append(s / len(vectors))
+  return tuple(c)

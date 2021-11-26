@@ -130,12 +130,6 @@ class ExploreContext(Context):
       ctx.move(ctx.hero, delta=(0, delta_y), diagonal=diagonal, running=running)
       ctx.collide(ctx.hero, delta=(0, delta_y))
 
-    room = next((r for r in ctx.stage.rooms if r.collidepoint(ctx.hero.pos)), None)
-    if room:
-      ctx.camera.focus(room)
-    else:
-      ctx.camera.focus(ctx.hero)
-
     enemy = next((e for e in ctx.stage.elems if
       isinstance(e, DungeonActor)
       and e.faction == DungeonActor.FACTION_ENEMY

@@ -94,7 +94,7 @@ class Blob(Room):
           neighborhood(cell, diagonals=True)
           + neighborhood(vector.add(cell, (0, -1)), diagonals=True)
         )
-      room._visible_outline = set(visible_outline) - set(room.cells)
+      room._visible_outline = list(set(visible_outline) - set(room.cells))
     return room._visible_outline
 
   @property

@@ -4,6 +4,7 @@ from contexts.explore import ExploreContext
 from contexts.explore.stageview import StageView
 from contexts.dungeon.camera import Camera
 from dungeon.fov import shadowcast
+from dungeon.room import Blob as Room
 from helpers.findactor import find_actor
 from config import WINDOW_SIZE, VISION_RANGE
 
@@ -35,8 +36,19 @@ class DungeonContext(Context):
     ctx.handle_explore()
 
   def refresh_fov(ctx):
-    ctx.hero.visible_cells = shadowcast(ctx.stage, ctx.hero.cell, VISION_RANGE)
-    ctx.update_visited_cells(ctx.hero.visible_cells)
+    room = next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells), None)
+    if room:
+      visible_cells = room.cells + room.visible_outline
+      ctx.camera.focus(room)
+    else:
+      visible_cells = shadowcast(ctx.stage, ctx.hero.cell, VISION_RANGE)
+      room = next((t for t in ctx.camera.target if isinstance(t, Room)), None)
+      if room:
+        ctx.camera.blur(room)
+      ctx.camera.focus(ctx.hero)
+
+    ctx.hero.visible_cells = visible_cells
+    ctx.update_visited_cells(visible_cells)
 
   def handle_explore(ctx):
     ctx.open(ExploreContext(
