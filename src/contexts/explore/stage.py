@@ -9,6 +9,10 @@ class Stage:
     stage.tile_size = tile_size
     stage.bg = bg
 
+  @property
+  def size(stage):
+    return stage.tiles.size
+
   def contains(stage, cell):
     return stage.tiles.contains(*cell)
 

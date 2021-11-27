@@ -1,8 +1,10 @@
+import pygame
 from contexts import Context
 from contexts.combat import CombatContext
 from contexts.explore import ExploreContext
 from contexts.explore.stageview import StageView
 from contexts.dungeon.camera import Camera
+from comps.minimap import Minimap
 from dungeon.fov import shadowcast
 from dungeon.room import Blob as Room
 from helpers.findactor import find_actor
@@ -14,9 +16,14 @@ class DungeonContext(Context):
     ctx.store = store
     ctx.stage = stage
     ctx.camera = Camera(WINDOW_SIZE)
-    ctx.memory = []
+    ctx.memory = {}
     ctx.stage_view = StageView(stage=stage, camera=ctx.camera)
     ctx.hero_cell = None
+    ctx.comps = [Minimap(
+      stage=stage,
+      hero=ctx.hero,
+      visited_cells=ctx.visited_cells
+    )]
 
   @property
   def hero(ctx):
@@ -27,10 +34,15 @@ class DungeonContext(Context):
 
   @property
   def visited_cells(ctx):
-    visited_cells = next((cs for s, cs in ctx.memory if s is ctx.stage), None)
-    if not visited_cells:
-      ctx.memory.append((ctx.stage, visited_cells := []))
+    stage_id = ctx.stage.__hash__()
+    visited_cells = ctx.memory[stage_id] if stage_id in ctx.memory else None # next((cs for (s, cs) in ctx.memory if s is ctx.stage), None)
+    if visited_cells is None:
+      ctx.memory[stage_id] = (visited_cells := [])
     return visited_cells
+
+  @property
+  def minimap(ctx):
+    return next((c for c in ctx.comps if type(c) is Minimap), None)
 
   def enter(ctx):
     ctx.handle_explore()
@@ -57,6 +69,7 @@ class DungeonContext(Context):
       stage_view=ctx.stage_view,
       on_end=ctx.handle_combat,
     ))
+    ctx.minimap.enter()
 
   def handle_combat(ctx):
     ctx.open(CombatContext(
@@ -65,6 +78,7 @@ class DungeonContext(Context):
       stage_view=ctx.stage_view,
       on_end=ctx.handle_explore,
     ))
+    ctx.minimap.exit()
 
   def update_visited_cells(ctx, cells):
     ctx.visited_cells.extend([c for c in cells if c not in ctx.visited_cells])
@@ -79,11 +93,10 @@ class DungeonContext(Context):
 
     ctx.camera.update()
     ctx.stage_view.update()
-    # print("update anims", ctx.anims)
     super().update()
 
   def view(ctx):
     return ctx.stage_view.view(
       hero=ctx.hero,
       visited_cells=ctx.visited_cells,
-    ) + super().view()
+    ) + [c.view() for c in ctx.comps] + super().view()

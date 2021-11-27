@@ -3,9 +3,7 @@ import pygame
 from pygame import Surface, Rect, PixelArray, SRCALPHA
 from pygame.transform import scale
 from dungeon.stage import Stage
-from dungeon.actors.knight import Knight
 from dungeon.actors import DungeonActor
-from dungeon.actors.mage import Mage
 from dungeon.actors.mimic import Mimic
 from dungeon.actors.npc import Npc
 from dungeon.props.chest import Chest
@@ -19,6 +17,7 @@ from dungeon.props.secretdoor import SecretDoor
 from dungeon.props.pillar import Pillar
 from dungeon.props.table import Table
 from dungeon.props.altar import Altar
+import tiles.default as tileset
 from colors.palette import GREEN, DARKGREEN, VIOLET, DARKVIOLET
 from anims.tween import TweenAnim
 from anims.warpin import WarpInAnim
@@ -63,7 +62,7 @@ class Minimap:
   def render_surface(floor, size=None, focus=None, visible_cells=None, visited_cells=None, anims=[], blink=False):
     floor_width, floor_height = floor.size
     filled = not visible_cells and not visited_cells
-    visible_cells = visible_cells or floor.get_cells()
+    visible_cells = visible_cells # or floor.cells
     visited_cells = visited_cells or visible_cells
     bounds = filled and Rect((0, 0), floor.size) or find_bounds(visited_cells)
     sprite_size = tuple(map(ceil, size or bounds.size))
@@ -80,8 +79,6 @@ class Minimap:
         continue
 
       tile = floor.get_tile_at(cell)
-      tile_above = floor.get_tile_at((col, row - 1))
-      tile_below = floor.get_tile_at((col, row + 1))
 
       if focus:
         focus_x, focus_y = focus
@@ -132,7 +129,7 @@ class Minimap:
         color = (0xFFFF00, 0x7F7F00)[blink]
       elif type(elem) is Altar:
         color = (0xFFFF00, 0x7F7F00)[blink]
-      elif (tile is Stage.WALL
+      elif (issubclass(tile, tileset.Wall)
       or isinstance(elem, Door) and elem.locked
       or type(elem) is SecretDoor and elem.hidden
       or tile is Stage.HALLWAY and SecretDoor.exists_at(floor, (col, row + 1))
@@ -188,15 +185,16 @@ class Minimap:
     pixels.close()
     return surface
 
-  def __init__(minimap, parent):
-    minimap.parent = parent
+  def __init__(minimap, stage, hero, visited_cells):
+    minimap.stage = stage
+    minimap.hero = hero
+    minimap.visited_cells = visited_cells
     minimap.focus = None
     minimap.time = 0
     minimap.active = False
     minimap.expanded = 0
     minimap.sprite = None
     minimap.anims = []
-    minimap.enter()
 
   def enter(minimap):
     minimap.active = True
@@ -221,20 +219,23 @@ class Minimap:
     if t is None:
       t = 1 if minimap.expanded else 0
 
-    # requires: game.hero, game.floor, game.memory?
+    # requires: hero, stage, visited cells, animations?
+    # - isn't this identical to what the stage view requires?
+    # - if we wanted to coalesce these into an isolated store,
+    #     we'd to name it so it's easier to pass down
+    # - could try passing in args on init by reference
+
     # updates whenever any of the following occur:
     # - data changes
     # - visited cells change
     # - camera position (hero cell) changes
 
-    game = minimap.parent
-    floor = game.floor
-    hero = game.hero
+    floor = minimap.stage
+    hero = minimap.hero
     if not hero or not hero.cell:
       return minimap.sprite
-
-    visible_cells = game.hero.visible_cells
-    visited_cells = game.get_visited_cells()
+    visited_cells = minimap.visited_cells
+    visible_cells = hero.visible_cells
 
     bounds = find_bounds(visited_cells) if t else Rect((0, 0), floor.size)
     start_width, start_height = Minimap.SIZE_INIT
@@ -260,7 +261,7 @@ class Minimap:
       focus=(focus_x, focus_y),
       visible_cells=visible_cells,
       visited_cells=visited_cells,
-      anims=game.anims,
+      anims=[], # game.anims,
       blink=minimap.time % 60 >= 30
     )
 
