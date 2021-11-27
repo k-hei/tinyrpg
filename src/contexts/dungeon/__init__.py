@@ -1,14 +1,15 @@
-import pygame
+import assets
+from helpers.findactor import find_actor
 from contexts import Context
 from contexts.combat import CombatContext
 from contexts.explore import ExploreContext
 from contexts.explore.stageview import StageView
 from contexts.dungeon.camera import Camera
+from comps.minilog import Minilog
 from comps.minimap import Minimap
 from dungeon.fov import shadowcast
 from dungeon.room import Blob as Room
-from helpers.findactor import find_actor
-from config import WINDOW_SIZE, VISION_RANGE
+from config import WINDOW_SIZE, WINDOW_HEIGHT, VISION_RANGE
 
 class DungeonContext(Context):
   def __init__(ctx, store, stage, *args, **kwargs):
@@ -19,11 +20,14 @@ class DungeonContext(Context):
     ctx.memory = {}
     ctx.stage_view = StageView(stage=stage, camera=ctx.camera)
     ctx.hero_cell = None
-    ctx.comps = [Minimap(
-      stage=stage,
-      hero=ctx.hero,
-      visited_cells=ctx.visited_cells
-    )]
+    ctx.comps = [
+      Minilog(pos=(8, WINDOW_HEIGHT - 8 - Minilog.sprite.get_height() / 2)),
+      Minimap(
+        stage=stage,
+        hero=ctx.hero,
+        visited_cells=ctx.visited_cells
+      )
+    ]
 
   @property
   def hero(ctx):
@@ -39,6 +43,10 @@ class DungeonContext(Context):
     if visited_cells is None:
       ctx.memory[stage_id] = (visited_cells := [])
     return visited_cells
+
+  @property
+  def minilog(ctx):
+    return next((c for c in ctx.comps if type(c) is Minilog), None)
 
   @property
   def minimap(ctx):
@@ -86,6 +94,9 @@ class DungeonContext(Context):
   def update(ctx):
     for elem in ctx.stage.elems:
       elem.update(ctx)
+
+    for comp in ctx.comps:
+      comp.update()
 
     if ctx.hero.cell != ctx.hero_cell:
       ctx.hero_cell = ctx.hero.cell

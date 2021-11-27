@@ -31,8 +31,18 @@ class Stage:
   def spawn_elem_at(stage, cell, elem):
     elem.spawn(stage, cell)
     if elem not in stage.elems:
-      stage.elems.append(elem)
+      if elem.solid:
+        stage.elems.append(elem)
+      else:
+        stage.elems.insert(0, elem)
     return elem
+
+  def remove_elem(stage, elem):
+    if elem in stage.elems:
+      stage.elems.remove(elem)
+      return True
+    else:
+      return False
 
   def is_cell_opaque(stage, cell):
     tile = stage.get_tile_at(cell)

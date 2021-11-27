@@ -1,6 +1,7 @@
-from math import sqrt
+from pygame import Rect
 from dungeon.props import Prop
 from lib.sprite import Sprite
+import lib.vector as vector
 from config import TILE_SIZE
 from anims.offsetmove import OffsetMoveAnim
 
@@ -12,23 +13,30 @@ class ItemDrop(Prop):
     drop.item = contents
     drop.obtained = False
 
+  @property
+  def rect(drop):
+    if drop._rect is None and drop.pos:
+      drop._rect = Rect(
+        vector.subtract(drop.pos, (8, 8)),
+        (16, 16)
+      )
+    return drop._rect
+
   def effect(drop, game, actor):
     if actor is not game.hero:
       return None
 
-    obtained = False
-    if not game.is_hero_running:
-      obtained = game.obtain(
-        item=drop.item,
-        target=drop,
-        on_end=lambda: obtained and game.floor.remove_elem(drop)
-      )
+    obtained = game.handle_obtain(
+      item=drop.item,
+      target=game.hero,
+      on_end=lambda: obtained and game.stage.remove_elem(drop)
+    )
 
     if obtained:
       drop.obtained = True
-    else:
-      game.log.clear()
-      game.log.print(("You're standing on ", drop.item().token(), "."))
+    # else:
+    #   game.log.clear()
+    #   game.log.print(("You're standing on ", drop.item().token(), "."))
 
     return obtained
 

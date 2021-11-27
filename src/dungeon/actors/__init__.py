@@ -556,7 +556,7 @@ class DungeonActor(DungeonElement):
       item_image = actor.item().render()
       item_sprite = Sprite(
         image=item_image,
-        pos=(0, -24),
+        pos=(0, -16),
         layer="vfx"
       )
       item_sprite.move(move_offset)

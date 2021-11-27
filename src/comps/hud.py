@@ -274,7 +274,6 @@ class Hud:
 
   def view(hud):
     hud.image = hud.render()
-    hud.update()
     hud_x, hud_y = hud.pos
     anim = hud.anims[0] if hud.anims else None
     if anim:

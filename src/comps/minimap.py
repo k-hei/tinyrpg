@@ -89,7 +89,7 @@ class Minimap:
       else:
         x, y = col, row
 
-      elem = next((e for e in floor.get_elems_at(cell)), None)
+      elem = next((e for e in reversed(floor.get_elems_at(cell))), None)
       if next((g for g in anims if next((a for a in g if type(a) is WarpInAnim and a.target is elem), None)), None):
         elem = None
 
@@ -275,6 +275,13 @@ class Minimap:
     surface.blit(scale(minimap_image, scaled_size), (0, 0))
     return surface
 
+  def update(minimap):
+    anim = minimap.anims[0] if minimap.anims else None
+    if anim:
+      anim.update()
+      if anim.done:
+        minimap.anims.pop(0)
+
   def view(minimap):
     sprites = []
     minimap.time += 1
@@ -291,7 +298,7 @@ class Minimap:
     center_y = WINDOW_HEIGHT // 2 - minimap.sprite.get_height() // 2
     anim = minimap.anims[0] if minimap.anims else None
     if anim:
-      t = anim.update()
+      t = anim.pos
       if type(anim) is EnterAnim:
         t = ease_out(t)
         start_x, start_y = WINDOW_WIDTH, corner_y
@@ -319,8 +326,6 @@ class Minimap:
 
       x = lerp(start_x, target_x, t)
       y = lerp(start_y, target_y, t)
-      if anim.done:
-        minimap.anims.pop(0)
     elif minimap.expanded:
       x = center_x
       y = center_y

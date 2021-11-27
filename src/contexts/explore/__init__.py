@@ -8,6 +8,8 @@ from contexts import Context
 from contexts.explore.stageview import StageView
 from contexts.dungeon.camera import Camera
 from dungeon.actors import DungeonActor
+from dungeon.props import Prop
+from anims.item import ItemAnim
 from tiles import Tile
 from config import WINDOW_SIZE, COMBAT_THRESHOLD
 
@@ -69,8 +71,12 @@ class ExploreContext(Context):
       stage=ctx.stage
     ) if ctx.store.party else None
 
+  @property
+  def anims(ctx):
+    return ctx.stage_view.anims
+
   def handle_press(ctx, button):
-    if button:
+    if button or ctx.anims:
       return
 
     delta_x = 0
@@ -130,16 +136,43 @@ class ExploreContext(Context):
       ctx.move(ctx.hero, delta=(0, delta_y), diagonal=diagonal, running=running)
       ctx.collide(ctx.hero, delta=(0, delta_y))
 
+    prop = next((e for e in ctx.stage.elems if
+      isinstance(e, Prop)
+      and ctx.hero.rect.collidepoint(e.pos)
+    ), None)
+    if prop:
+      prop.effect(ctx, ctx.hero)
+      ctx.hero.stop_move()
+
     enemy = next((e for e in ctx.stage.elems if
       isinstance(e, DungeonActor)
       and e.faction == DungeonActor.FACTION_ENEMY
       and vector.distance(ctx.hero.pos, e.pos) <= COMBAT_THRESHOLD
     ), None)
     if enemy:
-      ctx.handle_combat()
+      return ctx.handle_combat()
 
   def handle_combat(ctx):
     ctx.on_end and ctx.on_end()
+
+  def handle_obtain(ctx, item, target, on_end=None):
+    obtained = ctx.store.obtain(item)
+    if obtained:
+      old_facing = ctx.hero.facing
+      ctx.hero.facing = (0, 1)
+      ctx.anims.append([
+        ItemAnim(
+          target=target,
+          item=item(),
+          duration=60,
+          on_end=lambda: (
+            setattr(ctx.hero, "facing", old_facing),
+            on_end and on_end(),
+          )
+        )
+      ])
+      ctx.parent.minilog.print(message=("Obtained ", item().token(), "."))
+    return obtained
 
   def move(ctx, actor, delta, diagonal=False, running=False):
     actor.move(delta, diagonal, running)
