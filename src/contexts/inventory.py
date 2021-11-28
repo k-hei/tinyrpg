@@ -1,4 +1,3 @@
-import random
 import pygame
 from pygame import Surface, Rect, SRCALPHA
 from pygame.transform import rotate
@@ -12,10 +11,11 @@ from assets import load as use_assets
 from lib.filters import replace_color, stroke
 import lib.gamepad as gamepad
 import lib.keyboard as keyboard
+import lib.input as input
 from lib.keyboard import key_times, ARROW_DELTAS
 from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, BLUE, GOLD
 from lib.sprite import Sprite
-from config import WINDOW_WIDTH, WINDOW_HEIGHT, INVENTORY_COLS, INVENTORY_ROWS
+from config import WINDOW_HEIGHT, INVENTORY_COLS, INVENTORY_ROWS
 
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
@@ -202,17 +202,19 @@ class InventoryContext(Context):
     if next((a for a in ctx.anims if a.blocking), None):
       return False
 
-    if ctx.child:
-      return ctx.child.handle_press(button)
-
-    if keyboard.get_state(button) + gamepad.get_state(button) > 1:
+    if super().handle_press(button) != None:
       return False
 
-    if button in ARROW_DELTAS:
-      delta = ARROW_DELTAS[button]
+    if button is None or input.get_state(input.resolve_button(button)) > 1:
+      return False
+
+    delta = input.resolve_delta(button)
+    if delta:
       return ctx.handle_move(delta)
 
-    if button in (pygame.K_SPACE, gamepad.controls.manage):
+    control = input.resolve_control(button)
+
+    if control == input.CONTROL_MANAGE:
       arrange_control = next((c for c in ctx.controls if c.value == "Arrange"), None)
       arrange_control.press()
       return ctx.handle_select()
@@ -222,16 +224,16 @@ class InventoryContext(Context):
     if ctx.selection:
       tab_control.disable()
       sort_control.disable()
-      if button in (pygame.K_BACKSPACE, pygame.K_ESCAPE, gamepad.controls.cancel):
+      if control == input.CONTROL_CANCEL:
         return ctx.handle_select()
     else:
       tab_control.enable()
       sort_control.enable()
-      if button == gamepad.controls.L:
-        tab_control.press(gamepad.controls.L)
+      if button == input.BUTTON_L:
+        tab_control.press(input.BUTTON_L)
         return ctx.handle_tab(delta=-1)
-      elif button == gamepad.controls.R:
-        tab_control.press(gamepad.controls.R)
+      elif button == input.BUTTON_R:
+        tab_control.press(input.BUTTON_R)
         return ctx.handle_tab(delta=1)
 
       if button == pygame.K_TAB:
@@ -244,14 +246,14 @@ class InventoryContext(Context):
           tab_control.press(gamepad.controls.R)
           return ctx.handle_tab(delta=1)
 
-      if button in (pygame.K_BACKSLASH, pygame.K_BACKQUOTE, gamepad.controls.inventory):
+      if control == input.CONTROL_INVENTORY:
         sort_control.press()
         return ctx.handle_sort()
 
-      if button in (pygame.K_RETURN, gamepad.controls.confirm):
+      if control == input.CONTROL_CONFIRM:
         return ctx.handle_menu()
 
-      if button in (pygame.K_BACKSPACE, pygame.K_ESCAPE, gamepad.controls.cancel):
+      if control == input.CONTROL_CANCEL:
         return ctx.exit()
 
   def handle_release(ctx, button):

@@ -292,6 +292,9 @@ class Minimap:
     else:
       redrawn = False
 
+    if minimap.sprite is None:
+      return []
+
     corner_x = WINDOW_WIDTH - minimap.sprite.get_width() - MARGIN_X
     corner_y = MARGIN_Y
     center_x = WINDOW_WIDTH // 2 - minimap.sprite.get_width() // 2

@@ -83,7 +83,7 @@ class GameData:
       dungeon=(store.place.save()
         if store.place and place == "dungeon"
         else None),
-      controls=store.controls.__dict__
+      controls=store.controls and store.controls.__dict__
     )
 
   def decode(savedata):

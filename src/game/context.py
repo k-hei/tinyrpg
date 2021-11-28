@@ -1,13 +1,14 @@
 import pygame
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
+import lib.input as input
 import game.controls as controls
 from contexts import Context
 from contexts.load import LoadContext
 from contexts.pause import PauseContext
 from contexts.inventory import InventoryContext
 from contexts.custom import CustomContext
-from dungeon.context import DungeonContext
+from contexts.dungeon import DungeonContext
 from dungeon.gen.manifest import manifest_stage_from_room
 from dungeon.decoder import decode_floor
 from dungeon.roomdata import load_rooms, rooms
@@ -20,6 +21,38 @@ from transits.dissolve import DissolveOut
 
 load_rooms()
 gamepad.config(preset=controls.TYPE_A)
+
+input.config(
+  buttons={
+    input.BUTTON_UP: [pygame.K_UP, pygame.K_w],
+    input.BUTTON_LEFT: [pygame.K_LEFT, pygame.K_a],
+    input.BUTTON_DOWN: [pygame.K_DOWN, pygame.K_s],
+    input.BUTTON_RIGHT: [pygame.K_RIGHT, pygame.K_d],
+    input.BUTTON_A: [pygame.K_RETURN, pygame.K_SPACE],
+    input.BUTTON_B: [pygame.K_RSHIFT, pygame.K_LSHIFT],
+    input.BUTTON_X: [pygame.K_q],
+    input.BUTTON_Y: [pygame.K_e],
+    input.BUTTON_L: [pygame.K_TAB],
+    input.BUTTON_R: [pygame.K_LALT, pygame.K_RALT],
+    input.BUTTON_START: [pygame.K_ESCAPE, pygame.K_BACKSPACE],
+    input.BUTTON_SELECT: [pygame.K_BACKQUOTE, pygame.K_BACKSLASH],
+  },
+  controls={
+    input.CONTROL_CONFIRM: [input.BUTTON_A],
+    input.CONTROL_CANCEL: [input.BUTTON_B],
+    input.CONTROL_MANAGE: [input.BUTTON_Y],
+    input.CONTROL_RUN: [input.BUTTON_B],
+    input.CONTROL_TURN: [input.BUTTON_R],
+    input.CONTROL_ITEM: [input.BUTTON_R, input.BUTTON_X],
+    input.CONTROL_WAIT: [input.BUTTON_R, input.BUTTON_A],
+    input.CONTROL_SHORTCUT: [input.BUTTON_R, input.BUTTON_Y],
+    input.CONTROL_ALLY: [input.BUTTON_L],
+    input.CONTROL_SKILL: [input.BUTTON_Y],
+    input.CONTROL_INVENTORY: [input.BUTTON_X],
+    input.CONTROL_PAUSE: [input.BUTTON_START],
+    input.CONTROL_MINIMAP: [input.BUTTON_SELECT],
+  }
+)
 
 class GameContext(Context):
   def __init__(ctx, data=None, feature=None, floor=None, stage=None, seed=None, *args, **kwargs):
@@ -116,9 +149,10 @@ class GameContext(Context):
       floor.generator = floor.generator or generator and generator.__name__
       dungeon = DungeonContext(
         store=ctx.store,
-        floors=floors,
-        floor_index=floor_index,
-        memory=memory
+        stage=floor,
+        # floors=floors,
+        # floor_index=floor_index,
+        # memory=memory
       )
       ctx.store.place = dungeon
       ctx.open(dungeon)
@@ -161,23 +195,30 @@ class GameContext(Context):
 
   def update_skills(ctx):
     for core in ctx.store.party:
-      ctx.load_build(actor=core, build=ctx.store.builds[type(core).__name__])
+      core_id = type(core).__name__
+      ctx.load_build(actor=core, build=ctx.store.builds[core_id] if core_id in ctx.store.builds else [])
 
   def handle_press(ctx, button):
     if super().handle_press(button) != None:
-      return
-    if (keyboard.get_state(button) + gamepad.get_state(button) > 1
-    or type(ctx.child) not in (DungeonContext, TownContext)
-    or type(ctx.child) is DungeonContext and ctx.child.get_depth() > 0
-    or type(ctx.child) is TownContext and ctx.child.get_depth() > 1
-    ):
-      return
-    if button in (pygame.K_ESCAPE,):
+      return False
+
+    if input.get_state(button) > 1:
+      return False
+
+    control = input.resolve_control(button)
+
+    # if (button != None
+    # or type(ctx.child) not in (DungeonContext, TownContext)
+    # or type(ctx.child) is DungeonContext and ctx.child.get_depth() > 1
+    # or type(ctx.child) is TownContext and ctx.child.get_depth() > 1
+    # ):
+    #   return
+
+    if control == input.CONTROL_PAUSE:
       return ctx.handle_pause()
-    if button in (pygame.K_BACKSPACE, pygame.K_q) or gamepad.get_state(gamepad.controls.inventory):
+
+    if control == input.CONTROL_INVENTORY:
       return ctx.handle_inventory()
-    if button == pygame.K_e or gamepad.get_state(gamepad.controls.equip):
-      return ctx.handle_custom()
 
   def handle_pause(ctx):
     ctx.get_tail().open(PauseContext(store=ctx.store))

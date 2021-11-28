@@ -1,4 +1,3 @@
-import assets
 from helpers.findactor import find_actor
 from contexts import Context
 from contexts.combat import CombatContext
@@ -7,6 +6,7 @@ from contexts.explore.stageview import StageView
 from contexts.dungeon.camera import Camera
 from comps.minilog import Minilog
 from comps.minimap import Minimap
+from dungeon.actors.knight import Knight
 from dungeon.fov import shadowcast
 from dungeon.room import Blob as Room
 from config import WINDOW_SIZE, WINDOW_HEIGHT, VISION_RANGE
@@ -20,14 +20,7 @@ class DungeonContext(Context):
     ctx.memory = {}
     ctx.stage_view = StageView(stage=stage, camera=ctx.camera)
     ctx.hero_cell = None
-    ctx.comps = [
-      Minilog(pos=(8, WINDOW_HEIGHT - 8 - Minilog.sprite.get_height() / 2)),
-      Minimap(
-        stage=stage,
-        hero=ctx.hero,
-        visited_cells=ctx.visited_cells
-      )
-    ]
+    ctx.comps = []
 
   @property
   def hero(ctx):
@@ -53,6 +46,17 @@ class DungeonContext(Context):
     return next((c for c in ctx.comps if type(c) is Minimap), None)
 
   def enter(ctx):
+    hero = Knight(core=ctx.store.party[0])
+    stage_entrance = next((cell for cell, tile in ctx.stage.tiles.enumerate() if tile.__name__ == "Exit"), None)
+    stage_entrance and ctx.stage.spawn_elem_at(stage_entrance, hero)
+    ctx.comps = [
+      Minilog(pos=(8, WINDOW_HEIGHT - 8 - Minilog.sprite.get_height() / 2)),
+      Minimap(
+        stage=ctx.stage,
+        hero=ctx.hero,
+        visited_cells=ctx.visited_cells
+      )
+    ]
     ctx.handle_explore()
 
   def refresh_fov(ctx):

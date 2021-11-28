@@ -8,6 +8,8 @@ class Stage:
     stage.rooms = rooms or []
     stage.tile_size = tile_size
     stage.bg = bg
+    stage.generator = None
+    stage.seed = None
 
   @property
   def size(stage):

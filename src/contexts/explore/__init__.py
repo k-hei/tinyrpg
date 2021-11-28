@@ -13,38 +13,6 @@ from anims.item import ItemAnim
 from tiles import Tile
 from config import WINDOW_SIZE, COMBAT_THRESHOLD
 
-input.config(
-  buttons={
-    input.BUTTON_UP: [pygame.K_UP, pygame.K_w],
-    input.BUTTON_LEFT: [pygame.K_LEFT, pygame.K_a],
-    input.BUTTON_DOWN: [pygame.K_DOWN, pygame.K_s],
-    input.BUTTON_RIGHT: [pygame.K_RIGHT, pygame.K_d],
-    input.BUTTON_A: [pygame.K_RETURN, pygame.K_SPACE],
-    input.BUTTON_B: [pygame.K_RSHIFT, pygame.K_LSHIFT],
-    input.BUTTON_X: [pygame.K_q],
-    input.BUTTON_Y: [pygame.K_e],
-    input.BUTTON_L: [pygame.K_TAB],
-    input.BUTTON_R: [pygame.K_LALT, pygame.K_RALT],
-    input.BUTTON_START: [pygame.K_ESCAPE, pygame.K_BACKSPACE],
-    input.BUTTON_SELECT: [pygame.K_BACKQUOTE, pygame.K_BACKSLASH],
-  },
-  controls={
-    input.CONTROL_CONFIRM: [input.BUTTON_A],
-    input.CONTROL_CANCEL: [input.BUTTON_B],
-    input.CONTROL_MANAGE: [input.BUTTON_Y],
-    input.CONTROL_RUN: [input.BUTTON_B],
-    input.CONTROL_TURN: [input.BUTTON_R],
-    input.CONTROL_ITEM: [input.BUTTON_R, input.BUTTON_X],
-    input.CONTROL_WAIT: [input.BUTTON_R, input.BUTTON_A],
-    input.CONTROL_SHORTCUT: [input.BUTTON_R, input.BUTTON_Y],
-    input.CONTROL_ALLY: [input.BUTTON_L],
-    input.CONTROL_SKILL: [input.BUTTON_Y],
-    input.CONTROL_INVENTORY: [input.BUTTON_X],
-    input.CONTROL_PAUSE: [input.BUTTON_START],
-    input.CONTROL_MINIMAP: [input.BUTTON_SELECT],
-  }
-)
-
 class ExploreContext(Context):
   def __init__(ctx, store, stage, stage_view=None, on_end=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
@@ -76,45 +44,16 @@ class ExploreContext(Context):
     return ctx.stage_view.anims
 
   def handle_press(ctx, button):
+    if ctx.child:
+      return ctx.child.handle_press(button)
+
     if button or ctx.anims:
       return
 
-    delta_x = 0
-    delta_y = 0
-    last_direction = 0
-    running = False
-
-    if (input.get_state(input.BUTTON_LEFT)
-    and (not input.get_state(input.BUTTON_RIGHT)
-      or input.get_state(input.BUTTON_LEFT) < input.get_state(input.BUTTON_RIGHT)
-    )):
-      delta_x = -1
-      last_direction = max(last_direction, input.get_state(input.BUTTON_LEFT))
-    elif (input.get_state(input.BUTTON_RIGHT)
-    and (not input.get_state(input.BUTTON_LEFT)
-      or input.get_state(input.BUTTON_RIGHT) < input.get_state(input.BUTTON_LEFT)
-    )):
-      delta_x = 1
-      last_direction = max(last_direction, input.get_state(input.BUTTON_RIGHT))
-
-    if (input.get_state(input.BUTTON_UP)
-    and (not input.get_state(input.BUTTON_DOWN)
-      or input.get_state(input.BUTTON_UP) < input.get_state(input.BUTTON_DOWN)
-    )):
-      delta_y = -1
-      last_direction = max(last_direction, input.get_state(input.BUTTON_UP))
-    elif (input.get_state(input.BUTTON_DOWN)
-    and (not input.get_state(input.BUTTON_UP)
-      or input.get_state(input.BUTTON_DOWN) < input.get_state(input.BUTTON_UP)
-    )):
-      delta_y = 1
-      last_direction = max(last_direction, input.get_state(input.BUTTON_DOWN))
-
-    if input.get_state(input.CONTROL_RUN) and input.get_state(input.CONTROL_RUN) > last_direction:
-      running = True
-
-    if delta_x or delta_y:
-      ctx.handle_move(delta=(delta_x, delta_y), running=running)
+    delta = input.resolve_delta()
+    running = input.get_state(input.CONTROL_RUN) > 0
+    if delta:
+      ctx.handle_move(delta, running)
 
   def handle_release(ctx, button):
     delta = input.resolve_delta(button)
@@ -223,13 +162,13 @@ class ExploreContext(Context):
 
   def view(ctx):
     if not ctx._headless:
-      return []
+      return super().view()
 
     sprites = ctx.stage_view.view()
     if ctx.debug:
       sprites += [debug_view_elem(e) for e in ctx.stage.elems]
 
-    return sprites
+    return sprites + super().view()
 
 def debug_view_elem(elem):
   ALPHA = 128

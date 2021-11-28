@@ -44,9 +44,49 @@ def config(buttons=None, controls=None):
 def resolve_button(button):
   return next((k for k, bs in _buttons.items() if button in bs), None)
 
-def resolve_delta(button):
+def resolve_control(button):
+  button = resolve_button(button)
+  controls = sorted(_controls.items(), key=lambda c: len(c[1]))
+  for control, _ in controls:
+    if get_state(control):
+      return control
+
+def resolve_delta(button=None):
+  if button is None:
+    return resolve_delta_held()
   button = resolve_button(button)
   return ARROW_DELTAS[button] if button in ARROW_DELTAS else None
+
+def resolve_delta_held():
+    delta_x = 0
+    delta_y = 0
+
+    if (get_state(BUTTON_LEFT)
+    and (not get_state(BUTTON_RIGHT)
+      or get_state(BUTTON_LEFT) < get_state(BUTTON_RIGHT)
+    )):
+      delta_x = -1
+    elif (get_state(BUTTON_RIGHT)
+    and (not get_state(BUTTON_LEFT)
+      or get_state(BUTTON_RIGHT) < get_state(BUTTON_LEFT)
+    )):
+      delta_x = 1
+
+    if (get_state(BUTTON_UP)
+    and (not get_state(BUTTON_DOWN)
+      or get_state(BUTTON_UP) < get_state(BUTTON_DOWN)
+    )):
+      delta_y = -1
+    elif (get_state(BUTTON_DOWN)
+    and (not get_state(BUTTON_UP)
+      or get_state(BUTTON_DOWN) < get_state(BUTTON_UP)
+    )):
+      delta_y = 1
+
+    if delta_x or delta_y:
+      return (delta_x, delta_y)
+    else:
+      return None
 
 def handle_press(button):
   button = resolve_button(button)
