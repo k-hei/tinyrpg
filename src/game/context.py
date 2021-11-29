@@ -207,12 +207,8 @@ class GameContext(Context):
 
     control = input.resolve_control(button)
 
-    # if (button != None
-    # or type(ctx.child) not in (DungeonContext, TownContext)
-    # or type(ctx.child) is DungeonContext and ctx.child.get_depth() > 1
-    # or type(ctx.child) is TownContext and ctx.child.get_depth() > 1
-    # ):
-    #   return
+    if type(ctx.get_tail()) in (PauseContext, InventoryContext):
+      return
 
     if control == input.CONTROL_PAUSE:
       return ctx.handle_pause()
