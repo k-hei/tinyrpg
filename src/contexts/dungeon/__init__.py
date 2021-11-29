@@ -1,9 +1,10 @@
 from helpers.findactor import find_actor
 from contexts import Context
-from contexts.combat import CombatContext
 from contexts.explore import ExploreContext
 from contexts.explore.stageview import StageView
+from contexts.combat import CombatContext
 from contexts.dungeon.camera import Camera
+from comps.hud import Hud
 from comps.minilog import Minilog
 from comps.minimap import Minimap
 from dungeon.actors.knight import Knight
@@ -45,11 +46,16 @@ class DungeonContext(Context):
   def minimap(ctx):
     return next((c for c in ctx.comps if type(c) is Minimap), None)
 
+  @property
+  def hud(ctx):
+    return next((c for c in ctx.comps if type(c) is Hud), None)
+
   def enter(ctx):
     hero = Knight(core=ctx.store.party[0])
     stage_entrance = next((cell for cell, tile in ctx.stage.tiles.enumerate() if tile.__name__ == "Exit"), None)
     stage_entrance and ctx.stage.spawn_elem_at(stage_entrance, hero)
     ctx.comps = [
+      Hud(party=ctx.store.party, hp=True),
       Minilog(pos=(8, WINDOW_HEIGHT - 8 - Minilog.sprite.get_height() / 2)),
       Minimap(
         stage=ctx.stage,
@@ -91,6 +97,7 @@ class DungeonContext(Context):
       on_end=ctx.handle_explore,
     ))
     ctx.minimap.exit()
+    ctx.hud.enter()
 
   def update_visited_cells(ctx, cells):
     ctx.visited_cells.extend([c for c in cells if c not in ctx.visited_cells])

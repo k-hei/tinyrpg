@@ -3,10 +3,12 @@ from pygame import Surface, SRCALPHA
 from lib.sprite import Sprite
 import lib.input as input
 import lib.vector as vector
+from lib.compose import compose
 from helpers.findactor import find_actor
 from contexts import Context
 from contexts.explore.stageview import StageView
 from contexts.dungeon.camera import Camera
+from contexts.inventory import InventoryContext
 from dungeon.actors import DungeonActor
 from dungeon.props import Prop
 from anims.item import ItemAnim
@@ -29,9 +31,6 @@ class ExploreContext(Context):
     ctx.on_end = on_end
     ctx.debug = False
 
-  def enter(ctx):
-    ctx.camera.focus(ctx.hero)
-
   @property
   def hero(ctx):
     return find_actor(
@@ -42,6 +41,21 @@ class ExploreContext(Context):
   @property
   def anims(ctx):
     return ctx.stage_view.anims
+
+  def enter(ctx):
+    ctx.camera.focus(ctx.hero)
+
+  def open(ctx, child, on_close=None):
+    if type(child) is InventoryContext:
+      open = super().open
+      ctx.parent.hud.enter(on_end=lambda: (
+        open(child, on_close=compose(
+          ctx.parent.hud.exit,
+          on_close
+        ))
+      ))
+    else:
+      return super().open(child, on_close)
 
   def handle_press(ctx, button):
     if ctx.child:

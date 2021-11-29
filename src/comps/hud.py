@@ -58,7 +58,7 @@ class FlinchAnim(Anim):
   blocking = True
 
 class SlideAnim(TweenAnim):
-  duration = 20
+  duration = 12
   blocking = False
 
 class Hud:
@@ -93,18 +93,20 @@ class Hud:
       hud.anims = [SlideAnim(target=(hud._pos, pos))]
     hud._pos = pos
 
-  def enter(hud):
+  def enter(hud, on_end=None):
     hud.active = True
     hud_image = hud.image or hud.render()
     hud._pos = (MARGIN, -hud_image.get_height())
     hud.pos = (MARGIN, MARGIN)
+    if hud.anims and on_end:
+      hud.anims[-1].on_end = on_end
 
   def exit(hud, on_end=None):
     hud.active = False
     hud_image = hud.image or hud.render()
     hud._pos = (MARGIN, MARGIN)
     hud.pos = (MARGIN, -hud_image.get_height())
-    if hud.anims:
+    if hud.anims and on_end:
       hud.anims[-1].on_end = on_end
 
   def slide(hud, start, goal):
@@ -112,8 +114,8 @@ class Hud:
     hud.pos = goal
 
   def update(hud, force=False):
-    if hud.updated and not force: return
-    hud.updated = True
+    # if hud.updated and not force: return
+    # hud.updated = True
     hero = hud.party[0] if len(hud.party) >= 1 else None
     ally = hud.party[1] if len(hud.party) >= 2 else None
     if (hud.image is None
