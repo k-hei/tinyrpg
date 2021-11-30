@@ -4,6 +4,7 @@ from lib.sprite import Sprite
 from lib.animstep import step_anims
 import lib.vector as vector
 from lib.filters import darken_image
+from anims.shake import ShakeAnim
 from contexts.dungeon.camera import Camera
 from config import WINDOW_SIZE, WINDOW_HEIGHT, DEPTH_SIZE
 
@@ -65,6 +66,7 @@ class StageView:
   def __init__(view, stage, camera):
     view.stage = stage
     view.camera = camera
+    view.anim = None
     view.anims = []
     view.vfx = []
     view.cache_camera_cell = None
@@ -77,7 +79,21 @@ class StageView:
     if view.anims:
       view.anims[0] = [(a.update(), a)[-1] for a in view.anims[0] if not a.done]
     view.anims = [g for g in view.anims if g]
+
+    if view.anim:
+      if view.anim.done:
+        view.anim = None
+      else:
+        view.anim.update()
+
     view.vfx = step_anims(view.vfx)
+
+  def shake(view, duration=15, vertical=False):
+    view.anim = ShakeAnim(
+      duration=duration,
+      target=vertical,
+      magnitude=2
+    )
 
   def redraw_tile(view, stage, cell, visited_cells):
     tile = stage.get_tile_at(cell)
@@ -191,11 +207,23 @@ class StageView:
     sprites += view.view_elems(stage.elems, hero)
     sprites += view.view_vfx(view.vfx)
 
+    camera_offset = (0, 0)
+    if type(view.anim) is ShakeAnim:
+      camera_offset = vector.add(camera_offset, (
+        view.anim.target
+          and (0, view.anim.offset)
+          or (view.anim.offset, 0)
+      ))
+
+    camera_pos = vector.negate(view.camera.rect.topleft)
     sprites = Sprite.move_all(
       sprites=[s for s in sprites if s.layer != "ui"],
-      offset=vector.negate(view.camera.rect.topleft)
+      offset=vector.add(camera_pos, camera_offset)
     ) + [s for s in sprites if s.layer == "ui"]
 
-    sprites += view.view_tiles(hero, visited_cells)
+    sprites += Sprite.move_all(
+      sprites=view.view_tiles(hero, visited_cells),
+      offset=camera_offset
+    )
     sprites.sort(key=StageView.order)
     return sprites

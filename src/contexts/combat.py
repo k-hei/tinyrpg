@@ -211,6 +211,7 @@ class CombatContext(Context):
         ),
         FlashVfx()
       ])
+      ctx.stage_view.shake(vertical=bool(direction[1]))
       direction and ctx.nudge(target, direction)
 
     not ctx.anims and ctx.anims.append([])
