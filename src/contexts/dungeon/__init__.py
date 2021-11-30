@@ -91,7 +91,7 @@ class DungeonContext(Context):
     ctx.handle_explore()
 
   def refresh_fov(ctx):
-    room = next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells), None)
+    room = next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells + r.border), None)
     if room:
       visible_cells = room.cells + room.visible_outline
       ctx.camera.focus(room)
