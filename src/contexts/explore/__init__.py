@@ -111,10 +111,11 @@ class ExploreContext(Context):
       prop.effect(ctx, ctx.hero)
       ctx.hero.stop_move()
 
+    room = next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells), None)
     enemy = next((e for e in ctx.stage.elems if
       isinstance(e, DungeonActor)
       and e.faction == DungeonActor.FACTION_ENEMY
-      and vector.distance(ctx.hero.pos, e.pos) <= COMBAT_THRESHOLD
+      and room and e.cell in room.cells
     ), None)
     if enemy:
       return ctx.handle_combat()
