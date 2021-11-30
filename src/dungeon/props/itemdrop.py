@@ -17,8 +17,8 @@ class ItemDrop(Prop):
   def rect(drop):
     if drop._rect is None and drop.pos:
       drop._rect = Rect(
-        vector.subtract(drop.pos, (8, 8)),
-        (16, 16)
+        vector.subtract(drop.pos, (4, 4)),
+        (8, 8)
       )
     return drop._rect
 
