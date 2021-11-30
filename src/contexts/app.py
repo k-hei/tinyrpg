@@ -123,23 +123,13 @@ class App(Context):
         transit = app.transits[0]
         sprites += transit.view(sprites)
 
-      UI_LAYERS = ["ui", "log", "transits", "hud"]
+      UI_LAYERS = ["ui", "log", "transits", "hud", "selection"]
+      sprites = [s for g in sprites for s in (g if type(g) is list else [g])]
       sprites.sort(key=lambda sprite: (
-        len(UI_LAYERS) + 1
-          if type(sprite) is list
-          else UI_LAYERS.index(sprite.layer) + 1
-            if sprite.layer in UI_LAYERS
-            else 0
+        UI_LAYERS.index(sprite.layer) + 1
+          if sprite.layer in UI_LAYERS
+          else 0
       ))
-
-      new_sprites = []
-      for sprite in sprites:
-        if type(sprite) is list:
-          for s in sprite:
-            new_sprites.append(s)
-        else:
-          new_sprites.append(sprite)
-      sprites = new_sprites
 
       if app.fps_shown:
         sprites += app.view_fps()

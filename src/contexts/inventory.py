@@ -565,7 +565,7 @@ class InventoryContext(Context):
         if cell == ctx.find_extra_slot():
           sprites.append(Sprite(
             image=replace_color(assets.sprites["icon_fist"], WHITE, DARKGRAY),
-            pos=(x + tile_width // 2 - 1, y + tile_height // 2 + 1),
+            pos=(x + tile_width // 2 - 2, y + tile_height // 2),
             origin=Sprite.ORIGIN_CENTER,
             layer="ui"
           ))
@@ -584,7 +584,7 @@ class InventoryContext(Context):
           layer = "ui"
           if ctx.selection and cell == ctx.cursor:
             y -= 4
-            layer = "hud"
+            layer = "selection"
           sprites.append(Sprite(
             image=stroke(item().render(), WHITE),
             pos=(x - 1, y - 1),
