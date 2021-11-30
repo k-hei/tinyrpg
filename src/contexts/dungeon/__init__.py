@@ -63,6 +63,15 @@ class DungeonContext(Context):
     return next((c for c in ctx.comps if type(c) is Hud), None)
 
   @property
+  def facing_elem(ctx):
+    facing_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
+    facing_elems = ctx.stage.get_elems_at(facing_cell)
+    return next((e for e in facing_elems if (
+      e.active
+      and (not isinstance(e, DungeonActor) or e.faction == "ally")
+    )), None)
+
+  @property
   def talkbubble(ctx):
     return next((v for v in ctx.vfx if type(v) is TalkBubble), None)
 
@@ -116,12 +125,7 @@ class DungeonContext(Context):
     ctx.hud.enter()
 
   def update_bubble(ctx):
-    facing_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
-    facing_elems = ctx.stage.get_elems_at(facing_cell)
-    facing_elem = next((e for e in facing_elems if (
-      e.active
-      and (not isinstance(e, DungeonActor) or e.faction == "ally")
-    )), None)
+    facing_elem = ctx.facing_elem
 
     if ctx.talkbubble and ctx.talkbubble.target is facing_elem and not ctx.anims and not ctx.hero.item:
       return
@@ -132,7 +136,7 @@ class DungeonContext(Context):
     if facing_elem and not ctx.anims and not ctx.hero.item:
       ctx.vfx.append(TalkBubble(
         target=facing_elem,
-        cell=facing_cell,
+        cell=facing_elem.cell,
       ))
 
   def update_visited_cells(ctx, cells):

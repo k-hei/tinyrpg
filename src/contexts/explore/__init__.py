@@ -10,7 +10,7 @@ from contexts.explore.stageview import StageView
 from contexts.dungeon.camera import Camera
 from contexts.inventory import InventoryContext
 from dungeon.actors import DungeonActor
-from dungeon.props import Prop
+from dungeon.props.itemdrop import ItemDrop
 from vfx.talkbubble import TalkBubble
 from anims.item import ItemAnim
 from tiles import Tile
@@ -66,13 +66,22 @@ class ExploreContext(Context):
     if ctx.child:
       return ctx.child.handle_press(button)
 
-    if button or ctx.anims:
+    if ctx.anims:
       return
 
-    delta = input.resolve_delta()
-    running = input.get_state(input.CONTROL_RUN) > 0
-    if delta:
-      ctx.handle_move(delta, running)
+    if not button:
+      delta = input.resolve_delta()
+      delta and ctx.handle_move(
+        delta=delta,
+        running=input.get_state(input.CONTROL_RUN) > 0
+      )
+
+    if input.get_state(button) > 1:
+      return False
+
+    control = input.resolve_control(button)
+    if control == input.CONTROL_CONFIRM:
+      ctx.handle_action()
 
   def handle_release(ctx, button):
     delta = input.resolve_delta(button)
@@ -95,8 +104,8 @@ class ExploreContext(Context):
       ctx.collide(ctx.hero, delta=(0, delta_y))
 
     prop = next((e for e in ctx.stage.elems if
-      isinstance(e, Prop)
-      and ctx.hero.rect.collidepoint(e.pos)
+      isinstance(e, ItemDrop) # TODO: design generic model for steppables
+      and ctx.hero.rect.colliderect(e.rect)
     ), None)
     if prop:
       prop.effect(ctx, ctx.hero)
@@ -175,6 +184,13 @@ class ExploreContext(Context):
       ])
       ctx.parent.minilog.print(message=("Obtained ", item().token(), "."))
     return obtained
+
+  def handle_action(ctx):
+    facing_elem = ctx.parent.facing_elem
+    if facing_elem is None:
+      return False
+
+    return facing_elem.effect(ctx, ctx.hero)
 
   def handle_combat(ctx):
     ctx.on_end and ctx.on_end()
