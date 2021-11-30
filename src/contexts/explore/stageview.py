@@ -177,8 +177,9 @@ class StageView:
     elem_sprites[0].origin = Sprite.ORIGIN_CENTER
     return elem_sprites
 
-  def view_elems(view, elems):
-    return [s for e in elems for s in view.view_elem(e)]
+  def view_elems(view, elems, hero=None):
+    return [s for e in elems for s in view.view_elem(e)
+      if not hero or e.cell in hero.visible_cells]
 
   def view_vfx(view, vfx):
     return [s for v in vfx for s in v.view()]
@@ -187,7 +188,7 @@ class StageView:
     sprites = []
 
     stage = view.stage
-    sprites += view.view_elems(stage.elems)
+    sprites += view.view_elems(stage.elems, hero)
     sprites += view.view_vfx(view.vfx)
 
     sprites = Sprite.move_all(

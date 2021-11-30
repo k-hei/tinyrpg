@@ -48,4 +48,4 @@ class Stage:
 
   def is_cell_opaque(stage, cell):
     tile = stage.get_tile_at(cell)
-    return not tile or tile.opaque
+    return not tile or tile.opaque or next((e for e in stage.get_elems_at(cell) if e.opaque), None)

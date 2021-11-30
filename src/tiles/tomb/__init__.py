@@ -41,7 +41,7 @@ class Wall(Tile):
     is_special_room = False
 
     if (
-      (tile_below is Floor or tile_below is Pit)
+      tile_below in (Floor, Pit, Hallway)
       and (visited_cells is None or (x, y + 1) in visited_cells)
       and not next((e for e in stage.get_elems_at((x, y + 1)) if isinstance(e, Door)), None)
     ):
@@ -68,6 +68,9 @@ class Pit(Tile):
     else:
       return None
 
+class Hallway(Tile):
+  sprite = None
+
 class Entrance(Tile):
   sprite = assets.sprites["stairs_up"]
 
@@ -78,6 +81,7 @@ mappings = {
   ".": Floor,
   "#": Wall,
   " ": Pit,
+  ",": Hallway,
   "<": Entrance,
   ">": Exit,
 }
