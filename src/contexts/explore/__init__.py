@@ -13,6 +13,7 @@ from dungeon.actors import DungeonActor
 from dungeon.props.itemdrop import ItemDrop
 from vfx.talkbubble import TalkBubble
 from anims.item import ItemAnim
+from anims.attack import AttackAnim
 from tiles import Tile
 from config import WINDOW_SIZE, COMBAT_THRESHOLD
 
@@ -191,7 +192,18 @@ class ExploreContext(Context):
     if facing_elem is None:
       return False
 
-    return facing_elem.effect(ctx, ctx.hero)
+    ctx.anims.append([
+      AttackAnim(
+        target=ctx.hero,
+        src=ctx.hero.cell,
+        dest=facing_elem.cell,
+        on_connect=lambda: (
+          facing_elem.effect(ctx, ctx.hero),
+          ctx.parent.update_bubble(),
+        )
+      )
+    ])
+    return True
 
   def handle_combat(ctx):
     ctx.on_end and ctx.on_end()
