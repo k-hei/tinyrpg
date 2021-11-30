@@ -90,6 +90,11 @@ class Camera:
   def targets(camera):
     return [t for g in camera.target_groups for t in g]
 
+  def is_cell_beyond_yrange(camera, cell):
+    _, row = cell
+    _, center_row = camera.cell
+    return row - center_row <= -Camera.MAX_YRADIUS
+
   def focus(camera, target, force=False):
     if target in camera.targets:
       if force:

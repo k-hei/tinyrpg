@@ -11,6 +11,7 @@ from contexts.dungeon.camera import Camera
 from contexts.inventory import InventoryContext
 from dungeon.actors import DungeonActor
 from dungeon.props import Prop
+from vfx.talkbubble import TalkBubble
 from anims.item import ItemAnim
 from tiles import Tile
 from config import WINDOW_SIZE, COMBAT_THRESHOLD
@@ -41,6 +42,14 @@ class ExploreContext(Context):
   @property
   def anims(ctx):
     return ctx.stage_view.anims
+
+  @property
+  def vfx(ctx):
+    return ctx.stage_view.vfx
+
+  @property
+  def talkbubble(ctx):
+    return next((v for v in ctx.vfx if type(v) is TalkBubble), None)
 
   def enter(ctx):
     ctx.camera.focus(ctx.hero)
@@ -89,6 +98,8 @@ class ExploreContext(Context):
       ctx.move(ctx.hero, delta=(0, delta_y), diagonal=diagonal, running=running)
       ctx.collide(ctx.hero, delta=(0, delta_y))
 
+    ctx.update_bubble()
+
     prop = next((e for e in ctx.stage.elems if
       isinstance(e, Prop)
       and ctx.hero.rect.collidepoint(e.pos)
@@ -104,28 +115,6 @@ class ExploreContext(Context):
     ), None)
     if enemy:
       return ctx.handle_combat()
-
-  def handle_combat(ctx):
-    ctx.on_end and ctx.on_end()
-
-  def handle_obtain(ctx, item, target, on_end=None):
-    obtained = ctx.store.obtain(item)
-    if obtained:
-      old_facing = ctx.hero.facing
-      ctx.hero.facing = (0, 1)
-      ctx.anims.append([
-        ItemAnim(
-          target=target,
-          item=item(),
-          duration=60,
-          on_end=lambda: (
-            setattr(ctx.hero, "facing", old_facing),
-            on_end and on_end(),
-          )
-        )
-      ])
-      ctx.parent.minilog.print(message=("Obtained ", item().token(), "."))
-    return obtained
 
   def move(ctx, actor, delta, diagonal=False, running=False):
     actor.move(delta, diagonal, running)
@@ -173,6 +162,28 @@ class ExploreContext(Context):
       return True
     else:
       return False
+
+  def handle_obtain(ctx, item, target, on_end=None):
+    obtained = ctx.store.obtain(item)
+    if obtained:
+      old_facing = ctx.hero.facing
+      ctx.hero.facing = (0, 1)
+      ctx.anims.append([
+        ItemAnim(
+          target=target,
+          item=item(),
+          duration=60,
+          on_end=lambda: (
+            setattr(ctx.hero, "facing", old_facing),
+            on_end and on_end(),
+          )
+        )
+      ])
+      ctx.parent.minilog.print(message=("Obtained ", item().token(), "."))
+    return obtained
+
+  def handle_combat(ctx):
+    ctx.on_end and ctx.on_end()
 
   def view(ctx):
     if not ctx._headless:

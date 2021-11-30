@@ -2,12 +2,14 @@ from pygame.transform import flip
 from vfx import Vfx
 from anims.frame import FrameAnim
 from lib.sprite import Sprite
+from lib.filters import replace_color
 import assets
+from colors.palette import BLACK, BLUE
 from config import TILE_SIZE
 
 class TalkBubble(Vfx):
   class Anim(FrameAnim):
-    frames = assets.sprites["bubble_talk"]
+    frames = [replace_color(s, BLACK, BLUE) for s in assets.sprites["bubble_talk"]]
     frames_duration = 10
     loop = True
 
