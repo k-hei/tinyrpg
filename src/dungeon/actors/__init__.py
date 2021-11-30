@@ -472,6 +472,7 @@ class DungeonActor(DungeonElement):
     anim_group = [a for a in anims[0] if a.target is actor] if anims else []
     anim_group += actor.core.anims
     move_anim = next((a for a in anim_group if isinstance(a, StepAnim)), None)
+    attack_anim = next((a for a in anim_group if isinstance(a, AttackAnim)), None)
     for anim in anim_group:
       if type(anim) is AwakenAnim and anim.visible:
         is_asleep = True
@@ -490,7 +491,7 @@ class DungeonActor(DungeonElement):
         anim_xscale, anim_yscale = anim.scale
         actor_width *= anim_xscale
         actor_height *= anim_yscale
-      if isinstance(anim, FrameAnim) and not is_animating and not move_anim:
+      if isinstance(anim, FrameAnim) and not is_animating and not move_anim and not (attack_anim and len(actor.core.anims) == 1):
         sprite.image = anim.frame()
         actor_width, actor_height = sprite.image.get_size()
         offset_x += (actor_width - TILE_SIZE) / 2
