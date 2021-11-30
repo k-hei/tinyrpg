@@ -192,9 +192,9 @@ class StageView:
     sprites += view.view_vfx(view.vfx)
 
     sprites = Sprite.move_all(
-      sprites=sprites,
+      sprites=[s for s in sprites if s.layer != "ui"],
       offset=vector.negate(view.camera.rect.topleft)
-    )
+    ) + [s for s in sprites if s.layer == "ui"]
 
     sprites += view.view_tiles(hero, visited_cells)
     sprites.sort(key=StageView.order)

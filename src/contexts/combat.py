@@ -16,6 +16,7 @@ from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.pause import PauseAnim
 from anims.flicker import FlickerAnim
+from vfx.flash import FlashVfx
 from colors.palette import GOLD
 from config import (
   WINDOW_SIZE,
@@ -200,13 +201,16 @@ class CombatContext(Context):
     ))
 
     if damage and crit:
-      ctx.vfx.append(DamageValue(
-        text="CRITICAL!",
-        cell=target.cell,
-        offset=(4, -4),
-        color=GOLD,
-        delay=15
-      ))
+      ctx.vfx.extend([
+        DamageValue(
+          text="CRITICAL!",
+          cell=target.cell,
+          offset=(4, -4),
+          color=GOLD,
+          delay=15
+        ),
+        FlashVfx()
+      ])
       direction and ctx.nudge(target, direction)
 
     not ctx.anims and ctx.anims.append([])
