@@ -1,8 +1,8 @@
 import pygame
 from pygame import Surface, SRCALPHA
 from lib.sprite import Sprite
-import lib.input as input
 import lib.vector as vector
+import lib.input as input
 from lib.compose import compose
 from helpers.findactor import find_actor
 from contexts import Context
@@ -42,10 +42,6 @@ class ExploreContext(Context):
   @property
   def anims(ctx):
     return ctx.stage_view.anims
-
-  @property
-  def vfx(ctx):
-    return ctx.stage_view.vfx
 
   @property
   def talkbubble(ctx):
@@ -97,8 +93,6 @@ class ExploreContext(Context):
     if delta_y:
       ctx.move(ctx.hero, delta=(0, delta_y), diagonal=diagonal, running=running)
       ctx.collide(ctx.hero, delta=(0, delta_y))
-
-    ctx.update_bubble()
 
     prop = next((e for e in ctx.stage.elems if
       isinstance(e, Prop)

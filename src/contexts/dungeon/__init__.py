@@ -1,4 +1,5 @@
 from helpers.findactor import find_actor
+import lib.vector as vector
 from contexts import Context
 from contexts.explore import ExploreContext
 from contexts.explore.stageview import StageView
@@ -7,9 +8,11 @@ from contexts.dungeon.camera import Camera
 from comps.hud import Hud
 from comps.minilog import Minilog
 from comps.minimap import Minimap
+from dungeon.actors import DungeonActor
 from dungeon.actors.knight import Knight
 from dungeon.fov import shadowcast
 from dungeon.room import Blob as Room
+from vfx.talkbubble import TalkBubble
 from config import WINDOW_SIZE, WINDOW_HEIGHT, VISION_RANGE
 
 class DungeonContext(Context):
@@ -21,6 +24,7 @@ class DungeonContext(Context):
     ctx.memory = {}
     ctx.stage_view = StageView(stage=stage, camera=ctx.camera)
     ctx.hero_cell = None
+    ctx.hero_facing = None
     ctx.comps = []
 
   @property
@@ -39,6 +43,14 @@ class DungeonContext(Context):
     return visited_cells
 
   @property
+  def anims(ctx):
+    return ctx.stage_view.anims
+
+  @property
+  def vfx(ctx):
+    return ctx.stage_view.vfx
+
+  @property
   def minilog(ctx):
     return next((c for c in ctx.comps if type(c) is Minilog), None)
 
@@ -49,6 +61,10 @@ class DungeonContext(Context):
   @property
   def hud(ctx):
     return next((c for c in ctx.comps if type(c) is Hud), None)
+
+  @property
+  def talkbubble(ctx):
+    return next((v for v in ctx.vfx if type(v) is TalkBubble), None)
 
   def enter(ctx):
     hero = Knight(core=ctx.store.party[0])
@@ -99,6 +115,26 @@ class DungeonContext(Context):
     ctx.minimap.exit()
     ctx.hud.enter()
 
+  def update_bubble(ctx):
+    facing_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
+    facing_elems = ctx.stage.get_elems_at(facing_cell)
+    facing_elem = next((e for e in facing_elems if (
+      e.active
+      and (not isinstance(e, DungeonActor) or e.faction == "ally")
+    )), None)
+
+    if ctx.talkbubble and ctx.talkbubble.target is facing_elem and not ctx.anims and not ctx.hero.item:
+      return
+
+    if ctx.talkbubble:
+      ctx.talkbubble.done = True
+
+    if facing_elem and not ctx.anims and not ctx.hero.item:
+      ctx.vfx.append(TalkBubble(
+        target=facing_elem,
+        cell=facing_cell,
+      ))
+
   def update_visited_cells(ctx, cells):
     ctx.visited_cells.extend([c for c in cells if c not in ctx.visited_cells])
 
@@ -109,8 +145,13 @@ class DungeonContext(Context):
     for comp in ctx.comps:
       comp.update()
 
+    if ctx.hero_facing != ctx.hero.facing:
+      ctx.hero_facing = ctx.hero.facing
+      ctx.update_bubble()
+
     if ctx.hero.cell != ctx.hero_cell:
       ctx.hero_cell = ctx.hero.cell
+      ctx.update_bubble()
       ctx.refresh_fov()
 
     ctx.camera.update()
