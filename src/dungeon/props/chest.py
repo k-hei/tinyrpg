@@ -78,11 +78,7 @@ class Chest(Prop):
     else:
       script = ["It's empty..."]
     if anims:
-      game.camera.focus(
-        cell=chest.cell,
-        force=True,
-        speed=8
-      )
+      game.camera.focus(chest.cell)
     else:
       game.open(child=DialogueContext(
         lite=True,

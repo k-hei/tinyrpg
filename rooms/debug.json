@@ -23,7 +23,8 @@
     [[3, 8], "Door"],
     [[7, 3], "Door"],
     [[10, 3], "Door"],
-    [[14, 3], "Vase", { "contents": "Cheese" }]
+    [[14, 3], "Vase", { "contents": "Cheese" }],
+    [[12, 4], "Chest", { "contents": "Buckler" }]
   ],
   "rooms": [
     [

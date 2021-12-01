@@ -52,13 +52,11 @@ class ExploreContext(Context):
     ctx.camera.focus(ctx.hero)
 
   def open(ctx, child, on_close=None):
+    on_close = compose(on_close, ctx.parent.update_bubble)
     if type(child) is InventoryContext:
       open = super().open
       ctx.parent.hud.enter(on_end=lambda: (
-        open(child, on_close=compose(
-          ctx.parent.hud.exit,
-          on_close
-        ))
+        open(child, on_close=compose(on_close, ctx.parent.hud.exit))
       ))
     else:
       return super().open(child, on_close)
@@ -72,10 +70,13 @@ class ExploreContext(Context):
 
     if not button:
       delta = input.resolve_delta()
-      delta and ctx.handle_move(
-        delta=delta,
-        running=input.get_state(input.CONTROL_RUN) > 0
-      )
+      if delta:
+        return ctx.handle_move(
+          delta=delta,
+          running=input.get_state(input.CONTROL_RUN) > 0
+        )
+      else:
+        return False
 
     if input.get_state(button) > 1:
       return False

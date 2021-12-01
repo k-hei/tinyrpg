@@ -109,8 +109,15 @@ def get_state(control):
         return get_state(button)
       else:
         return 0
-  else:
-    return timings[control] if control in timings else 0
+
+  if control in timings:
+    return timings[control]
+
+  control = resolve_button(control)
+  if control in timings:
+    return timings[control]
+
+  return 0
 
 def update():
   for button in timings:

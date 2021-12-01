@@ -126,14 +126,15 @@ class DungeonContext(Context):
 
   def update_bubble(ctx):
     facing_elem = ctx.facing_elem
+    pending_anims = [a for g in ctx.anims for a in g if not a.done]
 
-    if ctx.talkbubble and ctx.talkbubble.target is facing_elem and not ctx.anims and not ctx.hero.item:
+    if ctx.talkbubble and ctx.talkbubble.target is facing_elem and not pending_anims and not ctx.hero.item and not ctx.child.child:
       return
 
     if ctx.talkbubble:
       ctx.talkbubble.done = True
 
-    if facing_elem and not ctx.anims and not ctx.hero.item:
+    if facing_elem and not pending_anims and not ctx.hero.item and not ctx.child.child:
       ctx.vfx.append(TalkBubble(
         target=facing_elem,
         cell=facing_elem.cell,

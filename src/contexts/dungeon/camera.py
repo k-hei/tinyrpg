@@ -16,6 +16,8 @@ class Camera:
     for target in target_group:
       if isinstance(target, Room):
         room = target
+      elif type(target) is tuple:
+        targets.append(target)
       else:
         targets.append(target.pos)
         scale = min(scale, target.scale)
