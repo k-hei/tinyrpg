@@ -34,9 +34,6 @@ class ItemDrop(Prop):
 
     if obtained:
       drop.obtained = True
-    # else:
-    #   game.log.clear()
-    #   game.log.print(("You're standing on ", drop.item().token(), "."))
 
     return obtained
 

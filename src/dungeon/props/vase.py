@@ -38,7 +38,7 @@ class Vase(Prop):
     drop = None
     if item:
       drop = ItemDrop(item)
-      game.floor.spawn_elem_at(vase.cell, drop)
+      game.stage.spawn_elem_at(vase.cell, drop)
     not game.anims and game.anims.append([])
     game.anims[0] = [
       Vase.OpenAnim(target=vase),
@@ -48,7 +48,7 @@ class Vase(Prop):
       PauseAnim(duration=30),
       FlickerAnim(
         duration=45,
-        on_end=lambda: game.floor.remove_elem(vase)
+        on_end=lambda: game.stage.remove_elem(vase)
       )
     ]
     return True

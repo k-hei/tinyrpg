@@ -20,9 +20,10 @@
   "elems": [
     [[6, 12], "Eyeball", { "ailment": "sleep" }],
     [[6, 12], "ItemDrop", { "contents": "Potion" }],
+    [[3, 8], "Door"],
     [[7, 3], "Door"],
     [[10, 3], "Door"],
-    [[3, 8], "Door"]
+    [[14, 3], "Vase", { "contents": "Cheese" }]
   ],
   "rooms": [
     [

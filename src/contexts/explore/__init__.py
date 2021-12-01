@@ -192,17 +192,16 @@ class ExploreContext(Context):
     if facing_elem is None:
       return False
 
-    ctx.anims.append([
-      AttackAnim(
-        target=ctx.hero,
-        src=ctx.hero.cell,
-        dest=facing_elem.cell,
-        on_connect=lambda: (
-          facing_elem.effect(ctx, ctx.hero),
-          ctx.parent.update_bubble(),
-        )
-      )
-    ])
+    facing_elem.effect(ctx, ctx.hero)
+    ctx.parent.update_bubble()
+
+    not ctx.anims and ctx.anims.append([])
+    ctx.anims[0].append(AttackAnim(
+      target=ctx.hero,
+      src=ctx.hero.cell,
+      dest=facing_elem.cell,
+    ))
+
     return True
 
   def handle_combat(ctx):
