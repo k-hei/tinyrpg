@@ -67,7 +67,10 @@ class Chest(Prop):
               game.open(child=DialogueContext(
                 lite=True,
                 script=script
-              ), on_close=lambda: item_anim and item_anim.end())
+              ), on_close=lambda: (
+                item_anim and item_anim.end(),
+                game.camera.blur(chest.cell)
+              ))
             )
           )
         ])

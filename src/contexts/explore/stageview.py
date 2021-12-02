@@ -63,9 +63,9 @@ class StageView:
     y = (sprite_y + sprite.offset + 0.5) * DEPTH_SIZE
     return int(depth + y)
 
-  def __init__(view, stage, camera):
+  def __init__(view, stage):
     view.stage = stage
-    view.camera = camera
+    view.camera = Camera(WINDOW_SIZE)
     view.anim = None
     view.anims = []
     view.vfx = []
@@ -212,6 +212,9 @@ class StageView:
           and (0, view.anim.offset)
           or (view.anim.offset, 0)
       ))
+
+    if not view.camera.rect:
+      return []
 
     camera_pos = vector.negate(view.camera.rect.topleft)
     sprites = Sprite.move_all(

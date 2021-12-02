@@ -86,7 +86,7 @@ class Camera:
 
   @property
   def target(camera):
-    return camera.target_groups[-1]
+    return camera.target_groups[-1] if camera.target_groups else []
 
   @property
   def targets(camera):

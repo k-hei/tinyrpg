@@ -1,79 +1,26 @@
-from helpers.findactor import find_actor
-import lib.vector as vector
-from contexts import Context
 from contexts.explore import ExploreContext
+from contexts.explore.base import ExploreBase
 from contexts.explore.stageview import StageView
 from contexts.combat import CombatContext
-from contexts.dungeon.camera import Camera
 from comps.hud import Hud
 from comps.minilog import Minilog
 from comps.minimap import Minimap
-from dungeon.actors import DungeonActor
 from dungeon.actors.knight import Knight
 from dungeon.fov import shadowcast
 from dungeon.room import Blob as Room
 from vfx.talkbubble import TalkBubble
-from config import WINDOW_SIZE, WINDOW_HEIGHT, VISION_RANGE
+from config import WINDOW_HEIGHT, VISION_RANGE
 
-class DungeonContext(Context):
+class DungeonContext(ExploreBase):
   def __init__(ctx, store, stage, *args, **kwargs):
     super().__init__(*args, **kwargs)
     ctx.store = store
     ctx.stage = stage
-    ctx.camera = Camera(WINDOW_SIZE)
+    ctx.stage_view = StageView(stage)
     ctx.memory = {}
-    ctx.stage_view = StageView(stage=stage, camera=ctx.camera)
     ctx.hero_cell = None
     ctx.hero_facing = None
     ctx.comps = []
-
-  @property
-  def hero(ctx):
-    return find_actor(
-      char=ctx.store.party[0],
-      stage=ctx.stage
-    ) if ctx.store.party else None
-
-  @property
-  def visited_cells(ctx):
-    stage_id = ctx.stage.__hash__()
-    visited_cells = ctx.memory[stage_id] if stage_id in ctx.memory else None # next((cs for (s, cs) in ctx.memory if s is ctx.stage), None)
-    if visited_cells is None:
-      ctx.memory[stage_id] = (visited_cells := [])
-    return visited_cells
-
-  @property
-  def anims(ctx):
-    return ctx.stage_view.anims
-
-  @property
-  def vfx(ctx):
-    return ctx.stage_view.vfx
-
-  @property
-  def minilog(ctx):
-    return next((c for c in ctx.comps if type(c) is Minilog), None)
-
-  @property
-  def minimap(ctx):
-    return next((c for c in ctx.comps if type(c) is Minimap), None)
-
-  @property
-  def hud(ctx):
-    return next((c for c in ctx.comps if type(c) is Hud), None)
-
-  @property
-  def facing_elem(ctx):
-    facing_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
-    facing_elems = ctx.stage.get_elems_at(facing_cell)
-    return next((e for e in facing_elems if (
-      e.active
-      and (not isinstance(e, DungeonActor) or e.faction == "ally")
-    )), None)
-
-  @property
-  def talkbubble(ctx):
-    return next((v for v in ctx.vfx if type(v) is TalkBubble), None)
 
   def enter(ctx):
     hero = Knight(core=ctx.store.party[0])
@@ -110,8 +57,7 @@ class DungeonContext(Context):
       store=ctx.store,
       stage=ctx.stage,
       stage_view=ctx.stage_view,
-      on_end=ctx.handle_combat,
-    ))
+    ), on_close=ctx.handle_combat)
     ctx.minimap.enter()
 
   def handle_combat(ctx):
@@ -119,8 +65,7 @@ class DungeonContext(Context):
       store=ctx.store,
       stage=ctx.stage,
       stage_view=ctx.stage_view,
-      on_end=ctx.handle_explore,
-    ))
+    ), on_close=ctx.handle_explore)
     ctx.minimap.exit()
     ctx.hud.enter()
 
@@ -128,13 +73,14 @@ class DungeonContext(Context):
     facing_elem = ctx.facing_elem
     pending_anims = [a for g in ctx.anims for a in g if not a.done]
 
-    if ctx.talkbubble and ctx.talkbubble.target is facing_elem and not pending_anims and not ctx.hero.item and not ctx.child.child:
+    can_show_bubble = not pending_anims and not ctx.hero.item and not ctx.child.child
+    if ctx.talkbubble and ctx.talkbubble.target is facing_elem and can_show_bubble:
       return
 
     if ctx.talkbubble:
       ctx.talkbubble.done = True
 
-    if facing_elem and not pending_anims and not ctx.hero.item and not ctx.child.child:
+    if facing_elem and can_show_bubble:
       ctx.vfx.append(TalkBubble(
         target=facing_elem,
         cell=facing_elem.cell,

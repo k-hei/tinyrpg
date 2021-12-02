@@ -2,11 +2,8 @@ from random import randint
 import lib.vector as vector
 import lib.input as input
 from lib.direction import invert as invert_direction
-from helpers.findactor import find_actor
 
-from contexts import Context
-from contexts.dungeon.camera import Camera
-from contexts.explore.stageview import StageView
+from contexts.explore.base import ExploreBase
 from comps.damage import DamageValue
 from dungeon.actors import DungeonActor
 from tiles import Tile
@@ -19,7 +16,6 @@ from anims.flicker import FlickerAnim
 from vfx.flash import FlashVfx
 from colors.palette import GOLD
 from config import (
-  WINDOW_SIZE,
   FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION,
   COMBAT_THRESHOLD,
 )
@@ -32,37 +28,7 @@ def find_damage_text(damage):
   else:
     return int(damage)
 
-class CombatContext(Context):
-  def __init__(ctx, store, stage, stage_view=None, on_end=None, *args, **kwargs):
-    super().__init__(*args, **kwargs)
-    ctx._headless = stage_view is None
-    if stage_view:
-      ctx.stage = stage_view.stage
-      ctx.camera = stage_view.camera
-      ctx.stage_view = stage_view
-    else:
-      ctx.stage = stage
-      ctx.camera = Camera(WINDOW_SIZE)
-      ctx.stage_view = StageView(stage=stage, camera=ctx.camera)
-    ctx.store = store
-    ctx.exiting = False
-    ctx.on_end = on_end
-
-  @property
-  def hero(ctx):
-    return find_actor(
-      char=ctx.store.party[0],
-      stage=ctx.stage
-    ) if ctx.store.party else None
-
-  @property
-  def anims(ctx):
-    return ctx.stage_view.anims
-
-  @property
-  def vfx(ctx):
-    return ctx.stage_view.vfx
-
+class CombatContext(ExploreBase):
   def enter(ctx):
     if not ctx.hero:
       return
@@ -97,9 +63,9 @@ class CombatContext(Context):
 
   def exit(ctx):
     ctx.exiting = True
-    ctx.parent.hud.exit(on_end=lambda: (
+    ctx.hud.exit(on_end=lambda: (
       ctx.hero.core.anims.clear(),
-      ctx.on_end()
+      ctx.close()
     ))
 
   def handle_press(ctx, button):

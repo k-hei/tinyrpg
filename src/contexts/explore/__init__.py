@@ -1,62 +1,28 @@
 import pygame
 from pygame import Surface, SRCALPHA
 from lib.sprite import Sprite
-import lib.vector as vector
 import lib.input as input
 from lib.compose import compose
-from helpers.findactor import find_actor
-from contexts import Context
-from contexts.explore.stageview import StageView
-from contexts.dungeon.camera import Camera
+from contexts.explore.base import ExploreBase
 from contexts.inventory import InventoryContext
 from dungeon.actors import DungeonActor
 from dungeon.props.itemdrop import ItemDrop
-from vfx.talkbubble import TalkBubble
-from anims.item import ItemAnim
 from anims.attack import AttackAnim
 from tiles import Tile
-from config import WINDOW_SIZE, COMBAT_THRESHOLD
 
-class ExploreContext(Context):
-  def __init__(ctx, store, stage, stage_view=None, on_end=None, *args, **kwargs):
-    super().__init__(*args, **kwargs)
-    ctx._headless = stage_view is None
-    if stage_view:
-      ctx.stage = stage_view.stage
-      ctx.camera = stage_view.camera
-      ctx.stage_view = stage_view
-    else:
-      ctx.stage = stage
-      ctx.camera = Camera(WINDOW_SIZE)
-      ctx.stage_view = StageView(stage=stage, camera=ctx.camera)
-    ctx.store = store
-    ctx.on_end = on_end
-    ctx.debug = False
-
-  @property
-  def hero(ctx):
-    return find_actor(
-      char=ctx.store.party[0],
-      stage=ctx.stage
-    ) if ctx.store.party else None
-
-  @property
-  def anims(ctx):
-    return ctx.stage_view.anims
-
-  @property
-  def talkbubble(ctx):
-    return next((v for v in ctx.vfx if type(v) is TalkBubble), None)
-
+class ExploreContext(ExploreBase):
   def enter(ctx):
     ctx.camera.focus(ctx.hero)
+
+  def exit(ctx):
+    ctx.close()
 
   def open(ctx, child, on_close=None):
     on_close = compose(on_close, ctx.parent.update_bubble)
     if type(child) is InventoryContext:
       open = super().open
-      ctx.parent.hud.enter(on_end=lambda: (
-        open(child, on_close=compose(on_close, ctx.parent.hud.exit))
+      ctx.hud.enter(on_end=lambda: (
+        open(child, on_close=compose(on_close, ctx.hud.exit))
       ))
     else:
       return super().open(child, on_close)
@@ -169,27 +135,8 @@ class ExploreContext(Context):
     else:
       return False
 
-  def handle_obtain(ctx, item, target, on_end=None):
-    obtained = ctx.store.obtain(item)
-    if obtained:
-      old_facing = ctx.hero.facing
-      ctx.hero.facing = (0, 1)
-      ctx.anims.append([
-        ItemAnim(
-          target=target,
-          item=item(),
-          duration=60,
-          on_end=lambda: (
-            setattr(ctx.hero, "facing", old_facing),
-            on_end and on_end(),
-          )
-        )
-      ])
-      ctx.parent.minilog.print(message=("Obtained ", item().token(), "."))
-    return obtained
-
   def handle_action(ctx):
-    facing_elem = ctx.parent.facing_elem
+    facing_elem = ctx.facing_elem
     if facing_elem is None:
       return False
 
@@ -206,17 +153,16 @@ class ExploreContext(Context):
     return True
 
   def handle_combat(ctx):
-    ctx.on_end and ctx.on_end()
+    ctx.exit()
 
-  def view(ctx):
-    if not ctx._headless:
-      return super().view()
+  # def view_explore(ctx):
+    # return super().view()
 
-    sprites = ctx.stage_view.view()
-    if ctx.debug:
-      sprites += [debug_view_elem(e) for e in ctx.stage.elems]
+    # sprites = ctx.stage_view.view()
+    # if ctx.debug:
+    #   sprites += [debug_view_elem(e) for e in ctx.stage.elems]
 
-    return sprites + super().view()
+    # return sprites + super().view()
 
 def debug_view_elem(elem):
   ALPHA = 128
