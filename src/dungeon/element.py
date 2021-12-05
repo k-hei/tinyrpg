@@ -19,6 +19,8 @@ from config import ITEM_OFFSET, TILE_SIZE, PUSH_DURATION, NUDGE_DURATION
 import debug
 
 class DungeonElement:
+  HITBOX_SIZE = (TILE_SIZE // 2, TILE_SIZE // 2)
+
   solid = False
   opaque = False
   static = False

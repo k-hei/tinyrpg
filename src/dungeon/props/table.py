@@ -1,5 +1,6 @@
-from pygame import Surface
+from pygame import Surface, Rect
 from pygame.transform import flip
+import lib.vector as vector
 from lib.filters import replace_color
 from colors.palette import WHITE, SAFFRON
 
@@ -16,6 +17,15 @@ class Table(Prop):
   def __init__(table, length=1, *args, **kwargs):
     super().__init__(size=(length, 1), solid=True, *args, **kwargs)
     table.length = length
+
+  @property
+  def rect(table):
+    if table._rect is None and table.pos:
+      table._rect = Rect(
+        vector.subtract(table.pos, (16, 16)),
+        (table.length * 32, 32)
+      )
+    return table._rect
 
   def view(table, anims):
     table_width = TILE_SIZE * table.length

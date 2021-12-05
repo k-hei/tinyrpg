@@ -1,3 +1,4 @@
+from pygame import Rect
 from config import TILE_SIZE
 
 # TODO: relocate pathfinding logic
@@ -61,7 +62,13 @@ class Stage:
     return None
 
   def get_elems_at(stage, cell):
-    return [e for e in stage.elems if e.cell == cell]
+    return [e for e in stage.elems if (
+      e.cell == cell
+      or (
+        e.size != (1, 1)
+        and Rect(e.cell, e.size).collidepoint(cell)
+      )
+    )]
 
   def spawn_elem_at(stage, cell, elem):
     elem.spawn(stage, cell)
