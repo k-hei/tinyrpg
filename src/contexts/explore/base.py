@@ -76,6 +76,14 @@ class ExploreBase(Context):
       and (not isinstance(e, DungeonActor) or e.faction == "ally")
     )), None)
 
+  def find_enemies_in_range(ctx):
+    room = next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells), None)
+    return [e for e in ctx.stage.elems if
+      isinstance(e, DungeonActor)
+      and e.faction == DungeonActor.FACTION_ENEMY
+      and room and e.cell in room.cells
+    ]
+
   def handle_obtain(ctx, item, target, on_end=None):
     obtained = ctx.store.obtain(item)
     if obtained:

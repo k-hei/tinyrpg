@@ -17,7 +17,7 @@ from vfx.flash import FlashVfx
 from colors.palette import GOLD
 from config import (
   FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION,
-  COMBAT_THRESHOLD,
+  COMBAT_THRESHOLD, CRIT_MODIFIER,
 )
 
 def find_damage_text(damage):
@@ -80,11 +80,11 @@ class CombatContext(ExploreBase):
       return ctx.handle_move(delta)
 
     button = input.resolve_button(button)
-    if input.get_state(button) > 1:
-      return
-
     if button == input.BUTTON_A:
       return ctx.handle_attack()
+
+    # if input.get_state(button) > 1:
+    #   return
 
   def handle_move(ctx, delta):
     moved = ctx.move(ctx.hero, delta)
@@ -126,8 +126,11 @@ class CombatContext(ExploreBase):
   def attack(ctx, actor, target=None, modifier=1):
     if target:
       actor.face(target.cell)
-      damage = ctx.find_damage(actor, target, modifier)
       crit = ctx.find_crit(actor, target)
+      if crit:
+        damage = ctx.find_damage(actor, target, modifier=modifier * CRIT_MODIFIER)
+      else:
+        damage = ctx.find_damage(actor, target, modifier)
 
     attack_delay = (actor.core.AttackAnim.frames_duration[0]
       if "AttackAnim" in dir(actor.core) and actor.facing == (0, 1)
@@ -198,12 +201,7 @@ class CombatContext(ExploreBase):
     ]
 
   def kill(ctx, target):
-    ctx.exiting = not next((e for e in ctx.stage.elems if
-      e is not target
-      and isinstance(e, DungeonActor)
-      and not e.allied(ctx.hero)
-      and vector.distance(ctx.hero.pos, e.pos) < COMBAT_THRESHOLD
-    ), None)
+    ctx.exiting = not ctx.find_enemies_in_range()
 
     target.kill(ctx)
     ctx.anims[0].append(FlickerAnim(

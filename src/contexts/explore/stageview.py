@@ -182,12 +182,17 @@ class StageView:
     )]
 
   def view_elem(view, elem):
+    elem_view = elem.view(anims=view.anims)
+    if not elem_view:
+      return []
+
     elem_sprites = Sprite.move_all(
-      sprites=elem.view(anims=view.anims),
+      sprites=elem_view,
       offset=elem.pos,
     )
     if not elem_sprites:
       return []
+
     elem_sprites[0].origin = Sprite.ORIGIN_CENTER
     return elem_sprites
 

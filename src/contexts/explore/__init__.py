@@ -79,13 +79,7 @@ class ExploreContext(ExploreBase):
       prop.effect(ctx, ctx.hero)
       ctx.hero.stop_move()
 
-    room = next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells), None)
-    enemy = next((e for e in ctx.stage.elems if
-      isinstance(e, DungeonActor)
-      and e.faction == DungeonActor.FACTION_ENEMY
-      and room and e.cell in room.cells
-    ), None)
-    if enemy:
+    if ctx.find_enemies_in_range():
       return ctx.handle_combat()
 
   def move(ctx, actor, delta, diagonal=False, running=False):
