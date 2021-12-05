@@ -1,6 +1,6 @@
 from lib.bounds import find_bounds
 from lib.cell import add as add_vector, subtract as subtract_vector
-from dungeon.stage import Stage
+from contexts.explore.stage import Stage
 from dungeon.room import Blob as Room
 from dungeon.roomdata import RoomData
 from dungeon.decoder import decode_elem

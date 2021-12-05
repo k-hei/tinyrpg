@@ -11,7 +11,7 @@ from contexts.custom import CustomContext
 from contexts.dungeon import DungeonContext
 from dungeon.gen.manifest import manifest_stage_from_room
 from dungeon.decoder import decode_floor
-from dungeon.roomdata import load_rooms, rooms
+from contexts.explore.roomdata import load_rooms, rooms
 from town.context import TownContext
 from skills import get_skill_order
 from skills.weapon import Weapon

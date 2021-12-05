@@ -14,7 +14,7 @@ class Blob(Room):
       data = choice(data)
     if data:
       degree = data.degree
-    if not cells:
+    if not cells and data:
       cells = data.extract_cells()
     rect = find_bounds(cells)
     room._cells = [subtract_vector(c, rect.topleft) for c in cells]
@@ -74,7 +74,7 @@ class Blob(Room):
 
   @property
   def hitbox(room):
-    return room.visible_outline
+    return set(room.visible_outline)
 
   @property
   def outline(room):
@@ -148,8 +148,7 @@ class Blob(Room):
   def get_tile_at(room, cell):
     if not room.data:
       return None
-    x, y = cell
-    return room.data.tiles[y * room.width + x]
+    return room.data.tiles.get(*cell)
 
   def lock_special_doors(room, stage):
     if room.should_unlock(stage):

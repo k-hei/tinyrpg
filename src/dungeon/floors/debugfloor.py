@@ -1,7 +1,7 @@
 from lib.graph import Graph
 from dungeon.floors import Floor
 from dungeon.room import Blob as Room
-from dungeon.roomdata import RoomData, rooms
+from contexts.explore.roomdata import RoomData, rooms
 from dungeon.gen import gen_floor
 
 class DebugFloor(Floor):
@@ -9,9 +9,10 @@ class DebugFloor(Floor):
     return gen_floor(
       features=lambda: Graph(
         nodes=[
-          entry_room := Room(data=RoomData(**rooms["entry1f"])),
-          puzzle_room := Room(data=RoomData(**rooms["pzlt1"]))
+          Room(data=RoomData(**rooms["entry"])),
+          # Room(data=RoomData(**rooms["pzlt1"]))
         ]
       ),
+      extra_room_count=5,
       seed=seed
     )

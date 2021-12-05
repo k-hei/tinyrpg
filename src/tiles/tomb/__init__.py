@@ -1,5 +1,4 @@
 import lib.vector as vector
-from lib.sprite import Sprite
 from lib.filters import replace_color
 from colors.palette import WHITE, COLOR_TILE
 

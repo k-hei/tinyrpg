@@ -1,7 +1,7 @@
 import lib.vector as vector
 from helpers.findactor import find_actor
 from contexts import Context
-from contexts.explore.stageview import StageView
+# from contexts.explore.stageview import StageView
 from comps.hud import Hud
 from comps.minilog import Minilog
 from comps.minimap import Minimap
@@ -14,7 +14,7 @@ class ExploreBase(Context):
     super().__init__(*args, **kwargs)
     ctx.store = store
     ctx.stage = stage
-    ctx.stage_view = stage_view or StageView(stage)
+    ctx.stage_view = stage_view # or StageView(stage)
 
   @property
   def hero(ctx):

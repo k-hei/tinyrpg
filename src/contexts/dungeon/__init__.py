@@ -8,6 +8,7 @@ from comps.minimap import Minimap
 from dungeon.actors.knight import Knight
 from dungeon.fov import shadowcast
 from dungeon.room import Blob as Room
+import tiles.default as tileset
 from vfx.talkbubble import TalkBubble
 from config import WINDOW_HEIGHT, VISION_RANGE
 
@@ -24,8 +25,12 @@ class DungeonContext(ExploreBase):
 
   def enter(ctx):
     hero = Knight(core=ctx.store.party[0])
-    stage_entrance = next((cell for cell, tile in ctx.stage.tiles.enumerate() if tile.__name__ == "Exit"), None)
-    stage_entrance and ctx.stage.spawn_elem_at(stage_entrance, hero)
+    stage_entrance = next((cell for cell, tile in ctx.stage.tiles.enumerate() if issubclass(tile, tileset.Entrance)), None)
+    if stage_entrance:
+      ctx.stage.spawn_elem_at(stage_entrance, hero)
+    else:
+      raise LookupError("Failed to find Entrance tile to spawn hero")
+
     ctx.comps = [
       Hud(party=ctx.store.party, hp=True),
       Minilog(pos=(8, WINDOW_HEIGHT - 8 - Minilog.sprite.get_height() / 2)),

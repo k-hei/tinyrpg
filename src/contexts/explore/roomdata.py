@@ -3,6 +3,7 @@ from os import listdir
 from os.path import join, splitext
 from dataclasses import dataclass, field
 from lib.grid import Grid
+import tiles.default as tileset
 from resolve.hook import resolve_hook
 from resolve.tileset import resolve_tileset
 from config import ROOMS_PATH
@@ -65,13 +66,4 @@ class RoomData:
     roomdata.hooks = { k: resolve_hook(h) if type(h) is str else h for k, h in roomdata.hooks.items() }
 
   def extract_cells(roomdata):
-    cells = []
-    width, height = roomdata.size
-    for y in range(height):
-      for x in range(width):
-        i = y * width + x
-        if i >= len(roomdata.tiles):
-          continue
-        if roomdata.tiles[i] != 1:
-          cells.append((x, y))
-    return cells
+    return [c for c, t in roomdata.tiles.enumerate() if not issubclass(t, tileset.Wall)]

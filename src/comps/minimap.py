@@ -62,8 +62,8 @@ class Minimap:
   def render_surface(floor, size=None, focus=None, visible_cells=None, visited_cells=None, anims=[], blink=False):
     floor_width, floor_height = floor.size
     filled = not visible_cells and not visited_cells
-    visible_cells = visible_cells # or floor.cells
-    visited_cells = visited_cells or visible_cells
+    visible_cells = visible_cells or [(x, y) for y in range(floor.height) for x in range(floor.width)]
+    visited_cells = visited_cells or visible_cells or []
     bounds = filled and Rect((0, 0), floor.size) or find_bounds(visited_cells)
     sprite_size = tuple(map(ceil, size or bounds.size))
     sprite_width, sprite_height = sprite_size
