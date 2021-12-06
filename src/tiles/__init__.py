@@ -14,3 +14,6 @@ class Tile:
 
   def is_solid(tile):
     return not tile or tile.solid
+
+  def is_walkable(tile):
+    return tile and not tile.solid and not tile.pit

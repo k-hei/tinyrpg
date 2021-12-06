@@ -88,7 +88,7 @@ class Stage:
 
   def is_cell_empty(stage, cell):
     tile = stage.get_tile_at(cell)
-    if not tile or tile.solid:
+    if not tile or tile.solid or tile.pit:
       return False
 
     elem = next((e for e in stage.get_elems_at(cell) if e.solid), None)

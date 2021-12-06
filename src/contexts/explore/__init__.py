@@ -102,23 +102,23 @@ class ExploreContext(ExploreBase):
     tile_se = stage.get_tile_at((col_e, row_s))
 
     if delta_x < 0:
-      if Tile.is_solid(tile_nw) or Tile.is_solid(tile_sw):
+      if not Tile.is_walkable(tile_nw) or not Tile.is_walkable(tile_sw):
         rect.left = (col_w + 1) * stage.tile_size
       elif elem:
         rect.left = elem_rect.right
     elif delta_x > 0:
-      if Tile.is_solid(tile_ne) or Tile.is_solid(tile_se):
+      if not Tile.is_walkable(tile_ne) or not Tile.is_walkable(tile_se):
         rect.right = col_e * stage.tile_size
       elif elem:
         rect.right = elem_rect.left
 
     if delta_y < 0:
-      if Tile.is_solid(tile_nw) or Tile.is_solid(tile_ne):
+      if not Tile.is_walkable(tile_nw) or not Tile.is_walkable(tile_ne):
         rect.top = (row_n + 1) * stage.tile_size
       elif elem:
         rect.top = elem_rect.bottom
     elif delta_y > 0:
-      if Tile.is_solid(tile_sw) or Tile.is_solid(tile_se):
+      if not Tile.is_walkable(tile_sw) or not Tile.is_walkable(tile_se):
         rect.bottom = row_s * stage.tile_size
       elif elem:
         rect.bottom = elem_rect.top

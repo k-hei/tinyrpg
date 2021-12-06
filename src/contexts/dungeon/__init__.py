@@ -71,13 +71,17 @@ class DungeonContext(ExploreBase):
     if door and not door.opened:
       door.open()
 
-    rooms_cells = [c for r in ctx.rooms + [room] for c in r.cells]
+    rooms = ctx.rooms + [room]
+    rooms_cells = [c for r in rooms for c in r.cells]
+    rooms_borders = [c for r in rooms for c in r.border]
     ctx.hero.cell = hallway[-1]
     ctx.hero.visible_cells = [
       *set([
         n for c in hallway
-          for n in neighborhood(c) + neighborhood(vector.add(c, (0, -1)))
-            if n not in rooms_cells
+          for n in neighborhood(c) + [
+            n for n in neighborhood(vector.add(c, (0, -1)))
+              if n not in rooms_borders
+          ] if n not in rooms_cells
       ])
     ]
     ctx.update_visited_cells(ctx.hero.visible_cells)

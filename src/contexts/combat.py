@@ -99,7 +99,7 @@ class CombatContext(ExploreBase):
     target_cell = vector.add(actor.cell, delta)
 
     target_tile = ctx.stage.get_tile_at(target_cell)
-    if Tile.is_solid(target_tile):
+    if not Tile.is_walkable(target_tile):
       return False
 
     target_elem = (
