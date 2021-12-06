@@ -2,6 +2,7 @@ from math import ceil
 from pygame import Rect
 import lib.vector as vector
 from dungeon.room import Blob as Room
+from anims.tween import TweenAnim
 from config import TILE_SIZE
 
 class Camera:
@@ -68,6 +69,7 @@ class Camera:
     camera.pos = pos or None
     camera.vel = (0, 0)
     camera.target_groups = []
+    camera.anim = None
 
   @property
   def pos(camera):
@@ -80,19 +82,15 @@ class Camera:
 
   @property
   def rect(camera):
-    if camera._rect:
-      return camera._rect
-
-    if camera.pos is None:
-      return None
-
-    return Rect(
-      vector.subtract(
-        camera.pos,
-        vector.scale(camera.size, 1 / 2)
-      ),
-      camera.size
-    )
+    if not camera._rect and camera.pos:
+      camera._rect = Rect(
+        vector.subtract(
+          camera.pos,
+          vector.scale(camera.size, 1 / 2)
+        ),
+        camera.size
+      )
+    return camera._rect
 
   @property
   def target(camera):
@@ -107,7 +105,7 @@ class Camera:
     _, center_row = camera.cell
     return row - center_row <= -Camera.MAX_YRADIUS
 
-  def focus(camera, target, force=False):
+  def focus(camera, target, force=False, anim=None):
     if type(target) is list and force:
       camera.target_groups = [target]
     elif target in camera.targets:
@@ -119,8 +117,29 @@ class Camera:
     else:
       camera.target_groups.append([target])
 
+    target_pos = Camera.resolve_target_group(camera.target_groups[-1])
+
     if not camera.pos:
-      camera.pos = Camera.resolve_target_group(camera.target_groups[-1])
+      camera.pos = target_pos
+    elif anim:
+      anim.target = (camera.pos, target_pos)
+      camera.anim = anim
+
+  def tween(camera, target, force=False, on_end=None):
+    start_pos = camera.pos
+    camera.focus(target, force)
+    goal_pos = Camera.resolve_target_group(camera.target_groups[-1])
+
+    if not start_pos:
+      return
+
+    duration = int(vector.distance(start_pos, goal_pos) / 4)
+    camera.anim = TweenAnim(
+      target=(start_pos, goal_pos),
+      duration=duration,
+      on_end=on_end
+    )
+    return duration
 
   def blur(camera, target):
     if target in camera.target:
@@ -132,6 +151,15 @@ class Camera:
   def update(camera):
     if not camera.pos or not camera.target_groups:
       return
+
+    if camera.anim:
+      start, goal = camera.anim.target
+      camera.pos = vector.lerp(start, goal, camera.anim.pos)
+      camera.anim.update()
+      if camera.anim.done:
+        camera.anim = None
+      return
+
     target_pos = Camera.resolve_target_group(camera.target_groups[-1])
     target_vel = vector.scale(vector.subtract(target_pos, camera.pos), 1 / Camera.SPEED * 8)
     camera.vel = vector.scale(vector.subtract(target_vel, camera.vel), 1 / 8)

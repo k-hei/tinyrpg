@@ -12,12 +12,9 @@ from dungeon.props.door import Door
 from dungeon.fov import shadowcast
 from dungeon.room import Blob as Room
 import tiles.default as tileset
+from anims.pause import PauseAnim
 from vfx.talkbubble import TalkBubble
 from config import WINDOW_HEIGHT, VISION_RANGE
-
-# TODO: relocate hallway animation(?)
-import lib.vector as vector
-from anims.move import MoveAnim
 
 class DungeonContext(ExploreBase):
   def __init__(ctx, store, stage, *args, **kwargs):
@@ -29,6 +26,7 @@ class DungeonContext(ExploreBase):
     ctx.hero_cell = None
     ctx.hero_facing = None
     ctx.comps = []
+    ctx.rooms = []
 
   def enter(ctx):
     hero = Knight(core=ctx.store.party[0])
@@ -60,6 +58,7 @@ class DungeonContext(ExploreBase):
       if room:
         ctx.camera.blur(room)
       ctx.camera.focus(ctx.hero)
+    ctx.rooms.append(room)
 
     ctx.hero.visible_cells = visible_cells
     ctx.update_visited_cells(visible_cells)
@@ -70,9 +69,32 @@ class DungeonContext(ExploreBase):
     door = next((e for e in ctx.stage.get_elems_at(hallway[-1]) if isinstance(e, Door)), None)
     if door and not door.opened:
       door.open()
+
     ctx.hero.cell = hallway[-1]
-    ctx.camera.focus(target=[room, ctx.hero], force=True)
-    ctx.update_visited_cells([n for c in hallway for n in neighborhood(c, inclusive=True)])
+    ctx.hero.visible_cells = [n for c in hallway for n in neighborhood(c, inclusive=True)]
+    ctx.update_visited_cells(ctx.hero.visible_cells)
+
+    tween_duration = ctx.camera.tween(
+      target=[room, ctx.hero],
+      force=True
+    )
+    if tween_duration:
+      not ctx.anims and ctx.anims.append([])
+      ctx.anims[0].append(PauseAnim(duration=tween_duration))
+
+    room_cells = room.cells + room.visible_outline
+    if room not in ctx.rooms:
+      ctx.anims.extend([
+        [PauseAnim(
+          duration=15,
+          on_start=lambda: ctx.update_visited_cells(room_cells),
+          on_end=ctx.refresh_fov
+        )]
+      ])
+    elif tween_duration:
+      ctx.anims[0][-1].on_end = ctx.refresh_fov
+    else:
+      ctx.refresh_fov()
 
   def find_hallway(ctx, cell):
     if not issubclass(ctx.stage.get_tile_at(cell), tileset.Hallway):
@@ -123,15 +145,20 @@ class DungeonContext(ExploreBase):
     ctx.hud.enter()
 
   def update_hero_cell(ctx):
+    is_travelling = False
     if ctx.hero_cell:
       old_door = next((e for e in ctx.stage.get_elems_at(ctx.hero_cell) if isinstance(e, Door)), None)
       new_door = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if isinstance(e, Door)), None)
       new_tile = ctx.stage.get_tile_at(ctx.hero.cell)
       if issubclass(new_tile, tileset.Hallway) and (new_door or old_door):
         ctx.handle_hallway()
+        is_travelling = True
+
     ctx.hero_cell = ctx.hero.cell
     ctx.update_bubble()
-    ctx.refresh_fov()
+
+    if not is_travelling:
+      ctx.refresh_fov()
 
   def update_bubble(ctx):
     facing_elem = ctx.facing_elem

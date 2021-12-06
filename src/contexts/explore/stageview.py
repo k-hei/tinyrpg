@@ -7,6 +7,7 @@ from lib.filters import darken_image
 from anims.shake import ShakeAnim
 from contexts.dungeon.camera import Camera
 from config import WINDOW_SIZE, WINDOW_HEIGHT, DEPTH_SIZE
+import debug
 
 def find_tile_state(stage, cell, visited_cells):
   x, y = cell
@@ -71,6 +72,7 @@ class StageView:
     view.vfx = []
     view.cache_camera_cell = None
     view.cache_visible_cells = []
+    view.cache_visited_cells = []
     view.tile_surface = None
     view.tile_offset = (0, 0)
     view.tile_cache = {}
@@ -158,27 +160,33 @@ class StageView:
     for row in range(tile_rect.top, tile_rect.bottom + 1):
       for col in range(tile_rect.left, tile_rect.right + 1):
         cell = (col, row)
-        if cell in hero.visible_cells:
-          view.redraw_tile(view.stage, cell, visited_cells)
-        elif cell in view.tile_cache:
-          _, _, cached_image = view.tile_cache[cell]
-          view.tile_surface.blit(
-            cached_image,
-            vector.scale(
-              vector.subtract(cell, view.tile_offset),
-              TILE_SIZE
+        try:
+          if cell in hero.visible_cells:
+            view.redraw_tile(view.stage, cell, visited_cells)
+          elif cell in view.tile_cache:
+            _, _, cached_image = view.tile_cache[cell]
+            view.tile_surface.blit(
+              cached_image,
+              vector.scale(
+                vector.subtract(cell, view.tile_offset),
+                TILE_SIZE
+              )
             )
-          )
-        else:
-          view.redraw_tile(view.stage, cell, visited_cells, use_cache=True)
+          elif cell in visited_cells:
+            view.redraw_tile(view.stage, cell, visited_cells, use_cache=True)
+        except Exception as e:
+          debug.log(f"Failed to render tile {view.stage.get_tile_at(cell).__name__}")
+          raise e
 
     view.cache_camera_cell = snap_vector(view.camera.pos, TILE_SIZE)
     view.cache_visible_cells = hero.visible_cells.copy()
+    view.cache_visited_cells = visited_cells.copy()
 
   def view_tiles(view, hero, visited_cells):
     if (view.tile_surface is None
     or view.cache_camera_cell != snap_vector(view.camera.pos, view.stage.tile_size)
-    or view.cache_visible_cells != hero.visible_cells):
+    or view.cache_visible_cells != hero.visible_cells
+    or view.cache_visited_cells != visited_cells):
       view.redraw_tiles(hero, visited_cells)
     return [Sprite(
       image=view.tile_surface,
@@ -205,7 +213,7 @@ class StageView:
 
   def view_elems(view, elems, hero=None):
     return [s for e in elems for s in view.view_elem(e)
-      if not hero or e.cell in hero.visible_cells]
+      if (not hero or e.cell in hero.visible_cells) and not (e is hero and view.camera.anim)]
 
   def view_vfx(view, vfx):
     return [s for v in vfx for s in v.view()]

@@ -61,7 +61,7 @@ class Wall(Tile):
 
 class Pit(Tile):
   pit = True
-  def sprite(stage, cell, _):
+  def sprite(stage, cell, visited_cells=None):
     if stage.get_tile_at(vector.add(cell, (0, -1))) is not Pit:
       return assets.sprites["tomb_pit"]
     else:
