@@ -217,6 +217,9 @@ class CombatContext(ExploreBase):
   def nudge(ctx, actor, direction):
     source_cell = actor.cell
     target_cell = vector.add(source_cell, direction)
+    if not ctx.stage.is_cell_empty(target_cell):
+      return False
+
     actor.cell = target_cell
     not ctx.anims and ctx.anims.append([])
     ctx.anims[0].append(StepAnim(
