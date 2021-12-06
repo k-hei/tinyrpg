@@ -81,6 +81,7 @@ class ExploreBase(Context):
     return [e for e in ctx.stage.elems if
       isinstance(e, DungeonActor)
       and e.faction == DungeonActor.FACTION_ENEMY
+      and not e.dead
       and room and e.cell in room.cells
     ]
 

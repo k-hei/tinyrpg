@@ -202,9 +202,8 @@ class CombatContext(ExploreBase):
     ]
 
   def kill(ctx, target):
-    ctx.exiting = not ctx.find_enemies_in_range()
-
     target.kill(ctx)
+    ctx.exiting = not ctx.find_enemies_in_range()
     ctx.anims[0].append(FlickerAnim(
       target=target,
       duration=FLICKER_DURATION,

@@ -194,6 +194,10 @@ class DungeonActor(DungeonElement):
     else:
       return actor.stats.en
 
+  @property
+  def dead(actor):
+    return actor.core.dead
+
   def charge(actor, skill, dest=None, turns=0):
     actor.charge_skill = skill
     actor.charge_dest = dest

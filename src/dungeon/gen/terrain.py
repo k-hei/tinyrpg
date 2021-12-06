@@ -15,6 +15,8 @@ def gen_terrain(stage, room, tree=None):
   room_doorways = [d for d in room_doorways if d]
   room_pathcells = []
 
+  print("gen terrain", room.cell, room.size)
+
   def create_platform(cell=None):
     valid_cells = [c for c in room_cells if not next((n for n in neighborhood(c, inclusive=True, radius=2) if n in room_doorways), None)]
     if not valid_cells:
