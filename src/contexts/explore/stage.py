@@ -101,6 +101,7 @@ class Stage:
     tile = stage.get_tile_at(cell)
     return not tile or tile.opaque or next((e for e in stage.get_elems_at(cell) if e.opaque), None)
 
+  # TODO: normalize into grid pathfinder
   def pathfind(stage, start, goal, whitelist=None):
     if start == goal:
       return [goal]

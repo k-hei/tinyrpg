@@ -36,7 +36,7 @@ class CombatContext(ExploreBase):
     x, y = ctx.hero.pos
     if x % ctx.hero.scale or y % ctx.hero.scale:
       hero_dest = vector.scale(
-        vector.add((0.5, 0.5), ctx.hero.cell),
+        vector.add(ctx.hero.cell, (0.5, 0.5)),
         ctx.hero.scale
       )
       ctx.anims.append([MoveAnim(
@@ -46,6 +46,7 @@ class CombatContext(ExploreBase):
         speed=2,
         on_end=lambda: (
           ctx.anims.append([
+            # TODO: switch to actor animation queues
             ctx.hero.core.BrandishAnim(
               target=ctx.hero,
               on_end=lambda: (

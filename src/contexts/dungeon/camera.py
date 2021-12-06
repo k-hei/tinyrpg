@@ -12,25 +12,35 @@ class Camera:
   def resolve_target_group(target_group):
     scale = TILE_SIZE
     room = None
+    target = None
     targets = []
-    for target in target_group:
-      if isinstance(target, Room):
-        room = target
-      elif type(target) is tuple:
-        targets.append(target)
+    for t in target_group:
+      if isinstance(t, Room):
+        room = t
+      elif type(t) is tuple:
+        targets.append(t)
+        target = t
       else:
-        targets.append(target.pos)
+        targets.append(t.pos)
+        target = t
         scale = min(scale, target.scale)
-    target = vector.mean(*targets)
+
+    if targets:
+      target = vector.mean(*targets)
 
     if room is None:
       return target
 
-    target_x, target_y = target
     focus_x, focus_y = vector.scale(
       vector.add(room.center, (0.5, 0.5)),
       scale
     )
+
+    if target:
+      target_x, target_y = target
+    else:
+      # print("use room focus", (focus_x, focus_y))
+      return (focus_x, focus_y)
 
     max_xradius = (ceil(room.width / 2) - Camera.MAX_XRADIUS) * scale
     max_yradius = (ceil(room.height / 2) - Camera.MAX_YRADIUS) * scale
@@ -98,12 +108,13 @@ class Camera:
     return row - center_row <= -Camera.MAX_YRADIUS
 
   def focus(camera, target, force=False):
-    if target in camera.targets:
-      if force:
-        camera.target_groups = [[target]]
-      return
-
-    if camera.target_groups and not force:
+    if type(target) is list and force:
+      camera.target_groups = [target]
+    elif target in camera.targets:
+      if not force:
+        return
+      camera.target_groups = [[target]]
+    elif camera.target_groups and not force:
       camera.target_groups[-1].append(target)
     else:
       camera.target_groups.append([target])
@@ -111,11 +122,12 @@ class Camera:
     if not camera.pos:
       camera.pos = Camera.resolve_target_group(camera.target_groups[-1])
 
-  def blur(camera, target=None):
-    if target is None:
-      camera.target = []
-    elif target in camera.target:
+  def blur(camera, target):
+    if target in camera.target:
       camera.target.remove(target)
+
+  def reset(camera):
+    camera.target_groups = []
 
   def update(camera):
     if not camera.pos or not camera.target_groups:

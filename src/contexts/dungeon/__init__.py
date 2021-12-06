@@ -1,3 +1,5 @@
+from lib.cell import neighborhood
+
 from contexts.explore import ExploreContext
 from contexts.explore.base import ExploreBase
 from contexts.explore.stageview import StageView
@@ -6,11 +8,16 @@ from comps.hud import Hud
 from comps.minilog import Minilog
 from comps.minimap import Minimap
 from dungeon.actors.knight import Knight
+from dungeon.props.door import Door
 from dungeon.fov import shadowcast
 from dungeon.room import Blob as Room
 import tiles.default as tileset
 from vfx.talkbubble import TalkBubble
 from config import WINDOW_HEIGHT, VISION_RANGE
+
+# TODO: relocate hallway animation(?)
+import lib.vector as vector
+from anims.move import MoveAnim
 
 class DungeonContext(ExploreBase):
   def __init__(ctx, store, stage, *args, **kwargs):
@@ -57,6 +64,47 @@ class DungeonContext(ExploreBase):
     ctx.hero.visible_cells = visible_cells
     ctx.update_visited_cells(visible_cells)
 
+  def handle_hallway(ctx):
+    hallway = ctx.find_hallway(ctx.hero.cell)
+    room = next((r for r in ctx.stage.rooms if hallway[-1] in r.edges), None)
+    door = next((e for e in ctx.stage.get_elems_at(hallway[-1]) if isinstance(e, Door)), None)
+    if door and not door.opened:
+      door.open()
+    ctx.hero.cell = hallway[-1]
+    ctx.camera.focus(target=[room, ctx.hero], force=True)
+    ctx.update_visited_cells([n for c in hallway for n in neighborhood(c, inclusive=True)])
+
+  def find_hallway(ctx, cell):
+    if not issubclass(ctx.stage.get_tile_at(cell), tileset.Hallway):
+      return []
+
+    hallways = []
+    stack = []
+    for neighbor in neighborhood(cell):
+      if issubclass(ctx.stage.get_tile_at(neighbor), tileset.Hallway):
+        hallway = [cell]
+        hallways.append(hallway)
+        stack.append((hallway, neighbor))
+
+    if not hallways:
+      return []
+
+    while stack:
+      hallway, cell = stack.pop()
+      hallway.append(cell)
+      neighbors = [n for n in neighborhood(cell) if (
+        issubclass(ctx.stage.get_tile_at(n), tileset.Hallway)
+        and n not in hallway
+      )]
+      for neighbor in neighbors:
+        stack.append((hallway, neighbor))
+
+    if len(hallways) == 1:
+      return hallways[0]
+
+    hallways.sort(key=len)
+    return list(reversed(hallways[0]))[:-1] + hallways[1]
+
   def handle_explore(ctx):
     ctx.open(ExploreContext(
       store=ctx.store,
@@ -73,6 +121,17 @@ class DungeonContext(ExploreBase):
     ), on_close=ctx.handle_explore)
     ctx.minimap.exit()
     ctx.hud.enter()
+
+  def update_hero_cell(ctx):
+    if ctx.hero_cell:
+      old_door = next((e for e in ctx.stage.get_elems_at(ctx.hero_cell) if isinstance(e, Door)), None)
+      new_door = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if isinstance(e, Door)), None)
+      new_tile = ctx.stage.get_tile_at(ctx.hero.cell)
+      if issubclass(new_tile, tileset.Hallway) and (new_door or old_door):
+        ctx.handle_hallway()
+    ctx.hero_cell = ctx.hero.cell
+    ctx.update_bubble()
+    ctx.refresh_fov()
 
   def update_bubble(ctx):
     facing_elem = ctx.facing_elem
@@ -106,9 +165,7 @@ class DungeonContext(ExploreBase):
       ctx.update_bubble()
 
     if ctx.hero.cell != ctx.hero_cell:
-      ctx.hero_cell = ctx.hero.cell
-      ctx.update_bubble()
-      ctx.refresh_fov()
+      ctx.update_hero_cell()
 
     ctx.camera.update()
     ctx.stage_view.update()

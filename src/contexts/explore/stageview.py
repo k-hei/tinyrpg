@@ -95,7 +95,7 @@ class StageView:
       magnitude=2
     )
 
-  def redraw_tile(view, stage, cell, visited_cells):
+  def redraw_tile(view, stage, cell, visited_cells, use_cache=False):
     tile = stage.get_tile_at(cell)
     if not tile:
       return False
@@ -104,7 +104,7 @@ class StageView:
     tile_image = None
 
     tile_state = find_tile_state(stage, cell, visited_cells)
-    cached_state, cached_image, _ = view.tile_cache[cell] if cell in view.tile_cache else (None, None, None)
+    cached_state, cached_image, cached_dark_image = view.tile_cache[cell] if cell in view.tile_cache else (None, None, None)
 
     if cached_state and cached_state != tile_state:
       del view.tile_cache[cell]
@@ -121,7 +121,11 @@ class StageView:
       return False
 
     if cell not in view.tile_cache:
-      view.tile_cache[cell] = (tile_state, tile_image, darken_image(tile_image))
+      cached_dark_image = darken_image(tile_image)
+      view.tile_cache[cell] = (tile_state, tile_image, cached_dark_image)
+
+    if use_cache:
+      tile_image = cached_dark_image
 
     if tile_image:
       view.tile_surface.blit(
@@ -131,8 +135,9 @@ class StageView:
           view.stage.tile_size
         )
       )
-
-    return True
+      return True
+    else:
+      return False
 
   def redraw_tiles(view, hero, visited_cells):
     TILE_SIZE = view.stage.tile_size
@@ -164,6 +169,8 @@ class StageView:
               TILE_SIZE
             )
           )
+        else:
+          view.redraw_tile(view.stage, cell, visited_cells, use_cache=True)
 
     view.cache_camera_cell = snap_vector(view.camera.pos, TILE_SIZE)
     view.cache_visible_cells = hero.visible_cells.copy()
