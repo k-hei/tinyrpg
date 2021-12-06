@@ -113,7 +113,7 @@ class Room(Feature):
     return [e for c in room.get_border() for e in stage.get_elems_at(c) if isinstance(e, Door)]
 
   def get_doorways(room, stage):
-    return [e for e in room.get_edges() if not isinstance(stage.get_tile_at(e), tileset.Wall)]
+    return [e for e in room.get_edges() if not issubclass(stage.get_tile_at(e), tileset.Wall)]
 
   def get_enemies(room, stage):
     return [e for c in room.get_cells() for e in stage.get_elems_at(c) if (

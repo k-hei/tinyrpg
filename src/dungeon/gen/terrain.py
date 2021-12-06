@@ -15,8 +15,6 @@ def gen_terrain(stage, room, tree=None):
   room_doorways = [d for d in room_doorways if d]
   room_pathcells = []
 
-  print("gen terrain", room.cell, room.size)
-
   def create_platform(cell=None):
     valid_cells = [c for c in room_cells if not next((n for n in neighborhood(c, inclusive=True, radius=2) if n in room_doorways), None)]
     if not valid_cells:
@@ -78,7 +76,7 @@ def gen_terrain(stage, room, tree=None):
 
   island_count = randint(0, sqrt(room.get_area()) // 3)
   if room_pathcells and island_count and not disconnected:
-    for i in range(island_count):
+    for _ in range(island_count):
       pivot = create_platform()
       if not pivot:
         break
