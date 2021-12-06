@@ -3,19 +3,19 @@ from pygame.transform import rotate, flip
 import assets
 from dungeon.props.door import Door
 from dungeon.props.secretdoor import SecretDoor
+import tiles.default as tileset
 from colors.palette import BLACK
 from config import TILE_SIZE
 
 def render_walltop(stage, cell, visited_cells=None):
   x, y = cell
-  Wall = stage.get_tile_at(cell)
   is_wall = lambda x, y: (
-    (visited_cells is not None and (x, y) not in visited_cells)
+    visited_cells is not None and (x, y) not in visited_cells
     or stage.get_tile_at((x, y)) is None
-    or (stage.get_tile_at((x, y)) is Wall or SecretDoor.exists_at(stage, (x, y))) and (
-      (visited_cells is not None and (x, y + 1) not in visited_cells)
+    or (issubclass(stage.get_tile_at((x, y)), tileset.Wall) or SecretDoor.exists_at(stage, (x, y))) and (
+      visited_cells is None or (x, y + 1) not in visited_cells
       or stage.get_tile_at((x, y + 1)) is None
-      or stage.get_tile_at((x, y + 1)) is Wall
+      or issubclass(stage.get_tile_at((x, y + 1)), tileset.Wall)
       or next((e for e in stage.get_elems_at((x, y + 1)) if isinstance(e, Door)), None)
     )
   )

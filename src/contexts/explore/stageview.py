@@ -27,14 +27,14 @@ def find_tile_state(stage, cell, visited_cells):
     (x + 1, y + 1) in visited_cells,
   ]
 
-def render_tile(stage, cell):
+def render_tile(stage, cell, visited_cells=[]):
   tile = stage.get_tile_at(cell)
   if tile is None:
     return None
 
   tile_image = tile.sprite
   if callable(tile_image):
-    tile_image = tile_image(stage, cell)
+    tile_image = tile_image(stage, cell, visited_cells)
 
   return tile_image
 
@@ -117,7 +117,7 @@ class StageView:
     elif tile_name in view.tile_cache:
       tile_image = view.tile_cache[tile_name]
     else:
-      tile_image = render_tile(stage, cell)
+      tile_image = render_tile(stage, cell, visited_cells)
 
     if not tile_image:
       return False

@@ -1,4 +1,5 @@
 from lib.cell import neighborhood
+import lib.vector as vector
 
 from contexts.explore import ExploreContext
 from contexts.explore.base import ExploreBase
@@ -70,8 +71,15 @@ class DungeonContext(ExploreBase):
     if door and not door.opened:
       door.open()
 
+    rooms_cells = [c for r in ctx.rooms + [room] for c in r.cells]
     ctx.hero.cell = hallway[-1]
-    ctx.hero.visible_cells = [n for c in hallway for n in neighborhood(c, inclusive=True)]
+    ctx.hero.visible_cells = [
+      *set([
+        n for c in hallway
+          for n in neighborhood(c) + neighborhood(vector.add(c, (0, -1)))
+            if n not in rooms_cells
+      ])
+    ]
     ctx.update_visited_cells(ctx.hero.visible_cells)
 
     tween_duration = ctx.camera.tween(
