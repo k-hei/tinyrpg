@@ -77,8 +77,8 @@ class CombatContext(ExploreBase):
     if ctx.anims or ctx.exiting:
       return
 
-    delta = input.resolve_delta(button)
-    if delta:
+    delta = input.resolve_delta(button, fixed_axis=True)
+    if delta != (0, 0):
       return ctx.handle_move(delta)
 
     button = input.resolve_button(button)

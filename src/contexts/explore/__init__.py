@@ -36,7 +36,7 @@ class ExploreContext(ExploreBase):
 
     if not button:
       delta = input.resolve_delta()
-      if delta:
+      if delta != (0, 0):
         return ctx.handle_move(
           delta=delta,
           running=input.get_state(input.CONTROL_RUN) > 0

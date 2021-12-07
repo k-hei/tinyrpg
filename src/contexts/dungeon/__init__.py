@@ -1,5 +1,7 @@
+import pygame
 from lib.cell import neighborhood
 import lib.vector as vector
+import lib.input as input
 
 from contexts.explore import ExploreContext
 from contexts.explore.base import ExploreBase
@@ -14,7 +16,6 @@ from dungeon.fov import shadowcast
 from dungeon.room import Blob as Room
 import tiles.default as tileset
 from anims.pause import PauseAnim
-from vfx.talkbubble import TalkBubble
 from config import WINDOW_HEIGHT, VISION_RANGE
 
 class DungeonContext(ExploreBase):
@@ -48,6 +49,14 @@ class DungeonContext(ExploreBase):
     ]
     ctx.handle_explore()
 
+  def handle_press(ctx, button):
+    if input.get_state(pygame.K_LCTRL):
+      if button == pygame.K_c:
+        return print(ctx.anims)
+
+    if ctx.child:
+      return ctx.child.handle_press(button)
+
   def refresh_fov(ctx):
     room = next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells + r.border), None)
     if room:
@@ -63,7 +72,7 @@ class DungeonContext(ExploreBase):
       ctx.camera.focus(ctx.hero)
 
     ctx.hero.visible_cells = visible_cells
-    ctx.update_visited_cells(visible_cells)
+    ctx.extend_visited_cells(visible_cells)
 
   def handle_hallway(ctx):
     hallway = ctx.find_hallway(ctx.hero.cell)
@@ -75,7 +84,6 @@ class DungeonContext(ExploreBase):
     rooms = ctx.rooms + [room]
     rooms_cells = [c for r in rooms for c in r.cells]
     rooms_borders = [c for r in rooms for c in r.border]
-    ctx.hero.cell = hallway[-1]
 
     update_visible_cells = lambda: (
       setattr(ctx.hero, "visible_cells", [
@@ -87,7 +95,7 @@ class DungeonContext(ExploreBase):
             ] if n not in rooms_cells
         ])
       ]),
-      ctx.update_visited_cells(ctx.hero.visible_cells)
+      ctx.extend_visited_cells(ctx.hero.visible_cells)
     )
 
     handle_start = lambda: (
@@ -96,6 +104,7 @@ class DungeonContext(ExploreBase):
     )
 
     handle_end = lambda: (
+      setattr(ctx.hero, "cell", hallway[-1]),
       ctx.refresh_fov(),
     )
 
@@ -106,6 +115,7 @@ class DungeonContext(ExploreBase):
     if tween_duration:
       not ctx.anims and ctx.anims.append([])
       ctx.anims[0].append(PauseAnim(
+        target=ctx,
         duration=tween_duration,
         on_start=handle_start,
       ))
@@ -116,8 +126,9 @@ class DungeonContext(ExploreBase):
     if room not in ctx.rooms:
       ctx.anims.extend([
         [PauseAnim(
+          target=ctx,
           duration=15,
-          on_start=lambda: ctx.update_visited_cells(room_cells),
+          on_start=lambda: ctx.extend_visited_cells(room_cells),
           on_end=handle_end,
         )]
       ])
@@ -174,9 +185,15 @@ class DungeonContext(ExploreBase):
     ctx.minimap.exit()
     ctx.hud.enter()
 
+  def extend_visited_cells(ctx, cells):
+    ctx.visited_cells.extend([c for c in cells if c not in ctx.visited_cells])
+
   def update_hero_cell(ctx):
+    if ctx.hero_cell == ctx.hero.cell:
+      return
+
     is_travelling = False
-    if ctx.hero_cell:
+    if ctx.hero_cell and not next((a for g in ctx.anims for a in g if a.target is ctx), None):
       old_door = next((e for e in ctx.stage.get_elems_at(ctx.hero_cell) if isinstance(e, Door)), None)
       new_door = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if isinstance(e, Door)), None)
       new_tile = ctx.stage.get_tile_at(ctx.hero.cell)
@@ -189,9 +206,6 @@ class DungeonContext(ExploreBase):
 
     if not is_travelling:
       ctx.refresh_fov()
-
-  def update_visited_cells(ctx, cells):
-    ctx.visited_cells.extend([c for c in cells if c not in ctx.visited_cells])
 
   def update(ctx):
     for elem in ctx.stage.elems:
