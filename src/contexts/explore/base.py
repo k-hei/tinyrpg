@@ -103,3 +103,20 @@ class ExploreBase(Context):
       ])
       ctx.minilog.print(message=("Obtained ", item().token(), "."))
     return obtained
+
+  def update_bubble(ctx):
+    facing_elem = ctx.facing_elem
+    pending_anims = [a for g in ctx.anims for a in g if not a.done]
+
+    can_show_bubble = not pending_anims and not ctx.hero.item and not (ctx.child and ctx.child.child)
+    if ctx.talkbubble and ctx.talkbubble.target is facing_elem and can_show_bubble:
+      return
+
+    if ctx.talkbubble:
+      ctx.talkbubble.done = True
+
+    if facing_elem and can_show_bubble:
+      ctx.vfx.append(TalkBubble(
+        target=facing_elem,
+        cell=facing_elem.cell,
+      ))

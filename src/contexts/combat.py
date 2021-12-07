@@ -113,8 +113,10 @@ class CombatContext(ExploreBase):
       target=actor,
       src=actor.cell,
       dest=target_cell,
+      on_end=ctx.update_bubble
     )])
-    move_anim.update()
+    move_anim.update() # precision update
+    ctx.update_bubble()
     actor.cell = target_cell
     actor.facing = delta
     return True
