@@ -53,13 +53,14 @@ class DungeonContext(ExploreBase):
     if room:
       visible_cells = room.cells + room.visible_outline
       ctx.camera.focus(room)
+      if room not in ctx.rooms:
+        ctx.rooms.append(room)
     else:
       visible_cells = shadowcast(ctx.stage, ctx.hero.cell, VISION_RANGE)
       room = next((t for t in ctx.camera.target if isinstance(t, Room)), None)
       if room:
         ctx.camera.blur(room)
       ctx.camera.focus(ctx.hero)
-    ctx.rooms.append(room)
 
     ctx.hero.visible_cells = visible_cells
     ctx.update_visited_cells(visible_cells)

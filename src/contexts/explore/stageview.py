@@ -208,7 +208,7 @@ class StageView:
     if not elem_sprites:
       return []
 
-    elem_sprites[0].origin = Sprite.ORIGIN_CENTER
+    elem_sprites[0].origin = elem_sprites[0].origin or Sprite.ORIGIN_CENTER
     return elem_sprites
 
   def view_elems(view, elems, hero=None):
