@@ -17,7 +17,7 @@ from vfx.flash import FlashVfx
 from colors.palette import GOLD
 from config import (
   FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION,
-  COMBAT_THRESHOLD, CRIT_MODIFIER,
+  CRIT_MODIFIER,
 )
 
 def find_damage_text(damage):
@@ -29,6 +29,7 @@ def find_damage_text(damage):
     return int(damage)
 
 class CombatContext(ExploreBase):
+
   def enter(ctx):
     if not ctx.hero:
       return
@@ -82,7 +83,7 @@ class CombatContext(ExploreBase):
 
     button = input.resolve_button(button)
     if button == input.BUTTON_A:
-      return ctx.handle_attack()
+      return ctx.handle_action()
 
     # if input.get_state(button) > 1:
     #   return
@@ -121,6 +122,23 @@ class CombatContext(ExploreBase):
     actor.facing = delta
     return True
 
+  def handle_action(ctx):
+    facing_actor = ctx.facing_actor
+    if isinstance(facing_actor, DungeonActor) and facing_actor.faction == "enemy":
+      return ctx.handle_attack()
+
+    facing_elem = ctx.facing_elem
+    action_result = facing_elem.effect(ctx, ctx.hero) if facing_elem else False
+    if action_result != None:
+      not ctx.anims and ctx.anims.append([])
+      ctx.anims[0].insert(0, AttackAnim(
+        target=ctx.hero,
+        src=ctx.hero.cell,
+        dest=vector.add(ctx.hero.cell, ctx.hero.facing),
+      ))
+
+    return action_result
+
   def handle_attack(ctx):
     target_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
     target_actor = next((e for e in ctx.stage.get_elems_at(target_cell) if isinstance(e, DungeonActor)), None)
@@ -135,9 +153,10 @@ class CombatContext(ExploreBase):
       else:
         damage = ctx.find_damage(actor, target, modifier)
 
-    attack_delay = (actor.core.AttackAnim.frames_duration[0]
-      if "AttackAnim" in dir(actor.core) and actor.facing == (0, 1)
-      else 0
+    attack_delay = (
+      actor.core.AttackAnim.frames_duration[0]
+        if "AttackAnim" in dir(actor.core) and actor.facing == (0, 1)
+        else 0
     )
     ctx.anims.append([AttackAnim(
       target=actor,
