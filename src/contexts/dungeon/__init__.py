@@ -104,10 +104,10 @@ class DungeonContext(ExploreBase):
     )
 
     handle_end = lambda: (
-      setattr(ctx.hero, "cell", hallway[-1]),
       ctx.refresh_fov(),
     )
 
+    ctx.hero.cell = hallway[-1]
     tween_duration = ctx.camera.tween(
       target=[room, ctx.hero],
       force=True
@@ -128,7 +128,9 @@ class DungeonContext(ExploreBase):
         [PauseAnim(
           target=ctx,
           duration=15,
-          on_start=lambda: ctx.extend_visited_cells(room_cells),
+          on_start=lambda: (
+            ctx.extend_visited_cells(room_cells),
+          ),
           on_end=handle_end,
         )]
       ])
@@ -189,7 +191,7 @@ class DungeonContext(ExploreBase):
     ctx.visited_cells.extend([c for c in cells if c not in ctx.visited_cells])
 
   def update_hero_cell(ctx):
-    if ctx.hero_cell == ctx.hero.cell:
+    if ctx.hero_cell == ctx.hero.cell or ctx.anims:
       return
 
     is_travelling = False
@@ -197,7 +199,7 @@ class DungeonContext(ExploreBase):
       old_door = next((e for e in ctx.stage.get_elems_at(ctx.hero_cell) if isinstance(e, Door)), None)
       new_door = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if isinstance(e, Door)), None)
       new_tile = ctx.stage.get_tile_at(ctx.hero.cell)
-      if issubclass(new_tile, tileset.Hallway) and (new_door or old_door):
+      if issubclass(new_tile, tileset.Hallway) and (new_door or old_door) and not (new_door and old_door):
         ctx.handle_hallway()
         is_travelling = True
 
