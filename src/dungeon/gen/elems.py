@@ -3,6 +3,7 @@ from lib.cell import manhattan, is_adjacent
 from dungeon.actors import DungeonActor
 from dungeon.stage import Stage
 from dungeon.props.secretdoor import SecretDoor
+import tiles.default as tileset
 
 def gen_elems(stage, room, elems):
   spawn_count = 0
@@ -24,10 +25,10 @@ def gen_elems(stage, room, elems):
   return spawn_count
 
 def get_room_bonus_cells(room, stage):
-  room_cells = room.get_cells()
+  room_cells = room.cells
   room_doorways = room.get_doorways(stage)
-  is_wall = lambda x, y: not stage.is_cell_empty((x, y)) or stage.get_tile_at((x, y)) is Stage.PIT
-  is_floor = lambda x, y: stage.get_tile_at((x, y)) is Stage.FLOOR
+  is_wall = lambda x, y: not stage.is_cell_empty((x, y)) or stage.get_tile_at((x, y)) is tileset.Pit
+  is_floor = lambda x, y: stage.get_tile_at((x, y)) is tileset.Floor
   bonus_cells = [(x, y) for x, y in room_cells if (
     is_floor(x, y)
     and not next((d for d in room_doorways if is_adjacent(d, (x, y))), None)

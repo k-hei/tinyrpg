@@ -693,15 +693,17 @@ def gen_floor(
           table_length == 2 and [c, add_vector(c, (1, 0))]
           or table_length == 3 and [c, add_vector(c, (1, 0)), add_vector(c, (2, 0))]
         )
-        table_cell = next((c for c in sorted(room.cells, key=lambda c: random.random()) if (
+        table_cell = next((c for c in sorted(room.cells, key=lambda _: random.random()) if (
           not next((n for t in find_table_cells(c) for n in neighborhood(t, diagonals=True) if (
             not stage.is_cell_empty(n) or not issubclass(stage.get_tile_at(n), tileset.Floor)
           )), None)
         )), None)
         if table_cell:
           stage.spawn_elem_at(table_cell, Table(length=table_length))
+
       if room.data and not room.data.items:
         continue
+
       if room.data and type(room.data.items) is list:
         room_items = [Vase(contents=i) for i in room.data.items]
       elif room in secrets:
@@ -710,7 +712,7 @@ def gen_floor(
       else:
         item_count = max(1, min(3, room.get_area() // 24))
         room_items = [Vase(contents=choice(items)) for _ in range(item_count)]
-      gen_elems(stage, room, elems=room_items)
+      vases_spawned = gen_elems(stage, room, elems=room_items)
 
     for i, room in enumerate(rooms):
       if room.data and not room.data.enemies:
