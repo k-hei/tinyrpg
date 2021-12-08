@@ -2,6 +2,7 @@ from random import randint
 import lib.vector as vector
 import lib.input as input
 from lib.direction import invert as invert_direction
+from lib.compose import compose
 
 from contexts.explore.base import ExploreBase
 from comps.damage import DamageValue
@@ -85,18 +86,23 @@ class CombatContext(ExploreBase):
     if button == input.BUTTON_A:
       return ctx.handle_action()
 
-    # if input.get_state(button) > 1:
-    #   return
+    if input.get_state(button) > 1:
+      return
 
   def handle_move(ctx, delta):
-    moved = ctx.move(ctx.hero, delta)
+
+    def on_move():
+      target_elem = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if not isinstance(e, DungeonActor)), None)
+      target_elem and target_elem.effect(ctx, ctx.hero)
+
+    moved = ctx.move(ctx.hero, delta, on_end=on_move)
     if moved:
       return True
     else:
       ctx.hero.facing = delta
       return False
 
-  def move(ctx, actor, delta):
+  def move(ctx, actor, delta, on_end=None):
     target_cell = vector.add(actor.cell, delta)
 
     target_tile = ctx.stage.get_tile_at(target_cell)
@@ -114,9 +120,9 @@ class CombatContext(ExploreBase):
       target=actor,
       src=actor.cell,
       dest=target_cell,
-      on_end=ctx.update_bubble
+      on_end=compose(ctx.update_bubble, on_end)
     )])
-    move_anim.update() # precision update
+    move_anim.update() # initial update to ensure animation loops seamlessly
     ctx.update_bubble()
     actor.cell = target_cell
     actor.facing = delta
@@ -136,6 +142,7 @@ class CombatContext(ExploreBase):
         src=ctx.hero.cell,
         dest=vector.add(ctx.hero.cell, ctx.hero.facing),
       ))
+      ctx.update_bubble()
 
     return action_result
 
