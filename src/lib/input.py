@@ -103,13 +103,15 @@ def handle_press(button):
     timings[button] = 1
 
   button = resolve_button(button)
-  if button is not None and button not in timings:
+  if button not in timings and button is not None:
     timings[button] = 1
 
 def handle_release(button):
-  del timings[button]
+  if button in timings:
+    del timings[button]
+
   button = resolve_button(button)
-  if button is not None:
+  if button in timings and button is not None:
     del timings[button]
 
 def get_state(control):

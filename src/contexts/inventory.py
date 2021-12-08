@@ -205,11 +205,11 @@ class InventoryContext(Context):
     if super().handle_press(button) != None:
       return False
 
-    if button is None or input.get_state(input.resolve_button(button)) > 1:
+    if button is None or input.get_state(button) > 1:
       return False
 
-    delta = input.resolve_delta(button)
-    if delta:
+    delta = input.resolve_delta(button, fixed_axis=True)
+    if delta != (0, 0):
       return ctx.handle_move(delta)
 
     control = input.resolve_control(button)

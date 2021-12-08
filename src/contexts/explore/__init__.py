@@ -20,10 +20,11 @@ class ExploreContext(ExploreBase):
   def open(ctx, child, on_close=None):
     on_close = compose(on_close, ctx.parent.update_bubble)
     if type(child) is InventoryContext:
-      open = super().open
-      ctx.hud.enter(on_end=lambda: (
-        open(child, on_close=compose(on_close, ctx.hud.exit))
-      ))
+      if not ctx.hud.anims:
+        open = super().open
+        ctx.hud.enter(on_end=lambda: (
+          open(child, on_close=compose(on_close, ctx.hud.exit))
+        ))
     else:
       return super().open(child, on_close)
 

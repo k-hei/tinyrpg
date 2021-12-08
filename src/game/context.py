@@ -217,10 +217,12 @@ class GameContext(Context):
       return ctx.handle_inventory()
 
   def handle_pause(ctx):
-    ctx.get_tail().open(PauseContext(store=ctx.store))
+    if not isinstance(ctx.get_tail(), PauseContext):
+      ctx.get_tail().open(PauseContext(store=ctx.store))
 
   def handle_inventory(ctx):
-    ctx.get_tail().open(InventoryContext(store=ctx.store))
+    if not isinstance(ctx.get_tail(), InventoryContext):
+      ctx.get_tail().open(InventoryContext(store=ctx.store))
 
   def handle_custom(ctx):
     ctx.get_tail().open(CustomContext(
