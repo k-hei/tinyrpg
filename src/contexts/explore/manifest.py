@@ -8,6 +8,8 @@ from dungeon.room import Blob as Room
 import tiles.default as tileset
 from dungeon.decoder import decode_elem
 
+from resolve.tileset import resolve_tileset
+
 def manifest_rooms(rooms, dry=False, seed=None):
   stage_cells = []
   for room in rooms:
@@ -19,7 +21,11 @@ def manifest_rooms(rooms, dry=False, seed=None):
   stage_tiles = Grid(size=vector.add(stage_blob.rect.size, (2, 3)))
   stage_tiles.fill(tileset.Wall)
 
-  stage = Stage(tiles=stage_tiles, rooms=rooms)
+  stage = Stage(
+    tiles=stage_tiles,
+    rooms=rooms,
+    bg="tomb"
+  )
   stage.seed = seed
 
   for room in rooms:

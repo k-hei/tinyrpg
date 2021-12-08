@@ -1,6 +1,6 @@
-from tiles.default import mappings as default_mappings
-from tiles.tomb import mappings as tomb_mappings
+import tiles.tomb as tomb_tileset
+import tiles.default as default_tileset
 
 def resolve_tileset(key):
-  if key == "default": return default_mappings
-  if key == "tomb": return tomb_mappings
+  if key == "tomb": return tomb_tileset
+  if key == "default": return default_tileset

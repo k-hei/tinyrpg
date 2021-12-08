@@ -57,7 +57,7 @@ class RoomData:
       roomdata.size = (len(roomdata.tiles[0]), len(roomdata.tiles))
       roomdata.tiles = Grid(
         size=roomdata.size,
-        data=[tileset[c] for s in roomdata.tiles for c in s]
+        data=[tileset.mappings[c] for s in roomdata.tiles for c in s]
       )
 
     if not roomdata.tiles and roomdata.terrain is None:

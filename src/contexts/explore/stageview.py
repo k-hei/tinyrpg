@@ -6,7 +6,9 @@ import lib.vector as vector
 from lib.filters import darken_image
 from anims.shake import ShakeAnim
 from contexts.dungeon.camera import Camera
+from dungeon.props.secretdoor import SecretDoor
 from config import WINDOW_SIZE, WINDOW_HEIGHT, DEPTH_SIZE
+from resolve.tileset import resolve_tileset
 import debug
 
 def find_tile_state(stage, cell, visited_cells):
@@ -196,7 +198,15 @@ class StageView:
       )
     )]
 
-  def view_elem(view, elem):
+  def view_elem(view, elem, visited_cells=[]):
+    if type(elem) is SecretDoor and elem.hidden:
+      tileset = resolve_tileset(view.stage.bg)
+      return [Sprite(
+        image=tileset.Wall.sprite(view.stage, elem.cell, visited_cells),
+        pos=tuple([x * view.stage.tile_size for x in elem.cell]),
+        layer="tiles"
+      )]
+
     elem_view = elem.view(anims=view.anims)
     if not elem_view:
       return []
@@ -211,8 +221,8 @@ class StageView:
     elem_sprites[0].origin = elem_sprites[0].origin or Sprite.ORIGIN_CENTER
     return elem_sprites
 
-  def view_elems(view, elems, hero=None):
-    return [s for e in elems for s in view.view_elem(e)
+  def view_elems(view, elems, hero=None, visited_cells=None):
+    return [s for e in elems for s in view.view_elem(elem=e, visited_cells=visited_cells)
       if (not hero or e.cell in hero.visible_cells) and not (e is hero and view.camera.anim)]
 
   def view_vfx(view, vfx):
@@ -222,7 +232,7 @@ class StageView:
     sprites = []
 
     stage = view.stage
-    sprites += view.view_elems(stage.elems, hero)
+    sprites += view.view_elems(stage.elems, hero, visited_cells)
     sprites += view.view_vfx(view.vfx)
 
     camera_offset = (0, 0)

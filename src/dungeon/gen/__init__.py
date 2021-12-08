@@ -3,9 +3,8 @@ from itertools import product
 import random
 from random import randint, getrandbits, choice, shuffle
 from pygame.time import get_ticks
-from lib.cell import neighborhood, manhattan, is_adjacent, add as add_vector, subtract as subtract_vector
+from lib.cell import neighborhood, manhattan, add as add_vector, subtract as subtract_vector
 from lib.graph import Graph
-import assets
 from debug import bench
 from config import FPS
 
@@ -37,7 +36,6 @@ from items.sets import NORMAL_ITEMS, SPECIAL_ITEMS
 from items.dungeon.key import Key
 
 from resolve.elem import resolve_elem
-from resolve.hook import resolve_hook
 
 load_rooms()
 
@@ -647,7 +645,7 @@ def gen_floor(
         ):
           stage.spawn_elem_at(neighbor, ArrowTrap(facing=door_delta, delay=inf, static=False))
 
-      print(f"Spawned secret with area {secret.get_area()}")
+      print(f"Spawned secret with area {secret.get_area()} at {doorway}")
       if secret in empty_rooms:
         empty_rooms.remove(secret)
 

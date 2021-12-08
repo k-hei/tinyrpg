@@ -67,8 +67,8 @@ def build_tilesets(path):
   body_buffer = "\ndef resolve_tileset(key):\n"
 
   for key in tilesets:
-    imports_buffer += f"from tiles.{key} import mappings as {key}_mappings\n"
-    body_buffer += f"  if key == \"{key}\": return {key}_mappings\n"
+    imports_buffer += f"import tiles.{key} as {key}_tileset\n"
+    body_buffer += f"  if key == \"{key}\": return {key}_tileset\n"
 
   output_file = open("src/resolve/tileset.py", "w")
   output_file.write(imports_buffer + body_buffer)
