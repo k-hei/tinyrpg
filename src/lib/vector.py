@@ -60,3 +60,6 @@ def mean(*vectors):
       s += v[i]
     c.append(s / len(vectors))
   return tuple(c)
+
+def floor(vector):
+  return tuple([int(x) for x in vector])
