@@ -242,7 +242,9 @@ class CombatContext(ExploreBase):
       ),
       PauseAnim(
         duration=FLINCH_PAUSE_DURATION,
-        on_end=lambda: target.is_dead() and ctx.kill(target)
+        on_end=lambda: (
+          (target.is_dead() or issubclass(ctx.stage.get_tile_at(target.cell), tileset.Pit)) and ctx.kill(target)
+        )
       )
     ]
 
@@ -258,10 +260,11 @@ class CombatContext(ExploreBase):
       )
     ))
 
-  def nudge(ctx, actor, direction):
+  def nudge(ctx, actor, direction, on_end=None):
     source_cell = actor.cell
     target_cell = vector.add(source_cell, direction)
-    if not ctx.stage.is_cell_empty(target_cell):
+    target_tile = ctx.stage.get_tile_at(target_cell)
+    if not ctx.stage.is_cell_empty(target_cell) and not issubclass(target_tile, tileset.Pit):
       return False
 
     actor.cell = target_cell
@@ -270,6 +273,7 @@ class CombatContext(ExploreBase):
       duration=NUDGE_DURATION,
       target=actor,
       src=source_cell,
-      dest=target_cell
+      dest=target_cell,
+      on_end=on_end
     ))
     return True
