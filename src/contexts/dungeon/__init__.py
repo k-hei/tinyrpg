@@ -16,6 +16,7 @@ from dungeon.fov import shadowcast
 from dungeon.room import Blob as Room
 import tiles.default as tileset
 from anims.pause import PauseAnim
+from anims.step import StepAnim
 from config import WINDOW_HEIGHT, VISION_RANGE
 
 class DungeonContext(ExploreBase):
@@ -128,9 +129,7 @@ class DungeonContext(ExploreBase):
         [PauseAnim(
           target=ctx,
           duration=15,
-          on_start=lambda: (
-            ctx.extend_visited_cells(room_cells),
-          ),
+          on_start=lambda: ctx.extend_visited_cells(room_cells),
           on_end=handle_end,
         )]
       ])
@@ -191,17 +190,20 @@ class DungeonContext(ExploreBase):
     ctx.visited_cells.extend([c for c in cells if c not in ctx.visited_cells])
 
   def update_hero_cell(ctx):
-    if ctx.hero_cell == ctx.hero.cell or ctx.anims:
+    if ctx.hero_cell == ctx.hero.cell:
       return
 
     is_travelling = False
-    if ctx.hero_cell and not next((a for g in ctx.anims for a in g if a.target is ctx), None):
+    if ctx.hero_cell:
       old_door = next((e for e in ctx.stage.get_elems_at(ctx.hero_cell) if isinstance(e, Door)), None)
       new_door = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if isinstance(e, Door)), None)
       new_tile = ctx.stage.get_tile_at(ctx.hero.cell)
       if issubclass(new_tile, tileset.Hallway) and (new_door or old_door) and not (new_door and old_door):
         ctx.handle_hallway()
         is_travelling = True
+        step_anim = next((a for g in ctx.anims for a in g if a.target is ctx.hero and isinstance(a, StepAnim)), None)
+        if step_anim:
+          step_anim.done = True
 
     ctx.hero_cell = ctx.hero.cell
     ctx.update_bubble()

@@ -122,11 +122,7 @@ class DungeonElement:
         if anims.index(group) == 0:
           anim_x, anim_y, *anim_z = anim.cell
           elem.pos = vector.scale(
-            vector.add(
-              (anim_x, anim_y),
-              # vector.lerp(anim.src, anim.dest, anim.pos),
-              (0.5, 0.5)
-            ),
+            vector.add((anim_x, anim_y), (0.5, 0.5)),
             TILE_SIZE
           )
           return (0, 0) # elem.find_step_anim_offset(anim)

@@ -3,7 +3,7 @@ from pygame import Rect
 import lib.vector as vector
 from dungeon.room import Blob as Room
 from anims.tween import TweenAnim
-from config import TILE_SIZE
+from config import TILE_SIZE, WINDOW_HEIGHT
 
 class Camera:
   SPEED = 8
@@ -100,10 +100,10 @@ class Camera:
   def targets(camera):
     return [t for g in camera.target_groups for t in g]
 
-  def is_cell_beyond_yrange(camera, cell):
-    _, row = cell
-    _, center_row = camera.cell
-    return row - center_row <= -Camera.MAX_YRADIUS
+  def is_pos_beyond_yrange(camera, pos):
+    _, target_y = pos
+    _, camera_y = camera.pos
+    return target_y - camera_y <= -WINDOW_HEIGHT / 2 + TILE_SIZE
 
   def focus(camera, target, force=False, anim=None):
     if type(target) is list and force:

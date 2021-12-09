@@ -125,4 +125,5 @@ class ExploreBase(Context):
       ctx.vfx.append(TalkBubble(
         target=facing_elem,
         cell=facing_elem.cell,
+        flipped=ctx.camera.is_pos_beyond_yrange(pos=vector.scale(facing_elem.cell, ctx.stage.tile_size)),
       ))
