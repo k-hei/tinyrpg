@@ -187,11 +187,14 @@ class CombatContext(ExploreBase):
       delay=attack_delay,
       src=actor.cell,
       dest=vector.add(actor.cell, actor.facing),
-      on_connect=lambda: target and ctx.flinch(
-        target=target,
-        damage=damage,
-        crit=crit,
-        direction=actor.facing,
+      on_connect=lambda: target and (
+        target.alert(cell=actor.cell),
+        ctx.flinch(
+          target=target,
+          damage=damage,
+          crit=crit,
+          direction=actor.facing,
+        )
       )
     )])
     actor.attack()
