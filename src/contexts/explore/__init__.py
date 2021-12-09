@@ -1,5 +1,6 @@
 import pygame
 from pygame import Surface, SRCALPHA
+import lib.vector as vector
 from lib.sprite import Sprite
 import lib.input as input
 from lib.compose import compose
@@ -9,10 +10,12 @@ from dungeon.actors import DungeonActor
 from dungeon.props.itemdrop import ItemDrop
 from anims.attack import AttackAnim
 from tiles import Tile
+import debug
 
 class ExploreContext(ExploreBase):
   def enter(ctx):
     ctx.camera.focus(ctx.hero)
+    ctx.debug = False
 
   def exit(ctx):
     ctx.close()
@@ -47,6 +50,9 @@ class ExploreContext(ExploreBase):
 
     if input.get_state(button) > 1:
       return False
+
+    if input.get_state(pygame.K_LCTRL) and button == pygame.K_h:
+      return ctx.handle_debug()
 
     control = input.resolve_control(button)
     if control == input.CONTROL_CONFIRM:
@@ -150,16 +156,18 @@ class ExploreContext(ExploreBase):
   def handle_combat(ctx):
     ctx.exit()
 
-  # def view_explore(ctx):
-    # return super().view()
+  def handle_debug(ctx):
+    ctx.debug = not ctx.debug
+    debug.log("Debug mode toggle:", ctx.debug)
+    return True
 
-    # sprites = ctx.stage_view.view()
-    # if ctx.debug:
-    #   sprites += [debug_view_elem(e) for e in ctx.stage.elems]
+  def view(ctx):
+    sprites = super().view()
+    if ctx.debug:
+      sprites += [debug_view_elem(elem=e, camera=ctx.camera) for e in ctx.stage.elems]
+    return sprites
 
-    # return sprites + super().view()
-
-def debug_view_elem(elem):
+def debug_view_elem(elem, camera):
   ALPHA = 128
   RED = (255, 0, 0, ALPHA)
   BLUE = (0, 0, 255, ALPHA)
@@ -174,11 +182,17 @@ def debug_view_elem(elem):
   origin_circle = Surface(CIRCLE_SIZE, SRCALPHA)
   pygame.draw.circle(origin_circle, YELLOW, (CIRCLE_RADIUS, CIRCLE_RADIUS), CIRCLE_RADIUS)
 
-  return [Sprite(
-    image=hitbox_surface,
-    pos=elem.rect.topleft,
-  ), Sprite(
-    image=origin_circle,
-    pos=elem.pos,
-    origin=Sprite.ORIGIN_CENTER,
-  )]
+  return Sprite.move_all(
+    sprites=[Sprite(
+      image=hitbox_surface,
+      pos=elem.rect.topleft,
+    ), Sprite(
+      image=origin_circle,
+      pos=elem.pos,
+      origin=Sprite.ORIGIN_CENTER,
+    )],
+    offset=vector.add(
+      vector.scale(camera.size, 0.5),
+      vector.negate(camera.pos)
+    )
+  )
