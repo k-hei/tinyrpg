@@ -1,6 +1,7 @@
 from pygame import Surface, SRCALPHA
 from pygame.transform import rotate, flip
 import assets
+from lib.cell import neighborhood
 from dungeon.props.door import Door
 from dungeon.props.secretdoor import SecretDoor
 import tiles.default as tileset
@@ -18,6 +19,7 @@ def render_walltop(stage, cell, visited_cells=None):
       or issubclass(stage.get_tile_at((x, y + 1)), tileset.Wall)
       or next((e for e in stage.get_elems_at((x, y + 1)) if isinstance(e, Door)), None)
     )
+    or issubclass(stage.get_tile_at((x, y)), tileset.Hallway) and next((n for n in neighborhood((x, y)) if SecretDoor.exists_at(stage, n)), None)
   )
 
   surface = Surface((TILE_SIZE, TILE_SIZE), SRCALPHA)
