@@ -1,23 +1,25 @@
 from random import randint
 import lib.vector as vector
 import lib.input as input
-from lib.direction import invert as invert_direction
+from lib.direction import invert as invert_direction, normal as normalize_direction
 from lib.compose import compose
 
 from contexts.explore.base import ExploreBase
 from comps.damage import DamageValue
 from dungeon.actors import DungeonActor
 from tiles import Tile
+import tiles.default as tileset
 from anims.move import MoveAnim
 from anims.step import StepAnim
 from anims.attack import AttackAnim
+from anims.jump import JumpAnim
 from anims.flinch import FlinchAnim
 from anims.pause import PauseAnim
 from anims.flicker import FlickerAnim
 from vfx.flash import FlashVfx
 from colors.palette import GOLD
 from config import (
-  FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION,
+  MOVE_DURATION, FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION,
   CRIT_MODIFIER,
 )
 
@@ -90,21 +92,24 @@ class CombatContext(ExploreBase):
       return
 
   def handle_move(ctx, delta):
+    target_cell = vector.add(ctx.hero.cell, delta)
+    target_tile = ctx.stage.get_tile_at(target_cell)
 
     def on_move():
       target_elem = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if not isinstance(e, DungeonActor)), None)
       target_elem and target_elem.effect(ctx, ctx.hero)
 
+    ctx.hero.facing = delta
     moved = ctx.move(ctx.hero, delta, on_end=on_move)
     if moved:
       return True
+    elif issubclass(target_tile, tileset.Pit):
+      return ctx.leap(actor=ctx.hero, on_end=on_move)
     else:
-      ctx.hero.facing = delta
       return False
 
-  def move(ctx, actor, delta, on_end=None):
+  def move(ctx, actor, delta, jump=False, on_end=None):
     target_cell = vector.add(actor.cell, delta)
-
     target_tile = ctx.stage.get_tile_at(target_cell)
     if not Tile.is_walkable(target_tile):
       return False
@@ -116,17 +121,29 @@ class CombatContext(ExploreBase):
     if target_elem and target_elem.solid:
       return False
 
-    ctx.anims.append([move_anim := StepAnim(
+    move_duration = MOVE_DURATION
+    move_duration = move_duration * 1.5 if jump else move_duration
+    move_kind = JumpAnim if jump else StepAnim
+    ctx.anims.append([move_anim := move_kind(
       target=actor,
       src=actor.cell,
       dest=target_cell,
+      duration=move_duration,
       on_end=compose(ctx.update_bubble, on_end)
     )])
     move_anim.update() # initial update to ensure animation loops seamlessly
+    if jump:
+      ctx.anims[-1].append(PauseAnim(duration=move_duration + 5))
+
     ctx.update_bubble()
     actor.cell = target_cell
-    actor.facing = delta
+    actor.facing = normalize_direction(delta)
     return True
+
+  def leap(ctx, actor, on_end=None):
+    delta = vector.scale(actor.facing, 2)
+    moved = ctx.move(actor, delta, jump=True, on_end=on_end)
+    return moved
 
   def handle_action(ctx):
     facing_actor = ctx.facing_actor
