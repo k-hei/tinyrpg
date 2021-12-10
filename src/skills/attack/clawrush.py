@@ -27,12 +27,12 @@ class ClawRush(AttackSkill):
   def effect(user, dest, game, on_end=None):
     origin_cell = user.cell
     dest_cell = add_vector(origin_cell, user.facing)
-    if game.floor.is_cell_empty(dest_cell):
+    if game.stage.is_cell_empty(dest_cell):
       target_cell = add_vector(dest_cell, user.facing)
     else:
       target_cell = dest_cell
       dest_cell = origin_cell
-    target_actor = next((e for e in game.floor.get_elems_at(target_cell) if isinstance(e, DungeonActor)), None)
+    target_actor = next((e for e in game.stage.get_elems_at(target_cell) if isinstance(e, DungeonActor)), None)
     def attack():
       not game.anims and game.anims.append([])
       game.anims[0].append(AttackAnim(

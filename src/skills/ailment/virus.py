@@ -27,10 +27,10 @@ class Virus(AilmentSkill):
 
   def spawn_cloud(game, cell, inclusive=False, on_end=None):
     target_area = neighborhood(cell, radius=2, inclusive=inclusive, predicate=lambda cell: (
-      (not Tile.is_solid(game.floor.get_tile_at(cell)) or game.floor.get_tile_at(cell) is game.floor.PIT)
-      and not next((e for e in game.floor.get_elems_at(cell) if not isinstance(e, DungeonActor) and e.solid), None)
+      (not Tile.is_solid(game.stage.get_tile_at(cell)) or game.stage.get_tile_at(cell) is game.stage.PIT)
+      and not next((e for e in game.stage.get_elems_at(cell) if not isinstance(e, DungeonActor) and e.solid), None)
     ))
-    targets = [e for e in game.floor.elems if (
+    targets = [e for e in game.stage.elems if (
       isinstance(e, DungeonActor)
       and not e.is_dead()
       and e.ailment != "poison"
@@ -47,11 +47,11 @@ class Virus(AilmentSkill):
       game.poison_actor(target, on_end=poison)
 
     for target_cell in target_area:
-      existing_puff = next((e for e in game.floor.get_elems_at(target_cell) if isinstance(e, PoisonPuff) and not e.dissolving), None)
+      existing_puff = next((e for e in game.stage.get_elems_at(target_cell) if isinstance(e, PoisonPuff) and not e.dissolving), None)
       if existing_puff:
         existing_puff.turns = PoisonPuff.MAX_TURNS
       else:
-        game.floor.spawn_elem_at(target_cell, PoisonPuff(origin=cell))
+        game.stage.spawn_elem_at(target_cell, PoisonPuff(origin=cell))
     not game.anims and game.anims.append([])
     game.anims += [
       [PauseAnim(duration=30)],

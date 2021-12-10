@@ -13,7 +13,7 @@ def on_enter(room, game):
     [Eyeball, Mushroom, Mushroom, Mummy],
   ]
   room.lock(game)
-  eyeballs = [e for c in room.cells for e in game.floor.get_elems_at(c) if isinstance(e, Eyeball)]
+  eyeballs = [e for c in room.cells for e in game.stage.get_elems_at(c) if isinstance(e, Eyeball)]
   eyeballs.sort(key=lambda e: (
     0 if e.rare
     else 1 if not e.ailment == "sleep"

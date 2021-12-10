@@ -8,7 +8,7 @@ from transits.dissolve import DissolveIn, DissolveOut
 from config import TILE_SIZE
 
 def on_collapse(room, game):
-  floor = game.floor
+  floor = game.stage
   hero = game.hero
   mage = floor.find_elem(Mage)
   altar = floor.find_elem(cls="Altar")

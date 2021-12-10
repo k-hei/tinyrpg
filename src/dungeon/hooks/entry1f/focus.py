@@ -22,9 +22,9 @@ def on_focus(room, game):
     return False
   hero = game.hero
   mage = room.mage = Mage()
-  game.floor.spawn_elem_at(vector.add(room.center, (1, 0)), mage)
+  game.stage.spawn_elem_at(vector.add(room.center, (1, 0)), mage)
   mage_bump = sequence_mage_bump(room, game)
-  door = room.get_doors(game.floor)[0]
+  door = room.get_doors(game.stage)[0]
   game.open(CutsceneContext([
     lambda step: (
       game.camera.focus(
@@ -90,7 +90,7 @@ def on_focus(room, game):
       game.anims.append([
         PathAnim(
           target=mage,
-          path=(path := game.floor.pathfind(
+          path=(path := game.stage.pathfind(
             start=mage.cell,
             goal=hero.cell,
             whitelist=room.cells
@@ -151,13 +151,13 @@ def on_focus(room, game):
     lambda step: game.anims.append([
       PathAnim(
         target=mage,
-        path=(path := game.floor.pathfind(
+        path=(path := game.stage.pathfind(
           start=mage.cell,
           goal=vector.add(door.cell, (0, 1)),
         )),
         period=RUN_DURATION,
         on_end=lambda: (
-          game.floor.remove_elem(mage),
+          game.stage.remove_elem(mage),
           step()
         )
       )

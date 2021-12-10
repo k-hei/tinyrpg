@@ -127,7 +127,7 @@ class SkillContext(Context):
 
   def handle_turn(ctx, delta):
     game = ctx.parent
-    floor = game.floor
+    floor = game.stage
     hero = ctx.actor
     if hero:
       hero_x, hero_y = hero.cell
@@ -174,7 +174,7 @@ class SkillContext(Context):
     if old_skill != new_skill:
       ctx.print_skill(new_skill)
       ctx.anims.append((PrevAnim if reverse else NextAnim)(duration=12, target=options))
-      ctx.skill_range = new_skill().find_range(ctx.actor, game.floor)
+      ctx.skill_range = new_skill().find_range(ctx.actor, game.stage)
       pivot_cell = add_vector(hero.cell, tuple([x / 10 for x in hero.facing]))
       ctx.dest = (sorted(ctx.skill_range, key=lambda c: manhattan(c, pivot_cell))[0]
         if ctx.skill_range
@@ -244,7 +244,7 @@ class SkillContext(Context):
     cursor = ctx.dest
     if hero:
       game = ctx.parent
-      floor = game.floor
+      floor = game.stage
       camera = game.camera
       camera_x, camera_y = camera.pos
       facing_x, facing_y = hero.facing

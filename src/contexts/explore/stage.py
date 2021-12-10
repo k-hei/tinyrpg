@@ -1,5 +1,6 @@
 from pygame import Rect
 from config import TILE_SIZE
+from tiles import Tile
 
 # TODO: relocate pathfinding logic
 from lib.cell import manhattan, neighborhood
@@ -140,3 +141,11 @@ class Stage:
         if whitelist and neighbor in whitelist:
           f[neighbor] //= 2
     return []
+
+  def find_walkable_room_cells(stage, room=None, cell=None, ignore_actors=False):
+    room = room or next((r for r in stage.rooms if cell in r.cells), None)
+    return [c for c in room.get_cells() if (
+      (Tile.is_walkable(stage.get_tile_at(c))
+        and not next((e for e in stage.get_elems_at(cell) if e.static and e.solid), None)
+      ) if ignore_actors else stage.is_cell_empty(c)
+    )] if room else []

@@ -23,7 +23,7 @@ class Ghost(DungeonActor):
     name = "ColdWhip"
     charge_turns = 2
     def effect(user, dest, game, on_end=None):
-      target_actor = next((e for e in game.floor.get_elems_at(dest) if isinstance(e, DungeonActor)), None)
+      target_actor = next((e for e in game.stage.get_elems_at(dest) if isinstance(e, DungeonActor)), None)
       user.core.anims = [GhostCore.WhipAnim(on_end=on_end if target_actor is None else None)]
       game.anims.append([PauseAnim(
         duration=14,

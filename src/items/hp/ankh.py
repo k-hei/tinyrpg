@@ -16,7 +16,7 @@ class Ankh(HpItem):
     game = store.place
     hero = game.hero
     ally = game.ally
-    floor = game.floor
+    floor = game.stage
     if not ally:
       return False, "No partner to revive!"
 

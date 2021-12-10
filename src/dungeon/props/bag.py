@@ -30,7 +30,7 @@ class Bag(Prop):
         game.anims.append([FlickerAnim(
           duration=30,
           target=bag,
-          on_end=lambda: game.floor.remove_elem(bag)
+          on_end=lambda: game.stage.remove_elem(bag)
         )])
       else:
         game.log.print("You can't carry any more materials...")

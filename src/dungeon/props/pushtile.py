@@ -39,7 +39,7 @@ class PushTile(DungeonElement):
     # find_pushtiles(stage, room)
     pushtiles = []
     for cell in game.room.get_cells():
-      pushtile = game.floor.get_elem_at(cell, superclass=PushTile)
+      pushtile = game.stage.get_elem_at(cell, superclass=PushTile)
       if pushtile:
         pushtiles.append(pushtile)
 
@@ -49,7 +49,7 @@ class PushTile(DungeonElement):
         tile.completed = True
       door = None
       for cell in game.room.get_edges():
-        door = next((e for e in game.floor.get_elems_at(cell) if isinstance(e, Door) and not e.opened), None)
+        door = next((e for e in game.stage.get_elems_at(cell) if isinstance(e, Door) and not e.opened), None)
         if door:
           door.unlock()
           game.anims.append([PauseAnim(

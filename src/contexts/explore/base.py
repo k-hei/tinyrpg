@@ -1,3 +1,5 @@
+from random import random
+from lib.cell import manhattan
 import lib.vector as vector
 from helpers.findactor import find_actor
 from contexts import Context
@@ -81,6 +83,21 @@ class ExploreBase(Context):
     facing_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
     facing_elems = ctx.stage.get_elems_at(facing_cell)
     return next((e for e in facing_elems if isinstance(e, DungeonActor)), None)
+
+  def find_closest_enemy(ctx, actor):
+    enemies = [e for e in ctx.stage.elems if (
+      isinstance(e, DungeonActor)
+      and not e.is_dead()
+      and not e.allied(actor)
+    )]
+
+    if not enemies:
+      return None
+
+    if len(enemies) > 1:
+      enemies.sort(key=lambda e: manhattan(e.cell, actor.cell) + random() / 2)
+
+    return enemies[0]
 
   def find_enemies_in_range(ctx):
     room = next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells), None)

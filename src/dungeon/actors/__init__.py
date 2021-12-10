@@ -3,6 +3,8 @@ from copy import copy
 from math import sqrt
 from pygame import Surface, Rect
 from lib.sprite import Sprite
+from lib.cell import is_adjacent, add as add_vector, manhattan
+from dungeon.fov import shadowcast
 import lib.vector as vector
 
 from dungeon.element import DungeonElement
@@ -20,7 +22,6 @@ from anims.bounce import BounceAnim
 from anims.frame import FrameAnim
 from anims.drop import DropAnim
 from anims.warpin import WarpInAnim
-from lib.cell import is_adjacent, add as add_vector
 from comps.log import Token
 from comps.hpbubble import HpBubble
 from vfx.icepiece import IcePieceVfx
@@ -173,6 +174,11 @@ class DungeonActor(DungeonElement):
   def get_hp(actor): return actor.core.get_hp()
   def get_hp_max(actor): return actor.core.get_hp_max()
   def set_hp(actor, hp): actor.core.set_hp(hp)
+
+  @property
+  def hp(actor):
+    return actor.core.get_hp()
+
   def get_skills(actor): return actor.core.skills
   def get_active_skills(actor): return actor.core.get_active_skills()
   def is_dead(actor): return actor.core.dead
@@ -383,7 +389,7 @@ class DungeonActor(DungeonElement):
     actor.face(hero.cell)
     game.camera.focus(((hero_x + actor_x) / 2, (hero_y + actor_y) / 2 + 1), speed=8)
     def stop_talk():
-      if actor in game.floor.elems:
+      if actor in game.stage.elems:
         actor.face(old_target)
       game.camera.blur()
       game.talkee = None
@@ -416,10 +422,8 @@ class DungeonActor(DungeonElement):
   def move_to(actor, dest):
     actor.cell = dest
 
-  def attack(actor, target, damage=None):
-    if damage == None:
-      damage = DungeonActor.find_damage(actor, target)
-    return actor.damage(damage)
+  def attack(actor):
+    pass
 
   def damage(target, damage):
     target.set_hp(target.get_hp() - damage)
@@ -438,11 +442,16 @@ class DungeonActor(DungeonElement):
   def step(actor, game):
     if not actor.can_step():
       return None
+
     enemy = game.find_closest_enemy(actor)
     if not enemy:
       return None
+
+    if manhattan(actor.cell, enemy.cell) < DungeonActor.VISION_RANGE:
+      actor.update_visible_cells(game)
+
     if not actor.aggro:
-      if enemy and game.is_cell_in_vision_range(actor, cell=enemy.cell):
+      if enemy and enemy.cell in actor.visible_cells:
         if actor.faction == "ally":
           print("alert ally from actor step")
         actor.alert(cell=enemy.cell)
@@ -451,6 +460,9 @@ class DungeonActor(DungeonElement):
       return ("attack", enemy)
     else:
       return ("move_to", enemy.cell)
+
+  def update_visible_cells(actor, game):
+    actor.visible_cells = shadowcast(game.stage, actor.cell, DungeonActor.VISION_RANGE)
 
   def update(actor, game):
     actor.updates += 1

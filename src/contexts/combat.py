@@ -37,6 +37,8 @@ class CombatContext(ExploreBase):
     if not ctx.hero:
       return
 
+    ctx.turns = 0
+
     x, y = ctx.hero.pos
     if x % ctx.hero.scale or y % ctx.hero.scale:
       hero_dest = vector.scale(
@@ -98,6 +100,7 @@ class CombatContext(ExploreBase):
     def on_move():
       target_elem = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if not isinstance(e, DungeonActor)), None)
       target_elem and target_elem.effect(ctx, ctx.hero)
+      ctx.step()
 
     ctx.hero.facing = delta
     moved = ctx.move(ctx.hero, delta, on_end=on_move)
@@ -140,6 +143,80 @@ class CombatContext(ExploreBase):
     actor.facing = normalize_direction(delta)
     return True
 
+  def move_to(ctx, actor, dest, run=False, on_end=None):
+    if actor.cell == dest or actor.ai_path and actor.cell == actor.ai_path[-1]:
+      actor.ai_path = None
+      if actor.cell == actor.ai_target:
+        actor.ai_mode = DungeonActor.AI_LOOK
+        actor.aggro = 0
+      elif actor.cell == dest:
+        on_end and on_end()
+        return False
+
+    if not actor.ai_path:
+      actor.ai_path = ctx.stage.pathfind(
+        start=actor.cell,
+        goal=dest,
+        whitelist=ctx.stage.find_walkable_room_cells(cell=actor.cell, ignore_actors=True)
+      )
+
+    delta = ctx.find_move_to_delta(actor, dest)
+    if actor.ai_path:
+      cell_index = actor.ai_path.index(actor.cell) if actor.cell in actor.ai_path else -1
+      next_cell = actor.ai_path[cell_index + 1] if (
+        cell_index != -1
+        and cell_index + 1 < len(actor.ai_path)
+      ) else None
+      delta = vector.subtract(next_cell, actor.cell) if next_cell else delta
+
+    moved = False
+    if delta != (0, 0):
+      moved = ctx.move(actor, delta, run, on_end=on_end)
+
+    if not moved:
+      actor.ai_path = None
+      actor.ai_target = None
+      actor.ai_mode = DungeonActor.AI_LOOK
+      on_end and on_end()
+
+    return moved
+
+  def find_move_to_delta(ctx, actor, dest):
+    if actor.cell == dest:
+      return (0, 0)
+
+    delta_x, delta_y = (0, 0)
+    actor_x, actor_y = actor.cell
+    target_x, target_y = dest
+
+    is_cell_walkable = lambda cell: (
+      (not Tile.is_solid(ctx.stage.get_tile_at(cell)) or issubclass(ctx.stage.get_tile_at(cell), tileset.Pit)
+        and not next((e for e in ctx.stage.get_elems_at(cell) if e.solid), None)
+      ) if actor.floating else ctx.stage.is_cell_empty(cell)
+    )
+
+    def select_x():
+      if target_x < actor_x and is_cell_walkable((actor_x - 1, actor_y)):
+        return -1
+      elif target_x > actor_x and is_cell_walkable((actor_x + 1, actor_y)):
+        return 1
+      else:
+        return 0
+
+    def select_y():
+      if target_y < actor_y and is_cell_walkable((actor_x, actor_y - 1)):
+        return -1
+      elif target_y > actor_y and is_cell_walkable((actor_x, actor_y + 1)):
+        return 1
+      else:
+        return 0
+
+    delta_x = select_x()
+    if not delta_x:
+      delta_y = select_y()
+
+    return (delta_x, delta_y)
+
   def leap(ctx, actor, on_end=None):
     delta = vector.scale(actor.facing, 2)
     moved = ctx.move(actor, delta, jump=True, on_end=on_end)
@@ -163,12 +240,12 @@ class CombatContext(ExploreBase):
 
     return action_result
 
-  def handle_attack(ctx):
+  def handle_attack(ctx, on_end=None):
     target_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
     target_actor = next((e for e in ctx.stage.get_elems_at(target_cell) if isinstance(e, DungeonActor)), None)
-    return ctx.attack(actor=ctx.hero, target=target_actor)
+    return ctx.attack(actor=ctx.hero, target=target_actor, on_end=ctx.step)
 
-  def attack(ctx, actor, target=None, modifier=1):
+  def attack(ctx, actor, target=None, modifier=1, on_end=None):
     if target:
       actor.face(target.cell)
       crit = ctx.find_crit(actor, target)
@@ -194,6 +271,7 @@ class CombatContext(ExploreBase):
           damage=damage,
           crit=crit,
           direction=actor.facing,
+          on_end=on_end,
         )
       )
     )])
@@ -212,7 +290,7 @@ class CombatContext(ExploreBase):
       or actor.facing == target.facing
     )
 
-  def flinch(ctx, target, damage, direction, crit=False):
+  def flinch(ctx, target, damage, direction, crit=False, on_end=None):
     show_text = lambda: ctx.vfx.append(DamageValue(
       text=find_damage_text(damage),
       cell=target.cell,
@@ -246,19 +324,23 @@ class CombatContext(ExploreBase):
       PauseAnim(
         duration=FLINCH_PAUSE_DURATION,
         on_end=lambda: (
-          (target.is_dead() or issubclass(ctx.stage.get_tile_at(target.cell), tileset.Pit)) and ctx.kill(target)
+          (target.is_dead() or issubclass(ctx.stage.get_tile_at(target.cell), tileset.Pit))
+            and ctx.kill(target, on_end=on_end)
+            or on_end and on_end()
         )
       )
     ]
 
-  def kill(ctx, target):
+  def kill(ctx, target, on_end=None):
     target.kill(ctx)
     ctx.exiting = not ctx.find_enemies_in_range()
+    not ctx.anims and ctx.anims.append([])
     ctx.anims[0].append(FlickerAnim(
       target=target,
       duration=FLICKER_DURATION,
       on_end=lambda: (
         ctx.stage.elems.remove(target),
+        on_end and on_end(),
         ctx.exiting and ctx.exit()
       )
     ))
@@ -280,3 +362,101 @@ class CombatContext(ExploreBase):
       on_end=on_end
     ))
     return True
+
+  def use_skill(ctx, actor, skill, dest=None, on_end=None):
+    skill.effect(actor, dest, ctx, on_end=on_end)
+
+  def step(ctx):
+    actors = [e for e in ctx.stage.elems if
+      isinstance(e, DungeonActor)
+      and e is not ctx.hero
+      and not e.is_dead()
+      and e.cell in ctx.hero.visible_cells
+    ]
+    ctx.step_distribute(actors)
+    commands = ctx.step_populate(actors)
+    ctx.step_execute(commands)
+
+  def step_distribute(ctx, actors):
+    for actor in actors:
+      if actor.charge_skill or actor.faction == "ally" and not actor.aggro:
+        actor.turns = 1
+      else:
+        spd = actor.stats.ag / ctx.hero.stats.ag
+        actor.turns += spd
+
+  def step_populate(ctx, actors):
+    commands = {}
+
+    for actor in actors:
+      # populate command group
+      while actor.turns >= 1:
+        actor.turns -= 1
+        command = actor.step_charge() or ctx.step_enemy(actor)
+        if type(command) is tuple:
+          commands.setdefault(actor, [])
+          commands[actor].append(command)
+
+      if actor not in commands:
+        ctx.end_turn(actor)
+
+    return commands
+
+  def step_enemy(ctx, actor):
+    if not actor.can_step():
+      return None
+    return actor.step(ctx)
+
+  def step_execute(ctx, commands):
+    COMMAND_PRIORITY = ["move", "move_to", "use_skill", "attack", "wait"]
+    ctx.end_turn(ctx.hero)
+    if commands:
+      commands = sorted(commands.items(), key=lambda item: COMMAND_PRIORITY.index(item[1][0][0]))
+      ctx.step_command(commands, on_end=ctx.end_step)
+    else:
+      ctx.end_step()
+
+  def step_command(ctx, commands, on_end=None):
+    if not commands:
+      return on_end and on_end()
+
+    actor, subcommands = commands[0]
+    next = lambda: (
+      commands and not (actor and subcommands) and (
+        commands.pop(0),
+        ctx.end_turn(actor),
+      ),
+      ctx.step_command(commands, on_end)
+    )
+
+    command_name, *command_args = subcommands.pop(0)
+    if actor.is_immobile():
+      return next()
+
+    if command_name == "move":
+      if subcommands:
+        return ctx.move(actor, *command_args, on_end=next)
+      else:
+        ctx.move(actor, *command_args)
+        return next()
+
+    if command_name == "move_to":
+      if subcommands:
+        return ctx.move_to(actor, *command_args, on_end=next)
+      else:
+        ctx.move_to(actor, *command_args)
+        return next()
+
+    if command_name == "use_skill":
+      return ctx.use_skill(actor, *command_args, on_end=next)
+
+    if command_name == "wait":
+      return next()
+
+  def end_turn(ctx, actor):
+    actor.step_status(ctx)
+
+  def end_step(ctx):
+    actors = [e for e in ctx.stage.elems if isinstance(e, DungeonActor)]
+    for actor in actors:
+      actor.command = None

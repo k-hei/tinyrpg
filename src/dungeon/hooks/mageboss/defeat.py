@@ -34,12 +34,12 @@ def postbattle_cutscene_setup(room, game):
   return [
     lambda step: (
       mage.revive(hp_factor=0),
-      enemies := [e for e in room.get_enemies(game.floor) if e is not mage],
+      enemies := [e for e in room.get_enemies(game.stage) if e is not mage],
       game.anims.extend([
         [(lambda e: FlickerAnim(
           target=e,
           duration=45,
-          on_end=lambda: game.floor.remove_elem(e)
+          on_end=lambda: game.stage.remove_elem(e)
         ))(e) for e in enemies],
         [PauseAnim(duration=15, on_end=step)]
       ]) if enemies else step()

@@ -84,7 +84,7 @@ class Mage(DungeonActor):
         mage.charge(skill=Glacio)
       return game.log.print((mage.token(), " is chanting."))
 
-    has_allies = next((e for e in [game.floor.get_elem_at(c, superclass=DungeonActor) for c in game.room.get_cells()] if (
+    has_allies = next((e for e in [game.stage.get_elem_at(c, superclass=DungeonActor) for c in game.room.get_cells()] if (
       e and e is not mage
       and e.faction == mage.faction
     )), None)
@@ -94,11 +94,11 @@ class Mage(DungeonActor):
 
     delta = None
     if abs(dist_x) + abs(dist_y) == 1:
-      if game.floor.is_cell_empty((mage_x - delta_x, mage_y - delta_y)):
+      if game.stage.is_cell_empty((mage_x - delta_x, mage_y - delta_y)):
         delta = (-delta_x, -delta_y)
       else:
         deltas = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-        deltas = [(dx, dy) for (dx, dy) in deltas if game.floor.is_cell_empty((mage_x + dx, mage_y + dy))]
+        deltas = [(dx, dy) for (dx, dy) in deltas if game.stage.is_cell_empty((mage_x + dx, mage_y + dy))]
         if deltas:
           delta = choice(deltas)
     elif abs(dist_x) + abs(dist_y) < 4:

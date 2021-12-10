@@ -24,7 +24,7 @@ class Accerso(MagicSkill):
   )
 
   def effect(user, dest, game, on_end=None):
-    floor = game.floor
+    floor = game.stage
     valid_cells = [c for c in Accerso().find_range(user, floor) if floor.is_cell_empty(c) and floor.get_tile_at(c) is floor.FLOOR]
     target_count = 2
     target_cells = []

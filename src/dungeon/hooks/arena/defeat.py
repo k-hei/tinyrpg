@@ -8,7 +8,7 @@ from dungeon.props.chest import Chest
 from items.hp.elixir import Elixir
 
 def on_defeat(room, game, actor):
-  enemies = [e for e in room.get_enemies(game.floor) if e is not actor]
+  enemies = [e for e in room.get_enemies(game.stage) if e is not actor]
   if actor.faction != "enemy" or game.room is not room:
     return True
   if not enemies:
@@ -19,7 +19,7 @@ def on_defeat(room, game, actor):
   return True
 
 def on_complete(room, game):
-  door = sorted(room.get_doors(game.floor), key=lambda d: d.cell[1])[0]
+  door = sorted(room.get_doors(game.stage), key=lambda d: d.cell[1])[0]
   game.open(CutsceneContext(script=[
     lambda step: (
       game.camera.focus(
@@ -44,12 +44,12 @@ def on_complete(room, game):
       game.anims.append([PauseAnim(duration=30, on_end=step)])
     ),
     lambda step: (
-      game.floor.spawn_elem_at(next((
+      game.stage.spawn_elem_at(next((
         c for c in neighborhood(
           cell=room.center,
           inclusive=True,
           radius=2
-        ) if game.floor.is_cell_empty(c)
+        ) if game.stage.is_cell_empty(c)
       ), room.center), chest := Chest(Elixir)),
       game.anims.extend([
         [DropAnim(target=chest)],
@@ -61,10 +61,10 @@ def on_complete(room, game):
 def spawn_next_wave(room, game):
   enemy_types = room.waves.pop(0)
   valid_cells = [c for c in room.cells if (
-    game.floor.is_cell_empty(c)
+    game.stage.is_cell_empty(c)
     and manhattan(c, game.hero.cell) > 2
     and manhattan(c, game.hero.cell) <= 5
-    and len(game.floor.pathfind(
+    and len(game.stage.pathfind(
       start=c,
       goal=game.hero.cell
     )) <= 8
@@ -78,7 +78,7 @@ def spawn_next_wave(room, game):
 
   not game.anims and game.anims.append([PauseAnim(duration=30)])
   for i, (cell, enemy) in enumerate(enemy_spawns.items()):
-    game.floor.spawn_elem_at(cell, enemy)
+    game.stage.spawn_elem_at(cell, enemy)
     game.anims[0].append(WarpInAnim(
       target=enemy,
       delay=i * 15

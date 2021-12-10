@@ -27,12 +27,12 @@ class Glacio(MagicSkill):
 
   def effect(user, dest, game, on_end=None):
     camera = game.camera
-    floor = game.floor
+    floor = game.stage
     hero_x, hero_y = user.cell
     delta_x, delta_y = user.facing
     bump_dest = (hero_x + delta_x, hero_y + delta_y)
 
-    dest = Glacio().find_targets(user, game.floor)[-1]
+    dest = Glacio().find_targets(user, game.stage)[-1]
     target = floor.get_elem_at(dest, superclass=DungeonActor)
     target_cells = []
     cell = user.cell

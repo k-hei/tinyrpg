@@ -19,10 +19,10 @@ import config
 from config import PUSH_DURATION, RUN_DURATION, NUDGE_DURATION
 
 def on_enter(room, game):
-  room.mage = game.floor.find_elem(cls="Mage")
+  room.mage = game.stage.find_elem(cls="Mage")
   game.open(CutsceneContext([
     *(cutscene(room, game) if (config.CUTSCENES and "minxia" not in game.store.story) else [
-      game.floor.remove_elem(room.mage),
+      game.stage.remove_elem(room.mage),
       setattr(room, "mage", None),
       *take_battle_position(room, game),
       lambda step: (
@@ -36,7 +36,7 @@ def on_enter(room, game):
 def cutscene(room, game):
   hero = game.hero
   mage = room.mage
-  for door in room.get_doors(game.floor):
+  for door in room.get_doors(game.stage):
     door.open()
   return [
     lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
@@ -122,7 +122,7 @@ def cutscene(room, game):
       ),
     ),
     lambda step: (
-      game.floor_view.shake(duration=inf, vertical=True),
+      game.stage_view.shake(duration=inf, vertical=True),
       setattr(hero, "facing", (-1, 0)),
       game.child.open(DialogueContext(script=[
         spawn_enemies(room, game) and ("????", "Urrrrrgh....."),
@@ -157,7 +157,7 @@ def cutscene(room, game):
       game.anims.append([PathAnim(
         target=mage,
         period=RUN_DURATION,
-        path=game.floor.pathfind(
+        path=game.stage.pathfind(
           start=mage.cell,
           goal=goal_cell,
           whitelist=room.cells + room.edges
@@ -197,7 +197,7 @@ def cutscene(room, game):
       period=RUN_DURATION,
       path=[vector.add(room.cell, (room.get_width() // 2, -1), c) for c in [(0, 0), (0, -1)]],
       on_end=lambda: (
-        game.floor.remove_elem(mage),
+        game.stage.remove_elem(mage),
         step()
       )
     )]),
@@ -213,7 +213,7 @@ def cutscene(room, game):
       game.anims.append([PathAnim(
         target=hero,
         period=RUN_DURATION,
-        path=game.floor.pathfind(start=hero.cell, goal=goal_cell),
+        path=game.stage.pathfind(start=hero.cell, goal=goal_cell),
         on_end=step
       ), PauseAnim(
         duration=45,
@@ -248,7 +248,7 @@ def cutscene(room, game):
           setattr(hero, "facing", (0, 1))
         ) or (hero.name.upper(), "Looks like I'll have to put these guys back to sleep first!"),
         lambda: (
-          game.floor_view.stop_shake(),
+          game.stage_view.stop_shake(),
         ) and None
       ]), on_close=step)
     ),
@@ -265,7 +265,7 @@ def take_battle_position(room, game):
       game.anims.append([PathAnim(
         target=hero,
         period=RUN_DURATION,
-        path=game.floor.pathfind(
+        path=game.stage.pathfind(
           start=hero.cell,
           goal=goal_cell
         ),
@@ -287,7 +287,7 @@ def take_battle_position(room, game):
 def spawn_enemies(room, game):
   return [
     (
-      game.floor.spawn_elem_at(c.cell, mummy := Mummy(aggro=3)),
+      game.stage.spawn_elem_at(c.cell, mummy := Mummy(aggro=3)),
       not game.anims and game.anims.append([]),
       game.anims[0].append(WarpInAnim(
         target=mummy,
@@ -297,7 +297,7 @@ def spawn_enemies(room, game):
       ))
     ) for i, c in enumerate([
       e for c in room.cells
-        for e in game.floor.get_elems_at(c)
+        for e in game.stage.get_elems_at(c)
           if isinstance(e, Coffin)
     ]) if i in (0, 3, 4)
   ]

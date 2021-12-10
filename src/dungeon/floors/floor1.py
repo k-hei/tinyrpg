@@ -26,7 +26,7 @@ def has_weapon_equipped(game):
   return next((s for n, b in game.store.builds.items() for s, c in b if n == type(game.hero).__name__ and issubclass(s, Weapon)), None)
 
 def find_unvisited_secret(game):
-  return next((r for r in game.floor.rooms if r not in game.room_entrances and r.data and r.data.secret), None)
+  return next((r for r in game.stage.rooms if r not in game.room_entrances and r.data and r.data.secret), None)
 
 class Floor1(Floor):
   def generate(store=None, seed=None):
@@ -39,8 +39,8 @@ class Floor1(Floor):
             doors="RareTreasureDoor",
             hooks={
               "on_enter": lambda room, game: "minxia" not in game.store.story and find_unvisited_secret(game) and (
-                genie_cell := sorted(get_room_bonus_cells(room, game.floor), key=lambda c: manhattan(c, game.hero.cell))[0],
-                game.floor.spawn_elem_at(genie_cell, genie := Genie(
+                genie_cell := sorted(get_room_bonus_cells(room, game.stage), key=lambda c: manhattan(c, game.hero.cell))[0],
+                game.stage.spawn_elem_at(genie_cell, genie := Genie(
                   name=(genie_name := "Brajin"),
                   color=GREEN,
                   message=lambda *_: [
@@ -50,7 +50,7 @@ class Floor1(Floor):
                     lambda: game.anims.append([FlickerAnim(
                       target=genie,
                       duration=30,
-                      on_end=lambda: game.floor.remove_elem(genie)
+                      on_end=lambda: game.stage.remove_elem(genie)
                     )])
                   ]
                 )),
@@ -70,8 +70,8 @@ class Floor1(Floor):
             degree=3,
             hooks={
               "on_enter": lambda room, game: "minxia" not in game.store.story and not has_weapon_equipped(game) and (
-                genie_cell := sorted(get_room_bonus_cells(room, game.floor), key=lambda c: manhattan(c, game.hero.cell))[0],
-                game.floor.spawn_elem_at(genie_cell, genie := Genie(
+                genie_cell := sorted(get_room_bonus_cells(room, game.stage), key=lambda c: manhattan(c, game.hero.cell))[0],
+                game.stage.spawn_elem_at(genie_cell, genie := Genie(
                   name=(genie_name := "Joshin"),
                   message=lambda *_: not has_weapon(game) and [
                     (genie_name, "It doesn't look like you have a weapon on you."),
@@ -86,7 +86,7 @@ class Floor1(Floor):
                     lambda: game.anims.append([FlickerAnim(
                       target=genie,
                       duration=30,
-                      on_end=lambda: game.floor.remove_elem(genie)
+                      on_end=lambda: game.stage.remove_elem(genie)
                     )])
                   ]
                 )),

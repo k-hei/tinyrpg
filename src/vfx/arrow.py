@@ -74,10 +74,10 @@ class Arrow(Vfx):
       if can_block:
         hero.block()
 
-    target_tile = game.floor.get_tile_at(arrow_cell)
-    if target_tile and (not target_tile.solid and not abs(arrow.elev - target_tile.elev) >= 1 or target_tile is game.floor.PIT):
+    target_tile = game.stage.get_tile_at(arrow_cell)
+    if target_tile and (not target_tile.solid and not abs(arrow.elev - target_tile.elev) >= 1 or target_tile is game.stage.PIT):
       target_tile = None
-    target_elem = next((e for e in game.floor.get_elems_at(arrow_cell) if (
+    target_elem = next((e for e in game.stage.get_elems_at(arrow_cell) if (
       e.solid
       and not (game.anims and next((a for a in game.anims[0] if type(a) is FlinchAnim and a.target is e), None))
     )), None)

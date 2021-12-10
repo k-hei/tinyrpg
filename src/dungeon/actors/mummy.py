@@ -38,13 +38,13 @@ class Mummy(DungeonActor):
       delta_y = dist_y // abs(dist_y or 1)
       cell = (user_x + delta_x, user_y + delta_y)
       while (cell != dest
-      and not (Tile.is_solid(game.floor.get_tile_at(cell)) and not game.floor.get_tile_at(cell) is game.floor.PIT)
-      and not next((e for e in game.floor.get_elems_at(cell) if e.solid), None)
+      and not (Tile.is_solid(game.stage.get_tile_at(cell)) and not game.stage.get_tile_at(cell) is game.stage.PIT)
+      and not next((e for e in game.stage.get_elems_at(cell) if e.solid), None)
       ):
         x, y = cell
         cell = (x + delta_x, y + delta_y)
       dest = cell
-      target_actor = next((e for e in game.floor.get_elems_at(dest) if isinstance(e, DungeonActor)), None)
+      target_actor = next((e for e in game.stage.get_elems_at(dest) if isinstance(e, DungeonActor)), None)
       user.core.anims.append(Mummy.ChargeAnim())
       game.vfx.append(LinenVfx(
         src=user.cell,
@@ -53,9 +53,9 @@ class Mummy(DungeonActor):
         on_connect=(lambda: game.attack(
           actor=user,
           target=target_actor,
-          is_ranged=True,
-          is_chaining=True,
-          is_animated=False,
+          # is_ranged=True,
+          # is_chaining=True,
+          # is_animated=False,
         )) if target_actor else None,
         on_end=lambda: (
           user.core.anims.clear(),
@@ -67,7 +67,7 @@ class Mummy(DungeonActor):
   class Backstep(SupportSkill):
     def effect(user, dest, game, on_end=None):
       dest_cell = add_vector(user.cell, invert_direction(user.facing))
-      if game.floor.is_cell_empty(dest_cell):
+      if game.stage.is_cell_empty(dest_cell):
         game.anims.append([JumpAnim(
           target=user,
           src=user.cell,
@@ -116,7 +116,7 @@ class Mummy(DungeonActor):
     if soldier.damaged:
       soldier.damaged = False
       soldier.face(enemy.cell)
-      if randint(0, 1) and game.floor.is_cell_empty(add_vector(soldier.cell, invert_direction(soldier.facing))):
+      if randint(0, 1) and game.stage.is_cell_empty(add_vector(soldier.cell, invert_direction(soldier.facing))):
         return ("use_skill", Mummy.Backstep)
       else:
         return soldier.charge(skill=ClawRush, dest=enemy.cell)

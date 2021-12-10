@@ -182,7 +182,7 @@ class Blob(Room):
     return room.trigger_hook("on_place", stage)
 
   def on_focus(room, game):
-    pushblock = next((e for c in room.cells for e in game.floor.get_elems_at(c) if (
+    pushblock = next((e for c in room.cells for e in game.stage.get_elems_at(c) if (
       type(e).__name__ == "PushBlock"
       and not e.static
     )), None)
@@ -205,7 +205,7 @@ class Blob(Room):
     if room.resolve_hook("on_defeat"):
       result = room.trigger_hook("on_defeat", game, actor)
       if result is not None: return result
-    elif room.should_unlock(game.floor, actor):
+    elif room.should_unlock(game.stage, actor):
       room.unlock(game)
       return True
     return super().on_defeat(game, actor)

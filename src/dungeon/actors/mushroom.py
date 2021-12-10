@@ -7,6 +7,7 @@ from skills.weapon.tackle import Tackle
 from items.materials.redferrule import RedFerrule
 import assets
 from lib.sprite import Sprite
+import tiles.default as tileset
 
 from anims.step import StepAnim
 from anims.attack import AttackAnim
@@ -49,7 +50,7 @@ class Mushroom(DungeonActor):
 
   def kill(mushroom, game=None, *args, **kwargs):
     super().kill(game=game, *args, **kwargs)
-    if mushroom.charge_skill and game and not game.floor.get_tile_at(mushroom.cell) is game.floor.PIT:
+    if mushroom.charge_skill and game and not issubclass(game.stage.get_tile_at(mushroom.cell), tileset.Pit):
       Virus.effect(user=mushroom, dest=None, game=game)
 
   def step(mushroom, game):
@@ -65,11 +66,9 @@ class Mushroom(DungeonActor):
     if can_charge and manhattan(mushroom.cell, enemy.cell) <= 2:
       return mushroom.charge(skill=Virus, dest=game.hero.cell)
     elif is_adjacent(mushroom.cell, enemy.cell):
-        game.attack(mushroom, enemy)
+      return ("attack", enemy)
     else:
-      game.move_to(mushroom, enemy.cell)
-
-    return True
+      return ("move_to", enemy.cell)
 
   def view(mushroom, anims):
     mushroom_image = None

@@ -13,7 +13,7 @@ class Palm(Prop):
     game.anims.append([FlickerAnim(
       duration=FLICKER_DURATION,
       target=palm,
-      on_end=lambda: game.floor.elems.remove(palm)
+      on_end=lambda: game.stage.elems.remove(palm)
     )])
 
   def view(coffin, anims):

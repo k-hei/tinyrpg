@@ -39,7 +39,7 @@ class Soul(Prop):
     soul.on_end = None
 
   def obtain(soul, game):
-    game.floor.elems.remove(soul)
+    game.stage.elems.remove(soul)
     game.store.learn_skill(soul.skill)
     game.open(DialogueContext(
       lite=True,

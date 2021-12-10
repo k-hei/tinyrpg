@@ -14,7 +14,7 @@ class HelmSplitter(Skill):
 
   def effect(user, game, on_end=None):
     camera = game.camera
-    floor = game.floor
+    floor = game.stage
     hero_x, hero_y = user.cell
     delta_x, delta_y = user.facing
     target_cell = (hero_x + delta_x, hero_y + delta_y)

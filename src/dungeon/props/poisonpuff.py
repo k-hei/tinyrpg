@@ -33,7 +33,7 @@ class PoisonPuff(Prop):
     elif not puff.dissolving:
       puff.dissolving = True
       for i, fx in enumerate(puff.vfx):
-        fx.dissolve(delay=i * 5, on_end=(lambda: game.floor.remove_elem(puff)) if fx == puff.vfx[-1] else None)
+        fx.dissolve(delay=i * 5, on_end=(lambda: game.stage.remove_elem(puff)) if fx == puff.vfx[-1] else None)
 
   def update(puff, *_):
     if puff.vfx:

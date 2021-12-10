@@ -37,7 +37,7 @@ class Coffin(Prop):
           target=contents,
           src=coffin.cell,
           dest=neighbor,
-          on_start=lambda: game.floor.spawn_elem_at(neighbor, contents)
+          on_start=lambda: game.stage.spawn_elem_at(neighbor, contents)
         )])
       elif game.store.obtain(contents):
         coffin.open()

@@ -8,4 +8,4 @@ def on_focus(room, game):
     faction="ally",
     facing=(0, -1)
   )
-  game.floor.spawn_elem_at(add_vector(room.center, (0, -1)), room.mage)
+  game.stage.spawn_elem_at(add_vector(room.center, (0, -1)), room.mage)

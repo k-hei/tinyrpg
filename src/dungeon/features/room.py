@@ -131,11 +131,11 @@ class Room(Feature):
     return slots
 
   def lock(room, game):
-    for door in room.get_doors(game.floor):
+    for door in room.get_doors(game.stage):
       door.handle_close(game)
 
   def unlock(room, game, open=False):
-    for door in room.get_doors(game.floor):
+    for door in room.get_doors(game.stage):
       if door.locked:
         if open:
           door.handle_open(game)
@@ -146,13 +146,13 @@ class Room(Feature):
     if room.focused:
       return False
     room.focused = True
-    for door in room.get_doors(game.floor):
+    for door in room.get_doors(game.stage):
       door.focus = game.hero.cell
       # door.align(game)
     return True
 
   def on_blur(room, game):
-    for door in room.get_doors(game.floor):
+    for door in room.get_doors(game.stage):
       door.focus = game.hero.cell
       # door.align(game)
 

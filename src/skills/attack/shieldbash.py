@@ -25,7 +25,7 @@ class ShieldBash(AttackSkill):
   )
 
   def effect(user, dest, game, on_end=None):
-    floor = game.floor
+    floor = game.stage
     camera = game.camera
 
     source_cell = user.cell

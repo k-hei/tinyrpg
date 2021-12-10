@@ -39,7 +39,7 @@ class Congelatio(MagicSkill):
   )
 
   def effect(user, dest, game, on_end=None):
-    floor = game.floor
+    floor = game.stage
     hero_x, hero_y = user.cell
     delta_x, delta_y = user.facing
     bump_dest = (hero_x + delta_x, hero_y + delta_y)
