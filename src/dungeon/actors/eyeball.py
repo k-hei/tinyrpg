@@ -141,10 +141,6 @@ class Eyeball(DungeonActor):
       eyeball.promote(hp=False)
       eyeball.core.skills.append(HpUp)
 
-  def charge(eyeball, *args, **kwargs):
-    super().charge(*args, **kwargs)
-    eyeball.core.anims.append(Eyeball.ChargeAnim(magnitude=0.5))
-
   def discharge(eyeball):
     eyeball.core.anims.clear()
     return super().discharge()
@@ -246,6 +242,7 @@ class Eyeball(DungeonActor):
       return super().view(FlinchSprite(eyeball.facing), anims)
     anim_group = [a for a in anims[0] if a.target is eyeball] if anims else []
     anim_group += eyeball.core.anims
+    # anim_group and print([(type(a).__name__, a.__dict__) for a in anim_group])
     for anim in anim_group:
       if isinstance(anim, StepAnim) and anim.duration != PUSH_DURATION:
         if type(anim) is Eyeball.SplitAnim:

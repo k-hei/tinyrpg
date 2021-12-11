@@ -137,20 +137,13 @@ class DungeonActor(DungeonElement):
     actor.reset_charge()
 
   @property
-  def rect(actor):
-    if actor._rect:
-      return actor._rect
-
-    if actor.pos is None:
-      return None
-
-    x, y = actor.pos
-    width = TILE_SIZE // 2
-    height = TILE_SIZE // 2
-    left = x - width // 2
-    top = y
-    actor._rect = Rect(left, top, width, height)
-    return actor._rect
+  def rect(elem):
+    if elem._rect is None and elem.pos:
+      elem._rect = Rect(
+        vector.subtract(elem.pos, (8, 0)),
+        (16, 16)
+      )
+    return elem._rect
 
   @property
   def facing(actor):
@@ -512,6 +505,8 @@ class DungeonActor(DungeonElement):
         actor_width, actor_height = sprite.image.get_size()
         offset_x += (actor_width - TILE_SIZE) / 2
         offset_y += (actor_height - TILE_SIZE) / 2
+        if actor_height > TILE_SIZE:
+          offset_y += (actor_height - TILE_SIZE) / 2
         # is_animating = True
 
     warpin_anim = next((a for a in anim_group if type(a) is WarpInAnim), None)
@@ -598,7 +593,7 @@ class DungeonActor(DungeonElement):
     elif facing_x == 1:
       actor.flipped = False
     sprite.flip = (actor.flipped, flip_y)
-    sprite.move((offset_x, offset_y - offset_z))
+    sprite.move((offset_x, offset_y - offset_z + 16))
     sprite.size = (actor_width, actor_height)
     offset_y = abs(
       move_anim
@@ -608,6 +603,7 @@ class DungeonActor(DungeonElement):
       and actor.find_move_offset(move_anim)[1]
       or 0)
     sprite.offset += offset_z + offset_y
+    sprite.origin = Sprite.ORIGIN_BOTTOM
     return super().view(sprites, anims)
 
   def color(actor):
