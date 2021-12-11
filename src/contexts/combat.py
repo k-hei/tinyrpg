@@ -100,16 +100,14 @@ class CombatContext(ExploreBase):
     def on_move():
       target_elem = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if not isinstance(e, DungeonActor)), None)
       target_elem and target_elem.effect(ctx, ctx.hero)
-      ctx.step()
 
     ctx.hero.facing = delta
     moved = ctx.move(ctx.hero, delta, on_end=on_move)
-    if moved:
-      return True
-    elif issubclass(target_tile, tileset.Pit):
-      return ctx.leap(actor=ctx.hero, on_end=on_move)
-    else:
-      return False
+    if not moved and issubclass(target_tile, tileset.Pit):
+      moved = ctx.leap(actor=ctx.hero, on_end=on_move)
+
+    moved and ctx.step()
+    return moved
 
   def move(ctx, actor, delta, jump=False, on_end=None):
     target_cell = vector.add(actor.cell, delta)
@@ -127,14 +125,18 @@ class CombatContext(ExploreBase):
     move_duration = MOVE_DURATION
     move_duration = move_duration * 1.5 if jump else move_duration
     move_kind = JumpAnim if jump else StepAnim
-    ctx.anims.append([move_anim := move_kind(
+    move_anim = move_kind(
       target=actor,
       src=actor.cell,
       dest=target_cell,
       duration=move_duration,
       on_end=compose(ctx.update_bubble, on_end)
-    )])
-    move_anim.update() # initial update to ensure animation loops seamlessly
+    )
+    move_anim.update() # initial update to ensure walk animation loops seamlessly
+
+    move_group = next((g for g in ctx.anims for a in g if isinstance(a, StepAnim) and isinstance(a.target, DungeonActor)), None)
+    not move_group and ctx.anims.append(move_group := [])
+    move_group.append(move_anim)
     if jump:
       ctx.anims[-1].append(PauseAnim(duration=move_duration + 5))
 
