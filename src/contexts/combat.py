@@ -462,3 +462,7 @@ class CombatContext(ExploreBase):
     actors = [e for e in ctx.stage.elems if isinstance(e, DungeonActor)]
     for actor in actors:
       actor.command = None
+
+    non_actors = [e for e in ctx.stage.elems if e not in actors]
+    for elem in non_actors:
+      elem.step(ctx)

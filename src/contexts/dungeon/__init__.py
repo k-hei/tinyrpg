@@ -213,7 +213,7 @@ class DungeonContext(ExploreBase):
 
   def update(ctx):
     for elem in ctx.stage.elems:
-      elem.update(ctx)
+      ctx.vfx.extend(elem.update(ctx) or [])
 
     for comp in ctx.comps:
       comp.update()

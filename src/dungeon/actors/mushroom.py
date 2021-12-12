@@ -44,10 +44,6 @@ class Mushroom(DungeonActor):
     super().damage(*args, **kwargs)
     mushroom.damaged = True
 
-  def charge(mushroom, *args, **kwargs):
-    super().charge(*args, **kwargs)
-    mushroom.core.anims.append(Mushroom.ChargeAnim())
-
   def kill(mushroom, game=None, *args, **kwargs):
     super().kill(game=game, *args, **kwargs)
     if mushroom.charge_skill and game and not issubclass(game.stage.get_tile_at(mushroom.cell), tileset.Pit):

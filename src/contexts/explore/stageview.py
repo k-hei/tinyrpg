@@ -90,7 +90,10 @@ class StageView:
       else:
         view.anim.update()
 
-    view.vfx = step_anims(view.vfx)
+    view.vfx = [(
+      view.vfx.extend(f.update() or []),
+      f
+    )[-1] for f in view.vfx if not f.done]
 
   def shake(view, duration=15, vertical=False):
     view.anim = ShakeAnim(
