@@ -10,6 +10,7 @@ from contexts.combat import CombatContext
 from comps.hud import Hud
 from comps.minilog import Minilog
 from comps.minimap import Minimap
+from comps.skillbanner import SkillBanner
 from dungeon.actors.knight import Knight
 from dungeon.props.door import Door
 from dungeon.fov import shadowcast
@@ -46,7 +47,8 @@ class DungeonContext(ExploreBase):
         stage=ctx.stage,
         hero=ctx.hero,
         visited_cells=ctx.visited_cells
-      )
+      ),
+      SkillBanner()
     ]
     ctx.handle_explore()
 

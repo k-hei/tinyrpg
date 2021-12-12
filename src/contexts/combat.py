@@ -17,7 +17,7 @@ from anims.flinch import FlinchAnim
 from anims.pause import PauseAnim
 from anims.flicker import FlickerAnim
 from vfx.flash import FlashVfx
-from colors.palette import GOLD, PURPLE
+from colors.palette import RED, GREEN, BLUE, GOLD, PURPLE
 from config import (
   MOVE_DURATION, FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION,
   CRIT_MODIFIER,
@@ -370,6 +370,19 @@ class CombatContext(ExploreBase):
 
   def use_skill(ctx, actor, skill, dest=None, on_end=None):
     skill.effect(actor, dest, ctx, on_end=on_end)
+    ctx.display_skill(skill, user=actor)
+
+  def display_skill(ctx, skill, user):
+    resolve_color = lambda faction: (
+      BLUE if faction == "player"
+      else RED if faction == "enemy"
+      else GREEN if faction == "ally"
+      else None
+    )
+    ctx.skill_banner.enter(
+      text=skill.name,
+      color=resolve_color(user.faction),
+    )
 
   def handle_wait(ctx):
     ctx.step()

@@ -3,10 +3,10 @@ from lib.cell import manhattan
 import lib.vector as vector
 from helpers.findactor import find_actor
 from contexts import Context
-# from contexts.explore.stageview import StageView
 from comps.hud import Hud
 from comps.minilog import Minilog
 from comps.minimap import Minimap
+from comps.skillbanner import SkillBanner
 from anims.item import ItemAnim
 from dungeon.actors import DungeonActor
 from vfx.talkbubble import TalkBubble
@@ -16,7 +16,7 @@ class ExploreBase(Context):
     super().__init__(*args, **kwargs)
     ctx.store = store
     ctx.stage = stage
-    ctx.stage_view = stage_view # or StageView(stage)
+    ctx.stage_view = stage_view
 
   @property
   def hero(ctx):
@@ -54,6 +54,10 @@ class ExploreBase(Context):
     ctx._comps = comps
 
   @property
+  def hud(ctx):
+    return next((c for c in ctx.comps if type(c) is Hud), None)
+
+  @property
   def minilog(ctx):
     return next((c for c in ctx.comps if type(c) is Minilog), None)
 
@@ -62,8 +66,8 @@ class ExploreBase(Context):
     return next((c for c in ctx.comps if type(c) is Minimap), None)
 
   @property
-  def hud(ctx):
-    return next((c for c in ctx.comps if type(c) is Hud), None)
+  def skill_banner(ctx):
+    return next((c for c in ctx.comps if type(c) is SkillBanner), None)
 
   @property
   def talkbubble(ctx):

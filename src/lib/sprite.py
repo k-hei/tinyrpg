@@ -138,6 +138,7 @@ class Sprite:
 
     offset_x, offset_y = offset
     surface.blit(scaled_image, (x + offset_x, y + offset_y))
+    return surface
 
   def depth(sprite, layers):
     _, y = sprite.pos
