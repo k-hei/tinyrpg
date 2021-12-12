@@ -33,7 +33,7 @@ input.config(
     input.BUTTON_X: [pygame.K_q],
     input.BUTTON_Y: [pygame.K_e],
     input.BUTTON_L: [pygame.K_TAB],
-    input.BUTTON_R: [pygame.K_LALT, pygame.K_RALT],
+    input.BUTTON_R: [pygame.K_LCTRL, pygame.K_RCTRL],
     input.BUTTON_START: [pygame.K_ESCAPE, pygame.K_BACKSPACE],
     input.BUTTON_SELECT: [pygame.K_BACKQUOTE, pygame.K_BACKSLASH],
   },

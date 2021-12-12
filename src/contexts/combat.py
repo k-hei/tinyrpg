@@ -483,6 +483,9 @@ class CombatContext(ExploreBase):
         ctx.move_to(actor, *command_args)
         return next()
 
+    if command_name == "attack":
+      return ctx.attack(actor, *command_args, on_end=next)
+
     if command_name == "use_skill":
       return ctx.use_skill(actor, *command_args, on_end=next)
 
