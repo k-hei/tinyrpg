@@ -4,6 +4,7 @@ import lib.vector as vector
 from lib.sprite import Sprite
 import lib.input as input
 from lib.compose import compose
+from lib.direction import normal as normalize_direction
 import debug
 
 from contexts.explore.base import ExploreBase
@@ -73,14 +74,19 @@ class ExploreContext(ExploreBase):
 
     delta_x, delta_y = delta
     diagonal = delta_x and delta_y
+    leaping = False
 
     if delta_x:
       ctx.move(ctx.hero, delta=(delta_x, 0), diagonal=diagonal, running=running)
-      ctx.collide(ctx.hero, delta=(delta_x, 0), running=running)
+      collider = ctx.collide(ctx.hero, delta=(delta_x, 0))
+      if collider and not leaping and issubclass(collider, tileset.Pit):
+        leaping = ctx.leap(actor=ctx.hero, running=running)
 
     if delta_y:
       ctx.move(ctx.hero, delta=(0, delta_y), diagonal=diagonal, running=running)
-      ctx.collide(ctx.hero, delta=(0, delta_y), running=running)
+      collider = ctx.collide(ctx.hero, delta=(0, delta_y))
+      if collider and not leaping and issubclass(collider, tileset.Pit):
+        leaping = ctx.leap(actor=ctx.hero, running=running)
 
     prop = next((e for e in ctx.stage.elems if
       isinstance(e, ItemDrop) # TODO: design generic model for steppables
@@ -96,7 +102,7 @@ class ExploreContext(ExploreBase):
   def move(ctx, actor, delta, diagonal=False, running=False):
     actor.move(delta, diagonal, running)
 
-  def collide(ctx, actor, delta, running=False):
+  def collide(ctx, actor, delta):
     delta_x, delta_y = delta
     stage = ctx.stage
     rect = actor.rect
@@ -112,20 +118,20 @@ class ExploreContext(ExploreBase):
     tile_sw = stage.get_tile_at((col_w, row_s))
     tile_se = stage.get_tile_at((col_e, row_s))
 
-    jumping = False
+    collider = None
 
     if delta_x < 0:
       if not Tile.is_walkable(tile_nw) or not Tile.is_walkable(tile_sw):
         rect.left = (col_w + 1) * stage.tile_size
         if row_n == row_s and issubclass(tile_nw, tileset.Pit):
-          jumping = True
+          collider = tile_nw
       elif elem:
         rect.left = elem_rect.right
     elif delta_x > 0:
       if not Tile.is_walkable(tile_ne) or not Tile.is_walkable(tile_se):
         rect.right = col_e * stage.tile_size
         if row_n == row_s and issubclass(tile_se, tileset.Pit):
-          jumping = True
+          collider = tile_se
       elif elem:
         rect.right = elem_rect.left
 
@@ -133,23 +139,21 @@ class ExploreContext(ExploreBase):
       if not Tile.is_walkable(tile_nw) or not Tile.is_walkable(tile_ne):
         rect.top = (row_n + 1) * stage.tile_size
         if col_w == col_e and issubclass(tile_nw, tileset.Pit):
-          jumping = True
+          collider = tile_nw
       elif elem:
         rect.top = elem_rect.bottom
     elif delta_y > 0:
       if not Tile.is_walkable(tile_sw) or not Tile.is_walkable(tile_se):
         rect.bottom = row_s * stage.tile_size
         if col_w == col_e and issubclass(tile_se, tileset.Pit):
-          jumping = True
+          collider = tile_se
       elif elem:
         rect.bottom = elem_rect.top
 
     if rect.center != init_center:
       actor.pos = rect.midtop
-      jumping and ctx.leap(actor, running)
-      return True
-    else:
-      return False
+
+    return collider
 
   def leap(ctx, actor, running=False, on_end=None):
     target_pos = vector.add(
@@ -169,9 +173,10 @@ class ExploreContext(ExploreBase):
     if not ctx.stage.is_cell_empty(snap_cell(target_pos)):
       return False
 
+    actor.facing = normalize_direction(vector.subtract(target_cell, actor_cell))
     move_duration = (RUN_DURATION if running else MOVE_DURATION) * 1.5
     ctx.anims.append([JumpAnim(
-      target=ctx.hero,
+      target=actor,
       src=actor_cell,
       dest=target_cell,
       duration=move_duration,

@@ -174,14 +174,14 @@ class DungeonElement:
       sprite_layer = "elems"
     offset_x, offset_y = elem.find_move_offset(anims)
     item = None
-    is_moving = next((g for g in anims if next((a for a in g if a.target is elem and type(a) is StepAnim), None)), None)
     anim_group = [a for a in anims[0] if a.target is elem] if anims else []
     for anim in anim_group:
       if (isinstance(anim, StepAnim) or type(anim) is PathAnim) and anim.cell:
-        if ((type(anim) is StepAnim or type(anim) is PathAnim)
+        if (isinstance(anim, (StepAnim, PathAnim, JumpAnim))
         and anim.facing != (0, 0)
-        and not anim.duration in (PUSH_DURATION, NUDGE_DURATION)
-        and not next((a for g in anims for a in g if a.target is elem and type(a) is FlinchAnim), None)):
+        and anim.duration not in (PUSH_DURATION, NUDGE_DURATION)
+        and not next((a for g in anims for a in g if a.target is elem and type(a) is FlinchAnim), None)
+        ):
           elem.facing = tuple(map(int, anim.facing))
       elif type(anim) is ItemAnim:
         item_image = anim.item.render()
