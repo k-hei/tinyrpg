@@ -33,7 +33,7 @@ from contexts.dialogue import DialogueContext
 
 class DungeonActor(DungeonElement):
   POISON_DURATION = 5
-  POISON_STRENGTH = 1 / 7
+  POISON_STRENGTH = 1 / 9
   FREEZE_DURATION = 7
   SLEEP_DURATION = 256
   INVULNERABLE_DURATION = 16
@@ -293,7 +293,7 @@ class DungeonActor(DungeonElement):
     actor.ailment_turns -= 1
     if actor.ailment == "poison":
       damage = int(actor.get_hp_max() * DungeonActor.POISON_STRENGTH)
-      return game.flinch(actor, damage, delayed=True, on_end=actor.dispel_ailment if actor.ailment_turns == 0 else None)
+      return game.flinch(actor, damage, on_end=actor.dispel_ailment if actor.ailment_turns == 0 else None)
     if actor.ailment == "sleep":
       actor.regen(actor.get_hp_max() / 50)
     if actor.ailment_turns == 0:

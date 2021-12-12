@@ -17,7 +17,7 @@ from anims.flinch import FlinchAnim
 from anims.pause import PauseAnim
 from anims.flicker import FlickerAnim
 from vfx.flash import FlashVfx
-from colors.palette import GOLD
+from colors.palette import GOLD, PURPLE
 from config import (
   MOVE_DURATION, FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION,
   CRIT_MODIFIER,
@@ -292,7 +292,7 @@ class CombatContext(ExploreBase):
       or actor.facing == target.facing
     )
 
-  def flinch(ctx, target, damage, direction, crit=False, on_end=None):
+  def flinch(ctx, target, damage, direction=None, crit=False, on_end=None):
     show_text = lambda: ctx.vfx.append(DamageValue(
       text=find_damage_text(damage),
       cell=target.cell,
@@ -309,16 +309,16 @@ class CombatContext(ExploreBase):
         ),
         FlashVfx()
       ])
-      ctx.stage_view.shake(vertical=bool(direction[1]))
+      ctx.stage_view.shake(vertical=direction and bool(direction[1]))
       direction and ctx.nudge(target, direction)
 
-    not ctx.anims and ctx.anims.append([])
-    ctx.anims[0] += [
+    anim_group = next((g for g in ctx.anims if not next((a for a in g if a.target is target), None)), [])
+    anim_group.extend([
       FlinchAnim(
         target=target,
         direction=direction,
         on_start=lambda: (
-          setattr(target, "facing", invert_direction(direction)),
+          direction and setattr(target, "facing", invert_direction(direction)),
           target.damage(damage),
           show_text(),
         )
@@ -331,7 +331,8 @@ class CombatContext(ExploreBase):
             or on_end and on_end()
         )
       )
-    ]
+    ])
+    anim_group not in ctx.anims and ctx.anims.append(anim_group)
 
   def kill(ctx, target, on_end=None):
     target.kill(ctx)
@@ -367,6 +368,33 @@ class CombatContext(ExploreBase):
 
   def use_skill(ctx, actor, skill, dest=None, on_end=None):
     skill.effect(actor, dest, ctx, on_end=on_end)
+
+  def inflict_poison(ctx, actor, on_end=None):
+    if actor.is_dead() or actor.ailment == "poison":
+      return False
+
+    not ctx.anims and ctx.anims.append([])
+    ctx.anims[0].extend([
+      FlinchAnim(
+        target=actor,
+        duration=30,
+        on_start=lambda: (
+          actor.inflict_ailment("poison"),
+          ctx.vfx.append(DamageValue(
+            text="POISON",
+            color=PURPLE,
+            cell=actor.cell,
+            offset=(4, -4),
+            delay=15,
+          ))
+        )
+      ),
+      PauseAnim(
+        target=actor,
+        duration=45,
+        on_end=on_end,
+      )
+    ])
 
   def step(ctx):
     actors = [e for e in ctx.stage.elems if

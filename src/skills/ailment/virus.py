@@ -44,7 +44,7 @@ class Virus(AilmentSkill):
       else:
         on_end and on_end()
         return
-      # game.poison_actor(target, on_end=poison)
+      game.inflict_poison(target, on_end=poison)
 
     for target_cell in target_area:
       existing_puff = next((e for e in game.stage.get_elems_at(target_cell) if isinstance(e, PoisonPuff) and not e.dissolving), None)

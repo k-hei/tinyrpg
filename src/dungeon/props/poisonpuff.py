@@ -24,7 +24,7 @@ class PoisonPuff(Prop):
     actor = actor or game.hero
     if type(actor).__name__ == "Mushroom":
       return False
-    game.poison_actor(actor)
+    game.inflict_poison(actor)
     return True
 
   def step(puff, game):
