@@ -30,7 +30,7 @@ class Mushroom(DungeonActor):
       faction="enemy",
       stats=Stats(
         hp=19,
-        st=14,
+        st=12,
         dx=4,
         ag=4,
         en=10,
