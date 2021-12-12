@@ -87,14 +87,14 @@ class ExploreContext(ExploreBase):
 
     if delta_x:
       ctx.move(ctx.hero, delta=(delta_x, 0), diagonal=diagonal, running=running)
-      collider = ctx.collide(ctx.hero, delta=(delta_x, 0))
-      if collider and not leaping and issubclass(collider, tileset.Pit):
+      collidee = ctx.collide(ctx.hero, delta=(delta_x, 0))
+      if collidee and not leaping and issubclass(collidee, tileset.Pit):
         leaping = ctx.leap(actor=ctx.hero, running=running)
 
     if delta_y:
       ctx.move(ctx.hero, delta=(0, delta_y), diagonal=diagonal, running=running)
-      collider = ctx.collide(ctx.hero, delta=(0, delta_y))
-      if collider and not leaping and issubclass(collider, tileset.Pit):
+      collidee = ctx.collide(ctx.hero, delta=(0, delta_y))
+      if collidee and not leaping and issubclass(collidee, tileset.Pit):
         leaping = ctx.leap(actor=ctx.hero, running=running)
 
     prop = next((e for e in ctx.stage.elems if
@@ -127,20 +127,20 @@ class ExploreContext(ExploreBase):
     tile_sw = stage.get_tile_at((col_w, row_s))
     tile_se = stage.get_tile_at((col_e, row_s))
 
-    collider = None
+    collidee = None
 
     if delta_x < 0:
       if not Tile.is_walkable(tile_nw) or not Tile.is_walkable(tile_sw):
         rect.left = (col_w + 1) * stage.tile_size
         if row_n == row_s and issubclass(tile_nw, tileset.Pit):
-          collider = tile_nw
+          collidee = tile_nw
       elif elem:
         rect.left = elem_rect.right
     elif delta_x > 0:
       if not Tile.is_walkable(tile_ne) or not Tile.is_walkable(tile_se):
         rect.right = col_e * stage.tile_size
         if row_n == row_s and issubclass(tile_se, tileset.Pit):
-          collider = tile_se
+          collidee = tile_se
       elif elem:
         rect.right = elem_rect.left
 
@@ -148,21 +148,21 @@ class ExploreContext(ExploreBase):
       if not Tile.is_walkable(tile_nw) or not Tile.is_walkable(tile_ne):
         rect.top = (row_n + 1) * stage.tile_size
         if col_w == col_e and issubclass(tile_nw, tileset.Pit):
-          collider = tile_nw
+          collidee = tile_nw
       elif elem:
         rect.top = elem_rect.bottom
     elif delta_y > 0:
       if not Tile.is_walkable(tile_sw) or not Tile.is_walkable(tile_se):
         rect.bottom = row_s * stage.tile_size
         if col_w == col_e and issubclass(tile_se, tileset.Pit):
-          collider = tile_se
+          collidee = tile_se
       elif elem:
         rect.bottom = elem_rect.top
 
     if rect.center != init_center:
       actor.pos = rect.midtop
 
-    return collider
+    return collidee
 
   def leap(ctx, actor, running=False, on_end=None):
     target_pos = vector.add(
