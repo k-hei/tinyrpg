@@ -38,7 +38,12 @@ BLACKOUT_DURATION = 10
 BLACKOUT_DELAY = 60
 BLACKOUT_FRAMES = 3
 COLOR_KEY = (255, 0, 255)
-COLOR_WALL = 0x00CCFF
+COLOR_FLOOR = 0x004422
+COLOR_FLOOR_DARK = 0x002200
+COLOR_WALL = 0x00CC66
+COLOR_WALL_DARK = 0x006633
+COLOR_DOOR = 0x009966
+COLOR_DOOR_DARK = 0x006633
 
 class EnterAnim(TweenAnim):
   def __init__(anim):
@@ -132,7 +137,7 @@ class Minimap:
       elif (issubclass(tile, tileset.Wall)
       or isinstance(elem, Door) and elem.locked
       or type(elem) is SecretDoor and elem.hidden
-      or tile is Stage.HALLWAY and SecretDoor.exists_at(floor, (col, row + 1))
+      or issubclass(tile, tileset.Hallway) and SecretDoor.exists_at(floor, (col, row + 1))
       or type(elem) is Pillar
       or type(elem) is Table and Rect(elem.cell, elem.size).collidepoint(cell)
       ):
@@ -141,24 +146,24 @@ class Minimap:
             continue
           color = COLOR_WALL
         else:
-          color = 0x0066CC
+          color = COLOR_WALL_DARK
       elif isinstance(elem, Door) and not elem.opened:
         if cell in visible_cells:
-          color = 0x0066CC
+          color = COLOR_DOOR
         else:
-          color = 0x0033CC
+          color = COLOR_DOOR_DARK
       elif isinstance(elem, Door) and elem.opened:
         if cell in visible_cells:
-          color = 0x003399
+          color = COLOR_FLOOR
         else:
-          color = 0x003399
+          color = COLOR_FLOOR_DARK
       elif tile is Stage.STAIRS_UP:
         color = (0x00FF00, 0x007F00)[blink]
       elif tile is Stage.STAIRS_DOWN:
         color = 0x007F00
-      elif tile is Stage.PIT:
+      elif issubclass(tile, tileset.Pit):
         if cell in visible_cells:
-          color = 0x000033
+          color = 0x000000
       elif tile is Stage.OASIS or tile is Stage.OASIS_STAIRS:
         if cell in visible_cells:
           color = 0x007F00
@@ -166,14 +171,14 @@ class Minimap:
           color = 0x003300
       elif tile is Stage.FLOOR_ELEV or tile is Stage.WALL_ELEV or tile is Stage.STAIRS:
         if cell in visible_cells:
-          color = 0x0066CC
+          color = 0x00CC66
         else:
-          color = 0x0033CC
+          color = 0x00CC33
       else:
         if cell in visible_cells:
-          color = 0x003399
+          color = COLOR_FLOOR
         else:
-          color = 0x000066
+          color = COLOR_FLOOR_DARK
 
       if color is not None:
         try:
