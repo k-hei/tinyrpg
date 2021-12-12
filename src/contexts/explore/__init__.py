@@ -9,6 +9,7 @@ import debug
 
 from contexts.explore.base import ExploreBase
 from contexts.inventory import InventoryContext
+from contexts.minimap import MinimapContext
 from dungeon.props.itemdrop import ItemDrop
 from anims.attack import AttackAnim
 from anims.jump import JumpAnim
@@ -61,12 +62,20 @@ class ExploreContext(ExploreBase):
 
     control = input.resolve_control(button)
     if control == input.CONTROL_CONFIRM:
-      ctx.handle_action()
+      return ctx.handle_action()
+
+    if control == input.CONTROL_MINIMAP:
+      return ctx.handle_minimap()
 
   def handle_release(ctx, button):
     delta = input.resolve_delta(button)
-    if delta:
+    if delta != (0, 0):
       return ctx.hero.stop_move()
+
+    control = input.resolve_control(button)
+    if control == input.CONTROL_MINIMAP:
+      if isinstance(ctx.child, MinimapContext):
+        ctx.child.exit()
 
   def handle_move(ctx, delta, running=False):
     if not ctx.hero:
@@ -204,6 +213,9 @@ class ExploreContext(ExploreBase):
 
   def handle_combat(ctx):
     ctx.exit()
+
+  def handle_minimap(ctx):
+    ctx.open(MinimapContext(minimap=ctx.minimap))
 
   def handle_debug(ctx):
     ctx.debug = not ctx.debug
