@@ -190,7 +190,7 @@ class StageView:
   def view_tiles(view, hero, visited_cells):
     if (view.tile_surface is None
     or view.cache_camera_cell != snap_vector(view.camera.pos, view.stage.tile_size)
-    or view.cache_visible_cells != hero.visible_cells
+    or hero and view.cache_visible_cells != hero.visible_cells
     or view.cache_visited_cells != visited_cells):
       view.redraw_tiles(hero, visited_cells)
     return [Sprite(

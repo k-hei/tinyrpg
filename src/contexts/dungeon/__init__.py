@@ -218,11 +218,11 @@ class DungeonContext(ExploreBase):
     for comp in ctx.comps:
       comp.update()
 
-    if ctx.hero_facing != ctx.hero.facing:
+    if ctx.hero and ctx.hero_facing != ctx.hero.facing:
       ctx.hero_facing = ctx.hero.facing
       ctx.update_bubble()
 
-    if ctx.hero.cell != ctx.hero_cell:
+    if ctx.hero and ctx.hero_cell != ctx.hero.cell:
       ctx.update_hero_cell()
 
     ctx.camera.update()
