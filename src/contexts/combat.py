@@ -86,12 +86,14 @@ class CombatContext(ExploreBase):
     if delta != (0, 0):
       return ctx.handle_move(delta)
 
-    button = input.resolve_button(button)
-    if button == input.BUTTON_A:
+    tapping = input.get_state(button) == 1
+    control = input.resolve_control(button)
+
+    if control == input.CONTROL_CONFIRM:
       return ctx.handle_action()
 
-    if input.get_state(button) > 1:
-      return
+    if control == input.CONTROL_WAIT and tapping:
+      return ctx.handle_wait()
 
   def handle_move(ctx, delta):
     target_cell = vector.add(ctx.hero.cell, delta)
@@ -242,7 +244,7 @@ class CombatContext(ExploreBase):
 
     return action_result
 
-  def handle_attack(ctx, on_end=None):
+  def handle_attack(ctx):
     target_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
     target_actor = next((e for e in ctx.stage.get_elems_at(target_cell) if isinstance(e, DungeonActor)), None)
     return ctx.attack(actor=ctx.hero, target=target_actor, on_end=ctx.step)
@@ -368,6 +370,10 @@ class CombatContext(ExploreBase):
 
   def use_skill(ctx, actor, skill, dest=None, on_end=None):
     skill.effect(actor, dest, ctx, on_end=on_end)
+
+  def handle_wait(ctx):
+    ctx.step()
+    return True
 
   def inflict_poison(ctx, actor, on_end=None):
     if actor.is_dead() or actor.ailment == "poison":

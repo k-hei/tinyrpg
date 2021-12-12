@@ -48,8 +48,8 @@ def resolve_button(button):
 
 def resolve_control(button):
   button = resolve_button(button)
-  controls = sorted(_controls.items(), key=lambda c: len(c[1]))
-  for control, _ in controls:
+  controls = [c for c, bs in sorted(_controls.items(), key=lambda c: len(c[1]), reverse=True) if button in bs]
+  for control in controls:
     if get_state(control):
       return control
 
