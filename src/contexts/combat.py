@@ -69,6 +69,9 @@ class CombatContext(ExploreBase):
       ctx.hero.pos = hero_dest
 
   def exit(ctx):
+    for elem in ctx.stage.elems:
+      if elem.expires:
+        elem.dissolve()
     ctx.exiting = True
     ctx.hud.exit(on_end=lambda: (
       ctx.hero.core.anims.clear(),
@@ -524,3 +527,4 @@ class CombatContext(ExploreBase):
     non_actors = [e for e in ctx.stage.elems if e not in actors]
     for elem in non_actors:
       elem.step(ctx)
+    ctx.stage.elems = [e for e in ctx.stage.elems if not e.done]

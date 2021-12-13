@@ -10,6 +10,7 @@ from lib.filters import replace_color
 
 class PoisonPuff(Prop):
   MAX_TURNS = 7
+  expires = True
 
   def __init__(puff, origin, *args, **kwargs):
     super().__init__(*args, **kwargs)
@@ -17,6 +18,7 @@ class PoisonPuff(Prop):
     puff.origin = origin
     puff.vfx = None
     puff.dissolving = False
+    puff.done = False
 
   def effect(puff, game, actor=None):
     if puff.dissolving:
@@ -27,13 +29,21 @@ class PoisonPuff(Prop):
     game.inflict_poison(actor)
     return True
 
-  def step(puff, game):
+  def dissolve(puff):
+    if puff.dissolving:
+      return False
+    puff.dissolving = True
+    puff.turns = 0
+    for i, fx in enumerate(puff.vfx):
+      fx.dissolve(delay=i * 5, on_end=(lambda: (
+        setattr(puff, "done", True)
+      )) if fx == puff.vfx[-1] else None)
+
+  def step(puff, *_):
     if puff.turns:
       puff.turns -= 1
     elif not puff.dissolving:
-      puff.dissolving = True
-      for i, fx in enumerate(puff.vfx):
-        fx.dissolve(delay=i * 5, on_end=(lambda: game.stage.remove_elem(puff)) if fx == puff.vfx[-1] else None)
+      puff.dissolve()
 
   def update(puff, *_):
     if puff.vfx:
