@@ -32,6 +32,7 @@ class SkillBanner(Component):
       pos=(banner.image.get_width() // 2, banner.image.get_height() // 2),
       origin=("center", "center"),
     ).draw(banner.image.copy())
+    banner.done = False
 
   def exit(banner):
     if len(banner.anims) > 1:

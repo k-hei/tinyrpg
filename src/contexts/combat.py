@@ -249,7 +249,7 @@ class CombatContext(ExploreBase):
     target_actor = next((e for e in ctx.stage.get_elems_at(target_cell) if isinstance(e, DungeonActor)), None)
     return ctx.attack(actor=ctx.hero, target=target_actor, on_end=ctx.step)
 
-  def attack(ctx, actor, target=None, modifier=1, on_end=None):
+  def attack(ctx, actor, target=None, modifier=1, animate=True, on_end=None):
     if target:
       actor.face(target.cell)
       crit = ctx.find_crit(actor, target)
@@ -258,28 +258,34 @@ class CombatContext(ExploreBase):
       else:
         damage = ctx.find_damage(actor, target, modifier)
 
-    attack_delay = (
-      actor.core.AttackAnim.frames_duration[0]
-        if "AttackAnim" in dir(actor.core) and actor.facing == (0, 1)
-        else 0
-    )
-    ctx.anims.append([AttackAnim(
-      target=actor,
-      delay=attack_delay,
-      src=actor.cell,
-      dest=vector.add(actor.cell, actor.facing),
-      on_connect=lambda: target and (
-        target.alert(cell=actor.cell),
-        ctx.flinch(
-          target=target,
-          damage=damage,
-          crit=crit,
-          direction=actor.facing,
-          on_end=on_end,
-        )
+    connect = lambda: (
+      target.alert(cell=actor.cell),
+      ctx.flinch(
+        target=target,
+        damage=damage,
+        crit=crit,
+        direction=actor.facing,
+        on_end=on_end,
       )
-    )])
-    actor.attack()
+    )
+
+    if animate:
+      attack_delay = (
+        actor.core.AttackAnim.frames_duration[0]
+          if "AttackAnim" in dir(actor.core) and actor.facing == (0, 1)
+          else 0
+      )
+      ctx.anims.append([AttackAnim(
+        target=actor,
+        delay=attack_delay,
+        src=actor.cell,
+        dest=vector.add(actor.cell, actor.facing),
+        on_connect=(connect if target else None)
+      )])
+      actor.attack()
+    else:
+      connect()
+
     return True
 
   def find_damage(ctx, actor, target, modifier=1):
@@ -373,6 +379,8 @@ class CombatContext(ExploreBase):
     ctx.display_skill(skill, user=actor)
 
   def display_skill(ctx, skill, user):
+    if not skill.name:
+      return
     resolve_color = lambda faction: (
       BLUE if faction == "player"
       else RED if faction == "enemy"

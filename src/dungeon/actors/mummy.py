@@ -53,9 +53,9 @@ class Mummy(DungeonActor):
         on_connect=(lambda: game.attack(
           actor=user,
           target=target_actor,
+          animate=False,
           # is_ranged=True,
           # is_chaining=True,
-          # is_animated=False,
         )) if target_actor else None,
         on_end=lambda: (
           user.core.anims.clear(),
@@ -90,7 +90,7 @@ class Mummy(DungeonActor):
       faction="enemy",
       stats=Stats(
         hp=24,
-        st=12,
+        st=11,
         dx=9,
         ag=4,
         lu=3,

@@ -378,7 +378,7 @@ def gen_loops(tree, graph):
 
 def gen_floor(
   features=[],
-  enemies=[Eyeball, Mushroom], # [Eyeball, Mushroom, Ghost, Mummy],
+  enemies=[Eyeball, Mushroom, Mummy], # [Eyeball, Mushroom, Ghost, Mummy],
   items=NORMAL_ITEMS,
   extra_room_count=0,
   seed=None,

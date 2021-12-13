@@ -44,7 +44,7 @@ class ClawRush(AttackSkill):
           actor=user,
           target=target_actor,
           modifier=1.5,
-          is_animated=False
+          animate=False
         )) if target_actor else None,
         on_end=on_end
       ))
