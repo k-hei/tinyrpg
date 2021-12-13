@@ -12,6 +12,7 @@ from anims.flicker import FlickerAnim
 class Vase(Prop):
   solid = True
   active = True
+  breakable = True
 
   class OpenAnim(FrameAnim):
     frames = assets.sprites["vase_opening"]
@@ -52,6 +53,9 @@ class Vase(Prop):
       )
     ]
     return True
+
+  def crush(vase, game):
+    return vase.effect(game)
 
   def update(vase, *_):
     if vase.anims:

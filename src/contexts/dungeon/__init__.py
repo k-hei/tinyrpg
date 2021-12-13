@@ -84,7 +84,7 @@ class DungeonContext(ExploreBase):
     if door and not door.opened:
       door.open()
 
-    rooms = ctx.rooms + [room]
+    rooms = [*ctx.rooms, *([room] if room else [])]
     rooms_cells = [c for r in rooms for c in r.cells]
     rooms_borders = [c for r in rooms for c in r.border]
 
@@ -92,7 +92,7 @@ class DungeonContext(ExploreBase):
       setattr(ctx.hero, "visible_cells", [
         *set([
           n for c in hallway
-            for n in neighborhood(c) + [
+            for n in neighborhood(c, diagonals=True) + [
               n for n in neighborhood(vector.add(c, (0, -1)))
                 if n not in rooms_borders
             ] if n not in rooms_cells
@@ -146,7 +146,7 @@ class DungeonContext(ExploreBase):
 
     hallways = []
     stack = []
-    for neighbor in neighborhood(cell):
+    for neighbor in neighborhood(cell, diagonals=True):
       if issubclass(ctx.stage.get_tile_at(neighbor), tileset.Hallway):
         hallway = [cell]
         hallways.append(hallway)

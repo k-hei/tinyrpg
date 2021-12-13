@@ -10,19 +10,25 @@ from colors.palette import WHITE, SAFFRON
 class Pillar(Prop):
   solid = True
   static = True
+  breakable = True
 
   def __init__(pillar, broken=None):
     super().__init__()
     pillar.broken = broken if broken is not None else not randint(0, 2)
 
   @property
-  def rect(drop):
-    if drop._rect is None and drop.pos:
-      drop._rect = Rect(
-        vector.subtract(drop.pos, (8, 0)),
+  def rect(pillar):
+    if pillar._rect is None and pillar.pos:
+      pillar._rect = Rect(
+        vector.subtract(pillar.pos, (8, 0)),
         (16, 16)
       )
-    return drop._rect
+    return pillar._rect
+
+  def crush(pillar, *_):
+    if pillar.broken:
+      return
+    pillar.broken = True
 
   def view(pillar, anims):
     if pillar.broken:

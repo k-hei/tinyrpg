@@ -358,7 +358,7 @@ class CombatContext(ExploreBase):
       target=target,
       duration=FLICKER_DURATION,
       on_end=lambda: (
-        ctx.stage.elems.remove(target),
+        ctx.stage.remove_elem(target),
         on_end and on_end(),
         ctx.exiting and ctx.exit()
       )

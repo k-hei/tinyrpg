@@ -8,8 +8,8 @@ from dungeon.floors.debugfloor import DebugFloor
 from game.data import GameData
 from savedata import load
 
-# room_data = load_room("rooms/", "debug")
-# stage = manifest_room(room_data)
+room_data = load_room("rooms/", "debug")
+stage = manifest_room(room_data)
 
 savedata = load("src/data-debug.json", *sys.argv[1:])
 savedata.place = "dungeon"
@@ -17,7 +17,7 @@ App(
   title="explore context demo",
   context=GameContext(
     data=savedata,
-    floor=DebugFloor,
-    # stage=stage,
+    # floor=DebugFloor,
+    stage=stage,
   )
 ).init()
