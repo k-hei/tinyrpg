@@ -47,8 +47,8 @@ class Blitzritter(AttackSkill):
         actor=user,
         target=target,
         modifier=1.25,
-        is_animated=False,
-        is_ranged=True,
+        animate=False,
+        # is_ranged=True,
         on_end=on_end
       )
       if target_a and target_b:

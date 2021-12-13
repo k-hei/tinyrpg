@@ -88,8 +88,8 @@ class ExploreBase(Context):
     facing_elems = ctx.stage.get_elems_at(facing_cell)
     return next((e for e in facing_elems if isinstance(e, DungeonActor)), None)
 
-  def find_closest_enemy(ctx, actor):
-    enemies = [e for e in ctx.stage.elems if (
+  def find_closest_enemy(ctx, actor, elems=None):
+    enemies = [e for e in (elems or ctx.stage.elems) if (
       isinstance(e, DungeonActor)
       and not e.is_dead()
       and not e.allied(actor)

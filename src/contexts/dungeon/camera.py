@@ -141,9 +141,11 @@ class Camera:
     )
     return duration
 
-  def blur(camera, target):
+  def blur(camera, target=None):
     if target in camera.target:
       camera.target.remove(target)
+    elif target is None:
+      camera.target_groups.pop()
 
   def reset(camera):
     camera.target_groups = []

@@ -160,6 +160,18 @@ class GameData:
     store.skills.sort(key=get_skill_order)
     return True
 
+  def get_selected_skill(store, core):
+    core_id = type(core).__name__
+    return (
+      store.selected_skill[core_id]
+        if core_id in store.selected_skill
+        else None
+    )
+
+  def set_selected_skill(store, core, skill):
+    core_id = type(core).__name__
+    store.selected_skill[core_id] = skill
+
   def recruit(store, core):
     core.faction = "player"
     core_id = type(core).__name__

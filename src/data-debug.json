@@ -9,18 +9,12 @@
   "new_skills": [],
   "selected_skill": {},
   "party": [
-    "Knight",
-    "Mage"
+    "Knight"
   ],
   "builds": {
     "Knight": {
       "RustyBlade": [0, 0],
       "Blitzritter": [1, 0]
-    },
-    "Mage": {
-      "Congelatio": [0, 0],
-      "Cudgel": [2, 0],
-      "Glacio": [1, 3]
     }
   },
   "kills": {},

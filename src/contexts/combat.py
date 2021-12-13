@@ -5,8 +5,10 @@ from lib.direction import invert as invert_direction, normal as normalize_direct
 from lib.compose import compose
 
 from contexts.explore.base import ExploreBase
+from contexts.skill import SkillContext
 from comps.damage import DamageValue
 from dungeon.actors import DungeonActor
+from skills.weapon import Weapon
 from tiles import Tile
 import tiles.default as tileset
 from anims.move import MoveAnim
@@ -97,6 +99,9 @@ class CombatContext(ExploreBase):
 
     if control == input.CONTROL_WAIT and tapping:
       return ctx.handle_wait()
+
+    if control == input.CONTROL_MANAGE and tapping:
+      return ctx.handle_skill()
 
   def handle_move(ctx, delta):
     target_cell = vector.add(ctx.hero.cell, delta)
@@ -376,6 +381,19 @@ class CombatContext(ExploreBase):
       on_end=on_end
     ))
     return True
+
+  def handle_skill(ctx):
+    ctx.open(SkillContext(
+      actor=ctx.hero,
+      skills=ctx.hero.get_active_skills(),
+      selected_skill=ctx.store.get_selected_skill(ctx.hero.core),
+      on_close=lambda skill, dest: (
+        skill and (
+          not issubclass(skill, Weapon) and ctx.store.set_selected_skill(ctx.hero, skill),
+          ctx.use_skill(ctx.hero, skill, dest)
+        )
+      )
+    ))
 
   def use_skill(ctx, actor, skill, dest=None, on_end=None):
     skill.effect(actor, dest, ctx, on_end=on_end)
