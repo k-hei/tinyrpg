@@ -57,7 +57,7 @@ class Knight(DungeonActor):
       knight_image = assets.sprites["knight"]
     knight_xoffset = 0
     anim_group = [a for a in anims[0] if a.target is knight] if anims else []
-    anim_group += knight.core.anims
+    anim_group = knight.core.anims + anim_group
     for anim in anim_group:
       if type(anim) is PauseAnim:
         break

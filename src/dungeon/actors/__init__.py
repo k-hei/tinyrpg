@@ -482,7 +482,6 @@ class DungeonActor(DungeonElement):
     anim_group += actor.core.anims
 
     is_asleep = actor.ailment == "sleep"
-    is_animating = False
     is_flinching = next((a for a in anim_group if isinstance(a, FlinchAnim)), None)
 
     move_anim = next((a for a in anim_group if isinstance(a, StepAnim)), None)
@@ -507,7 +506,7 @@ class DungeonActor(DungeonElement):
         actor_width *= anim_xscale
         actor_height *= anim_yscale
       if (isinstance(anim, FrameAnim)
-      and not (is_animating or is_flinching or move_anim)
+      and not (is_flinching or move_anim and move_anim.src != None)
       and not (attack_anim and len(actor.core.anims) == 1)
       ):
         sprite.image = anim.frame()
@@ -516,7 +515,6 @@ class DungeonActor(DungeonElement):
         offset_y += (actor_height - TILE_SIZE) / 2
         if actor_height > TILE_SIZE:
           offset_y += (actor_height - TILE_SIZE) / 2
-        # is_animating = True
 
     warpin_anim = next((a for a in anim_group if type(a) is WarpInAnim), None)
     drop_anim = next((a for a in anim_group if type(a) is DropAnim), None)

@@ -3,16 +3,19 @@ import lib.vector as vector
 import lib.input as input
 from lib.direction import invert as invert_direction, normal as normalize_direction
 from lib.compose import compose
+from lib.cell import neighborhood
 
 from contexts.explore.base import ExploreBase
 from contexts.skill import SkillContext
 from comps.damage import DamageValue
 from dungeon.actors import DungeonActor
+from dungeon.props.door import Door
 from skills.weapon import Weapon
 from tiles import Tile
 import tiles.default as tileset
 from anims.move import MoveAnim
 from anims.step import StepAnim
+from anims.path import PathAnim
 from anims.attack import AttackAnim
 from anims.jump import JumpAnim
 from anims.flinch import FlinchAnim
@@ -23,6 +26,7 @@ from colors.palette import RED, GREEN, BLUE, GOLD, PURPLE
 from config import (
   MOVE_DURATION, FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION,
   CRIT_MODIFIER,
+  TILE_SIZE,
 )
 
 def find_damage_text(damage):
@@ -39,44 +43,92 @@ class CombatContext(ExploreBase):
     if not ctx.hero:
       return
 
+    ctx.exiting = False
     ctx.turns = 0
+    upscale = lambda cell: vector.scale(
+      vector.add(cell, (0.5, 0.5)),
+      ctx.hero.scale
+    )
+    walk_speed = 3 if ctx.ally else 2
 
-    x, y = ctx.hero.pos
-    if x % ctx.hero.scale or y % ctx.hero.scale:
-      hero_dest = vector.scale(
-        vector.add(ctx.hero.cell, (0.5, 0.5)),
-        ctx.hero.scale
-      )
-      ctx.anims.append([MoveAnim(
-        target=ctx.hero,
-        src=ctx.hero.pos,
-        dest=hero_dest,
-        speed=2,
-        on_end=lambda: (
-          ctx.anims.append([
-            # TODO: switch to actor animation queues
-            ctx.hero.core.BrandishAnim(
-              target=ctx.hero,
-              on_end=lambda: (
-                ctx.hero.anims.clear(),
-                ctx.hero.core.anims.clear(),
-                ctx.hero.core.anims.append(
-                  ctx.hero.core.IdleDownAnim(),
-                )
-              )
-            )
-          ]),
+    def animate_snap(actor):
+      x, y = actor.pos
+      if x % actor.scale or y % actor.scale:
+        actor_dest = upscale(actor.cell)
+        not ctx.anims and ctx.anims.append([])
+        ctx.anims[-1].append(MoveAnim(
+          target=actor,
+          src=actor.pos,
+          dest=actor_dest,
+          speed=walk_speed,
+          on_end=lambda: setattr(actor, "pos", actor_dest)
+        ))
+
+    animate_snap(ctx.hero)
+    ctx.ally and animate_snap(ctx.ally)
+
+    if ctx.ally:
+      start_cells = [c for c in neighborhood(ctx.hero.cell) + [ctx.hero.cell] if
+        not next((e for e in ctx.stage.get_elems_at(c) if isinstance(e, Door)), None)
+        and not ctx.stage.is_tile_solid(c)
+      ]
+      ctx.anims.append([
+        PathAnim(
+          target=ctx.hero,
+          path=ctx.stage.pathfind(
+            start=ctx.hero.cell,
+            goal=start_cells.pop(0),
+            whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True)
+          ),
+          period=TILE_SIZE // walk_speed,
+        ), PathAnim(
+          target=ctx.ally,
+          path=ctx.stage.pathfind(
+            start=ctx.ally.cell,
+            goal=start_cells.pop(0),
+            whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True) + [ctx.ally.cell]
+          ),
+          period=TILE_SIZE // walk_speed,
         )
-      )])
-      ctx.hero.pos = hero_dest
+      ])
+
+    ctx.anims.append([ctx.hero.core.BrandishAnim(
+      target=ctx.hero,
+      on_start=lambda: setattr(ctx.hero, "pos", upscale(ctx.hero.cell)),
+      on_end=lambda: (
+        ctx.hero.core.anims.append(ctx.hero.core.IdleDownAnim())
+      )
+    )])
+
+    if ctx.ally:
+      ctx.anims[-1].append(ctx.ally.core.BrandishAnim(
+        target=ctx.ally,
+        on_start=lambda: (
+          setattr(ctx.ally, "pos", upscale(ctx.ally.cell)),
+          ctx.anims[0].append(JumpAnim(
+            target=ctx.ally,
+            delay=ctx.ally.core.BrandishAnim.frames_duration[0],
+            duration=ctx.ally.core.BrandishAnim.jump_duration,
+            height=12,
+          ))
+        ),
+        on_end=lambda: (
+          ctx.ally.core.anims.append(ctx.ally.core.IdleDownAnim())
+        )
+      ))
 
   def exit(ctx):
+    if ctx.exiting:
+      print("reject exit")
+      return
+    print("accept exit")
     for elem in ctx.stage.elems:
       if elem.expires:
         elem.dissolve()
     ctx.exiting = True
     ctx.hud.exit(on_end=lambda: (
       ctx.hero.core.anims.clear(),
+      ctx.ally.core.anims.clear(),
       ctx.close()
     ))
 
@@ -352,7 +404,7 @@ class CombatContext(ExploreBase):
 
   def kill(ctx, target, on_end=None):
     target.kill(ctx)
-    ctx.exiting = not ctx.find_enemies_in_range()
+    will_exit = not ctx.find_enemies_in_range()
     not ctx.anims and ctx.anims.append([])
     ctx.anims[0].append(FlickerAnim(
       target=target,
@@ -360,7 +412,7 @@ class CombatContext(ExploreBase):
       on_end=lambda: (
         ctx.stage.remove_elem(target),
         on_end and on_end(),
-        ctx.exiting and ctx.exit()
+        will_exit and ctx.exit()
       )
     ))
 
@@ -417,6 +469,10 @@ class CombatContext(ExploreBase):
     ctx.step()
     return True
 
+  def handle_hallway(ctx):
+    if not ctx.find_enemies_in_range():
+      ctx.child.exit()
+
   def inflict_poison(ctx, actor, on_end=None):
     if actor.is_dead() or actor.ailment == "poison":
       return False
@@ -448,6 +504,7 @@ class CombatContext(ExploreBase):
     actors = [e for e in ctx.stage.elems if
       isinstance(e, DungeonActor)
       and e is not ctx.hero
+      and e is not ctx.ally
       and not e.is_dead()
       and e.cell in ctx.hero.visible_cells
     ]

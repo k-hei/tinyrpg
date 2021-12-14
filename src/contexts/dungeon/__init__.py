@@ -84,6 +84,7 @@ class DungeonContext(ExploreBase):
       if room:
         ctx.camera.blur(room)
       ctx.camera.focus(ctx.hero)
+    visible_cells += neighborhood(ctx.hero.cell)
 
     ctx.hero.visible_cells = visible_cells
     ctx.extend_visited_cells(visible_cells)
@@ -99,7 +100,7 @@ class DungeonContext(ExploreBase):
     rooms_cells = [c for r in rooms for c in r.cells]
     rooms_borders = [c for r in rooms for c in r.border]
 
-    update_visible_cells = lambda: (
+    illuminate_hallway = lambda: (
       setattr(ctx.hero, "visible_cells", [
         *set([
           n for c in hallway
@@ -113,8 +114,8 @@ class DungeonContext(ExploreBase):
     )
 
     handle_start = lambda: (
-      update_visible_cells(),
-      isinstance(ctx.child, CombatContext) and not ctx.find_enemies_in_range() and ctx.child.exit(),
+      illuminate_hallway(),
+      ctx.child.handle_hallway(),
     )
 
     handle_end = lambda: (
@@ -122,6 +123,9 @@ class DungeonContext(ExploreBase):
     )
 
     ctx.hero.cell = hallway[-1]
+    if ctx.ally:
+      ctx.ally.cell = hallway[-2]
+
     tween_duration = ctx.camera.tween(
       target=[room, ctx.hero],
       force=True

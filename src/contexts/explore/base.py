@@ -33,6 +33,10 @@ class ExploreBase(Context):
     ) if len(ctx.store.party) >= 2 else None
 
   @property
+  def room(ctx):
+    return ctx.hero and next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells), None)
+
+  @property
   def visited_cells(ctx):
     stage_id = ctx.stage.__hash__()
     visited_cells = ctx.memory[stage_id] if stage_id in ctx.memory else None # next((cs for (s, cs) in ctx.memory if s is ctx.stage), None)

@@ -6,6 +6,7 @@ import lib.vector as vector
 from lib.filters import darken_image
 from anims.shake import ShakeAnim
 from contexts.dungeon.camera import Camera
+from dungeon.props.door import Door
 from dungeon.props.secretdoor import SecretDoor
 from config import WINDOW_SIZE, WINDOW_HEIGHT, DEPTH_SIZE
 from resolve.tileset import resolve_tileset
@@ -226,7 +227,7 @@ class StageView:
 
   def view_elems(view, elems, hero=None, visited_cells=None):
     return [s for e in elems for s in view.view_elem(elem=e, visited_cells=visited_cells)
-      if (not hero or e.cell in hero.visible_cells) and not (e is hero and view.camera.anim)]
+      if (not hero or e.cell in hero.visible_cells) and (not view.camera.anim or isinstance(e, Door))]
 
   def view_vfx(view, vfx):
     return [s for v in vfx for s in v.view()]

@@ -102,8 +102,10 @@ class ExploreContext(ExploreBase):
       if moved:
         ctx.move_buffer.append((delta, running))
         if len(ctx.move_buffer) > TILE_SIZE // ctx.hero.speed:
-          delta, running = ctx.move_buffer.pop(0)
-          ctx.move_actor(ctx.ally, delta, running)
+          move_data = ctx.move_buffer.pop(0)
+          if move_data:
+            delta, running = move_data
+            ctx.move_actor(ctx.ally, delta, running)
       else:
         ctx.ally.stop_move()
 
@@ -231,6 +233,11 @@ class ExploreContext(ExploreBase):
     ))
 
     return True
+
+  def handle_hallway(ctx):
+    if not ctx.ally:
+      return
+    ctx.move_buffer = [(vector.subtract(ctx.hero.cell, ctx.ally.cell), False)] * int(TILE_SIZE / ctx.hero.speed)
 
   def handle_combat(ctx):
     ctx.exit()
