@@ -1,0 +1,8 @@
+{
+  "tomb_pillar": [0, 0, 32, 48],
+  "tomb_pillar_broken": [32, 16, 32, 32],
+  "tomb_pillar_chunk_l": [64, 0, 16, 32],
+  "tomb_pillar_chunk_s": [80, 0, 16, 32],
+  "tomb_pillar_bit_l": [64, 32, 16, 16],
+  "tomb_pillar_bit_s": [80, 32, 8, 8]
+}

@@ -1,10 +1,12 @@
-from pygame import Rect
 from random import randint
-from dungeon.props import Prop
-import assets
+from pygame import Rect
 import lib.vector as vector
 from lib.sprite import Sprite
 from lib.filters import replace_color
+
+from dungeon.props import Prop
+from vfx.pillarchunk import PillarChunkVfx
+import assets
 from colors.palette import WHITE, SAFFRON
 
 class Pillar(Prop):
@@ -25,10 +27,19 @@ class Pillar(Prop):
       )
     return pillar._rect
 
-  def crush(pillar, *_):
+  def crush(pillar, game):
     if pillar.broken:
       return
     pillar.broken = True
+    game.stage_view.shake(vertical=True)
+    game.vfx.extend([
+      PillarChunkVfx(cell=pillar.cell, size=PillarChunkVfx.SIZE_XL),
+      PillarChunkVfx(cell=pillar.cell, size=PillarChunkVfx.SIZE_L),
+      PillarChunkVfx(cell=pillar.cell, size=PillarChunkVfx.SIZE_M),
+      PillarChunkVfx(cell=pillar.cell, size=PillarChunkVfx.SIZE_M),
+      PillarChunkVfx(cell=pillar.cell, size=PillarChunkVfx.SIZE_S),
+      PillarChunkVfx(cell=pillar.cell, size=PillarChunkVfx.SIZE_S),
+    ])
 
   def view(pillar, anims):
     if pillar.broken:

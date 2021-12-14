@@ -36,7 +36,6 @@ class ClawRush(AttackSkill):
     target_elems = game.stage.get_elems_at(target_cell)
     target_elem = next((e for e in target_elems if e.breakable), None)
     target_actor = next((e for e in target_elems if isinstance(e, DungeonActor)), None)
-    print("elem", target_elem, "actor", target_actor)
     def attack():
       not game.anims and game.anims.append([])
       game.anims[0].append(AttackAnim(

@@ -14,7 +14,7 @@
   ],
   "elems": [
     [[6, 1], "Mummy"],
-    [[4, 4], "Pillar"],
+    [[4, 3], "Pillar"],
     [[6, 3], "Vase", { "contents": "Cheese" }],
     [[3, 5], "Door"]
   ],
