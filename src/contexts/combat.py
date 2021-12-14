@@ -45,77 +45,86 @@ class CombatContext(ExploreBase):
 
     ctx.exiting = False
     ctx.turns = 0
+    downscale = lambda pos: tuple([int(x / ctx.hero.scale) for x in pos])
     upscale = lambda cell: vector.scale(
       vector.add(cell, (0.5, 0.5)),
       ctx.hero.scale
     )
-    walk_speed = 3 if ctx.ally else 2
 
-    def animate_snap(actor):
+    walk_speed = 3 if ctx.ally else 2
+    actor_cells = {}
+
+    def animate_snap(actor, on_end=None):
       x, y = actor.pos
       if x % actor.scale or y % actor.scale:
-        actor_dest = upscale(actor.cell)
+        actor_cell = downscale(vector.add(
+          actor.pos,
+          vector.scale(actor.facing, TILE_SIZE / 2)
+        ))
+        actor_cells[actor] = actor_cell
+        actor_dest = upscale(actor_cell)
         not ctx.anims and ctx.anims.append([])
         ctx.anims[-1].append(MoveAnim(
           target=actor,
           src=actor.pos,
           dest=actor_dest,
           speed=walk_speed,
-          on_end=lambda: setattr(actor, "pos", actor_dest)
+          on_end=on_end
         ))
 
-    animate_snap(ctx.hero)
+    hero_brandish = ctx.hero.core.BrandishAnim(
+      target=ctx.hero,
+      on_end=lambda: (
+        ctx.hero.core.anims.append(ctx.hero.core.IdleDownAnim())
+      )
+    )
+
+    animate_snap(ctx.hero, on_end=(
+      lambda: ctx.anims[0].append(hero_brandish),
+    ) if not ctx.ally else None)
     ctx.ally and animate_snap(ctx.ally)
 
     if ctx.ally:
-      start_cells = [c for c in neighborhood(ctx.hero.cell) + [ctx.hero.cell] if
+      start_cells = [c for c in neighborhood(ctx.hero.cell, diagonals=True) + [ctx.hero.cell] if
         not next((e for e in ctx.stage.get_elems_at(c) if isinstance(e, Door)), None)
         and not ctx.stage.is_tile_solid(c)
       ]
+
       ctx.anims.append([
         PathAnim(
           target=ctx.hero,
           path=ctx.stage.pathfind(
-            start=ctx.hero.cell,
+            start=actor_cells[ctx.hero],
             goal=start_cells.pop(0),
             whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True)
           ),
           period=TILE_SIZE // walk_speed,
+          on_end=lambda: ctx.anims[0].append(hero_brandish)
         ), PathAnim(
           target=ctx.ally,
           path=ctx.stage.pathfind(
-            start=ctx.ally.cell,
+            start=actor_cells[ctx.ally],
             goal=start_cells.pop(0),
             whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True) + [ctx.ally.cell]
           ),
           period=TILE_SIZE // walk_speed,
+          on_end=lambda: ctx.anims[0].append(ally_brandish)
         )
       ])
 
-    ctx.anims.append([ctx.hero.core.BrandishAnim(
-      target=ctx.hero,
-      on_start=lambda: setattr(ctx.hero, "pos", upscale(ctx.hero.cell)),
-      on_end=lambda: (
-        ctx.hero.core.anims.append(ctx.hero.core.IdleDownAnim())
-      )
-    )])
-
-    if ctx.ally:
-      ctx.anims[-1].append(ctx.ally.core.BrandishAnim(
+      ally_brandish = ctx.ally.core.BrandishAnim(
         target=ctx.ally,
         on_start=lambda: (
-          setattr(ctx.ally, "pos", upscale(ctx.ally.cell)),
           ctx.anims[0].append(JumpAnim(
             target=ctx.ally,
             delay=ctx.ally.core.BrandishAnim.frames_duration[0],
             duration=ctx.ally.core.BrandishAnim.jump_duration,
-            height=12,
           ))
         ),
         on_end=lambda: (
           ctx.ally.core.anims.append(ctx.ally.core.IdleDownAnim())
         )
-      ))
+      )
 
   def exit(ctx):
     if ctx.exiting:

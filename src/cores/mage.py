@@ -48,7 +48,7 @@ class Mage(BipedCore):
 
   class BrandishAnim(FrameAnim):
     frames = assets.sprites["mage_brandish"]
-    frames_duration = [15, 5, 5, 7, 9, 15]
+    frames_duration = [10, 5, 5, 7, 9, 10]
     jump_duration = 26
 
   class IdleDownAnim(FrameAnim):

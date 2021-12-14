@@ -131,8 +131,9 @@ class DungeonElement:
         if anim.target is not elem:
           continue
         if isinstance(anim, MoveAnim) and anims.index(group) == 0:
-          return elem.find_move_anim_offset(anim)
-        if not (isinstance(anim, StepAnim) or type(anim) is PathAnim) or not anim.cell:
+          elem.pos = anim.pos
+          return (0, 0) # elem.find_move_anim_offset(anim)
+        if not isinstance(anim, (StepAnim, PathAnim)) or not anim.cell:
           continue
         if anims.index(group) == 0:
           anim_x, anim_y, *anim_z = anim.cell
