@@ -12,6 +12,7 @@ from comps.minilog import Minilog
 from comps.minimap import Minimap
 from comps.skillbanner import SkillBanner
 from dungeon.actors.knight import Knight
+from dungeon.actors.mage import Mage
 from dungeon.props.door import Door
 from dungeon.fov import shadowcast
 from dungeon.room import Blob as Room
@@ -20,8 +21,13 @@ from anims.pause import PauseAnim
 from anims.step import StepAnim
 from config import WINDOW_HEIGHT, VISION_RANGE
 
-from dungeon.props.pillar import Pillar
-from dungeon.actors.mummy import Mummy
+def manifest_actor(core):
+  core_id = type(core).__name__
+  core_actors = {
+    "Knight": Knight,
+    "Mage": Mage,
+  }
+  return core_actors[core_id](core) if core_id in core_actors else None
 
 class DungeonContext(ExploreBase):
   def __init__(ctx, store, stage, *args, **kwargs):
@@ -36,10 +42,12 @@ class DungeonContext(ExploreBase):
     ctx.rooms = []
 
   def enter(ctx):
-    hero = Knight(core=ctx.store.party[0])
+    heroes = [manifest_actor(c) for c in ctx.store.party]
     stage_entrance = next((cell for cell, tile in ctx.stage.tiles.enumerate() if issubclass(tile, tileset.Entrance)), None)
     if stage_entrance:
-      ctx.stage.spawn_elem_at(stage_entrance, hero)
+      for i, hero in enumerate(heroes):
+        ctx.stage.spawn_elem_at(stage_entrance, hero)
+        hero.pos = vector.add(hero.pos, (0, -i))
     else:
       raise LookupError("Failed to find Entrance tile to spawn hero")
 

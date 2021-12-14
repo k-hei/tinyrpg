@@ -10,6 +10,7 @@ import debug
 from contexts.explore.base import ExploreBase
 from contexts.inventory import InventoryContext
 from contexts.minimap import MinimapContext
+from dungeon.actors import DungeonActor
 from dungeon.props.itemdrop import ItemDrop
 from anims.attack import AttackAnim
 from anims.jump import JumpAnim
@@ -22,6 +23,7 @@ class ExploreContext(ExploreBase):
   def enter(ctx):
     ctx.camera.focus(ctx.hero)
     ctx.debug = False
+    ctx.move_buffer = []
 
   def exit(ctx):
     ctx.close()
@@ -70,7 +72,9 @@ class ExploreContext(ExploreBase):
   def handle_release(ctx, button):
     delta = input.resolve_delta(button)
     if delta != (0, 0):
-      return ctx.hero.stop_move()
+      ctx.hero.stop_move()
+      ctx.ally and ctx.ally.stop_move()
+
 
     control = input.resolve_control(button)
     if control == input.CONTROL_MINIMAP:
@@ -81,21 +85,7 @@ class ExploreContext(ExploreBase):
     if not ctx.hero:
       return
 
-    delta_x, delta_y = delta
-    diagonal = delta_x and delta_y
-    leaping = False
-
-    if delta_x:
-      ctx.move(ctx.hero, delta=(delta_x, 0), diagonal=diagonal, running=running)
-      collidee = ctx.collide(ctx.hero, delta=(delta_x, 0))
-      if collidee and not leaping and issubclass(collidee, tileset.Pit):
-        leaping = ctx.leap(actor=ctx.hero, running=running)
-
-    if delta_y:
-      ctx.move(ctx.hero, delta=(0, delta_y), diagonal=diagonal, running=running)
-      collidee = ctx.collide(ctx.hero, delta=(0, delta_y))
-      if collidee and not leaping and issubclass(collidee, tileset.Pit):
-        leaping = ctx.leap(actor=ctx.hero, running=running)
+    ctx.move_actor(ctx.hero, delta, running)
 
     prop = next((e for e in ctx.stage.elems if
       isinstance(e, ItemDrop) # TODO: design generic model for steppables
@@ -106,7 +96,30 @@ class ExploreContext(ExploreBase):
       ctx.hero.stop_move()
 
     if ctx.find_enemies_in_range():
-      return ctx.handle_combat()
+      ctx.handle_combat()
+
+    if ctx.ally:
+      ctx.move_buffer.append((delta, running))
+      if len(ctx.move_buffer) > TILE_SIZE // ctx.hero.speed:
+        delta, running = ctx.move_buffer.pop(0)
+        ctx.move_actor(ctx.ally, delta, running)
+
+  def move_actor(ctx, actor, delta, running=False):
+    delta_x, delta_y = delta
+    leaping = False
+
+    def move_axis(delta):
+      nonlocal leaping
+      ctx.move(actor, delta=delta, diagonal=(delta_x and delta_y), running=running)
+      collidee = ctx.collide(actor, delta=delta)
+      if collidee and not leaping and issubclass(collidee, tileset.Pit):
+        leaping = ctx.leap(actor=actor, running=running)
+
+    if delta_x:
+      move_axis((delta_x, 0))
+
+    if delta_y:
+      move_axis((0, delta_y))
 
   def move(ctx, actor, delta, diagonal=False, running=False):
     actor.move(delta, diagonal, running)
@@ -116,7 +129,10 @@ class ExploreContext(ExploreBase):
     stage = ctx.stage
     rect = actor.rect
     init_center = rect.center
-    elem_rects = [(e, e.rect) for e in stage.elems if e is not actor and e.solid]
+    elem_rects = [(e, e.rect) for e in stage.elems if
+      e is not actor
+      and e.solid
+      and not (isinstance(e, DungeonActor) and e.faction == actor.faction)]
     elem, elem_rect = next(((e, r) for (e, r) in elem_rects if r.colliderect(rect)), (None, None))
     col_w = rect.left // stage.tile_size
     row_n = rect.top // stage.tile_size

@@ -15,8 +15,6 @@ from anims.walk import WalkAnim
 from lib.sprite import Sprite
 
 class Knight(DungeonActor):
-  speed = 1.5
-
   def __init__(knight, core=None, ailment=None, ailment_turns=0, *args, **kwargs):
     super().__init__(
       core=core or KnightCore(*args, **kwargs),

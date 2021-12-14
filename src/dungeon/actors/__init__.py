@@ -56,6 +56,8 @@ class DungeonActor(DungeonElement):
   skill = None
   drops = []
 
+  speed = 1.5
+
   class SleepAnim(FrameAnim):
     frames = assets.sprites["status_sleep"]
     frames_duration = 15

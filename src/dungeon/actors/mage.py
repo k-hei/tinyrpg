@@ -11,10 +11,8 @@ from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from anims.shake import ShakeAnim
 from anims.drop import DropAnim
-from anims.frame import FrameAnim
 from anims.fall import FallAnim
-from anims.pause import PauseAnim
-from lib.sprite import Sprite
+from anims.walk import WalkAnim
 from skills.magic.glacio import Glacio
 from skills.magic.congelatio import Congelatio
 from skills.magic.accerso import Accerso
@@ -56,6 +54,14 @@ class Mage(DungeonActor):
   def charge(mage, *args, **kwargs):
     super().charge(*args, **kwargs)
     mage.core.anims.append(MageCore.CastAnim())
+
+  def start_move(actor, running):
+    actor.anims = [WalkAnim(period=30 if running else 60)]
+    actor.core.anims = actor.anims.copy()
+
+  def stop_move(actor):
+    actor.anims = []
+    actor.core.anims = []
 
   def step(mage, game):
     if mage.behavior == "guard":
@@ -121,11 +127,12 @@ class Mage(DungeonActor):
   def view(mage, anims):
     sprites = use_assets().sprites
     anim_group = [a for a in anims[0] if a.target is mage] if anims else []
+    anim_group += mage.core.anims
     will_fall = anims and next((a for a in anims[0] if type(a) is FallAnim), None)
     if will_fall and anims[0].index(will_fall) > 0:
       return super().view(sprites["mage_shock"], anims)
     for anim in anim_group:
-      if type(anim) is StepAnim or type(anim) is PathAnim:
+      if isinstance(anim, (StepAnim, PathAnim, WalkAnim)):
         x4_idx = max(0, int((anim.time - 1) % anim.period // (anim.period / 4)))
         if mage.facing == (0, -1):
           sprite = [

@@ -26,6 +26,13 @@ class ExploreBase(Context):
     ) if ctx.store.party else None
 
   @property
+  def ally(ctx):
+    return find_actor(
+      char=ctx.store.party[1],
+      stage=ctx.stage
+    ) if len(ctx.store.party) >= 2 else None
+
+  @property
   def visited_cells(ctx):
     stage_id = ctx.stage.__hash__()
     visited_cells = ctx.memory[stage_id] if stage_id in ctx.memory else None # next((cs for (s, cs) in ctx.memory if s is ctx.stage), None)
