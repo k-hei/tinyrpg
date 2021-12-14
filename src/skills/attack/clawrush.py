@@ -37,8 +37,7 @@ class ClawRush(AttackSkill):
     target_elem = next((e for e in target_elems if e.breakable), None)
     target_actor = next((e for e in target_elems if isinstance(e, DungeonActor)), None)
     def attack():
-      not game.anims and game.anims.append([])
-      game.anims[0].append(AttackAnim(
+      game.anims.append([AttackAnim(
         target=user,
         src=dest_cell,
         dest=target_cell,
@@ -52,7 +51,7 @@ class ClawRush(AttackSkill):
           target_elem.crush(game)
         )) if target_elem else None,
         on_end=on_end
-      ))
+      )])
     if dest_cell == origin_cell:
       attack()
     else:

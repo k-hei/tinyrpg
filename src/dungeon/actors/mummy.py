@@ -17,6 +17,7 @@ from anims.attack import AttackAnim
 from anims.shake import ShakeAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
+from anims.pause import PauseAnim
 from items.materials.crownjewel import CrownJewel
 from vfx.linen import LinenVfx
 from config import PUSH_DURATION
@@ -47,25 +48,30 @@ class Mummy(DungeonActor):
       target_elems = game.stage.get_elems_at(cell)
       target_elem = next((e for e in target_elems if e.breakable), None)
       target_actor = next((e for e in target_elems if isinstance(e, DungeonActor)), None)
-      user.core.anims.append(Mummy.ChargeAnim())
-      game.vfx.append(LinenVfx(
-        src=user.cell,
-        dest=dest,
-        color=user.color(),
-        on_connect=(lambda: game.attack(
-          actor=user,
-          target=target_actor,
-          animate=False,
-          # is_ranged=True,
-          # is_chaining=True,
-        )) if target_actor else (lambda: (
-          target_elem.crush(game)
-        )) if target_elem else None,
-        on_end=lambda: (
-          user.core.anims.clear(),
-          on_end and on_end()
+      game.anims.append([PauseAnim(
+        duration=5,
+        on_start=lambda: (
+          user.core.anims.append(Mummy.ChargeAnim()),
+          game.vfx.append(LinenVfx(
+            src=user.cell,
+            dest=dest,
+            color=user.color(),
+            on_connect=(lambda: game.attack(
+              actor=user,
+              target=target_actor,
+              animate=False,
+              # is_ranged=True,
+              # is_chaining=True,
+            )) if target_actor else (lambda: (
+              target_elem.crush(game)
+            )) if target_elem else None,
+            on_end=lambda: (
+              user.core.anims.clear(),
+              on_end and on_end()
+            )
+          ))
         )
-      ))
+      )])
       return False
 
   class Backstep(SupportSkill):

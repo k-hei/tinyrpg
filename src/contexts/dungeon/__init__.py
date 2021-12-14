@@ -20,6 +20,9 @@ from anims.pause import PauseAnim
 from anims.step import StepAnim
 from config import WINDOW_HEIGHT, VISION_RANGE
 
+from dungeon.props.pillar import Pillar
+from dungeon.actors.mummy import Mummy
+
 class DungeonContext(ExploreBase):
   def __init__(ctx, store, stage, *args, **kwargs):
     super().__init__(*args, **kwargs)
