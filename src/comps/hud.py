@@ -113,6 +113,9 @@ class Hud:
     hud._pos = start
     hud.pos = goal
 
+  def shake(hud):
+    hud.anims.append(FlinchAnim())
+
   def update(hud, force=False):
     # if hud.updated and not force: return
     # hud.updated = True
@@ -131,7 +134,7 @@ class Hud:
         hud.hero = hero
         hud.hp_hero = hero.get_hp()
       elif hero.get_hp() < hud.hp_hero_drawn:
-        hud.anims.append(FlinchAnim())
+        hud.shake()
         if hud.hp_hero == inf:
           hud.hp_hero = hero.get_hp_max()
       if ally != hud.ally:
@@ -139,7 +142,7 @@ class Hud:
         if ally:
           hud.hp_ally = ally.get_hp()
       elif ally and ally.get_hp() < hud.hp_ally_drawn:
-        hud.anims.append(FlinchAnim())
+        hud.shake()
         if hud.hp_ally == inf:
           hud.hp_ally = ally.get_hp_max()
       anim = next((a for a in hud.anims if a.blocking), None)

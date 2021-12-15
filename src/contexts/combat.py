@@ -442,13 +442,17 @@ class CombatContext(ExploreBase):
     anim_group not in ctx.anims and ctx.anims.append(anim_group)
 
   def kill(ctx, target, on_end=None):
+    if not ctx.hero:
+      return
+
     target.kill(ctx)
-    will_exit = not ctx.find_enemies_in_range()
+    will_exit = not ctx.hero.allied(target) and not ctx.find_enemies_in_range()
     not ctx.anims and ctx.anims.append([])
     ctx.anims[0].append(FlickerAnim(
       target=target,
       duration=FLICKER_DURATION,
       on_end=lambda: (
+        target is ctx.hero and ctx.ally and ctx.handle_charswap(),
         ctx.stage.remove_elem(target),
         on_end and on_end(),
         will_exit and ctx.exit(ally_rejoin=True)
@@ -509,9 +513,13 @@ class CombatContext(ExploreBase):
     return True
 
   def handle_charswap(ctx):
+    if not ctx.ally or ctx.ally.dead:
+      ctx.hud.shake()
+      return False
     ctx.store.switch_chars()
     ctx.camera.blur()
     ctx.camera.focus(target=[ctx.room, ctx.hero], force=True)
+    return True
 
   def handle_hallway(ctx):
     not ctx.find_enemies_in_range() and ctx.exit()
