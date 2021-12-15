@@ -134,9 +134,14 @@ class CombatContext(ExploreBase):
   def exit(ctx):
     if ctx.exiting:
       return
+
     for elem in ctx.stage.elems:
       if elem.expires:
         elem.dissolve()
+
+    for actor in ctx.party:
+      actor.dispel_ailment()
+
     ctx.exiting = True
     ctx.hud.exit(on_end=lambda: (
       ctx.hero.core.anims.clear(),

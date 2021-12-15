@@ -33,6 +33,13 @@ class ExploreBase(Context):
     ) if len(ctx.store.party) >= 2 else None
 
   @property
+  def party(ctx):
+    return [
+      *([ctx.hero] if ctx.hero else []),
+      *([ctx.ally] if ctx.ally else []),
+    ]
+
+  @property
   def room(ctx):
     return ctx.hero and next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells), None)
 
