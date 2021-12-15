@@ -3,7 +3,7 @@ import lib.vector as vector
 import lib.input as input
 from lib.direction import invert as invert_direction, normal as normalize_direction
 from lib.compose import compose
-from lib.cell import neighborhood
+from lib.cell import neighborhood, manhattan
 
 from contexts.explore.base import ExploreBase
 from contexts.skill import SkillContext
@@ -131,7 +131,7 @@ class CombatContext(ExploreBase):
 
       ally_brandish = create_brandish(ctx.ally)
 
-  def exit(ctx):
+  def exit(ctx, ally_rejoin=False):
     if ctx.exiting:
       return
 
@@ -141,6 +141,19 @@ class CombatContext(ExploreBase):
 
     for actor in ctx.party:
       actor.dispel_ailment()
+
+    hero_adjacents = [n for n in neighborhood(ctx.hero.cell) if ctx.stage.is_cell_empty(n)]
+    if ally_rejoin and hero_adjacents:
+      target_cell = sorted(hero_adjacents, key=lambda c: manhattan(c, ctx.ally.cell))[0]
+      ctx.anims.append([PathAnim(
+        target=ctx.ally,
+        period=TILE_SIZE / 3,
+        path=ctx.stage.pathfind(
+          start=ctx.ally.cell,
+          goal=target_cell,
+          whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True)
+        )
+      )])
 
     ctx.exiting = True
     ctx.hud.exit(on_end=lambda: (
@@ -437,7 +450,7 @@ class CombatContext(ExploreBase):
       on_end=lambda: (
         ctx.stage.remove_elem(target),
         on_end and on_end(),
-        will_exit and ctx.exit()
+        will_exit and ctx.exit(ally_rejoin=True)
       )
     ))
 
