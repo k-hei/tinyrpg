@@ -87,7 +87,10 @@ class CombatContext(ExploreBase):
 
     if ctx.ally:
       start_cells = [c for c in neighborhood(ctx.hero.cell, diagonals=True) + [ctx.hero.cell] if
-        not next((e for e in ctx.stage.get_elems_at(c) if isinstance(e, Door)), None)
+        not next((e for e in ctx.stage.get_elems_at(c) if
+          isinstance(e, Door)
+          or e.solid and e is not ctx.hero
+        ), None)
         and not ctx.stage.is_tile_solid(c)
       ]
 
@@ -137,7 +140,7 @@ class CombatContext(ExploreBase):
     ctx.exiting = True
     ctx.hud.exit(on_end=lambda: (
       ctx.hero.core.anims.clear(),
-      ctx.ally.core.anims.clear(),
+      ctx.ally and ctx.ally.core.anims.clear(),
       ctx.close()
     ))
 
