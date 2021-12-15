@@ -24,7 +24,7 @@ from anims.flinch import FlinchAnim
 from anims.pause import PauseAnim
 from anims.flicker import FlickerAnim
 from vfx.flash import FlashVfx
-from colors.palette import RED, GREEN, BLUE, GOLD, PURPLE
+from colors.palette import RED, GREEN, BLUE, GOLD, PURPLE, CYAN
 from config import (
   MOVE_DURATION, FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION,
   CRIT_MODIFIER,
@@ -468,8 +468,8 @@ class CombatContext(ExploreBase):
     ))
 
   def use_skill(ctx, actor, skill, dest=None, on_end=None):
-    skill.effect(actor, dest, ctx, on_end=on_end)
-    ctx.display_skill(skill, user=actor)
+    should_display_skill = skill.effect(actor, dest, ctx, on_end=on_end)
+    should_display_skill and ctx.display_skill(skill, user=actor)
 
   def display_skill(ctx, skill, user):
     if not skill.name:
@@ -498,7 +498,7 @@ class CombatContext(ExploreBase):
     if not ctx.find_enemies_in_range():
       ctx.child.exit()
 
-  def inflict_poison(ctx, actor, on_end=None):
+  def inflict_ailment(ctx, actor, ailment, color, on_end=None):
     if actor.is_dead() or actor.ailment == "poison":
       return False
 
@@ -508,10 +508,10 @@ class CombatContext(ExploreBase):
         target=actor,
         duration=30,
         on_start=lambda: (
-          actor.inflict_ailment("poison"),
+          actor.inflict_ailment(ailment),
           ctx.vfx.append(DamageValue(
-            text="POISON",
-            color=PURPLE,
+            text=ailment.upper(),
+            color=color,
             cell=actor.cell,
             offset=(4, -4),
             delay=15,
@@ -524,6 +524,13 @@ class CombatContext(ExploreBase):
         on_end=on_end,
       )
     ])
+    return True
+
+  def inflict_poison(ctx, actor, on_end=None):
+    return ctx.inflict_ailment(actor, "poison", color=PURPLE, on_end=on_end)
+
+  def inflict_freeze(ctx, actor, on_end=None):
+    return ctx.inflict_ailment(actor, "freeze", color=CYAN, on_end=on_end)
 
   def step(ctx):
     actors = [e for e in ctx.stage.elems if

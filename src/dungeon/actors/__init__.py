@@ -299,9 +299,9 @@ class DungeonActor(DungeonElement):
       actor.regen(actor.get_hp_max() / 50)
     if actor.ailment_turns == 0:
       if actor.ailment == "freeze":
-        game.vfx += [IcePieceVfx( # this belongs in actor view
+        game.vfx.extend([IcePieceVfx( # this belongs in actor view
           pos=tuple([(x + 0.5) * TILE_SIZE for x in actor.cell]),
-        ) for _ in range(randint(3, 4))]
+        ) for _ in range(randint(3, 4))])
       actor.dispel_ailment()
       game.anims.append([AwakenAnim(target=actor)])
 
@@ -499,7 +499,8 @@ class DungeonActor(DungeonElement):
         if actor.ailment == "freeze" and anim.time % 2:
           sprites.append(Sprite(
             image=replace_color(assets.sprites["fx_icecube"], BLACK, CYAN),
-            layer="elems"
+            layer="elems",
+            origin=Sprite.ORIGIN_CENTER,
           ))
       if type(anim) is BounceAnim:
         anim_xscale, anim_yscale = anim.scale

@@ -207,7 +207,7 @@ class GameContext(Context):
 
     control = input.resolve_control(button)
 
-    if type(ctx.get_tail()) in (PauseContext, InventoryContext):
+    if type(ctx.get_tail()) in (PauseContext, InventoryContext) or ctx.get_depth() > 2:
       return
 
     if control == input.CONTROL_PAUSE:
