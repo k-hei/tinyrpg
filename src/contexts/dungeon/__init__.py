@@ -132,6 +132,7 @@ class DungeonContext(ExploreBase):
     ctx.hero.cell = hallway[-1]
     if ctx.ally:
       ctx.ally.cell = hallway[-2]
+      ctx.ally.facing = vector.subtract(hallway[-1], hallway[-2])
 
     tween_duration = ctx.camera.tween(
       target=[room, ctx.hero],
