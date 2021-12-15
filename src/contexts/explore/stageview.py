@@ -6,6 +6,7 @@ import lib.vector as vector
 from lib.filters import darken_image
 from anims.shake import ShakeAnim
 from contexts.dungeon.camera import Camera
+from dungeon.actors import DungeonActor
 from dungeon.props.door import Door
 from dungeon.props.secretdoor import SecretDoor
 from config import WINDOW_SIZE, WINDOW_HEIGHT, DEPTH_SIZE
@@ -73,9 +74,11 @@ class StageView:
     view.anim = None
     view.anims = []
     view.vfx = []
+    view.darkened = False
     view.cache_camera_cell = None
     view.cache_visible_cells = []
     view.cache_visited_cells = []
+    view.cache_elems = {}
     view.tile_surface = None
     view.tile_offset = (0, 0)
     view.tile_cache = {}
@@ -102,6 +105,13 @@ class StageView:
       target=vertical,
       magnitude=2
     )
+
+  def darken(view):
+    view.darkened = True
+    view.cache_elems = {}
+
+  def undarken(view):
+    view.darkened = False
 
   def redraw_tile(view, stage, cell, visited_cells, use_cache=False):
     tile = stage.get_tile_at(cell)
@@ -167,7 +177,7 @@ class StageView:
       for col in range(tile_rect.left, tile_rect.right + 1):
         cell = (col, row)
         try:
-          if cell in hero.visible_cells:
+          if cell in hero.visible_cells and not view.darkened:
             view.redraw_tile(view.stage, cell, visited_cells)
           elif cell in view.tile_cache:
             _, _, cached_image = view.tile_cache[cell]
@@ -222,12 +232,20 @@ class StageView:
     if not elem_sprites:
       return []
 
+    for elem_sprite in elem_sprites:
+      if view.darkened and not isinstance(elem, DungeonActor):
+        if elem not in view.cache_elems:
+          view.cache_elems[elem] = darken_image(elem_sprite.image)
+        elem_sprite.image = view.cache_elems[elem]
+
     elem_sprites[0].origin = elem_sprites[0].origin or Sprite.ORIGIN_CENTER
     return elem_sprites
 
   def view_elems(view, elems, hero=None, visited_cells=None):
     return [s for e in elems for s in view.view_elem(elem=e, visited_cells=visited_cells)
-      if (not hero or e.cell in hero.visible_cells) and (not view.camera.anim or isinstance(e, Door))]
+      if (not hero or e.cell in hero.visible_cells)
+      and (not view.camera.anim or isinstance(e, Door))
+    ]
 
   def view_vfx(view, vfx):
     return [s for v in vfx for s in v.view()]

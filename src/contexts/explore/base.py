@@ -57,6 +57,14 @@ class ExploreBase(Context):
     return ctx.stage_view.vfx
 
   @property
+  def memory(ctx):
+    return ctx._memory if "_memory" in dir(ctx) else ctx.parent.memory
+
+  @memory.setter
+  def memory(ctx, memory):
+    ctx._memory = memory
+
+  @property
   def comps(ctx):
     return ctx._comps if "_comps" in dir(ctx) else ctx.parent.comps
 
@@ -159,3 +167,11 @@ class ExploreBase(Context):
         cell=facing_elem.cell,
         flipped=ctx.camera.is_pos_beyond_yrange(pos=vector.scale(facing_elem.cell, ctx.stage.tile_size)),
       ))
+
+  def darken(ctx):
+    ctx.stage_view.darken()
+    ctx.stage_view.redraw_tiles(hero=ctx.hero, visited_cells=ctx.visited_cells)
+
+  def undarken(ctx):
+    ctx.stage_view.undarken()
+    ctx.stage_view.redraw_tiles(hero=ctx.hero, visited_cells=ctx.visited_cells)

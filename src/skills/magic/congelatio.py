@@ -97,7 +97,7 @@ class Congelatio(MagicSkill):
     user.core.anims.append(Mage.CastAnim())
     game.vfx.extend([IceEmblemVfx(cell=user.cell, delay=15)])
 
-    # on_end = compose(on_end, game.darken_end)
+    on_end = compose(on_end, game.undarken)
     game.anims.extend([
       [PauseAnim(duration=90, on_end=lambda: user.core.anims.pop())],
       [AttackAnim(
@@ -106,8 +106,7 @@ class Congelatio(MagicSkill):
         src=user.cell,
         dest=bump_dest,
         on_start=lambda: (
-          # game.darken(),
-          # game.redraw_tiles(),
+          game.darken(),
           game.display_skill(Congelatio, user),
         ),
         on_connect=on_connect
