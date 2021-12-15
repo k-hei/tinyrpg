@@ -3,7 +3,7 @@ import lib.vector as vector
 import lib.input as input
 from lib.direction import invert as invert_direction, normal as normalize_direction
 from lib.compose import compose
-from lib.cell import neighborhood, manhattan
+from lib.cell import neighborhood, manhattan, is_adjacent
 
 from contexts.explore.base import ExploreBase
 from contexts.skill import SkillContext
@@ -239,6 +239,7 @@ class CombatContext(ExploreBase):
     ctx.update_bubble()
     actor.cell = target_cell
     actor.facing = normalize_direction(delta)
+    actor.command = True
 
     if target_elem and target_elem is ctx.ally:
       ctx.move(actor=ctx.ally, delta=invert_direction(delta))
@@ -572,6 +573,11 @@ class CombatContext(ExploreBase):
   def step_populate(ctx, actors):
     commands = {}
 
+    if ctx.ally and not ctx.ally.command:
+      command = ctx.step_ally(ctx.ally)
+      if command:
+        commands[ctx.ally] = [command]
+
     for actor in actors:
       # populate command group
       while actor.turns >= 1:
@@ -585,6 +591,21 @@ class CombatContext(ExploreBase):
         ctx.end_turn(actor)
 
     return commands
+
+  def step_ally(ctx, actor):
+    if not ctx.hero or not actor.can_step():
+      return None
+
+    enemies = [e for e in ctx.stage.elems
+      if isinstance(e, DungeonActor)
+      and not e.allied(ctx.hero)
+      and e.cell in ctx.hero.visible_cells
+    ]
+    adjacent_enemies = [e for e in enemies if is_adjacent(e.cell, ctx.ally.cell)]
+    if adjacent_enemies:
+      return ("attack", sorted(adjacent_enemies, key=lambda e: e.hp)[0])
+    elif enemies:
+      return ("move_to", sorted(enemies, key=lambda e: manhattan(e.cell, ctx.ally.cell) + e.hp / 10)[0].cell)
 
   def step_enemy(ctx, actor):
     if not actor.can_step():
