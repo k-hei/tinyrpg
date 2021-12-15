@@ -106,6 +106,10 @@ class Stage:
     tile = stage.get_tile_at(cell)
     return not tile or tile.solid
 
+  def is_tile_walkable(stage, cell):
+    tile = stage.get_tile_at(cell)
+    return tile and not tile.solid and not tile.pit
+
   # TODO: normalize into grid pathfinder
   def pathfind(stage, start, goal, whitelist=None):
     if start == goal:

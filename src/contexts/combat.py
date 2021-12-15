@@ -500,8 +500,7 @@ class CombatContext(ExploreBase):
     ctx.camera.focus(target=[ctx.room, ctx.hero], force=True)
 
   def handle_hallway(ctx):
-    if not ctx.find_enemies_in_range():
-      ctx.child.exit()
+    not ctx.find_enemies_in_range() and ctx.exit()
 
   def inflict_ailment(ctx, actor, ailment, color, on_end=None):
     if actor.is_dead() or actor.ailment == "poison":

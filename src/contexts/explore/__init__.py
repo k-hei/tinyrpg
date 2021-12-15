@@ -141,6 +141,8 @@ class ExploreContext(ExploreBase):
       collidee = ctx.collide(actor, delta=delta)
       new_pos = actor.pos
       if collidee and not leaping and issubclass(collidee, tileset.Pit):
+        if actor is ctx.hero and ctx.ally:
+          ctx.ally.stop_move()
         leaping = ctx.leap(actor=actor, running=running)
       return new_pos != old_pos
 
@@ -233,18 +235,20 @@ class ExploreContext(ExploreBase):
       actor.pos,
       vector.scale(actor.facing, TILE_SIZE * 1.5)
     )
-    downscale_cell = lambda pos: vector.subtract(
-      vector.scale(pos, 1 / TILE_SIZE),
-      (0.5, 0.5)
-    )
-    snap_cell = lambda pos: vector.floor(
-      vector.scale(pos, 1 / TILE_SIZE)
-    )
+
+    downscale_cell = lambda pos: vector.scale(pos, 1 / TILE_SIZE)
 
     actor_cell = downscale_cell(actor.pos)
     target_cell = downscale_cell(target_pos)
-    if not ctx.stage.is_cell_empty(snap_cell(target_pos)):
+    collision_cell = vector.floor(target_cell)
+
+    if (not ctx.stage.is_tile_walkable(collision_cell)
+    or next((e for e in ctx.stage.get_elems_at(collision_cell)
+      if e.solid and not (isinstance(e, DungeonActor) and e.faction == actor.faction)), None)):
       return False
+
+    actor_cell = vector.subtract(actor_cell, (0.5, 0.5))
+    target_cell = vector.subtract(target_cell, (0.5, 0.5))
 
     actor.facing = normalize_direction(vector.subtract(target_cell, actor_cell))
     move_duration = (RUN_DURATION if running else MOVE_DURATION) * 1.5
