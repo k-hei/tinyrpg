@@ -75,6 +75,7 @@ class CombatContext(ExploreBase):
     hero_brandish = ctx.hero.core.BrandishAnim(
       target=ctx.hero,
       on_end=lambda: (
+        ctx.hero.stop_move(),
         ctx.hero.core.anims.append(ctx.hero.core.IdleDownAnim())
       )
     )
@@ -122,15 +123,14 @@ class CombatContext(ExploreBase):
           ))
         ),
         on_end=lambda: (
-          ctx.ally.core.anims.append(ctx.ally.core.IdleDownAnim())
+          ctx.ally.stop_move(),
+          ctx.ally.core.anims.append(ctx.ally.core.IdleDownAnim()),
         )
       )
 
   def exit(ctx):
     if ctx.exiting:
-      print("reject exit")
       return
-    print("accept exit")
     for elem in ctx.stage.elems:
       if elem.expires:
         elem.dissolve()
@@ -190,7 +190,8 @@ class CombatContext(ExploreBase):
       next((e for e in ctx.stage.get_elems_at(target_cell) if e.solid), None)
       or next((e for e in ctx.stage.get_elems_at(target_cell)), None)
     )
-    if target_elem and target_elem.solid:
+
+    if target_elem and target_elem.solid and target_elem is not ctx.ally:
       return False
 
     move_duration = MOVE_DURATION
@@ -214,6 +215,10 @@ class CombatContext(ExploreBase):
     ctx.update_bubble()
     actor.cell = target_cell
     actor.facing = normalize_direction(delta)
+
+    if target_elem and target_elem is ctx.ally:
+      ctx.move(actor=ctx.ally, delta=invert_direction(delta))
+
     return True
 
   def move_to(ctx, actor, dest, run=False, on_end=None):

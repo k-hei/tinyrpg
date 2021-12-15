@@ -66,7 +66,11 @@ class DungeonContext(ExploreBase):
   def handle_press(ctx, button):
     if input.get_state(pygame.K_LCTRL):
       if button == pygame.K_c:
-        return print(ctx.anims)
+        return print(
+          ctx.anims,
+          *([ctx.hero.anims] if ctx.hero else []),
+          *([ctx.ally.anims] if ctx.ally else [])
+        )
 
     if ctx.child:
       return ctx.child.handle_press(button)

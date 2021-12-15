@@ -398,7 +398,8 @@ class DungeonActor(DungeonElement):
     pass
 
   def stop_move(actor):
-    pass
+    actor.anims = []
+    actor.core.anims = []
 
   def move(actor, delta, diagonal, running):
     delta_x, delta_y = delta
@@ -506,7 +507,7 @@ class DungeonActor(DungeonElement):
         actor_width *= anim_xscale
         actor_height *= anim_yscale
       if (isinstance(anim, FrameAnim)
-      and not (is_flinching or move_anim and move_anim.src != None)
+      and not (is_flinching or move_anim and move_anim.dest)
       and not (attack_anim and len(actor.core.anims) == 1)
       ):
         sprite.image = anim.frame()

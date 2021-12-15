@@ -26,10 +26,6 @@ class Knight(DungeonActor):
     actor.anims = [WalkAnim(period=30 if running else 60)]
     actor.core.anims = actor.anims.copy()
 
-  def stop_move(actor):
-    actor.anims = []
-    actor.core.anims = []
-
   def charge(knight, *args, **kwargs):
     super().charge(*args, **kwargs)
     knight.core.anims.append(KnightCore.ChargeAnim())
@@ -57,31 +53,10 @@ class Knight(DungeonActor):
       knight_image = assets.sprites["knight"]
     knight_xoffset = 0
     anim_group = [a for a in anims[0] if a.target is knight] if anims else []
-    anim_group = knight.core.anims + anim_group
+    anim_group += knight.core.anims
     for anim in anim_group:
       if type(anim) is PauseAnim:
         break
-      if type(anim) is StepAnim or type(anim) is PathAnim or type(anim) is WalkAnim:
-        x4_idx = max(0, int((anim.time - 1) % anim.period // (anim.period / 4)))
-        if knight.facing == (0, -1):
-          knight_image = [
-            assets.sprites["knight_up"],
-            assets.sprites["knight_walkup0"],
-            assets.sprites["knight_up"],
-            assets.sprites["knight_walkup1"]
-          ][x4_idx]
-          break
-        if knight.facing == (0, 1):
-          knight_image = [
-            assets.sprites["knight_down"],
-            assets.sprites["knight_walkdown0"],
-            assets.sprites["knight_down"],
-            assets.sprites["knight_walkdown1"]
-          ][x4_idx]
-          break
-        elif anim.time % (anim.period // 2) >= anim.period // 4:
-          knight_image = assets.sprites["knight_walk"]
-          break
       elif type(anim) is JumpAnim:
         if knight.facing == (0, -1):
           knight_image = assets.sprites["knight_walkup"]
@@ -90,6 +65,24 @@ class Knight(DungeonActor):
         else:
           knight_image = assets.sprites["knight_walk"]
         break
+      elif isinstance(anim, (StepAnim, PathAnim, WalkAnim)):
+        x4_idx = max(0, int((anim.time - 1) % anim.period // (anim.period / 4)))
+        if knight.facing == (0, -1):
+          knight_image = [
+            assets.sprites["knight_up"],
+            assets.sprites["knight_walkup0"],
+            assets.sprites["knight_up"],
+            assets.sprites["knight_walkup1"]
+          ][x4_idx]
+        elif knight.facing == (0, 1):
+          knight_image = [
+            assets.sprites["knight_down"],
+            assets.sprites["knight_walkdown0"],
+            assets.sprites["knight_down"],
+            assets.sprites["knight_walkdown1"]
+          ][x4_idx]
+        elif anim.time % (anim.period // 2) >= anim.period // 4:
+          knight_image = assets.sprites["knight_walk"]
       elif type(anim) is AttackAnim and anim.time < anim.duration // 2:
         if knight.facing == (0, -1):
           knight_image = assets.sprites["knight_up"]
