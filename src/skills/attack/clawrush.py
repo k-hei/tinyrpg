@@ -67,4 +67,5 @@ class ClawRush(AttackSkill):
           )
         )
       ])
-    return False
+
+    return True

@@ -72,7 +72,7 @@ class Mummy(DungeonActor):
           ))
         )
       )])
-      return False
+      return True
 
   class Backstep(SupportSkill):
     def effect(user, dest, game, on_end=None):

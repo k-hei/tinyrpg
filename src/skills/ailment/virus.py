@@ -57,6 +57,8 @@ class Virus(AilmentSkill):
       [PauseAnim(duration=1, on_end=poison)],
     ])
 
+    return True
+
   def effect(user, dest, game, on_end=None):
     if user.get_hp():
       game.anims.append([BounceAnim(
