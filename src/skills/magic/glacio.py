@@ -25,7 +25,6 @@ class Glacio(MagicSkill):
   )
 
   def effect(user, dest, game, on_end=None):
-    camera = game.camera
     floor = game.stage
     hero_x, hero_y = user.cell
     delta_x, delta_y = user.facing
@@ -77,16 +76,11 @@ class Glacio(MagicSkill):
 
     def on_bump_end():
       delay = len(target_cells) * 10 + 10
-      game.anims[0].insert(0, PauseAnim(
-        duration=15 + delay,
-        on_end=lambda: (
-          pause_anim.end(),
-          game.anims[0].append(PauseAnim(
-            duration=30,
-            on_end=on_end
-          ))
-        )
-      ))
+      pause_anim.end()
+      game.anims.append([PauseAnim(
+        duration=delay + 45,
+        on_end=on_end
+      )])
 
     user.core.anims.append(Mage.CastAnim())
     game.vfx.extend([IceEmblemVfx(cell=user.cell, delay=15)])

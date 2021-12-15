@@ -5,7 +5,7 @@ from pygame.transform import flip
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
 import lib.input as input
-from lib.cell import manhattan, add as add_vector
+from lib.cell import manhattan
 from lib.lerp import lerp
 import lib.vector as vector
 from easing.expo import ease_out
@@ -35,7 +35,7 @@ def find_closest_cell_in_range(range_cells, target_cell, delta=None):
   if not range_cells:
     return None
   if delta:
-    target_cell = add_vector(target_cell, tuple([x / 10 for x in delta]))
+    target_cell = vector.add(target_cell, tuple([x / 10 for x in delta]))
   return sorted(range_cells, key=lambda c: manhattan(c, target_cell))[0]
 
 class NextAnim(TweenAnim): pass
@@ -108,7 +108,7 @@ class SkillContext(Context):
     button = input.resolve_button(button)
 
     if button == input.BUTTON_L:
-      return ctx.handle_select(reverse=True)
+      return ctx.handle_select()
 
     if control == input.CONTROL_CONFIRM:
       return ctx.handle_confirm()
@@ -180,7 +180,7 @@ class SkillContext(Context):
       ctx.print_skill(new_skill)
       ctx.anims.append((PrevAnim if reverse else NextAnim)(duration=12, target=options))
       ctx.skill_range = new_skill().find_range(ctx.actor, game.stage)
-      pivot_cell = add_vector(hero.cell, tuple([x / 10 for x in hero.facing]))
+      pivot_cell = vector.add(hero.cell, tuple([x / 10 for x in hero.facing]))
       ctx.dest = (sorted(ctx.skill_range, key=lambda c: manhattan(c, pivot_cell))[0]
         if ctx.skill_range
         else hero.cell)

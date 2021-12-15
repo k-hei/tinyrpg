@@ -50,12 +50,11 @@ class Congelatio(MagicSkill):
       and not (user.faction == "player" and c not in game.hero.visible_cells)
     )]
     target_cells = sorted(target_cells, key=lambda cell: 0 if cell == dest else 1 + random())
-    targets = [e for e in [floor.get_elem_at(c, superclass=DungeonActor) for c in target_cells] if e]
+    targets = [e for c in target_cells for e in floor.get_elems_at(c) if e and isinstance(e, DungeonActor)]
 
     pause_anim = PauseAnim()
     def on_connect():
-      game.camera.focus(dest, speed=8, force=True)
-      game.vfx += [
+      game.vfx.extend([
         MagicCircleVfx(cell=dest),
         *[(lambda cell, target: IceSpikeVfx(
           cell=cell,
@@ -66,8 +65,8 @@ class Congelatio(MagicSkill):
               pause_anim.end(),
               game.vfx.extend([
                 SnowflakeVfx(cell=dest),
-                *([SmokeVfx(cell=dest) for i in range(20)]),
-                *([ParticleVfx(cell=dest, linger=True) for i in range(40)]),
+                *([SmokeVfx(cell=dest) for _ in range(20)]),
+                *([ParticleVfx(cell=dest, linger=True) for _ in range(40)]),
               ])
             ),
             target.inflict_ailment("freeze"),
@@ -75,7 +74,7 @@ class Congelatio(MagicSkill):
               target=target,
               damage=8 + randint(-2, 2),
               on_end=lambda: (
-                game.freeze(target),
+                game.inflict_freeze(target),
                 game.anims[0].append(PauseAnim(
                   duration=30,
                   on_end=on_end
@@ -83,38 +82,34 @@ class Congelatio(MagicSkill):
               )
             )
           )) if target in targets else None
-        ))(cell, target=floor.get_elem_at(cell)) for i, cell in enumerate(target_cells)]
-      ]
+        ))(
+          cell,
+          target=next((e for e in floor.get_elems_at(cell) if isinstance(e, DungeonActor)), None)
+        ) for i, cell in enumerate(target_cells)]
+      ])
       if not targets:
         pause_anim.end()
-        game.anims[0].append(PauseAnim(
-          duration=60,
-          on_end=lambda: (
-            ENABLED_COMBAT_LOG and game.log.print("But nothing happened..."),
-            game.anims[0].append(PauseAnim(
-              duration=30,
-              on_end=on_end
-            ))
-          )
-        ))
+        game.anims.append([PauseAnim(
+          duration=120,
+          on_end=on_end
+        )])
 
     user.core.anims.append(Mage.CastAnim())
-    game.vfx += [IceEmblemVfx(cell=user.cell, delay=15)]
+    game.vfx.extend([IceEmblemVfx(cell=user.cell, delay=15)])
 
-    on_end = compose(on_end, game.darken_end)
-    game.anims.append([
-      PauseAnim(duration=90, on_end=lambda: user.core.anims.clear()),
-      AttackAnim(
+    # on_end = compose(on_end, game.darken_end)
+    game.anims.extend([
+      [PauseAnim(duration=90, on_end=lambda: user.core.anims.pop())],
+      [AttackAnim(
         duration=ATTACK_DURATION,
         target=user,
         src=user.cell,
         dest=bump_dest,
         on_start=lambda: (
-          game.darken(),
-          game.redraw_tiles(),
+          # game.darken(),
+          # game.redraw_tiles(),
           game.display_skill(Congelatio, user),
         ),
         on_connect=on_connect
-      ),
-      pause_anim
+      ), pause_anim]
     ])
