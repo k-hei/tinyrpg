@@ -1,10 +1,11 @@
+from math import sqrt
 import pygame
 from pygame import Surface, SRCALPHA
 import lib.vector as vector
 from lib.sprite import Sprite
 import lib.input as input
 from lib.compose import compose
-from lib.direction import normal as normalize_direction
+from lib.direction import invert as invert_direction, normal as normalize_direction
 import debug
 
 from contexts.explore.base import ExploreBase
@@ -101,11 +102,31 @@ class ExploreContext(ExploreBase):
     if ctx.ally:
       if moved:
         ctx.move_buffer.append((delta, running))
-        if len(ctx.move_buffer) > TILE_SIZE // ctx.hero.speed:
-          move_data = ctx.move_buffer.pop(0)
-          if move_data:
-            delta, running = move_data
-            ctx.move_actor(ctx.ally, delta, running)
+
+        move_data = (
+          ctx.move_buffer.pop(0)
+            if len(ctx.move_buffer) > TILE_SIZE // ctx.hero.speed
+            else None
+        )
+
+        if vector.distance(ctx.hero.pos, ctx.ally.pos) > TILE_SIZE + ctx.ally.speed * 1.5:
+          delta_x, delta_y = delta
+          ally_dest = vector.subtract(
+            ctx.hero.pos,
+            vector.scale(
+              invert_direction(delta),
+              TILE_SIZE * (sqrt(0.5) if delta_x and delta_y else 1)
+            )
+          )
+          ctx.move_to(
+            actor=ctx.ally,
+            dest=ally_dest,
+            running=vector.distance(ctx.ally.pos, ally_dest) > ctx.ally.speed * 1.5
+          )
+        elif move_data:
+          delta, running = move_data
+          ctx.move_actor(ctx.ally, delta, running)
+
       else:
         ctx.ally.stop_move()
 
@@ -130,6 +151,26 @@ class ExploreContext(ExploreBase):
 
   def move(ctx, actor, delta, diagonal=False, running=False):
     actor.move(delta, diagonal, running)
+
+  def move_to(ctx, actor, dest, running=False):
+    actor_x, actor_y = actor.pos
+    dest_x, dest_y = dest
+
+    if dest_x - actor_x < -actor.speed:
+      delta_x = -1
+    elif dest_x - actor_x > actor.speed:
+      delta_x = 1
+    else:
+      delta_x = 0
+
+    if dest_y - actor_y < -actor.speed:
+      delta_y = -1
+    elif dest_y - actor_y > actor.speed:
+      delta_y = 1
+    else:
+      delta_y = 0
+
+    return ctx.move_actor(actor, (delta_x, delta_y), running)
 
   def collide(ctx, actor, delta):
     delta_x, delta_y = delta
