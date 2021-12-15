@@ -264,7 +264,6 @@ class DungeonActor(DungeonElement):
       return Core.allied(actor.core, target.core)
 
   def inflict_ailment(actor, ailment):
-    actor.core.anims = []
     if ailment == "poison":
       if actor.ailment == "poison":
         return False
