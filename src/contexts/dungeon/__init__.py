@@ -72,6 +72,9 @@ class DungeonContext(ExploreBase):
           *([ctx.ally.anims] if ctx.ally else [])
         )
 
+      if button == pygame.K_t:
+        return print(ctx.camera.target_groups)
+
     if ctx.child:
       return ctx.child.handle_press(button)
 

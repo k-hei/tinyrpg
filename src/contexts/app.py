@@ -273,8 +273,6 @@ class App(Context):
         return tapping and app.toggle_debug()
       if button == pygame.K_RETURN and alt:
         return tapping and app.toggle_fullscreen()
-      if button == pygame.K_t and ctrl:
-        return tapping and app.print_transits()
       if button == pygame.K_p and ctrl:
         return tapping and app.toggle_pause()
     if app.child:

@@ -9,6 +9,8 @@ from contexts.explore.base import ExploreBase
 from contexts.skill import SkillContext
 from comps.damage import DamageValue
 from dungeon.actors import DungeonActor
+from dungeon.actors.knight import Knight
+from dungeon.actors.mage import Mage
 from dungeon.props.door import Door
 from skills.weapon import Weapon
 from tiles import Tile
@@ -72,13 +74,24 @@ class CombatContext(ExploreBase):
           on_end=on_end
         ))
 
-    hero_brandish = ctx.hero.core.BrandishAnim(
-      target=ctx.hero,
-      on_end=lambda: (
-        ctx.hero.stop_move(),
-        ctx.hero.core.anims.append(ctx.hero.core.IdleDownAnim())
+    create_brandish = lambda actor: (
+      actor.core.BrandishAnim(
+        target=actor,
+        on_start=(lambda: (
+          ctx.anims[0].append(JumpAnim(
+            target=actor,
+            delay=actor.core.BrandishAnim.frames_duration[0],
+            duration=actor.core.BrandishAnim.jump_duration,
+          ))
+        )) if type(actor) is Mage else None,
+        on_end=lambda: (
+          actor.stop_move(),
+          actor.core.anims.append(actor.core.IdleDownAnim()),
+        )
       )
     )
+
+    hero_brandish = create_brandish(ctx.hero)
 
     animate_snap(ctx.hero, on_end=(
       lambda: ctx.anims[0].append(hero_brandish),
@@ -116,20 +129,7 @@ class CombatContext(ExploreBase):
         )
       ])
 
-      ally_brandish = ctx.ally.core.BrandishAnim(
-        target=ctx.ally,
-        on_start=lambda: (
-          ctx.anims[0].append(JumpAnim(
-            target=ctx.ally,
-            delay=ctx.ally.core.BrandishAnim.frames_duration[0],
-            duration=ctx.ally.core.BrandishAnim.jump_duration,
-          ))
-        ),
-        on_end=lambda: (
-          ctx.ally.stop_move(),
-          ctx.ally.core.anims.append(ctx.ally.core.IdleDownAnim()),
-        )
-      )
+      ally_brandish = create_brandish(ctx.ally)
 
   def exit(ctx):
     if ctx.exiting:
@@ -166,6 +166,9 @@ class CombatContext(ExploreBase):
 
     if control == input.CONTROL_MANAGE and tapping:
       return ctx.handle_skill()
+
+    if control == input.CONTROL_ALLY and tapping:
+      return ctx.handle_charswap()
 
   def handle_move(ctx, delta):
     target_cell = vector.add(ctx.hero.cell, delta)
@@ -485,6 +488,11 @@ class CombatContext(ExploreBase):
   def handle_wait(ctx):
     ctx.step()
     return True
+
+  def handle_charswap(ctx):
+    ctx.store.switch_chars()
+    ctx.camera.blur()
+    ctx.camera.focus(target=[ctx.room, ctx.hero], force=True)
 
   def handle_hallway(ctx):
     if not ctx.find_enemies_in_range():
