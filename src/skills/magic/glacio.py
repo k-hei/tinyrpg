@@ -51,12 +51,13 @@ class Glacio(MagicSkill):
       #   target.block()
       #   damage /= 2
 
-      pause_anim.end(),
+      pause_anim.end()
+      game.inflict_freeze(target)
       game.flinch(
         target=target,
         damage=damage,
+        animate=False,
         on_end=lambda: (
-          not block and game.inflict_freeze(target),
           game.anims[0].append(PauseAnim(
             duration=30,
             on_end=on_end

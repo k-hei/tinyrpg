@@ -433,7 +433,7 @@ class CombatContext(ExploreBase):
       chance=1 / 32
     )
 
-  def flinch(ctx, target, damage, direction=None, crit=False, on_end=None):
+  def flinch(ctx, target, damage, direction=None, crit=False, animate=True, on_end=None):
     show_text = lambda: ctx.vfx.append(DamageValue(
       text=find_damage_text(damage),
       cell=target.cell,
@@ -453,27 +453,35 @@ class CombatContext(ExploreBase):
       ctx.stage_view.shake(vertical=direction and bool(direction[1]))
       direction and ctx.nudge(target, direction)
 
-    anim_group = next((g for g in ctx.anims if not next((a for a in g if a.target is target), None)), [])
-    anim_group.extend([
-      FlinchAnim(
-        target=target,
-        direction=direction,
-        on_start=lambda: (
-          direction and setattr(target, "facing", invert_direction(direction)),
-          target.damage(damage),
-          show_text(),
+    inflict = lambda: (
+      direction and setattr(target, "facing", invert_direction(direction)),
+      target.damage(damage),
+      show_text(),
+    )
+
+    cleanup = lambda: (
+      (target.is_dead() or issubclass(ctx.stage.get_tile_at(target.cell), tileset.Pit))
+        and ctx.kill(target, on_end=on_end)
+        or on_end and on_end()
+    )
+
+    if animate:
+      anim_group = next((g for g in ctx.anims if not next((a for a in g if a.target is target), None)), [])
+      anim_group.extend([
+        FlinchAnim(
+          target=target,
+          direction=direction,
+          on_start=inflict
+        ),
+        PauseAnim(
+          duration=FLINCH_PAUSE_DURATION,
+          on_end=cleanup
         )
-      ),
-      PauseAnim(
-        duration=FLINCH_PAUSE_DURATION,
-        on_end=lambda: (
-          (target.is_dead() or issubclass(ctx.stage.get_tile_at(target.cell), tileset.Pit))
-            and ctx.kill(target, on_end=on_end)
-            or on_end and on_end()
-        )
-      )
-    ])
-    anim_group not in ctx.anims and ctx.anims.append(anim_group)
+      ])
+      anim_group not in ctx.anims and ctx.anims.append(anim_group)
+    else:
+      inflict()
+      cleanup()
 
   def kill(ctx, target, on_end=None):
     if not ctx.hero:
@@ -559,30 +567,40 @@ class CombatContext(ExploreBase):
     not ctx.find_enemies_in_range() and ctx.exit()
 
   def inflict_ailment(ctx, actor, ailment, color, on_end=None):
-    if actor.is_dead() or actor.ailment == "poison":
+    if actor.is_dead() or actor.ailment == ailment:
       return False
 
-    ctx.anims.append([
+    def inflict():
+      if actor.ailment == ailment:
+        for anim in anims:
+          anim.end()
+        return
+      actor.inflict_ailment(ailment),
+      ctx.vfx.append(DamageValue(
+        text=ailment.upper(),
+        color=color,
+        cell=actor.cell,
+        offset=(4, -4),
+        delay=15,
+      ))
+
+    anims = [
       FlinchAnim(
         target=actor,
         duration=30,
-        on_start=lambda: (
-          actor.inflict_ailment(ailment),
-          ctx.vfx.append(DamageValue(
-            text=ailment.upper(),
-            color=color,
-            cell=actor.cell,
-            offset=(4, -4),
-            delay=15,
-          ))
-        )
+        on_start=inflict
       ),
       PauseAnim(
         target=actor,
         duration=45,
         on_end=on_end,
       )
-    ])
+    ]
+
+    if ailment == DungeonActor.AILMENT_FREEZE:
+      ctx.anims[0].extend(anims)
+    elif ailment == DungeonActor.AILMENT_POISON:
+      ctx.anims.append(anims)
 
     return True
 
@@ -590,7 +608,8 @@ class CombatContext(ExploreBase):
     return ctx.inflict_ailment(actor, "poison", color=PURPLE, on_end=on_end)
 
   def inflict_freeze(ctx, actor, on_end=None):
-    return ctx.inflict_ailment(actor, "freeze", color=CYAN, on_end=on_end)
+    ctx.inflict_ailment(actor, "freeze", color=CYAN, on_end=on_end)
+    actor.reset_charge()
 
   def step(ctx):
     actors = [e for e in ctx.stage.elems if
