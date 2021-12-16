@@ -1,9 +1,9 @@
 from math import sqrt
 from anims import Anim
-from config import ATTACK_DURATION
+from config import ATTACK_DURATION, TILE_SIZE
 
 class AttackAnim(Anim):
-  def __init__(anim, src, dest, duration=ATTACK_DURATION, on_connect=None, *args, **kwargs):
+  def __init__(anim, src, dest, duration=ATTACK_DURATION, amplitude=16, on_connect=None, *args, **kwargs):
     super().__init__(duration=duration, *args, **kwargs)
     src_x, src_y = src
     dest_x, dest_y = dest
@@ -13,6 +13,7 @@ class AttackAnim(Anim):
     anim.cell = src
     anim.src = src
     anim.dest = dest
+    anim.amplitude = amplitude
     anim.normal = normal
     anim.on_connect = on_connect
 
@@ -26,7 +27,8 @@ class AttackAnim(Anim):
     if time == midpoint:
       anim.on_connect and anim.on_connect()
     steps = time if time <= midpoint else midpoint * 2 - time
-    x = src_x + norm_x / 16 * steps
-    y = src_y + norm_y / 16 * steps
+    t = steps / midpoint
+    x = src_x + norm_x * t * anim.amplitude / TILE_SIZE
+    y = src_y + norm_y * t * anim.amplitude / TILE_SIZE
     anim.cell = (x, y)
     return anim.cell

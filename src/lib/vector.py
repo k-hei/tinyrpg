@@ -38,12 +38,6 @@ def multiply(*vectors):
 def scale(vector, scalar):
   return tuple([v * scalar for v in vector])
 
-def distance(a, b):
-  x1, y1 = a
-  x2, y2 = b
-  dx, dy = x2 - x1, y2 - y1
-  return sqrt(dx * dx + dy * dy)
-
 def lerp(a, b, t):
   c = []
   for i in range(max(len(a), len(b))):
@@ -63,3 +57,13 @@ def mean(*vectors):
 
 def floor(vector):
   return tuple([int(x) for x in vector])
+
+def distance(a, b):
+  x1, y1 = a
+  x2, y2 = b
+  dx, dy = x2 - x1, y2 - y1
+  return sqrt(dx * dx + dy * dy)
+
+def tangent(vector):
+  x, y = vector
+  return (-y, x)

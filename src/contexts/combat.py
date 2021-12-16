@@ -26,7 +26,7 @@ from anims.flicker import FlickerAnim
 from vfx.flash import FlashVfx
 from colors.palette import RED, GREEN, BLUE, GOLD, PURPLE, CYAN
 from config import (
-  MOVE_DURATION, FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION,
+  MOVE_DURATION, FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION, SIDESTEP_DURATION, SIDESTEP_AMPLITUDE,
   CRIT_MODIFIER,
   TILE_SIZE,
 )
@@ -354,7 +354,9 @@ class CombatContext(ExploreBase):
       actor.face(target.cell)
       crit = ctx.find_crit(actor, target)
       miss = ctx.find_miss(actor, target)
-      if crit:
+      if miss:
+        damage = None
+      elif crit:
         damage = ctx.find_damage(actor, target, modifier=modifier * CRIT_MODIFIER)
       else:
         damage = ctx.find_damage(actor, target, modifier)
@@ -376,11 +378,12 @@ class CombatContext(ExploreBase):
           if "AttackAnim" in dir(actor.core) and actor.facing == (0, 1)
           else 0
       )
-      ctx.anims.append([AttackAnim(
+      ctx.anims.append([attack_anim := AttackAnim(
         target=actor,
         delay=attack_delay,
         src=actor.cell,
         dest=vector.add(actor.cell, actor.facing),
+        on_start=lambda: target.is_dead() and attack_anim.end(),
         on_connect=(connect if target else None)
       )])
       actor.attack()
@@ -454,8 +457,8 @@ class CombatContext(ExploreBase):
       direction and ctx.nudge(target, direction)
 
     inflict = lambda: (
-      direction and setattr(target, "facing", invert_direction(direction)),
-      target.damage(damage),
+      direction and not target.ailment == DungeonActor.AILMENT_FREEZE and setattr(target, "facing", invert_direction(direction)),
+      damage and target.damage(damage),
       show_text(),
     )
 
@@ -467,18 +470,25 @@ class CombatContext(ExploreBase):
 
     if animate:
       anim_group = next((g for g in ctx.anims if not next((a for a in g if a.target is target), None)), [])
+      anim_group not in ctx.anims and ctx.anims.append(anim_group)
       anim_group.extend([
-        FlinchAnim(
+        *([FlinchAnim(
           target=target,
           direction=direction,
           on_start=inflict
-        ),
+        )] if damage is not None else [AttackAnim(
+          target=target,
+          src=target.cell,
+          dest=vector.add(target.cell, vector.tangent(direction)),
+          duration=SIDESTEP_DURATION,
+          amplitude=SIDESTEP_AMPLITUDE,
+        )] if direction else []),
         PauseAnim(
           duration=FLINCH_PAUSE_DURATION,
           on_end=cleanup
         )
       ])
-      anim_group not in ctx.anims and ctx.anims.append(anim_group)
+      not damage and inflict()
     else:
       inflict()
       cleanup()
