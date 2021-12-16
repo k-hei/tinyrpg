@@ -10,6 +10,7 @@ from lib.filters import replace_color
 
 class PoisonPuff(Prop):
   MAX_TURNS = 7
+  active = True
   expires = True
 
   def __init__(puff, origin, *args, **kwargs):

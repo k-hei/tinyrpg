@@ -1,4 +1,4 @@
-from random import randint
+from random import random, randint
 import lib.vector as vector
 import lib.input as input
 from lib.direction import invert as invert_direction, normal as normalize_direction
@@ -65,6 +65,7 @@ class CombatContext(ExploreBase):
         ))
         actor_cells[actor] = actor_cell
         actor_dest = upscale(actor_cell)
+        actor.stop_move()
         not ctx.anims and ctx.anims.append([])
         ctx.anims[-1].append(MoveAnim(
           target=actor,
@@ -93,9 +94,9 @@ class CombatContext(ExploreBase):
 
     hero_brandish = create_brandish(ctx.hero)
 
-    animate_snap(ctx.hero, on_end=(
-      lambda: ctx.anims[0].append(hero_brandish),
-    ) if not ctx.ally else None)
+    animate_snap(ctx.hero, on_end=(lambda: (
+      ctx.anims[0].append(hero_brandish)
+    )) if not ctx.ally else None)
     ctx.ally and animate_snap(ctx.ally)
 
     if ctx.ally:
@@ -143,7 +144,7 @@ class CombatContext(ExploreBase):
       actor.dispel_ailment()
 
     hero_adjacents = [n for n in neighborhood(ctx.hero.cell) if ctx.stage.is_cell_empty(n)]
-    if ally_rejoin and hero_adjacents:
+    if ally_rejoin and ctx.ally and hero_adjacents:
       target_cell = sorted(hero_adjacents, key=lambda c: manhattan(c, ctx.ally.cell))[0]
       ctx.anims.append([PathAnim(
         target=ctx.ally,
@@ -352,6 +353,7 @@ class CombatContext(ExploreBase):
     if target:
       actor.face(target.cell)
       crit = ctx.find_crit(actor, target)
+      miss = ctx.find_miss(actor, target)
       if crit:
         damage = ctx.find_damage(actor, target, modifier=modifier * CRIT_MODIFIER)
       else:
@@ -393,10 +395,42 @@ class CombatContext(ExploreBase):
     variance = 1
     return max(1, actor_st - target_en + randint(-variance, variance))
 
-  def find_crit(ctx, actor, target):
+  def find_miss(ctx, actor, target):
     return (
+      not target.is_immobile()
+      and target.facing != actor.facing
+      and (target.aggro > 1 or target.faction == "player")
+      and not ctx.roll_hit(attacker=actor, defender=target)
+    )
+
+  def find_crit(ctx, actor, target):
+    return target.ailment != DungeonActor.AILMENT_FREEZE and (
       target.ailment == DungeonActor.AILMENT_SLEEP
       or actor.facing == target.facing
+      or ctx.roll_crit(attacker=actor, defender=target)
+    )
+
+  def roll(game, dx, ag, chance):
+    if dx >= ag:
+      chance = chance + (dx - ag) / 100
+    elif ag >= dx * 2:
+      chance = dx / ag * chance * 0.75
+    else:
+      chance = dx / ag * chance
+    return random() <= chance
+
+  def roll_hit(ctx, attacker, defender):
+    return ctx.roll(
+      dx=attacker.stats.dx + attacker.stats.lu / 2,
+      ag=defender.stats.ag + defender.stats.lu / 2,
+      chance=0.8
+    )
+
+  def roll_crit(ctx, attacker, defender):
+    return ctx.roll(
+      dx=attacker.stats.dx + attacker.stats.lu / 2,
+      ag=defender.stats.ag + defender.stats.lu / 2,
+      chance=1 / 32
     )
 
   def flinch(ctx, target, damage, direction=None, crit=False, on_end=None):
@@ -528,8 +562,7 @@ class CombatContext(ExploreBase):
     if actor.is_dead() or actor.ailment == "poison":
       return False
 
-    not ctx.anims and ctx.anims.append([])
-    ctx.anims[0].extend([
+    ctx.anims.append([
       FlinchAnim(
         target=actor,
         duration=30,
@@ -550,6 +583,7 @@ class CombatContext(ExploreBase):
         on_end=on_end,
       )
     ])
+
     return True
 
   def inflict_poison(ctx, actor, on_end=None):
@@ -661,7 +695,11 @@ class CombatContext(ExploreBase):
         return next()
 
     if command_name == "attack":
-      return ctx.attack(actor, *command_args, on_end=next)
+      target = command_args and command_args[0]
+      if target:
+        return ctx.attack(actor, *command_args, on_end=next)
+      else:
+        return next()
 
     if command_name == "use_skill":
       return ctx.use_skill(actor, *command_args, on_end=next)
@@ -671,6 +709,8 @@ class CombatContext(ExploreBase):
 
   def end_turn(ctx, actor):
     actor.step_status(ctx)
+    effect_elem = next((e for e in ctx.stage.get_elems_at(actor.cell) if e.active and not e.solid), None)
+    effect_elem and effect_elem.effect(ctx, actor)
 
   def end_step(ctx):
     actors = [e for e in ctx.stage.elems if isinstance(e, DungeonActor)]
