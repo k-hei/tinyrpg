@@ -378,15 +378,21 @@ class CombatContext(ExploreBase):
           if "AttackAnim" in dir(actor.core) and actor.facing == (0, 1)
           else 0
       )
-      ctx.anims.append([attack_anim := AttackAnim(
-        target=actor,
-        delay=attack_delay,
-        src=actor.cell,
-        dest=vector.add(actor.cell, actor.facing),
-        on_start=lambda: target.is_dead() and attack_anim.end(),
-        on_connect=(connect if target else None)
-      )])
-      actor.attack()
+      ctx.anims.extend([
+        [*([PauseAnim(
+          duration=attack_delay,
+          on_start=lambda: actor.attack()
+        )] if attack_delay else [])],
+        [attack_anim := AttackAnim(
+          target=actor,
+          src=actor.cell,
+          dest=vector.add(actor.cell, actor.facing),
+          on_start=lambda: (
+            actor.is_dead() or target.is_dead()
+          ) and attack_anim.end(),
+          on_connect=(connect if target else None)
+        )]
+      ])
     else:
       connect()
 
