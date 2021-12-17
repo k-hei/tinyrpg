@@ -1,13 +1,14 @@
-import pygame
+from pygame import Surface
+import assets
 import debug
 from contexts import Context
 from cores.knight import Knight
 from anims.walk import WalkAnim
 from anims.jump import JumpAnim
 from anims.pause import PauseAnim
-from assets import load as use_assets
 from lib.sprite import Sprite
-from config import WINDOW_WIDTH, WINDOW_HEIGHT
+from colors.palette import BLACK
+from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
 
 class LoadingContext(Context):
   LOADING_TEXT = "Now Loading..."
@@ -21,6 +22,14 @@ class LoadingContext(Context):
     ctx.knight = Knight(anims=[
       WalkAnim(period=30)
     ])
+
+  def enter(ctx):
+    ctx.get_head().loading = True
+
+  def exit(ctx):
+    ctx.get_head().loading = False
+    ctx.close()
+    ctx.on_end(ctx.result)
 
   def update(ctx):
     ctx.knight.update()
@@ -47,17 +56,17 @@ class LoadingContext(Context):
         ctx.result = result
       except StopIteration:
         ctx.loader = None
-        ctx.anims = [PauseAnim(duration=30, on_end=lambda: (
-          ctx.close(),
-          ctx.on_end(ctx.result)
-        ))]
+        ctx.anims = [PauseAnim(duration=30, on_end=ctx.exit)]
 
   def view(ctx):
     if not ctx.loader:
       return []
 
     sprites = []
-    assets = use_assets()
+
+    bg_image = Surface(WINDOW_SIZE)
+    bg_image.fill(BLACK)
+    sprites.append(Sprite(image=bg_image))
 
     knight_sprite = ctx.knight.view()[0]
     knight_image = knight_sprite.image

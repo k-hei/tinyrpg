@@ -163,11 +163,13 @@ class App(Context):
         transit_in.on_end = lambda: app.load(loader, on_end)
     app.transits += transits
 
-  def load(app, loader, on_end):
+  def load(app, loader, on_end, child=None):
     app.loading = True
-    def on_close():
-      app.loading = False
-    app.get_tail().open(LoadingContext(loader, on_end), on_close)
+    child = child or app.get_tail()
+    child.open(
+      child=LoadingContext(loader, on_end),
+      on_close=lambda: setattr(app, "loading", False)
+    )
 
   def print_contexts(app):
     contexts = []

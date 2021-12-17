@@ -9,6 +9,7 @@ from contexts.pause import PauseContext
 from contexts.inventory import InventoryContext
 from contexts.custom import CustomContext
 from contexts.dungeon import DungeonContext
+from contexts.loading import LoadingContext
 from dungeon.gen.manifest import manifest_stage_from_room
 from dungeon.decoder import decode_floor
 from contexts.explore.roomdata import load_rooms, rooms
@@ -104,17 +105,17 @@ class GameContext(Context):
 
     if ctx.floor:
       Floor = ctx.floor
-      ctx.floor = None
+      # ctx.floor = None
       app = ctx.get_head()
       bench("Generate floor")
-      return app.load(
+      return ctx.open(LoadingContext(
         loader=Floor.generate(ctx.store, seed=ctx.seed),
         on_end=lambda floor: (
           bench("Generate floor"),
           ctx.goto_dungeon(floors=[floor], generator=Floor),
           app.transition([DissolveOut()])
         )
-      )
+      ))
 
     if type(savedata.dungeon) is dict:
       return ctx.goto_dungeon(

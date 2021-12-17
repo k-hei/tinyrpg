@@ -7,6 +7,7 @@ from lib.cell import neighborhood, manhattan, is_adjacent
 
 from contexts.explore.base import ExploreBase
 from contexts.skill import SkillContext
+from contexts.gameover import GameOverContext
 from comps.damage import DamageValue
 from dungeon.actors import DungeonActor
 from dungeon.actors.knight import Knight
@@ -499,24 +500,6 @@ class CombatContext(ExploreBase):
       inflict()
       cleanup()
 
-  def kill(ctx, target, on_end=None):
-    if not ctx.hero:
-      return
-
-    target.kill(ctx)
-    will_exit = not ctx.hero.allied(target) and not ctx.find_enemies_in_range()
-    not ctx.anims and ctx.anims.append([])
-    ctx.anims[0].append(FlickerAnim(
-      target=target,
-      duration=FLICKER_DURATION,
-      on_end=lambda: (
-        target is ctx.hero and ctx.ally and ctx.handle_charswap(),
-        ctx.stage.remove_elem(target),
-        on_end and on_end(),
-        will_exit and ctx.exit(ally_rejoin=True)
-      )
-    ))
-
   def nudge(ctx, actor, direction, on_end=None):
     source_cell = actor.cell
     target_cell = vector.add(source_cell, direction)
@@ -534,6 +517,45 @@ class CombatContext(ExploreBase):
       on_end=on_end
     ))
     return True
+
+  def kill(ctx, target, on_end=None):
+    if not ctx.hero:
+      return
+
+    target.kill(ctx)
+    will_exit = not ctx.hero.allied(target) and not ctx.find_enemies_in_range()
+
+    def remove_elem():
+      if target is ctx.hero:
+        if ctx.ally:
+          ctx.handle_charswap()
+        else:
+          ctx.handle_gameover()
+      ctx.stage.remove_elem(target)
+      on_end and on_end()
+      will_exit and ctx.exit(ally_rejoin=True)
+
+    not ctx.anims and ctx.anims.append([])
+    ctx.anims[0].append(FlickerAnim(
+      target=target,
+      duration=FLICKER_DURATION,
+      on_end=remove_elem
+    ))
+
+  def handle_charswap(ctx):
+    if not ctx.ally or ctx.ally.dead:
+      ctx.hud.shake()
+      return False
+    ctx.store.switch_chars()
+    ctx.camera.blur()
+    ctx.camera.focus(target=[ctx.room, ctx.hero], force=True)
+    return True
+
+  def handle_gameover(ctx):
+    if type(ctx.child) is GameOverContext:
+      return
+    ctx.hud.exit()
+    ctx.open(GameOverContext())
 
   def handle_skill(ctx):
     ctx.open(SkillContext(
@@ -568,15 +590,6 @@ class CombatContext(ExploreBase):
 
   def handle_wait(ctx):
     ctx.step()
-    return True
-
-  def handle_charswap(ctx):
-    if not ctx.ally or ctx.ally.dead:
-      ctx.hud.shake()
-      return False
-    ctx.store.switch_chars()
-    ctx.camera.blur()
-    ctx.camera.focus(target=[ctx.room, ctx.hero], force=True)
     return True
 
   def handle_hallway(ctx):
