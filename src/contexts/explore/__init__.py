@@ -32,10 +32,10 @@ class ExploreContext(ExploreBase):
   def open(ctx, child, on_close=None):
     on_close = compose(on_close, ctx.parent.update_bubble)
     if type(child) is InventoryContext:
-      if not ctx.hud.anims:
+      if not ctx.comps.hud.anims:
         open = super().open
-        ctx.hud.enter(on_end=lambda: (
-          open(child, on_close=compose(on_close, ctx.hud.exit))
+        ctx.comps.hud.enter(on_end=lambda: (
+          open(child, on_close=compose(on_close, ctx.comps.hud.exit))
         ))
     else:
       return super().open(child, on_close)
@@ -288,7 +288,7 @@ class ExploreContext(ExploreBase):
     ctx.exit()
 
   def handle_minimap(ctx):
-    ctx.open(MinimapContext(minimap=ctx.minimap))
+    ctx.open(MinimapContext(minimap=ctx.comps.minimap))
 
   def handle_debug(ctx):
     ctx.debug = not ctx.debug

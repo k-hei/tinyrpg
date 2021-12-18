@@ -3,10 +3,6 @@ from lib.cell import manhattan
 import lib.vector as vector
 from helpers.findactor import find_actor
 from contexts import Context
-from comps.hud import Hud
-from comps.minilog import Minilog
-from comps.minimap import Minimap
-from comps.skillbanner import SkillBanner
 from anims.item import ItemAnim
 from dungeon.actors import DungeonActor
 from vfx.talkbubble import TalkBubble
@@ -80,22 +76,6 @@ class ExploreBase(Context):
     ctx._comps = comps
 
   @property
-  def hud(ctx):
-    return next((c for c in ctx.comps if type(c) is Hud), None)
-
-  @property
-  def minilog(ctx):
-    return next((c for c in ctx.comps if type(c) is Minilog), None)
-
-  @property
-  def minimap(ctx):
-    return next((c for c in ctx.comps if type(c) is Minimap), None)
-
-  @property
-  def skill_banner(ctx):
-    return next((c for c in ctx.comps if type(c) is SkillBanner), None)
-
-  @property
   def talkbubble(ctx):
     return next((v for v in ctx.vfx if type(v) is TalkBubble), None)
 
@@ -155,7 +135,7 @@ class ExploreBase(Context):
           )
         )
       ])
-      ctx.minilog.print(message=("Obtained ", item().token(), "."))
+      ctx.comps.minilog.print(message=("Obtained ", item().token(), "."))
     return obtained
 
   def update_bubble(ctx):

@@ -170,7 +170,7 @@ class CombatContext(ExploreBase):
       )])
 
     ctx.exiting = True
-    ctx.hud.exit(on_end=lambda: (
+    ctx.comps.hud.exit(on_end=lambda: (
       ctx.hero.core.anims.clear(),
       ctx.ally and ctx.ally.core.anims.clear(),
       ctx.close()
@@ -229,9 +229,6 @@ class CombatContext(ExploreBase):
       or next((e for e in ctx.stage.get_elems_at(target_cell)), None)
     )
 
-    if actor is not ctx.hero:
-      print("move", actor, delta, target_cell, target_elem, ctx.hero.cell)
-
     if target_elem and target_elem.solid and not (target_elem is ctx.ally and not ctx.ally.command):
       return False
 
@@ -264,7 +261,6 @@ class CombatContext(ExploreBase):
     actor.cell = target_cell
     actor.facing = normalize_direction(delta)
     actor.command = move_command
-    print(f"set {type(actor).__name__} cell", actor.cell, target_cell)
 
     if target_elem and target_elem is ctx.ally:
       ctx.move(actor=ctx.ally, delta=invert_direction(delta))
@@ -572,7 +568,7 @@ class CombatContext(ExploreBase):
 
   def handle_charswap(ctx):
     if not ctx.ally or ctx.ally.dead:
-      ctx.hud.shake()
+      ctx.comps.hud.shake()
       return False
     ctx.store.switch_chars()
     ctx.camera.blur()
@@ -582,7 +578,7 @@ class CombatContext(ExploreBase):
   def handle_gameover(ctx):
     if type(ctx.child) is GameOverContext:
       return
-    ctx.hud.exit()
+    ctx.comps.hud.exit()
     ctx.open(GameOverContext())
 
   def handle_skill(ctx):
@@ -621,7 +617,7 @@ class CombatContext(ExploreBase):
       else GREEN if faction == "ally"
       else None
     )
-    ctx.skill_banner.enter(
+    ctx.comps.skill_banner.enter(
       text=skill.name,
       color=resolve_color(user.faction),
     )
@@ -694,7 +690,6 @@ class CombatContext(ExploreBase):
     if not ctx.command_pending and ctx.command_gen:
       try:
         ctx.command_pending = next(ctx.command_gen)
-        print("gen", ctx.command_pending)
         if not ctx.command_pending:
           ctx.command_discarded = True
       except StopIteration:
@@ -707,7 +702,6 @@ class CombatContext(ExploreBase):
       ctx.step_command(actor, command, chain)
 
   def step(ctx):
-    print("turn", ctx.turns)
     actors = [e for e in ctx.stage.elems if
       isinstance(e, DungeonActor)
       and e is not ctx.hero
@@ -727,7 +721,6 @@ class CombatContext(ExploreBase):
         actor.turns += spd
 
   def step_execute(ctx, actors):
-    print("execute step")
     ctx.command_gen = ctx.step_generate(actors)
 
   def step_generate(ctx, actors):
@@ -736,25 +729,20 @@ class CombatContext(ExploreBase):
 
       while not command:
         if ctx.command_queue and next((c for a, c in ctx.command_queue if a is ctx.ally), None):
-          print("movement already in progress")
           yield None
           continue
 
         command = ctx.step_ally(ctx.ally)
-        print("gen ally", command)
 
         if not command:
           break
 
         if command[0] in (COMMAND_ATTACK, COMMAND_SKILL) and ctx.command_queue:
-          command and print("discard command", command)
           command = None
           yield None
 
       if command:
         yield ctx.ally, command
-
-      print(f"end {type(ctx.ally).__name__} turn")
 
     for actor in actors:
       if not actor.hp:
@@ -764,20 +752,17 @@ class CombatContext(ExploreBase):
         actor.turns -= 1
 
         if actor.charge_turns == 1 and ctx.command_queue:
-          print("delay discharge")
           yield None
 
         command = actor.step_charge()
 
         while not command:
           command = ctx.step_enemy(actor)
-          print("gen enemy", command)
 
           if not command:
             break
 
           if command[0] in (COMMAND_ATTACK, COMMAND_SKILL) and ctx.command_queue:
-            command and print("discard command", command)
             command = None
             yield None
 
@@ -785,7 +770,6 @@ class CombatContext(ExploreBase):
           yield actor, command
 
     ctx.end_step()
-    print("end step")
 
   def step_ally(ctx, actor):
     if not ctx.hero or not actor.can_step():

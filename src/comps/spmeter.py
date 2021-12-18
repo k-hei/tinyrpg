@@ -4,6 +4,7 @@ from assets import load as use_assets
 from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
+from comps import Component
 from comps.hud import render_numbers
 from lib.filters import recolor, replace_color
 from colors.palette import RED, WHITE, BLUE
@@ -11,7 +12,7 @@ from lib.sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 
 MARGIN_X = 12
-MARGIN_Y = 32
+MARGIN_Y = 12
 PADDING_X = 3
 PADDING_Y = 4
 TAG_X = 16
@@ -23,7 +24,7 @@ NUMBERS_OFFSET = -2
 SPEED_DEPLETE = 1 / 500
 SPEED_RESTORE = 1 / 250
 
-class SpMeter:
+class SpMeter(Component):
   def __init__(meter, store):
     meter.store = store
     meter.active = False
@@ -112,9 +113,9 @@ class SpMeter:
 
   def view(meter):
     sprite = meter.render()
-    hidden_x = WINDOW_WIDTH
+    hidden_x = -sprite.get_width()
     hidden_y = WINDOW_HEIGHT - sprite.get_height() - MARGIN_Y
-    corner_x = hidden_x - sprite.get_width() - MARGIN_X
+    corner_x = MARGIN_X
     corner_y = hidden_y
     anim = meter.anims[0] if meter.anims else None
     if anim:

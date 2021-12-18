@@ -7,10 +7,12 @@ from contexts.explore import ExploreContext
 from contexts.explore.base import ExploreBase
 from contexts.explore.stageview import StageView
 from contexts.combat import CombatContext
+from comps.store import ComponentStore
 from comps.hud import Hud
 from comps.minilog import Minilog
 from comps.minimap import Minimap
 from comps.skillbanner import SkillBanner
+from comps.spmeter import SpMeter
 from dungeon.actors.knight import Knight
 from dungeon.actors.mage import Mage
 from dungeon.props.door import Door
@@ -51,16 +53,17 @@ class DungeonContext(ExploreBase):
     else:
       raise LookupError("Failed to find Entrance tile to spawn hero")
 
-    ctx.comps = [
-      Hud(party=ctx.store.party, hp=True),
-      Minilog(pos=(8, WINDOW_HEIGHT - 8 - Minilog.sprite.get_height() / 2)),
-      Minimap(
+    ctx.comps = ComponentStore(
+      hud=Hud(party=ctx.store.party, hp=True),
+      minilog=Minilog(pos=(8, WINDOW_HEIGHT - 8 - Minilog.sprite.get_height() / 2)),
+      minimap=Minimap(
         stage=ctx.stage,
         hero=ctx.hero,
         visited_cells=ctx.visited_cells
       ),
-      SkillBanner()
-    ]
+      skill_banner=SkillBanner(),
+      sp_meter=SpMeter(store=ctx.store),
+    )
     ctx.handle_explore()
 
   def handle_press(ctx, button):
@@ -200,7 +203,7 @@ class DungeonContext(ExploreBase):
       stage=ctx.stage,
       stage_view=ctx.stage_view,
     ), on_close=ctx.handle_combat)
-    ctx.minimap.enter()
+    ctx.comps.minimap.enter()
 
   def handle_combat(ctx):
     ctx.open(CombatContext(
@@ -208,8 +211,8 @@ class DungeonContext(ExploreBase):
       stage=ctx.stage,
       stage_view=ctx.stage_view,
     ), on_close=ctx.handle_explore)
-    ctx.minimap.exit()
-    ctx.hud.enter()
+    ctx.comps.minimap.exit()
+    ctx.comps.hud.enter()
 
   def extend_visited_cells(ctx, cells):
     ctx.visited_cells.extend([c for c in cells if c not in ctx.visited_cells])

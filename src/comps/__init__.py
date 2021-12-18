@@ -13,3 +13,9 @@ class Component:
   def exit(comp):
     comp.active = False
     comp.exiting = True
+
+  def update(comp):
+    pass
+
+  def view(comp):
+    return []
