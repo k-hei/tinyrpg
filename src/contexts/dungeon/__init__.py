@@ -213,6 +213,7 @@ class DungeonContext(ExploreBase):
     ), on_close=ctx.handle_explore)
     ctx.comps.minimap.exit()
     ctx.comps.hud.enter()
+    ctx.comps.sp_meter.enter()
 
   def extend_visited_cells(ctx, cells):
     ctx.visited_cells.extend([c for c in cells if c not in ctx.visited_cells])

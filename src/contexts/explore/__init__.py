@@ -34,8 +34,13 @@ class ExploreContext(ExploreBase):
     if type(child) is InventoryContext:
       if not ctx.comps.hud.anims:
         open = super().open
+        ctx.comps.sp_meter.enter()
         ctx.comps.hud.enter(on_end=lambda: (
-          open(child, on_close=compose(on_close, ctx.comps.hud.exit))
+          open(child, on_close=lambda: (
+            on_close and on_close(),
+            ctx.comps.sp_meter.exit(),
+            ctx.comps.hud.exit(),
+          ))
         ))
     else:
       return super().open(child, on_close)

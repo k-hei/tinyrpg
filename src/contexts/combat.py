@@ -170,6 +170,7 @@ class CombatContext(ExploreBase):
       )])
 
     ctx.exiting = True
+    ctx.comps.sp_meter.exit()
     ctx.comps.hud.exit(on_end=lambda: (
       ctx.hero.core.anims.clear(),
       ctx.ally and ctx.ally.core.anims.clear(),
@@ -369,6 +370,7 @@ class CombatContext(ExploreBase):
   def handle_attack(ctx):
     target_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
     target_actor = next((e for e in ctx.stage.get_elems_at(target_cell) if isinstance(e, DungeonActor)), None)
+    ctx.store.sp -= 1
     return ctx.attack(actor=ctx.hero, target=target_actor, on_end=ctx.step)
 
   def attack(ctx, actor, target=None, modifier=1, animate=True, on_end=None):
@@ -589,12 +591,15 @@ class CombatContext(ExploreBase):
       on_close=lambda skill, dest: (
         skill and (
           not issubclass(skill, Weapon) and ctx.store.set_selected_skill(ctx.hero, skill),
-          ctx.use_skill(ctx.hero, skill, dest)
+          ctx.use_skill(ctx.hero, skill, dest, on_end=ctx.step),
         )
       )
     ))
 
   def use_skill(ctx, actor, skill, dest=None, on_end=None):
+    if actor.faction == "player":
+      ctx.store.sp -= skill.cost
+
     skill_command = (actor, (COMMAND_SKILL, skill, dest))
     ctx.command_queue.append(skill_command)
     should_display_skill = skill.effect(
@@ -679,8 +684,6 @@ class CombatContext(ExploreBase):
     ctx.update_command()
 
   def update_command(ctx):
-    ctx.command_queue and print("active commands", [type(c[0]).__name__ for c in ctx.command_queue])
-
     if not ctx.command_queue:
       ctx.command_discarded = False
 

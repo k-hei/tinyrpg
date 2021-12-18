@@ -31,7 +31,6 @@ class SpMeter(Component):
     meter.sp_drawn = None
     meter.draws = 0
     meter.anims = []
-    meter.enter()
 
   def enter(meter):
     meter.active = True
@@ -113,9 +112,9 @@ class SpMeter(Component):
 
   def view(meter):
     sprite = meter.render()
-    hidden_x = -sprite.get_width()
+    hidden_x = WINDOW_WIDTH
     hidden_y = WINDOW_HEIGHT - sprite.get_height() - MARGIN_Y
-    corner_x = MARGIN_X
+    corner_x = WINDOW_WIDTH - sprite.get_width() - MARGIN_X
     corner_y = hidden_y
     anim = meter.anims[0] if meter.anims else None
     if anim:
