@@ -63,16 +63,18 @@ class DungeonElement:
   def pos(elem, pos):
     elem._pos = pos
     elem._rect = None
+    if "_cell" not in dir(elem) or elem._cell == elem._cell_derived:
+      elem._cell = None
 
   @property
   def cell(elem):
+    if elem._cell:
+      return elem._cell
+
     if elem.pos is None:
       return None
-    x, y = elem.pos
-    return (
-      int(x // elem.scale),
-      int(y // elem.scale)
-    )
+
+    return elem._cell_derived
 
   @cell.setter
   def cell(elem, cell):
@@ -80,6 +82,15 @@ class DungeonElement:
     elem.pos = (
       (col + 0.5) * elem.scale,
       (row + 0.5) * elem.scale
+    )
+    elem._cell = cell
+
+  @property
+  def _cell_derived(elem):
+    x, y = elem.pos
+    return (
+      int(x // elem.scale),
+      int(y // elem.scale)
     )
 
   @property

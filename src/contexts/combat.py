@@ -28,9 +28,15 @@ from vfx.flash import FlashVfx
 from colors.palette import RED, GREEN, BLUE, GOLD, PURPLE, CYAN
 from config import (
   MOVE_DURATION, FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION, SIDESTEP_DURATION, SIDESTEP_AMPLITUDE,
-  CRIT_MODIFIER,
+  HIT_CHANCE, CRIT_CHANCE, CRIT_MODIFIER,
   TILE_SIZE,
 )
+
+COMMAND_MOVE = "move"
+COMMAND_MOVE_TO = "move_to"
+COMMAND_ATTACK = "attack"
+COMMAND_SKILL = "use_skill"
+COMMAND_WAIT = "wait"
 
 def find_damage_text(damage):
   if damage == 0:
@@ -41,13 +47,19 @@ def find_damage_text(damage):
     return int(damage)
 
 class CombatContext(ExploreBase):
+  def __init__(ctx, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    ctx.exiting = False
+    ctx.turns = 0
+    ctx.command_queue = []
+    ctx.command_pending = None
+    ctx.command_gen = None
+    ctx.busy = False
 
   def enter(ctx):
     if not ctx.hero:
       return
 
-    ctx.exiting = False
-    ctx.turns = 0
     downscale = lambda pos: tuple([int(x / ctx.hero.scale) for x in pos])
     upscale = lambda cell: vector.scale(
       vector.add(cell, (0.5, 0.5)),
@@ -217,8 +229,14 @@ class CombatContext(ExploreBase):
       or next((e for e in ctx.stage.get_elems_at(target_cell)), None)
     )
 
-    if target_elem and target_elem.solid and target_elem is not ctx.ally:
+    if actor is not ctx.hero:
+      print("move", actor, delta, target_cell, target_elem, ctx.hero.cell)
+
+    if target_elem and target_elem.solid and not (target_elem is ctx.ally and not ctx.ally.command):
       return False
+
+    move_command = (actor, (COMMAND_MOVE, delta))
+    ctx.command_queue.append(move_command)
 
     move_duration = MOVE_DURATION
     move_duration = move_duration * 1.5 if jump else move_duration
@@ -228,7 +246,11 @@ class CombatContext(ExploreBase):
       src=actor.cell,
       dest=target_cell,
       duration=move_duration,
-      on_end=compose(ctx.update_bubble, on_end)
+      on_end=lambda: (
+        move_command in ctx.command_queue and ctx.command_queue.remove(move_command),
+        ctx.update_bubble(),
+        on_end and on_end(),
+      )
     )
     move_anim.update() # initial update to ensure walk animation loops seamlessly
 
@@ -241,7 +263,8 @@ class CombatContext(ExploreBase):
     ctx.update_bubble()
     actor.cell = target_cell
     actor.facing = normalize_direction(delta)
-    actor.command = True
+    actor.command = move_command
+    print(f"set {type(actor).__name__} cell", actor.cell, target_cell)
 
     if target_elem and target_elem is ctx.ally:
       ctx.move(actor=ctx.ally, delta=invert_direction(delta))
@@ -279,9 +302,11 @@ class CombatContext(ExploreBase):
       moved = ctx.move(actor, delta, run, on_end=on_end)
 
     if not moved:
-      actor.ai_path = None
-      actor.ai_target = None
-      actor.ai_mode = DungeonActor.AI_LOOK
+      actor.ai_path = ctx.stage.pathfind(start=actor.cell, goal=dest)
+      if not actor.ai_path:
+        actor.ai_path = None
+        actor.ai_target = None
+        actor.ai_mode = DungeonActor.AI_LOOK
       on_end and on_end()
 
     return moved
@@ -362,6 +387,9 @@ class CombatContext(ExploreBase):
       else:
         damage = ctx.find_damage(actor, target, modifier)
 
+    attack_command = (actor, (COMMAND_ATTACK, target))
+    ctx.command_queue.append(attack_command)
+
     connect = lambda: (
       target.alert(cell=actor.cell),
       ctx.flinch(
@@ -369,7 +397,10 @@ class CombatContext(ExploreBase):
         damage=damage,
         crit=crit,
         direction=actor.facing,
-        on_end=on_end,
+        on_end=lambda: (
+          attack_command in ctx.command_queue and ctx.command_queue.remove(attack_command),
+          on_end and on_end()
+        ),
       )
     )
 
@@ -384,13 +415,10 @@ class CombatContext(ExploreBase):
           duration=attack_delay,
           on_start=lambda: actor.attack()
         )] if attack_delay else [])],
-        [attack_anim := AttackAnim(
+        [AttackAnim(
           target=actor,
           src=actor.cell,
           dest=vector.add(actor.cell, actor.facing),
-          on_start=lambda: (
-            actor.is_dead() or target.is_dead()
-          ) and attack_anim.end(),
           on_connect=(connect if target else None)
         )]
       ])
@@ -433,14 +461,14 @@ class CombatContext(ExploreBase):
     return ctx.roll(
       dx=attacker.stats.dx + attacker.stats.lu / 2,
       ag=defender.stats.ag + defender.stats.lu / 2,
-      chance=0.8
+      chance=HIT_CHANCE,
     )
 
   def roll_crit(ctx, attacker, defender):
     return ctx.roll(
       dx=attacker.stats.dx + attacker.stats.lu / 2,
       ag=defender.stats.ag + defender.stats.lu / 2,
-      chance=1 / 32
+      chance=CRIT_CHANCE,
     )
 
   def flinch(ctx, target, damage, direction=None, crit=False, animate=True, on_end=None):
@@ -470,9 +498,9 @@ class CombatContext(ExploreBase):
     )
 
     cleanup = lambda: (
-      (target.is_dead() or issubclass(ctx.stage.get_tile_at(target.cell), tileset.Pit))
-        and ctx.kill(target, on_end=on_end)
-        or on_end and on_end()
+      ctx.kill(target, on_end=on_end)
+        if target.is_dead() or issubclass(ctx.stage.get_tile_at(target.cell), tileset.Pit)
+        else on_end and on_end()
     )
 
     if animate:
@@ -571,7 +599,17 @@ class CombatContext(ExploreBase):
     ))
 
   def use_skill(ctx, actor, skill, dest=None, on_end=None):
-    should_display_skill = skill.effect(actor, dest, ctx, on_end=on_end)
+    skill_command = (actor, (COMMAND_SKILL, skill, dest))
+    ctx.command_queue.append(skill_command)
+    should_display_skill = skill.effect(
+      actor,
+      dest,
+      ctx,
+      on_end=lambda: (
+        skill_command in ctx.command_queue and ctx.command_queue.remove(skill_command),
+        on_end and on_end(),
+      )
+    )
     should_display_skill and ctx.display_skill(skill, user=actor)
 
   def display_skill(ctx, skill, user):
@@ -640,7 +678,36 @@ class CombatContext(ExploreBase):
     ctx.inflict_ailment(actor, "freeze", color=CYAN, on_end=on_end)
     actor.reset_charge()
 
+  def update(ctx):
+    super().update()
+    ctx.update_command()
+
+  def update_command(ctx):
+    ctx.command_queue and print("active commands", [type(c[0]).__name__ for c in ctx.command_queue])
+
+    if not ctx.command_queue:
+      ctx.command_discarded = False
+
+    if ctx.command_queue and ctx.command_discarded:
+      return
+
+    if not ctx.command_pending and ctx.command_gen:
+      try:
+        ctx.command_pending = next(ctx.command_gen)
+        print("gen", ctx.command_pending)
+        if not ctx.command_pending:
+          ctx.command_discarded = True
+      except StopIteration:
+        ctx.command_gen = None
+
+    if ctx.command_pending:
+      actor, command = ctx.command_pending
+      chain = actor.turns > 1
+      ctx.command_pending = None
+      ctx.step_command(actor, command, chain)
+
   def step(ctx):
+    print("turn", ctx.turns)
     actors = [e for e in ctx.stage.elems if
       isinstance(e, DungeonActor)
       and e is not ctx.hero
@@ -649,8 +716,7 @@ class CombatContext(ExploreBase):
       and e.cell in ctx.hero.visible_cells
     ]
     ctx.step_distribute(actors)
-    commands = ctx.step_populate(actors)
-    ctx.step_execute(commands)
+    ctx.step_execute(actors)
 
   def step_distribute(ctx, actors):
     for actor in actors:
@@ -660,27 +726,66 @@ class CombatContext(ExploreBase):
         spd = actor.stats.ag / ctx.hero.stats.ag
         actor.turns += spd
 
-  def step_populate(ctx, actors):
-    commands = {}
+  def step_execute(ctx, actors):
+    print("execute step")
+    ctx.command_gen = ctx.step_generate(actors)
 
+  def step_generate(ctx, actors):
     if ctx.ally and not ctx.ally.command:
-      command = ctx.step_ally(ctx.ally)
+      command = None
+
+      while not command:
+        if ctx.command_queue and next((c for a, c in ctx.command_queue if a is ctx.ally), None):
+          print("movement already in progress")
+          yield None
+          continue
+
+        command = ctx.step_ally(ctx.ally)
+        print("gen ally", command)
+
+        if not command:
+          break
+
+        if command[0] in (COMMAND_ATTACK, COMMAND_SKILL) and ctx.command_queue:
+          command and print("discard command", command)
+          command = None
+          yield None
+
       if command:
-        commands[ctx.ally] = [command]
+        yield ctx.ally, command
+
+      print(f"end {type(ctx.ally).__name__} turn")
 
     for actor in actors:
-      # populate command group
+      if not actor.hp:
+        continue
+
       while actor.turns >= 1:
         actor.turns -= 1
-        command = actor.step_charge() or ctx.step_enemy(actor)
-        if type(command) is tuple:
-          commands.setdefault(actor, [])
-          commands[actor].append(command)
 
-      if actor not in commands:
-        ctx.end_turn(actor)
+        if actor.charge_turns == 1 and ctx.command_queue:
+          print("delay discharge")
+          yield None
 
-    return commands
+        command = actor.step_charge()
+
+        while not command:
+          command = ctx.step_enemy(actor)
+          print("gen enemy", command)
+
+          if not command:
+            break
+
+          if command[0] in (COMMAND_ATTACK, COMMAND_SKILL) and ctx.command_queue:
+            command and print("discard command", command)
+            command = None
+            yield None
+
+        if command:
+          yield actor, command
+
+    ctx.end_step()
+    print("end step")
 
   def step_ally(ctx, actor):
     if not ctx.hero or not actor.can_step():
@@ -690,82 +795,73 @@ class CombatContext(ExploreBase):
       if isinstance(e, DungeonActor)
       and not e.allied(ctx.hero)
       and e.cell in ctx.hero.visible_cells
+      and e.hp
     ]
     adjacent_enemies = [e for e in enemies if is_adjacent(e.cell, ctx.ally.cell)]
     if adjacent_enemies:
-      return ("attack", sorted(adjacent_enemies, key=lambda e: e.hp)[0])
+      enemy = sorted(adjacent_enemies, key=lambda e: e.hp)[0]
+      return (COMMAND_ATTACK, enemy)
     elif enemies:
-      return ("move_to", sorted(enemies, key=lambda e: manhattan(e.cell, ctx.ally.cell) + e.hp / 10)[0].cell)
+      enemy = sorted(enemies, key=lambda e: manhattan(e.cell, ctx.ally.cell) + e.hp / 10)[0]
+      return (COMMAND_MOVE_TO, enemy.cell)
 
   def step_enemy(ctx, actor):
     if not actor.can_step():
       return None
     return actor.step(ctx)
 
-  def step_execute(ctx, commands):
-    COMMAND_PRIORITY = ["move", "move_to", "use_skill", "attack", "wait"]
-    ctx.end_turn(ctx.hero)
-    if commands:
-      commands = sorted(commands.items(), key=lambda item: COMMAND_PRIORITY.index(item[1][0][0]))
-      ctx.step_command(commands, on_end=ctx.end_step)
-    else:
-      ctx.end_step()
+  def step_command(ctx, actor, command, chain=False, on_end=None):
+    on_end = on_end or (lambda: None)
 
-  def step_command(ctx, commands, on_end=None):
-    if not commands:
-      return on_end and on_end()
-
-    actor, subcommands = commands[0]
-    next = lambda: (
-      commands and not (actor and subcommands) and (
-        commands.pop(0),
-        ctx.end_turn(actor),
-      ),
-      ctx.step_command(commands, on_end)
-    )
-
-    command_name, *command_args = subcommands.pop(0)
+    command_name, *command_args = command
     if actor.is_immobile():
-      return next()
+      return on_end()
 
-    if command_name == "move":
-      if subcommands:
-        return ctx.move(actor, *command_args, on_end=next)
+    if command_name == COMMAND_MOVE:
+      if chain:
+        return ctx.move(actor, *command_args, on_end=on_end)
       else:
         ctx.move(actor, *command_args)
-        return next()
+        return on_end()
 
-    if command_name == "move_to":
-      if subcommands:
-        return ctx.move_to(actor, *command_args, on_end=next)
+    if command_name == COMMAND_MOVE_TO:
+      if chain:
+        return ctx.move_to(actor, *command_args, on_end=on_end)
       else:
         ctx.move_to(actor, *command_args)
-        return next()
+        return on_end()
 
-    if command_name == "attack":
+    if command_name == COMMAND_ATTACK:
       target = command_args and command_args[0]
       if target:
-        return ctx.attack(actor, *command_args, on_end=next)
+        return ctx.attack(actor, *command_args, on_end=on_end)
       else:
-        return next()
+        return on_end()
 
-    if command_name == "use_skill":
-      return ctx.use_skill(actor, *command_args, on_end=next)
+    if command_name == COMMAND_SKILL:
+      return ctx.use_skill(actor, *command_args, on_end=on_end)
 
-    if command_name == "wait":
-      return next()
+    if command_name == COMMAND_WAIT:
+      return on_end()
 
   def end_turn(ctx, actor):
+    if ctx.exiting:
+      return
+
     actor.step_status(ctx)
     effect_elem = next((e for e in ctx.stage.get_elems_at(actor.cell) if e.active and not e.solid), None)
     effect_elem and effect_elem.effect(ctx, actor)
 
   def end_step(ctx):
+    ctx.turns += 1
+
     actors = [e for e in ctx.stage.elems if isinstance(e, DungeonActor)]
     for actor in actors:
       actor.command = None
+      ctx.end_turn(actor)
 
     non_actors = [e for e in ctx.stage.elems if e not in actors]
     for elem in non_actors:
       elem.step(ctx)
+
     ctx.stage.elems = [e for e in ctx.stage.elems if not e.done]

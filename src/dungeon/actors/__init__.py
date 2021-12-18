@@ -15,6 +15,7 @@ from colors.palette import BLACK, WHITE, GRAY, RED, GREEN, BLUE, CYAN, VIOLET, G
 import assets
 from lib.filters import replace_color, darken_image
 from anims.step import StepAnim
+from anims.path import PathAnim
 from anims.attack import AttackAnim
 from anims.awaken import AwakenAnim
 from anims.flinch import FlinchAnim
@@ -484,7 +485,7 @@ class DungeonActor(DungeonElement):
     is_asleep = actor.ailment == "sleep"
     is_flinching = next((a for a in anim_group if isinstance(a, FlinchAnim)), None)
 
-    move_anim = next((a for a in anim_group if isinstance(a, StepAnim)), None)
+    move_anim = next((a for a in anim_group if isinstance(a, (StepAnim, PathAnim))), None)
     attack_anim = next((a for a in anim_group if isinstance(a, AttackAnim)), None)
 
     for anim in anim_group:
@@ -507,7 +508,7 @@ class DungeonActor(DungeonElement):
         actor_width *= anim_xscale
         actor_height *= anim_yscale
       if (isinstance(anim, FrameAnim)
-      and not (is_flinching or move_anim and move_anim.dest)
+      and not (is_flinching or move_anim and (isinstance(move_anim, PathAnim) or move_anim.dest))
       and not (attack_anim and len(actor.core.anims) == 1)
       ):
         sprite.image = anim.frame()

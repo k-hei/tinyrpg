@@ -8,7 +8,7 @@ class AttackAnim(Anim):
     src_x, src_y = src
     dest_x, dest_y = dest
     disp_x, disp_y = (dest_x - src_x, dest_y - src_y)
-    dist = sqrt(disp_x * disp_x + disp_y * disp_y)
+    dist = sqrt(disp_x * disp_x + disp_y * disp_y) or 1
     normal = (disp_x / dist, disp_y / dist)
     anim.cell = src
     anim.src = src

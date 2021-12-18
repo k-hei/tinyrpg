@@ -1,6 +1,7 @@
 from pygame import Rect
 from config import TILE_SIZE
 from tiles import Tile
+from dungeon.actors import DungeonActor
 
 # TODO: relocate pathfinding logic
 from lib.cell import manhattan, neighborhood
@@ -154,6 +155,6 @@ class Stage:
     room = room or next((r for r in stage.rooms if cell in r.cells), None)
     return [c for c in room.cells if (
       (Tile.is_walkable(stage.get_tile_at(c))
-        and not next((e for e in stage.get_elems_at(c) if e.static and e.solid), None)
+        and not next((e for e in stage.get_elems_at(c) if e.solid and not isinstance(e, DungeonActor)), None)
       ) if ignore_actors else stage.is_cell_empty(c)
     )] if room else []
