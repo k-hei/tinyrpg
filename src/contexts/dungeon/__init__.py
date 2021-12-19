@@ -56,11 +56,7 @@ class DungeonContext(ExploreBase):
     ctx.comps = ComponentStore(
       hud=Hud(party=ctx.store.party, hp=True),
       minilog=Minilog(pos=(8, WINDOW_HEIGHT - 8 - Minilog.sprite.get_height() / 2)),
-      minimap=Minimap(
-        stage=ctx.stage,
-        hero=ctx.hero,
-        visited_cells=ctx.visited_cells
-      ),
+      minimap=Minimap(parent=ctx),
       skill_banner=SkillBanner(),
       sp_meter=SpMeter(store=ctx.store),
     )

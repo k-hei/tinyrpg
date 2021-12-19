@@ -190,10 +190,8 @@ class Minimap:
     pixels.close()
     return surface
 
-  def __init__(minimap, stage, hero, visited_cells):
-    minimap.stage = stage
-    minimap.hero = hero
-    minimap.visited_cells = visited_cells
+  def __init__(minimap, parent=None):
+    minimap.parent = parent
     minimap.focus = None
     minimap.time = 0
     minimap.active = False
@@ -229,17 +227,19 @@ class Minimap:
     # - if we wanted to coalesce these into an isolated store,
     #     we'd to name it so it's easier to pass down
     # - could try passing in args on init by reference
+    # - hero and stage will change
 
     # updates whenever any of the following occur:
     # - data changes
     # - visited cells change
     # - camera position (hero cell) changes
 
-    floor = minimap.stage
-    hero = minimap.hero
+    game = minimap.parent
+    floor = game.stage
+    hero = game.hero
     if not hero or not hero.cell:
       return minimap.sprite
-    visited_cells = minimap.visited_cells
+    visited_cells = game.visited_cells
     visible_cells = hero.visible_cells
 
     bounds = find_bounds(visited_cells) if t else Rect((0, 0), floor.size)
