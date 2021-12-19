@@ -3,7 +3,7 @@ import lib.vector as vector
 import lib.input as input
 from lib.direction import invert as invert_direction, normal as normalize_direction
 from lib.compose import compose
-from lib.cell import neighborhood, manhattan, is_adjacent
+from lib.cell import neighborhood, manhattan, is_adjacent, upscale
 
 from contexts.explore.base import ExploreBase
 from contexts.skill import SkillContext
@@ -602,16 +602,28 @@ class CombatContext(ExploreBase):
 
     skill_command = (actor, (COMMAND_SKILL, skill, dest))
     ctx.command_queue.append(skill_command)
-    should_display_skill = skill.effect(
+    cache_camera_target_count = len(ctx.camera.target_groups)
+    skill.effect(
+      ctx,
       actor,
       dest,
-      ctx,
+      on_start=lambda *target: (
+        target and ctx.camera.focus(
+          target=(
+            upscale(target[0], TILE_SIZE)
+              if type(target[0]) is tuple
+              else target[0]
+          ),
+          force=True
+        ),
+        ctx.display_skill(skill, user=actor),
+      ),
       on_end=lambda: (
         skill_command in ctx.command_queue and ctx.command_queue.remove(skill_command),
+        len(ctx.camera.target_groups) > cache_camera_target_count and ctx.camera.blur(),
         on_end and on_end(),
       )
     )
-    should_display_skill and ctx.display_skill(skill, user=actor)
 
   def display_skill(ctx, skill, user):
     if not skill.name:

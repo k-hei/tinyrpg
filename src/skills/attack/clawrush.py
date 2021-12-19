@@ -24,7 +24,7 @@ class ClawRush(AttackSkill):
   )
   charge_turns = 1
 
-  def effect(user, dest, game, on_end=None):
+  def effect(game, user, dest=None, on_start=None, on_end=None):
     origin_cell = user.cell
     dest_cell = add_vector(origin_cell, user.facing)
     if game.stage.is_cell_empty(dest_cell):
@@ -41,7 +41,10 @@ class ClawRush(AttackSkill):
         target=user,
         src=dest_cell,
         dest=target_cell,
-        on_start=lambda: game.vfx.append(ClawVfx(cell=target_cell)),
+        on_start=lambda: (
+          on_start and on_start(),
+          game.vfx.append(ClawVfx(cell=target_cell))
+        ),
         on_connect=(lambda: game.attack(
           actor=user,
           target=target_actor,

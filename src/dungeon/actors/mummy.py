@@ -30,7 +30,7 @@ class Mummy(DungeonActor):
 
   class LinenWhip(AttackSkill):
     name = "LinenWhip"
-    def effect(user, dest, game, on_end=None):
+    def effect(game, user, dest, on_start=None, on_end=None):
       user_x, user_y = user.cell
       dest_x, dest_y = dest
       dist_x = dest_x - user_x
@@ -51,6 +51,7 @@ class Mummy(DungeonActor):
       game.anims.append([PauseAnim(
         duration=5,
         on_start=lambda: (
+          on_start and on_start(user.cell),
           user.core.anims.append(Mummy.ChargeAnim()),
           game.vfx.append(LinenVfx(
             src=user.cell,
@@ -75,7 +76,7 @@ class Mummy(DungeonActor):
       return True
 
   class Backstep(SupportSkill):
-    def effect(user, dest, game, on_end=None):
+    def effect(game, user, dest, on_start=None, on_end=None):
       dest_cell = add_vector(user.cell, invert_direction(user.facing))
       if game.stage.is_cell_empty(dest_cell):
         game.anims.append([JumpAnim(
@@ -92,7 +93,6 @@ class Mummy(DungeonActor):
         )])
       else:
         on_end and on_end()
-      return False
 
   def __init__(soldier, name="Mummy", *args, **kwargs):
     super().__init__(Core(

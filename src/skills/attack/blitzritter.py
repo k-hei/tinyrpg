@@ -1,13 +1,11 @@
-import random
 from skills.attack import AttackSkill
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from anims.attack import AttackAnim
-from anims.frame import FrameAnim
 from dungeon.actors import DungeonActor
 from cores.knight import Knight as Knight
 from vfx.impact import ImpactVfx
-from config import ATTACK_DURATION, TILE_SIZE, ENABLED_COMBAT_LOG
+from config import ATTACK_DURATION, ENABLED_COMBAT_LOG
 
 class Blitzritter(AttackSkill):
   name = "Blitzritter"
@@ -26,7 +24,7 @@ class Blitzritter(AttackSkill):
     (2, 1)
   )
 
-  def effect(user, dest, game, on_end=None):
+  def effect(game, user, dest, on_start=None, on_end=None):
     camera = game.camera
     floor = game.stage
     hero_x, hero_y = user.cell
@@ -79,6 +77,7 @@ class Blitzritter(AttackSkill):
       target=user,
       src=user.cell,
       dest=near_cell,
+      on_start=lambda: on_start and on_start(),
       on_connect=connect,
       on_end=end_bump
     )])

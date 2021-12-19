@@ -76,7 +76,7 @@ class Eyeball(DungeonActor):
   class Meyetosis(Skill):
     name = "Meyetosis"
     charge_turns = 3
-    def effect(user, dest, game, on_end=None):
+    def effect(game, user, dest, on_start=None, on_end=None):
       neighbors = [c for c in neighborhood(user.cell) if game.stage.is_cell_empty(c)]
       if neighbors:
         user.clones += 1
@@ -93,6 +93,7 @@ class Eyeball(DungeonActor):
           BounceAnim(
             duration=20,
             target=user,
+            on_start=lambda: on_start and on_start(),
             on_squash=lambda: (
               game.stage.spawn_elem_at(neighbor, clone),
               game.anims[0].append(
@@ -111,6 +112,7 @@ class Eyeball(DungeonActor):
         game.anims.append([BounceAnim(
           duration=20,
           target=user,
+          on_start=on_start,
           on_end=on_end
         )])
       return user.cell

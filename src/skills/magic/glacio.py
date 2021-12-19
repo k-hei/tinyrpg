@@ -24,7 +24,7 @@ class Glacio(MagicSkill):
     (1, 0),
   )
 
-  def effect(user, dest, game, on_end=None):
+  def effect(game, user, dest=None, on_start=None, on_end=None):
     floor = game.stage
     hero_x, hero_y = user.cell
     delta_x, delta_y = user.facing
@@ -93,7 +93,7 @@ class Glacio(MagicSkill):
         target=user,
         src=user.cell,
         dest=bump_dest,
-        on_start=lambda: game.display_skill(Glacio, user),
+        on_start=lambda: on_start and on_start(dest),
         on_connect=on_bump,
         on_end=target is None and on_bump_end
       ), pause_anim]

@@ -52,6 +52,7 @@ class Virus(AilmentSkill):
         existing_puff.turns = PoisonPuff.MAX_TURNS
       else:
         game.stage.spawn_elem_at(target_cell, PoisonPuff(origin=cell))
+
     game.anims.extend([
       [PauseAnim(duration=30)],
       [PauseAnim(duration=1, on_end=poison)],
@@ -59,12 +60,18 @@ class Virus(AilmentSkill):
 
     return True
 
-  def effect(user, dest, game, on_end=None):
-    if user.get_hp():
+  def effect(game, user, dest=None, on_start=None, on_end=None):
+    spawn_cloud = lambda: Virus.spawn_cloud(
+      game,
+      cell=user.cell,
+      on_end=on_end
+    )
+
+    if user.hp:
       game.anims.append([BounceAnim(
         target=user,
-        on_squash=lambda: Virus.spawn_cloud(game, cell=user.cell, on_end=on_end)
+        on_start=lambda: on_start and on_start(),
+        on_squash=spawn_cloud
       )])
     else:
-      Virus.spawn_cloud(game, cell=user.cell, on_end=on_end)
-    return user.cell
+      spawn_cloud()

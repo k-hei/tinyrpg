@@ -22,11 +22,12 @@ class Ghost(DungeonActor):
   class ColdWhip(Skill):
     name = "ColdWhip"
     charge_turns = 2
-    def effect(user, dest, game, on_end=None):
+    def effect(game, user, dest, on_start=None, on_end=None):
       target_actor = next((e for e in game.stage.get_elems_at(dest) if isinstance(e, DungeonActor)), None)
       user.core.anims = [GhostCore.WhipAnim(on_end=on_end if target_actor is None else None)]
       game.anims.append([PauseAnim(
         duration=14,
+        on_start=lambda: on_start and on_start(),
         on_end=lambda: game.vfx.append(
           GhostArmVfx(
             cell=dest,

@@ -38,7 +38,7 @@ class Congelatio(MagicSkill):
     (1, 2),
   )
 
-  def effect(user, dest, game, on_end=None):
+  def effect(game, user, dest, on_start=None, on_end=None):
     floor = game.stage
     hero_x, hero_y = user.cell
     delta_x, delta_y = user.facing
@@ -107,7 +107,7 @@ class Congelatio(MagicSkill):
         dest=bump_dest,
         on_start=lambda: (
           game.darken(),
-          game.display_skill(Congelatio, user),
+          on_start and on_start(dest),
         ),
         on_connect=on_connect
       ), pause_anim]
