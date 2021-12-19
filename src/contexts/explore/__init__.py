@@ -31,30 +31,38 @@ class ExploreContext(ExploreBase):
     ctx.close()
 
   def open(ctx, child, on_close=None):
-    # TODO: declarative model for context-component relations
     on_close = compose(on_close, ctx.parent.update_bubble)
-    if type(child) is InventoryContext:
-      if not ctx.comps.hud.anims:
-        open = super().open
-        ctx.comps.sp_meter.enter()
-        ctx.comps.hud.enter(on_end=lambda: (
-          open(child, on_close=lambda: (
-            on_close and on_close(),
-            ctx.comps.sp_meter.exit(),
-            ctx.comps.hud.exit(),
-          ))
-        ))
-    elif type(child) is PauseContext:
-      if not ctx.comps.minimap.anims:
-        open = super().open
-        ctx.comps.minimap.exit(on_end=lambda: (
-          open(child, on_close=lambda: (
-            on_close and on_close(),
-            ctx.comps.minimap.enter(),
-          ))
-        ))
-    else:
+
+    context_comps = {
+      InventoryContext: [ctx.comps.hud, ctx.comps.sp_meter],
+      PauseContext: [ctx.comps.minimap],
+    }
+
+    if type(child) not in context_comps.keys():
       return super().open(child, on_close)
+
+    comps = context_comps[type(child)]
+    open = super().open
+
+    if next((c for c in comps if c.anims), None):
+      return
+
+    for comp in comps:
+      on_end = (lambda: (
+        open(child, on_close=lambda: (
+          on_close and on_close(),
+          [(
+            c.exit()
+              if c.active
+              else c.enter()
+          ) for c in comps]
+        ))
+      )) if comp == comps[-1] else None
+
+      if comp.active:
+        comp.exit(on_end=on_end)
+      else:
+        comp.enter(on_end=on_end)
 
   def handle_press(ctx, button):
     if ctx.child:

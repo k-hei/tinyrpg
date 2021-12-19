@@ -32,13 +32,13 @@ class SpMeter(Component):
     meter.draws = 0
     meter.anims = []
 
-  def enter(meter):
+  def enter(meter, on_end=None):
     meter.active = True
-    meter.anims.append(TweenAnim(duration=ENTER_DURATION))
+    meter.anims.append(TweenAnim(duration=ENTER_DURATION, on_end=on_end))
 
-  def exit(meter):
+  def exit(meter, on_end=None):
     meter.active = False
-    meter.anims.append(TweenAnim(duration=EXIT_DURATION))
+    meter.anims.append(TweenAnim(duration=EXIT_DURATION, on_end=on_end))
 
   def render(meter):
     assets = use_assets()
