@@ -10,6 +10,7 @@ import debug
 
 from contexts.explore.base import ExploreBase
 from contexts.inventory import InventoryContext
+from contexts.pause import PauseContext
 from contexts.minimap import MinimapContext
 from dungeon.actors import DungeonActor
 from dungeon.props.itemdrop import ItemDrop
@@ -30,6 +31,7 @@ class ExploreContext(ExploreBase):
     ctx.close()
 
   def open(ctx, child, on_close=None):
+    # TODO: declarative model for context-component relations
     on_close = compose(on_close, ctx.parent.update_bubble)
     if type(child) is InventoryContext:
       if not ctx.comps.hud.anims:
@@ -40,6 +42,15 @@ class ExploreContext(ExploreBase):
             on_close and on_close(),
             ctx.comps.sp_meter.exit(),
             ctx.comps.hud.exit(),
+          ))
+        ))
+    elif type(child) is PauseContext:
+      if not ctx.comps.minimap.anims:
+        open = super().open
+        ctx.comps.minimap.exit(on_end=lambda: (
+          open(child, on_close=lambda: (
+            on_close and on_close(),
+            ctx.comps.minimap.enter(),
           ))
         ))
     else:

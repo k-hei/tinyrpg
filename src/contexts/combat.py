@@ -9,6 +9,7 @@ from contexts.explore.base import ExploreBase
 from contexts.skill import SkillContext
 from contexts.gameover import GameOverContext
 from contexts.ally import AllyContext
+from contexts.pause import PauseContext
 from comps.damage import DamageValue
 from dungeon.actors import DungeonActor
 from dungeon.actors.knight import Knight
@@ -177,6 +178,11 @@ class CombatContext(ExploreBase):
       ctx.ally and ctx.ally.core.anims.clear(),
       ctx.close()
     ))
+
+  def open(ctx, child, on_close=None):
+    if type(child) is PauseContext:
+      return False
+    return super().open(child, on_close)
 
   def handle_press(ctx, button):
     if ctx.child:

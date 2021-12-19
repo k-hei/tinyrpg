@@ -46,17 +46,16 @@ COLOR_DOOR = 0x009966
 COLOR_DOOR_DARK = 0x006633
 
 class EnterAnim(TweenAnim):
-  def __init__(anim):
-    super().__init__(duration=ENTER_DURATION)
+  duration = ENTER_DURATION
+
 class ExitAnim(TweenAnim):
-  def __init__(anim):
-    super().__init__(duration=EXIT_DURATION)
+  duration = EXIT_DURATION
+
 class ExpandAnim(TweenAnim):
-  def __init__(anim):
-    super().__init__(duration=EXPAND_DURATION)
+  duration = EXPAND_DURATION
+
 class ShrinkAnim(TweenAnim):
-  def __init__(anim):
-    super().__init__(duration=SHRINK_DURATION)
+  duration = SHRINK_DURATION
 
 class Minimap:
   SIZE_INIT = (16, 16)
@@ -199,13 +198,13 @@ class Minimap:
     minimap.sprite = None
     minimap.anims = []
 
-  def enter(minimap):
+  def enter(minimap, on_end=None):
     minimap.active = True
-    minimap.anims.append(EnterAnim())
+    minimap.anims.append(EnterAnim(on_end=on_end))
 
-  def exit(minimap):
+  def exit(minimap, on_end=None):
     minimap.active = False
-    minimap.anims.append(ExitAnim())
+    minimap.anims.append(ExitAnim(on_end=on_end))
 
   def expand(minimap):
     minimap.expanded = 1
