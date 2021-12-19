@@ -97,7 +97,7 @@ class SkillContext(Context):
     if len(ctx.anims):
       return
 
-    if input.get_state(button) > 1:
+    if not button or input.get_state(button) > 1:
       return
 
     delta = input.resolve_delta(button, fixed_axis=True)

@@ -8,6 +8,7 @@ from lib.cell import neighborhood, manhattan, is_adjacent, upscale
 from contexts.explore.base import ExploreBase
 from contexts.skill import SkillContext
 from contexts.gameover import GameOverContext
+from contexts.ally import AllyContext
 from comps.damage import DamageValue
 from dungeon.actors import DungeonActor
 from dungeon.actors.knight import Knight
@@ -200,7 +201,15 @@ class CombatContext(ExploreBase):
     if control == input.CONTROL_MANAGE and tapping:
       return ctx.handle_skill()
 
-    if control == input.CONTROL_ALLY and tapping:
+    if control == input.CONTROL_ALLY and input.get_state(button) > 15:
+      return ctx.handle_charmenu()
+
+  def handle_release(ctx, button):
+    if ctx.child:
+      return ctx.child.handle_release(button)
+
+    control = input.resolve_control(button)
+    if control == input.CONTROL_ALLY and input.get_state(button) <= 15:
       return ctx.handle_charswap()
 
   def handle_move(ctx, delta):
@@ -558,8 +567,8 @@ class CombatContext(ExploreBase):
         else:
           ctx.handle_gameover()
       ctx.stage.remove_elem(target)
-      on_end and on_end()
       will_exit and ctx.exit(ally_rejoin=True)
+      on_end and on_end()
 
     not ctx.anims and ctx.anims.append([])
     ctx.anims[0].append(FlickerAnim(
@@ -576,6 +585,11 @@ class CombatContext(ExploreBase):
     ctx.camera.blur()
     ctx.camera.focus(target=[ctx.room, ctx.hero], force=True)
     return True
+
+  def handle_charmenu(ctx):
+    if not ctx.ally:
+      return False
+    ctx.open(AllyContext())
 
   def handle_gameover(ctx):
     if type(ctx.child) is GameOverContext:
@@ -740,7 +754,7 @@ class CombatContext(ExploreBase):
 
   def step_generate(ctx, actors):
     if ctx.ally and not ctx.ally.command:
-      command = None
+      command = ctx.ally.step_charge()
 
       while not command:
         if ctx.command_queue and next((c for a, c in ctx.command_queue if a is ctx.ally), None):
@@ -800,7 +814,7 @@ class CombatContext(ExploreBase):
     if adjacent_enemies:
       enemy = sorted(adjacent_enemies, key=lambda e: e.hp)[0]
       return (COMMAND_ATTACK, enemy)
-    elif enemies:
+    elif enemies and actor.behavior == "chase":
       enemy = sorted(enemies, key=lambda e: manhattan(e.cell, ctx.ally.cell) + e.hp / 10)[0]
       return (COMMAND_MOVE_TO, enemy.cell)
 

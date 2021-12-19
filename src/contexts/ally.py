@@ -3,6 +3,7 @@ import pygame
 from pygame import Rect
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
+import lib.input as input
 import lib.vector as vector
 from lib.compose import compose
 from lib.sprite import Sprite
@@ -17,7 +18,7 @@ from anims.frame import FrameAnim
 from lib.filters import recolor, replace_color, outline, shadow
 from text import render as render_text
 from colors.palette import BLACK, BLUE, GOLD
-from config import TILE_SIZE
+from config import TILE_SIZE, WINDOW_SIZE
 
 LABEL_FONT = "normal"
 LABEL_OFFSET = 8
@@ -68,13 +69,13 @@ class AllyContext(Context):
     ctx.ally = None
     ctx.button_presses = set()
     ctx.button_mappings = {
-      "a": (pygame.K_SPACE,),
-      "b": (pygame.K_LSHIFT, pygame.K_RSHIFT),
-      "x": (pygame.K_RETURN,),
-      "y": (pygame.K_q,),
+      "a": [input.BUTTON_A],
+      "b": [input.BUTTON_B],
+      "x": [input.BUTTON_X],
+      "y": [input.BUTTON_Y],
     }
     ctx.skill_badge = None
-    ctx.cached_labels = None
+    ctx.cached_labels = []
     ctx.cached_tag = None
 
   def enter(ctx):
@@ -83,9 +84,8 @@ class AllyContext(Context):
     ally = ctx.ally = game.ally
     game.darken()
     game.camera.focus(
-      cell=ally.cell,
+      target=ally,
       force=True,
-      speed=8
     )
     ctx.anims = [
       CursorEnterAnim(),
@@ -102,7 +102,7 @@ class AllyContext(Context):
     game = ctx.parent
     if game and blur:
       game.camera.blur()
-    game.darken_end()
+    game.undarken()
     ctx.anims = [
       CursorExitAnim(),
       ButtonsExitAnim(),
@@ -118,13 +118,14 @@ class AllyContext(Context):
     if ctx.animating:
       return False
 
-    if keyboard.get_state(button) + gamepad.get_state(button) > 1:
+    if input.get_state(button) > 1:
       return False
 
-    if button in keyboard.ARROW_DELTAS:
-      delta = keyboard.ARROW_DELTAS[button]
+    delta = input.resolve_delta(button, fixed_axis=True)
+    if delta != (0, 0):
       return ctx.handle_face(delta)
 
+    button = input.resolve_button(button)
     match = next((k for k, v in ctx.button_mappings.items() if button in v), None)
     if match:
       ctx.button_presses.add(match)
@@ -138,9 +139,10 @@ class AllyContext(Context):
     if button in (pygame.K_TAB, gamepad.controls.ally):
       ctx.exit(blur=True)
 
-    if next((a for a in ctx.anims if a.blocking), None):
+    if ctx.animating:
       return False
 
+    button = input.resolve_button(button)
     match = next((k for k, v in ctx.button_mappings.items() if button in v), None)
     if match and match in ctx.button_presses:
       ctx.button_presses.remove(match)
@@ -166,10 +168,10 @@ class AllyContext(Context):
       game.open(SkillContext(
         actor=ally,
         skills=ally.get_active_skills(),
-        selected_skill=game.parent.get_skill(ally.core),
+        selected_skill=game.store.get_selected_skill(ally.core),
         on_close=lambda skill, dest: (
           skill and ally.charge(skill, dest),
-          game.parent.set_skill(ally.core, skill),
+          game.store.set_selected_skill(ally.core, skill),
           game.camera.blur(),
         )
       ))
@@ -191,7 +193,7 @@ class AllyContext(Context):
           "Change",
           "Move",
           "Skill",
-          "AI ({})".format("Follow" if ally.behavior == "chase" else "Stay")
+          "Tactics: {}".format("Rush" if ally.behavior == "chase" else "Stay")
         ]
     ]
 
@@ -200,10 +202,13 @@ class AllyContext(Context):
     ctx.skill_badge and ctx.skill_badge.update()
 
   def view(ctx):
-    sprites = (
-      ctx.view_cursor()
-      + ctx.view_buttons()
-      + ctx.view_skill()
+    sprites = Sprite.move_all(
+      sprites=(
+        ctx.view_cursor()
+        + ctx.view_buttons()
+        + ctx.view_skill()
+      ),
+      offset=vector.scale(WINDOW_SIZE, 0.5)
     )
     for sprite in sprites:
       if not sprite.layer:

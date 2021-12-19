@@ -19,6 +19,7 @@ from anims.path import PathAnim
 from anims.attack import AttackAnim
 from anims.awaken import AwakenAnim
 from anims.flinch import FlinchAnim
+from anims.shake import ShakeAnim
 from anims.bounce import BounceAnim
 from anims.frame import FrameAnim
 from anims.drop import DropAnim
@@ -484,6 +485,7 @@ class DungeonActor(DungeonElement):
 
     is_asleep = actor.ailment == "sleep"
     is_flinching = next((a for a in anim_group if isinstance(a, FlinchAnim)), None)
+    is_shaking = next((a for a in anim_group if isinstance(a, ShakeAnim)), None)
 
     move_anim = next((a for a in anim_group if isinstance(a, (StepAnim, PathAnim))), None)
     attack_anim = next((a for a in anim_group if isinstance(a, AttackAnim)), None)
@@ -508,7 +510,7 @@ class DungeonActor(DungeonElement):
         actor_width *= anim_xscale
         actor_height *= anim_yscale
       if (isinstance(anim, FrameAnim)
-      and not (is_flinching or move_anim and (isinstance(move_anim, PathAnim) or move_anim.dest))
+      and not (is_flinching or is_shaking or move_anim and (isinstance(move_anim, PathAnim) or move_anim.dest))
       and not (attack_anim and len(actor.core.anims) == 1)
       ):
         sprite.image = anim.frame()
