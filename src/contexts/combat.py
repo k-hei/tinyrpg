@@ -29,7 +29,7 @@ from anims.flicker import FlickerAnim
 from vfx.flash import FlashVfx
 from colors.palette import RED, GREEN, BLUE, GOLD, PURPLE, CYAN
 from config import (
-  MOVE_DURATION, FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION, SIDESTEP_DURATION, SIDESTEP_AMPLITUDE,
+  MOVE_DURATION, FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION, PUSH_DURATION, SIDESTEP_DURATION, SIDESTEP_AMPLITUDE,
   HIT_CHANCE, CRIT_CHANCE, CRIT_MODIFIER,
   TILE_SIZE,
 )
@@ -56,7 +56,7 @@ class CombatContext(ExploreBase):
     ctx.command_queue = []
     ctx.command_pending = None
     ctx.command_gen = None
-    ctx.busy = False
+    ctx.buttons_rejected = {}
 
   def enter(ctx):
     if not ctx.hero:
@@ -191,9 +191,14 @@ class CombatContext(ExploreBase):
     if ctx.anims or ctx.exiting:
       return
 
-    delta = input.resolve_delta(button, fixed_axis=True)
+    delta = input.resolve_delta(button, fixed_axis=True) if button else (0, 0)
     if delta != (0, 0):
-      return ctx.handle_move(delta)
+      moved = ctx.handle_move(delta)
+      if not moved and button not in ctx.buttons_rejected:
+        ctx.buttons_rejected[button] = 0
+      elif not moved and ctx.buttons_rejected[button] >= 30:
+        return ctx.handle_push()
+      return moved
 
     tapping = input.get_state(button) == 1
     control = input.resolve_control(button)
@@ -211,6 +216,9 @@ class CombatContext(ExploreBase):
       return ctx.handle_charmenu()
 
   def handle_release(ctx, button):
+    if button in ctx.buttons_rejected:
+      del ctx.buttons_rejected[button]
+
     if ctx.child:
       return ctx.child.handle_release(button)
 
@@ -223,6 +231,7 @@ class CombatContext(ExploreBase):
     target_tile = ctx.stage.get_tile_at(target_cell)
 
     def on_move():
+      ctx.update_bubble()
       target_elem = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if not isinstance(e, DungeonActor)), None)
       target_elem and target_elem.effect(ctx, ctx.hero)
 
@@ -234,7 +243,7 @@ class CombatContext(ExploreBase):
     moved and ctx.step()
     return moved
 
-  def move(ctx, actor, delta, jump=False, on_end=None):
+  def move(ctx, actor, delta, duration=0, jump=False, on_end=None):
     target_cell = vector.add(actor.cell, delta)
     target_tile = ctx.stage.get_tile_at(target_cell)
     if not Tile.is_walkable(target_tile):
@@ -251,7 +260,7 @@ class CombatContext(ExploreBase):
     move_command = (actor, (COMMAND_MOVE, delta))
     ctx.command_queue.append(move_command)
 
-    move_duration = MOVE_DURATION
+    move_duration = duration or MOVE_DURATION
     move_duration = move_duration * 1.5 if jump else move_duration
     move_kind = JumpAnim if jump else StepAnim
     move_anim = move_kind(
@@ -261,7 +270,6 @@ class CombatContext(ExploreBase):
       duration=move_duration,
       on_end=lambda: (
         move_command in ctx.command_queue and ctx.command_queue.remove(move_command),
-        ctx.update_bubble(),
         on_end and on_end(),
       )
     )
@@ -363,6 +371,48 @@ class CombatContext(ExploreBase):
     delta = vector.scale(actor.facing, 2)
     moved = ctx.move(actor, delta, jump=True, on_end=on_end)
     return moved
+
+  def handle_push(ctx):
+    target_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
+    target_elem = next((e for e in ctx.stage.get_elems_at(target_cell) if e.solid and not e.static), None)
+    if not target_elem:
+      return False
+
+    return ctx.push(
+      actor=ctx.hero,
+      target=target_elem,
+      on_end=lambda: (
+        ctx.update_bubble(),
+        ctx.step(),
+      )
+    )
+
+  def push(ctx, actor, target, on_end=None):
+    src_cell = target.cell
+    dest_cell = vector.add(src_cell, actor.facing)
+    dest_tile = ctx.stage.get_tile_at(dest_cell)
+    dest_elem = next((e for e in ctx.stage.get_elems_at(dest_cell) if e.solid), None)
+    if (target.static
+    or dest_tile is None
+    or dest_tile.solid
+    or dest_tile.pit
+    or dest_elem):
+      return False
+
+    target.cell = dest_cell
+    ctx.move(actor, delta=actor.facing, duration=PUSH_DURATION, on_end=on_end)
+    not ctx.anims and ctx.anims.append([])
+    ctx.anims[-1].extend([
+      StepAnim(
+        target=target,
+        src=src_cell,
+        dest=dest_cell,
+        duration=PUSH_DURATION,
+      ),
+      PauseAnim(duration=15)
+    ])
+    target.on_push(ctx)
+    return True
 
   def handle_action(ctx):
     facing_actor = ctx.facing_actor
@@ -714,6 +764,7 @@ class CombatContext(ExploreBase):
   def update(ctx):
     super().update()
     ctx.update_command()
+    ctx.update_buttons_rejected()
 
   def update_command(ctx):
     if not ctx.command_queue:
@@ -735,6 +786,10 @@ class CombatContext(ExploreBase):
       chain = actor.turns > 1
       ctx.command_pending = None
       ctx.step_command(actor, command, chain)
+
+  def update_buttons_rejected(ctx):
+    for button in ctx.buttons_rejected:
+      ctx.buttons_rejected[button] += 1
 
   def step(ctx):
     actors = [e for e in ctx.stage.elems if
