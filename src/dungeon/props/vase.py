@@ -1,4 +1,6 @@
+from pygame import Rect
 import assets
+import lib.vector as vector
 from lib.sprite import Sprite
 from dungeon.props import Prop
 from dungeon.props.itemdrop import ItemDrop
@@ -23,6 +25,15 @@ class Vase(Prop):
     vase.contents = contents
     vase.opened = opened
     vase.anims = []
+
+  @property
+  def rect(elem):
+    if elem._rect is None and elem.pos:
+      elem._rect = Rect(
+        vector.add(elem.pos, (-10, -4)),
+        (20, 20)
+      )
+    return elem._rect
 
   def open(vase, game):
     if vase.opened:
