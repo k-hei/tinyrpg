@@ -7,9 +7,10 @@ from anims.offsetmove import OffsetMoveAnim
 
 class ItemDrop(Prop):
   ThrownAnim = OffsetMoveAnim
+  active = True
 
-  def __init__(drop, contents):
-    super().__init__()
+  def __init__(drop, contents, *args, **kwargs):
+    super().__init__(*args, **kwargs)
     drop.item = contents
     drop.obtained = False
 

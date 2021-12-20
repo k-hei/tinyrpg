@@ -726,58 +726,6 @@ class CombatContext(ExploreBase):
     ctx.step()
     return True
 
-  def handle_pickup(ctx):
-    if not ctx.hero:
-      return False
-    return ctx.pickup_item(actor=ctx.hero)
-
-  def pickup_item(ctx, actor, itemdrop=None):
-    if not actor or actor.item:
-      return False
-
-    facing_cell = vector.add(actor.cell, actor.facing)
-    target_elems = ctx.stage.get_elems_at(facing_cell)
-    itemdrop = itemdrop or next((e for e in target_elems if isinstance(e, ItemDrop)), None)
-    if not itemdrop or next((e for e in target_elems if e.solid), None):
-      return False
-
-    ctx.stage.remove_elem(itemdrop)
-    ctx.hero.item = itemdrop.item
-    ctx.anims.append([AttackAnim(
-      target=ctx.hero,
-      src=ctx.hero.cell,
-      dest=facing_cell
-    )])
-    return True
-
-  def handle_place(ctx):
-    if not ctx.hero:
-      return False
-    return ctx.place_item(actor=ctx.hero)
-
-  def place_item(ctx, actor):
-    if not actor or not actor.item:
-      return False
-
-    facing_cell = vector.add(actor.cell, actor.facing)
-    if (Tile.is_solid(ctx.stage.get_tile_at(facing_cell))
-    or next((e for e in ctx.stage.get_elems_at(facing_cell) if
-      isinstance(e, ItemDrop)
-      or not isinstance(e, DungeonActor)
-      and e.solid
-    ), None)):
-      return False
-
-    ctx.stage.spawn_elem_at(facing_cell, ItemDrop(actor.item))
-    actor.item = None
-    not ctx.anims and ctx.anims.append([AttackAnim(
-      target=actor,
-      src=actor.cell,
-      dest=facing_cell,
-      on_end=ctx.step,
-    )])
-    return True
-
   def handle_hallway(ctx):
     not ctx.find_enemies_in_range() and ctx.exit()
 

@@ -202,8 +202,8 @@ class InventoryContext(Context):
     if next((a for a in ctx.anims if a.blocking), None):
       return False
 
-    if super().handle_press(button) != None:
-      return False
+    if ctx.child:
+      return super().handle_press(button)
 
     if button is None or input.get_state(button) > 1:
       return False
@@ -422,8 +422,8 @@ class InventoryContext(Context):
     item = item or ctx.get_selected_item()
     if ctx.cursor == ctx.find_extra_slot():
       success, message = False, "You're already carrying this!"
-    elif "carry_item" in dir(ctx.parent):
-      success, message = ctx.parent.carry_item(item)
+    elif "handle_carry" in dir(ctx.parent):
+      success, message = ctx.parent.handle_carry(item)
     else:
       success, message = False, "You can't carry that here!"
     if success:

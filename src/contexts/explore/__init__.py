@@ -287,6 +287,16 @@ class ExploreContext(ExploreBase):
     return True
 
   def handle_action(ctx):
+    if not ctx.hero:
+      return False
+
+    facing_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
+    itemdrop = next((e for e in ctx.stage.get_elems_at(facing_cell) if isinstance(e, ItemDrop)), None)
+    if ctx.hero.item:
+      return ctx.handle_place()
+    elif itemdrop:
+      return ctx.handle_pickup()
+
     facing_elem = ctx.facing_elem
     if facing_elem is None:
       return False
