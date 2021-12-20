@@ -580,7 +580,8 @@ class DungeonActor(DungeonElement):
       item_sprite = Sprite(
         image=item_image,
         pos=(0, -16),
-        layer="vfx"
+        origin=Sprite.ORIGIN_CENTER,
+        layer="vfx",
       )
       item_sprite.move(move_offset)
       sprites += [item_sprite]

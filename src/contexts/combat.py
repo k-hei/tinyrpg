@@ -2,7 +2,6 @@ from random import random, randint
 import lib.vector as vector
 import lib.input as input
 from lib.direction import invert as invert_direction, normal as normalize_direction
-from lib.compose import compose
 from lib.cell import neighborhood, manhattan, is_adjacent, upscale
 
 from contexts.explore.base import ExploreBase
@@ -12,9 +11,9 @@ from contexts.ally import AllyContext
 from contexts.pause import PauseContext
 from comps.damage import DamageValue
 from dungeon.actors import DungeonActor
-from dungeon.actors.knight import Knight
 from dungeon.actors.mage import Mage
 from dungeon.props.door import Door
+from dungeon.props.itemdrop import ItemDrop
 from skills.weapon import Weapon
 from tiles import Tile
 import tiles.default as tileset
@@ -415,9 +414,20 @@ class CombatContext(ExploreBase):
     return True
 
   def handle_action(ctx):
+    if not ctx.hero:
+      return False
+
+    facing_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
     facing_actor = ctx.facing_actor
-    if isinstance(facing_actor, DungeonActor) and facing_actor.faction == "enemy":
-      return ctx.handle_attack()
+    itemdrop = next((e for e in ctx.stage.get_elems_at(facing_cell) if isinstance(e, ItemDrop)), None)
+
+    if ctx.hero.item:
+      return ctx.handle_place()
+    elif isinstance(facing_actor, DungeonActor):
+      if facing_actor.faction == "enemy":
+        return ctx.handle_attack()
+    elif itemdrop and not ctx.hero.item:
+      return ctx.handle_pickup()
 
     facing_elem = ctx.facing_elem
     action_result = facing_elem.effect(ctx, ctx.hero) if facing_elem else False
@@ -566,6 +576,9 @@ class CombatContext(ExploreBase):
         else on_end and on_end()
     )
 
+    if damage and target.item:
+      ctx.place_item(actor=target)
+
     if animate:
       anim_group = next((g for g in ctx.anims if not next((a for a in g if a.target is target), None)), [])
       anim_group not in ctx.anims and ctx.anims.append(anim_group)
@@ -711,6 +724,58 @@ class CombatContext(ExploreBase):
 
   def handle_wait(ctx):
     ctx.step()
+    return True
+
+  def handle_pickup(ctx):
+    if not ctx.hero:
+      return False
+    return ctx.pickup_item(actor=ctx.hero)
+
+  def pickup_item(ctx, actor, itemdrop=None):
+    if not actor or actor.item:
+      return False
+
+    facing_cell = vector.add(actor.cell, actor.facing)
+    target_elems = ctx.stage.get_elems_at(facing_cell)
+    itemdrop = itemdrop or next((e for e in target_elems if isinstance(e, ItemDrop)), None)
+    if not itemdrop or next((e for e in target_elems if e.solid), None):
+      return False
+
+    ctx.stage.remove_elem(itemdrop)
+    ctx.hero.item = itemdrop.item
+    ctx.anims.append([AttackAnim(
+      target=ctx.hero,
+      src=ctx.hero.cell,
+      dest=facing_cell
+    )])
+    return True
+
+  def handle_place(ctx):
+    if not ctx.hero:
+      return False
+    return ctx.place_item(actor=ctx.hero)
+
+  def place_item(ctx, actor):
+    if not actor or not actor.item:
+      return False
+
+    facing_cell = vector.add(actor.cell, actor.facing)
+    if (Tile.is_solid(ctx.stage.get_tile_at(facing_cell))
+    or next((e for e in ctx.stage.get_elems_at(facing_cell) if
+      isinstance(e, ItemDrop)
+      or not isinstance(e, DungeonActor)
+      and e.solid
+    ), None)):
+      return False
+
+    ctx.stage.spawn_elem_at(facing_cell, ItemDrop(actor.item))
+    actor.item = None
+    not ctx.anims and ctx.anims.append([AttackAnim(
+      target=actor,
+      src=actor.cell,
+      dest=facing_cell,
+      on_end=ctx.step,
+    )])
     return True
 
   def handle_hallway(ctx):

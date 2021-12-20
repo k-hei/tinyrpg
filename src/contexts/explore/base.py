@@ -124,17 +124,16 @@ class ExploreBase(Context):
     if obtained:
       old_facing = ctx.hero.facing
       ctx.hero.facing = (0, 1)
-      ctx.anims.append([
-        ItemAnim(
-          target=target,
-          item=item(),
-          duration=60,
-          on_end=lambda: (
-            setattr(ctx.hero, "facing", old_facing),
-            on_end and on_end(),
-          )
+      not ctx.anims and ctx.anims.append([])
+      ctx.anims[0].append(ItemAnim(
+        target=target,
+        item=item(),
+        duration=60,
+        on_end=lambda: (
+          setattr(ctx.hero, "facing", old_facing),
+          on_end and on_end(),
         )
-      ])
+      ))
       ctx.comps.minilog.print(message=("Obtained ", item().token(), "."))
     return obtained
 
