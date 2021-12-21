@@ -1,6 +1,7 @@
 from random import random
 from lib.cell import manhattan, upscale
 import lib.vector as vector
+import lib.input as input
 from helpers.findactor import find_actor
 from contexts import Context
 from anims.item import ItemAnim
@@ -18,6 +19,7 @@ class ExploreBase(Context):
     ctx.store = store
     ctx.stage = stage
     ctx.stage_view = stage_view
+    ctx.buttons_rejected = {}
 
   @property
   def hero(ctx):
@@ -125,21 +127,25 @@ class ExploreBase(Context):
     ]
 
   def handle_obtain(ctx, item, target, on_end=None):
+    if not ctx.hero:
+      return False
+
     obtained = ctx.store.obtain(item)
     if obtained:
       old_facing = ctx.hero.facing
       ctx.hero.facing = (0, 1)
-      not ctx.anims and ctx.anims.append([])
-      ctx.anims[0].append(ItemAnim(
+      anim_group = next((g for g in ctx.anims for a in g if a.target is ctx.hero), [])
+      anim_group not in ctx.anims and ctx.anims.insert(0, anim_group)
+      anim_group.append(ItemAnim(
         target=target,
         item=item(),
         duration=60,
+        on_start=lambda: ctx.comps.minilog.print(message=("Obtained ", item().token(), ".")),
         on_end=lambda: (
           setattr(ctx.hero, "facing", old_facing),
           on_end and on_end(),
         )
       ))
-      ctx.comps.minilog.print(message=("Obtained ", item().token(), "."))
     return obtained
 
   def handle_pickup(ctx):
@@ -196,6 +202,7 @@ class ExploreBase(Context):
   def handle_carry(ctx, item):
     if not ctx.hero:
       return False, "No character to use!"
+    ctx.buttons_rejected[input.get_latest_button()] = 0
     return ctx.carry_item(actor=ctx.hero, item=item)
 
   def carry_item(ctx, actor, item):
@@ -292,6 +299,14 @@ class ExploreBase(Context):
       )
     ])
     return True
+
+  def update(ctx):
+    super().update()
+    ctx.update_buttons_rejected()
+
+  def update_buttons_rejected(ctx):
+    for button in ctx.buttons_rejected:
+      ctx.buttons_rejected[button] += 1
 
   def update_bubble(ctx):
     facing_elem = ctx.facing_elem

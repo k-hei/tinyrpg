@@ -3,6 +3,7 @@ from math import inf
 _buttons = {}
 _controls = {}
 timings = {}
+latest = None
 
 BUTTON_LEFT = "left"
 BUTTON_RIGHT = "right"
@@ -99,6 +100,9 @@ def resolve_delta_held(fixed_axis=False):
     return (delta_x, delta_y)
 
 def handle_press(button):
+  global latest
+  latest = button
+
   if button not in timings:
     timings[button] = 1
 
@@ -134,6 +138,9 @@ def get_state(control):
     return timings[control]
 
   return 0
+
+def get_latest_button():
+  return latest
 
 def update():
   for button in timings:

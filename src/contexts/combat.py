@@ -203,7 +203,13 @@ class CombatContext(ExploreBase):
     control = input.resolve_control(button)
 
     if control == input.CONTROL_CONFIRM:
-      return ctx.handle_action()
+      if not ctx.hero.item:
+        acted = ctx.handle_action()
+        if acted == False:
+          ctx.buttons_rejected[button] = 0
+        return acted
+      elif input.get_state(button) >= 30 and not button in ctx.buttons_rejected:
+        return ctx.handle_throw()
 
     if control == input.CONTROL_WAIT and tapping:
       return ctx.handle_wait()
@@ -215,15 +221,19 @@ class CombatContext(ExploreBase):
       return ctx.handle_charmenu()
 
   def handle_release(ctx, button):
+    buttons_rejected = ctx.buttons_rejected.copy()
     if button in ctx.buttons_rejected:
       del ctx.buttons_rejected[button]
 
     if ctx.child:
-      return ctx.child.handle_release(button)
+      ctx.child.handle_release(button)
 
     control = input.resolve_control(button)
     if control == input.CONTROL_ALLY and input.get_state(button) <= 15:
-      return ctx.handle_charswap()
+      ctx.handle_charswap()
+
+    if control == input.CONTROL_CONFIRM and input.get_state(button) < 15 and not button in buttons_rejected and ctx.hero.item:
+      ctx.handle_place()
 
   def handle_move(ctx, delta):
     target_cell = vector.add(ctx.hero.cell, delta)
@@ -231,8 +241,8 @@ class CombatContext(ExploreBase):
 
     def on_move():
       ctx.update_bubble()
-      target_elem = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if not isinstance(e, DungeonActor)), None)
-      target_elem and target_elem.effect(ctx, ctx.hero)
+      # target_elem = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if not isinstance(e, DungeonActor)), None)
+      # target_elem and target_elem.effect(ctx, ctx.hero)
 
     ctx.hero.facing = delta
     moved = ctx.move(ctx.hero, delta, on_end=on_move)
@@ -777,7 +787,6 @@ class CombatContext(ExploreBase):
   def update(ctx):
     super().update()
     ctx.update_command()
-    ctx.update_buttons_rejected()
 
   def update_command(ctx):
     if not ctx.command_queue:
@@ -799,10 +808,6 @@ class CombatContext(ExploreBase):
       chain = actor.turns > 1
       ctx.command_pending = None
       ctx.step_command(actor, command, chain)
-
-  def update_buttons_rejected(ctx):
-    for button in ctx.buttons_rejected:
-      ctx.buttons_rejected[button] += 1
 
   def step(ctx):
     actors = [e for e in ctx.stage.elems if

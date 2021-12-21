@@ -26,7 +26,6 @@ class ExploreContext(ExploreBase):
     ctx.camera.focus(ctx.hero)
     ctx.debug = False
     ctx.move_buffer = []
-    ctx.buttons_rejected = {}
 
   def exit(ctx):
     ctx.close()
@@ -83,6 +82,8 @@ class ExploreContext(ExploreBase):
         return False
 
     control = input.resolve_control(button)
+
+    # TODO: move `handle_control_confirm(button)` into base? (shared handlers with combat mode)
     if control == input.CONTROL_CONFIRM:
       if not ctx.hero.item:
         acted = ctx.handle_action()
@@ -102,6 +103,10 @@ class ExploreContext(ExploreBase):
       return ctx.handle_minimap()
 
   def handle_release(ctx, button):
+    buttons_rejected = ctx.buttons_rejected.copy()
+    if button in ctx.buttons_rejected:
+      del ctx.buttons_rejected[button]
+
     delta = input.resolve_delta(button)
     if delta != (0, 0):
       ctx.hero.stop_move()
@@ -112,11 +117,8 @@ class ExploreContext(ExploreBase):
       if isinstance(ctx.child, MinimapContext):
         ctx.child.exit()
 
-    if control == input.CONTROL_CONFIRM and input.get_state(button) < 15 and not button in ctx.buttons_rejected and ctx.hero.item:
+    if control == input.CONTROL_CONFIRM and input.get_state(button) < 15 and not button in buttons_rejected and ctx.hero.item:
       ctx.handle_place()
-
-    if button in ctx.buttons_rejected:
-      del ctx.buttons_rejected[button]
 
   def handle_move(ctx, delta, running=False):
     if not ctx.hero:
