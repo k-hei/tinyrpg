@@ -3,7 +3,7 @@ import lib.vector as vector
 import lib.input as input
 from lib.direction import invert as invert_direction, normal as normalize_direction
 from lib.cell import neighborhood, manhattan, is_adjacent, upscale
-from helpers.combat import find_damage, find_miss, find_crit
+from helpers.combat import find_damage, will_miss, will_crit, will_block
 
 from contexts.explore.base import ExploreBase
 from contexts.skill import SkillContext
@@ -25,6 +25,7 @@ from anims.attack import AttackAnim
 from anims.jump import JumpAnim
 from anims.flinch import FlinchAnim
 from anims.pause import PauseAnim
+from anims.shake import ShakeAnim
 from anims.flicker import FlickerAnim
 from vfx.flash import FlashVfx
 from colors.palette import RED, GREEN, BLUE, GOLD, PURPLE, CYAN
@@ -462,10 +463,13 @@ class CombatContext(ExploreBase):
   def attack(ctx, actor, target=None, modifier=1, animate=True, on_end=None):
     if target:
       actor.face(target.cell)
-      crit = find_crit(actor, target)
-      miss = find_miss(actor, target)
+      miss = will_miss(actor, target)
+      block = will_block(actor, target) and not miss
+      crit = will_crit(actor, target) and not block
       if miss:
         damage = None
+      elif block:
+        damage = max(0, find_damage(actor, target, modifier) - target.find_shield().en)
       elif crit:
         damage = find_damage(actor, target, modifier=modifier * CRIT_MODIFIER)
       else:
@@ -480,6 +484,7 @@ class CombatContext(ExploreBase):
         target=target,
         damage=damage,
         crit=crit,
+        block=block,
         direction=actor.facing,
         on_end=lambda: (
           attack_command in ctx.command_queue and ctx.command_queue.remove(attack_command),
@@ -494,11 +499,21 @@ class CombatContext(ExploreBase):
           if "AttackAnim" in dir(actor.core) and actor.facing == (0, 1)
           else 0
       )
+      block_delay = (
+        target.core.BlockAnim.frames_duration[0] + target.core.BlockAnim.frames_duration[1]
+          if block and "BlockAnim" in dir(target.core)
+          else 0
+      )
+      init_delay = max(attack_delay, block_delay)
+
       ctx.anims.extend([
         [*([PauseAnim(
-          duration=attack_delay,
-          on_start=lambda: actor.attack()
-        )] if attack_delay else [])],
+          duration=init_delay,
+          on_start=lambda: (
+            actor.attack(),
+            target.block(),
+          )
+        )] if init_delay else [])],
         [AttackAnim(
           target=actor,
           src=actor.cell,
@@ -507,11 +522,12 @@ class CombatContext(ExploreBase):
         )]
       ])
     else:
+      block and target.block()
       connect()
 
     return True
 
-  def flinch(ctx, target, damage, direction=None, crit=False, animate=True, on_end=None):
+  def flinch(ctx, target, damage, direction=None, crit=False, block=False, animate=True, on_end=None):
     show_text = lambda: ctx.vfx.append(DamageValue(
       text=find_damage_text(damage),
       cell=target.cell,
@@ -550,7 +566,12 @@ class CombatContext(ExploreBase):
       anim_group = next((g for g in ctx.anims if not next((a for a in g if a.target is target), None)), [])
       anim_group not in ctx.anims and ctx.anims.append(anim_group)
       anim_group.extend([
-        *([FlinchAnim(
+        *([ShakeAnim(
+          target=target,
+          magnitude=0.5,
+          duration=15,
+          on_start=inflict
+        )] if block else [FlinchAnim(
           target=target,
           direction=direction,
           on_start=inflict
@@ -560,13 +581,13 @@ class CombatContext(ExploreBase):
           dest=vector.add(target.cell, vector.tangent(direction)),
           duration=SIDESTEP_DURATION,
           amplitude=SIDESTEP_AMPLITUDE,
+          on_start=inflict
         )] if direction else []),
         PauseAnim(
           duration=FLINCH_PAUSE_DURATION,
           on_end=cleanup
         )
       ])
-      not damage and inflict()
     else:
       inflict()
       cleanup()
