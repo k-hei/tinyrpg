@@ -126,7 +126,7 @@ class ExploreBase(Context):
       and room and e.cell in room.cells
     ]
 
-  def handle_obtain(ctx, item, target, on_end=None):
+  def handle_obtain(ctx, item, target, on_start=None, on_end=None):
     if not ctx.hero:
       return False
 
@@ -142,7 +142,10 @@ class ExploreBase(Context):
         target=target,
         item=item(),
         duration=60,
-        on_start=lambda: ctx.comps.minilog.print(message=("Obtained ", item().token(), ".")),
+        on_start=lambda: (
+          ctx.comps.minilog.print(message=("Obtained ", item().token(), ".")),
+          on_start and on_start(),
+        ),
         on_end=lambda: (
           setattr(ctx.hero, "facing", old_facing),
           on_end and on_end(),

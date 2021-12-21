@@ -27,10 +27,13 @@ class ItemDrop(Prop):
     if actor is not game.hero:
       return None
 
+    if drop.obtained:
+      return False
+
     obtained = game.handle_obtain(
       item=drop.item,
       target=game.hero,
-      on_end=lambda: obtained and game.stage.remove_elem(drop)
+      on_start=lambda: obtained and game.stage.remove_elem(drop),
     )
 
     if obtained:
@@ -39,8 +42,6 @@ class ItemDrop(Prop):
     return obtained
 
   def view(drop, anims):
-    if drop.obtained:
-      return super().view([], anims)
     anim_group = [a for a in anims[0] if a.target is drop] if anims else []
     offset_x, offset_y = (0, 0)
     offset_layer = "tiles" if drop.obtained else "elems"
