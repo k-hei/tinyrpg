@@ -3,6 +3,7 @@ import lib.vector as vector
 import lib.input as input
 from lib.direction import invert as invert_direction, normal as normalize_direction
 from lib.cell import neighborhood, manhattan, is_adjacent, upscale
+from helpers.combat import find_damage, find_miss, find_crit
 
 from contexts.explore.base import ExploreBase
 from contexts.skill import SkillContext
@@ -29,7 +30,7 @@ from vfx.flash import FlashVfx
 from colors.palette import RED, GREEN, BLUE, GOLD, PURPLE, CYAN
 from config import (
   MOVE_DURATION, FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION, PUSH_DURATION, SIDESTEP_DURATION, SIDESTEP_AMPLITUDE,
-  HIT_CHANCE, CRIT_CHANCE, CRIT_MODIFIER,
+  CRIT_MODIFIER,
   TILE_SIZE,
 )
 
@@ -461,14 +462,14 @@ class CombatContext(ExploreBase):
   def attack(ctx, actor, target=None, modifier=1, animate=True, on_end=None):
     if target:
       actor.face(target.cell)
-      crit = ctx.find_crit(actor, target)
-      miss = ctx.find_miss(actor, target)
+      crit = find_crit(actor, target)
+      miss = find_miss(actor, target)
       if miss:
         damage = None
       elif crit:
-        damage = ctx.find_damage(actor, target, modifier=modifier * CRIT_MODIFIER)
+        damage = find_damage(actor, target, modifier=modifier * CRIT_MODIFIER)
       else:
-        damage = ctx.find_damage(actor, target, modifier)
+        damage = find_damage(actor, target, modifier)
 
     attack_command = (actor, (COMMAND_ATTACK, target))
     ctx.command_queue.append(attack_command)
@@ -509,50 +510,6 @@ class CombatContext(ExploreBase):
       connect()
 
     return True
-
-  def find_damage(ctx, actor, target, modifier=1):
-    actor_st = actor.st * modifier
-    target_en = target.en
-    variance = 1
-    return max(1, actor_st - target_en + randint(-variance, variance))
-
-  def find_miss(ctx, actor, target):
-    return (
-      not target.is_immobile()
-      and target.facing != actor.facing
-      and (target.aggro > 1 or target.faction == "player")
-      and not ctx.roll_hit(attacker=actor, defender=target)
-    )
-
-  def find_crit(ctx, actor, target):
-    return target.ailment != DungeonActor.AILMENT_FREEZE and (
-      target.ailment == DungeonActor.AILMENT_SLEEP
-      or actor.facing == target.facing
-      or ctx.roll_crit(attacker=actor, defender=target)
-    )
-
-  def roll(game, dx, ag, chance):
-    if dx >= ag:
-      chance = chance + (dx - ag) / 100
-    elif ag >= dx * 2:
-      chance = dx / ag * chance * 0.75
-    else:
-      chance = dx / ag * chance
-    return random() <= chance
-
-  def roll_hit(ctx, attacker, defender):
-    return ctx.roll(
-      dx=attacker.stats.dx + attacker.stats.lu / 2,
-      ag=defender.stats.ag + defender.stats.lu / 2,
-      chance=HIT_CHANCE,
-    )
-
-  def roll_crit(ctx, attacker, defender):
-    return ctx.roll(
-      dx=attacker.stats.dx + attacker.stats.lu / 2,
-      ag=defender.stats.ag + defender.stats.lu / 2,
-      chance=CRIT_CHANCE,
-    )
 
   def flinch(ctx, target, damage, direction=None, crit=False, animate=True, on_end=None):
     show_text = lambda: ctx.vfx.append(DamageValue(

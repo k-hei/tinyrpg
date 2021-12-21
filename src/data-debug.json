@@ -15,7 +15,8 @@
   "builds": {
     "Knight": {
       "RustyBlade": [0, 0],
-      "Blitzritter": [1, 0]
+      "Blitzritter": [1, 0],
+      "Buckler": [1, 2]
     },
     "Mage": {
       "Cudgel": [0, 0],
