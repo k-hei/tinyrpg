@@ -426,7 +426,7 @@ class CombatContext(ExploreBase):
     elif isinstance(facing_actor, DungeonActor):
       if facing_actor.faction == "enemy":
         return ctx.handle_attack()
-    elif itemdrop and not ctx.hero.item:
+    elif itemdrop:
       return ctx.handle_pickup()
 
     facing_elem = ctx.facing_elem

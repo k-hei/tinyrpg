@@ -1,13 +1,15 @@
 from random import random
-from lib.cell import manhattan
+from lib.cell import manhattan, upscale
 import lib.vector as vector
 from helpers.findactor import find_actor
 from contexts import Context
 from anims.item import ItemAnim
 from anims.attack import AttackAnim
+from anims.pause import PauseAnim
 from dungeon.actors import DungeonActor
 from dungeon.props.itemdrop import ItemDrop
 from tiles import Tile
+import tiles.default as tileset
 from vfx.talkbubble import TalkBubble
 
 class ExploreBase(Context):
@@ -162,7 +164,7 @@ class ExploreBase(Context):
       src=ctx.hero.cell,
       dest=facing_cell
     )])
-    return True
+    return False
 
   def handle_place(ctx):
     if not ctx.hero:
@@ -201,6 +203,95 @@ class ExploreBase(Context):
       return False, "You can't carry any more."
     actor.item = item
     return True, None
+
+  def handle_throw(ctx):
+    return ctx.throw_item(actor=ctx.hero)
+
+  def find_throw_target(ctx, actor):
+    target_elem = None
+    target_cell = actor.cell
+    nonpit_cell = actor.cell
+
+    throwing = True
+    while throwing:
+      next_cell = vector.add(target_cell, actor.facing)
+      next_tile = ctx.stage.get_tile_at(next_cell)
+      next_elem = next((e for e in ctx.stage.get_elems_at(next_cell) if
+        e.solid
+        and not (ctx.hero and ctx.ally and actor is ctx.hero and e is ctx.ally)
+      ), None)
+
+      if (not isinstance(next_tile, tileset.Pit) and Tile.is_solid(next_tile)
+      or next((e for e in ctx.stage.get_elems_at(next_cell) if (
+        e.solid
+        and not isinstance(e, DungeonActor)
+        and not isinstance(e, ItemDrop)
+      )), None)):
+        throwing = False
+        break
+      elif next_elem:
+        target_elem = next_elem
+        throwing = False
+
+      target_cell = next_cell
+      if not isinstance(next_tile, tileset.Pit):
+        nonpit_cell = next_cell
+
+    if not isinstance(ctx.stage.get_tile_at(target_cell), tileset.Pit):
+      target_cell = nonpit_cell
+
+    return target_cell, target_elem
+
+  def throw_item(ctx, actor, item=None):
+    if not item and not actor.item:
+      return False
+    item = actor.item
+    target_cell, target_elem = ctx.find_throw_target(actor)
+
+    if target_cell == actor.cell:
+      ctx.anims.append([AttackAnim(
+        target=actor,
+        src=actor.cell,
+        dest=vector.add(actor.cell, actor.facing),
+      )])
+      return False
+
+    def handle_effect():
+      ctx.anims[0].append(PauseAnim(
+        duration=30,
+        on_end=ctx.camera.blur
+      ))
+      if "effect" in dir(item) and target_elem and isinstance(target_elem, DungeonActor):
+        response = item().effect(ctx, actor=target_elem, cell=target_cell)
+        response and ctx.log.print(response)
+        ctx.stage.remove_elem(itemdrop)
+      elif item.fragile:
+        item().effect(ctx, cell=target_cell)
+        ctx.stage.remove_elem(itemdrop)
+      else:
+        itemdrop.cell = target_cell
+
+    def handle_throw():
+      actor.item = None
+      ctx.stage.spawn_elem_at(actor.cell, itemdrop)
+      ctx.anims[0].append(ItemDrop.ThrownAnim(
+        target=itemdrop,
+        src=actor.cell,
+        dest=target_cell,
+        on_end=handle_effect,
+      ))
+      ctx.camera.focus(upscale(target_cell, ctx.stage.tile_size), force=True)
+
+    itemdrop = ItemDrop(item)
+    ctx.anims.append([
+      AttackAnim(
+        target=actor,
+        src=actor.cell,
+        dest=vector.add(actor.cell, actor.facing),
+        on_connect=handle_throw
+      )
+    ])
+    return True
 
   def update_bubble(ctx):
     facing_elem = ctx.facing_elem

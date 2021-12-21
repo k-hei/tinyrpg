@@ -26,6 +26,7 @@ class ExploreContext(ExploreBase):
     ctx.camera.focus(ctx.hero)
     ctx.debug = False
     ctx.move_buffer = []
+    ctx.buttons_rejected = {}
 
   def exit(ctx):
     ctx.close()
@@ -81,15 +82,21 @@ class ExploreContext(ExploreBase):
       else:
         return False
 
+    control = input.resolve_control(button)
+    if control == input.CONTROL_CONFIRM:
+      if not ctx.hero.item:
+        acted = ctx.handle_action()
+        if acted == False:
+          ctx.buttons_rejected[button] = 0
+        return acted
+      elif input.get_state(button) >= 30 and not button in ctx.buttons_rejected:
+        return ctx.handle_throw()
+
     if input.get_state(button) > 1:
       return False
 
     if input.get_state(pygame.K_LCTRL) and button == pygame.K_h:
       return ctx.handle_debug()
-
-    control = input.resolve_control(button)
-    if control == input.CONTROL_CONFIRM:
-      return ctx.handle_action()
 
     if control == input.CONTROL_MINIMAP:
       return ctx.handle_minimap()
@@ -99,12 +106,17 @@ class ExploreContext(ExploreBase):
     if delta != (0, 0):
       ctx.hero.stop_move()
       ctx.ally and ctx.ally.stop_move()
-      return
 
     control = input.resolve_control(button)
     if control == input.CONTROL_MINIMAP:
       if isinstance(ctx.child, MinimapContext):
         ctx.child.exit()
+
+    if control == input.CONTROL_CONFIRM and input.get_state(button) < 15 and not button in ctx.buttons_rejected and ctx.hero.item:
+      ctx.handle_place()
+
+    if button in ctx.buttons_rejected:
+      del ctx.buttons_rejected[button]
 
   def handle_move(ctx, delta, running=False):
     if not ctx.hero:
