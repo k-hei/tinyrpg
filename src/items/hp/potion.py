@@ -19,4 +19,4 @@ class Potion(HpItem):
     ))
     actor = actor or game.hero
     actor.regen(potion.hp)
-    game.numbers.append(DamageValue(str(potion.hp), actor.cell, color=GREEN))
+    game.vfx.append(DamageValue(str(potion.hp), actor.cell, color=GREEN))

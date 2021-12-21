@@ -226,14 +226,14 @@ class CombatContext(ExploreBase):
       del ctx.buttons_rejected[button]
 
     if ctx.child:
-      ctx.child.handle_release(button)
+      return ctx.child.handle_release(button)
 
     control = input.resolve_control(button)
     if control == input.CONTROL_ALLY and input.get_state(button) <= 15:
-      ctx.handle_charswap()
+      return ctx.handle_charswap()
 
     if control == input.CONTROL_CONFIRM and input.get_state(button) < 15 and not button in buttons_rejected and ctx.hero.item:
-      ctx.handle_place()
+      return ctx.handle_place()
 
   def handle_move(ctx, delta):
     target_cell = vector.add(ctx.hero.cell, delta)

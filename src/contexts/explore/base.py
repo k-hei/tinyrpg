@@ -134,9 +134,11 @@ class ExploreBase(Context):
     if obtained:
       old_facing = ctx.hero.facing
       ctx.hero.facing = (0, 1)
-      anim_group = next((g for g in ctx.anims for a in g if a.target is ctx.hero), [])
-      anim_group not in ctx.anims and ctx.anims.insert(0, anim_group)
-      anim_group.append(ItemAnim(
+      hero_group = next((g for g in ctx.anims for a in g if a.target is ctx.hero), [])
+      hero_index = ctx.anims.index(hero_group) if hero_group in ctx.anims else -1
+      next_anim_group = []
+      ctx.anims.insert(hero_index + 1, next_anim_group) if hero_group in ctx.anims else ctx.anims.append(next_anim_group)
+      next_anim_group.append(ItemAnim(
         target=target,
         item=item(),
         duration=60,
@@ -270,7 +272,7 @@ class ExploreBase(Context):
       ))
       if "effect" in dir(item) and target_elem and isinstance(target_elem, DungeonActor):
         response = item().effect(ctx, actor=target_elem, cell=target_cell)
-        response and ctx.log.print(response)
+        response and ctx.comps.minilog.print(response)
         ctx.stage.remove_elem(itemdrop)
       elif item.fragile:
         item().effect(ctx, cell=target_cell)
