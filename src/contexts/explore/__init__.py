@@ -213,6 +213,9 @@ class ExploreContext(ExploreBase):
     return ctx.move_actor(actor, (delta_x, delta_y), running)
 
   def collide(ctx, actor, delta):
+    if delta == (0, 0):
+      return None
+
     delta_x, delta_y = delta
     stage = ctx.stage
     rect = actor.rect
@@ -230,18 +233,24 @@ class ExploreContext(ExploreBase):
     tile_ne = stage.get_tile_at((col_e, row_n))
     tile_sw = stage.get_tile_at((col_w, row_s))
     tile_se = stage.get_tile_at((col_e, row_s))
+    tile_c = stage.get_tile_at(vector.floor(vector.scale(rect.center, 1 / stage.tile_size)))
+
+    is_walkable = lambda tile: (
+      Tile.is_walkable(tile)
+      and abs(tile.elev - tile_c.elev) < 1
+    )
 
     collidee = None
 
     if delta_x < 0:
-      if not Tile.is_walkable(tile_nw) or not Tile.is_walkable(tile_sw):
+      if not is_walkable(tile_nw) or not is_walkable(tile_sw):
         rect.left = (col_w + 1) * stage.tile_size
         if row_n == row_s and issubclass(tile_nw, tileset.Pit):
           collidee = tile_nw
       elif elem:
         rect.left = elem_rect.right
     elif delta_x > 0:
-      if not Tile.is_walkable(tile_ne) or not Tile.is_walkable(tile_se):
+      if not is_walkable(tile_ne) or not is_walkable(tile_se):
         rect.right = col_e * stage.tile_size
         if row_n == row_s and issubclass(tile_se, tileset.Pit):
           collidee = tile_se
@@ -249,14 +258,14 @@ class ExploreContext(ExploreBase):
         rect.right = elem_rect.left
 
     if delta_y < 0:
-      if not Tile.is_walkable(tile_nw) or not Tile.is_walkable(tile_ne):
+      if not is_walkable(tile_nw) or not is_walkable(tile_ne):
         rect.top = (row_n + 1) * stage.tile_size
         if col_w == col_e and issubclass(tile_nw, tileset.Pit):
           collidee = tile_nw
       elif elem:
         rect.top = elem_rect.bottom
     elif delta_y > 0:
-      if not Tile.is_walkable(tile_sw) or not Tile.is_walkable(tile_se):
+      if not is_walkable(tile_sw) or not is_walkable(tile_se):
         rect.bottom = row_s * stage.tile_size
         if col_w == col_e and issubclass(tile_se, tileset.Pit):
           collidee = tile_se

@@ -5,7 +5,7 @@ from random import randint, getrandbits, choice, shuffle
 from pygame.time import get_ticks
 from lib.cell import neighborhood, manhattan, add as add_vector, subtract as subtract_vector
 from lib.graph import Graph
-from debug import bench
+from debug import bench, log
 from config import FPS
 
 from contexts.explore.stage import Stage
@@ -208,13 +208,13 @@ def gen_joint_connect(feature_graph):
         stack.append(neighbor)
         yield graph
       else:
-        print("Connection failed", node.data, neighbor.data)
+        log("Connection failed", node.data, neighbor.data)
         yield False
         return
 
 def gen_connect(feature_graph):
   if len(feature_graph.edges) >= len(feature_graph.nodes):
-    print(f"Joint connect with {len(feature_graph.nodes)} nodes")
+    log(f"Joint connect with {len(feature_graph.nodes)} nodes")
     connect_gen = gen_joint_connect(feature_graph)
     floor_graph = None
     while floor_graph is not False:
@@ -242,7 +242,7 @@ def gen_connect(feature_graph):
         stack.append(neighbor)
         yield floor_graph
       else:
-        print("Connection failed", node.data, neighbor.data)
+        log("Connection failed", node.data, neighbor.data)
         yield False
         return
 
@@ -498,7 +498,7 @@ def gen_floor(
       for j, connector in enumerate(connectors):
         # stage.spawn_elem_at(connector, Eyeball(faction="ally"))
         if not stage.contains(connector):
-          print(f"WARNING: Connector {connector} out of bounds")
+          log(f"WARNING: Connector {connector} out of bounds")
         is_edge_usable = lambda e, room: (
           next((e for e in stage.get_elems_at(e) if isinstance(e, GenericDoor)), None)
           or (
@@ -645,7 +645,7 @@ def gen_floor(
         ):
           stage.spawn_elem_at(neighbor, ArrowTrap(facing=door_delta, delay=inf, static=False))
 
-      print(f"Spawned secret with area {secret.get_area()} at {doorway}")
+      log(f"Spawned secret with area {secret.get_area()} at {doorway}")
       if secret in empty_rooms:
         empty_rooms.remove(secret)
 

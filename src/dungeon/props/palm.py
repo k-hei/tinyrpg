@@ -21,6 +21,8 @@ class Palm(Prop):
     palm_image = replace_color(palm_image, WHITE, GOLD)
     return super().view([Sprite(
       image=palm_image,
+      pos=(0, 16),
+      origin=Sprite.ORIGIN_BOTTOM,
       layer="elems",
-      offset=-16
+      offset=-16,
     )], anims)

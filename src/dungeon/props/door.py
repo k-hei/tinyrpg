@@ -61,7 +61,7 @@ class Door(Prop):
 
   def effect(door, game, *_):
     if door.locked:
-      return game.log.print("The door is locked...")
+      return game.comps.minilog.print("The door is locked...")
     return door.handle_open(game)
 
   def spawn(door, stage, cell):

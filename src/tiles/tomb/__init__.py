@@ -4,6 +4,7 @@ from colors.palette import WHITE, COLOR_TILE
 
 from tiles import Tile
 from tiles.tomb.walltop import render_walltop
+from tiles.tomb.oasis import render_oasis
 from dungeon.props.door import Door
 from dungeon.props.secretdoor import SecretDoor
 import assets
@@ -21,8 +22,14 @@ TILE_IDS = [
   "wall_link",
   "stairs_up",
   "stairs_down",
+  "oasis_edge",
+  "oasis_edge_top",
+  "oasis_edge_bottom",
+  "oasis_corner_top",
+  "oasis_corner_bottom",
+  "oasis_stairs_down",
+  "oasis_stairs_up",
 ]
-
 for tile_id in TILE_IDS:
   assets.sprites[tile_id] = replace_color(assets.sprites[tile_id], WHITE, COLOR_TILE)
 
@@ -40,7 +47,7 @@ class Wall(Tile):
     is_special_room = False
 
     if (
-      tile_below in (Floor, Pit, Hallway)
+      tile_below in (Floor, Pit, Hallway, Oasis)
       and (visited_cells is None or (x, y + 1) in visited_cells)
       and not next((e for e in stage.get_elems_at((x, y + 1)) if isinstance(e, Door)), None)
     ):
@@ -76,6 +83,22 @@ class Entrance(Tile):
 class Exit(Tile):
   sprite = assets.sprites["stairs_down"]
 
+class Oasis(Tile):
+  elev = -1.0
+
+  def sprite(stage, cell, visited_cells):
+    return render_oasis(stage, cell, visited_cells)
+
+class OasisStairs(Tile):
+  elev = -0.5
+
+  def sprite(stage, cell, _):
+    x, y = cell
+    if issubclass(stage.get_tile_at((x, y - 1)), Floor):
+      return assets.sprites["oasis_stairs_down"]
+    else:
+      return assets.sprites["oasis_stairs_up"]
+
 mappings = {
   ".": Floor,
   "#": Wall,
@@ -83,4 +106,6 @@ mappings = {
   ",": Hallway,
   "<": Entrance,
   ">": Exit,
+  "O": Oasis,
+  "I": OasisStairs,
 }

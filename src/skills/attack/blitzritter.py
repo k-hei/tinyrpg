@@ -50,7 +50,7 @@ class Blitzritter(AttackSkill):
         on_end=on_end
       )
       if target_a and target_b:
-        attack(target=target_a, on_end=lambda: attack(target=target_b, on_end=on_end))
+        attack(target=target_b, on_end=lambda: attack(target=target_a, on_end=on_end))
       elif target_a and not target_b:
         attack(target=target_a, on_end=on_end)
       elif not target_a and target_b:

@@ -44,6 +44,8 @@ COLOR_WALL = 0x00CC66
 COLOR_WALL_DARK = 0x006633
 COLOR_DOOR = 0x009966
 COLOR_DOOR_DARK = 0x006633
+COLOR_OASIS = 0x000066
+COLOR_OASIS_DARK = 0x000033
 
 class EnterAnim(TweenAnim):
   duration = ENTER_DURATION
@@ -163,11 +165,11 @@ class Minimap:
       elif issubclass(tile, tileset.Pit):
         if cell in visible_cells:
           color = 0x000000
-      elif tile is Stage.OASIS or tile is Stage.OASIS_STAIRS:
+      elif issubclass(tile, tileset.Oasis) or issubclass(tile, tileset.OasisStairs):
         if cell in visible_cells:
-          color = 0x007F00
+          color = COLOR_OASIS
         else:
-          color = 0x003300
+          color = COLOR_OASIS_DARK
       elif tile is Stage.FLOOR_ELEV or tile is Stage.WALL_ELEV or tile is Stage.STAIRS:
         if cell in visible_cells:
           color = 0x00CC66

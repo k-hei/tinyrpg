@@ -2,6 +2,7 @@ from random import choice, shuffle
 from lib.cell import subtract as subtract_vector, neighborhood, manhattan
 from dungeon.props.palm import Palm
 from dungeon.props.door import Door
+import tiles.default as tileset
 import debug
 
 def on_place(room, stage):
@@ -16,8 +17,10 @@ def on_place(room, stage):
   while stack:
     cell = stack.pop()
     for neighbor in neighborhood(cell):
+      neighbor_tile = stage.get_tile_at(neighbor)
       if (neighbor in valid_cells
-      or stage.get_tile_at(neighbor) is not stage.FLOOR
+      or not neighbor_tile
+      or not issubclass(neighbor_tile, tileset.Floor)
       or next((e for e in stage.get_elems_at(neighbor) if e.solid), None)
       ):
         continue

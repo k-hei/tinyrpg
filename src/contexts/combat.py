@@ -243,8 +243,6 @@ class CombatContext(ExploreBase):
 
     def on_move():
       ctx.update_bubble()
-      # target_elem = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if not isinstance(e, DungeonActor)), None)
-      # target_elem and target_elem.effect(ctx, ctx.hero)
 
     ctx.hero.facing = delta
     moved = ctx.move(ctx.hero, delta, on_end=on_move)
@@ -555,8 +553,10 @@ class CombatContext(ExploreBase):
 
     cleanup = lambda: (
       ctx.kill(target, on_end=on_end)
-        if target.is_dead() or issubclass(ctx.stage.get_tile_at(target.cell), tileset.Pit)
-        else on_end and on_end()
+        if (
+          (target.is_dead() or issubclass(ctx.stage.get_tile_at(target.cell), tileset.Pit))
+          and (not ctx.room or ctx.room.on_defeat(ctx, target))
+        ) else on_end and on_end()
     )
 
     if damage and target.item:
