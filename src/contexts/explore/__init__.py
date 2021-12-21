@@ -315,7 +315,10 @@ class ExploreContext(ExploreBase):
     if facing_elem is None:
       return False
 
-    facing_elem.effect(ctx, ctx.hero)
+    success = facing_elem.effect(ctx, ctx.hero)
+    if success:
+      ctx.hero.stop_move()
+      ctx.ally and ctx.ally.stop_move()
     ctx.parent.update_bubble()
 
     not ctx.anims and ctx.anims.append([])
