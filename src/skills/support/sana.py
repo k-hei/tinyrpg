@@ -30,7 +30,11 @@ class Sana(SupportSkill):
       if target_elem:
         amount = 20 + random.randint(-2, 2)
         target_elem.regen(amount)
-        game.numbers.append(DamageValue(str(amount), target_cell, color=GREEN))
+        game.numbers.append(DamageValue(
+          text=str(amount),
+          pos=target_elem.pos,
+          color=GREEN
+        ))
         result = (target_elem.token(), " restored ", str(amount), " HP.")
       else:
         result = "But nothing happened..."

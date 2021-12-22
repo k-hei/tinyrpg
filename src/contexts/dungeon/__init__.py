@@ -8,6 +8,7 @@ from contexts.explore.base import ExploreBase
 from contexts.explore.stageview import StageView
 from contexts.combat import CombatContext
 from comps.store import ComponentStore
+from comps.damage import DamageValue
 from comps.hud import Hud
 from comps.minilog import Minilog
 from comps.minimap import Minimap
@@ -16,11 +17,14 @@ from comps.spmeter import SpMeter
 from dungeon.actors.knight import Knight
 from dungeon.actors.mage import Mage
 from dungeon.props.door import Door
+from dungeon.props.palm import Palm
 from dungeon.fov import shadowcast
 from dungeon.room import Blob as Room
 import tiles.default as tileset
 from anims.pause import PauseAnim
 from anims.step import StepAnim
+from anims.warpin import WarpInAnim
+from colors.palette import GREEN, CYAN
 from config import WINDOW_HEIGHT, VISION_RANGE
 
 def manifest_actor(core):
@@ -193,6 +197,64 @@ class DungeonContext(ExploreBase):
     hallways.sort(key=len)
     return list(reversed(hallways[0]))[:-1] + hallways[1]
 
+  def handle_oasis(ctx):
+    ctx.handle_restore()
+
+  def handle_restore(ctx):
+    if (ctx.store.sp == ctx.store.sp_max
+    and (not ctx.hero
+      or ctx.hero.hp == ctx.hero.hp_max
+      and ctx.hero.ailment == None)
+    and (not ctx.ally
+      or ctx.ally.hp == ctx.ally.hp_max
+      and ctx.ally.ailment == None)
+    ):
+      return False
+
+    palm = next((e for e in ctx.stage.elems if type(e) is Palm), None)
+    if not palm:
+      return False
+    palm.vanish(ctx)
+
+    if len(ctx.store.party) == 2:
+      if not ctx.ally:
+        ally_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
+        ally = manifest_actor(ctx.store.party[1])
+        ally.revive()
+        ctx.stage.spawn_elem_at(ally_cell, ally)
+        not ctx.anims and ctx.anims.append([])
+        ctx.anims[-1].append(WarpInAnim(target=ally))
+      ctx.comps.minilog.print("The party's HP and SP are restored.")
+    else:
+      ctx.comps.minilog.print("Your HP and SP are restored.")
+
+    ctx.store.sp = ctx.store.sp_max
+    ctx.hero and ctx.restore_actor(ctx.hero)
+    ctx.ally and ctx.restore_actor(ctx.ally)
+
+    ctx.comps.hud.enter()
+    not ctx.anims and ctx.anims.append([])
+    ctx.anims[-1].append(PauseAnim(
+      duration=180,
+      on_end=ctx.comps.hud.exit
+    ))
+
+    return True
+
+  def restore_actor(ctx, actor):
+    actor.hp = actor.hp_max
+    actor.dispel_ailment()
+    ctx.vfx.append(DamageValue(
+      text=ctx.store.sp_max,
+      pos=actor.pos,
+      color=CYAN,
+    ))
+    ctx.vfx.append(DamageValue(
+      text=actor.hp_max,
+      pos=vector.add(actor.pos, (0, -8)),
+      color=GREEN,
+    ))
+
   def handle_explore(ctx):
     ctx.open(ExploreContext(
       store=ctx.store,
@@ -223,12 +285,16 @@ class DungeonContext(ExploreBase):
       old_door = next((e for e in ctx.stage.get_elems_at(ctx.hero_cell) if isinstance(e, Door)), None)
       new_door = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if isinstance(e, Door)), None)
       new_tile = ctx.stage.get_tile_at(ctx.hero.cell)
+
       if issubclass(new_tile, tileset.Hallway) and (new_door or old_door) and not (new_door and old_door):
         ctx.handle_hallway()
         is_travelling = True
         step_anim = next((a for g in ctx.anims for a in g if a.target is ctx.hero and isinstance(a, StepAnim)), None)
         if step_anim:
           step_anim.done = True
+
+      if issubclass(new_tile, tileset.Oasis):
+        ctx.handle_oasis()
 
     ctx.hero_cell = ctx.hero.cell
     ctx.update_bubble()

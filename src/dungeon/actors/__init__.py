@@ -176,6 +176,14 @@ class DungeonActor(DungeonElement):
   def hp(actor):
     return actor.core.get_hp()
 
+  @hp.setter
+  def hp(actor, hp):
+    actor.core.set_hp(hp)
+
+  @property
+  def hp_max(actor):
+    return actor.core.get_hp_max()
+
   def get_skills(actor): return actor.core.skills
   def get_active_skills(actor): return actor.core.get_active_skills()
   def is_dead(actor): return actor.core.dead

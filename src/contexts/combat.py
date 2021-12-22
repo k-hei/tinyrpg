@@ -255,7 +255,9 @@ class CombatContext(ExploreBase):
   def move(ctx, actor, delta, duration=0, jump=False, on_end=None):
     target_cell = vector.add(actor.cell, delta)
     target_tile = ctx.stage.get_tile_at(target_cell)
-    if not Tile.is_walkable(target_tile):
+    origin_tile = ctx.stage.get_tile_at(actor.cell)
+    if (not Tile.is_walkable(target_tile)
+    or abs(target_tile.elev - origin_tile.elev) >= 1):
       return False
 
     target_elem = (
@@ -528,14 +530,14 @@ class CombatContext(ExploreBase):
   def flinch(ctx, target, damage, direction=None, crit=False, block=False, animate=True, on_end=None):
     show_text = lambda: ctx.vfx.append(DamageValue(
       text=find_damage_text(damage),
-      cell=target.cell,
+      pos=target.pos,
     ))
 
     if damage and crit:
       ctx.vfx.extend([
         DamageValue(
           text="CRITICAL!",
-          cell=target.cell,
+          pos=target.pos,
           offset=(4, -4),
           color=GOLD,
           delay=15
@@ -730,7 +732,7 @@ class CombatContext(ExploreBase):
       ctx.vfx.append(DamageValue(
         text=ailment.upper(),
         color=color,
-        cell=actor.cell,
+        pos=actor.pos,
         offset=(4, -4),
         delay=15,
       ))
