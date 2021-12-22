@@ -74,10 +74,16 @@ class ExploreContext(ExploreBase):
     if not button:
       delta = input.resolve_delta()
       if delta != (0, 0):
-        return ctx.handle_move(
-          delta=delta,
-          running=input.get_state(input.CONTROL_RUN) > 0
-        )
+        if button not in ctx.buttons_rejected:
+          moved = ctx.handle_move(
+            delta=delta,
+            running=input.get_state(input.CONTROL_RUN) > 0
+          )
+          if moved == False:
+            ctx.buttons_rejected[button] = 0
+          return moved
+        elif ctx.buttons_rejected[button] >= 30:
+          return ctx.handle_push()
       else:
         return False
 
@@ -124,7 +130,7 @@ class ExploreContext(ExploreBase):
     if not ctx.hero:
       return
 
-    moved = ctx.move_actor(ctx.hero, delta, running)
+    moved = ctx.move_elem(ctx.hero, delta, running)
 
     prop = next((e for e in ctx.stage.elems if
       isinstance(e, ItemDrop) # TODO: design generic model for steppables
@@ -163,25 +169,28 @@ class ExploreContext(ExploreBase):
           )
         elif move_data:
           delta, running = move_data
-          ctx.move_actor(ctx.ally, delta, running)
+          ctx.move_elem(ctx.ally, delta, running)
 
       else:
         ctx.ally.stop_move()
 
-  def move_actor(ctx, actor, delta, running=False):
+    return moved
+
+  def move_elem(ctx, elem, delta, speed=None, running=False):
+    speed = speed or elem.speed
     delta_x, delta_y = delta
     leaping = False
 
     def move_axis(delta):
       nonlocal leaping
-      old_pos = actor.pos
-      ctx.move(actor, delta=delta, diagonal=(delta_x and delta_y), running=running)
-      collidee = ctx.collide(actor, delta=delta)
-      new_pos = actor.pos
-      if collidee and not leaping and issubclass(collidee, tileset.Pit):
-        if actor is ctx.hero and ctx.ally:
+      old_pos = elem.pos
+      ctx.move(elem, delta=delta, diagonal=(delta_x and delta_y), running=running)
+      collidee = ctx.collide(elem, delta=delta)
+      new_pos = elem.pos
+      if collidee and not leaping and isinstance(elem, DungeonActor) and issubclass(collidee, tileset.Pit):
+        if elem is ctx.hero and ctx.ally:
           ctx.ally.stop_move()
-        leaping = ctx.leap(actor=actor, running=running)
+        leaping = ctx.leap(actor=elem, running=running)
       return new_pos != old_pos
 
     moved_x = delta_x and move_axis((delta_x, 0))
@@ -192,7 +201,8 @@ class ExploreContext(ExploreBase):
   def move(ctx, actor, delta, diagonal=False, running=False):
     actor.move(delta, diagonal, running)
 
-  def move_to(ctx, actor, dest, running=False):
+  def move_to(ctx, actor, dest, speed=None, running=False):
+    speed = speed or actor.speed
     actor_x, actor_y = actor.pos
     dest_x, dest_y = dest
 
@@ -210,7 +220,7 @@ class ExploreContext(ExploreBase):
     else:
       delta_y = 0
 
-    return ctx.move_actor(actor, (delta_x, delta_y), running)
+    return ctx.move_elem(actor, (delta_x, delta_y), running)
 
   def collide(ctx, actor, delta):
     if delta == (0, 0):

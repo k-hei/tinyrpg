@@ -55,7 +55,7 @@ class PushBlock(Prop):
     return [cell, kind, *(props and [props] or [])]
 
   def on_push(block, game):
-    target_elem = game.stage.get_elem_at(block.cell, exclude=[PushBlock])
+    target_elem = next((e for e in game.stage.get_elems_at(block.cell) if not isinstance(e, PushBlock)), None)
     if type(target_elem) is PushTile:
       block.static = True
       block.active = False

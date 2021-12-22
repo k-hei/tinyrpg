@@ -2,16 +2,26 @@ from random import random
 from lib.cell import manhattan, upscale
 import lib.vector as vector
 import lib.input as input
+from lib.direction import invert as invert_direction, normal as normalize_direction
 from helpers.findactor import find_actor
 from contexts import Context
 from anims.item import ItemAnim
+from anims.step import StepAnim
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
+from anims.jump import JumpAnim
 from dungeon.actors import DungeonActor
 from dungeon.props.itemdrop import ItemDrop
 from tiles import Tile
 import tiles.default as tileset
 from vfx.talkbubble import TalkBubble
+from config import MOVE_DURATION, PUSH_DURATION
+
+COMMAND_MOVE = "move"
+COMMAND_MOVE_TO = "move_to"
+COMMAND_ATTACK = "attack"
+COMMAND_SKILL = "use_skill"
+COMMAND_WAIT = "wait"
 
 class ExploreBase(Context):
   def __init__(ctx, store=None, stage=None, stage_view=None, *args, **kwargs):
@@ -125,6 +135,99 @@ class ExploreBase(Context):
       and not e.dead
       and room and e.cell in room.cells
     ]
+
+  def move_cell(ctx, actor, delta, duration=0, jump=False, on_end=None):
+    target_cell = vector.add(actor.cell, delta)
+    target_tile = ctx.stage.get_tile_at(target_cell)
+    origin_tile = ctx.stage.get_tile_at(actor.cell)
+    if (not Tile.is_walkable(target_tile)
+    or abs(target_tile.elev - origin_tile.elev) >= 1):
+      return False
+
+    target_elem = (
+      next((e for e in ctx.stage.get_elems_at(target_cell) if e.solid), None)
+      or next((e for e in ctx.stage.get_elems_at(target_cell)), None)
+    )
+
+    if target_elem and target_elem.solid and not (target_elem is ctx.ally and not ctx.ally.command):
+      return False
+
+    move_command = (actor, (COMMAND_MOVE, delta))
+    has_command_queue = "command_queue" in dir(ctx)
+    has_command_queue and ctx.command_queue.append(move_command)
+
+    move_duration = duration or MOVE_DURATION
+    move_duration = move_duration * 1.5 if jump else move_duration
+    move_kind = JumpAnim if jump else StepAnim
+    move_anim = move_kind(
+      target=actor,
+      src=actor.cell,
+      dest=target_cell,
+      duration=move_duration,
+      on_end=lambda: (
+        has_command_queue and move_command in ctx.command_queue and ctx.command_queue.remove(move_command),
+        on_end and on_end(),
+      )
+    )
+    move_anim.update() # initial update to ensure walk animation loops seamlessly
+
+    move_group = next((g for g in ctx.anims for a in g if isinstance(a, StepAnim) and isinstance(a.target, DungeonActor)), None)
+    not move_group and ctx.anims.append(move_group := [])
+    move_group.append(move_anim)
+    if jump:
+      ctx.anims[-1].append(PauseAnim(duration=move_duration + 5))
+
+    ctx.update_bubble()
+    actor.cell = target_cell
+    actor.facing = normalize_direction(delta)
+    actor.command = move_command
+
+    if target_elem and target_elem is ctx.ally:
+      ctx.move_cell(actor=ctx.ally, delta=invert_direction(delta))
+
+    return True
+
+  def handle_push(ctx):
+    target_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
+    target_elem = next((e for e in ctx.stage.get_elems_at(target_cell) if e.solid and not e.static), None)
+    if not target_elem:
+      return False
+
+    return ctx.push(
+      actor=ctx.hero,
+      target=target_elem,
+      on_end=lambda: (
+        ctx.update_bubble(),
+        "step" in dir(ctx) and ctx.step(),
+      )
+    )
+
+  def push(ctx, actor, target, on_end=None):
+    src_cell = target.cell
+    dest_cell = vector.add(src_cell, actor.facing)
+    dest_tile = ctx.stage.get_tile_at(dest_cell)
+    dest_elem = next((e for e in ctx.stage.get_elems_at(dest_cell) if e.solid), None)
+    if (target.static
+    or dest_tile is None
+    or dest_tile.solid
+    or dest_tile.pit
+    or dest_elem):
+      return False
+
+    target.cell = dest_cell
+    ctx.move_cell(actor, delta=actor.facing, duration=PUSH_DURATION, on_end=on_end)
+    not ctx.anims and ctx.anims.append([])
+    ctx.anims[-1].extend([
+      StepAnim(
+        target=target,
+        src=src_cell,
+        dest=dest_cell,
+        duration=PUSH_DURATION,
+      ),
+      PauseAnim(duration=15)
+    ])
+    target.on_push(ctx)
+    return True
 
   def handle_obtain(ctx, item, target, on_start=None, on_end=None):
     if not ctx.hero:
