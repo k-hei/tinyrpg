@@ -1,4 +1,5 @@
 from pygame import Rect
+import lib.vector as vector
 from dungeon.props import Prop
 from dungeon.props.pushtile import PushTile
 from assets import load as use_assets
@@ -46,6 +47,15 @@ class PushBlock(Prop):
   def __init__(block, placed=False):
     super().__init__(static=placed)
 
+  @property
+  def rect(block):
+    if block._rect is None and block.pos:
+      block._rect = Rect(
+        vector.add(block.pos, (-16, -16)),
+        (32, 32)
+      )
+    return block._rect
+
   def encode(block):
     [cell, kind, *props] = super().encode()
     props = {
@@ -88,6 +98,7 @@ class PushBlock(Prop):
       ))
     return super().view([Sprite(
       image=block_image,
-      pos=(0, 0),
-      layer="elems"
+      pos=(0, 16),
+      origin=Sprite.ORIGIN_BOTTOM,
+      layer="elems",
     )], anims)

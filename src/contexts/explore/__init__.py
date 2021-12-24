@@ -71,7 +71,7 @@ class ExploreContext(ExploreBase):
     if ctx.anims:
       return
 
-    if not button:
+    if button:
       delta = input.resolve_delta()
       if delta != (0, 0):
         if button not in ctx.buttons_rejected:
@@ -84,8 +84,6 @@ class ExploreContext(ExploreBase):
           return moved
         elif ctx.buttons_rejected[button] >= 30:
           return ctx.handle_push()
-      else:
-        return False
 
     control = input.resolve_control(button)
 

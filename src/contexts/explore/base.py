@@ -1,5 +1,5 @@
 from random import random
-from lib.cell import manhattan, upscale
+from lib.cell import manhattan, upscale, downscale
 import lib.vector as vector
 import lib.input as input
 from lib.direction import invert as invert_direction, normal as normalize_direction
@@ -136,7 +136,7 @@ class ExploreBase(Context):
       and room and e.cell in room.cells
     ]
 
-  def move_cell(ctx, actor, delta, duration=0, jump=False, on_end=None):
+  def move_cell(ctx, actor, delta, duration=0, jump=False, fixed=True, on_end=None):
     target_cell = vector.add(actor.cell, delta)
     target_tile = ctx.stage.get_tile_at(target_cell)
     origin_tile = ctx.stage.get_tile_at(actor.cell)
@@ -156,13 +156,15 @@ class ExploreBase(Context):
     has_command_queue = "command_queue" in dir(ctx)
     has_command_queue and ctx.command_queue.append(move_command)
 
+    move_src = actor.cell if fixed else downscale(actor.pos, ctx.stage.tile_size)
+    move_dest = target_cell if fixed else vector.add(move_src, delta)
     move_duration = duration or MOVE_DURATION
     move_duration = move_duration * 1.5 if jump else move_duration
     move_kind = JumpAnim if jump else StepAnim
     move_anim = move_kind(
       target=actor,
-      src=actor.cell,
-      dest=target_cell,
+      src=move_src,
+      dest=move_dest,
       duration=move_duration,
       on_end=lambda: (
         has_command_queue and move_command in ctx.command_queue and ctx.command_queue.remove(move_command),
@@ -215,7 +217,7 @@ class ExploreBase(Context):
       return False
 
     target.cell = dest_cell
-    ctx.move_cell(actor, delta=actor.facing, duration=PUSH_DURATION, on_end=on_end)
+    ctx.move_cell(actor, delta=actor.facing, duration=PUSH_DURATION, fixed=False, on_end=on_end)
     not ctx.anims and ctx.anims.append([])
     ctx.anims[-1].extend([
       StepAnim(
