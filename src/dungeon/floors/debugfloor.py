@@ -12,7 +12,11 @@ class DebugFloor(Floor):
         nodes=[
           Room(data=RoomData(**rooms["entry"])),
           # Room(data=RoomData(**choice(rooms["oasis"]))),
-          Room(data=RoomData(**rooms["pzlt1"])),
+          puzzle_room := Room(data=RoomData(**rooms["pzlt1"])),
+          key_room := Room(data=RoomData(**rooms["key"])),
+        ],
+        edges=[
+          (puzzle_room, key_room),
         ]
       ),
       extra_room_count=1,

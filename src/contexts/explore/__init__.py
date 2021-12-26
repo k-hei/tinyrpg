@@ -128,7 +128,7 @@ class ExploreContext(ExploreBase):
     if not ctx.hero:
       return
 
-    moved = ctx.move_elem(ctx.hero, delta, running)
+    moved = ctx.move_elem(elem=ctx.hero, delta=delta, running=running)
 
     prop = next((e for e in ctx.stage.elems if
       not e.solid
@@ -168,15 +168,14 @@ class ExploreContext(ExploreBase):
           )
         elif move_data:
           delta, running = move_data
-          ctx.move_elem(ctx.ally, delta, running)
+          ctx.move_elem(elem=ctx.ally, delta=delta, running=running)
 
       else:
         ctx.ally.stop_move()
 
     return moved
 
-  def move_elem(ctx, elem, delta, speed=None, running=False):
-    speed = speed or elem.speed
+  def move_elem(ctx, elem, delta, running=False):
     delta_x, delta_y = delta
     leaping = False
 
