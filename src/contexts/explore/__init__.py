@@ -131,7 +131,8 @@ class ExploreContext(ExploreBase):
     moved = ctx.move_elem(ctx.hero, delta, running)
 
     prop = next((e for e in ctx.stage.elems if
-      isinstance(e, ItemDrop) # TODO: design generic model for steppables
+      not e.solid
+      and e.active
       and ctx.hero.rect.colliderect(e.rect)
     ), None)
     if prop:

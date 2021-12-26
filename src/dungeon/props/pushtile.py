@@ -10,6 +10,8 @@ from colors.palette import BLACK, WHITE, GRAY, PURPLE, DARKGRAY, DARKBLUE
 from config import PUSH_DURATION
 
 class PushTile(DungeonElement):
+  active = True
+
   def __init__(tile, pushed=False, completed=False):
     super().__init__(solid=False)
     tile.pushed = pushed
@@ -39,7 +41,7 @@ class PushTile(DungeonElement):
     # find_pushtiles(stage, room)
     pushtiles = []
     for cell in game.room.get_cells():
-      pushtile = game.stage.get_elem_at(cell, superclass=PushTile)
+      pushtile = next((e for e in game.stage.get_elems_at(cell) if isinstance(e, PushTile)), None)
       if pushtile:
         pushtiles.append(pushtile)
 
