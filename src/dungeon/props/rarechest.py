@@ -41,15 +41,13 @@ class RareChest(Prop):
   def effect(chest, game, *_):
     script = []
     contents = chest.contents
-    item_anim = None
     success = False
     if contents:
       if game.store.obtain(contents) or contents is Virus:
         success = True
         game.camera.focus(
-          cell=chest.cell,
+          target=chest,
           force=True,
-          speed=8
         )
         game.open(child=CutsceneContext(
           script=[

@@ -3,10 +3,11 @@ from dungeon.element import DungeonElement
 from dungeon.actors import DungeonActor
 from dungeon.props.door import Door
 import assets
+import lib.vector as vector
 from lib.sprite import Sprite
 from lib.filters import replace_color
 from anims.pause import PauseAnim
-from colors.palette import BLACK, WHITE, GRAY, PURPLE, DARKGRAY, DARKBLUE
+from colors.palette import BLACK, GRAY, PURPLE, DARKGRAY, DARKBLUE
 from config import PUSH_DURATION
 
 class PushTile(DungeonElement):
@@ -18,6 +19,15 @@ class PushTile(DungeonElement):
     tile.completed = completed
     tile.sinking = False
     tile.anim = None
+
+  @property
+  def rect(block):
+    if block._rect is None and block.pos:
+      block._rect = Rect(
+        vector.add(block.pos, (-16, -16)),
+        (32, 32)
+      )
+    return block._rect
 
   def encode(tile):
     [cell, kind, *props] = super().encode()

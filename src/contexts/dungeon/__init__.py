@@ -49,7 +49,7 @@ class DungeonContext(ExploreBase):
 
   def enter(ctx):
     heroes = [manifest_actor(c) for c in ctx.store.party]
-    stage_entrance = next((cell for cell, tile in ctx.stage.tiles.enumerate() if issubclass(tile, tileset.Entrance)), None)
+    stage_entrance = ctx.stage.entrance or next((cell for cell, tile in ctx.stage.tiles.enumerate() if issubclass(tile, tileset.Entrance)), None)
     if stage_entrance:
       for i, hero in enumerate(heroes):
         ctx.stage.spawn_elem_at(stage_entrance, hero)

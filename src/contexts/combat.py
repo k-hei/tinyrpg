@@ -94,6 +94,7 @@ class CombatContext(ExploreBase):
         on_start=(lambda: (
           ctx.anims[0].append(JumpAnim(
             target=actor,
+            height=28,
             delay=actor.core.BrandishAnim.frames_duration[0],
             duration=actor.core.BrandishAnim.jump_duration,
           ))

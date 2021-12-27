@@ -19,6 +19,6 @@ class DebugFloor(Floor):
           (puzzle_room, key_room),
         ]
       ),
-      extra_room_count=1,
+      extra_room_count=5,
       seed=seed
     )

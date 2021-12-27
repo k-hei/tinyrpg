@@ -3,7 +3,7 @@ from lib.graph import Graph
 from lib.cell import manhattan
 from dungeon.floors import Floor
 from dungeon.room import Blob as Room
-from dungeon.roomdata import RoomData, rooms
+from contexts.explore.roomdata import RoomData, rooms
 from dungeon.gen import gen_floor
 from dungeon.gen.blob import gen_blob
 from dungeon.actors.eyeball import Eyeball
@@ -101,7 +101,7 @@ class Floor1(Floor):
             enemies=[Eyeball(rare=True), Eyeball(), Eyeball(), Eyeball(), Eyeball()],
             items=True,
             degree=1,
-            secret=True
+            # secret=True
           )),
         ],
         edges=[
