@@ -3,6 +3,7 @@ from math import inf
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
 import lib.vector as vector
+from lib.cell import upscale
 
 from dungeon.actors.mummy import Mummy
 from dungeon.props.coffin import Coffin
@@ -28,7 +29,8 @@ def on_enter(room, game):
       lambda step: (
         spawn_enemies(room, game),
         room.lock(game),
-        step()
+        game.handle_combat(),
+        step(),
       )
     ])
   ]))
@@ -256,7 +258,7 @@ def cutscene(room, game):
 
 def take_battle_position(room, game):
   hero = game.hero
-  mage = room.mage
+  mage = room.mage if not game.ally else None
   goal_cell = (mage
     and vector.add(mage.cell, (0, 2))
     or vector.add(sorted(room.edges, key=lambda e: e[1])[0], (0, 1)))
@@ -270,15 +272,13 @@ def take_battle_position(room, game):
           goal=goal_cell
         ),
         on_end=lambda: (
-          setattr(hero, "facing", (0, -1)),
+          setattr(hero, "facing", (0, 1)),
           not mage and step()
         )
       )]),
       hero.move_to(goal_cell),
-      game.camera.focus(
-        cell=vector.add(hero.cell, (0, -0.5)),
-        speed=75 if mage else 60,
-        tween=bool(mage),
+      mage and game.camera.tween(
+        target=upscale(hero.cell, game.stage.tile_size),
         on_end=step
       ),
     ),

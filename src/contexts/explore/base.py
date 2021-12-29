@@ -54,7 +54,16 @@ class ExploreBase(Context):
 
   @property
   def room(ctx):
-    return ctx.hero and next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells), None)
+    if "_room" not in dir(ctx):
+      ctx._room = ctx.hero and ctx.find_room(ctx.hero.cell)
+    return ctx._room
+
+  @room.setter
+  def room(ctx, room):
+    ctx._room = room
+
+  def find_room(ctx, cell):
+    return next((r for r in ctx.stage.rooms if cell in r.cells), None)
 
   @property
   def visited_cells(ctx):

@@ -31,7 +31,10 @@ class ExploreContext(ExploreBase):
     ctx.close()
 
   def open(ctx, child, on_close=None):
-    on_close = compose(on_close, ctx.parent.update_bubble)
+    _on_close = lambda *args: (
+      on_close and on_close(*args),
+      ctx.parent.update_bubble(),
+    )
 
     context_comps = {
       InventoryContext: [ctx.comps.hud, ctx.comps.sp_meter],
@@ -39,7 +42,7 @@ class ExploreContext(ExploreBase):
     }
 
     if type(child) not in context_comps.keys():
-      return super().open(child, on_close)
+      return super().open(child, _on_close)
 
     comps = context_comps[type(child)]
     open = super().open
@@ -50,7 +53,7 @@ class ExploreContext(ExploreBase):
     for comp in comps:
       on_end = (lambda: (
         open(child, on_close=lambda: (
-          on_close and on_close(),
+          _on_close(),
           [(
             c.exit()
               if c.active
@@ -138,9 +141,6 @@ class ExploreContext(ExploreBase):
     if prop:
       prop.effect(ctx, ctx.hero)
       ctx.hero.stop_move()
-
-    if ctx.find_enemies_in_range():
-      ctx.handle_combat()
 
     if ctx.ally:
       if moved:

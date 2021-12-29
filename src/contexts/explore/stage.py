@@ -158,3 +158,10 @@ class Stage:
         and not next((e for e in stage.get_elems_at(c) if e.solid and not isinstance(e, DungeonActor)), None)
       ) if ignore_actors else stage.is_cell_empty(c)
     )] if room else []
+
+  # TODO: relocate into helper
+  def find_elem(stage, cls):
+    return next((e for c in stage.cells for e in stage.get_elems_at(c) if (
+      type(cls) is type and isinstance(e, cls)
+      or type(cls) is str and type(e).__name__ == cls
+    )), None)

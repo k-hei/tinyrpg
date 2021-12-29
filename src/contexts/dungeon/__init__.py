@@ -46,6 +46,7 @@ class DungeonContext(ExploreBase):
     ctx.hero_facing = None
     ctx.comps = []
     ctx.rooms = []
+    ctx.rooms_entered = set()
 
   def enter(ctx):
     heroes = [manifest_actor(c) for c in ctx.store.party]
@@ -82,17 +83,23 @@ class DungeonContext(ExploreBase):
       return ctx.child.handle_press(button)
 
   def refresh_fov(ctx):
-    room = next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells + r.border), None)
-    if room:
-      visible_cells = room.cells + room.visible_outline
-      ctx.camera.focus(room)
-      if room not in ctx.rooms:
-        ctx.rooms.append(room)
+    room_entered = next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells), None)
+    if room_entered and room_entered not in ctx.rooms_entered:
+      ctx.rooms_entered.add(room_entered)
+      room_entered.on_enter(ctx)
+
+    room_focused = next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells + r.border), None)
+    if room_focused:
+      visible_cells = room_focused.cells + room_focused.visible_outline
+      ctx.camera.focus(room_focused)
+      if room_focused not in ctx.rooms:
+        ctx.rooms.append(room_focused)
+        room_focused.on_focus(ctx)
     else:
       visible_cells = shadowcast(ctx.stage, ctx.hero.cell, VISION_RANGE)
-      room = next((t for t in ctx.camera.target if isinstance(t, Room)), None)
-      if room:
-        ctx.camera.blur(room)
+      room_focused = next((t for t in ctx.camera.target if isinstance(t, Room)), None)
+      if room_focused:
+        ctx.camera.blur(room_focused)
       ctx.camera.focus(ctx.hero)
     visible_cells += neighborhood(ctx.hero.cell)
 
@@ -295,6 +302,9 @@ class DungeonContext(ExploreBase):
 
       if issubclass(new_tile, tileset.Oasis):
         ctx.handle_oasis()
+
+      if ctx.find_enemies_in_range():
+        ctx.handle_combat()
 
     ctx.hero_cell = ctx.hero.cell
     ctx.update_bubble()

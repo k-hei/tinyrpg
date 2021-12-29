@@ -15,7 +15,6 @@ from items.equipment.rustyblade import RustyBlade
 from skills.weapon import Weapon
 from anims.warpin import WarpInAnim
 from anims.flicker import FlickerAnim
-from anims.pause import PauseAnim
 from comps.log import Token
 from colors.palette import GRAY, RED, BLUE, GREEN
 
