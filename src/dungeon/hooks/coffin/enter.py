@@ -277,9 +277,9 @@ def take_battle_position(room, game):
         )
       )]),
       hero.move_to(goal_cell),
-      mage and game.camera.tween(
-        target=upscale(hero.cell, game.stage.tile_size),
-        on_end=step
+      game.camera.tween(
+        target=upscale(goal_cell, game.stage.tile_size),
+        on_end=step,
       ),
     ),
   ]

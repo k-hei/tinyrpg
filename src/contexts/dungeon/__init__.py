@@ -133,9 +133,11 @@ class DungeonContext(ExploreBase):
     handle_start = lambda: (
       illuminate_hallway(),
       ctx.child.handle_hallway(),
+      setattr(ctx.stage_view, "transitioning", True),
     )
 
     handle_end = lambda: (
+      setattr(ctx.stage_view, "transitioning", False),
       ctx.refresh_fov(),
     )
 
@@ -144,10 +146,7 @@ class DungeonContext(ExploreBase):
       ctx.ally.cell = hallway[-2]
       ctx.ally.facing = vector.subtract(hallway[-1], hallway[-2])
 
-    tween_duration = ctx.camera.tween(
-      target=[room, ctx.hero],
-      force=True
-    )
+    tween_duration = ctx.camera.tween(target=[room, ctx.hero])
     if tween_duration:
       not ctx.anims and ctx.anims.append([])
       ctx.anims[0].append(PauseAnim(
@@ -271,6 +270,9 @@ class DungeonContext(ExploreBase):
     ctx.comps.minimap.enter()
 
   def handle_combat(ctx):
+    if type(ctx.child) is CombatContext:
+      return
+
     ctx.open(CombatContext(
       store=ctx.store,
       stage=ctx.stage,

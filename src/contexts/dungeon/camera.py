@@ -125,9 +125,9 @@ class Camera:
       anim.target = (camera.pos, target_pos)
       camera.anim = anim
 
-  def tween(camera, target, force=False, on_end=None):
+  def tween(camera, target, on_end=None):
     start_pos = camera.pos
-    camera.focus(target, force)
+    camera.focus(target, force=True)
     goal_pos = Camera.resolve_target_group(camera.target_groups[-1])
 
     if not start_pos:

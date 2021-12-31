@@ -75,6 +75,7 @@ class StageView:
     view.anims = []
     view.vfx = []
     view.darkened = False
+    view.transitioning = False
     view.cache_camera_cell = None
     view.cache_visible_cells = []
     view.cache_visited_cells = []
@@ -244,7 +245,7 @@ class StageView:
   def view_elems(view, elems, hero=None, visited_cells=None):
     return [s for e in elems for s in view.view_elem(elem=e, visited_cells=visited_cells)
       if (not hero or e.cell in hero.visible_cells)
-      and (not view.camera.anim or isinstance(e, Door))
+      and (not view.transitioning or isinstance(e, Door))
     ]
 
   def view_vfx(view, vfx):
