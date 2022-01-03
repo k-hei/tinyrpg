@@ -266,7 +266,6 @@ def take_battle_position(room, game):
     lambda step: (
       game.anims.append([PathAnim(
         target=hero,
-        period=RUN_DURATION,
         path=game.stage.pathfind(
           start=hero.cell,
           goal=goal_cell
@@ -277,10 +276,21 @@ def take_battle_position(room, game):
         )
       )]),
       hero.move_to(goal_cell),
-      game.camera.tween(
-        target=upscale(goal_cell, game.stage.tile_size),
-        on_end=step,
-      ),
+      game.ally and game.anims[-1].append(PathAnim(
+        target=game.ally,
+        path=game.stage.pathfind(
+          start=game.ally.cell,
+          goal=vector.add(goal_cell, (1, 0))
+        ),
+        on_end=lambda: (
+          setattr(game.ally, "facing", (0, 1))
+        )
+      )),
+      game.ally and game.ally.move_to(goal_cell)
+      # game.camera.tween(
+      #   target=upscale(goal_cell, game.stage.tile_size),
+      #   on_end=step,
+      # ),
     ),
   ]
 

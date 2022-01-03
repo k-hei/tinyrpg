@@ -47,8 +47,9 @@ def find_damage_text(damage):
     return int(damage)
 
 class CombatContext(ExploreBase):
-  def __init__(ctx, *args, **kwargs):
+  def __init__(ctx, path=False, *args, **kwargs):
     super().__init__(*args, **kwargs)
+    ctx.should_path = path
     ctx.exiting = False
     ctx.turns = 0
     ctx.command_queue = []
@@ -107,13 +108,13 @@ class CombatContext(ExploreBase):
     )
 
     hero_brandish = create_brandish(ctx.hero)
+    ally_brandish = ctx.ally and create_brandish(ctx.ally)
 
-    animate_snap(ctx.hero, on_end=(lambda: (
-      ctx.anims[0].append(hero_brandish)
-    )) if not ctx.ally else None)
-    ctx.ally and animate_snap(ctx.ally)
+    if ctx.should_path:
+      animate_snap(ctx.hero)
+      ctx.ally and animate_snap(ctx.ally)
 
-    if ctx.ally:
+    if ctx.ally and ctx.should_path:
       start_cells = [c for c in neighborhood(ctx.hero.cell, diagonals=True) + [ctx.hero.cell] if
         not next((e for e in ctx.stage.get_elems_at(c) if
           isinstance(e, Door)
@@ -144,7 +145,11 @@ class CombatContext(ExploreBase):
         )
       ])
 
-      ally_brandish = create_brandish(ctx.ally)
+    elif ctx.ally:
+      ctx.anims.append([hero_brandish, ally_brandish])
+
+    else:
+      ctx.anims.append([hero_brandish])
 
   def exit(ctx, ally_rejoin=False):
     if ctx.exiting:

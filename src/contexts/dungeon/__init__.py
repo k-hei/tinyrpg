@@ -269,7 +269,7 @@ class DungeonContext(ExploreBase):
     ), on_close=ctx.handle_combat)
     ctx.comps.minimap.enter()
 
-  def handle_combat(ctx):
+  def handle_combat(ctx, path=False):
     if type(ctx.child) is CombatContext:
       return
 
@@ -277,6 +277,7 @@ class DungeonContext(ExploreBase):
       store=ctx.store,
       stage=ctx.stage,
       stage_view=ctx.stage_view,
+      path=path,
     ), on_close=ctx.handle_explore)
     ctx.comps.minimap.exit()
     ctx.comps.hud.enter()
@@ -306,7 +307,7 @@ class DungeonContext(ExploreBase):
         ctx.handle_oasis()
 
       if ctx.find_enemies_in_range():
-        ctx.handle_combat()
+        ctx.handle_combat(path=True)
 
     ctx.hero_cell = ctx.hero.cell
     ctx.update_bubble()
