@@ -271,26 +271,21 @@ def take_battle_position(room, game):
           goal=goal_cell
         ),
         on_end=lambda: (
-          setattr(hero, "facing", (0, 1)),
-          not mage and step()
+          hero.stop_move(),
+          not mage and step(),
         )
       )]),
-      hero.move_to(goal_cell),
       game.ally and game.anims[-1].append(PathAnim(
         target=game.ally,
         path=game.stage.pathfind(
           start=game.ally.cell,
-          goal=vector.add(goal_cell, (1, 0))
+          goal=vector.add(goal_cell, (1, 0)),
+          whitelist=game.room.cells
         ),
         on_end=lambda: (
-          setattr(game.ally, "facing", (0, 1))
+          game.ally.stop_move(),
         )
       )),
-      game.ally and game.ally.move_to(goal_cell)
-      # game.camera.tween(
-      #   target=upscale(goal_cell, game.stage.tile_size),
-      #   on_end=step,
-      # ),
     ),
   ]
 
