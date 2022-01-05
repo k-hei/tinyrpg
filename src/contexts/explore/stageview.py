@@ -243,10 +243,11 @@ class StageView:
     return elem_sprites
 
   def view_elems(view, elems, hero=None, visited_cells=None):
-    return [s for e in elems for s in view.view_elem(elem=e, visited_cells=visited_cells)
+    elems = [e for e in elems
       if (not hero or e.cell in hero.visible_cells)
       and (not view.transitioning or isinstance(e, Door))
     ]
+    return [s for e in elems for s in view.view_elem(elem=e, visited_cells=visited_cells)]
 
   def view_vfx(view, vfx):
     return [s for v in vfx for s in v.view()]
@@ -280,4 +281,5 @@ class StageView:
       offset=camera_offset
     )
     sprites.sort(key=StageView.order)
+
     return sprites

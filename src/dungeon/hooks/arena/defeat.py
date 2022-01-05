@@ -1,5 +1,5 @@
 from random import shuffle
-from lib.cell import manhattan, neighborhood
+from lib.cell import manhattan, neighborhood, upscale
 from anims.pause import PauseAnim
 from anims.warpin import WarpInAnim
 from anims.drop import DropAnim
@@ -23,7 +23,7 @@ def on_complete(room, game):
   game.open(CutsceneContext(script=[
     lambda step: (
       game.camera.focus(
-        cell=door.cell,
+        target=upscale(door.cell, game.stage.tile_size),
         force=True
       ),
       game.anims.insert(0, [
@@ -38,7 +38,7 @@ def on_complete(room, game):
     ),
     lambda step: (
       game.camera.focus(
-        cell=room.center,
+        target=upscale(room.center, game.stage.tile_size),
         force=True
       ),
       game.anims.append([PauseAnim(duration=30, on_end=step)])
