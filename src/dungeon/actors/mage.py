@@ -1,5 +1,4 @@
 from random import randint, choice
-import pygame
 from dungeon.actors import DungeonActor
 from cores.mage import Mage as MageCore
 from assets import load as use_assets
@@ -88,10 +87,12 @@ class Mage(DungeonActor):
         mage.charge(skill=Congelatio, dest=enemy.cell)
       else:
         mage.charge(skill=Glacio)
-      return game.log.print((mage.token(), " is chanting."))
+      return game.comps.minilog.print((mage.token(), " is chanting."))
 
-    has_allies = next((e for e in [game.stage.get_elem_at(c, superclass=DungeonActor) for c in game.room.get_cells()] if (
-      e and e is not mage
+    has_allies = next((e for c in game.room.get_cells() for e in game.stage.get_elems_at(c) if (
+      e
+      and e is not mage
+      and isinstance(e, DungeonActor)
       and e.faction == mage.faction
     )), None)
 

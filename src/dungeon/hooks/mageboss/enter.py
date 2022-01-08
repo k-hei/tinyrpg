@@ -25,7 +25,10 @@ def on_enter(room, game):
 def prebattle_cutscene_setup(room, game):
   return [
     lambda step: (
-      game.camera.focus(room.get_center(), speed=8),
+      # game.camera.focus(
+      #   target=room,
+      #   force=True
+      # ),
       game.hero.move_to(add_vector(room.cell, (3, 4))),
       game.anims.append([PathAnim(
         target=game.hero,
@@ -143,6 +146,9 @@ def prebattle_cutscene_teardown(room, game):
     lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
     lambda step: (
       setattr(mage, "faction", "enemy"),
+      game.camera.blur(),
+      print(game.camera.target_groups),
+      game.handle_combat(),
       step()
     )
   ]

@@ -91,22 +91,19 @@ def postbattle_cutscene_teardown(room, game):
   mage = room.mage
   return [
     lambda step: (
-      game.recruit(mage),
+      game.recruit_actor(mage),
       room.unlock(game),
       game.store.learn_skill(skill=BroadSword),
       game.end_step(),
       step()
     ),
     lambda step: (
-      setattr(game.log, "autohide", False),
-      game.child.open(DialogueContext(
-        script=[
-          ("", ("Received ", BroadSword().token(), ".")),
-        ],
-        log=game.log
-      ), on_close=lambda: (
-        setattr(game.log, "autohide", True),
-        step()
-      ))
+      game.child.open(DialogueContext([
+        ("", ("Received ", BroadSword().token(), ".")),
+      ]), on_close=step)
     ),
+    lambda step: (
+      game.exit(),
+      step(),
+    )
   ]

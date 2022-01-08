@@ -419,6 +419,10 @@ class ExploreBase(Context):
     ])
     return True
 
+  def recruit_actor(game, actor):
+    actor.reset_charge()
+    game.store.recruit(actor.core)
+
   def update(ctx):
     super().update()
     ctx.update_buttons_rejected()
