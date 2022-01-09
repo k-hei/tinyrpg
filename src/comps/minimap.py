@@ -362,6 +362,6 @@ class Minimap:
     sprites.append(Sprite(
       image=minimap.sprite,
       pos=(x, y),
-      layer="hud"
+      layer="ui"
     ))
     return sprites

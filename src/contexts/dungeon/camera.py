@@ -148,6 +148,7 @@ class Camera:
       camera.target_groups.pop()
 
   def reset(camera):
+    camera.pos = None
     camera.target_groups = []
 
   def update(camera):

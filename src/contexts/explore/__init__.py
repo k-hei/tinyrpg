@@ -4,8 +4,8 @@ from pygame import Surface, SRCALPHA
 import lib.vector as vector
 from lib.sprite import Sprite
 import lib.input as input
-from lib.compose import compose
 from lib.direction import invert as invert_direction, normal as normalize_direction
+from helpers.stage import find_tile
 import debug
 
 from contexts.explore.base import ExploreBase
@@ -356,19 +356,33 @@ class ExploreContext(ExploreBase):
     if not ctx.hero:
       return False
 
+    app = ctx.get_head()
+    if app.transits:
+      return False
+
     hero_cell = ctx.hero.cell
     hero_tile = ctx.stage.get_tile_at(hero_cell)
     stairs = hero_tile if issubclass(hero_tile, (tileset.Entrance, tileset.Exit)) else None
     if not stairs:
       return False
 
-    stairs_edge = ctx.parent.graph.connector_edge(hero_cell)
-    dest_floor = next((n for n in stairs_edge if n != ctx.stage.generator), None)
+    stairs_edge = ctx.parent.graph.connector_edge((hero_tile, hero_cell))
+    if not stairs_edge:
+      return False # link doesn't exist in graph - how to handle besides ignore?
+
+    dest_floor = next((n for n in stairs_edge if n is not ctx.stage), None)
     if not dest_floor:
       return False # generate random floor in infinite dungeon
 
     stairs_dest = tileset.Entrance if issubclass(stairs, tileset.Exit) else tileset.Exit
-    ctx.goto_floor(dest_floor, stairs_dest)
+    if type(dest_floor) is type:
+      ctx.goto_floor(dest_floor, stairs_dest)
+    else:
+      app.transition([
+        DissolveIn(on_end=lambda: ctx.parent.use_stage(dest_floor, stairs_dest)),
+        DissolveOut()
+      ])
+
     return True
 
   def goto_floor(ctx, floor, stairs):
@@ -380,6 +394,12 @@ class ExploreContext(ExploreBase):
       transits=[DissolveIn(), DissolveOut()],
       loader=floor.generate(ctx.store),
       on_end=lambda stage: (
+        ctx.parent.graph.disconnect(ctx.stage, floor),
+        ctx.parent.graph.connect(
+          ctx.stage, stage,
+          (ctx.stage.get_tile_at(ctx.hero.cell), ctx.hero.cell),
+          (stairs, find_tile(stage, stairs)),
+        ),
         ctx.parent.use_stage(stage, stairs)
       )
     )

@@ -88,10 +88,17 @@ class DungeonContext(ExploreBase):
       next_floor = None
 
     stage_entrance = ctx.stage.entrance or find_tile(ctx.stage, tileset.Entrance)
-    stage_entrance and prev_floor and graph.connect(ctx.stage.generator, prev_floor, stage_entrance)
+    stage_entrance and prev_floor and graph.connect(
+      ctx.stage, prev_floor,
+      (ctx.stage.get_tile_at(stage_entrance), stage_entrance)
+    )
 
     stage_exit = find_tile(ctx.stage, tileset.Exit)
-    stage_exit and next_floor and graph.connect(ctx.stage.generator, next_floor, stage_exit)
+    stage_exit and next_floor and graph.connect(
+      ctx.stage, next_floor,
+      (ctx.stage.get_tile_at(stage_exit), stage_exit)
+    )
+
     return graph
 
   def refresh_fov(ctx):
@@ -119,6 +126,9 @@ class DungeonContext(ExploreBase):
     ctx.extend_visited_cells(visible_cells)
 
   def use_stage(ctx, stage, stairs=None):
+    ctx.hero and ctx.stage.remove_elem(ctx.hero)
+    ctx.ally and ctx.stage.remove_elem(ctx.ally)
+
     heroes = [manifest_actor(c) for c in ctx.store.party]
     stage_entrance = find_tile(stage, stairs) if stairs else stage.entrance
     if stage_entrance:
