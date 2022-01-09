@@ -76,9 +76,11 @@ def prebattle_cutscene(room, game):
         [PathAnim(
           target=mage,
           path=[add_vector(room.cell, c) for c in [(3, 2), (2, 2), (3, 2), (4, 2), (3, 2)]],
-          on_end=lambda: mage.face(knight.cell)
         )],
-        [JumpAnim(target=mage)]
+        [JumpAnim(
+          target=mage,
+          on_end=lambda: mage.face(knight.cell),
+        )]
       ]),
       (mage.name, "Do you know the last time I had a piece of cheese? OR BREAD?"),
     ]), on_close=step),
@@ -147,7 +149,6 @@ def prebattle_cutscene_teardown(room, game):
     lambda step: (
       setattr(mage, "faction", "enemy"),
       game.camera.blur(),
-      print(game.camera.target_groups),
       game.handle_combat(),
       step()
     )

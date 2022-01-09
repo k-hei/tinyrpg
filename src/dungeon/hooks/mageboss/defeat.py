@@ -1,4 +1,4 @@
-from lib.cell import add as add_vector
+from lib.cell import add as add_vector, upscale
 from skills.weapon.broadsword import BroadSword
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
@@ -56,7 +56,10 @@ def postbattle_cutscene(room, game):
   return [
     lambda step: (
       setattr(mage, "faction", "ally"),
-      game.camera.focus(midpoint, speed=8, force=True),
+      game.camera.focus(
+        target=upscale(midpoint, game.stage.tile_size),
+        force=True
+      ),
       mage.face(knight.cell),
       game.anims.append([JumpAnim(target=mage, on_end=step)])
     ),
@@ -74,7 +77,10 @@ def postbattle_cutscene(room, game):
       (mage.name, "My spirit is crushed. I am depressed."),
     ]), on_close=step),
     lambda step: (
-      game.camera.focus(add_vector(room.get_edges()[0], (0, 2)), speed=8, force=True),
+      game.camera.focus(
+        target=upscale(add_vector(room.get_edges()[0], (0, 2)), scale=game.stage.tile_size),
+        force=True
+      ),
       game.anims.append([PauseAnim(duration=15, on_end=step)]),
     ),
     lambda step: (
