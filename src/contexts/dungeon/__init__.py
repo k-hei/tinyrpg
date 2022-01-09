@@ -27,6 +27,14 @@ from anims.warpin import WarpInAnim
 from colors.palette import GREEN, CYAN
 from config import WINDOW_HEIGHT, VISION_RANGE
 
+from dungeon.floors.floor1 import Floor1
+from dungeon.floors.floor2 import Floor2
+from dungeon.floors.floor3 import Floor3
+from dungeon.gen.floorgraph import FloorGraph
+from helpers.stage import find_tile
+
+FLOOR_SEQUENCE = [Floor1, Floor2, Floor3]
+
 def manifest_actor(core):
   core_id = type(core).__name__
   core_actors = {
@@ -41,6 +49,7 @@ class DungeonContext(ExploreBase):
     ctx.store = store
     ctx.stage = stage
     ctx.stage_view = StageView(stage)
+    ctx.graph = ctx.construct_graph()
     ctx.memory = {}
     ctx.hero_cell = None
     ctx.hero_facing = None
@@ -66,6 +75,33 @@ class DungeonContext(ExploreBase):
       sp_meter=SpMeter(store=ctx.store),
     )
     ctx.handle_explore()
+
+  def construct_graph(ctx):
+    floor_names = [f.__name__ for f in FLOOR_SEQUENCE]
+
+    if not ctx.stage or ctx.stage.generator not in floor_names:
+      return None
+
+    graph = FloorGraph()
+    graph.nodes.append(ctx.stage.generator)
+
+    try:
+      prev_floor = floor_names[floor_names.index(ctx.stage.generator) - 1]
+    except IndexError:
+      prev_floor = None
+
+    try:
+      next_floor = floor_names[floor_names.index(ctx.stage.generator) + 1]
+    except IndexError:
+      next_floor = None
+
+    stage_entrance = ctx.stage.entrance or find_tile(ctx.stage, tileset.Entrance)
+    stage_entrance and prev_floor and graph.connect(ctx.stage.generator, prev_floor, stage_entrance)
+
+    stage_exit = find_tile(ctx.stage, tileset.Exit)
+    stage_exit and next_floor and graph.connect(ctx.stage.generator, next_floor, stage_exit)
+
+    return graph
 
   def handle_press(ctx, button):
     if input.get_state(pygame.K_LCTRL):
