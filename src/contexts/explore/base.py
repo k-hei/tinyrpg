@@ -73,6 +73,9 @@ class ExploreBase(Context):
       ctx.memory[stage_id] = (visited_cells := [])
     return visited_cells
 
+  def extend_visited_cells(ctx, cells):
+    ctx.visited_cells.extend([c for c in cells if c not in ctx.visited_cells])
+
   @property
   def camera(ctx):
     return ctx.stage_view.camera
@@ -433,6 +436,13 @@ class ExploreBase(Context):
 
   def update_bubble(ctx):
     facing_elem = ctx.facing_elem
+    facing_cell = facing_elem and facing_elem.cell
+    if not facing_elem:
+      facing_cell = ctx.hero.cell
+      facing_tile = ctx.stage.get_tile_at(facing_cell)
+      if issubclass(facing_tile, (tileset.Entrance, tileset.Exit)):
+        facing_elem = facing_tile
+
     pending_anims = [a for g in ctx.anims for a in g if not a.done]
 
     can_show_bubble = not pending_anims and not ctx.hero.item and not (ctx.child and ctx.child.child)
@@ -445,8 +455,8 @@ class ExploreBase(Context):
     if facing_elem and can_show_bubble:
       ctx.vfx.append(TalkBubble(
         target=facing_elem,
-        cell=facing_elem.cell,
-        flipped=ctx.camera.is_pos_beyond_yrange(pos=vector.scale(facing_elem.cell, ctx.stage.tile_size)),
+        cell=facing_cell,
+        flipped=ctx.camera.is_pos_beyond_yrange(pos=vector.scale(facing_cell, ctx.stage.tile_size)),
       ))
 
   def darken(ctx):

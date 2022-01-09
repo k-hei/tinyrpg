@@ -20,6 +20,7 @@ from anims.pause import PauseAnim
 from tiles import Tile
 import tiles.default as tileset
 from config import TILE_SIZE, MOVE_DURATION, RUN_DURATION
+from transits.dissolve import DissolveIn, DissolveOut
 
 class ExploreContext(ExploreBase):
   def enter(ctx):
@@ -330,7 +331,11 @@ class ExploreContext(ExploreBase):
 
     facing_elem = ctx.facing_elem
     if facing_elem is None:
-      return False
+      used_stairs = ctx.handle_stairs()
+      if used_stairs:
+        return True
+      else:
+        return False
 
     success = facing_elem.effect(ctx, ctx.hero)
     if success:
@@ -345,6 +350,39 @@ class ExploreContext(ExploreBase):
       dest=facing_elem.cell,
     ))
 
+    return True
+
+  def handle_stairs(ctx):
+    if not ctx.hero:
+      return False
+
+    hero_cell = ctx.hero.cell
+    hero_tile = ctx.stage.get_tile_at(hero_cell)
+    stairs = hero_tile if issubclass(hero_tile, (tileset.Entrance, tileset.Exit)) else None
+    if not stairs:
+      return False
+
+    stairs_edge = ctx.parent.graph.connector_edge(hero_cell)
+    dest_floor = next((n for n in stairs_edge if n != ctx.stage.generator), None)
+    if not dest_floor:
+      return False # generate random floor in infinite dungeon
+
+    stairs_dest = tileset.Entrance if issubclass(stairs, tileset.Exit) else tileset.Exit
+    ctx.goto_floor(dest_floor, stairs_dest)
+    return True
+
+  def goto_floor(ctx, floor, stairs):
+    app = ctx.get_head()
+    if app.transits:
+      return False
+
+    app.transition(
+      transits=[DissolveIn(), DissolveOut()],
+      loader=floor.generate(ctx.store),
+      on_end=lambda stage: (
+        ctx.parent.use_stage(stage, stairs)
+      )
+    )
     return True
 
   def handle_hallway(ctx):

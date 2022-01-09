@@ -76,12 +76,23 @@ class StageView:
     view.vfx = []
     view.darkened = False
     view.transitioning = False
+    view.tile_surface = None
+    view.tile_offset = (0, 0)
+
+  @property
+  def stage(view):
+    return view._stage
+
+  @stage.setter
+  def stage(view, stage):
+    view._stage = stage
+    view.reset_cache()
+
+  def reset_cache(view):
     view.cache_camera_cell = None
     view.cache_visible_cells = []
     view.cache_visited_cells = []
     view.cache_elems = {}
-    view.tile_surface = None
-    view.tile_offset = (0, 0)
     view.tile_cache = {}
 
   def update(view):

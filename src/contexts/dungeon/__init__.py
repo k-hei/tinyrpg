@@ -14,12 +14,12 @@ from comps.minilog import Minilog
 from comps.minimap import Minimap
 from comps.skillbanner import SkillBanner
 from comps.spmeter import SpMeter
-from dungeon.actors.knight import Knight
-from dungeon.actors.mage import Mage
-from dungeon.props.door import Door
-from dungeon.props.palm import Palm
 from dungeon.fov import shadowcast
 from dungeon.room import Blob as Room
+from dungeon.props.door import Door
+from dungeon.props.palm import Palm
+from helpers.actor import manifest_actor
+from helpers.stage import find_tile
 import tiles.default as tileset
 from anims.pause import PauseAnim
 from anims.step import StepAnim
@@ -34,14 +34,6 @@ from dungeon.gen.floorgraph import FloorGraph
 from helpers.stage import find_tile
 
 FLOOR_SEQUENCE = [Floor1, Floor2, Floor3]
-
-def manifest_actor(core):
-  core_id = type(core).__name__
-  core_actors = {
-    "Knight": Knight,
-    "Mage": Mage,
-  }
-  return core_actors[core_id](core) if core_id in core_actors else None
 
 class DungeonContext(ExploreBase):
   def __init__(ctx, store, stage, *args, **kwargs):
@@ -59,7 +51,7 @@ class DungeonContext(ExploreBase):
 
   def enter(ctx):
     heroes = [manifest_actor(c) for c in ctx.store.party]
-    stage_entrance = ctx.stage.entrance or next((cell for cell, tile in ctx.stage.tiles.enumerate() if issubclass(tile, tileset.Entrance)), None)
+    stage_entrance = ctx.stage.entrance or find_tile(ctx.stage, tileset.Entrance)
     if stage_entrance:
       for i, hero in enumerate(heroes):
         ctx.stage.spawn_elem_at(stage_entrance, hero)
@@ -86,12 +78,12 @@ class DungeonContext(ExploreBase):
     graph.nodes.append(ctx.stage.generator)
 
     try:
-      prev_floor = floor_names[floor_names.index(ctx.stage.generator) - 1]
+      prev_floor = FLOOR_SEQUENCE[floor_names.index(ctx.stage.generator) - 1]
     except IndexError:
       prev_floor = None
 
     try:
-      next_floor = floor_names[floor_names.index(ctx.stage.generator) + 1]
+      next_floor = FLOOR_SEQUENCE[floor_names.index(ctx.stage.generator) + 1]
     except IndexError:
       next_floor = None
 
@@ -100,23 +92,7 @@ class DungeonContext(ExploreBase):
 
     stage_exit = find_tile(ctx.stage, tileset.Exit)
     stage_exit and next_floor and graph.connect(ctx.stage.generator, next_floor, stage_exit)
-
     return graph
-
-  def handle_press(ctx, button):
-    if input.get_state(pygame.K_LCTRL):
-      if button == pygame.K_c:
-        return print(
-          ctx.anims,
-          *([ctx.hero.anims] if ctx.hero else []),
-          *([ctx.ally.anims] if ctx.ally else [])
-        )
-
-      if button == pygame.K_t:
-        return print(ctx.camera.target_groups)
-
-    if ctx.child:
-      return ctx.child.handle_press(button)
 
   def refresh_fov(ctx):
     room_entered = next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells), None)
@@ -141,6 +117,39 @@ class DungeonContext(ExploreBase):
 
     ctx.hero.visible_cells = visible_cells
     ctx.extend_visited_cells(visible_cells)
+
+  def use_stage(ctx, stage, stairs=None):
+    heroes = [manifest_actor(c) for c in ctx.store.party]
+    stage_entrance = find_tile(stage, stairs) if stairs else stage.entrance
+    if stage_entrance:
+      for i, hero in enumerate(heroes):
+        stage.spawn_elem_at(stage_entrance, hero)
+        hero.pos = vector.add(hero.pos, (0, -i))
+    else:
+      raise LookupError("Failed to find Entrance tile to spawn hero")
+
+    ctx.stage = stage
+    ctx.child.stage = stage
+    ctx.stage_view.stage = stage
+    ctx.comps.minimap.sprite = None
+    ctx.camera.reset()
+    ctx.camera.focus(ctx.hero)
+    ctx.refresh_fov()
+
+  def handle_press(ctx, button):
+    if input.get_state(pygame.K_LCTRL):
+      if button == pygame.K_c:
+        return print(
+          ctx.anims,
+          *([ctx.hero.anims] if ctx.hero else []),
+          *([ctx.ally.anims] if ctx.ally else [])
+        )
+
+      if button == pygame.K_t:
+        return print(ctx.camera.target_groups)
+
+    if ctx.child:
+      return ctx.child.handle_press(button)
 
   def handle_hallway(ctx):
     hallway = ctx.find_hallway(ctx.hero.cell)
@@ -318,9 +327,6 @@ class DungeonContext(ExploreBase):
     ctx.comps.minimap.exit()
     ctx.comps.hud.enter()
     ctx.comps.sp_meter.enter()
-
-  def extend_visited_cells(ctx, cells):
-    ctx.visited_cells.extend([c for c in cells if c not in ctx.visited_cells])
 
   def update_hero_cell(ctx):
     if ctx.hero_cell == ctx.hero.cell:
