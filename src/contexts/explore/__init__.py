@@ -12,6 +12,7 @@ from contexts.explore.base import ExploreBase
 from contexts.inventory import InventoryContext
 from contexts.pause import PauseContext
 from contexts.minimap import MinimapContext
+from contexts.cutscene import CutsceneContext
 from dungeon.actors import DungeonActor
 from dungeon.props.itemdrop import ItemDrop
 from anims.attack import AttackAnim
@@ -40,6 +41,7 @@ class ExploreContext(ExploreBase):
     context_comps = {
       InventoryContext: [ctx.comps.hud, ctx.comps.sp_meter],
       PauseContext: [ctx.comps.minimap],
+      # CutsceneContext: [ctx.comps.minimap],
     }
 
     if type(child) not in context_comps.keys():

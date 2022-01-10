@@ -1,4 +1,5 @@
 import lib.vector as vector
+from lib.cell import upscale
 from lib.sequence import play_sequence, stop_sequence
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
@@ -27,12 +28,7 @@ def on_focus(room, game):
   door = room.get_doors(game.stage)[0]
   game.open(CutsceneContext([
     lambda step: (
-      game.camera.focus(
-        cell=room.center,
-        force=True,
-        tween=True,
-        speed=1
-      ),
+      game.camera.focus(target=room, force=True),
       game.anims.extend([
         [
           PauseAnim(duration=30),
@@ -107,7 +103,7 @@ def on_focus(room, game):
         duration=15,
         on_end=lambda: (
           game.camera.focus(
-            cell=vector.add(mage.cell, (0, 1)),
+            target=upscale(vector.add(mage.cell, (0, 1)), game.stage.tile_size),
             force=True,
           ),
           step()
@@ -163,7 +159,7 @@ def on_focus(room, game):
       )
     ]),
     lambda step: (
-      game.camera.blur(),
+      game.camera.focus(target=[room, game.hero], force=True),
       step()
     ),
     lambda step: (
