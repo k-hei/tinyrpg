@@ -1,6 +1,7 @@
 from dungeon.actors import DungeonActor
 from cores import Core, Stats
 from cores.mage import Mage
+from helpers.mage import step_move, view_mage
 import assets
 from lib.sprite import Sprite
 
@@ -27,11 +28,7 @@ class MageClone(DungeonActor):
     mage.core.anims = [Mage.IdleDownAnim()]
 
   def step(mage, game):
-    return None
+    return step_move(mage, game)
 
   def view(mage, anims):
-    mage_image = assets.sprites["mage_leap"]
-    return super().view([Sprite(
-      image=mage_image,
-      pos=(0, 0)
-    )], anims)
+    return view_mage(mage, anims)

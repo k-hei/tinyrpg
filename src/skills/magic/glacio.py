@@ -71,17 +71,13 @@ class Glacio(MagicSkill):
           cell=cell,
           delay=i * 10,
           color=CYAN,
-          on_connect=target and cell == target_cells[-1] and on_connect
+          on_connect=target and cell == target_cells[-1] and on_connect,
+          on_end=not target and cell == target_cells[-1] and (lambda: (
+            pause_anim.end(),
+            on_end and on_end()
+          ))
         ) for i, cell in enumerate(target_cells)]
       ])
-
-    def on_bump_end():
-      delay = len(target_cells) * 10 + 10
-      pause_anim.end()
-      game.anims.append([PauseAnim(
-        duration=delay + 45,
-        on_end=on_end
-      )])
 
     user.core.anims.append(Mage.CastAnim())
     game.vfx.extend([IceEmblemVfx(cell=user.cell, delay=15)])
@@ -95,7 +91,6 @@ class Glacio(MagicSkill):
         dest=bump_dest,
         on_start=lambda: on_start and on_start(dest),
         on_connect=on_bump,
-        on_end=target is None and on_bump_end
       ), pause_anim]
     ])
 
