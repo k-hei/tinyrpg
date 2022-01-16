@@ -356,17 +356,18 @@ class DungeonContext(ExploreBase):
         if step_anim:
           step_anim.done = True
 
+    if not is_travelling:
+      ctx.refresh_fov()
+
+    if ctx.hero_cell:
       if issubclass(new_tile, tileset.Oasis):
         ctx.handle_oasis()
 
-      if ctx.find_enemies_in_range():
+      if ctx.find_enemies_in_range() and isinstance(ctx.get_tail(), (ExploreContext, CombatContext)):
         ctx.handle_combat(path=True)
 
     ctx.hero_cell = ctx.hero.cell
     ctx.update_bubble()
-
-    if not is_travelling:
-      ctx.refresh_fov()
 
   def update(ctx):
     for elem in ctx.stage.elems:
@@ -379,7 +380,7 @@ class DungeonContext(ExploreBase):
       ctx.hero_facing = ctx.hero.facing
       ctx.update_bubble()
 
-    if ctx.hero and ctx.hero_cell != ctx.hero.cell and isinstance(ctx.get_tail(), (ExploreContext, CombatContext)):
+    if ctx.hero and ctx.hero_cell != ctx.hero.cell:
       ctx.update_hero_cell()
 
     ctx.camera.update()

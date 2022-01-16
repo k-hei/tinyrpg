@@ -1,3 +1,4 @@
+from lib.cell import upscale
 from contexts.cutscene import CutsceneContext
 from anims.pause import PauseAnim
 from anims.jump import JumpAnim
@@ -9,7 +10,6 @@ import config
 
 def on_enter(room, game):
   room.waves = [
-    [Eyeball, Eyeball, Mushroom],
     [Eyeball, Mushroom, Mushroom, Mummy],
   ]
   room.lock(game)
@@ -30,7 +30,7 @@ def on_enter(room, game):
     ),
     lambda step: (
       game.camera.focus(
-        cell=room.center,
+        target=upscale(room.center, game.stage.tile_size),
         force=True
       ),
       game.anims.append([PauseAnim(duration=90, on_end=step)])
@@ -69,6 +69,7 @@ def on_enter(room, game):
     ]),
     lambda step: (
       game.camera.blur(),
+      game.handle_combat(),
       step()
     )
   ]))

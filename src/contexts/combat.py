@@ -13,10 +13,12 @@ from contexts.skill import SkillContext
 from contexts.gameover import GameOverContext
 from contexts.ally import AllyContext
 from contexts.pause import PauseContext
+from contexts.cutscene import CutsceneContext
 from comps.damage import DamageValue
 from dungeon.actors import DungeonActor
 from dungeon.actors.mage import Mage
 from dungeon.props.door import Door
+from dungeon.props.soul import Soul
 from dungeon.props.itemdrop import ItemDrop
 from skills.weapon import Weapon
 from tiles import Tile
@@ -533,13 +535,18 @@ class CombatContext(ExploreBase):
     will_exit = not ctx.hero.allied(target) and not ctx.find_enemies_in_range()
 
     def remove_elem():
+      target_skill = type(target).skill
+      if target_skill and target.rare:
+        skill = target_skill
+        if skill not in ctx.store.skills:
+          ctx.stage.spawn_elem_at(target.cell, Soul(contents=skill))
       if target is ctx.hero:
         if ctx.ally:
           ctx.handle_charswap()
         else:
           ctx.handle_gameover()
       ctx.stage.remove_elem(target)
-      will_exit and ctx.exit(ally_rejoin=True)
+      will_exit and not isinstance(ctx.get_tail(), CutsceneContext) and ctx.exit(ally_rejoin=True)
       on_end and on_end()
 
     not ctx.anims and ctx.anims.append([])

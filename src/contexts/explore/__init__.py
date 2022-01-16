@@ -95,7 +95,7 @@ class ExploreContext(ExploreBase):
 
     # TODO: move `handle_control_confirm(button)` into base? (shared handlers with combat mode)
     if control == input.CONTROL_CONFIRM:
-      if not ctx.hero.item:
+      if not ctx.hero.item and input.get_state(button) == 1:
         acted = ctx.handle_action()
         if acted == False:
           ctx.buttons_rejected[button] = 0

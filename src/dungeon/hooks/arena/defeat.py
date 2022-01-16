@@ -26,12 +26,12 @@ def on_complete(room, game):
         target=upscale(door.cell, game.stage.tile_size),
         force=True
       ),
-      game.anims.insert(0, [
+      game.anims.append([
         PauseAnim(
           duration=45,
           on_end=lambda: (
             room.unlock(game, open=True),
-            game.anims.append([PauseAnim(duration=15, on_end=step)])
+            game.anims.append([PauseAnim(duration=45, on_end=step)])
           ),
         )
       ])
@@ -55,6 +55,12 @@ def on_complete(room, game):
         [DropAnim(target=chest)],
         [PauseAnim(duration=15, on_end=step)]
       ])
+    ),
+    lambda step: (
+      game.camera.blur(),
+      game.camera.blur(),
+      game.exit(),
+      step(),
     )
   ]))
 
