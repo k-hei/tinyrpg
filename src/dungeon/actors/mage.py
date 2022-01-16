@@ -41,6 +41,13 @@ class Mage(DungeonActor):
   @DungeonActor.faction.setter
   def faction(mage, faction):
     DungeonActor.faction.fset(mage, faction)
+
+    if faction == "enemy":
+      mage.hp_max *= 6
+      mage.hp = mage.hp_max
+    else:
+      mage.hp_max = mage.core.get_hp_max()
+
     if faction in ("player", "enemy"):
       mage.behavior = "chase"
     else:

@@ -91,8 +91,9 @@ class DungeonActor(DungeonElement):
     actor.core = core
     actor.stats = copy(core.stats)
     actor.set_hp(hp or core.hp)
+    actor.hp_max = actor.core.get_hp_max()
     actor.behavior = behavior
-    actor.bubble = HpBubble(actor.core)
+    actor.bubble = HpBubble(actor)
 
     actor.anims = []
     actor.floating = floating
@@ -180,10 +181,6 @@ class DungeonActor(DungeonElement):
   def hp(actor, hp):
     actor.core.set_hp(hp)
 
-  @property
-  def hp_max(actor):
-    return actor.core.get_hp_max()
-
   def get_skills(actor): return actor.core.skills
   def get_active_skills(actor): return actor.core.get_active_skills()
   def is_dead(actor): return actor.core.dead
@@ -220,7 +217,7 @@ class DungeonActor(DungeonElement):
     actor.charge_skill = None
     actor.charge_dest = None
     actor.charge_turns = 0
-    actor.core.anims.clear()
+    actor.core.anims and actor.core.anims.pop()
 
   def discharge(actor):
     if actor.charge_skill is None or actor.charge_cooldown:
@@ -493,6 +490,7 @@ class DungeonActor(DungeonElement):
 
     is_asleep = actor.ailment == "sleep"
     is_flinching = next((a for a in anim_group if isinstance(a, FlinchAnim)), None)
+    is_bouncing = next((a for a in anim_group if isinstance(a, BounceAnim)), None)
     is_charging = "ChargeAnim" in dir(actor.core) and next((a for a in anim_group if isinstance(a, actor.core.ChargeAnim)), None)
 
     move_anim = next((a for a in anim_group if isinstance(a, (StepAnim, PathAnim))), None)
@@ -518,7 +516,7 @@ class DungeonActor(DungeonElement):
         actor_width *= anim_xscale
         actor_height *= anim_yscale
       if (isinstance(anim, FrameAnim)
-      and not (is_flinching or is_charging or move_anim and (isinstance(move_anim, PathAnim) or move_anim.dest))
+      and not (is_flinching or is_charging or is_bouncing or move_anim and (isinstance(move_anim, PathAnim) or move_anim.dest))
       and not (attack_anim and len(actor.core.anims) == 1)
       ):
         sprite.image = anim.frame()

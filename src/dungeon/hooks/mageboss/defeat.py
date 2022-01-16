@@ -109,6 +109,7 @@ def postbattle_cutscene_teardown(room, game):
       ]), on_close=step)
     ),
     lambda step: (
+      game.camera.blur(),
       game.exit(),
       step(),
     )

@@ -13,7 +13,7 @@ DEPLETE_SPEED = 0.25
 class HpBubble(Component):
   def __init__(bubble, actor, color=RED):
     bubble.actor = actor
-    bubble.hp = actor.get_hp()
+    bubble.hp = actor.hp
     bubble.anim = None
     bubble.offset = None
     bubble.color = color
@@ -23,28 +23,28 @@ class HpBubble(Component):
       bubble.anim.update()
 
   def view(bubble):
-    if bubble.actor.get_hp() == bubble.actor.get_hp_max():
+    if bubble.actor.hp == bubble.actor.hp_max:
       return []
     sprites = [Sprite(
       image=replace_color(assets.sprites["hpbubble"], WHITE, bubble.color),
       origin=Sprite.ORIGIN_BOTTOM,
       layer="vfx"
     )]
-    if bubble.actor.get_hp() < bubble.hp:
-      if abs(bubble.actor.get_hp() - bubble.hp) <= DEPLETE_SPEED:
-        bubble.hp = bubble.actor.get_hp()
+    if bubble.actor.hp < bubble.hp:
+      if abs(bubble.actor.hp - bubble.hp) <= DEPLETE_SPEED:
+        bubble.hp = bubble.actor.hp
       else:
         bubble.hp -= DEPLETE_SPEED
-      if bubble.anim == None or bubble.actor.get_hp() != bubble.anim.target:
-        bubble.anim = Anim(duration=12, target=bubble.actor.get_hp())
-    if bubble.hp != bubble.actor.get_hp():
+      if bubble.anim == None or bubble.actor.hp != bubble.anim.target:
+        bubble.anim = Anim(duration=12, target=bubble.actor.hp)
+    if bubble.hp != bubble.actor.hp:
       sprites.append(render_bubblefill(
-        value=bubble.hp / bubble.actor.get_hp_max(),
+        value=min(1, bubble.hp / bubble.actor.hp_max),
         color=WHITE
       ))
     if bubble.hp:
       sprites.append(render_bubblefill(
-        value=bubble.actor.get_hp() / bubble.actor.get_hp_max(),
+        value=min(1, bubble.actor.hp / bubble.actor.hp_max),
         color=bubble.color
       ))
     bubble.update()
