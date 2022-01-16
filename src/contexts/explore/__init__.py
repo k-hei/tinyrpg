@@ -41,7 +41,7 @@ class ExploreContext(ExploreBase):
     context_comps = {
       InventoryContext: [ctx.comps.hud, ctx.comps.sp_meter],
       PauseContext: [ctx.comps.minimap],
-      # CutsceneContext: [ctx.comps.minimap],
+      CutsceneContext: [ctx.comps.minimap],
     }
 
     if type(child) not in context_comps.keys():
@@ -50,8 +50,8 @@ class ExploreContext(ExploreBase):
     comps = context_comps[type(child)]
     open = super().open
 
-    if next((c for c in comps if c.anims), None):
-      return
+    # if next((c for c in comps if c.anims), None):
+    #   return super().open(child, _on_close)
 
     for comp in comps:
       on_end = (lambda: (
