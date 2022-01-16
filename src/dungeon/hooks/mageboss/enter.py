@@ -1,3 +1,5 @@
+from lib.cell import add as add_vector, upscale
+import lib.vector as vector
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
 from anims.attack import AttackAnim
@@ -5,7 +7,6 @@ from anims.jump import JumpAnim
 from anims.path import PathAnim
 from anims.pause import PauseAnim
 from anims.shake import ShakeAnim
-from lib.cell import add as add_vector
 import config
 
 def on_enter(room, game):
@@ -23,12 +24,13 @@ def on_enter(room, game):
   return True
 
 def prebattle_cutscene_setup(room, game):
+  mage = room.mage
   return [
     lambda step: (
-      # game.camera.focus(
-      #   target=room,
-      #   force=True
-      # ),
+      game.camera.focus(
+        target=upscale(vector.add(mage.cell, (0, 1)), game.stage.tile_size),
+        force=True
+      ),
       game.hero.move_to(add_vector(room.cell, (3, 4))),
       game.anims.append([PathAnim(
         target=game.hero,
@@ -148,8 +150,13 @@ def prebattle_cutscene_teardown(room, game):
     lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
     lambda step: (
       setattr(mage, "faction", "enemy"),
+      game.anims.append(mage.animate_brandish(on_end=step)),
+      step(),
+    ),
+    lambda step: game.anims.append([PauseAnim(duration=45, on_end=step)]),
+    lambda step: (
       game.camera.blur(),
       game.handle_combat(),
-      step()
+      step(),
     )
   ]

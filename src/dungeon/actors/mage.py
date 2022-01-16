@@ -62,6 +62,24 @@ class Mage(DungeonActor):
     actor.anims = []
     actor.core.anims = []
 
+  def animate_brandish(actor, on_end=None):
+    return [
+      JumpAnim(
+        target=actor,
+        height=28,
+        delay=actor.core.BrandishAnim.frames_duration[0],
+        duration=actor.core.BrandishAnim.jump_duration,
+      ),
+      actor.core.BrandishAnim(
+        target=actor,
+        on_end=lambda: (
+          actor.stop_move(),
+          actor.core.anims.append(actor.core.IdleDownAnim()),
+          on_end and on_end(),
+        )
+      )
+    ]
+
   def step(mage, game):
     if mage.behavior == "guard":
       return None

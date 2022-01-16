@@ -16,7 +16,7 @@ class DebugFloor(Floor):
       features=Graph(
         nodes=[
           entry_room := Room(data=RoomData(**rooms["entry"])),
-          arena_room := Room(data=RoomData(**rooms["arena"])),
+          arena_room := Room(data=RoomData(**rooms["mageboss"])),
         ],
         edges=[
           (entry_room, arena_room),
