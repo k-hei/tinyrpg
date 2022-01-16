@@ -118,6 +118,9 @@ class StageView:
       magnitude=2
     )
 
+  def unshake(view):
+    view.anim = None
+
   def darken(view):
     view.darkened = True
     view.cache_elems = {}

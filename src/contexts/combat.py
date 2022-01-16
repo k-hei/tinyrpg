@@ -72,6 +72,8 @@ class CombatContext(ExploreBase):
 
     def animate_snap(actor, on_end=None):
       x, y = actor.pos
+      x += actor.scale / 2
+      y += actor.scale / 2
       if x % actor.scale or y % actor.scale:
         actor_cell = downscale(vector.add(
           actor.pos,

@@ -7,8 +7,7 @@ from contexts.explore.roomdata import RoomData
 from dungeon.room import Blob as Room
 import tiles.default as tileset
 from dungeon.decoder import decode_elem
-
-from resolve.tileset import resolve_tileset
+from helpers.stage import find_tile
 
 def manifest_rooms(rooms, dry=False, seed=None):
   stage_cells = []
@@ -59,6 +58,9 @@ def manifest_room(room):
     tiles=stage_tiles,
     rooms=stage_rooms,
   )
+
+  if stage.entrance is None:
+    stage.entrance = vector.add(room["edges"][-1], stage_origin)
 
   spawn_elems(stage, elem_data=room_data.elems, offset=stage_origin)
   return stage

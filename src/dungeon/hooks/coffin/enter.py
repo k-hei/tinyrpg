@@ -29,7 +29,11 @@ def on_enter(room, game):
       lambda step: (
         spawn_enemies(room, game),
         room.lock(game),
+        step(),
+      ),
+      lambda step: (
         game.handle_combat(),
+        game.camera.blur(),
         step(),
       )
     ])
@@ -116,10 +120,8 @@ def cutscene(room, game):
       ]), on_close=step),
     ),
     lambda step: (
-      game.camera.focus(
-        cell=vector.add(room.get_center(), (0, 0.5)),
-        speed=30,
-        tween=True,
+      game.camera.tween(
+        target=upscale(vector.add(room.get_center(), (0, 0.5)), game.stage.tile_size),
         on_end=step
       ),
     ),
@@ -139,10 +141,8 @@ def cutscene(room, game):
       mage.core.anims.clear(),
       setattr(mage, "facing", (0, 1)),
       game.anims.append([StepAnim(target=mage, duration=inf, period=30)]),
-      game.camera.focus(
-        cell=vector.add(room.get_center(), (0, -room.get_height() // 2 + 2)),
-        speed=15,
-        tween=True,
+      game.camera.tween(
+        target=upscale(vector.add(room.get_center(), (0, -room.get_height() // 2 + 2)), game.stage.tile_size),
         on_end=step
       ),
     ),
@@ -221,14 +221,13 @@ def cutscene(room, game):
         duration=45,
         on_end=lambda: room.lock(game)
       )]),
-      hero.move_to(goal_cell),
     ),
     lambda step: (
-      setattr(hero, "facing", (0, -1)),
+      lambda: setattr(hero, "facing", (0, -1)),
       game.anims.append([AttackAnim(
         target=hero,
         src=hero.cell,
-        dest=vector.add(hero.cell, hero.facing),
+        dest=vector.add(hero.cell, (0, -1)),
         on_end=step
       )])
     ),
@@ -236,7 +235,7 @@ def cutscene(room, game):
       game.anims.append([AttackAnim(
         target=hero,
         src=hero.cell,
-        dest=vector.add(hero.cell, hero.facing),
+        dest=vector.add(hero.cell, (0, -1)),
         on_end=step
       )])
     ),
@@ -250,10 +249,15 @@ def cutscene(room, game):
           setattr(hero, "facing", (0, 1))
         ) or (hero.name.upper(), "Looks like I'll have to put these guys back to sleep first!"),
         lambda: (
-          game.stage_view.stop_shake(),
+          game.stage_view.unshake(),
         ) and None
       ]), on_close=step)
     ),
+    lambda step: (
+      game.camera.focus(target=[game.room, hero], force=True),
+      game.handle_combat(),
+      step(),
+    )
   ]
 
 def take_battle_position(room, game):
@@ -272,7 +276,7 @@ def take_battle_position(room, game):
         ),
         on_end=lambda: (
           hero.stop_move(),
-          not mage and step(),
+          step(),
         )
       )]),
       game.ally and game.anims[-1].append(PathAnim(

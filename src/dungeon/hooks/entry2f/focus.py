@@ -1,4 +1,5 @@
 import lib.vector as vector
+from lib.cell import upscale
 from contexts.cutscene import CutsceneContext
 from dungeon.actors.mage import Mage
 from anims.pause import PauseAnim
@@ -17,10 +18,8 @@ def on_focus(room, game):
     lambda step: (
       setattr(mage, "facing", (-1, 0)),
       game.camera.focus(
-        cell=mage.cell,
+        target=upscale(mage.cell, game.stage.tile_size),
         force=True,
-        tween=True,
-        speed=1,
       ),
       game.anims.append([PauseAnim(duration=30, on_end=step)])
     ),

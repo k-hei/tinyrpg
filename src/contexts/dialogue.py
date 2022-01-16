@@ -114,6 +114,9 @@ class DialogueContext(Context):
     if control == input.CONTROL_CANCEL:
       return ctx.handle_next()
 
+    if control == input.CONTROL_CANCEL:
+      return ctx.handle_next()
+
     if input.get_state(button) > 1:
       return
 

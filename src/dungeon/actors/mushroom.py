@@ -24,7 +24,7 @@ class Mushroom(DungeonActor):
 
   class ChargeAnim(ShakeAnim): pass
 
-  def __init__(mushroom, name="Toadstool", *args, **kwargs):
+  def __init__(mushroom, name="Fungeye", *args, **kwargs):
     super().__init__(Core(
       name=name,
       faction="enemy",

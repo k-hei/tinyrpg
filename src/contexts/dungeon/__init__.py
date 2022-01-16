@@ -7,6 +7,7 @@ from contexts.explore import ExploreContext
 from contexts.explore.base import ExploreBase
 from contexts.explore.stageview import StageView
 from contexts.combat import CombatContext
+from contexts.cutscene import CutsceneContext
 from comps.store import ComponentStore
 from comps.damage import DamageValue
 from comps.hud import Hud
@@ -378,7 +379,7 @@ class DungeonContext(ExploreBase):
       ctx.hero_facing = ctx.hero.facing
       ctx.update_bubble()
 
-    if ctx.hero and ctx.hero_cell != ctx.hero.cell:
+    if ctx.hero and ctx.hero_cell != ctx.hero.cell and isinstance(ctx.get_tail(), (ExploreContext, CombatContext)):
       ctx.update_hero_cell()
 
     ctx.camera.update()
