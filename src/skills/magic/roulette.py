@@ -1,7 +1,12 @@
 from math import pi, inf
+from random import choice
+import lib.vector as vector
+from lib.cell import downscale
 from skills.magic import MagicSkill
 from anims.pause import PauseAnim
+from anims.jump import JumpAnim
 from cores.mage import Mage
+from dungeon.actors.mageclone import MageClone
 from vfx.mageclone import MageCloneVfx
 
 class Roulette(MagicSkill):
@@ -25,17 +30,66 @@ class Roulette(MagicSkill):
     on_start and on_start(user.cell)
     user.core.anims.append(Mage.CastAnim())
     game.darken()
+
+    def jump(fx):
+      start_cell = user.cell
+      pause_anim.end()
+      game.anims.extend([
+        [JumpAnim(
+          target=user,
+          src=user.cell,
+          dest=vector.add(user.cell, (-1, -1)),
+          height=36,
+          duration=45,
+          on_end=lambda: (
+            setattr(user, "hidden", True),
+            game.vfx.append(MageCloneVfx(
+              cell=start_cell,
+              color=user.color(),
+              angle=fx.angle + 2 * pi * 1 / 5,
+              animated=False,
+            )),
+            game.anims.extend([
+              *[(lambda f: [
+                pause_anim := PauseAnim(
+                  duration=15,
+                  on_end=lambda: (
+                    clone_cell := choice([c for c in game.room.cells if game.stage.is_cell_empty(c)]),
+                    clone := (user if f is game.vfx[-1] else MageClone(aggro=2)),
+                    game.stage.spawn_elem_at(
+                      cell=clone_cell,
+                      elem=clone
+                    ) if clone is not user else (
+                      setattr(user, "hidden", False),
+                      user.core.anims.pop(),
+                    ),
+                    f in game.vfx and game.vfx.remove(f),
+                    anim_group := next((g for g in game.anims if pause_anim in g), None),
+                    anim_group.append(JumpAnim(
+                      target=clone,
+                      src=vector.add(downscale(f.pos, game.stage.tile_size), (0, -0.5)),
+                      dest=clone_cell,
+                      height=36,
+                      duration=45,
+                    )),
+                  )
+                )
+              ])(f) for f in game.vfx if type(f) is MageCloneVfx],
+              [PauseAnim(duration=30, on_end=lambda: (
+                game.undarken(),
+                on_end and on_end(),
+              ))]
+            ])
+          )
+        )],
+      ])
+
     game.vfx.extend([
-      MageCloneVfx(cell=user.cell, color=user.color(), angle=pi * 0),
-      MageCloneVfx(cell=user.cell, color=user.color(), angle=pi * 0.5),
-      MageCloneVfx(cell=user.cell, color=user.color(), angle=pi * 1),
-      MageCloneVfx(cell=user.cell, color=user.color(), angle=pi * 1.5),
+      MageCloneVfx(cell=user.cell, color=user.color(), angle=2 * pi * 0 / 4),
+      MageCloneVfx(cell=user.cell, color=user.color(), angle=2 * pi * 1 / 4),
+      MageCloneVfx(cell=user.cell, color=user.color(), angle=2 * pi * 2 / 4),
+      MageCloneVfx(cell=user.cell, color=user.color(), angle=2 * pi * 3 / 4, on_ready=jump),
     ])
-    game.anims.append([PauseAnim(duration=inf)])
-    #   [PauseAnim(duration=90, on_end=lambda: (
-    #     user.core.anims.pop(),
-    #     game.undarken(),
-    #     on_end and on_end(),
-    #   ))],
-    # ])
+
+    game.anims.append([pause_anim := PauseAnim(duration=inf)])
     return False

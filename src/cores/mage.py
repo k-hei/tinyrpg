@@ -56,6 +56,9 @@ class Mage(BipedCore):
     frames_duration = 10
     loop = True
 
+  class LeapAnim(FrameAnim):
+    frames = [assets.sprites["mage_leap"]]
+
   def __init__(mage, name=MAGE_NAME, faction="player", hp=MAGE_HP, *args, **kwargs):
     super().__init__(
       name=name,

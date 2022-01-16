@@ -120,6 +120,7 @@ class DungeonActor(DungeonElement):
     actor.visible_cells = []
     actor.on_defeat = None
     actor.flipped = False
+    actor.hidden = False
 
     actor.ai_mode = None
     actor.ai_target = None
@@ -476,8 +477,9 @@ class DungeonActor(DungeonElement):
     return actor.core.update()
 
   def view(actor, sprites, anims=[]):
-    if not sprites:
+    if not sprites or actor.hidden:
       return []
+
     if type(sprites) is Surface:
       sprites = [Sprite(image=sprites)]
     if type(sprites) is list:
@@ -570,7 +572,7 @@ class DungeonActor(DungeonElement):
       sprites += bubble_sprites
 
     # aggro icon
-    if actor.aggro in (1, 2) and actor.faction == "enemy" and not actor.ailment == "freeze" and not warpin_anim:
+    if actor.aggro == 1 and actor.faction == "enemy" and not actor.ailment == "freeze" and not warpin_anim:
       marker_image = assets.sprites["aggro_mark"]
       marker_image = replace_color(marker_image, BLACK, RED)
       marker_sprite = Sprite(

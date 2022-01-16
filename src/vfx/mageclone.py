@@ -24,10 +24,10 @@ class MageCloneVfx(Vfx):
   ROTATE_PERIOD = 75
 
   class SpreadAnim(TweenAnim): pass
-  class SpinAnim(Anim): pass
+  class PauseAnim(Anim): pass
   class AdjustAnim(TweenAnim): pass
 
-  def __init__(fx, cell, angle, *args, **kwargs):
+  def __init__(fx, cell, angle, animated=True, on_ready=None, *args, **kwargs):
     x, y = cell
     super().__init__(
       kind=None,
@@ -42,12 +42,15 @@ class MageCloneVfx(Vfx):
       [Mage.CastAnim()],
       [
         fx.SpreadAnim(duration=fx.SPREAD_DURATION),
-        fx.SpinAnim(duration=fx.SPIN_DURATION),
+        fx.PauseAnim(duration=fx.SPIN_DURATION),
         fx.AdjustAnim(
           duration=fx.ADJUST_DURATION,
           target=(fx.angle, fx.transpose_angle(fx.angle, item_count=5))
-        )
-      ]
+        ),
+        fx.PauseAnim(duration=fx.SPIN_DURATION, on_end=lambda: (
+          on_ready and on_ready(fx)
+        )),
+      ] if animated else []
     ]
 
   def update(fx, *_):

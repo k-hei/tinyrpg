@@ -112,7 +112,7 @@ class Mage(DungeonActor):
       if mage.hp < mage.hp_max / 2:
         mage.charge(skill=Congelatio, dest=enemy.cell)
       else:
-        mage.charge(skill=Roulette)
+        mage.charge(skill=Glacio)
       return game.comps.minilog.print((mage.token(), " is chanting."))
 
     has_allies = next((e for c in game.room.get_cells() for e in game.stage.get_elems_at(c) if (
@@ -123,7 +123,8 @@ class Mage(DungeonActor):
     )), None)
 
     if not has_allies:
-      return ("use_skill", Accerso)
+      mage.charge(skill=Roulette)
+      return game.comps.minilog.print((mage.token(), " is chanting."))
 
     delta = None
     if abs(dist_x) + abs(dist_y) == 1:
