@@ -31,10 +31,13 @@ def prebattle_cutscene_setup(room, game):
         target=upscale(vector.add(mage.cell, (0, 1)), game.stage.tile_size),
         force=True
       ),
-      game.hero.move_to(add_vector(room.cell, (3, 4))),
       game.anims.append([PathAnim(
         target=game.hero,
-        path=[add_vector(room.cell, c) for c in [(3, 6), (3, 5), (3, 4)]],
+        path=game.stage.pathfind(
+          start=game.hero.cell,
+          goal=vector.add(mage.cell, (0, 2)),
+          whitelist=room.cells,
+        ),
         on_end=step
       )])
     ),
@@ -77,7 +80,13 @@ def prebattle_cutscene(room, game):
         [PauseAnim(duration=5)],
         [PathAnim(
           target=mage,
-          path=[add_vector(room.cell, c) for c in [(3, 2), (2, 2), (3, 2), (4, 2), (3, 2)]],
+          path=[
+            mage.cell,
+            vector.add(mage.cell, (-1, 0)),
+            mage.cell,
+            vector.add(mage.cell, (1, 0)),
+            mage.cell,
+          ],
         )],
         [JumpAnim(
           target=mage,
@@ -132,10 +141,12 @@ def prebattle_cutscene_teardown(room, game):
   mage = room.mage
   return [
     lambda step: (
-      mage.move_to(add_vector(room.cell, (3, 1))),
       game.anims.append([PathAnim(
         target=mage,
-        path=[add_vector(room.cell, c) for c in [(3, 2), (3, 1)]],
+        path=[
+          mage.cell,
+          vector.add(mage.cell, (0, -1)),
+        ],
         on_end=step
       )])
     ),
@@ -150,13 +161,13 @@ def prebattle_cutscene_teardown(room, game):
     lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
     lambda step: (
       setattr(mage, "faction", "enemy"),
-      game.anims.append(mage.animate_brandish(on_end=step)),
+      game.handle_combat(),
+      game.anims[0].extend(mage.animate_brandish(on_end=step)),
       step(),
     ),
     lambda step: game.anims.append([PauseAnim(duration=45, on_end=step)]),
     lambda step: (
       game.camera.blur(),
-      game.handle_combat(),
       step(),
     )
   ]

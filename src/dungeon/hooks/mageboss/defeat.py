@@ -91,6 +91,10 @@ def postbattle_cutscene(room, game):
       (knight.name, "Now to find a way out of here..."),
       (mage.name, "I am so depressed..."),
     ]), on_close=step),
+    lambda step: (
+      game.camera.blur(),
+      step(),
+    )
   ]
 
 def postbattle_cutscene_teardown(room, game):

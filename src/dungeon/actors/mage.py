@@ -14,6 +14,7 @@ from anims.fall import FallAnim
 from anims.walk import WalkAnim
 from skills.magic.glacio import Glacio
 from skills.magic.congelatio import Congelatio
+from skills.magic.roulette import Roulette
 from skills.magic.accerso import Accerso
 from skills.weapon.broadsword import BroadSword
 
@@ -108,10 +109,10 @@ class Mage(DungeonActor):
     if (delta_x == 0 and dist_y <= Glacio.range_max
     or delta_y == 0 and dist_x <= Glacio.range_max
     ) and not enemy.ailment == "freeze" and not abs(dist_x) + abs(dist_y) == 1:
-      if mage.get_hp() < mage.get_hp_max() / 2:
+      if mage.hp < mage.hp_max / 2:
         mage.charge(skill=Congelatio, dest=enemy.cell)
       else:
-        mage.charge(skill=Glacio)
+        mage.charge(skill=Roulette)
       return game.comps.minilog.print((mage.token(), " is chanting."))
 
     has_allies = next((e for c in game.room.get_cells() for e in game.stage.get_elems_at(c) if (
