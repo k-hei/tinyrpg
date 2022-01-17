@@ -89,6 +89,8 @@ class GameContext(Context):
     if ctx.stage:
       stage = ctx.stage
       ctx.stage = None
+      app = ctx.get_head()
+      app.transition([DissolveOut()])
       return ctx.goto_dungeon(floors=[stage])
 
     if ctx.feature:

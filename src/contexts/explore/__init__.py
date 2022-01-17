@@ -369,6 +369,9 @@ class ExploreContext(ExploreBase):
     if not stairs:
       return False
 
+    if issubclass(hero_tile, tileset.Escape):
+      return ctx.goto_town()
+
     stairs_edge = ctx.parent.graph and ctx.parent.graph.connector_edge((hero_tile, hero_cell))
     if not stairs_edge:
       return False # link doesn't exist in graph - how to handle besides ignore?
@@ -387,6 +390,17 @@ class ExploreContext(ExploreBase):
       ])
 
     return True
+
+  def follow_link(game, link_id, on_end=None):
+    Floor = resolve_floor(link_id)
+    game.get_head().transition(
+      transits=(DissolveIn(), DissolveOut()),
+      loader=Floor.generate(game.store),
+      on_end=lambda stage: (
+        game.parent.use_stage(stage),
+        on_end and on_end()
+      )
+    )
 
   def goto_floor(ctx, floor, stairs):
     app = ctx.get_head()
@@ -408,16 +422,14 @@ class ExploreContext(ExploreBase):
     )
     return True
 
-  def follow_link(game, link_id, on_end=None):
-    Floor = resolve_floor(link_id)
-    game.get_head().transition(
-      transits=(DissolveIn(), DissolveOut()),
-      loader=Floor.generate(game.store),
-      on_end=lambda stage: (
-        game.parent.use_stage(stage),
-        on_end and on_end()
-      )
-    )
+  def goto_town(ctx):
+    app = ctx.get_head()
+    dungeon = ctx.parent
+    game = dungeon.parent
+    app.transition([
+      DissolveIn(on_end=lambda: game.goto_town(returning=True)),
+      DissolveOut()
+    ])
 
   def handle_hallway(ctx):
     if not ctx.ally:
