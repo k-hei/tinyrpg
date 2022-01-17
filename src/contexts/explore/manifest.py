@@ -52,7 +52,7 @@ def manifest_room(room):
     stage_cells.append(cell)
     stage_tiles.set(*vector.add(stage_origin, cell), tile)
 
-  stage_rooms = [Room(cells) for cells in room_data.rooms] or [Room(stage_cells)]
+  stage_rooms = [Room(cells) for cells in room_data.rooms] or [Room(data=room_data)]
   for room in stage_rooms:
     room.origin = vector.add(room.origin, stage_origin)
 

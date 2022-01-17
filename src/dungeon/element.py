@@ -61,6 +61,8 @@ class DungeonElement:
 
   @pos.setter
   def pos(elem, pos):
+    if pos is not None and not isinstance(pos, (tuple, list)):
+      raise TypeError(f"expected tuple, got {type(pos).__name__}")
     elem._pos = pos
     elem._rect = None
     if "_cell" not in dir(elem) or elem._cell == elem._cell_derived:

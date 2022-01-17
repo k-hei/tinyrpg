@@ -14,6 +14,7 @@ class MoveAnim(TweenAnim):
   def update(anim):
     t = super().update()
     if anim.done:
+      anim.pos = anim.dest
       return anim.dest
     anim.pos = vector.lerp(anim.src, anim.dest, t)
     return anim.pos

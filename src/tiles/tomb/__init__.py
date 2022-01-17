@@ -35,7 +35,7 @@ for tile_id in TILE_IDS:
   assets.sprites[tile_id] = replace_color(assets.sprites[tile_id], WHITE, COLOR_TILE)
 
 black_square = Surface((TILE_SIZE, TILE_SIZE))
-black_square.fill(BLACK),
+black_square.fill(BLACK)
 
 class Floor(Tile):
   sprite = assets.sprites["tomb_floor"]

@@ -42,7 +42,7 @@ def on_focus(room, game):
         JumpAnim(target=room.mage),
         FlinchAnim(target=room.mage)
       ]),
-      game.child.open(DialogueContext([
+      game.get_tail().open(DialogueContext([
         (mage.name, "OUUCCHH!!!! MY ASS!!!!!"),
         lambda: game.anims.clear(),
         lambda: game.anims.append([
@@ -110,7 +110,7 @@ def on_focus(room, game):
         )
       )
     ]),
-    lambda step: game.child.open(DialogueContext([
+    lambda step: game.get_tail().open(DialogueContext([
       lambda: play_sequence(mage_bump),
       (mage.name, "...ow..."),
       (mage.name, "oh fug..."),
@@ -123,7 +123,7 @@ def on_focus(room, game):
       on_start=lambda: setattr(mage, "facing", (0, 1)),
       on_end=step
     )]),
-    lambda step: game.child.open(DialogueContext([
+    lambda step: game.get_tail().open(DialogueContext([
       (mage.name, "Well... I tried!"),
       lambda: setattr(mage, "facing", (-1, 0)),
       (mage.name, "I don't think he'll be needing all this useful stuff he's carrying."),

@@ -15,7 +15,7 @@ def on_collapse(room, game):
   altar = floor.find_elem(cls="Altar")
   if not altar:
     return False
-  game.open(CutsceneContext(script=[
+  game.get_tail().open(CutsceneContext(script=[
     lambda step: (
       game.camera.tween(
         target=upscale(vector.add(altar.cell, (0, 0.5)), game.stage.tile_size),
@@ -80,7 +80,7 @@ def on_collapse(room, game):
       ])
     ),
     lambda step: (
-      game.follow_link("Floor1", on_end=step)
+      game.get_tail().follow_link("Floor1", on_end=step)
     )
   ]))
   return True

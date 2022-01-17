@@ -15,7 +15,7 @@ def on_defeat(room, game, actor):
     game.store.story.append("minxia")
   game.anims.append([PauseAnim(
     duration=30,
-    on_end=lambda: game.open(CutsceneContext(
+    on_end=lambda: game.get_tail().open(CutsceneContext(
       script=[
         *postbattle_cutscene_setup(room, game),
         *(postbattle_cutscene(room, game) if config.CUTSCENES else []),
@@ -63,7 +63,7 @@ def postbattle_cutscene(room, game):
       mage.face(knight.cell),
       game.anims.append([JumpAnim(target=mage, on_end=step)])
     ),
-    lambda step: game.child.open(DialogueContext(script=[
+    lambda step: game.get_tail().open(DialogueContext(script=[
       (mage.name, "OKAY OKAY! Alright. I get it now. I'll come along."),
       (mage.name, "I obviously can't get rid of you, so I submit."),
       lambda: knight.face(mage.cell),
@@ -72,7 +72,7 @@ def postbattle_cutscene(room, game):
     ]), on_close=step),
     lambda step: game.anims.append([ShakeAnim(target=mage, duration=30, on_end=step)]),
     lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
-    lambda step: game.child.open(DialogueContext(script=[
+    lambda step: game.get_tail().open(DialogueContext(script=[
       (mage.name, "Boy are you dumb! But I don't think I will."),
       (mage.name, "My spirit is crushed. I am depressed."),
     ]), on_close=step),
@@ -87,7 +87,7 @@ def postbattle_cutscene(room, game):
       knight.face(add_vector(knight.cell, (0, -1))),
       step()
     ),
-    lambda step: game.child.open(DialogueContext(script=[
+    lambda step: game.get_tail().open(DialogueContext(script=[
       (knight.name, "Now to find a way out of here..."),
       (mage.name, "I am so depressed..."),
     ]), on_close=step),
@@ -108,7 +108,7 @@ def postbattle_cutscene_teardown(room, game):
       step()
     ),
     lambda step: (
-      game.child.open(DialogueContext([
+      game.get_tail().open(DialogueContext([
         ("", ("Received ", BroadSword().token(), ".")),
       ]), on_close=step)
     ),

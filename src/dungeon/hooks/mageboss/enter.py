@@ -15,7 +15,7 @@ def on_enter(room, game):
   room.lock(game)
   game.anims.append([PauseAnim(
     duration=30,
-    on_end=lambda: game.open(CutsceneContext(script=[
+    on_end=lambda: game.get_tail().open(CutsceneContext(script=[
       *prebattle_cutscene_setup(room, game),
       *(prebattle_cutscene(room, game) if config.CUTSCENES else []),
       *prebattle_cutscene_teardown(room, game),
@@ -61,7 +61,7 @@ def prebattle_cutscene(room, game):
     lambda step: game.anims.append([PauseAnim(duration=10, on_end=step)]),
     lambda step: game.anims.append([JumpAnim(target=mage, on_end=step)]),
     lambda step: game.anims.append([PauseAnim(duration=10, on_end=step)]),
-    lambda step: game.child.open(DialogueContext(script=[
+    lambda step: game.get_tail().open(DialogueContext(script=[
       (mage.name, "Won't you just stay dead and gone already!"),
       lambda: game.anims.append([JumpAnim(target=knight)]),
       (knight.name, "Give me back my money! And my sword!"),
@@ -73,7 +73,7 @@ def prebattle_cutscene(room, game):
       dest=add_vector(mage.cell, mage.facing),
       on_end=step
     )]),
-    lambda step: game.child.open(DialogueContext(script=[
+    lambda step: game.get_tail().open(DialogueContext(script=[
       (mage.name, "I'm NOT sorry I took those treasures."),
       (mage.name, "I need them more than you!"),
       lambda: game.anims.extend([
@@ -97,7 +97,7 @@ def prebattle_cutscene(room, game):
     ]), on_close=step),
     lambda step: game.anims.append([ShakeAnim(target=knight, duration=30, on_end=step)]),
     lambda step: game.anims.append([PauseAnim(duration=10, on_end=step)]),
-    lambda step: game.child.open(DialogueContext(script=[
+    lambda step: game.get_tail().open(DialogueContext(script=[
       (knight.name, "You did far more than just that!"),
       (mage.name, "Why don't you leave me alone already!"),
       (mage.name, "I'm not interested in being a captive of anyone else's again!"),
@@ -109,7 +109,7 @@ def prebattle_cutscene(room, game):
       on_end=step
     )]),
     lambda step: game.anims.append([PauseAnim(duration=10, on_end=step)]),
-    lambda step: game.child.open(DialogueContext(script=[
+    lambda step: game.get_tail().open(DialogueContext(script=[
       (knight.name, "Not only have you been trying to put me in the ground,"),
       (knight.name, "you're permitless and exploring a tomb without permission."),
       (knight.name, "A few years in a little box will give you enough time to think about everything you've done."),
@@ -132,7 +132,7 @@ def prebattle_cutscene(room, game):
     ),
     lambda step: game.anims.append([JumpAnim(target=mage, on_end=step)]),
     lambda step: game.anims.append([PauseAnim(duration=10, on_end=step)]),
-    lambda step: game.child.open(DialogueContext(script=[
+    lambda step: game.get_tail().open(DialogueContext(script=[
       (mage.name, "Come and get me then, tin man!!"),
     ]), on_close=step),
   ]

@@ -6,6 +6,7 @@ from items.gold import Gold
 from items.equipment import EquipmentItem
 from inventory import Inventory
 from skills import Skill, get_skill_order
+from skills.weapon import Weapon
 from cores import Core
 from contexts import Context
 from dungeon.data import DungeonData
@@ -159,6 +160,17 @@ class GameData:
     store.skills.append(skill)
     store.skills.sort(key=get_skill_order)
     return True
+
+  def load_build(store, actor, build):
+    store.builds[type(actor).__name__] = build
+    actor.skills = sorted([skill for skill, cell in build], key=get_skill_order)
+    active_skills = actor.get_active_skills()
+    store.set_selected_skill(actor, skill=next((s for s in active_skills if not issubclass(s, Weapon)), None))
+
+  def update_skills(store):
+    for core in store.party:
+      core_id = type(core).__name__
+      store.load_build(actor=core, build=store.builds[core_id] if core_id in store.builds else [])
 
   def get_selected_skill(store, core):
     core_id = type(core).__name__

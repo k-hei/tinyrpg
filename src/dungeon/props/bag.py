@@ -23,7 +23,7 @@ class Bag(Prop):
       return False
     if bag.contents:
       if game.store.obtain(bag.contents):
-        game.open(child=DialogueContext(
+        game.get_tail().open(child=DialogueContext(
           lite=True,
           script=[("", ("You open the bag\n", "Received ", bag.contents().token(), "."))]
         ))

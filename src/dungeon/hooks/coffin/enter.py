@@ -21,7 +21,7 @@ from config import PUSH_DURATION, RUN_DURATION, NUDGE_DURATION
 
 def on_enter(room, game):
   room.mage = game.stage.find_elem(cls="Mage")
-  game.open(CutsceneContext([
+  game.get_tail().open(CutsceneContext([
     *(cutscene(room, game) if (config.CUTSCENES and "minxia" not in game.store.story) else [
       game.stage.remove_elem(room.mage),
       setattr(room, "mage", None),
@@ -33,7 +33,10 @@ def on_enter(room, game):
       ),
       lambda step: (
         game.handle_combat(),
-        game.camera.blur(),
+        game.camera.focus(
+          target=[room, game.hero],
+          force=True
+        ),
         step(),
       )
     ])
@@ -53,7 +56,7 @@ def cutscene(room, game):
     *take_battle_position(room, game),
     lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
     lambda step: (
-      game.child.open(DialogueContext(script=[
+      game.get_tail().open(DialogueContext(script=[
         lambda: game.anims.append([ShakeAnim(target=mage, duration=15)]),
         (hero.name.upper(), "You sure like running, don't you?"),
         lambda: game.anims.append([JumpAnim(target=mage)]),
@@ -69,7 +72,7 @@ def cutscene(room, game):
       game.anims.append([PauseAnim(duration=10, on_end=step)]),
     ),
     lambda step: (
-      game.child.open(DialogueContext(script=[
+      game.get_tail().open(DialogueContext(script=[
         (mage.name.upper(), "Ugh, you AGAIN?"),
         lambda: (
           mage.core.anims.clear(),
@@ -128,7 +131,7 @@ def cutscene(room, game):
     lambda step: (
       game.stage_view.shake(duration=inf, vertical=True),
       setattr(hero, "facing", (-1, 0)),
-      game.child.open(DialogueContext(script=[
+      game.get_tail().open(DialogueContext(script=[
         spawn_enemies(room, game) and ("????", "Urrrrrgh....."),
         lambda: (
           setattr(hero, "facing", (0, -1)),
@@ -147,7 +150,7 @@ def cutscene(room, game):
       ),
     ),
     lambda step: (
-      game.child.open(DialogueContext(script=[
+      game.get_tail().open(DialogueContext(script=[
         (mage.name.upper(), "If someone's gonna kick the bucket down here,"),
         (mage.name.upper(), "it's not gonna be me!"),
         (hero.name.upper(), "!!"),
@@ -189,7 +192,7 @@ def cutscene(room, game):
     ),
     lambda step: game.anims.append([JumpAnim(target=mage, on_end=step)]),
     lambda step: (
-      game.child.open(DialogueContext(script=[
+      game.get_tail().open(DialogueContext(script=[
         (mage.name.upper(), "So long, suckers!"),
         (mage.name.upper(), "Don't make too much of a mess, you hear?"),
       ]), on_close=step),
@@ -204,7 +207,7 @@ def cutscene(room, game):
       )
     )]),
     lambda step: (
-      game.child.open(DialogueContext(script=[
+      game.get_tail().open(DialogueContext(script=[
         lambda: game.anims.append([ShakeAnim(target=hero, duration=30)]),
         (hero.name.upper(), "H-hey!"),
       ]), on_close=step)
@@ -240,7 +243,7 @@ def cutscene(room, game):
       )])
     ),
     lambda step: (
-      game.child.open(DialogueContext(script=[
+      game.get_tail().open(DialogueContext(script=[
         lambda: (
           setattr(hero, "facing", (-1, 0)),
           game.anims.append([JumpAnim(target=mage)])
@@ -254,8 +257,8 @@ def cutscene(room, game):
       ]), on_close=step)
     ),
     lambda step: (
-      game.camera.focus(target=[game.room, hero], force=True),
       game.handle_combat(),
+      game.camera.focus(target=[room, hero], force=True),
       step(),
     )
   ]

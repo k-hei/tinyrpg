@@ -125,15 +125,16 @@ class Camera:
       anim.target = (camera.pos, target_pos)
       camera.anim = anim
 
-  def tween(camera, target, on_end=None):
+  def tween(camera, target, duration=None, on_end=None):
     start_pos = camera.pos
     camera.focus(target, force=True)
     goal_pos = Camera.resolve_target_group(camera.target_groups[-1])
 
     if not start_pos:
+      camera.pos = goal_pos
       return
 
-    duration = int(vector.distance(start_pos, goal_pos) / 4)
+    duration = duration or int(vector.distance(start_pos, goal_pos) / 4)
     camera.anim = TweenAnim(
       target=(start_pos, goal_pos),
       duration=duration,
@@ -157,8 +158,8 @@ class Camera:
 
     if camera.anim:
       start, goal = camera.anim.target
-      camera.pos = vector.lerp(start, goal, camera.anim.pos)
       camera.anim.update()
+      camera.pos = vector.lerp(start, goal, camera.anim.pos)
       if camera.anim.done:
         camera.anim = None
       return

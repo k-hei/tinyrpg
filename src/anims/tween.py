@@ -12,6 +12,7 @@ class TweenAnim(Anim):
   def update(anim):
     time = super().update()
     if anim.done:
+      anim.pos = 1
       return 1
     anim.pos = max(0, time / anim.duration)
     if anim.easing:

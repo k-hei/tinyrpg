@@ -263,7 +263,9 @@ class PauseContext(Context):
     if choice == "item":
       ctx.parent.open(InventoryContext(store=ctx.store))
     elif choice == "equip":
-      ctx.parent.open(CustomContext(store=ctx.store))
+      ctx.parent.open(CustomContext(store=ctx.store), on_close=lambda: (
+        ctx.store.update_skills()
+      ))
 
   def update(ctx):
     ctx.anims = step_anims(ctx.anims)

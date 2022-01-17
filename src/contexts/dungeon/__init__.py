@@ -381,6 +381,9 @@ class DungeonContext(ExploreBase):
     ctx.hero_cell = ctx.hero.cell
     ctx.update_bubble()
 
+    if ctx.room:
+      ctx.room.on_walk(ctx, cell=ctx.hero_cell)
+
   def update(ctx):
     for elem in ctx.stage.elems:
       ctx.vfx.extend(elem.update(ctx) or [])

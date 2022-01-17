@@ -15,7 +15,7 @@ App(
   title="explore context demo",
   context=GameContext(
     data=savedata,
-    # floor=Floor3,
-    stage=stage,
+    floor=Floor3,
+    # stage=stage,
   )
 ).init()

@@ -5,6 +5,7 @@ from lib.direction import invert as invert_direction, normal as normalize_direct
 from lib.cell import neighborhood, manhattan, is_adjacent, upscale
 from helpers.combat import find_damage, will_miss, will_crit, will_block
 from resolve.skill import resolve_skill
+import debug
 
 from contexts.explore.base import (
   ExploreBase,

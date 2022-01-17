@@ -58,6 +58,7 @@ class SkillContext(Context):
     ctx.exiting = False
     ctx.confirmed = False
     ctx.cache_camera_pos = None
+    ctx.cache_camera_targets = []
 
   def init(ctx):
     if not ctx.actor:

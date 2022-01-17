@@ -8,7 +8,7 @@ class Emerald(DungeonItem):
   name: str = "Emerald"
   desc: str = "Returns to town."
   sprite: str = "gem"
-  effect: str = "leave_dungeon"
+  effect: str = "goto_town"
   value: int = 80
   rarity: int = 2
 
@@ -20,9 +20,9 @@ class Emerald(DungeonItem):
     pause_anim = game.anims and next((a for a in game.anims[0] if type(a) is PauseAnim), None)
     if pause_anim:
       pause_anim.duration = DungeonItem.PAUSE_DURATION
-      pause_anim.on_end = compose(pause_anim.on_end, game.leave_dungeon)
+      pause_anim.on_end = compose(pause_anim.on_end, game.child.goto_town)
     else:
       game.anims.append([
-        PauseAnim(duration=DungeonItem.PAUSE_DURATION, on_end=game.leave_dungeon)
+        PauseAnim(duration=DungeonItem.PAUSE_DURATION, on_end=game.child.goto_town)
       ])
     return True, "The gem's return magic has activated."

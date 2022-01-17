@@ -23,7 +23,7 @@ def on_enter(room, game):
     for eyeball in eyeballs:
       eyeball.alert(cell=game.hero.cell)
     return
-  game.open(CutsceneContext([
+  game.get_tail().open(CutsceneContext([
     lambda step: (
       setattr(eyeballs[0], "facing", (1, 0)),
       game.anims.append([PauseAnim(duration=15, on_end=step)])
