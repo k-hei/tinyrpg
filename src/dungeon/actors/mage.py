@@ -1,9 +1,13 @@
-from random import randint, choice
-import pygame
 from dungeon.actors import DungeonActor
 from cores.mage import Mage as MageCore
-from assets import load as use_assets
-from anims.move import MoveAnim
+from helpers.mage import step_move
+from skills.magic.glacio import Glacio
+from skills.magic.congelatio import Congelatio
+from skills.magic.accerso import Accerso
+from skills.weapon.broadsword import BroadSword
+
+import assets
+from anims.step import StepAnim
 from anims.path import PathAnim
 from anims.jump import JumpAnim
 from anims.attack import AttackAnim
@@ -11,14 +15,10 @@ from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from anims.shake import ShakeAnim
 from anims.drop import DropAnim
-from anims.frame import FrameAnim
 from anims.fall import FallAnim
-from anims.pause import PauseAnim
-from lib.sprite import Sprite
-from skills.magic.glacio import Glacio
-from skills.magic.congelatio import Congelatio
-from skills.magic.accerso import Accerso
-from skills.weapon.broadsword import BroadSword
+from anims.walk import WalkAnim
+
+class LeapAnim(JumpAnim): pass
 
 class Mage(DungeonActor):
   drops = [BroadSword]
@@ -44,6 +44,13 @@ class Mage(DungeonActor):
   @DungeonActor.faction.setter
   def faction(mage, faction):
     DungeonActor.faction.fset(mage, faction)
+
+    if faction == "enemy":
+      mage.hp_max *= 6
+      mage.hp = mage.hp_max
+    else:
+      mage.hp_max = mage.core.get_hp_max()
+
     if faction in ("player", "enemy"):
       mage.behavior = "chase"
     else:
@@ -56,6 +63,32 @@ class Mage(DungeonActor):
   def charge(mage, *args, **kwargs):
     super().charge(*args, **kwargs)
     mage.core.anims.append(MageCore.CastAnim())
+
+  def start_move(actor, running):
+    actor.anims = [WalkAnim(period=30 if running else 60)]
+    actor.core.anims = actor.anims.copy()
+
+  def stop_move(actor):
+    actor.anims = []
+    actor.core.anims = []
+
+  def animate_brandish(actor, on_end=None):
+    return [
+      JumpAnim(
+        target=actor,
+        height=28,
+        delay=actor.core.BrandishAnim.frames_duration[0],
+        duration=actor.core.BrandishAnim.jump_duration,
+      ),
+      actor.core.BrandishAnim(
+        target=actor,
+        on_end=lambda: (
+          actor.stop_move(),
+          actor.core.anims.append(actor.core.IdleDownAnim()),
+          on_end and on_end(),
+        )
+      )
+    ]
 
   def step(mage, game):
     if mage.behavior == "guard":
@@ -78,54 +111,38 @@ class Mage(DungeonActor):
     if (delta_x == 0 and dist_y <= Glacio.range_max
     or delta_y == 0 and dist_x <= Glacio.range_max
     ) and not enemy.ailment == "freeze" and not abs(dist_x) + abs(dist_y) == 1:
-      if mage.get_hp() < mage.get_hp_max() / 2:
+      if mage.hp < mage.hp_max / 2:
         mage.charge(skill=Congelatio, dest=enemy.cell)
       else:
         mage.charge(skill=Glacio)
-      return game.log.print((mage.token(), " is chanting."))
+      return game.comps.minilog.print((mage.token(), " is chanting."))
 
-    has_allies = next((e for e in [game.floor.get_elem_at(c, superclass=DungeonActor) for c in game.room.get_cells()] if (
-      e and e is not mage
+    has_allies = next((e for c in game.room.get_cells() for e in game.stage.get_elems_at(c) if (
+      e
+      and e is not mage
+      and isinstance(e, DungeonActor)
       and e.faction == mage.faction
     )), None)
 
     if not has_allies:
-      return ("use_skill", Accerso)
+      mage.charge(skill="Roulette", turns=1)
+      return game.comps.minilog.print((mage.token(), " is chanting."))
 
-    delta = None
-    if abs(dist_x) + abs(dist_y) == 1:
-      if game.floor.is_cell_empty((mage_x - delta_x, mage_y - delta_y)):
-        delta = (-delta_x, -delta_y)
-      else:
-        deltas = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-        deltas = [(dx, dy) for (dx, dy) in deltas if game.floor.is_cell_empty((mage_x + dx, mage_y + dy))]
-        if deltas:
-          delta = choice(deltas)
-    elif abs(dist_x) + abs(dist_y) < 4:
-      if delta_x and delta_y:
-        delta = randint(0, 1) and (-delta_x, 0) or (0, -delta_y)
-      elif delta_x:
-        delta = (-delta_x, 0)
-      elif delta_y:
-        delta = (0, -delta_y)
-    else:
-      if delta_x and delta_y:
-        delta = randint(0, 1) and (delta_x, 0) or (0, delta_y)
-      elif delta_x:
-        delta = (delta_x, 0)
-      elif delta_y:
-        delta = (0, delta_y)
-    if delta:
-      return ("move", delta)
+    return step_move(mage, game)
 
   def view(mage, anims):
-    sprites = use_assets().sprites
+    sprites = assets.sprites
     anim_group = [a for a in anims[0] if a.target is mage] if anims else []
+    anim_group += mage.core.anims
     will_fall = anims and next((a for a in anims[0] if type(a) is FallAnim), None)
     if will_fall and anims[0].index(will_fall) > 0:
-      return super().view(sprites["mage_shock"], anims)
+      return DungeonActor.view(mage, sprites["mage_shock"], anims)
+
     for anim in anim_group:
-      if type(anim) is MoveAnim or type(anim) is PathAnim:
+      if type(anim) is LeapAnim:
+        sprite = sprites["mage_leap"]
+        break
+      elif isinstance(anim, (StepAnim, PathAnim, WalkAnim)):
         x4_idx = max(0, int((anim.time - 1) % anim.period // (anim.period / 4)))
         if mage.facing == (0, -1):
           sprite = [
@@ -180,4 +197,5 @@ class Mage(DungeonActor):
       else:
         sprite = sprites["mage"]
 
-    return super().view(sprite, anims)
+    # reused in MageClone
+    return DungeonActor.view(mage, sprite, anims)

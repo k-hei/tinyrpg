@@ -14,39 +14,45 @@ class ExitAnim(TweenAnim): pass
 class SkillBanner(Component):
   duration = 120
 
-  def __init__(banner, text, color, *args, **kwargs):
+  def __init__(banner, *args, **kwargs):
     super().__init__(*args, **kwargs)
+    banner.anims = []
+    banner.image = None
+    banner.image_written = None
+
+  def enter(banner, text, color):
     banner.anims = [
       EnterAnim(duration=15),
       PauseAnim(duration=90),
       ExitAnim(duration=8),
     ]
     banner.image = replace_color(assets.sprites["skill_banner"], BANNER_COLOR, color)
-    banner.image_written = banner.image.copy()
-    Sprite(
+    banner.image_written = Sprite(
       image=assets.ttf["english"].render(text),
       pos=(banner.image.get_width() // 2, banner.image.get_height() // 2),
       origin=("center", "center"),
-    ).draw(banner.image_written)
+    ).draw(banner.image.copy())
+    banner.done = False
 
   def exit(banner):
     if len(banner.anims) > 1:
       banner.anims = [banner.anims[-1]]
 
   def update(banner):
-    if banner.done:
+    if not banner.anims:
       return
-    anim = banner.anims and banner.anims[0]
+
+    anim = banner.anims[0]
     if anim.done:
       banner.anims.remove(anim)
     else:
       anim.update()
+
     if not banner.anims:
       banner.done = True
 
   def view(banner):
-    banner.update()
-    if banner.done:
+    if banner.done or not banner.image:
       return []
     banner_anim = banner.anims and banner.anims[0]
     banner_height = banner.image.get_height()

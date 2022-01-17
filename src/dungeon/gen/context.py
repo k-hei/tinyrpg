@@ -2,6 +2,7 @@ import pygame
 from pygame.time import get_ticks
 import debug
 from contexts import Context
+import contexts.dungeon
 from contexts.data import view_ticks
 from comps.minimap import Minimap
 import assets
@@ -139,7 +140,7 @@ class GenContext(Context):
 
       # Floor size
       sprites.append(Sprite(
-        image=font.render(f"{floor.get_width()}x{floor.get_height()}"),
+        image=font.render(f"{floor.width}x{floor.height}"),
         pos=(0, WINDOW_HEIGHT),
         origin=Sprite.ORIGIN_BOTTOMLEFT
       ))

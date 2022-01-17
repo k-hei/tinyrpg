@@ -10,6 +10,8 @@ from lib.filters import replace_color
 
 class PoisonPuff(Prop):
   MAX_TURNS = 7
+  active = True
+  expires = True
 
   def __init__(puff, origin, *args, **kwargs):
     super().__init__(*args, **kwargs)
@@ -17,6 +19,7 @@ class PoisonPuff(Prop):
     puff.origin = origin
     puff.vfx = None
     puff.dissolving = False
+    puff.done = False
 
   def effect(puff, game, actor=None):
     if puff.dissolving:
@@ -24,16 +27,24 @@ class PoisonPuff(Prop):
     actor = actor or game.hero
     if type(actor).__name__ == "Mushroom":
       return False
-    game.poison_actor(actor)
+    game.inflict_poison(actor)
     return True
 
-  def step(puff, game):
+  def dissolve(puff):
+    if puff.dissolving:
+      return False
+    puff.dissolving = True
+    puff.turns = 0
+    for i, fx in enumerate(puff.vfx):
+      fx.dissolve(delay=i * 5, on_end=(lambda: (
+        setattr(puff, "done", True)
+      )) if fx == puff.vfx[-1] else None)
+
+  def step(puff, *_):
     if puff.turns:
       puff.turns -= 1
     elif not puff.dissolving:
-      puff.dissolving = True
-      for i, fx in enumerate(puff.vfx):
-        fx.dissolve(delay=i * 5, on_end=(lambda: game.floor.remove_elem(puff)) if fx == puff.vfx[-1] else None)
+      puff.dissolve()
 
   def update(puff, *_):
     if puff.vfx:
@@ -41,10 +52,10 @@ class PoisonPuff(Prop):
     src = tuple([x * TILE_SIZE for x in puff.origin])
     dest = tuple([x * TILE_SIZE for x in puff.cell])
     puff.vfx = (
-      [PoisonPuffVfx(src, dest, elev=puff.elev, size="large") for i in range(randint(3, 6))]
-      + [PoisonPuffVfx(src, dest, elev=puff.elev, size="medium") for i in range(randint(3, 6))]
-      + [PoisonPuffVfx(src, dest, elev=puff.elev, size="small") for i in range(randint(3, 6))]
-      + [PoisonPuffVfx(src, dest, elev=puff.elev, size="tiny") for i in range(randint(3, 6))]
+      [PoisonPuffVfx(src, dest, elev=puff.elev, size="large") for _ in range(randint(3, 6))]
+      + [PoisonPuffVfx(src, dest, elev=puff.elev, size="medium") for _ in range(randint(3, 6))]
+      + [PoisonPuffVfx(src, dest, elev=puff.elev, size="small") for _ in range(randint(3, 6))]
+      + [PoisonPuffVfx(src, dest, elev=puff.elev, size="tiny") for _ in range(randint(3, 6))]
     )
     return puff.vfx
 

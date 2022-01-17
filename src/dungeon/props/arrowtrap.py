@@ -31,17 +31,18 @@ class ArrowTrap(Prop):
     return surface
 
   def update(trap, game):
-    if not game.room or trap.cell not in game.room.get_cells():
-      return
-    trap.anim.update()
-    if trap.anim.done:
-      trap.anim = Anim(duration=ARROW_PERIOD)
-      return [Arrow(
-        cell=trap.cell,
-        direction=trap.facing
-      )]
-    else:
-      trap.anim.update()
+    pass
+    # if not game.room or trap.cell not in game.room.get_cells():
+    #   return
+    # trap.anim.update()
+    # if trap.anim.done:
+    #   trap.anim = Anim(duration=ARROW_PERIOD)
+    #   return [Arrow(
+    #     cell=trap.cell,
+    #     direction=trap.facing
+    #   )]
+    # else:
+    #   trap.anim.update()
 
   def view(trap, anims):
     trap_image = trap.surface()

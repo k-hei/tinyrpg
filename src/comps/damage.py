@@ -3,7 +3,7 @@ from assets import load as use_assets
 from lib.filters import recolor, outline
 from text import render as render_text
 from lib.lerp import lerp
-from lib.cell import add as add_vector
+from lib.cell import add as add_vector, upscale
 from lib.sprite import Sprite
 import config
 import pygame
@@ -52,8 +52,8 @@ class DamageNumber:
     return sprite
 
 class DamageValue:
-  def __init__(value, text, cell, offset=(0, 0), color=None, delay=0):
-    value.cell = cell
+  def __init__(value, text, pos, offset=(0, 0), color=None, delay=0):
+    value.pos = pos
     value.offset = add_vector(offset, (randint(-1, 1), randint(-1, 1)))
     value.done = False
     value.width = 0
@@ -70,15 +70,20 @@ class DamageValue:
       value.numbers.append(number)
       value.width += number.sprite.get_width() - 2
 
-  def render(value):
-    sprites = []
-    col, row = value.cell
-    offset_x, offset_y = value.offset
-    x = (col + 0.5) * config.TILE_SIZE - value.width // 2 + offset_x
-    y = row * config.TILE_SIZE - 8 + offset_y
+  def update(value):
     value.time += 1
     for i, number in enumerate(value.numbers):
       number.update()
+      if number.done and i == len(value.numbers) - 1:
+        value.done = True
+
+  def view(value):
+    sprites = []
+    value_x, value_y = value.pos
+    offset_x, offset_y = value.offset
+    x = value_x - value.width // 2 + offset_x
+    y = value_y - 24 + offset_y
+    for number in value.numbers:
       image = number.sprite
       number_width = image.get_width()
       number_height = image.get_height()
@@ -97,6 +102,4 @@ class DamageValue:
           layer="numbers"
         ))
       x += number_width - 2
-      if number.done and i == len(value.numbers) - 1:
-        value.done = True
     return sprites

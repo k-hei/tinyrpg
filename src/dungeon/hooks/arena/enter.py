@@ -1,3 +1,4 @@
+from lib.cell import upscale
 from contexts.cutscene import CutsceneContext
 from anims.pause import PauseAnim
 from anims.jump import JumpAnim
@@ -9,11 +10,10 @@ import config
 
 def on_enter(room, game):
   room.waves = [
-    [Eyeball, Eyeball, Mushroom],
     [Eyeball, Mushroom, Mushroom, Mummy],
   ]
   room.lock(game)
-  eyeballs = [e for c in room.cells for e in game.floor.get_elems_at(c) if isinstance(e, Eyeball)]
+  eyeballs = [e for c in room.cells for e in game.stage.get_elems_at(c) if isinstance(e, Eyeball)]
   eyeballs.sort(key=lambda e: (
     0 if e.rare
     else 1 if not e.ailment == "sleep"
@@ -23,14 +23,14 @@ def on_enter(room, game):
     for eyeball in eyeballs:
       eyeball.alert(cell=game.hero.cell)
     return
-  game.open(CutsceneContext([
+  game.get_tail().open(CutsceneContext([
     lambda step: (
       setattr(eyeballs[0], "facing", (1, 0)),
       game.anims.append([PauseAnim(duration=15, on_end=step)])
     ),
     lambda step: (
       game.camera.focus(
-        cell=room.center,
+        target=upscale(room.center, game.stage.tile_size),
         force=True
       ),
       game.anims.append([PauseAnim(duration=90, on_end=step)])
@@ -69,6 +69,7 @@ def on_enter(room, game):
     ]),
     lambda step: (
       game.camera.blur(),
+      game.handle_combat(),
       step()
     )
   ]))

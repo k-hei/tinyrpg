@@ -11,7 +11,7 @@ from skills.weapon.tackle import Tackle
 from skills.armor.hpup import HpUp
 from items.materials.angeltears import AngelTears
 
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
@@ -72,17 +72,18 @@ class Eyeball(DungeonActor):
   CLONES_CAN_CLONE = True
 
   class ChargeAnim(ShakeAnim): pass
-  class SplitAnim(MoveAnim): pass
+  class SplitAnim(StepAnim): pass
   class Meyetosis(Skill):
     name = "Meyetosis"
     charge_turns = 3
-    def effect(user, dest, game, on_end=None):
-      neighbors = [c for c in neighborhood(user.cell) if game.floor.is_cell_empty(c)]
+    def effect(game, user, dest, on_start=None, on_end=None):
+      neighbors = [c for c in neighborhood(user.cell) if game.stage.is_cell_empty(c)]
       if neighbors:
         user.clones += 1
         neighbor = choice(neighbors)
         clone = Eyeball(
           cloned=True,
+          hp=user.hp,
           faction=user.faction,
           facing=user.facing,
           aggro=user.aggro,
@@ -92,8 +93,9 @@ class Eyeball(DungeonActor):
           BounceAnim(
             duration=20,
             target=user,
+            on_start=lambda: on_start and on_start(),
             on_squash=lambda: (
-              game.floor.spawn_elem_at(neighbor, clone),
+              game.stage.spawn_elem_at(neighbor, clone),
               game.anims[0].append(
                 Eyeball.SplitAnim(
                   duration=15,
@@ -110,6 +112,7 @@ class Eyeball(DungeonActor):
         game.anims.append([BounceAnim(
           duration=20,
           target=user,
+          on_start=on_start,
           on_end=on_end
         )])
       return user.cell
@@ -140,10 +143,6 @@ class Eyeball(DungeonActor):
       eyeball.promote(hp=False)
       eyeball.core.skills.append(HpUp)
 
-  def charge(eyeball, *args, **kwargs):
-    super().charge(*args, **kwargs)
-    eyeball.core.anims.append(Eyeball.ChargeAnim(magnitude=0.5))
-
   def discharge(eyeball):
     eyeball.core.anims.clear()
     return super().discharge()
@@ -152,28 +151,28 @@ class Eyeball(DungeonActor):
     return randint(2, 6)
 
   def find_move_target(eyeball, game):
-    valid_cells = game.floor.find_walkable_room_cells(cell=eyeball.cell)
+    valid_cells = game.stage.find_walkable_room_cells(cell=eyeball.cell)
     return choice(valid_cells) if valid_cells else None
 
   def find_attack_target(eyeball, game):
     cell = eyeball.cell
     elem = None
-    while (not Tile.is_opaque(game.floor.get_tile_at(cell))
+    while (not Tile.is_opaque(game.stage.get_tile_at(cell))
     and elem is None
     and manhattan(cell, eyeball.cell) <= Eyeball.VISION_RANGE
     ):
       cell = vector.add(cell, eyeball.facing)
-      elem = next((e for e in game.floor.get_elems_at(cell) if isinstance(e, DungeonActor) and not eyeball.allied(e)), None)
+      elem = next((e for e in game.stage.get_elems_at(cell) if isinstance(e, DungeonActor) and not eyeball.allied(e)), None)
     return elem
 
   def step_look(eyeball, game):
     if not eyeball.ai_target:
       eyeball.ai_mode = DungeonActor.AI_MOVE
       eyeball.ai_target = eyeball.find_move_target(game)
-      eyeball.ai_path = eyeball.ai_target and game.floor.pathfind(
+      eyeball.ai_path = eyeball.ai_target and game.stage.pathfind(
         start=eyeball.cell,
         goal=eyeball.ai_target,
-        whitelist=game.floor.find_walkable_room_cells(cell=eyeball.cell)
+        whitelist=game.stage.find_walkable_room_cells(cell=eyeball.cell)
       )
       return None
     find_adjacent_facings = lambda facing: (
@@ -224,7 +223,7 @@ class Eyeball(DungeonActor):
       eyeball.ai_path = None
 
     if eyeball.ai_mode == DungeonActor.AI_MOVE and is_adjacent(eyeball.cell, eyeball.ai_target) and (
-    enemy := next((e for e in game.floor.get_elems_at(eyeball.ai_target) if (
+    enemy := next((e for e in game.stage.get_elems_at(eyeball.ai_target) if (
       isinstance(e, DungeonActor)
       and not eyeball.allied(e)
     )), None)):
@@ -245,8 +244,9 @@ class Eyeball(DungeonActor):
       return super().view(FlinchSprite(eyeball.facing), anims)
     anim_group = [a for a in anims[0] if a.target is eyeball] if anims else []
     anim_group += eyeball.core.anims
+    # anim_group and print([(type(a).__name__, a.__dict__) for a in anim_group])
     for anim in anim_group:
-      if isinstance(anim, MoveAnim) and anim.duration != PUSH_DURATION:
+      if isinstance(anim, StepAnim) and anim.duration != PUSH_DURATION:
         if type(anim) is Eyeball.SplitAnim:
           offset_depth = -16
         image = MoveSprite(eyeball.facing)

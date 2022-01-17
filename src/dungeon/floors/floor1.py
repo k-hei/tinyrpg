@@ -3,7 +3,7 @@ from lib.graph import Graph
 from lib.cell import manhattan
 from dungeon.floors import Floor
 from dungeon.room import Blob as Room
-from dungeon.roomdata import RoomData, rooms
+from contexts.explore.roomdata import RoomData, rooms
 from dungeon.gen import gen_floor
 from dungeon.gen.blob import gen_blob
 from dungeon.actors.eyeball import Eyeball
@@ -15,7 +15,6 @@ from items.equipment.rustyblade import RustyBlade
 from skills.weapon import Weapon
 from anims.warpin import WarpInAnim
 from anims.flicker import FlickerAnim
-from anims.pause import PauseAnim
 from comps.log import Token
 from colors.palette import GRAY, RED, BLUE, GREEN
 
@@ -26,7 +25,7 @@ def has_weapon_equipped(game):
   return next((s for n, b in game.store.builds.items() for s, c in b if n == type(game.hero).__name__ and issubclass(s, Weapon)), None)
 
 def find_unvisited_secret(game):
-  return next((r for r in game.floor.rooms if r not in game.room_entrances and r.data and r.data.secret), None)
+  return next((r for r in game.stage.rooms if r not in game.room_entrances and r.data and r.data.secret), None)
 
 class Floor1(Floor):
   def generate(store=None, seed=None):
@@ -37,28 +36,6 @@ class Floor1(Floor):
           exit_room := Room(
             data=RoomData(**rooms["exit"],
             doors="RareTreasureDoor",
-            hooks={
-              "on_enter": lambda room, game: "minxia" not in game.store.story and find_unvisited_secret(game) and (
-                genie_cell := sorted(get_room_bonus_cells(room, game.floor), key=lambda c: manhattan(c, game.hero.cell))[0],
-                game.floor.spawn_elem_at(genie_cell, genie := Genie(
-                  name=(genie_name := "Brajin"),
-                  color=GREEN,
-                  message=lambda *_: [
-                    (genie_name, ("It looks like there's ", Token(text="a secret room", color=GREEN), " on this floor that you haven't found yet.")),
-                    (genie_name, (Token(text="Search every corner", color=BLUE), " of the map for walls that look suspicious.")),
-                    (genie_name, "The secret may be closer than you think..."),
-                    lambda: game.anims.append([FlickerAnim(
-                      target=genie,
-                      duration=30,
-                      on_end=lambda: game.floor.remove_elem(genie)
-                    )])
-                  ]
-                )),
-                game.anims.append([
-                  WarpInAnim(target=genie, delay=15)
-                ])
-              )
-            }
           )),
           puzzle_room := Room(data=RoomData(**rooms["pzlt1"])),
           buffer_room := Room(cells=gen_blob(min_area=60, max_area=60), data=RoomData(
@@ -70,8 +47,8 @@ class Floor1(Floor):
             degree=3,
             hooks={
               "on_enter": lambda room, game: "minxia" not in game.store.story and not has_weapon_equipped(game) and (
-                genie_cell := sorted(get_room_bonus_cells(room, game.floor), key=lambda c: manhattan(c, game.hero.cell))[0],
-                game.floor.spawn_elem_at(genie_cell, genie := Genie(
+                genie_cell := sorted(get_room_bonus_cells(room, game.stage), key=lambda c: manhattan(c, game.hero.cell))[0],
+                game.stage.spawn_elem_at(genie_cell, genie := Genie(
                   name=(genie_name := "Joshin"),
                   message=lambda *_: not has_weapon(game) and [
                     (genie_name, "It doesn't look like you have a weapon on you."),
@@ -86,7 +63,7 @@ class Floor1(Floor):
                     lambda: game.anims.append([FlickerAnim(
                       target=genie,
                       duration=30,
-                      on_end=lambda: game.floor.remove_elem(genie)
+                      on_end=lambda: game.stage.remove_elem(genie)
                     )])
                   ]
                 )),
@@ -101,7 +78,7 @@ class Floor1(Floor):
             enemies=[Eyeball(rare=True), Eyeball(), Eyeball(), Eyeball(), Eyeball()],
             items=True,
             degree=1,
-            secret=True
+            # secret=True
           )),
         ],
         edges=[

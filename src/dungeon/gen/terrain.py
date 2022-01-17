@@ -1,14 +1,14 @@
 from math import sqrt
-from copy import deepcopy
 from random import randint, choice
 from lib.cell import neighborhood
 from dungeon.props.pillar import Pillar
+import tiles.default as tileset
 
 def gen_terrain(stage, room, tree=None):
   # carve out all cells in room except for one cell
   room_cells = room.get_cells()
   for cell in room_cells:
-    stage.set_tile_at(cell, stage.PIT)
+    stage.set_tile_at(cell, tileset.Pit)
 
   # paint floors from each doorway to pivot
   room_doorways = [next((n for n in neighborhood(d) if n in room_cells), None) for d in room.get_doorways(stage)]
@@ -26,7 +26,7 @@ def gen_terrain(stage, room, tree=None):
     pivot_neighbors = neighborhood(pivot, radius=radius, diagonals=diagonals, inclusive=True)
     for cell in pivot_neighbors:
       if cell in room_cells:
-        stage.set_tile_at(cell, stage.FLOOR)
+        stage.set_tile_at(cell, tileset.Floor)
       if diagonals and radius == 2 and (
         cell in neighborhood(pivot, diagonals=True)
         and cell not in neighborhood(pivot, inclusive=True)
@@ -39,12 +39,12 @@ def gen_terrain(stage, room, tree=None):
     return pivot
 
   def draw_path(start, goal):
-    path = stage.pathfind(start=door, goal=pivot, whitelist=room_cells)
+    path = stage.pathfind(start, goal, whitelist=room_cells)
     for cell in path:
-      stage.set_tile_at(cell, stage.FLOOR)
+      stage.set_tile_at(cell, tileset.Floor)
       neighbors = [n for n in neighborhood(cell) if n in room_cells]
       if neighbors:
-        stage.set_tile_at(choice(neighbors), stage.FLOOR)
+        stage.set_tile_at(choice(neighbors), tileset.Floor)
     return path
 
   def find_connected_room(room, door):
@@ -76,7 +76,7 @@ def gen_terrain(stage, room, tree=None):
 
   island_count = randint(0, sqrt(room.get_area()) // 3)
   if room_pathcells and island_count and not disconnected:
-    for i in range(island_count):
+    for _ in range(island_count):
       pivot = create_platform()
       if not pivot:
         break

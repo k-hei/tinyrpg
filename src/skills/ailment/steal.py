@@ -24,7 +24,7 @@ class Steal(AilmentSkill):
     hero_x, hero_y = source_cell
     delta_x, delta_y = user.facing
     target_cell = (hero_x + delta_x, hero_y + delta_y)
-    target_elem = game.floor.get_elem_at(target_cell, superclass=DungeonActor)
+    target_elem = game.stage.get_elem_at(target_cell, superclass=DungeonActor)
     def on_connect():
       item = next((i for i in game.parent.inventory.items if not isinstance(i, MaterialItem)), None)
       if item:

@@ -3,19 +3,31 @@ from dungeon.element import DungeonElement
 from dungeon.actors import DungeonActor
 from dungeon.props.door import Door
 import assets
+import lib.vector as vector
 from lib.sprite import Sprite
 from lib.filters import replace_color
 from anims.pause import PauseAnim
-from colors.palette import BLACK, WHITE, GRAY, PURPLE, DARKGRAY, DARKBLUE
+from colors.palette import BLACK, GRAY, PURPLE, DARKGRAY, DARKBLUE
 from config import PUSH_DURATION
 
 class PushTile(DungeonElement):
+  active = True
+
   def __init__(tile, pushed=False, completed=False):
     super().__init__(solid=False)
     tile.pushed = pushed
     tile.completed = completed
     tile.sinking = False
     tile.anim = None
+
+  @property
+  def rect(block):
+    if block._rect is None and block.pos:
+      block._rect = Rect(
+        vector.add(block.pos, (-16, -16)),
+        (32, 32)
+      )
+    return block._rect
 
   def encode(tile):
     [cell, kind, *props] = super().encode()
@@ -39,7 +51,7 @@ class PushTile(DungeonElement):
     # find_pushtiles(stage, room)
     pushtiles = []
     for cell in game.room.get_cells():
-      pushtile = game.floor.get_elem_at(cell, superclass=PushTile)
+      pushtile = next((e for e in game.stage.get_elems_at(cell) if isinstance(e, PushTile)), None)
       if pushtile:
         pushtiles.append(pushtile)
 
@@ -49,7 +61,7 @@ class PushTile(DungeonElement):
         tile.completed = True
       door = None
       for cell in game.room.get_edges():
-        door = next((e for e in game.floor.get_elems_at(cell) if isinstance(e, Door) and not e.opened), None)
+        door = next((e for e in game.stage.get_elems_at(cell) if isinstance(e, Door) and not e.opened), None)
         if door:
           door.unlock()
           game.anims.append([PauseAnim(

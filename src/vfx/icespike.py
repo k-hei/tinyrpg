@@ -13,7 +13,7 @@ from vfx.smoke import SmokeVfx
 from vfx.snowdrift import SnowdriftVfx
 
 class IceSpikeVfx(Vfx):
-  def __init__(fx, cell, delay=0, color=CYAN, on_connect=None, *args, **kwargs):
+  def __init__(fx, cell, delay=0, color=CYAN, on_connect=None, on_end=None, *args, **kwargs):
     x, y = cell
     super().__init__(
       kind=None,
@@ -25,6 +25,7 @@ class IceSpikeVfx(Vfx):
     fx.delay = delay
     fx.color = color
     fx.on_connect = on_connect
+    fx.on_end = on_end
     fx.anims = [
       FrameAnim(
         frames=assets.sprites["fx_icespike"],
@@ -43,6 +44,7 @@ class IceSpikeVfx(Vfx):
     if anim.done:
       fx.anims.remove(anim)
       if not fx.anims:
+        fx.on_end and fx.on_end()
         fx.done = True
         return [IcePieceVfx(
           pos=(fx_x, fx_y),

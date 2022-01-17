@@ -10,7 +10,7 @@ class AlertBubble(Vfx):
     super().__init__(kind=None, pos=(x * TILE_SIZE, y * TILE_SIZE))
     bubble.anim = Anim(duration=duration)
 
-  def update(bubble, _):
+  def update(bubble, *_):
     if bubble.anim.done:
       bubble.done = True
     else:

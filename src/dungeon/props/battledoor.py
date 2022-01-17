@@ -13,7 +13,7 @@ class BattleDoor(Door):
     if door.locked:
       return effect(game, *args, **kwargs)
     elif not door.opened:
-      game.open(PromptContext("Open the door and enter?", [
+      game.open(PromptContext("Open the door?", [
         Choice("Yes"),
         Choice("No", closing=True)
       ], on_close=lambda choice: (

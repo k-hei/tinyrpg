@@ -1,4 +1,6 @@
+from pygame import Rect
 import assets
+import lib.vector as vector
 from lib.sprite import Sprite
 from dungeon.props import Prop
 from dungeon.props.itemdrop import ItemDrop
@@ -12,6 +14,7 @@ from anims.flicker import FlickerAnim
 class Vase(Prop):
   solid = True
   active = True
+  breakable = True
 
   class OpenAnim(FrameAnim):
     frames = assets.sprites["vase_opening"]
@@ -22,6 +25,15 @@ class Vase(Prop):
     vase.contents = contents
     vase.opened = opened
     vase.anims = []
+
+  @property
+  def rect(elem):
+    if elem._rect is None and elem.pos:
+      elem._rect = Rect(
+        vector.add(elem.pos, (-10, -4)),
+        (20, 20)
+      )
+    return elem._rect
 
   def open(vase, game):
     if vase.opened:
@@ -38,7 +50,7 @@ class Vase(Prop):
     drop = None
     if item:
       drop = ItemDrop(item)
-      game.floor.spawn_elem_at(vase.cell, drop)
+      game.stage.spawn_elem_at(vase.cell, drop)
     not game.anims and game.anims.append([])
     game.anims[0] = [
       Vase.OpenAnim(target=vase),
@@ -48,10 +60,13 @@ class Vase(Prop):
       PauseAnim(duration=30),
       FlickerAnim(
         duration=45,
-        on_end=lambda: game.floor.remove_elem(vase)
+        on_end=lambda: game.stage.remove_elem(vase)
       )
     ]
     return True
+
+  def crush(vase, game):
+    return vase.effect(game)
 
   def update(vase, *_):
     if vase.anims:

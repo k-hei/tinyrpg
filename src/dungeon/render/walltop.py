@@ -1,7 +1,7 @@
 from pygame import Surface, SRCALPHA
 from pygame.transform import rotate, flip
-import assets
 from lib.cell import neighborhood
+import assets
 from dungeon.props.door import Door
 from dungeon.props.secretdoor import SecretDoor
 from colors.palette import BLACK

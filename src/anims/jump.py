@@ -1,11 +1,11 @@
 from math import sin, pi
 from lib.lerp import lerp
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from config import JUMP_DURATION
 
 JUMP_HEIGHT = 12
 
-class JumpAnim(MoveAnim):
+class JumpAnim(StepAnim):
   def __init__(anim, height=JUMP_HEIGHT, duration=JUMP_DURATION, src=None, dest=None, *args, **kwargs):
     super().__init__(duration=duration, src=src, dest=dest, *args, **kwargs)
     anim.height = height

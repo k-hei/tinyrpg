@@ -8,17 +8,16 @@ from pygame.transform import scale
 from pygame.time import get_ticks
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
-from lib.sprite import Sprite, SpriteMask
+import lib.input as input
+from lib.sprite import Sprite
 import game.controls as controls
 import assets
 from contexts import Context
 from contexts.loading import LoadingContext
 from contexts.debug import DebugContext
-from transits.dissolve import DissolveIn, DissolveOut
 from config import (
   FPS, FPS_SLOW, FPS_FAST,
   WINDOW_WIDTH, WINDOW_SIZE, WINDOW_SCALE_INIT, WINDOW_SCALE_MAX,
-  ASSETS_PATH
 )
 
 gamepad.config(preset=controls.TYPE_NULL)
@@ -89,8 +88,8 @@ class App(Context):
     try:
       while not app.done:
         app.clock.tick(app.fps)
-        app.redraw()
         app.update()
+        app.redraw()
     except:
       debug.append(traceback.format_exc())
     finally:
@@ -99,11 +98,12 @@ class App(Context):
   def update(app):
     keyboard.update()
     gamepad.update()
+    input.update()
     if app.paused:
       return
     try:
-      app.handle_events()
       super().update()
+      app.handle_events()
       app.handle_press()
       if app.transits:
         transit = app.transits[0]
@@ -123,23 +123,13 @@ class App(Context):
         transit = app.transits[0]
         sprites += transit.view(sprites)
 
-      UI_LAYERS = ["ui", "log", "transits", "hud"]
+      UI_LAYERS = ["ui", "log", "transits", "hud", "selection"]
+      sprites = [s for g in sprites for s in (g if type(g) is list else [g])]
       sprites.sort(key=lambda sprite: (
-        len(UI_LAYERS) + 1
-          if type(sprite) is list
-          else UI_LAYERS.index(sprite.layer) + 1
-            if sprite.layer in UI_LAYERS
-            else 0
+        UI_LAYERS.index(sprite.layer) + 1
+          if sprite.layer in UI_LAYERS
+          else 0
       ))
-
-      new_sprites = []
-      for sprite in sprites:
-        if type(sprite) is list:
-          for s in sprite:
-            new_sprites.append(s)
-        else:
-          new_sprites.append(sprite)
-      sprites = new_sprites
 
       if app.fps_shown:
         sprites += app.view_fps()
@@ -173,11 +163,13 @@ class App(Context):
         transit_in.on_end = lambda: app.load(loader, on_end)
     app.transits += transits
 
-  def load(app, loader, on_end):
+  def load(app, loader, on_end, child=None):
     app.loading = True
-    def on_close():
-      app.loading = False
-    app.get_tail().open(LoadingContext(loader, on_end), on_close)
+    child = child or app.get_tail()
+    child.open(
+      child=LoadingContext(loader, on_end),
+      on_close=lambda: setattr(app, "loading", False)
+    )
 
   def print_contexts(app):
     contexts = []
@@ -255,6 +247,7 @@ class App(Context):
   def handle_press(app, button=None):
     if button:
       keyboard.handle_press(button)
+      input.handle_press(button)
       tapping = keyboard.get_state(button) == 1
       ctrl = (keyboard.get_state(pygame.K_LCTRL)
         or keyboard.get_state(pygame.K_RCTRL))
@@ -282,8 +275,6 @@ class App(Context):
         return tapping and app.toggle_debug()
       if button == pygame.K_RETURN and alt:
         return tapping and app.toggle_fullscreen()
-      if button == pygame.K_t and ctrl:
-        return tapping and app.print_transits()
       if button == pygame.K_p and ctrl:
         return tapping and app.toggle_pause()
     if app.child:
@@ -293,3 +284,4 @@ class App(Context):
     if app.child:
       app.child.handle_release(key)
     keyboard.handle_release(key)
+    input.handle_release(key)

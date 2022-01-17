@@ -1,9 +1,10 @@
 from anims import Anim
 from lib.lerp import lerp
+from config import FLINCH_DURATION
 
 class FlinchAnim(Anim):
-  def __init__(anim, direction=None,  *args, **kwargs):
-    super().__init__(*args, **kwargs)
+  def __init__(anim, direction=None, duration=FLINCH_DURATION, *args, **kwargs):
+    super().__init__(duration=duration, *args, **kwargs)
     anim.direction = direction
     anim.offset = (0, 0)
 

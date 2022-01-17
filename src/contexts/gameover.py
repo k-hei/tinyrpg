@@ -139,8 +139,8 @@ class GameOverContext(Context):
     ctx.anims.append(ChooseAnim(target="hand", duration=30, on_end=lambda: (
       choice == "Continue" and (
         game := ctx.get_parent(cls="GameContext"),
-        game and game.load() or ctx.close(choice),
-        ctx.get_head().transition([DissolveOut()])
+        ctx.close(choice),
+        game and game.load(),
       ),
       choice == "Load Game" and ctx.open(LoadContext(), on_close=lambda *data: (
         data and (

@@ -13,7 +13,6 @@ class SecretDoor(Door):
   def effect(door, game, *_):
     if door.hidden:
       door.hidden = False
-      game.redraw_tiles(force=True)
       return True
     else:
       return super().effect(game, *_)

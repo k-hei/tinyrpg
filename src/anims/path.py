@@ -31,6 +31,7 @@ class PathAnim(Anim):
       if step_pos == 0:
         anim.on_step and anim.on_step(anim.path[path_index])
       if path_index + 1 == len(anim.path):
+        anim.cell = anim.path[-1]
         anim.end()
       else:
         anim.next_cell = anim.path[path_index + 1]

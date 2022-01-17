@@ -1,12 +1,12 @@
 import lib.vector as vector
+from lib.cell import upscale
 from lib.sequence import play_sequence, stop_sequence
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
 from dungeon.hooks.shrine.magestruggle import sequence_mage_struggle
 from dungeon.hooks.shrine.magespin import sequence_mage_spin
 from dungeon.hooks.shrine.magebump import sequence_mage_bump
-from anims.move import MoveAnim
-from anims.attack import AttackAnim
+from anims.step import StepAnim
 from anims.jump import JumpAnim
 from anims.shake import ShakeAnim
 from anims.pause import PauseAnim
@@ -25,21 +25,19 @@ def trigger_cutscene(room, game):
   mage_bump = sequence_mage_bump(room, game)
   if "minxia" in game.store.story or not config.CUTSCENES:
     return
-  game.open(CutsceneContext([
+  game.get_tail().open(CutsceneContext([
     lambda step: (
       game.anims.append([PauseAnim(duration=30, on_end=step)]),
       play_sequence(mage_struggle)
     ),
     lambda step: (
-      game.camera.focus(
-        cell=vector.add(altar.cell, (0, 1.5)),
-        force=True,
-        tween=True,
-        speed=60,
+      game.camera.tween(
+        target=upscale(vector.add(altar.cell, (0, 1.5)), game.stage.tile_size),
+        duration=60,
         on_end=step
       )
     ),
-    lambda step: game.child.open(DialogueContext([
+    lambda step: game.get_tail().open(DialogueContext([
       (mage.name, "There's gotta be..."),
       (mage.name, "a button..."),
       (mage.name, "to open this darn thing..."),
@@ -49,7 +47,7 @@ def trigger_cutscene(room, game):
       lambda: setattr(mage, "facing", (1, 0)),
       lambda: game.anims.append([
         ShakeAnim(target=mage, duration=30),
-        MoveAnim(
+        StepAnim(
           target=hero,
           src=hero.cell,
           dest=(hero_dest := vector.add(altar.cell, (0, 2))),
@@ -83,11 +81,18 @@ def trigger_cutscene(room, game):
       ]),
       (mage.name, "Hey, stickwad, I'm just looking for a place to hide from those cretins outside!"),
       (mage.name, "Just let me crawl in this box and be on your damn way!"),
-      lambda: stop_sequence(mage_bump),
+      lambda: game.anims.append([PauseAnim(
+        duration=5,
+        on_end=lambda: stop_sequence(mage_bump)
+      )]),
       lambda: game.anims.append([
         ShakeAnim(target=hero, duration=30)
       ]),
       (hero.name, "Don't open that! You don't know what could-"),
     ]), on_close=step),
-    lambda step: altar.effect(game),
+    lambda step: game.anims.append([PauseAnim(duration=5, on_end=step)]),
+    lambda step: (
+      altar.effect(game),
+      step(),
+    ),
   ]))

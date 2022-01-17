@@ -19,6 +19,9 @@ class OffsetMoveAnim(TweenAnim):
 
   def update(anim):
     super().update()
+    if anim.done:
+      anim.offset = (0, 0)
+      return anim.offset
     src_x, src_y = anim.src
     dest_x, dest_y = anim.dest
     anim.offset = (

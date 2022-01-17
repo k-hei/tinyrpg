@@ -13,7 +13,7 @@ class Palm(Prop):
     game.anims.append([FlickerAnim(
       duration=FLICKER_DURATION,
       target=palm,
-      on_end=lambda: game.floor.elems.remove(palm)
+      on_end=lambda: game.stage.elems.remove(palm)
     )])
 
   def view(coffin, anims):
@@ -21,6 +21,8 @@ class Palm(Prop):
     palm_image = replace_color(palm_image, WHITE, GOLD)
     return super().view([Sprite(
       image=palm_image,
+      pos=(0, 16),
+      origin=Sprite.ORIGIN_BOTTOM,
       layer="elems",
-      offset=-16
+      offset=-16,
     )], anims)

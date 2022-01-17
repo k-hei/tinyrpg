@@ -46,6 +46,19 @@ class Mage(BipedCore):
   class YellAnim(FrameAnim):
     frames = [assets.sprites["mage_yell"]]
 
+  class BrandishAnim(FrameAnim):
+    frames = assets.sprites["mage_brandish"]
+    frames_duration = [10, 7, 7, 9, 11, 15]
+    jump_duration = 34
+
+  class IdleDownAnim(FrameAnim):
+    frames = assets.sprites["mage_idle_down"]
+    frames_duration = 10
+    loop = True
+
+  class LeapAnim(FrameAnim):
+    frames = [assets.sprites["mage_leap"]]
+
   def __init__(mage, name=MAGE_NAME, faction="player", hp=MAGE_HP, *args, **kwargs):
     super().__init__(
       name=name,

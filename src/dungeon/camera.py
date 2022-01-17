@@ -2,7 +2,7 @@ from math import ceil
 import pygame
 from pygame import Rect
 from config import TILE_SIZE
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from anims.path import PathAnim
 from anims.tween import TweenAnim
 from easing.expo import ease_out
@@ -20,7 +20,6 @@ class Camera:
     camera.vel = (0, 0)
     camera.cell = None
     camera.flag = None
-    camera.room = None
     camera.speed = None
     camera.anims = []
 
@@ -40,7 +39,6 @@ class Camera:
 
   def reset(camera):
     camera.pos = None
-    camera.room = None
     camera.blur()
 
   def upscale(camera, cell):
@@ -91,7 +89,7 @@ class Camera:
     move_anim = next((a for a in anims if (
       not a.done
       and a.target is actor
-      and (type(a) is MoveAnim or type(a) is PathAnim)
+      and (type(a) is StepAnim or type(a) is PathAnim)
     )), None)
     if move_anim:
       actor_x, actor_y, *actor_z = move_anim.cell
@@ -175,13 +173,13 @@ class Camera:
         move_anim = next((a for a in anims if (
           not a.done
           and a.target is hero
-          and (isinstance(a, MoveAnim) or isinstance(a, PathAnim))
+          and (isinstance(a, StepAnim) or isinstance(a, PathAnim))
         )), None)
         if move_anim:
           focus_x, focus_y, *focus_z = move_anim.cell
           focus_z = max(0, focus_z and focus_z[0] or 0)
           focus_y -= focus_z
-          if isinstance(move_anim, MoveAnim):
+          if isinstance(move_anim, StepAnim):
             target_x, target_y, *target_z = move_anim.dest
           elif isinstance(move_anim, PathAnim):
             target_x, target_y, *target_z = move_anim.next_cell

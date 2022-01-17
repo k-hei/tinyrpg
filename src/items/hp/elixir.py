@@ -31,7 +31,7 @@ class Elixir(HpItem):
 
   def effect(potion, game, actor=None, cell=None):
     game.vfx.append(BurstVfx(
-      cell=actor.cell,
+      pos=actor.pos,
       color=potion.color
     ))
     actor = actor or game.hero

@@ -1,13 +1,11 @@
-import random
 from skills.attack import AttackSkill
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from anims.attack import AttackAnim
-from anims.frame import FrameAnim
 from dungeon.actors import DungeonActor
 from cores.knight import Knight as Knight
 from vfx.impact import ImpactVfx
-from config import ATTACK_DURATION, TILE_SIZE, ENABLED_COMBAT_LOG
+from config import ATTACK_DURATION, ENABLED_COMBAT_LOG
 
 class Blitzritter(AttackSkill):
   name = "Blitzritter"
@@ -26,9 +24,9 @@ class Blitzritter(AttackSkill):
     (2, 1)
   )
 
-  def effect(user, dest, game, on_end=None):
+  def effect(game, user, dest, on_start=None, on_end=None):
     camera = game.camera
-    floor = game.floor
+    floor = game.stage
     hero_x, hero_y = user.cell
     delta_x, delta_y = user.facing
     near_cell = (hero_x + delta_x, hero_y + delta_y)
@@ -47,12 +45,12 @@ class Blitzritter(AttackSkill):
         actor=user,
         target=target,
         modifier=1.25,
-        is_animated=False,
-        is_ranged=True,
+        animate=False,
+        # is_ranged=True,
         on_end=on_end
       )
       if target_a and target_b:
-        attack(target=target_a, on_end=lambda: attack(target=target_b, on_end=on_end))
+        attack(target=target_b, on_end=lambda: attack(target=target_a, on_end=on_end))
       elif target_a and not target_b:
         attack(target=target_a, on_end=on_end)
       elif not target_a and target_b:
@@ -79,6 +77,7 @@ class Blitzritter(AttackSkill):
       target=user,
       src=user.cell,
       dest=near_cell,
+      on_start=lambda: on_start and on_start(),
       on_connect=connect,
       on_end=end_bump
     )])

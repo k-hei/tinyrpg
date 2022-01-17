@@ -1,4 +1,5 @@
 import lib.vector as vector
+from lib.cell import upscale
 from lib.sequence import play_sequence, stop_sequence
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
@@ -22,17 +23,12 @@ def on_focus(room, game):
     return False
   hero = game.hero
   mage = room.mage = Mage()
-  game.floor.spawn_elem_at(vector.add(room.center, (1, 0)), mage)
+  game.stage.spawn_elem_at(vector.add(room.center, (1, 0)), mage)
   mage_bump = sequence_mage_bump(room, game)
-  door = room.get_doors(game.floor)[0]
-  game.open(CutsceneContext([
+  door = room.get_doors(game.stage)[0]
+  game.get_tail().open(CutsceneContext([
     lambda step: (
-      game.camera.focus(
-        cell=room.center,
-        force=True,
-        tween=True,
-        speed=1
-      ),
+      game.camera.focus(target=room, force=True),
       game.anims.extend([
         [
           PauseAnim(duration=30),
@@ -46,7 +42,7 @@ def on_focus(room, game):
         JumpAnim(target=room.mage),
         FlinchAnim(target=room.mage)
       ]),
-      game.child.open(DialogueContext([
+      game.get_tail().open(DialogueContext([
         (mage.name, "OUUCCHH!!!! MY ASS!!!!!"),
         lambda: game.anims.clear(),
         lambda: game.anims.append([
@@ -90,7 +86,7 @@ def on_focus(room, game):
       game.anims.append([
         PathAnim(
           target=mage,
-          path=(path := game.floor.pathfind(
+          path=(path := game.stage.pathfind(
             start=mage.cell,
             goal=hero.cell,
             whitelist=room.cells
@@ -107,14 +103,14 @@ def on_focus(room, game):
         duration=15,
         on_end=lambda: (
           game.camera.focus(
-            cell=vector.add(mage.cell, (0, 1)),
+            target=upscale(vector.add(mage.cell, (0, 1)), game.stage.tile_size),
             force=True,
           ),
           step()
         )
       )
     ]),
-    lambda step: game.child.open(DialogueContext([
+    lambda step: game.get_tail().open(DialogueContext([
       lambda: play_sequence(mage_bump),
       (mage.name, "...ow..."),
       (mage.name, "oh fug..."),
@@ -127,7 +123,7 @@ def on_focus(room, game):
       on_start=lambda: setattr(mage, "facing", (0, 1)),
       on_end=step
     )]),
-    lambda step: game.child.open(DialogueContext([
+    lambda step: game.get_tail().open(DialogueContext([
       (mage.name, "Well... I tried!"),
       lambda: setattr(mage, "facing", (-1, 0)),
       (mage.name, "I don't think he'll be needing all this useful stuff he's carrying."),
@@ -151,19 +147,19 @@ def on_focus(room, game):
     lambda step: game.anims.append([
       PathAnim(
         target=mage,
-        path=(path := game.floor.pathfind(
+        path=(path := game.stage.pathfind(
           start=mage.cell,
           goal=vector.add(door.cell, (0, 1)),
         )),
         period=RUN_DURATION,
         on_end=lambda: (
-          game.floor.remove_elem(mage),
+          game.stage.remove_elem(mage),
           step()
         )
       )
     ]),
     lambda step: (
-      game.camera.blur(),
+      game.camera.focus(target=[room, game.hero], force=True),
       step()
     ),
     lambda step: (

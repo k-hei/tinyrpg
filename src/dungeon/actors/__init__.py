@@ -1,28 +1,28 @@
 from random import randint
-from pygame import Surface
-from lib.sprite import Sprite
 from copy import copy
+from math import sqrt
+from pygame import Surface, Rect
+from lib.sprite import Sprite
+from lib.cell import is_adjacent, add as add_vector, manhattan, upscale
+from dungeon.fov import shadowcast
+import lib.vector as vector
 
 from dungeon.element import DungeonElement
 from cores import Core
-from skills.weapon import Weapon
 
 from colors import darken_color
 from colors.palette import BLACK, WHITE, GRAY, RED, GREEN, BLUE, CYAN, VIOLET, GOLD, DARKBLUE
-from assets import assets
+import assets
 from lib.filters import replace_color, darken_image
-from anims.move import MoveAnim
+from anims.step import StepAnim
+from anims.path import PathAnim
 from anims.attack import AttackAnim
-from anims.jump import JumpAnim
 from anims.awaken import AwakenAnim
 from anims.flinch import FlinchAnim
-from anims.flicker import FlickerAnim
 from anims.bounce import BounceAnim
 from anims.frame import FrameAnim
 from anims.drop import DropAnim
 from anims.warpin import WarpInAnim
-from lib.cell import is_adjacent, manhattan, add as add_vector
-from lib.lerp import lerp
 from comps.log import Token
 from comps.hpbubble import HpBubble
 from vfx.icepiece import IcePieceVfx
@@ -34,12 +34,20 @@ from contexts.dialogue import DialogueContext
 
 class DungeonActor(DungeonElement):
   POISON_DURATION = 5
-  POISON_STRENGTH = 1 / 7
+  POISON_STRENGTH = 1 / 9
   FREEZE_DURATION = 7
   SLEEP_DURATION = 256
   INVULNERABLE_DURATION = 16
   COOLDOWN_DURATION = 1
   VISION_RANGE = config.VISION_RANGE
+
+  AILMENT_POISON = "poison"
+  AILMENT_FREEZE = "freeze"
+  AILMENT_SLEEP = "sleep"
+
+  FACTION_PLAYER = "player"
+  FACTION_ALLY = "ally"
+  FACTION_ENEMY = "enemy"
 
   AI_MOVE = "move"
   AI_LOOK = "look"
@@ -48,6 +56,8 @@ class DungeonActor(DungeonElement):
   solid = True
   skill = None
   drops = []
+
+  speed = 1.5
 
   class SleepAnim(FrameAnim):
     frames = assets.sprites["status_sleep"]
@@ -80,8 +90,9 @@ class DungeonActor(DungeonElement):
     actor.core = core
     actor.stats = copy(core.stats)
     actor.set_hp(hp or core.hp)
+    actor.hp_max = actor.core.get_hp_max()
     actor.behavior = behavior
-    actor.bubble = HpBubble(actor.core)
+    actor.bubble = HpBubble(actor)
 
     actor.anims = []
     actor.floating = floating
@@ -108,6 +119,7 @@ class DungeonActor(DungeonElement):
     actor.visible_cells = []
     actor.on_defeat = None
     actor.flipped = False
+    actor.hidden = False
 
     actor.ai_mode = None
     actor.ai_target = None
@@ -128,6 +140,15 @@ class DungeonActor(DungeonElement):
   def faction(actor, faction):
     actor.core.faction = faction
     actor.reset_charge()
+
+  @property
+  def rect(elem):
+    if elem._rect is None and elem.pos:
+      elem._rect = Rect(
+        vector.subtract(elem.pos, (8, 0)),
+        (16, 16)
+      )
+    return elem._rect
 
   @property
   def facing(actor):
@@ -151,6 +172,15 @@ class DungeonActor(DungeonElement):
   def get_hp(actor): return actor.core.get_hp()
   def get_hp_max(actor): return actor.core.get_hp_max()
   def set_hp(actor, hp): actor.core.set_hp(hp)
+
+  @property
+  def hp(actor):
+    return actor.core.get_hp()
+
+  @hp.setter
+  def hp(actor, hp):
+    actor.core.set_hp(hp)
+
   def get_skills(actor): return actor.core.skills
   def get_active_skills(actor): return actor.core.get_active_skills()
   def is_dead(actor): return actor.core.dead
@@ -159,15 +189,22 @@ class DungeonActor(DungeonElement):
   def is_immobile(actor):
     return actor.is_dead() or actor.ailment in ("sleep", "freeze") or actor.charge_skill
 
-  def get_str(actor):
+  @property
+  def st(actor):
     return actor.stats.st + (actor.weapon.st if actor.weapon else 0)
 
-  def get_def(actor, stage=None):
+  @property
+  def en(actor):
     if actor.ailment == "sleep":
       return actor.stats.en // 2
-    if actor.ailment == "freeze":
+    elif actor.ailment == "freeze":
       return int(actor.stats.en * 1.5)
-    return actor.stats.en
+    else:
+      return actor.stats.en
+
+  @property
+  def dead(actor):
+    return actor.core.dead
 
   def charge(actor, skill, dest=None, turns=0):
     actor.charge_skill = skill
@@ -180,7 +217,7 @@ class DungeonActor(DungeonElement):
     actor.charge_skill = None
     actor.charge_dest = None
     actor.charge_turns = 0
-    actor.core.anims.clear()
+    actor.core.anims and actor.core.anims.pop()
 
   def discharge(actor):
     if actor.charge_skill is None or actor.charge_cooldown:
@@ -234,7 +271,6 @@ class DungeonActor(DungeonElement):
       return Core.allied(actor.core, target.core)
 
   def inflict_ailment(actor, ailment):
-    actor.core.anims = []
     if ailment == "poison":
       if actor.ailment == "poison":
         return False
@@ -265,14 +301,14 @@ class DungeonActor(DungeonElement):
     actor.ailment_turns -= 1
     if actor.ailment == "poison":
       damage = int(actor.get_hp_max() * DungeonActor.POISON_STRENGTH)
-      return game.flinch(actor, damage, delayed=True, on_end=actor.dispel_ailment if actor.ailment_turns == 0 else None)
+      return game.flinch(actor, damage, on_end=actor.dispel_ailment if actor.ailment_turns == 0 else None)
     if actor.ailment == "sleep":
       actor.regen(actor.get_hp_max() / 50)
     if actor.ailment_turns == 0:
       if actor.ailment == "freeze":
-        game.vfx += [IcePieceVfx( # this belongs in actor view
+        game.vfx.extend([IcePieceVfx( # this belongs in actor view
           pos=tuple([(x + 0.5) * TILE_SIZE for x in actor.cell]),
-        ) for _ in range(randint(3, 4))]
+        ) for _ in range(randint(3, 4))])
       actor.dispel_ailment()
       game.anims.append([AwakenAnim(target=actor)])
 
@@ -352,9 +388,12 @@ class DungeonActor(DungeonElement):
     facing_x, facing_y = actor.facing
     old_target = (actor_x + facing_x, actor_y + facing_y)
     actor.face(hero.cell)
-    game.camera.focus(((hero_x + actor_x) / 2, (hero_y + actor_y) / 2 + 1), speed=8)
+    game.camera.focus(
+      target=upscale(((hero_x + actor_x) / 2, (hero_y + actor_y) / 2 + 1), game.stage.tile_size),
+      force=True
+    )
     def stop_talk():
-      if actor in game.floor.elems:
+      if actor in game.stage.elems:
         actor.face(old_target)
       game.camera.blur()
       game.talkee = None
@@ -364,13 +403,32 @@ class DungeonActor(DungeonElement):
       context = DialogueContext(script=message)
     game.open(context, on_close=stop_talk)
 
+  def start_move(actor, running):
+    pass
+
+  def stop_move(actor):
+    actor.anims = []
+    actor.core.anims = []
+
+  def move(actor, delta, diagonal, running):
+    delta_x, delta_y = delta
+    diagonal = diagonal or delta_x and delta_y
+    x, y = actor.pos
+    speed = actor.speed / sqrt(2) if diagonal else actor.speed
+    speed = speed * 1.5 if running else speed
+    x += delta_x * speed
+    y += delta_y * speed
+    actor.pos = (x, y)
+    actor.facing = delta
+    if not actor.anims:
+      actor.start_move(running)
+    actor.moved = True
+
   def move_to(actor, dest):
     actor.cell = dest
 
-  def attack(actor, target, damage=None):
-    if damage == None:
-      damage = DungeonActor.find_damage(actor, target)
-    return actor.damage(damage)
+  def attack(actor):
+    pass
 
   def damage(target, damage):
     target.set_hp(target.get_hp() - damage)
@@ -381,19 +439,24 @@ class DungeonActor(DungeonElement):
     return damage
 
   def find_damage(actor, target, modifier=1):
-    st = actor.get_str() * modifier
-    en = target.get_def()
+    st = actor.st * modifier
+    en = target.en
     variance = 1 if actor.core.faction == "enemy" else 2
     return max(1, st - en + randint(-variance, variance))
 
   def step(actor, game):
     if not actor.can_step():
       return None
+
     enemy = game.find_closest_enemy(actor)
     if not enemy:
       return None
+
+    if manhattan(actor.cell, enemy.cell) < DungeonActor.VISION_RANGE:
+      actor.update_visible_cells(game)
+
     if not actor.aggro:
-      if enemy and game.is_cell_in_vision_range(actor, cell=enemy.cell):
+      if enemy and enemy.cell in actor.visible_cells:
         if actor.faction == "ally":
           print("alert ally from actor step")
         actor.alert(cell=enemy.cell)
@@ -402,6 +465,9 @@ class DungeonActor(DungeonElement):
       return ("attack", enemy)
     else:
       return ("move_to", enemy.cell)
+
+  def update_visible_cells(actor, game):
+    actor.visible_cells = shadowcast(game.stage, actor.cell, DungeonActor.VISION_RANGE)
 
   def update(actor, game):
     actor.updates += 1
@@ -413,8 +479,9 @@ class DungeonActor(DungeonElement):
     return actor.core.update()
 
   def view(actor, sprites, anims=[]):
-    if not sprites:
+    if not sprites or actor.hidden:
       return []
+
     if type(sprites) is Surface:
       sprites = [Sprite(image=sprites)]
     if type(sprites) is list:
@@ -422,13 +489,20 @@ class DungeonActor(DungeonElement):
     sprite = sprites[0]
     offset_x, offset_y, offset_z = (0, 0, 0)
     actor_width, actor_height = sprite.image.get_size()
-    actor_cell = actor.cell
-    asleep = actor.ailment == "sleep"
     anim_group = [a for a in anims[0] if a.target is actor] if anims else []
     anim_group += actor.core.anims
+
+    is_asleep = actor.ailment == "sleep"
+    is_flinching = next((a for a in anim_group if isinstance(a, FlinchAnim)), None)
+    is_bouncing = next((a for a in anim_group if isinstance(a, BounceAnim)), None)
+    is_charging = "ChargeAnim" in dir(actor.core) and next((a for a in anim_group if isinstance(a, actor.core.ChargeAnim)), None)
+
+    move_anim = next((a for a in anim_group if isinstance(a, (StepAnim, PathAnim))), None)
+    attack_anim = next((a for a in anim_group if isinstance(a, AttackAnim)), None)
+
     for anim in anim_group:
       if type(anim) is AwakenAnim and anim.visible:
-        asleep = True
+        is_asleep = True
       if type(anim) is AttackAnim and anim.cell:
         offset_x, offset_y = actor.find_move_offset(anim)
       if type(anim) is FlinchAnim and anim.time > 0 and anim.time <= 3:
@@ -438,18 +512,26 @@ class DungeonActor(DungeonElement):
         if actor.ailment == "freeze" and anim.time % 2:
           sprites.append(Sprite(
             image=replace_color(assets.sprites["fx_icecube"], BLACK, CYAN),
-            layer="elems"
+            layer="elems",
+            origin=Sprite.ORIGIN_CENTER,
           ))
       if type(anim) is BounceAnim:
         anim_xscale, anim_yscale = anim.scale
         actor_width *= anim_xscale
         actor_height *= anim_yscale
-      if isinstance(anim, FrameAnim):
+      if (isinstance(anim, FrameAnim)
+      and not (is_flinching or is_charging or is_bouncing or move_anim and (isinstance(move_anim, PathAnim) or move_anim.dest))
+      and not (attack_anim and len(actor.core.anims) == 1)
+      ):
         sprite.image = anim.frame()
+        actor_width, actor_height = sprite.image.get_size()
+        offset_x += (actor_width - TILE_SIZE) / 2
+        offset_y += (actor_height - TILE_SIZE) / 2
+        if actor_height > TILE_SIZE:
+          offset_y += (actor_height - TILE_SIZE) / 2
 
     warpin_anim = next((a for a in anim_group if type(a) is WarpInAnim), None)
     drop_anim = next((a for a in anim_group if type(a) is DropAnim), None)
-    move_anim = next((a for a in anim_group if isinstance(a, MoveAnim)), None)
     move_offset = actor.find_move_offset(anims)
 
     if actor.elev > 0 and not move_anim:
@@ -458,7 +540,7 @@ class DungeonActor(DungeonElement):
     # ailment badge
     if actor.ailment and not drop_anim:
       badge_image = None
-      badge_pos = (12, -20 - offset_z)
+      badge_pos = (4, -4 - offset_z)
       badge_pos = add_vector(badge_pos, move_offset)
 
       if actor.ailment == "sleep":
@@ -484,15 +566,15 @@ class DungeonActor(DungeonElement):
 
     # hp bubble
     if actor.faction != "player" and not (actor.faction == "ally" and actor.behavior == "guard"):
-      bubble_sprites = actor.bubble.view()
+      bubble_sprites = Sprite.move_all(
+        sprites=actor.bubble.view(),
+        offset=vector.add(move_offset, (24, -4 - offset_z))
+      )
       actor.bubble.color = actor.color()
-      for bubble_sprite in bubble_sprites:
-        bubble_sprite.move((24, -21 - offset_z))
-        bubble_sprite.move(move_offset)
       sprites += bubble_sprites
 
     # aggro icon
-    if actor.aggro in (1, 2) and actor.faction == "enemy" and not actor.ailment == "freeze" and not warpin_anim:
+    if actor.aggro == 1 and actor.faction == "enemy" and not actor.ailment == "freeze" and not warpin_anim:
       marker_image = assets.sprites["aggro_mark"]
       marker_image = replace_color(marker_image, BLACK, RED)
       marker_sprite = Sprite(
@@ -507,8 +589,9 @@ class DungeonActor(DungeonElement):
       item_image = actor.item().render()
       item_sprite = Sprite(
         image=item_image,
-        pos=(0, -24),
-        layer="vfx"
+        pos=(0, -16),
+        origin=Sprite.ORIGIN_CENTER,
+        layer="vfx",
       )
       item_sprite.move(move_offset)
       sprites += [item_sprite]
@@ -522,7 +605,7 @@ class DungeonActor(DungeonElement):
       actor_color = darken_color(actor_color)
     if actor_color != BLACK:
       sprite.image = replace_color(sprite.image, BLACK, actor_color)
-    if asleep:
+    if is_asleep:
       sprite.image = darken_image(sprite.image)
 
     facing_x, _ = actor.facing
@@ -532,7 +615,7 @@ class DungeonActor(DungeonElement):
     elif facing_x == 1:
       actor.flipped = False
     sprite.flip = (actor.flipped, flip_y)
-    sprite.move((offset_x, offset_y - offset_z))
+    sprite.move((offset_x, offset_y - offset_z + 16))
     sprite.size = (actor_width, actor_height)
     offset_y = abs(
       move_anim
@@ -542,6 +625,7 @@ class DungeonActor(DungeonElement):
       and actor.find_move_offset(move_anim)[1]
       or 0)
     sprite.offset += offset_z + offset_y
+    sprite.origin = Sprite.ORIGIN_BOTTOM
     return super().view(sprites, anims)
 
   def color(actor):

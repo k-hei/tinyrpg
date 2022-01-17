@@ -17,7 +17,7 @@ class DetectMana(Skill):
   )
 
   def effect(user, game, on_end=None):
-    floor = game.floor
+    floor = game.stage
     camera = game.camera
 
     def on_wait():

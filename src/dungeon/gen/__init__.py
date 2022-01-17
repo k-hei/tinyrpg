@@ -3,22 +3,22 @@ from itertools import product
 import random
 from random import randint, getrandbits, choice, shuffle
 from pygame.time import get_ticks
-from lib.cell import neighborhood, manhattan, is_adjacent, add as add_vector, subtract as subtract_vector
+from lib.cell import neighborhood, manhattan, add as add_vector, subtract as subtract_vector
 from lib.graph import Graph
-import assets
-from debug import bench
+from debug import bench, log
 from config import FPS
 
+from contexts.explore.stage import Stage
+import tiles.default as tileset
 from dungeon.floors import Floor
 from dungeon.room import Blob as Room
-from dungeon.roomdata import load_rooms
+from contexts.explore.roomdata import load_rooms
 from dungeon.gen.terrain import gen_terrain
 from dungeon.gen.elems import gen_elems
 from dungeon.gen.blob import gen_blob
 from dungeon.gen.path import gen_path
-from dungeon.gen.manifest import manifest_stage
+from contexts.explore.manifest import manifest_rooms
 from dungeon.gen.floorgraph import FloorGraph
-from dungeon.stage import Stage
 from dungeon.props.door import Door as GenericDoor
 from dungeon.props.raretreasuredoor import RareTreasureDoor
 from dungeon.props.secretdoor import SecretDoor
@@ -36,7 +36,6 @@ from items.sets import NORMAL_ITEMS, SPECIAL_ITEMS
 from items.dungeon.key import Key
 
 from resolve.elem import resolve_elem
-from resolve.hook import resolve_hook
 
 load_rooms()
 
@@ -209,13 +208,13 @@ def gen_joint_connect(feature_graph):
         stack.append(neighbor)
         yield graph
       else:
-        print("Connection failed", node.data, neighbor.data)
+        log("Connection failed", node.data, neighbor.data)
         yield False
         return
 
 def gen_connect(feature_graph):
   if len(feature_graph.edges) >= len(feature_graph.nodes):
-    print(f"Joint connect with {len(feature_graph.nodes)} nodes")
+    log(f"Joint connect with {len(feature_graph.nodes)} nodes")
     connect_gen = gen_joint_connect(feature_graph)
     floor_graph = None
     while floor_graph is not False:
@@ -243,7 +242,7 @@ def gen_connect(feature_graph):
         stack.append(neighbor)
         yield floor_graph
       else:
-        print("Connection failed", node.data, neighbor.data)
+        log("Connection failed", node.data, neighbor.data)
         yield False
         return
 
@@ -379,7 +378,7 @@ def gen_loops(tree, graph):
 
 def gen_floor(
   features=[],
-  enemies=[Eyeball, Mushroom, Ghost, Mummy],
+  enemies=[Eyeball, Mushroom, Mummy], # [Eyeball, Mushroom, Ghost, Mummy],
   items=NORMAL_ITEMS,
   extra_room_count=0,
   seed=None,
@@ -413,7 +412,7 @@ def gen_floor(
         except StopIteration:
           break
         if floor_chunk:
-          stage, stage_offset = manifest_stage(floor_chunk.nodes, dry=True, seed=seed)
+          stage, stage_offset = manifest_rooms(floor_chunk.nodes, dry=True, seed=seed)
       if not floor_chunk:
         if stage:
           for connector in stage.rooms[-1].connectors:
@@ -446,7 +445,7 @@ def gen_floor(
         try:
           extra_graph, message = next(place_gen)
           if extra_graph:
-            stage = manifest_stage(extra_graph.nodes, dry=True, seed=seed)[0]
+            stage = manifest_rooms(extra_graph.nodes, dry=True, seed=seed)[0]
           yield stage, message # f"Placing room {len(extra_graph.nodes)} of {len(extra_rooms)}"
         except StopIteration:
           break
@@ -454,7 +453,7 @@ def gen_floor(
       loops = gen_loops(tree, extra_graph)
       floor_chunks.insert(0, tree)
       if not loops and extra_room_count >= 3:
-        yield manifest_stage(extra_graph.nodes, dry=True, seed=seed)[0], "Failed to create loops"
+        yield manifest_rooms(extra_graph.nodes, dry=True, seed=seed)[0], "Failed to create loops"
         continue
 
     # assemble graphs
@@ -468,7 +467,7 @@ def gen_floor(
 
       if graphs_left is False:
         graph = next(assemble_gen)
-        stage = manifest_stage(graph.nodes, seed=seed)[0] if debug else None
+        stage = manifest_rooms(graph.nodes, seed=seed)[0] if debug else None
         if stage and next((x for x in stage.size if x > 100), None):
           stage = None # HACK: need to figure out why failures generate massive stages
         yield stage, "Failed to assemble graphs"
@@ -478,7 +477,7 @@ def gen_floor(
       graph = floor_chunks[0]
 
     rooms = graph.nodes
-    stage, stage_offset = manifest_stage(rooms)
+    stage, stage_offset = manifest_rooms(rooms)
     stage.seed = seed
 
     # DrawConnectors(stage, stage_offset, tree)
@@ -494,23 +493,27 @@ def gen_floor(
           + manhattan(c, room2.find_closest_cell(c))
         ))
 
+      door_path = None
+
       for j, connector in enumerate(connectors):
         # stage.spawn_elem_at(connector, Eyeball(faction="ally"))
         if not stage.contains(connector):
-          print(f"WARNING: Connector {connector} out of bounds")
+          log(f"WARNING: Connector {connector} out of bounds")
         is_edge_usable = lambda e, room: (
           next((e for e in stage.get_elems_at(e) if isinstance(e, GenericDoor)), None)
           or (
             not next((n for n in neighborhood(e) if next((e for e in stage.get_elems_at(n) if isinstance(e, GenericDoor)), None)), None)
-            and len([n for n in neighborhood(e) if stage.get_tile_at(n) is Stage.WALL]) == 3
-            and len([n for n in neighborhood(e, diagonals=True) if stage.get_tile_at(n) is Stage.WALL]) in (5, 6, 7)
+            and len([n for n in neighborhood(e) if stage.get_tile_at(n) is tileset.Wall]) == 3
+            and len([n for n in neighborhood(e, diagonals=True) if stage.get_tile_at(n) is tileset.Wall]) in (5, 6, 7)
             # and not next((c for c in [c for r in [r for r in rooms if r is not room] for c in r.outline] if is_adjacent(c, e)), None)
-            and not e in stage.get_border()
+            and not e in stage.border
           )
         )
 
         prev_edges = [e for e in room1.edges if is_edge_usable(e, room=room1)]
         if not prev_edges:
+          for e in room1.edges:
+            stage.spawn_elem_at(e, Eyeball(faction="ally"))
           yield stage, f"Failed to find usable edges for room {i + 1}"
           connected = False
           break
@@ -518,6 +521,8 @@ def gen_floor(
 
         room_edges = [e for e in room2.edges if is_edge_usable(e, room=room2)]
         if not room_edges:
+          for e in room2.edges:
+            stage.spawn_elem_at(e, Eyeball(faction="ally"))
           yield stage, f"Failed to find usable edges for room {i + 2}"
           connected = False
           break
@@ -525,7 +530,7 @@ def gen_floor(
 
         door_path = None
         room_outlines = set([c for r in rooms for c in r.outline])
-        path_blacklist = room_outlines | door_paths | set(stage.get_border())
+        path_blacklist = room_outlines | door_paths | set(stage.border)
         for door1_cell, door2_cell in product(prev_edges, room_edges):
           if (door1_cell in prev_edges and door2_cell in prev_edges
           or door1_cell in room_edges and door2_cell in room_edges):
@@ -580,12 +585,12 @@ def gen_floor(
         else GenericDoor)
 
       exit_room = (
-        room1 if next((c for c in room1.cells if stage.get_tile_at(c) is Stage.STAIRS_UP), None)
-        else room2 if next((c for c in room2.cells if stage.get_tile_at(c) is Stage.STAIRS_UP), None)
+        room1 if next((c for c in room1.cells if stage.get_tile_at(c) is tileset.Exit), None)
+        else room2 if next((c for c in room2.cells if stage.get_tile_at(c) is tileset.Exit), None)
         else None
       )
       if exit_room:
-        entry_room = next((r for r in rooms for c in r.cells if stage.get_tile_at(c) is Stage.STAIRS_DOWN), None)
+        entry_room = next((r for r in rooms for c in r.cells if stage.get_tile_at(c) is tileset.Entrance), None)
         if entry_room and graph.distance(entry_room, exit_room) == 2:
           Door = RareTreasureDoor
 
@@ -596,7 +601,7 @@ def gen_floor(
       stage.spawn_elem_at(door1_cell, door1)
       stage.spawn_elem_at(door2_cell, door2)
       for cell in door_path:
-        stage.set_tile_at(cell, Stage.HALLWAY)
+        stage.set_tile_at(cell, tileset.Hallway)
         door_paths.update(neighborhood(cell, inclusive=True, diagonals=True))
 
       graph.reconnect(room1, room2, door1, door2)
@@ -626,7 +631,7 @@ def gen_floor(
         stage.remove_elem(door)
         stage.spawn_elem_at(doorway, SecretDoor())
 
-      neighbor = next((n for n in neighborhood(doorway) if stage.get_tile_at(n) is Stage.FLOOR), None)
+      neighbor = next((n for n in neighborhood(doorway) if stage.get_tile_at(n) is tileset.Floor), None)
       if neighbor:
         neighbor_x, neighbor_y = neighbor
         door_delta = subtract_vector(neighbor, doorway)
@@ -635,12 +640,12 @@ def gen_floor(
         and door_delta != (0, -1)
         and stage.is_cell_empty((neighbor_x - door_ydelta, neighbor_y - door_xdelta))
         and stage.is_cell_empty((neighbor_x + door_ydelta, neighbor_y + door_xdelta))
-        and stage.get_tile_at((neighbor_x + door_xdelta * 2, neighbor_y + door_ydelta * 2)) is not Stage.WALL
+        and stage.get_tile_at((neighbor_x + door_xdelta * 2, neighbor_y + door_ydelta * 2)) is not tileset.Wall
         and randint(0, 1)
         ):
           stage.spawn_elem_at(neighbor, ArrowTrap(facing=door_delta, delay=inf, static=False))
 
-      print(f"Spawned secret with area {secret.get_area()}")
+      log(f"Spawned secret with area {secret.get_area()} at {doorway}")
       if secret in empty_rooms:
         empty_rooms.remove(secret)
 
@@ -686,15 +691,17 @@ def gen_floor(
           table_length == 2 and [c, add_vector(c, (1, 0))]
           or table_length == 3 and [c, add_vector(c, (1, 0)), add_vector(c, (2, 0))]
         )
-        table_cell = next((c for c in sorted(room.cells, key=lambda c: random.random()) if (
+        table_cell = next((c for c in sorted(room.cells, key=lambda _: random.random()) if (
           not next((n for t in find_table_cells(c) for n in neighborhood(t, diagonals=True) if (
-            not stage.is_cell_empty(n) or stage.get_tile_at(n) is not stage.FLOOR
+            not stage.is_cell_empty(n) or not issubclass(stage.get_tile_at(n), tileset.Floor)
           )), None)
         )), None)
         if table_cell:
           stage.spawn_elem_at(table_cell, Table(length=table_length))
+
       if room.data and not room.data.items:
         continue
+
       if room.data and type(room.data.items) is list:
         room_items = [Vase(contents=i) for i in room.data.items]
       elif room in secrets:
@@ -703,7 +710,7 @@ def gen_floor(
       else:
         item_count = max(1, min(3, room.get_area() // 24))
         room_items = [Vase(contents=choice(items)) for _ in range(item_count)]
-      gen_elems(stage, room, elems=room_items)
+      vases_spawned = gen_elems(stage, room, elems=room_items)
 
     for i, room in enumerate(rooms):
       if room.data and not room.data.enemies:
@@ -723,7 +730,7 @@ def gen_floor(
       room.on_place(stage)
 
     if not stage.entrance:
-      stage.entrance = stage.find_tile(stage.STAIRS_DOWN)
+      stage.entrance = next((c for c in stage.cells if issubclass(stage.get_tile_at(c), tileset.Entrance)), None)
 
     if not stage.entrance:
       yield stage, "Failed to spawn entrance"

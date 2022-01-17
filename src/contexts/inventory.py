@@ -1,4 +1,3 @@
-import random
 import pygame
 from pygame import Surface, Rect, SRCALPHA
 from pygame.transform import rotate
@@ -12,10 +11,11 @@ from assets import load as use_assets
 from lib.filters import replace_color, stroke
 import lib.gamepad as gamepad
 import lib.keyboard as keyboard
+import lib.input as input
 from lib.keyboard import key_times, ARROW_DELTAS
 from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, BLUE, GOLD
 from lib.sprite import Sprite
-from config import WINDOW_WIDTH, WINDOW_HEIGHT, INVENTORY_COLS, INVENTORY_ROWS
+from config import WINDOW_HEIGHT, INVENTORY_COLS, INVENTORY_ROWS
 
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
@@ -203,16 +203,18 @@ class InventoryContext(Context):
       return False
 
     if ctx.child:
-      return ctx.child.handle_press(button)
+      return super().handle_press(button)
 
-    if keyboard.get_state(button) + gamepad.get_state(button) > 1:
+    if button is None or input.get_state(button) > 1:
       return False
 
-    if button in ARROW_DELTAS:
-      delta = ARROW_DELTAS[button]
+    delta = input.resolve_delta(button, fixed_axis=True)
+    if delta != (0, 0):
       return ctx.handle_move(delta)
 
-    if button in (pygame.K_SPACE, gamepad.controls.manage):
+    control = input.resolve_control(button)
+
+    if control == input.CONTROL_MANAGE:
       arrange_control = next((c for c in ctx.controls if c.value == "Arrange"), None)
       arrange_control.press()
       return ctx.handle_select()
@@ -222,16 +224,16 @@ class InventoryContext(Context):
     if ctx.selection:
       tab_control.disable()
       sort_control.disable()
-      if button in (pygame.K_BACKSPACE, pygame.K_ESCAPE, gamepad.controls.cancel):
+      if control == input.CONTROL_CANCEL:
         return ctx.handle_select()
     else:
       tab_control.enable()
       sort_control.enable()
-      if button == gamepad.controls.L:
-        tab_control.press(gamepad.controls.L)
+      if button == input.BUTTON_L:
+        tab_control.press(input.BUTTON_L)
         return ctx.handle_tab(delta=-1)
-      elif button == gamepad.controls.R:
-        tab_control.press(gamepad.controls.R)
+      elif button == input.BUTTON_R:
+        tab_control.press(input.BUTTON_R)
         return ctx.handle_tab(delta=1)
 
       if button == pygame.K_TAB:
@@ -244,14 +246,14 @@ class InventoryContext(Context):
           tab_control.press(gamepad.controls.R)
           return ctx.handle_tab(delta=1)
 
-      if button in (pygame.K_BACKSLASH, pygame.K_BACKQUOTE, gamepad.controls.inventory):
+      if control == input.CONTROL_INVENTORY:
         sort_control.press()
         return ctx.handle_sort()
 
-      if button in (pygame.K_RETURN, gamepad.controls.confirm):
+      if control == input.CONTROL_CONFIRM:
         return ctx.handle_menu()
 
-      if button in (pygame.K_BACKSPACE, pygame.K_ESCAPE, gamepad.controls.cancel):
+      if control == input.CONTROL_CANCEL:
         return ctx.exit()
 
   def handle_release(ctx, button):
@@ -420,8 +422,8 @@ class InventoryContext(Context):
     item = item or ctx.get_selected_item()
     if ctx.cursor == ctx.find_extra_slot():
       success, message = False, "You're already carrying this!"
-    elif "carry_item" in dir(ctx.parent):
-      success, message = ctx.parent.carry_item(item)
+    elif "handle_carry" in dir(ctx.parent):
+      success, message = ctx.parent.handle_carry(item)
     else:
       success, message = False, "You can't carry that here!"
     if success:
@@ -563,7 +565,7 @@ class InventoryContext(Context):
         if cell == ctx.find_extra_slot():
           sprites.append(Sprite(
             image=replace_color(assets.sprites["icon_fist"], WHITE, DARKGRAY),
-            pos=(x + tile_width // 2 - 1, y + tile_height // 2 + 1),
+            pos=(x + tile_width // 2 - 2, y + tile_height // 2),
             origin=Sprite.ORIGIN_CENTER,
             layer="ui"
           ))
@@ -582,7 +584,7 @@ class InventoryContext(Context):
           layer = "ui"
           if ctx.selection and cell == ctx.cursor:
             y -= 4
-            layer = "hud"
+            layer = "selection"
           sprites.append(Sprite(
             image=stroke(item().render(), WHITE),
             pos=(x - 1, y - 1),

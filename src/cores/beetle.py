@@ -3,7 +3,7 @@ from cores import Core, Stats
 import assets
 from lib.sprite import Sprite
 from contexts.dialogue import DialogueContext
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from colors.palette import GREEN
 
 class Beetle(Core):
@@ -32,7 +32,7 @@ class Beetle(Core):
       frames = assets.sprites["beetle_up"]
     elif beetle.facing == (0, 1):
       frames = assets.sprites["beetle_down"]
-    move_anim = next((a for a in anims if type(a) is MoveAnim), None)
+    move_anim = next((a for a in anims if type(a) is StepAnim), None)
     anim_period = 4 if move_anim else 8
     return super().view(sprites=[
       Sprite(

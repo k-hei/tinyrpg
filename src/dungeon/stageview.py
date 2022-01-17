@@ -26,7 +26,7 @@ from dungeon.props.secretdoor import SecretDoor
 from dungeon.render.walltop import render_walltop
 
 from anims import Anim
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from anims.jump import JumpAnim
 from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
@@ -187,8 +187,6 @@ class StageView:
     return True
 
   def redraw_tiles(self, stage, camera, visible_cells, visited_cells, anims=[], force=False):
-    debug.bench("redraw tile surface", reset=True)
-
     sprites = []
     camera_x, camera_y = camera.cell
     camera_cell = (int(camera_x), int(camera_y))
@@ -239,8 +237,6 @@ class StageView:
     for cell in anim_cells:
       self.redraw_tile(stage, cell, visible_cells, visited_cells, anims, dry=True)
 
-    # debug.bench("redraw tile surface", print_threshold=30)
-
   def view_tiles(self, camera):
     camera = camera.get_rect()
     offset_x, offset_y = self.tile_offset
@@ -278,7 +274,7 @@ class StageView:
       for sprite in sprites:
         elem_x, elem_y = elem.cell
         sprite.move(((elem_x + 0.5) * TILE_SIZE, (elem_y + 1) * TILE_SIZE))
-        move_anim = anims and next((a for a in anims[0] if type(a) is MoveAnim and a.target is elem), None)
+        move_anim = anims and next((a for a in anims[0] if type(a) is StepAnim and a.target is elem), None)
         if move_anim and move_anim.cell:
           _, _, *anim_z = move_anim.cell
           anim_z = anim_z and anim_z[0] or 0
@@ -520,9 +516,8 @@ def render_tile(stage, cell, visited_cells=[]):
     return render_oasis(stage, cell)
   return assets.sprites[sprite_name] if sprite_name else None
 
-def render_wall(stage, cell, visited_cells):
+def render_wall(stage, cell, visited_cells=None):
   x, y = cell
-  tile = stage.get_tile_at(cell)
   tile_below = stage.get_tile_at((x, y + 1))
   tile_base = stage.get_tile_at((x, y + 2))
   room = next((r for r in stage.rooms if cell in r.get_cells() + r.get_outline()), None)
@@ -537,7 +532,7 @@ def render_wall(stage, cell, visited_cells):
     or tile_below is stage.HALLWAY
     or tile_below is stage.OASIS
   )
-  and (x, y + 1) in visited_cells
+  and (visited_cells is None or (x, y + 1) in visited_cells)
   and not stage.get_elem_at((x, y + 1), superclass=Door)):
     if is_special_room:
       if x % (2 + y % 2) == 0 or SecretDoor.exists_at(stage, cell):

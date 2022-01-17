@@ -5,7 +5,7 @@ from skills.attack import AttackSkill
 from dungeon.actors import DungeonActor
 from cores.knight import Knight
 from dungeon.props import Prop
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from anims.flicker import FlickerAnim
@@ -25,7 +25,7 @@ class ShieldBash(AttackSkill):
   )
 
   def effect(user, dest, game, on_end=None):
-    floor = game.floor
+    floor = game.stage
     camera = game.camera
 
     source_cell = user.cell

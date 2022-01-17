@@ -27,7 +27,7 @@ class Ignis(MagicSkill):
     dest_col, dest_row = dest
     start_pos = user_col * TILE_SIZE, user_row * TILE_SIZE
     target_pos = dest_col * TILE_SIZE, dest_row * TILE_SIZE
-    target = game.floor.get_elem_at(dest)
+    target = game.stage.get_elem_at(dest)
     target = target if isinstance(target, DungeonActor) else None
 
     flinch = lambda: (

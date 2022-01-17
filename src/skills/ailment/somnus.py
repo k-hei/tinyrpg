@@ -23,7 +23,7 @@ class Somnus(AilmentSkill):
     hero_x, hero_y = source_cell
     delta_x, delta_y = user.facing
     target_cell = (hero_x + delta_x, hero_y + delta_y)
-    target_elem = game.floor.get_elem_at(target_cell)
+    target_elem = game.stage.get_elem_at(target_cell)
     def on_attack_end():
       if target_elem:
         target_elem.inflict_ailment("sleep")

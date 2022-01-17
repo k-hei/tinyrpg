@@ -4,6 +4,7 @@ from assets import load as use_assets
 from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
+from comps import Component
 from comps.hud import render_numbers
 from lib.filters import recolor, replace_color
 from colors.palette import RED, WHITE, BLUE
@@ -11,7 +12,7 @@ from lib.sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 
 MARGIN_X = 12
-MARGIN_Y = 32
+MARGIN_Y = 12
 PADDING_X = 3
 PADDING_Y = 4
 TAG_X = 16
@@ -23,22 +24,21 @@ NUMBERS_OFFSET = -2
 SPEED_DEPLETE = 1 / 500
 SPEED_RESTORE = 1 / 250
 
-class SpMeter:
+class SpMeter(Component):
   def __init__(meter, store):
     meter.store = store
     meter.active = False
     meter.sp_drawn = None
     meter.draws = 0
     meter.anims = []
-    meter.enter()
 
-  def enter(meter):
+  def enter(meter, on_end=None):
     meter.active = True
-    meter.anims.append(TweenAnim(duration=ENTER_DURATION))
+    meter.anims.append(TweenAnim(duration=ENTER_DURATION, on_end=on_end))
 
-  def exit(meter):
+  def exit(meter, on_end=None):
     meter.active = False
-    meter.anims.append(TweenAnim(duration=EXIT_DURATION))
+    meter.anims.append(TweenAnim(duration=EXIT_DURATION, on_end=on_end))
 
   def render(meter):
     assets = use_assets()
@@ -114,7 +114,7 @@ class SpMeter:
     sprite = meter.render()
     hidden_x = WINDOW_WIDTH
     hidden_y = WINDOW_HEIGHT - sprite.get_height() - MARGIN_Y
-    corner_x = hidden_x - sprite.get_width() - MARGIN_X
+    corner_x = WINDOW_WIDTH - sprite.get_width() - MARGIN_X
     corner_y = hidden_y
     anim = meter.anims[0] if meter.anims else None
     if anim:

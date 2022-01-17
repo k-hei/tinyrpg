@@ -3,6 +3,7 @@ class Component:
     comp.pos = pos
     comp.active = True
     comp.exiting = False
+    comp.anims = []
     comp.done = False
 
   def enter(comp):
@@ -12,3 +13,9 @@ class Component:
   def exit(comp):
     comp.active = False
     comp.exiting = True
+
+  def update(comp):
+    pass
+
+  def view(comp):
+    return []

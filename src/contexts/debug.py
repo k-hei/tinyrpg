@@ -15,7 +15,8 @@ class DebugContext(Context):
 
   def handle_press(ctx, button):
     if button == pygame.K_ESCAPE:
-      return ctx.close()
+      ctx.close()
+      return True
 
   def update(ctx):
     ctx.time += 1

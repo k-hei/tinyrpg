@@ -3,7 +3,7 @@ from dungeon.actors import DungeonActor
 from cores.knight import Knight as Knight
 from vfx.claw import ClawVfx
 from lib.cell import add as add_vector
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from anims.attack import AttackAnim
 
 class ClawRush(AttackSkill):
@@ -24,35 +24,42 @@ class ClawRush(AttackSkill):
   )
   charge_turns = 1
 
-  def effect(user, dest, game, on_end=None):
+  def effect(game, user, dest=None, on_start=None, on_end=None):
     origin_cell = user.cell
     dest_cell = add_vector(origin_cell, user.facing)
-    if game.floor.is_cell_empty(dest_cell):
+    if game.stage.is_cell_empty(dest_cell):
       target_cell = add_vector(dest_cell, user.facing)
     else:
       target_cell = dest_cell
       dest_cell = origin_cell
-    target_actor = next((e for e in game.floor.get_elems_at(target_cell) if isinstance(e, DungeonActor)), None)
+
+    target_elems = game.stage.get_elems_at(target_cell)
+    target_elem = next((e for e in target_elems if e.breakable), None)
+    target_actor = next((e for e in target_elems if isinstance(e, DungeonActor)), None)
     def attack():
-      not game.anims and game.anims.append([])
-      game.anims[0].append(AttackAnim(
+      game.anims.append([AttackAnim(
         target=user,
         src=dest_cell,
         dest=target_cell,
-        on_start=lambda: game.vfx.append(ClawVfx(cell=target_cell)),
+        on_start=lambda: (
+          on_start and on_start(),
+          game.vfx.append(ClawVfx(cell=target_cell))
+        ),
         on_connect=(lambda: game.attack(
           actor=user,
           target=target_actor,
           modifier=1.5,
-          is_animated=False
-        )) if target_actor else None,
+          animate=False
+        )) if target_actor else (lambda: (
+          target_elem.crush(game)
+        )) if target_elem else None,
         on_end=on_end
-      ))
+      )])
     if dest_cell == origin_cell:
       attack()
     else:
       game.anims.append([
-        MoveAnim(
+        StepAnim(
           target=user,
           src=origin_cell,
           dest=dest_cell,
@@ -63,4 +70,5 @@ class ClawRush(AttackSkill):
           )
         )
       ])
-    return False
+
+    return True

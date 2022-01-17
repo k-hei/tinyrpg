@@ -1,3 +1,4 @@
+from copy import deepcopy
 import pygame
 from pygame import Surface, Color, SRCALPHA
 from pygame.transform import flip, rotate
@@ -211,7 +212,7 @@ class PauseContext(Context):
     ctx.anims = [CursorAnim()]
     ctx.comps = [IconSquare(y=0, icon=PauseContext.find_icon(0))]
     ctx.huds = [Hud(party=[c], hp=True, portrait=False) for c in store.party]
-    ctx.party = store.party
+    ctx.party = deepcopy(store.party)
     ctx.goldbubble = GoldBubble(gold=store.gold)
     ctx.textbox = TextBox(size=(112, 20), color=WHITE)
 
@@ -262,7 +263,9 @@ class PauseContext(Context):
     if choice == "item":
       ctx.parent.open(InventoryContext(store=ctx.store))
     elif choice == "equip":
-      ctx.parent.open(CustomContext(store=ctx.store))
+      ctx.parent.open(CustomContext(store=ctx.store), on_close=lambda: (
+        ctx.store.update_skills()
+      ))
 
   def update(ctx):
     ctx.anims = step_anims(ctx.anims)

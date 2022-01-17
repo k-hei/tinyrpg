@@ -1,8 +1,10 @@
+from pygame import Rect
 from dataclasses import dataclass
 from dungeon.props import Prop
 import assets
 from anims.frame import FrameAnim
 from colors.palette import WHITE, SAFFRON, DARKBLUE
+import lib.vector as vector
 from lib.filters import replace_color
 from lib.sprite import Sprite
 from config import TILE_SIZE
@@ -32,6 +34,15 @@ class Door(Prop):
     door.focus = None
     door.origin = None
 
+  @property
+  def rect(door):
+    if door._rect is None and door.pos:
+      door._rect = Rect(
+        vector.subtract(door.pos, (16, 16)),
+        (32, 32)
+      )
+    return door._rect
+
   def encode(door):
     [cell, kind, *props] = super().encode()
     props = {
@@ -50,7 +61,7 @@ class Door(Prop):
 
   def effect(door, game, *_):
     if door.locked:
-      return game.log.print("The door is locked...")
+      return game.comps.minilog.print("The door is locked...")
     return door.handle_open(game)
 
   def spawn(door, stage, cell):

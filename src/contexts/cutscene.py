@@ -28,9 +28,9 @@ class CutsceneContext(Context):
 
   def next(ctx):
     ctx.script_idx += 1
-    if ctx.script_idx == len(ctx.script):
+    if ctx.script_idx >= len(ctx.script):
       ctx.exit()
-    elif ctx.script[ctx.script_idx]:
+    elif callable(ctx.script[ctx.script_idx]):
       ctx.script[ctx.script_idx](ctx.next)
     else:
       ctx.next()

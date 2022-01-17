@@ -2,7 +2,7 @@ from comps.log import Token
 from colors.palette import GREEN
 
 def on_enter(room, game):
-  genie = game.floor.find_elem(cls="Genie")
+  genie = game.stage.find_elem(cls="Genie")
   genie.core.message = [
     (genie.name, ("Congratulations, ", game.hero.token(), "!")),
     (genie.name, "You've completed all the story content for this demo."),

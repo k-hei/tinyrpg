@@ -6,6 +6,7 @@ from anims.warpin import WarpInAnim
 from cores.mage import Mage
 from dungeon.actors.eyeball import Eyeball
 from config import ENABLED_COMBAT_LOG
+import tiles.default as tileset
 
 class Accerso(MagicSkill):
   name = "Accerso"
@@ -23,9 +24,9 @@ class Accerso(MagicSkill):
     (1, 1),
   )
 
-  def effect(user, dest, game, on_end=None):
-    floor = game.floor
-    valid_cells = [c for c in Accerso().find_range(user, floor) if floor.is_cell_empty(c) and floor.get_tile_at(c) is floor.FLOOR]
+  def effect(game, user, dest, on_start=None, on_end=None):
+    floor = game.stage
+    valid_cells = [c for c in Accerso().find_range(user, floor) if floor.is_cell_empty(c) and issubclass(floor.get_tile_at(c), tileset.Floor)]
     target_count = 2
     target_cells = []
     while valid_cells and len(target_cells) < target_count:
@@ -61,6 +62,7 @@ class Accerso(MagicSkill):
     game.anims.append([BounceAnim(
       duration=20,
       target=user,
+      on_start=on_start,
       on_end=lambda: game.anims[0].append(PauseAnim(
         duration=15,
         on_end=on_bounce

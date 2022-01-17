@@ -27,7 +27,7 @@ class RendingGale(AttackSkill):
 
   def effect(user, dest, game, on_end=None):
     camera = game.camera
-    floor = game.floor
+    floor = game.stage
     hero_x, hero_y = user.cell
     facing_x, facing_y = user.facing
     target_cells = RendingGale().find_range(user)

@@ -23,14 +23,14 @@ class Bag(Prop):
       return False
     if bag.contents:
       if game.store.obtain(bag.contents):
-        game.open(child=DialogueContext(
+        game.get_tail().open(child=DialogueContext(
           lite=True,
           script=[("", ("You open the bag\n", "Received ", bag.contents().token(), "."))]
         ))
         game.anims.append([FlickerAnim(
           duration=30,
           target=bag,
-          on_end=lambda: game.floor.remove_elem(bag)
+          on_end=lambda: game.stage.remove_elem(bag)
         )])
       else:
         game.log.print("You can't carry any more materials...")

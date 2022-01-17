@@ -1,4 +1,5 @@
 import lib.vector as vector
+from lib.cell import upscale
 from contexts.cutscene import CutsceneContext
 from dungeon.actors.mage import Mage
 from anims.pause import PauseAnim
@@ -8,19 +9,17 @@ from config import MOVE_DURATION
 import config
 
 def on_focus(room, game):
-  mage = next((e for c in room.cells for e in game.floor.get_elems_at(c) if type(e) is Mage))
-  door = room.get_doors(game.floor)[0]
+  mage = next((e for c in room.cells for e in game.stage.get_elems_at(c) if type(e) is Mage))
+  door = room.get_doors(game.stage)[0]
   if not config.CUTSCENES or "minxia" in game.store.story:
-    game.floor.remove_elem(mage)
+    game.stage.remove_elem(mage)
     return
-  game.open(CutsceneContext([
+  game.get_tail().open(CutsceneContext([
     lambda step: (
       setattr(mage, "facing", (-1, 0)),
       game.camera.focus(
-        cell=mage.cell,
+        target=upscale(mage.cell, game.stage.tile_size),
         force=True,
-        tween=True,
-        speed=1,
       ),
       game.anims.append([PauseAnim(duration=30, on_end=step)])
     ),
@@ -44,7 +43,7 @@ def on_focus(room, game):
       game.anims.append([
         PathAnim(
           target=mage,
-          path=game.floor.pathfind(
+          path=game.stage.pathfind(
             start=mage.cell,
             goal=(goal_cell := vector.add(door.cell, (0, 1)))
           ),
@@ -75,7 +74,7 @@ def on_focus(room, game):
           on_end=lambda: (
             setattr(mage, "cell", path[-1]),
             door.handle_close(game, lock=None),
-            game.floor.remove_elem(mage),
+            game.stage.remove_elem(mage),
             step()
           )
         )]

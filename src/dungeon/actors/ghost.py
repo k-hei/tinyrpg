@@ -2,7 +2,7 @@ from random import randint
 from dungeon.actors import DungeonActor
 from cores.ghost import Ghost as GhostCore
 from skills.weapon.tackle import Tackle
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
@@ -22,11 +22,12 @@ class Ghost(DungeonActor):
   class ColdWhip(Skill):
     name = "ColdWhip"
     charge_turns = 2
-    def effect(user, dest, game, on_end=None):
-      target_actor = next((e for e in game.floor.get_elems_at(dest) if isinstance(e, DungeonActor)), None)
+    def effect(game, user, dest, on_start=None, on_end=None):
+      target_actor = next((e for e in game.stage.get_elems_at(dest) if isinstance(e, DungeonActor)), None)
       user.core.anims = [GhostCore.WhipAnim(on_end=on_end if target_actor is None else None)]
       game.anims.append([PauseAnim(
         duration=14,
+        on_start=lambda: on_start and on_start(),
         on_end=lambda: game.vfx.append(
           GhostArmVfx(
             cell=dest,
@@ -88,7 +89,7 @@ class Ghost(DungeonActor):
     anim_group += ghost.core.anims
     offset_x, offset_y = (0, 0)
     for anim in anim_group:
-      if type(anim) in (MoveAnim, AttackAnim):
+      if type(anim) in (StepAnim, AttackAnim):
         ghost_image = assets.sprites["ghost_move"]
       elif type(anim) in (FlinchAnim, FlickerAnim):
         ghost_image = assets.sprites["ghost_flinch"]

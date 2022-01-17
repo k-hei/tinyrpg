@@ -1,3 +1,6 @@
+from math import sqrt
+from lib.lerp import lerp as _lerp
+
 def add(*vectors):
   c = []
   for i in range(max(*[len(v) for v in vectors])):
@@ -34,3 +37,33 @@ def multiply(*vectors):
 
 def scale(vector, scalar):
   return tuple([v * scalar for v in vector])
+
+def lerp(a, b, t):
+  c = []
+  for i in range(max(len(a), len(b))):
+    c.append(_lerp(a[i], b[i], t))
+  return c
+
+def mean(*vectors):
+  if len(vectors) == 1:
+    return vectors[0]
+  c = []
+  for i in range(max(*[len(v) for v in vectors])):
+    s = 0
+    for v in vectors:
+      s += v[i]
+    c.append(s / len(vectors))
+  return tuple(c)
+
+def floor(vector):
+  return tuple([int(x) for x in vector])
+
+def distance(a, b):
+  x1, y1 = a
+  x2, y2 = b
+  dx, dy = x2 - x1, y2 - y1
+  return sqrt(dx * dx + dy * dy)
+
+def tangent(vector):
+  x, y = vector
+  return (-y, x)

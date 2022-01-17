@@ -1,4 +1,5 @@
 from math import sqrt
+import lib.vector as vector
 
 def manhattan(a, b):
   x1, y1 = a
@@ -42,6 +43,12 @@ def subtract(a, b):
 def is_odd(cell):
   x, y = cell
   return x % 2 == 1 and y % 2 == 1
+
+def upscale(cell, scale):
+  return vector.scale(vector.add(cell, (0.5, 0.5)), scale)
+
+def downscale(cell, scale):
+  return vector.subtract(vector.scale(cell, 1 / scale), (0.5, 0.5))
 
 def neighborhood(cell, radius=1, adjacents=True, diagonals=False, inclusive=False, predicate=None):
   if radius == 1:

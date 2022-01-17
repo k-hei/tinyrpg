@@ -1,5 +1,6 @@
 from dungeon.props import Prop
 import assets
+from lib.cell import upscale
 from lib.filters import replace_color
 from anims.attack import AttackAnim
 from anims.shake import ShakeAnim
@@ -67,7 +68,10 @@ class Chest(Prop):
               game.open(child=DialogueContext(
                 lite=True,
                 script=script
-              ), on_close=lambda: item_anim and item_anim.end())
+              ), on_close=lambda: (
+                item_anim and item_anim.end(),
+                game.camera.blur()
+              ))
             )
           )
         ])
@@ -79,9 +83,8 @@ class Chest(Prop):
       script = ["It's empty..."]
     if anims:
       game.camera.focus(
-        cell=chest.cell,
-        force=True,
-        speed=8
+        target=upscale(chest.cell, game.stage.tile_size),
+        force=True
       )
     else:
       game.open(child=DialogueContext(

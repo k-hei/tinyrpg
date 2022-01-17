@@ -1,13 +1,9 @@
-from pygame import Surface, SRCALPHA
-from lib.sprite import Sprite
-from config import WINDOW_SIZE
-
 class Context:
   def __init__(ctx, parent=None, on_close=None):
     ctx.on_close = on_close
     ctx.parent = parent
     ctx.child = None
-    ctx.comps = []
+    ctx.exiting = False
 
   def get_head(ctx):
     return ctx.parent.get_head() if ctx.parent else ctx

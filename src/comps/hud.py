@@ -58,7 +58,7 @@ class FlinchAnim(Anim):
   blocking = True
 
 class SlideAnim(TweenAnim):
-  duration = 20
+  duration = 12
   blocking = False
 
 class Hud:
@@ -93,25 +93,32 @@ class Hud:
       hud.anims = [SlideAnim(target=(hud._pos, pos))]
     hud._pos = pos
 
-  def enter(hud):
+  def enter(hud, on_end=None):
     hud.active = True
     hud_image = hud.image or hud.render()
     hud._pos = (MARGIN, -hud_image.get_height())
     hud.pos = (MARGIN, MARGIN)
+    if hud.anims and on_end:
+      hud.anims[-1].on_end = on_end
 
-  def exit(hud):
+  def exit(hud, on_end=None):
     hud.active = False
     hud_image = hud.image or hud.render()
     hud._pos = (MARGIN, MARGIN)
     hud.pos = (MARGIN, -hud_image.get_height())
+    if hud.anims and on_end:
+      hud.anims[-1].on_end = on_end
 
   def slide(hud, start, goal):
     hud._pos = start
     hud.pos = goal
 
+  def shake(hud):
+    hud.anims.append(FlinchAnim())
+
   def update(hud, force=False):
-    if hud.updated and not force: return
-    hud.updated = True
+    # if hud.updated and not force: return
+    # hud.updated = True
     hero = hud.party[0] if len(hud.party) >= 1 else None
     ally = hud.party[1] if len(hud.party) >= 2 else None
     if (hud.image is None
@@ -127,7 +134,7 @@ class Hud:
         hud.hero = hero
         hud.hp_hero = hero.get_hp()
       elif hero.get_hp() < hud.hp_hero_drawn:
-        hud.anims.append(FlinchAnim())
+        hud.shake()
         if hud.hp_hero == inf:
           hud.hp_hero = hero.get_hp_max()
       if ally != hud.ally:
@@ -135,7 +142,7 @@ class Hud:
         if ally:
           hud.hp_ally = ally.get_hp()
       elif ally and ally.get_hp() < hud.hp_ally_drawn:
-        hud.anims.append(FlinchAnim())
+        hud.shake()
         if hud.hp_ally == inf:
           hud.hp_ally = ally.get_hp_max()
       anim = next((a for a in hud.anims if a.blocking), None)
@@ -272,7 +279,6 @@ class Hud:
 
   def view(hud):
     hud.image = hud.render()
-    hud.update()
     hud_x, hud_y = hud.pos
     anim = hud.anims[0] if hud.anims else None
     if anim:
@@ -300,7 +306,7 @@ def render_bar(percent, color):
   surface = Surface((HP_WIDTH, 3), SRCALPHA)
   pygame.draw.rect(surface, color, Rect(
     (0, 0),
-    (ceil(HP_WIDTH // 2 * min(0.5, percent) / 0.5), 2)
+    (ceil(HP_WIDTH // 2 * min(0.5, percent) / 0.5) - 1, 2)
   ))
   if percent > 0.5:
     pygame.draw.rect(surface, color, Rect(

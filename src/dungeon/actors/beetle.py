@@ -24,11 +24,11 @@ class Beetle(DungeonActor):
     delta_y = dist_y // (abs(dist_y) or 1)
     delta = None
     if abs(dist_x) + abs(dist_y) == 1:
-      if game.floor.is_cell_empty((beetle_x - delta_x, beetle_y - delta_y)):
+      if game.stage.is_cell_empty((beetle_x - delta_x, beetle_y - delta_y)):
         delta = (-delta_x, -delta_y)
       else:
         deltas = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-        deltas = [(dx, dy) for (dx, dy) in deltas if game.floor.is_cell_empty((beetle_x + dx, beetle_y + dy))]
+        deltas = [(dx, dy) for (dx, dy) in deltas if game.stage.is_cell_empty((beetle_x + dx, beetle_y + dy))]
         if deltas:
           delta = choice(deltas)
     elif abs(dist_x) + abs(dist_y) < 4:
@@ -54,7 +54,7 @@ class Beetle(DungeonActor):
     game.anims.append([
       PauseAnim(
         duration=ATTACK_DURATION // 2,
-        on_end=lambda: game.floor.remove_elem(beetle)
+        on_end=lambda: game.stage.remove_elem(beetle)
       ),
       item_anim := ItemAnim(
         target=game.hero,

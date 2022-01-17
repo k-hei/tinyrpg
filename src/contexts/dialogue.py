@@ -1,10 +1,7 @@
 from math import pi, sin
-import pygame
-from pygame import Rect, Surface
-import config
+from pygame import Surface
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
-import lib.keyboard as keyboard
-import lib.gamepad as gamepad
+import lib.input as input
 from contexts import Context
 from assets import load as use_assets
 from comps.log import Log
@@ -13,7 +10,6 @@ from colors.palette import BLACK
 from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lib.sprite import Sprite
-import debug
 
 class EnterAnim(TweenAnim): pass
 class ExitAnim(TweenAnim): pass
@@ -108,18 +104,24 @@ class DialogueContext(Context):
       ctx.log.print(text)
 
   def handle_press(ctx, button):
-    if ctx.anim:
+    if not button or ctx.anim:
       return
+
     if ctx.child:
       return ctx.child.handle_press(button)
-    if button == gamepad.controls.cancel:
-      ctx.handle_next()
-    if keyboard.get_state(button) != 1 and gamepad.get_state(button) != 1:
+
+    control = input.resolve_control(button)
+    if control == input.CONTROL_CANCEL:
+      return ctx.handle_next()
+
+    if control == input.CONTROL_CANCEL:
+      return ctx.handle_next()
+
+    if input.get_state(button) > 1:
       return
-    if button in (pygame.K_SPACE, pygame.K_RETURN, gamepad.controls.confirm):
-      ctx.handle_next()
-    if button == pygame.K_ESCAPE:
-      return False
+
+    if control == input.CONTROL_CONFIRM:
+      return ctx.handle_next()
 
   def handle_next(ctx):
     if not ctx.log.clean:
@@ -128,6 +130,7 @@ class DialogueContext(Context):
     if ctx.index >= len(ctx.script):
       return ctx.exit()
     ctx.print()
+    return True
 
   def view(ctx):
     sprites = []

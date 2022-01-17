@@ -1,9 +1,10 @@
 from pygame import Rect
+import lib.vector as vector
 from dungeon.props import Prop
 from dungeon.props.pushtile import PushTile
 from assets import load as use_assets
 from lib.sprite import Sprite
-from anims.move import MoveAnim
+from anims.step import StepAnim
 from anims import Anim
 from lib.filters import replace_color
 from colors.palette import BLACK, WHITE, PURPLE, SAFFRON, DARKBLUE
@@ -46,6 +47,15 @@ class PushBlock(Prop):
   def __init__(block, placed=False):
     super().__init__(static=placed)
 
+  @property
+  def rect(block):
+    if block._rect is None and block.pos:
+      block._rect = Rect(
+        vector.add(block.pos, (-16, -16)),
+        (32, 32)
+      )
+    return block._rect
+
   def encode(block):
     [cell, kind, *props] = super().encode()
     props = {
@@ -55,7 +65,7 @@ class PushBlock(Prop):
     return [cell, kind, *(props and [props] or [])]
 
   def on_push(block, game):
-    target_elem = game.floor.get_elem_at(block.cell, exclude=[PushBlock])
+    target_elem = next((e for e in game.stage.get_elems_at(block.cell) if not isinstance(e, PushBlock)), None)
     if type(target_elem) is PushTile:
       block.static = True
       block.active = False
@@ -88,6 +98,7 @@ class PushBlock(Prop):
       ))
     return super().view([Sprite(
       image=block_image,
-      pos=(0, 0),
-      layer="elems"
+      pos=(0, 16),
+      origin=Sprite.ORIGIN_BOTTOM,
+      layer="elems",
     )], anims)

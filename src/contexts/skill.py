@@ -4,8 +4,10 @@ from pygame import Rect, Surface, Color
 from pygame.transform import flip
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
-from lib.cell import manhattan, add as add_vector
+import lib.input as input
+from lib.cell import manhattan
 from lib.lerp import lerp
+import lib.vector as vector
 from easing.expo import ease_out
 
 from assets import load as use_assets
@@ -33,7 +35,7 @@ def find_closest_cell_in_range(range_cells, target_cell, delta=None):
   if not range_cells:
     return None
   if delta:
-    target_cell = add_vector(target_cell, tuple([x / 10 for x in delta]))
+    target_cell = vector.add(target_cell, tuple([x / 10 for x in delta]))
   return sorted(range_cells, key=lambda c: manhattan(c, target_cell))[0]
 
 class NextAnim(TweenAnim): pass
@@ -55,14 +57,16 @@ class SkillContext(Context):
     ctx.anims = []
     ctx.exiting = False
     ctx.confirmed = False
+    ctx.cache_camera_pos = None
+    ctx.cache_camera_targets = []
 
   def init(ctx):
     if not ctx.actor:
       return
     hero = ctx.actor
-    floor = ctx.parent.floor
+    stage = ctx.parent.stage
     skill = ctx.skill
-    enemy = ctx.parent.find_closest_visible_enemy(hero)
+    enemy = ctx.parent.find_closest_enemy(hero, elems=[e for c in hero.visible_cells for e in stage.get_elems_at(c)])
     if enemy:
       hero.face(enemy.cell)
       target_cell = enemy.cell
@@ -73,13 +77,15 @@ class SkillContext(Context):
     if not skill:
       ctx.dest = hero.cell
       return
-    ctx.skill_range = skill().find_range(hero, floor)
+    ctx.skill_range = skill().find_range(hero, stage)
     if skill.range_type == "linear" and skill.range_max > 1:
       ctx.dest = ctx.skill_range[-1]
     else:
       ctx.dest = find_closest_cell_in_range(ctx.skill_range, target_cell, delta=hero.facing)
+    ctx.cache_camera_targets = ctx.parent.camera.target_groups.copy()
 
   def close(ctx, *args):
+    ctx.parent.camera.target_groups = ctx.cache_camera_targets
     super().close(*(args or [None, None]))
 
   def print_skill(ctx, skill=None):
@@ -92,23 +98,23 @@ class SkillContext(Context):
     if len(ctx.anims):
       return
 
-    if keyboard.get_state(button) != 1 and gamepad.get_state(button) != 1:
+    if not button or input.get_state(button) > 1:
       return
 
-    if button in keyboard.ARROW_DELTAS:
-      delta = keyboard.ARROW_DELTAS[button]
+    delta = input.resolve_delta(button, fixed_axis=True)
+    if delta != (0, 0):
       return ctx.handle_direction(delta)
 
-    if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
-      return ctx.handle_confirm()
+    control = input.resolve_control(button)
+    button = input.resolve_button(button)
 
-    if button in (pygame.K_TAB, gamepad.controls.R):
+    if button == input.BUTTON_L:
       return ctx.handle_select()
 
-    if button == gamepad.controls.L:
-      return ctx.handle_select(reverse=True)
+    if control == input.CONTROL_CONFIRM:
+      return ctx.handle_confirm()
 
-    if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, gamepad.controls.cancel):
+    if control == input.CONTROL_CANCEL:
       return ctx.exit()
 
   def handle_direction(ctx, delta):
@@ -127,7 +133,7 @@ class SkillContext(Context):
 
   def handle_turn(ctx, delta):
     game = ctx.parent
-    floor = game.floor
+    stage = game.stage
     hero = ctx.actor
     if hero:
       hero_x, hero_y = hero.cell
@@ -140,9 +146,9 @@ class SkillContext(Context):
 
     ctx.dest = None
     if hero and skill:
-      ctx.skill_range = skill().find_range(hero, floor)
+      ctx.skill_range = skill().find_range(hero, stage)
       if ctx.skill_range:
-        get_enemies_at_cell = lambda c: (e for e in floor.get_elems_at(c) if isinstance(e, DungeonActor) and not e.allied(hero))
+        get_enemies_at_cell = lambda c: (e for e in stage.get_elems_at(c) if isinstance(e, DungeonActor) and not e.allied(hero))
         enemy_cells = [c for c in ctx.skill_range if next(get_enemies_at_cell(c), None)]
         enemy_cell = enemy_cells and sorted(enemy_cells, key=lambda c: manhattan(c, hero.cell))[0]
         if enemy_cell and enemy_cell in ctx.skill_range:
@@ -174,8 +180,8 @@ class SkillContext(Context):
     if old_skill != new_skill:
       ctx.print_skill(new_skill)
       ctx.anims.append((PrevAnim if reverse else NextAnim)(duration=12, target=options))
-      ctx.skill_range = new_skill().find_range(ctx.actor, game.floor)
-      pivot_cell = add_vector(hero.cell, tuple([x / 10 for x in hero.facing]))
+      ctx.skill_range = new_skill().find_range(ctx.actor, game.stage)
+      pivot_cell = vector.add(hero.cell, tuple([x / 10 for x in hero.facing]))
       ctx.dest = (sorted(ctx.skill_range, key=lambda c: manhattan(c, pivot_cell))[0]
         if ctx.skill_range
         else hero.cell)
@@ -244,26 +250,27 @@ class SkillContext(Context):
     cursor = ctx.dest
     if hero:
       game = ctx.parent
-      floor = game.floor
+      stage = game.stage
       camera = game.camera
-      camera_x, camera_y = camera.pos
-      facing_x, facing_y = hero.facing
-      hero_x, hero_y = hero.cell
-      skill_targets = skill().find_targets(hero, floor, dest=ctx.dest) if skill else []
-      skill_range = skill().find_range(hero, floor) if skill else []
+      skill_targets = skill().find_targets(hero, stage, dest=ctx.dest) if skill else []
+      skill_range = skill().find_range(hero, stage) if skill else []
       ctx.dest = cursor
 
-      camera_speed = 8
-      if skill and skill.range_max == math.inf:
-        camera.focus(cursor, speed=16, force=True)
-      else:
-        camera.focus(cursor, speed=8, force=True)
+      camera_pos = vector.scale(
+        vector.add(cursor, (0.5, 0.5)),
+        TILE_SIZE
+      )
+      camera.focus(camera_pos, force=True)
 
       def scale_up(cell):
-        col, row = cell
-        x = col * TILE_SIZE - round(camera_x)
-        y = row * TILE_SIZE - round(camera_y) + 1
-        return x, y
+        return vector.add(
+          vector.subtract(
+            vector.scale(cell, TILE_SIZE),
+            camera.pos
+          ),
+          vector.scale(camera.size, 0.5),
+          (1, 1),
+        )
 
     if cursor:
       anim = ctx.anims[0] if ctx.anims else None
@@ -277,7 +284,7 @@ class SkillContext(Context):
         pygame.draw.rect(square_hi, Color(*skill.color, alpha + 0x5f), square_hi.get_rect())
         square_cells = list(set(skill_range + skill_targets))
         for cell in square_cells:
-          tile = floor.get_tile_at(cell)
+          tile = stage.get_tile_at(cell)
           z = tile.elev if tile else 0
           x, y = cell
           y -= z
@@ -320,7 +327,7 @@ class SkillContext(Context):
         cursor_sprite = assets.sprites["cursor_cell"][t]
 
       new_cursor_col, new_cursor_row = cursor
-      cursor_tile = floor.get_tile_at(cursor)
+      cursor_tile = stage.get_tile_at(cursor)
       cursor_z = cursor_tile.elev if cursor_tile else 0
       new_cursor_row -= cursor_z
       if ctx.exiting and not ctx.confirmed:

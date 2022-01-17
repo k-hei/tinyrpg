@@ -4,6 +4,7 @@ from lib.cell import add
 from dungeon.features import Feature
 from dungeon.actors import DungeonActor
 from dungeon.props.door import Door
+import tiles.default as tileset
 from config import ROOM_WIDTHS, ROOM_HEIGHTS
 
 class Room(Feature):
@@ -109,10 +110,10 @@ class Room(Feature):
     return edges
 
   def get_doors(room, stage):
-    return [e for e in [stage.get_elem_at(c, superclass=Door) for c in room.get_border()] if e]
+    return [e for c in room.get_border() for e in stage.get_elems_at(c) if isinstance(e, Door)]
 
   def get_doorways(room, stage):
-    return [e for e in room.get_edges() if stage.get_tile_at(e) is not stage.WALL]
+    return [e for e in room.get_edges() if not issubclass(stage.get_tile_at(e), tileset.Wall)]
 
   def get_enemies(room, stage):
     return [e for c in room.get_cells() for e in stage.get_elems_at(c) if (
@@ -130,11 +131,11 @@ class Room(Feature):
     return slots
 
   def lock(room, game):
-    for door in room.get_doors(game.floor):
+    for door in room.get_doors(game.stage):
       door.handle_close(game)
 
   def unlock(room, game, open=False):
-    for door in room.get_doors(game.floor):
+    for door in room.get_doors(game.stage):
       if door.locked:
         if open:
           door.handle_open(game)
@@ -145,13 +146,13 @@ class Room(Feature):
     if room.focused:
       return False
     room.focused = True
-    for door in room.get_doors(game.floor):
+    for door in room.get_doors(game.stage):
       door.focus = game.hero.cell
       # door.align(game)
     return True
 
   def on_blur(room, game):
-    for door in room.get_doors(game.floor):
+    for door in room.get_doors(game.stage):
       door.focus = game.hero.cell
       # door.align(game)
 

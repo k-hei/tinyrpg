@@ -14,7 +14,7 @@ class Blob(Room):
       data = choice(data)
     if data:
       degree = data.degree
-    if not cells:
+    if not cells and data:
       cells = data.extract_cells()
     rect = find_bounds(cells)
     room._cells = [subtract_vector(c, rect.topleft) for c in cells]
@@ -33,6 +33,7 @@ class Blob(Room):
     room._visible_outline = None
     room._edges = None
     room._connectors = None
+    room._border = None
     room.connector_deltas = {}
 
   @property
@@ -41,7 +42,9 @@ class Blob(Room):
 
   @property
   def border(room):
-    return Blob.find_border(room.cells)
+    if not room._border:
+      room._border = Blob.find_border(room.cells)
+    return room._border
 
   @property
   def edges(room):
@@ -74,7 +77,7 @@ class Blob(Room):
 
   @property
   def hitbox(room):
-    return room.visible_outline
+    return set(room.visible_outline)
 
   @property
   def outline(room):
@@ -94,7 +97,7 @@ class Blob(Room):
           neighborhood(cell, diagonals=True)
           + neighborhood(vector.add(cell, (0, -1)), diagonals=True)
         )
-      room._visible_outline = set(visible_outline) - set(room.cells)
+      room._visible_outline = list(set(visible_outline) - set(room.cells))
     return room._visible_outline
 
   @property
@@ -148,8 +151,7 @@ class Blob(Room):
   def get_tile_at(room, cell):
     if not room.data:
       return None
-    x, y = cell
-    return room.data.tiles[y * room.width + x]
+    return room.data.tiles.get(*cell)
 
   def lock_special_doors(room, stage):
     if room.should_unlock(stage):
@@ -183,7 +185,7 @@ class Blob(Room):
     return room.trigger_hook("on_place", stage)
 
   def on_focus(room, game):
-    pushblock = next((e for c in room.cells for e in game.floor.get_elems_at(c) if (
+    pushblock = next((e for c in room.cells for e in game.stage.get_elems_at(c) if (
       type(e).__name__ == "PushBlock"
       and not e.static
     )), None)
@@ -206,7 +208,7 @@ class Blob(Room):
     if room.resolve_hook("on_defeat"):
       result = room.trigger_hook("on_defeat", game, actor)
       if result is not None: return result
-    elif room.should_unlock(game.floor, actor):
+    elif room.should_unlock(game.stage, actor):
       room.unlock(game)
       return True
     return super().on_defeat(game, actor)
