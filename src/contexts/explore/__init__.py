@@ -21,6 +21,7 @@ from anims.pause import PauseAnim
 from tiles import Tile
 import tiles.default as tileset
 from config import TILE_SIZE, MOVE_DURATION, RUN_DURATION
+from resolve.floor import resolve_floor
 from transits.dissolve import DissolveIn, DissolveOut
 
 class ExploreContext(ExploreBase):
@@ -368,7 +369,7 @@ class ExploreContext(ExploreBase):
     if not stairs:
       return False
 
-    stairs_edge = ctx.parent.graph.connector_edge((hero_tile, hero_cell))
+    stairs_edge = ctx.parent.graph and ctx.parent.graph.connector_edge((hero_tile, hero_cell))
     if not stairs_edge:
       return False # link doesn't exist in graph - how to handle besides ignore?
 
@@ -406,6 +407,17 @@ class ExploreContext(ExploreBase):
       )
     )
     return True
+
+  def follow_link(game, link_id, on_end=None):
+    Floor = resolve_floor(link_id)
+    game.get_head().transition(
+      transits=(DissolveIn(), DissolveOut()),
+      loader=Floor.generate(game.store),
+      on_end=lambda stage: (
+        game.parent.use_stage(stage),
+        on_end and on_end()
+      )
+    )
 
   def handle_hallway(ctx):
     if not ctx.ally:

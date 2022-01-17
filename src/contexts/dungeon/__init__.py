@@ -121,7 +121,7 @@ class DungeonContext(ExploreBase):
         ctx.camera.focus(room_focused)
       if room_focused not in ctx.rooms:
         ctx.rooms.append(room_focused)
-        room_focused.on_focus(ctx.get_tail())
+        room_focused.on_focus(ctx)
     else:
       visible_cells = shadowcast(ctx.stage, hero.cell, VISION_RANGE)
       room_focused = next((t for t in ctx.camera.target if isinstance(t, Room)), None)
@@ -131,8 +131,8 @@ class DungeonContext(ExploreBase):
 
     visible_cells += neighborhood(hero.cell)
 
-    if ctx.cache_room is not ctx.room:
-      ctx.cache_room = ctx.room
+    if ctx.cache_room is not room_focused:
+      ctx.cache_room = room_focused
       hero.visible_cells = visible_cells
       ctx.extend_visited_cells(visible_cells)
 
@@ -155,7 +155,9 @@ class DungeonContext(ExploreBase):
     ctx.comps.minimap.sprite = None
     ctx.camera.reset()
     ctx.camera.focus(ctx.hero)
+    ctx.cache_room = None
     ctx.refresh_fov()
+    ctx.redraw_tiles()
 
   def handle_press(ctx, button):
     if input.get_state(pygame.K_LCTRL):

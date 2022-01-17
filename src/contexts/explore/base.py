@@ -111,6 +111,8 @@ class ExploreBase(Context):
 
   @property
   def facing_elem(ctx):
+    if not ctx.hero:
+      return None
     facing_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
     facing_elems = ctx.stage.get_elems_at(facing_cell)
     return next((e for e in facing_elems if (
@@ -436,6 +438,11 @@ class ExploreBase(Context):
       ctx.buttons_rejected[button] += 1
 
   def update_bubble(ctx):
+    if not ctx.hero:
+      if ctx.talkbubble:
+        ctx.talkbubble.done = True
+      return
+
     facing_elem = ctx.facing_elem
     facing_cell = facing_elem and facing_elem.cell
     if not facing_elem:
@@ -462,8 +469,11 @@ class ExploreBase(Context):
 
   def darken(ctx):
     ctx.stage_view.darken()
-    ctx.stage_view.redraw_tiles(hero=ctx.hero, visited_cells=ctx.visited_cells)
+    ctx.redraw_tiles()
 
   def undarken(ctx):
     ctx.stage_view.undarken()
+    ctx.redraw_tiles()
+
+  def redraw_tiles(ctx):
     ctx.stage_view.redraw_tiles(hero=ctx.hero, visited_cells=ctx.visited_cells)

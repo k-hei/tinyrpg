@@ -191,14 +191,18 @@ class DungeonElement:
       sprites = Sprite(image=sprites, layer="elems")
     if type(sprites) is Sprite:
       sprites = [sprites]
+
     if sprites:
       sprite = sprites[0]
       sprite_width, sprite_height = sprite.size or sprite.image.get_size()
       sprite_layer = sprite.layer or "elems"
+      sprite_offset = 0
     else:
       sprite = None
       sprite_width, sprite_height = (0, 0)
       sprite_layer = "elems"
+      sprite_offset = 0
+
     offset_x, offset_y = elem.find_move_offset(anims)
     item = None
     anim_group = [a for a in anims[0] if a.target is elem] if anims else []
@@ -249,6 +253,7 @@ class DungeonElement:
     if sprite:
       sprite.size = (sprite_width, sprite_height)
       sprite.layer = sprite_layer
+      sprite.offset += sprite_offset
       sprite.move((offset_x, offset_y))
 
     return sprites

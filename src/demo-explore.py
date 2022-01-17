@@ -3,7 +3,7 @@ from contexts.app import App
 from game.context import GameContext
 from contexts.explore.manifest import manifest_room
 from contexts.explore.roomdata import load_room
-from dungeon.floors.debugfloor import DebugFloor
+from dungeon.floors.floor3 import Floor3
 from savedata import load
 
 room_data = load_room("rooms/", "shrine")
@@ -15,7 +15,7 @@ App(
   title="explore context demo",
   context=GameContext(
     data=savedata,
-    # floor=DebugFloor,
+    # floor=Floor3,
     stage=stage,
   )
 ).init()

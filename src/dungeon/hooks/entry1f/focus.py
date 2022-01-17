@@ -26,7 +26,7 @@ def on_focus(room, game):
   game.stage.spawn_elem_at(vector.add(room.center, (1, 0)), mage)
   mage_bump = sequence_mage_bump(room, game)
   door = room.get_doors(game.stage)[0]
-  game.open(CutsceneContext([
+  game.get_tail().open(CutsceneContext([
     lambda step: (
       game.camera.focus(target=room, force=True),
       game.anims.extend([

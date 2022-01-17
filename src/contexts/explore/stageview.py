@@ -134,11 +134,9 @@ class StageView:
     elif tile_name in view.tile_cache:
       tile_image = view.tile_cache[tile_name]
     else:
-      # print("scratch render", cell, tile_name)
       tile_image = render_tile(stage, cell, visited_cells)
 
     if cell not in view.tile_cache:
-      # print("cache tile", cell, tile_name)
       cached_dark_image = darken_image(tile_image)
       view.tile_cache[cell] = (tile_state, tile_image, cached_dark_image)
 

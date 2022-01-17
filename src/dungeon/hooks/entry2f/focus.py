@@ -14,7 +14,7 @@ def on_focus(room, game):
   if not config.CUTSCENES or "minxia" in game.store.story:
     game.stage.remove_elem(mage)
     return
-  game.open(CutsceneContext([
+  game.get_tail().open(CutsceneContext([
     lambda step: (
       setattr(mage, "facing", (-1, 0)),
       game.camera.focus(

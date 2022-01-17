@@ -34,6 +34,9 @@ TILE_IDS = [
 for tile_id in TILE_IDS:
   assets.sprites[tile_id] = replace_color(assets.sprites[tile_id], WHITE, COLOR_TILE)
 
+black_square = Surface((TILE_SIZE, TILE_SIZE))
+black_square.fill(BLACK),
+
 class Floor(Tile):
   sprite = assets.sprites["tomb_floor"]
 
@@ -89,20 +92,24 @@ class Wall(Tile):
 
 class Pit(Tile):
   pit = True
-  image = (lambda: (
-    image := Surface((TILE_SIZE, TILE_SIZE)),
-    image.fill(BLACK),
-    image,
-  )[-1])()
+
+  @staticmethod
+  def find_state(stage, cell, visited_cells):
+    x, y = cell
+    return [
+      stage.get_tile_at(cell),
+      stage.get_tile_at((x, y - 1)),
+      (x, y - 1) in visited_cells,
+    ]
 
   def sprite(stage, cell, visited_cells=None):
     if stage.get_tile_at(vector.add(cell, (0, -1))) is not Pit:
       return assets.sprites["tomb_pit"]
     else:
-      return Pit.image
+      return black_square
 
 class Hallway(Tile):
-  sprite = None
+  sprite = black_square
 
 class Entrance(Tile):
   sprite = assets.sprites["stairs_up"]
