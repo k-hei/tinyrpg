@@ -12,6 +12,10 @@ class Tile:
   sprite: Surface = None
   render: func = None
 
+  @staticmethod
+  def find_state(stage, cell, visited_cells):
+    return cell in visited_cells
+
   def is_solid(tile):
     return not tile or tile.solid
 

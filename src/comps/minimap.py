@@ -27,6 +27,7 @@ from lib.bounds import find_bounds
 from lib.cell import subtract as subtract_vector
 from lib.sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE, DEBUG_GEN
+import debug
 
 MARGIN_X = 8
 MARGIN_Y = 6
@@ -79,114 +80,120 @@ class Minimap:
     surface.set_colorkey(COLOR_KEY)
     pixels = PixelArray(surface)
 
-    for cell in visited_cells:
-      col, row = cell
-      if col < 0 or row < 0 or col >= floor_width or row >= floor_height:
-        continue
 
-      tile = floor.get_tile_at(cell)
+    focus_x, focus_y = focus
+    window_left = int(focus_x - sprite_width / 2)
+    window_top = int(focus_y - sprite_height / 2)
+    window_right = window_left + sprite_width
+    window_bottom = window_top + sprite_height
 
-      if focus:
-        focus_x, focus_y = focus
-        x = int(col - focus_x + sprite_width / 2)
-        y = int(row - focus_y + sprite_height / 2)
-        if x < 0 or y < 0 or x >= sprite_width or y >= sprite_height:
+    for row in range(window_top, window_bottom):
+      row_cells = 0
+      for col in range(window_left, window_right):
+        if col < 0 or row < 0 or col >= floor_width or row >= floor_height:
           continue
-      else:
-        x, y = col, row
 
-      elem = next((e for e in reversed(floor.get_elems_at(cell))), None)
-      if next((g for g in anims if next((a for a in g if type(a) is WarpInAnim and a.target is elem), None)), None):
-        elem = None
+        cell = (col, row)
+        if cell not in visited_cells:
+          continue
 
-      # f(floor, cell, visible_cells=None, blink=False) -> color
-      color = None
-      if isinstance(elem, DungeonActor) and elem.faction == "player" and cell in visible_cells:
-        color = (0x3399FF, 0x0066CC)[blink]
-      elif isinstance(elem, DungeonActor) and elem.faction == "ally" and cell in visible_cells:
-        color = (0x33FF99, 0x00CC66)[blink]
-      elif type(elem) is Mimic and cell in visible_cells:
-        if elem.idle:
-          color = (0xFFFF00, 0x7F7F00)[blink]
-        else:
-          color = (0xFF0000, 0x990000)[blink]
-      elif isinstance(elem, DungeonActor) and elem.faction == "enemy" and cell in visible_cells:
-        if elem.ailment == "sleep":
-          color = 0x990000
-        elif elem.aggro:
-          color = 0xFF0000
-        else:
-          color = (0xFF0000, 0x990000)[blink]
-      elif isinstance(elem, Soul) and cell in visible_cells:
-        color = (VIOLET, DARKVIOLET)[blink]
-      elif isinstance(elem, Npc) and cell in visible_cells:
-        color = (GREEN, DARKGREEN)[blink]
-      elif isinstance(elem, Chest) and elem.rare:
-        if elem.opened:
-          color = 0x7F007F
-        else:
-          color = (0xFF00FF, 0x7F007F)[blink]
-      elif type(elem) in (Chest, RareChest, Coffin, Vase):
-        if elem.opened:
-          color = 0x7F7F00
-        else:
-          color = (0xFFFF00, 0x7F7F00)[blink]
-      elif type(elem) is ItemDrop:
-        color = (0xFFFF00, 0x7F7F00)[blink]
-      elif type(elem) is Altar:
-        color = (0xFFFF00, 0x7F7F00)[blink]
-      elif (issubclass(tile, tileset.Wall)
-      or isinstance(elem, Door) and elem.locked
-      or type(elem) is SecretDoor and elem.hidden
-      or issubclass(tile, tileset.Hallway) and SecretDoor.exists_at(floor, (col, row + 1))
-      or type(elem) is Pillar
-      or type(elem) is Table and Rect(elem.cell, elem.size).collidepoint(cell)
-      ):
-        if cell in visible_cells:
-          if filled:
+        tile = floor.get_tile_at(cell)
+
+        if focus:
+          focus_x, focus_y = focus
+          x = int(col - focus_x + sprite_width / 2)
+          y = int(row - focus_y + sprite_height / 2)
+          if x < 0 or y < 0 or x >= sprite_width or y >= sprite_height:
             continue
-          color = COLOR_WALL
         else:
-          color = COLOR_WALL_DARK
-      elif isinstance(elem, Door) and not elem.opened:
-        if cell in visible_cells:
-          color = COLOR_DOOR
-        else:
-          color = COLOR_DOOR_DARK
-      elif isinstance(elem, Door) and elem.opened:
-        if cell in visible_cells:
-          color = COLOR_FLOOR
-        else:
-          color = COLOR_FLOOR_DARK
-      elif tile is Stage.STAIRS_UP:
-        color = (0x00FF00, 0x007F00)[blink]
-      elif tile is Stage.STAIRS_DOWN:
-        color = 0x007F00
-      elif issubclass(tile, tileset.Pit):
-        if cell in visible_cells:
-          color = 0x000000
-      elif issubclass(tile, tileset.Oasis) or issubclass(tile, tileset.OasisStairs):
-        if cell in visible_cells:
-          color = COLOR_OASIS
-        else:
-          color = COLOR_OASIS_DARK
-      elif tile is Stage.FLOOR_ELEV or tile is Stage.WALL_ELEV or tile is Stage.STAIRS:
-        if cell in visible_cells:
-          color = 0x00CC66
-        else:
-          color = 0x00CC33
-      else:
-        if cell in visible_cells:
-          color = COLOR_FLOOR
-        else:
-          color = COLOR_FLOOR_DARK
+          x, y = col, row
 
-      if color is not None:
-        try:
-          pixels[x, y] = color
-        except IndexError:
-          print((x, y), sprite_size)
-          raise
+        is_cell_visible = cell in visible_cells
+        # elem = next((e for e in reversed(floor.get_elems_at(cell))), None)
+        elem = next((e for e in floor.get_elems_at(cell)), None)
+        if elem and next((a for g in anims for a in g if type(a) is WarpInAnim and a.target is elem), None):
+          elem = None
+
+        # f(floor, cell, visible_cells=None, blink=False) -> color
+        color = None
+        # if elem:
+        #   if isinstance(elem, DungeonActor):
+        #     if elem.faction == "player" and is_cell_visible:
+        #       color = (0x3399FF, 0x0066CC)[blink]
+        #     elif elem.faction == "ally" and is_cell_visible:
+        #       color = (0x33FF99, 0x00CC66)[blink]
+        #     elif elem.faction == "enemy" and is_cell_visible:
+        #       if elem.ailment == "sleep":
+        #         color = 0x990000
+        #       elif elem.aggro:
+        #         color = 0xFF0000
+        #       else:
+        #         color = (0xFF0000, 0x990000)[blink]
+        #   elif isinstance(elem, Soul) and is_cell_visible:
+        #     color = (VIOLET, DARKVIOLET)[blink]
+        #   elif isinstance(elem, Npc) and is_cell_visible:
+        #     color = (GREEN, DARKGREEN)[blink]
+        #   elif isinstance(elem, Chest) and elem.rare:
+        #     if elem.opened:
+        #       color = 0x7F007F
+        #     else:
+        #       color = (0xFF00FF, 0x7F007F)[blink]
+        #   elif isinstance(elem, (Chest, RareChest, Coffin, Vase)):
+        #     if elem.opened:
+        #       color = 0x7F7F00
+        #     else:
+        #       color = (0xFFFF00, 0x7F7F00)[blink]
+        #   elif type(elem) is ItemDrop:
+        #     color = (0xFFFF00, 0x7F7F00)[blink]
+        #   elif type(elem) is Altar:
+        #     color = (0xFFFF00, 0x7F7F00)[blink]
+        #   elif isinstance(elem, Door) and not elem.opened:
+        #     if is_cell_visible:
+        #       color = COLOR_DOOR
+        #     else:
+        #       color = COLOR_DOOR_DARK
+        #   elif isinstance(elem, Door) and elem.opened:
+        #     if is_cell_visible:
+        #       color = COLOR_FLOOR
+        #     else:
+        #       color = COLOR_FLOOR_DARK
+        # elif tile is Stage.STAIRS_UP:
+        #   color = (0x00FF00, 0x007F00)[blink]
+        # elif tile is Stage.STAIRS_DOWN:
+        #   color = 0x007F00
+        # elif issubclass(tile, tileset.Pit):
+        #   if is_cell_visible:
+        #     color = None # 0x000000
+        # elif (issubclass(tile, tileset.Wall)
+        # or issubclass(tile, tileset.Hallway) and SecretDoor.exists_at(floor, (col, row + 1))
+        # or isinstance(elem, Door) and elem.locked
+        # or type(elem) is SecretDoor and elem.hidden
+        # or type(elem) is Pillar
+        # or type(elem) is Table and Rect(elem.cell, elem.size).collidepoint(cell)
+        # ):
+        #   if is_cell_visible:
+        #     if filled:
+        #       continue
+        #     color = COLOR_WALL
+        #   else:
+        #     color = COLOR_WALL_DARK
+        # elif issubclass(tile, tileset.Oasis) or issubclass(tile, tileset.OasisStairs):
+        #   if is_cell_visible:
+        #     color = COLOR_OASIS
+        #   else:
+        #     color = COLOR_OASIS_DARK
+        # else:
+        #   if is_cell_visible:
+        #     color = COLOR_FLOOR
+        #   else:
+        #     color = COLOR_FLOOR_DARK
+
+        if color is not None:
+          try:
+            pixels[x, y] = color
+          except IndexError:
+            print((x, y), sprite_size)
+            raise
 
     pixels.close()
     return surface
@@ -355,7 +362,7 @@ class Minimap:
     else:
       return []
 
-    if not redrawn:
+    if not redrawn and not minimap.time % 30:
       redrawn = True
       minimap.sprite = minimap.render()
 

@@ -14,22 +14,8 @@ from resolve.tileset import resolve_tileset
 import debug
 
 def find_tile_state(stage, cell, visited_cells):
-  x, y = cell
-  return [
-    stage.get_tile_at(cell),
-    stage.get_tile_at((x - 1, y)),
-    stage.get_tile_at((x + 1, y)),
-    stage.get_tile_at((x, y - 1)),
-    stage.get_tile_at((x, y + 1)),
-    (x - 1, y - 1) in visited_cells,
-    (    x, y - 1) in visited_cells,
-    (x + 1, y - 1) in visited_cells,
-    (x - 1,     y) in visited_cells,
-    (x + 1,     y) in visited_cells,
-    (x - 1, y + 1) in visited_cells,
-    (    x, y + 1) in visited_cells,
-    (x + 1, y + 1) in visited_cells,
-  ]
+  tile = stage.get_tile_at(cell)
+  return tile and tile.find_state(stage, cell, visited_cells)
 
 def render_tile(stage, cell, visited_cells=[]):
   tile = stage.get_tile_at(cell)
@@ -148,12 +134,11 @@ class StageView:
     elif tile_name in view.tile_cache:
       tile_image = view.tile_cache[tile_name]
     else:
+      # print("scratch render", cell, tile_name)
       tile_image = render_tile(stage, cell, visited_cells)
 
-    if not tile_image:
-      return False
-
     if cell not in view.tile_cache:
+      # print("cache tile", cell, tile_name)
       cached_dark_image = darken_image(tile_image)
       view.tile_cache[cell] = (tile_state, tile_image, cached_dark_image)
 

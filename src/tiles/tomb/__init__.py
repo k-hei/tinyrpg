@@ -1,6 +1,7 @@
+from pygame import Surface
 import lib.vector as vector
 from lib.filters import replace_color
-from colors.palette import WHITE, COLOR_TILE
+from colors.palette import BLACK, WHITE, COLOR_TILE
 
 from tiles import Tile
 from tiles.tomb.walltop import render_walltop
@@ -39,6 +40,26 @@ class Floor(Tile):
 class Wall(Tile):
   solid = True
   opaque = True
+
+  @staticmethod
+  def find_state(stage, cell, visited_cells):
+    x, y = cell
+    return [
+      stage.get_tile_at(cell),
+      stage.get_tile_at((x - 1, y)),
+      stage.get_tile_at((x + 1, y)),
+      stage.get_tile_at((x, y - 1)),
+      stage.get_tile_at((x, y + 1)),
+      (x - 1, y - 1) in visited_cells,
+      (    x, y - 1) in visited_cells,
+      (x + 1, y - 1) in visited_cells,
+      (x - 1,     y) in visited_cells,
+      (x + 1,     y) in visited_cells,
+      (x - 1, y + 1) in visited_cells,
+      (    x, y + 1) in visited_cells,
+      (x + 1, y + 1) in visited_cells,
+    ]
+
   def sprite(stage, cell, visited_cells=None):
     x, y = cell
     tile_below = stage.get_tile_at((x, y + 1))
@@ -68,16 +89,25 @@ class Wall(Tile):
 
 class Pit(Tile):
   pit = True
+  image = (lambda: (
+    image := Surface((TILE_SIZE, TILE_SIZE)),
+    image.fill(BLACK),
+    image,
+  )[-1])()
+
   def sprite(stage, cell, visited_cells=None):
     if stage.get_tile_at(vector.add(cell, (0, -1))) is not Pit:
       return assets.sprites["tomb_pit"]
     else:
-      return None
+      return Pit.image
 
 class Hallway(Tile):
   sprite = None
 
 class Entrance(Tile):
+  sprite = assets.sprites["stairs_up"]
+
+class Escape(Entrance):
   sprite = assets.sprites["stairs_up"]
 
 class Exit(Tile):
@@ -106,6 +136,7 @@ mappings = {
   ",": Hallway,
   "<": Entrance,
   ">": Exit,
+  "E": Escape,
   "O": Oasis,
   "I": OasisStairs,
 }

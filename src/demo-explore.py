@@ -6,7 +6,7 @@ from contexts.explore.roomdata import load_room
 from dungeon.floors.debugfloor import DebugFloor
 from savedata import load
 
-room_data = load_room("rooms/", "coffin")
+room_data = load_room("rooms/", "shrine")
 stage = manifest_room(room_data)
 
 savedata = load("src/data-debug.json", *sys.argv[1:])
@@ -15,7 +15,7 @@ App(
   title="explore context demo",
   context=GameContext(
     data=savedata,
-    floor=DebugFloor,
-    # stage=stage,
+    # floor=DebugFloor,
+    stage=stage,
   )
 ).init()

@@ -1,5 +1,5 @@
 from config import DEBUG
-from pygame.time import get_ticks
+from time import time
 
 buffer = ""
 benches = {}
@@ -23,13 +23,13 @@ def write():
 
 def bench(tag, reset=False, print_threshold=0):
   if tag not in benches or reset:
-    benches[tag] = get_ticks()
+    benches[tag] = time()
     return 0
   else:
-    delta = get_ticks() - benches[tag]
+    delta = time() - benches[tag]
     del benches[tag]
     if delta >= print_threshold:
-      log(f"{tag} in {delta}ms")
+      log(f"{tag} in {delta * 1000}ms")
     return delta
 
 def dictify(obj):

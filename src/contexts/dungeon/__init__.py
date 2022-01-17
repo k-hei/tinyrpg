@@ -2,6 +2,7 @@ import pygame
 from lib.cell import neighborhood
 import lib.vector as vector
 import lib.input as input
+import debug
 
 from contexts.explore import ExploreContext
 from contexts.explore.base import ExploreBase
@@ -49,6 +50,7 @@ class DungeonContext(ExploreBase):
     ctx.comps = []
     ctx.rooms = []
     ctx.rooms_entered = set()
+    ctx.cache_room = None
 
   def enter(ctx):
     heroes = [manifest_actor(c) for c in ctx.store.party]
@@ -103,28 +105,36 @@ class DungeonContext(ExploreBase):
     return graph
 
   def refresh_fov(ctx):
-    room_entered = next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells), None)
+    hero = ctx.hero
+    if not hero:
+      return False
+
+    room_entered = next((r for r in ctx.stage.rooms if hero.cell in r.cells), None)
     if room_entered and room_entered not in ctx.rooms_entered:
       ctx.rooms_entered.add(room_entered)
       room_entered.on_enter(ctx)
 
-    room_focused = next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells + r.border), None)
+    room_focused = next((r for r in ctx.stage.rooms if hero.cell in (r.cells + r.border)), None)
     if room_focused:
       visible_cells = room_focused.cells + room_focused.visible_outline
-      ctx.camera.focus(room_focused)
+      if room_focused not in ctx.camera.target:
+        ctx.camera.focus(room_focused)
       if room_focused not in ctx.rooms:
         ctx.rooms.append(room_focused)
         room_focused.on_focus(ctx.get_tail())
     else:
-      visible_cells = shadowcast(ctx.stage, ctx.hero.cell, VISION_RANGE)
+      visible_cells = shadowcast(ctx.stage, hero.cell, VISION_RANGE)
       room_focused = next((t for t in ctx.camera.target if isinstance(t, Room)), None)
       if room_focused:
         ctx.camera.blur(room_focused)
-      ctx.camera.focus(ctx.hero)
-    visible_cells += neighborhood(ctx.hero.cell)
+      ctx.camera.focus(hero)
 
-    ctx.hero.visible_cells = visible_cells
-    ctx.extend_visited_cells(visible_cells)
+    visible_cells += neighborhood(hero.cell)
+
+    if ctx.cache_room is not ctx.room:
+      ctx.cache_room = ctx.room
+      hero.visible_cells = visible_cells
+      ctx.extend_visited_cells(visible_cells)
 
   def use_stage(ctx, stage, stairs=None):
     ctx.hero and ctx.stage.remove_elem(ctx.hero)

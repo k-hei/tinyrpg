@@ -187,8 +187,6 @@ class StageView:
     return True
 
   def redraw_tiles(self, stage, camera, visible_cells, visited_cells, anims=[], force=False):
-    debug.bench("redraw tile surface", reset=True)
-
     sprites = []
     camera_x, camera_y = camera.cell
     camera_cell = (int(camera_x), int(camera_y))
@@ -238,8 +236,6 @@ class StageView:
 
     for cell in anim_cells:
       self.redraw_tile(stage, cell, visible_cells, visited_cells, anims, dry=True)
-
-    # debug.bench("redraw tile surface", print_threshold=30)
 
   def view_tiles(self, camera):
     camera = camera.get_rect()

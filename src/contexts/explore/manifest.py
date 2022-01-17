@@ -44,13 +44,15 @@ def manifest_rooms(rooms, dry=False, seed=None):
 def manifest_room(room):
   room_data = RoomData(**room)
 
+  stage_cells = []
   stage_tiles = Grid(size=vector.add(room_data.size, (2, 3)))
   stage_tiles.fill(tileset.Wall)
   stage_origin = (1, 2)
   for cell, tile in room_data.tiles.enumerate():
+    stage_cells.append(cell)
     stage_tiles.set(*vector.add(stage_origin, cell), tile)
 
-  stage_rooms = [Room(cells) for cells in room_data.rooms]
+  stage_rooms = [Room(cells) for cells in room_data.rooms] or [Room(stage_cells)]
   for room in stage_rooms:
     room.origin = vector.add(room.origin, stage_origin)
 
@@ -60,7 +62,7 @@ def manifest_room(room):
   )
 
   if stage.entrance is None:
-    stage.entrance = vector.add(room["edges"][-1], stage_origin)
+    stage.entrance = find_tile(stage, tileset.Escape)
 
   spawn_elems(stage, elem_data=room_data.elems, offset=stage_origin)
   return stage

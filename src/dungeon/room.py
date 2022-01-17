@@ -33,6 +33,7 @@ class Blob(Room):
     room._visible_outline = None
     room._edges = None
     room._connectors = None
+    room._border = None
     room.connector_deltas = {}
 
   @property
@@ -41,7 +42,9 @@ class Blob(Room):
 
   @property
   def border(room):
-    return Blob.find_border(room.cells)
+    if not room._border:
+      room._border = Blob.find_border(room.cells)
+    return room._border
 
   @property
   def edges(room):

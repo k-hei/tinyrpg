@@ -74,7 +74,8 @@ class ExploreBase(Context):
     return visited_cells
 
   def extend_visited_cells(ctx, cells):
-    ctx.visited_cells.extend([c for c in cells if c not in ctx.visited_cells])
+    if cells != ctx.visited_cells:
+      ctx.visited_cells.extend([c for c in cells if c not in ctx.visited_cells])
 
   @property
   def camera(ctx):
