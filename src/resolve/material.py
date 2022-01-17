@@ -26,6 +26,7 @@ from items.dungeon.balloon import Balloon
 from items.equipment.rustyblade import RustyBlade
 from dungeon.actors.genie import Genie
 from dungeon.actors.mummy import Mummy
+from dungeon.actors.mageclone import MageClone
 from dungeon.actors.npc import Npc
 from dungeon.actors.skeleton import Skeleton
 from dungeon.actors.eyeball import Eyeball

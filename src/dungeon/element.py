@@ -243,7 +243,7 @@ class DungeonElement:
       elif type(anim) is FallAnim:
         offset_y = anim.y
         sprite_layer = "tiles"
-      if type(anim) is JumpAnim:
+      if isinstance(anim, JumpAnim):
         offset_y += anim.offset
 
     if sprite:

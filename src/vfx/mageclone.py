@@ -4,7 +4,6 @@ from config import TILE_SIZE
 import lib.vector as vector
 from lib.sprite import Sprite
 from lib.filters import replace_color
-from lib.lerp import lerp
 from anims import Anim
 from anims.tween import TweenAnim
 from anims.frame import FrameAnim

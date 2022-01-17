@@ -24,6 +24,7 @@ from dungeon.props.raretreasuredoor import RareTreasureDoor
 from dungeon.props.chest import Chest
 from dungeon.actors.genie import Genie
 from dungeon.actors.mummy import Mummy
+from dungeon.actors.mageclone import MageClone
 from dungeon.actors.npc import Npc
 from dungeon.actors.skeleton import Skeleton
 from dungeon.actors.eyeball import Eyeball
@@ -62,6 +63,7 @@ def resolve_elem(key):
   if key == "Chest": return Chest
   if key == "Genie": return Genie
   if key == "Mummy": return Mummy
+  if key == "MageClone": return MageClone
   if key == "Npc": return Npc
   if key == "Skeleton": return Skeleton
   if key == "Eyeball": return Eyeball

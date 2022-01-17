@@ -22,6 +22,7 @@ from skills.magic.vortex import Vortex
 from skills.magic.hirudo import Hirudo
 from skills.magic.ignis import Ignis
 from skills.magic.accerso import Accerso
+from skills.magic.roulette import Roulette
 from skills.magic.fulgur import Fulgur
 from skills.magic.glacio import Glacio
 from skills.magic.congelatio import Congelatio
@@ -57,6 +58,7 @@ def resolve_skill(key):
   if key == "Hirudo": return Hirudo
   if key == "Ignis": return Ignis
   if key == "Accerso": return Accerso
+  if key == "Roulette": return Roulette
   if key == "Fulgur": return Fulgur
   if key == "Glacio": return Glacio
   if key == "Congelatio": return Congelatio

@@ -4,6 +4,7 @@ import lib.input as input
 from lib.direction import invert as invert_direction, normal as normalize_direction
 from lib.cell import neighborhood, manhattan, is_adjacent, upscale
 from helpers.combat import find_damage, will_miss, will_crit, will_block
+from resolve.skill import resolve_skill
 
 from contexts.explore.base import (
   ExploreBase,
@@ -590,6 +591,8 @@ class CombatContext(ExploreBase):
     ))
 
   def use_skill(ctx, actor, skill, dest=None, on_end=None):
+    skill = resolve_skill(skill) if isinstance(skill, str) else skill
+
     if actor.faction == "player":
       ctx.store.sp -= skill.cost
 

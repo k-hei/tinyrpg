@@ -4,8 +4,8 @@ import lib.vector as vector
 from lib.cell import downscale, neighborhood
 from skills.magic import MagicSkill
 from anims.pause import PauseAnim
-from anims.jump import JumpAnim
 from cores.mage import Mage
+from dungeon.actors.mage import LeapAnim
 from dungeon.actors.mageclone import MageClone
 from vfx.mageclone import MageCloneVfx
 
@@ -35,7 +35,7 @@ class Roulette(MagicSkill):
       start_cell = user.cell
       pause_anim.end()
       game.anims.extend([
-        [JumpAnim(
+        [LeapAnim(
           target=user,
           src=user.cell,
           dest=vector.add(user.cell, (-1, -1)),
@@ -50,6 +50,7 @@ class Roulette(MagicSkill):
               animated=False,
             )),
             game.anims.extend([
+              [PauseAnim(duration=30)],
               *[(lambda f: [
                 pause_anim := PauseAnim(
                   duration=15,
@@ -65,11 +66,11 @@ class Roulette(MagicSkill):
                     ),
                     f in game.vfx and game.vfx.remove(f),
                     anim_group := next((g for g in game.anims if pause_anim in g), None),
-                    anim_group.append(JumpAnim(
+                    anim_group.append(LeapAnim(
                       target=clone,
                       src=vector.add(downscale(f.pos, game.stage.tile_size), (0, -0.5)),
                       dest=clone_cell,
-                      height=36,
+                      height=64,
                       duration=45,
                     )),
                   )
