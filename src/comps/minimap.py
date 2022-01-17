@@ -145,20 +145,13 @@ class Minimap:
           elif type(elem) is Altar:
             color = (0xFFFF00, 0x7F7F00)[blink]
           elif isinstance(elem, Door) and not elem.opened:
-            if is_cell_visible:
-              color = COLOR_DOOR
-            else:
-              color = COLOR_DOOR_DARK
+            color = COLOR_DOOR if is_cell_visible else COLOR_DOOR_DARK
           elif isinstance(elem, Door) and elem.opened:
-            if is_cell_visible:
-              color = COLOR_FLOOR
-            else:
-              color = COLOR_FLOOR_DARK
+            color = COLOR_FLOOR if is_cell_visible else COLOR_FLOOR_DARK
           elif elem.solid:
-            if is_cell_visible:
-              color = COLOR_WALL
-            else:
-              color = COLOR_WALL_DARK
+            color = COLOR_WALL if is_cell_visible else COLOR_WALL_DARK
+          else:
+            color = COLOR_FLOOR if is_cell_visible else COLOR_FLOOR_DARK
         elif tile is Stage.STAIRS_UP:
           color = (0x00FF00, 0x007F00)[blink]
         elif tile is Stage.STAIRS_DOWN:
@@ -176,15 +169,9 @@ class Minimap:
           else:
             color = COLOR_WALL_DARK
         elif issubclass(tile, tileset.Oasis) or issubclass(tile, tileset.OasisStairs):
-          if is_cell_visible:
-            color = COLOR_OASIS
-          else:
-            color = COLOR_OASIS_DARK
+          color = COLOR_OASIS if is_cell_visible else COLOR_OASIS_DARK
         else:
-          if is_cell_visible:
-            color = COLOR_FLOOR
-          else:
-            color = COLOR_FLOOR_DARK
+          color = COLOR_FLOOR if is_cell_visible else COLOR_FLOOR_DARK
 
         if color is not None:
           try:

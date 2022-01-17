@@ -10,9 +10,9 @@ from contexts.inventory import InventoryContext
 from contexts.custom import CustomContext
 from contexts.dungeon import DungeonContext
 from contexts.loading import LoadingContext
-from dungeon.gen.manifest import manifest_stage_from_room
-from dungeon.decoder import decode_floor
+from contexts.explore.manifest import manifest_room
 from contexts.explore.roomdata import load_rooms, rooms
+from dungeon.decoder import decode_floor
 from town.context import TownContext
 from skills import get_skill_order
 from skills.weapon import Weapon
@@ -161,7 +161,7 @@ class GameContext(Context):
       ctx.open(dungeon)
     else:
       app = ctx.get_head()
-      stage = manifest_stage_from_room(room=rooms["shrine"])
+      stage = manifest_room(room=rooms["shrine"])
       ctx.goto_dungeon(floors=[stage]),
       not app.transits and app.transition([DissolveOut()])
 

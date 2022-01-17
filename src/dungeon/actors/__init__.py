@@ -3,7 +3,7 @@ from copy import copy
 from math import sqrt
 from pygame import Surface, Rect
 from lib.sprite import Sprite
-from lib.cell import is_adjacent, add as add_vector, manhattan
+from lib.cell import is_adjacent, add as add_vector, manhattan, upscale
 from dungeon.fov import shadowcast
 import lib.vector as vector
 
@@ -19,7 +19,6 @@ from anims.path import PathAnim
 from anims.attack import AttackAnim
 from anims.awaken import AwakenAnim
 from anims.flinch import FlinchAnim
-from anims.shake import ShakeAnim
 from anims.bounce import BounceAnim
 from anims.frame import FrameAnim
 from anims.drop import DropAnim
@@ -389,7 +388,10 @@ class DungeonActor(DungeonElement):
     facing_x, facing_y = actor.facing
     old_target = (actor_x + facing_x, actor_y + facing_y)
     actor.face(hero.cell)
-    game.camera.focus(((hero_x + actor_x) / 2, (hero_y + actor_y) / 2 + 1), speed=8)
+    game.camera.focus(
+      target=upscale(((hero_x + actor_x) / 2, (hero_y + actor_y) / 2 + 1), game.stage.tile_size),
+      force=True
+    )
     def stop_talk():
       if actor in game.stage.elems:
         actor.face(old_target)
