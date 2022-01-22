@@ -24,7 +24,7 @@ class Virus(AilmentSkill):
     (1, 0),
     (1, 1),
   )
-  charge_turns: int = 2
+  charge_turns: int = 3
 
   def spawn_cloud(game, cell, inclusive=False, on_end=None):
     target_area = neighborhood(cell, radius=2, inclusive=inclusive, predicate=lambda cell: (

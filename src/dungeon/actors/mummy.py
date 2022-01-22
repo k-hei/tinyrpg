@@ -30,6 +30,8 @@ class Mummy(DungeonActor):
 
   class LinenWhip(AttackSkill):
     name = "LinenWhip"
+    charge_turns = 1
+
     def effect(game, user, dest, on_start=None, on_end=None):
       user_x, user_y = user.cell
       dest_x, dest_y = dest
@@ -73,7 +75,6 @@ class Mummy(DungeonActor):
           ))
         )
       )])
-      return True
 
   class Backstep(SupportSkill):
     def effect(game, user, dest, on_start=None, on_end=None):
@@ -141,7 +142,7 @@ class Mummy(DungeonActor):
       soldier.face(enemy.cell)
       return soldier.charge(skill=ClawRush, dest=enemy.cell)
     elif abs(dist_x) <= 2 and abs(dist_x) == abs(dist_y):
-      return ("use_skill", Mummy.LinenWhip, enemy.cell)
+      return soldier.charge(skill=Mummy.LinenWhip, dest=enemy.cell)
 
     if is_adjacent(soldier.cell, enemy.cell):
       return ("attack", enemy)
