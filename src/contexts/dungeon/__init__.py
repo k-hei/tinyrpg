@@ -71,6 +71,12 @@ class DungeonContext(ExploreBase):
     )
     ctx.handle_explore()
 
+  def find_floor_no(ctx):
+    floor = next((f for f in FLOOR_SEQUENCE if f.__name__ == ctx.stage.generator), None)
+    if floor is None:
+      return 0
+    return FLOOR_SEQUENCE.index(floor) + 1
+
   def construct_graph(ctx):
     floor_names = [f.__name__ for f in FLOOR_SEQUENCE]
 

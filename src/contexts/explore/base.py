@@ -30,6 +30,7 @@ class ExploreBase(Context):
     ctx.stage = stage
     ctx.stage_view = stage_view
     ctx.buttons_rejected = {}
+    ctx.time = 0
 
   @property
   def hero(ctx):
@@ -432,6 +433,7 @@ class ExploreBase(Context):
   def update(ctx):
     super().update()
     ctx.update_buttons_rejected()
+    ctx.time += 1
 
   def update_buttons_rejected(ctx):
     for button in ctx.buttons_rejected:

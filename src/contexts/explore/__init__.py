@@ -20,9 +20,17 @@ from anims.jump import JumpAnim
 from anims.pause import PauseAnim
 from tiles import Tile
 import tiles.default as tileset
-from config import TILE_SIZE, MOVE_DURATION, RUN_DURATION
 from resolve.floor import resolve_floor
 from transits.dissolve import DissolveIn, DissolveOut
+from config import (
+  TILE_SIZE, MOVE_DURATION, RUN_DURATION,
+  LABEL_FRAMES,
+  WINDOW_WIDTH, WINDOW_HEIGHT,
+)
+
+import assets
+from colors.palette import BLACK, WHITE
+from lib.filters import outline
 
 class ExploreContext(ExploreBase):
   def enter(ctx):
@@ -450,10 +458,26 @@ class ExploreContext(ExploreBase):
   def view(ctx):
     sprites = super().view()
     if ctx.debug:
-      sprites += [debug_view_elem(elem=e, camera=ctx.camera) for e in ctx.stage.elems]
+      sprites += [view_elem_hitbox(elem=e, camera=ctx.camera) for e in ctx.stage.elems]
+    sprites += ctx.view_label()
     return sprites
 
-def debug_view_elem(elem, camera):
+  def view_label(ctx):
+    if ctx.time >= LABEL_FRAMES or ctx.child and not isinstance(ctx.child, CutsceneContext):
+      return []
+    floor_no = ctx.parent.find_floor_no()
+    floor_text = f"Tomb {floor_no}F" if floor_no else "????"
+    label_image = assets.ttf["normal"].render(floor_text)
+    label_image = outline(label_image, BLACK)
+    label_image = outline(label_image, WHITE)
+    return [Sprite(
+      image=label_image,
+      pos=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 4),
+      origin=Sprite.ORIGIN_CENTER,
+      layer="ui"
+    )]
+
+def view_elem_hitbox(elem, camera):
   ALPHA = 128
   RED = (255, 0, 0, ALPHA)
   BLUE = (0, 0, 255, ALPHA)
