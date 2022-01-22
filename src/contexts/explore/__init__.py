@@ -54,7 +54,9 @@ class ExploreContext(ExploreBase):
     }
 
     if type(child) not in context_comps.keys():
-      return super().open(child, _on_close)
+      super().open(child, _on_close)
+      ctx.parent.update_bubble()
+      return
 
     comps = context_comps[type(child)]
     open = super().open
@@ -71,7 +73,8 @@ class ExploreContext(ExploreBase):
               if c.active
               else c.enter()
           ) for c in comps]
-        ))
+        )),
+        ctx.parent.update_bubble(),
       )) if comp == comps[-1] else None
 
       if comp.active:
