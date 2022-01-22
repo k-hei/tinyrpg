@@ -1,6 +1,5 @@
 from pygame import Surface
 from dataclasses import dataclass
-from types import FunctionType as func
 
 @dataclass
 class Tile:
@@ -10,7 +9,6 @@ class Tile:
   elev: float = 0.0
   direction: tuple = (0, 0)
   sprite: Surface = None
-  render: func = None
 
   @staticmethod
   def find_state(stage, cell, visited_cells):
@@ -21,3 +19,6 @@ class Tile:
 
   def is_walkable(tile):
     return tile and not tile.solid and not tile.pit
+
+  def render(tile): # TODO: extend this instead of sprite func
+    return tile.sprite

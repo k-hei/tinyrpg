@@ -1,5 +1,6 @@
 from pygame import Surface
 import lib.vector as vector
+from lib.sprite import Sprite
 from lib.filters import replace_color
 from colors.palette import BLACK, WHITE, COLOR_TILE
 
@@ -38,7 +39,25 @@ black_square = Surface((TILE_SIZE, TILE_SIZE))
 black_square.fill(BLACK)
 
 class Floor(Tile):
-  sprite = assets.sprites["tomb_floor"]
+  @staticmethod
+  def find_state(stage, cell, *_):
+    x, y = cell
+    return [
+      stage.get_tile_at(cell),
+      stage.get_tile_at((x, y - 1)),
+    ]
+
+  def sprite(stage, cell, *_):
+    x, y = cell
+    if (issubclass(stage.get_tile_at((x, y - 1)), Pit)
+    and next((e for e in stage.elems if e.cell[1] < y), None)):
+      return Sprite(
+        image=assets.sprites["tomb_floor"],
+        layer="elems",
+        offset=-1,
+      )
+    else:
+      return assets.sprites["tomb_floor"]
 
 class Wall(Tile):
   solid = True

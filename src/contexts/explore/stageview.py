@@ -42,6 +42,7 @@ def snap_rect(rect, tile_size):
 class StageView:
   LAYERS = ["tiles", "decors", "elems", "vfx", "numbers", "ui"]
 
+  @staticmethod
   def order(sprite):
     if type(sprite) is list:
       return inf
@@ -64,6 +65,7 @@ class StageView:
     view.transitioning = False
     view.tile_surface = None
     view.tile_offset = (0, 0)
+    view.tile_sprites = {}
 
   @property
   def stage(view):
@@ -121,29 +123,43 @@ class StageView:
 
     tile_name = tile.__name__
     tile_image = None
+    tile_sprite = None
 
     tile_state = find_tile_state(stage, cell, visited_cells)
-    cached_state, cached_image, cached_dark_image = view.tile_cache[cell] if cell in view.tile_cache else (None, None, None)
+    cached_state, cached_image, cached_dark_image = (
+      view.tile_cache[cell]
+        if cell in view.tile_cache
+        else (None, None, None)
+    )
 
     if cached_state and cached_state != tile_state:
       del view.tile_cache[cell]
       cached_state, cached_image = None, None
+    if cell in view.tile_sprites and tile is not view.tile_sprites[cell][0]:
+      del view.tile_sprites[cell]
 
     if cached_image:
       tile_image = cached_image
     elif tile_name in view.tile_cache:
-      tile_image = view.tile_cache[tile_name]
+      tile_image = view.tile_cache[tile_name] # TODO: we can cache by type if rendering for the type in question isn't done dynamically - need a generic way to indicate this per tile
     else:
       tile_image = render_tile(stage, cell, visited_cells)
+      if type(tile_image) is Sprite:
+        tile_sprite = tile_image
+        tile_image = tile_sprite.image
 
-    if cell not in view.tile_cache:
+    if tile_sprite is None and cell not in view.tile_cache:
       cached_dark_image = darken_image(tile_image)
       view.tile_cache[cell] = (tile_state, tile_image, cached_dark_image)
+    elif tile_sprite and cell not in view.tile_sprites:
+      view.tile_cache[cell] = (tile_state, tile_sprite.image, darken_image(tile_sprite.image))
+      view.tile_sprites[cell] = (tile, tile_sprite)
+      tile_sprite.move(vector.scale(cell, stage.tile_size))
 
     if use_cache:
       tile_image = cached_dark_image
 
-    if tile_image:
+    if tile_image and not tile_sprite:
       view.tile_surface.blit(
         tile_image,
         vector.scale(
@@ -202,13 +218,18 @@ class StageView:
     or hero and view.cache_visible_cells != hero.visible_cells
     or view.cache_visited_cells != visited_cells):
       view.redraw_tiles(hero, visited_cells)
+
+    tile_sprites = [s.copy() for _, s in view.tile_sprites.values()]
+    for sprite in tile_sprites:
+      sprite.move(vector.negate(view.camera.rect.topleft))
+
     return [Sprite(
       image=view.tile_surface,
       pos=vector.add(
         vector.negate(view.camera.rect.topleft),
         vector.scale(view.tile_offset, view.stage.tile_size)
       )
-    )]
+    ), *tile_sprites]
 
   def view_elem(view, elem, visited_cells=[]):
     if type(elem) is SecretDoor and elem.hidden:

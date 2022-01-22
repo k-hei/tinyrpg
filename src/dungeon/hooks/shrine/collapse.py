@@ -36,19 +36,21 @@ def on_collapse(room, game):
           ShakeAnim(
             target=hero,
             duration=30,
-            on_end=lambda: game.anims[0].append(
-              FallAnim(
-                target=hero,
-                y=hero.cell[1] * TILE_SIZE,
-                dest=(
-                  (next( # TODO: refactor into `find_nearest_non_pit_cell(cell)` or `find_pit_depth(cell)`
-                    (y for y in range(hero.cell[1], floor.height)
-                      if not issubclass(floor.get_tile_at((hero.cell[0], y)), tileset.Pit)
-                    ),
-                    floor.height
-                  ) - hero.cell[1]) * TILE_SIZE
-                ),
-                on_end=lambda: floor.remove_elem(hero)
+            on_end=lambda: (
+              game.anims[0].append(
+                FallAnim(
+                  target=hero,
+                  y=hero.cell[1] * TILE_SIZE,
+                  dest=(
+                    (next( # TODO: refactor into `find_nearest_non_pit_cell(cell)` or `find_pit_depth(cell)`
+                      (y for y in range(hero.cell[1], floor.height)
+                        if not issubclass(floor.get_tile_at((hero.cell[0], y)), tileset.Pit)
+                      ),
+                      floor.height
+                    ) - hero.cell[1]) * TILE_SIZE
+                  ),
+                  on_end=lambda: floor.remove_elem(hero)
+                )
               )
             )
           ),
@@ -80,7 +82,7 @@ def on_collapse(room, game):
       ])
     ),
     lambda step: (
-      game.get_tail().follow_link("Floor1", on_end=step)
+      game.follow_link("Floor1", on_end=step)
     )
   ]))
   return True
