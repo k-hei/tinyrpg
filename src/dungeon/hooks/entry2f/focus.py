@@ -17,9 +17,9 @@ def on_focus(room, game):
   game.get_tail().open(CutsceneContext([
     lambda step: (
       setattr(mage, "facing", (-1, 0)),
-      game.camera.focus(
+      game.camera.tween(
         target=upscale(mage.cell, game.stage.tile_size),
-        force=True,
+        duration=1,
       ),
       game.anims.append([PauseAnim(duration=30, on_end=step)])
     ),

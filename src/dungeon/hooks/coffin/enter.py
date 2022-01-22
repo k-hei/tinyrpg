@@ -226,11 +226,11 @@ def cutscene(room, game):
       )]),
     ),
     lambda step: (
-      lambda: setattr(hero, "facing", (0, -1)),
       game.anims.append([AttackAnim(
         target=hero,
         src=hero.cell,
         dest=vector.add(hero.cell, (0, -1)),
+        on_start=lambda: setattr(hero, "facing", (0, -1)),
         on_end=step
       )])
     ),
@@ -246,7 +246,7 @@ def cutscene(room, game):
       game.get_tail().open(DialogueContext(script=[
         lambda: (
           setattr(hero, "facing", (-1, 0)),
-          game.anims.append([JumpAnim(target=mage)])
+          game.anims.append([JumpAnim(target=hero)])
         ) and (hero.name.upper(), "Damn! That mousy little...!"),
         lambda: (
           setattr(hero, "facing", (0, 1))
