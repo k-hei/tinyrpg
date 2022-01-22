@@ -134,9 +134,9 @@ class StageView:
 
     if cached_state and cached_state != tile_state:
       del view.tile_cache[cell]
+      if cell in view.tile_sprites:
+        del view.tile_sprites[cell]
       cached_state, cached_image = None, None
-    if cell in view.tile_sprites and tile is not view.tile_sprites[cell][0]:
-      del view.tile_sprites[cell]
 
     if cached_image:
       tile_image = cached_image
@@ -152,19 +152,20 @@ class StageView:
       cached_dark_image = darken_image(tile_image)
       view.tile_cache[cell] = (tile_state, tile_image, cached_dark_image)
     elif tile_sprite and cell not in view.tile_sprites:
-      view.tile_cache[cell] = (tile_state, tile_sprite.image, darken_image(tile_sprite.image))
-      view.tile_sprites[cell] = (tile, tile_sprite)
+      cached_dark_image = darken_image(tile_image)
+      view.tile_cache[cell] = (tile_state, tile_image, cached_dark_image)
+      view.tile_sprites[cell] = tile_sprite
       tile_sprite.move(vector.scale(cell, stage.tile_size))
 
     if use_cache:
       tile_image = cached_dark_image
 
-    if tile_image and not tile_sprite:
+    if tile_image and (not tile_sprite or use_cache):
       view.tile_surface.blit(
         tile_image,
         vector.scale(
           vector.subtract(cell, view.tile_offset),
-          view.stage.tile_size
+          stage.tile_size
         )
       )
       return True
@@ -219,7 +220,11 @@ class StageView:
     or view.cache_visited_cells != visited_cells):
       view.redraw_tiles(hero, visited_cells)
 
-    tile_sprites = [s.copy() for _, s in view.tile_sprites.values()]
+    tile_sprites = (
+      []
+        if view.darkened
+        else [s.copy() for c, s in view.tile_sprites.items() if c in hero.visible_cells]
+    )
     for sprite in tile_sprites:
       sprite.move(vector.negate(view.camera.rect.topleft))
 

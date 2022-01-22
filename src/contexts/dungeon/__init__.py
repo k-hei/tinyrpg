@@ -161,6 +161,7 @@ class DungeonContext(ExploreBase):
     ctx.child.stage = stage
     ctx.stage_view.stage = stage
     ctx.comps.minimap.sprite = None
+    ctx.time = 0
     ctx.camera.reset()
     ctx.camera.focus(ctx.hero)
     ctx.cache_room = None
@@ -342,6 +343,7 @@ class DungeonContext(ExploreBase):
       store=ctx.store,
       stage=ctx.stage,
       stage_view=ctx.stage_view,
+      time=ctx.time,
     ), on_close=ctx.handle_combat)
     ctx.comps.minimap.enter()
 

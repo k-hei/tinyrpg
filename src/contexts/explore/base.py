@@ -24,13 +24,13 @@ COMMAND_SKILL = "use_skill"
 COMMAND_WAIT = "wait"
 
 class ExploreBase(Context):
-  def __init__(ctx, store=None, stage=None, stage_view=None, *args, **kwargs):
+  def __init__(ctx, store=None, stage=None, stage_view=None, time=0, *args, **kwargs):
     super().__init__(*args, **kwargs)
     ctx.store = store
     ctx.stage = stage
     ctx.stage_view = stage_view
+    ctx.time = time
     ctx.buttons_rejected = {}
-    ctx.time = 0
 
   @property
   def hero(ctx):
