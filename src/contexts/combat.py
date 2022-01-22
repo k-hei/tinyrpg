@@ -2,10 +2,34 @@ from random import random, randint
 import lib.vector as vector
 import lib.input as input
 from lib.direction import invert as invert_direction, normal as normalize_direction
-from lib.cell import neighborhood, manhattan, is_adjacent, upscale
+from lib.cell import neighborhood, manhattan, is_adjacent, upscale, downscale
 from helpers.combat import find_damage, will_miss, will_crit, will_block
 from resolve.skill import resolve_skill
 import debug
+
+def animate_snap(actor, anims, speed=2, on_end=None):
+  x, y = actor.pos
+  x += actor.scale / 2
+  y += actor.scale / 2
+  if x % actor.scale or y % actor.scale:
+    actor_cell = downscale(vector.add(
+      actor.pos,
+      vector.scale(actor.facing, TILE_SIZE / 2)
+    ), scale=actor.scale)
+    actor_dest = upscale(actor_cell, actor.scale)
+    actor.stop_move()
+    not anims and anims.append([])
+    anims[-1].append(MoveAnim(
+      target=actor,
+      src=actor.pos,
+      dest=actor_dest,
+      speed=speed,
+      on_end=on_end
+    ))
+    return actor_cell
+  else:
+    on_end and on_end()
+    return None
 
 from contexts.explore.base import (
   ExploreBase,
@@ -74,27 +98,6 @@ class CombatContext(ExploreBase):
     walk_speed = 3 if ctx.ally else 2
     actor_cells = {}
 
-    def animate_snap(actor, on_end=None):
-      x, y = actor.pos
-      x += actor.scale / 2
-      y += actor.scale / 2
-      if x % actor.scale or y % actor.scale:
-        actor_cell = downscale(vector.add(
-          actor.pos,
-          vector.scale(actor.facing, TILE_SIZE / 2)
-        ))
-        actor_cells[actor] = actor_cell
-        actor_dest = upscale(actor_cell)
-        actor.stop_move()
-        not ctx.anims and ctx.anims.append([])
-        ctx.anims[-1].append(MoveAnim(
-          target=actor,
-          src=actor.pos,
-          dest=actor_dest,
-          speed=walk_speed,
-          on_end=on_end
-        ))
-
     create_brandish = lambda actor: (
       actor.core.BrandishAnim(
         target=actor,
@@ -117,8 +120,14 @@ class CombatContext(ExploreBase):
     ally_brandish = ctx.ally and create_brandish(ctx.ally)
 
     if ctx.should_path:
-      animate_snap(ctx.hero)
-      ctx.ally and animate_snap(ctx.ally)
+      hero_cell = animate_snap(ctx.hero, anims=ctx.anims, speed=walk_speed)
+      if hero_cell:
+        actor_cells[ctx.hero] = hero_cell
+
+      if ctx.ally:
+        ally_cell = animate_snap(ctx.ally, anims=ctx.anims, speed=walk_speed)
+        if ally_cell:
+          actor_cells[ctx.ally] = ally_cell
 
     if ctx.ally and ctx.should_path:
       start_cells = [c for c in neighborhood(ctx.hero.cell, diagonals=True) + [ctx.hero.cell] if

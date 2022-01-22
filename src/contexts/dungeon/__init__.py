@@ -7,7 +7,7 @@ import debug
 from contexts.explore import ExploreContext
 from contexts.explore.base import ExploreBase
 from contexts.explore.stageview import StageView
-from contexts.combat import CombatContext
+from contexts.combat import CombatContext, animate_snap
 from contexts.cutscene import CutsceneContext
 from comps.store import ComponentStore
 from comps.damage import DamageValue
@@ -112,7 +112,9 @@ class DungeonContext(ExploreBase):
     room_entered = next((r for r in ctx.stage.rooms if hero.cell in r.cells), None)
     if room_entered and room_entered not in ctx.rooms_entered:
       ctx.rooms_entered.add(room_entered)
-      room_entered.on_enter(ctx)
+      animate_snap(hero, anims=ctx.anims, on_end=lambda: (
+        room_entered.on_enter(ctx)
+      ))
 
     room_focused = next((r for r in ctx.stage.rooms if hero.cell in (r.cells + r.border)), None)
     if room_focused:
