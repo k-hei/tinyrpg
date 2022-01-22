@@ -138,5 +138,5 @@ class SpMeter(Component):
     return [Sprite(
       image=sprite,
       pos=(x, y),
-      layer="hud"
+      layer="ui"
     )]
