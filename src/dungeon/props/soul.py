@@ -51,7 +51,7 @@ class Soul(Prop):
       lite=True,
       script=[
         (None, ("Obtained skill ", soul.skill().token(), "!")),
-        "Equip it with the CUSTOM menu (press START/E)."
+        "Equip it with the EQUIP menu (press START)."
       ]
     ))
 
