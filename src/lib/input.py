@@ -111,6 +111,11 @@ def resolve_delta_held(fixed_axis=False):
 def is_delta_button(button):
   return resolve_button(button) in ARROW_DELTAS
 
+def is_control_pressed(control):
+  if control not in _controls:
+    return False
+  return next((True for b in _controls[control] if get_state(b)), False)
+
 def handle_press(button):
   global latest
   latest = button

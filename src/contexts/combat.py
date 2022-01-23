@@ -205,17 +205,19 @@ class CombatContext(ExploreBase):
     if ctx.anims or ctx.exiting:
       return
 
+    tapping = input.get_state(button) == 1
+    controls = input.resolve_controls(button)
+
     delta = input.resolve_delta(button, fixed_axis=True) if button else (0, 0)
     if delta != (0, 0):
+      if input.is_control_pressed(input.CONTROL_TURN):
+        return ctx.handle_turn(delta)
       moved = ctx.handle_move(delta)
       if not moved and button not in ctx.buttons_rejected:
         ctx.buttons_rejected[button] = 0
       elif not moved and ctx.buttons_rejected[button] >= 30:
         return ctx.handle_push()
       return moved
-
-    tapping = input.get_state(button) == 1
-    controls = input.resolve_controls(button)
 
     if input.CONTROL_WAIT in controls and tapping:
       return ctx.handle_wait()
@@ -352,6 +354,11 @@ class CombatContext(ExploreBase):
     delta = vector.scale(actor.facing, 2)
     moved = ctx.move_cell(actor, delta, jump=True, on_end=on_end)
     return moved
+
+  def handle_turn(ctx, direction):
+    ctx.hero.facing = direction
+    ctx.update_bubble()
+    return True
 
   def handle_struggle(ctx, actor):
     if actor.ailment not in ("freeze", "sleep"):
