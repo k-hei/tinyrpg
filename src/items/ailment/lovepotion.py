@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from items.ailment import AilmentItem
 from vfx.burst import BurstVfx
 from colors.palette import GREEN
+from contexts.cutscene import CutsceneContext
 
 @dataclass
 class LovePotion(AilmentItem):
@@ -23,6 +24,7 @@ class LovePotion(AilmentItem):
     if actor.faction != "enemy":
       return False
     game.room and game.room.on_defeat(game, actor)
+    not isinstance(game.get_tail(), CutsceneContext) and game.exit(ally_rejoin=True)
     actor.faction = "ally"
     actor.aggro = False
     actor.behavior = "chase"
