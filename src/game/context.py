@@ -1,5 +1,5 @@
-import pygame
 import lib.gamepad as gamepad
+import lib.input as input
 import game.controls as controls
 from contexts import Context
 from contexts.load import LoadContext
@@ -174,7 +174,7 @@ class GameContext(Context):
     if input.get_state(button) > 1:
       return False
 
-    if type(ctx.get_tail()) in (PauseContext, InventoryContext) or ctx.get_depth() > 2:
+    if type(ctx.get_tail()) in (PauseContext, InventoryContext, LoadContext) or ctx.get_depth() > 2:
       return
 
     controls = input.resolve_controls(button)

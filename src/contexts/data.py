@@ -3,25 +3,23 @@ from math import sin, pi
 import pygame
 from pygame import Surface, Rect, SRCALPHA
 from pygame.transform import flip, scale
+
+import lib.input as input
+from lib.sprite import Sprite
+from lib.lerp import lerp
+from lib.filters import recolor, replace_color, darken_image, outline, shadow_lite as shadow
+
 from contexts import Context
 from contexts.prompt import PromptContext, Choice
-from contexts.dialogue import DialogueContext
 from comps.bg import Bg
 from comps.title import Title
 from comps.banner import Banner
-from comps.log import Log
-from config import WINDOW_SIZE
 import assets
-from colors.palette import BLACK, WHITE, GOLD, BLUE, GOLD
-from lib.filters import recolor, replace_color, darken_image, outline, shadow_lite as shadow
+from colors.palette import BLACK, GOLD, BLUE, GOLD
 from text import render as render_text
 from anims.tween import TweenAnim
 from easing.expo import ease_in, ease_out
-from lib.lerp import lerp
 import savedata
-import lib.keyboard as keyboard
-import lib.gamepad as gamepad
-from lib.sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
 
 def view_ticks(ticks, ms=False):
@@ -318,18 +316,25 @@ class DataContext(Context):
     if ctx.child:
       return ctx.child.handle_press(button)
 
-    if keyboard.get_state(button) > 1 or gamepad.get_state(button) > 1:
+    if input.get_state(button) > 1:
       return
 
-    if button in (pygame.K_UP, pygame.K_w, gamepad.controls.UP):
+    controls = input.resolve_controls(button)
+    button = input.resolve_button(button)
+
+    if button == input.BUTTON_UP:
       return ctx.handle_move(-1)
-    if button in (pygame.K_DOWN, pygame.K_s, gamepad.controls.DOWN):
+
+    if button == input.BUTTON_DOWN:
       return ctx.handle_move(1)
-    if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
+
+    if input.CONTROL_CONFIRM in controls:
       return ctx.handle_action()
-    if button in (pygame.K_BACKSPACE, gamepad.controls.manage):
+
+    if input.CONTROL_MANAGE in controls:
       return ctx.handle_delete()
-    if button in (pygame.K_ESCAPE, gamepad.controls.cancel):
+
+    if input.CONTROL_CANCEL in controls or input.CONTROL_PAUSE in controls:
       return ctx.handle_close()
 
   def update(ctx):
