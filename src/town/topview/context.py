@@ -1,24 +1,21 @@
 import pygame
 from pygame import Surface, SRCALPHA
+import lib.input as input
+import lib.keyboard as keyboard
+from lib.sprite import Sprite
+from lib.filters import outline
+
 from contexts import Context
 from contexts.dialogue import DialogueContext
 from contexts.shop import ShopContext
 from contexts.inventory import InventoryContext
 from comps.hud import Hud
 from assets import load as use_assets
-from town.topview.stage import Stage, Tile
+from town.topview.stage import Tile
 from town.topview.actor import Actor
-from lib.sprite import Sprite
 from anims.tween import TweenAnim
-from easing.expo import ease_out
-from lib.lerp import lerp
-from lib.filters import outline
 from transits.dissolve import DissolveIn, DissolveOut
 from colors.palette import BLACK, WHITE
-import lib.keyboard as keyboard
-import lib.gamepad as gamepad
-from cores.knight import Knight
-from cores.mage import Mage
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT, LABEL_FRAMES
 
 def insert_value(mapping, key, value):
@@ -48,21 +45,21 @@ class TopViewContext(Context):
   def handle_press(ctx, button):
     if ctx.child:
       return ctx.child.handle_press(button)
+
     if ctx.anims or ctx.link or ctx.get_head().transits:
       return None
 
-    directions = not button and [d for d in (gamepad.controls.LEFT, gamepad.controls.RIGHT, gamepad.controls.UP, gamepad.controls.DOWN) if gamepad.get_state(d)]
-    if directions:
-      directions = sorted(directions, key=lambda d: gamepad.get_state(d))
-      button = directions[0]
-    delta = keyboard.ARROW_DELTAS[button] if button in keyboard.ARROW_DELTAS else None
-    if delta:
+    delta = input.resolve_delta(button)
+    if delta != (0, 0):
       return ctx.handle_move(delta)
 
-    if keyboard.get_state(button) + gamepad.get_state(button) > 1:
+    if input.get_state(button) > 1:
       return None
-    if button in (pygame.K_SPACE, pygame.K_RETURN, gamepad.controls.confirm):
+
+    controls = input.resolve_controls(button)
+    if input.CONTROL_CONFIRM in controls:
       return ctx.handle_talk()
+
     if button == pygame.K_b and keyboard.get_state(pygame.K_LCTRL):
       return ctx.handle_debug()
 
