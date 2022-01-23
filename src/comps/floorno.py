@@ -3,8 +3,7 @@ from anims.tween import TweenAnim
 from easing.expo import ease_out
 from lib.lerp import lerp
 from text import render as render_text
-from lib.filters import recolor, replace_color
-from colors.palette import BLACK
+from comps import Component
 from lib.sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 
@@ -15,25 +14,25 @@ TEXT_Y = 6
 ENTER_DURATION = 15
 EXIT_DURATION = 7
 
-class FloorNo:
+class FloorNo(Component):
   def __init__(ctx, parent):
     ctx.parent = parent
     ctx.active = False
     ctx.anim = None
     ctx.enter()
 
-  def enter(ctx):
+  def enter(ctx, on_end=None):
     ctx.active = True
-    ctx.anim = TweenAnim(duration=ENTER_DURATION)
+    ctx.anim = TweenAnim(duration=ENTER_DURATION, on_end=on_end)
 
-  def exit(ctx):
+  def exit(ctx, on_end=None):
     ctx.active = False
-    ctx.anim = TweenAnim(duration=EXIT_DURATION)
+    ctx.anim = TweenAnim(duration=EXIT_DURATION, on_end=on_end)
 
   def render(ctx, game):
     assets = use_assets()
     image = assets.sprites["floorno"].copy()
-    floor_no = game.get_floor_no()
+    floor_no = game.find_floor_no() or len(game.memory)
     text = render_text(str(floor_no), assets.fonts["floornos"])
     image.blit(text, (TEXT_X, TEXT_Y))
     return image

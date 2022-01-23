@@ -49,9 +49,9 @@ class ExploreContext(ExploreBase):
     )
 
     context_comps = {
-      InventoryContext: [ctx.comps.hud, ctx.comps.sp_meter],
-      PauseContext: [ctx.comps.minimap],
-      CutsceneContext: [ctx.comps.minimap],
+      InventoryContext: [ctx.comps.hud, ctx.comps.sp_meter, ctx.comps.floor_no],
+      PauseContext: [ctx.comps.minimap, ctx.comps.floor_no],
+      CutsceneContext: [ctx.comps.minimap, ctx.comps.floor_no],
     }
 
     if type(child) not in context_comps.keys():

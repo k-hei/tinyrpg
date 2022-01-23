@@ -15,6 +15,7 @@ from comps.minilog import Minilog
 from comps.minimap import Minimap
 from comps.skillbanner import SkillBanner
 from comps.spmeter import SpMeter
+from comps.floorno import FloorNo
 from dungeon.fov import shadowcast
 from dungeon.room import Blob as Room
 from dungeon.props.door import Door
@@ -69,6 +70,7 @@ class DungeonContext(ExploreBase):
       minimap=Minimap(parent=ctx),
       skill_banner=SkillBanner(),
       sp_meter=SpMeter(store=ctx.store),
+      floor_no=FloorNo(parent=ctx),
     )
     ctx.handle_explore()
 
@@ -357,6 +359,7 @@ class DungeonContext(ExploreBase):
       time=ctx.time,
     ), on_close=ctx.handle_combat)
     ctx.comps.minimap.enter()
+    ctx.comps.floor_no.enter()
 
   def handle_combat(ctx, path=False):
     if type(ctx.child) is CombatContext:
@@ -369,6 +372,7 @@ class DungeonContext(ExploreBase):
       path=path,
     ), on_close=ctx.handle_explore)
     ctx.comps.minimap.exit()
+    ctx.comps.floor_no.exit()
     ctx.comps.hud.enter()
     ctx.comps.sp_meter.enter()
 
