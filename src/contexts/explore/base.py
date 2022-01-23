@@ -118,7 +118,6 @@ class ExploreBase(Context):
     facing_elems = ctx.stage.get_elems_at(facing_cell)
     return next((e for e in facing_elems if (
       e.active
-      and e.solid
       and (not isinstance(e, DungeonActor) or e.faction == "ally")
     )), None)
 
