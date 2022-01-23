@@ -587,9 +587,13 @@ class CombatContext(ExploreBase):
     ))
 
   def handle_charswap(ctx):
+    if not ctx.hero:
+      return False
+
     if not ctx.ally or ctx.ally.dead:
       ctx.comps.hud.shake()
       return False
+
     ctx.store.switch_chars()
     ctx.parent.refresh_fov(reset_cache=True)
     ctx.camera.blur()

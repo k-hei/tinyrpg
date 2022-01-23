@@ -16,6 +16,7 @@ from cores.rogue import Rogue
 
 from anims import Anim
 from anims.tween import TweenAnim
+from anims.pause import PauseAnim
 from easing.expo import ease_out, ease_in, ease_in_out
 from lib.lerp import lerp
 import lib.vector as vector
@@ -129,14 +130,19 @@ class Hud:
     or ally and ally.get_hp() != hud.hp_ally):
       if hero != hud.hero:
         if hud.hero is not None:
-          hud.anims.append(SwitchOutAnim())
-          hud.anims.append(SwitchInAnim())
+          if type(hud.anims[0]) is PauseAnim: # TODO: insert before first pause anim
+            hud.anims.insert(0, SwitchInAnim())
+            hud.anims.insert(0, SwitchOutAnim())
+          else:
+            hud.anims.append(SwitchOutAnim())
+            hud.anims.append(SwitchInAnim())
         hud.hero = hero
         hud.hp_hero = hero.get_hp()
       elif hero.get_hp() < hud.hp_hero_drawn:
         hud.shake()
         if hud.hp_hero == inf:
           hud.hp_hero = hero.get_hp_max()
+
       if ally != hud.ally:
         hud.ally = ally
         if ally:
@@ -145,21 +151,28 @@ class Hud:
         hud.shake()
         if hud.hp_ally == inf:
           hud.hp_ally = ally.get_hp_max()
+
       anim = next((a for a in hud.anims if a.blocking), None)
+
       if anim is None and hud.hp_hero > hero.get_hp():
         hud.hp_hero = max(hero.get_hp(), hud.hp_hero - hero.get_hp_max() / SPEED_DEPLETE)
+
       if anim is None and hud.hp_hero < hero.get_hp():
         hud.hp_hero = min(hero.get_hp(), hud.hp_hero + hero.get_hp_max() / SPEED_RESTORE)
+
       if anim is None and ally and hud.hp_ally > ally.get_hp():
         hud.hp_ally = max(ally.get_hp(), hud.hp_ally - ally.get_hp_max() / SPEED_DEPLETE)
+
       if anim is None and ally and hud.hp_ally < ally.get_hp():
         hud.hp_ally = min(ally.get_hp(), hud.hp_ally + ally.get_hp_max() / SPEED_RESTORE)
+
       anim = hud.anims[0] if hud.anims else None
       if anim:
         if anim.done:
           hud.anims.pop(0)
         else:
           anim.update()
+
     hud.hp_hero_drawn = hero.get_hp()
     if ally:
       hud.hp_ally_drawn = ally.get_hp()

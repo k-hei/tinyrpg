@@ -80,7 +80,7 @@ def handle_event(app, event):
 
 def handle_press(button):
   if button not in _timings:
-    debug.log("press", button)
+    # debug.log("press", button)
     _timings[button] = 1
   input.handle_press(button)
   _app.child and _app.child.handle_press(button)

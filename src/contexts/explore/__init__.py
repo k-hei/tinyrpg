@@ -124,6 +124,9 @@ class ExploreContext(ExploreBase):
     if control == input.CONTROL_MINIMAP:
       return ctx.handle_minimap()
 
+    if control == input.CONTROL_ALLY:
+      return ctx.handle_charswap()
+
   def handle_release(ctx, button):
     if ctx.child:
       return ctx.child.handle_release(button)
@@ -460,6 +463,31 @@ class ExploreContext(ExploreBase):
 
   def handle_minimap(ctx):
     ctx.open(MinimapContext(minimap=ctx.comps.minimap))
+
+  def handle_charswap(ctx):
+    if not ctx.hero:
+      return False
+
+    if not ctx.ally or ctx.ally.dead:
+      return False
+
+    hud = ctx.comps.hud
+    if not hud.active:
+      hud.enter()
+    ctx.store.switch_chars()
+    hud.update()
+    if type(hud.anims[-1]) is PauseAnim:
+      hud.anims[-1].time = 0
+    else:
+      hud.anims.append(PauseAnim(
+        duration=75,
+        on_end=lambda: hud.exit()
+      ))
+
+    ctx.parent.refresh_fov(reset_cache=True)
+    ctx.camera.blur()
+    ctx.camera.focus(target=[ctx.room, ctx.hero], force=True)
+    return True
 
   def handle_debug(ctx):
     ctx.debug = not ctx.debug
