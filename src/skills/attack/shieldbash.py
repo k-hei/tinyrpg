@@ -1,15 +1,9 @@
-from dataclasses import dataclass
-import math
-
 from skills.attack import AttackSkill
 from dungeon.actors import DungeonActor
 from cores.knight import Knight
-from dungeon.props import Prop
-from anims.step import StepAnim
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
-from anims.flicker import FlickerAnim
-from config import ENABLED_COMBAT_LOG
+from helpers.combat import find_damage
 
 class ShieldBash(AttackSkill):
   name = "ShieldBash"
@@ -24,15 +18,12 @@ class ShieldBash(AttackSkill):
     (1, 2),
   )
 
-  def effect(user, dest, game, on_end=None):
-    floor = game.stage
-    camera = game.camera
-
+  def effect(game, user, dest, on_start=None, on_end=None):
     source_cell = user.cell
     hero_x, hero_y = source_cell
     delta_x, delta_y = user.facing
     target_cell = (hero_x + delta_x, hero_y + delta_y)
-    target_elem = floor.get_elem_at(target_cell, superclass=DungeonActor)
+    target_elem = next((e for e in game.stage.get_elems_at(target_cell) if isinstance(e, DungeonActor)), None)
 
     if target_elem is None:
       game.anims.append([
@@ -40,31 +31,27 @@ class ShieldBash(AttackSkill):
           target=user,
           src=user.cell,
           dest=target_cell,
+          on_start=on_start,
           on_end=lambda: game.anims[0].append(PauseAnim(
             duration=45,
-            on_end=lambda: (
-              ENABLED_COMBAT_LOG and game.log.print("But nothing happened..."),
-              on_end and on_end()
-            )
+            on_end=on_end
           ))
         )
       ])
-      return target_cell
-
-    def on_connect():
-      game.nudge(actor=target_elem, direction=user.facing)
-      game.flinch(
-        target=target_elem,
-        damage=game.find_damage(actor=user, target=target_elem, modifier=0.8),
-        on_end=on_end
-      )
-
-    game.anims.append([
-      AttackAnim(
-        target=user,
-        src=user.cell,
-        dest=target_cell,
-        on_connect=on_connect
-      )
-    ])
-    return target_cell
+    else:
+      game.anims.append([
+        AttackAnim(
+          target=user,
+          src=user.cell,
+          dest=target_cell,
+          on_connect=lambda: (
+            game.flinch(
+              target=target_elem,
+              damage=find_damage(user, target_elem, modifier=0.8),
+              direction=user.facing,
+              on_end=on_end,
+            ),
+            game.nudge(actor=target_elem, direction=user.facing),
+          )
+        )
+      ])
