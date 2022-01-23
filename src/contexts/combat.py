@@ -215,9 +215,12 @@ class CombatContext(ExploreBase):
       return moved
 
     tapping = input.get_state(button) == 1
-    control = input.resolve_control(button)
+    controls = input.resolve_controls(button)
 
-    if control == input.CONTROL_CONFIRM:
+    if input.CONTROL_WAIT in controls and tapping:
+      return ctx.handle_wait()
+
+    if input.CONTROL_CONFIRM in controls:
       if not ctx.hero.item:
         acted = ctx.handle_action()
         if acted == False:
@@ -226,13 +229,10 @@ class CombatContext(ExploreBase):
       elif input.get_state(button) >= 30 and not button in ctx.buttons_rejected:
         return ctx.handle_throw()
 
-    if control == input.CONTROL_WAIT:
-      return ctx.handle_wait()
-
-    if control == input.CONTROL_MANAGE and tapping:
+    if input.CONTROL_MANAGE in controls and tapping:
       return ctx.handle_skill()
 
-    if control == input.CONTROL_ALLY and input.get_state(button) > 15:
+    if input.CONTROL_ALLY in controls and input.get_state(button) > 15:
       return ctx.handle_charmenu()
 
   def handle_release(ctx, button):

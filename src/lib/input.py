@@ -56,7 +56,7 @@ def resolve_control(button):
 
 def resolve_controls(button):
   button = resolve_button(button) or button
-  controls = [c for c, bs in _controls.items() if button in bs]
+  controls = [c for c, bs in _controls.items() if next((b for b in bs if b == button or isinstance(b, (tuple, list)) and button in b), False)]
   matches = [c for c in controls if get_state(c)]
   return matches
 
@@ -140,7 +140,7 @@ def get_state(control):
     else:
       return 0
 
-  if type(control) is tuple:
+  if isinstance(control, (tuple, list)):
     for button in control:
       if not get_state(button):
         return 0
