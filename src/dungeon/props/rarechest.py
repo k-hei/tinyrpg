@@ -83,6 +83,10 @@ class RareChest(Prop):
             ]),
             lambda step: (
               chest.on_action(game.room, game, on_end=step) if chest.on_action else step()
+            ),
+            lambda step: (
+              game.camera.blur(),
+              step(),
             )
           ]
         ))

@@ -1,37 +1,20 @@
 import sys
-import json
-from os.path import splitext, basename
-from random import choice
-
 from contexts.app import App
 from game.context import GameContext
-from dungeon.roomdata import RoomData
-from dungeon.room import Blob as Room
+from contexts.explore.manifest import manifest_room
+from contexts.explore.roomdata import load_room
 from savedata import load
 
-from dungeon.gen.manifest import manifest_stage_from_room
+room_name = sys.argv[1]
+room_data = load_room("rooms/", room_name)
+stage = manifest_room(room_data)
 
-argc = len(sys.argv)
-if argc != 2:
-  print("usage: demo-room.py rooms/example.json")
-  exit()
-
-room_path = sys.argv[1]
-room_id = splitext(basename(room_path))[0]
-room_file = open(room_path, "r")
-room_data = json.loads(room_file.read())
-room_file.close()
-
-if type(room_data) is list:
-  room_data = choice(room_data)
-room_data = RoomData(**room_data)
-room = Room(data=room_data)
-stage = manifest_stage_from_room(room)
-
+savedata = load("src/data-debug.json")
+savedata.place = "dungeon"
 App(
-  title=f"{room_id} demo",
+  title="explore context demo",
   context=GameContext(
-    data=load("src/data-debug.json"),
-    stage=stage
+    data=savedata,
+    stage=stage,
   )
 ).init()

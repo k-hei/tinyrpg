@@ -64,6 +64,10 @@ def manifest_room(room):
   if stage.entrance is None:
     stage.entrance = find_tile(stage, tileset.Escape)
 
+  if stage.entrance is None:
+    stage.entrance = vector.add(room_data.edges[0], stage_origin)
+    stage.set_tile_at(stage.entrance, tileset.Hallway)
+
   spawn_elems(stage, elem_data=room_data.elems, offset=stage_origin)
   return stage
 
