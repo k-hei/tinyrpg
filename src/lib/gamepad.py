@@ -2,11 +2,6 @@ import pygame
 import debug
 import lib.input as input
 
-controls = None
-_timings = {}
-_inited = False
-_app = None
-
 LEFT = "left"
 RIGHT = "right"
 UP = "up"
@@ -35,8 +30,19 @@ OPTIONS = "options"
 SHARE = "share"
 TOUCH = "touch"
 DS3_MAPPINGS = [SELECT, L3, R3, START, UP, RIGHT, DOWN, LEFT, L2, R2, L1, R1, SQUARE, CIRCLE, CROSS, TRIANGLE, MENU, OPTIONS, TOUCH, SHARE]
-DS4_MAPPINGS = [CROSS, CIRCLE, SQUARE, TRIANGLE, SHARE, MENU, OPTIONS, L3, R3, L1, R1, UP, DOWN, LEFT, RIGHT, TOUCH, SELECT, START, R1, R2]
-mappings = DS3_MAPPINGS
+DS4_MAPPINGS = [CROSS, CIRCLE, SQUARE, TRIANGLE, SHARE, MENU, OPTIONS, L3, R3, L1, R1, UP, DOWN, LEFT, RIGHT, TOUCH, SELECT, START, L2, R2]
+
+extract_mappings_from_preset = lambda preset, mappings: (
+  preset_items := preset.__dict__.items(),
+  resolve_preset_button := lambda button: next((k.lower() for k, b in preset_items if b == button), button),
+  [resolve_preset_button(b) for b in mappings]
+)[-1]
+
+controls = None
+_mappings = DS4_MAPPINGS
+_timings = {}
+_inited = False
+_app = None
 
 def init():
   pygame.joystick.init()
@@ -48,8 +54,10 @@ def init_gamepad(device_index):
     debug.log(f"Device {device_index} initialized")
 
 def config(preset=None):
-  global controls
+  global controls, _mappings
   controls = preset
+  _mappings = extract_mappings_from_preset(preset, _mappings)
+  debug.log("extracted gamepad mappings", _mappings)
 
 def handle_event(app, event):
   global _app, _inited
@@ -72,6 +80,7 @@ def handle_event(app, event):
 
 def handle_press(button):
   if button not in _timings:
+    debug.log("press", button)
     _timings[button] = 1
   input.handle_press(button)
   _app.child and _app.child.handle_press(button)
@@ -98,7 +107,7 @@ def get_state(binding):
     return 0
 
 def get_mapping(button):
-  return mappings[button] if button < len(mappings) else str(button)
+  return _mappings[button] if button < len(_mappings) else str(button)
 
 def update():
   for button in _timings:

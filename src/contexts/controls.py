@@ -57,8 +57,8 @@ controls = [*{
 }.items()]
 
 groups = {
-  "Buttons": mappings,
   "Commands": controls,
+  "Buttons": mappings,
 }
 
 hold_controls = ["run", "turn"]
@@ -149,6 +149,7 @@ class ControlsContext(Context):
     ctx.anims.append(ExitAnim(duration=CONTROLS_VISIBLE))
 
   def close(ctx):
+    gamepad.config(preset=ctx.preset)
     super().close(ctx.preset)
 
   def handle_press(ctx, button):
@@ -300,7 +301,7 @@ class ControlsContext(Context):
 
     if is_valid_button(button):
       setattr(ctx.preset, control, button)
-      gamepad.config(preset=ctx.preset)
+      # gamepad.config(preset=ctx.preset)
       return True
     else:
       return False

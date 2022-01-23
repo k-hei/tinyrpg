@@ -113,7 +113,7 @@ class GameData:
       dungeon=(DungeonData(**savedata.dungeon)
         if savedata.dungeon and type(savedata.dungeon) is not DungeonData
         else savedata.dungeon),
-      controls=ControlPreset(**(savedata.controls or {})),
+      controls=savedata.controls and ControlPreset(**savedata.controls),
     )
 
   @property

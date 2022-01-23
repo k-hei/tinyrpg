@@ -26,5 +26,32 @@
   },
   "kills": {},
   "story": ["minxia"],
-  "quests": {}
+  "quests": {},
+  "controls": {
+    "LEFT": "l3",
+    "RIGHT": "menu",
+    "UP": "share",
+    "DOWN": "options",
+    "A": "left",
+    "B": "right",
+    "X": "down",
+    "Y": "touch",
+    "L": "r",
+    "R": "up",
+    "SELECT": "b",
+    "START": "x",
+    "confirm": "a",
+    "cancel": "b",
+    "manage": "y",
+    "run": "b",
+    "turn": "r",
+    "item": ["r", "x"],
+    "wait": ["r", "a"],
+    "ally": "l",
+    "shortcut": ["r", "y"],
+    "skill": "y",
+    "inventory": "x",
+    "pause": "start",
+    "minimap": "select"
+  }
 }
