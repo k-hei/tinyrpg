@@ -82,6 +82,7 @@ class StageView:
     view.cache_visited_cells = []
     view.cache_elems = {}
     view.tile_cache = {}
+    view.tile_sprites = {}
 
   def update(view):
     if view.anims:
