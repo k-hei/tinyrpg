@@ -272,8 +272,12 @@ class PauseContext(Context):
     ctx.comps = step_anims(ctx.comps)
     ctx.choice_strips = step_anims(ctx.choice_strips)
     ctx.cursor_drawn += (ctx.cursor_index - ctx.cursor_drawn) / 2
-    for c in ctx.party:
-      c.update()
+
+    for char in ctx.party:
+      char.update()
+
+    for hud in ctx.huds:
+      hud.update()
 
   def view(ctx):
     sprites = []
