@@ -1,6 +1,7 @@
 from math import sin, pi
 import pygame
 from lib.direction import invert as invert_direction
+import lib.input as input
 
 from contexts import Context
 from contexts.dialogue import DialogueContext
@@ -15,8 +16,6 @@ from lib.filters import replace_color, outline
 from colors.palette import BLACK, WHITE, BLUE
 from transits.dissolve import DissolveIn, DissolveOut
 from anims import Anim
-import lib.keyboard as keyboard
-import lib.gamepad as gamepad
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT, LABEL_FRAMES
 
 class FollowAnim(Anim): pass
@@ -123,32 +122,37 @@ class SideViewContext(Context):
   def handle_press(ctx, button):
     if ctx.child:
       return ctx.child.handle_press(button)
+
     if ctx.link or ctx.anims or ctx.get_head().transits:
       return False
 
-    if not button:
-      if gamepad.get_state(gamepad.controls.LEFT):
-        ctx.handle_move(-1)
-      elif gamepad.get_state(gamepad.controls.RIGHT):
-        ctx.handle_move(1)
+    controls = input.resolve_controls(button)
+    button = input.resolve_button(button)
 
-    if button in (pygame.K_LEFT, pygame.K_a):
-      return ctx.handle_move(-1)
-    if button in (pygame.K_RIGHT, pygame.K_d, gamepad.controls.RIGHT):
-      return ctx.handle_move(1)
-    if keyboard.get_state(button) > 1 or gamepad.get_state(button) > 1:
+    if button == input.BUTTON_LEFT:
+      ctx.handle_move(-1)
+
+    elif button == input.BUTTON_RIGHT:
+      ctx.handle_move(1)
+
+    if input.get_state(button) > 1:
       return
-    if button in (pygame.K_UP, pygame.K_w, gamepad.controls.UP):
+
+    if button == input.BUTTON_UP:
       return ctx.handle_zmove(-1)
-    if button in (pygame.K_DOWN, pygame.K_s, gamepad.controls.DOWN):
+
+    if button == input.BUTTON_DOWN:
       return ctx.handle_zmove(1)
-    if button in (pygame.K_SPACE, pygame.K_RETURN, gamepad.controls.confirm):
+
+    if input.CONTROL_CONFIRM in controls:
       return ctx.handle_talk()
 
   def handle_release(ctx, button):
     if ctx.child:
       return ctx.child.handle_release(button)
-    if button in (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_a, pygame.K_d, gamepad.controls.LEFT, gamepad.controls.RIGHT):
+
+    button = input.resolve_button(button)
+    if button in (input.BUTTON_LEFT, input.BUTTON_RIGHT):
       for actor in ctx.party:
         actor.stop_move()
       return True
