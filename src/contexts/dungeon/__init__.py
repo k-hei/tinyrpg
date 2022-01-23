@@ -8,7 +8,6 @@ from contexts.explore import ExploreContext
 from contexts.explore.base import ExploreBase
 from contexts.explore.stageview import StageView
 from contexts.combat import CombatContext, animate_snap
-from contexts.cutscene import CutsceneContext
 from comps.store import ComponentStore
 from comps.damage import DamageValue
 from comps.hud import Hud
@@ -50,7 +49,8 @@ class DungeonContext(ExploreBase):
     ctx.comps = []
     ctx.rooms = []
     ctx.rooms_entered = set()
-    ctx.cache_room = None
+    ctx.cache_room_focused = None
+    ctx.cache_room_entered = None
 
   def enter(ctx):
     heroes = [manifest_actor(c) for c in ctx.store.party]
@@ -116,11 +116,16 @@ class DungeonContext(ExploreBase):
       return False
 
     room_entered = next((r for r in ctx.stage.rooms if hero.cell in r.cells), None)
-    if room_entered and room_entered not in ctx.rooms_entered:
-      ctx.rooms_entered.add(room_entered)
-      animate_snap(hero, anims=ctx.anims, on_end=lambda: (
-        room_entered.on_enter(ctx)
-      ))
+    if room_entered is not ctx.cache_room_entered:
+      ctx.cache_room_entered = room_entered
+      if room_entered:
+        room_entered not in ctx.rooms_entered and ctx.rooms_entered.add(room_entered)
+        if room_entered.has_hook("on_enter") or room_entered.get_enemies(ctx.stage):
+          animate_snap(
+            actor=hero,
+            anims=ctx.anims,
+            on_end=lambda: room_entered.on_enter(ctx),
+          )
 
     room_focused = next((r for r in ctx.stage.rooms if hero.cell in (r.cells + r.border)), None)
     if room_focused:
@@ -139,8 +144,8 @@ class DungeonContext(ExploreBase):
 
     visible_cells += neighborhood(hero.cell)
 
-    if ctx.cache_room is not room_focused:
-      ctx.cache_room = room_focused
+    if ctx.cache_room_focused is not room_focused:
+      ctx.cache_room_focused = room_focused
       hero.visible_cells = visible_cells
       ctx.extend_visited_cells(visible_cells)
 
@@ -164,7 +169,8 @@ class DungeonContext(ExploreBase):
     ctx.time = 0
     ctx.camera.reset()
     ctx.camera.focus(ctx.hero)
-    ctx.cache_room = None
+    ctx.cache_room_focused = None
+    ctx.cache_room_entered = None
     ctx.refresh_fov()
     ctx.redraw_tiles()
 
@@ -391,8 +397,13 @@ class DungeonContext(ExploreBase):
     ctx.hero_cell = ctx.hero.cell
     ctx.update_bubble()
 
-    if ctx.room:
-      ctx.room.on_walk(ctx, cell=ctx.hero_cell)
+    if ctx.room and ctx.room.has_hook("on_walk"):
+      animate_snap(
+        actor=ctx.hero,
+        anims=ctx.anims,
+        on_end=lambda: ctx.room.on_walk(ctx, cell=ctx.hero_cell)
+      )
+
 
   def update(ctx):
     for elem in ctx.stage.elems:

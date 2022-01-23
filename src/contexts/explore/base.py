@@ -55,7 +55,7 @@ class ExploreBase(Context):
 
   @property
   def room(ctx):
-    if "_room" not in dir(ctx):
+    if "_room" not in dir(ctx) or not ctx._room:
       ctx._room = ctx.hero and ctx.find_room(ctx.hero.cell)
     return ctx._room
 

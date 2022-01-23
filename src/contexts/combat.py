@@ -89,12 +89,6 @@ class CombatContext(ExploreBase):
     if not ctx.hero:
       return
 
-    downscale = lambda pos: tuple([int(x / ctx.hero.scale) for x in pos])
-    upscale = lambda cell: vector.scale(
-      vector.add(cell, (0.5, 0.5)),
-      ctx.hero.scale
-    )
-
     walk_speed = 3 if ctx.ally else 2
     actor_cells = {}
 
@@ -120,9 +114,10 @@ class CombatContext(ExploreBase):
     ally_brandish = ctx.ally and create_brandish(ctx.ally)
 
     if ctx.should_path:
-      hero_cell = animate_snap(ctx.hero, anims=ctx.anims, speed=walk_speed)
-      if hero_cell:
-        actor_cells[ctx.hero] = hero_cell
+      # hero_cell = animate_snap(ctx.hero, anims=ctx.anims, speed=walk_speed)
+      # if hero_cell:
+      #   actor_cells[ctx.hero] = hero_cell
+      actor_cells[ctx.hero] = ctx.hero.cell
 
       if ctx.ally:
         ally_cell = animate_snap(ctx.ally, anims=ctx.anims, speed=walk_speed)

@@ -1,7 +1,7 @@
 from pygame import Rect
 from dataclasses import dataclass
 from dungeon.props import Prop
-import assets
+import assets, trace
 from anims.frame import FrameAnim
 from colors.palette import WHITE, SAFFRON, DARKBLUE
 import lib.vector as vector
@@ -104,7 +104,6 @@ class Door(Prop):
     door.active = True
 
   def handle_close(door, game, lock=True):
-    door.close(lock=lock)
     if door.opened:
       not game.anims and game.anims.append([])
       game.anims[0].append(DoorCloseAnim(
@@ -112,6 +111,7 @@ class Door(Prop):
         duration=30,
         frames=list(reversed(door.sprites.opening_frames)),
       ))
+    door.close(lock=lock)
     return True
 
   def align(door, game):

@@ -160,6 +160,11 @@ class Blob(Room):
       if type(door).__name__ == "TreasureDoor":
         door.lock()
 
+  def should_lock(room, stage):
+    enemies = room.get_enemies(stage)
+    treasure_door = next((d for d in room.get_doors(stage) if type(d).__name__ == "TreasureDoor"), None)
+    return enemies and treasure_door
+
   def should_unlock(room, stage, actor=None):
     enemies = [e for e in room.get_enemies(stage) if e is not actor]
     pushtile = next((e for c in room.get_cells() for e in stage.get_elems_at(c) if type(e).__name__ == "PushTile"), None)
@@ -170,6 +175,9 @@ class Blob(Room):
 
   def resolve_hook(room, hook):
     return room.data and hook in room.data.hooks and room.data.hooks[hook]
+
+  def has_hook(room, hook):
+    return room.data and hook in room.data.hooks
 
   def trigger_hook(room, hook, *args, **kwargs):
     hook_id = hook
@@ -196,10 +204,12 @@ class Blob(Room):
       return False
     return room.trigger_hook("on_focus", game)
 
-  def on_enter(room, *args, **kwargs):
-    if not super().on_enter(*args, **kwargs):
+  def on_enter(room, game, *args, **kwargs):
+    if not super().on_enter(game, *args, **kwargs):
       return False
-    return room.trigger_hook("on_enter", *args, **kwargs)
+    if room.should_lock(game.stage):
+      room.lock(game)
+    return room.trigger_hook("on_enter", game, *args, **kwargs)
 
   def on_walk(room, *args, **kwargs):
     return room.trigger_hook("on_walk", *args, **kwargs)

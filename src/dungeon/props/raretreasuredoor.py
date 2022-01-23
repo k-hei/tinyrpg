@@ -32,7 +32,7 @@ class RareTreasureDoor(Door):
         )
       )))
     else:
-      game.log.print("The door is locked...")
+      game.comps.minilog.print("The door is locked...")
 
   def render(door, anims):
     sprite = super().render(anims)
