@@ -110,17 +110,15 @@ class DialogueContext(Context):
     if ctx.child:
       return ctx.child.handle_press(button)
 
-    control = input.resolve_control(button)
-    if control == input.CONTROL_CANCEL:
-      return ctx.handle_next()
+    controls = input.resolve_controls(button)
 
-    if control == input.CONTROL_CANCEL:
+    if input.CONTROL_CANCEL in controls:
       return ctx.handle_next()
 
     if input.get_state(button) > 1:
       return
 
-    if control == input.CONTROL_CONFIRM:
+    if input.CONTROL_CONFIRM in controls:
       return ctx.handle_next()
 
   def handle_next(ctx):

@@ -21,6 +21,31 @@ from config import (
 )
 
 gamepad.config(preset=controls.TYPE_NULL)
+input.config( # TODO: this isn't ideal - do we need to extend a generic wrapper app to make this more reusable?
+  buttons={
+    input.BUTTON_UP: [gamepad.UP, pygame.K_UP, pygame.K_w],
+    input.BUTTON_LEFT: [gamepad.LEFT, pygame.K_LEFT, pygame.K_a],
+    input.BUTTON_DOWN: [gamepad.DOWN, pygame.K_DOWN, pygame.K_s],
+    input.BUTTON_RIGHT: [gamepad.RIGHT, pygame.K_RIGHT, pygame.K_d],
+    input.BUTTON_L: [gamepad.L],
+    input.BUTTON_R: [gamepad.R],
+  },
+  controls={
+    input.CONTROL_CONFIRM: [input.BUTTON_A, pygame.K_RETURN, pygame.K_SPACE, pygame.K_f],
+    input.CONTROL_CANCEL: [input.BUTTON_B, pygame.K_g, pygame.K_ESCAPE, pygame.K_BACKSPACE],
+    input.CONTROL_MANAGE: [input.BUTTON_Y, pygame.K_r],
+    input.CONTROL_RUN: [input.BUTTON_B, pygame.K_RSHIFT, pygame.K_LSHIFT, pygame.K_g],
+    input.CONTROL_TURN: [input.BUTTON_R, pygame.K_LCTRL, pygame.K_RCTRL],
+    input.CONTROL_ITEM: [input.BUTTON_R, input.BUTTON_X],
+    input.CONTROL_WAIT: [(input.BUTTON_R, input.BUTTON_A), pygame.K_t],
+    input.CONTROL_SHORTCUT: [(input.BUTTON_R, input.BUTTON_Y), pygame.K_r],
+    input.CONTROL_ALLY: [input.BUTTON_L, pygame.K_TAB],
+    input.CONTROL_SKILL: [input.BUTTON_Y, pygame.K_e],
+    input.CONTROL_PAUSE: [input.BUTTON_START, pygame.K_ESCAPE],
+    input.CONTROL_INVENTORY: [input.BUTTON_X, pygame.K_q, pygame.K_BACKSPACE],
+    input.CONTROL_MINIMAP: [input.BUTTON_SELECT, pygame.K_BACKQUOTE, pygame.K_BACKSLASH],
+  }
+)
 
 class App(Context):
   def __init__(app, size=WINDOW_SIZE, title="Untitled", context=None):

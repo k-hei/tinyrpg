@@ -5,8 +5,7 @@ from math import cos, pi
 import pygame
 from pygame import Surface, Rect, SRCALPHA
 
-import lib.keyboard as keyboard
-import lib.gamepad as gamepad
+import lib.input as input
 
 from contexts import Context
 from contexts.prompt import PromptContext, Choice
@@ -326,32 +325,27 @@ class NameEntryContext(Context):
     if ctx.child:
       return ctx.child.handle_press(button)
 
-    directions = not button and [d for d in (gamepad.controls.LEFT, gamepad.controls.RIGHT, gamepad.controls.UP, gamepad.controls.DOWN) if gamepad.get_state(d)]
-    if directions:
-      directions = sorted(directions, key=lambda d: gamepad.get_state(d))
-      button = directions[0]
-      press_time = gamepad.get_state(button)
-      if press_time == 1 or press_time > 30 and press_time % 2:
-        delta = keyboard.ARROW_DELTAS[button]
-        return ctx.handle_move(delta)
-
-    delta = keyboard.ARROW_DELTAS[button] if button in keyboard.ARROW_DELTAS else None
-    press_time = keyboard.get_state(button)
-    if (button in keyboard.ARROW_DELTAS
+    delta = input.resolve_delta(button)
+    press_time = input.get_state(button)
+    if (input.is_delta_button(button)
     and (press_time == 1 or press_time > 30 and press_time % 2)):
-      delta = keyboard.ARROW_DELTAS[button]
       return ctx.handle_move(delta)
 
     if press_time > 1:
       return
 
-    if button in (pygame.K_SPACE, gamepad.controls.confirm):
+    controls = input.resolve_control(button)
+
+    if input.CONTROL_CONFIRM in controls:
       return ctx.handle_enter()
-    if button in (pygame.K_BACKSPACE, gamepad.controls.cancel):
+
+    if input.CONTROL_CANCEL in controls:
       return ctx.handle_delete()
-    if button in (pygame.K_RETURN, gamepad.START):
+
+    if input.CONTROL_PAUSE in controls:
       return ctx.handle_confirm()
-    if button in (pygame.K_ESCAPE, gamepad.SELECT):
+
+    if input.CONTROL_MINIMAP in controls:
       return ctx.handle_cancel()
 
   def view(ctx):
