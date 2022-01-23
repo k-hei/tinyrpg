@@ -685,7 +685,7 @@ def gen_floor(
 
     # populate rooms
     for room in rooms:
-      if not (room.data and room.data.tiles) and randint(0, 1):
+      if not room.data or (not room.data.tiles and not room.data.secret) and randint(0, 1):
         table_length = randint(2, 3)
         find_table_cells = lambda c: (
           table_length == 2 and [c, add_vector(c, (1, 0))]

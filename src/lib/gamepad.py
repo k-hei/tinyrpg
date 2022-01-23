@@ -56,7 +56,7 @@ def init_gamepad(device_index):
 def config(preset=None):
   global controls, _mappings
   controls = preset
-  _mappings = extract_mappings_from_preset(preset, _mappings)
+  _mappings = extract_mappings_from_preset(preset, DS4_MAPPINGS)
   debug.log("extracted gamepad mappings", _mappings)
 
 def handle_event(app, event):
