@@ -1,5 +1,5 @@
 import pygame
-import lib.gamepad as gamepad
+import lib.input as input
 from contexts import Context
 from comps.minimap import Minimap
 
@@ -30,7 +30,8 @@ class MinimapContext(Context):
       return ctx.handle_close()
 
   def handle_release(ctx, button):
-    if button == gamepad.controls.minimap:
+    controls = input.resolve_controls(button)
+    if input.CONTROL_MINIMAP in controls:
       return ctx.handle_close()
 
   def handle_close(ctx):
