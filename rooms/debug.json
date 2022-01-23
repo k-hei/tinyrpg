@@ -13,7 +13,7 @@
     "##.....########"
   ],
   "elems": [
-    [[6, 1], "Mummy"],
+    [[6, 1], "Skeleton", { "rare": true }],
     [[4, 3], "Pillar"],
     [[6, 3], "Vase", { "contents": "Cheese" }],
     [[3, 5], "Door"],

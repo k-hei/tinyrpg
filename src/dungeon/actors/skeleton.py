@@ -1,11 +1,10 @@
+from random import randint
+from lib.cell import is_adjacent
+import assets
 from dungeon.actors import DungeonActor
 from cores import Core, Stats
-from assets import load as use_assets
 from skills.attack.shieldbash import ShieldBash
 from skills.weapon.club import Club
-from lib.cell import is_adjacent
-import random
-from lib.sprite import Sprite
 
 class Skeleton(DungeonActor):
   skill = ShieldBash
@@ -16,34 +15,31 @@ class Skeleton(DungeonActor):
       name="Skeleton",
       faction="enemy",
       stats=Stats(
-        hp=23,
-        st=16,
+        hp=138,
+        st=12,
         dx=7,
-        ag=5,
-        en=12,
+        ag=1,
+        en=-4,
+        lu=-6,
       ),
       skills=[ Club, ShieldBash ]
     ), *args, **kwargs)
     if rare:
       skeleton.promote()
 
-  def step(actor, game):
-    enemy = game.find_closest_enemy(actor)
+  def step(skeleton, game):
+    enemy = game.find_closest_enemy(skeleton)
     if enemy is None:
-      return False
+      return None
 
-    if is_adjacent(actor.cell, enemy.cell):
-      if random.randint(1, 2) == 1:
-        actor.face(enemy.cell)
-        game.use_skill(actor, ShieldBash)
+    if is_adjacent(skeleton.cell, enemy.cell):
+      if randint(1, 3) == 1:
+        skeleton.face(enemy.cell)
+        return ("use_skill", ShieldBash)
       else:
-        game.attack(actor, enemy)
+        return ("attack", enemy)
     else:
-      game.move_to(actor, enemy.cell)
-
-    return True
+      return ("move_to", enemy.cell)
 
   def view(skeleton, anims):
-    sprites = use_assets().sprites
-    sprite = sprites["skeleton"]
-    return super().view(sprite, anims)
+    return super().view(assets.sprites["skeleton"], anims)

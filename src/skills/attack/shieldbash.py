@@ -44,6 +44,7 @@ class ShieldBash(AttackSkill):
           target=user,
           src=user.cell,
           dest=target_cell,
+          on_start=on_start,
           on_connect=lambda: (
             game.flinch(
               target=target_elem,

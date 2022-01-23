@@ -357,6 +357,7 @@ class DungeonActor(DungeonElement):
     if hp:
       actor.core.stats.hp += 5
       actor.core.hp += 5
+      actor.hp_max += 5
     actor.core.stats.st += 1
     actor.core.stats.en += 1
     actor.core.stats.ag += 4
