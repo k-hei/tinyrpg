@@ -385,10 +385,12 @@ class ExploreContext(ExploreBase):
 
     stairs_edge = ctx.parent.graph and ctx.parent.graph.connector_edge((hero_tile, hero_cell))
     if not stairs_edge:
+      debug.log("Staircase has no connecting edge")
       return False # link doesn't exist in graph - how to handle besides ignore?
 
     dest_floor = next((n for n in stairs_edge if n is not ctx.stage), None)
     if not dest_floor:
+      debug.log("Staircase has no destination floor")
       return False # generate random floor in infinite dungeon
 
     stairs_dest = tileset.Entrance if issubclass(stairs, tileset.Exit) else tileset.Exit

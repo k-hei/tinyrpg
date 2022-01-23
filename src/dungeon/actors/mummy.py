@@ -53,7 +53,7 @@ class Mummy(DungeonActor):
       game.anims.append([PauseAnim(
         duration=5,
         on_start=lambda: (
-          on_start and on_start(user.cell),
+          on_start and on_start(dest),
           user.core.anims.append(Mummy.ChargeAnim()),
           game.vfx.append(LinenVfx(
             src=user.cell,
