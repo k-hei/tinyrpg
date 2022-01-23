@@ -29,6 +29,8 @@ input.config(
     input.BUTTON_LEFT: [gamepad.LEFT, pygame.K_LEFT, pygame.K_a],
     input.BUTTON_DOWN: [gamepad.DOWN, pygame.K_DOWN, pygame.K_s],
     input.BUTTON_RIGHT: [gamepad.RIGHT, pygame.K_RIGHT, pygame.K_d],
+    input.BUTTON_L: [gamepad.L],
+    input.BUTTON_R: [gamepad.R],
   },
   controls={
     input.CONTROL_CONFIRM: [input.BUTTON_A, pygame.K_RETURN, pygame.K_SPACE, pygame.K_f],

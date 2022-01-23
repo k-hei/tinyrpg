@@ -5,11 +5,9 @@ from lib.direction import invert as invert_direction
 from contexts import Context
 from contexts.dialogue import DialogueContext
 from contexts.inventory import InventoryContext
-from town.graph import TownGraph
-from town.sideview.stage import Area, AreaLink
+from town.sideview.stage import Area
 from town.sideview.actor import Actor
 from items.materials import MaterialItem
-from cores.knight import Knight
 from comps.hud import Hud
 from assets import load as use_assets
 from lib.sprite import Sprite

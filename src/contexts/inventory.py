@@ -77,9 +77,9 @@ class InventoryContext(Context):
     ctx.grid_size = (INVENTORY_COLS, INVENTORY_ROWS)
     ctx.items = []
     ctx.controls = [
-      Control(key=(gamepad.controls.manage,), value="Arrange"),
-      Control(key=(gamepad.controls.inventory,), value="Sort"),
-      Control(key=(gamepad.controls.L, gamepad.controls.R), value="Tab")
+      Control(key=("X",), value="Arrange"),
+      Control(key=("Y",), value="Sort"),
+      Control(key=(input.BUTTON_L, input.BUTTON_R), value="Tab")
     ]
     ctx.update_items(reset=True)
 
@@ -212,9 +212,9 @@ class InventoryContext(Context):
     if delta != (0, 0):
       return ctx.handle_move(delta)
 
-    control = input.resolve_control(button)
+    controls = input.resolve_controls(button)
 
-    if control == input.CONTROL_MANAGE:
+    if input.CONTROL_MANAGE in controls:
       arrange_control = next((c for c in ctx.controls if c.value == "Arrange"), None)
       arrange_control.press()
       return ctx.handle_select()
@@ -224,7 +224,7 @@ class InventoryContext(Context):
     if ctx.selection:
       tab_control.disable()
       sort_control.disable()
-      if control == input.CONTROL_CANCEL:
+      if input.CONTROL_CANCEL in controls:
         return ctx.handle_select()
     else:
       tab_control.enable()
@@ -240,46 +240,51 @@ class InventoryContext(Context):
         if (keyboard.get_state(pygame.K_LSHIFT)
         or keyboard.get_state(pygame.K_RSHIFT)
         ):
-          tab_control.press(gamepad.controls.L)
+          tab_control.press(input.BUTTON_L)
           return ctx.handle_tab(delta=-1)
         else:
-          tab_control.press(gamepad.controls.R)
+          tab_control.press(input.BUTTON_R)
           return ctx.handle_tab(delta=1)
 
-      if control == input.CONTROL_INVENTORY:
+      if input.CONTROL_INVENTORY in controls:
         sort_control.press()
         return ctx.handle_sort()
 
-      if control == input.CONTROL_CONFIRM:
+      if input.CONTROL_CONFIRM in controls:
         return ctx.handle_menu()
 
-      if control == input.CONTROL_CANCEL:
+      if input.CONTROL_CANCEL in controls:
         return ctx.exit()
 
   def handle_release(ctx, button):
-    if button in (pygame.K_SPACE, gamepad.controls.manage):
-      arrange_control = next((c for c in ctx.controls if c.value == "Arrange"), None)
-      arrange_control.release()
-      return
-
-    if button in (pygame.K_BACKSLASH, pygame.K_BACKQUOTE, gamepad.controls.inventory):
-      sort_control = next((c for c in ctx.controls if c.value == "Sort"), None)
-      sort_control.release()
-      return
+    controls = input.resolve_controls(button)
+    button = input.resolve_button(button)
 
     tab_control = next((c for c in ctx.controls if c.value == "Tab"), None)
+
     if button == pygame.K_TAB:
-      tab_control.release(gamepad.controls.L)
-      tab_control.release(gamepad.controls.R)
+      tab_control.release(input.BUTTON_L)
+      tab_control.release(input.BUTTON_R)
       return
 
-    if button == gamepad.controls.L:
-      tab_control.release(gamepad.controls.L)
+    if button == input.BUTTON_L:
+      tab_control.release(input.BUTTON_L)
       return
 
-    if button == gamepad.controls.R:
-      tab_control.release(gamepad.controls.R)
+    if button == input.BUTTON_R:
+      tab_control.release(input.BUTTON_R)
       return
+
+    for control in controls:
+      if control == input.CONTROL_MANAGE:
+        arrange_control = next((c for c in ctx.controls if c.value == "Arrange"), None)
+        arrange_control.release()
+        return
+
+      if control == input.CONTROL_INVENTORY:
+        sort_control = next((c for c in ctx.controls if c.value == "Sort"), None)
+        sort_control.release()
+        return
 
   def handle_move(ctx, delta):
     delta_x, delta_y = delta

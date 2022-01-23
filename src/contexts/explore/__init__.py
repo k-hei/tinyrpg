@@ -125,6 +125,9 @@ class ExploreContext(ExploreBase):
       return ctx.handle_minimap()
 
   def handle_release(ctx, button):
+    if ctx.child:
+      return ctx.child.handle_release(button)
+
     buttons_rejected = ctx.buttons_rejected.copy()
     if button in ctx.buttons_rejected:
       del ctx.buttons_rejected[button]

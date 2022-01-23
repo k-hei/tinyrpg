@@ -1,7 +1,6 @@
 import pygame
 from pygame import Rect, SRCALPHA
-import lib.keyboard as keyboard
-import lib.gamepad as gamepad
+import lib.input as input
 
 from lib.filters import replace_color, recolor, outline
 from text import render as render_text
@@ -216,33 +215,38 @@ class CustomContext(Context):
         if type(anim) in (EnterAnim, ExitAnim, CallAnim, RecallAnim):
           blocking = True
           break
-    if blocking or keyboard.get_state(button) != 1 and gamepad.get_state(button) != 1:
+
+    if blocking or input.get_state(button) > 1:
       return
 
+    delta = input.resolve_delta(button)
+    controls = input.resolve_controls(button)
+    button = input.resolve_button(button)
+
     if menu.arrange:
-      if button in keyboard.ARROW_DELTAS:
-        menu.handle_move_piece(delta=keyboard.ARROW_DELTAS[button])
+      if delta != (0, 0):
+        menu.handle_move_piece(delta)
 
-      if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
-        menu.handle_place_piece()
-
-      if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, gamepad.controls.cancel, gamepad.controls.equip):
-        menu.handle_recall_piece()
+      for control in controls:
+        if control == input.CONTROL_CONFIRM:
+          menu.handle_place_piece()
+        if control == input.CONTROL_CANCEL:
+          menu.handle_recall_piece()
     else:
-      if button in (pygame.K_TAB, gamepad.controls.L, gamepad.controls.R):
-        menu.handle_swap_char()
-
-      if button in (pygame.K_UP, pygame.K_w, gamepad.controls.UP):
+      if button == input.BUTTON_UP:
         menu.handle_move_index(-1)
 
-      if button in (pygame.K_DOWN, pygame.K_s, gamepad.controls.DOWN):
+      if button == input.BUTTON_DOWN:
         menu.handle_move_index(1)
 
-      if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
-        menu.handle_select_piece()
+      if button in (pygame.K_TAB, input.BUTTON_L, input.BUTTON_R):
+        menu.handle_swap_char()
 
-      if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, gamepad.controls.cancel, gamepad.controls.equip):
-        return menu.close()
+      for control in controls:
+        if control == input.CONTROL_CONFIRM:
+          menu.handle_select_piece()
+        if control in (input.CONTROL_CANCEL, input.CONTROL_PAUSE):
+          return menu.close()
 
   def render(menu):
     assets = use_assets()
