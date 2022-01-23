@@ -3,7 +3,6 @@ from importlib import import_module
 from contexts.app import App
 from game.context import GameContext
 from savedata import load
-import config
 
 argc = len(sys.argv)
 if argc != 2:
@@ -15,10 +14,12 @@ floor_path = "dungeon.floors.{}".format(floor_name.lower())
 floor_module = import_module(floor_path)
 generator = getattr(floor_module, floor_name)
 
-App(title="dungeon {} demo".format(floor_name.lower()),
+savedata = load("src/data-debug.json")
+savedata.place = "dungeon"
+App(
+  title=f"{floor_name.lower()} dungeon demo",
   context=GameContext(
-    data=load("src/data-debug.json"),
+    data=savedata,
     floor=generator,
-    seed=config.SEED
   )
 ).init()

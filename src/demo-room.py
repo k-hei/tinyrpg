@@ -12,7 +12,7 @@ stage = manifest_room(room_data)
 savedata = load("src/data-debug.json")
 savedata.place = "dungeon"
 App(
-  title="explore context demo",
+  title=f"{room_name} room demo",
   context=GameContext(
     data=savedata,
     stage=stage,
