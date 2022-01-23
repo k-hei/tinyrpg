@@ -226,7 +226,7 @@ class CombatContext(ExploreBase):
       elif input.get_state(button) >= 30 and not button in ctx.buttons_rejected:
         return ctx.handle_throw()
 
-    if control == input.CONTROL_WAIT and tapping:
+    if control == input.CONTROL_WAIT:
       return ctx.handle_wait()
 
     if control == input.CONTROL_MANAGE and tapping:
