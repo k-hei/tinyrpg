@@ -192,7 +192,8 @@ class StageView:
       for col in range(tile_rect.left, tile_rect.right + 1):
         cell = (col, row)
         try:
-          if cell in hero.visible_cells and not view.darkened:
+          visible_cells = hero.visible_cells if hero else view.cache_visible_cells
+          if cell in visible_cells and not view.darkened:
             view.redraw_tile(view.stage, cell, visited_cells)
           elif cell in view.tile_cache:
             _, _, cached_image = view.tile_cache[cell]
@@ -223,7 +224,7 @@ class StageView:
     tile_sprites = (
       []
         if view.darkened
-        else [s.copy() for c, s in view.tile_sprites.items() if c in hero.visible_cells]
+        else [s.copy() for c, s in view.tile_sprites.items() if c in view.cache_visible_cells]
     )
     for sprite in tile_sprites:
       sprite.move(vector.negate(view.camera.rect.topleft))
