@@ -379,7 +379,7 @@ class DungeonContext(ExploreBase):
     is_travelling = False
     if ctx.hero_cell:
       old_door = next((e for e in ctx.stage.get_elems_at(ctx.hero_cell) if isinstance(e, Door)), None)
-      new_door = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if isinstance(e, Door)), None)
+      new_door = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if isinstance(e, Door) and e.opened), None)
       new_tile = ctx.stage.get_tile_at(ctx.hero.cell)
 
       if issubclass(new_tile, tileset.Hallway) and (new_door or old_door) and not (new_door and old_door):

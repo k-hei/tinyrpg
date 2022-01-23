@@ -1,11 +1,14 @@
+from pygame import Rect
 from pygame.transform import flip
+import lib.vector as vector
+from lib.sprite import Sprite
+from lib.filters import replace_color
+from colors.palette import WHITE, SAFFRON
+
 from dungeon.props import Prop
 from vfx.arrow import Arrow
 from anims import Anim
-from lib.sprite import Sprite
 import assets
-from lib.filters import replace_color
-from colors.palette import WHITE, SAFFRON
 from config import TILE_SIZE
 
 ARROW_PERIOD = 300
@@ -19,6 +22,26 @@ class ArrowTrap(Prop):
     trap.facing = facing
     trap.delay = delay
     trap.anim = Anim(duration=trap.delay or ARROW_PERIOD, delay=trap.delay)
+
+  @property
+  def rect(trap):
+    if trap._rect is None and trap.pos:
+      if trap.facing == (0, 1):
+        trap._rect = Rect(
+          vector.add(trap.pos, (-8, -14)),
+          (18, 12)
+        )
+      elif trap.facing == (1, 0):
+        trap._rect = Rect(
+          vector.add(trap.pos, (-16, -8)),
+          (12, 18)
+        )
+      elif trap.facing == (-1, 0):
+        trap._rect = Rect(
+          vector.add(trap.pos, (4, -8)),
+          (12, 18)
+        )
+    return trap._rect
 
   def surface(trap):
     if trap.facing == (-1, 0):
@@ -48,6 +71,6 @@ class ArrowTrap(Prop):
     trap_image = trap.surface()
     return super().view([Sprite(
       image=trap_image,
-      origin=("left", "bottom"),
+      origin=("center", "bottom"),
       layer="elems"
     )], anims)
