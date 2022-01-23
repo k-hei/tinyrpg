@@ -251,16 +251,23 @@ class CombatContext(ExploreBase):
       return ctx.handle_place()
 
   def handle_move(ctx, delta):
-    target_cell = vector.add(ctx.hero.cell, delta)
+    hero = ctx.hero
+    if hero is None:
+      return False
+
+    if hero.ailment == "freeze":
+      return ctx.handle_struggle(actor=hero)
+
+    target_cell = vector.add(hero.cell, delta)
     target_tile = ctx.stage.get_tile_at(target_cell)
 
     def on_move():
       ctx.update_bubble()
 
-    ctx.hero.facing = delta
-    moved = ctx.move_cell(ctx.hero, delta, on_end=on_move)
+    hero.facing = delta
+    moved = ctx.move_cell(hero, delta, on_end=on_move)
     if not moved and issubclass(target_tile, tileset.Pit):
-      moved = ctx.leap(actor=ctx.hero, on_end=on_move)
+      moved = ctx.leap(actor=hero, on_end=on_move)
 
     moved and ctx.step()
     return moved
@@ -346,9 +353,26 @@ class CombatContext(ExploreBase):
     moved = ctx.move_cell(actor, delta, jump=True, on_end=on_end)
     return moved
 
-  def handle_action(ctx):
-    if not ctx.hero:
+  def handle_struggle(ctx, actor):
+    if actor.ailment not in ("freeze", "sleep"):
       return False
+    actor.step_status(ctx)
+    ctx.anims.append([
+      ShakeAnim(duration=15, target=actor)
+    ])
+    if actor.ailment:
+      ctx.step()
+      return True
+    else:
+      return False
+
+  def handle_action(ctx):
+    hero = ctx.hero
+    if hero is None:
+      return False
+
+    if hero.ailment == "freeze":
+      return ctx.handle_struggle(actor=hero)
 
     facing_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
     facing_actor = ctx.facing_actor
@@ -583,14 +607,21 @@ class CombatContext(ExploreBase):
     ctx.open(GameOverContext())
 
   def handle_skill(ctx):
+    hero = ctx.hero
+    if hero is None:
+      return
+
+    if hero.ailment == "freeze":
+      return ctx.handle_struggle(actor=hero)
+
     ctx.open(SkillContext(
-      actor=ctx.hero,
-      skills=ctx.hero.get_active_skills(),
-      selected_skill=ctx.store.get_selected_skill(ctx.hero.core),
+      actor=hero,
+      skills=hero.get_active_skills(),
+      selected_skill=ctx.store.get_selected_skill(hero.core),
       on_close=lambda skill, dest: (
         skill and (
-          not issubclass(skill, Weapon) and ctx.store.set_selected_skill(ctx.hero, skill),
-          ctx.use_skill(ctx.hero, skill, dest, on_end=ctx.step),
+          not issubclass(skill, Weapon) and ctx.store.set_selected_skill(hero, skill),
+          ctx.use_skill(hero, skill, dest, on_end=ctx.step),
         )
       )
     ))
