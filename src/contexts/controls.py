@@ -47,7 +47,6 @@ controls = [*{
   "run": "Run",
   "turn": "Turn",
   "wait": "Wait",
-  "item": "Carry/Throw",
   "shortcut": "Skill shortcut",
   "skill": "Use skill",
   "ally": "Switch hero",

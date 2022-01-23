@@ -25,33 +25,25 @@ gamepad.config(preset=controls.TYPE_A)
 
 input.config(
   buttons={
-    input.BUTTON_UP: [pygame.K_UP, pygame.K_w],
-    input.BUTTON_LEFT: [pygame.K_LEFT, pygame.K_a],
-    input.BUTTON_DOWN: [pygame.K_DOWN, pygame.K_s],
-    input.BUTTON_RIGHT: [pygame.K_RIGHT, pygame.K_d],
-    input.BUTTON_A: [pygame.K_RETURN, pygame.K_SPACE],
-    input.BUTTON_B: [pygame.K_RSHIFT, pygame.K_LSHIFT],
-    input.BUTTON_X: [pygame.K_q],
-    input.BUTTON_Y: [pygame.K_e],
-    input.BUTTON_L: [pygame.K_TAB],
-    input.BUTTON_R: [pygame.K_LCTRL, pygame.K_RCTRL],
-    input.BUTTON_START: [pygame.K_ESCAPE, pygame.K_BACKSPACE],
-    input.BUTTON_SELECT: [pygame.K_BACKQUOTE, pygame.K_BACKSLASH],
+    input.BUTTON_UP: [gamepad.UP, pygame.K_UP, pygame.K_w],
+    input.BUTTON_LEFT: [gamepad.LEFT, pygame.K_LEFT, pygame.K_a],
+    input.BUTTON_DOWN: [gamepad.DOWN, pygame.K_DOWN, pygame.K_s],
+    input.BUTTON_RIGHT: [gamepad.RIGHT, pygame.K_RIGHT, pygame.K_d],
   },
   controls={
-    input.CONTROL_CONFIRM: [input.BUTTON_A],
-    input.CONTROL_CANCEL: [input.BUTTON_B],
-    input.CONTROL_MANAGE: [input.BUTTON_Y],
-    input.CONTROL_RUN: [input.BUTTON_B],
-    input.CONTROL_TURN: [input.BUTTON_R],
+    input.CONTROL_CONFIRM: [input.BUTTON_A, pygame.K_RETURN, pygame.K_SPACE, pygame.K_f],
+    input.CONTROL_CANCEL: [input.BUTTON_B, pygame.K_g, pygame.K_ESCAPE, pygame.K_BACKSPACE],
+    input.CONTROL_MANAGE: [input.BUTTON_Y, pygame.K_r],
+    input.CONTROL_RUN: [input.BUTTON_B, pygame.K_RSHIFT, pygame.K_LSHIFT, pygame.K_g],
+    input.CONTROL_TURN: [input.BUTTON_R, pygame.K_LCTRL, pygame.K_RCTRL],
     input.CONTROL_ITEM: [input.BUTTON_R, input.BUTTON_X],
-    input.CONTROL_WAIT: [input.BUTTON_R, input.BUTTON_A],
-    input.CONTROL_SHORTCUT: [input.BUTTON_R, input.BUTTON_Y],
-    input.CONTROL_ALLY: [input.BUTTON_L],
-    input.CONTROL_SKILL: [input.BUTTON_Y],
-    input.CONTROL_INVENTORY: [input.BUTTON_X],
-    input.CONTROL_PAUSE: [input.BUTTON_START],
-    input.CONTROL_MINIMAP: [input.BUTTON_SELECT],
+    input.CONTROL_WAIT: [(input.BUTTON_R, input.BUTTON_A), pygame.K_t],
+    input.CONTROL_SHORTCUT: [(input.BUTTON_R, input.BUTTON_Y), pygame.K_r],
+    input.CONTROL_ALLY: [input.BUTTON_L, pygame.K_TAB],
+    input.CONTROL_SKILL: [input.BUTTON_Y, pygame.K_e],
+    input.CONTROL_PAUSE: [input.BUTTON_START, pygame.K_ESCAPE],
+    input.CONTROL_INVENTORY: [input.BUTTON_X, pygame.K_q, pygame.K_BACKSPACE],
+    input.CONTROL_MINIMAP: [input.BUTTON_SELECT, pygame.K_BACKQUOTE, pygame.K_BACKSLASH],
   }
 )
 
@@ -208,16 +200,15 @@ class GameContext(Context):
     if input.get_state(button) > 1:
       return False
 
-    control = input.resolve_control(button)
-
     if type(ctx.get_tail()) in (PauseContext, InventoryContext) or ctx.get_depth() > 2:
       return
 
-    if control == input.CONTROL_PAUSE:
-      return ctx.handle_pause()
-
-    if control == input.CONTROL_INVENTORY:
-      return ctx.handle_inventory()
+    controls = input.resolve_controls(button)
+    for control in controls:
+      if control == input.CONTROL_PAUSE:
+        return ctx.handle_pause()
+      if control == input.CONTROL_INVENTORY:
+        return ctx.handle_inventory()
 
   def handle_pause(ctx):
     if not isinstance(ctx.get_tail(), PauseContext):

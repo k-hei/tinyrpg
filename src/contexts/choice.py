@@ -1,21 +1,18 @@
 from dataclasses import dataclass
 from types import FunctionType as function
 import pygame
-from pygame import Surface, Rect
+from pygame import Rect
 
 from assets import load as use_assets
-from text import render as render_text
 from contexts import Context
-import lib.gamepad as gamepad
-import lib.keyboard as keyboard
-from lib.filters import recolor, replace_color
+import lib.input as input
+from lib.filters import replace_color
 from colors.palette import BLACK, WHITE, GRAY, GOLD
 
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
 from anims.flicker import FlickerAnim
 from easing.expo import ease_out
-from lib.lerp import lerp
 
 BORDER_WIDTH = 5
 PADDING = 8
@@ -72,19 +69,21 @@ class ChoiceContext(Context):
     if ctx.anims or ctx.choice:
       return False
 
-    if keyboard.get_state(button) + gamepad.get_state(button) > 1:
+    if input.get_state(button) > 1:
       return False
 
-    if button in (pygame.K_UP, pygame.K_w, gamepad.controls.UP):
+    controls = input.resolve_controls(button)
+    button = input.resolve_button(button)
+    if button == input.BUTTON_UP:
       return ctx.handle_move(-1)
-    elif button in (pygame.K_DOWN, pygame.K_s, gamepad.controls.DOWN):
+    elif button == input.BUTTON_DOWN:
       return ctx.handle_move(1)
 
-    if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
-      return ctx.handle_choose()
-
-    if button in (pygame.K_BACKSPACE, pygame.K_ESCAPE, gamepad.controls.cancel):
-      return ctx.handle_close()
+    for control in controls:
+      if control == input.CONTROL_CONFIRM:
+        return ctx.handle_choose()
+      if control == input.CONTROL_CANCEL:
+        return ctx.handle_close()
 
   def handle_move(ctx, delta):
     old_index = ctx.index

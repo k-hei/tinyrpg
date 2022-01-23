@@ -27,7 +27,8 @@ class PoisonPuff(Prop):
     actor = actor or game.hero
     if type(actor).__name__ == "Mushroom":
       return False
-    game.inflict_poison(actor)
+    if "inflict_poison" in dir(game):
+      game.inflict_poison(actor) # TODO: figure out how to handle this stuff
     return True
 
   def dissolve(puff):

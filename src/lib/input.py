@@ -48,17 +48,26 @@ def resolve_button(button):
   return next((k for k, bs in _buttons.items() if button in bs), None)
 
 def resolve_control(button):
-  button = resolve_button(button)
-  controls = [c for c, bs in sorted(_controls.items(), key=lambda c: len(c[1]), reverse=True) if button in bs]
+  button = resolve_button(button) or button
+  controls = [c for c, bs in _controls.items() if button in bs]
   for control in controls:
     if get_state(control):
       return control
 
+def resolve_controls(button):
+  button = resolve_button(button) or button
+  controls = [c for c, bs in _controls.items() if button in bs]
+  matches = [c for c in controls if get_state(c)]
+  return matches
+
 def resolve_delta(button=None, fixed_axis=False):
   if button is None:
     return resolve_delta_held(fixed_axis)
-  button = resolve_button(button)
+  button = resolve_button(button) or button
   return ARROW_DELTAS[button] if button in ARROW_DELTAS else (0, 0)
+
+def backresolve_delta(delta):
+  return next((b for b, d in ARROW_DELTAS.items() if d == delta), None)
 
 def resolve_delta_held(fixed_axis=False):
     delta_x = 0
@@ -99,6 +108,9 @@ def resolve_delta_held(fixed_axis=False):
 
     return (delta_x, delta_y)
 
+def is_delta_button(button):
+  return resolve_button(button) in ARROW_DELTAS
+
 def handle_press(button):
   global latest
   latest = button
@@ -122,6 +134,14 @@ def get_state(control):
   if control in _controls:
     button = None
     for button in _controls[control]:
+      state = get_state(button)
+      if state:
+        return state
+    else:
+      return 0
+
+  if type(control) is tuple:
+    for button in control:
       if not get_state(button):
         return 0
     else:

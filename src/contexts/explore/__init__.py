@@ -89,7 +89,7 @@ class ExploreContext(ExploreBase):
     if ctx.anims:
       return
 
-    if button:
+    if input.is_delta_button(button):
       delta = input.resolve_delta()
       if delta != (0, 0):
         if button not in ctx.buttons_rejected:
@@ -105,7 +105,7 @@ class ExploreContext(ExploreBase):
 
     control = input.resolve_control(button)
 
-    # TODO: move `handle_control_confirm(button)` into base? (shared handlers with combat mode)
+    # TODO(?): move `handle_control_confirm(button)` into base (shared handlers with combat mode)
     if control == input.CONTROL_CONFIRM:
       if not ctx.hero.item and input.get_state(button) == 1:
         acted = ctx.handle_action()
@@ -143,50 +143,53 @@ class ExploreContext(ExploreBase):
       ctx.handle_place()
 
   def handle_move(ctx, delta, running=False):
-    if not ctx.hero:
+    hero = ctx.hero
+    if not hero:
       return
+    ally = ctx.ally
 
-    moved = ctx.move_elem(elem=ctx.hero, delta=delta, running=running)
-
+    moved = ctx.move_elem(elem=hero, delta=delta, running=running)
     prop = next((e for e in ctx.stage.elems if
       not e.solid
       and e.active
-      and ctx.hero.rect.colliderect(e.rect)
+      and hero.rect.colliderect(e.rect)
     ), None)
     if prop:
-      prop.effect(ctx, ctx.hero)
-      ctx.hero.stop_move()
+      prop.effect(ctx, hero)
+      if ctx.child:
+        hero.stop_move()
+        ally and ally.stop_move()
 
-    if ctx.ally:
+    if ally:
       if moved:
         ctx.move_buffer.append((delta, running))
 
         move_data = (
           ctx.move_buffer.pop(0)
-            if len(ctx.move_buffer) > TILE_SIZE // ctx.hero.speed
+            if len(ctx.move_buffer) > TILE_SIZE // hero.speed
             else None
         )
 
-        if vector.distance(ctx.hero.pos, ctx.ally.pos) > TILE_SIZE + ctx.ally.speed * 1.5:
+        if vector.distance(hero.pos, ally.pos) > TILE_SIZE + ally.speed * 1.5:
           delta_x, delta_y = delta
           ally_dest = vector.subtract(
-            ctx.hero.pos,
+            hero.pos,
             vector.scale(
               invert_direction(delta),
               TILE_SIZE * (sqrt(0.5) if delta_x and delta_y else 1)
             )
           )
           ctx.move_to(
-            actor=ctx.ally,
+            actor=ally,
             dest=ally_dest,
-            running=vector.distance(ctx.ally.pos, ally_dest) > ctx.ally.speed * 1.5
+            running=vector.distance(ally.pos, ally_dest) > ally.speed * 1.5
           )
         elif move_data:
           delta, running = move_data
-          ctx.move_elem(elem=ctx.ally, delta=delta, running=running)
+          ctx.move_elem(elem=ally, delta=delta, running=running)
 
       else:
-        ctx.ally.stop_move()
+        ally.stop_move()
 
     return moved
 

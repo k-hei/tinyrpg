@@ -2,8 +2,7 @@ from copy import deepcopy
 import pygame
 from pygame import Surface, Color, SRCALPHA
 from pygame.transform import flip, rotate
-import lib.keyboard as keyboard
-import lib.gamepad as gamepad
+import lib.input as input
 import lib.vector as vector
 from lib.sprite import Sprite
 from lib.filters import stroke, outline, replace_color, recolor, shadow_lite as shadow
@@ -231,17 +230,22 @@ class PauseContext(Context):
     ctx.close()
     return True
 
-  def handle_press(ctx, key):
-    if keyboard.get_state(key) + gamepad.get_state(key) > 1:
+  def handle_press(ctx, button):
+    if input.get_state(button) > 1:
       return False
-    if key in (pygame.K_UP, gamepad.controls.UP):
+
+    controls = input.resolve_controls(button)
+    button = input.resolve_button(button)
+    if button == input.BUTTON_UP:
       return ctx.handle_move(delta=-1)
-    if key in (pygame.K_DOWN, gamepad.controls.DOWN):
+    if button == input.BUTTON_DOWN:
       return ctx.handle_move(delta=1)
-    if key in (pygame.K_RETURN, pygame.K_SPACE):
-      return ctx.handle_choose()
-    if key == pygame.K_ESCAPE:
-      return ctx.exit()
+
+    for control in controls:
+      if control == input.CONTROL_CONFIRM:
+        return ctx.handle_choose()
+      if control == input.CONTROL_CANCEL:
+        return ctx.exit()
 
   def handle_move(ctx, delta):
     new_index = ctx.cursor_index + delta
