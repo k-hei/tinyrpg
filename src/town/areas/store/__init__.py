@@ -7,15 +7,10 @@ from town.areas.store.breadstock import BreadStock
 from town.areas.store.cheesestock import CheeseStock
 from town.areas.store.counter import Counter
 from town.areas.store.context import StoreContext
-from contexts.prompt import PromptContext, Choice
-from contexts.shop import ShopContext, ShopCard
 from cores.husband import Husband
 from cores.wife import Wife
 from cores.rogue import Rogue
-from portraits.husband import HusbandPortrait
-from portraits.wife import WifePortrait
 from transits.dissolve import DissolveOut
-from savedata.resolve import resolve_item
 from colors.palette import ORANGE, WHITE, CORAL
 
 class StoreArea(Stage):
@@ -59,7 +54,7 @@ class StoreArea(Stage):
         move_period=45,
         is_shopkeep=True,
         message=lambda talkee, ctx: [
-          "{}: Ever get a rebar stuck up your ass?".format(talkee.name.upper()),
+          "{}: WELCOME, DEAR CUSTOMER!".format(talkee.name.upper()),
           *open_shop(ctx)
         ]
       ),

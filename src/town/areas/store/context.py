@@ -10,8 +10,8 @@ class StoreContext(ShopContext):
       title="Market",
       subtitle="All your exploration needs",
       messages={
-        "home": Husband.name.upper() + ": How can I help you?",
-        "home_again": Husband.name.upper() + ": Will that be all for today?",
+        "home": Husband.name.upper() + ": HOW CAN I HELP YOU?",
+        "home_again": Husband.name.upper() + ": WILL THAT BE ALL FOR TODAY?",
         "sell": {
           "home": Wife.name.upper() + ": Got something to sell me?",
           "home_again": Wife.name.upper() + ": Anything else to sell?",

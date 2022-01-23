@@ -2,29 +2,30 @@ from math import sin, pi
 import pygame
 from pygame import Surface, Rect, SRCALPHA
 from pygame.transform import flip
+import lib.input as input
+import lib.keyboard as keyboard
+from lib.lerp import lerp
+from easing.expo import ease_out
+from lib.sprite import Sprite
+from lib.filters import replace_color
+
 from contexts import Context
 from comps.box import Box
 from comps.control import Control
 from comps.card import Card
 from comps.textbubble import TextBubble, Choice
 from comps.hud import Hud
-from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, BLUE, GOLD, CYAN
-from lib.filters import replace_color
+from colors.palette import BLACK, WHITE, GRAY, DARKGRAY, GOLD, CYAN
 from assets import load as use_assets
 from inventory import Inventory
-import lib.keyboard as keyboard
-import lib.gamepad as gamepad
 from cores.knight import Knight
 from anims import Anim
 from anims.tween import TweenAnim
 from anims.pause import PauseAnim
-from easing.expo import ease_out
-from lib.lerp import lerp
 from items.materials import MaterialItem
 from comps.hud import Hud
-from savedata.resolve import resolve_material
+from resolve.material import resolve_material
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
-from lib.sprite import Sprite
 
 class SelectAnim(TweenAnim): blocking = False
 class DeselectAnim(TweenAnim): blocking = False
@@ -327,18 +328,24 @@ class SellContext(Context):
     if next((a for a in ctx.anims if a.blocking), None) or ctx.tablist.anims:
       return
 
-    press_time = keyboard.get_state(button) or gamepad.get_state(button)
+    press_time = input.get_state(button)
+    controls = input.resolve_controls(button)
+    button = input.resolve_button(button) or button
     if (press_time == 1
     or press_time > 30 and press_time % 2):
-      if button in (pygame.K_UP, pygame.K_w, gamepad.controls.UP):
+      if button == input.BUTTON_UP:
         return ctx.handle_move(-1)
-      if button in (pygame.K_DOWN, pygame.K_s, gamepad.controls.DOWN):
+
+      if button == input.BUTTON_DOWN:
         return ctx.handle_move(1)
-      if button in (pygame.K_LEFT, pygame.K_a, gamepad.controls.LEFT):
+
+      if button == input.BUTTON_LEFT:
         return ctx.handle_move(-5)
-      if button in (pygame.K_RIGHT, pygame.K_d, gamepad.controls.RIGHT):
+
+      if button == input.BUTTON_RIGHT:
         return ctx.handle_move(5)
-      if button in (pygame.K_SPACE, gamepad.controls.manage) and button not in ctx.requires_release:
+
+      if (button == pygame.K_SPACE or input.CONTROL_MANAGE in controls) and button not in ctx.requires_release:
         control = next((c for c in ctx.controls if c.value == "Multi"), None)
         control.press("X")
         if not ctx.handle_select() or not ctx.handle_move(1):
@@ -349,12 +356,13 @@ class SellContext(Context):
       return
 
     tab_control = next((c for c in ctx.controls if c.value == "Tab"), None)
-    if button == gamepad.controls.L:
+    if button == input.BUTTON_L:
       tab_control.press("L")
       return ctx.handle_tab(delta=-1)
-    elif button == gamepad.controls.R:
+    elif button == input.BUTTON_R:
       tab_control.press("R")
       return ctx.handle_tab(delta=1)
+
     if button == pygame.K_TAB:
       if (keyboard.get_state(pygame.K_LSHIFT)
       or keyboard.get_state(pygame.K_RSHIFT)):
@@ -364,25 +372,26 @@ class SellContext(Context):
         tab_control.press("R")
         return ctx.handle_tab(delta=1)
 
-    if button in (pygame.K_RETURN, gamepad.START):
+    if button == pygame.K_RETURN or input.CONTROL_PAUSE in controls or input.CONTROL_CONFIRM in controls:
       ctx.handle_sell()
 
-    if button in (pygame.K_BACKSPACE, pygame.K_ESCAPE, gamepad.controls.cancel):
+    if button in (pygame.K_BACKSPACE, pygame.K_ESCAPE) or input.CONTROL_CANCEL in controls:
       if ctx.selection:
         return ctx.handle_clear()
       else:
         return ctx.handle_close()
 
   def handle_release(ctx, button):
+    controls = input.resolve_controls(button)
     tab_control = next((c for c in ctx.controls if c.value == "Tab"), None)
-    if button == gamepad.controls.L:
+    if button == input.BUTTON_L:
       tab_control.release("L")
-    elif button == gamepad.controls.R:
+    elif button == input.BUTTON_R:
       tab_control.release("R")
     elif button == pygame.K_TAB:
       tab_control.release("L")
       tab_control.release("R")
-    elif button in (pygame.K_SPACE, gamepad.controls.manage):
+    elif button == pygame.K_SPACE or input.CONTROL_MANAGE in controls:
       multi_control = next((c for c in ctx.controls if c.value == "Multi"), None)
       multi_control.release("X")
       if button in ctx.requires_release:

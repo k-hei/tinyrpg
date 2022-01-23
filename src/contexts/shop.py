@@ -1,10 +1,8 @@
 from dataclasses import dataclass
-from math import sin, cos, pi
-import pygame
-from pygame import Rect, Surface, Color
-from pygame.transform import rotate, scale
+from pygame import Surface, Color
+from pygame.transform import scale
 from contexts import Context
-from contexts.cardgroup import CardContext, CARD_BUY, CARD_SELL, CARD_EXIT
+from contexts.cardgroup import CardContext
 from contexts.buy import BuyContext
 from contexts.sell import SellContext
 from cores.knight import Knight
@@ -18,17 +16,13 @@ from comps.portraitgroup import PortraitGroup
 from comps.textbox import TextBox
 from comps.textbubble import TextBubble
 import assets
-from assets import load as use_assets
-from lib.filters import replace_color, darken_image
-from colors.palette import BLACK, WHITE, RED, BLUE, DARKBLUE, GOLD, ORANGE
-import lib.keyboard as keyboard
+from lib.filters import replace_color
+from colors.palette import BLACK, WHITE
 from anims import Anim
 from anims.tween import TweenAnim
 from easing.expo import ease_out
-from easing.circ import ease_out as ease_out_circ
 from lib.lerp import lerp
 from portraits import Portrait
-from portraits.mira import MiraPortrait
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
 from lib.sprite import Sprite
 from transits.slide import SlideDown

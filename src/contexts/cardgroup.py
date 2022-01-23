@@ -1,14 +1,12 @@
 from math import sin, pi
 from functools import partial
 import pygame
-from pygame import Surface, SRCALPHA
 from pygame.transform import rotate
-import lib.keyboard as keyboard
-import lib.gamepad as gamepad
+import lib.input as input
 from lib.lerp import lerp
 from easing.expo import ease_out
 from colors.palette import RED, BLUE
-from config import WINDOW_WIDTH, WINDOW_HEIGHT
+from config import WINDOW_WIDTH
 
 from contexts import Context
 from comps.card import Card, CARD_BUY, CARD_SELL, CARD_EXIT
@@ -97,14 +95,19 @@ class CardContext(Context):
     or ctx.chosen):
       return False
 
-    if keyboard.get_state(button) > 1 or gamepad.get_state(button) > 1:
+    if input.get_state(button) > 1:
       return
 
-    if button in (pygame.K_LEFT, pygame.K_a, gamepad.controls.LEFT):
+    controls = input.resolve_controls(button)
+    button = input.resolve_button(button)
+
+    if button == input.BUTTON_LEFT:
       ctx.handle_move(-1)
-    if button in (pygame.K_RIGHT, pygame.K_d, gamepad.controls.RIGHT):
+
+    if button == input.BUTTON_RIGHT:
       ctx.handle_move(1)
-    if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
+
+    if input.CONTROL_CONFIRM in controls:
       ctx.handle_choose()
 
   def handle_move(ctx, delta):

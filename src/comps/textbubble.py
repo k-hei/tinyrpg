@@ -4,13 +4,14 @@ from pygame import Surface, SRCALPHA
 from pygame.transform import scale, flip, rotate
 from lib.filters import replace_color
 import lib.keyboard as keyboard
-import lib.gamepad as gamepad
+import lib.input as input
 import lib.vector as vector
+
 from assets import assets
 from comps.textbox import TextBox
 from comps.log import Message
 from contexts import Context
-from contexts.choice import Choice
+from contexts.choice import Choice # used as export
 from easing.circ import ease_out
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
@@ -106,15 +107,23 @@ class TextBubble:
     def handle_press(ctx, button):
       if ctx.anims:
         return False
-      if keyboard.get_state(button) > 1:
+
+      if input.get_state(button) > 1:
         return
-      if button in (pygame.K_LEFT, pygame.K_a, gamepad.controls.LEFT):
+
+      controls = input.resolve_controls(button)
+      button = input.resolve_button(button)
+
+      if button == input.BUTTON_LEFT:
         return ctx.handle_move(delta=-1)
-      if button in (pygame.K_RIGHT, pygame.K_d, gamepad.controls.RIGHT):
+
+      if button == input.BUTTON_RIGHT:
         return ctx.handle_move(delta=1)
-      if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
+
+      if input.CONTROL_CONFIRM in controls:
         return ctx.handle_choose()
-      if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, gamepad.controls.cancel):
+
+      if input.CONTROL_CANCEL in controls:
         return ctx.handle_cancel()
 
     def handle_move(ctx, delta):

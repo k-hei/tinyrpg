@@ -1,32 +1,24 @@
-from dataclasses import dataclass
 from math import ceil
 import pygame
-from pygame import Surface, Rect, SRCALPHA
-from pygame.draw import rect as draw_rect
+from pygame import Surface, SRCALPHA
 import lib.keyboard as keyboard
-import lib.gamepad as gamepad
+import lib.input as input
 import lib.vector as vector
-from lib.sprite import Sprite, SpriteMask
+from lib.sprite import Sprite
 from lib.filters import stroke, outline, replace_color, darken_image, shadow_lite as shadow
 from lib.lerp import lerp
 from easing.expo import ease_out, ease_in_out
-from colors.palette import BLACK, WHITE, RED, YELLOW, GOLD, CYAN, CORAL, BROWN, DARKBROWN
+from colors.palette import BLACK, WHITE, RED, YELLOW, GOLD, CYAN, BROWN, DARKBROWN
 
 from contexts import Context
 from cores.knight import Knight
 from cores.mage import Mage
 from comps.bg import Bg
 from comps.box import Box
-from comps.card import Card
-from comps.goldbubble import GoldBubble
-from comps.hud import Hud
 from comps.rarity import Rarity
-from comps.shoptag import ShopTag
 from comps.log import Token
 from comps.textbox import TextBox
 from comps.textbubble import TextBubble, Choice
-from portraits.husband import HusbandPortrait
-from portraits.wife import WifePortrait
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
 from anims.pause import PauseAnim
@@ -34,7 +26,7 @@ from inventory import Inventory
 from game.data import GameData
 from resolve.item import resolve_item
 import assets
-from config import WINDOW_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
+from config import WINDOW_WIDTH, WINDOW_HEIGHT
 
 GRID_COLS = 3
 ITEM_WIDTH = 40
@@ -511,30 +503,35 @@ class CounterContext(Context):
     if ctx.child:
       return super().handle_press(button)
 
-    press_time = keyboard.get_state(button) + gamepad.get_state(button)
+    press_time = input.get_state(button)
     if not (press_time == 1
     or press_time >= 30 and press_time % 2):
       return False
 
-    if button in (pygame.K_UP, gamepad.controls.UP):
+    controls = input.resolve_controls(button)
+    button = input.resolve_button(button)
+
+    if button == input.BUTTON_UP:
       ctx.pressed_up = True
       return ctx.handle_increment()
 
-    if button in (pygame.K_DOWN, gamepad.controls.DOWN):
+    if button == input.BUTTON_DOWN:
       ctx.pressed_down = True
       return ctx.handle_decrement()
 
-    if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
+    if input.CONTROL_CONFIRM in controls:
       return ctx.handle_choose()
 
-    if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, gamepad.controls.cancel):
+    if input.CONTROL_CANCEL in controls:
       return ctx.exit(None)
 
   def handle_release(counter, button):
-    if button in (pygame.K_UP, gamepad.controls.UP):
+    button = input.resolve_button(button)
+
+    if button == input.BUTTON_UP:
       counter.pressed_up = False
 
-    if button in (pygame.K_DOWN, gamepad.controls.DOWN):
+    if button == input.BUTTON_DOWN:
       counter.pressed_down = False
 
   def update(counter):
@@ -710,17 +707,19 @@ class GridContext(Context):
     if ctx.child:
       return super().handle_press(button)
 
-    if keyboard.get_state(button) + gamepad.get_state(button) > 1:
+    if input.get_state(button) > 1:
       return
 
-    if button in keyboard.ARROW_DELTAS:
-      delta = keyboard.ARROW_DELTAS[button]
+    delta = input.resolve_delta(button)
+    if delta != (0, 0):
       return ctx.handle_move(delta)
 
-    if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
+    controls = input.resolve_controls(button)
+
+    if input.CONTROL_CONFIRM in controls:
       return ctx.handle_select()
 
-    if button in (pygame.K_ESCAPE, pygame.K_BACKSPACE, gamepad.controls.cancel):
+    if input.CONTROL_CANCEL in controls:
       return ctx.handle_close()
 
   def handle_move(ctx, delta):
