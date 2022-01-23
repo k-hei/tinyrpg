@@ -26,7 +26,7 @@ class ControlPreset:
   shortcut: str = ""
   skill: str = ""
   inventory: str = ""
-  equip: str = ""
+  pause: str = ""
   minimap: str = ""
 
 TYPE_NULL = ControlPreset()
@@ -54,6 +54,6 @@ TYPE_A = ControlPreset(
   ally=gamepad.L,
   skill=gamepad.SQUARE,
   inventory=gamepad.TRIANGLE,
-  equip=gamepad.START,
+  pause=gamepad.START,
   minimap=gamepad.SELECT,
 )

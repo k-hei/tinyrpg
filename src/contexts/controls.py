@@ -5,6 +5,7 @@ from pygame.transform import flip
 from pygame.time import get_ticks
 import lib.keyboard as keyboard
 import lib.gamepad as gamepad
+import lib.input as input
 from lib.lerp import lerp
 
 from contexts import Context
@@ -51,7 +52,7 @@ controls = [*{
   "skill": "Use skill",
   "ally": "Switch hero",
   "inventory": "Open inventory",
-  "equip": "Change equipment",
+  "pause": "Pause game",
   "minimap": "View minimap"
 }.items()]
 
@@ -157,7 +158,7 @@ class ControlsContext(Context):
     if ctx.child:
       return ctx.child.handle_press(button)
 
-    press_time = keyboard.get_state(button) or gamepad.get_state(button)
+    press_time = input.get_state(button)
 
     if press_time == 1 and ctx.waiting:
       if button == pygame.K_ESCAPE:
@@ -175,15 +176,16 @@ class ControlsContext(Context):
       reset_hint = next((c for c in ctx.hints if c.value == "Reset"), None)
       reset_hint and reset_hint.press()
 
+    button = input.resolve_button(button) or button
     if (press_time == 1
     or press_time > 30 and press_time % 2):
-      if button in (pygame.K_UP, gamepad.controls.UP):
+      if button == input.BUTTON_UP:
         return ctx.handle_move(delta=-1)
-      if button in (pygame.K_DOWN, gamepad.controls.DOWN):
+      if button == input.BUTTON_DOWN:
         return ctx.handle_move(delta=1)
-      if button in (pygame.K_LEFT, gamepad.controls.LEFT):
+      if button == input.BUTTON_LEFT:
         return ctx.handle_skip(delta=-1)
-      if button in (pygame.K_RIGHT, gamepad.controls.RIGHT):
+      if button == input.BUTTON_RIGHT:
         return ctx.handle_skip(delta=1)
 
     if press_time > 1:
@@ -192,19 +194,21 @@ class ControlsContext(Context):
     if button == pygame.K_DELETE:
       return ctx.handle_config(button=None)
 
-    if button in (pygame.K_SPACE, pygame.K_RETURN, gamepad.START):
+    controls = input.resolve_controls(button)
+
+    if input.CONTROL_CONFIRM in controls:
       ctx.buttons_rejected.add(button)
       return ctx.handle_startconfig()
 
-    if button in (pygame.K_TAB, gamepad.controls.equip):
-      ctx.buttons_rejected.add(button)
-      return ctx.handle_multiconfig()
-
-    if button in (pygame.K_BACKSPACE, gamepad.controls.minimap):
+    if button == pygame.K_BACKSPACE or input.CONTROL_MINIMAP in controls:
       return ctx.handle_reset()
 
-    if button in (pygame.K_ESCAPE, gamepad.controls.cancel):
+    if input.CONTROL_CANCEL in controls:
       return ctx.handle_close()
+
+    if button == pygame.K_TAB or input.CONTROL_PAUSE in controls:
+      ctx.buttons_rejected.add(button)
+      return ctx.handle_multiconfig()
 
   def handle_release(ctx, button):
     if button == pygame.K_TAB:

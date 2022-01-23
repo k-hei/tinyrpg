@@ -8,6 +8,7 @@ from contexts.inventory import InventoryContext
 from contexts.custom import CustomContext
 from contexts.dungeon import DungeonContext
 from contexts.loading import LoadingContext
+from contexts.controls import ControlsContext
 from contexts.explore.manifest import manifest_room
 from contexts.explore.roomdata import load_rooms, rooms
 from dungeon.decoder import decode_floor
@@ -174,7 +175,10 @@ class GameContext(Context):
     if input.get_state(button) > 1:
       return False
 
-    if type(ctx.get_tail()) in (PauseContext, InventoryContext, LoadContext) or ctx.get_depth() > 2:
+    # TODO: only town and dungeon contexts should be able to access pause/inventory
+    # what kinds of generic assumptions can we make about potential use cases
+    blocking_contexts = (PauseContext, InventoryContext, LoadContext, ControlsContext)
+    if isinstance(ctx.get_tail(), blocking_contexts) or ctx.get_depth() > 2:
       return
 
     controls = input.resolve_controls(button)
