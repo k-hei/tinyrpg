@@ -1,22 +1,20 @@
-from math import sin, pi
 from random import randrange, randint
 import pygame
 from pygame import Surface, Rect, SRCALPHA
-import lib.keyboard as keyboard
-import lib.gamepad as gamepad
+import lib.input as input
+from lib.sprite import Sprite
+from lib.filters import recolor, outline
+
 from contexts import Context
 from contexts.load import LoadContext
-from lib.sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
 from colors.palette import BLACK, WHITE
-from lib.filters import recolor, outline
 from assets import load as use_assets
 from anims import Anim
 from anims.sine import SineAnim
 from anims.flicker import FlickerAnim
 from anims.tween import TweenAnim
 from easing.expo import ease_out
-from transits.dissolve import DissolveOut
 import assets
 
 OPTIONS_SPACING = 20
@@ -110,15 +108,22 @@ class GameOverContext(Context):
   def handle_press(ctx, button):
     if ctx.child:
       return ctx.child.handle_press(button)
-    if (keyboard.get_state(button) + gamepad.get_state(button) > 1
+
+    if (input.get_state(button) > 1
     or next((a for a in ctx.anims if a.blocking), None)
     or ctx.chosen):
       return
-    if button in (pygame.K_UP, pygame.K_w, gamepad.controls.UP):
+
+    controls = input.resolve_controls(button)
+    button = input.resolve_button(button)
+
+    if button == input.BUTTON_UP:
       return ctx.handle_move(-1)
-    if button in (pygame.K_DOWN, pygame.K_s, gamepad.controls.DOWN):
+
+    if button == input.BUTTON_DOWN:
       return ctx.handle_move(1)
-    if button in (pygame.K_RETURN, pygame.K_SPACE, gamepad.controls.confirm):
+
+    if input.CONTROL_CONFIRM in controls:
       return ctx.handle_choose()
 
   def handle_move(ctx, delta):
