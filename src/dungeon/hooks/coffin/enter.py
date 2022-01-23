@@ -284,11 +284,7 @@ def take_battle_position(room, game):
       )]),
       game.ally and game.anims[-1].append(PathAnim(
         target=game.ally,
-        path=game.stage.pathfind(
-          start=game.ally.cell,
-          goal=vector.add(goal_cell, (1, 0)),
-          whitelist=game.room.cells
-        ),
+        path=[vector.add(c, (0, 1)) for c in game.anims[-1][-1].path],
         on_end=lambda: (
           game.ally.stop_move(),
         )

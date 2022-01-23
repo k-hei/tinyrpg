@@ -591,6 +591,7 @@ class CombatContext(ExploreBase):
       ctx.comps.hud.shake()
       return False
     ctx.store.switch_chars()
+    ctx.parent.refresh_fov(reset_cache=True)
     ctx.camera.blur()
     ctx.camera.focus(target=[ctx.room, ctx.hero], force=True)
     return True

@@ -110,7 +110,7 @@ class DungeonContext(ExploreBase):
 
     return graph
 
-  def refresh_fov(ctx):
+  def refresh_fov(ctx, reset_cache=False):
     hero = ctx.hero
     if not hero:
       return False
@@ -144,7 +144,7 @@ class DungeonContext(ExploreBase):
 
     visible_cells += neighborhood(hero.cell)
 
-    if ctx.cache_room_focused is not room_focused:
+    if ctx.cache_room_focused is not room_focused or reset_cache:
       ctx.cache_room_focused = room_focused
       hero.visible_cells = visible_cells
       ctx.extend_visited_cells(visible_cells)
@@ -401,12 +401,12 @@ class DungeonContext(ExploreBase):
     ctx.update_bubble()
 
     if ctx.room and ctx.room.has_hook("on_walk"):
-      animate_snap(
-        actor=ctx.hero,
-        anims=ctx.anims,
-        on_end=lambda: ctx.room.on_walk(ctx, cell=ctx.hero_cell)
-      )
-
+      ctx.room.on_walk(ctx, cell=ctx.hero_cell)
+      # animate_snap(
+      #   actor=ctx.hero,
+      #   anims=ctx.anims,
+      #   on_end=lambda: ctx.room.on_walk(ctx, cell=ctx.hero_cell)
+      # )
 
   def update(ctx):
     for elem in ctx.stage.elems:

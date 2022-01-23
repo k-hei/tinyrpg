@@ -111,6 +111,9 @@ class SkillContext(Context):
     if button == input.BUTTON_L:
       return ctx.handle_select()
 
+    if button == input.BUTTON_R:
+      return ctx.handle_select(reverse=True)
+
     if control == input.CONTROL_CONFIRM:
       return ctx.handle_confirm()
 

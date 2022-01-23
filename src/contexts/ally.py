@@ -129,14 +129,16 @@ class AllyContext(Context):
     match = next((k for k, v in ctx.button_mappings.items() if button in v), None)
     if match:
       ctx.button_presses.add(match)
-      if match == "y":
+      if match == input.BUTTON_X:
         return ctx.handle_ai()
 
   def handle_release(ctx, button):
     if ctx.exiting:
       return False
 
-    if button in (pygame.K_TAB, gamepad.controls.ally):
+    controls = input.resolve_controls(button)
+
+    if input.CONTROL_ALLY in controls:
       ctx.exit(blur=True)
 
     if ctx.animating:
@@ -146,9 +148,9 @@ class AllyContext(Context):
     match = next((k for k, v in ctx.button_mappings.items() if button in v), None)
     if match and match in ctx.button_presses:
       ctx.button_presses.remove(match)
-      if match == "a":
+      if match == input.BUTTON_A:
         return ctx.handle_switch()
-      elif match == "x":
+      elif match == input.BUTTON_Y:
         return ctx.handle_skill()
 
   def handle_face(ctx, delta):
@@ -158,7 +160,7 @@ class AllyContext(Context):
 
   def handle_switch(ctx):
     game = ctx.parent
-    game.handle_switch()
+    game.handle_charswap()
     ctx.exit()
 
   def handle_skill(ctx):
@@ -271,7 +273,7 @@ class AllyContext(Context):
           buttons_y + buttons_dist * sin(buttons_rads + (pi / 2) * i)
         ),
         origin=Sprite.ORIGIN_CENTER,
-      ) for i, b in enumerate(["a", "b", "x", "y"])],
+      ) for i, b in enumerate(["a", "b", "y", "x"])],
       *([Sprite(
         image=(l.subsurface(
           Rect(
