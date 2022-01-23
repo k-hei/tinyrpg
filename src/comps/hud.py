@@ -130,7 +130,7 @@ class Hud:
     or ally and ally.get_hp() != hud.hp_ally):
       if hero != hud.hero:
         if hud.hero is not None:
-          if type(hud.anims[0]) is PauseAnim: # TODO: insert before first pause anim
+          if hud.anims and type(hud.anims[0]) is PauseAnim: # TODO: insert before first pause anim
             hud.anims.insert(0, SwitchInAnim())
             hud.anims.insert(0, SwitchOutAnim())
           else:

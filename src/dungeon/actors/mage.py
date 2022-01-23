@@ -142,7 +142,7 @@ class Mage(DungeonActor):
       if type(anim) is LeapAnim:
         sprite = sprites["mage_leap"]
         break
-      elif isinstance(anim, (StepAnim, PathAnim, WalkAnim)):
+      elif type(anim) is StepAnim or isinstance(anim, (PathAnim, WalkAnim)):
         x4_idx = max(0, int((anim.time - 1) % anim.period // (anim.period / 4)))
         if mage.facing == (0, -1):
           sprite = [

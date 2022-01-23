@@ -31,6 +31,7 @@ from config import WINDOW_HEIGHT, VISION_RANGE
 from dungeon.floors.floor1 import Floor1
 from dungeon.floors.floor2 import Floor2
 from dungeon.floors.floor3 import Floor3
+from dungeon.floors.genericfloor import GenericFloor
 from dungeon.gen.floorgraph import FloorGraph
 from helpers.stage import find_tile
 
@@ -80,21 +81,21 @@ class DungeonContext(ExploreBase):
   def construct_graph(ctx):
     floor_names = [f.__name__ for f in FLOOR_SEQUENCE]
 
-    if not ctx.stage or ctx.stage.generator not in floor_names:
+    if not ctx.stage: # or ctx.stage.generator not in floor_names:
       return None
 
     graph = FloorGraph()
-    graph.nodes.append(ctx.stage.generator)
+    graph.nodes.append(ctx.stage)
 
     try:
       prev_floor = FLOOR_SEQUENCE[floor_names.index(ctx.stage.generator) - 1]
-    except IndexError:
+    except (ValueError, IndexError):
       prev_floor = None
 
     try:
       next_floor = FLOOR_SEQUENCE[floor_names.index(ctx.stage.generator) + 1]
-    except IndexError:
-      next_floor = None
+    except (ValueError, IndexError):
+      next_floor = GenericFloor
 
     stage_entrance = ctx.stage.entrance or find_tile(ctx.stage, tileset.Entrance)
     stage_entrance and prev_floor and graph.connect(
@@ -163,6 +164,7 @@ class DungeonContext(ExploreBase):
       raise LookupError("Failed to find Entrance tile to spawn hero")
 
     ctx.stage = stage
+    ctx.construct_graph()
     ctx.child.stage = stage
     ctx.stage_view.stage = stage
     ctx.comps.minimap.sprite = None

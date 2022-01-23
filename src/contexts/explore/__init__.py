@@ -37,6 +37,7 @@ class ExploreContext(ExploreBase):
     ctx.camera.focus(ctx.hero)
     ctx.debug = False
     ctx.move_buffer = []
+    ctx.cache_last_move = 0
 
   def exit(ctx):
     ctx.close()
@@ -89,19 +90,18 @@ class ExploreContext(ExploreBase):
     if ctx.anims:
       return
 
-    if input.is_delta_button(button):
-      delta = input.resolve_delta()
-      if delta != (0, 0):
-        if button not in ctx.buttons_rejected:
-          moved = ctx.handle_move(
-            delta=delta,
-            running=input.get_state(input.CONTROL_RUN) > 0
-          )
-          if moved == False:
-            ctx.buttons_rejected[button] = 0
-          return moved
-        elif ctx.buttons_rejected[button] >= 30:
-          return ctx.handle_push()
+    delta = input.resolve_delta_held()
+    if delta != (0, 0) and input.is_delta_button(button):
+      if button not in ctx.buttons_rejected:
+        moved = ctx.handle_move(
+          delta=delta,
+          running=input.get_state(input.CONTROL_RUN) > 0
+        )
+        if moved == False:
+          ctx.buttons_rejected[button] = 0
+        return moved
+      elif ctx.buttons_rejected[button] >= 30:
+        return ctx.handle_push()
 
     control = input.resolve_control(button)
 
@@ -151,8 +151,12 @@ class ExploreContext(ExploreBase):
   def handle_move(ctx, delta, running=False):
     hero = ctx.hero
     if not hero:
-      return
+      return False
     ally = ctx.ally
+
+    if ctx.cache_last_move == ctx.time:
+      return # TODO: can we block this from inside input lib?
+    ctx.cache_last_move = ctx.time
 
     moved = ctx.move_elem(elem=hero, delta=delta, running=running)
     prop = next((e for e in ctx.stage.elems if
@@ -331,13 +335,16 @@ class ExploreContext(ExploreBase):
 
     actor.facing = normalize_direction(vector.subtract(target_cell, actor_cell))
     move_duration = (RUN_DURATION if running else MOVE_DURATION) * 1.5
-    ctx.anims.append([JumpAnim(
+    jump_anims = [JumpAnim(
       target=actor,
       src=actor_cell,
       dest=target_cell,
       duration=move_duration,
       on_end=on_end,
-    ), PauseAnim(duration=move_duration + 5)])
+    ), PauseAnim(duration=move_duration + 5)]
+    not ctx.anims and ctx.anims.append([])
+    ctx.anims[-1].extend(jump_anims)
+    # (ctx.anims.append if actor is ctx.hero else actor.core.anims.extend)(jump_anims)
 
     return True
 
@@ -485,8 +492,7 @@ class ExploreContext(ExploreBase):
       ))
 
     ctx.parent.refresh_fov(reset_cache=True)
-    ctx.camera.blur()
-    ctx.camera.focus(target=[ctx.room, ctx.hero], force=True)
+    ctx.camera.focus(target=[*([ctx.room] if ctx.room else []), ctx.hero], force=True)
     return True
 
   def handle_debug(ctx):
@@ -508,7 +514,7 @@ class ExploreContext(ExploreBase):
     floor_text = f"Tomb {floor_no}F" if floor_no else "????"
     label_image = assets.ttf["normal"].render(floor_text)
     label_image = outline(label_image, BLACK)
-    label_image = outline(label_image, WHITE)
+    # label_image = outline(label_image, WHITE)
     return [Sprite(
       image=label_image,
       pos=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 4),

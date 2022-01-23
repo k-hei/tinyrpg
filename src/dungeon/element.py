@@ -141,21 +141,11 @@ class DungeonElement:
 
     for group in anims:
       for anim in group:
-        if anim.target is not elem:
+        if (anim.target is not elem
+        or not isinstance(anim, (StepAnim, PathAnim))
+        or not anim.cell):
           continue
-        if isinstance(anim, MoveAnim) and anims.index(group) == 0:
-          elem.pos = anim.pos
-          return (0, 0) # elem.find_move_anim_offset(anim)
-        if not isinstance(anim, (StepAnim, PathAnim)) or not anim.cell:
-          continue
-        if anims.index(group) == 0:
-          anim_x, anim_y, *anim_z = anim.cell
-          elem.pos = vector.scale(
-            vector.add((anim_x, anim_y), (0.5, 0.5)),
-            TILE_SIZE
-          )
-          return (0, 0) # elem.find_step_anim_offset(anim)
-        else:
+        if anims.index(group) > 0:
           anim_x, anim_y, *anim_z = anim.src
           anim_z = anim_z and anim_z[0] or 0
           elem_x, elem_y = elem.cell
@@ -208,6 +198,8 @@ class DungeonElement:
     offset_x, offset_y = elem.find_move_offset(anims)
     item = None
     anim_group = [a for a in anims[0] if a.target is elem] if anims else []
+    # if "core" in dir(elem):
+    #   anim_group += elem.core.anims
     for anim in anim_group:
       if (isinstance(anim, StepAnim) or type(anim) is PathAnim) and anim.cell:
         if (isinstance(anim, (StepAnim, PathAnim, JumpAnim))
@@ -216,7 +208,15 @@ class DungeonElement:
         and not next((a for g in anims for a in g if a.target is elem and type(a) is FlinchAnim), None)
         ):
           elem.facing = tuple(map(int, anim.facing))
-      elif type(anim) is ItemAnim:
+      if isinstance(anim, MoveAnim):
+        elem.pos = anim.pos
+      if isinstance(anim, (StepAnim, PathAnim)) and anim.cell:
+        anim_x, anim_y, *anim_z = anim.cell
+        elem.pos = vector.scale(
+          vector.add((anim_x, anim_y), (0.5, 0.5)),
+          TILE_SIZE
+        )
+      if type(anim) is ItemAnim:
         item_image = anim.item.render()
         item_offset = min(12, 6 + anim.time // 2) + ITEM_OFFSET
         if anim.time > 30:

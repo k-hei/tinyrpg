@@ -26,7 +26,7 @@ def animate_snap(actor, anims, speed=2, on_end=None):
       speed=speed,
       on_end=on_end
     ))
-    return actor_cell
+    return vector.floor(actor_cell)
   else:
     on_end and on_end()
     return None
@@ -117,12 +117,12 @@ class CombatContext(ExploreBase):
       # hero_cell = animate_snap(ctx.hero, anims=ctx.anims, speed=walk_speed)
       # if hero_cell:
       #   actor_cells[ctx.hero] = hero_cell
-      actor_cells[ctx.hero] = ctx.hero.cell
+      actor_cells[ctx.hero] = vector.round(ctx.hero.cell)
 
       if ctx.ally:
         ally_cell = animate_snap(ctx.ally, anims=ctx.anims, speed=walk_speed)
         if ally_cell:
-          actor_cells[ctx.ally] = ally_cell
+          actor_cells[ctx.ally] = vector.round(ally_cell)
 
     if ctx.ally and ctx.should_path:
       start_cells = [c for c in neighborhood(ctx.hero.cell, diagonals=True) + [ctx.hero.cell] if

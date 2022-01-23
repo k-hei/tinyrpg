@@ -58,6 +58,10 @@ def mean(*vectors):
 def floor(vector):
   return tuple([int(x) for x in vector])
 
+_round = round
+def round(vector):
+  return tuple([_round(x) for x in vector])
+
 def distance(a, b):
   x1, y1 = a
   x2, y2 = b
