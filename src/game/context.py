@@ -12,6 +12,7 @@ from contexts.controls import ControlsContext
 from contexts.explore.manifest import manifest_room
 from contexts.explore.roomdata import load_rooms, rooms
 from dungeon.decoder import decode_floor
+from dungeon.gen.floorgraph import FloorGraph
 from town.context import TownContext
 from skills import get_skill_order
 from skills.weapon import Weapon
@@ -64,7 +65,7 @@ class GameContext(Context):
       ctx.stage = None
       app = ctx.get_head()
       app.transition([DissolveOut()])
-      return ctx.goto_dungeon(floors=[stage])
+      return ctx.goto_dungeon(floors=FloorGraph(nodes=[stage]))
 
     if ctx.feature:
       feature = ctx.feature
@@ -73,7 +74,7 @@ class GameContext(Context):
       return app.load(
         loader=feature().create_floor(),
         on_end=lambda floor: (
-          ctx.goto_dungeon(floors=[floor], generator=feature),
+          ctx.goto_dungeon(floors=FloorGraph(nodes=[floor]), generator=feature),
           app.transition([DissolveOut()])
         )
       )
@@ -87,7 +88,7 @@ class GameContext(Context):
         loader=Floor.generate(ctx.store, seed=ctx.seed),
         on_end=lambda floor: (
           bench("Generate floor"),
-          ctx.goto_dungeon(floors=[floor], generator=Floor),
+          ctx.goto_dungeon(floors=FloorGraph(nodes=[floor]), generator=Floor),
           app.transition([DissolveOut()])
         )
       ))
@@ -121,7 +122,7 @@ class GameContext(Context):
 
   def goto_dungeon(ctx, floors=[], floor_index=0, memory=[], generator=None):
     if floors:
-      floor = floors[floor_index]
+      floor = floors.nodes[floor_index]
       floor.generator = floor.generator or generator and generator.__name__
       dungeon = DungeonContext(
         store=ctx.store,
@@ -135,7 +136,7 @@ class GameContext(Context):
     else:
       app = ctx.get_head()
       stage = manifest_room(room=rooms["shrine"])
-      ctx.goto_dungeon(floors=[stage]),
+      ctx.goto_dungeon(floors=FloorGraph(nodes=[stage])),
       not app.transits and app.transition([DissolveOut()])
 
   def goto_town(ctx, returning=False):

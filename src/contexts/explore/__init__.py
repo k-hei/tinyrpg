@@ -400,7 +400,7 @@ class ExploreContext(ExploreBase):
     if issubclass(hero_tile, tileset.Escape):
       return ctx.goto_town()
 
-    stairs_edge = ctx.parent.graph and ctx.parent.graph.connector_edge((hero_tile, hero_cell))
+    stairs_edge = ctx.parent.graph and ctx.parent.graph.connector_edge(ctx.stage, hero_cell)
     if not stairs_edge:
       debug.log("Staircase has no connecting edge")
       return False # link doesn't exist in graph - how to handle besides ignore?

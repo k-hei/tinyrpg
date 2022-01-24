@@ -53,8 +53,8 @@ class FloorGraph(Graph):
   def connectees(graph, edge):
     return graph.conns[edge]
 
-  def connector_edge(graph, conn):
-    return next((e for e, cs in graph.conns.items() if conn in cs), None)
+  def connector_edge(graph, node, conn):
+    return next((e for e, cs in graph.conns.items() if node in e and conn in cs), None)
 
   def split(graph, conn):
     def flood_fill(graph, node):

@@ -1,4 +1,5 @@
 import pygame
+from copy import deepcopy
 from lib.cell import neighborhood
 import lib.vector as vector
 import lib.input as input
@@ -21,6 +22,7 @@ from dungeon.fov import shadowcast
 from dungeon.room import Blob as Room
 from dungeon.props.door import Door
 from dungeon.props.palm import Palm
+from dungeon.data import DungeonData
 from helpers.actor import manifest_actor
 from helpers.stage import find_tile
 import tiles.default as tileset
@@ -40,13 +42,14 @@ from helpers.stage import find_tile
 FLOOR_SEQUENCE = [Floor1, Floor2, Floor3]
 
 class DungeonContext(ExploreBase):
-  def __init__(ctx, store, stage, *args, **kwargs):
+  def __init__(ctx, store, stage, floor_index=0, graph=None, memory=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
     ctx.store = store
     ctx.stage = stage
     ctx.stage_view = StageView(stage)
-    ctx.graph = None
-    ctx.memory = {}
+    ctx.floor_index = floor_index
+    ctx.graph = graph
+    ctx.memory = memory or {}
     ctx.hero_cell = None
     ctx.hero_facing = None
     ctx.comps = []
@@ -83,6 +86,13 @@ class DungeonContext(ExploreBase):
       return 0
     return FLOOR_SEQUENCE.index(floor) + 1
 
+  def save(ctx):
+    return DungeonData(
+      floor_index=ctx.graph.nodes.index(ctx.stage),
+      floors=deepcopy(ctx.graph),
+      memory=deepcopy(ctx.memory),
+    )
+
   def construct_graph(ctx):
     floor_names = [f.__name__ for f in FLOOR_SEQUENCE]
 
@@ -103,16 +113,39 @@ class DungeonContext(ExploreBase):
       next_floor = GenericFloor
 
     stage_entrance = ctx.stage.entrance or find_tile(ctx.stage, tileset.Entrance)
-    stage_entrance and prev_floor and ctx.graph.connect(
-      ctx.stage, prev_floor,
-      (ctx.stage.get_tile_at(stage_entrance), stage_entrance)
-    )
+    stage_entrance and prev_floor and ctx.graph.connect(ctx.stage, prev_floor, stage_entrance)
 
     stage_exit = find_tile(ctx.stage, tileset.Exit)
-    stage_exit and next_floor and ctx.graph.connect(
-      ctx.stage, next_floor,
-      (ctx.stage.get_tile_at(stage_exit), stage_exit)
-    )
+    stage_exit and next_floor and ctx.graph.connect(ctx.stage, next_floor, stage_exit)
+
+  def use_stage(ctx, stage, stairs=None):
+    ctx.hero and ctx.stage.remove_elem(ctx.hero)
+    ctx.ally and ctx.stage.remove_elem(ctx.ally)
+
+    ctx.stage = stage
+    ctx.construct_graph()
+    ctx.parent.save()
+
+    heroes = [manifest_actor(c) for c in ctx.store.party]
+    stage_entrance = find_tile(stage, stairs) if stairs else stage.entrance
+    if stage_entrance:
+      for i, hero in enumerate(heroes):
+        stage.spawn_elem_at(stage_entrance, hero)
+        hero.pos = vector.add(hero.pos, (0, -i))
+    else:
+      raise LookupError("Failed to find Entrance tile to spawn hero")
+
+    ctx.child.stage = stage
+    ctx.stage_view.stage = stage
+    ctx.stage_view.reset_cache()
+    ctx.comps.minimap.sprite = None
+    ctx.time = 0
+    ctx.camera.reset()
+    ctx.camera.focus(ctx.hero)
+    ctx.cache_room_focused = None
+    ctx.cache_room_entered = None
+    ctx.refresh_fov()
+    ctx.redraw_tiles()
 
   def refresh_fov(ctx, reset_cache=False):
     hero = ctx.hero
@@ -152,33 +185,6 @@ class DungeonContext(ExploreBase):
       ctx.cache_room_focused = room_focused
       hero.visible_cells = visible_cells
       ctx.extend_visited_cells(visible_cells)
-
-  def use_stage(ctx, stage, stairs=None):
-    ctx.hero and ctx.stage.remove_elem(ctx.hero)
-    ctx.ally and ctx.stage.remove_elem(ctx.ally)
-
-    heroes = [manifest_actor(c) for c in ctx.store.party]
-    stage_entrance = find_tile(stage, stairs) if stairs else stage.entrance
-    if stage_entrance:
-      for i, hero in enumerate(heroes):
-        stage.spawn_elem_at(stage_entrance, hero)
-        hero.pos = vector.add(hero.pos, (0, -i))
-    else:
-      raise LookupError("Failed to find Entrance tile to spawn hero")
-
-    ctx.stage = stage
-    ctx.construct_graph()
-    ctx.child.stage = stage
-    ctx.stage_view.stage = stage
-    ctx.stage_view.reset_cache()
-    ctx.comps.minimap.sprite = None
-    ctx.time = 0
-    ctx.camera.reset()
-    ctx.camera.focus(ctx.hero)
-    ctx.cache_room_focused = None
-    ctx.cache_room_entered = None
-    ctx.refresh_fov()
-    ctx.redraw_tiles()
 
   def handle_press(ctx, button):
     if input.get_state(pygame.K_LCTRL):

@@ -69,7 +69,7 @@ class ExploreBase(Context):
 
   @property
   def visited_cells(ctx):
-    stage_id = ctx.stage.__hash__()
+    stage_id = ctx.graph.nodes.index(ctx.stage)
     visited_cells = ctx.memory[stage_id] if stage_id in ctx.memory else None # next((cs for (s, cs) in ctx.memory if s is ctx.stage), None)
     if visited_cells is None:
       ctx.memory[stage_id] = (visited_cells := [])
@@ -90,6 +90,14 @@ class ExploreBase(Context):
   @property
   def vfx(ctx):
     return ctx.stage_view.vfx
+
+  @property
+  def graph(ctx):
+    return ctx._graph if "_graph" in dir(ctx) else ctx.parent.graph
+
+  @graph.setter
+  def graph(ctx, graph):
+    ctx._graph = graph
 
   @property
   def memory(ctx):
