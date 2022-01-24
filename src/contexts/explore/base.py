@@ -10,6 +10,7 @@ from anims.step import StepAnim
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from anims.jump import JumpAnim
+from items.materials import MaterialItem
 from dungeon.actors import DungeonActor
 from dungeon.props.itemdrop import ItemDrop
 from tiles import Tile
@@ -433,6 +434,46 @@ class ExploreBase(Context):
       )
     ])
     return True
+
+  def use_item(ctx, item, discard=True):
+    hero = ctx.hero
+    if not hero:
+      return False, "The hero is dead!"
+
+    carry_item = hero.item
+    if carry_item and item and carry_item is not item:
+      return False, "Your hands are full!"
+    elif carry_item and not discard:
+      item = carry_item
+      hero.item = None
+
+    if not item:
+      return False, "No item to use."
+
+    if discard:
+      ctx.anims.append([
+        ItemAnim(
+          duration=30,
+          target=hero,
+          item=item()
+        ),
+        PauseAnim(duration=60),
+      ])
+
+    if issubclass(item, MaterialItem):
+      success, message = False, "You can't use this item!"
+    else:
+      success, message = ctx.store.use_item(item, discard=discard)
+
+    if success is False:
+      ctx.anims.pop()
+      return False, message
+    elif success is True:
+      ctx.comps.minilog.print(("Used", item.token(item)))
+      ctx.comps.minilog.print(message)
+      return True, ""
+    else:
+      return None, ("Used ", item.token(item), "\n", message)
 
   def recruit_actor(game, actor):
     actor.reset_charge()
