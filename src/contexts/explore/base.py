@@ -155,7 +155,7 @@ class ExploreBase(Context):
   def reload_skill_badge(ctx, delay=0):
     if not ctx.hero:
       return
-    ctx.comps.skill_badge.pos = SKILL_BADGE_POS_ALLY if ctx.ally else SKILL_BADGE_POS_SOLO
+    ctx.comps.skill_badge.pos = SKILL_BADGE_POS_ALLY if ctx.store.ally else SKILL_BADGE_POS_SOLO
     ctx.comps.skill_badge.reload(skill=ctx.store.get_selected_skill(ctx.hero.core), delay=delay)
 
   def move_cell(ctx, actor, delta, duration=0, jump=False, fixed=True, on_end=None):

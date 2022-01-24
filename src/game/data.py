@@ -124,6 +124,14 @@ class GameData:
   def sp(store, sp):
     store._sp = max(0, min(store.sp_max, sp))
 
+  @property
+  def hero(store):
+    return store.party[0] if len(store.party) >= 1 else None
+
+  @property
+  def ally(store):
+    return store.party[1] if len(store.party) >= 2 else None
+
   def obtain(store, target):
     if isinstance(target, Item) or type(target) is type and issubclass(target, Item):
       return store.obtain_item(item=target)
