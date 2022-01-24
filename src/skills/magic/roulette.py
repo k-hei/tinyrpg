@@ -1,5 +1,5 @@
 from math import pi, inf
-from random import choice
+from random import randint, choice, shuffle
 import lib.vector as vector
 from lib.cell import downscale, neighborhood
 from skills.magic import MagicSkill
@@ -27,6 +27,7 @@ class Roulette(MagicSkill):
   )
 
   def effect(game, user, dest=None, on_start=None, on_end=None):
+    NUM_CLONES = 4
     on_start and on_start(user.cell)
     user.core.anims.append(Mage.CastAnim())
     game.darken()
@@ -43,12 +44,14 @@ class Roulette(MagicSkill):
           duration=45,
           on_end=lambda: (
             setattr(user, "hidden", True),
-            game.vfx.append(MageCloneVfx(
+            user_clone := MageCloneVfx(
               cell=start_cell,
               color=user.color(),
               angle=fx.angle + 2 * pi * 1 / 5,
               animated=False,
-            )),
+            ),
+            game.vfx.append(user_clone),
+            shuffle(game.vfx),
             game.anims.extend([
               [PauseAnim(duration=30)],
               *[(lambda f: [
@@ -56,13 +59,13 @@ class Roulette(MagicSkill):
                   duration=15,
                   on_end=lambda: (
                     clone_cell := choice([c for c in neighborhood(start_cell, radius=3) if game.stage.is_cell_empty(c)]),
-                    clone := (user if f is game.vfx[-1] else MageClone(aggro=2)),
-                    game.stage.spawn_elem_at(
-                      cell=clone_cell,
-                      elem=clone
-                    ) if clone is not user else (
+                    clone := (user if f is user_clone else MageClone(aggro=2)),
+                    (
                       setattr(user, "hidden", False),
                       user.core.anims.pop(),
+                    ) if f is user_clone else game.stage.spawn_elem_at(
+                      cell=clone_cell,
+                      elem=clone
                     ),
                     f in game.vfx and game.vfx.remove(f),
                     anim_group := next((g for g in game.anims if pause_anim in g), None),
@@ -85,12 +88,14 @@ class Roulette(MagicSkill):
         )],
       ])
 
-    game.vfx.extend([
+    clones = [
       MageCloneVfx(cell=user.cell, color=user.color(), angle=2 * pi * 0 / 4),
       MageCloneVfx(cell=user.cell, color=user.color(), angle=2 * pi * 1 / 4),
       MageCloneVfx(cell=user.cell, color=user.color(), angle=2 * pi * 2 / 4),
       MageCloneVfx(cell=user.cell, color=user.color(), angle=2 * pi * 3 / 4, on_ready=jump),
-    ])
+    ]
+    shuffle(clones)
+    game.vfx.extend(clones)
 
     game.anims.append([pause_anim := PauseAnim(duration=inf)])
     return False

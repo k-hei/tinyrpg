@@ -16,13 +16,10 @@ class DebugFloor(Floor):
       features=Graph(
         nodes=[
           entry_room := Room(data=RoomData(**rooms["entry"])),
-          arena_room := Room(data=RoomData(**rooms["mageboss"])),
-        ],
-        edges=[
-          (entry_room, arena_room),
+          oasis_room := Room(data=RoomData(**choice(rooms["oasis"]))),
         ]
       ),
-      # extra_room_count=5, # 4 + randint(0, 2),
+      extra_room_count=1,
       seed=seed,
       debug=True
     )
