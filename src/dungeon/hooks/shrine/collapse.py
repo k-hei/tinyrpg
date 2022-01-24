@@ -82,7 +82,7 @@ def on_collapse(room, game):
       ])
     ),
     lambda step: (
-      game.follow_link("Floor1", on_end=step)
+      game.get_tail().follow_link("Floor1", on_end=step)
     )
   ]))
   return True

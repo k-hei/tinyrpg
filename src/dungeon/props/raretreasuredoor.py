@@ -23,8 +23,8 @@ class RareTreasureDoor(Door):
     inventory = game.store.items
     if Key in inventory:
       game.open(PromptContext(("Use the ", Key().token(), "?"), [
-        Choice("Yes"),
-        Choice("No", default=True, closing=True)
+        Choice("Yes", default=True),
+        Choice("No", closing=True)
       ], on_close=lambda choice: (
         choice and choice.text == "Yes" and (
           inventory.remove(Key),

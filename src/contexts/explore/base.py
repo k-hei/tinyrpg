@@ -153,6 +153,8 @@ class ExploreBase(Context):
     ]
 
   def reload_skill_badge(ctx, delay=0):
+    if not ctx.hero:
+      return
     ctx.comps.skill_badge.pos = SKILL_BADGE_POS_ALLY if ctx.ally else SKILL_BADGE_POS_SOLO
     ctx.comps.skill_badge.reload(skill=ctx.store.get_selected_skill(ctx.hero.core), delay=delay)
 
@@ -281,7 +283,9 @@ class ExploreBase(Context):
   def handle_pickup(ctx):
     if not ctx.hero:
       return False
-    return ctx.pickup_item(actor=ctx.hero)
+    success = ctx.pickup_item(actor=ctx.hero)
+    ctx.update_bubble()
+    return success
 
   def pickup_item(ctx, actor, itemdrop=None):
     if not actor or actor.item:

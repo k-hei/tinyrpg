@@ -265,8 +265,10 @@ class PauseContext(Context):
   def handle_choose(ctx):
     choice = ctx.choices[ctx.cursor_index]
     if choice == "item":
+      ctx.close()
       ctx.parent.open(InventoryContext(store=ctx.store))
     elif choice == "equip":
+      ctx.close()
       ctx.parent.open(CustomContext(store=ctx.store), on_close=lambda: (
         ctx.store.update_skills()
       ))

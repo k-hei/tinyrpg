@@ -231,7 +231,7 @@ class CombatContext(ExploreBase):
       return ctx.handle_shortcut()
 
     if input.CONTROL_CONFIRM in controls:
-      if not ctx.hero.item:
+      if not ctx.hero.item and tapping:
         acted = ctx.handle_action()
         if acted == False:
           ctx.buttons_rejected[button] = 0
@@ -674,7 +674,7 @@ class CombatContext(ExploreBase):
           force=True
         ),
         ctx.display_skill(skill, user=actor),
-        ctx.reload_skill_badge(delay=120),
+        actor.faction == "player" and ctx.reload_skill_badge(delay=120),
       ),
       on_end=lambda: (
         skill_command in ctx.command_queue and ctx.command_queue.remove(skill_command),
@@ -709,7 +709,7 @@ class CombatContext(ExploreBase):
     if skill.range_min > 1:
       ctx.handle_skill()
     else:
-      ctx.use_skill(hero, skill)
+      ctx.use_skill(hero, skill, on_end=ctx.step)
 
   def handle_wait(ctx):
     ctx.step()

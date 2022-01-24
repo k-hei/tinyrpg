@@ -45,7 +45,7 @@ class DungeonContext(ExploreBase):
     ctx.store = store
     ctx.stage = stage
     ctx.stage_view = StageView(stage)
-    ctx.graph = ctx.construct_graph()
+    ctx.graph = None
     ctx.memory = {}
     ctx.hero_cell = None
     ctx.hero_facing = None
@@ -74,6 +74,7 @@ class DungeonContext(ExploreBase):
       sp_meter=SpMeter(store=ctx.store),
       floor_no=FloorNo(parent=ctx),
     )
+    ctx.construct_graph()
     ctx.handle_explore()
 
   def find_floor_no(ctx):
@@ -86,10 +87,10 @@ class DungeonContext(ExploreBase):
     floor_names = [f.__name__ for f in FLOOR_SEQUENCE]
 
     if not ctx.stage: # or ctx.stage.generator not in floor_names:
-      return None
+      return
 
-    graph = FloorGraph()
-    graph.nodes.append(ctx.stage)
+    ctx.graph = ctx.graph or FloorGraph()
+    ctx.graph.nodes.append(ctx.stage)
 
     try:
       prev_floor = FLOOR_SEQUENCE[floor_names.index(ctx.stage.generator) - 1]
@@ -102,18 +103,16 @@ class DungeonContext(ExploreBase):
       next_floor = GenericFloor
 
     stage_entrance = ctx.stage.entrance or find_tile(ctx.stage, tileset.Entrance)
-    stage_entrance and prev_floor and graph.connect(
+    stage_entrance and prev_floor and ctx.graph.connect(
       ctx.stage, prev_floor,
       (ctx.stage.get_tile_at(stage_entrance), stage_entrance)
     )
 
     stage_exit = find_tile(ctx.stage, tileset.Exit)
-    stage_exit and next_floor and graph.connect(
+    stage_exit and next_floor and ctx.graph.connect(
       ctx.stage, next_floor,
       (ctx.stage.get_tile_at(stage_exit), stage_exit)
     )
-
-    return graph
 
   def refresh_fov(ctx, reset_cache=False):
     hero = ctx.hero
@@ -171,6 +170,7 @@ class DungeonContext(ExploreBase):
     ctx.construct_graph()
     ctx.child.stage = stage
     ctx.stage_view.stage = stage
+    ctx.stage_view.reset_cache()
     ctx.comps.minimap.sprite = None
     ctx.time = 0
     ctx.camera.reset()
@@ -377,7 +377,8 @@ class DungeonContext(ExploreBase):
     ctx.comps.floor_no.exit()
     ctx.comps.hud.enter()
     ctx.comps.sp_meter.enter()
-    ctx.reload_skill_badge()
+    if type(ctx.get_tail()) is CombatContext:
+      ctx.reload_skill_badge(delay=30)
 
   def update_hero_cell(ctx):
     if ctx.hero_cell == ctx.hero.cell:

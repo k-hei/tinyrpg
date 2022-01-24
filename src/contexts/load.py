@@ -23,7 +23,7 @@ class LoadContext(DataContext):
 
   def handle_press(ctx, button):
     if super().handle_press(button) != None:
-      return
+      return False
 
     if not ctx.can_close and not ctx.hidden and button == pygame.K_ESCAPE and keyboard.get_state(button) == 1:
       ctx.handle_controls()

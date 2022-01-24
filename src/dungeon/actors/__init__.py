@@ -32,6 +32,8 @@ from config import TILE_SIZE
 from contexts import Context
 from contexts.dialogue import DialogueContext
 
+import debug
+
 class DungeonActor(DungeonElement):
   POISON_DURATION = 5
   POISON_STRENGTH = 1 / 9

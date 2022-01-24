@@ -52,11 +52,11 @@ class Floor1(Floor):
                   name=(genie_name := "Joshin"),
                   message=lambda *_: not has_weapon(game) and [
                     (genie_name, "It doesn't look like you have a weapon on you."),
-                    (genie_name, "Why don't you try looking around some more?"),
+                    (genie_name, "Why don't you try looking around the previous room some more?"),
                     (genie_name, "There's bound to be something you can use around here somewhere..."),
                   ] or not has_weapon_equipped(game) and [
                     (genie_name, ("You'll need to ", Token(text="equip a weapon", color=GRAY), " before you can use it.")),
-                    (genie_name, ("Open ", Token(text="the EQUIP menu", color=BLUE), " with the START button (E).")),
+                    (genie_name, (Token("Get to a safe location", color=GRAY), ", then open ", Token(text="the EQUIP menu", color=BLUE), " via the START button.")),
                   ] or [
                     (genie_name, ("Did you know that ", Token(text="attacking from behind", color=RED), " deals extra damage?")),
                     (genie_name, "Try and land a sneak attack!"),

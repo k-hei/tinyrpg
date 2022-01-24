@@ -18,6 +18,7 @@ from skills.weapon import Weapon
 from debug import bench
 from game.data import GameData
 from transits.dissolve import DissolveOut
+import debug
 
 load_rooms()
 gamepad.config(preset=controls.TYPE_A)
@@ -48,7 +49,12 @@ class GameContext(Context):
     if savedata is None:
       savedata = ctx.savedata
 
+    if savedata is None:
+      debug.log("No save data to load!")
+      return
+
     floor = None
+    ctx.savedata = savedata
     ctx.store = GameData.decode(savedata)
     ctx.update_skills()
     ctx.store.controls and gamepad.config(preset=ctx.store.controls)

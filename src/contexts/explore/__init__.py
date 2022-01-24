@@ -166,6 +166,7 @@ class ExploreContext(ExploreBase):
     ), None)
     if prop:
       prop.effect(ctx, hero)
+      ctx.update_bubble()
       if ctx.child:
         hero.stop_move()
         ally and ally.stop_move()
@@ -426,6 +427,7 @@ class ExploreContext(ExploreBase):
       transits=(DissolveIn(), DissolveOut()),
       loader=Floor.generate(game.store),
       on_end=lambda stage: (
+        setattr(stage, "generator", Floor.__name__),
         game.parent.use_stage(stage),
         on_end and on_end()
       )
@@ -440,13 +442,14 @@ class ExploreContext(ExploreBase):
       transits=[DissolveIn(), DissolveOut()],
       loader=floor.generate(ctx.store),
       on_end=lambda stage: (
+        setattr(stage, "generator", floor.__name__),
         ctx.parent.graph.disconnect(ctx.stage, floor),
         ctx.parent.graph.connect(
           ctx.stage, stage,
           (ctx.stage.get_tile_at(ctx.hero.cell), ctx.hero.cell),
           (stairs, find_tile(stage, stairs)),
         ),
-        ctx.parent.use_stage(stage, stairs)
+        ctx.parent.use_stage(stage, stairs),
       )
     )
     return True

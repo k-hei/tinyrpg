@@ -58,6 +58,8 @@ class Miniskill(Component):
     ]
 
   def exit(comp, on_end=None):
+    if next((a for a in comp.anims if type(a) is BadgeEnterAnim and a.delay), None):
+      return comp.force_exit()
     comp.exiting = True
     comp.anims += [
       BadgeExitAnim(),

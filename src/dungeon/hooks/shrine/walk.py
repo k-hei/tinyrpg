@@ -27,6 +27,7 @@ def trigger_cutscene(room, game):
     return
   game.get_tail().open(CutsceneContext([
     lambda step: (
+      hero.stop_move(),
       game.anims.append([PauseAnim(duration=30, on_end=step)]),
       play_sequence(mage_struggle)
     ),
