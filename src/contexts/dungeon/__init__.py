@@ -13,6 +13,7 @@ from comps.damage import DamageValue
 from comps.hud import Hud
 from comps.minilog import Minilog
 from comps.minimap import Minimap
+from comps.miniskill import Miniskill as SkillBadge
 from comps.skillbanner import SkillBanner
 from comps.spmeter import SpMeter
 from comps.floorno import FloorNo
@@ -68,6 +69,7 @@ class DungeonContext(ExploreBase):
       hud=Hud(party=ctx.store.party, hp=True),
       minilog=Minilog(pos=(8, WINDOW_HEIGHT - 8 - Minilog.sprite.get_height() / 2)),
       minimap=Minimap(parent=ctx),
+      skill_badge=SkillBadge(ctx.store.get_selected_skill(ctx.hero.core)),
       skill_banner=SkillBanner(),
       sp_meter=SpMeter(store=ctx.store),
       floor_no=FloorNo(parent=ctx),
@@ -375,6 +377,7 @@ class DungeonContext(ExploreBase):
     ctx.comps.floor_no.exit()
     ctx.comps.hud.enter()
     ctx.comps.sp_meter.enter()
+    ctx.reload_skill_badge()
 
   def update_hero_cell(ctx):
     if ctx.hero_cell == ctx.hero.cell:

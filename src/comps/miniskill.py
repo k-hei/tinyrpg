@@ -32,43 +32,52 @@ class LabelEnterAnim(LabelAnim, TweenAnim): duration = 12
 class LabelExitAnim(LabelAnim, TweenAnim): duration = 6
 
 class Miniskill(Component):
-  def __init__(comp, skill=None, *args, **kwargs):
-    super().__init__(*args, **kwargs)
+  def __init__(comp, skill=None, pos=(0, 0), *args, **kwargs):
+    super().__init__(pos, *args, **kwargs)
     comp.skill = skill
     comp.anims = []
     comp.cached_badge = None
     comp.cached_label = None
+    comp.active = False
 
   def reload(comp, skill, delay=0):
     comp.skill = skill
-    if comp.exiting and not comp.anims:
-      comp.enter(delay=delay)
+    if comp.active:
+      comp.exit(on_end=lambda: comp.enter(delay=delay))
     else:
-      comp.exit()
+      comp.enter(delay=delay)
 
   def enter(comp, delay=0):
     comp.cached_badge = None
     comp.cached_label = None
     comp.active = True
     comp.exiting = False
-    comp.anims = [
+    comp.anims += [
       BadgeEnterAnim(easing=ease_out, delay=delay),
       LabelEnterAnim(easing=ease_out, delay=delay + BadgeEnterAnim.duration // 2),
     ]
 
   def exit(comp, on_end=None):
-    comp.active = False
     comp.exiting = True
-    comp.anims = [
+    comp.anims += [
       BadgeExitAnim(),
       LabelExitAnim(),
     ]
-    sorted(comp.anims, key=lambda a: a.duration + a.delay)[-1].on_end = on_end
+    sorted(comp.anims, key=lambda a: a.duration + a.delay)[-1].on_end = lambda: (
+      setattr(comp, "active", False),
+      on_end and on_end(),
+    )
+
+  def force_exit(comp):
+    comp.active = False
+    comp.anims = []
 
   def update(comp):
     comp.anims = [a for a in comp.anims if not a.done and [a.update()]]
 
   def view(comp):
+    if not comp.active:
+      return []
     sprites = Sprite.move_all((
       comp.view_badge()
       + comp.view_label()
@@ -79,6 +88,8 @@ class Miniskill(Component):
 
   def view_badge(comp):
     if not comp.cached_badge:
+      if not comp.skill:
+        return []
       comp.cached_badge = render_badge(skill=comp.skill)
     badge_image = comp.cached_badge
     badge_anim = next((a for a in comp.anims if isinstance(a, BadgeAnim)), None)
@@ -97,6 +108,8 @@ class Miniskill(Component):
 
   def view_label(comp):
     if not comp.cached_label:
+      if not comp.skill:
+        return []
       comp.cached_label = render_label(text=comp.skill.name)
     label_image = comp.cached_label
     label_anim = next((a for a in comp.anims if isinstance(a, LabelAnim)), None)

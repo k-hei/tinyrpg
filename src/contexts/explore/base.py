@@ -15,7 +15,7 @@ from dungeon.props.itemdrop import ItemDrop
 from tiles import Tile
 import tiles.default as tileset
 from vfx.talkbubble import TalkBubble
-from config import MOVE_DURATION, PUSH_DURATION
+from config import MOVE_DURATION, PUSH_DURATION, SKILL_BADGE_POS_SOLO, SKILL_BADGE_POS_ALLY
 
 COMMAND_MOVE = "move"
 COMMAND_MOVE_TO = "move_to"
@@ -151,6 +151,10 @@ class ExploreBase(Context):
       and not e.dead
       and room and e.cell in room.cells
     ]
+
+  def reload_skill_badge(ctx, delay=0):
+    ctx.comps.skill_badge.pos = SKILL_BADGE_POS_ALLY if ctx.ally else SKILL_BADGE_POS_SOLO
+    ctx.comps.skill_badge.reload(skill=ctx.store.get_selected_skill(ctx.hero.core), delay=delay)
 
   def move_cell(ctx, actor, delta, duration=0, jump=False, fixed=True, on_end=None):
     target_cell = vector.add(actor.cell, delta)

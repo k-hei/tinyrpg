@@ -3,8 +3,9 @@ from collections import Sequence
 from comps.hud import Hud
 from comps.minimap import Minimap
 from comps.minilog import Minilog
-from comps.spmeter import SpMeter
+from comps.miniskill import Miniskill as SkillBadge
 from comps.skillbanner import SkillBanner
+from comps.spmeter import SpMeter
 from comps.floorno import FloorNo
 
 @dataclass
@@ -12,6 +13,7 @@ class ComponentStore(Sequence):
   hud: Hud
   minimap: Minimap
   minilog: Minilog
+  skill_badge: SkillBadge
   skill_banner: SkillBanner
   sp_meter: SpMeter
   floor_no: FloorNo
@@ -21,6 +23,7 @@ class ComponentStore(Sequence):
       store.hud,
       store.minimap,
       store.minilog,
+      store.skill_badge,
       store.skill_banner,
       store.sp_meter,
       store.floor_no

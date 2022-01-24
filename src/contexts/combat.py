@@ -7,30 +7,6 @@ from helpers.combat import find_damage, will_miss, will_crit, will_block
 from resolve.skill import resolve_skill
 import debug
 
-def animate_snap(actor, anims, speed=2, on_end=None):
-  x, y = actor.pos
-  x += actor.scale / 2
-  y += actor.scale / 2
-  if x % actor.scale or y % actor.scale:
-    actor_cell = downscale(vector.add(
-      actor.pos,
-      vector.scale(actor.facing, TILE_SIZE / 2)
-    ), scale=actor.scale)
-    actor_dest = upscale(actor_cell, actor.scale)
-    actor.stop_move()
-    not anims and anims.append([])
-    anims[-1].append(MoveAnim(
-      target=actor,
-      src=actor.pos,
-      dest=actor_dest,
-      speed=speed,
-      on_end=on_end
-    ))
-    return vector.round(actor_cell)
-  else:
-    on_end and on_end()
-    return None
-
 from contexts.explore.base import (
   ExploreBase,
   COMMAND_MOVE, COMMAND_MOVE_TO, COMMAND_ATTACK, COMMAND_SKILL, COMMAND_WAIT
@@ -65,6 +41,30 @@ from config import (
   CRIT_MODIFIER,
   TILE_SIZE,
 )
+
+def animate_snap(actor, anims, speed=2, on_end=None):
+  x, y = actor.pos
+  x += actor.scale / 2
+  y += actor.scale / 2
+  if x % actor.scale or y % actor.scale:
+    actor_cell = downscale(vector.add(
+      actor.pos,
+      vector.scale(actor.facing, TILE_SIZE / 2)
+    ), scale=actor.scale)
+    actor_dest = upscale(actor_cell, actor.scale)
+    actor.stop_move()
+    not anims and anims.append([])
+    anims[-1].append(MoveAnim(
+      target=actor,
+      src=actor.pos,
+      dest=actor_dest,
+      speed=speed,
+      on_end=on_end
+    ))
+    return vector.round(actor_cell)
+  else:
+    on_end and on_end()
+    return None
 
 def find_damage_text(damage):
   if damage == 0:
@@ -186,6 +186,7 @@ class CombatContext(ExploreBase):
       )])
 
     ctx.exiting = True
+    ctx.comps.skill_badge.exit()
     ctx.comps.sp_meter.exit()
     ctx.comps.hud.exit(on_end=lambda: (
       ctx.hero.core.anims.clear(),
@@ -196,7 +197,11 @@ class CombatContext(ExploreBase):
   def open(ctx, child, on_close=None):
     if type(child) is PauseContext:
       return False
-    return super().open(child, on_close)
+    ctx.comps.skill_badge.exit()
+    return super().open(child, on_close=lambda *data: (
+      (type(child) is not SkillContext or data == (None,)) and ctx.reload_skill_badge(),
+      on_close and on_close(*data), # TODO: clean up skill context output signature
+    ))
 
   def handle_press(ctx, button):
     if ctx.child:
@@ -221,6 +226,9 @@ class CombatContext(ExploreBase):
 
     if input.CONTROL_WAIT in controls and tapping:
       return ctx.handle_wait()
+
+    if input.CONTROL_SHORTCUT in controls and tapping:
+      return ctx.handle_shortcut()
 
     if input.CONTROL_CONFIRM in controls:
       if not ctx.hero.item:
@@ -601,8 +609,12 @@ class CombatContext(ExploreBase):
       ctx.comps.hud.shake()
       return False
 
+    if ctx.comps.hud.anims:
+      return False
+
     ctx.store.switch_chars()
     ctx.parent.refresh_fov(reset_cache=True)
+    ctx.reload_skill_badge()
     ctx.camera.blur()
     ctx.camera.focus(target=[ctx.room, ctx.hero], force=True)
     return True
@@ -615,6 +627,7 @@ class CombatContext(ExploreBase):
   def handle_gameover(ctx):
     if type(ctx.child) is GameOverContext:
       return
+    ctx.comps.skill_badge.exit()
     ctx.comps.hud.exit()
     ctx.open(GameOverContext())
 
@@ -632,7 +645,7 @@ class CombatContext(ExploreBase):
       selected_skill=ctx.store.get_selected_skill(hero.core),
       on_close=lambda skill, dest: (
         skill and (
-          not issubclass(skill, Weapon) and ctx.store.set_selected_skill(hero, skill),
+          not issubclass(skill, Weapon) and ctx.store.set_selected_skill(hero.core, skill),
           ctx.use_skill(hero, skill, dest, on_end=ctx.step),
         )
       )
@@ -661,6 +674,7 @@ class CombatContext(ExploreBase):
           force=True
         ),
         ctx.display_skill(skill, user=actor),
+        ctx.reload_skill_badge(delay=120),
       ),
       on_end=lambda: (
         skill_command in ctx.command_queue and ctx.command_queue.remove(skill_command),
@@ -682,6 +696,20 @@ class CombatContext(ExploreBase):
       text=skill.name,
       color=resolve_color(user.faction),
     )
+
+  def handle_shortcut(ctx):
+    hero = ctx.hero
+    if not hero:
+      return False
+
+    skill = ctx.store.get_selected_skill(hero.core)
+    if not skill:
+      return False
+
+    if skill.range_min > 1:
+      ctx.handle_skill()
+    else:
+      ctx.use_skill(hero, skill)
 
   def handle_wait(ctx):
     ctx.step()

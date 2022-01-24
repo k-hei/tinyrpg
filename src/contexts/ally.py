@@ -167,6 +167,7 @@ class AllyContext(Context):
     game = ctx.parent
     ally = ctx.ally
     ctx.exit(on_end=lambda: (
+      game.comps.skill_badge.force_exit(),
       game.open(SkillContext(
         actor=ally,
         skills=ally.get_active_skills(),
@@ -174,6 +175,7 @@ class AllyContext(Context):
         on_close=lambda skill, dest: (
           skill and ally.charge(skill, dest),
           game.store.set_selected_skill(ally.core, skill),
+          game.reload_skill_badge(),
           game.camera.blur(),
         )
       ))
