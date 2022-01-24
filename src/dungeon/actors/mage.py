@@ -1,3 +1,4 @@
+import lib.vector as vector
 from dungeon.actors import DungeonActor
 from cores.mage import Mage as MageCore
 from helpers.mage import step_move
@@ -113,9 +114,10 @@ class Mage(DungeonActor):
     ) and not enemy.ailment == "freeze" and not abs(dist_x) + abs(dist_y) == 1:
       if mage.hp < mage.hp_max / 2:
         mage.charge(skill=Congelatio, dest=enemy.cell)
-      else:
+        game.comps.minilog.print((mage.token(), " is chanting."))
+      elif not next((e for e in game.stage.get_elems_at(vector.add(mage.cell, mage.facing)) if e.solid), None):
         mage.charge(skill=Glacio)
-      return game.comps.minilog.print((mage.token(), " is chanting."))
+        game.comps.minilog.print((mage.token(), " is chanting."))
 
     has_allies = next((e for c in game.room.get_cells() for e in game.stage.get_elems_at(c) if (
       e
