@@ -149,15 +149,11 @@ class Exit(DefaultExit):
   sprite = assets.sprites["stairs_down"]
 
 class Oasis(DefaultOasis):
-  elev = -1.0
-
   @classmethod
   def render(cls, stage, cell, visited_cells):
     return render_oasis(stage, cell, visited_cells)
 
 class OasisStairs(DefaultOasisStairs):
-  elev = -0.5
-
   @classmethod
   def render(cls, stage, cell, _):
     x, y = cell

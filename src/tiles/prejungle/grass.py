@@ -1,7 +1,7 @@
 from pygame.transform import flip, rotate
 import assets
 from tiles import Tile
-from tiles.default import Floor as DefaultFloor
+from tiles.default import Floor
 from tiles.prejungle.dirt import Dirt
 
 assets.sprites["prejungle_grass_edge_w"] = assets.sprites["prejungle_grass_edge"]
@@ -17,7 +17,7 @@ assets.sprites["prejungle_grass_incorner_ne"] = flip(assets.sprites["prejungle_g
 assets.sprites["prejungle_grass_incorner_sw"] = flip(assets.sprites["prejungle_grass_incorner"], False, True)
 assets.sprites["prejungle_grass_incorner_se"] = flip(assets.sprites["prejungle_grass_incorner"], True, True)
 
-class Grass(DefaultFloor):
+class Grass(Floor):
 
   @classmethod
   def render(cls, stage, cell, visited_cells):

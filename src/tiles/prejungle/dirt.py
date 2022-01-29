@@ -1,5 +1,5 @@
 import assets
-from tiles.default import Floor as DefaultFloor
+from tiles.default import Floor
 
-class Dirt(DefaultFloor):
+class Dirt(Floor):
   sprite = assets.sprites["prejungle_dirt"]

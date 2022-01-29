@@ -23,9 +23,9 @@ class Exit(Tile):
   pass
 
 class Oasis(Tile):
-  pass
+  elev = -1.0
 
 class OasisStairs(Tile):
-  pass
+  elev = -0.5
 
 mappings = {}

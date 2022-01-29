@@ -4,5 +4,13 @@
   "prejungle_grass_edge": [64, 0, 32, 32],
   "prejungle_grass_incorner": [96, 0, 32, 32],
   "prejungle_grass_corner": [128, 0, 32, 32],
-  "prejungle_grass": [160, 0, 32, 32]
+  "prejungle_grass": [160, 0, 32, 32],
+  "prejungle_pond_corner_nw": [0, 64, 32, 32],
+  "prejungle_pond_edge_n": [32, 64, 32, 32],
+  "prejungle_pond_lilypads": [64, 64, 32, 32],
+  "prejungle_pond": [96, 64, 32, 32],
+  "prejungle_pond_edge_w": [0, 96, 32, 32],
+  "prejungle_pond_corner_sw": [32, 96, 32, 32],
+  "prejungle_pond_edge_s": [64, 96, 32, 32],
+  "prejungle_pond_stairs": [96, 96, 32, 32]
 }
