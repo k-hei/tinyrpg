@@ -15,8 +15,8 @@ class Tile:
     return cell in visited_cells
 
   @staticmethod
-  def is_of_type(tile, *types):
-    return tile and issubclass(tile, types)
+  def is_of_type(tile, tile_type):
+    return tile and issubclass(tile, tile_type)
 
   @classmethod
   def render(cls, stage, cell, visited_cells):
