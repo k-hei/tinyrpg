@@ -4,9 +4,20 @@ from lib.sprite import Sprite
 from lib.filters import replace_color
 from colors.palette import BLACK, WHITE, COLOR_TILE
 
-from tiles import Tile
 from tiles.tomb.walltop import render_walltop
 from tiles.tomb.oasis import render_oasis
+from tiles.default import (
+  Floor as DefaultFloor,
+  Wall as DefaultWall,
+  Pit as DefaultPit,
+  Hallway as DefaultHallway,
+  Entrance as DefaultEntrance,
+  Exit as DefaultExit,
+  Escape as DefaultEscape,
+  Oasis as DefaultOasis,
+  OasisStairs as DefaultOasisStairs,
+)
+
 from dungeon.props.door import Door
 from dungeon.props.secretdoor import SecretDoor
 import assets
@@ -38,7 +49,7 @@ for tile_id in TILE_IDS:
 black_square = Surface((TILE_SIZE, TILE_SIZE))
 black_square.fill(BLACK)
 
-class Floor(Tile):
+class Floor(DefaultFloor):
   @staticmethod
   def find_state(stage, cell, *_):
     x, y = cell
@@ -47,7 +58,8 @@ class Floor(Tile):
       stage.get_tile_at((x, y - 1)),
     ]
 
-  def sprite(stage, cell, *_):
+  @classmethod
+  def render(cls, stage, cell, *_):
     x, y = cell
     if (issubclass(stage.get_tile_at((x, y - 1)), Pit)
     and next((e for e in stage.elems if e.cell[1] < y), None)):
@@ -59,10 +71,7 @@ class Floor(Tile):
     else:
       return assets.sprites["tomb_floor"]
 
-class Wall(Tile):
-  solid = True
-  opaque = True
-
+class Wall(DefaultWall):
   @staticmethod
   def find_state(stage, cell, visited_cells):
     x, y = cell
@@ -82,7 +91,8 @@ class Wall(Tile):
       (x + 1, y + 1) in visited_cells,
     ]
 
-  def sprite(stage, cell, visited_cells=None):
+  @classmethod
+  def render(cls, stage, cell, visited_cells=None):
     x, y = cell
     tile_below = stage.get_tile_at((x, y + 1))
     tile_base = stage.get_tile_at((x, y + 2))
@@ -109,9 +119,7 @@ class Wall(Tile):
     else:
       return render_walltop(stage, cell, visited_cells)
 
-class Pit(Tile):
-  pit = True
-
+class Pit(DefaultPit):
   @staticmethod
   def find_state(stage, cell, visited_cells):
     x, y = cell
@@ -121,34 +129,37 @@ class Pit(Tile):
       (x, y - 1) in visited_cells,
     ]
 
-  def sprite(stage, cell, visited_cells=None):
+  @classmethod
+  def render(cls, stage, cell, visited_cells=None):
     if stage.get_tile_at(vector.add(cell, (0, -1))) is not Pit:
       return assets.sprites["tomb_pit"]
     else:
       return black_square
 
-class Hallway(Tile):
+class Hallway(DefaultHallway):
   sprite = black_square
 
-class Entrance(Tile):
+class Entrance(DefaultEntrance):
   sprite = assets.sprites["stairs_up"]
 
-class Escape(Entrance):
+class Escape(DefaultEscape):
   sprite = assets.sprites["stairs_up"]
 
-class Exit(Tile):
+class Exit(DefaultExit):
   sprite = assets.sprites["stairs_down"]
 
-class Oasis(Tile):
+class Oasis(DefaultOasis):
   elev = -1.0
 
-  def sprite(stage, cell, visited_cells):
+  @classmethod
+  def render(cls, stage, cell, visited_cells):
     return render_oasis(stage, cell, visited_cells)
 
-class OasisStairs(Tile):
+class OasisStairs(DefaultOasisStairs):
   elev = -0.5
 
-  def sprite(stage, cell, _):
+  @classmethod
+  def render(cls, stage, cell, _):
     x, y = cell
     if issubclass(stage.get_tile_at((x, y - 1)), Floor):
       return assets.sprites["oasis_stairs_down"]

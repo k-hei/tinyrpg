@@ -19,14 +19,7 @@ def find_tile_state(stage, cell, visited_cells):
 
 def render_tile(stage, cell, visited_cells=[]):
   tile = stage.get_tile_at(cell)
-  if tile is None:
-    return None
-
-  tile_image = tile.sprite
-  if callable(tile_image):
-    tile_image = tile_image(stage, cell, visited_cells)
-
-  return tile_image
+  return tile.render(stage, cell, visited_cells) if tile else None
 
 def snap_vector(vector, tile_size):
   return tuple(map(lambda x: x // tile_size, vector))

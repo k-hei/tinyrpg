@@ -1,1 +1,31 @@
-from tiles.tomb import *
+from tiles import Tile
+
+class Floor(Tile):
+  pass
+
+class Wall(Tile):
+  solid = True
+  opaque = True
+
+class Pit(Tile):
+  pit = True
+
+class Hallway(Tile):
+  pass
+
+class Entrance(Tile):
+  pass
+
+class Escape(Entrance):
+  pass
+
+class Exit(Tile):
+  pass
+
+class Oasis(Tile):
+  pass
+
+class OasisStairs(Tile):
+  pass
+
+mappings = {}

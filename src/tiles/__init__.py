@@ -14,11 +14,16 @@ class Tile:
   def find_state(stage, cell, visited_cells):
     return cell in visited_cells
 
+  @staticmethod
+  def is_of_type(tile, *types):
+    return tile and issubclass(tile, types)
+
+  @classmethod
+  def render(cls, stage, cell, visited_cells):
+    return cls.sprite
+
   def is_solid(tile):
     return not tile or tile.solid
 
   def is_walkable(tile):
     return tile and not tile.solid and not tile.pit
-
-  def render(tile): # TODO: extend this instead of sprite func
-    return tile.sprite

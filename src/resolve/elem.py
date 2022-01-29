@@ -29,7 +29,7 @@ from dungeon.actors.npc import Npc
 from dungeon.actors.skeleton import Skeleton
 from dungeon.actors.eyeball import Eyeball
 from dungeon.actors.beetle import Beetle
-from dungeon.actors.mage import Mage
+from dungeon.actors.mage import LeapAnim
 from dungeon.actors.mimic import Mimic
 from dungeon.actors.knight import Knight
 from dungeon.actors.mushroom import Mushroom
@@ -68,7 +68,7 @@ def resolve_elem(key):
   if key == "Skeleton": return Skeleton
   if key == "Eyeball": return Eyeball
   if key == "Beetle": return Beetle
-  if key == "Mage": return Mage
+  if key == "LeapAnim": return LeapAnim
   if key == "Mimic": return Mimic
   if key == "Knight": return Knight
   if key == "Mushroom": return Mushroom

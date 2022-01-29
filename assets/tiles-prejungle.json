@@ -1,0 +1,8 @@
+{
+  "prejungle_dirt": [0, 0, 32, 32],
+  "prejungle_dirt_cracked": [32, 0, 32, 32],
+  "prejungle_grass_edge": [64, 0, 32, 32],
+  "prejungle_grass_corner_inner": [96, 0, 32, 32],
+  "prejungle_grass_corner": [128, 0, 32, 32],
+  "prejungle_grass": [160, 0, 32, 32]
+}
