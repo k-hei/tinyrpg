@@ -60,6 +60,9 @@ class Stage:
   def set_tile_at(stage, cell, tile):
     return stage.tiles.set(*cell, tile)
 
+  def is_tile_at_of_type(stage, cell, tile_type):
+    return Tile.is_of_type(stage.get_tile_at(cell), tile_type)
+
   def get_elem_at(stage, cell):
     return None
 

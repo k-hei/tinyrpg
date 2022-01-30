@@ -25,6 +25,7 @@ from dungeon.props.palm import Palm
 from dungeon.data import DungeonData
 from helpers.actor import manifest_actor
 from helpers.stage import find_tile
+from locations.default.tile import Tile
 import locations.default.tileset as tileset
 from anims.pause import PauseAnim
 from anims.step import StepAnim
@@ -396,7 +397,7 @@ class DungeonContext(ExploreBase):
       new_door = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if isinstance(e, Door) and e.opened), None)
       new_tile = ctx.stage.get_tile_at(ctx.hero.cell)
 
-      if issubclass(new_tile, tileset.Hallway) and (new_door or old_door) and not (new_door and old_door):
+      if Tile.is_of_type(new_tile, tileset.Hallway) and (new_door or old_door) and not (new_door and old_door):
         ctx.handle_hallway()
         is_travelling = True
         step_anim = next((a for g in ctx.anims for a in g if a.target is ctx.hero and isinstance(a, StepAnim)), None)
@@ -407,7 +408,7 @@ class DungeonContext(ExploreBase):
       ctx.refresh_fov()
 
     if ctx.hero_cell:
-      if issubclass(new_tile, tileset.Oasis):
+      if Tile.is_of_type(new_tile, tileset.Oasis):
         ctx.handle_oasis()
 
       if ctx.find_enemies_in_range() and isinstance(ctx.get_tail(), (ExploreContext, CombatContext)):

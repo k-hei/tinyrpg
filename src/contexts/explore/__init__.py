@@ -282,14 +282,14 @@ class ExploreContext(ExploreBase):
     if delta_x < 0:
       if not is_walkable(tile_nw) or not is_walkable(tile_sw):
         rect.left = (col_w + 1) * stage.tile_size
-        if row_n == row_s and issubclass(tile_nw, tileset.Pit):
+        if row_n == row_s and Tile.is_of_type(tile_nw, tileset.Pit):
           collidee = tile_nw
       elif elem:
         rect.left = elem_rect.right
     elif delta_x > 0:
       if not is_walkable(tile_ne) or not is_walkable(tile_se):
         rect.right = col_e * stage.tile_size
-        if row_n == row_s and issubclass(tile_se, tileset.Pit):
+        if row_n == row_s and Tile.is_of_type(tile_se, tileset.Pit):
           collidee = tile_se
       elif elem:
         rect.right = elem_rect.left
@@ -297,14 +297,14 @@ class ExploreContext(ExploreBase):
     if delta_y < 0:
       if not is_walkable(tile_nw) or not is_walkable(tile_ne):
         rect.top = (row_n + 1) * stage.tile_size
-        if col_w == col_e and issubclass(tile_nw, tileset.Pit):
+        if col_w == col_e and Tile.is_of_type(tile_nw, tileset.Pit):
           collidee = tile_nw
       elif elem:
         rect.top = elem_rect.bottom
     elif delta_y > 0:
       if not is_walkable(tile_sw) or not is_walkable(tile_se):
         rect.bottom = row_s * stage.tile_size
-        if col_w == col_e and issubclass(tile_se, tileset.Pit):
+        if col_w == col_e and Tile.is_of_type(tile_se, tileset.Pit):
           collidee = tile_se
       elif elem:
         rect.bottom = elem_rect.top
