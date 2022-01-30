@@ -5,12 +5,15 @@ import re
 def collect_imports(path, prefix="", exclude=[], root=False):
   imports = {}
   pattern = re.compile("class (\w+)\(\w+")
-  prefix = [prefix] if prefix else []
+  if not prefix:
+    prefix = []
+  elif type(prefix) is str:
+    prefix = [prefix]
   for item in listdir(join(path, *prefix)):
     if item[:2] == "__" or item in exclude: continue
     item_path = join(path, *prefix, item)
     if not isfile(item_path):
-      for key, val in collect_imports(path=path, prefix=join(*prefix, item)).items():
+      for key, val in collect_imports(path=path, prefix=[*prefix, item], exclude=exclude).items():
         imports[key] = val
     elif prefix or root:
       name, _ = splitext(item)
@@ -172,7 +175,10 @@ if __name__ == "__main__":
   build_items(items=collect_imports("src/items"))
   build_skills(skills=collect_imports("src/skills"))
   build_chars(chars=collect_imports("src/cores", root=True))
-  build_elems(elems=collect_imports("src/dungeon", exclude=["features", "floors", "gen"]))
+  build_elems(elems={
+    **collect_imports("src/dungeon", exclude=["features", "floors", "gen"]),
+    **collect_imports("src/locations", exclude=["default", "tiles"]),
+  })
   build_tilesets(path="src/locations")
   build_floors(floors=collect_imports("src/dungeon", prefix="floors"))
   build_hooks(path="src/dungeon/hooks")
