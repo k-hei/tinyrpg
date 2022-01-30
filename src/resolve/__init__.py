@@ -58,7 +58,8 @@ def collect_tilesets(path):
       hook_key, _ = splitext(f)
     else:
       hook_key = f
-    tilesets.append(hook_key)
+    if "tiles" in listdir(hook_path):
+      tilesets.append(hook_key)
   return tilesets
 
 def build_tilesets(path):
@@ -67,7 +68,7 @@ def build_tilesets(path):
   body_buffer = "\ndef resolve_tileset(key):\n"
 
   for key in tilesets:
-    imports_buffer += f"import tiles.{key} as {key}_tileset\n"
+    imports_buffer += f"import locations.{key}.tiles as {key}_tileset\n"
     body_buffer += f"  if key == \"{key}\": return {key}_tileset\n"
 
   output_file = open("src/resolve/tileset.py", "w")
@@ -172,7 +173,7 @@ if __name__ == "__main__":
   build_skills(skills=collect_imports("src/skills"))
   build_chars(chars=collect_imports("src/cores", root=True))
   build_elems(elems=collect_imports("src/dungeon", exclude=["features", "floors", "gen"]))
-  build_tilesets(path="src/tiles")
+  build_tilesets(path="src/locations")
   build_floors(floors=collect_imports("src/dungeon", prefix="floors"))
   build_hooks(path="src/dungeon/hooks")
   build_materials(

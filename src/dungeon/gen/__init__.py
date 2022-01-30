@@ -8,8 +8,7 @@ from lib.graph import Graph
 from debug import bench, log
 from config import FPS
 
-from contexts.explore.stage import Stage
-import tiles.default as tileset
+import locations.default.tileset as tileset
 from dungeon.floors import Floor
 from dungeon.room import Blob as Room
 from contexts.explore.roomdata import load_rooms

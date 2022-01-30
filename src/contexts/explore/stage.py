@@ -1,6 +1,6 @@
 from pygame import Rect
 from config import TILE_SIZE
-from tiles import Tile
+from locations.default.tile import Tile
 from dungeon.actors import DungeonActor
 
 # TODO: relocate pathfinding logic

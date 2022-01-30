@@ -1,8 +1,8 @@
 from pygame.transform import flip, rotate
 import assets
-from tiles import Tile
-from tiles.default import Oasis, OasisStairs
-from tiles.prejungle.grass import Grass
+from locations.default.tile import Tile
+from locations.default.tileset import Oasis, OasisStairs
+from locations.prejungle.tiles.grass import Grass
 
 assets.sprites["prejungle_pond_corner_ne"] = flip(assets.sprites["prejungle_pond_corner_nw"], True, False)
 assets.sprites["prejungle_pond_corner_se"] = flip(assets.sprites["prejungle_pond_corner_sw"], True, False)
@@ -41,7 +41,10 @@ class Pond(Oasis):
     if Tile.is_of_type(stage.get_tile_at((x, y + 1)), Grass):
       return assets.sprites["prejungle_pond_edge_s"]
 
-    return assets.sprites["prejungle_pond"]
+    if (x + y) % 3:
+      return assets.sprites["prejungle_pond"]
+    else:
+      return assets.sprites["prejungle_pond_lilypads"]
 
 class PondStairs(OasisStairs):
   sprite = assets.sprites["prejungle_pond_stairs"]

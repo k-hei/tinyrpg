@@ -4,7 +4,7 @@ import assets
 from lib.cell import neighborhood
 from dungeon.props.door import Door
 from dungeon.props.secretdoor import SecretDoor
-import tiles.default as tileset
+import locations.default.tileset as tileset
 from colors.palette import BLACK
 from config import TILE_SIZE
 

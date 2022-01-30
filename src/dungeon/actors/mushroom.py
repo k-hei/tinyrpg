@@ -7,7 +7,7 @@ from skills.weapon.tackle import Tackle
 from items.materials.redferrule import RedFerrule
 import assets
 from lib.sprite import Sprite
-import tiles.default as tileset
+import locations.default.tileset as tileset
 
 from anims.step import StepAnim
 from anims.attack import AttackAnim

@@ -13,8 +13,8 @@ from anims.jump import JumpAnim
 from items.materials import MaterialItem
 from dungeon.actors import DungeonActor
 from dungeon.props.itemdrop import ItemDrop
-from tiles import Tile
-import tiles.default as tileset
+from locations.default.tile import Tile
+import locations.default.tileset as tileset
 from vfx.talkbubble import TalkBubble
 from config import MOVE_DURATION, PUSH_DURATION, SKILL_BADGE_POS_SOLO, SKILL_BADGE_POS_ALLY
 

@@ -1,10 +1,9 @@
 from math import ceil
 import pygame
-from pygame import Surface, Rect, PixelArray, SRCALPHA
+from pygame import Surface, Rect, PixelArray
 from pygame.transform import scale
 from dungeon.stage import Stage
 from dungeon.actors import DungeonActor
-from dungeon.actors.mimic import Mimic
 from dungeon.actors.npc import Npc
 from dungeon.props.chest import Chest
 from dungeon.props.rarechest import RareChest
@@ -14,10 +13,8 @@ from dungeon.props.itemdrop import ItemDrop
 from dungeon.props.soul import Soul
 from dungeon.props.door import Door
 from dungeon.props.secretdoor import SecretDoor
-from dungeon.props.pillar import Pillar
-from dungeon.props.table import Table
 from dungeon.props.altar import Altar
-import tiles.default as tileset
+import locations.default.tileset as tileset
 from colors.palette import GREEN, DARKGREEN, VIOLET, DARKVIOLET
 from anims.tween import TweenAnim
 from anims.warpin import WarpInAnim

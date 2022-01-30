@@ -1,4 +1,4 @@
-from tiles import Tile
+from locations.default.tile import Tile
 
 class Floor(Tile):
   pass

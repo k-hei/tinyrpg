@@ -1,8 +1,8 @@
 from pygame.transform import flip, rotate
 import assets
-from tiles import Tile
-from tiles.default import Floor
-from tiles.prejungle.dirt import Dirt
+from locations.default.tile import Tile
+from locations.default.tileset import Floor
+from locations.prejungle.tiles.dirt import Dirt
 
 assets.sprites["prejungle_grass_edge_w"] = assets.sprites["prejungle_grass_edge"]
 assets.sprites["prejungle_grass_edge_e"] = flip(assets.sprites["prejungle_grass_edge"], True, False)

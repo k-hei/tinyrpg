@@ -18,8 +18,8 @@ from dungeon.props.itemdrop import ItemDrop
 from anims.attack import AttackAnim
 from anims.jump import JumpAnim
 from anims.pause import PauseAnim
-from tiles import Tile
-import tiles.default as tileset
+from locations.default.tile import Tile
+import locations.default.tileset as tileset
 from resolve.floor import resolve_floor
 from transits.dissolve import DissolveIn, DissolveOut
 from config import (

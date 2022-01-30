@@ -5,7 +5,7 @@ import lib.vector as vector
 from contexts.explore.stage import Stage
 from contexts.explore.roomdata import RoomData
 from dungeon.room import Blob as Room
-import tiles.tomb as tileset
+import locations.tomb.tiles as tileset
 from dungeon.decoder import decode_elem
 from helpers.stage import find_tile
 

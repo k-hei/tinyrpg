@@ -4,9 +4,9 @@ from lib.sprite import Sprite
 from lib.filters import replace_color
 from colors.palette import BLACK, WHITE, COLOR_TILE
 
-from tiles.tomb.walltop import render_walltop
-from tiles.tomb.oasis import render_oasis
-from tiles.default import (
+from locations.tomb.tiles.walltop import render_walltop
+from locations.tomb.tiles.oasis import render_oasis
+from locations.default.tileset import (
   Floor as DefaultFloor,
   Wall as DefaultWall,
   Pit as DefaultPit,

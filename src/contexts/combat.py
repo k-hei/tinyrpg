@@ -1,7 +1,6 @@
-from random import random, randint
 import lib.vector as vector
 import lib.input as input
-from lib.direction import invert as invert_direction, normal as normalize_direction
+from lib.direction import invert as invert_direction
 from lib.cell import neighborhood, manhattan, is_adjacent, upscale, downscale
 from helpers.combat import find_damage, will_miss, will_crit, will_block
 from resolve.skill import resolve_skill
@@ -23,8 +22,8 @@ from dungeon.props.door import Door
 from dungeon.props.soul import Soul
 from dungeon.props.itemdrop import ItemDrop
 from skills.weapon import Weapon
-from tiles import Tile
-import tiles.default as tileset
+from locations.default.tile import Tile
+import locations.default.tileset as tileset
 from anims.move import MoveAnim
 from anims.step import StepAnim
 from anims.path import PathAnim
@@ -37,7 +36,7 @@ from anims.flicker import FlickerAnim
 from vfx.flash import FlashVfx
 from colors.palette import RED, GREEN, BLUE, GOLD, PURPLE, CYAN
 from config import (
-  FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION, PUSH_DURATION, SIDESTEP_DURATION, SIDESTEP_AMPLITUDE,
+  FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION, SIDESTEP_DURATION, SIDESTEP_AMPLITUDE,
   CRIT_MODIFIER,
   TILE_SIZE,
 )

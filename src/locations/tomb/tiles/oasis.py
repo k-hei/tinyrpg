@@ -1,7 +1,7 @@
 from pygame import Surface
 from pygame.transform import flip
 import assets
-import tiles.default as tileset
+import locations.default.tileset as tileset
 from config import TILE_SIZE
 from colors.palette import BLACK
 

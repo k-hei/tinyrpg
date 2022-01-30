@@ -25,7 +25,7 @@ from dungeon.props.palm import Palm
 from dungeon.data import DungeonData
 from helpers.actor import manifest_actor
 from helpers.stage import find_tile
-import tiles.default as tileset
+import locations.default.tileset as tileset
 from anims.pause import PauseAnim
 from anims.step import StepAnim
 from anims.warpin import WarpInAnim
