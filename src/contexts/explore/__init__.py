@@ -544,7 +544,7 @@ def view_elem_hitbox(elem, camera):
   circle_surface = Surface(CIRCLE_SIZE, SRCALPHA)
   pygame.draw.circle(circle_surface, YELLOW, (CIRCLE_RADIUS, CIRCLE_RADIUS), CIRCLE_RADIUS)
   circle_view = [Sprite(
-    image=origin_circle,
+    image=circle_surface,
     pos=elem.pos,
     origin=Sprite.ORIGIN_CENTER,
   )]

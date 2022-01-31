@@ -15,7 +15,9 @@
     [[1, 7], "PrejungleRockXL"],
     [[6, 1], "PrejungleRockXL"],
     [[2, 2], "PrejungleBush"],
-    [[8, 3], "PrejungleBush"]
+    [[8, 3], "PrejungleBush"],
+    [[10, 2], "PrejungleRedTree"],
+    [[5, 7], "PrejungleRedTree"]
   ],
   "edges": [
     [3, 3]
