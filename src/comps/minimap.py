@@ -77,7 +77,7 @@ class Minimap:
     surface.set_colorkey(COLOR_KEY)
     pixels = PixelArray(surface)
 
-    focus_x, focus_y = focus
+    focus_x, focus_y = focus or (floor_width // 2, floor_height // 2)
     window_left = int(focus_x - sprite_width / 2)
     window_top = int(focus_y - sprite_height / 2)
     window_right = window_left + sprite_width

@@ -6,6 +6,7 @@ from colors.palette import BLACK, WHITE, COLOR_TILE
 
 from locations.tomb.tiles.walltop import render_walltop
 from locations.tomb.tiles.oasis import render_oasis
+from locations.default.tile import Tile
 from locations.default.tileset import (
   Floor as DefaultFloor,
   Wall as DefaultWall,
@@ -100,7 +101,7 @@ class Wall(DefaultWall):
     is_special_room = False
 
     if (
-      tile_below in (Floor, Pit, Hallway, Oasis)
+      Tile.is_of_type(tile_below, (Floor, Pit, DefaultHallway, Oasis))
       and (visited_cells is None or (x, y + 1) in visited_cells)
       and not next((e for e in stage.get_elems_at((x, y + 1)) if isinstance(e, Door)), None)
     ):

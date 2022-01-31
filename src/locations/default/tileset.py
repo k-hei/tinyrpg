@@ -1,4 +1,10 @@
+from pygame import Surface
 from locations.default.tile import Tile
+from colors.palette import BLACK
+from config import TILE_SIZE
+
+black_square = Surface((TILE_SIZE, TILE_SIZE))
+black_square.fill(BLACK)
 
 class Floor(Tile):
   pass
@@ -11,7 +17,7 @@ class Pit(Tile):
   pit = True
 
 class Hallway(Tile):
-  pass
+  sprite = black_square
 
 class Entrance(Tile):
   pass

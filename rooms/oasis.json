@@ -1,5 +1,6 @@
 [
   {
+    "bg": ["tileset", "tomb"],
     "tiles": [
       "#.....#",
       "#.....#",
@@ -28,6 +29,7 @@
     }
   },
   {
+    "bg": ["tileset", "tomb"],
     "tiles": [
       "..OOOO..",
       "..OOOO..",

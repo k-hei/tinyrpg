@@ -33,12 +33,13 @@ def manifest_rooms(rooms, dry=False, seed=None):
         tile = room.get_tile_at(vector.subtract(cell, room.origin))
       else:
         tile = tileset.Floor
-      stage_tiles.set(*vector.add(cell, stage_offset), tile)
+      stage.set_tile_at(vector.add(cell, stage_offset), tile)
 
     if not dry:
       room.origin = vector.add(room.origin, stage_offset)
       room.data and spawn_elems(stage, elem_data=room.data.elems, offset=room.origin)
 
+  print(stage.size)
   return stage, stage_offset
 
 def manifest_room(room):

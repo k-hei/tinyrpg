@@ -235,7 +235,7 @@ class StageView:
     if type(elem) is SecretDoor and elem.hidden:
       tileset = resolve_tileset(view.stage.bg)
       return [Sprite(
-        image=tileset.Wall.sprite(view.stage, elem.cell, visited_cells),
+        image=tileset.Wall.render(view.stage, elem.cell, visited_cells),
         pos=tuple([x * view.stage.tile_size for x in elem.cell]),
         layer="tiles"
       )]

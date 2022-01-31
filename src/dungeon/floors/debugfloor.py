@@ -16,7 +16,7 @@ class DebugFloor(Floor):
       features=Graph(
         nodes=[
           entry_room := Room(data=RoomData(**rooms["entry"])),
-          oasis_room := Room(data=RoomData(**choice(rooms["oasis"]))),
+          # oasis_room := Room(data=RoomData(**choice(rooms["oasis"]))),
         ]
       ),
       extra_room_count=1,

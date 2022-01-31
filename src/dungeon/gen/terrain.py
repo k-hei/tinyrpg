@@ -2,7 +2,7 @@ from math import sqrt
 from random import randint, choice
 from lib.cell import neighborhood
 from dungeon.props.pillar import Pillar
-import locations.default.tileset as tileset
+import locations.tomb.tiles as tileset
 
 def gen_terrain(stage, room, tree=None):
   # carve out all cells in room except for one cell
