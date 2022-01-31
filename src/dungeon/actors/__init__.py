@@ -297,9 +297,11 @@ class DungeonActor(DungeonElement):
     actor.ailment = ailment
     return True
 
-  def step_status(actor, game):
+  def step_aggro(actor):
     if actor.aggro and not actor.ailment == "freeze":
       actor.aggro += 1
+
+  def step_status(actor, game):
     actor.ailment_turns -= 1
     if actor.ailment == "poison":
       damage = int(actor.get_hp_max() * DungeonActor.POISON_STRENGTH)

@@ -840,6 +840,7 @@ class CombatContext(ExploreBase):
         if actor.charge_turns == 1 and ctx.command_queue:
           yield None
 
+        actor.step_aggro()
         command = actor.step_charge()
 
         while not command:
