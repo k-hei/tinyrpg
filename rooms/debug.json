@@ -17,7 +17,9 @@
     [[2, 2], "PrejungleBush"],
     [[8, 3], "PrejungleBush"],
     [[10, 2], "PrejungleRedTree"],
-    [[5, 7], "PrejungleRedTree"],
+    [[5, 6], "PrejungleRedTree"],
+    [[0, 1], "PrejungleBerryTree"],
+    [[6, 4], "PrejungleBerryTree"],
     [[8, 4], "PrejungleBug"]
   ],
   "edges": [
