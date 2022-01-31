@@ -1,5 +1,6 @@
-from pygame import Surface, SRCALPHA
+from pygame import Surface, Rect, SRCALPHA
 from pygame.transform import flip
+import lib.vector as vector
 from lib.sprite import Sprite
 import assets
 from dungeon.element import DungeonElement as Element
@@ -14,6 +15,18 @@ tree_surface.blit(assets.sprites["prejungle_berrytree_base"], (32, 64))
 assets.sprites["prejungle_berrytree"] = tree_surface
 
 class PrejungleBerryTree(Element):
+  solid = True
+  static = True
+
+  @property
+  def rect(tree):
+    if tree._rect is None and tree.pos:
+      tree._rect = Rect(
+        vector.subtract(tree.pos, (8, 0)),
+        (16, 16)
+      )
+    return tree._rect
+
   def view(tree, *args, **kwargs):
     return super().view([Sprite(
       image=assets.sprites["prejungle_berrytree"],

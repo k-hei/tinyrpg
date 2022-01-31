@@ -113,10 +113,10 @@ class CombatContext(ExploreBase):
     ally_brandish = ctx.ally and create_brandish(ctx.ally)
 
     if ctx.should_path:
-      # hero_cell = animate_snap(ctx.hero, anims=ctx.anims, speed=walk_speed)
-      # if hero_cell:
-      #   actor_cells[ctx.hero] = hero_cell
-      actor_cells[ctx.hero] = vector.round(ctx.hero.cell)
+      hero_cell = animate_snap(ctx.hero, anims=ctx.anims, speed=walk_speed)
+      if hero_cell:
+        actor_cells[ctx.hero] = hero_cell
+      # actor_cells[ctx.hero] = vector.round(ctx.hero.cell)
 
       if ctx.ally:
         ally_cell = animate_snap(ctx.ally, anims=ctx.anims, speed=walk_speed)
