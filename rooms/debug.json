@@ -34,7 +34,8 @@
     [[7, 3], "PrejungleGrass"],
     [[5, 1], "PrejungleGrass"],
     [[4, 0], "PrejungleGrass"],
-    [[8, 4], "PrejungleBug"]
+    [[8, 4], "PrejungleBug"],
+    [[10, 1], "PrejungleMosquito"]
   ],
   "edges": [
     [3, 3]
