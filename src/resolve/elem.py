@@ -35,6 +35,7 @@ from dungeon.actors.knight import Knight
 from dungeon.actors.mushroom import Mushroom
 from dungeon.actors.guard import GuardActor
 from dungeon.actors.ghost import Ghost
+from locations.prejungle.elems.bug import PrejungleBug
 from locations.prejungle.elems.bush import PrejungleBush
 from locations.prejungle.elems.redtree import PrejungleRedTree
 from locations.prejungle.elems.rock import PrejungleRockXL
@@ -77,6 +78,7 @@ def resolve_elem(key):
   if key == "Mushroom": return Mushroom
   if key == "GuardActor": return GuardActor
   if key == "Ghost": return Ghost
+  if key == "PrejungleBug": return PrejungleBug
   if key == "PrejungleBush": return PrejungleBush
   if key == "PrejungleRedTree": return PrejungleRedTree
   if key == "PrejungleRockXL": return PrejungleRockXL

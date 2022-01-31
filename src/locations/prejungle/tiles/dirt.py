@@ -2,4 +2,11 @@ import assets
 from locations.default.tileset import Floor
 
 class Dirt(Floor):
-  sprite = assets.sprites["prejungle_dirt"]
+
+  @classmethod
+  def render(cls, stage, cell, visited_cells):
+    x, y = cell
+    if (x + y) % 5:
+      return assets.sprites["prejungle_dirt"]
+    else:
+      return assets.sprites["prejungle_dirt_cracked"]
