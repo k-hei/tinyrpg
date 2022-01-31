@@ -15,7 +15,7 @@
     [[1, 7], "PrejungleRockXL"],
     [[6, 1], "PrejungleRockXL"],
     [[2, 2], "PrejungleBush"],
-    [[8, 3], "PrejungleBush"],
+    [[10, 3], "PrejungleBush"],
     [[10, 2], "PrejungleRedTree"],
     [[5, 6], "PrejungleRedTree"],
     [[0, 1], "PrejungleBerryTree"],
@@ -34,6 +34,8 @@
     [[7, 3], "PrejungleGrass"],
     [[5, 1], "PrejungleGrass"],
     [[4, 0], "PrejungleGrass"],
+    [[8, 3], "PrejungleTree"],
+    [[3, 8], "PrejungleTree"],
     [[8, 4], "PrejungleBug"],
     [[10, 1], "PrejungleMosquito"]
   ],
