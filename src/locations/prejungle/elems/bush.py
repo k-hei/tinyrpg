@@ -1,5 +1,3 @@
-from pygame import Rect
-import lib.vector as vector
 from lib.sprite import Sprite
 import assets
 from dungeon.element import DungeonElement as Element

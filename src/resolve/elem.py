@@ -38,6 +38,7 @@ from dungeon.actors.ghost import Ghost
 from locations.prejungle.elems.bug import PrejungleBug
 from locations.prejungle.elems.bush import PrejungleBush
 from locations.prejungle.elems.berrytree import PrejungleBerryTree
+from locations.prejungle.elems.grass import PrejungleGrass
 from locations.prejungle.elems.redtree import PrejungleRedTree
 from locations.prejungle.elems.rock import PrejungleRockXL
 
@@ -82,5 +83,6 @@ def resolve_elem(key):
   if key == "PrejungleBug": return PrejungleBug
   if key == "PrejungleBush": return PrejungleBush
   if key == "PrejungleBerryTree": return PrejungleBerryTree
+  if key == "PrejungleGrass": return PrejungleGrass
   if key == "PrejungleRedTree": return PrejungleRedTree
   if key == "PrejungleRockXL": return PrejungleRockXL
