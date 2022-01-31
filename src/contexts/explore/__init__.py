@@ -536,19 +536,21 @@ def view_elem_hitbox(elem, camera):
 
   hitbox_surface = Surface(elem.rect.size, flags=SRCALPHA)
   hitbox_surface.fill(BLUE)
+  hitbox_view = [Sprite(
+    image=hitbox_surface,
+    pos=elem.rect.topleft,
+  )] if elem.solid else []
 
-  origin_circle = Surface(CIRCLE_SIZE, SRCALPHA)
-  pygame.draw.circle(origin_circle, YELLOW, (CIRCLE_RADIUS, CIRCLE_RADIUS), CIRCLE_RADIUS)
+  circle_surface = Surface(CIRCLE_SIZE, SRCALPHA)
+  pygame.draw.circle(circle_surface, YELLOW, (CIRCLE_RADIUS, CIRCLE_RADIUS), CIRCLE_RADIUS)
+  circle_view = [Sprite(
+    image=origin_circle,
+    pos=elem.pos,
+    origin=Sprite.ORIGIN_CENTER,
+  )]
 
   return Sprite.move_all(
-    sprites=[Sprite(
-      image=hitbox_surface,
-      pos=elem.rect.topleft,
-    ), Sprite(
-      image=origin_circle,
-      pos=elem.pos,
-      origin=Sprite.ORIGIN_CENTER,
-    )],
+    sprites=[*hitbox_view, *circle_view],
     offset=vector.add(
       vector.scale(camera.size, 0.5),
       vector.negate(camera.pos)

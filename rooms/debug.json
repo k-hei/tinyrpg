@@ -13,7 +13,9 @@
   ],
   "elems": [
     [[1, 7], "PrejungleRockXL"],
-    [[6, 1], "PrejungleRockXL"]
+    [[6, 1], "PrejungleRockXL"],
+    [[2, 2], "PrejungleBush"],
+    [[8, 3], "PrejungleBush"]
   ],
   "edges": [
     [3, 3]
