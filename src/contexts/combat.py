@@ -272,6 +272,7 @@ class CombatContext(ExploreBase):
 
     def on_move():
       ctx.update_bubble()
+      ctx.make_noise(hero.cell, 0.5)
 
     hero.facing = delta
     moved = ctx.move_cell(hero, delta, on_end=on_move)

@@ -20,6 +20,7 @@ from comps.spmeter import SpMeter
 from comps.floorno import FloorNo
 from dungeon.fov import shadowcast
 from dungeon.room import Blob as Room
+from dungeon.actors import DungeonActor
 from dungeon.props.door import Door
 from dungeon.props.palm import Palm
 from dungeon.data import DungeonData
