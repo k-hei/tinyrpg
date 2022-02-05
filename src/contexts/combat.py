@@ -440,6 +440,7 @@ class CombatContext(ExploreBase):
 
     connect = lambda: (
       target.alert(cell=actor.cell),
+      ctx.make_noise(actor.cell, noise_factor=1.5),
       ctx.flinch(
         target=target,
         damage=damage,
