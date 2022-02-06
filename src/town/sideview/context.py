@@ -79,10 +79,12 @@ class SideViewContext(Context):
   def handle_move(ctx, delta):
     hero, *allies = ctx.party
 
-    old_hero_pos = hero.pos
-    old_hero_x, old_hero_y = old_hero_pos
+    # adjust origin position to increase collision sensitivity
+    old_hero_pos = vector.add(hero.pos, (0, -8))
 
     hero.move((delta, 0))
+    hero.pos = vector.add(hero.pos, (0, 1)) # for downward slopes
+
     for i, ally in enumerate(allies):
       ally.follow(ctx.party[i])
 
@@ -94,7 +96,6 @@ class SideViewContext(Context):
         if ctx.use_link(link):
           break
 
-    hero_y += 1
     if hero_x < 0 and hero.facing == (-1, 0):
       hero.pos = (0, hero_y)
     elif hero_x > ctx.area.width and hero.facing == (1, 0):
@@ -103,9 +104,10 @@ class SideViewContext(Context):
     hero_line = (old_hero_pos, hero.pos)
     line, intersection = next(((line, intersection) for line in ctx.area.geometry if (intersection := find_lines_intersection(line, hero_line))), (None, None))
     if intersection:
-      projection = hero.pos[0] - intersection[0]
+      hproj, vproj = vector.subtract(hero.pos, intersection)
       slope = find_slope(line)
-      hero.pos = vector.add(hero.pos, (0, -projection * slope))
+      hero.pos = vector.add(hero.pos, (0, -vproj - hproj * slope))
+      return True
 
     return True
 
