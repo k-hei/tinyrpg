@@ -1,6 +1,7 @@
 from random import randint
 from copy import copy
 from math import sqrt
+from dataclasses import dataclass
 from pygame import Surface, Rect
 from lib.sprite import Sprite
 from lib.cell import is_adjacent, add as add_vector, manhattan, upscale
@@ -28,11 +29,15 @@ from comps.hpbubble import HpBubble
 from vfx.icepiece import IcePieceVfx
 import config
 from config import TILE_SIZE
-
 from contexts import Context
 from contexts.dialogue import DialogueContext
-
 import debug
+
+@dataclass
+class ActorStatus:
+  st = 1
+  en = 1
+  ag = 1
 
 class DungeonActor(DungeonElement):
   POISON_DURATION = 5
