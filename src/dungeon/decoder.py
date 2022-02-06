@@ -1,8 +1,6 @@
 from dungeon.stage import Stage
 from dungeon.decor import Decor
 from dungeon.features.room import Room
-from dungeon.features.specialroom import SpecialRoom
-from dungeon.features.vertroom import VerticalRoom
 from resolve.elem import resolve_elem
 from resolve.item import resolve_item
 from resolve.skill import resolve_skill
@@ -33,15 +31,10 @@ def decode_floor(floor_data):
   for (x, y, *size), room_kind, *room_props in floor_data["rooms"]:
     room_props = room_props[0] if room_props else {}
     RoomType = resolve_elem(room_kind) or Room
-    is_special = (isinstance(RoomType, SpecialRoom)
-      or isinstance(RoomType, (SpecialRoom, VerticalRoom)))
     try:
-      if is_special:
-        floor.rooms.append(RoomType(cell=(x, y), placed=True, **room_props))
-      else:
-        floor.rooms.append(RoomType(size=size, cell=(x, y), placed=True, **room_props))
+      floor.rooms.append(RoomType(size=size, cell=(x, y), placed=True, **room_props))
     except:
-      debug.log("WARNING: Failed to resolve {} {} is_special_room:{}".format(room_kind, room_props, is_special))
+      debug.log(f"WARNING: Failed to resolve {room_kind} {room_props}")
       raise
 
   for elem_cell, elem_name, *elem_props in floor_data["elems"]:

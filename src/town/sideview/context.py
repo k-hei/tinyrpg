@@ -35,11 +35,13 @@ def find_nearby_npc(hero, actors):
   return next((a for a in actors if can_talk(hero, a)), None)
 
 def find_nearby_link(hero, links, graph=None):
-  hero_x, _ = hero.pos
   for link in links.values():
-    dist_x = link.x - hero_x
+    dist_x, dist_y = vector.subtract((link.x, link.y), hero.pos)
     _, direction_y = link.direction
-    if abs(dist_x) < TILE_SIZE // 2 and direction_y and not (graph and graph.tail(head=link) is None):
+    if (abs(dist_x) < TILE_SIZE // 2
+    and abs(dist_y) < TILE_SIZE // 2
+    and direction_y
+    and (not graph or graph.tail(head=link) is not None)):
       return link
 
 ARROW_Y = Area.ACTOR_Y + 40

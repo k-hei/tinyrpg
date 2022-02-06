@@ -6,8 +6,9 @@ from config import WINDOW_WIDTH
 
 @dataclass
 class AreaLink:
-  x: int
   direction: tuple[int, int]
+  x: int
+  y: int = 0
 
 @dataclass
 class AreaBgLayer:
