@@ -1,7 +1,8 @@
 from math import sin, pi
-import pygame
 from lib.direction import invert as invert_direction
+import lib.vector as vector
 import lib.input as input
+from lib.line import find_lines_intersection, find_slope
 
 from contexts import Context
 from contexts.dialogue import DialogueContext
@@ -77,19 +78,35 @@ class SideViewContext(Context):
 
   def handle_move(ctx, delta):
     hero, *allies = ctx.party
+
+    old_hero_pos = hero.pos
+    old_hero_x, old_hero_y = old_hero_pos
+
     hero.move((delta, 0))
     for i, ally in enumerate(allies):
       ally.follow(ctx.party[i])
+
     hero_x, hero_y = hero.pos
-    for link_name, link in ctx.area.links.items():
+
+    for _, link in ctx.area.links.items():
       if (link.direction == (-1, 0) and hero.facing == (-1, 0) and hero_x <= link.x
       or link.direction == (1, 0) and hero.facing == (1, 0) and hero_x >= link.x):
         if ctx.use_link(link):
           break
+
+    hero_y += 1
     if hero_x < 0 and hero.facing == (-1, 0):
       hero.pos = (0, hero_y)
     elif hero_x > ctx.area.width and hero.facing == (1, 0):
       hero.pos = (ctx.area.width, hero_y)
+
+    hero_line = (old_hero_pos, hero.pos)
+    line, intersection = next(((line, intersection) for line in ctx.area.geometry if (intersection := find_lines_intersection(line, hero_line))), (None, None))
+    if intersection:
+      projection = hero.pos[0] - intersection[0]
+      slope = find_slope(line)
+      hero.pos = vector.add(hero.pos, (0, -projection * slope))
+
     return True
 
   def handle_zmove(ctx, delta):

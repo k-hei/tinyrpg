@@ -1,5 +1,6 @@
 import assets
 from lib.sprite import Sprite
+from lib.line import connect_lines
 from town.sideview.stage import Area, AreaBgLayer
 
 class AkimorCentralArea(Area):
@@ -13,3 +14,6 @@ class AkimorCentralArea(Area):
     AreaBgLayer(sprite=Sprite(image=assets.sprites["akimor_central_decors_front"], layer="fg")),
   ]
   links = {}
+  geometry = [
+    *connect_lines([(0, 0), (608, 0), (608 + 64, -32), (608 + 64 + 160, -32)])
+  ]
