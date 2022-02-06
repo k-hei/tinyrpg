@@ -1,15 +1,18 @@
-from math import sin, pi
 from dataclasses import dataclass
-from assets import load as use_assets
-from lib.filters import stroke, replace_color, darken_image
-from colors.palette import BLACK, WHITE, GRAY, BLUE
-from config import TILE_SIZE, WINDOW_WIDTH
+from lib.filters import darken_image
 from lib.sprite import Sprite
+import assets
+from config import WINDOW_WIDTH
 
 @dataclass
 class AreaLink:
   x: int
   direction: tuple[int, int]
+
+class AreaBgLayer:
+  sprite: Sprite
+  layer: str
+  scaling: tuple[float, float] = (1, 1)
 
 class Area:
   ACTOR_Y = 136
@@ -39,15 +42,15 @@ class Area:
 
   def view(area, hero, link):
     sprites = []
-    assets = use_assets().sprites
-    bg_image = assets[area.bg]
     hero_x, _ = hero.pos
-    area.width = bg_image.get_width()
+    area_bgs = area.bg if type(area.bg) is list else [area.bg]
+    bg_images = [assets.sprites[bg_id] for bg_id in area_bgs]
+    area.width = max([bg_image.get_width() for bg_image in bg_images])
     area.camera = min(0, max(-area.width + WINDOW_WIDTH, -hero_x + WINDOW_WIDTH / 2))
-    sprites.append(Sprite(
+    sprites += [Sprite(
       image=bg_image,
-      pos=(area.camera, 0)
-    ))
+      pos=(area.camera, -24)
+    ) for bg_image in bg_images]
     if link:
       link_name = next((link_name for link_name, l in area.links.items() if l is link), None)
     else:
@@ -70,13 +73,13 @@ class Area:
       link_pos = (link.x + area.camera, 96)
       sprites += [
         Sprite(
-          image=assets["door_open"],
+          image=assets.sprites["door_open"],
           pos=link_pos,
           origin=("center", "top"),
           layer="tiles"
         ),
         Sprite(
-          image=assets["roof"],
+          image=assets.sprites["roof"],
           pos=link_pos,
           origin=("center", "bottom"),
           layer="fg"

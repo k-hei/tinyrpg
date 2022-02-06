@@ -2,15 +2,6 @@ from town.sideview.stage import Area, AreaLink
 from town.sideview.actor import Actor
 from cores.mage import Mage
 
-from assets import load as use_assets
-from config import TILE_SIZE, WINDOW_WIDTH
-from lib.sprite import Sprite
-
-from contexts.prompt import PromptContext, Choice
-from contexts.nameentry import NameEntryContext
-from contexts.load import LoadContext
-from contexts.save import SaveContext
-
 class CentralArea(Area):
   name = "Town Square"
   bg = "town_central"

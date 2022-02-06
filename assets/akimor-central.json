@@ -1,0 +1,8 @@
+{
+  "akimor_central_sky":          [   0,   0, 1264, 448],
+  "akimor_central_mountains":    [1264,   0, 1264, 448],
+  "akimor_central_cliffs":       [2528,   0, 1264, 448],
+  "akimor_central_buildings":    [   0, 448, 1264, 448],
+  "akimor_central_decors_rear":  [1264, 448, 1264, 448],
+  "akimor_central_decors_front": [2528, 448, 1264, 448]
+}

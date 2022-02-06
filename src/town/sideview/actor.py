@@ -136,8 +136,7 @@ class Actor:
   def view(actor):
     actor_sprites = actor.core.view()
     actor_sprite = actor_sprites[0]
-    actor_sprite.image = outline(actor_sprite.image, WHITE)
-    _, actor_y = actor.pos
+    # actor_sprite.image = outline(actor_sprite.image, WHITE)
     actor_sprite.move(actor.pos)
     actor_sprite.origin = ("center", "center")
     return actor_sprites
