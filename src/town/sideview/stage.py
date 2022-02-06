@@ -44,22 +44,15 @@ class Area:
     sprites = []
     hero_x, _ = hero.pos
 
-    if type(area.bg) is list:
-      area.width = max([layer.sprite.image.get_width() for layer in area.bg])
-      area.camera = min(0, max(-area.width + WINDOW_WIDTH, -hero_x + WINDOW_WIDTH / 2))
-      sprites += [Sprite.move_all(
-        sprites=[layer.sprite.copy()],
-        offset=(area.camera * layer.scaling[0], -24)
-      )[0] for layer in area.bg]
-    else:
-      area_bgs = [area.bg]
-      bg_images = [assets.sprites[bg_id] for bg_id in area_bgs]
-      area.width = max([bg_image.get_width() for bg_image in bg_images])
-      area.camera = min(0, max(-area.width + WINDOW_WIDTH, -hero_x + WINDOW_WIDTH / 2))
-      sprites += [Sprite(
-        image=bg_image,
-        pos=(area.camera, -24)
-      ) for bg_image in bg_images]
+    area_bg_layers = [
+      Sprite(image=assets.sprites[area.bg], layer="bg")
+    ] if type(area.bg) is str else area.bg
+    area.width = max([layer.sprite.image.get_width() for layer in area_bg_layers])
+    area.camera = min(0, max(-area.width + WINDOW_WIDTH, -hero_x + WINDOW_WIDTH / 2))
+    sprites += [Sprite.move_all(
+      sprites=[layer.sprite.copy()],
+      offset=(area.camera * layer.scaling[0], -24)
+    )[0] for layer in area.bg]
 
     if link:
       link_name = next((link_name for link_name, l in area.links.items() if l is link), None)
