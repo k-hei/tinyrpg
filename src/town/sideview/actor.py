@@ -1,5 +1,4 @@
-from lib.filters import outline, darken_image
-from colors.palette import WHITE
+from lib.sprite import Sprite
 from anims.walk import WalkAnim
 from config import TILE_SIZE
 
@@ -9,6 +8,7 @@ class Actor:
   YSPEED_SOUTH = 0.75
   MOVE_DURATION = 20
   INDOORS_HORIZON = -18
+  scale = 1
 
   def __init__(actor, core, color=None, facing=None):
     actor.pos = None
@@ -136,7 +136,7 @@ class Actor:
   def view(actor):
     actor_sprites = actor.core.view()
     actor_sprite = actor_sprites[0]
-    # actor_sprite.image = outline(actor_sprite.image, WHITE)
     actor_sprite.move(actor.pos)
-    actor_sprite.origin = ("center", "center")
+    actor_sprite.origin = Sprite.ORIGIN_CENTER
+    actor_sprite.layer = "elems"
     return actor_sprites

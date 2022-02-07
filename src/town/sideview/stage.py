@@ -1,8 +1,10 @@
 from dataclasses import dataclass
+import lib.vector as vector
 from lib.filters import darken_image
 from lib.sprite import Sprite
 import assets
-from config import WINDOW_WIDTH
+from contexts.dungeon.camera import Camera
+from config import WINDOW_WIDTH, WINDOW_SIZE
 
 @dataclass
 class AreaLink:
@@ -28,7 +30,7 @@ class Area:
 
   def __init__(area):
     area.actors = []
-    area.camera = None
+    area.camera = Camera(size=WINDOW_SIZE, offset=(0, -32))
     area.draws = 0
 
   def init(area, ctx):
@@ -41,40 +43,53 @@ class Area:
     actor.pos = (x, y)
     area.actors.append(actor)
 
+  def update(area):
+    area.camera.update()
+
   def view(area, hero, link):
     sprites = []
     hero_x, _ = hero.pos
+
+    if not area.camera.target:
+      area.camera.focus(hero)
 
     area_bg_layers = [
       Sprite(image=assets.sprites[area.bg], layer="bg")
     ] if type(area.bg) is str else area.bg
     area.width = max([layer.sprite.image.get_width() for layer in area_bg_layers])
-    area.camera = min(0, max(-area.width + WINDOW_WIDTH, -hero_x + WINDOW_WIDTH / 2))
-    sprites += [Sprite.move_all(
+    bg_sprites = [Sprite.move_all(
       sprites=[layer.sprite.copy()],
-      offset=(area.camera * layer.scaling[0], -24)
+      offset=(
+        (-area.camera.pos[0] + area.camera.size[0] / 2) * layer.scaling[0],
+        -area.camera.pos[1] - (52 if layer.scaling == (1, 1) else 64) # TODO: build these into akimor - per-layer sprite offsets?
+      )
     )[0] for layer in area.bg]
+    sprites += bg_sprites
 
     if link:
       link_name = next((link_name for link_name, l in area.links.items() if l is link), None)
     else:
       link_name = None
-    for actor in sorted(area.actors, key=lambda actor: 1 if actor is hero else 0):
+
+    area_actors = sorted(area.actors, key=lambda actor: 1 if actor is hero else 0)
+    for actor in area_actors:
       try:
         actor_sprites = actor.view()
       except:
         actor_sprites = []
         raise
+
       for sprite in actor_sprites:
-        y = Area.ACTOR_Y
-        sprite.move((area.camera, y))
         sprite.target = actor
         _, sprite_y = sprite.pos
         if actor is hero and link_name and link_name.startswith("door") and sprite_y < Area.DOOR_Y:
           sprite.image = darken_image(sprite.image)
-        sprites.append(sprite)
+
+      sprites += actor_sprites
+
+    # TODO: refactor magic clause
     if link_name and link_name.startswith("door"):
-      link_pos = (link.x + area.camera, 96)
+      link_pos = (link.x, 96)
       sprites += [
         Sprite(
           image=assets.sprites["door_open"],
@@ -89,5 +104,10 @@ class Area:
           layer="fg"
         )
       ]
+
+    for sprite in sprites:
+      if sprite not in bg_sprites:
+        sprite.move(vector.negate(area.camera.rect.topleft))
+
     sprites.sort(key=lambda sprite: sprite.depth(["bg", "tiles", "elems", "fg", "markers"]))
     return sprites

@@ -244,8 +244,12 @@ class SideViewContext(Context):
 
   def update(ctx):
     super().update()
+
+    ctx.area.update()
+
     for actor in ctx.area.actors:
       actor.update()
+
     hero, *allies = ctx.party
     for anim in ctx.anims:
       if type(anim) is FollowAnim:
@@ -258,6 +262,9 @@ class SideViewContext(Context):
     else:
       if link := ctx.link:
         hero_x, hero_y = hero.pos
+        # TODO: stageview/areaview with camera instance
+        # if tail area == current area, move to tail target pos
+        # otherwise use default linear/4-way transition behavior
         if link.direction == (-1, 0) or link.direction == (1, 0):
           for actor in ctx.party:
             actor.move(link.direction)
@@ -306,7 +313,7 @@ class SideViewContext(Context):
       arrow_y = ARROW_Y + sin(ctx.time % ARROW_PERIOD / ARROW_PERIOD * 2 * pi) * ARROW_BOUNCE
       sprites += [Sprite(
         image=arrow_image,
-        pos=(link.x + ctx.area.camera, arrow_y),
+        pos=vector.add(ctx.area.camera.pos, (link.x, arrow_y)),
         origin=("center", "center"),
         layer="markers"
       )]

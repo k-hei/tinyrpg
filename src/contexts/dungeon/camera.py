@@ -40,7 +40,6 @@ class Camera:
     if target:
       target_x, target_y = target
     else:
-      # print("use room focus", (focus_x, focus_y))
       return (focus_x, focus_y)
 
     max_xradius = (ceil(room.width / 2) - Camera.MAX_XRADIUS) * scale
@@ -64,20 +63,26 @@ class Camera:
 
     return (focus_x, focus_y)
 
-  def __init__(camera, size, pos=None):
+  def __init__(camera, size, pos=None, offset=None):
     camera.size = size
     camera.pos = pos or None
+    camera.offset = offset or None
     camera.vel = (0, 0)
     camera.target_groups = []
     camera.anim = None
 
   @property
   def pos(camera):
-    return camera._pos
+    return (vector.add(camera._pos, camera.offset)
+      if camera._pos and camera.offset
+      else camera._pos)
 
   @pos.setter
   def pos(camera, pos):
     camera._pos = pos
+    # (vector.subtract(pos, camera.offset)
+    #   if pos and camera.offset
+    #   else pos)
     camera._rect = None
 
   @property
@@ -131,7 +136,7 @@ class Camera:
     goal_pos = Camera.resolve_target_group(camera.target_groups[-1])
 
     if not start_pos:
-      camera.pos = goal_pos
+      camera.pos = vector.add(goal_pos, camera.offset)
       return
 
     duration = duration or int(vector.distance(start_pos, goal_pos) / 4)
@@ -165,6 +170,10 @@ class Camera:
       return
 
     target_pos = Camera.resolve_target_group(camera.target_groups[-1])
-    target_vel = vector.scale(vector.subtract(target_pos, camera.pos), 1 / Camera.SPEED * 8)
+    target_vel = vector.scale(vector.subtract(target_pos, vector.subtract(camera.pos, camera.offset)), 1 / Camera.SPEED * 8)
     camera.vel = vector.scale(vector.subtract(target_vel, camera.vel), 1 / 8)
-    camera.pos = vector.add(camera.pos, camera.vel)
+    camera.pos = vector.add(camera.pos, camera.vel, vector.negate(camera.offset))
+
+    # constraints (TODO: right constraint - use rect or new constraint construct?)
+    if camera.pos[0] < camera.size[0] / 2:
+      camera.pos = (camera.size[0] / 2, camera.pos[1] - camera.offset[1])
