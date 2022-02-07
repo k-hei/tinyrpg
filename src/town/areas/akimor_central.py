@@ -7,12 +7,36 @@ class AkimorCentralArea(Area):
   name = "Akimor"
 
   bg = [
-    AreaBgLayer(sprite=Sprite(image=assets.sprites["akimor_central_sky"], layer="bg"), scaling=(0.5, 1)),
-    AreaBgLayer(sprite=Sprite(image=assets.sprites["akimor_central_mountains"], layer="bg"), scaling=(0.75, 1)),
-    AreaBgLayer(sprite=Sprite(image=assets.sprites["akimor_central_cliffs"], layer="bg")),
-    AreaBgLayer(sprite=Sprite(image=assets.sprites["akimor_central_buildings"], layer="bg")),
-    AreaBgLayer(sprite=Sprite(image=assets.sprites["akimor_central_decors_rear"], layer="bg")),
-    AreaBgLayer(sprite=Sprite(image=assets.sprites["akimor_central_decors_front"], layer="fg")),
+    AreaBgLayer(sprite=Sprite(
+      image=assets.sprites["akimor_central_sky"],
+      layer="bg",
+      pos=(0, -64),
+    ), scaling=(0.5, 1)),
+    AreaBgLayer(sprite=Sprite(
+      image=assets.sprites["akimor_central_mountains"],
+      layer="bg",
+      pos=(0, -64),
+    ), scaling=(0.75, 1)),
+    AreaBgLayer(sprite=Sprite(
+      image=assets.sprites["akimor_central_cliffs"],
+      layer="bg",
+      pos=(0, -52),
+    )),
+    AreaBgLayer(sprite=Sprite(
+      image=assets.sprites["akimor_central_buildings"],
+      layer="bg",
+      pos=(0, -52),
+    )),
+    AreaBgLayer(sprite=Sprite(
+      image=assets.sprites["akimor_central_decors_rear"],
+      layer="bg",
+      pos=(0, -52),
+    )),
+    AreaBgLayer(sprite=Sprite(
+      image=assets.sprites["akimor_central_decors_front"],
+      layer="fg",
+      pos=(0, -52),
+    )),
   ]
 
   links = {

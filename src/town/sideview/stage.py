@@ -61,7 +61,7 @@ class Area:
       sprites=[layer.sprite.copy()],
       offset=(
         (-area.camera.pos[0] + area.camera.size[0] / 2) * layer.scaling[0],
-        -area.camera.pos[1] - (52 if layer.scaling == (1, 1) else 64) # TODO: build these into akimor - per-layer sprite offsets?
+        -area.camera.pos[1]
       )
     )[0] for layer in area.bg]
     sprites += bg_sprites
