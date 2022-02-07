@@ -18,9 +18,9 @@ class AreaBgLayer:
   scaling: tuple[float, float] = (1, 1)
 
 class Area:
-  ACTOR_Y = 136
-  NPC_Y = 120
-  DOOR_Y = 116
+  ACTOR_Y = 0
+  NPC_Y = ACTOR_Y - 16
+  DOOR_Y = ACTOR_Y - 20
   HORIZON_NORTH = -40
   TRANSIT_NORTH = -20
   HORIZON_SOUTH = 60
@@ -109,5 +109,6 @@ class Area:
       if sprite not in bg_sprites:
         sprite.move(vector.negate(area.camera.rect.topleft))
 
-    sprites.sort(key=lambda sprite: sprite.depth(["bg", "tiles", "elems", "fg", "markers"]))
+    LAYER_SEQUENCE = ["bg", "tiles", "elems", "fg", "markers"]
+    sprites.sort(key=lambda sprite: sprite.depth(LAYER_SEQUENCE))
     return sprites

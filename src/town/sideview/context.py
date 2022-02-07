@@ -299,11 +299,13 @@ class SideViewContext(Context):
     interrupt = ctx.link or ctx.anims or (ctx.child
       and not isinstance(ctx.child, InventoryContext)
     )
+
     if interrupt:
       if ctx.hud.active:
         ctx.hud.exit()
     elif not ctx.hud.active:
       ctx.hud.enter()
+
     if not interrupt and (link := ctx.nearby_link):
       arrow_image = (link.direction == (0, -1)
         and assets.sprites["link_north"]
@@ -313,8 +315,8 @@ class SideViewContext(Context):
       arrow_y = ARROW_Y + sin(ctx.time % ARROW_PERIOD / ARROW_PERIOD * 2 * pi) * ARROW_BOUNCE
       sprites += [Sprite(
         image=arrow_image,
-        pos=vector.add(ctx.area.camera.pos, (link.x, arrow_y)),
-        origin=("center", "center"),
+        pos=vector.subtract((link.x, arrow_y), ctx.area.camera.rect.topleft),
+        origin=Sprite.ORIGIN_CENTER,
         layer="markers"
       )]
     elif not interrupt and (npc := ctx.nearby_npc):
