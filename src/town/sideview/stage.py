@@ -71,8 +71,7 @@ class Area:
     else:
       link_name = None
 
-    area_actors = sorted(area.actors, key=lambda actor: 1 if actor is hero else 0)
-    for actor in area_actors:
+    for actor in area.actors:
       try:
         actor_sprites = actor.view()
       except:

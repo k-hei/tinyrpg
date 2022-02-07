@@ -242,6 +242,11 @@ class SideViewContext(Context):
     ctx.anims.append(FollowAnim(target=actor))
     ctx.nearby_npc = None
 
+  def update_interactives(ctx):
+    hero = ctx.party[0]
+    ctx.nearby_link = find_nearby_link(hero, ctx.area.links, graph=ctx.get_graph())
+    ctx.nearby_npc = find_nearby_npc(hero, ctx.area.actors) if ctx.nearby_link is None else None
+
   def update(ctx):
     super().update()
 
@@ -262,31 +267,34 @@ class SideViewContext(Context):
     else:
       if link := ctx.link:
         hero_x, hero_y = hero.pos
-        # TODO: stageview/areaview with camera instance
-        # if tail area == current area, move to tail target pos
-        # otherwise use default linear/4-way transition behavior
         if link.direction == (-1, 0) or link.direction == (1, 0):
           for actor in ctx.party:
             actor.move(link.direction)
         else:
-          if hero_x != link.x:
-            hero.move_to((link.x, hero_y))
+          graph = ctx.get_graph()
+          tail_link = graph and graph.tail(head=link)
+          if tail_link and next((l for _, l in ctx.area.links.items() if l == tail_link), None):
+            if hero.move_to(dest=(tail_link.x, tail_link.y), free=True):
+              ctx.link = None
+              ctx.update_interactives()
           else:
-            if link.direction == (0, -1):
-              TARGET_HORIZON = Area.HORIZON_NORTH
-              EVENT_HORIZON = Area.TRANSIT_NORTH
-            elif link.direction == (0, 1):
-              TARGET_HORIZON = Area.HORIZON_SOUTH
-              EVENT_HORIZON = Area.TRANSIT_SOUTH
-            if hero_y != TARGET_HORIZON:
-              hero.move_to((link.x, TARGET_HORIZON))
-            if abs(hero_y) >= abs(EVENT_HORIZON) and not ctx.get_head().transits:
-              ctx.follow_link(ctx.link)
+            if hero_x != link.x:
+              hero.move_to((link.x, hero_y))
+            else:
+              if link.direction == (0, -1):
+                TARGET_HORIZON = Area.HORIZON_NORTH
+                EVENT_HORIZON = Area.TRANSIT_NORTH
+              elif link.direction == (0, 1):
+                TARGET_HORIZON = Area.HORIZON_SOUTH
+                EVENT_HORIZON = Area.TRANSIT_SOUTH
+              if hero_y != TARGET_HORIZON:
+                hero.move_to((link.x, TARGET_HORIZON))
+              if abs(hero_y) >= abs(EVENT_HORIZON) and not ctx.get_head().transits:
+                ctx.follow_link(ctx.link)
           for ally in allies:
             ally.follow(hero)
       elif not ctx.child:
-        ctx.nearby_link = find_nearby_link(hero, ctx.area.links, ctx.get_graph())
-        ctx.nearby_npc = find_nearby_npc(hero, ctx.area.actors) if ctx.nearby_link is None else None
+        ctx.update_interactives()
 
     ctx.hud.update(force=True)
     ctx.time += 1
@@ -312,7 +320,9 @@ class SideViewContext(Context):
         or assets.sprites["link_south"]
       )
       arrow_image = replace_color(arrow_image, BLACK, BLUE)
-      arrow_y = ARROW_Y + sin(ctx.time % ARROW_PERIOD / ARROW_PERIOD * 2 * pi) * ARROW_BOUNCE
+      arrow_y = (ARROW_Y
+        + link.y
+        + sin(ctx.time % ARROW_PERIOD / ARROW_PERIOD * 2 * pi) * ARROW_BOUNCE)
       sprites += [Sprite(
         image=arrow_image,
         pos=vector.subtract((link.x, arrow_y), ctx.area.camera.rect.topleft),
