@@ -24,6 +24,7 @@ class TownContext(Context):
         (AkimorCentralArea.links["market"], MarketArea.links["entrance"]),
         (AkimorCentralArea.links["fortune_house"], FortuneArea.links["entrance"]),
         (AkimorCentralArea.links["right"], OutskirtsArea.links["left"]),
+        (OutskirtsArea.links["tower"], DungeonContext),
       ]
     )
 

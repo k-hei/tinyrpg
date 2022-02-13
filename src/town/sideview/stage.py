@@ -29,10 +29,17 @@ class Area:
   bg = None
   geometry = None
   camera_offset = (0, 0)
+  actor_offset = 0
 
   def __init__(area):
     area.actors = []
-    area.camera = Camera(size=WINDOW_SIZE, offset=area.camera_offset)
+    area.camera = Camera(
+      size=WINDOW_SIZE,
+      offset=vector.add(
+        area.camera_offset,
+        (0, -area.actor_offset),
+      )
+    )
     area.draws = 0
 
   def init(area, ctx):
@@ -42,6 +49,7 @@ class Area:
     y = (actor.faction == "ally"
       and Area.NPC_Y - Area.ACTOR_Y + y
       or y)
+    y += area.actor_offset
     actor.pos = (x, y)
     area.actors.append(actor)
 

@@ -4,12 +4,16 @@ from pygame import Rect
 import lib.vector as vector
 from dungeon.room import Blob as Room
 from anims.tween import TweenAnim
-from config import TILE_SIZE, WINDOW_HEIGHT
+from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
 
 @dataclass
 class CameraConstraints:
   left: int
   right: int
+
+  @property
+  def width(constraints):
+    return abs(constraints.right - constraints.left)
 
 class Camera:
   SPEED = 8
@@ -181,9 +185,11 @@ class Camera:
     camera.vel = vector.scale(vector.subtract(target_vel, camera.vel), 1 / 8)
     camera.pos = vector.add(camera.pos, camera.vel, vector.negate(camera.offset))
 
-    if camera.constraints:
-      camera_y = camera.pos[1] - camera.offset[1]
+    camera_y = camera.pos[1] - camera.offset[1]
+    if camera.constraints and camera.size[0] >= camera.constraints.width:
+      camera.pos = (camera.size[0] / 2, camera_y)
 
+    elif camera.constraints:
       constraint_left = camera.constraints.left + camera.size[0] / 2
       if camera.pos[0] < constraint_left:
         camera.pos = (constraint_left, camera_y)
