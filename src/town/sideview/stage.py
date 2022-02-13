@@ -3,7 +3,7 @@ import lib.vector as vector
 from lib.filters import darken_image
 from lib.sprite import Sprite
 import assets
-from contexts.dungeon.camera import Camera
+from contexts.dungeon.camera import Camera, CameraConstraints
 from config import WINDOW_WIDTH, WINDOW_SIZE
 
 @dataclass
@@ -27,16 +27,18 @@ class Area:
   TRANSIT_SOUTH = 30
   width = WINDOW_WIDTH
   bg = None
+  geometry = None
+  camera_offset = (0, 0)
 
   def __init__(area):
     area.actors = []
-    area.camera = Camera(size=WINDOW_SIZE, offset=(0, -32))
+    area.camera = Camera(size=WINDOW_SIZE, offset=area.camera_offset)
     area.draws = 0
 
   def init(area, ctx):
     pass
 
-  def spawn(area, actor, x, y):
+  def spawn(area, actor, x, y=0):
     y = (actor.faction == "ally"
       and Area.NPC_Y - Area.ACTOR_Y + y
       or y)
@@ -54,16 +56,17 @@ class Area:
       area.camera.focus(hero)
 
     area_bg_layers = [
-      Sprite(image=assets.sprites[area.bg], layer="bg")
+      AreaBgLayer(sprite=Sprite(image=assets.sprites[area.bg], layer="bg"))
     ] if type(area.bg) is str else area.bg
     area.width = max([layer.sprite.image.get_width() for layer in area_bg_layers])
+    area.camera.constraints = CameraConstraints(left=0, right=area.width)
     bg_sprites = [Sprite.move_all(
       sprites=[layer.sprite.copy()],
       offset=(
         (-area.camera.pos[0] + area.camera.size[0] / 2) * layer.scaling[0],
         -area.camera.pos[1]
       )
-    )[0] for layer in area.bg]
+    )[0] for layer in area_bg_layers]
     sprites += bg_sprites
 
     if link:

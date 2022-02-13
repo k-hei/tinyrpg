@@ -1,9 +1,15 @@
+from dataclasses import dataclass
 from math import ceil
 from pygame import Rect
 import lib.vector as vector
 from dungeon.room import Blob as Room
 from anims.tween import TweenAnim
 from config import TILE_SIZE, WINDOW_HEIGHT
+
+@dataclass
+class CameraConstraints:
+  left: int
+  right: int
 
 class Camera:
   SPEED = 8
@@ -63,10 +69,11 @@ class Camera:
 
     return (focus_x, focus_y)
 
-  def __init__(camera, size, pos=None, offset=None):
+  def __init__(camera, size, pos=None, offset=None, constraints=None):
     camera.size = size
-    camera.pos = pos or None
-    camera.offset = offset or None
+    camera.pos = pos
+    camera.offset = offset
+    camera.constraints = constraints
     camera.vel = (0, 0)
     camera.target_groups = []
     camera.anim = None
@@ -174,6 +181,13 @@ class Camera:
     camera.vel = vector.scale(vector.subtract(target_vel, camera.vel), 1 / 8)
     camera.pos = vector.add(camera.pos, camera.vel, vector.negate(camera.offset))
 
-    # constraints (TODO: right constraint - use rect or new constraint construct?)
-    if camera.pos[0] < camera.size[0] / 2:
-      camera.pos = (camera.size[0] / 2, camera.pos[1] - camera.offset[1])
+    if camera.constraints:
+      camera_y = camera.pos[1] - camera.offset[1]
+
+      constraint_left = camera.constraints.left + camera.size[0] / 2
+      if camera.pos[0] < constraint_left:
+        camera.pos = (constraint_left, camera_y)
+
+      constraint_right = camera.constraints.right - camera.size[0] / 2
+      if camera.pos[0] > constraint_right:
+        camera.pos = (constraint_right, camera_y)

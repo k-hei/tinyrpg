@@ -51,6 +51,7 @@ class AkimorCentralArea(Area):
     "blacksmith": AreaLink(x=112, y=176, direction=(0, -1)),
     "fortune_house": AreaLink(x=408, y=176, direction=(0, -1)),
     "bar": AreaLink(x=768, y=176, direction=(0, -1)),
+    "right": AreaLink(x=1264, direction=(1, 0)),
   }
 
   geometry = [
@@ -58,3 +59,5 @@ class AkimorCentralArea(Area):
     *connect_lines([(496, 80), (896, 80)]),
     *connect_lines([(0, 176), (1264, 176)]),
   ]
+
+  camera_offset = (0, -32)
