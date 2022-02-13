@@ -55,6 +55,7 @@ class SideViewContext(Context):
     ctx.store = store
     ctx.party = [Actor(core=core) for core in store.party]
     ctx.spawn = spawn
+    ctx.ground = None
     ctx.link = None
     ctx.talkee = None
     ctx.nearby_link = None
@@ -109,16 +110,38 @@ class SideViewContext(Context):
     elif hero_x > ctx.area.width and hero.facing == (1, 0):
       hero.pos = (ctx.area.width, hero_y)
 
-    if ctx.area.geometry:
-      hero_line = (old_hero_pos, hero.pos)
-      line, intersection = next(((line, intersection) for line in ctx.area.geometry if (intersection := find_lines_intersection(line, hero_line))), (None, None))
-      if intersection:
-        hproj, vproj = vector.subtract(hero.pos, intersection)
-        slope = find_slope(line)
-        hero.pos = vector.add(hero.pos, (0, -vproj - hproj * slope))
-        return True
+    if not ctx.area.geometry:
+      return True
 
+    line, _ = ctx.collide_hero(hero, old_pos=old_hero_pos)
+
+    prev_ground = ctx.ground
+    ctx.ground = line
+    if prev_ground and line is None:
+      hero_speed = hero.pos[0] - old_hero_pos[0]
+
+      geometry_constraint_left = min(prev_ground[0][0], prev_ground[1][0])
+      if hero.pos[0] <= geometry_constraint_left + hero_speed:
+        hero.pos = (geometry_constraint_left, hero.pos[1])
+        ctx.ground = prev_ground
+
+      geometry_constraint_right = max(prev_ground[0][0], prev_ground[1][0])
+      if hero.pos[0] >= geometry_constraint_right - hero_speed:
+        hero.pos = (geometry_constraint_right, hero.pos[1])
+        ctx.ground = prev_ground
+
+    ctx.collide_hero(hero, old_pos=old_hero_pos)
     return True
+
+  def collide_hero(ctx, hero, old_pos):
+    hero_line = (old_pos, hero.pos)
+    line, intersection = next(((line, intersection) for line in ctx.area.geometry if (intersection := find_lines_intersection(line, hero_line))), (None, None))
+    if intersection:
+      hproj, vproj = vector.subtract(hero.pos, intersection)
+      slope = find_slope(line)
+      hero.pos = vector.add(hero.pos, (0, -vproj - hproj * slope))
+
+    return line, intersection
 
   def handle_zmove(ctx, delta):
     link = ctx.nearby_link

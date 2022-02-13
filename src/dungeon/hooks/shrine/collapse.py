@@ -82,7 +82,8 @@ def on_collapse(room, game):
       ])
     ),
     lambda step: (
-      game.get_tail().follow_link("Floor1", on_end=step)
+      # behavior differs when CUTSCENES flag is on/off
+      game.get_tail().parent.follow_link("Floor1", on_end=step)
     )
   ]))
   return True

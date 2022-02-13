@@ -51,7 +51,7 @@ class AkimorCentralArea(Area):
     "blacksmith": AreaLink(x=112, y=176, direction=(0, -1)),
     "fortune_house": AreaLink(x=408, y=176, direction=(0, -1)),
     "bar": AreaLink(x=768, y=176, direction=(0, -1)),
-    "right": AreaLink(x=1264, direction=(1, 0)),
+    "right": AreaLink(x=1264, y=176, direction=(1, 0)),
   }
 
   geometry = [
