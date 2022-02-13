@@ -73,7 +73,7 @@ class Camera:
 
     return (focus_x, focus_y)
 
-  def __init__(camera, size, pos=None, offset=None, constraints=None):
+  def __init__(camera, size, pos=None, offset=(0, 0), constraints=None):
     camera.size = size
     camera.pos = pos
     camera.offset = offset

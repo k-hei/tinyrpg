@@ -19,8 +19,6 @@ from anims.drop import DropAnim
 from anims.fall import FallAnim
 from anims.walk import WalkAnim
 
-class LeapAnim(JumpAnim): pass
-
 class Mage(DungeonActor):
   drops = [BroadSword]
 
@@ -201,3 +199,5 @@ class Mage(DungeonActor):
 
     # reused in MageClone
     return DungeonActor.view(mage, sprite, anims)
+
+class LeapAnim(JumpAnim): pass

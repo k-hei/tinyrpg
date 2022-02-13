@@ -60,6 +60,6 @@ def decode_elem(elem_cell, elem_name, elem_props):
     elem_props["charge_skill"] = resolve_skill(elem_props["charge_skill"])
   try:
     return resolve_elem(elem_name)(**elem_props)
-  except:
+  except Exception:
     debug.log(f"WARNING: Failed to resolve {elem_name} {elem_props}")
     raise
