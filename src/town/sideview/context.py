@@ -226,7 +226,6 @@ class SideViewContext(Context):
           ctx.parent.load_area(dest_item)
         else:
           dest_area = graph.link_area(link=dest_item)
-          print(dest_item, dest_area)
           dest_area and ctx.parent.load_area(dest_area, dest_item)
         ctx.link = None
     else:

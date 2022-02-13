@@ -2,6 +2,7 @@ from contexts import Context
 from town.graph import TownGraph
 from town.areas.akimor_central import AkimorCentralArea
 from town.areas.fortune import FortuneArea
+from town.areas.store import StoreArea as MarketArea
 from town.sideview.context import SideViewContext
 from town.sideview.stage import Area as SideViewArea
 from town.topview.context import TopViewContext
@@ -15,10 +16,11 @@ class TownContext(Context):
     ctx.returning = returning
     ctx.area = AkimorCentralArea
     ctx.graph = TownGraph(
-      nodes=[AkimorCentralArea, FortuneArea],
+      nodes=[AkimorCentralArea, FortuneArea, MarketArea],
       edges=[
         (AkimorCentralArea.links["upper_slope_top"], AkimorCentralArea.links["upper_slope_base"]),
         (AkimorCentralArea.links["lower_slope_top"], AkimorCentralArea.links["lower_slope_base"]),
+        (AkimorCentralArea.links["market"], MarketArea.links["entrance"]),
         (AkimorCentralArea.links["fortune_house"], FortuneArea.links["entrance"]),
       ]
     )
