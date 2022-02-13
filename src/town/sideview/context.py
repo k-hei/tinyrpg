@@ -67,14 +67,18 @@ class SideViewContext(Context):
     hero, *_ = ctx.party
     if ctx.spawn:
       spawn_x = ctx.spawn.x
+      spawn_y = ctx.spawn.y
       hero.face(invert_direction(ctx.spawn.direction))
     else:
       spawn_x = 64
+      spawn_y = 0
     facing_x, _ = hero.facing
+
     for actor in ctx.party:
-      ctx.area and ctx.area.spawn(actor, spawn_x)
+      ctx.area and ctx.area.spawn(actor, spawn_x, spawn_y)
       actor.stop_move()
       spawn_x -= TILE_SIZE * facing_x
+
     ctx.area and ctx.area.init(ctx)
     ctx.hud.enter()
 

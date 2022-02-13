@@ -36,10 +36,10 @@ class Area:
   def init(area, ctx):
     pass
 
-  def spawn(area, actor, x):
+  def spawn(area, actor, x, y):
     y = (actor.faction == "ally"
-      and Area.NPC_Y - Area.ACTOR_Y
-      or 0)
+      and Area.NPC_Y - Area.ACTOR_Y + y
+      or y)
     actor.pos = (x, y)
     area.actors.append(actor)
 
