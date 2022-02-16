@@ -30,6 +30,7 @@ class Area:
   geometry = None
   camera_offset = (0, 0)
   actor_offset = 0
+  buildings = []
 
   def __init__(area):
     area.actors = []
@@ -43,7 +44,7 @@ class Area:
     area.draws = 0
 
   def init(area, ctx):
-    pass
+    area.actors += area.buildings
 
   def spawn(area, actor, x, y=0):
     y = (actor.faction == "ally"
@@ -83,19 +84,7 @@ class Area:
       link_name = None
 
     for actor in area.actors:
-      try:
-        actor_sprites = actor.view()
-      except:
-        actor_sprites = []
-        raise
-
-      for sprite in actor_sprites:
-        sprite.target = actor
-        _, sprite_y = sprite.pos
-        if actor is hero and link_name and link_name.startswith("door") and sprite_y < Area.DOOR_Y:
-          sprite.image = darken_image(sprite.image)
-
-      sprites += actor_sprites
+      sprites += actor.view()
 
     # TODO: refactor magic clause
     if link_name and link_name.startswith("door"):

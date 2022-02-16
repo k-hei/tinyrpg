@@ -1,7 +1,34 @@
-import assets
+from dataclasses import dataclass
+import lib.vector as vector
 from lib.sprite import Sprite
 from lib.line import connect_lines
+import assets
 from town.sideview.stage import Area, AreaLink, AreaBgLayer
+from config import WINDOW_HEIGHT
+
+BG_LAYERGROUP_OFFSET = (0, -64)
+FG_LAYERGROUP_OFFSET = (0, -52)
+BUILDING_OFFSET = vector.add(FG_LAYERGROUP_OFFSET, (0, -WINDOW_HEIGHT / 2 + 4))
+SPRITE_PREFIX = "akimor_central_"
+
+@dataclass
+class TownBuilding:
+  sprite_id: str
+  pos: tuple[int, int]
+
+  # elem stuff
+  message: str = None
+
+  def update(building):
+    pass
+
+  def view(building):
+    return [Sprite(
+      image=assets.sprites[building.sprite_id],
+      pos=building.pos,
+      layer="elems",
+      origin=Sprite.ORIGIN_BOTTOMLEFT,
+    )]
 
 class AkimorCentralArea(Area):
   name = "Akimor"
@@ -10,33 +37,38 @@ class AkimorCentralArea(Area):
     AreaBgLayer(sprite=Sprite(
       image=assets.sprites["akimor_central_sky"],
       layer="bg",
-      pos=(0, -64),
+      pos=BG_LAYERGROUP_OFFSET,
     ), scaling=(0.5, 1)),
     AreaBgLayer(sprite=Sprite(
       image=assets.sprites["akimor_central_mountains"],
       layer="bg",
-      pos=(0, -64),
+      pos=BG_LAYERGROUP_OFFSET,
     ), scaling=(0.75, 1)),
     AreaBgLayer(sprite=Sprite(
       image=assets.sprites["akimor_central_cliffs"],
       layer="bg",
-      pos=(0, -52),
-    )),
-    AreaBgLayer(sprite=Sprite(
-      image=assets.sprites["akimor_central_buildings"],
-      layer="elems",
-      pos=(0, -52),
+      pos=FG_LAYERGROUP_OFFSET,
     )),
     AreaBgLayer(sprite=Sprite(
       image=assets.sprites["akimor_central_decors_rear"],
       layer="elems",
-      pos=(0, -52),
+      pos=FG_LAYERGROUP_OFFSET,
     )),
     AreaBgLayer(sprite=Sprite(
       image=assets.sprites["akimor_central_decors_front"],
       layer="fg",
-      pos=(0, -52),
+      pos=FG_LAYERGROUP_OFFSET,
     )),
+  ]
+
+  buildings = [
+    TownBuilding(sprite_id=f"{SPRITE_PREFIX}guild_house", pos=vector.add(BUILDING_OFFSET, (192, 160))),
+    TownBuilding(sprite_id=f"{SPRITE_PREFIX}npc_house", pos=vector.add(BUILDING_OFFSET, (80, 336))),
+    TownBuilding(sprite_id=f"{SPRITE_PREFIX}market", pos=vector.add(BUILDING_OFFSET, (368, 160))),
+    TownBuilding(sprite_id=f"{SPRITE_PREFIX}chapel", pos=vector.add(BUILDING_OFFSET, (688, 128))),
+    TownBuilding(sprite_id=f"{SPRITE_PREFIX}blacksmith", pos=vector.add(BUILDING_OFFSET, (208, 336))),
+    TownBuilding(sprite_id=f"{SPRITE_PREFIX}fortune_house", pos=vector.add(BUILDING_OFFSET, (352, 336))),
+    TownBuilding(sprite_id=f"{SPRITE_PREFIX}bar", pos=vector.add(BUILDING_OFFSET, (664, 336))),
   ]
 
   links = {
