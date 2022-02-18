@@ -1,5 +1,6 @@
 from contexts import Context
 from town.graph import TownGraph
+from town.areas.time_chamber import TimeChamberArea
 from town.areas.akimor_central import AkimorCentralArea
 from town.areas.fortune import FortuneArea
 from town.areas.store import StoreArea as MarketArea
@@ -15,7 +16,7 @@ class TownContext(Context):
     super().__init__()
     ctx.store = store
     ctx.returning = returning
-    ctx.area = AkimorCentralArea
+    ctx.area = TimeChamberArea
     ctx.graph = TownGraph(
       nodes=[AkimorCentralArea, FortuneArea, MarketArea, OutskirtsArea],
       edges=[

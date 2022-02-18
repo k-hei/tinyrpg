@@ -125,7 +125,7 @@ class SideViewContext(Context):
       hero_speed = hero.pos[0] - old_hero_pos[0]
 
       geometry_constraint_left = min(prev_ground[0][0], prev_ground[1][0])
-      if hero.pos[0] <= geometry_constraint_left + hero_speed:
+      if hero.pos[0] <= geometry_constraint_left:
         hero.pos = (geometry_constraint_left, hero.pos[1])
         ctx.ground = prev_ground
 

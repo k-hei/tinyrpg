@@ -25,6 +25,7 @@ class Area:
   HORIZON_SOUTH = 60
   TRANSIT_SOUTH = 30
   width = WINDOW_WIDTH
+  links = {}
   bg = None
   geometry = None
   camera_offset = (0, 0)
