@@ -72,7 +72,11 @@ class Area:
       AreaBgLayer(sprite=Sprite(image=assets.sprites[area.bg], layer="bg"))
     ] if type(area.bg) is str else area.bg
     area.width = max([layer.sprite.image.get_width() for layer in area_bg_layers])
-    area.camera.constraints = CameraConstraints(left=0, right=area.width)
+    area.height = max([layer.sprite.image.get_height() for layer in area_bg_layers])
+
+    if area.camera.constraints is None:
+      area.camera.constraints = CameraConstraints(right=area.width)
+
     bg_sprites = [Sprite.move_all(
       sprites=[layer.sprite.copy()],
       offset=(

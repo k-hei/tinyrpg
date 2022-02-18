@@ -8,12 +8,18 @@ from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
 
 @dataclass
 class CameraConstraints:
-  left: int
-  right: int
+  left: int = 0
+  right: int = 0
+  top: int = 0
+  bottom: int = 0
 
   @property
   def width(constraints):
     return abs(constraints.right - constraints.left)
+
+  @property
+  def height(constraints):
+    return abs(constraints.bottom - constraints.top)
 
 class Camera:
   SPEED = 8
@@ -91,9 +97,6 @@ class Camera:
   @pos.setter
   def pos(camera, pos):
     camera._pos = pos
-    # (vector.subtract(pos, camera.offset)
-    #   if pos and camera.offset
-    #   else pos)
     camera._rect = None
 
   @property
@@ -185,9 +188,13 @@ class Camera:
     camera.vel = vector.scale(vector.subtract(target_vel, camera.vel), 1 / 8)
     camera.pos = vector.add(camera.pos, camera.vel, vector.negate(camera.offset))
 
-    camera_y = camera.pos[1] - camera.offset[1]
+    camera_x = camera.pos[0] - camera.offset[0]
     if camera.constraints and camera.size[0] >= camera.constraints.width:
       camera.pos = (camera.size[0] / 2, camera_y)
+
+    camera_y = camera.pos[1] - camera.offset[1]
+    if camera.constraints and camera.size[1] >= camera.constraints.height:
+      camera.pos = (camera_x, 0)
 
     elif camera.constraints:
       constraint_left = camera.constraints.left + camera.size[0] / 2
@@ -197,3 +204,12 @@ class Camera:
       constraint_right = camera.constraints.right - camera.size[0] / 2
       if camera.pos[0] > constraint_right:
         camera.pos = (constraint_right, camera_y)
+
+      constraint_top = camera.constraints.top + camera.size[1] / 2
+      if camera.pos[1] < constraint_top:
+        camera.pos = (camera_x, constraint_top)
+
+      print(constraint_bottom)
+      constraint_bottom = camera.constraints.bottom - camera.size[1] / 2
+      if camera.pos[1] > constraint_bottom:
+        camera.pos = (camera_x, constraint_bottom)
