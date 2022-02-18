@@ -15,6 +15,7 @@ SPRITE_PREFIX = "akimor_central_"
 class TownBuilding:
   sprite_id: str
   pos: tuple[int, int]
+  offset: tuple[int, int] = (0, 0)
 
   # elem stuff
   message: str = None
@@ -25,8 +26,9 @@ class TownBuilding:
   def view(building):
     return [Sprite(
       image=assets.sprites[building.sprite_id],
-      pos=building.pos,
+      pos=vector.add(building.pos, building.offset),
       layer="elems",
+      offset=-32, # prevent sorting actors behind door tile
       origin=Sprite.ORIGIN_BOTTOMLEFT,
     )]
 
@@ -62,13 +64,36 @@ class AkimorCentralArea(Area):
   ]
 
   buildings = [
-    TownBuilding(sprite_id=f"{SPRITE_PREFIX}guild_house", pos=vector.add(BUILDING_OFFSET, (192, 160))),
-    TownBuilding(sprite_id=f"{SPRITE_PREFIX}npc_house", pos=vector.add(BUILDING_OFFSET, (80, 336))),
-    TownBuilding(sprite_id=f"{SPRITE_PREFIX}market", pos=vector.add(BUILDING_OFFSET, (368, 160))),
-    TownBuilding(sprite_id=f"{SPRITE_PREFIX}chapel", pos=vector.add(BUILDING_OFFSET, (688, 128))),
-    TownBuilding(sprite_id=f"{SPRITE_PREFIX}blacksmith", pos=vector.add(BUILDING_OFFSET, (208, 336))),
-    TownBuilding(sprite_id=f"{SPRITE_PREFIX}fortune_house", pos=vector.add(BUILDING_OFFSET, (352, 336))),
-    TownBuilding(sprite_id=f"{SPRITE_PREFIX}bar", pos=vector.add(BUILDING_OFFSET, (664, 336))),
+    TownBuilding(
+      sprite_id=f"{SPRITE_PREFIX}guild_house",
+      pos=vector.add(BUILDING_OFFSET, (192, 160))
+    ),
+    TownBuilding(
+      sprite_id=f"{SPRITE_PREFIX}npc_house",
+      pos=vector.add(BUILDING_OFFSET, (80, 336))
+    ),
+    TownBuilding(
+      sprite_id=f"{SPRITE_PREFIX}market",
+      pos=vector.add(BUILDING_OFFSET, (368, 160)),
+      offset=(0, 8),
+    ),
+    TownBuilding(
+      sprite_id=f"{SPRITE_PREFIX}chapel",
+      pos=vector.add(BUILDING_OFFSET, (688, 128))
+    ),
+    TownBuilding(
+      sprite_id=f"{SPRITE_PREFIX}blacksmith",
+      pos=vector.add(BUILDING_OFFSET, (208, 336)),
+      offset=(0, 2),
+    ),
+    TownBuilding(
+      sprite_id=f"{SPRITE_PREFIX}fortune_house",
+      pos=vector.add(BUILDING_OFFSET, (352, 336))
+    ),
+    TownBuilding(
+      sprite_id=f"{SPRITE_PREFIX}bar",
+      pos=vector.add(BUILDING_OFFSET, (664, 336))
+    ),
   ]
 
   links = {
