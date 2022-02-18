@@ -167,7 +167,7 @@ class SideViewContext(Context):
     def stop_talk():
       talkee.face(old_facing)
       ctx.talkee = None
-    ctx.open(DialogueContext(script=message, on_close=stop_talk))
+    ctx.open(DialogueContext(script=message, side="top", on_close=stop_talk))
     return True
 
   def handle_press(ctx, button):
@@ -370,12 +370,15 @@ class SideViewContext(Context):
       npc_sprite = next((s for s in sprites if s.target is npc), None)
       if npc_sprite:
         npc_x, npc_y = npc_sprite.pos
-        bubble_image = assets.sprites["bubble_talk"][0]
-        bubble_x = npc_x + TILE_SIZE * 0.5
-        bubble_y = npc_y - TILE_SIZE * 1.25
+        bubble_sheet = assets.sprites["bubble_talk"]
+        bubble_image = bubble_sheet[int(ctx.time / 10) % len(bubble_sheet)]
+        bubble_image = replace_color(bubble_image, BLACK, BLUE)
+        bubble_x = npc_x + TILE_SIZE * 0.25
+        bubble_y = npc_y - TILE_SIZE * 1
         sprites.append(Sprite(
           image=bubble_image,
           pos=(bubble_x, bubble_y),
+          origin=Sprite.ORIGIN_BOTTOMLEFT,
           layer="markers"
         ))
 

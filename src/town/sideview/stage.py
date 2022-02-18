@@ -1,10 +1,9 @@
 from dataclasses import dataclass
 import lib.vector as vector
-from lib.filters import darken_image
 from lib.sprite import Sprite
 import assets
 from contexts.dungeon.camera import Camera, CameraConstraints
-from config import WINDOW_WIDTH, WINDOW_SIZE
+from config import WINDOW_WIDTH, WINDOW_SIZE, TILE_SIZE
 
 @dataclass
 class AreaLink:
@@ -88,7 +87,10 @@ class Area:
       link_name = None
 
     for actor in area.actors:
-      sprites += actor.view()
+      actor_sprites = actor.view()
+      if actor is hero:
+        actor_sprites[0].offset += TILE_SIZE
+      sprites += actor_sprites
 
     # TODO: refactor magic clause
     if link_name and link_name.startswith("door"):
