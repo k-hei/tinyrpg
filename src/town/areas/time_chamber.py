@@ -45,5 +45,5 @@ class TimeChamberArea(Area):
     *connect_lines([(48, 0), (112, 0), (248, 72), (520, 72), (656, 0), (720, 0)]),
   ]
 
-  camera_offset = (0, -72)
-  actor_offset = -32
+  camera_offset = (0, 32)
+  actor_offset = 0

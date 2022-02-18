@@ -143,7 +143,7 @@ class SideViewContext(Context):
     if intersection:
       hproj, vproj = vector.subtract(hero.pos, intersection)
       slope = find_slope(line)
-      hero.pos = vector.add(hero.pos, (0, -vproj - hproj * slope))
+      hero.pos = vector.add(hero.pos, (0, -vproj - hproj * slope + 1))
 
     return line, intersection
 
@@ -290,6 +290,7 @@ class SideViewContext(Context):
       actor.update()
 
     hero, *allies = ctx.party
+
     for anim in ctx.anims:
       if type(anim) is FollowAnim:
         done = anim.target.follow(hero, free=True, force=True)
