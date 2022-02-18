@@ -10,11 +10,8 @@ class Boar(Core):
     super().__init__(name=Boar.name, *args, **kwargs)
 
   def view(boar):
-    boar_image = assets.sprites["boar"]
-    flip_x = boar.facing == (-1, 0)
     return super().view([Sprite(
-      image=boar_image,
-      flip=(flip_x, False),
-      pos=(0, 0),
+      image=assets.sprites["boar"],
+      flip=(boar.facing == (-1, 0), False),
       layer="elems"
     )])

@@ -1,9 +1,10 @@
 from lib.sprite import Sprite
 from lib.line import connect_lines
 import assets
-from cores.boar import Boar
 from town.sideview.stage import Area, AreaBgLayer
 from town.sideview.actor import Actor
+from cores.boar import Boar
+from cores.bunny import Bunny
 
 BG_LAYERGROUP_OFFSET = (0, 28)
 
@@ -53,6 +54,7 @@ class TimeChamberArea(Area):
 
   def init(area, _):
     super().init(area)
+
     area.spawn(Actor(core=Boar(
       faction="enemy",
       facing=(1, 0),
@@ -61,3 +63,11 @@ class TimeChamberArea(Area):
         (Boar.name, "I AIN'T GETTING IN THE DAMN BUBBLE BATH!!")
       ],
     )), x=456, y=72)
+
+    area.spawn(Actor(core=Bunny(
+      faction="enemy",
+      facing=(1, 0),
+      message=lambda _: [
+        (Bunny.name, "This is why I hate pigs..."),
+      ],
+    )), x=488, y=72)
