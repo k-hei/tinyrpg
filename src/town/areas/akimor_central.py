@@ -1,8 +1,8 @@
-from dataclasses import dataclass
 import lib.vector as vector
 from lib.sprite import Sprite
 from lib.line import connect_lines
 import assets
+from town.building import TownBuilding
 from town.sideview.stage import Area, AreaLink, AreaBgLayer
 from config import WINDOW_HEIGHT
 
@@ -10,27 +10,6 @@ BG_LAYERGROUP_OFFSET = (0, -64)
 FG_LAYERGROUP_OFFSET = (0, -52)
 BUILDING_OFFSET = vector.add(FG_LAYERGROUP_OFFSET, (0, -WINDOW_HEIGHT / 2 + 4))
 SPRITE_PREFIX = "akimor_central_"
-
-@dataclass
-class TownBuilding:
-  sprite_id: str
-  pos: tuple[int, int]
-  offset: tuple[int, int] = (0, 0)
-
-  # elem stuff
-  message: str = None
-
-  def update(building):
-    pass
-
-  def view(building):
-    return [Sprite(
-      image=assets.sprites[building.sprite_id],
-      pos=vector.add(building.pos, building.offset),
-      layer="elems",
-      offset=-32, # prevent sorting actors behind door tile
-      origin=Sprite.ORIGIN_BOTTOMLEFT,
-    )]
 
 class AkimorCentralArea(Area):
   name = "Akimor"
