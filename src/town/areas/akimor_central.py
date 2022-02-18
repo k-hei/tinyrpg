@@ -4,6 +4,8 @@ from lib.line import connect_lines
 import assets
 from town.building import TownBuilding
 from town.sideview.stage import Area, AreaLink, AreaBgLayer
+from town.sideview.actor import Actor
+from cores.mouse import Mouse
 from config import WINDOW_HEIGHT
 
 BG_LAYERGROUP_OFFSET = (0, -64)
@@ -97,3 +99,14 @@ class AkimorCentralArea(Area):
   ]
 
   camera_offset = (0, -32)
+
+  def init(area, _):
+    super().init(area)
+    area.spawn(Actor(core=Mouse(
+      faction="enemy",
+      facing=(1, 0),
+      message=lambda _: [
+        (Mouse.name, "She was just like, I miss us :("),
+        (Mouse.name, "And I was like, \"This user is currently building their crypto empire...\"")
+      ],
+    )), x=896, y=80)
