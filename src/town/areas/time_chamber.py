@@ -1,3 +1,4 @@
+import lib.vector as vector
 from lib.sprite import Sprite
 from lib.line import connect_lines
 import assets
@@ -8,6 +9,8 @@ from cores.bunny import Bunny
 from cores.mook import Mook
 
 BG_LAYERGROUP_OFFSET = (0, 28)
+BG_LAYER_ROOTS_SCALING = 0.8
+BG_LAYER_PILLARS_SCALING = 0.9
 
 class TimeChamberArea(Area):
   name = "????"
@@ -16,13 +19,19 @@ class TimeChamberArea(Area):
     AreaBgLayer(sprite=Sprite(
       image=assets.sprites["time_chamber_roots"],
       layer="bg",
-      pos=BG_LAYERGROUP_OFFSET,
-    )),
+      pos=vector.add(
+        BG_LAYERGROUP_OFFSET,
+        (-assets.sprites["time_chamber_roots"].get_width() * (1 - BG_LAYER_ROOTS_SCALING) / 4, 0)
+      )
+    ), scaling=(BG_LAYER_ROOTS_SCALING, 1)),
     AreaBgLayer(sprite=Sprite(
       image=assets.sprites["time_chamber_pillars"],
       layer="bg",
-      pos=BG_LAYERGROUP_OFFSET,
-    )),
+      pos=vector.add(
+        BG_LAYERGROUP_OFFSET,
+        (-assets.sprites["time_chamber_pillars"].get_width() * (1 - BG_LAYER_PILLARS_SCALING) / 4, 0)
+      ),
+    ), scaling=(BG_LAYER_PILLARS_SCALING, 1)),
     AreaBgLayer(sprite=Sprite(
       image=assets.sprites["time_chamber_pipes"],
       layer="bg",
