@@ -25,11 +25,15 @@ def can_talk(hero, actor):
   if (not actor.message
   or actor.faction == "player"):
     return False
-  hero_x, _ = hero.pos
-  actor_x, _ = actor.pos
+  hero_x, hero_y = hero.pos
+  actor_x, actor_y = actor.pos
   dist_x = actor_x - hero_x
   facing_x, _ = hero.facing
-  return abs(dist_x) < TILE_SIZE * 1.5 and dist_x * facing_x >= 0
+  return (
+    abs(dist_x) < TILE_SIZE * 1.5
+    and dist_x * facing_x >= 0
+    and actor_y == hero_y
+  )
 
 def find_nearby_npc(hero, actors):
   return next((a for a in actors if can_talk(hero, a)), None)
