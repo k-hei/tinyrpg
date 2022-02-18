@@ -5,6 +5,7 @@ from town.sideview.stage import Area, AreaBgLayer
 from town.sideview.actor import Actor
 from cores.boar import Boar
 from cores.bunny import Bunny
+from cores.mook import Mook
 
 BG_LAYERGROUP_OFFSET = (0, 28)
 
@@ -50,7 +51,6 @@ class TimeChamberArea(Area):
 
   camera_lock = (False, True)
   camera_offset = (0, 28)
-  actor_offset = 0
 
   def init(area, _):
     super().init(area)
@@ -66,8 +66,17 @@ class TimeChamberArea(Area):
 
     area.spawn(Actor(core=Bunny(
       faction="enemy",
-      facing=(1, 0),
+      facing=(-1, 0),
       message=lambda _: [
         (Bunny.name, "This is why I hate pigs..."),
       ],
     )), x=488, y=72)
+
+    area.spawn(Actor(core=Mook(
+      name=(mook_name := "Bingus"),
+      faction="enemy",
+      facing=(0, 1),
+      message=lambda _: [
+        (mook_name, "I'm so horny right now, I could make a brand new hole!"),
+      ],
+    )), x=344, y=72)

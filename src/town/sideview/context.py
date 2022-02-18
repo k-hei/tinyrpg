@@ -380,7 +380,7 @@ class SideViewContext(Context):
         bubble_image = bubble_sheet[int(ctx.time / 10) % len(bubble_sheet)]
         bubble_image = replace_color(bubble_image, BLACK, BLUE)
         bubble_x = npc_x + TILE_SIZE * 0.25
-        bubble_y = npc_y - TILE_SIZE * 1
+        bubble_y = npc_y - TILE_SIZE * 0.75
         sprites.append(Sprite(
           image=bubble_image,
           pos=(bubble_x, bubble_y),
