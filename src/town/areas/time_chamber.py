@@ -1,7 +1,9 @@
 from lib.sprite import Sprite
 from lib.line import connect_lines
 import assets
+from cores.boar import Boar
 from town.sideview.stage import Area, AreaBgLayer
+from town.sideview.actor import Actor
 
 BG_LAYERGROUP_OFFSET = (0, 28)
 
@@ -48,3 +50,14 @@ class TimeChamberArea(Area):
   camera_lock = (False, True)
   camera_offset = (0, 28)
   actor_offset = 0
+
+  def init(area, _):
+    super().init(area)
+    area.spawn(Actor(core=Boar(
+      faction="enemy",
+      facing=(1, 0),
+      message=lambda _: [
+        (Boar.name, "SKIN ME! FLAY ME! BURN ME ALIVE!"),
+        (Boar.name, "I AIN'T GETTING IN THE DAMN BUBBLE BATH!!")
+      ],
+    )), x=456, y=72)
