@@ -311,18 +311,25 @@ class SideViewContext(Context):
             if hero_x != link.x:
               hero.move_to((link.x, hero_y))
             else:
+              if not ctx.area.is_camera_locked:
+                ctx.area.lock_camera()
+
               if link.direction == (0, -1):
                 TARGET_HORIZON = Area.HORIZON_NORTH
                 EVENT_HORIZON = Area.TRANSIT_NORTH
               elif link.direction == (0, 1):
                 TARGET_HORIZON = Area.HORIZON_SOUTH
                 EVENT_HORIZON = Area.TRANSIT_SOUTH
+
               if hero_y != TARGET_HORIZON:
                 hero.move_to((link.x, TARGET_HORIZON))
+
               if abs(hero_y) >= abs(EVENT_HORIZON) and not ctx.get_head().transits:
                 ctx.follow_link(ctx.link)
+
           for ally in allies:
             ally.follow(hero)
+
       elif not ctx.child:
         ctx.update_interactives()
 

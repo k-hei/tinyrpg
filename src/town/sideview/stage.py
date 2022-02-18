@@ -42,6 +42,7 @@ class Area:
       )
     )
     area.draws = 0
+    area.is_camera_locked = False
 
   def init(area, ctx):
     area.actors += area.buildings
@@ -54,12 +55,15 @@ class Area:
     actor.pos = (x, y)
     area.actors.append(actor)
 
+  def lock_camera(area):
+    area.camera.focus(area.camera.pos, force=True)
+    area.is_camera_locked = True
+
   def update(area):
     area.camera.update()
 
   def view(area, hero, link):
     sprites = []
-    hero_x, _ = hero.pos
 
     if not area.camera.target:
       area.camera.focus(hero)

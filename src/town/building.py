@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from lib.vector import vector
+import lib.vector as vector
 from lib.sprite import Sprite
 import assets
 from config import TILE_SIZE

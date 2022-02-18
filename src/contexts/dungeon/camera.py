@@ -20,7 +20,7 @@ class Camera:
   MAX_XRADIUS = 3
   MAX_YRADIUS = 2
 
-  def resolve_target_group(target_group):
+  def resolve_target_group(target_group, camera_offset=(0, 0)):
     scale = TILE_SIZE
     room = None
     target = None
@@ -29,7 +29,7 @@ class Camera:
       if isinstance(t, Room):
         room = t
       elif type(t) is tuple:
-        targets.append(t)
+        targets.append(vector.subtract(t, camera_offset))
         target = t
       else:
         targets.append(t.pos)
@@ -133,7 +133,7 @@ class Camera:
     else:
       camera.target_groups.append([target])
 
-    target_pos = Camera.resolve_target_group(camera.target_groups[-1])
+    target_pos = Camera.resolve_target_group(camera.target_groups[-1], camera.offset)
 
     if not camera.pos:
       camera.pos = target_pos
@@ -144,7 +144,7 @@ class Camera:
   def tween(camera, target, duration=None, on_end=None):
     start_pos = camera.pos
     camera.focus(target, force=True)
-    goal_pos = Camera.resolve_target_group(camera.target_groups[-1])
+    goal_pos = Camera.resolve_target_group(camera.target_groups[-1], camera.offset)
 
     if not start_pos:
       camera.pos = vector.add(goal_pos, camera.offset)
@@ -180,7 +180,7 @@ class Camera:
         camera.anim = None
       return
 
-    target_pos = Camera.resolve_target_group(camera.target_groups[-1])
+    target_pos = Camera.resolve_target_group(camera.target_groups[-1], camera.offset)
     target_vel = vector.scale(vector.subtract(target_pos, vector.subtract(camera.pos, camera.offset)), 1 / Camera.SPEED * 8)
     camera.vel = vector.scale(vector.subtract(target_vel, camera.vel), 1 / 8)
     camera.pos = vector.add(camera.pos, camera.vel, vector.negate(camera.offset))
