@@ -19,18 +19,12 @@ class TimeChamberArea(Area):
     AreaBgLayer(sprite=Sprite(
       image=assets.sprites["time_chamber_roots"],
       layer="bg",
-      pos=vector.add(
-        BG_LAYERGROUP_OFFSET,
-        (-assets.sprites["time_chamber_roots"].get_width() * (1 - BG_LAYER_ROOTS_SCALING) / 4, 0)
-      )
+      pos=BG_LAYERGROUP_OFFSET,
     ), scaling=(BG_LAYER_ROOTS_SCALING, 1)),
     AreaBgLayer(sprite=Sprite(
       image=assets.sprites["time_chamber_pillars"],
       layer="bg",
-      pos=vector.add(
-        BG_LAYERGROUP_OFFSET,
-        (-assets.sprites["time_chamber_pillars"].get_width() * (1 - BG_LAYER_PILLARS_SCALING) / 4, 0)
-      ),
+      pos=BG_LAYERGROUP_OFFSET,
     ), scaling=(BG_LAYER_PILLARS_SCALING, 1)),
     AreaBgLayer(sprite=Sprite(
       image=assets.sprites["time_chamber_pipes"],

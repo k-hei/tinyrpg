@@ -16,6 +16,17 @@ class AreaBgLayer:
   sprite: Sprite
   scaling: tuple[float, float] = (1, 1)
 
+  def __post_init__(layer):
+    if layer.scaling != (1, 1):
+      layer.sprite.pos = vector.add(
+        layer.sprite.pos,
+        vector.multiply(
+          layer.sprite.image.get_size(),
+          vector.subtract((1, 1), layer.scaling),
+          (-1 / 4, -1 / 4),
+        ),
+      )
+
 class Area:
   ACTOR_Y = 0
   NPC_Y = ACTOR_Y - 16
