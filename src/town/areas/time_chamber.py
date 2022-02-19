@@ -1,8 +1,7 @@
-import lib.vector as vector
 from lib.sprite import Sprite
 from lib.line import connect_lines
 import assets
-from town.sideview.stage import Area, AreaBgLayer
+from town.sideview.stage import Area, AreaLink, AreaBgLayer
 from town.sideview.actor import Actor
 from cores.boar import Boar
 from cores.bunny import Bunny
@@ -47,6 +46,11 @@ class TimeChamberArea(Area):
       pos=BG_LAYERGROUP_OFFSET,
     )),
   ]
+
+  links = {
+    "left": AreaLink(x=48, y=0, direction=(-1, 0)),
+    "right": AreaLink(x=720, y=0, direction=(1, 0)),
+  }
 
   geometry = [
     *connect_lines([(48, 0), (112, 0), (248, 72), (520, 72), (656, 0), (720, 0)]),

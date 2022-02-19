@@ -239,6 +239,7 @@ class SideViewContext(Context):
     ctx.link = link
     if link.direction == (1, 0) or link.direction == (-1, 0):
       ctx.follow_link(ctx.link)
+      ctx.area.lock_camera()
     return True
 
   def follow_link(ctx, link):

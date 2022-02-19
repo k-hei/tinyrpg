@@ -3,7 +3,7 @@ import lib.vector as vector
 from lib.sprite import Sprite
 import assets
 from contexts.dungeon.camera import Camera, CameraConstraints
-from config import WINDOW_WIDTH, WINDOW_SIZE, TILE_SIZE
+from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE, TILE_SIZE
 
 @dataclass
 class AreaLink:
@@ -39,6 +39,7 @@ class Area:
   links = {}
   bg = None
   geometry = None
+  camera_lock = (False, False)
   camera_offset = (0, 0)
   actor_offset = 0
   buildings = []
@@ -85,7 +86,10 @@ class Area:
     area.width = max([layer.sprite.image.get_width() for layer in area_bg_layers])
     area.height = max([layer.sprite.image.get_height() for layer in area_bg_layers])
 
-    if area.camera.constraints is None:
+    if area.camera.constraints is None and area.camera_lock == (False, False):
+      area.camera.constraints = CameraConstraints(right=area.width, top=-WINDOW_HEIGHT, bottom=area.height)
+
+    elif area.camera.constraints is None and area.camera_lock == (False, True):
       area.camera.constraints = CameraConstraints(right=area.width)
 
     bg_sprites = [Sprite.move_all(

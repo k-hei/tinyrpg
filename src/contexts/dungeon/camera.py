@@ -209,7 +209,6 @@ class Camera:
       if camera.pos[1] < constraint_top:
         camera.pos = (camera_x, constraint_top)
 
-      print(constraint_bottom)
       constraint_bottom = camera.constraints.bottom - camera.size[1] / 2
       if camera.pos[1] > constraint_bottom:
         camera.pos = (camera_x, constraint_bottom)

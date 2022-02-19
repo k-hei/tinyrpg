@@ -16,21 +16,23 @@ class TownContext(Context):
     super().__init__()
     ctx.store = store
     ctx.returning = returning
-    ctx.area = TimeChamberArea
+    ctx.area = AkimorCentralArea
     ctx.graph = TownGraph(
-      nodes=[AkimorCentralArea, FortuneArea, MarketArea, OutskirtsArea],
+      nodes=[AkimorCentralArea, FortuneArea, MarketArea, OutskirtsArea, TimeChamberArea],
       edges=[
         (AkimorCentralArea.links["upper_slope_top"], AkimorCentralArea.links["upper_slope_base"]),
         (AkimorCentralArea.links["lower_slope_top"], AkimorCentralArea.links["lower_slope_base"]),
         (AkimorCentralArea.links["market"], MarketArea.links["entrance"]),
         (AkimorCentralArea.links["fortune_house"], FortuneArea.links["entrance"]),
+        (AkimorCentralArea.links["chapel"], TimeChamberArea.links["left"]),
+        (AkimorCentralArea.links["blacksmith"], TimeChamberArea.links["right"]),
         (AkimorCentralArea.links["right"], OutskirtsArea.links["left"]),
         (OutskirtsArea.links["tower"], DungeonContext),
       ]
     )
 
   def init(ctx):
-    link = None # OutskirtsArea.links["tower"] if ctx.returning else None
+    link = OutskirtsArea.links["tower"] if ctx.returning else None
     ctx.load_area(ctx.area, link)
 
   def load_area(ctx, area, link=None):

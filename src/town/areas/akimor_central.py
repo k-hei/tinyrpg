@@ -85,10 +85,11 @@ class AkimorCentralArea(Area):
     "guild_house": AreaLink(x=240, y=0, direction=(0, -1)),
     "market": AreaLink(x=472, y=0, direction=(0, -1)),
     "chapel": AreaLink(x=744, y=-32, direction=(0, -1)),
-    "npc_house": AreaLink(x=304, y=176, direction=(0, -1)),
-    "blacksmith": AreaLink(x=112, y=176, direction=(0, -1)),
+    "npc_house": AreaLink(x=112, y=176, direction=(0, -1)),
+    "blacksmith": AreaLink(x=304, y=176, direction=(0, -1)),
     "fortune_house": AreaLink(x=408, y=176, direction=(0, -1)),
     "bar": AreaLink(x=768, y=176, direction=(0, -1)),
+    "left": AreaLink(x=0, y=0, direction=(-1, 0)),
     "right": AreaLink(x=1264, y=176, direction=(1, 0)),
   }
 
