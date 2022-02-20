@@ -42,6 +42,7 @@ class Area:
   camera_lock = (False, False)
   camera_offset = (0, 0)
   actor_offset = 0
+  elems = []
   buildings = []
 
   def __init__(area):
@@ -58,6 +59,7 @@ class Area:
 
   def init(area, ctx):
     area.actors += area.buildings
+    area.actors += area.elems
 
   def spawn(area, actor, x, y=0):
     y = (actor.faction == "ally"
@@ -111,24 +113,6 @@ class Area:
       if actor is hero:
         actor_sprites[0].offset += TILE_SIZE
       sprites += actor_sprites
-
-    # TODO: refactor magic clause
-    if link_name and link_name.startswith("door"):
-      link_pos = (link.x, 96)
-      sprites += [
-        Sprite(
-          image=assets.sprites["door_open"],
-          pos=link_pos,
-          origin=("center", "top"),
-          layer="tiles"
-        ),
-        Sprite(
-          image=assets.sprites["roof"],
-          pos=link_pos,
-          origin=("center", "bottom"),
-          layer="fg"
-        )
-      ]
 
     for sprite in sprites:
       if sprite not in bg_sprites:

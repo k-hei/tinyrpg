@@ -144,7 +144,7 @@ class SideViewContext(Context):
     if intersection:
       hproj, vproj = vector.subtract(hero.pos, intersection)
       slope = find_slope(line)
-      hero.pos = vector.add(hero.pos, (0, -vproj - hproj * slope + 1))
+      hero.pos = vector.add(hero.pos, (0, -vproj - hproj * slope))
 
     return line, intersection
 

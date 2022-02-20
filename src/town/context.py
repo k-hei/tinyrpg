@@ -16,7 +16,7 @@ class TownContext(Context):
     super().__init__()
     ctx.store = store
     ctx.returning = returning
-    ctx.area = AkimorCentralArea
+    ctx.area = TimeChamberArea
     ctx.graph = TownGraph(
       nodes=[AkimorCentralArea, FortuneArea, MarketArea, OutskirtsArea, TimeChamberArea],
       edges=[

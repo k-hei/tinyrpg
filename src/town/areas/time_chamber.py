@@ -1,4 +1,5 @@
 from lib.sprite import Sprite
+import lib.vector as vector
 from lib.line import connect_lines
 import assets
 from town.sideview.stage import Area, AreaLink, AreaBgLayer
@@ -10,6 +11,17 @@ from cores.mook import Mook
 BG_LAYERGROUP_OFFSET = (0, 28)
 BG_LAYER_ROOTS_SCALING = 0.8
 BG_LAYER_PILLARS_SCALING = 0.9
+
+class Element:
+  def __init__(elem, sprite):
+    elem.sprite = sprite
+    elem.message = None
+
+  def update(elem):
+    pass
+
+  def view(elem):
+    return [elem.sprite.copy()]
 
 class TimeChamberArea(Area):
   name = "????"
@@ -47,6 +59,23 @@ class TimeChamberArea(Area):
     )),
   ]
 
+  elems = [
+    Element(sprite=Sprite(
+      image=assets.sprites["time_chamber_doorway_left"],
+      pos=vector.add(BG_LAYERGROUP_OFFSET, (48, -12)),
+      origin=Sprite.ORIGIN_BOTTOMRIGHT,
+      layer="elems",
+      offset=64,
+    )),
+    Element(sprite=Sprite(
+      image=assets.sprites["time_chamber_doorway_right"],
+      pos=vector.add(BG_LAYERGROUP_OFFSET, (720, -12)),
+      origin=Sprite.ORIGIN_BOTTOMLEFT,
+      layer="elems",
+      offset=64,
+    ))
+  ]
+
   links = {
     "left": AreaLink(x=48, y=0, direction=(-1, 0)),
     "right": AreaLink(x=720, y=0, direction=(1, 0)),
@@ -61,7 +90,11 @@ class TimeChamberArea(Area):
 
   def init(area, _):
     super().init(area)
+    area._spawn_boar()
+    area._spawn_bunny()
+    area._spawn_mook()
 
+  def _spawn_boar(area):
     area.spawn(Actor(core=Boar(
       faction="enemy",
       facing=(1, 0),
@@ -71,6 +104,7 @@ class TimeChamberArea(Area):
       ],
     )), x=456, y=72)
 
+  def _spawn_bunny(area):
     area.spawn(Actor(core=Bunny(
       faction="enemy",
       facing=(-1, 0),
@@ -79,6 +113,7 @@ class TimeChamberArea(Area):
       ],
     )), x=488, y=72)
 
+  def _spawn_mook(area):
     area.spawn(Actor(core=Mook(
       name=(mook_name := "Bingus"),
       faction="enemy",

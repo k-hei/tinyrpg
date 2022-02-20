@@ -167,7 +167,7 @@ class Actor:
     actor_sprites = actor.core.view()
     actor_sprite = actor_sprites[0]
     actor_sprite.move(vector.add(actor.pos, (0, 16)))
-    actor_sprite.target = actor
     actor_sprite.origin = Sprite.ORIGIN_BOTTOM
     actor_sprite.layer = "elems"
+    actor_sprite.target = actor
     return actor_sprites
