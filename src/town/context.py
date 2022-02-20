@@ -16,7 +16,6 @@ class TownContext(Context):
     super().__init__()
     ctx.store = store
     ctx.returning = returning
-    ctx.area = TimeChamberArea
     ctx.graph = TownGraph(
       nodes=[AkimorCentralArea, FortuneArea, MarketArea, OutskirtsArea, TimeChamberArea],
       edges=[
@@ -30,6 +29,7 @@ class TownContext(Context):
         (OutskirtsArea.links["tower"], DungeonContext),
       ]
     )
+    ctx.area = OutskirtsArea if returning else AkimorCentralArea
 
   def init(ctx):
     link = OutskirtsArea.links["tower"] if ctx.returning else None
