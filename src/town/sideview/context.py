@@ -31,7 +31,7 @@ def can_talk(hero, actor):
   dist_y = actor_y - hero_y
   facing_x, _ = hero.facing
   return (
-    abs(dist_y) < 4
+    abs(dist_y) <= TILE_SIZE / 2
     and abs(dist_x) < TILE_SIZE * 1.5
     and dist_x * facing_x >= 0
   )
