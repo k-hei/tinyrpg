@@ -306,7 +306,8 @@ class SideViewContext(Context):
         hero_x, hero_y = hero.pos
         if link.direction == (-1, 0) or link.direction == (1, 0):
           for actor in ctx.party:
-            actor.move(link.direction)
+            if abs(actor.pos[0] - link.x) < TILE_SIZE:
+              actor.move(link.direction)
         else:
           graph = ctx.get_graph()
           tail_link = graph and graph.tail(head=link)
