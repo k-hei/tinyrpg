@@ -3,6 +3,7 @@ from lib.sprite import Sprite
 from lib.line import connect_lines
 import assets
 from town.building import TownBuilding
+from town.element import Element
 from town.sideview.stage import Area, AreaLink, AreaBgLayer
 from town.sideview.actor import Actor
 from cores.mouse import Mouse
@@ -75,6 +76,21 @@ class AkimorCentralArea(Area):
       sprite_id=f"{SPRITE_PREFIX}bar",
       pos=vector.add(BUILDING_OFFSET, (664, 336))
     ),
+  ]
+
+  elems = [
+    Element(sprite=Sprite(
+      image=assets.sprites[f"{SPRITE_PREFIX}market_doorway"],
+      pos=(472, -68),
+      origin=Sprite.ORIGIN_TOP,
+      layer="fg",
+    )),
+    Element(sprite=Sprite(
+      image=assets.sprites[f"{SPRITE_PREFIX}chapel_doorway"],
+      pos=(744, -80),
+      origin=Sprite.ORIGIN_TOP,
+      layer="fg",
+    )),
   ]
 
   links = {

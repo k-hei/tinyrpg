@@ -2,6 +2,7 @@ from lib.sprite import Sprite
 import lib.vector as vector
 from lib.line import connect_lines
 import assets
+from town.element import Element
 from town.sideview.stage import Area, AreaLink, AreaBgLayer
 from town.sideview.actor import Actor
 from cores.boar import Boar
@@ -11,17 +12,6 @@ from cores.mook import Mook
 BG_LAYERGROUP_OFFSET = (0, 28)
 BG_LAYER_ROOTS_SCALING = 0.8
 BG_LAYER_PILLARS_SCALING = 0.9
-
-class Element:
-  def __init__(elem, sprite):
-    elem.sprite = sprite
-    elem.message = None
-
-  def update(elem):
-    pass
-
-  def view(elem):
-    return [elem.sprite.copy()]
 
 class TimeChamberArea(Area):
   name = "????"
@@ -64,15 +54,13 @@ class TimeChamberArea(Area):
       image=assets.sprites["time_chamber_doorway_left"],
       pos=vector.add(BG_LAYERGROUP_OFFSET, (48, -12)),
       origin=Sprite.ORIGIN_BOTTOMRIGHT,
-      layer="elems",
-      offset=64,
+      layer="fg",
     )),
     Element(sprite=Sprite(
       image=assets.sprites["time_chamber_doorway_right"],
       pos=vector.add(BG_LAYERGROUP_OFFSET, (720, -12)),
       origin=Sprite.ORIGIN_BOTTOMLEFT,
-      layer="elems",
-      offset=64,
+      layer="fg",
     ))
   ]
 

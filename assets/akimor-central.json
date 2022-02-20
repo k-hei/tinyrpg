@@ -1,14 +1,16 @@
 {
-  "akimor_central_sky":           [   0,   0, 1264, 448],
-  "akimor_central_mountains":     [1264,   0, 1264, 448],
-  "akimor_central_cliffs":        [2528,   0, 1264, 448],
-  "akimor_central_decors_rear":   [1264, 448, 1264, 448],
-  "akimor_central_decors_front":  [2528, 448, 1264, 448],
-  "akimor_central_guild_house":   [   0, 448,  176, 154],
-  "akimor_central_market":        [ 176, 448,  240,  88],
-  "akimor_central_npc_house":     [   0, 608,  112,  91],
-  "akimor_central_blacksmith":    [ 112, 608,  128,  98],
-  "akimor_central_fortune_house": [ 240, 544,  112, 112],
-  "akimor_central_chapel":        [ 352, 544,  112, 112],
-  "akimor_central_bar":           [ 464, 448,  224, 185]
+  "akimor_central_sky":            [   0,   0, 1264, 448],
+  "akimor_central_mountains":      [1264,   0, 1264, 448],
+  "akimor_central_cliffs":         [2528,   0, 1264, 448],
+  "akimor_central_decors_rear":    [1264, 448, 1264, 448],
+  "akimor_central_decors_front":   [2528, 448, 1264, 448],
+  "akimor_central_guild_house":    [   0, 448,  176, 154],
+  "akimor_central_market":         [ 176, 448,  240,  88],
+  "akimor_central_market_doorway": [ 176, 536,   32,  32],
+  "akimor_central_npc_house":      [   0, 608,  112,  91],
+  "akimor_central_blacksmith":     [ 112, 608,  128,  98],
+  "akimor_central_fortune_house":  [ 240, 544,  112, 112],
+  "akimor_central_chapel":         [ 352, 544,  112, 112],
+  "akimor_central_chapel_doorway": [ 352, 656,   32,  32],
+  "akimor_central_bar":            [ 464, 448,  224, 185]
 }
