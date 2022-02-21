@@ -87,7 +87,13 @@ class AkimorCentralArea(Area):
     )),
     Element(sprite=Sprite(
       image=assets.sprites[f"{SPRITE_PREFIX}chapel_doorway"],
-      pos=(744, -80),
+      pos=(744, -76),
+      origin=Sprite.ORIGIN_TOP,
+      layer="fg",
+    )),
+    Element(sprite=Sprite(
+      image=assets.sprites[f"{SPRITE_PREFIX}blacksmith_doorway"],
+      pos=(304, 132),
       origin=Sprite.ORIGIN_TOP,
       layer="fg",
     )),
