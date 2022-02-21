@@ -21,10 +21,10 @@ class TownContext(Context):
       edges=[
         (AkimorCentralArea.links["upper_slope_top"], AkimorCentralArea.links["upper_slope_base"]),
         (AkimorCentralArea.links["lower_slope_top"], AkimorCentralArea.links["lower_slope_base"]),
-        (AkimorCentralArea.links["market"], MarketArea.links["entrance"]),
-        (AkimorCentralArea.links["fortune_house"], FortuneArea.links["entrance"]),
-        (AkimorCentralArea.links["chapel"], TimeChamberArea.links["left"]),
-        (AkimorCentralArea.links["blacksmith"], TimeChamberArea.links["right"]),
+        (AkimorCentralArea.links["market_doorway"], MarketArea.links["entrance"]),
+        (AkimorCentralArea.links["fortune_house_doorway"], FortuneArea.links["entrance"]),
+        (AkimorCentralArea.links["chapel_doorway"], TimeChamberArea.links["left"]),
+        (AkimorCentralArea.links["blacksmith_doorway"], TimeChamberArea.links["right"]),
         (AkimorCentralArea.links["right"], OutskirtsArea.links["left"]),
         (OutskirtsArea.links["tower"], DungeonContext),
       ]

@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import lib.vector as vector
 from lib.sprite import Sprite
+from lib.filters import darken_image
 import assets
 from contexts.dungeon.camera import Camera, CameraConstraints
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE, TILE_SIZE
@@ -111,7 +112,10 @@ class Area:
     for actor in area.actors:
       actor_sprites = actor.view()
       if actor is hero:
-        actor_sprites[0].offset += TILE_SIZE
+        actor_sprite = actor_sprites[0]
+        actor_sprite.offset += TILE_SIZE
+        if link_name and "doorway" in link_name and abs(actor.pos[1] - link.y) >= 16:
+          actor_sprite.image = darken_image(actor_sprite.image)
       sprites += actor_sprites
 
     for sprite in sprites:
