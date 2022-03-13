@@ -9,16 +9,18 @@ class AtkEffect(StatsEffect):
 class AtkUpEffect(AtkEffect):
 
     def __init__(effect):
+        EFFECT_POTENCY = 1.5 # TODO: variable potency
         super().__init__(stat_mask=Stats(
-            st=2,
-            ma=2,
+            st=EFFECT_POTENCY,
+            ma=EFFECT_POTENCY,
         ))
 
 
 class AtkDownEffect(AtkEffect):
 
     def __init__(effect):
+        EFFECT_POTENCY = 0.75 # TODO: variable potency
         super().__init__(stat_mask=Stats(
-            st=0.5,
-            ma=0.5,
+            st=EFFECT_POTENCY,
+            ma=EFFECT_POTENCY,
         ))

@@ -11,14 +11,19 @@ class StatusEffect:
     def turns(effect):
         return effect._turns
 
+    @property
+    def family(effect):
+        return type(effect).__bases__[0]
+
     def step(effect):
         effect._turns = max(0, effect._turns - 1)
 
 
+
 class StatsEffect(StatusEffect):
 
-    def __init__(effect, stat_mask, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(effect, stat_mask, turns=7, *args, **kwargs):
+        super().__init__(turns=turns, *args, **kwargs)
         effect._stat_mask = stat_mask
 
     @property
@@ -31,7 +36,9 @@ class Status:
     _effects: list[StatusEffect] = field(default_factory=list)
 
     def get_stat_mask(status):
-        stat_masks = [effect for effect in status._effects if isinstance(effect, StatsEffect)]
+        stat_masks = [effect.stat_mask for effect in status._effects
+            if isinstance(effect, StatsEffect)]
+
         if not stat_masks:
             return Stats()
 
@@ -48,7 +55,7 @@ class Status:
         return stat_mask
 
     def apply(status, effect):
-        effect_family = effect.__bases__[0]
+        effect_family = effect.family
         effect_sibling = next((effect for effect in status._effects
             if isinstance(effect, effect_family)), None)
 

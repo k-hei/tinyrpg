@@ -6,7 +6,7 @@ from pygame import Surface, Rect
 from lib.sprite import Sprite
 from lib.cell import is_adjacent, add as add_vector, manhattan, upscale
 from dungeon.fov import shadowcast
-from dungeon.status import Status, StatEffect
+from dungeon.status import Status
 import lib.vector as vector
 
 from dungeon.element import DungeonElement
@@ -305,8 +305,11 @@ class DungeonActor(DungeonElement):
     if actor.aggro and not actor.ailment == "freeze":
       actor.aggro += 1
 
+  def apply_status_effect(actor, effect):
+    return actor._status.apply(effect)
+
   def step_status(actor, game):
-    actor._status.update()
+    actor._status.step()
 
     actor.ailment_turns -= 1
     if actor.ailment == "poison":

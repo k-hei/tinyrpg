@@ -1,9 +1,12 @@
 from cores.knight import Knight
 from skills.support import SupportSkill
+from dungeon.status.atk import AtkUpEffect
+
+import debug
 
 class Empower(SupportSkill):
   name = "Empower"
-  desc = "Temporarily increases attack strength"
+  desc = "Increases attack strength"
   element = "sword"
   cost = 4
   range_min = 0
@@ -16,4 +19,5 @@ class Empower(SupportSkill):
   ]
 
   def effect(game, user, dest=None, on_start=None, on_end=None):
-    user.buff_atk()
+    user.apply_status_effect(AtkUpEffect())
+    debug.log("atk up")
