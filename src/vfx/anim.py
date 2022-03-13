@@ -10,12 +10,12 @@ class AnimVfx(Vfx):
   class Anim(FrameAnim):
       pass
 
-  def __init__ (fx, cell, delay=0):
+  def __init__ (fx, cell, delay=0, on_end=None):
     super().__init__(
         kind=None,
         pos=tuple([(x + 0.5) * TILE_SIZE for x in cell])
     )
-    fx.anim = fx.Anim(delay=delay)
+    fx.anim = fx.Anim(delay=delay, on_end=on_end)
 
   def update(fx, *_):
     if fx.anim:

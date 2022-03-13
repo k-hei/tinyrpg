@@ -21,10 +21,9 @@ class Fortify(SupportSkill):
   ]
 
   def effect(game, user, dest=None, on_start=None, on_end=None):
-    game.anims.append([PauseAnim(
-      duration=75, # add on_end hook to animated vfx
+    game.anims.append([(pause_anim := PauseAnim(
       on_start=lambda: (
-        game.vfx.append(DefUpVfx(cell=user.cell)),
+        game.vfx.append(DefUpVfx(cell=user.cell, on_end=pause_anim.end)),
         user.apply_status_effect(DefUpEffect()),
         user.core.anims.append(user.core.ChargeAnim()),
         on_start and on_start(),
@@ -33,4 +32,4 @@ class Fortify(SupportSkill):
         user.core.anims.pop(),
         on_end and on_end(),
       ),
-    )])
+    ))])
