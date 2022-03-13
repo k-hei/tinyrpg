@@ -30,10 +30,8 @@ from comps.hpbubble import HpBubble
 from vfx.icepiece import IcePieceVfx
 import config
 from config import TILE_SIZE
-
 from contexts import Context
 from contexts.dialogue import DialogueContext
-
 import debug
 
 
