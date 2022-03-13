@@ -1,10 +1,12 @@
 from random import randint
 from copy import copy
 from math import sqrt
+
 from pygame import Surface, Rect
 from lib.sprite import Sprite
 from lib.cell import is_adjacent, add as add_vector, manhattan, upscale
 from dungeon.fov import shadowcast
+from dungeon.status import Status, StatEffect
 import lib.vector as vector
 
 from dungeon.element import DungeonElement
@@ -33,6 +35,7 @@ from contexts import Context
 from contexts.dialogue import DialogueContext
 
 import debug
+
 
 class DungeonActor(DungeonElement):
   POISON_DURATION = 5
@@ -114,7 +117,6 @@ class DungeonActor(DungeonElement):
     actor.weapon = actor.find_weapon()
     actor.item = None
     actor.command = None
-    actor.counter = False
     actor.turns = 0
     actor.updates = 0
     actor.rare = rare
@@ -122,6 +124,7 @@ class DungeonActor(DungeonElement):
     actor.on_defeat = None
     actor.flipped = False
     actor.hidden = False
+    actor._status = Status()
 
     actor.ai_mode = None
     actor.ai_target = None
@@ -193,7 +196,10 @@ class DungeonActor(DungeonElement):
 
   @property
   def st(actor):
-    return actor.stats.st + (actor.weapon.st if actor.weapon else 0)
+    base_st = actor.stats.st
+    weapon_st = actor.weapon.st if actor.weapon else 0
+    status_st = actor._status.get_stat_mask().st # TODO(?): demeter
+    return (base_st + weapon_st) * status_st
 
   @property
   def en(actor):
@@ -302,6 +308,8 @@ class DungeonActor(DungeonElement):
       actor.aggro += 1
 
   def step_status(actor, game):
+    actor._status.update()
+
     actor.ailment_turns -= 1
     if actor.ailment == "poison":
       damage = int(actor.get_hp_max() * DungeonActor.POISON_STRENGTH)
