@@ -201,12 +201,17 @@ class DungeonActor(DungeonElement):
 
   @property
   def en(actor):
+    base_en = actor.stats.en
+    status_en = actor._status.get_stat_mask().en # TODO(?): demeter
+    en = base_en * status_en
+
     if actor.ailment == "sleep":
-      return actor.stats.en // 2
-    elif actor.ailment == "freeze":
-      return int(actor.stats.en * 1.5)
-    else:
-      return actor.stats.en
+      return en // 2
+
+    if actor.ailment == "freeze":
+      return int(en * 1.5)
+
+    return en
 
   @property
   def dead(actor):

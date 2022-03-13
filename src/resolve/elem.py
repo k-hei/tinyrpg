@@ -22,7 +22,8 @@ from dungeon.props.pillar import Pillar
 from dungeon.props.column import Column
 from dungeon.props.raretreasuredoor import RareTreasureDoor
 from dungeon.props.chest import Chest
-from dungeon.status.atk import AtkEffect
+from dungeon.status.defense import DefEffect
+from dungeon.status.attack import AtkEffect
 from dungeon.actors.genie import Genie
 from dungeon.actors.mummy import Mummy
 from dungeon.actors.mageclone import MageClone
@@ -70,6 +71,7 @@ def resolve_elem(key):
   if key == "Column": return Column
   if key == "RareTreasureDoor": return RareTreasureDoor
   if key == "Chest": return Chest
+  if key == "DefEffect": return DefEffect
   if key == "AtkEffect": return AtkEffect
   if key == "Genie": return Genie
   if key == "Mummy": return Mummy
