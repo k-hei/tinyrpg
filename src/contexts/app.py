@@ -32,7 +32,7 @@ input.config( # TODO: this isn't ideal - do we need to extend a generic wrapper 
     input.BUTTON_X: [gamepad.X, pygame.K_r],
     input.BUTTON_Y: [gamepad.Y, pygame.K_t],
     input.BUTTON_L: [gamepad.L],
-    input.BUTTON_R: [gamepad.R],
+    input.BUTTON_R: [gamepad.R, pygame.K_TAB],
   },
   controls={
     input.CONTROL_CONFIRM: [input.BUTTON_A, pygame.K_RETURN, pygame.K_SPACE, pygame.K_f],
