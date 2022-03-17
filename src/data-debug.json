@@ -13,8 +13,10 @@
   ],
   "builds": {
     "Knight": {
-      "Fortify": [0, 1],
-      "RustyBlade": [2, 0]
+      "RustyBlade": [0, 0],
+      "Empower": [1, 0],
+      "Fortify": [2, 1],
+      "Blitzritter": [1, 2]
     },
     "Mage": {
       "Cudgel": [0, 0],

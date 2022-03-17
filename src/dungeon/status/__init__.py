@@ -22,7 +22,7 @@ class StatusEffect:
 
 class StatsEffect(StatusEffect):
 
-    def __init__(effect, stat_mask, turns=7, *args, **kwargs):
+    def __init__(effect, stat_mask, turns=16, *args, **kwargs):
         super().__init__(turns=turns, *args, **kwargs)
         effect._stat_mask = stat_mask
 

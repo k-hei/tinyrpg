@@ -8,7 +8,7 @@ import debug
 
 class Fortify(SupportSkill):
   name = "Fortify"
-  desc = "Increases defense"
+  desc = "Boosts phys defense"
   element = "shield"
   cost = 3
   range_min = 0

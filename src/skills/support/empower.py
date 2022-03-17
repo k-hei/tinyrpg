@@ -8,7 +8,7 @@ import debug
 
 class Empower(SupportSkill):
   name = "Empower"
-  desc = "Increases attack strength"
+  desc = "Boosts phys attack"
   element = "sword"
   cost = 3
   range_min = 0
