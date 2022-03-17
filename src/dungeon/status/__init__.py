@@ -1,8 +1,10 @@
+
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from cores import Stats
 
 
-class StatusEffect:
+class StatusEffect(ABC):
 
     def __init__(effect, turns):
         effect._turns = turns
@@ -18,6 +20,9 @@ class StatusEffect:
     def step(effect):
         effect._turns = max(0, effect._turns - 1)
 
+    @abstractmethod
+    def view(effect):
+        return []
 
 
 class StatsEffect(StatusEffect):
@@ -85,3 +90,9 @@ class Status:
             effect.step()
 
         status._effects = [effect for effect in status._effects if effect._turns]
+
+    def view(status):
+        sprites = []
+        for effect in status._effects:
+            sprites += effect.view()
+        return sprites

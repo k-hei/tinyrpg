@@ -584,6 +584,15 @@ class DungeonActor(DungeonElement):
           layer="vfx"
         ))
 
+    status_badges = actor._status.view()
+    if status_badges:
+      sprites += Sprite.move_all(
+        sprites=status_badges,
+        offset=(20, 20),
+        origin=Sprite.ORIGIN_BOTTOMRIGHT,
+        layer="vfx",
+      )
+
     # hp bubble
     if actor.faction != "player" and not (actor.faction == "ally" and actor.behavior == "guard"):
       bubble_sprites = Sprite.move_all(
