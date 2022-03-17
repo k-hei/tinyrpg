@@ -341,6 +341,7 @@ class DungeonActor(DungeonElement):
     if actor.ailment == "invulnerable":
       actor.stats = copy(actor.core.stats)
 
+    actor._status.clear()
     actor.ailment = None
     actor.ailment_turns = 0
 

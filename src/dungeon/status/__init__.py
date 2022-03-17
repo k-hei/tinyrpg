@@ -64,10 +64,14 @@ class Status:
         and effect_sibling.turns > effect.turns):
             return # existing effect takes precedence
 
-        status.cancel(effect_sibling)
+        status.clear(effect_sibling)
         status._effects.append(effect)
 
-    def cancel(status, effect):
+    def clear(status, effect=None):
+        if not effect:
+            status._effects.clear()
+            return
+
         if type(effect) is type:
             effect_type = effect
             effect = next((effect for effect in status._effects
