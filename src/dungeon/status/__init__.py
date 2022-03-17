@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from cores import Stats
 
+from lib.sprite import Sprite
+
 
 class StatusEffect(ABC):
 
@@ -69,7 +71,9 @@ class Status:
         and effect_sibling.turns > effect.turns):
             return # existing effect takes precedence
 
-        status.clear(effect_sibling)
+        if effect_sibling:
+            status.clear(effect_sibling)
+
         status._effects.append(effect)
 
     def clear(status, effect=None):
@@ -92,7 +96,16 @@ class Status:
         status._effects = [effect for effect in status._effects if effect._turns]
 
     def view(status):
+        BADGE_SIZE = 16
+        BADGE_MARGIN = 0
+
         sprites = []
+        offset = 0
         for effect in status._effects:
-            sprites += effect.view()
+            sprites += Sprite.move_all(
+                sprites=effect.view(),
+                offset=(offset, 0),
+            )
+            offset -= BADGE_SIZE + BADGE_MARGIN
+
         return sprites

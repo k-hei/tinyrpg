@@ -588,8 +588,7 @@ class DungeonActor(DungeonElement):
     if status_badges:
       sprites += Sprite.move_all(
         sprites=status_badges,
-        offset=(20, 20),
-        origin=Sprite.ORIGIN_BOTTOMRIGHT,
+        offset=(4, 4),
         layer="vfx",
       )
 
