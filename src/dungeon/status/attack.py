@@ -8,7 +8,7 @@ class AtkEffect(StatsEffect):
 
 class AtkUpEffect(AtkEffect):
 
-    def __init__(effect, potency=1.5):
+    def __init__(effect, potency=1.25):
         super().__init__(stat_mask=Stats(
             st=potency,
             ma=potency,
