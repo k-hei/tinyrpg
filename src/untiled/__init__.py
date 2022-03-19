@@ -1,5 +1,6 @@
 import base64
 import zstd
+from untiled.layer import Layer
 
 
 def decode(width, height, layers, **kwargs):
@@ -13,9 +14,10 @@ def decode_layers(layers):
 def decode_layer(width, height, data, **kwargs):
     data_bytes = zstd.loads(base64.b64decode(data))
     data_ids = [decode_byte(buffer=data_bytes, address=i) for i in range(0, len(data_bytes), 4)]
-    data_size = len(data_ids)
-    data_lines = [data_ids[i:i+width] for i in range(0, data_size, width)]
-    return data_lines
+    return Layer(
+        size=(width, height),
+        data=data_ids,
+    )
 
 def decode_byte(buffer, address):
     BYTE_SIZE = 2 ** 8
@@ -26,10 +28,6 @@ def decode_byte(buffer, address):
 
 
 class TilesetProcessor:
-
-    @staticmethod
-    def get_layer_dimensions(layer):
-        return (len(layer[0]), len(layer))
 
     @classmethod
     def process(cls, layer, image=None):

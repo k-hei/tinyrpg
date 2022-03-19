@@ -21,7 +21,7 @@ output_dir = input_path[:-len(input_filename)]
 room_name, _ = splitext(input_filename)
 output_filename = f"{room_name}_parsed.json"
 output_path = f"{output_dir}/{output_filename}"
-output_buffer = json.dumps(layers)
+output_buffer = json.dumps([l._data for n, l in layers.items()])
 
 layer_image = DesertProcessor.process(layers["bp1"])
 layer_image = DesertProcessor.process(layers["bp2"], image=layer_image)
