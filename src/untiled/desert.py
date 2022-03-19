@@ -57,9 +57,12 @@ def transform_image(image, mask):
 class DesertProcessor(TilesetProcessor):
 
     @classmethod
-    def process(cls, layer):
+    def process(cls, layer, image=None):
         layer_width, layer_height = cls.get_layer_dimensions(layer)
-        layer_image = Image.new(mode="RGBA", size=(layer_width * tile_size, layer_height * tile_size))
+        layer_image = image or Image.new(
+            mode="RGBA",
+            size=(layer_width * tile_size, layer_height * tile_size)
+        )
 
         for row in range(layer_height):
             for col in range(layer_width):
@@ -73,6 +76,6 @@ class DesertProcessor(TilesetProcessor):
 
                 tile_image = tile_map[tile_id]
                 tile_image = transform_image(tile_image, rotation_mask)
-                layer_image.paste(tile_image, (col * tile_size, row * tile_size))
+                layer_image.paste(tile_image, (col * tile_size, row * tile_size), tile_image)
 
-        layer_image.save("output.png")
+        return layer_image
