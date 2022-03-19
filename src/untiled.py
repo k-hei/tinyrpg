@@ -2,7 +2,7 @@ import sys
 import json
 from os.path import basename, splitext
 from untiled import decode
-from untiled.desert import DesertProcessor
+from untiled.tilesets.desert import DesertProcessor
 
 argc = len(sys.argv)
 if argc != 2:
