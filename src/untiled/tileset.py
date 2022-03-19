@@ -30,5 +30,5 @@ class Tileset:
     def tile_size(tileset):
         return tileset._size
 
-    def get(tileset, id):
+    def __getitem__(tileset, id):
         return tileset._tiles[id]

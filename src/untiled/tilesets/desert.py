@@ -25,7 +25,7 @@ class DesertProcessor(TilesetProcessor):
                 continue
 
             tile_id, transform_mask = extract_transform_mask(tile_id)
-            tile_image = tileset.get(tile_id)
+            tile_image = tileset[tile_id]
             tile_image = transform_image(tile_image, transform_mask)
             layer_image.paste(
                 tile_image,
