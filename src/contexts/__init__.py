@@ -72,7 +72,7 @@ class Context:
     if ctx.child:
       try:
         ctx.child.update()
-      except:
+      except Exception:
         raise
 
   def view(ctx):

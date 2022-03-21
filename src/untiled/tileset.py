@@ -1,3 +1,10 @@
+
+def find_tile_pos(tile_id, tile_size, tileset_cols):
+    tile_col = tile_id % tileset_cols
+    tile_row = tile_id // tileset_cols
+    return (tile_col * tile_size, tile_row * tile_size)
+
+
 class Tileset:
 
     def __init__(tileset, size, image):
@@ -16,11 +23,10 @@ class Tileset:
         tile_ids = range(tileset_cols * tileset_rows)
 
         for tile_id in tile_ids:
-            tile_col = (tile_id) % tileset_cols
-            tile_row = (tile_id) // tileset_cols
+            tile_x, tile_y = find_tile_pos(tile_id, tile_size, tileset_cols)
             tile_rect = (
-                tile_col * tile_size, tile_row * tile_size,
-                (tile_col + 1) * tile_size, (tile_row + 1) * tile_size
+                tile_x, tile_y,
+                tile_x + tile_size, tile_y + tile_size
             )
             tile_map[tile_id] = tileset_image.crop(tile_rect)
 
@@ -30,5 +36,5 @@ class Tileset:
     def tile_size(tileset):
         return tileset._size
 
-    def __getitem__(tileset, id):
-        return tileset._tiles[id]
+    def __getitem__(tileset, tile_id):
+        return tileset._tiles[tile_id]

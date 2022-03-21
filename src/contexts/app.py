@@ -101,7 +101,7 @@ class App(Context):
     app.done = True
     try:
       super().close()
-    except:
+    except Exception:
       debug.append(traceback.format_exc())
     finally:
       debug.write()
@@ -119,7 +119,7 @@ class App(Context):
         app.clock.tick(app.fps)
         app.update()
         app.redraw()
-    except:
+    except Exception:
       debug.append(traceback.format_exc())
     finally:
       app.close()
@@ -140,7 +140,7 @@ class App(Context):
           app.transits.remove(transit)
         elif not app.loading:
           transit.update()
-    except:
+    except Exception:
       debug.append(traceback.format_exc())
 
   def redraw(app):
@@ -168,7 +168,7 @@ class App(Context):
         sprite.draw(app.surface)
       app.display.blit(scale(app.surface, app.size_scaled), (0, 0))
       pygame.display.flip()
-    except:
+    except Exception:
       debug.append(traceback.format_exc())
 
   def rescale(app, new_scale):

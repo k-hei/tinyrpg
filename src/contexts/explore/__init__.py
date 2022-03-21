@@ -266,46 +266,48 @@ class ExploreContext(ExploreBase):
     row_n = rect.top // stage.tile_size
     col_e = (rect.right - 1) // stage.tile_size
     row_s = (rect.bottom - 1) // stage.tile_size
-    tile_nw = stage.get_tile_at((col_w, row_n))
-    tile_ne = stage.get_tile_at((col_e, row_n))
-    tile_sw = stage.get_tile_at((col_w, row_s))
-    tile_se = stage.get_tile_at((col_e, row_s))
+    cell_nw = (col_w, row_n)
+    cell_ne = (col_e, row_n)
+    cell_sw = (col_w, row_s)
+    cell_se = (col_e, row_s)
     tile_c = stage.get_tile_at(vector.floor(vector.scale(rect.center, 1 / stage.tile_size)))
 
-    is_walkable = lambda tile: (
-      Tile.is_walkable(tile)
-      and abs(tile.elev - tile_c.elev) < 1
+    is_tile_at_walkable = lambda cell: (
+      cell in stage
+      and not stage.is_tile_at_solid(cell)
+      and not stage.is_tile_at_pit(cell)
+      # and abs(tile.elev - tile_c.elev) < 1
     )
 
     collidee = None
 
     if delta_x < 0:
-      if not is_walkable(tile_nw) or not is_walkable(tile_sw):
+      if not is_tile_at_walkable(cell_nw) or not is_tile_at_walkable(cell_sw):
         rect.left = (col_w + 1) * stage.tile_size
-        if row_n == row_s and Tile.is_of_type(tile_nw, tileset.Pit):
-          collidee = tile_nw
+        if row_n == row_s and stage.is_tile_at_pit(cell_nw):
+          collidee = cell_nw
       elif elem:
         rect.left = elem_rect.right
     elif delta_x > 0:
-      if not is_walkable(tile_ne) or not is_walkable(tile_se):
+      if not is_tile_at_walkable(cell_ne) or not is_tile_at_walkable(cell_se):
         rect.right = col_e * stage.tile_size
-        if row_n == row_s and Tile.is_of_type(tile_se, tileset.Pit):
-          collidee = tile_se
+        if row_n == row_s and stage.is_tile_at_pit(cell_se):
+          collidee = cell_se
       elif elem:
         rect.right = elem_rect.left
 
     if delta_y < 0:
-      if not is_walkable(tile_nw) or not is_walkable(tile_ne):
+      if not is_tile_at_walkable(cell_nw) or not is_tile_at_walkable(cell_ne):
         rect.top = (row_n + 1) * stage.tile_size
-        if col_w == col_e and Tile.is_of_type(tile_nw, tileset.Pit):
-          collidee = tile_nw
+        if col_w == col_e and stage.is_tile_at_pit(cell_nw):
+          collidee = cell_nw
       elif elem:
         rect.top = elem_rect.bottom
     elif delta_y > 0:
-      if not is_walkable(tile_sw) or not is_walkable(tile_se):
+      if not is_tile_at_walkable(cell_sw) or not is_tile_at_walkable(cell_se):
         rect.bottom = row_s * stage.tile_size
-        if col_w == col_e and Tile.is_of_type(tile_se, tileset.Pit):
-          collidee = tile_se
+        if col_w == col_e and stage.is_tile_at_pit(cell_se):
+          collidee = cell_se
       elif elem:
         rect.bottom = elem_rect.top
 

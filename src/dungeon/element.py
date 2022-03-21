@@ -127,7 +127,7 @@ class DungeonElement:
     elem.scale = stage.tile_size
     elem.cell = cell
     tile = stage.get_tile_at(cell)
-    if tile:
+    if tile and type(tile) is not int:
       elem.elev = tile.elev
 
   def step(elem, game):

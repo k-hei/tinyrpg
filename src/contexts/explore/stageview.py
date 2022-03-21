@@ -14,12 +14,14 @@ from resolve.tileset import resolve_tileset
 import debug
 
 def find_tile_state(stage, cell, visited_cells):
-  tile = stage.get_tile_at(cell)
-  return tile and tile.find_state(stage, cell, visited_cells)
+  return []
+  # tile = stage.get_tile_at(cell)
+  # return tile and tile.find_state(stage, cell, visited_cells)
 
 def render_tile(stage, cell, visited_cells=[]):
+  tileset = stage.tileset
   tile = stage.get_tile_at(cell)
-  return tile.render(stage, cell, visited_cells) if tile else None
+  return tileset.render_tile(tile)
 
 def snap_vector(vector, tile_size):
   return tuple(map(lambda x: x // tile_size, vector))
@@ -115,7 +117,7 @@ class StageView:
     if not tile:
       return False
 
-    tile_name = tile.__name__
+    tile_name = tile # tile.__name__
     tile_image = None
     tile_sprite = None
 

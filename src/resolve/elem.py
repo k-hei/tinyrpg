@@ -45,6 +45,7 @@ from locations.prejungle.elems.grass import PrejungleGrass
 from locations.prejungle.elems.redtree import PrejungleRedTree
 from locations.prejungle.elems.rock import PrejungleRockXL
 from locations.prejungle.elems.mosquito import PrejungleMosquito
+from locations.desert.elems.bush import DesertBush
 
 def resolve_elem(key):
   if key == "Bag": return Bag
@@ -94,3 +95,4 @@ def resolve_elem(key):
   if key == "PrejungleRedTree": return PrejungleRedTree
   if key == "PrejungleRockXL": return PrejungleRockXL
   if key == "PrejungleMosquito": return PrejungleMosquito
+  if key == "DesertBush": return DesertBush

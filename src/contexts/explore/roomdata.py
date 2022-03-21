@@ -52,12 +52,18 @@ class RoomData:
       tileset = resolve_tileset(bg_id)
     else:
       tileset = resolve_tileset("default")
+    roomdata.bg = tileset
 
     if roomdata.tiles and type(roomdata.tiles[0]) is str:
       roomdata.size = (len(roomdata.tiles[0]), len(roomdata.tiles))
       roomdata.tiles = Grid(
         size=roomdata.size,
         data=[tileset.mappings[c] for s in roomdata.tiles for c in s]
+      )
+    else:
+      roomdata.tiles = Grid(
+        size=roomdata.size,
+        data=roomdata.tiles,
       )
 
     if not roomdata.tiles and roomdata.terrain is None:
@@ -66,4 +72,6 @@ class RoomData:
     roomdata.hooks = { k: resolve_hook(h) if type(h) is str else h for k, h in roomdata.hooks.items() }
 
   def extract_cells(roomdata):
-    return [c for c, t in roomdata.tiles.enumerate() if not issubclass(t, tileset.Wall)]
+    return [c for c, t in roomdata.tiles.enumerate()]
+    # TODO: use tileset to determine solidity (how do image bgs work?)
+    # if not issubclass(t, tileset.Wall)]

@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 import base64
 import zstd
 from untiled.layer import Layer
@@ -27,8 +28,9 @@ def decode_byte(buffer, address):
         + buffer[address + 3] * BYTE_SIZE ** 3)
 
 
-class TilesetProcessor:
+class TilesetProcessor(ABC):
 
-    @classmethod
-    def process(cls, layer, image=None):
+    @staticmethod
+    @abstractmethod
+    def process_layer(layer, image=None):
         pass

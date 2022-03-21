@@ -166,7 +166,7 @@ class DungeonContext(ExploreBase):
             on_end=lambda: room_entered.on_enter(ctx),
           )
 
-    room_focused = next((r for r in ctx.stage.rooms if hero.cell in (r.cells + r.border)), None)
+    room_focused = next((r for r in ctx.stage.rooms if hero.cell in (r.cells)), None) # + r.border)), None)
     if room_focused:
       visible_cells = room_focused.cells + room_focused.visible_outline
       if room_focused not in ctx.camera.target:
@@ -215,7 +215,7 @@ class DungeonContext(ExploreBase):
 
     rooms = [*ctx.rooms, *([room] if room else [])]
     rooms_cells = [c for r in rooms for c in r.cells]
-    rooms_borders = [c for r in rooms for c in r.border]
+    rooms_borders = [] # [c for r in rooms for c in r.border]
 
     illuminate_hallway = lambda: (
       setattr(ctx.hero, "visible_cells", [
@@ -398,7 +398,7 @@ class DungeonContext(ExploreBase):
       new_door = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if isinstance(e, Door) and e.opened), None)
       new_tile = ctx.stage.get_tile_at(ctx.hero.cell)
 
-      if Tile.is_of_type(new_tile, tileset.Hallway) and (new_door or old_door) and not (new_door and old_door):
+      if ctx.stage.is_tile_at_hallway(ctx.hero_cell) and (new_door or old_door) and not (new_door and old_door):
         ctx.handle_hallway()
         is_travelling = True
         step_anim = next((a for g in ctx.anims for a in g if a.target is ctx.hero and isinstance(a, StepAnim)), None)
@@ -409,7 +409,7 @@ class DungeonContext(ExploreBase):
       ctx.refresh_fov()
 
     if ctx.hero_cell:
-      if Tile.is_of_type(new_tile, tileset.Oasis):
+      if ctx.stage.is_tile_at_oasis(ctx.hero_cell):
         ctx.handle_oasis()
 
       if ctx.find_enemies_in_range() and isinstance(ctx.get_tail(), (ExploreContext, CombatContext)):

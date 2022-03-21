@@ -8,12 +8,13 @@ from lib.cell import manhattan, neighborhood
 from math import inf
 
 class Stage:
-  def __init__(stage, tiles, elems=None, rooms=None, links=None, tile_size=TILE_SIZE, bg=None):
+  def __init__(stage, tiles, tileset=None, elems=None, rooms=None, links=None, tile_size=None, bg=None):
+    stage.tileset = tileset
     stage.tiles = tiles
     stage.elems = elems or []
     stage.links = links or []
     stage.rooms = rooms or []
-    stage.tile_size = tile_size
+    stage.tile_size = tile_size or (tileset and tileset.tile_size) or TILE_SIZE
     stage.bg = bg
     stage.entrance = None
     stage.generator = None
@@ -51,8 +52,11 @@ class Stage:
       ]
     return border
 
-  def contains(stage, cell):
+  def __contains__(stage, cell):
     return stage.tiles.contains(*cell)
+
+  def contains(stage, cell):
+    return cell in stage
 
   def get_tile_at(stage, cell):
     return stage.tiles.get(*cell)
@@ -62,6 +66,21 @@ class Stage:
 
   def is_tile_at_of_type(stage, cell, tile_type):
     return Tile.is_of_type(stage.get_tile_at(cell), tile_type)
+
+  def is_tile_at_solid(stage, cell):
+    return stage.tileset.is_tile_solid(tile=stage.get_tile_at(cell))
+
+  def is_tile_at_pit(stage, cell):
+    return stage.tileset.is_tile_pit(tile=stage.get_tile_at(cell))
+
+  def is_tile_at_hallway(stage, cell):
+    return stage.tileset.is_tile_hallway(tile=stage.get_tile_at(cell))
+
+  def is_tile_at_oasis(stage, cell):
+    return stage.tileset.is_tile_oasis(tile=stage.get_tile_at(cell))
+
+  def is_tile_at_link(stage, cell):
+    return stage.tileset.is_tile_link(tile=stage.get_tile_at(cell))
 
   def get_elem_at(stage, cell):
     return None

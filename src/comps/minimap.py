@@ -153,19 +153,19 @@ class Minimap:
           color = (0x00FF00, 0x007F00)[blink]
         elif tile is Stage.STAIRS_DOWN:
           color = 0x007F00
-        elif issubclass(tile, tileset.Pit):
+        elif floor.is_tile_at_pit(cell):
           if is_cell_visible:
             color = None # 0x000000
-        elif (issubclass(tile, tileset.Wall)
-        or issubclass(tile, tileset.Hallway) and SecretDoor.exists_at(floor, (col, row + 1))
-        ):
+        elif floor.is_tile_at_solid(cell): #(issubclass(tile, tileset.Wall)
+        # or issubclass(tile, tileset.Hallway) and SecretDoor.exists_at(floor, (col, row + 1))
+        # ):
           if is_cell_visible:
             if filled:
               continue
             color = COLOR_WALL
           else:
             color = COLOR_WALL_DARK
-        elif issubclass(tile, tileset.Oasis) or issubclass(tile, tileset.OasisStairs):
+        elif floor.is_tile_at_oasis(cell): # issubclass(tile, tileset.Oasis) or issubclass(tile, tileset.OasisStairs):
           color = COLOR_OASIS if is_cell_visible else COLOR_OASIS_DARK
         else:
           color = COLOR_FLOOR if is_cell_visible else COLOR_FLOOR_DARK

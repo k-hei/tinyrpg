@@ -9,6 +9,10 @@ class Layer:
         return layer._size
 
     @property
+    def data(layer):
+        return layer._data
+
+    @property
     def width(layer):
         return layer._size[0]
 
