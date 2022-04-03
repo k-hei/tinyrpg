@@ -1,5 +1,5 @@
 from math import inf, ceil
-from pygame import Surface, Rect, SRCALPHA
+from pygame import draw, Surface, Rect, SRCALPHA
 from lib.sprite import Sprite
 from lib.animstep import step_anims
 import lib.vector as vector
@@ -14,14 +14,15 @@ from resolve.tileset import resolve_tileset
 import debug
 
 def find_tile_state(stage, cell, visited_cells):
-  return []
+  return ()
   # tile = stage.get_tile_at(cell)
   # return tile and tile.find_state(stage, cell, visited_cells)
 
 def render_tile(stage, cell, visited_cells=[]):
   tileset = stage.tileset
   tile = stage.get_tile_at(cell)
-  return tileset.render_tile(tile)
+  tile_image = tileset.render_tile(tile)
+  return tile_image
 
 def snap_vector(vector, tile_size):
   return tuple(map(lambda x: x // tile_size, vector))
@@ -30,8 +31,8 @@ def snap_rect(rect, tile_size):
   return Rect(
     rect.left // tile_size - 1,
     rect.top // tile_size - 1,
-    ceil(rect.width / tile_size) + 2,
-    ceil(rect.height / tile_size) + 3
+    ceil(rect.width / tile_size),
+    ceil(rect.height / tile_size)
   )
 
 class StageView:
@@ -73,6 +74,7 @@ class StageView:
 
   def reset_cache(view):
     view.cache_camera_cell = None
+    view.cache_tile_rect = None
     view.cache_visible_cells = []
     view.cache_visited_cells = []
     view.cache_elems = {}
@@ -137,7 +139,8 @@ class StageView:
     if cached_image:
       tile_image = cached_image
     elif tile_name in view.tile_cache:
-      tile_image = view.tile_cache[tile_name] # TODO: we can cache by type if rendering for the type in question isn't done dynamically - need a generic way to indicate this per tile
+      # TODO: indicate dynamic tiles to determine if caching is possible
+      tile_image = view.tile_cache[tile_name]
     else:
       tile_image = render_tile(stage, cell, visited_cells)
       if type(tile_image) is Sprite:
@@ -145,7 +148,7 @@ class StageView:
         tile_image = tile_sprite.image
 
     if tile_sprite is None and cell not in view.tile_cache:
-      cached_dark_image = darken_image(tile_image)
+      cached_dark_image = None # darken_image(tile_image)
       view.tile_cache[cell] = (tile_state, tile_image, cached_dark_image)
     elif tile_sprite and cell not in view.tile_sprites:
       cached_dark_image = darken_image(tile_image)
@@ -171,29 +174,54 @@ class StageView:
   def redraw_tiles(view, hero, visited_cells):
     TILE_SIZE = view.stage.tile_size
 
-    total_rect = view.camera.rect.union(Camera(
-      size=WINDOW_SIZE,
-      pos=vector.scale(view.cache_camera_cell, TILE_SIZE),
-    ).rect) if view.cache_camera_cell else view.camera.rect
-    tile_rect = snap_rect(total_rect, TILE_SIZE)
+    camera_rect = Rect(
+      view.camera.rect.topleft,
+      vector.add(WINDOW_SIZE, (TILE_SIZE * 2, TILE_SIZE * 2)),
+    )
+    tile_rect = snap_rect(camera_rect, TILE_SIZE)
+    if tile_rect == view.cache_tile_rect:
+      # camera rect is unchanged; no need to redraw
+      return
+
+    camera_cell_delta = (vector.subtract(tile_rect, view.cache_tile_rect)
+      if view.cache_tile_rect
+      else (0, 0))
 
     surface_size = vector.scale(tile_rect.size, TILE_SIZE)
+    tile_surface = Surface(size=surface_size, flags=SRCALPHA)
     if view.tile_surface is None or surface_size != view.tile_surface.get_size():
-      view.tile_surface = Surface(size=surface_size, flags=SRCALPHA)
+      view.tile_surface = tile_surface
+      view.cache_tile_rect = None
     else:
-      view.tile_surface.fill((0, 0, 0, 0))
+      cache_offset = vector.scale(vector.negate(camera_cell_delta), TILE_SIZE)
+      tile_surface.blit(view.tile_surface, cache_offset)
+      view.tile_surface = tile_surface
+
     view.tile_offset = tile_rect.topleft
 
+    # TODO: only redraw parts of the surface that need to be redrawn
+    # definition of "need to be redrawn" encompasses two possible cases
+    # - previously out of bounds, but now visible
+    # - previously visible, but now out of bounds
+    # extra considerations: tile_rect is scrolling frame
+    # redraw existing surface onto new surface adjusted by delta * tile size
+    visible_cells = hero.visible_cells if hero else view.cache_visible_cells
+
+    # debug.bench("actual redraw procedure")
     for row in range(tile_rect.top, tile_rect.bottom + 1):
       for col in range(tile_rect.left, tile_rect.right + 1):
         cell = (col, row)
+
+        if (view.cache_tile_rect
+        and view.cache_tile_rect.collidepoint(cell)):
+          continue
+
         try:
-          visible_cells = hero.visible_cells if hero else view.cache_visible_cells
           if cell in visible_cells and not view.darkened:
             view.redraw_tile(view.stage, cell, visited_cells)
           elif cell in view.tile_cache:
             _, _, cached_image = view.tile_cache[cell]
-            view.tile_surface.blit(
+            tile_surface.blit(
               cached_image,
               vector.scale(
                 vector.subtract(cell, view.tile_offset),
@@ -207,6 +235,7 @@ class StageView:
           raise e
 
     view.cache_camera_cell = snap_vector(view.camera.pos, TILE_SIZE)
+    view.cache_tile_rect = tile_rect
     view.cache_visible_cells = hero.visible_cells.copy()
     view.cache_visited_cells = visited_cells.copy()
 

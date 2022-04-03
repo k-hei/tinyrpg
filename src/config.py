@@ -2,6 +2,9 @@ DEBUG = True
 DEBUG_GEN = False
 CUTSCENES = False
 
+# feature flags
+ENABLED_MINIMAP = False
+
 # dungeon generation
 SEED = None
 TOP_FLOOR = 3

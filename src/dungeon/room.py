@@ -34,11 +34,12 @@ class Blob(Room):
     room._edges = None
     room._connectors = None
     room._border = None
+    room._rect = None
     room.connector_deltas = {}
 
   @property
   def cells(room):
-    return [vector.add(c, room.origin) for c in room._cells]
+    return room._cells # [vector.add(c, room.origin) for c in room._cells]
 
   @property
   def border(room):
@@ -102,7 +103,9 @@ class Blob(Room):
 
   @property
   def rect(room):
-    return find_bounds(room.cells)
+    if not room._rect:
+      room._rect = find_bounds(room.cells)
+    return room._rect
 
   @property
   def center(room):

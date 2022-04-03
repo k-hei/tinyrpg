@@ -1,5 +1,5 @@
 from config import DEBUG
-from time import time
+from time import time_ns
 
 buffer = ""
 benches = {}
@@ -23,13 +23,13 @@ def write():
 
 def bench(tag, reset=False, print_threshold=0):
   if tag not in benches or reset:
-    benches[tag] = time()
+    benches[tag] = time_ns()
     return 0
   else:
-    delta = time() - benches[tag]
+    delta = (time_ns() - benches[tag]) / 1e6
     del benches[tag]
     if delta >= print_threshold:
-      log(f"{tag} in {delta * 1000}ms")
+      log(f"{tag} in {delta:.2f}ms")
     return delta
 
 def dictify(obj):

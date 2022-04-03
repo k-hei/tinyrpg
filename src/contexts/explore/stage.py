@@ -123,11 +123,11 @@ class Stage:
 
   def is_cell_opaque(stage, cell):
     tile = stage.get_tile_at(cell)
-    return not tile or tile.opaque or next((e for e in stage.get_elems_at(cell) if e.opaque), None)
+    return not tile or stage.tileset.is_tile_opaque(tile=stage.get_tile_at(cell)) or next((e for e in stage.get_elems_at(cell) if e.opaque), None)
 
   def is_tile_solid(stage, cell):
     tile = stage.get_tile_at(cell)
-    return not tile or tile.solid
+    return not tile or stage.tileset.is_tile_solid(tile=stage.get_tile_at(cell))
 
   def is_tile_walkable(stage, cell):
     tile = stage.get_tile_at(cell)

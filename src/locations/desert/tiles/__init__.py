@@ -22,8 +22,6 @@ class DesertTileset(Tileset):
         if tile in _tile_cache:
             return _tile_cache[tile]
 
-        time_start = time()
-
         tile_id, tile_mask = extract_transform_mask(tile)
 
         tileset_image = Image.open("assets/desert-tiles.png")
@@ -45,8 +43,4 @@ class DesertTileset(Tileset):
         )
 
         _tile_cache[tile] = tile_surface
-
-        time_delta = (time() - time_start) / 1e6
-        print(f"cache {tile} in {time_delta:.2f}ms")
-
         return tile_surface

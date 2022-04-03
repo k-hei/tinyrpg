@@ -9,6 +9,10 @@ class Tileset(ABC):
         return False
 
     @staticmethod
+    def is_tile_opaque(tile):
+        return False
+
+    @staticmethod
     def is_tile_pit(tile):
         return False
 

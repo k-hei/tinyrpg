@@ -23,7 +23,7 @@ from lib.lerp import lerp
 from lib.bounds import find_bounds
 from lib.cell import subtract as subtract_vector
 from lib.sprite import Sprite
-from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE, DEBUG_GEN
+from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE, DEBUG_GEN, ENABLED_MINIMAP
 import debug
 
 MARGIN_X = 8
@@ -284,6 +284,9 @@ class Minimap:
       minimap.sprite = None
 
   def view(minimap):
+    if not ENABLED_MINIMAP:
+      return []
+
     sprites = []
     minimap.time += 1
 
