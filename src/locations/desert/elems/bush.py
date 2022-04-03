@@ -14,8 +14,7 @@ class DesertBush(Element):
 
     def view(bush, *args, **kwargs):
         return super().view([Sprite(
-            image=assets.sprites["desert_bush"],
-            pos=(-16, 16),
+            image=image,
             origin=Sprite.ORIGIN_BOTTOM,
             layer="elems",
         )], *args, **kwargs)

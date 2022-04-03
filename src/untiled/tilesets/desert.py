@@ -4,12 +4,11 @@ from untiled.tileset import Tileset
 from untiled.transform import transform_image, extract_transform_mask
 from locations.desert.elems.bush import DesertBush
 
-
+TILE_SIZE = 16
 tileset = Tileset(
-    size=16,
+    size=TILE_SIZE,
     image=Image.open("assets/desert-tiles.png")
 )
-
 
 objects = [DesertBush]
 
@@ -54,7 +53,9 @@ class DesertProcessor(TilesetProcessor):
                 continue
             col += obj.size[0] // 2
             row += obj.size[1]
-            cell = (col, row)
-            layer_elems.append(obj(cell))
+            elem = obj()
+            elem.scale = TILE_SIZE
+            elem.cell = (col, row)
+            layer_elems.append(elem)
 
         return layer_elems

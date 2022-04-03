@@ -21,20 +21,23 @@ output_dir = input_path[:-len(input_filename)]
 room_name, _ = splitext(input_filename)
 output_filename = f"{room_name}_parsed.json"
 output_path = f"{output_dir}/{output_filename}"
+
+layer_image = DesertProcessor.process_tile_layer(layers["bp1"])
+layer_elems = DesertProcessor.process_object_layer(layers["bp2"])
+# layer_image = DesertProcessor.process_tile_layer(layers["front1"], image=layer_image)
+# layer_image = DesertProcessor.process(layers["front2"], image=layer_image)
+# layer_image = DesertProcessor.process(layers["front3"], image=layer_image)
+layer_image.save(f"{output_dir}/{room_name}.png")
+
+print(layer_elems)
+
 output_buffer = json.dumps({
     "bg": ("tileset", "desert"),
     "size": layers["bp1"].size,
     "tiles": layers["bp1"].data,
-    "elems": [],
+    "elems": [e.encode() for e in layer_elems],
     "edges": [(26, 2)],
 }, separators=(",", ":"))
-
-layer_image = DesertProcessor.process_tile_layer(layers["bp1"])
-layer_elems = DesertProcessor.process_object_layer(layers["bp2"])
-# layer_image = DesertProcessor.process(layers["front1"], image=layer_image)
-# layer_image = DesertProcessor.process(layers["front2"], image=layer_image)
-# layer_image = DesertProcessor.process(layers["front3"], image=layer_image)
-layer_image.save(f"{output_dir}/{room_name}.png")
 
 with open(output_path, mode="w", encoding="utf-8") as file:
     file.write(output_buffer)

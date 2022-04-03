@@ -112,8 +112,16 @@ class DungeonElement:
     elem._rect = Rect(left, top, width, height)
     return elem._rect
 
+  def __repr__(elem):
+    elem_cell, elem_name, *elem_props = elem.encode()
+    elem_propstr = ", ".join([f"{k}={v}" for k, v in [
+      ("cell", elem_cell),
+      *(elem_props[0] if elem_props else {}).items()
+    ]])
+    return f"{elem_name}({elem_propstr})"
+
   def encode(elem):
-    return [(elem.cell), type(elem).__name__]
+    return [elem.cell, type(elem).__name__]
 
   def effect(elem, game):
     pass
