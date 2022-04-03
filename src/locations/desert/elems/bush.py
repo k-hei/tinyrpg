@@ -1,20 +1,17 @@
-from lib.sprite import Sprite
 import assets
-from dungeon.element import DungeonElement as Element
+from dungeon.element_static import StaticElement
 
 
-TILE_SIZE = 16
-image = assets.sprites["desert_bush"]
+class DesertBush(StaticElement):
 
+    @property
+    def tile_id(bush):
+        return 2
 
-class DesertBush(Element):
+    @property
+    def tile_size(bush):
+        return 16
 
-    tile_id = 2
-    size = (image.get_width() // TILE_SIZE, image.get_height() // TILE_SIZE)
-
-    def view(bush, *args, **kwargs):
-        return super().view([Sprite(
-            image=image,
-            origin=Sprite.ORIGIN_BOTTOM,
-            layer="elems",
-        )], *args, **kwargs)
+    @property
+    def image(bush):
+        return assets.sprites["desert_bush"]
