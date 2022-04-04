@@ -279,6 +279,7 @@ class StageView:
       sprites=elem_view,
       offset=elem.pos,
     )
+
     if not elem_sprites:
       return []
 
@@ -293,8 +294,9 @@ class StageView:
 
   def view_elems(view, elems, hero=None, visited_cells=None):
     elems = [e for e in elems
-      if (not hero or e.cell in hero.visible_cells)
-      and (not view.transitioning or isinstance(e, Door))
+      if # (not hero or e.cell in hero.visible_cells)
+        view.camera.rect.collidepoint(e.pos)
+        and (not view.transitioning or isinstance(e, Door))
     ]
     return [s for e in elems for s in view.view_elem(elem=e, visited_cells=visited_cells)]
 

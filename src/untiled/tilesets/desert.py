@@ -1,8 +1,10 @@
+import json
 from PIL import Image
 from untiled import TilesetProcessor
 from untiled.tileset import Tileset
 from untiled.transform import transform_image, extract_transform_mask
-from locations.desert.elems.bush import DesertBush
+from locations.desert.tiles import DesertTileset
+import assets
 
 TILE_SIZE = 16
 tileset = Tileset(
@@ -10,7 +12,12 @@ tileset = Tileset(
     image=Image.open("assets/desert-tiles.png")
 )
 
-objects = [DesertBush]
+def load_elems(file_path):
+    with open(file_path, mode="r", encoding="utf-8") as file:
+        file_buffer = file.read()
+    return json.loads(file_buffer)
+
+elems = load_elems(file_path=DesertTileset.elems_path)
 
 
 class DesertProcessor(TilesetProcessor):
@@ -48,14 +55,12 @@ class DesertProcessor(TilesetProcessor):
         layer_elems = []
 
         for (col, row), tile_id in layer.enumerate():
-            obj = next((o for o in objects if o.tile_id == tile_id), None)
-            if not obj:
+            elem = next((elem for elem in elems if elem["tile_id"] == tile_id), None)
+            if not elem:
                 continue
-            col += obj.size[0] // 2
-            row += obj.size[1]
-            elem = obj()
-            elem.scale = TILE_SIZE
-            elem.cell = (col, row)
-            layer_elems.append(elem)
+            elem_image = assets.sprites[elem["image_id"]]
+            col += elem_image.get_width() // 2 // TILE_SIZE
+            row += elem_image.get_height() // TILE_SIZE
+            layer_elems.append([(col, row), elem["name"]])
 
         return layer_elems

@@ -44,20 +44,30 @@ def decode_floor(floor_data):
 
   return floor
 
-def decode_elem(elem_cell, elem_name, elem_props):
+def decode_elem(elem_cell, elem_name, elem_props, tileset=None):
   if "contents" in elem_props and type(elem_props["contents"]) is str:
     elem_props["contents"] = (
       resolve_item(elem_props["contents"])
       or resolve_skill(elem_props["contents"])
       or resolve_elem(elem_props["contents"])
     )
+
   if "on_action" in elem_props and type(elem_props["on_action"]) is str:
     elem_props["on_action"] = resolve_hook(elem_props["on_action"])
+
   # if "message" in elem_props:
   #   message_key = elem_props["message"]
   #   elem_props["message"] = next((s for s in resolve_elem(floor_data["generator"]).scripts if s[0] == message_key), None)
+
   if "charge_skill" in elem_props:
     elem_props["charge_skill"] = resolve_skill(elem_props["charge_skill"])
+
+  try:
+    return tileset and tileset.resolve_elem(elem_name)(**elem_props)
+  except (AttributeError, KeyError) as e:
+    debug.log(f"WARNING: Failed to resolve {elem_name} in {tileset}")
+    # raise e
+
   try:
     return resolve_elem(elem_name)(**elem_props)
   except Exception:

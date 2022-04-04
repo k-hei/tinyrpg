@@ -1,0 +1,88 @@
+[
+    {
+        "name": "DesertShrub",
+        "tile_id": 0,
+        "image_id": "desert_shrub"
+    },
+    {
+        "name": "DesertBush",
+        "tile_id": 2,
+        "image_id": "desert_bush"
+    },
+    {
+        "name": "DesertGrass",
+        "tile_id": 4,
+        "image_id": "desert_grass"
+    },
+    {
+        "name": "DesertFlower",
+        "tile_id": 6,
+        "image_id": "desert_flower"
+    },
+    {
+        "name": "DesertVine",
+        "tile_id": 10,
+        "image_id": "desert_vine",
+        "hitbox": [-8, -17, 16, 16]
+    },
+    {
+        "name": "DesertTreeShort",
+        "tile_id": 40,
+        "image_id": "desert_tree_short",
+        "hitbox": [-4, -18, 8, 8]
+    },
+    {
+        "name": "DesertTreeBarren",
+        "tile_id": 44,
+        "image_id": "desert_tree_barren",
+        "hitbox": [-4, -18, 8, 8]
+    },
+    {
+        "name": "DesertTree",
+        "tile_id": 120,
+        "image_id": "desert_tree",
+        "hitbox": [-4, -18, 8, 8]
+    },
+    {
+        "name": "DesertTreeAlt",
+        "tile_id": 124,
+        "image_id": "desert_tree_alt",
+        "hitbox": [-4, -18, 8, 8]
+    },
+    {
+        "name": "DesertCactus",
+        "tile_id": 88,
+        "image_id": "desert_cactus",
+        "hitbox": [-8, -18, 16, 16]
+    },
+    {
+        "name": "DesertCactusFlower",
+        "tile_id": 8,
+        "image_id": "desert_flower",
+        "hitbox": [-8, -18, 16, 16]
+    },
+    {
+        "name": "DesertCactusSmall",
+        "tile_id": 50,
+        "image_id": "desert_cactus_small",
+        "hitbox": [-8, -18, 16, 16]
+    },
+    {
+        "name": "DesertCactusFace",
+        "tile_id": 168,
+        "image_id": "desert_cactus_face",
+        "hitbox": [-8, -18, 16, 16]
+    },
+    {
+        "name": "DesertDirtRock",
+        "tile_id": 174,
+        "image_id": "desert_dirt_rock",
+        "hitbox": [-8, -20, 16, 16]
+    },
+    {
+        "name": "DesertPathRock",
+        "tile_id": 250,
+        "image_id": "desert_path_rock",
+        "hitbox": [-8, -20, 16, 16]
+    }
+]

@@ -1,21 +1,18 @@
 import pygame.image
-from pygame import Rect
+from os import path
 from PIL import Image
 from locations.tileset import Tileset
 from untiled.tileset import find_tile_pos
 from untiled.transform import extract_transform_mask, transform_image
-from assets import sprites
-from time import time_ns as time
 
 
 TILE_SIZE = 16
 _solid_ids = []
 _tile_cache = {}
 
-
 class DesertTileset(Tileset):
-
     tile_size = TILE_SIZE
+    elems_path = path.join(path.dirname(path.dirname(__file__)), "elems.json")
 
     @staticmethod
     def render_tile(tile):

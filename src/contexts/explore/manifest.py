@@ -7,6 +7,7 @@ from contexts.explore.roomdata import RoomData
 from dungeon.room import Blob as Room
 from dungeon.decoder import decode_elem
 import locations.tomb.tiles as tileset
+from locations.tileset import Tileset
 from helpers.stage import find_tile
 
 def manifest_rooms(rooms, dry=False, seed=None):
@@ -47,6 +48,9 @@ def manifest_rooms(rooms, dry=False, seed=None):
 
 def manifest_room(room):
     room_data = RoomData(**room)
+    room_tileset = (room_data.bg
+        if issubclass(room_data.bg, Tileset)
+        else None)
 
     stage_tiles = Grid(size=room_data.size)
     for cell, tile in room_data.tiles.enumerate():
@@ -71,11 +75,11 @@ def manifest_room(room):
     if stage.entrance is None:
         stage.entrance = tuple(room_data.edges[-1])
 
-    spawn_elems(stage, elem_data=room_data.elems)
+    spawn_elems(stage, elem_data=room_data.elems, tileset=room_tileset)
     return stage
 
-def spawn_elems(stage, elem_data, offset=(0, 0)):
+def spawn_elems(stage, elem_data, offset=(0, 0), tileset=None):
     for elem_cell, elem_name, *elem_props in elem_data:
         elem_props = elem_props[0] if elem_props else {}
-        elem = decode_elem(elem_cell, elem_name, elem_props)
+        elem = decode_elem(elem_cell, elem_name, elem_props, tileset)
         stage.spawn_elem_at(vector.add(offset, elem_cell), elem)

@@ -35,7 +35,7 @@ output_buffer = json.dumps({
     "bg": ("tileset", "desert"),
     "size": layers["bp1"].size,
     "tiles": layers["bp1"].data,
-    "elems": [e.encode() for e in layer_elems],
+    "elems": layer_elems,
     "edges": [(26, 2)],
 }, separators=(",", ":"))
 

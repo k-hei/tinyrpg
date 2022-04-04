@@ -1,28 +1,27 @@
-from abc import ABC, abstractmethod
+from pygame import Rect
 from lib.sprite import Sprite
 from dungeon.element import DungeonElement
+from dungeon.element_data import ElementData
+import assets
 
 
-class StaticElement(DungeonElement, ABC):
+class StaticElement(DungeonElement):
 
-    @abstractmethod
-    def tile_id(elem) -> int:
-        pass
-
-    @abstractmethod
-    def tile_size(elem) -> int:
-        pass
-
-    @abstractmethod
-    def image(elem):
-        pass
+    def __init__(self, data: ElementData):
+        super().__init__()
+        self._data = data
 
     @property
-    def size(elem) -> tuple[int, int]:
-        return (
-            elem.image.get_width() // elem.tile_size,
-            elem.image.get_height() // elem.tile_size,
-        )
+    def tile_id(elem) -> int:
+        return elem._data.tile_id
+
+    @property
+    def image(elem):
+        return assets.sprites[elem._data.image_id]
+
+    @property
+    def rect(elem) -> Rect:
+        pass
 
     def view(elem, *args, **kwargs):
         return super().view([Sprite(
