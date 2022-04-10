@@ -23,15 +23,22 @@ output_filename = f"{room_name}_parsed.json"
 output_path = f"{output_dir}/{output_filename}"
 
 layer_data, layer_image = DesertProcessor.process_tile_layer(layers["bp1"])
+
 layer_data, layer_image, layer_elems = DesertProcessor.process_object_layer(
-    layers["bp2"],
+    layer=layers["bp2"],
     data=layer_data,
     image=layer_image
 )
 
-# layer_image = DesertProcessor.process_tile_layer(layers["front1"], image=layer_image)
+layer_data, layer_image, layer_elems = DesertProcessor.process_object_layer(
+    layer=layers["front1"],
+    data=layer_data,
+    image=layer_image
+)
+
 # layer_image = DesertProcessor.process(layers["front2"], image=layer_image)
 # layer_image = DesertProcessor.process(layers["front3"], image=layer_image)
+
 layer_image.save(f"{output_dir}/{room_name}.png")
 
 output_buffer = json.dumps({
@@ -42,6 +49,7 @@ output_buffer = json.dumps({
     "edges": [(26, 2)],
 }, separators=(",", ":"))
 
+output_path = f"rooms/{input_filename}"
 with open(output_path, mode="w", encoding="utf-8") as file:
     file.write(output_buffer)
 

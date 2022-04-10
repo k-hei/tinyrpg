@@ -2,7 +2,7 @@ import json
 from PIL import Image
 from untiled import TilesetProcessor
 from untiled.tileset import Tileset
-from untiled.transform import transform_image, extract_transform_mask
+from untiled.transform import transform_image, extract_transform_mask, MASK_HORIZ
 from locations.desert.tiles import DesertTileset
 import assets
 
@@ -60,11 +60,19 @@ class DesertProcessor(TilesetProcessor):
         layer_elems = []
         visited_cells = set()
 
+        def is_tile_in_elem(tile_id, elem):
+            tile_id, transform_mask = extract_transform_mask(tile_id)
+            (_, _, elem_sprite_rect_width, _) = assets.sprite_rects[elem["image_id"]]
+            elem_sprite_rect_cols = elem_sprite_rect_width // tileset.tile_size
+            return (tile_id == elem["tile_id"] and not transform_mask
+                or tile_id == elem["tile_id"] + elem_sprite_rect_cols - 1 and transform_mask == MASK_HORIZ)
+
         for (col, row), tile_id in layer.enumerate():
             if tile_id == -1:
                 continue
 
-            elem = next((elem for elem in elems if elem["tile_id"] == tile_id), None)
+            elem = next((e for e in elems if is_tile_in_elem(tile_id, e)), None)
+
             if not elem:
                 if (col, row) not in visited_cells:
                     data[layer.index((col, row))] = tile_id

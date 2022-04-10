@@ -58,7 +58,7 @@
     {
         "name": "DesertCactusFlower",
         "tile_id": 8,
-        "image_id": "desert_flower",
+        "image_id": "desert_cactus_flowers",
         "hitbox": [-8, -18, 16, 16]
     },
     {
