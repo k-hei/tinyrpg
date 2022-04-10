@@ -293,11 +293,22 @@ class StageView:
     return elem_sprites
 
   def view_elems(view, elems, hero=None, visited_cells=None):
-    elems = [e for e in elems
-      if # (not hero or e.cell in hero.visible_cells)
-        view.camera.rect.collidepoint(e.pos)
-        and (not view.transitioning or isinstance(e, Door))
-    ]
+
+    def is_elem_visible(elem):
+      if view.transitioning and isinstance(elem, Door):
+        return False
+
+      try:
+        return view.camera.rect.colliderect(elem.image.get_rect(midbottom=elem.pos))
+      except AttributeError:
+        return view.camera.rect.collidepoint(elem.pos)
+
+      # TODO: stage overworld flag: overworld -> no FOV -> all cells visible
+      # (not hero or e.cell in hero.visible_cells)
+
+    elems = [*filter(is_elem_visible, elems)]
+    [e for e in elems
+      if is_elem_visible(e)]
     return [s for e in elems for s in view.view_elem(elem=e, visited_cells=visited_cells)]
 
   def view_vfx(view, vfx):
