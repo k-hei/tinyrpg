@@ -22,8 +22,12 @@ class Layer:
 
     def __getitem__(layer, cell):
         col, row = cell
-        index = row * layer.width + col
+        index = layer.index(cell)
         return layer._data[index]
+
+    def index(layer, cell):
+        col, row = cell
+        return row * layer.width + col
 
     def enumerate(layer):
         items = []

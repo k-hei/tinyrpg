@@ -23,6 +23,13 @@ elems = load_elems(file_path=DesertTileset.elems_path)
 class DesertProcessor(TilesetProcessor):
 
     @staticmethod
+    def resolve_tile_image_from_id(tile_id):
+        tile_id, transform_mask = extract_transform_mask(tile_id)
+        tile_image = tileset[tile_id]
+        tile_image = transform_image(tile_image, transform_mask)
+        return tile_image
+
+    @staticmethod
     def process_layer(layer, image=None):
         layer_width, layer_height = layer.size
         layer_image = image or Image.new(
@@ -31,36 +38,51 @@ class DesertProcessor(TilesetProcessor):
         )
         return layer_image
 
-    @staticmethod
-    def process_tile_layer(layer, image=None):
+    @classmethod
+    def process_tile_layer(cls, layer, image=None):
         layer_image = DesertProcessor.process_layer(layer, image)
 
         for (col, row), tile_id in layer.enumerate():
             if tile_id == -1:
                 continue
 
-            tile_id, transform_mask = extract_transform_mask(tile_id)
-            tile_image = tileset[tile_id]
-            tile_image = transform_image(tile_image, transform_mask)
+            tile_image = cls.resolve_tile_image_from_id(tile_id)
             layer_image.paste(
                 tile_image,
                 (col * tileset.tile_size, row * tileset.tile_size),
                 mask=tile_image
             )
 
-        return layer_image
+        return layer.data, layer_image
 
-    @staticmethod
-    def process_object_layer(layer):
+    @classmethod
+    def process_object_layer(cls, layer, data=None, image=None):
         layer_elems = []
+        visited_cells = set()
 
         for (col, row), tile_id in layer.enumerate():
+            if tile_id == -1:
+                continue
+
             elem = next((elem for elem in elems if elem["tile_id"] == tile_id), None)
             if not elem:
+                if (col, row) not in visited_cells:
+                    data[layer.index((col, row))] = tile_id
+                    tile_image = cls.resolve_tile_image_from_id(tile_id)
+                    image.paste(
+                        tile_image,
+                        (col * tileset.tile_size, row * tileset.tile_size),
+                        mask=tile_image
+                    )
                 continue
-            elem_image = assets.sprites[elem["image_id"]]
-            col += elem_image.get_width() // 2 // TILE_SIZE
-            row += elem_image.get_height() // TILE_SIZE
-            layer_elems.append([(col, row), elem["name"]])
 
-        return layer_elems
+            elem_image = assets.sprites[elem["image_id"]]
+            elem_cols = elem_image.get_width() // TILE_SIZE
+            elem_rows = elem_image.get_height() // TILE_SIZE
+            layer_elems.append([(col + elem_cols // 2, row + elem_rows), elem["name"]])
+
+            visited_cells.update({
+                (col + c, row + r) for r in range(elem_rows)
+                    for c in range(elem_cols)})
+
+        return data, image, layer_elems
