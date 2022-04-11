@@ -48,7 +48,8 @@ def flatten_tile_image_stack(tile_images) -> Surface:
 def render_tile(stage, cell, visited_cells=[]):
   tileset = stage.tileset
   tiles = stage.get_tiles_at(cell)
-  return [tileset.render_tile(tile) for tile in tiles]
+  tile_images = [tileset.render_tile(tile) for tile in tiles]
+  return tile_images
 
 def snap_vector(vector, tile_size):
   return tuple(map(lambda x: x // tile_size, vector))
@@ -221,6 +222,10 @@ class StageView:
           # ignore previously drawn tiles
           # TODO: add tile state check
           #       tiles may be in cached rect but might still need to be updated
+          continue
+
+        if cell not in view.stage:
+          # out of bounds
           continue
 
         try:
