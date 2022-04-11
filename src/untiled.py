@@ -59,6 +59,8 @@ layer_image, layer_elems, layer_data = process_layers(DesertProcessor, [
     (LayerType.TILE, layers["bp1"]),
     (LayerType.OBJECT, layers["bp2"]),
     (LayerType.OBJECT, layers["front1"]),
+    (LayerType.OBJECT, layers["front2"]),
+    (LayerType.OBJECT, layers["front3"]),
 ])
 
 layer_image.save(f"{output_dir}/{room_name}.png")
