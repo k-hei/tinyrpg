@@ -7,12 +7,17 @@ from untiled.transform import extract_transform_mask, transform_image
 
 
 TILE_SIZE = 16
-_solid_ids = []
+_solid_ids = [210, 211, 230, 231, 193, 213, 233, 215, 234, 235]
 _tile_cache = {}
 
 class DesertTileset(Tileset):
     tile_size = TILE_SIZE
     elems_path = path.join(path.dirname(path.dirname(__file__)), "elems.json")
+
+    @staticmethod
+    def is_tile_solid(tile):
+        tile_id, _ = extract_transform_mask(tile)
+        return tile_id in _solid_ids
 
     @staticmethod
     def render_tile(tile):

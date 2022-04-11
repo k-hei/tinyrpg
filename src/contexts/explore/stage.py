@@ -75,7 +75,8 @@ class Stage:
     return Tile.is_of_type(stage.get_tile_at(cell), tile_type)
 
   def is_tile_at_solid(stage, cell):
-    return stage.tileset.is_tile_solid(tile=stage.get_tile_at(cell))
+    tiles = stage.get_tiles_at(cell)
+    return next((True for tile in tiles if stage.tileset.is_tile_solid(tile)), False)
 
   def is_tile_at_pit(stage, cell):
     return stage.tileset.is_tile_pit(tile=stage.get_tile_at(cell))

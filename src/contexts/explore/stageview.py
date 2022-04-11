@@ -276,8 +276,8 @@ class StageView:
       pos=vector.add(
         vector.negate(view.camera.rect.topleft),
         vector.scale(view.tile_offset, view.stage.tile_size)
-      )
-    ) for layer in view.tile_layers]
+      ),
+    ) for i, layer in enumerate(view.tile_layers)]
     return [*tile_layer_sprites, *tile_sprites]
 
   def view_elem(view, elem, visited_cells=[]):
