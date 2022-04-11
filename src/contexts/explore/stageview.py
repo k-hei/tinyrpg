@@ -13,16 +13,42 @@ from config import WINDOW_SIZE, WINDOW_HEIGHT, DEPTH_SIZE
 from resolve.tileset import resolve_tileset
 import debug
 
-def find_tile_state(stage, cell, visited_cells):
+def find_tile_hash(stage, cell, visited_cells):
+  """
+  Gets the hash for the tile at the cell on the given stage.
+  A tile hash is compared against a previous hash to determine whether or not the tile needs to be
+  re-rendered. If a tile hash may differ between renders, then the tile is considered "dynamic", and
+  "static" otherwise. Dynamic tiles may change appearance based on surrounding tiles, while static
+  do not change appearance and can thus have their image stacks cached on initial render to avoid
+  a significant amount of computational overhead.
+  """
   return ()
   # tile = stage.get_tile_at(cell)
   # return tile and tile.find_state(stage, cell, visited_cells)
 
+def flatten_tile_image_stack(tile_images) -> Surface:
+  """
+  Flattens a tile image stack into a single surface.
+  A tile image stack may contain Surface or Sprite instances.
+  """
+  tile_surface = None
+
+  for image in tile_images:
+    if not image:
+      continue
+
+    if isinstance(image, Sprite):
+      image = image.image
+
+    tile_surface = tile_surface or Surface(image.get_size(), flags=SRCALPHA)
+    tile_surface.blit(image, (0, 0))
+
+  return tile_surface
+
 def render_tile(stage, cell, visited_cells=[]):
   tileset = stage.tileset
-  tile = stage.get_tile_at(cell)
-  tile_image = tileset.render_tile(tile)
-  return tile_image
+  tiles = stage.get_tiles_at(cell)
+  return [tileset.render_tile(tile) for tile in tiles]
 
 def snap_vector(vector, tile_size):
   return tuple(map(lambda x: x // tile_size, vector))
@@ -59,7 +85,7 @@ class StageView:
     view.vfx = []
     view.darkened = False
     view.transitioning = False
-    view.tile_surface = None
+    view.tile_layers = []
     view.tile_offset = (0, 0)
     view.tile_sprites = {}
 
@@ -114,62 +140,45 @@ class StageView:
   def undarken(view):
     view.darkened = False
 
-  def redraw_tile(view, stage, cell, visited_cells, use_cache=False):
-    tile = stage.get_tile_at(cell)
-    if not tile:
+  def render_cell(view, stage, cell, visited_cells, use_cache=False):
+    tiles = stage.get_tile_at(cell)
+    if not tiles:
       return False
 
-    tile_name = tile # tile.__name__
-    tile_image = None
-    tile_sprite = None
+    # get tile state (state of this cell and rendering-relevant neighbors)
+    tile_hash = find_tile_hash(stage, cell, visited_cells)
 
-    tile_state = find_tile_state(stage, cell, visited_cells)
-    cached_state, cached_image, cached_dark_image = (
+    # read cached tile data
+    cached_state, cached_images, cached_image = (
       view.tile_cache[cell]
         if cell in view.tile_cache
         else (None, None, None)
     )
 
-    if cached_state and cached_state != tile_state:
+    # clear cache for this cell if tile state has changed
+    if cached_state and cached_state != tile_hash:
       del view.tile_cache[cell]
       if cell in view.tile_sprites:
         del view.tile_sprites[cell]
-      cached_state, cached_image = None, None
+      cached_state, cached_images, cached_image = None, None, None
 
-    if cached_image:
-      tile_image = cached_image
-    elif tile_name in view.tile_cache:
-      # TODO: indicate dynamic tiles to determine if caching is possible
-      tile_image = view.tile_cache[tile_name]
-    else:
-      tile_image = render_tile(stage, cell, visited_cells)
-      if type(tile_image) is Sprite:
-        tile_sprite = tile_image
-        tile_image = tile_sprite.image
+    tile_images = cached_images or render_tile(stage, cell, visited_cells)
+    tile_sprites = [t for t in tile_images if isinstance(t, Sprite)]
 
-    if tile_sprite is None and cell not in view.tile_cache:
-      cached_dark_image = None # darken_image(tile_image)
-      view.tile_cache[cell] = (tile_state, tile_image, cached_dark_image)
-    elif tile_sprite and cell not in view.tile_sprites:
-      cached_dark_image = darken_image(tile_image)
-      view.tile_cache[cell] = (tile_state, tile_image, cached_dark_image)
-      view.tile_sprites[cell] = tile_sprite
-      tile_sprite.move(vector.scale(cell, stage.tile_size))
+    if tile_sprites:
+      for sprite in tile_sprites:
+        sprite.move(vector.scale(cell, stage.tile_size))
+      view.tile_sprites[cell] = tile_sprites
+
+    # TODO: cached image is none on overworld
+    cached_image = cached_image or darken_image(flatten_tile_image_stack(tile_images))
+    view.tile_cache[cell] = (tile_hash, tile_images, cached_image)
 
     if use_cache:
-      tile_image = cached_dark_image
+      # use darker version of tile for explicit cache usage (visited tile FOV)
+      return [cached_image]
 
-    if tile_image and (not tile_sprite or use_cache):
-      view.tile_surface.blit(
-        tile_image,
-        vector.scale(
-          vector.subtract(cell, view.tile_offset),
-          stage.tile_size
-        )
-      )
-      return True
-    else:
-      return False
+    return tile_images
 
   def redraw_tiles(view, hero, visited_cells):
     TILE_SIZE = view.stage.tile_size
@@ -188,48 +197,51 @@ class StageView:
       else (0, 0))
 
     surface_size = vector.scale(tile_rect.size, TILE_SIZE)
-    tile_surface = Surface(size=surface_size, flags=SRCALPHA)
-    if view.tile_surface is None or surface_size != view.tile_surface.get_size():
-      view.tile_surface = tile_surface
+    tile_layers = [Surface(size=surface_size, flags=SRCALPHA)
+      for _ in range(view.stage.num_tile_layers)]
+    if not view.tile_layers or surface_size != view.tile_layers[0].get_size():
+      view.tile_layers = tile_layers
       view.cache_tile_rect = None
     else:
-      cache_offset = vector.scale(vector.negate(camera_cell_delta), TILE_SIZE)
-      tile_surface.blit(view.tile_surface, cache_offset)
-      view.tile_surface = tile_surface
+      cached_offset = vector.scale(vector.negate(camera_cell_delta), TILE_SIZE)
+      for i, layer in enumerate(tile_layers):
+        cached_layer = view.tile_layers[i]
+        layer.blit(cached_layer, cached_offset)
+      view.tile_layers = tile_layers
 
     view.tile_offset = tile_rect.topleft
-
-    # TODO: only redraw parts of the surface that need to be redrawn
-    # definition of "need to be redrawn" encompasses two possible cases
-    # - previously out of bounds, but now visible
-    # - previously visible, but now out of bounds
-    # extra considerations: tile_rect is scrolling frame
-    # redraw existing surface onto new surface adjusted by delta * tile size
     visible_cells = hero.visible_cells if hero else view.cache_visible_cells
 
-    # debug.bench("actual redraw procedure")
     for row in range(tile_rect.top, tile_rect.bottom + 1):
       for col in range(tile_rect.left, tile_rect.right + 1):
         cell = (col, row)
 
         if (view.cache_tile_rect
         and view.cache_tile_rect.collidepoint(cell)):
+          # ignore previously drawn tiles
+          # TODO: add tile state check
+          #       tiles may be in cached rect but might still need to be updated
           continue
 
         try:
-          if cell in visible_cells and not view.darkened:
-            view.redraw_tile(view.stage, cell, visited_cells)
-          elif cell in view.tile_cache:
-            _, _, cached_image = view.tile_cache[cell]
-            tile_surface.blit(
-              cached_image,
+          use_cache = cell not in visible_cells or view.darkened
+          tile_images = view.render_cell(view.stage, cell, visited_cells, use_cache)
+
+          # blit tile image stack onto associated layers
+          # view.draw_tile_image_stack(tile_images, cell=vector.subtract(cell, view.tile_offset))
+          for layer, image in zip(view.tile_layers, tile_images):
+            if not image or isinstance(image, Sprite):
+              # tile sprites get flattened for dim images, so no need to register a special case
+              continue
+
+            layer.blit(
+              image,
               vector.scale(
                 vector.subtract(cell, view.tile_offset),
                 TILE_SIZE
               )
             )
-          elif cell in visited_cells:
-            view.redraw_tile(view.stage, cell, visited_cells, use_cache=True)
+
         except Exception as e:
           debug.log(f"Failed to render tile {view.stage.get_tile_at(cell).__name__}")
           raise e
@@ -240,7 +252,7 @@ class StageView:
     view.cache_visited_cells = visited_cells.copy()
 
   def view_tiles(view, hero, visited_cells):
-    if (view.tile_surface is None
+    if (not view.tile_layers
     or view.cache_camera_cell != snap_vector(view.camera.pos, view.stage.tile_size)
     or hero and view.cache_visible_cells != hero.visible_cells
     or view.cache_visited_cells != visited_cells):
@@ -254,13 +266,14 @@ class StageView:
     for sprite in tile_sprites:
       sprite.move(vector.negate(view.camera.rect.topleft))
 
-    return [Sprite(
-      image=view.tile_surface,
+    tile_layer_sprites = [Sprite(
+      image=layer,
       pos=vector.add(
         vector.negate(view.camera.rect.topleft),
         vector.scale(view.tile_offset, view.stage.tile_size)
       )
-    ), *tile_sprites]
+    ) for layer in view.tile_layers]
+    return [*tile_layer_sprites, *tile_sprites]
 
   def view_elem(view, elem, visited_cells=[]):
     if type(elem) is SecretDoor and elem.hidden:

@@ -16,6 +16,9 @@ class DesertTileset(Tileset):
 
     @staticmethod
     def render_tile(tile):
+        if tile == -1:
+            return None
+
         if tile in _tile_cache:
             return _tile_cache[tile]
 

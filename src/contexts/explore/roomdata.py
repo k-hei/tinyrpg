@@ -3,7 +3,8 @@ from os import listdir
 from os.path import join, splitext
 from dataclasses import dataclass, field
 from lib.grid import Grid
-import locations.default.tileset as tileset
+
+from contexts.explore.tile_matrix import TileMatrix
 from resolve.hook import resolve_hook
 from resolve.tileset import resolve_tileset
 from config import ROOMS_PATH
@@ -32,6 +33,10 @@ def load_rooms():
 
 @dataclass
 class RoomData:
+  """
+  Models an in-game top-down area.
+  """
+
   bg: tuple[str, str] = ("tileset", "default")
   size: tuple[int, int] = None                              # default: generated size
   tiles: list[int] = field(default_factory=lambda: [])      # default: generated shape
@@ -54,17 +59,26 @@ class RoomData:
       tileset = resolve_tileset("default")
     roomdata.bg = tileset
 
-    if roomdata.tiles and type(roomdata.tiles[0]) is str:
+    if roomdata.tiles and isinstance(roomdata.tiles[0], str):
+      # string format
       roomdata.size = (len(roomdata.tiles[0]), len(roomdata.tiles))
       roomdata.tiles = Grid(
         size=roomdata.size,
         data=[tileset.mappings[c] for s in roomdata.tiles for c in s]
       )
+    elif roomdata.tiles and isinstance(roomdata.tiles[0], list):
+      # multi-layer format
+      roomdata.tiles = TileMatrix(layers=[Grid(
+        size=roomdata.size,
+        data=layer,
+      ) for layer in roomdata.tiles])
     else:
-      roomdata.tiles = Grid(
+      # single-layer format
+      roomdata.tiles = TileMatrix(layers=[Grid(
         size=roomdata.size,
         data=roomdata.tiles,
-      )
+      )])
+
 
     if not roomdata.tiles and roomdata.terrain is None:
       roomdata.terrain = True

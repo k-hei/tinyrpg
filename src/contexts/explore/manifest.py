@@ -52,15 +52,10 @@ def manifest_room(room):
         if issubclass(room_data.bg, Tileset)
         else None)
 
-    stage_tiles = Grid(size=room_data.size)
-    for cell, tile in room_data.tiles.enumerate():
-        stage_tiles.set(*cell, tile)
-
     stage_rooms = [Room(cells) for cells in room_data.rooms] or [Room(data=room_data)]
-
     stage = Stage(
         tileset=room_data.bg,
-        tiles=stage_tiles,
+        tiles=room_data.tiles,
         rooms=stage_rooms,
     )
 

@@ -23,8 +23,11 @@ class Grid:
       and y < grid.height
     )
 
+  def __getitem__(grid, cell):
+    return grid.get(*cell)
+
   def get(grid, x, y):
-    return grid.data[y * grid.width + x] if grid.contains(x, y) else None
+    return grid.data[y * grid.width + x]
 
   def set(grid, x, y, data):
     grid.data[y * grid.width + x] = data

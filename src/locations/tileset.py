@@ -1,10 +1,18 @@
 import json
 from abc import ABC, abstractmethod
+from enum import Enum, auto
 from pygame import Surface
 from dungeon.element_static import StaticElement
 from dungeon.element_data import ElementData
 import assets
 
+
+class TileType(Enum):
+    WALL = auto()
+    PIT = auto()
+    HALLWAY = auto()
+    OASIS = auto()
+    LINK = auto()
 
 class Tileset(ABC):
     tile_size = 16

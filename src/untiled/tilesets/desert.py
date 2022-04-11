@@ -3,6 +3,7 @@ from PIL import Image
 from untiled import TilesetProcessor
 from untiled.tileset import Tileset
 from untiled.transform import transform_image, extract_transform_mask, MASK_HORIZ
+from untiled.layer import Layer
 from locations.desert.tiles import DesertTileset
 import assets
 
@@ -53,11 +54,13 @@ class DesertProcessor(TilesetProcessor):
                 mask=tile_image
             )
 
-        return layer.data, layer_image
+        return layer_image
 
     @classmethod
-    def process_object_layer(cls, layer, data=None, image=None):
+    def process_object_layer(cls, layer, image):
         layer_elems = []
+        layer_data = Layer(size=layer.size)
+        layer_data.fill(-1)
         visited_cells = set()
 
         def is_tile_in_elem(tile_id, elem):
@@ -75,7 +78,8 @@ class DesertProcessor(TilesetProcessor):
 
             if not elem:
                 if (col, row) not in visited_cells:
-                    data[layer.index((col, row))] = tile_id
+                    # draw tile onto surface
+                    layer_data[(col, row)] = tile_id
                     tile_image = cls.resolve_tile_image_from_id(tile_id)
                     image.paste(
                         tile_image,
@@ -93,4 +97,4 @@ class DesertProcessor(TilesetProcessor):
                 (col + c, row + r) for r in range(elem_rows)
                     for c in range(elem_cols)})
 
-        return data, image, layer_elems
+        return image, layer_elems, layer_data

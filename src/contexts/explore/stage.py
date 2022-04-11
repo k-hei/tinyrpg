@@ -52,6 +52,10 @@ class Stage:
       ]
     return border
 
+  @property
+  def num_tile_layers(stage):
+    return stage.tiles.num_layers
+
   def __contains__(stage, cell):
     return stage.tiles.contains(*cell)
 
@@ -59,7 +63,10 @@ class Stage:
     return cell in stage
 
   def get_tile_at(stage, cell):
-    return stage.tiles.get(*cell)
+    return stage.tiles[cell]
+
+  def get_tiles_at(stage, cell):
+    return stage.tiles[cell]
 
   def set_tile_at(stage, cell, tile):
     return stage.tiles.set(*cell, tile)
