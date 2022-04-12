@@ -284,8 +284,8 @@ class StageView:
       else [s.copy()
         for c, ss in view.tile_sprites.items()
           for s in ss
-            if view.cache_tile_rect.collidepoint(c)
-            # if c in view.cache_visible_cells]
+            if view.camera.rect.colliderect(s.rect)
+            # if c in view.cache_visible_cells  # TODO: overworld flag
       ])
 
     for sprite in tile_sprites:
