@@ -10,6 +10,8 @@ TILE_SIZE = 16
 _solid_ids = [210, 211, 230, 231, 193, 213, 233, 215, 234, 235]
 _tile_cache = {}
 
+tileset_image = Image.open("assets/desert-tiles.png")
+
 class DesertTileset(Tileset):
     tile_size = TILE_SIZE
     elems_path = path.join(path.dirname(path.dirname(__file__)), "elems.json")
@@ -29,7 +31,6 @@ class DesertTileset(Tileset):
 
         tile_id, tile_mask = extract_transform_mask(tile)
 
-        tileset_image = Image.open("assets/desert-tiles.png")
         tile_x, tile_y = find_tile_pos(
             tile_id=tile_id,
             tile_size=TILE_SIZE,

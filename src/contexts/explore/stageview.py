@@ -34,22 +34,34 @@ def flatten_tile_image_stack(tile_images) -> Surface:
   tile_surface = None
 
   for image in tile_images:
-    if not image:
-      continue
-
     if isinstance(image, Sprite):
       image = image.image
+
+    if not image:
+      continue
 
     tile_surface = tile_surface or Surface(image.get_size(), flags=SRCALPHA)
     tile_surface.blit(image, (0, 0))
 
   return tile_surface
 
+def convert_surface_to_sprite(surface):
+  sprite_surface = Surface(size=surface.get_size(), flags=SRCALPHA)
+  sprite_surface.blit(surface, (0, 0))
+  return Sprite(
+    image=sprite_surface,
+    pos=(0, surface.get_height()),
+    origin=Sprite.ORIGIN_BOTTOM,
+    layer="elems",
+  )
+
 def render_tile(stage, cell, visited_cells=[]):
   tileset = stage.tileset
   tiles = stage.get_tiles_at(cell)
   tile_images = [tileset.render_tile(tile) for tile in tiles]
-  return tile_images
+  tile_images = [convert_surface_to_sprite(image) if i and image else image
+    for i, image in enumerate(tile_images)]
+  return [image for image in tile_images if image]
 
 def snap_vector(vector, tile_size):
   return tuple(map(lambda x: x // tile_size, vector))
@@ -169,13 +181,14 @@ class StageView:
     tile_images = cached_images or render_tile(stage, cell, visited_cells)
     tile_sprites = [t for t in tile_images if isinstance(t, Sprite)]
 
-    if tile_sprites:
+    if tile_sprites and cell not in view.tile_sprites:
       for sprite in tile_sprites:
         sprite.move(vector.scale(cell, stage.tile_size))
       view.tile_sprites[cell] = tile_sprites
 
     # TODO: cached image is none on overworld
-    cached_image = cached_image or darken_image(flatten_tile_image_stack(tile_images))
+    cached_image = flatten_tile_image_stack(tile_images)
+    cached_image = cached_image and darken_image(cached_image)
     view.tile_cache[cell] = (tile_hash, tile_images, cached_image)
 
     if use_cache:
@@ -266,11 +279,15 @@ class StageView:
     or view.cache_visited_cells != visited_cells):
       view.redraw_tiles(hero, visited_cells)
 
-    tile_sprites = (
-      []
-        if view.darkened
-        else [s.copy() for c, s in view.tile_sprites.items() if c in view.cache_visible_cells]
-    )
+    tile_sprites = ([]
+      if view.darkened
+      else [s.copy()
+        for c, ss in view.tile_sprites.items()
+          for s in ss
+            if view.cache_tile_rect.collidepoint(c)
+            # if c in view.cache_visible_cells]
+      ])
+
     for sprite in tile_sprites:
       sprite.move(vector.negate(view.camera.rect.topleft))
 

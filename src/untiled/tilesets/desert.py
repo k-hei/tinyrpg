@@ -80,6 +80,7 @@ class DesertProcessor(TilesetProcessor):
                 if (col, row) not in visited_cells:
                     # draw tile onto surface
                     layer_data[(col, row)] = tile_id
+                    print((col, row), tile_id)
                     tile_image = cls.resolve_tile_image_from_id(tile_id)
                     image.paste(
                         tile_image,
