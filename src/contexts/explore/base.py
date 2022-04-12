@@ -18,7 +18,7 @@ from dungeon.props.itemdrop import ItemDrop
 from locations.default.tile import Tile
 import locations.default.tileset as tileset
 from vfx.talkbubble import TalkBubble
-from config import MOVE_DURATION, PUSH_DURATION, SKILL_BADGE_POS_SOLO, SKILL_BADGE_POS_ALLY
+from config import MOVE_DURATION, PUSH_DURATION, SKILL_BADGE_POS_SOLO, SKILL_BADGE_POS_ALLY, TILE_SIZE
 
 COMMAND_MOVE = "move"
 COMMAND_MOVE_TO = "move_to"
@@ -135,8 +135,12 @@ class ExploreBase(Context):
 
   @property
   def facing_actor(ctx):
-    facing_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
-    facing_elems = ctx.stage.get_elems_at(facing_cell)
+    if not ctx.hero:
+      return None
+
+    origin_cell = downscale(ctx.hero.pos, scale=TILE_SIZE, floor=True)
+    facing_cell = vector.add(origin_cell, ctx.hero.facing)
+    facing_elems = ctx.stage.get_elems_at(facing_cell, scale=TILE_SIZE)
     return next((e for e in facing_elems if isinstance(e, DungeonActor)), None)
 
   def find_closest_enemy(ctx, actor, elems=None):
@@ -169,12 +173,9 @@ class ExploreBase(Context):
     ctx.comps.skill_badge.pos = SKILL_BADGE_POS_ALLY if ctx.store.ally else SKILL_BADGE_POS_SOLO
     ctx.comps.skill_badge.reload(skill=ctx.store.get_selected_skill(ctx.hero.core), delay=delay)
 
-  def move_cell(ctx, actor, delta, duration=0, jump=False, fixed=True, on_end=None):
+  def move_cell(ctx, actor, delta, duration=0, jump=False, fixed=False, on_end=None):
     target_cell = vector.add(actor.cell, delta)
-    target_tile = ctx.stage.get_tile_at(target_cell)
-    origin_tile = ctx.stage.get_tile_at(actor.cell)
-    if (not Tile.is_walkable(target_tile)
-    or abs(target_tile.elev - origin_tile.elev) >= 1):
+    if not ctx.stage.is_cell_walkable(target_cell):  # TODO: handle oasis elevation differences
       return False
 
     target_elem = (
@@ -189,7 +190,7 @@ class ExploreBase(Context):
     has_command_queue = "command_queue" in dir(ctx)
     has_command_queue and ctx.command_queue.append(move_command)
 
-    move_src = actor.cell if fixed else downscale(actor.pos, ctx.stage.tile_size)
+    move_src = actor.cell if fixed else downscale(actor.pos, TILE_SIZE)
     move_dest = target_cell if fixed else vector.add(move_src, delta)
     move_duration = duration or MOVE_DURATION
     move_duration = move_duration * 1.5 if jump else move_duration

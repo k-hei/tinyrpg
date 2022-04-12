@@ -41,16 +41,16 @@ from config import (
   TILE_SIZE,
 )
 
-def animate_snap(actor, anims, speed=2, on_end=None):
+def animate_snap(actor, anims, speed=2, scale=TILE_SIZE, on_end=None):
   x, y = actor.pos
-  x += actor.scale / 2
-  y += actor.scale / 2
-  if x % actor.scale or y % actor.scale:
+  x += scale / 2
+  y += scale / 2
+  if x % scale or y % scale:
     actor_cell = downscale(vector.add(
       actor.pos,
       vector.scale(actor.facing, TILE_SIZE / 2)
-    ), scale=actor.scale)
-    actor_dest = upscale(actor_cell, actor.scale)
+    ), scale=scale, floor=True)
+    actor_dest = upscale(actor_cell, scale)
     actor.stop_move()
     not anims and anims.append([])
     anims[-1].append(MoveAnim(
@@ -268,7 +268,6 @@ class CombatContext(ExploreBase):
       return ctx.handle_struggle(actor=hero)
 
     target_cell = vector.add(hero.cell, delta)
-    target_tile = ctx.stage.get_tile_at(target_cell)
 
     def on_move():
       ctx.update_bubble()
@@ -276,7 +275,7 @@ class CombatContext(ExploreBase):
 
     hero.facing = delta
     moved = ctx.move_cell(hero, delta, on_end=on_move)
-    if not moved and issubclass(target_tile, tileset.Pit):
+    if not moved and ctx.stage.is_tile_at_pit(target_cell):
       moved = ctx.leap(actor=hero, on_end=on_move)
 
     moved and ctx.step()
@@ -389,7 +388,15 @@ class CombatContext(ExploreBase):
     if hero.ailment == "freeze":
       return ctx.handle_struggle(actor=hero)
 
-    facing_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
+    origin_cell = downscale(hero.pos, scale=TILE_SIZE, floor=True)
+    facing_cell = vector.add(origin_cell, ctx.hero.facing)
+    # print(
+    #   origin_cell, facing_cell,
+    #   ctx.stage.get_elems_at(facing_cell, scale=TILE_SIZE),
+    #   hero.cell, vector.add(hero.cell, hero.facing),
+    #   ctx.stage.get_elems_at(vector.add(hero.cell, hero.facing))
+    # )
+
     facing_actor = ctx.facing_actor
     itemdrop = next((e for e in ctx.stage.get_elems_at(facing_cell) if isinstance(e, ItemDrop)), None)
 
@@ -407,20 +414,23 @@ class CombatContext(ExploreBase):
       not ctx.anims and ctx.anims.append([])
       ctx.anims[0].insert(0, AttackAnim(
         target=ctx.hero,
-        src=ctx.hero.cell,
-        dest=vector.add(ctx.hero.cell, ctx.hero.facing),
+        src=origin_cell,
+        dest=facing_cell,
       ))
       ctx.update_bubble()
 
     return action_result
 
   def handle_attack(ctx):
-    target_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
-    target_actor = next((e for e in ctx.stage.get_elems_at(target_cell) if isinstance(e, DungeonActor)), None)
+    target_actor = ctx.facing_actor
+    if not target_actor:
+      return False
+
     ctx.store.sp -= 1
     return ctx.attack(actor=ctx.hero, target=target_actor, on_end=ctx.step)
 
   def attack(ctx, actor, target=None, modifier=1, animate=True, on_end=None):
+    miss, crit, block = False, False, False
     if target:
       actor.face(target.cell)
       miss = will_miss(actor, target)
@@ -517,7 +527,7 @@ class CombatContext(ExploreBase):
     cleanup = lambda: (
       ctx.kill(target, on_end=on_end)
         if (
-          (target.is_dead() or issubclass(ctx.stage.get_tile_at(target.cell), tileset.Pit))
+          (target.is_dead() or ctx.stage.is_tile_at_pit(target.cell))
           and (not ctx.room or ctx.room.on_defeat(ctx, target))
         ) else on_end and on_end()
     )
@@ -556,13 +566,18 @@ class CombatContext(ExploreBase):
       cleanup()
 
   def nudge(ctx, actor, direction, on_end=None):
-    source_cell = actor.cell
+    source_cell = downscale(actor.pos, scale=TILE_SIZE, floor=True)
     target_cell = vector.add(source_cell, direction)
-    target_tile = ctx.stage.get_tile_at(target_cell)
-    if not ctx.stage.is_cell_empty(target_cell) and not issubclass(target_tile, tileset.Pit):
+    if not ctx.stage.is_cell_empty(target_cell, scale=TILE_SIZE):
+      print("nudge failed")
       return False
 
-    actor.cell = target_cell
+    actor_cell = actor.cell
+    scale_delta = TILE_SIZE // ctx.stage.tile_size
+    actor.cell = vector.add(actor.cell, vector.scale(direction, scale_delta))
+
+    print(actor_cell, actor.cell, source_cell, target_cell)
+
     not ctx.anims and ctx.anims.append([])
     ctx.anims[0].append(StepAnim(
       duration=NUDGE_DURATION,

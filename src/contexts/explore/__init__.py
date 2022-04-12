@@ -328,7 +328,7 @@ class ExploreContext(ExploreBase):
     target_cell = downscale_cell(target_pos)
     collision_cell = vector.floor(target_cell)
 
-    if (not ctx.stage.is_tile_walkable(collision_cell)
+    if (not ctx.stage.is_cell_walkable(collision_cell)
     or next((e for e in ctx.stage.get_elems_at(collision_cell)
       if e.solid and not (isinstance(e, DungeonActor) and e.faction == actor.faction)), None)):
       return False

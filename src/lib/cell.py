@@ -47,8 +47,9 @@ def is_odd(cell):
 def upscale(cell, scale):
   return vector.scale(vector.add(cell, (0.5, 0.5)), scale)
 
-def downscale(cell, scale):
-  return vector.subtract(vector.scale(cell, 1 / scale), (0.5, 0.5))
+def downscale(pos, scale, floor=False):
+  cell = vector.subtract(vector.scale(pos, 1 / scale), (0.5, 0.5))
+  return vector.floor(cell) if floor else cell
 
 def neighborhood(cell, radius=1, adjacents=True, diagonals=False, inclusive=False, predicate=None):
   if radius == 1:

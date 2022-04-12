@@ -4,7 +4,8 @@ from locations.default.tile import Tile
 from dungeon.actors import DungeonActor
 
 # TODO: relocate pathfinding logic
-from lib.cell import manhattan, neighborhood
+import lib.vector as vector
+from lib.cell import manhattan, neighborhood, downscale
 from math import inf
 
 class Stage:
@@ -63,10 +64,20 @@ class Stage:
     return cell in stage
 
   def get_tile_at(stage, cell):
-    return stage.tiles[cell]
+    return stage.get_tiles_at(cell)
 
-  def get_tiles_at(stage, cell):
-    return stage.tiles[cell]
+  def get_tiles_at(stage, cell, scale=0):
+    if cell not in stage:
+      return []
+
+    if not scale:
+      return stage.tiles[cell]
+
+    scale_delta = scale // stage.tile_size
+    origin_cell = vector.scale(cell, scale_delta)
+    offsets = [(x, y) for y in range(scale_delta) for x in range(scale_delta)]
+    cells = [vector.add(origin_cell, o) for o in offsets]
+    return [t for c in cells for t in stage.get_tiles_at(c)]
 
   def set_tile_at(stage, cell, tile):
     return stage.tiles.set(*cell, tile)
@@ -74,8 +85,11 @@ class Stage:
   def is_tile_at_of_type(stage, cell, tile_type):
     return Tile.is_of_type(stage.get_tile_at(cell), tile_type)
 
-  def is_tile_at_solid(stage, cell):
-    tiles = stage.get_tiles_at(cell)
+  def is_tile_at_solid(stage, cell, scale=0):
+    if cell not in stage:
+      return True
+
+    tiles = stage.get_tiles_at(cell, scale)
     return next((True for tile in tiles if stage.tileset.is_tile_solid(tile)), False)
 
   def is_tile_at_pit(stage, cell):
@@ -93,14 +107,21 @@ class Stage:
   def get_elem_at(stage, cell):
     return None
 
-  def get_elems_at(stage, cell):
-    return [e for e in stage.elems if (
-      e.cell == cell
-      or (
-        e.size != (1, 1)
-        and Rect(e.cell, e.size).collidepoint(cell)
-      )
-    )]
+  def get_elems_at(stage, cell, scale=0):
+    rescaling = bool(scale)
+    scale = scale or stage.tile_size
+
+    def is_elem_at_cell(elem, cell):
+      elem_cell = (downscale(elem.pos, scale, floor=True)
+        if rescaling
+        else elem.cell)
+      return (elem_cell == cell
+        or (elem.size != (1, 1)
+          and Rect(elem_cell, elem.size).collidepoint(cell)
+        )
+      )  # TODO: create separation between element collision and draw rects
+
+    return [e for e in stage.elems if is_elem_at_cell(e, cell)]
 
   def spawn_elem_at(stage, cell, elem):
     elem.spawn(stage, cell)
@@ -118,9 +139,8 @@ class Stage:
     else:
       return False
 
-  def is_cell_empty(stage, cell):
-    tile = stage.get_tile_at(cell)
-    if not tile or tile.solid or tile.pit:
+  def is_cell_empty(stage, cell, scale=0):
+    if not stage.is_cell_walkable(cell, scale):
       return False
 
     elem = next((e for e in stage.get_elems_at(cell) if e.solid), None)
@@ -137,9 +157,10 @@ class Stage:
     tile = stage.get_tile_at(cell)
     return not tile or stage.tileset.is_tile_solid(tile=stage.get_tile_at(cell))
 
-  def is_tile_walkable(stage, cell):
-    tile = stage.get_tile_at(cell)
-    return tile and not tile.solid and not tile.pit
+  def is_cell_walkable(stage, cell, scale=0):
+    return not stage.is_tile_at_solid(cell, scale)
+    # tile = stage.get_tile_at(cell)
+    # return tile and not tile.solid and not tile.pit
 
   # TODO: normalize into grid pathfinder
   def pathfind(stage, start, goal, whitelist=None):
@@ -184,7 +205,7 @@ class Stage:
   def find_walkable_room_cells(stage, room=None, cell=None, ignore_actors=False):
     room = room or next((r for r in stage.rooms if cell in r.cells), None)
     return [c for c in room.cells if (
-      (Tile.is_walkable(stage.get_tile_at(c))
+      (stage.is_cell_walkable(c)
         and not next((e for e in stage.get_elems_at(c) if e.solid and not isinstance(e, DungeonActor)), None)
       ) if ignore_actors else stage.is_cell_empty(c)
     )] if room else []

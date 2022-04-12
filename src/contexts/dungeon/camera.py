@@ -194,7 +194,8 @@ class Camera:
 
 
     if camera.constraints and camera.size[0] >= camera.constraints.width:
-      camera.pos = (camera.size[0] / 2, camera_y)
+      camera_x = camera.constraints.width / 2
+      camera.pos = (camera_x, camera_y)
 
     elif camera.constraints:
       constraint_left = camera.constraints.left + camera.size[0] / 2
@@ -207,7 +208,8 @@ class Camera:
 
 
     if camera.constraints and camera.size[1] >= camera.constraints.height:
-      camera.pos = (camera_x, 0)
+      camera_y = camera.constraints.height / 2
+      camera.pos = (camera_x, camera_y)
 
     elif camera.constraints:
       constraint_top = camera.constraints.top + camera.size[1] / 2
