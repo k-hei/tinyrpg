@@ -5,7 +5,7 @@ from lib.animstep import step_anims
 import lib.vector as vector
 from lib.filters import darken_image
 from anims.shake import ShakeAnim
-from contexts.dungeon.camera import Camera
+from contexts.dungeon.camera import Camera, CameraConstraints
 from dungeon.actors import DungeonActor
 from dungeon.props.door import Door
 from dungeon.props.secretdoor import SecretDoor
@@ -80,7 +80,10 @@ class StageView:
 
   def __init__(view, stage):
     view.stage = stage
-    view.camera = Camera(WINDOW_SIZE)
+    view.camera = Camera(WINDOW_SIZE, constraints=CameraConstraints(
+      right=stage.width * stage.tile_size,
+      bottom=stage.height * stage.tile_size,
+    ))  # TODO: stage overworld flag
     view.anim = None
     view.anims = []
     view.vfx = []

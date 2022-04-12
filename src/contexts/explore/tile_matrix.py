@@ -16,6 +16,10 @@ class TileMatrix:
     def num_layers(matrix):
         return len(matrix._layers)
 
+    @property
+    def size(matrix):
+        return matrix._layers[0].size
+
     def __getitem__(matrix, cell):
         """
         Gets the list of tiles at the given cell.
