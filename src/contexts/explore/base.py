@@ -260,12 +260,10 @@ class ExploreBase(Context):
   def push(ctx, actor, target, on_end=None):
     src_cell = target.cell
     dest_cell = vector.add(src_cell, actor.facing)
-    dest_tile = ctx.stage.get_tile_at(dest_cell)
     dest_elem = next((e for e in ctx.stage.get_elems_at(dest_cell) if e.solid), None)
     if (target.static
-    or dest_tile is None
-    or dest_tile.solid
-    or dest_tile.pit
+    or dest_cell not in ctx.stage
+    or not ctx.stage.is_cell_walkable(dest_cell)
     or dest_elem):
       return False
 
