@@ -175,7 +175,8 @@ class ExploreBase(Context):
 
   def move_cell(ctx, actor, delta, duration=0, jump=False, fixed=False, on_end=None):
     target_cell = vector.add(actor.cell, delta)
-    if not ctx.stage.is_cell_walkable(target_cell):  # TODO: handle oasis elevation differences
+
+    if not ctx.stage.is_cell_walkable(target_cell, scale=TILE_SIZE):  # TODO: handle oasis elevation differences
       return False
 
     target_elem = (

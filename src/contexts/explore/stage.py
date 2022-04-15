@@ -158,6 +158,14 @@ class Stage:
     return not tile or stage.tileset.is_tile_solid(tile=stage.get_tile_at(cell))
 
   def is_cell_walkable(stage, cell, scale=0):
+    if scale:
+      scale_delta = scale / stage.tile_size
+      scale_cell = vector.floor(vector.scale(cell, scale_delta))
+      if scale_cell not in stage:
+        return False
+    elif cell not in stage:
+      return False
+
     return not stage.is_tile_at_solid(cell, scale)
     # tile = stage.get_tile_at(cell)
     # return tile and not tile.solid and not tile.pit
