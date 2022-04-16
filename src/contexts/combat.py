@@ -295,7 +295,6 @@ class CombatContext(ExploreBase):
       actor.ai_path = ctx.stage.pathfind(
         start=actor.cell,
         goal=dest,
-        whitelist=ctx.stage.find_walkable_room_cells(cell=actor.cell, ignore_actors=True)
       )
 
     delta = ctx.find_move_to_delta(actor, dest)

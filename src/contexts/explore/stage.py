@@ -58,10 +58,15 @@ class Stage:
     return stage.tiles.num_layers
 
   def __contains__(stage, cell):
-    return stage.tiles.contains(*cell)
+    return stage.contains(cell)
 
-  def contains(stage, cell):
-    return cell in stage
+  def contains(stage, cell, scale=0):
+    if scale:
+      scale_delta = scale / stage.tile_size
+      scale_cell = vector.floor(vector.scale(cell, scale_delta))
+      return scale_cell in stage
+
+    return stage.tiles.contains(*cell)
 
   def get_tile_at(stage, cell):
     return stage.get_tiles_at(cell)
@@ -158,22 +163,17 @@ class Stage:
     return not tile or stage.tileset.is_tile_solid(tile=stage.get_tile_at(cell))
 
   def is_cell_walkable(stage, cell, scale=0):
-    if scale:
-      scale_delta = scale / stage.tile_size
-      scale_cell = vector.floor(vector.scale(cell, scale_delta))
-      if scale_cell not in stage:
-        return False
-    elif cell not in stage:
+    if not stage.contains(cell, scale):
       return False
 
+    # TODO: handle pits and float flags
     return not stage.is_tile_at_solid(cell, scale)
-    # tile = stage.get_tile_at(cell)
-    # return tile and not tile.solid and not tile.pit
 
   # TODO: normalize into grid pathfinder
   def pathfind(stage, start, goal, whitelist=None):
     if start == goal:
       return [goal]
+
     path = []
     open_cells = [start]
     open_set = {}
@@ -181,33 +181,46 @@ class Stage:
     f = { start: manhattan(start, goal) }
     g = { start: 0 }
     parent = {}
+
     while open_cells:
       open_cells.sort(key=lambda c: f[c] if c in f else inf)
       cell = open_cells.pop(0)
+
       if cell == goal:
+        # reconstruct path
         while cell != start:
           path.insert(0, cell)
           cell = parent[cell]
         path.insert(0, cell)
         return path
+
       open_set[cell] = False
       closed_set[cell] = True
+
       for neighbor in neighborhood(cell):
-        if (neighbor in closed_set
-        or not stage.contains(neighbor)
-        or (not stage.is_cell_empty(neighbor) and (not whitelist or neighbor not in whitelist))
+        if neighbor != goal and (neighbor in closed_set
+        or not stage.contains(neighbor, scale=TILE_SIZE)
+        or not stage.is_cell_empty(neighbor, scale=TILE_SIZE)
+          and (not whitelist or neighbor not in whitelist)
         ):
           continue
+
         if neighbor not in open_set or not open_set[neighbor]:
           open_set[neighbor] = True
           open_cells.insert(0, neighbor)
+
         if neighbor in g and g[cell] + 1 >= g[neighbor]:
           continue
+
         parent[neighbor] = cell
         g[neighbor] = g[cell] + 1
         f[neighbor] = g[neighbor] + manhattan(neighbor, goal)
+
         if whitelist and neighbor in whitelist:
+          # prefer whitelisted cells
           f[neighbor] //= 2
+
+    # no path found
     return []
 
   def find_walkable_room_cells(stage, room=None, cell=None, ignore_actors=False):

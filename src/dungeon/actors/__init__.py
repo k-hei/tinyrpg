@@ -481,8 +481,6 @@ class DungeonActor(DungeonElement):
 
     if not actor.aggro:
       if enemy and enemy.cell in actor.visible_cells:
-        if actor.faction == "ally":
-          print("alert ally from actor step")
         actor.alert(cell=enemy.cell)
       return None
     if is_adjacent(actor.cell, enemy.cell) and actor.elev == enemy.elev:
