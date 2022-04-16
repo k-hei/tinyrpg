@@ -528,6 +528,9 @@ class ExploreContext(ExploreBase):
     )]
 
 def view_elem_hitbox(elem, camera):
+  if not elem.rect:
+    return []
+
   ALPHA = 128
   RED = (255, 0, 0, ALPHA)
   BLUE = (0, 0, 255, ALPHA)

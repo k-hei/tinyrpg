@@ -1,5 +1,6 @@
 from pygame import Rect
 from lib.sprite import Sprite
+import lib.vector as vector
 from dungeon.element import DungeonElement
 from dungeon.element_data import ElementData
 import assets
@@ -10,6 +11,7 @@ class StaticElement(DungeonElement):
     def __init__(self, data: ElementData):
         super().__init__()
         self._data = data
+        self.solid = data.hitbox is not None
 
     @property
     def tile_id(elem) -> int:
@@ -21,7 +23,21 @@ class StaticElement(DungeonElement):
 
     @property
     def rect(elem) -> Rect:
-        pass
+        try:
+            return elem.__rect
+        except AttributeError:
+            pass
+
+        try:
+            x, y, width, height = elem._data.hitbox
+            elem.__rect = Rect(
+                vector.add(elem.pos, (x, y)),
+                (width, height),
+            )
+            return elem.__rect
+        except TypeError:
+            # get hitbox for non-solid element
+            return None
 
     def view(elem, *args, **kwargs):
         return super().view([Sprite(

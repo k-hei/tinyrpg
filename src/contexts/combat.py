@@ -569,14 +569,11 @@ class CombatContext(ExploreBase):
     source_cell = downscale(actor.pos, scale=TILE_SIZE, floor=True)
     target_cell = vector.add(source_cell, direction)
     if not ctx.stage.is_cell_empty(target_cell, scale=TILE_SIZE):
-      print("nudge failed")
       return False
 
     actor_cell = actor.cell
     scale_delta = TILE_SIZE // ctx.stage.tile_size
     actor.cell = vector.add(actor.cell, vector.scale(direction, scale_delta))
-
-    print(actor_cell, actor.cell, source_cell, target_cell)
 
     not ctx.anims and ctx.anims.append([])
     ctx.anims[0].append(StepAnim(
