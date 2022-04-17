@@ -458,7 +458,7 @@ class CombatContext(ExploreBase):
         direction=actor.facing,
         on_end=lambda: (
           attack_command in ctx.command_queue and ctx.command_queue.remove(attack_command),
-          on_end and on_end()
+          on_end and on_end(),
         ),
       )
     )
@@ -528,7 +528,7 @@ class CombatContext(ExploreBase):
         if (
           (target.is_dead() or ctx.stage.is_tile_at_pit(target.cell))
           and (not ctx.room or ctx.room.on_defeat(ctx, target))
-        ) else on_end and on_end()
+        ) else on_end and on_end(),
     )
 
     if damage and target.item:

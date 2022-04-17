@@ -170,7 +170,10 @@ class Blob(Room):
 
   def should_unlock(room, stage, actor=None):
     enemies = [e for e in room.get_enemies(stage) if e is not actor]
-    pushtile = next((e for c in room.get_cells() for e in stage.get_elems_at(c) if type(e).__name__ == "PushTile"), None)
+    pushtile = next((e for e in stage.elems if (
+      type(e).__name__ == "PushTile"
+      and e.cell in room.get_cells()
+    )), None)
     return (
       not enemies
       and not pushtile
