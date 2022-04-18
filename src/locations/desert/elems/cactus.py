@@ -11,11 +11,11 @@ class DesertEvilCactus(DungeonActor):
       name=name,
       faction="enemy",
       stats=Stats(
-        hp=21,
-        st=9,
+        hp=25,
+        st=12,
         dx=4,
-        ag=10,
-        en=7,
+        ag=5,
+        en=4,
       ),
       skills=[Tackle],
     ), *args, **kwargs)
