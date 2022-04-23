@@ -71,6 +71,7 @@ def manifest_room(room):
         stage.entrance = tuple(room_data.edges[-1])
 
     spawn_elems(stage, elem_data=room_data.elems, tileset=room_tileset)
+    print(stage.rooms)
     return stage
 
 def spawn_elems(stage, elem_data, offset=(0, 0), tileset=None):
