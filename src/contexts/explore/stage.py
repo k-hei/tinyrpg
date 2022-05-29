@@ -20,6 +20,7 @@ class Stage:
     stage.entrance = None
     stage.generator = None
     stage.seed = None
+    stage.is_overworld = True
 
   @property
   def size(stage):

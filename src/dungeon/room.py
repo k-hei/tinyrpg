@@ -35,11 +35,13 @@ class Blob(Room):
     room._connectors = None
     room._border = None
     room._rect = None
+    room.__cells = None
     room.connector_deltas = {}
 
   @property
   def cells(room):
-    return room._cells # [vector.add(c, room.origin) for c in room._cells]
+    room.__cells = room.__cells or [vector.add(c, room.origin) for c in room._cells]
+    return room.__cells
 
   @property
   def border(room):

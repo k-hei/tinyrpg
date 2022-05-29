@@ -166,14 +166,26 @@ class DungeonContext(ExploreBase):
             on_end=lambda: room_entered.on_enter(ctx),
           )
 
-    room_focused = next((r for r in ctx.stage.rooms if hero.cell in (r.cells)), None) # + r.border)), None)
-    if room_focused:
+    room_focused = next((r for r in ctx.stage.rooms if hero.cell in r.cells), None) # + r.border)), None)
+    if ctx.stage.is_overworld:
+      visible_cells = ctx.stage.cells
+
+      room_focused_prev = next((t for t in ctx.camera.target if isinstance(t, Room)), None)
+      if room_focused != room_focused_prev:
+        if room_focused_prev:
+          ctx.camera.blur(room_focused_prev)
+
+        if room_focused not in ctx.camera.target:
+          ctx.camera.focus(room_focused)
+
+    elif room_focused:
       visible_cells = room_focused.cells + room_focused.visible_outline
       if room_focused not in ctx.camera.target:
         ctx.camera.focus(room_focused)
       if room_focused not in ctx.rooms:
         ctx.rooms.append(room_focused)
         room_focused.on_focus(ctx)
+
     else:
       visible_cells = shadowcast(ctx.stage, hero.cell, VISION_RANGE)
       room_focused = next((t for t in ctx.camera.target if isinstance(t, Room)), None)
@@ -185,8 +197,13 @@ class DungeonContext(ExploreBase):
 
     if ctx.cache_room_focused is not room_focused or reset_cache:
       ctx.cache_room_focused = room_focused
-      hero.visible_cells = visible_cells
-      ctx.extend_visited_cells(visible_cells)
+      print("new room", ctx.stage.rooms.index(room_focused))
+      if (len(visible_cells) != len(hero.visible_cells)
+      and visible_cells != hero.visible_cells):
+        hero.visible_cells = visible_cells
+        debug.bench("extend new focused room")
+        ctx.extend_visited_cells(visible_cells)
+        debug.bench("extend new focused room")
 
   def handle_press(ctx, button):
     if input.get_state(pygame.K_LCTRL):

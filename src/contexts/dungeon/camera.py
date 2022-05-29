@@ -132,6 +132,7 @@ class Camera:
         return
       camera.target_groups = [[target]]
     elif camera.target_groups and not force:
+      print("add", target)
       camera.target_groups[-1].append(target)
     else:
       camera.target_groups.append([target])
@@ -162,10 +163,14 @@ class Camera:
     return duration
 
   def blur(camera, target=None):
+    if target is None:
+      camera.target_groups.pop()
+      return
+
     if target in camera.target:
       camera.target.remove(target)
-    elif target is None:
-      camera.target_groups.pop()
+      if not camera.target:
+        camera.target_groups.pop()
 
   def reset(camera):
     camera.pos = None

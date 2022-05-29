@@ -159,12 +159,12 @@ class ExploreBase(Context):
     return enemies[0]
 
   def find_enemies_in_range(ctx):
-    room = ctx.room  # next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells), None)
+    room = ctx.find_room(ctx.hero.cell)  # ctx.room
     return [e for e in ctx.stage.elems if
       isinstance(e, DungeonActor)
       and e.faction == DungeonActor.FACTION_ENEMY
       and not e.dead
-      and room and e.cell in room.cells
+      and room and room.size != ctx.stage.size and e.cell in room.cells
     ]
 
   def reload_skill_badge(ctx, delay=0):

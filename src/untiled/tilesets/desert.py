@@ -6,7 +6,7 @@ import json
 from PIL import Image
 
 import lib.vector as vector
-from lib.cell import neighborhood
+from lib.cell import neighborhood, downscale
 from untiled import TilesetProcessor
 from untiled.tileset import Tileset
 from untiled.transform import transform_image, extract_transform_mask, MASK_HORIZ
@@ -160,7 +160,8 @@ class DesertProcessor(TilesetProcessor):
 
             if tile_id == ID_TRIGGER_COMBAT and cell not in visited_cells:
                 room = flood_fill(cell)
-                layer_rooms.append(room)
                 visited_cells |= set(room)
+                layer_rooms.append([downscale(c, scale=2, floor=True) for c in room])
 
+        print(layer_rooms)
         return image, layer_rooms

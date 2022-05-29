@@ -52,7 +52,7 @@ def manifest_room(room):
         if issubclass(room_data.bg, Tileset)
         else None)
 
-    stage_rooms = [Room(cells) for cells in room_data.rooms] or [Room(data=room_data)]
+    stage_rooms = [Room(cells) for cells in room_data.rooms] + [Room(data=room_data)]
     stage = Stage(
         tileset=room_data.bg,
         tiles=room_data.tiles,
@@ -71,7 +71,8 @@ def manifest_room(room):
         stage.entrance = tuple(room_data.edges[-1])
 
     spawn_elems(stage, elem_data=room_data.elems, tileset=room_tileset)
-    print(stage.rooms)
+    print(stage.rooms[0].cells)
+    # print([r.cells for i, r in enumerate(stage.rooms) if i != len(stage.rooms) - 1])
     return stage
 
 def spawn_elems(stage, elem_data, offset=(0, 0), tileset=None):
