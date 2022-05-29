@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from collections import Sequence
+from collections.abc import Sequence
 from comps.hud import Hud
 from comps.minimap import Minimap
 from comps.minilog import Minilog
