@@ -132,7 +132,6 @@ class Camera:
         return
       camera.target_groups = [[target]]
     elif camera.target_groups and not force:
-      print("add", target)
       camera.target_groups[-1].append(target)
     else:
       camera.target_groups.append([target])

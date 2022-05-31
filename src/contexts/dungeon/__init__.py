@@ -197,13 +197,10 @@ class DungeonContext(ExploreBase):
 
     if ctx.cache_room_focused is not room_focused or reset_cache:
       ctx.cache_room_focused = room_focused
-      print("new room", ctx.stage.rooms.index(room_focused))
       if (len(visible_cells) != len(hero.visible_cells)
       and visible_cells != hero.visible_cells):
         hero.visible_cells = visible_cells
-        debug.bench("extend new focused room")
         ctx.extend_visited_cells(visible_cells)
-        debug.bench("extend new focused room")
 
   def handle_press(ctx, button):
     if input.get_state(pygame.K_LCTRL):
@@ -386,7 +383,7 @@ class DungeonContext(ExploreBase):
       time=ctx.time,
     ), on_close=ctx.handle_combat)
     ctx.comps.minimap.enter()
-    ctx.comps.floor_no.enter()
+    # ctx.comps.floor_no.enter()
 
   def handle_combat(ctx, path=False):
     if type(ctx.child) is CombatContext:

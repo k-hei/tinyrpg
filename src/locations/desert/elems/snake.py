@@ -5,19 +5,8 @@ from dungeon.actors import DungeonActor
 from cores import Core, Stats
 from skills.weapon.tackle import Tackle
 
-class DesertEvilCactus(DungeonActor):
-
-  @staticmethod
-  def get_idle_sprite(facing):
-    if facing == (0, 1):
-      return assets.sprites["cactus_down"]
-
-    if facing == (0, -1):
-      return assets.sprites["cactus_up"]
-
-    return assets.sprites["cactus_side"]
-
-  def __init__(cactus, name="Cackletus", *args, **kwargs):
+class DesertSnake(DungeonActor):
+  def __init__(cactus, name="KingTuto", *args, **kwargs):
     super().__init__(Core(
       name=name,
       faction="enemy",
@@ -33,5 +22,5 @@ class DesertEvilCactus(DungeonActor):
 
   def view(cactus, anims):
     return super().view([Sprite(
-      image=cactus.get_idle_sprite(cactus.facing)
+      image=assets.sprites["snake"]
     )], anims)
