@@ -4,6 +4,7 @@ import lib.vector as vector
 from dungeon.element import DungeonElement
 from dungeon.element_data import ElementData
 import assets
+from config import TILE_SIZE
 
 
 class StaticElement(DungeonElement):
@@ -38,6 +39,10 @@ class StaticElement(DungeonElement):
         except TypeError:
             # get hitbox for non-solid element
             return None
+
+    def spawn(elem, stage, cell):
+        elem.scale = TILE_SIZE
+        elem.cell = vector.scale(cell, 1 / 2)
 
     def view(elem, *args, **kwargs):
         return super().view([Sprite(

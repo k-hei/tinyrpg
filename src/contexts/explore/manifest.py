@@ -43,7 +43,6 @@ def manifest_rooms(rooms, dry=False, seed=None):
         if room.data:
             spawn_elems(stage, elem_data=room.data.elems, offset=room.origin)
 
-    print(stage.size)
     return stage, stage_offset
 
 def manifest_room(room):
@@ -71,8 +70,6 @@ def manifest_room(room):
         stage.entrance = tuple(room_data.edges[-1])
 
     spawn_elems(stage, elem_data=room_data.elems, tileset=room_tileset)
-    print(stage.rooms[0].cells)
-    # print([r.cells for i, r in enumerate(stage.rooms) if i != len(stage.rooms) - 1])
     return stage
 
 def spawn_elems(stage, elem_data, offset=(0, 0), tileset=None):

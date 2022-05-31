@@ -86,7 +86,7 @@ class DungeonElement:
       (col + 0.5) * elem.scale,
       (row + 0.5) * elem.scale
     )
-    elem._cell = cell
+    elem._cell = vector.floor(cell)
 
   @property
   def _cell_derived(elem):
