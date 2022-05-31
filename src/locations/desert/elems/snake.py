@@ -6,7 +6,18 @@ from cores import Core, Stats
 from skills.weapon.tackle import Tackle
 
 class DesertSnake(DungeonActor):
-  def __init__(cactus, name="KingTuto", *args, **kwargs):
+
+  @staticmethod
+  def get_idle_sprite(facing):
+    if facing == (0, 1):
+      return assets.sprites["snake_down"]
+
+    if facing == (0, -1):
+      return assets.sprites["snake_up"]
+
+    return assets.sprites["snake_side"]
+
+  def __init__(snake, name="KingTuto", *args, **kwargs):
     super().__init__(Core(
       name=name,
       faction="enemy",
@@ -20,7 +31,7 @@ class DesertSnake(DungeonActor):
       skills=[Tackle],
     ), *args, **kwargs)
 
-  def view(cactus, anims):
+  def view(snake, anims):
     return super().view([Sprite(
-      image=assets.sprites["snake"]
+      image=snake.get_idle_sprite(snake.facing)
     )], anims)
