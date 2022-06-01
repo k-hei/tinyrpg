@@ -46,11 +46,7 @@ def animate_snap(actor, anims, speed=2, scale=TILE_SIZE, on_end=None):
   x += scale / 2
   y += scale / 2
   if x % scale or y % scale:
-    actor_cell = downscale(vector.add(
-      actor.pos,
-      vector.scale(actor.facing, TILE_SIZE / 2)
-    ), scale=scale, floor=True)
-    actor_dest = upscale(actor_cell, scale)
+    actor_dest = upscale(actor.cell, scale)
     actor.stop_move()
     not anims and anims.append([])
     anims[-1].append(MoveAnim(
@@ -60,7 +56,7 @@ def animate_snap(actor, anims, speed=2, scale=TILE_SIZE, on_end=None):
       speed=speed,
       on_end=on_end
     ))
-    return vector.round(actor_cell)
+    return actor.cell
   else:
     on_end and on_end()
     return None

@@ -95,7 +95,7 @@ class DesertSnake(DungeonActor):
         hp=32,
         st=13,
         dx=8,
-        ag=7,
+        ag=9,
         en=3,
       ),
       skills=[Tackle],
