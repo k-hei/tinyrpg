@@ -360,20 +360,23 @@ class StageView:
     if stage.rooms.index(room) == len(stage.rooms) - 1:
       return []
 
-    origin_x, origin_y = origin
-    radius_x = int((WINDOW_WIDTH / TILE_SIZE) // 2)
-    radius_y = int((WINDOW_HEIGHT / TILE_SIZE) // 2)
+    topleft_cell = vector.floor(
+      vector.scale(view.camera.rect.topleft, 1 / TILE_SIZE)
+    )
+    left_col, top_row = topleft_cell
+    cols = WINDOW_WIDTH // TILE_SIZE + 2
+    rows = WINDOW_HEIGHT // TILE_SIZE + 2
 
     grid_cells = [(x, y)
-      for y in range(origin_y - radius_y, origin_y + radius_y + 1)
-        for x in range(origin_x - radius_x, origin_x + radius_x + 1)
+      for y in range(top_row, top_row + rows)
+        for x in range(left_col, left_col + cols)
           if (x, y) in room.cells]
 
     return [Sprite(
       image=assets.sprites["grid_cell"],
-      pos=vector.add(
-        vector.negate(view.camera.rect.topleft),
-        tuple([x * TILE_SIZE for x in cell])
+      pos=vector.subtract(
+        tuple([x * TILE_SIZE for x in cell]),
+        view.camera.rect.topleft,
       ),
       layer="elems"
     ) for cell in grid_cells]
