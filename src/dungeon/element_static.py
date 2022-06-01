@@ -42,7 +42,10 @@ class StaticElement(DungeonElement):
 
     def spawn(elem, stage, cell):
         elem.scale = TILE_SIZE
-        elem.cell = vector.scale(cell, 1 / 2)
+        elem.cell = vector.add(
+            vector.scale(cell, 1 / 2),
+            (0, -0.5),
+        )
 
     def view(elem, *args, **kwargs):
         return super().view([Sprite(

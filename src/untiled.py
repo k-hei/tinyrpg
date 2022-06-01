@@ -129,9 +129,9 @@ def main():
         "bg": ("tileset", "desert"),
         "size": layers["bp1"].size,
         "tiles": layer_tiles,
-        "elems": layer_elems,
+        "elems": [*layer_elems, ((46, 77), "DesertSnake")],
         "rooms": layer_rooms,
-        "edges": [(26, 2)],  # TODO: un-hardcode this
+        "edges": [(37, 69)],  # TODO: un-hardcode this
     }, separators=(",", ":"))
 
     output_path = f"rooms/{input_filename}"

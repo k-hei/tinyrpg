@@ -161,7 +161,10 @@ class DesertProcessor(TilesetProcessor):
             if tile_id == ID_TRIGGER_COMBAT and cell not in visited_cells:
                 room = flood_fill(cell)
                 visited_cells |= set(room)
-                layer_rooms.append([downscale(c, scale=2, floor=True) for c in room])
+                layer_rooms.append([vector.add(
+                    (1, 0),
+                    downscale(c, scale=2, floor=True),
+                ) for c in room])
 
         print(layer_rooms)
         return image, layer_rooms
