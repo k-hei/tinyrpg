@@ -81,7 +81,7 @@ class Knight(DungeonActor):
           ][x4_idx]
         elif anim.time % (anim.period // 2) >= anim.period // 4:
           knight_image = assets.sprites["knight_walk"]
-      elif type(anim) is AttackAnim and anim.time < anim.duration // 2:
+      elif type(anim) is AttackAnim and anim.time < 0:
         if knight.facing == (0, -1):
           knight_image = assets.sprites["knight_up"]
         elif knight.facing == (0, 1):
