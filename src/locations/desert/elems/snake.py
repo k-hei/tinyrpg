@@ -1,7 +1,8 @@
-from random import choice
+from random import random, choice
 
 from lib.cell import is_adjacent
 from lib.sprite import Sprite
+from colors.palette import RED
 import assets
 
 from dungeon.actors import DungeonActor
@@ -79,7 +80,7 @@ class DesertSnakeSpritesheet(Spritesheet):
 
 class DesertSnake(DungeonActor):
 
-  def __init__(snake, name="KingTuto", *args, **kwargs):
+  def __init__(snake, name="King Tuto", *args, **kwargs):
     super().__init__(Core(
       name=name,
       faction="enemy",
@@ -92,6 +93,13 @@ class DesertSnake(DungeonActor):
       ),
       skills=[Tackle],
     ), *args, **kwargs)
+
+  def get_message(snake):
+    return choice([
+      ("The ", snake.token(), " lies in wait."),
+      ("The ", snake.token(), " lets out a mystic hiss."),
+      ("The ", snake.token(), " sniffs a patch of dirt."),
+    ])
 
   def find_move_delta(snake, target):
     snake_x, snake_y = snake.cell
@@ -119,6 +127,10 @@ class DesertSnake(DungeonActor):
       return super().step(game)
 
     if not enemy:
+      return None
+
+    if random() < 1 / 16:
+      game.print(snake.get_message())
       return None
 
     if is_adjacent(snake.cell, enemy.cell):
