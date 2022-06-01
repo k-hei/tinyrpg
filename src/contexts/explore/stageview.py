@@ -9,9 +9,12 @@ from contexts.dungeon.camera import Camera, CameraConstraints
 from dungeon.actors import DungeonActor
 from dungeon.props.door import Door
 from dungeon.props.secretdoor import SecretDoor
-from config import WINDOW_SIZE, WINDOW_HEIGHT, DEPTH_SIZE
+from config import WINDOW_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT, DEPTH_SIZE, TILE_SIZE
 from resolve.tileset import resolve_tileset
 import debug
+
+import assets
+
 
 def find_tile_hash(stage, cell, visited_cells):
   """
@@ -352,6 +355,29 @@ class StageView:
   def view_vfx(view, vfx):
     return [s for v in vfx for s in v.view()]
 
+  def view_grid(view, stage, origin):
+    room = next((r for r in stage.rooms if origin in r.cells), None)
+    if stage.rooms.index(room) == len(stage.rooms) - 1:
+      return []
+
+    origin_x, origin_y = origin
+    radius_x = int((WINDOW_WIDTH / TILE_SIZE) // 2)
+    radius_y = int((WINDOW_HEIGHT / TILE_SIZE) // 2)
+
+    grid_cells = [(x, y)
+      for y in range(origin_y - radius_y, origin_y + radius_y + 1)
+        for x in range(origin_x - radius_x, origin_x + radius_x + 1)
+          if (x, y) in room.cells]
+
+    return [Sprite(
+      image=assets.sprites["grid_cell"],
+      pos=vector.add(
+        vector.negate(view.camera.rect.topleft),
+        tuple([x * TILE_SIZE for x in cell])
+      ),
+      layer="elems"
+    ) for cell in grid_cells]
+
   def view(view, hero, visited_cells):
     sprites = []
 
@@ -380,6 +406,11 @@ class StageView:
       sprites=view.view_tiles(hero, visited_cells),
       offset=camera_offset
     )
-    sprites.sort(key=StageView.order)
 
+    sprites += Sprite.move_all(
+      sprites=view.view_grid(stage, origin=hero.cell),
+      offset=camera_offset,
+    )
+
+    sprites.sort(key=StageView.order)
     return sprites
