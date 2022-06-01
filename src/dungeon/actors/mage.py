@@ -132,8 +132,10 @@ class Mage(DungeonActor):
 
   def view(mage, anims):
     sprites = assets.sprites
+
     anim_group = [a for a in anims[0] if a.target is mage] if anims else []
     anim_group += mage.core.anims
+
     will_fall = anims and next((a for a in anims[0] if type(a) is FallAnim), None)
     if will_fall and anims[0].index(will_fall) > 0:
       return DungeonActor.view(mage, sprites["mage_shock"], anims)

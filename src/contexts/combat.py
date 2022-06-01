@@ -216,11 +216,13 @@ class CombatContext(ExploreBase):
     if delta != (0, 0):
       if input.is_control_pressed(input.CONTROL_TURN):
         return ctx.handle_turn(delta)
+
       moved = ctx.handle_move(delta)
       if not moved and button not in ctx.buttons_rejected:
         ctx.buttons_rejected[button] = 0
       elif not moved and ctx.buttons_rejected[button] >= 30:
         return ctx.handle_push()
+
       return moved
 
     if input.CONTROL_WAIT in controls and tapping:
@@ -272,6 +274,8 @@ class CombatContext(ExploreBase):
     def on_move():
       ctx.update_bubble()
       ctx.make_noise(hero.cell, 0.5)
+      if not ctx.find_enemies_in_range():
+        ctx.exit()
 
     hero.facing = delta
     moved = ctx.move_cell(hero, delta, on_end=on_move)

@@ -1,6 +1,6 @@
 from math import ceil
 from random import random, randint
-from lib.cell import manhattan, upscale, downscale
+from lib.cell import manhattan, upscale, downscale, is_adjacent
 import lib.vector as vector
 import lib.input as input
 from lib.direction import invert as invert_direction, normal as normalize_direction
@@ -158,14 +158,17 @@ class ExploreBase(Context):
 
     return enemies[0]
 
-  def find_enemies_in_range(ctx):
-    room = ctx.find_room(ctx.hero.cell)  # ctx.room
+  def find_enemies(ctx):
     return [e for e in ctx.stage.elems if
       isinstance(e, DungeonActor)
       and e.faction == DungeonActor.FACTION_ENEMY
-      and not e.dead
-      and room and room.size != ctx.stage.size and e.cell in room.cells
-    ]
+      and not e.dead]
+
+  def find_enemies_in_range(ctx):
+    room = ctx.find_room(ctx.hero.cell)  # ctx.room
+    return [e for e in ctx.find_enemies()
+      if room and room.size != ctx.stage.size
+      and e.cell in room.cells]
 
   def reload_skill_badge(ctx, delay=0):
     if not ctx.hero:
@@ -177,6 +180,10 @@ class ExploreBase(Context):
     target_cell = vector.add(actor.cell, delta)
 
     if not ctx.stage.is_cell_walkable(target_cell, scale=TILE_SIZE):  # TODO: handle oasis elevation differences
+      return False
+
+    if (target_cell not in ctx.room.cells
+    and [e for e in ctx.find_enemies() if is_adjacent(e.cell, actor.cell)]):
       return False
 
     target_elem = (
@@ -211,6 +218,7 @@ class ExploreBase(Context):
     move_group = next((g for g in ctx.anims for a in g if isinstance(a, StepAnim) and isinstance(a.target, DungeonActor)), None)
     not move_group and ctx.anims.append(move_group := [])
     move_group.append(move_anim)
+
     if jump:
       ctx.anims[-1].append(PauseAnim(duration=move_duration + 5))
 
