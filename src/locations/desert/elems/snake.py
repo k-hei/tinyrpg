@@ -1,3 +1,6 @@
+from random import choice
+
+from lib.cell import is_adjacent
 from lib.sprite import Sprite
 import assets
 
@@ -20,20 +23,27 @@ class Spritesheet:
     (1, 0): None,
   }
 
+  @staticmethod
+  def _normalize_facing(facing):
+    if facing[0] and facing[1]:
+      facing = (facing[0], 0)
+
+    return facing
+
   _idle_sprites = _create_empty_sprite_map()
   @classmethod
   def get_idle_sprite(cls, facing):
-    return cls._idle_sprites[facing]
+    return cls._idle_sprites[cls._normalize_facing(facing)]
 
   _move_sprites = _create_empty_sprite_map()
   @classmethod
   def get_move_sprite(cls, facing):
-    return cls._move_sprites[facing]
+    return cls._move_sprites[cls._normalize_facing(facing)]
 
   _attack_sprites = _create_empty_sprite_map()
   @classmethod
   def get_attack_sprite(cls, facing):
-    return cls._attack_sprites[facing]
+    return cls._attack_sprites[cls._normalize_facing(facing)]
 
   _flinch_sprites = _create_empty_sprite_map()
   @classmethod
@@ -82,6 +92,40 @@ class DesertSnake(DungeonActor):
       ),
       skills=[Tackle],
     ), *args, **kwargs)
+
+  def find_move_delta(snake, target):
+    snake_x, snake_y = snake.cell
+    target_x, target_y = target.cell
+
+    if snake_x < target_x:
+      delta_x = 1
+    elif snake_x > target_x:
+      delta_x = -1
+    else:
+      delta_x = choice([-1, 1])
+
+    if snake_y < target_y:
+      delta_y = 1
+    elif snake_y > target_y:
+      delta_y = -1
+    else:
+      delta_y = choice([-1, 1])
+
+    return (delta_x, delta_y)
+
+  def step(snake, game):
+    enemy = game.find_closest_enemy(snake)
+    if not snake.aggro:
+      return super().step(game)
+
+    if not enemy:
+      return None
+
+    if is_adjacent(snake.cell, enemy.cell):
+      return ("attack", enemy)
+
+    delta = snake.find_move_delta(target=enemy)
+    return ("move", delta)
 
   def view(snake, anims):
     snake_image = DesertSnakeSpritesheet.get_idle_sprite(snake.facing)

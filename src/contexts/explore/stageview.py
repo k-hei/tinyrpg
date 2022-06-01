@@ -434,10 +434,11 @@ class StageView:
       offset=camera_offset
     )
 
-    sprites += Sprite.move_all(
-      sprites=view.view_grid(stage, origin=hero.cell),
-      offset=camera_offset,
-    )
+    if hero:
+      sprites += Sprite.move_all(
+        sprites=view.view_grid(stage, origin=hero.cell),
+        offset=camera_offset,
+      )
 
     sprites.sort(key=StageView.order)
     return sprites
