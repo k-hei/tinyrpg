@@ -385,29 +385,10 @@ class StageView:
       layer="elems"
     )
 
-    grid_cell_image = assets.sprites["grid_cell"]
-    grid_cell_rbound_image = grid_cell_image.subsurface(Rect(0, 0, 2, 32))
-    grid_cell_bbound_image = grid_cell_image.subsurface(Rect(0, 0, 32, 2))
-
-    grid_sprites = [make_grid_cell(
-      image=grid_cell_image,
+    return [make_grid_cell(
+      image=assets.sprites["grid_cell"],
       cell=cell,
     ) for cell in grid_cells]
-
-    for (x, y) in grid_cells:
-      if (x + 1, y) not in grid_cells:
-        grid_sprites.append(make_grid_cell(
-          image=grid_cell_rbound_image,
-          cell=(x + 1, y),
-        ))
-
-      if (x, y + 1) not in grid_cells:
-        grid_sprites.append(make_grid_cell(
-          image=grid_cell_bbound_image,
-          cell=(x, y + 1),
-        ))
-
-    return grid_sprites
 
   def view(view, hero, visited_cells):
     sprites = []
