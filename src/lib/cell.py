@@ -69,10 +69,12 @@ def neighborhood(cell=(0, 0), radius=1, adjacents=True, diagonals=False, inclusi
         (x + 1, y + 1),
       ] if diagonals else [])
     ]
+
   cells = []
   start = cell
   if inclusive:
     cells.append(start)
+
   stack = [(start, 0)]
   while stack:
     cell, steps = stack.pop()
@@ -82,4 +84,5 @@ def neighborhood(cell=(0, 0), radius=1, adjacents=True, diagonals=False, inclusi
         cells.append(neighbor)
         if steps + 1 < radius:
           stack.append((neighbor, steps + 1))
+
   return cells

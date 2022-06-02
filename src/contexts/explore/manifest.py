@@ -10,6 +10,11 @@ import locations.tomb.tiles as tileset
 from locations.tileset import Tileset
 from helpers.stage import find_tile
 
+from dungeon.actors import DungeonActor
+from lib.cell import neighborhood
+from config import TILE_SIZE
+
+
 def manifest_rooms(rooms, dry=False, seed=None):
     stage_cells = []
     for room in rooms:
@@ -51,11 +56,10 @@ def manifest_room(room):
         if issubclass(room_data.bg, Tileset)
         else None)
 
-    stage_rooms = [Room(cells) for cells in room_data.rooms] + [Room(data=room_data)]
     stage = Stage(
         tileset=room_data.bg,
         tiles=room_data.tiles,
-        rooms=stage_rooms,
+        rooms=[Room(data=room_data)],
     )
 
     # TODO: fix hardcoded edge types
@@ -70,7 +74,23 @@ def manifest_room(room):
         stage.entrance = tuple(room_data.edges[-1])
 
     spawn_elems(stage, elem_data=room_data.elems, tileset=room_tileset)
+
+    enemies = [e for e in stage.elems
+        if isinstance(e, DungeonActor)
+        and e.faction == "enemy"]
+
+    enemy_territories = [find_territory(stage, e.cell) for e in enemies]
+    stage.rooms = [Room(t) for t in enemy_territories] + stage.rooms
     return stage
+
+def find_territory(stage, cell):
+    return [c for c in neighborhood(
+        cell=cell,
+        radius=3,
+        diagonals=True,
+        inclusive=True,
+        predicate=lambda c: stage.is_cell_empty(c, scale=TILE_SIZE)
+    )]
 
 def spawn_elems(stage, elem_data, offset=(0, 0), tileset=None):
     for elem_cell, elem_name, *elem_props in elem_data:

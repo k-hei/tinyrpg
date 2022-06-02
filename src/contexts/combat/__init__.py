@@ -168,6 +168,9 @@ class CombatContext(ExploreBase):
     ctx.enter_grid()
 
   def enter_grid(ctx):
+    if not ctx.room:
+      return
+
     anim_group = ctx.anims[0] if ctx.anims else []
     not anim_group in ctx.anims and ctx.anims.append(anim_group)
 
@@ -974,7 +977,7 @@ class CombatContext(ExploreBase):
 
   def view_grid(ctx):
     room = ctx.room
-    if ctx.stage.rooms.index(room) == len(ctx.stage.rooms) - 1:
+    if not room or room == ctx.stage.rooms[-1]:
       return []
 
     topleft_pos = ctx.stage_view.camera.rect.topleft
@@ -987,13 +990,15 @@ class CombatContext(ExploreBase):
 
     grid_cells = [(x, y)
       for y in range(top_row, top_row + rows)
-        for x in range(left_col, left_col + cols)
+      for x in range(left_col, left_col + cols)
           if (x, y) in room.cells]
+
+    GRID_CELL_ELEV = 16
 
     make_grid_cell = lambda image, cell: (
       cell_anim := next((a for a in (ctx.stage_view.anims[0] if ctx.stage_view.anims else [])
         if isinstance(a, CombatGridCellAnim) and a.target == cell), None),
-      cell_offset := (-16 + ease_out(cell_anim.pos) * 16
+      cell_offset := (-GRID_CELL_ELEV + ease_out(cell_anim.pos) * GRID_CELL_ELEV
         if cell_anim and cell_anim.time >= 0
         else inf if cell_anim else 0),
       Sprite(

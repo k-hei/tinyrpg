@@ -129,7 +129,11 @@ def main():
         "bg": ("tileset", "desert"),
         "size": layers["bp1"].size,
         "tiles": layer_tiles,
-        "elems": [*layer_elems, ((46, 77), "DesertSnake")],
+        "elems": [*layer_elems,
+            ((46, 77), "DesertSnake"),
+            ((83, 95), "DesertSnake"),
+            ((85, 107), "DesertEvilCactus"),
+        ],
         "rooms": layer_rooms,
         "edges": [(37, 69)],  # TODO: un-hardcode this
     }, separators=(",", ":"))

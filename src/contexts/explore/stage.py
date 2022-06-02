@@ -149,7 +149,7 @@ class Stage:
     if not stage.is_cell_walkable(cell, scale):
       return False
 
-    elem = next((e for e in stage.get_elems_at(cell) if e.solid), None)
+    elem = next((e for e in stage.get_elems_at(cell, scale) if e.solid), None)
     if elem:
       return False
 

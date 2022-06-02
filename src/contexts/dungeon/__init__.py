@@ -197,7 +197,9 @@ class DungeonContext(ExploreBase):
 
     visible_cells += neighborhood(hero.cell)
 
-    if ctx.cache_room_focused is not room_focused or reset_cache:
+    if (ctx.cache_room_focused is not room_focused
+    or reset_cache
+    or not room_focused):
       ctx.cache_room_focused = room_focused
       if (len(visible_cells) != len(hero.visible_cells)
       and visible_cells != hero.visible_cells):
