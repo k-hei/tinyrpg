@@ -168,15 +168,29 @@ class CombatContext(ExploreBase):
     ctx.enter_grid()
 
   def enter_grid(ctx):
-    if not ctx.room:
+    if not ctx.room or not ctx.hero:
       return
 
-    anim_group = ctx.anims[0] if ctx.anims else []
+    anim_group = ctx.anims[-1] if ctx.anims else []
     not anim_group in ctx.anims and ctx.anims.append(anim_group)
 
     room_cells = sorted(ctx.room.cells, key=lambda c: c[1] * ctx.stage.width + c[0])
-    for i, cell in enumerate(room_cells):
-      anim_group.append(CombatGridCellAnim(target=cell, delay=i))
+    room_cells_by_dist = {}
+    origin_cell = sorted([room_cells[0], room_cells[-1]],
+      key=lambda c: manhattan(c, ctx.hero.cell))[0]
+
+    for cell in room_cells:
+      dist = manhattan(origin_cell, cell)
+      if dist in room_cells_by_dist:
+        room_cells_by_dist[dist].append(cell)
+      else:
+        room_cells_by_dist[dist] = [cell]
+
+    for dist, cells in room_cells_by_dist.items():
+      anim_group += [CombatGridCellAnim(
+        target=cell,
+        delay=dist * 4
+      ) for cell in cells]
 
   def exit(ctx, ally_rejoin=False):
     if ctx.exiting:
@@ -995,18 +1009,22 @@ class CombatContext(ExploreBase):
 
     GRID_CELL_ELEV = 16
 
-    make_grid_cell = lambda image, cell: (
-      cell_anim := next((a for a in (ctx.stage_view.anims[0] if ctx.stage_view.anims else [])
+    render_grid_cell = lambda image, cell: (
+      will_anim := next((a for g in ctx.stage_view.anims for a in g
         if isinstance(a, CombatGridCellAnim) and a.target == cell), None),
-      cell_offset := (-GRID_CELL_ELEV + ease_out(cell_anim.pos) * GRID_CELL_ELEV
+      cell_anim := will_anim
+        if will_anim in (ctx.stage_view.anims[0] if ctx.stage_view.anims else [])
+        else None,
+      cell_anim_pos := (ease_out(cell_anim.pos)
         if cell_anim and cell_anim.time >= 0
-        else inf if cell_anim else 0),
+        else inf if cell_anim else 1),
+      cell_offset := (-1 + cell_anim_pos) * GRID_CELL_ELEV,
       Sprite(
         image=image,
         pos=vector.subtract(
           vector.add(
             tuple([x * TILE_SIZE for x in cell]),
-            (0, cell_offset + TILE_SIZE)
+            (cell_offset, TILE_SIZE + cell_offset)
           ),
           topleft_pos,
         ),
@@ -1014,10 +1032,12 @@ class CombatContext(ExploreBase):
         origin=Sprite.ORIGIN_BOTTOMLEFT,
         target=cell,
       ) if cell_offset != inf
+          and not (cell_anim and cell_anim.time % 2)
+          and not (not cell_anim and will_anim)
         else None
     )[-1]
 
-    return [cell_sprite for cell in grid_cells if (cell_sprite := make_grid_cell(
+    return [cell_sprite for cell in grid_cells if (cell_sprite := render_grid_cell(
       image=assets.sprites["grid_cell"],
       cell=cell,
     ))]
