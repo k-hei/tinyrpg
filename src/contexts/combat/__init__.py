@@ -228,7 +228,8 @@ class CombatContext(ExploreBase):
         start=e.cell,
         goal=e.ai_spawn,
         whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True)
-      )
+      ),
+      on_end=lambda: setattr(e, "aggro", 0),
     ) for e in room_enemies])
 
     ctx.exiting = True
@@ -329,7 +330,7 @@ class CombatContext(ExploreBase):
     if not moved and ctx.stage.is_tile_at_pit(target_cell):
       moved = ctx.leap(actor=hero, on_end=on_move)
 
-    moved and ctx.step()
+    moved and ctx.find_enemies_in_range() and ctx.step()
     return moved
 
   def move_to(ctx, actor, dest, run=False, on_end=None):
