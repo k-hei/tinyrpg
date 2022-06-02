@@ -63,8 +63,6 @@ class GameContext(Context):
     if ctx.stage:
       stage = ctx.stage
       ctx.stage = None
-      app = ctx.get_head()
-      app.transition([DissolveOut()])
       return ctx.goto_dungeon(floors=FloorGraph(nodes=[stage]))
 
     if ctx.feature:
@@ -134,10 +132,11 @@ class GameContext(Context):
       ctx.store.place = dungeon
       ctx.open(dungeon)
     else:
-      app = ctx.get_head()
       stage = manifest_room(room=rooms["shrine"])
-      ctx.goto_dungeon(floors=FloorGraph(nodes=[stage])),
-      not app.transits and app.transition([DissolveOut()])
+      ctx.goto_dungeon(floors=FloorGraph(nodes=[stage]))
+
+    app = ctx.get_head()
+    not app.transits and app.transition([DissolveOut()])
 
   def goto_town(ctx, returning=False):
     town = TownContext(store=ctx.store, returning=returning)

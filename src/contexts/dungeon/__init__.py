@@ -61,6 +61,9 @@ class DungeonContext(ExploreBase):
     ctx.cache_room_entered = None
 
   def enter(ctx):
+    ctx.construct_graph()
+    ctx.parent.save()
+
     heroes = [manifest_actor(c) for c in ctx.store.party]
     stage_entrance = ctx.stage.entrance or find_tile(ctx.stage, tileset.Entrance)
     if stage_entrance:
@@ -79,7 +82,7 @@ class DungeonContext(ExploreBase):
       sp_meter=SpMeter(store=ctx.store),
       floor_no=FloorNo(parent=ctx),
     )
-    ctx.construct_graph()
+
     ctx.handle_explore()
     ctx.refresh_fov()
     ctx.redraw_tiles()
