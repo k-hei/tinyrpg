@@ -398,7 +398,10 @@ class DungeonContext(ExploreBase):
       stage=ctx.stage,
       stage_view=ctx.stage_view,
       path=path,
-    ), on_close=ctx.handle_explore)
+    ), on_close=lambda: (
+      ctx.handle_explore(),
+      ctx.refresh_fov(),
+    ))
     ctx.comps.minimap.exit()
     ctx.comps.floor_no.exit()
     ctx.comps.hud.enter()

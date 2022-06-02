@@ -226,7 +226,11 @@ class Blob(Room):
     if room.resolve_hook("on_defeat"):
       result = room.trigger_hook("on_defeat", game, actor)
       if result is not None: return result
+
     elif room.should_unlock(game.stage, actor):
+      if game.stage.is_overworld:
+        game.stage.rooms.remove(room)
       room.unlock(game)
       return True
+
     return super().on_defeat(game, actor)
