@@ -81,6 +81,8 @@ class DungeonContext(ExploreBase):
     )
     ctx.construct_graph()
     ctx.handle_explore()
+    ctx.refresh_fov()
+    ctx.redraw_tiles()
 
   def find_floor_no(ctx):
     floor = next((f for f in FLOOR_SEQUENCE if f.__name__ == ctx.stage.generator), None)

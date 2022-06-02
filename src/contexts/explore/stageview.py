@@ -125,6 +125,7 @@ class StageView:
     view.cache_elems = {}
     view.tile_cache = {}
     view.tile_sprites = {}
+    view.tile_layers = []
 
   def update(view):
     if view.anims:
@@ -207,8 +208,11 @@ class StageView:
       view.camera.rect.topleft,
       vector.add(WINDOW_SIZE, (TILE_SIZE * 2, TILE_SIZE * 2)),
     )
+
     tile_rect = snap_rect(camera_rect, TILE_SIZE)
-    if tile_rect == view.cache_tile_rect:
+    if (tile_rect == view.cache_tile_rect
+    and view.cache_visible_cells
+    and view.cache_visited_cells):
       # camera rect is unchanged; no need to redraw
       return
 
