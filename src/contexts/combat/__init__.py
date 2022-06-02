@@ -842,6 +842,7 @@ class CombatContext(ExploreBase):
       and e is not ctx.hero
       and e is not ctx.ally
       and not e.is_dead()
+      and (not ctx.room or e.cell in ctx.room.cells)
       and e.cell in ctx.hero.visible_cells
     ]
     ctx.step_distribute(actors)
