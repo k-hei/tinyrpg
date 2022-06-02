@@ -127,6 +127,7 @@ class DungeonActor(DungeonElement):
     actor.ai_mode = None
     actor.ai_target = None
     actor.ai_path = None
+    actor.ai_territory = None
 
     if rare:
       actor.promote()

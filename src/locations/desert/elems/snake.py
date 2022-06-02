@@ -93,7 +93,7 @@ class DesertSnake(DungeonActor):
       faction="enemy",
       stats=Stats(
         hp=32,
-        st=13,
+        st=12,
         dx=8,
         ag=6,
         en=3,

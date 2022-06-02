@@ -185,8 +185,13 @@ class ExploreBase(Context):
     if not ctx.stage.is_cell_walkable(target_cell, scale=TILE_SIZE):  # TODO: handle oasis elevation differences
       return False
 
+    # block player movement outside of enemy territory if adjacent to enemy
     if (target_cell not in ctx.room.cells
     and [e for e in ctx.find_enemies() if is_adjacent(e.cell, actor.cell)]):
+      return False
+
+    # block enemy movement outside of own territory
+    if actor.ai_territory and target_cell not in actor.ai_territory.cells:
       return False
 
     target_elem = (
