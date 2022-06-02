@@ -5,7 +5,6 @@ from lib.animstep import step_anims
 import lib.vector as vector
 from lib.filters import darken_image
 from anims.shake import ShakeAnim
-from contexts.combat.grid import CombatGridCellAnim
 from contexts.dungeon.camera import Camera, CameraConstraints
 from dungeon.actors import DungeonActor
 from dungeon.props.door import Door

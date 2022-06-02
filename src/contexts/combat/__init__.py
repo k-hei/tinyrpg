@@ -8,7 +8,7 @@ import debug
 
 import assets
 
-from contexts.combat.grid import CombatGridCellAnim
+from contexts.combat.grid import CombatGridCellAnim, CombatGridCellEnterAnim, CombatGridCellExitAnim
 from contexts.explore.base import (
   ExploreBase,
   COMMAND_MOVE, COMMAND_MOVE_TO, COMMAND_ATTACK, COMMAND_SKILL, COMMAND_WAIT
@@ -167,31 +167,6 @@ class CombatContext(ExploreBase):
 
     ctx.enter_grid()
 
-  def enter_grid(ctx):
-    if not ctx.room or not ctx.hero:
-      return
-
-    anim_group = ctx.anims[-1] if ctx.anims else []
-    not anim_group in ctx.anims and ctx.anims.append(anim_group)
-
-    room_cells = sorted(ctx.room.cells, key=lambda c: c[1] * ctx.stage.width + c[0])
-    room_cells_by_dist = {}
-    origin_cell = sorted([room_cells[0], room_cells[-1]],
-      key=lambda c: manhattan(c, ctx.hero.cell))[0]
-
-    for cell in room_cells:
-      dist = manhattan(origin_cell, cell)
-      if dist in room_cells_by_dist:
-        room_cells_by_dist[dist].append(cell)
-      else:
-        room_cells_by_dist[dist] = [cell]
-
-    for dist, cells in room_cells_by_dist.items():
-      anim_group += [CombatGridCellAnim(
-        target=cell,
-        delay=dist * 4
-      ) for cell in cells]
-
   def exit(ctx, ally_rejoin=False):
     if ctx.exiting:
       return
@@ -233,13 +208,52 @@ class CombatContext(ExploreBase):
     ) for e in room_enemies])
 
     ctx.exiting = True
+
     ctx.comps.skill_badge.exit()
     ctx.comps.sp_meter.exit()
     ctx.comps.hud.exit(on_end=lambda: (
       ctx.hero.core.anims.clear(),
       ctx.ally and ctx.ally.core.anims.clear(),
-      ctx.close()
     ))
+    ctx.exit_grid(on_end=ctx.close)
+
+  def enter_grid(ctx, on_end=None):
+    ctx.animate_grid(enter=True, on_end=on_end)
+
+  def exit_grid(ctx, on_end=None):
+    ctx.animate_grid(enter=False, on_end=on_end)
+
+  def animate_grid(ctx, enter=True, on_end=None):
+    if not ctx.room or not ctx.hero:
+      return
+
+    anim_group = ctx.anims[-1 if enter else 0] if ctx.anims else []
+    not anim_group in ctx.anims and ctx.anims.append(anim_group)
+
+    room_cells = sorted(ctx.room.cells, key=lambda c: c[1] * ctx.stage.width + c[0])
+    room_cells_by_dist = {}
+    origin_cell = sorted([room_cells[0], room_cells[-1]],
+      key=lambda c: manhattan(c, ctx.hero.cell))[0]
+
+    for cell in room_cells:
+      dist = manhattan(origin_cell, cell)
+      if dist in room_cells_by_dist:
+        room_cells_by_dist[dist].append(cell)
+      else:
+        room_cells_by_dist[dist] = [cell]
+
+    CombatGridCellAnim = (CombatGridCellEnterAnim
+      if enter
+      else CombatGridCellExitAnim)
+
+    for dist in sorted(room_cells_by_dist.keys()):
+      cells = room_cells_by_dist[dist]
+      anim_group += [CombatGridCellAnim(
+        target=cell,
+        delay=dist * 4
+      ) for cell in cells]
+
+    anim_group[-1].on_end = on_end
 
   def open(ctx, child, on_close=None):
     if type(child) is PauseContext:
@@ -1033,8 +1047,10 @@ class CombatContext(ExploreBase):
         if will_anim in (ctx.stage_view.anims[0] if ctx.stage_view.anims else [])
         else None,
       cell_anim_pos := (ease_out(cell_anim.pos)
-        if cell_anim and cell_anim.time >= 0
-        else inf if cell_anim else 1),
+        if isinstance(cell_anim, CombatGridCellEnterAnim)
+        else 1 - cell_anim.pos)
+          if cell_anim and cell_anim.time >= 0
+          else inf if (not ctx.exiting and cell_anim or ctx.exiting and not will_anim) else 1,
       cell_offset := (-1 + cell_anim_pos) * GRID_CELL_ELEV,
       Sprite(
         image=image,
@@ -1050,7 +1066,7 @@ class CombatContext(ExploreBase):
         target=cell,
       ) if cell_offset != inf
           and not (cell_anim and cell_anim.time % 2)
-          and not (not cell_anim and will_anim)
+          and not (not ctx.exiting and not cell_anim and will_anim)
         else None
     )[-1]
 
