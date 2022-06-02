@@ -80,6 +80,7 @@ def manifest_room(room):
         and e.faction == "enemy"]
 
     enemy_territories = [find_territory(stage, e.cell) for e in enemies]
+    enemy_territories = merge_territories(stage, enemy_territories)
     stage.rooms = [Room(t) for t in enemy_territories] + stage.rooms
     return stage
 
@@ -91,6 +92,26 @@ def find_territory(stage, cell):
         inclusive=True,
         predicate=lambda c: stage.is_cell_empty(c, scale=TILE_SIZE)
     )]
+
+def merge_territories(stage, territories):
+    merged_territories = territories.copy()
+
+    merged = True
+    while merged:
+        merged = False
+        for i, territory in enumerate(merged_territories):
+            territory_set = set(territory)
+            for j, other_territory in enumerate(merged_territories[i+1:]):
+                other_territory_set = set(other_territory)
+                if territory_set & other_territory_set:
+                    merged_territories[i] = list(territory_set | other_territory_set)
+                    merged_territories.remove(other_territory)
+                    merged = True
+                    break
+            if merged:
+                break
+
+    return merged_territories
 
 def spawn_elems(stage, elem_data, offset=(0, 0), tileset=None):
     for elem_cell, elem_name, *elem_props in elem_data:
