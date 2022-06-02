@@ -10,7 +10,7 @@ from config import TILE_SIZE
 class StaticElement(DungeonElement):
 
     def __init__(self, data: ElementData):
-        super().__init__()
+        super().__init__(static=True)
         self._data = data
         self.solid = data.hitbox is not None
 

@@ -216,6 +216,21 @@ class CombatContext(ExploreBase):
         )
       )])
 
+    room_enemies = [e for e in ctx.stage.elems
+      if isinstance(e, DungeonActor)
+      and e.faction == "enemy"
+      and e.cell in ctx.room.cells]
+
+    ctx.anims.append([PathAnim(
+      target=e,
+      period=TILE_SIZE / 3,
+      path=ctx.stage.pathfind(
+        start=e.cell,
+        goal=e.ai_spawn,
+        whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True)
+      )
+    ) for e in room_enemies])
+
     ctx.exiting = True
     ctx.comps.skill_badge.exit()
     ctx.comps.sp_meter.exit()

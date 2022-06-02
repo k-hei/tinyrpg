@@ -83,6 +83,7 @@ def manifest_room(room):
     enemy_territories = merge_territories(stage, enemy_territories)
     stage.rooms = [Room(t) for t in enemy_territories] + stage.rooms
     for enemy in enemies:
+        enemy.ai_spawn = enemy.cell
         enemy.ai_territory = next((r for r in stage.rooms if enemy.cell in r.cells), None)
 
     return stage

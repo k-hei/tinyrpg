@@ -341,6 +341,9 @@ class StageView:
   def view_elems(view, elems, hero=None, visited_cells=None):
 
     def is_elem_visible(elem):
+      if next((a for g in view.anims for a in g if a.target is elem), None):
+        return True
+
       if view.transitioning and isinstance(elem, Door):
         return False
 
