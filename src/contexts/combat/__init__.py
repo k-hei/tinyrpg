@@ -6,6 +6,9 @@ from helpers.combat import find_damage, will_miss, will_crit, will_block
 from resolve.skill import resolve_skill
 import debug
 
+import assets
+
+from contexts.combat.grid import CombatGridCellAnim
 from contexts.explore.base import (
   ExploreBase,
   COMMAND_MOVE, COMMAND_MOVE_TO, COMMAND_ATTACK, COMMAND_SKILL, COMMAND_WAIT
@@ -39,7 +42,13 @@ from config import (
   FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION, SIDESTEP_DURATION, SIDESTEP_AMPLITUDE,
   CRIT_MODIFIER,
   TILE_SIZE,
+  WINDOW_WIDTH, WINDOW_HEIGHT,
 )
+
+from math import inf
+from lib.sprite import Sprite
+from easing.expo import ease_out
+
 
 def animate_snap(actor, anims, speed=2, scale=TILE_SIZE, on_end=None):
   x, y = actor.pos
@@ -155,6 +164,16 @@ class CombatContext(ExploreBase):
 
     else:
       ctx.anims.append([hero_brandish])
+
+    ctx.enter_grid()
+
+  def enter_grid(ctx):
+    anim_group = ctx.anims[0] if ctx.anims else []
+    not anim_group in ctx.anims and ctx.anims.append(anim_group)
+
+    room_cells = sorted(ctx.room.cells, key=lambda c: c[1] * ctx.stage.width + c[0])
+    for i, cell in enumerate(room_cells):
+      anim_group.append(CombatGridCellAnim(target=cell, delay=i))
 
   def exit(ctx, ally_rejoin=False):
     if ctx.exiting:
@@ -528,7 +547,7 @@ class CombatContext(ExploreBase):
         if (
           (target.is_dead() or ctx.stage.is_tile_at_pit(target.cell))
           and (not ctx.room or ctx.room.on_defeat(ctx, target))
-        ) else on_end and on_end(),
+          ) else on_end and on_end(),
     )
 
     if damage and target.item:
@@ -949,3 +968,51 @@ class CombatContext(ExploreBase):
       elem.step(ctx)
 
     ctx.stage.elems = [e for e in ctx.stage.elems if not e.done]
+
+  def view(ctx):
+    return (ctx.view_grid() if ctx.hero else []) + super().view()
+
+  def view_grid(ctx):
+    room = ctx.room
+    if ctx.stage.rooms.index(room) == len(ctx.stage.rooms) - 1:
+      return []
+
+    topleft_pos = ctx.stage_view.camera.rect.topleft
+    topleft_cell = vector.floor(
+      vector.scale(topleft_pos, 1 / TILE_SIZE)
+    )
+    left_col, top_row = topleft_cell
+    cols = WINDOW_WIDTH // TILE_SIZE + 2
+    rows = WINDOW_HEIGHT // TILE_SIZE + 2
+
+    grid_cells = [(x, y)
+      for y in range(top_row, top_row + rows)
+        for x in range(left_col, left_col + cols)
+          if (x, y) in room.cells]
+
+    make_grid_cell = lambda image, cell: (
+      cell_anim := next((a for a in (ctx.stage_view.anims[0] if ctx.stage_view.anims else [])
+        if isinstance(a, CombatGridCellAnim) and a.target == cell), None),
+      cell_offset := (-16 + ease_out(cell_anim.pos) * 16
+        if cell_anim and cell_anim.time >= 0
+        else inf if cell_anim else 0),
+      Sprite(
+        image=image,
+        pos=vector.subtract(
+          vector.add(
+            tuple([x * TILE_SIZE for x in cell]),
+            (0, cell_offset + TILE_SIZE)
+          ),
+          topleft_pos,
+        ),
+        layer="tiles",
+        origin=Sprite.ORIGIN_BOTTOMLEFT,
+        target=cell,
+      ) if cell_offset != inf
+        else None
+    )[-1]
+
+    return [cell_sprite for cell in grid_cells if (cell_sprite := make_grid_cell(
+      image=assets.sprites["grid_cell"],
+      cell=cell,
+    ))]

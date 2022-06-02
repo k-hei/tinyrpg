@@ -5,6 +5,7 @@ from lib.animstep import step_anims
 import lib.vector as vector
 from lib.filters import darken_image
 from anims.shake import ShakeAnim
+from contexts.combat.grid import CombatGridCellAnim
 from contexts.dungeon.camera import Camera, CameraConstraints
 from dungeon.actors import DungeonActor
 from dungeon.props.door import Door
@@ -359,37 +360,6 @@ class StageView:
   def view_vfx(view, vfx):
     return [s for v in vfx for s in v.view()]
 
-  def view_grid(view, stage, origin):
-    room = next((r for r in stage.rooms if origin in r.cells), None)
-    if stage.rooms.index(room) == len(stage.rooms) - 1:
-      return []
-
-    topleft_cell = vector.floor(
-      vector.scale(view.camera.rect.topleft, 1 / TILE_SIZE)
-    )
-    left_col, top_row = topleft_cell
-    cols = WINDOW_WIDTH // TILE_SIZE + 2
-    rows = WINDOW_HEIGHT // TILE_SIZE + 2
-
-    grid_cells = [(x, y)
-      for y in range(top_row, top_row + rows)
-        for x in range(left_col, left_col + cols)
-          if (x, y) in room.cells]
-
-    make_grid_cell = lambda image, cell: Sprite(
-      image=image,
-      pos=vector.subtract(
-        tuple([x * TILE_SIZE for x in cell]),
-        view.camera.rect.topleft,
-      ),
-      layer="elems"
-    )
-
-    return [make_grid_cell(
-      image=assets.sprites["grid_cell"],
-      cell=cell,
-    ) for cell in grid_cells]
-
   def view(view, hero, visited_cells):
     sprites = []
 
@@ -418,12 +388,6 @@ class StageView:
       sprites=view.view_tiles(hero, visited_cells),
       offset=camera_offset
     )
-
-    if hero:
-      sprites += Sprite.move_all(
-        sprites=view.view_grid(stage, origin=hero.cell),
-        offset=camera_offset,
-      )
 
     sprites.sort(key=StageView.order)
     return sprites

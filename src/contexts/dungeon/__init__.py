@@ -461,7 +461,9 @@ class DungeonContext(ExploreBase):
     super().update()
 
   def view(ctx):
-    return ctx.stage_view.view(
+    sprites = ctx.stage_view.view(
       hero=ctx.hero,
       visited_cells=ctx.visited_cells,
     ) + [c.view() for c in ctx.comps] + super().view()
+    sprites.sort(key=ctx.stage_view.order)
+    return sprites
