@@ -83,6 +83,9 @@ class DungeonContext(ExploreBase):
       floor_no=FloorNo(parent=ctx),
     )
 
+    if ctx.stage.is_overworld:
+      ctx.comps.floor_no.exit()
+
     ctx.handle_explore()
     ctx.refresh_fov()
     ctx.redraw_tiles()
