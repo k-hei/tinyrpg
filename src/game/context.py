@@ -1,5 +1,8 @@
 import lib.gamepad as gamepad
 import lib.input as input
+import lib.vector as vector
+from lib.direction import invert as invert_direction
+
 import game.controls as controls
 from game.world import construct_world
 from contexts import Context
@@ -23,6 +26,7 @@ import debug
 
 from town.context import TownContext
 from town.sideview.stage import Area as TownArea
+from town.graph import WorldGraph
 
 
 load_rooms()
@@ -149,12 +153,19 @@ class GameContext(Context):
     ctx.open(town)
 
   def load_area(ctx, area, link_id):
-    debug.log("load area", (area, link_id))
+    debug.log("load area", WorldGraph.hash_link(area, link_id))
+
+    link = area.links[link_id]
+    hero = ctx.store.hero
+    if hero:
+      hero.facing = invert_direction(link.direction)
 
     if isinstance(area, RoomData):
+      stage = manifest_room(area)
+      stage.entrance = vector.add(link.cell, hero.facing)
       dungeon = DungeonContext(
         store=ctx.store,
-        stage=manifest_room(area),
+        stage=stage,
       )
       ctx.store.place = dungeon
       ctx.open(dungeon)

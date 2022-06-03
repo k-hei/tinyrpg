@@ -254,8 +254,8 @@ class ExploreContext(ExploreBase):
 
     if ("right" in room_data.links
     and delta[0] == 1
-    and actor.pos[0] > ctx.stage.width * ctx.stage.tile_size):
-      return ctx.handle_link(room_data.links["right"])
+    and actor.rect.right > ctx.stage.width * ctx.stage.tile_size):
+      return ctx.handle_link(room_data, "right")
 
   def move_to(ctx, actor, dest, speed=None, running=False):
     speed = speed or actor.speed
@@ -393,6 +393,7 @@ class ExploreContext(ExploreBase):
       DissolveIn(on_end=lambda: ctx.use_link(area, link_id)),
       DissolveOut()
     ])
+    return True
 
   def use_link(ctx, area, link_id):
     if not ctx.validate_link(area, link_id):

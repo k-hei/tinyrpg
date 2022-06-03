@@ -35,6 +35,13 @@ class RoomLink:
   y: int = None
   direction: tuple[int, int] = None
 
+  def __post_init__(link):
+    link.direction = tuple(link.direction)
+
+  @property
+  def cell(link):
+    return (link.x, link.y)
+
 @dataclass
 class RoomData:
   """

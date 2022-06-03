@@ -7,6 +7,6 @@ def construct_world():
     return WorldGraph(
       nodes=[rooms["tutorial1"], AkimorCentralArea],
       edges=[
-        ((rooms["tutorial1"], "up"), (AkimorCentralArea, "left")),
+        ((rooms["tutorial1"], "right"), (AkimorCentralArea, "left")),
       ],
     )
