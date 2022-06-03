@@ -1078,6 +1078,6 @@ class CombatContext(ExploreBase):
     )[-1]
 
     return [cell_sprite for cell in grid_cells if (cell_sprite := render_grid_cell(
-      image=assets.sprites["grid_cell"],
+      image=assets.sprites["combat_grid_cell"],
       cell=cell,
     ))]
