@@ -57,11 +57,12 @@ def process_trigger_layer(processor, request, layer):
     """
     Handles processing trigger layers.
     """
-    layer_image, layer_rooms = processor.process_trigger_layer(
+    layer_image, layer_elems, layer_rooms = processor.process_trigger_layer(
         layer=layer,
         image=request.image,
     )
     request.image = layer_image
+    request.elems += layer_elems
     request.rooms += layer_rooms
 
 
@@ -135,7 +136,7 @@ def main():
             ((85, 107), "DesertEvilCactus"),
         ],
         "rooms": layer_rooms,
-        "edges": [(37, 69)],  # TODO: un-hardcode this
+        "edges": [(26, 2)],  # TODO: un-hardcode this
     }, separators=(",", ":"))
 
     output_path = f"rooms/{input_filename}"

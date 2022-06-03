@@ -1,3 +1,4 @@
+import lib.vector as vector
 from dungeon.element import DungeonElement
 from config import TILE_SIZE
 from anims.step import StepAnim
@@ -5,6 +6,10 @@ from anims.step import StepAnim
 class Prop(DungeonElement):
   def effect(prop, game, actor=None):
     pass
+
+  def spawn(elem, stage, cell):
+    elem.scale = TILE_SIZE
+    elem.cell = vector.floor(vector.scale(cell, 1 / 2))
 
   def view(prop, sprites, anims):
     if not sprites:

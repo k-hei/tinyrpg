@@ -176,7 +176,7 @@ class DungeonContext(ExploreBase):
       visible_cells = ctx.stage.cells
 
       room_focused_prev = next((t for t in ctx.camera.target if isinstance(t, Room)), None)
-      if room_focused != room_focused_prev:
+      if room_focused and room_focused != room_focused_prev:
         if room_focused_prev:
           ctx.camera.blur(room_focused_prev)
 

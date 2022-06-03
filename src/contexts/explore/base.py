@@ -126,12 +126,13 @@ class ExploreBase(Context):
     if not ctx.hero:
       return None
     facing_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
-    facing_elems = ctx.stage.get_elems_at(facing_cell)
-    return next((e for e in facing_elems if (
+    facing_elems = ctx.stage.get_elems_at(facing_cell, scale=TILE_SIZE)
+    facing_elem = next((e for e in facing_elems if (
       e.active
       and not e.expires
       and (not isinstance(e, DungeonActor) or e.faction == "ally")
     )), None)
+    return facing_elem
 
   @property
   def facing_actor(ctx):
@@ -560,7 +561,7 @@ class ExploreBase(Context):
       ctx.vfx.append(TalkBubble(
         target=facing_elem,
         cell=facing_cell,
-        flipped=ctx.camera.is_pos_beyond_yrange(pos=vector.scale(facing_cell, ctx.stage.tile_size)),
+        flipped=ctx.camera.is_pos_beyond_yrange(pos=vector.scale(facing_cell, TILE_SIZE)),
       ))
 
   def darken(ctx):

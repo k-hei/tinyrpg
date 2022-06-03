@@ -16,6 +16,7 @@ import assets
 
 
 ID_TRIGGER_COMBAT = 282
+ID_TRIGGER_CHEST = 284
 TILE_SIZE = 16
 
 tileset = Tileset(
@@ -135,6 +136,7 @@ class DesertProcessor(TilesetProcessor):
         Processes a trigger layer.
         """
 
+        layer_elems = []
         layer_rooms = []
         visited_cells = set()
 
@@ -155,10 +157,10 @@ class DesertProcessor(TilesetProcessor):
             return list(cells)
 
         for cell, tile_id in layer.enumerate():
-            if tile_id == -1:
+            if tile_id == -1 or cell in visited_cells:
                 continue
 
-            if tile_id == ID_TRIGGER_COMBAT and cell not in visited_cells:
+            if tile_id == ID_TRIGGER_COMBAT:
                 room = flood_fill(cell)
                 visited_cells |= set(room)
                 layer_rooms.append([vector.add(
@@ -166,5 +168,7 @@ class DesertProcessor(TilesetProcessor):
                     downscale(c, scale=2, floor=True),
                 ) for c in room])
 
-        print(layer_rooms)
-        return image, layer_rooms
+            if tile_id == ID_TRIGGER_CHEST:
+                layer_elems.append((cell, "Chest", { "contents": "Potion" }))
+
+        return image, layer_elems, layer_rooms

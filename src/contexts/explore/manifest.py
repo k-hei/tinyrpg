@@ -52,7 +52,6 @@ def manifest_rooms(rooms, dry=False, seed=None):
 
 def manifest_room(room):
     room_data = RoomData(**room)
-    print(room_data)
 
     room_tileset = (room_data.bg
         if issubclass(room_data.bg, Tileset)
