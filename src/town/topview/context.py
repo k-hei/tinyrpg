@@ -183,20 +183,21 @@ class TopViewContext(Context):
   def handle_areachange(ctx, delta):
     ctx.link = delta
     ctx.get_head().transition([
-      DissolveIn(on_end=lambda: ctx.change_areas(ctx.area.links["entrance"])),
+      DissolveIn(on_end=lambda: ctx.change_areas("entrance")),
       DissolveOut()
     ])
 
   def change_areas(ctx, link):
-    if graph := ctx.get_graph():
-      dest_link = graph.tail(head=link)
-      if dest_link:
-        dest_area = graph.link_area(link=dest_link)
-        for actor in ctx.party:
-          actor.stop_move()
-        ctx.parent.load_area(dest_area, dest_link)
-    else:
-      ctx.close()
+    if not (graph := ctx.get_graph()):
+      return ctx.close()
+
+    dest_area, dest_link = graph.tail(ctx.area, link)
+    if not dest_area:
+      return
+
+    for actor in ctx.party:
+      actor.stop_move()
+    ctx.parent.load_area(dest_area, dest_link)
 
   def switch_chars(ctx):
     ctx.store.switch_chars()

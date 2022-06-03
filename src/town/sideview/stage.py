@@ -77,7 +77,7 @@ class Area:
   def update(area):
     area.camera.update()
 
-  def view(area, hero, link):
+  def view(area, hero, link_id):
     sprites = []
 
     if not area.camera.target:
@@ -104,17 +104,13 @@ class Area:
     )[0] for layer in area_bg_layers]
     sprites += bg_sprites
 
-    if link:
-      link_name = next((link_name for link_name, l in area.links.items() if l is link), None)
-    else:
-      link_name = None
-
+    link = area.links[link_id] if link_id else None
     for actor in area.actors:
       actor_sprites = actor.view()
       if actor is hero:
         actor_sprite = actor_sprites[0]
         actor_sprite.offset += TILE_SIZE
-        if link_name and "doorway" in link_name and abs(actor.pos[1] - link.y) >= 16:
+        if link_id and "doorway" in link_id and abs(actor.pos[1] - link.y) >= 16:
           actor_sprite.image = darken_image(actor_sprite.image)
       sprites += actor_sprites
 

@@ -25,7 +25,8 @@ from transits.dissolve import DissolveOut
 import debug
 
 from town.context import TownContext
-from town.sideview.stage import Area as TownArea
+from town.topview.stage import Stage as TownTopViewArea
+from town.sideview.stage import Area as TownSideViewArea
 from town.graph import WorldGraph
 
 
@@ -147,8 +148,8 @@ class GameContext(Context):
     app = ctx.get_head()
     not app.transits and app.transition([DissolveOut()])
 
-  def goto_town(ctx):
-    town = TownContext(store=ctx.store)
+  def goto_town(ctx, area=None, link=None):
+    town = TownContext(store=ctx.store, area=area, link=link)
     ctx.store.place = town
     ctx.open(town)
 
@@ -170,8 +171,8 @@ class GameContext(Context):
       ctx.store.place = dungeon
       ctx.open(dungeon)
 
-    if type(area) is type and issubclass(area, TownArea):
-      ctx.goto_town()
+    if type(area) is type and issubclass(area, (TownSideViewArea, TownTopViewArea)):
+      ctx.goto_town(area, link_id)
 
   def record_kill(ctx, target):
     target_type = type(target)

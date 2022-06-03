@@ -50,7 +50,7 @@ def find_nearby_link(hero, area, graph=None):
     and abs(dist_y) < TILE_SIZE // 2
     and direction_y
     and (not graph or graph.tail(area, link_id) is not None)):
-      return link
+      return (area, link_id)
 
 ARROW_Y = Area.ACTOR_Y + 40
 ARROW_PERIOD = 45
@@ -152,9 +152,10 @@ class SideViewContext(Context):
     return line, intersection
 
   def handle_zmove(ctx, delta):
-    link = ctx.nearby_link
+    link_area, link_id = ctx.nearby_link
+    link = link_area.links[link_id]
     if link and link.direction[1] == delta:
-      ctx.link = link
+      ctx.link = (type(link_area), link_id)
       return True
     else:
       return False
@@ -241,7 +242,7 @@ class SideViewContext(Context):
       return False
 
     link = area.links[link_id]
-    ctx.link = link
+    ctx.link = (type(area), link_id)
     if link.direction == (1, 0) or link.direction == (-1, 0):
       ctx.follow_link(area, link_id)
       ctx.area.lock_camera()
@@ -308,7 +309,9 @@ class SideViewContext(Context):
           ctx.anims.remove(anim)
         break
     else:
-      if link := ctx.link:
+      if ctx.link:
+        link_area, link_id = ctx.link
+        link = link_area.links[link_id]
         hero_x, hero_y = hero.pos
         if link.direction == (-1, 0) or link.direction == (1, 0):
           for actor in ctx.party:
@@ -316,9 +319,10 @@ class SideViewContext(Context):
               actor.move(link.direction)
         else:
           graph = ctx.get_graph()
-          tail_link = graph and graph.tail(head=link)
-          if tail_link and next((l for _, l in ctx.area.links.items() if l == tail_link), None):
-            if hero.move_to(dest=(tail_link.x, tail_link.y), free=True):
+          dest_area, dest_link_id = graph and graph.tail(*ctx.link)
+          dest_link = dest_area.links[dest_link_id]
+          if link_area == dest_area:
+            if hero.move_to(dest=(dest_link.x, dest_link.y), free=True):
               ctx.link = None
               ctx.update_interactives()
           else:
@@ -339,7 +343,7 @@ class SideViewContext(Context):
                 hero.move_to((link.x, TARGET_HORIZON))
 
               if abs(hero_y) >= abs(EVENT_HORIZON) and not ctx.get_head().transits:
-                ctx.follow_link(ctx.link)
+                ctx.follow_link(*ctx.link)
 
           for ally in allies:
             ally.follow(hero)
@@ -354,7 +358,9 @@ class SideViewContext(Context):
     sprites = []
     assets = use_assets()
     hero, *_ = ctx.party
-    sprites += ctx.area.view(hero, ctx.link)
+
+    _, link_id = ctx.link or (None, None)
+    sprites += ctx.area.view(hero, link_id)
     interrupt = ctx.link or ctx.anims or (ctx.child
       and not isinstance(ctx.child, InventoryContext)
     )
@@ -365,7 +371,9 @@ class SideViewContext(Context):
     elif not ctx.hud.active:
       ctx.hud.enter()
 
-    if not interrupt and (link := ctx.nearby_link):
+    if not interrupt and ctx.nearby_link:
+      link_area, link_id = ctx.nearby_link
+      link = link_area.links[link_id]
       arrow_image = (link.direction == (0, -1)
         and assets.sprites["link_north"]
         or assets.sprites["link_south"]
