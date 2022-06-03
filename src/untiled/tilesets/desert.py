@@ -15,6 +15,7 @@ from locations.desert.tiles import DesertTileset
 import assets
 
 
+ID_TRIGGER_PLAYER = 280
 ID_TRIGGER_NPC = 281
 ID_TRIGGER_ENEMY = 282
 ID_TRIGGER_CHEST = 284
@@ -41,6 +42,35 @@ class DesertProcessor(TilesetProcessor):
     """
     A prototype Tiled conversion processor for the tutorial1 map.
     """
+
+    items = []
+    item_uid = 0
+
+    enemies = []
+    enemy_uid = 0
+
+    @classmethod
+    def get_item(cls):
+        if cls.item_uid >= len(cls.items):
+            return "Potion"
+
+        item = cls.items[cls.item_uid]
+        cls.item_uid += 1
+        return item
+
+    @classmethod
+    def get_enemy(cls):
+        if cls.enemy_uid >= len(cls.enemies):
+            return "DesertSnake"
+
+        enemy = cls.enemies[cls.enemy_uid]
+        cls.enemy_uid += 1
+        return enemy
+
+    @classmethod
+    def load_metadata(cls, metadata):
+        cls.items = metadata["items"]
+        cls.enemies = metadata["enemies"]
 
     @staticmethod
     def resolve_tile_image_from_id(tile_id):
@@ -139,6 +169,7 @@ class DesertProcessor(TilesetProcessor):
 
         layer_elems = []
         layer_rooms = []
+        layer_edges = []
         visited_cells = set()
 
         def flood_fill(cell):
@@ -161,9 +192,13 @@ class DesertProcessor(TilesetProcessor):
             if tile_id == -1 or cell in visited_cells:
                 continue
 
+            if tile_id == ID_TRIGGER_PLAYER:
+                layer_edges.append(cell)
+
             if tile_id == ID_TRIGGER_NPC:
                 NPC_NAME = "Roko"
-                layer_elems.append((vector.add(cell, (1, 0)), NPC_NAME, {
+                cell = vector.add(cell, (1, 0))  # TODO: offset tweaks
+                layer_elems.append((cell, NPC_NAME, {
                     "message": [
                         (NPC_NAME, "So ya know how to walk already? Did ya know ya can run too, yo?"),
                         (NPC_NAME, "Hold SHIFT to get some speed in your step!"),
@@ -171,14 +206,9 @@ class DesertProcessor(TilesetProcessor):
                 }))
 
             if tile_id == ID_TRIGGER_ENEMY:
-                room = flood_fill(cell)
-                visited_cells |= set(room)
-                layer_rooms.append([vector.add(
-                    (1, 0),
-                    downscale(c, scale=2, floor=True),
-                ) for c in room])
+                layer_elems.append((cell, cls.get_enemy()))
 
             if tile_id == ID_TRIGGER_CHEST:
-                layer_elems.append((cell, "Chest", { "contents": "Potion" }))
+                layer_elems.append((cell, "Chest", { "contents": cls.get_item() }))
 
-        return image, layer_elems, layer_rooms
+        return image, layer_elems, layer_rooms, layer_edges

@@ -15,9 +15,9 @@ class LayerType(Enum):
     """
     Enumerates different layer types.
     """
-    TILE = auto()
-    OBJECT = auto()
-    TRIGGER = auto()
+    TILE = "tile"
+    OBJECT = "object"
+    TRIGGER = "trigger"
 
 
 @dataclass
@@ -29,6 +29,7 @@ class LayerProcessingRequest:
     tiles: any = field(default_factory=list)  # tile layers
     elems: any = field(default_factory=list)
     rooms: any = field(default_factory=list)
+    edges: any = field(default_factory=list)
 
 
 def process_tile_layer(processor, request, layer):
@@ -57,13 +58,14 @@ def process_trigger_layer(processor, request, layer):
     """
     Handles processing trigger layers.
     """
-    layer_image, layer_elems, layer_rooms = processor.process_trigger_layer(
+    layer_image, layer_elems, layer_rooms, layer_edges = processor.process_trigger_layer(
         layer=layer,
         image=request.image,
     )
     request.image = layer_image
     request.elems += layer_elems
     request.rooms += layer_rooms
+    request.edges += layer_edges
 
 
 LAYER_TYPE_HANDLER_MAP = {
@@ -81,15 +83,17 @@ def process_layer(processor, request, layer, layer_type):
     handle_layer = LAYER_TYPE_HANDLER_MAP[layer_type]
     handle_layer(processor, request, layer)
 
-def process_layers(processor, layers):
+def process_layers(processor, layers, metadata):
     """
     Processes layers using the given processor.
     """
+    processor.load_metadata(metadata)
+
     request = LayerProcessingRequest()
     for layer_type, layer in layers:
         process_layer(processor, request, layer, layer_type)
 
-    return request.image, request.tiles, request.elems, request.rooms
+    return request.image, request.tiles, request.elems, request.rooms, request.edges
 
 
 def main():
@@ -111,32 +115,35 @@ def main():
     layers = decode(**room_data)
 
     input_filename = basename(input_path)
-    output_dir = input_path[:-len(input_filename)]
     room_name, _ = splitext(input_filename)
+    input_dir = input_path[:-len(input_filename)]
+
+    meta_path = f"{input_dir}/{room_name}.meta"
+    try:
+        with open(meta_path, mode="r", encoding="utf-8") as file:
+            meta_buffer = file.read()
+            metadata = json.loads(meta_buffer)
+    except FileNotFoundError:
+        metadata = {}
+
+    room_image, room_tiles, room_elems, room_subrooms, room_edges = process_layers(
+        processor=DesertProcessor,
+        layers=[(LayerType(t), layers[l]) for l, t in metadata["layers"].items()],
+        metadata=metadata,
+    )
+
+    output_dir = input_dir
     output_filename = f"{room_name}_parsed.json"
     output_path = f"{output_dir}/{output_filename}"
 
-    layer_image, layer_tiles, layer_elems, layer_rooms = process_layers(DesertProcessor, [
-        (LayerType.TILE, layers["bp1"]),
-        (LayerType.OBJECT, layers["bp2"]),
-        (LayerType.OBJECT, layers["front1"]),
-        (LayerType.OBJECT, layers["front2"]),
-        (LayerType.OBJECT, layers["front3"]),
-        (LayerType.TRIGGER, layers["obj"]),
-    ])
-
-    layer_image.save(f"{output_dir}/{room_name}.png")
+    room_image.save(f"{output_dir}/{room_name}.png")
     output_buffer = json.dumps({
         "bg": ("tileset", "desert"),
         "size": layers["bp1"].size,
-        "tiles": layer_tiles,
-        "elems": [*layer_elems,
-            ((46, 77), "DesertSnake"),
-            ((83, 95), "DesertSnake"),
-            ((85, 107), "DesertEvilCactus"),
-        ],
-        "rooms": layer_rooms,
-        "edges": [(26, 2)],  # TODO: un-hardcode this
+        "tiles": room_tiles,
+        "elems": room_elems,
+        "rooms": room_subrooms,
+        "edges": room_edges,
     }, separators=(",", ":"))
 
     output_path = f"rooms/{input_filename}"

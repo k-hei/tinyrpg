@@ -1,0 +1,12 @@
+{
+  "enemies": ["DesertSnake", "DesertSnake", "DesertEvilCactus", "DesertEvilCactus"],
+  "items": ["Potion", "Bread"],
+  "layers": {
+    "bp1": "tile",
+    "bp2": "object",
+    "front1": "object",
+    "front2": "object",
+    "front3": "object",
+    "OBJPLACEMENT": "trigger"
+  }
+}
