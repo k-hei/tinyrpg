@@ -19,6 +19,9 @@ from transits.dissolve import DissolveIn, DissolveOut
 from anims import Anim
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT, LABEL_FRAMES
 
+from town.graph import WorldGraph
+
+
 class FollowAnim(Anim): pass
 
 def can_talk(hero, actor):
@@ -39,14 +42,14 @@ def can_talk(hero, actor):
 def find_nearby_npc(hero, actors):
   return next((a for a in actors if can_talk(hero, a)), None)
 
-def find_nearby_link(hero, links, graph=None):
-  for link in links.values():
+def find_nearby_link(hero, area, graph=None):
+  for link_id, link in area.links.items():
     dist_x, dist_y = vector.subtract((link.x, link.y), hero.pos)
     _, direction_y = link.direction
     if (abs(dist_x) < TILE_SIZE // 2
     and abs(dist_y) < TILE_SIZE // 2
     and direction_y
-    and (not graph or graph.tail(head=link) is not None)):
+    and (not graph or graph.tail(area, link_id) is not None)):
       return link
 
 ARROW_Y = Area.ACTOR_Y + 40
@@ -104,10 +107,10 @@ class SideViewContext(Context):
 
     hero_x, hero_y = hero.pos
 
-    for _, link in ctx.area.links.items():
+    for link_id, link in ctx.area.links.items():
       if (link.direction == (-1, 0) and hero.facing == (-1, 0) and hero_x <= link.x
       or link.direction == (1, 0) and hero.facing == (1, 0) and hero_x >= link.x):
-        if ctx.use_link(link):
+        if ctx.use_link(ctx.area, link_id):
           break
 
     if hero_x < 0 and hero.facing == (-1, 0):
@@ -232,36 +235,39 @@ class SideViewContext(Context):
   def get_graph(ctx):
     return ctx.parent.graph if "graph" in dir(ctx.parent) else None
 
-  def use_link(ctx, link):
+  def use_link(ctx, area, link_id):
     graph = ctx.get_graph()
-    if graph is None or graph.tail(head=link) is None:
+    if graph is None or graph.tail(area, link_id) is None:
       return False
+
+    link = area.links[link_id]
     ctx.link = link
     if link.direction == (1, 0) or link.direction == (-1, 0):
-      ctx.follow_link(ctx.link)
+      ctx.follow_link(area, link_id)
       ctx.area.lock_camera()
+
     return True
 
-  def follow_link(ctx, link):
+  def follow_link(ctx, area, link_id):
     ctx.get_head().transition([
-      DissolveIn(on_end=lambda: ctx.change_areas(link)),
+      DissolveIn(on_end=lambda: ctx.change_areas(area, link_id)),
       DissolveOut()
     ])
 
-  def change_areas(ctx, link):
-    if graph := ctx.get_graph():
-      dest_item = graph.tail(head=link)
-      if dest_item:
-        for actor in ctx.party:
-          actor.stop_move()
-        if type(dest_item) is type and issubclass(dest_item, Context):
-          ctx.parent.load_area(dest_item)
-        else:
-          dest_area = graph.link_area(link=dest_item)
-          dest_area and ctx.parent.load_area(dest_area, dest_item)
-        ctx.link = None
-    else:
-      ctx.close()
+  def change_areas(ctx, area, link_id):
+    graph = ctx.get_graph()
+    if not graph:
+      return ctx.close()
+
+    dest_area, dest_link = graph.tail(area, link_id)
+    if not dest_area:
+      return
+
+    for actor in ctx.party:
+      actor.stop_move()
+
+    ctx.get_parent(cls="GameContext").load_area(dest_area, dest_link)
+    ctx.link = None
 
   def switch_chars(ctx):
     ctx.store.switch_chars()
@@ -280,7 +286,7 @@ class SideViewContext(Context):
 
   def update_interactives(ctx):
     hero = ctx.party[0]
-    ctx.nearby_link = find_nearby_link(hero, ctx.area.links, graph=ctx.get_graph())
+    ctx.nearby_link = find_nearby_link(hero, ctx.area, graph=ctx.get_graph())
     ctx.nearby_npc = find_nearby_npc(hero, ctx.area.actors) if ctx.nearby_link is None else None
 
   def update(ctx):

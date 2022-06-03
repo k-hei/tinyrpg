@@ -32,12 +32,17 @@ import assets
 from colors.palette import BLACK, WHITE
 from lib.filters import outline
 
+# edge links
+from contexts.explore.roomdata import RoomData
+
+
 class ExploreContext(ExploreBase):
   def enter(ctx):
     ctx.camera.focus(ctx.hero)
     ctx.debug = False
     ctx.move_buffer = []
     ctx.cache_last_move = 0
+    ctx.link = None
 
   def exit(ctx):
     ctx.close()
@@ -87,8 +92,8 @@ class ExploreContext(ExploreBase):
     if ctx.child:
       return ctx.child.handle_press(button)
 
-    if ctx.anims:
-      return
+    if ctx.anims or ctx.link:
+      return False
 
     delta = input.resolve_delta_held()
     if delta != (0, 0) and input.is_delta_button(button):
@@ -211,13 +216,18 @@ class ExploreContext(ExploreBase):
     def move_axis(delta):
       nonlocal leaping
       old_pos = elem.pos
-      ctx.move(elem, delta=delta, diagonal=(delta_x and delta_y), running=running)
+
+      is_linking = ctx.move(elem, delta=delta, diagonal=(delta_x and delta_y), running=running)
+      if is_linking:
+        return True
+
       collidee = ctx.collide(elem, delta=delta)
       new_pos = elem.pos
       if collidee and not leaping and isinstance(elem, DungeonActor) and issubclass(collidee, tileset.Pit):
         if elem is ctx.hero and ctx.ally:
           ctx.ally.stop_move()
         leaping = ctx.leap(actor=elem, running=running)
+
       return new_pos != old_pos
 
     moved_x = delta_x and move_axis((delta_x, 0))
@@ -227,6 +237,25 @@ class ExploreContext(ExploreBase):
 
   def move(ctx, actor, delta, diagonal=False, running=False):
     actor.move(delta, diagonal, running)
+
+    hero = ctx.hero
+    if not hero or actor is not hero:
+      return False
+
+    if not isinstance(ctx.stage.generator, RoomData):
+      return False
+
+    room_data = ctx.stage.generator
+
+    if ("up" in room_data.links
+    and delta[1] == -1
+    and actor.pos[1] < 0):
+      return ctx.handle_link(room_data, "up")
+
+    if ("right" in room_data.links
+    and delta[0] == 1
+    and actor.pos[0] > ctx.stage.width * ctx.stage.tile_size):
+      return ctx.handle_link(room_data.links["right"])
 
   def move_to(ctx, actor, dest, speed=None, running=False):
     speed = speed or actor.speed
@@ -350,6 +379,28 @@ class ExploreContext(ExploreBase):
     # (ctx.anims.append if actor is ctx.hero else actor.core.anims.extend)(jump_anims)
 
     return True
+
+  def validate_link(ctx, area, link_id):
+    graph = ctx.graph
+    return graph is not None and graph.tail(area, link_id) is not None
+
+  def handle_link(ctx, area, link_id):
+    if not ctx.validate_link(area, link_id):
+      return False
+
+    ctx.link = area.links[link_id]
+    ctx.get_head().transition([
+      DissolveIn(on_end=lambda: ctx.use_link(area, link_id)),
+      DissolveOut()
+    ])
+
+  def use_link(ctx, area, link_id):
+    if not ctx.validate_link(area, link_id):
+      return False
+
+    graph = ctx.graph
+    dest_area, dest_link = graph.tail(area, link_id)
+    ctx.get_parent(cls="GameContext").load_area(dest_area, dest_link)
 
   def handle_action(ctx):
     if not ctx.hero:
@@ -504,6 +555,15 @@ class ExploreContext(ExploreBase):
     ctx.debug = not ctx.debug
     debug.log("Debug mode toggle:", ctx.debug)
     return True
+
+  def update(ctx):
+    super().update()
+
+    if not (hero := ctx.hero):
+      return
+
+    if ctx.link:
+      hero.move(ctx.link.direction)
 
   def view(ctx):
     sprites = super().view()

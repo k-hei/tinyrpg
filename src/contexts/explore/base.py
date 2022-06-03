@@ -15,6 +15,7 @@ from anims.awaken import AwakenAnim
 from items.materials import MaterialItem
 from dungeon.actors import DungeonActor
 from dungeon.props.itemdrop import ItemDrop
+from dungeon.gen.floorgraph import FloorGraph
 from locations.default.tile import Tile
 import locations.default.tileset as tileset
 from vfx.talkbubble import TalkBubble
@@ -71,7 +72,10 @@ class ExploreBase(Context):
 
   @property
   def visited_cells(ctx):
-    stage_id = ctx.graph.nodes.index(ctx.stage)
+    stage_id = (ctx.graph.nodes.index(ctx.stage)
+      if isinstance(ctx.graph, FloorGraph)
+      else 0)
+
     visited_cells = ctx.memory[stage_id] if stage_id in ctx.memory else None # next((cs for (s, cs) in ctx.memory if s is ctx.stage), None)
     if visited_cells is None:
       ctx.memory[stage_id] = (visited_cells := [])
@@ -95,7 +99,10 @@ class ExploreBase(Context):
 
   @property
   def graph(ctx):
-    return ctx._graph if "_graph" in dir(ctx) else ctx.parent.graph
+    try:
+      return ctx._graph
+    except AttributeError:
+      return ctx.parent.graph
 
   @graph.setter
   def graph(ctx, graph):

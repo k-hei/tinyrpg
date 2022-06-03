@@ -12,24 +12,28 @@ from config import ROOMS_PATH
 rooms = {}
 
 def load_room(path, key):
-  try:
-    room_file = open(join(path, key) + ".json", "r")
-    room_data = json.loads(room_file.read())
-  except FileNotFoundError:
-    room_file = None
-    print(f"FileNotFoundError: Failed to find file {key}.json at {path}")
-    return None
-  finally:
-    room_file and room_file.close()
-  return room_data
+  with open(join(path, key) + ".json", mode="r", encoding="utf-8") as room_file:
+    room_buffer = room_file.read()
+    room_data = json.loads(room_buffer)
+    return ([RoomData(**d, key=f"{key}{i}") for i, d in enumerate(room_data)]
+      if isinstance(room_data, list)
+      else RoomData(**room_data, key=key))
 
 def load_rooms():
   if rooms:
     return False
   for f in listdir(ROOMS_PATH):
     room_id, _ = splitext(f)
-    rooms[room_id.replace("-", "_")] = load_room(path=ROOMS_PATH, key=room_id)
+    room_data = load_room(path=ROOMS_PATH, key=room_id)
+    rooms[room_id.replace("-", "_")] = room_data
   return True
+
+
+@dataclass
+class RoomLink:
+  x: int = None
+  y: int = None
+  direction: tuple[int, int] = None
 
 @dataclass
 class RoomData:
@@ -37,12 +41,14 @@ class RoomData:
   Models an in-game top-down area.
   """
 
+  key: str = None
   bg: tuple[str, str] = ("tileset", "default")
   size: tuple[int, int] = None                              # default: generated size
-  tiles: list[int] = field(default_factory=lambda: [])      # default: generated shape
-  elems: list[list] = field(default_factory=lambda: [])     # default: no elements
-  rooms: list[list] = field(default_factory=lambda: [])     # default: no subrooms
-  edges: list[list] = field(default_factory=lambda: [])     # default: all edges
+  tiles: list[int] = field(default_factory=list)            # default: generated shape
+  elems: list[list] = field(default_factory=list)           # default: no elements
+  rooms: list[list] = field(default_factory=list)           # default: no subrooms
+  edges: list[list] = field(default_factory=list)           # default: all edges
+  links: dict[str, RoomLink] = field(default_factory=dict)  # default: all edges
   doors: str = "Door"                                       # default: generic door
   secret: bool = None                                       # default: arbitrary secrecy
   degree: int = 0                                           # default: arbitrary degree
@@ -79,11 +85,11 @@ class RoomData:
         data=roomdata.tiles,
       )])
 
-
     if not roomdata.tiles and roomdata.terrain is None:
       roomdata.terrain = True
 
     roomdata.hooks = { k: resolve_hook(h) if type(h) is str else h for k, h in roomdata.hooks.items() }
+    roomdata.links = { n: RoomLink(**l) for n, l in roomdata.links.items() }
 
   def extract_cells(roomdata):
     return [c for c, t in roomdata.tiles.enumerate()]

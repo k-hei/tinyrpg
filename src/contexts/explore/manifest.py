@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from lib.grid import Grid
 from lib.bounds import find_bounds
 import lib.vector as vector
@@ -50,9 +52,7 @@ def manifest_rooms(rooms, dry=False, seed=None):
 
     return stage, stage_offset
 
-def manifest_room(room):
-    room_data = RoomData(**room)
-
+def manifest_room(room_data):
     room_tileset = (room_data.bg
         if issubclass(room_data.bg, Tileset)
         else None)
@@ -62,6 +62,7 @@ def manifest_room(room):
         tiles=room_data.tiles,
         rooms=[Room(data=room_data)],
     )
+    stage.generator = room_data
 
     # TODO: fix hardcoded edge types
     if stage.entrance is None:
@@ -120,6 +121,6 @@ def merge_territories(stage, territories):
 
 def spawn_elems(stage, elem_data, offset=(0, 0), tileset=None):
     for elem_cell, elem_name, *elem_props in elem_data:
-        elem_props = elem_props[0] if elem_props else {}
+        elem_props = deepcopy(elem_props[0]) if elem_props else {}
         elem = decode_elem(elem_cell, elem_name, elem_props, tileset)
         stage.spawn_elem_at(vector.add(offset, elem_cell), elem)

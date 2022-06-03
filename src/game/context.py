@@ -1,6 +1,7 @@
 import lib.gamepad as gamepad
 import lib.input as input
 import game.controls as controls
+from game.world import construct_world
 from contexts import Context
 from contexts.load import LoadContext
 from contexts.pause import PauseContext
@@ -10,16 +11,19 @@ from contexts.dungeon import DungeonContext
 from contexts.loading import LoadingContext
 from contexts.controls import ControlsContext
 from contexts.explore.manifest import manifest_room
-from contexts.explore.roomdata import load_rooms, rooms
+from contexts.explore.roomdata import load_rooms, rooms, RoomData
 from dungeon.decoder import decode_floor
 from dungeon.gen.floorgraph import FloorGraph
-from town.context import TownContext
 from skills import get_skill_order
 from skills.weapon import Weapon
 from debug import bench
 from game.data import GameData
 from transits.dissolve import DissolveOut
 import debug
+
+from town.context import TownContext
+from town.sideview.stage import Area as TownArea
+
 
 load_rooms()
 gamepad.config(preset=controls.TYPE_A)
@@ -41,6 +45,7 @@ class GameContext(Context):
     else:
       ctx.store = GameData.decode(data)
       ctx.savedata = data
+    ctx.graph = construct_world()
 
   def init(ctx):
     if ctx.savedata or ctx.feature or ctx.floor:
@@ -132,7 +137,7 @@ class GameContext(Context):
       ctx.store.place = dungeon
       ctx.open(dungeon)
     else:
-      stage = manifest_room(room=rooms["shrine"])
+      stage = manifest_room(rooms["shrine"])
       ctx.goto_dungeon(floors=FloorGraph(nodes=[stage]))
 
     app = ctx.get_head()
@@ -142,6 +147,20 @@ class GameContext(Context):
     town = TownContext(store=ctx.store, returning=returning)
     ctx.store.place = town
     ctx.open(town)
+
+  def load_area(ctx, area, link_id):
+    debug.log("load area", (area, link_id))
+
+    if isinstance(area, RoomData):
+      dungeon = DungeonContext(
+        store=ctx.store,
+        stage=manifest_room(area),
+      )
+      ctx.store.place = dungeon
+      ctx.open(dungeon)
+
+    if type(area) is type and issubclass(area, TownArea):
+      ctx.goto_town()
 
   def record_kill(ctx, target):
     target_type = type(target)

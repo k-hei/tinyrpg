@@ -44,13 +44,12 @@ from helpers.stage import find_tile
 FLOOR_SEQUENCE = [Floor1, Floor2, Floor3]
 
 class DungeonContext(ExploreBase):
-  def __init__(ctx, store, stage, floor_index=0, graph=None, memory=None, *args, **kwargs):
+  def __init__(ctx, store, stage, floor_index=0, memory=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
     ctx.store = store
     ctx.stage = stage
     ctx.stage_view = StageView(stage)
     ctx.floor_index = floor_index
-    ctx.graph = graph
     ctx.memory = memory or {}
     ctx.hero_cell = None
     ctx.hero_facing = None
@@ -97,10 +96,11 @@ class DungeonContext(ExploreBase):
     return FLOOR_SEQUENCE.index(floor) + 1
 
   def save(ctx):
+    is_overworld = ctx.stage.is_overworld
     return DungeonData(
-      floor_index=ctx.graph.nodes.index(ctx.stage),
-      floors=deepcopy(ctx.graph),
-      memory=deepcopy(ctx.memory),
+      floor_index=ctx.graph.nodes.index(ctx.stage) if not is_overworld else -1,
+      floors=deepcopy(ctx.graph) if not is_overworld else [],
+      memory=deepcopy(ctx.memory) if not is_overworld else [],
     )
 
   def construct_graph(ctx):
@@ -109,7 +109,11 @@ class DungeonContext(ExploreBase):
     if not ctx.stage: # or ctx.stage.generator not in floor_names:
       return
 
+    # TODO: gracefully switch between dungeon and overworld graphs
     ctx.graph = ctx.graph or FloorGraph()
+    if not isinstance(ctx.graph, FloorGraph):
+      return
+
     ctx.graph.nodes.append(ctx.stage)
 
     try:

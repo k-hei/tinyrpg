@@ -436,7 +436,7 @@ class DungeonActor(DungeonElement):
     actor.anims = []
     actor.core.anims = []
 
-  def move(actor, delta, diagonal, running):
+  def move(actor, delta, diagonal=False, running=False):
     delta_x, delta_y = delta
     diagonal = diagonal or delta_x and delta_y
     x, y = actor.pos

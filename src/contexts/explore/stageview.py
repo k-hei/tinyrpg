@@ -347,7 +347,8 @@ class StageView:
         return False
 
       try:
-        return view.camera.rect.colliderect(elem.image.get_rect(midbottom=elem.pos))
+        return (elem.rect and view.camera.rect.colliderect(elem.rect)
+          or view.camera.rect.colliderect(elem.image.get_rect(midbottom=elem.pos)))
       except AttributeError:
         return view.camera.rect.collidepoint(elem.pos)
 

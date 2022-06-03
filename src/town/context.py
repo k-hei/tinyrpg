@@ -1,5 +1,5 @@
 from contexts import Context
-from town.graph import TownGraph
+from town.graph import WorldGraph
 from town.areas.time_chamber import TimeChamberArea
 from town.areas.akimor_central import AkimorCentralArea
 from town.areas.fortune import FortuneArea
@@ -16,20 +16,11 @@ class TownContext(Context):
     super().__init__()
     ctx.store = store
     ctx.returning = returning
-    ctx.graph = TownGraph(
-      nodes=[AkimorCentralArea, FortuneArea, MarketArea, OutskirtsArea, TimeChamberArea],
-      edges=[
-        (AkimorCentralArea.links["upper_slope_top"], AkimorCentralArea.links["upper_slope_base"]),
-        (AkimorCentralArea.links["lower_slope_top"], AkimorCentralArea.links["lower_slope_base"]),
-        (AkimorCentralArea.links["market_doorway"], MarketArea.links["entrance"]),
-        (AkimorCentralArea.links["fortune_house_doorway"], FortuneArea.links["entrance"]),
-        (AkimorCentralArea.links["chapel_doorway"], TimeChamberArea.links["left"]),
-        (AkimorCentralArea.links["blacksmith_doorway"], TimeChamberArea.links["right"]),
-        (AkimorCentralArea.links["right"], OutskirtsArea.links["left"]),
-        (OutskirtsArea.links["tower"], DungeonContext),
-      ]
-    )
     ctx.area = OutskirtsArea if returning else AkimorCentralArea
+
+  @property
+  def graph(ctx):
+    return ctx.parent.graph
 
   def init(ctx):
     link = OutskirtsArea.links["tower"] if ctx.returning else None
