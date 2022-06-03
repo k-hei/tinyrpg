@@ -15,7 +15,8 @@ from locations.desert.tiles import DesertTileset
 import assets
 
 
-ID_TRIGGER_COMBAT = 282
+ID_TRIGGER_NPC = 281
+ID_TRIGGER_ENEMY = 282
 ID_TRIGGER_CHEST = 284
 TILE_SIZE = 16
 
@@ -160,7 +161,16 @@ class DesertProcessor(TilesetProcessor):
             if tile_id == -1 or cell in visited_cells:
                 continue
 
-            if tile_id == ID_TRIGGER_COMBAT:
+            if tile_id == ID_TRIGGER_NPC:
+                NPC_NAME = "Roko"
+                layer_elems.append((vector.add(cell, (1, 0)), NPC_NAME, {
+                    "message": [
+                        (NPC_NAME, "So ya know how to walk already? Did ya know ya can run too, yo?"),
+                        (NPC_NAME, "Hold SHIFT to get some speed in your step!"),
+                    ],
+                }))
+
+            if tile_id == ID_TRIGGER_ENEMY:
                 room = flood_fill(cell)
                 visited_cells |= set(room)
                 layer_rooms.append([vector.add(

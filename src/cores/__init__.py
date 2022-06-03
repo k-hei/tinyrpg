@@ -26,7 +26,7 @@ class Core:
     core.stats = stats
     core.skills = skills
     core.color = color
-    core.message = message
+    core.message = message if not message or callable(message) else [tuple(m) for m in message]
     core.anims = anims or []
     core.dead = False
 

@@ -401,7 +401,7 @@ class DungeonActor(DungeonElement):
   def talk(actor, game):
     game.talkee = actor
     message = actor.core.message
-    if type(message) is tuple:
+    if isinstance(message, tuple):
       _, message = message
     if callable(message):
       message = message(game)
@@ -415,7 +415,7 @@ class DungeonActor(DungeonElement):
     old_target = (actor_x + facing_x, actor_y + facing_y)
     actor.face(hero.cell)
     game.camera.focus(
-      target=upscale(((hero_x + actor_x) / 2, (hero_y + actor_y) / 2 + 1), game.stage.tile_size),
+      target=upscale(((hero_x + actor_x) / 2, (hero_y + actor_y) / 2 + 1), TILE_SIZE),
       force=True
     )
     def stop_talk():
