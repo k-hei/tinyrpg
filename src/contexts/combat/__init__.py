@@ -707,6 +707,7 @@ class CombatContext(ExploreBase):
       return
     ctx.comps.skill_badge.exit()
     ctx.comps.hud.exit()
+    ctx.comps.sp_meter.exit()
     ctx.open(GameOverContext())
 
   def handle_skill(ctx):
