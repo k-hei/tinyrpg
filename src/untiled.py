@@ -138,8 +138,9 @@ def main():
 
     room_image.save(f"{output_dir}/{room_name}.png")
     output_buffer = json.dumps({
+        "name": metadata["name"],
         "bg": ("tileset", "desert"),
-        "size": layers["bp1"].size,
+        "size": layers[[*metadata["layers"].keys()][0]].size,
         "tiles": room_tiles,
         "elems": room_elems,
         "rooms": room_subrooms,

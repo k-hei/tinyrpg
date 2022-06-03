@@ -404,7 +404,6 @@ class SideViewContext(Context):
     if ctx.time < LABEL_FRAMES and not ctx.child:
       label_image = assets.ttf["normal"].render(ctx.area.name, WHITE)
       label_image = outline(label_image, BLACK)
-      label_image = outline(label_image, WHITE)
       sprites.append(Sprite(
         image=label_image,
         pos=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 4),

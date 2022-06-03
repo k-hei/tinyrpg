@@ -513,7 +513,7 @@ class ExploreContext(ExploreBase):
     dungeon = ctx.parent
     game = dungeon.parent
     app.transition([
-      DissolveIn(on_end=lambda: game.goto_town(returning=True)),
+      DissolveIn(on_end=lambda: game.goto_town()),
       DissolveOut()
     ])
 
@@ -576,11 +576,16 @@ class ExploreContext(ExploreBase):
   def view_label(ctx):
     if ctx.time >= LABEL_FRAMES or ctx.child and not isinstance(ctx.child, CutsceneContext):
       return []
+
     floor_no = ctx.parent.find_floor_no()
-    floor_text = f"Tomb {floor_no}F" if floor_no else "????"
+    floor_text = (f"Tomb {floor_no}F"
+      if floor_no
+      else ctx.stage.name)
+
     label_image = assets.ttf["normal"].render(floor_text)
     label_image = outline(label_image, BLACK)
     # label_image = outline(label_image, WHITE)
+
     return [Sprite(
       image=label_image,
       pos=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 4),

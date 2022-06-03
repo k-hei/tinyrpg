@@ -1,4 +1,5 @@
 {
+  "name": "Akimor Range",
   "enemies": ["DesertSnake", "DesertSnake", "DesertEvilCactus", "DesertEvilCactus"],
   "items": ["Potion", "Bread"],
   "layers": {

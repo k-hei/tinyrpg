@@ -196,7 +196,7 @@ class CombatContext(ExploreBase):
       and e.faction == "enemy"
       and e.cell in ctx.room.cells]
 
-    ctx.anims.append([PathAnim(
+    ctx.anims.append([(lambda e: PathAnim(
       target=e,
       period=TILE_SIZE / 3,
       path=ctx.stage.pathfind(
@@ -204,8 +204,14 @@ class CombatContext(ExploreBase):
         goal=e.ai_spawn,
         whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True)
       ),
-      on_end=lambda: setattr(e, "aggro", 0),
-    ) for e in room_enemies])
+      on_end=lambda: (
+        setattr(e, "aggro", 0),
+        ctx.anims[-1].append(PauseAnim(
+          duration=2,  # HACK: prevent path anim from setting facing post on_end
+          on_end=lambda: setattr(e, "facing", (0, 1))
+        )),
+      ),
+    ))(e) for e in room_enemies if e.cell != e.ai_spawn])
 
     ctx.exiting = True
 

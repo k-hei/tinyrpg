@@ -147,8 +147,8 @@ class GameContext(Context):
     app = ctx.get_head()
     not app.transits and app.transition([DissolveOut()])
 
-  def goto_town(ctx, returning=False):
-    town = TownContext(store=ctx.store, returning=returning)
+  def goto_town(ctx):
+    town = TownContext(store=ctx.store)
     ctx.store.place = town
     ctx.open(town)
 

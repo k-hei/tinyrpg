@@ -9,7 +9,8 @@ from lib.cell import manhattan, neighborhood, downscale
 from math import inf
 
 class Stage:
-  def __init__(stage, tiles, tileset=None, elems=None, rooms=None, links=None, tile_size=None, bg=None):
+  def __init__(stage, tiles, tileset=None, elems=None, rooms=None, links=None, tile_size=None, bg=None, name="????"):
+    stage.name = name
     stage.tileset = tileset
     stage.tiles = tiles
     stage.elems = elems or []

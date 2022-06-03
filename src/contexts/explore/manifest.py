@@ -58,6 +58,7 @@ def manifest_room(room_data):
         else None)
 
     stage = Stage(
+        name=room_data.name,
         tileset=room_data.bg,
         tiles=room_data.tiles,
         rooms=[Room(data=room_data)],

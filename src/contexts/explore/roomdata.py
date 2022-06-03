@@ -49,6 +49,7 @@ class RoomData:
   """
 
   key: str = None
+  name: str = None
   bg: tuple[str, str] = ("tileset", "default")
   size: tuple[int, int] = None                              # default: generated size
   tiles: list[int] = field(default_factory=list)            # default: generated shape
