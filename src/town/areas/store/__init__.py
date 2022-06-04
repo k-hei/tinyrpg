@@ -18,7 +18,7 @@ class StoreArea(Stage):
   bg = "store_tiles"
   fg = "store_fg"
   scale = 16
-  links = {
+  ports = {
     "entrance": Link(cell=(2, 6), direction=(0, 1))
   }
   layout = [

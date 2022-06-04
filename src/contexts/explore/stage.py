@@ -9,12 +9,12 @@ from lib.cell import manhattan, neighborhood, downscale
 from math import inf
 
 class Stage:
-  def __init__(stage, tiles, tileset=None, elems=None, rooms=None, links=None, tile_size=None, bg=None, name="????"):
+  def __init__(stage, tiles, tileset=None, elems=None, rooms=None, ports=None, tile_size=None, bg=None, name="????"):
     stage.name = name
     stage.tileset = tileset
     stage.tiles = tiles
     stage.elems = elems or []
-    stage.links = links or []
+    stage.ports = ports or []
     stage.rooms = rooms or []
     stage.tile_size = tile_size or (tileset and tileset.tile_size) or TILE_SIZE
     stage.bg = bg
@@ -108,8 +108,8 @@ class Stage:
   def is_tile_at_oasis(stage, cell):
     return stage.tileset.is_tile_oasis(tile=stage.get_tile_at(cell))
 
-  def is_tile_at_link(stage, cell):
-    return stage.tileset.is_tile_link(tile=stage.get_tile_at(cell))
+  def is_tile_at_port(stage, cell):
+    return stage.tileset.is_tile_port(tile=stage.get_tile_at(cell))
 
   def get_elem_at(stage, cell):
     return None

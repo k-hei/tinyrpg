@@ -1,4 +1,4 @@
-from town.graph import WorldGraph
+from town.graph import WorldGraph, WorldLink
 from town.areas.akimor_central import AkimorCentralArea
 from town.areas.fortune import FortuneArea
 from town.areas.store import StoreArea as MarketArea
@@ -11,13 +11,13 @@ def construct_world():
     return WorldGraph(
         nodes=[rooms["tutorial1"], AkimorCentralArea, FortuneArea, MarketArea, OutskirtsArea, TimeChamberArea],
         edges=[
-            ((rooms["tutorial1"], "right"), (AkimorCentralArea, "left")),
-            ((AkimorCentralArea, "upper_slope_top"), (AkimorCentralArea, "upper_slope_base")),
-            ((AkimorCentralArea, "lower_slope_top"), (AkimorCentralArea, "lower_slope_base")),
-            ((AkimorCentralArea, "market_doorway"), (MarketArea, "entrance")),
-            ((AkimorCentralArea, "fortune_house_doorway"), (FortuneArea, "entrance")),
-            ((AkimorCentralArea, "chapel_doorway"), (TimeChamberArea, "left")),
-            ((AkimorCentralArea, "blacksmith_doorway"), (TimeChamberArea, "right")),
-            ((AkimorCentralArea, "right"), (OutskirtsArea, "left")),
+            (WorldLink(rooms["tutorial1"], "right"), WorldLink(AkimorCentralArea, "left")),
+            (WorldLink(AkimorCentralArea, "upper_slope_top"), WorldLink(AkimorCentralArea, "upper_slope_base")),
+            (WorldLink(AkimorCentralArea, "lower_slope_top"), WorldLink(AkimorCentralArea, "lower_slope_base")),
+            (WorldLink(AkimorCentralArea, "market_doorway"), WorldLink(MarketArea, "entrance")),
+            (WorldLink(AkimorCentralArea, "fortune_house_doorway"), WorldLink(FortuneArea, "entrance")),
+            (WorldLink(AkimorCentralArea, "chapel_doorway"), WorldLink(TimeChamberArea, "left")),
+            (WorldLink(AkimorCentralArea, "blacksmith_doorway"), WorldLink(TimeChamberArea, "right")),
+            (WorldLink(AkimorCentralArea, "right"), WorldLink(OutskirtsArea, "left")),
         ],
     )

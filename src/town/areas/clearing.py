@@ -11,7 +11,7 @@ from items.sp.berry import Berry
 class ClearingArea(Area):
   name = "Alleyway"
   bg = "town_clearing"
-  links = {
+  ports = {
     "alley": AreaLink(x=96, direction=(0, 1)),
   }
 

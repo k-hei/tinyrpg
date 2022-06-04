@@ -35,12 +35,12 @@ class RoomLink:
   y: int = None
   direction: tuple[int, int] = None
 
-  def __post_init__(link):
-    link.direction = tuple(link.direction)
+  def __post_init__(port):
+    port.direction = tuple(port.direction)
 
   @property
-  def cell(link):
-    return (link.x, link.y)
+  def cell(port):
+    return (port.x, port.y)
 
 @dataclass
 class RoomData:
@@ -56,7 +56,7 @@ class RoomData:
   elems: list[list] = field(default_factory=list)           # default: no elements
   rooms: list[list] = field(default_factory=list)           # default: no subrooms
   edges: list[list] = field(default_factory=list)           # default: all edges
-  links: dict[str, RoomLink] = field(default_factory=dict)  # default: all edges
+  ports: dict[str, RoomLink] = field(default_factory=dict)  # default: all edges
   doors: str = "Door"                                       # default: generic door
   secret: bool = None                                       # default: arbitrary secrecy
   degree: int = 0                                           # default: arbitrary degree
@@ -64,6 +64,9 @@ class RoomData:
   items: bool = False                                       # default: no vases spawn
   enemies: bool = False                                     # default: no enemies spawn
   hooks: dict[str, str] = field(default_factory=lambda: {}) # default: no hooks
+
+  def __hash__(roomdata):
+    return hash(roomdata.key)
 
   def __post_init__(roomdata):
     bg_type, bg_id = roomdata.bg
@@ -97,7 +100,7 @@ class RoomData:
       roomdata.terrain = True
 
     roomdata.hooks = { k: resolve_hook(h) if type(h) is str else h for k, h in roomdata.hooks.items() }
-    roomdata.links = { n: RoomLink(**l) for n, l in roomdata.links.items() }
+    roomdata.ports = { n: RoomLink(**l) for n, l in roomdata.ports.items() }
 
   def extract_cells(roomdata):
     return [c for c, t in roomdata.tiles.enumerate()]

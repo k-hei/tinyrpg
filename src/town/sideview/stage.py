@@ -28,7 +28,15 @@ class AreaBgLayer:
         ),
       )
 
-class Area:
+class MetaArea(type):
+  def __hash__(area):
+    return hash(area.key)
+
+  @property
+  def key(area):
+    return area.__name__
+
+class Area(metaclass=MetaArea):
   ACTOR_Y = 0
   NPC_Y = ACTOR_Y - 16
   DOOR_Y = ACTOR_Y - 20
@@ -37,7 +45,8 @@ class Area:
   HORIZON_SOUTH = 60
   TRANSIT_SOUTH = 30
   width = WINDOW_WIDTH
-  links = {}
+  name = "????"
+  ports = {}
   bg = None
   geometry = None
   camera_lock = (False, False)
@@ -77,7 +86,7 @@ class Area:
   def update(area):
     area.camera.update()
 
-  def view(area, hero, link_id):
+  def view(area, hero, port_id):
     sprites = []
 
     if not area.camera.target:
@@ -104,13 +113,13 @@ class Area:
     )[0] for layer in area_bg_layers]
     sprites += bg_sprites
 
-    link = area.links[link_id] if link_id else None
+    port = area.ports[port_id] if port_id else None
     for actor in area.actors:
       actor_sprites = actor.view()
       if actor is hero:
         actor_sprite = actor_sprites[0]
         actor_sprite.offset += TILE_SIZE
-        if link_id and "doorway" in link_id and abs(actor.pos[1] - link.y) >= 16:
+        if port_id and "doorway" in port_id and abs(actor.pos[1] - port.y) >= 16:
           actor_sprite.image = darken_image(actor_sprite.image)
       sprites += actor_sprites
 

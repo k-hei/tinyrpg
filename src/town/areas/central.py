@@ -5,7 +5,7 @@ from cores.mage import Mage
 class CentralArea(Area):
   name = "Town Square"
   bg = "town_central"
-  links = {
+  ports = {
     "right": AreaLink(x=416, direction=(1, 0)),
     "alley": AreaLink(x=272, direction=(0, -1)),
     "door_triangle": AreaLink(x=64, direction=(0, -1)),

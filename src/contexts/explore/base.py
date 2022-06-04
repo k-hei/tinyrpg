@@ -552,7 +552,7 @@ class ExploreBase(Context):
     if not facing_elem:
       facing_cell = ctx.hero.cell
       facing_tile = ctx.stage.get_tile_at(facing_cell)
-      if ctx.stage.is_tile_at_link(facing_cell):
+      if ctx.stage.is_tile_at_port(facing_cell):
         facing_elem = facing_tile
 
     pending_anims = [a for g in ctx.anims for a in g if not a.done]

@@ -99,7 +99,7 @@ class AkimorCentralArea(Area):
     )),
   ]
 
-  links = {
+  ports = {
     "upper_slope_top": AreaLink(x=608, y=0, direction=(0, 1)),
     "upper_slope_base": AreaLink(x=528, y=80, direction=(0, -1)),
     "lower_slope_top": AreaLink(x=608, y=80, direction=(0, 1)),

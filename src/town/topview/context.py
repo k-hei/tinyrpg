@@ -36,7 +36,7 @@ class TopViewContext(Context):
     ctx.stage = area and area(ctx.party)
     ctx.hud = Hud(store.party)
     ctx.elem = None
-    ctx.link = None
+    ctx.port = None
     ctx.anims = []
     ctx.debug = False
     ctx.time = 0
@@ -46,7 +46,7 @@ class TopViewContext(Context):
     if ctx.child:
       return ctx.child.handle_press(button)
 
-    if ctx.anims or ctx.link or ctx.get_head().transits:
+    if ctx.anims or ctx.port or ctx.get_head().transits:
       return None
 
     delta = input.resolve_delta(button)
@@ -181,23 +181,23 @@ class TopViewContext(Context):
     return ctx.parent.graph if "graph" in dir(ctx.parent) else None
 
   def handle_areachange(ctx, delta):
-    ctx.link = delta
+    ctx.port = delta
     ctx.get_head().transition([
       DissolveIn(on_end=lambda: ctx.change_areas("entrance")),
       DissolveOut()
     ])
 
-  def change_areas(ctx, link):
+  def change_areas(ctx, port):
     if not (graph := ctx.get_graph()):
       return ctx.close()
 
-    dest_area, dest_link = graph.tail(ctx.area, link)
+    dest_area, dest_port = graph.tail(ctx.area, port)
     if not dest_area:
       return
 
     for actor in ctx.party:
       actor.stop_move()
-    ctx.parent.load_area(dest_area, dest_link)
+    ctx.parent.load_area(dest_area, dest_port)
 
   def switch_chars(ctx):
     ctx.store.switch_chars()
@@ -214,9 +214,9 @@ class TopViewContext(Context):
   def update(ctx):
     super().update()
 
-    if ctx.link:
+    if ctx.port:
       for actor in ctx.party:
-        actor.move(ctx.link)
+        actor.move(ctx.port)
 
     for elem in ctx.stage.elems:
       elem.update()
@@ -286,7 +286,7 @@ class TopViewContext(Context):
       else 1
     ))
 
-    if ctx.link or (ctx.child
+    if ctx.port or (ctx.child
       and not isinstance(ctx.child, DialogueContext)
       and not isinstance(ctx.child, InventoryContext)
       and not isinstance(ctx.child.child, ShopContext)

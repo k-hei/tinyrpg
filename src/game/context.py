@@ -148,22 +148,22 @@ class GameContext(Context):
     app = ctx.get_head()
     not app.transits and app.transition([DissolveOut()])
 
-  def goto_town(ctx, area=None, link=None):
-    town = TownContext(store=ctx.store, area=area, link=link)
+  def goto_town(ctx, area=None, port=None):
+    town = TownContext(store=ctx.store, area=area, port=port)
     ctx.store.place = town
     ctx.open(town)
 
-  def load_area(ctx, area, link_id):
-    debug.log("load area", WorldGraph.hash_link(area, link_id))
+  def load_area(ctx, area, port_id):
+    debug.log("load area", (area.key, port_id))
 
-    link = area.links[link_id]
+    port = area.ports[port_id]
     hero = ctx.store.hero
     if hero:
-      hero.facing = invert_direction(link.direction)
+      hero.facing = invert_direction(port.direction)
 
     if isinstance(area, RoomData):
       stage = manifest_room(area)
-      stage.entrance = vector.add(link.cell, hero.facing)
+      stage.entrance = vector.add(port.cell, hero.facing)
       dungeon = DungeonContext(
         store=ctx.store,
         stage=stage,
@@ -171,8 +171,8 @@ class GameContext(Context):
       ctx.store.place = dungeon
       ctx.open(dungeon)
 
-    if type(area) is type and issubclass(area, (TownSideViewArea, TownTopViewArea)):
-      ctx.goto_town(area, link_id)
+    if isinstance(area, type) and issubclass(area, (TownSideViewArea, TownTopViewArea)):
+      ctx.goto_town(area, port_id)
 
   def record_kill(ctx, target):
     target_type = type(target)

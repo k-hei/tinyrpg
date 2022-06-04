@@ -15,7 +15,7 @@ class OutskirtsArea(Area):
 
   name = "Outskirts"
   bg = "town_outskirts"
-  links = {
+  ports = {
     "left": AreaLink(x=0, direction=(-1, 0)),
     "tower": AreaLink(x=TOWER_X, direction=(1, 0)),
   }
@@ -78,8 +78,8 @@ class OutskirtsArea(Area):
       ]
     )), x=144)
 
-  def view(area, hero, link):
-    sprites = super().view(hero, link)
+  def view(area, hero, port):
+    sprites = super().view(hero, port)
     assets = use_assets()
     sprite_bg = assets.sprites["town_outskirts"]
     sprite_tower = assets.sprites["tower"]

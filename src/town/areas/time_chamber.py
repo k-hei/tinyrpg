@@ -64,7 +64,7 @@ class TimeChamberArea(Area):
     ))
   ]
 
-  links = {
+  ports = {
     "left": AreaLink(x=48, y=0, direction=(-1, 0)),
     "right": AreaLink(x=720, y=0, direction=(1, 0)),
   }

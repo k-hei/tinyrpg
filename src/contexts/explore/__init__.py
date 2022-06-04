@@ -32,8 +32,9 @@ import assets
 from colors.palette import BLACK, WHITE
 from lib.filters import outline
 
-# edge links
+# world links
 from contexts.explore.roomdata import RoomData
+from town.graph import WorldLink
 
 
 class ExploreContext(ExploreBase):
@@ -42,7 +43,7 @@ class ExploreContext(ExploreBase):
     ctx.debug = False
     ctx.move_buffer = []
     ctx.cache_last_move = 0
-    ctx.link = None
+    ctx.port = None
 
   def exit(ctx):
     ctx.close()
@@ -92,7 +93,7 @@ class ExploreContext(ExploreBase):
     if ctx.child:
       return ctx.child.handle_press(button)
 
-    if ctx.anims or ctx.link:
+    if ctx.anims or ctx.port:
       return False
 
     delta = input.resolve_delta_held()
@@ -217,8 +218,8 @@ class ExploreContext(ExploreBase):
       nonlocal leaping
       old_pos = elem.pos
 
-      is_linking = ctx.move(elem, delta=delta, diagonal=(delta_x and delta_y), running=running)
-      if is_linking:
+      is_porting = ctx.move(elem, delta=delta, diagonal=(delta_x and delta_y), running=running)
+      if is_porting:
         return True
 
       collidee = ctx.collide(elem, delta=delta)
@@ -247,15 +248,15 @@ class ExploreContext(ExploreBase):
 
     room_data = ctx.stage.generator
 
-    if ("up" in room_data.links
+    if ("up" in room_data.ports
     and delta[1] == -1
     and actor.pos[1] < 0):
-      return ctx.handle_link(room_data, "up")
+      return ctx.handle_port("up")
 
-    if ("right" in room_data.links
+    if ("right" in room_data.ports
     and delta[0] == 1
     and actor.rect.right > ctx.stage.width * ctx.stage.tile_size):
-      return ctx.handle_link(room_data, "right")
+      return ctx.handle_port("right")
 
   def move_to(ctx, actor, dest, speed=None, running=False):
     speed = speed or actor.speed
@@ -380,28 +381,37 @@ class ExploreContext(ExploreBase):
 
     return True
 
-  def validate_link(ctx, area, link_id):
+  def validate_port(ctx, port_id):
     graph = ctx.graph
-    return graph is not None and graph.tail(area, link_id) is not None
-
-  def handle_link(ctx, area, link_id):
-    if not ctx.validate_link(area, link_id):
+    if graph is None:
       return False
 
-    ctx.link = area.links[link_id]
+    src_area = ctx.stage.generator
+    src_link = WorldLink(src_area, port_id)
+    dest_link = graph.tail(src_link)
+    return dest_link is not None
+
+  def handle_port(ctx, port_id):
+    if not ctx.validate_port(port_id):
+      return False
+
+    src_area = ctx.stage.generator
+    ctx.port = src_area.ports[port_id]
     ctx.get_head().transition([
-      DissolveIn(on_end=lambda: ctx.use_link(area, link_id)),
+      DissolveIn(on_end=lambda: ctx.use_port(port_id)),
       DissolveOut()
     ])
     return True
 
-  def use_link(ctx, area, link_id):
-    if not ctx.validate_link(area, link_id):
+  def use_port(ctx, port_id):
+    if not ctx.validate_port(port_id):
       return False
 
     graph = ctx.graph
-    dest_area, dest_link = graph.tail(area, link_id)
-    ctx.get_parent(cls="GameContext").load_area(dest_area, dest_link)
+    src_area = ctx.stage.generator
+    src_link = WorldLink(src_area, port_id)
+    dest_link = graph.tail(src_link)
+    ctx.get_parent(cls="GameContext").load_area(dest_link.node, dest_link.port_id)
 
   def handle_action(ctx):
     if not ctx.hero:
@@ -457,7 +467,7 @@ class ExploreContext(ExploreBase):
     stairs_edge = ctx.parent.graph and ctx.parent.graph.connector_edge(ctx.stage, hero_cell)
     if not stairs_edge:
       debug.log("Staircase has no connecting edge")
-      return False # link doesn't exist in graph - how to handle besides ignore?
+      return False # port doesn't exist in graph - how to handle besides ignore?
 
     dest_floor = next((n for n in stairs_edge if n is not ctx.stage), None)
     if not dest_floor:
@@ -475,8 +485,8 @@ class ExploreContext(ExploreBase):
 
     return True
 
-  def follow_link(game, link_id, on_end=None):
-    Floor = resolve_floor(link_id)
+  def follow_port(game, port_id, on_end=None):
+    Floor = resolve_floor(port_id)
     game.get_head().transition(
       transits=(DissolveIn(), DissolveOut()),
       loader=Floor.generate(game.store),
@@ -563,8 +573,8 @@ class ExploreContext(ExploreBase):
     if not (hero := ctx.hero):
       return
 
-    if ctx.link:
-      hero.move(ctx.link.direction)
+    if ctx.port:
+      hero.move(ctx.port.direction)
 
   def view(ctx):
     sprites = super().view()

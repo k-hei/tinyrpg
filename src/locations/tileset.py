@@ -72,7 +72,7 @@ class Tileset(ABC):
         return False
 
     @staticmethod
-    def is_tile_link(tile):
+    def is_tile_port(tile):
         return False
 
     @abstractmethod

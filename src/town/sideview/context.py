@@ -19,7 +19,7 @@ from transits.dissolve import DissolveIn, DissolveOut
 from anims import Anim
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT, LABEL_FRAMES
 
-from town.graph import WorldGraph
+from town.graph import WorldGraph, WorldLink
 
 
 class FollowAnim(Anim): pass
@@ -42,15 +42,21 @@ def can_talk(hero, actor):
 def find_nearby_npc(hero, actors):
   return next((a for a in actors if can_talk(hero, a)), None)
 
-def find_nearby_link(hero, area, graph=None):
-  for link_id, link in area.links.items():
-    dist_x, dist_y = vector.subtract((link.x, link.y), hero.pos)
-    _, direction_y = link.direction
-    if (abs(dist_x) < TILE_SIZE // 2
-    and abs(dist_y) < TILE_SIZE // 2
-    and direction_y
-    and (not graph or graph.tail(area, link_id) is not None)):
-      return (area, link_id)
+def find_nearby_port(hero, area, graph=None):
+  if not graph:
+    return None
+
+  for port_id, port in area.ports.items():
+    dist_x, dist_y = vector.subtract((port.x, port.y), hero.pos)
+    _, direction_y = port.direction
+    if (not direction_y
+    or abs(dist_x) >= TILE_SIZE // 2
+    or abs(dist_y) >= TILE_SIZE // 2):
+      return None
+
+    link = WorldLink(type(area), port_id)
+    if graph.tail(link):
+      return port_id
 
 ARROW_Y = Area.ACTOR_Y + 40
 ARROW_PERIOD = 45
@@ -64,9 +70,9 @@ class SideViewContext(Context):
     ctx.party = [Actor(core=core) for core in store.party]
     ctx.spawn = spawn
     ctx.ground = None
-    ctx.link = None
+    ctx.port = None
     ctx.talkee = None
-    ctx.nearby_link = None
+    ctx.nearby_port = None
     ctx.nearby_npc = None
     ctx.hud = Hud(store.party)
     ctx.time = 0
@@ -107,10 +113,10 @@ class SideViewContext(Context):
 
     hero_x, hero_y = hero.pos
 
-    for link_id, link in ctx.area.links.items():
-      if (link.direction == (-1, 0) and hero.facing == (-1, 0) and hero_x <= link.x
-      or link.direction == (1, 0) and hero.facing == (1, 0) and hero_x >= link.x):
-        if ctx.use_link(ctx.area, link_id):
+    for port_id, port in ctx.area.ports.items():
+      if (port.direction == (-1, 0) and hero.facing == (-1, 0) and hero_x <= port.x
+      or port.direction == (1, 0) and hero.facing == (1, 0) and hero_x >= port.x):
+        if ctx.use_port(port_id):
           break
 
     if hero_x < 0 and hero.facing == (-1, 0):
@@ -152,10 +158,13 @@ class SideViewContext(Context):
     return line, intersection
 
   def handle_zmove(ctx, delta):
-    link_area, link_id = ctx.nearby_link
-    link = link_area.links[link_id]
-    if link and link.direction[1] == delta:
-      ctx.link = (type(link_area), link_id)
+    port_id = ctx.nearby_port
+    if not port_id or port_id not in ctx.area.ports:
+      return False
+
+    port = ctx.area.ports[port_id]
+    if port.direction[1] == delta:
+      ctx.port = port
       return True
     else:
       return False
@@ -183,7 +192,7 @@ class SideViewContext(Context):
     if ctx.child:
       return ctx.child.handle_press(button)
 
-    if ctx.link or ctx.anims or ctx.get_head().transits:
+    if ctx.port or ctx.anims or ctx.get_head().transits:
       return False
 
     controls = input.resolve_controls(button)
@@ -236,39 +245,44 @@ class SideViewContext(Context):
   def get_graph(ctx):
     return ctx.parent.graph if "graph" in dir(ctx.parent) else None
 
-  def use_link(ctx, area, link_id):
+  def validate_port(ctx, port_id):
     graph = ctx.get_graph()
-    if graph is None or graph.tail(area, link_id) is None:
+    return graph is not None and graph.tail(WorldLink(type(ctx.area), port_id)) is not None
+
+  def use_port(ctx, port_id):
+    src_link = WorldLink(type(ctx.area), port_id)
+    if not ctx.validate_port(port_id):
       return False
 
-    link = area.links[link_id]
-    ctx.link = (type(area), link_id)
-    if link.direction == (1, 0) or link.direction == (-1, 0):
-      ctx.follow_link(area, link_id)
+    port = ctx.area.ports[port_id]
+    if port.direction == (1, 0) or port.direction == (-1, 0):
+      ctx.follow_port(port_id)
       ctx.area.lock_camera()
 
+    ctx.port = port_id
     return True
 
-  def follow_link(ctx, area, link_id):
+  def follow_port(ctx, port_id):
     ctx.get_head().transition([
-      DissolveIn(on_end=lambda: ctx.change_areas(area, link_id)),
+      DissolveIn(on_end=lambda: ctx.change_areas(port_id)),
       DissolveOut()
     ])
 
-  def change_areas(ctx, area, link_id):
+  def change_areas(ctx, port_id):
     graph = ctx.get_graph()
     if not graph:
       return ctx.close()
 
-    dest_area, dest_link = graph.tail(area, link_id)
-    if not dest_area:
+    src_link = WorldLink(type(ctx.area), port_id)
+    dest_link = graph.tail(src_link)
+    if not dest_link:
       return
 
     for actor in ctx.party:
       actor.stop_move()
 
-    ctx.get_parent(cls="GameContext").load_area(dest_area, dest_link)
-    ctx.link = None
+    ctx.get_parent(cls="GameContext").load_area(dest_link.node, dest_link.port_id)
+    ctx.port = None
 
   def switch_chars(ctx):
     ctx.store.switch_chars()
@@ -287,8 +301,8 @@ class SideViewContext(Context):
 
   def update_interactives(ctx):
     hero = ctx.party[0]
-    ctx.nearby_link = find_nearby_link(hero, ctx.area, graph=ctx.get_graph())
-    ctx.nearby_npc = find_nearby_npc(hero, ctx.area.actors) if ctx.nearby_link is None else None
+    ctx.nearby_port = find_nearby_port(hero, ctx.area, graph=ctx.get_graph())
+    ctx.nearby_npc = find_nearby_npc(hero, ctx.area.actors) if ctx.nearby_port is None else None
 
   def update(ctx):
     super().update()
@@ -309,41 +323,42 @@ class SideViewContext(Context):
           ctx.anims.remove(anim)
         break
     else:
-      if ctx.link:
-        link_area, link_id = ctx.link
-        link = link_area.links[link_id]
+      if ctx.port:
+        port_id = ctx.port
+        port = ctx.area.ports[port_id]
         hero_x, hero_y = hero.pos
-        if link.direction == (-1, 0) or link.direction == (1, 0):
+        if port.direction == (-1, 0) or port.direction == (1, 0):
           for actor in ctx.party:
-            if abs(actor.pos[0] - link.x) < TILE_SIZE:
-              actor.move(link.direction)
+            if abs(actor.pos[0] - port.x) < TILE_SIZE:
+              actor.move(port.direction)
         else:
           graph = ctx.get_graph()
-          dest_area, dest_link_id = graph and graph.tail(*ctx.link)
-          dest_link = dest_area.links[dest_link_id]
-          if link_area == dest_area:
-            if hero.move_to(dest=(dest_link.x, dest_link.y), free=True):
-              ctx.link = None
+          src_link = WorldLink(type(ctx.area), port_id)
+          dest_link = graph and graph.tail(src_link)
+          dest_port = dest_link.port
+          if dest_area == port_area:
+            if hero.move_to(dest=(dest_port.x, dest_port.y), free=True):
+              ctx.port = None
               ctx.update_interactives()
           else:
-            if hero_x != link.x:
-              hero.move_to((link.x, hero_y))
+            if hero_x != port.x:
+              hero.move_to((port.x, hero_y))
             else:
               if not ctx.area.is_camera_locked:
                 ctx.area.lock_camera()
 
-              if link.direction == (0, -1):
+              if port.direction == (0, -1):
                 TARGET_HORIZON = Area.HORIZON_NORTH
                 EVENT_HORIZON = Area.TRANSIT_NORTH
-              elif link.direction == (0, 1):
+              elif port.direction == (0, 1):
                 TARGET_HORIZON = Area.HORIZON_SOUTH
                 EVENT_HORIZON = Area.TRANSIT_SOUTH
 
               if hero_y != TARGET_HORIZON:
-                hero.move_to((link.x, TARGET_HORIZON))
+                hero.move_to((port.x, TARGET_HORIZON))
 
               if abs(hero_y) >= abs(EVENT_HORIZON) and not ctx.get_head().transits:
-                ctx.follow_link(*ctx.link)
+                ctx.follow_port(port_id)
 
           for ally in allies:
             ally.follow(hero)
@@ -359,9 +374,8 @@ class SideViewContext(Context):
     assets = use_assets()
     hero, *_ = ctx.party
 
-    _, link_id = ctx.link or (None, None)
-    sprites += ctx.area.view(hero, link_id)
-    interrupt = ctx.link or ctx.anims or (ctx.child
+    sprites += ctx.area.view(hero, ctx.port)
+    interrupt = ctx.port or ctx.anims or (ctx.child
       and not isinstance(ctx.child, InventoryContext)
     )
 
@@ -371,20 +385,20 @@ class SideViewContext(Context):
     elif not ctx.hud.active:
       ctx.hud.enter()
 
-    if not interrupt and ctx.nearby_link:
-      link_area, link_id = ctx.nearby_link
-      link = link_area.links[link_id]
-      arrow_image = (link.direction == (0, -1)
-        and assets.sprites["link_north"]
-        or assets.sprites["link_south"]
+    if not interrupt and ctx.nearby_port:
+      port_id = ctx.nearby_port
+      port = ctx.area.ports[port_id]
+      arrow_image = (port.direction == (0, -1)
+        and assets.sprites["port_north"]
+        or assets.sprites["port_south"]
       )
       arrow_image = replace_color(arrow_image, BLACK, BLUE)
       arrow_y = (ARROW_Y
-        + link.y
+        + port.y
         + sin(ctx.time % ARROW_PERIOD / ARROW_PERIOD * 2 * pi) * ARROW_BOUNCE)
       sprites += [Sprite(
         image=arrow_image,
-        pos=vector.subtract((link.x, arrow_y), ctx.area.camera.rect.topleft),
+        pos=vector.subtract((port.x, arrow_y), ctx.area.camera.rect.topleft),
         origin=Sprite.ORIGIN_CENTER,
         layer="markers"
       )]
