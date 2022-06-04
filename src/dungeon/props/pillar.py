@@ -13,6 +13,7 @@ class Pillar(Prop):
   solid = True
   static = True
   breakable = True
+  image = assets.sprites["pillar"]
 
   def __init__(pillar, broken=None):
     super().__init__()

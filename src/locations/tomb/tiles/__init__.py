@@ -1,4 +1,5 @@
 import lib.vector as vector
+from lib.sprite import Sprite
 
 import assets
 from config import TILE_SIZE
@@ -15,6 +16,27 @@ from locations.default.tileset import (
   OasisStairs as DefaultOasisStairs,
 )
 
+class Floor(DefaultFloor):
+  @staticmethod
+  def find_state(stage, cell, *_):
+    x, y = cell
+    return [
+      stage.get_tile_at(cell),
+      stage.get_tile_at((x, y - 1)),
+    ]
+
+  @classmethod
+  def render(cls, stage, cell, *_):
+    x, y = cell
+    if (Pit in stage.get_tile_at((x, y - 1))
+    and next((e for e in stage.elems if e.cell[1] < y), None)):
+      return Sprite(
+        image=assets.sprites["tomb_floor"],
+        layer="elems",
+        offset=-1,
+      )
+    else:
+      return assets.sprites["tomb_floor"]
 
 class Pit(DefaultPit):
   @staticmethod
@@ -27,11 +49,10 @@ class Pit(DefaultPit):
     ]
 
   @classmethod
-  def render(cls, stage, cell, visited_cells=None):
-    if stage.get_tile_at(vector.add(cell, (0, -1))) is not Pit:
-      return assets.sprites["tomb_pit"]
-    else:
-      return None
+  def render(cls, stage, cell, *_):
+    return (assets.sprites["tomb_pit"]
+      if Pit not in stage.get_tile_at(vector.add(cell, (0, -1)))
+      else None)
 
 class Escape(DefaultEscape):
   sprite = assets.sprites["stairs_up"]
@@ -39,7 +60,7 @@ class Escape(DefaultEscape):
 class TombTileset(Tileset):
     tile_size = TILE_SIZE
     mappings = {
-        # ".": Floor,
+        ".": Floor,
         # "#": Wall,
         " ": Pit,
         # ",": Hallway,
@@ -56,8 +77,7 @@ class TombTileset(Tileset):
 
     @staticmethod
     def render_tile(tile, stage, cell, visited_cells):
-        if not tile in TombTileset.mappings:
+        if not tile:
             return None
 
-        tile_cls = TombTileset.mappings[tile]
-        return tile_cls.render(stage, cell, visited_cells)
+        return tile.render(stage, cell, visited_cells)

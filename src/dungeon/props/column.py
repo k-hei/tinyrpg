@@ -10,6 +10,7 @@ from colors.palette import WHITE, SAFFRON
 class Column(Prop):
   solid = True
   static = True
+  image = assets.sprites["column"]
 
   @property
   def rect(pillar):
