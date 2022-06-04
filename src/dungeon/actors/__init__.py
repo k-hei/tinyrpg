@@ -186,10 +186,6 @@ class DungeonActor(DungeonElement):
   def hp(actor, hp):
     actor.core.set_hp(hp)
 
-  def spawn(actor, stage, cell):
-    actor.scale = TILE_SIZE
-    actor.cell = vector.floor(vector.scale(cell, 1 / 2))
-
   def get_skills(actor): return actor.core.skills
   def get_active_skills(actor): return actor.core.get_active_skills()
   def is_dead(actor): return actor.core.dead

@@ -16,6 +16,7 @@ class TileType(Enum):
 
 class Tileset(ABC):
     tile_size = 16
+    is_overworld = False
 
     @classmethod
     def _preinit_elem_data(cls, elem_data):
@@ -76,5 +77,5 @@ class Tileset(ABC):
         return False
 
     @abstractmethod
-    def render_tile(tile) -> Surface:
+    def render_tile(tile, stage=None, cell=None, visited_cells=None) -> Surface:
         pass

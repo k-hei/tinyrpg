@@ -79,10 +79,10 @@ class RoomData:
     if roomdata.tiles and isinstance(roomdata.tiles[0], str):
       # string format
       roomdata.size = (len(roomdata.tiles[0]), len(roomdata.tiles))
-      roomdata.tiles = Grid(
+      roomdata.tiles = TileMatrix(layers=[Grid(
         size=tuple(roomdata.size),
-        data=[tileset.mappings[c] for s in roomdata.tiles for c in s]
-      )
+        data=[tileset.mappings[c] if c in tileset.mappings else None for s in roomdata.tiles for c in s]
+      )])
     elif roomdata.tiles and isinstance(roomdata.tiles[0], list):
       # multi-layer format
       roomdata.tiles = TileMatrix(layers=[Grid(

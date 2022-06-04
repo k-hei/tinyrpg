@@ -98,7 +98,10 @@ class DungeonContext(ExploreBase):
   def save(ctx):
     is_overworld = ctx.stage.is_overworld
     return DungeonData(
-      floor_index=ctx.graph.nodes.index(ctx.stage) if not is_overworld else -1,
+      floor_index=ctx.graph.nodes.index(ctx.stage)
+        if not is_overworld
+          and ctx.stage in ctx.graph.nodes
+        else -1,
       floors=deepcopy(ctx.graph) if not is_overworld else [],
       memory=deepcopy(ctx.memory) if not is_overworld else [],
     )

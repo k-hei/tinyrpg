@@ -21,7 +21,6 @@ class Stage:
     stage.entrance = None
     stage.generator = None
     stage.seed = None
-    stage.is_overworld = True
 
   @property
   def size(stage):
@@ -58,6 +57,10 @@ class Stage:
   @property
   def num_tile_layers(stage):
     return stage.tiles.num_layers
+
+  @property
+  def is_overworld(stage):
+    return stage.tileset.is_overworld
 
   def __contains__(stage, cell):
     return stage.contains(cell)

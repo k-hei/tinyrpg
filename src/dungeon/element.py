@@ -132,11 +132,8 @@ class DungeonElement:
   def on_leave(elem, game): pass
 
   def spawn(elem, stage, cell):
-    elem.scale = stage.tile_size
-    elem.cell = cell
-    # tile = stage.get_tile_at(cell)
-    # if tile and type(tile) is not int:
-    #   elem.elev = tile.elev
+    elem.scale = TILE_SIZE
+    elem.cell = vector.floor(vector.scale(cell, stage.tile_size / TILE_SIZE))
 
   def step(elem, game):
     pass

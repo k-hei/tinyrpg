@@ -8,7 +8,7 @@ from contexts.explore.stage import Stage
 from contexts.explore.roomdata import RoomData
 from dungeon.room import Blob as Room
 from dungeon.decoder import decode_elem
-import locations.tomb.tiles as tileset
+import locations.default.tileset as tileset
 from locations.tileset import Tileset
 from helpers.stage import find_tile
 

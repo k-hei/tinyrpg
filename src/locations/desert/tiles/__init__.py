@@ -15,6 +15,7 @@ tileset_image = Image.open("assets/desert-tiles.png")
 class DesertTileset(Tileset):
     tile_size = TILE_SIZE
     elems_path = path.join(path.dirname(path.dirname(__file__)), "elems.json")
+    is_overworld = True
 
     @staticmethod
     def is_tile_solid(tile):
@@ -22,7 +23,7 @@ class DesertTileset(Tileset):
         return tile_id in _solid_ids
 
     @staticmethod
-    def render_tile(tile):
+    def render_tile(tile, stage=None, cell=None, visited_cells=None):
         if tile == -1:
             return None
 

@@ -61,7 +61,7 @@ def convert_surface_to_sprite(surface):
 def render_tile(stage, cell, visited_cells=[]):
   tileset = stage.tileset
   tiles = stage.get_tiles_at(cell)
-  tile_images = [tileset.render_tile(tile) for tile in tiles]
+  tile_images = [tileset.render_tile(tile, stage, cell, visited_cells) for tile in tiles]
   tile_images = [convert_surface_to_sprite(image) if i and image else image
     for i, image in enumerate(tile_images)]
   return [image for image in tile_images if image]
