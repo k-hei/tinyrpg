@@ -224,7 +224,7 @@ class ExploreContext(ExploreBase):
 
       collidee = ctx.collide(elem, delta=delta)
       new_pos = elem.pos
-      if collidee and not leaping and isinstance(elem, DungeonActor) and issubclass(collidee, tileset.Pit):
+      if collidee and not leaping and isinstance(elem, DungeonActor) and Tile.is_of_type(collidee, tileset.Pit):
         if elem is ctx.hero and ctx.ally:
           ctx.ally.stop_move()
         leaping = ctx.leap(actor=elem, running=running)
@@ -315,14 +315,14 @@ class ExploreContext(ExploreBase):
       if not is_tile_at_walkable(cell_nw) or not is_tile_at_walkable(cell_sw):
         rect.left = (col_w + 1) * stage.tile_size
         if row_n == row_s and stage.is_tile_at_pit(cell_nw):
-          collidee = cell_nw
+          collidee = stage.get_tile_at(cell_nw)
       elif elem:
         rect.left = elem_rect.right
     elif delta_x > 0:
       if not is_tile_at_walkable(cell_ne) or not is_tile_at_walkable(cell_se):
         rect.right = col_e * stage.tile_size
         if row_n == row_s and stage.is_tile_at_pit(cell_se):
-          collidee = cell_se
+          collidee = stage.get_tile_at(cell_se)
       elif elem:
         rect.right = elem_rect.left
 
@@ -330,14 +330,14 @@ class ExploreContext(ExploreBase):
       if not is_tile_at_walkable(cell_nw) or not is_tile_at_walkable(cell_ne):
         rect.top = (row_n + 1) * stage.tile_size
         if col_w == col_e and stage.is_tile_at_pit(cell_nw):
-          collidee = cell_nw
+          collidee = stage.get_tile_at(cell_nw)
       elif elem:
         rect.top = elem_rect.bottom
     elif delta_y > 0:
       if not is_tile_at_walkable(cell_sw) or not is_tile_at_walkable(cell_se):
         rect.bottom = row_s * stage.tile_size
         if col_w == col_e and stage.is_tile_at_pit(cell_se):
-          collidee = cell_se
+          collidee = stage.get_tile_at(cell_se)
       elif elem:
         rect.bottom = elem_rect.top
 

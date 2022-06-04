@@ -236,6 +236,9 @@ class DungeonContext(ExploreBase):
 
   def handle_hallway(ctx):
     hallway = ctx.find_hallway(ctx.hero.cell)
+    if not hallway:
+      return
+
     room = next((r for r in ctx.stage.rooms if hallway[-1] in r.edges), None)
     door = next((e for e in ctx.stage.get_elems_at(hallway[-1]) if isinstance(e, Door)), None)
     if door:

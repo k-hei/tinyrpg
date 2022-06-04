@@ -172,8 +172,9 @@ class Stage:
     if not stage.contains(cell, scale):
       return False
 
-    # TODO: handle pits and float flags
-    return not stage.is_tile_at_solid(cell, scale)
+    # TODO: handle floating enemies -- walkability is actor-dependent
+    return (not stage.is_tile_at_solid(cell, scale)
+      and not stage.is_tile_at_pit(cell))
 
   # TODO: normalize into grid pathfinder
   def pathfind(stage, start, goal, whitelist=None):

@@ -177,16 +177,20 @@ class TombTileset(Tileset):
         return cls.is_tile_at_wall(tile)
 
     @staticmethod
-    def is_tile_at_wall(tile):
-        return (tile[0] is Wall
-            if isinstance(tile, (list, tuple))
-            else tile is Wall)
+    def is_tile_at_of_type(tile, tile_type):
+        return Tile.is_of_type(tile, tile_type)
 
-    @staticmethod
-    def is_tile_at_pit(tile):
-        return (tile[0] is Pit
-            if isinstance(tile, (list, tuple))
-            else tile is Pit)
+    @classmethod
+    def is_tile_at_wall(cls, tile):
+        return cls.is_tile_at_of_type(tile, Wall)
+
+    @classmethod
+    def is_tile_at_hallway(cls, tile):
+        return cls.is_tile_at_of_type(tile, Hallway)
+
+    @classmethod
+    def is_tile_at_pit(cls, tile):
+        return cls.is_tile_at_of_type(tile, Pit)
 
     @staticmethod
     def find_tile_state(tile, stage, cell, visited_cells):
