@@ -4,6 +4,7 @@ from os.path import join, splitext
 from dataclasses import dataclass, field
 from lib.grid import Grid
 
+from locations.tileset import Tileset
 from contexts.explore.tile_matrix import TileMatrix
 from resolve.hook import resolve_hook
 from resolve.tileset import resolve_tileset
@@ -72,32 +73,34 @@ class RoomData:
     return str(area.key)
 
   def __post_init__(roomdata):
-    bg_type, bg_id = roomdata.bg
-    if bg_type == "tileset":
-      tileset = resolve_tileset(bg_id)
-    else:
-      tileset = resolve_tileset("default")
-    roomdata.bg = tileset
+    if not isinstance(roomdata.bg, type) or not issubclass(roomdata.bg, Tileset):
+      bg_type, bg_id = roomdata.bg
+      if bg_type == "tileset":
+        tileset = resolve_tileset(bg_id)
+      else:
+        tileset = resolve_tileset("default")
+      roomdata.bg = tileset
 
-    if roomdata.tiles and isinstance(roomdata.tiles[0], str):
-      # string format
-      roomdata.size = (len(roomdata.tiles[0]), len(roomdata.tiles))
-      roomdata.tiles = TileMatrix(layers=[Grid(
-        size=tuple(roomdata.size),
-        data=[tileset.mappings[c] if c in tileset.mappings else None for s in roomdata.tiles for c in s]
-      )])
-    elif roomdata.tiles and isinstance(roomdata.tiles[0], list):
-      # multi-layer format
-      roomdata.tiles = TileMatrix(layers=[Grid(
-        size=tuple(roomdata.size),
-        data=layer,
-      ) for layer in roomdata.tiles])
-    else:
-      # single-layer format
-      roomdata.tiles = TileMatrix(layers=[Grid(
-        size=tuple(roomdata.size),
-        data=roomdata.tiles,
-      )])
+    if roomdata.tiles and not isinstance(roomdata.tiles, TileMatrix):
+      if isinstance(roomdata.tiles[0], str):
+        # string format
+        roomdata.size = (len(roomdata.tiles[0]), len(roomdata.tiles))
+        roomdata.tiles = TileMatrix(layers=[Grid(
+          size=tuple(roomdata.size),
+          data=[tileset.mappings[c] if c in tileset.mappings else None for s in roomdata.tiles for c in s]
+        )])
+      elif isinstance(roomdata.tiles[0], list):
+        # multi-layer format
+        roomdata.tiles = TileMatrix(layers=[Grid(
+          size=tuple(roomdata.size),
+          data=layer,
+        ) for layer in roomdata.tiles])
+      else:
+        # single-layer format
+        roomdata.tiles = TileMatrix(layers=[Grid(
+          size=tuple(roomdata.size),
+          data=roomdata.tiles,
+        )])
 
     if not roomdata.tiles and roomdata.terrain is None:
       roomdata.terrain = True

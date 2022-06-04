@@ -134,7 +134,7 @@ class CombatContext(ExploreBase):
           isinstance(e, Door)
           or e.solid and e is not ctx.hero
         ), None)
-        and not ctx.stage.is_tile_solid(c)
+        and not ctx.stage.is_tile_at_solid(c)
       ]
 
       ctx.anims.append([

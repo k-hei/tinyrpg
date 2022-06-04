@@ -1,7 +1,9 @@
+from pygame import Surface
 import lib.vector as vector
 from lib.sprite import Sprite
 
 import assets
+from colors.palette import BLACK
 from config import TILE_SIZE
 from locations.tileset import Tileset
 from locations.default.tileset import (
@@ -16,13 +18,17 @@ from locations.default.tileset import (
   OasisStairs as DefaultOasisStairs,
 )
 
+
+black_square = Surface((TILE_SIZE, TILE_SIZE))
+black_square.fill(BLACK)
+
 class Floor(DefaultFloor):
   @staticmethod
   def find_state(stage, cell, *_):
     x, y = cell
     return [
-      stage.get_tile_at(cell),
-      stage.get_tile_at((x, y - 1)),
+      *stage.get_tile_at(cell),
+      *stage.get_tile_at((x, y - 1)),
     ]
 
   @classmethod
@@ -43,8 +49,8 @@ class Pit(DefaultPit):
   def find_state(stage, cell, visited_cells):
     x, y = cell
     return [
-      stage.get_tile_at(cell),
-      stage.get_tile_at((x, y - 1)),
+      *stage.get_tile_at(cell),
+      *stage.get_tile_at((x, y - 1)),
       (x, y - 1) in visited_cells,
     ]
 
@@ -52,7 +58,7 @@ class Pit(DefaultPit):
   def render(cls, stage, cell, *_):
     return (assets.sprites["tomb_pit"]
       if Pit not in stage.get_tile_at(vector.add(cell, (0, -1)))
-      else None)
+      else black_square)
 
 class Escape(DefaultEscape):
   sprite = assets.sprites["stairs_up"]
@@ -72,8 +78,19 @@ class TombTileset(Tileset):
     }
 
     @staticmethod
-    def is_tile_solid(tile):
+    def is_tile_at_solid(tile):
         return False
+
+    @staticmethod
+    def is_tile_at_pit(tile):
+      return next((True for t in tile if issubclass(t, Pit)), False)
+
+    @staticmethod
+    def find_tile_state(tile, stage, cell, visited_cells):
+        if not tile:
+            return None
+
+        return tile.find_state(stage, cell, visited_cells)
 
     @staticmethod
     def render_tile(tile, stage, cell, visited_cells):

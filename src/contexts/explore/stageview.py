@@ -25,9 +25,9 @@ def find_tile_hash(stage, cell, visited_cells):
   do not change appearance and can thus have their image stacks cached on initial render to avoid
   a significant amount of computational overhead.
   """
-  return ()
-  # tile = stage.get_tile_at(cell)
-  # return tile and tile.find_state(stage, cell, visited_cells)
+  tileset = stage.tileset
+  tiles = stage.get_tiles_at(cell)
+  return tuple([tileset.find_tile_state(t, stage, cell, visited_cells) for t in tiles])
 
 def flatten_tile_image_stack(tile_images) -> Surface:
   """
@@ -176,6 +176,7 @@ class StageView:
     )
 
     # clear cache for this cell if tile state has changed
+    # cached_state and print(cell, cached_state, tile_hash, cached_state != tile_hash)
     if cached_state and cached_state != tile_hash:
       del view.tile_cache[cell]
       if cell in view.tile_sprites:
@@ -190,9 +191,12 @@ class StageView:
         sprite.move(vector.scale(cell, stage.tile_size))
       view.tile_sprites[cell] = tile_sprites
 
-    # TODO: cached image is none on overworld
-    cached_image = flatten_tile_image_stack(tile_images)
-    cached_image = cached_image and darken_image(cached_image)
+    if not stage.is_overworld:
+      cached_image = flatten_tile_image_stack(tile_images)
+      cached_image = cached_image and darken_image(cached_image)
+    else:
+      cached_image = None
+
     view.tile_cache[cell] = (tile_hash, tile_images, cached_image)
 
     if use_cache:
@@ -201,7 +205,7 @@ class StageView:
 
     return tile_images
 
-  def redraw_tiles(view, hero, visited_cells):
+  def redraw_tiles(view, hero, visited_cells, force=False):
     TILE_SIZE = view.stage.tile_size
 
     camera_rect = Rect(
@@ -210,7 +214,8 @@ class StageView:
     )
 
     tile_rect = snap_rect(camera_rect, TILE_SIZE)
-    if (tile_rect == view.cache_tile_rect
+    if (not force
+    and tile_rect == view.cache_tile_rect
     and view.cache_visible_cells
     and view.cache_visited_cells):
       # camera rect is unchanged; no need to redraw
@@ -241,10 +246,11 @@ class StageView:
         cell = (col, row)
 
         if (view.cache_tile_rect
-        and view.cache_tile_rect.collidepoint(cell)):
-          # ignore previously drawn tiles
-          # TODO: add tile state check
-          #       tiles may be in cached rect but might still need to be updated
+        and view.cache_tile_rect.collidepoint(cell)
+        and not (cell in view.tile_cache
+          and find_tile_hash(view.stage, cell, visited_cells) != view.tile_cache[cell][0])
+        ):
+          # ignore previously drawn tiles if state is unchanged
           continue
 
         if cell not in view.stage:

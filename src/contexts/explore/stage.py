@@ -90,7 +90,7 @@ class Stage:
     return [t for c in cells for t in stage.get_tiles_at(c)]
 
   def set_tile_at(stage, cell, tile):
-    return stage.tiles.set(*cell, tile)
+    return stage.tiles.set(cell, tile)
 
   def is_tile_at_of_type(stage, cell, tile_type):
     return Tile.is_of_type(stage.get_tile_at(cell), tile_type)
@@ -100,19 +100,19 @@ class Stage:
       return True
 
     tiles = stage.get_tiles_at(cell, scale)
-    return next((True for tile in tiles if stage.tileset.is_tile_solid(tile)), False)
+    return next((True for tile in tiles if stage.tileset.is_tile_at_solid(tile)), False)
 
   def is_tile_at_pit(stage, cell):
-    return stage.tileset.is_tile_pit(tile=stage.get_tile_at(cell))
+    return stage.tileset.is_tile_at_pit(tile=stage.get_tile_at(cell))
 
   def is_tile_at_hallway(stage, cell):
-    return stage.tileset.is_tile_hallway(tile=stage.get_tile_at(cell))
+    return stage.tileset.is_tile_at_hallway(tile=stage.get_tile_at(cell))
 
   def is_tile_at_oasis(stage, cell):
-    return stage.tileset.is_tile_oasis(tile=stage.get_tile_at(cell))
+    return stage.tileset.is_tile_at_oasis(tile=stage.get_tile_at(cell))
 
   def is_tile_at_port(stage, cell):
-    return stage.tileset.is_tile_port(tile=stage.get_tile_at(cell))
+    return stage.tileset.is_tile_at_port(tile=stage.get_tile_at(cell))
 
   def get_elem_at(stage, cell):
     return None
@@ -161,11 +161,11 @@ class Stage:
 
   def is_cell_opaque(stage, cell):
     tile = stage.get_tile_at(cell)
-    return not tile or stage.tileset.is_tile_opaque(tile=stage.get_tile_at(cell)) or next((e for e in stage.get_elems_at(cell) if e.opaque), None)
+    return not tile or stage.tileset.is_tile_at_opaque(tile=stage.get_tile_at(cell)) or next((e for e in stage.get_elems_at(cell) if e.opaque), None)
 
-  def is_tile_solid(stage, cell):
+  def is_tile_at_solid(stage, cell):
     tile = stage.get_tile_at(cell)
-    return not tile or stage.tileset.is_tile_solid(tile=stage.get_tile_at(cell))
+    return not tile or stage.tileset.is_tile_at_solid(tile=stage.get_tile_at(cell))
 
   def is_cell_walkable(stage, cell, scale=0):
     if not stage.contains(cell, scale):

@@ -579,5 +579,9 @@ class ExploreBase(Context):
     ctx.stage_view.undarken()
     ctx.redraw_tiles()
 
-  def redraw_tiles(ctx):
-    ctx.stage_view.redraw_tiles(hero=ctx.hero, visited_cells=ctx.visited_cells)
+  def redraw_tiles(ctx, force=False):
+    ctx.stage_view.redraw_tiles(
+      hero=ctx.hero,
+      visited_cells=ctx.visited_cells,
+      force=force,
+    )

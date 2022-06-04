@@ -26,6 +26,9 @@ class Grid:
   def __getitem__(grid, cell):
     return grid.get(*cell)
 
+  def __setitem__(grid, cell, data):
+    return grid.set(*cell, data)
+
   def get(grid, x, y):
     return grid.data[y * grid.width + x]
 

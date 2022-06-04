@@ -18,7 +18,7 @@ class DesertTileset(Tileset):
     is_overworld = True
 
     @staticmethod
-    def is_tile_solid(tile):
+    def is_tile_at_solid(tile):
         tile_id, _ = extract_transform_mask(tile)
         return tile_id in _solid_ids
 

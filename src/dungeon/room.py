@@ -156,7 +156,7 @@ class Blob(Room):
   def get_tile_at(room, cell):
     if not room.data:
       return None
-    return room.data.tiles.get(*cell)
+    return room.data.tiles[cell]
 
   def lock_special_doors(room, stage):
     if room.should_unlock(stage):

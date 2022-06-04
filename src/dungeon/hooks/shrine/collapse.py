@@ -26,9 +26,9 @@ def on_collapse(room, game):
     ),
     *[(lambda cell: lambda step: (
       floor.set_tile_at(vector.add(altar.cell, cell), tileset.Pit),
-      game.redraw_tiles(),
-      game.anims.append([PauseAnim(duration=3, on_end=step)]),
-    ))(c) for c in [(-1, -1), (0, -1), (1, -1), (1, -0), (1, 1), (1, 2), (0, 2), (-1, 2), (-1, 1), (-1, 0)]],
+      game.redraw_tiles(force=True),
+      game.anims.append([PauseAnim(duration=1, on_end=step)]),
+    ))(c) for c in [(-1, -1), (0, -1), (1, -1), (1, 0), (1, 1), (1, 2), (0, 2), (-1, 2), (-1, 1), (-1, 0)]],
     lambda step: game.anims.append([PauseAnim(duration=30, on_end=step)]),
     lambda step: (
       game.anims.extend([
@@ -44,7 +44,7 @@ def on_collapse(room, game):
                   dest=(
                     (next( # TODO: refactor into `find_nearest_non_pit_cell(cell)` or `find_pit_depth(cell)`
                       (y for y in range(hero.cell[1], floor.height)
-                        if not issubclass(floor.get_tile_at((hero.cell[0], y)), tileset.Pit)
+                        if not floor.is_tile_at_pit((hero.cell[0], y))
                       ),
                       floor.height
                     ) - hero.cell[1]) * TILE_SIZE
@@ -64,7 +64,7 @@ def on_collapse(room, game):
                 dest=(
                   (next(
                     (y for y in range(mage.cell[1], floor.height)
-                      if not issubclass(floor.get_tile_at((mage.cell[0], y)), tileset.Pit)
+                      if not floor.is_tile_at_pit((mage.cell[0], y))
                     ),
                     floor.height
                   ) - mage.cell[1]) * TILE_SIZE

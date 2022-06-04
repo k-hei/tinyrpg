@@ -53,28 +53,32 @@ class Tileset(ABC):
         return lambda **elem_props: StaticElement(elem_data, **elem_props)
 
     @staticmethod
-    def is_tile_solid(tile):
+    def is_tile_at_solid(tile):
         return False
 
     @staticmethod
-    def is_tile_opaque(tile):
+    def is_tile_at_opaque(tile):
         return False
 
     @staticmethod
-    def is_tile_pit(tile):
+    def is_tile_at_pit(tile):
         return False
 
     @staticmethod
-    def is_tile_hallway(tile):
+    def is_tile_at_hallway(tile):
         return False
 
     @staticmethod
-    def is_tile_oasis(tile):
+    def is_tile_at_oasis(tile):
         return False
 
     @staticmethod
-    def is_tile_port(tile):
+    def is_tile_at_port(tile):
         return False
+
+    @abstractmethod
+    def find_tile_state(tile, stage=None, cell=None, visited_cells=None) -> any:
+        pass
 
     @abstractmethod
     def render_tile(tile, stage=None, cell=None, visited_cells=None) -> Surface:

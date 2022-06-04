@@ -38,3 +38,6 @@ class TileMatrix:
 
     def is_cell_walkable(matrix, cell):
         return not next((not layer[cell] for layer in matrix._layers), None)
+
+    def set(matrix, cell, data):
+        matrix._layers[0][cell] = data
