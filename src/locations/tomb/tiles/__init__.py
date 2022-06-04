@@ -5,7 +5,13 @@ from lib.filters import replace_color
 import assets
 from colors.palette import WHITE, COLOR_TILE
 from config import TILE_SIZE
+
+from dungeon.props.door import Door
+from dungeon.props.secretdoor import SecretDoor
+
+from locations.tomb.tiles.walltop import render_walltop
 from locations.tileset import Tileset
+from locations.default.tile import Tile
 from locations.default.tileset import (
     black_square,
     Floor as DefaultFloor,
@@ -91,32 +97,29 @@ class Wall(DefaultWall):
 
     @classmethod
     def render(cls, stage, cell, visited_cells=None):
-        return assets.sprites["wall_top"]
-        # x, y = cell
-        # tile_below = stage.get_tile_at((x, y + 1))
-        # tile_base = stage.get_tile_at((x, y + 2))
-        # is_elevated = False
-        # is_special_room = False
+        x, y = cell
+        tile_below = stage.get_tile_at((x, y + 1))
+        tile_base = stage.get_tile_at((x, y + 2))
+        is_elevated = False
+        is_special_room = False
 
-        # if (
-        #   Tile.is_of_type(tile_below, (Floor, Pit, DefaultHallway, Oasis))
-        #   and (visited_cells is None or (x, y + 1) in visited_cells)
-        #   and not next((e for e in stage.get_elems_at((x, y + 1)) if isinstance(e, Door)), None)
-        # ):
-        #   if is_special_room:
-        #     if x % (2 + y % 2) == 0 or SecretDoor.exists_at(stage, cell):
-        #       return assets.sprites["wall_battle_alt"]
-        #     else:
-        #       return assets.sprites["wall_battle"]
-        #   else:
-        #     if x % (3 + y % 2) == 0 or SecretDoor.exists_at(stage, cell):
-        #       return assets.sprites["wall_alt"]
-        #     else:
-        #       return assets.sprites["wall_bottom"]
-        # elif is_elevated and tile_below is Wall and not (tile_base is None or tile_base is Wall):
-        #   return assets.sprites["wall_top"]
-        # else:
-        #   return render_walltop(stage, cell, visited_cells)
+        if (Tile.is_of_type(tile_below, (Floor, Pit, Hallway))
+        and (visited_cells is None or (x, y + 1) in visited_cells)
+        and not next((e for e in stage.get_elems_at((x, y + 1)) if isinstance(e, Door)), None)):
+            if is_special_room:
+                if x % (2 + y % 2) == 0 or SecretDoor.exists_at(stage, cell):
+                    return assets.sprites["wall_battle_alt"]
+                else:
+                    return assets.sprites["wall_battle"]
+            else:
+                if x % (3 + y % 2) == 0 or SecretDoor.exists_at(stage, cell):
+                    return assets.sprites["wall_alt"]
+                else:
+                    return assets.sprites["wall_bottom"]
+        elif is_elevated and tile_below is Wall and not (tile_base is None or tile_base is Wall):
+            return assets.sprites["wall_top"]
+        else:
+            return render_walltop(stage, cell, visited_cells)
 
 class Hallway(DefaultHallway):
     sprite = black_square
