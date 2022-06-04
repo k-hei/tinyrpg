@@ -32,6 +32,9 @@ class MetaArea(type):
   def __hash__(area):
     return hash(area.key)
 
+  def __str__(area):
+    return str(area.key)
+
   @property
   def key(area):
     return area.__name__

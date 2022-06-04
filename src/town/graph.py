@@ -32,6 +32,13 @@ class WorldLink:
     def __hash__(link):
         return hash(link.node) * hash(link.port_id)
 
+    def __str__(link):
+        return f"{link.node}:{link.port_id}"
+
+    def __eq__(link, other_link):
+        return (link.node.key == other_link.node.key
+            and link.port_id == other_link.port_id)
+
     @property
     def port(link):
         return link.node.ports[link.port_id] if link.port_id else None

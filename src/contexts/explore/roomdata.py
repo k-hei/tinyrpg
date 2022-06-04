@@ -68,6 +68,9 @@ class RoomData:
   def __hash__(roomdata):
     return hash(roomdata.key)
 
+  def __str__(area):
+    return str(area.key)
+
   def __post_init__(roomdata):
     bg_type, bg_id = roomdata.bg
     if bg_type == "tileset":
