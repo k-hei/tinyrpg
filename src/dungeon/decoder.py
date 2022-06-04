@@ -66,10 +66,10 @@ def decode_elem(elem_cell, elem_name, elem_props, tileset=None):
     return tileset and tileset.resolve_elem(elem_name)(**elem_props)
   except (AttributeError, KeyError) as e:
     debug.log(f"WARNING: Failed to resolve {elem_name} in {tileset}")
-    # raise e
 
   try:
     return resolve_elem(elem_name)(**elem_props)
   except Exception:
-    debug.log(f"WARNING: Failed to resolve {elem_name} {elem_props}")
-    raise
+    pass
+
+  debug.log(f"WARNING: Failed to resolve {elem_name} {elem_props}")

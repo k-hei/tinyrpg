@@ -6,6 +6,7 @@ import lib.vector as vector
 
 from contexts.explore.stage import Stage
 from contexts.explore.roomdata import RoomData
+from contexts.explore.tile_matrix import TileMatrix
 from dungeon.room import Blob as Room
 from dungeon.decoder import decode_elem
 import locations.default.tileset as tileset
@@ -16,8 +17,10 @@ from dungeon.actors import DungeonActor
 from lib.cell import neighborhood
 from config import TILE_SIZE
 
+import debug
 
-def manifest_rooms(rooms, dry=False, seed=None):
+
+def manifest_rooms(rooms, tileset, dry=False, seed=None):
     stage_cells = []
     for room in rooms:
         stage_cells += room.cells
@@ -29,7 +32,8 @@ def manifest_rooms(rooms, dry=False, seed=None):
     stage_tiles.fill(tileset.Wall)
 
     stage = Stage(
-        tiles=stage_tiles,
+        tiles=TileMatrix(layers=[stage_tiles]),
+        tileset=tileset,
         rooms=rooms,
         bg="tomb"
     )
@@ -124,4 +128,8 @@ def spawn_elems(stage, elem_data, offset=(0, 0), tileset=None):
     for elem_cell, elem_name, *elem_props in elem_data:
         elem_props = deepcopy(elem_props[0]) if elem_props else {}
         elem = decode_elem(elem_cell, elem_name, elem_props, tileset)
+        if not elem:
+            debug.log("Failed to decode elem", elem_name)
+            continue
+
         stage.spawn_elem_at(vector.add(offset, elem_cell), elem)

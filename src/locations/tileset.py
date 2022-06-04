@@ -61,6 +61,10 @@ class Tileset(ABC):
         return False
 
     @staticmethod
+    def is_tile_at_wall(tile):
+        return False
+
+    @staticmethod
     def is_tile_at_pit(tile):
         return False
 

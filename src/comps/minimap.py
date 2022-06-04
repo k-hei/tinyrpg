@@ -156,7 +156,7 @@ class Minimap:
         elif floor.is_tile_at_pit(cell):
           if is_cell_visible:
             color = None # 0x000000
-        elif floor.is_tile_at_solid(cell): #(issubclass(tile, tileset.Wall)
+        elif floor.is_tile_at_wall(cell):  # (issubclass(tile, tileset.Wall)
         # or issubclass(tile, tileset.Hallway) and SecretDoor.exists_at(floor, (col, row + 1))
         # ):
           if is_cell_visible:

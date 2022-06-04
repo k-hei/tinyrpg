@@ -26,6 +26,16 @@ class TileMatrix:
         """
         return [layer[cell] for layer in matrix._layers]
 
+    def __setitem__(matrix, cell, data):
+        if not isinstance(data, list):
+            matrix._layers[0][cell] = data
+            return
+
+        for i, layer in enumerate(matrix._layers):
+            if i >= len(data):
+                break
+            layer[cell] = data[i]
+
     def __contains__(matrix, cell):
         return matrix._layers[0].contains(*cell)
 

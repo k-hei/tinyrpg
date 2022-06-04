@@ -9,7 +9,7 @@ from debug import bench, log
 from config import FPS
 
 import locations.default.tileset as tileset
-import locations.tomb.tiles as tomb_tileset
+from locations.tomb.tiles import TombTileset
 from dungeon.floors import Floor
 from dungeon.room import Blob as Room
 from contexts.explore.roomdata import load_rooms
@@ -378,12 +378,14 @@ def gen_loops(tree, graph):
 
 def gen_floor(
   features=[],
-  enemies=[Eyeball, Mushroom, Mummy], # [Eyeball, Mushroom, Ghost, Mummy],
+  enemies=[Eyeball, Mushroom, Mummy],
   items=NORMAL_ITEMS,
   extra_room_count=0,
+  tileset=None,
   seed=None,
   debug=False
 ):
+  tileset = tileset or TombTileset
   seed = seed if seed is not None else getrandbits(32)
   random.seed(seed)
 
@@ -412,7 +414,7 @@ def gen_floor(
         except StopIteration:
           break
         if floor_chunk:
-          stage, stage_offset = manifest_rooms(floor_chunk.nodes, dry=True, seed=seed)
+          stage, stage_offset = manifest_rooms(floor_chunk.nodes, tileset=tileset, dry=True, seed=seed)
       if not floor_chunk:
         if stage:
           for connector in stage.rooms[-1].connectors:
@@ -445,7 +447,7 @@ def gen_floor(
         try:
           extra_graph, message = next(place_gen)
           if extra_graph:
-            stage = manifest_rooms(extra_graph.nodes, dry=True, seed=seed)[0]
+            stage = manifest_rooms(extra_graph.nodes, tileset=tileset, dry=True, seed=seed)[0]
           yield stage, message # f"Placing room {len(extra_graph.nodes)} of {len(extra_rooms)}"
         except StopIteration:
           break
@@ -453,7 +455,12 @@ def gen_floor(
       loops = gen_loops(tree, extra_graph)
       floor_chunks.insert(0, tree)
       if not loops and extra_room_count >= 3:
-        yield manifest_rooms(extra_graph.nodes, dry=True, seed=seed)[0], "Failed to create loops"
+        yield (manifest_rooms(
+          rooms=extra_graph.nodes,
+          tileset=tileset,
+          dry=True,
+          seed=seed
+        )[0], "Failed to create loops")
         continue
 
     # assemble graphs
@@ -467,7 +474,7 @@ def gen_floor(
 
       if graphs_left is False:
         graph = next(assemble_gen)
-        stage = manifest_rooms(graph.nodes, seed=seed)[0] if debug else None
+        stage = manifest_rooms(graph.nodes, tileset=tileset, seed=seed)[0] if debug else None
         if stage and next((x for x in stage.size if x > 100), None):
           stage = None # HACK: need to figure out why failures generate massive stages
         yield stage, "Failed to assemble graphs"
@@ -477,7 +484,7 @@ def gen_floor(
       graph = floor_chunks[0]
 
     rooms = graph.nodes
-    stage, stage_offset = manifest_rooms(rooms)
+    stage, stage_offset = manifest_rooms(rooms, tileset=tileset)
     stage.seed = seed
 
     # DrawConnectors(stage, stage_offset, tree)

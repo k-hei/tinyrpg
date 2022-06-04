@@ -8,6 +8,7 @@ import lib.vector as vector
 from lib.cell import manhattan, neighborhood, downscale
 from math import inf
 
+
 class Stage:
   def __init__(stage, tiles, tileset=None, elems=None, rooms=None, ports=None, tile_size=None, bg=None, name="????"):
     stage.name = name
@@ -74,7 +75,8 @@ class Stage:
     return stage.tiles.contains(*cell)
 
   def get_tile_at(stage, cell):
-    return stage.get_tiles_at(cell)
+    tiles = stage.get_tiles_at(cell)
+    return tiles[0] if tiles else None
 
   def get_tiles_at(stage, cell, scale=0):
     if cell not in stage:
@@ -90,17 +92,20 @@ class Stage:
     return [t for c in cells for t in stage.get_tiles_at(c)]
 
   def set_tile_at(stage, cell, tile):
-    return stage.tiles.set(cell, tile)
+    stage.tiles[cell] = tile
 
   def is_tile_at_of_type(stage, cell, tile_type):
-    return Tile.is_of_type(stage.get_tile_at(cell), tile_type)
+    return next((t for t in stage.get_tiles_at(cell) if isinstance(t, type) and issubclass(t, tile_type)), None)
 
   def is_tile_at_solid(stage, cell, scale=0):
     if cell not in stage:
       return True
 
     tiles = stage.get_tiles_at(cell, scale)
-    return next((True for tile in tiles if stage.tileset.is_tile_at_solid(tile)), False)
+    return not tiles or next((True for tile in tiles if stage.tileset.is_tile_at_solid(tile)), False)
+
+  def is_tile_at_wall(stage, cell):
+    return stage.tileset.is_tile_at_wall(tile=stage.get_tile_at(cell))
 
   def is_tile_at_pit(stage, cell):
     return stage.tileset.is_tile_at_pit(tile=stage.get_tile_at(cell))
@@ -162,10 +167,6 @@ class Stage:
   def is_cell_opaque(stage, cell):
     tile = stage.get_tile_at(cell)
     return not tile or stage.tileset.is_tile_at_opaque(tile=stage.get_tile_at(cell)) or next((e for e in stage.get_elems_at(cell) if e.opaque), None)
-
-  def is_tile_at_solid(stage, cell):
-    tile = stage.get_tile_at(cell)
-    return not tile or stage.tileset.is_tile_at_solid(tile=stage.get_tile_at(cell))
 
   def is_cell_walkable(stage, cell, scale=0):
     if not stage.contains(cell, scale):
