@@ -181,7 +181,14 @@ class DungeonContext(ExploreBase):
             on_end=lambda: room_entered.on_enter(ctx),
           )
 
-    room_focused = next((r for r in ctx.stage.rooms if hero.cell in r.cells), None) # + r.border)), None)
+    find_room_focus_region = lambda room: (
+      room.cells
+        if ctx.stage.is_overworld
+        else room.cells + room.border
+    )
+
+    room_focused = next((r for r in ctx.stage.rooms
+      if hero.cell in find_room_focus_region(r)), None)
     if ctx.stage.is_overworld:
       visible_cells = ctx.stage.cells
 
