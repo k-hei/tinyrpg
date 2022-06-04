@@ -22,7 +22,15 @@ class Link:
   cell: tuple[int, int]
   direction: tuple[int, int]
 
-class Stage:
+class MetaStage(type):
+  def __hash__(area):
+    return hash(area.key)
+
+  @property
+  def key(area):
+    return area.__name__
+
+class Stage(metaclass=MetaStage):
   FLOOR = Tile(solid=False)
   WALL = Tile(solid=True)
   HALF_WALL = Tile(halfsolid=True)

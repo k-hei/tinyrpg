@@ -18,6 +18,9 @@ from transits.dissolve import DissolveIn, DissolveOut
 from colors.palette import BLACK, WHITE
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT, LABEL_FRAMES
 
+from town.graph import WorldLink
+
+
 def insert_value(mapping, key, value):
   keys = mapping.keys()
   values = [value if v == key else v for k, v in mapping.items()]
@@ -187,17 +190,18 @@ class TopViewContext(Context):
       DissolveOut()
     ])
 
-  def change_areas(ctx, port):
+  def change_areas(ctx, port_id):
     if not (graph := ctx.get_graph()):
       return ctx.close()
 
-    dest_area, dest_port = graph.tail(ctx.area, port)
-    if not dest_area:
+    src_link = WorldLink(ctx.area, port_id)
+    dest_link = graph.tail(src_link)
+    if not dest_link:
       return
 
     for actor in ctx.party:
       actor.stop_move()
-    ctx.parent.load_area(dest_area, dest_port)
+    ctx.parent.load_area(dest_link.node, dest_link.port_id)
 
   def switch_chars(ctx):
     ctx.store.switch_chars()
@@ -215,8 +219,9 @@ class TopViewContext(Context):
     super().update()
 
     if ctx.port:
+      delta = ctx.port  # TODO: handle other types of links
       for actor in ctx.party:
-        actor.move(ctx.port)
+        actor.move(delta)
 
     for elem in ctx.stage.elems:
       elem.update()

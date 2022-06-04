@@ -50,9 +50,9 @@ def find_nearby_port(hero, area, graph=None):
     dist_x, dist_y = vector.subtract((port.x, port.y), hero.pos)
     _, direction_y = port.direction
     if (not direction_y
-    or abs(dist_x) >= TILE_SIZE // 2
-    or abs(dist_y) >= TILE_SIZE // 2):
-      return None
+    or abs(dist_x) > TILE_SIZE // 2
+    or abs(dist_y) > TILE_SIZE // 2):
+      continue
 
     link = WorldLink(type(area), port_id)
     if graph.tail(link):
@@ -164,7 +164,7 @@ class SideViewContext(Context):
 
     port = ctx.area.ports[port_id]
     if port.direction[1] == delta:
-      ctx.port = port
+      ctx.port = port_id
       return True
     else:
       return False
@@ -208,9 +208,13 @@ class SideViewContext(Context):
       return
 
     if button == input.BUTTON_UP:
+      for actor in ctx.party:
+        actor.stop_move()
       return ctx.handle_zmove(-1)
 
     if button == input.BUTTON_DOWN:
+      for actor in ctx.party:
+        actor.stop_move()
       return ctx.handle_zmove(1)
 
     if input.CONTROL_CONFIRM in controls:
@@ -333,10 +337,12 @@ class SideViewContext(Context):
               actor.move(port.direction)
         else:
           graph = ctx.get_graph()
-          src_link = WorldLink(type(ctx.area), port_id)
+          src_area = type(ctx.area)
+          src_link = WorldLink(src_area, port_id)
           dest_link = graph and graph.tail(src_link)
+          dest_area = dest_link.node
           dest_port = dest_link.port
-          if dest_area == port_area:
+          if dest_area == src_area:
             if hero.move_to(dest=(dest_port.x, dest_port.y), free=True):
               ctx.port = None
               ctx.update_interactives()
