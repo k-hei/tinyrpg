@@ -254,7 +254,6 @@ class SideViewContext(Context):
     return graph is not None and graph.tail(WorldLink(type(ctx.area), port_id)) is not None
 
   def use_port(ctx, port_id):
-    src_link = WorldLink(type(ctx.area), port_id)
     if not ctx.validate_port(port_id):
       return False
 

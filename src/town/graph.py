@@ -27,14 +27,14 @@ class WorldLink:
     specified for contextualization purposes.
     """
     node: WorldNode
-    port_id: str
+    port_id: str = None
 
     def __hash__(link):
         return hash(link.node) * hash(link.port_id)
 
     @property
     def port(link):
-        return link.node.ports[link.port_id]
+        return link.node.ports[link.port_id] if link.port_id else None
 
 
 class WorldGraph(Graph):

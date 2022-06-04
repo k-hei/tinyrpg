@@ -30,7 +30,7 @@ def load_rooms():
 
 
 @dataclass
-class RoomLink:
+class RoomPort:
   x: int = None
   y: int = None
   direction: tuple[int, int] = None
@@ -56,7 +56,7 @@ class RoomData:
   elems: list[list] = field(default_factory=list)           # default: no elements
   rooms: list[list] = field(default_factory=list)           # default: no subrooms
   edges: list[list] = field(default_factory=list)           # default: all edges
-  ports: dict[str, RoomLink] = field(default_factory=dict)  # default: all edges
+  ports: dict[str, RoomPort] = field(default_factory=dict)  # default: all edges
   doors: str = "Door"                                       # default: generic door
   secret: bool = None                                       # default: arbitrary secrecy
   degree: int = 0                                           # default: arbitrary degree
@@ -100,7 +100,7 @@ class RoomData:
       roomdata.terrain = True
 
     roomdata.hooks = { k: resolve_hook(h) if type(h) is str else h for k, h in roomdata.hooks.items() }
-    roomdata.ports = { n: RoomLink(**l) for n, l in roomdata.ports.items() }
+    roomdata.ports = { n: RoomPort(**l) for n, l in roomdata.ports.items() }
 
   def extract_cells(roomdata):
     return [c for c, t in roomdata.tiles.enumerate()]

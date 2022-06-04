@@ -4,7 +4,7 @@ from lib.line import connect_lines
 import assets
 from town.building import TownBuilding
 from town.element import Element
-from town.sideview.stage import Area, AreaLink, AreaBgLayer
+from town.sideview.stage import Area, AreaPort, AreaBgLayer
 from town.sideview.actor import Actor
 from cores.mouse import Mouse
 from config import WINDOW_HEIGHT
@@ -100,19 +100,19 @@ class AkimorCentralArea(Area):
   ]
 
   ports = {
-    "upper_slope_top": AreaLink(x=608, y=0, direction=(0, 1)),
-    "upper_slope_base": AreaLink(x=528, y=80, direction=(0, -1)),
-    "lower_slope_top": AreaLink(x=608, y=80, direction=(0, 1)),
-    "lower_slope_base": AreaLink(x=512, y=176, direction=(0, -1)),
-    "guild_house_doorway": AreaLink(x=240, y=0, direction=(0, -1)),
-    "market_doorway": AreaLink(x=472, y=0, direction=(0, -1)),
-    "chapel_doorway": AreaLink(x=744, y=-32, direction=(0, -1)),
-    "npc_house_doorway": AreaLink(x=112, y=176, direction=(0, -1)),
-    "blacksmith_doorway": AreaLink(x=304, y=176, direction=(0, -1)),
-    "fortune_house_doorway": AreaLink(x=408, y=176, direction=(0, -1)),
-    "bar_doorway": AreaLink(x=768, y=176, direction=(0, -1)),
-    "left": AreaLink(x=0, y=0, direction=(-1, 0)),
-    "right": AreaLink(x=1264, y=176, direction=(1, 0)),
+    "upper_slope_top": AreaPort(x=608, y=0, direction=(0, 1)),
+    "upper_slope_base": AreaPort(x=528, y=80, direction=(0, -1)),
+    "lower_slope_top": AreaPort(x=608, y=80, direction=(0, 1)),
+    "lower_slope_base": AreaPort(x=512, y=176, direction=(0, -1)),
+    "guild_house_doorway": AreaPort(x=240, y=0, direction=(0, -1)),
+    "market_doorway": AreaPort(x=472, y=0, direction=(0, -1)),
+    "chapel_doorway": AreaPort(x=744, y=-32, direction=(0, -1)),
+    "npc_house_doorway": AreaPort(x=112, y=176, direction=(0, -1)),
+    "blacksmith_doorway": AreaPort(x=304, y=176, direction=(0, -1)),
+    "fortune_house_doorway": AreaPort(x=408, y=176, direction=(0, -1)),
+    "bar_doorway": AreaPort(x=768, y=176, direction=(0, -1)),
+    "left": AreaPort(x=0, y=0, direction=(-1, 0)),
+    "right": AreaPort(x=1264, y=176, direction=(1, 0)),
   }
 
   geometry = [

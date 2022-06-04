@@ -1,4 +1,4 @@
-from town.sideview.stage import Area, AreaLink
+from town.sideview.stage import Area, AreaPort
 from town.sideview.actor import Actor
 from cores.genie import Genie
 from assets import load as use_assets
@@ -11,13 +11,13 @@ from contexts.nameentry import NameEntryContext
 from config import TILE_SIZE, WINDOW_HEIGHT
 
 class OutskirtsArea(Area):
-  TOWER_X = 224
+  TOWER_X = 288
 
   name = "Outskirts"
   bg = "town_outskirts"
   ports = {
-    "left": AreaLink(x=0, direction=(-1, 0)),
-    "tower": AreaLink(x=TOWER_X, direction=(1, 0)),
+    "left": AreaPort(x=0, direction=(-1, 0)),
+    "tower": AreaPort(x=TOWER_X - TILE_SIZE, direction=(1, 0)),
   }
   actor_offset = 28
 

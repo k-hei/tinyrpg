@@ -7,7 +7,7 @@ from contexts.dungeon.camera import Camera, CameraConstraints
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE, TILE_SIZE
 
 @dataclass
-class AreaLink:
+class AreaPort:
   direction: tuple[int, int]
   x: int
   y: int = 0

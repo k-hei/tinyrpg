@@ -1,4 +1,4 @@
-from town.sideview.stage import Area, AreaLink
+from town.sideview.stage import Area, AreaPort
 from town.sideview.actor import Actor
 from cores.mage import Mage
 
@@ -6,10 +6,10 @@ class CentralArea(Area):
   name = "Town Square"
   bg = "town_central"
   ports = {
-    "right": AreaLink(x=416, direction=(1, 0)),
-    "alley": AreaLink(x=272, direction=(0, -1)),
-    "door_triangle": AreaLink(x=64, direction=(0, -1)),
-    "door_heart": AreaLink(x=192, direction=(0, -1)),
+    "right": AreaPort(x=416, direction=(1, 0)),
+    "alley": AreaPort(x=272, direction=(0, -1)),
+    "door_triangle": AreaPort(x=64, direction=(0, -1)),
+    "door_heart": AreaPort(x=192, direction=(0, -1)),
   }
 
   def init(area, ctx):

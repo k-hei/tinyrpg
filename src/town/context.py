@@ -1,16 +1,18 @@
 from contexts import Context
 from contexts.dungeon import DungeonContext
-from town.areas.akimor_central import AkimorCentralArea
 from town.sideview.context import SideViewContext
 from town.sideview.stage import Area as SideViewArea
 from town.topview.context import TopViewContext
 from town.topview.stage import Stage as TopViewArea
 
+from town.areas.outskirts import OutskirtsArea
+
+
 class TownContext(Context):
     def __init__(ctx, store, area=None, port=None):
         super().__init__()
         ctx.store = store
-        ctx.area = area or AkimorCentralArea
+        ctx.area = area or OutskirtsArea
         ctx.port = port
 
     @property

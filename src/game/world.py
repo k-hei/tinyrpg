@@ -19,5 +19,6 @@ def construct_world():
             (WorldLink(AkimorCentralArea, "chapel_doorway"), WorldLink(TimeChamberArea, "left")),
             (WorldLink(AkimorCentralArea, "blacksmith_doorway"), WorldLink(TimeChamberArea, "right")),
             (WorldLink(AkimorCentralArea, "right"), WorldLink(OutskirtsArea, "left")),
+            (WorldLink(OutskirtsArea, "tower"), WorldLink(rooms["shrine"])),
         ],
     )

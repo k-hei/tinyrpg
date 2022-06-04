@@ -1,4 +1,4 @@
-from town.sideview.stage import Area, AreaLink
+from town.sideview.stage import Area, AreaPort
 from town.sideview.actor import Actor
 from cores.rat import Rat
 from cores.radhead import Radhead
@@ -12,7 +12,7 @@ class ClearingArea(Area):
   name = "Alleyway"
   bg = "town_clearing"
   ports = {
-    "alley": AreaLink(x=96, direction=(0, 1)),
+    "alley": AreaPort(x=96, direction=(0, 1)),
   }
 
   def init(area, town):

@@ -50,9 +50,10 @@ class GameContext(Context):
     else:
       ctx.store = GameData.decode(data)
       ctx.savedata = data
-    ctx.graph = construct_world()
+    ctx.graph = None
 
   def init(ctx):
+    ctx.graph = construct_world()
     if ctx.savedata or ctx.feature or ctx.floor:
       ctx.load()
 
@@ -153,17 +154,18 @@ class GameContext(Context):
     ctx.store.place = town
     ctx.open(town)
 
-  def load_area(ctx, area, port_id):
-    debug.log("load area", (area.key, port_id))
+  def load_area(ctx, area, port_id=None):
+    debug.log("load area", (area.key, port_id) if port_id else area.key)
 
-    port = area.ports[port_id]
+    port = area.ports[port_id] if port_id else None
     hero = ctx.store.hero
     if hero:
-      hero.facing = invert_direction(port.direction)
+      hero.facing = invert_direction(port.direction) if port else (0, 1)
 
     if isinstance(area, RoomData):
       stage = manifest_room(area)
-      stage.entrance = vector.add(port.cell, hero.facing)
+      if port:
+        stage.entrance = vector.add(port.cell, hero.facing)
       dungeon = DungeonContext(
         store=ctx.store,
         stage=stage,
