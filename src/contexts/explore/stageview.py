@@ -295,14 +295,16 @@ class StageView:
     or view.cache_visited_cells != visited_cells):
       view.redraw_tiles(hero, visited_cells)
 
-    tile_sprites = ([]
-      if view.darkened
-      else [s.copy()
+    tile_sprites = ([Sprite(
+      image=view.tile_cache[c][2],
+      layer="tiles"
+    ) if (view.darkened or c not in view.cache_visible_cells and c in visited_cells)
+      else s.copy()
         for c, ss in view.tile_sprites.items()
           for s in ss
             if view.camera.rect.colliderect(s.rect)
             and (not view.stage.is_overworld or c in view.cache_visible_cells)
-      ])
+    ])
 
     for sprite in tile_sprites:
       sprite.move(vector.negate(view.camera.rect.topleft))
