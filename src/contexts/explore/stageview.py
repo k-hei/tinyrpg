@@ -245,6 +245,10 @@ class StageView:
       for col in range(tile_rect.left, tile_rect.right + 1):
         cell = (col, row)
 
+        if cell not in view.stage:
+          # out of bounds
+          continue
+
         if (view.cache_tile_rect
         and view.cache_tile_rect.collidepoint(cell)
         and not (cell in view.tile_cache
@@ -252,10 +256,6 @@ class StageView:
         and not (hero and (cell in hero.visible_cells) != (cell in view.cache_visible_cells))
         ):
           # ignore previously drawn tiles if state is unchanged
-          continue
-
-        if cell not in view.stage:
-          # out of bounds
           continue
 
         try:
@@ -350,7 +350,7 @@ class StageView:
       if next((a for g in view.anims for a in g if a.target is elem), None):
         return True
 
-      if view.transitioning and isinstance(elem, Door):
+      if view.transitioning and not isinstance(elem, Door):
         return False
 
       if not view.stage.is_overworld and hero and elem.cell not in hero.visible_cells:
@@ -363,8 +363,6 @@ class StageView:
         return view.camera.rect.collidepoint(elem.pos)
 
     elems = [*filter(is_elem_visible, elems)]
-    [e for e in elems
-      if is_elem_visible(e)]
     return [s for e in elems for s in view.view_elem(elem=e, visited_cells=visited_cells)]
 
   def view_vfx(view, vfx):

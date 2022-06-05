@@ -226,7 +226,8 @@ class DungeonContext(ExploreBase):
       and visible_cells != hero.visible_cells):
         hero.visible_cells = visible_cells
         ctx.extend_visited_cells(visible_cells)
-        ctx.redraw_tiles(force=True)
+        if not ctx.stage_view.transitioning:
+          ctx.redraw_tiles(force=True)
 
   def handle_press(ctx, button):
     if input.get_state(pygame.K_LCTRL):
@@ -270,7 +271,7 @@ class DungeonContext(ExploreBase):
             ] if n not in rooms_cells
         ])
       ]),
-      ctx.extend_visited_cells(ctx.hero.visible_cells)
+      ctx.extend_visited_cells(ctx.hero.visible_cells),
     )
 
     handle_start = lambda: (
@@ -444,7 +445,9 @@ class DungeonContext(ExploreBase):
       new_door = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if isinstance(e, Door) and e.opened), None)
       new_tile = ctx.stage.get_tile_at(ctx.hero.cell)
 
-      if ctx.stage.is_tile_at_hallway(ctx.hero_cell) and (new_door or old_door) and not (new_door and old_door):
+      if ((ctx.stage.is_tile_at_hallway(ctx.hero_cell) or ctx.stage.is_tile_at_hallway(ctx.hero.cell))
+      and (new_door or old_door)
+      and not (new_door and old_door)):
         ctx.handle_hallway()
         is_travelling = True
         step_anim = next((a for g in ctx.anims for a in g if a.target is ctx.hero and isinstance(a, StepAnim)), None)
