@@ -72,7 +72,7 @@ class Stage:
       scale_cell = vector.floor(vector.scale(cell, scale_delta))
       return scale_cell in stage
 
-    return stage.tiles.contains(*cell)
+    return cell in stage.tiles
 
   def get_tile_at(stage, cell):
     tiles = stage.get_tiles_at(cell)

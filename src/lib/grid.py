@@ -15,29 +15,35 @@ class Grid:
   def height(grid):
     return grid.size[1]
 
-  def contains(grid, x, y):
-    return (
-      x >= 0
+  def __contains__(grid, cell):
+    x, y = cell
+    return (x >= 0
       and y >= 0
       and x < grid.width
-      and y < grid.height
-    )
+      and y < grid.height)
 
   def __getitem__(grid, cell):
-    return grid.get(*cell)
+    cell_index = grid.index(cell)
+    if cell_index == -1:
+      raise IndexError("grid index out of range")
+    return grid.data[cell_index]
 
   def __setitem__(grid, cell, data):
-    return grid.set(*cell, data)
+    cell_index = grid.index(cell)
+    if cell_index == -1:
+      raise IndexError("grid assignment index out of range")
+    grid.data[cell_index] = data
 
-  def get(grid, x, y):
-    return grid.data[y * grid.width + x]
+  def index(grid, cell):
+    if cell not in grid:
+      return -1
 
-  def set(grid, x, y, data):
-    grid.data[y * grid.width + x] = data
+    x, y = cell
+    return y * grid.width + x
 
   def enumerate(grid):
-    return [((x, y), grid.get(x, y)) for y in range(grid.height) for x in range(grid.width)]
+    return [((x, y), grid[x, y]) for y in range(grid.height) for x in range(grid.width)]
 
   def fill(grid, data):
     for cell, _ in grid.enumerate():
-      grid.set(*cell, data)
+      grid[cell] = data

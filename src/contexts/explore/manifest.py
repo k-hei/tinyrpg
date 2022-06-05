@@ -54,18 +54,55 @@ def manifest_rooms(rooms, tileset, dry=False, seed=None):
 
     return stage, stage_offset
 
-def manifest_room(room_data):
-    room_tileset = (room_data.bg
-        if issubclass(room_data.bg, Tileset)
-        else None)
+def validate_room_data(room_data):
+    if not isinstance(room_data, RoomData):
+        raise TypeError(f"Failed to manifest room: Invalid room data '{room_data}'")
 
-    stage = Stage(
+    if not Tileset.is_tileset(room_data.bg):
+        raise TypeError(f"Failed to manifest room: Invalid tileset '{room_data.bg}'")
+
+def manifest_stage_from_overworld_room(room_data):
+    validate_room_data(room_data)
+    return Stage(
         name=room_data.name,
         tileset=room_data.bg,
         tiles=room_data.tiles,
         rooms=[Room(data=room_data)],
     )
+
+def manifest_stage_from_dungeon_room(room_data):
+    validate_room_data(room_data)
+    room_tileset = room_data.bg
+
+    stage_tiles = Grid(size=vector.add(room_data.size, (2, 3)))
+    stage_tiles.fill(room_tileset.Wall)
+
+    room = Room(data=room_data, origin=(1, 2))
+    room_width, room_height = room_data.size
+    for row in range(room_height):
+        for col in range(room_width):
+            room_cell = (col, row)
+            stage_cell = vector.add(room_cell, room.origin)
+            stage_tiles[stage_cell] = room_data.tiles[room_cell][0]
+
+    return Stage(
+        name=room_data.name,
+        tileset=room_data.bg,
+        tiles=TileMatrix(layers=[stage_tiles]),
+        rooms=[room],
+    )
+
+def manifest_room(room_data):
+    validate_room_data(room_data)
+
+    room_tileset = room_data.bg
+    manifestor = (manifest_stage_from_overworld_room
+        if room_tileset.is_overworld
+        else manifest_stage_from_dungeon_room)
+
+    stage = manifestor(room_data)
     stage.generator = room_data
+    room = stage.rooms[0]
 
     # TODO: fix hardcoded edge types
     if stage.entrance is None:
@@ -76,9 +113,15 @@ def manifest_room(room_data):
         )
 
     if stage.entrance is None:
-        stage.entrance = tuple(room_data.edges[-1])
+        stage.entrance = vector.add(room_data.edges[-1], room.origin)
 
-    spawn_elems(stage, elem_data=room_data.elems, tileset=room_tileset)
+    if not room_tileset.is_overworld:
+        stage.set_tile_at(stage.entrance, room_tileset.Hallway)
+
+    spawn_elems(stage,
+        elem_data=room_data.elems,
+        tileset=room_tileset,
+        offset=room.origin)
 
     enemies = [e for e in stage.elems
         if isinstance(e, DungeonActor)

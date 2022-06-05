@@ -80,6 +80,10 @@ class Tileset(ABC):
     def is_tile_at_port(tile):
         return False
 
+    @staticmethod
+    def is_tileset(value):
+        return isinstance(value, type) and issubclass(value, Tileset)
+
     @abstractmethod
     def find_tile_state(tile, stage=None, cell=None, visited_cells=None) -> any:
         pass

@@ -37,7 +37,7 @@ class TileMatrix:
             layer[cell] = data[i]
 
     def __contains__(matrix, cell):
-        return matrix._layers[0].contains(*cell)
+        return cell in matrix._layers[0]
 
     # TODO: remove
     def contains(matrix, x, y):
