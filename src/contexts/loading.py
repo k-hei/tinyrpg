@@ -10,6 +10,7 @@ from cores.knight import Knight
 from cores.mage import Mage
 from cores.mouse import Mouse
 from cores.bunny import Bunny
+from cores.boar import Boar
 
 from anims.jump import JumpAnim
 from anims.pause import PauseAnim
@@ -18,7 +19,7 @@ from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
 
 
 def get_actor():
-  LOADING_ACTORS = (Knight, Mage, Mouse, Bunny)
+  LOADING_ACTORS = (Knight, Mage, Mouse, Bunny, Boar)
   Actor = choice(LOADING_ACTORS)
   return Actor(anims=[
     Actor.WalkAnim(period=2 * Actor.WalkAnim.period)
@@ -26,7 +27,6 @@ def get_actor():
 
 class LoadingContext(Context):
   LOADING_TEXT = "Now Loading..."
-  LOADING_ACTORS = (Knight, Mage, Mouse)
 
   def __init__(ctx, loader, on_end, *args, **kwargs):
     super().__init__(*args, **kwargs)
