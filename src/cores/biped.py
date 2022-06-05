@@ -15,6 +15,7 @@ class SpriteMap:
 
 class BipedCore(Core):
   sprites = SpriteMap()
+  WalkAnim = WalkAnim
 
   def view(actor):
     sprites = use_assets().sprites
@@ -23,7 +24,7 @@ class BipedCore(Core):
     flip_y = False
     facing_x, facing_y = actor.facing
     for anim in actor.anims:
-      if type(anim) is WalkAnim:
+      if isinstance(anim, WalkAnim):
         if facing_x < 0:
           walk_cycle = actor.sprites.walk_right
           flip_x = True
