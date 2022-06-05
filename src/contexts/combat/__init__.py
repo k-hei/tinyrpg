@@ -211,7 +211,7 @@ class CombatContext(ExploreBase):
           on_end=lambda: setattr(e, "facing", (0, 1))
         )),
       ),
-    ))(e) for e in room_enemies if e.cell != e.ai_spawn])
+    ))(e) for e in room_enemies if e.ai_spawn and e.cell != e.ai_spawn])
 
     ctx.exiting = True
 
@@ -236,7 +236,9 @@ class CombatContext(ExploreBase):
     anim_group = ctx.anims[-1 if enter else 0] if ctx.anims else []
     not anim_group in ctx.anims and ctx.anims.append(anim_group)
 
-    room_cells = sorted(ctx.room.cells, key=lambda c: c[1] * ctx.stage.width + c[0])
+    room_cells = [c for c in ctx.room.cells
+      if ctx.stage.is_cell_walkable(c)]
+    room_cells = sorted(room_cells, key=lambda c: c[1] * ctx.stage.width + c[0])
     room_cells_by_dist = {}
     origin_cell = sorted([room_cells[0], room_cells[-1]],
       key=lambda c: manhattan(c, ctx.hero.cell))[0]
@@ -1040,10 +1042,13 @@ class CombatContext(ExploreBase):
     cols = WINDOW_WIDTH // TILE_SIZE + 2
     rows = WINDOW_HEIGHT // TILE_SIZE + 2
 
+
+    room_cells = [c for c in room.cells
+      if ctx.stage.is_cell_walkable(c)]
     grid_cells = [(x, y)
       for y in range(top_row, top_row + rows)
       for x in range(left_col, left_col + cols)
-          if (x, y) in room.cells]
+          if (x, y) in room_cells]
 
     GRID_CELL_ELEV = 16
 
@@ -1068,7 +1073,7 @@ class CombatContext(ExploreBase):
           ),
           topleft_pos,
         ),
-        layer="tiles",
+        layer="markers",
         origin=Sprite.ORIGIN_BOTTOMLEFT,
         target=cell,
       ) if cell_offset != inf

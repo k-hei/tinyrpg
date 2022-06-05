@@ -66,7 +66,11 @@ class Floor(DefaultFloor):
     def render(cls, stage, cell, *_):
         x, y = cell
         if (stage.get_tile_at((x, y - 1)) is Pit
-        and next((e for e in stage.elems if e.cell[1] < y), None)):
+        and (room := next((r for r in stage.rooms if cell in r.cells), None))
+        and (elem := next((e for e in stage.elems
+            if e.cell[0] == x and e.cell[1] < y and e.cell in room.cells
+        ), None))):
+            print("found elem", type(elem).__name__, "at", elem.cell, "in room", cell)
             return Sprite(
                 image=assets.sprites["tomb_floor"],
                 layer="elems",

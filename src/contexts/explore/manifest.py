@@ -101,7 +101,9 @@ def find_territory(stage, cell):
         radius=3,
         diagonals=True,
         inclusive=True,
-        predicate=lambda c: stage.is_cell_empty(c, scale=TILE_SIZE)
+        predicate=lambda c: (
+            stage.is_cell_empty(c, scale=TILE_SIZE)
+        )
     )]
 
 def merge_territories(stage, territories):
