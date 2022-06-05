@@ -98,7 +98,6 @@ class GameContext(Context):
         on_end=lambda floor: (
           bench("Generate floor"),
           ctx.goto_dungeon(floors=FloorGraph(nodes=[floor]), generator=Floor),
-          app.transition([DissolveOut()])
         )
       ))
 

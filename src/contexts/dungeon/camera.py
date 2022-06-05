@@ -196,7 +196,7 @@ class Camera:
     camera_x = camera.pos[0] - camera.offset[0]
     camera_y = camera.pos[1] - camera.offset[1]
 
-
+    # constraints handling
     if camera.constraints and camera.size[0] >= camera.constraints.width:
       camera_x = camera.constraints.width / 2
       camera.pos = (camera_x, camera_y)

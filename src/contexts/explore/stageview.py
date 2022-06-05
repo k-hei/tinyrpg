@@ -98,7 +98,7 @@ class StageView:
     view.camera = Camera(WINDOW_SIZE, constraints=CameraConstraints(
       right=stage.width * stage.tile_size,
       bottom=stage.height * stage.tile_size,
-    ))  # TODO: stage overworld flag
+    ) if stage.is_overworld else None)
     view.anim = None
     view.anims = []
     view.vfx = []
@@ -249,6 +249,7 @@ class StageView:
         and view.cache_tile_rect.collidepoint(cell)
         and not (cell in view.tile_cache
           and find_tile_hash(view.stage, cell, visited_cells) != view.tile_cache[cell][0])
+        and not (hero and (cell in hero.visible_cells) != (cell in view.cache_visible_cells))
         ):
           # ignore previously drawn tiles if state is unchanged
           continue
@@ -298,7 +299,7 @@ class StageView:
         for c, ss in view.tile_sprites.items()
           for s in ss
             if view.camera.rect.colliderect(s.rect)
-            # if c in view.cache_visible_cells  # TODO: overworld flag
+            and (not view.stage.is_overworld or c in view.cache_visible_cells)
       ])
 
     for sprite in tile_sprites:
@@ -352,14 +353,14 @@ class StageView:
       if view.transitioning and isinstance(elem, Door):
         return False
 
+      if not view.stage.is_overworld and hero and elem.cell not in hero.visible_cells:
+        return False
+
       try:
         return (elem.rect and view.camera.rect.colliderect(elem.rect)
           or view.camera.rect.colliderect(elem.image.get_rect(midbottom=elem.pos)))
       except AttributeError:
         return view.camera.rect.collidepoint(elem.pos)
-
-      # TODO: stage overworld flag: overworld -> no FOV -> all cells visible
-      # (not hero or e.cell in hero.visible_cells)
 
     elems = [*filter(is_elem_visible, elems)]
     [e for e in elems

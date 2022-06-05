@@ -189,6 +189,7 @@ class DungeonContext(ExploreBase):
 
     room_focused = next((r for r in ctx.stage.rooms
       if hero.cell in find_room_focus_region(r)), None)
+
     if ctx.stage.is_overworld:
       visible_cells = ctx.stage.cells
 
@@ -225,6 +226,7 @@ class DungeonContext(ExploreBase):
       and visible_cells != hero.visible_cells):
         hero.visible_cells = visible_cells
         ctx.extend_visited_cells(visible_cells)
+        ctx.redraw_tiles(force=True)
 
   def handle_press(ctx, button):
     if input.get_state(pygame.K_LCTRL):
