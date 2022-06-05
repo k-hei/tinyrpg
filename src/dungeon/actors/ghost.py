@@ -35,8 +35,7 @@ class Ghost(DungeonActor):
             on_connect=(lambda: game.attack(
               actor=user,
               target=target_actor,
-              is_ranged=True,
-              is_animated=False,
+              animate=False,
               on_end=on_end
             )) if target_actor else None
           )
@@ -57,13 +56,14 @@ class Ghost(DungeonActor):
       ghost.turns = -1
 
   def charge(ghost, *args, **kwargs):
-    super().charge(*args, **kwargs)
     ghost.core.anims.append(GhostCore.ChargeAnim())
+    return super().charge(*args, **kwargs)
 
   def step(ghost, game):
-    enemy = game.find_closest_enemy(ghost)
     if not ghost.aggro:
       return super().step(game)
+
+    enemy = game.find_closest_enemy(ghost)
     if not enemy:
       return None
 

@@ -929,19 +929,20 @@ class CombatContext(ExploreBase):
       while actor.turns >= 1:
         actor.turns -= 1
 
-        if actor.charge_turns == 1 and ctx.command_queue:
+        is_actor_enqueued = next((True for a, c in ctx.command_queue if a is actor), False)
+        if is_actor_enqueued and actor.charge_turns:
           yield None
 
         actor.step_aggro()
         command = actor.step_charge()
 
         while not command:
-          command = ctx.step_enemy(actor)
-
+          command = ctx.step_enemy(actor, force=True)
           if not command:
             break
 
-          if command[0] in (COMMAND_ATTACK, COMMAND_SKILL) and ctx.command_queue:
+          if (is_actor_enqueued
+          and (command[0] in (COMMAND_ATTACK, COMMAND_SKILL) or actor.charge_turns)):
             command = None
             yield None
 
@@ -968,8 +969,8 @@ class CombatContext(ExploreBase):
       enemy = sorted(enemies, key=lambda e: manhattan(e.cell, ctx.ally.cell) + e.hp / 10)[0]
       return (COMMAND_MOVE_TO, enemy.cell)
 
-  def step_enemy(ctx, actor):
-    if not actor.can_step():
+  def step_enemy(ctx, actor, force=False):
+    if not actor.can_step() and not force:
       return None
     return actor.step(ctx)
 

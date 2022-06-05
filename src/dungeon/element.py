@@ -185,6 +185,7 @@ class DungeonElement:
     )), None)), None)
     if will_enter:
       return []
+
     if type(sprites) is Surface:
       sprites = Sprite(image=sprites, layer="elems")
     if type(sprites) is Sprite:
@@ -204,8 +205,8 @@ class DungeonElement:
     offset_x, offset_y = elem.find_move_offset(anims)
     item = None
     anim_group = [a for a in anims[0] if a.target is elem] if anims else []
-    # if "core" in dir(elem):
-    #   anim_group += elem.core.anims
+    is_moving = next((True for a in anim_group if isinstance(a, (StepAnim, PathAnim))), False)
+
     for anim in anim_group:
       if (isinstance(anim, StepAnim) or type(anim) is PathAnim) and anim.cell:
         if (isinstance(anim, (StepAnim, PathAnim, JumpAnim))
@@ -250,7 +251,7 @@ class DungeonElement:
         sprite_height *= scale_y
       elif type(anim) is DropAnim:
         offset_y = -anim.y
-      elif isinstance(anim, ShakeAnim):
+      elif isinstance(anim, ShakeAnim) and not is_moving:
         offset_x += anim.offset
       elif type(anim) is FallAnim:
         offset_y = anim.y

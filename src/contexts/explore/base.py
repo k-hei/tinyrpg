@@ -258,12 +258,12 @@ class ExploreBase(Context):
       received_noise = max(0, noise_factor - manhattan(cell, actor.cell) + 1)
       if actor.ailment == DungeonActor.AILMENT_SLEEP:
         if random() < received_noise:
-          actor.wake_up()
           actor.alert(cell)
-          ctx.anims.append([AwakenAnim(
-            duration=30,
-            target=actor,
-          )])
+          if actor.wake_up():
+            ctx.anims.append([AwakenAnim(
+              duration=30,
+              target=actor,
+            )])
       elif random() < received_noise * 2:
         actor.alert(cell)
 

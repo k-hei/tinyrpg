@@ -225,6 +225,7 @@ class DungeonActor(DungeonElement):
     actor.charge_turns = turns or skill.charge_turns
     if "ChargeAnim" in dir(actor):
       actor.core.anims.append(actor.ChargeAnim())
+    return ("wait",)
 
   def reset_charge(actor):
     actor.charge_skill = None
@@ -243,6 +244,7 @@ class DungeonActor(DungeonElement):
   def step_charge(actor):
     if actor.charge_cooldown:
       actor.charge_cooldown -= 1
+
     if actor.charge_turns:
       actor.charge_turns -= 1
       if actor.charge_turns == 0:
@@ -318,19 +320,24 @@ class DungeonActor(DungeonElement):
   def step_status(actor, game):
     actor._status.step()
 
-    actor.ailment_turns -= 1
+    old_ailment_turns = actor.ailment_turns
+    actor.ailment_turns = max(0, actor.ailment_turns - 1)
+
     if actor.ailment == "poison":
       damage = int(actor.get_hp_max() * DungeonActor.POISON_STRENGTH)
       return game.flinch(actor, damage, on_end=actor.dispel_ailment if actor.ailment_turns == 0 else None)
+
     if actor.ailment == "sleep":
       actor.regen(actor.get_hp_max() / 50)
-    if actor.ailment_turns == 0:
+
+    if actor.ailment_turns == 0 and old_ailment_turns:
       if actor.ailment == "freeze":
         game.vfx.extend([IcePieceVfx( # this belongs in actor view
           pos=tuple([(x + 0.5) * TILE_SIZE for x in actor.cell]),
         ) for _ in range(randint(3, 4))])
+      elif actor.ailment == "sleep":
+        game.anims.append([AwakenAnim(target=actor)])
       actor.dispel_ailment()
-      game.anims.append([AwakenAnim(target=actor)])
 
   def dispel_ailment(actor):
     if actor.ailment == "sleep":
@@ -350,14 +357,17 @@ class DungeonActor(DungeonElement):
   def wake_up(actor):
     if actor.ailment != "sleep":
       return False
+
     actor.ailment = None
     actor.ailment_turns = 0
+
     sleep_anim = next((a for a in actor.anims if type(a) is DungeonActor.SleepAnim), None)
     sleep_anim and actor.anims.remove(sleep_anim)
     if "SleepAnim" in dir(actor.core):
       sleep_anim = next((a for a in actor.core.anims if type(a) is actor.core.SleepAnim), None)
       if sleep_anim:
         actor.core.anims.remove(sleep_anim)
+
     actor.turns = 0
     return True
 
