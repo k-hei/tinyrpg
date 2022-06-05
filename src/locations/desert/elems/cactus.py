@@ -22,7 +22,7 @@ class DesertEvilCactus(DungeonActor):
       name=name,
       faction="enemy",
       stats=Stats(
-        hp=25,
+        hp=40,
         st=12,
         dx=4,
         ag=5,

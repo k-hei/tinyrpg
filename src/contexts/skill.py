@@ -28,6 +28,9 @@ from anims.flicker import FlickerAnim
 from locations.default.tile import Tile
 from dungeon.actors import DungeonActor
 
+import debug
+
+
 MARGIN = 8
 OFFSET = 4
 SPACING = 10
@@ -67,7 +70,12 @@ class SkillContext(Context):
     hero = ctx.actor
     stage = ctx.parent.stage
     skill = ctx.skill
-    enemy = ctx.parent.find_closest_enemy(hero, elems=[e for c in hero.visible_cells for e in stage.get_elems_at(c)])
+
+    visible_elems = (stage.elems
+      if stage.is_overworld
+      else [e for c in hero.visible_cells for e in stage.get_elems_at(c)])
+    enemy = ctx.parent.find_closest_enemy(hero, elems=visible_elems)
+
     if enemy:
       hero.face(enemy.cell)
       target_cell = enemy.cell
@@ -78,6 +86,7 @@ class SkillContext(Context):
     if not skill:
       ctx.dest = hero.cell
       return
+
     ctx.skill_range = skill().find_range(hero, stage)
     if skill.range_type == "linear" and skill.range_max > 1:
       ctx.dest = ctx.skill_range[-1]

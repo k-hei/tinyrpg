@@ -320,7 +320,7 @@ class StageView:
 
         if view.darkened or cell in visited_cells:
           tile_sprites.append(Sprite(
-            image=view.tile_cache[c][2],
+            image=view.tile_cache[cell][2],
             layer="tiles"
           ))
 
