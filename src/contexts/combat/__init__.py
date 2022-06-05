@@ -643,7 +643,8 @@ class CombatContext(ExploreBase):
   def nudge(ctx, actor, direction, on_end=None):
     source_cell = downscale(actor.pos, scale=TILE_SIZE, floor=True)
     target_cell = vector.add(source_cell, direction)
-    if not ctx.stage.is_cell_empty(target_cell, scale=TILE_SIZE):
+    if (not ctx.stage.is_tile_at_pit(target_cell)
+    and not ctx.stage.is_cell_empty(target_cell, scale=TILE_SIZE)):
       return False
 
     actor_cell = actor.cell
