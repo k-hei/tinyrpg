@@ -8,6 +8,7 @@ from lib.graph import Graph
 from debug import bench, log
 from config import FPS
 
+from locations.default.tile import Tile
 import locations.default.tileset as tileset
 from locations.tomb.tiles import TombTileset
 from dungeon.floors import Floor
@@ -739,7 +740,7 @@ def gen_floor(
       room.on_place(stage)
 
     if not stage.entrance:
-      stage.entrance = next((c for c in stage.cells if issubclass(stage.get_tile_at(c), tileset.Entrance)), None)
+      stage.entrance = next((c for c in stage.cells if Tile.is_of_type(stage.get_tile_at(c), tileset.Entrance)), None)
 
     if not stage.entrance:
       yield stage, "Failed to spawn entrance"

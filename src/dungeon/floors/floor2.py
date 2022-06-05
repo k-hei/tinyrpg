@@ -15,24 +15,24 @@ class Floor2(Floor):
     return gen_floor(
       features=Graph(
         nodes=[
-          entry_room := Room(data=RoomData(**rooms["entry2f"])),
-          coffin_room := Room(data=RoomData(**rooms["coffin"])),
+          entry_room := Room(data=rooms["entry2f"]),
+          coffin_room := Room(data=rooms["coffin"]),
           enemy_room1 := Room(cells=gen_blob(min_area=80), data=RoomData(enemies=True)),
           enemy_room2 := Room(cells=gen_blob(min_area=80), data=RoomData(enemies=True)),
           enemy_room3 := Room(cells=gen_blob(min_area=80), data=RoomData(enemies=True)),
           enemy_room4 := Room(cells=gen_blob(min_area=120), data=RoomData(enemies=True, items=True, degree=3)),
           exit_room := Room(data=RoomData(**{
-            **rooms["exit"],
+            **rooms["exit"].__dict__,
             "edges": [
               [2, 5]
             ]
           })),
-          arena_room := Room(data=RoomData(**rooms["arena"])),
+          arena_room := Room(data=rooms["arena"]),
           buffer_room := Room(cells=gen_blob(min_area=60), data=RoomData(
             degree=2,
             items=True
           )),
-          Room(data=RoomData(**choice(rooms["oasis"]))),
+          Room(data=choice(rooms["oasis"])),
           Room(cells=gen_blob(min_area=60), data=RoomData(
             terrain=False,
             degree=1,
