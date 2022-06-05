@@ -306,19 +306,23 @@ class StageView:
     ]
 
   def view_tile_sprites(view, visited_cells):
-    if view.stage.is_overworld:
-      return []
+    tile_sprites = []
+    camera_rect = view.camera.rect
+    for cell, sprites in view.tile_sprites.items():
+      for sprite in sprites:
+        if not camera_rect.colliderect(sprite.rect):
+          continue
 
-    tile_sprites = ([Sprite(
-      image=view.tile_cache[c][2],
-      layer="tiles"
-    ) if (view.darkened or c not in view.cache_visible_cells and c in visited_cells)
-      else s.copy()
-        for c, ss in view.tile_sprites.items()
-          for s in ss
-            if view.camera.rect.colliderect(s.rect)
-            and c in view.cache_visible_cells
-    ])
+        if (view.stage.is_overworld
+        or not view.darkened and cell in view.cache_visible_cells):
+          tile_sprites.append(sprite.copy())
+          continue
+
+        if view.darkened or cell in visited_cells:
+          tile_sprites.append(Sprite(
+            image=view.tile_cache[c][2],
+            layer="tiles"
+          ))
 
     for sprite in tile_sprites:
       sprite.move(vector.negate(view.camera.rect.topleft))
@@ -328,11 +332,11 @@ class StageView:
   def view_tile_layers(view):
     return [Sprite(
       image=layer,
-      pos=vector.add(
-        vector.negate(view.camera.rect.topleft),
-        vector.scale(view.tile_offset, view.stage.tile_size)
+      pos=vector.subtract(
+        vector.scale(view.tile_offset, view.stage.tile_size),
+        view.camera.rect.topleft,
       ),
-    ) for i, layer in enumerate(view.tile_layers)]
+    ) for layer in view.tile_layers]
 
   def view_elem(view, elem, visited_cells=[]):
     if type(elem) is SecretDoor and elem.hidden:
