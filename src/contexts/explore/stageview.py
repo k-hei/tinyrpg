@@ -254,6 +254,7 @@ class StageView:
         has_cell_state_changed = (not view.stage.is_overworld
           and cell in view.tile_cache
           and find_tile_hash(view.stage, cell, visited_cells) != view.tile_cache[cell][0])
+
         has_cell_viewable_state_changed = (not view.stage.is_overworld
           and ((cell in visible_cells) != (cell in view.cache_visible_cells)
             or (cell in visited_cells) != (cell in view.cache_visited_cells)))
@@ -299,17 +300,7 @@ class StageView:
     or view.cache_visited_cells != visited_cells):
       view.redraw_tiles(hero, visited_cells)
 
-    tile_sprites = ([Sprite(
-      image=view.tile_cache[c][2],
-      layer="tiles"
-    ) if (view.darkened or c not in view.cache_visible_cells and c in visited_cells)
-      else s.copy()
-        for c, ss in view.tile_sprites.items()
-          for s in ss
-            if view.camera.rect.colliderect(s.rect)
-            and (not view.stage.is_overworld or c in view.cache_visible_cells)
-    ])
-
+    tile_sprites = view.view_tile_sprites(visited_cells)
     for sprite in tile_sprites:
       sprite.move(vector.negate(view.camera.rect.topleft))
 
@@ -320,7 +311,23 @@ class StageView:
         vector.scale(view.tile_offset, view.stage.tile_size)
       ),
     ) for i, layer in enumerate(view.tile_layers)]
+
     return [*tile_layer_sprites, *tile_sprites]
+
+  def view_tile_sprites(view, visited_cells):
+    if view.stage.is_overworld:
+      return []
+
+    return ([Sprite(
+      image=view.tile_cache[c][2],
+      layer="tiles"
+    ) if (view.darkened or c not in view.cache_visible_cells and c in visited_cells)
+      else s.copy()
+        for c, ss in view.tile_sprites.items()
+          for s in ss
+            if view.camera.rect.colliderect(s.rect)
+            and c in view.cache_visible_cells
+    ])
 
   def view_elem(view, elem, visited_cells=[]):
     if type(elem) is SecretDoor and elem.hidden:
