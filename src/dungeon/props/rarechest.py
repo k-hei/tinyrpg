@@ -1,7 +1,10 @@
+from pygame import Rect
 from dungeon.props import Prop
 import assets
+from lib.sprite import Sprite
 from lib.filters import replace_color
-from anims.attack import AttackAnim
+import lib.vector as vector
+
 from anims.shake import ShakeAnim
 from anims.jump import JumpAnim
 from anims.item import ItemAnim
@@ -9,9 +12,8 @@ from anims.frame import FrameAnim
 from colors.palette import GOLD, BLACK
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
-from lib.sprite import Sprite
-from inventory import Inventory
 from skills.ailment.virus import Virus
+
 
 class RareChest(Prop):
   solid = True
@@ -23,6 +25,15 @@ class RareChest(Prop):
     chest.contents = contents
     chest.opened = opened
     chest.on_action = on_action
+
+  @property
+  def rect(chest):
+    if chest._rect is None and chest.pos:
+      chest._rect = Rect(
+        vector.add(chest.pos, (-10, -4)),
+        (20, 20)
+      )
+    return chest._rect
 
   def encode(chest):
     [cell, kind, *props] = super().encode()
