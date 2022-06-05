@@ -176,7 +176,6 @@ class StageView:
     )
 
     # clear cache for this cell if tile state has changed
-    # cached_state and print(cell, cached_state, tile_hash, cached_state != tile_hash)
     if cached_state and cached_state != tile_hash:
       del view.tile_cache[cell]
       if cell in view.tile_sprites:
@@ -242,21 +241,26 @@ class StageView:
     view.tile_offset = tile_rect.topleft
     visible_cells = hero.visible_cells if hero else view.cache_visible_cells
 
-    renderable_cells = visible_cells + visited_cells
+    viewable_cells = visible_cells + visited_cells
     for row in range(tile_rect.top, tile_rect.bottom + 1):
       for col in range(tile_rect.left, tile_rect.right + 1):
         cell = (col, row)
 
-        if cell not in view.stage or cell not in renderable_cells:
+        if (cell not in view.stage
+        or not view.stage.is_overworld and cell not in viewable_cells):
           # out of bounds/out of sight
           continue
 
-        if (view.cache_tile_rect and view.cache_tile_rect.collidepoint(cell)
-        and not (cell in view.tile_cache
+        has_cell_state_changed = (not view.stage.is_overworld
+          and cell in view.tile_cache
           and find_tile_hash(view.stage, cell, visited_cells) != view.tile_cache[cell][0])
-        and not ((cell in visible_cells) != (cell in view.cache_visible_cells)
-          or (cell in visited_cells) != (cell in view.cache_visited_cells))
-        ):
+        has_cell_viewable_state_changed = (not view.stage.is_overworld
+          and ((cell in visible_cells) != (cell in view.cache_visible_cells)
+            or (cell in visited_cells) != (cell in view.cache_visited_cells)))
+
+        if (view.cache_tile_rect and view.cache_tile_rect.collidepoint(cell)
+        and not has_cell_state_changed
+        and not has_cell_viewable_state_changed):
           # ignore previously drawn tiles if state is unchanged
           continue
 
