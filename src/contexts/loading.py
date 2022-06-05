@@ -1,12 +1,15 @@
 from pygame import Surface
+from random import choice
+
+from lib.sprite import Sprite
 import assets
 import debug
 from contexts import Context
 from cores.knight import Knight
+from cores.mage import Mage
 from anims.walk import WalkAnim
 from anims.jump import JumpAnim
 from anims.pause import PauseAnim
-from lib.sprite import Sprite
 from colors.palette import BLACK
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
 
@@ -19,7 +22,7 @@ class LoadingContext(Context):
     ctx.on_end = on_end
     ctx.result = None
     ctx.anims = []
-    ctx.knight = Knight(anims=[
+    ctx.actor = choice((Knight, Mage))(anims=[
       WalkAnim(period=30)
     ])
 
@@ -32,7 +35,7 @@ class LoadingContext(Context):
     ctx.on_end(ctx.result)
 
   def update(ctx):
-    ctx.knight.update()
+    ctx.actor.update()
     anims = [a for a in ctx.anims if not a.done]
     if not anims:
       if not ctx.anims or type(ctx.anims[0]) is PauseAnim:
@@ -68,20 +71,20 @@ class LoadingContext(Context):
     bg_image.fill(BLACK)
     sprites.append(Sprite(image=bg_image))
 
-    knight_sprite = ctx.knight.view()[0]
-    knight_image = knight_sprite.image
-    knight_x = WINDOW_WIDTH - 16
-    knight_y = WINDOW_HEIGHT - 16
-    knight_sprite.pos = (knight_x, knight_y)
-    knight_sprite.origin = ("right", "bottom")
-    knight_sprite.layer = "hud"
-    sprites.append(knight_sprite)
+    actor_sprite = ctx.actor.view()[0]
+    actor_image = actor_sprite.image
+    actor_x = WINDOW_WIDTH - 16
+    actor_y = WINDOW_HEIGHT - 16
+    actor_sprite.pos = (actor_x, actor_y)
+    actor_sprite.origin = ("right", "bottom")
+    actor_sprite.layer = "hud"
+    sprites.append(actor_sprite)
 
     label_font = assets.ttf["normal"]
     label_text = LoadingContext.LOADING_TEXT
     label_width = label_font.width(label_text)
-    label_x = knight_x - knight_image.get_width() - 4 - label_width
-    label_y = knight_y - knight_image.get_height() // 2
+    label_x = actor_x - actor_image.get_width() - 4 - label_width
+    label_y = actor_y - actor_image.get_height() // 2
     for i, char in enumerate(label_text):
       char_image = label_font.render(char)
       char_y = label_y

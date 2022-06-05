@@ -15,7 +15,7 @@
     "Knight": {
       "RustyBlade": [0, 0],
       "Empower": [1, 0],
-      "Fortify": [2, 1],
+      "Fortify": [2, 0],
       "Blitzritter": [1, 2]
     },
     "Mage": {
