@@ -307,7 +307,10 @@ class DungeonContext(ExploreBase):
         [PauseAnim(
           target=ctx,
           duration=15,
-          on_start=lambda: ctx.extend_visited_cells(room_cells),
+          on_start=lambda: (
+            ctx.extend_visited_cells(room_cells),
+            ctx.redraw_tiles(force=True),
+          ),
           on_end=handle_end,
         )]
       ])

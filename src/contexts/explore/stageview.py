@@ -228,6 +228,7 @@ class StageView:
     surface_size = vector.scale(tile_rect.size, TILE_SIZE)
     tile_layers = [Surface(size=surface_size, flags=SRCALPHA)
       for _ in range(view.stage.num_tile_layers)]
+
     if not view.tile_layers or surface_size != view.tile_layers[0].get_size():
       view.tile_layers = tile_layers
       view.cache_tile_rect = None
@@ -241,19 +242,20 @@ class StageView:
     view.tile_offset = tile_rect.topleft
     visible_cells = hero.visible_cells if hero else view.cache_visible_cells
 
+    renderable_cells = visible_cells + visited_cells
     for row in range(tile_rect.top, tile_rect.bottom + 1):
       for col in range(tile_rect.left, tile_rect.right + 1):
         cell = (col, row)
 
-        if cell not in view.stage:
-          # out of bounds
+        if cell not in view.stage or cell not in renderable_cells:
+          # out of bounds/out of sight
           continue
 
-        if (view.cache_tile_rect
-        and view.cache_tile_rect.collidepoint(cell)
+        if (view.cache_tile_rect and view.cache_tile_rect.collidepoint(cell)
         and not (cell in view.tile_cache
           and find_tile_hash(view.stage, cell, visited_cells) != view.tile_cache[cell][0])
-        and not (hero and (cell in hero.visible_cells) != (cell in view.cache_visible_cells))
+        and not ((cell in visible_cells) != (cell in view.cache_visible_cells)
+          or (cell in visited_cells) != (cell in view.cache_visited_cells))
         ):
           # ignore previously drawn tiles if state is unchanged
           continue
