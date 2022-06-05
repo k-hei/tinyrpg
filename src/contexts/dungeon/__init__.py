@@ -320,13 +320,13 @@ class DungeonContext(ExploreBase):
       handle_end()
 
   def find_hallway(ctx, cell):
-    if not issubclass(ctx.stage.get_tile_at(cell), tileset.Hallway):
+    if not ctx.stage.is_tile_at_hallway(cell):
       return []
 
     hallways = []
     stack = []
     for neighbor in neighborhood(cell, diagonals=True):
-      if issubclass(ctx.stage.get_tile_at(neighbor), tileset.Hallway):
+      if ctx.stage.is_tile_at_hallway(neighbor):
         hallway = [cell]
         hallways.append(hallway)
         stack.append((hallway, neighbor))

@@ -33,6 +33,8 @@ class Door(Prop):
     door.vertical = False
     door.focus = None
     door.origin = None
+    if opened:
+      door.open()
 
   @property
   def rect(door):

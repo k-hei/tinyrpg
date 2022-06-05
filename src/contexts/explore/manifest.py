@@ -7,6 +7,7 @@ from contexts.explore.roomdata import RoomData
 from contexts.explore.tile_matrix import TileMatrix
 from dungeon.room import Blob as Room
 from dungeon.decoder import decode_elem
+from dungeon.props.door import Door
 import locations.default.tileset as tileset
 from locations.tileset import Tileset
 from helpers.stage import find_tile
@@ -117,6 +118,7 @@ def manifest_room(room_data):
 
     if not room_tileset.is_overworld:
         stage.set_tile_at(stage.entrance, room_tileset.Hallway)
+        stage.spawn_elem_at(stage.entrance, Door(opened=True))
 
     spawn_elems(stage,
         elem_data=room_data.elems,
