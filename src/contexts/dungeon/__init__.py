@@ -85,8 +85,8 @@ class DungeonContext(ExploreBase):
     if ctx.stage.is_overworld:
       ctx.comps.floor_no.exit()
 
-    ctx.handle_explore()
     ctx.refresh_fov()
+    ctx.handle_explore()
     ctx.redraw_tiles()
 
   def find_floor_no(ctx):

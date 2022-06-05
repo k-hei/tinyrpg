@@ -39,7 +39,7 @@ from town.graph import WorldLink
 
 class ExploreContext(ExploreBase):
   def enter(ctx):
-    ctx.camera.focus(ctx.hero)
+    ctx.camera.focus(ctx.hero, instant=True)
     ctx.debug = False
     ctx.move_buffer = []
     ctx.cache_last_move = 0

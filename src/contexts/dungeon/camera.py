@@ -124,7 +124,7 @@ class Camera:
     _, camera_y = camera.pos
     return target_y - camera_y <= -WINDOW_HEIGHT / 2 + TILE_SIZE
 
-  def focus(camera, target, force=False, anim=None):
+  def focus(camera, target, force=False, anim=None, instant=False):
     if type(target) is list and force:
       camera.target_groups = [target]
     elif target in camera.targets:
@@ -138,7 +138,7 @@ class Camera:
 
     target_pos = Camera.resolve_target_group(camera.target_groups[-1], camera.offset)
 
-    if not camera.pos:
+    if not camera.pos or instant:
       camera.pos = target_pos
     elif anim:
       anim.target = (camera.pos, target_pos)
