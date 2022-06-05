@@ -415,8 +415,8 @@ class DungeonContext(ExploreBase):
       stage_view=ctx.stage_view,
       time=ctx.time,
     ), on_close=ctx.handle_combat)
-    ctx.comps.minimap.enter()
     if not ctx.stage.is_overworld:
+      ctx.comps.minimap.enter()
       ctx.comps.floor_no.enter()
 
   def handle_combat(ctx, path=False):
