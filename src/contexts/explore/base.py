@@ -187,24 +187,25 @@ class ExploreBase(Context):
   def print(ctx, message):
     ctx.comps.minilog.print(message)
 
-  def move_cell(ctx, actor, delta, duration=0, jump=False, fixed=False, on_end=None):
-    target_cell = vector.add(actor.cell, delta)
+  def move_cell(ctx, actor, delta, duration=0, jump=False, fixed=True, on_end=None):
+    move_src = actor.cell if fixed else downscale(actor.pos, TILE_SIZE)
+    move_dest = vector.add(move_src, delta)
 
-    if not ctx.stage.is_cell_walkable(target_cell, scale=TILE_SIZE):  # TODO: handle oasis elevation differences
+    if not ctx.stage.is_cell_walkable(move_dest, scale=TILE_SIZE):  # TODO: handle oasis elevation differences
       return False
 
     # block player movement outside of enemy territory if adjacent to enemy
-    if (target_cell not in ctx.room.cells
+    if (move_dest not in ctx.room.cells
     and [e for e in ctx.find_enemies() if is_adjacent(e.cell, actor.cell)]):
       return False
 
     # block enemy movement outside of own territory
-    if actor.ai_territory and target_cell not in actor.ai_territory.cells:
+    if actor.ai_territory and move_dest not in actor.ai_territory.cells:
       return False
 
     target_elem = (
-      next((e for e in ctx.stage.get_elems_at(target_cell) if e.solid), None)
-      or next((e for e in ctx.stage.get_elems_at(target_cell)), None)
+      next((e for e in ctx.stage.get_elems_at(move_dest) if e.solid), None)
+      or next((e for e in ctx.stage.get_elems_at(move_dest)), None)
     )
 
     if target_elem and target_elem.solid and not (target_elem is ctx.ally and not ctx.ally.command):
@@ -214,8 +215,6 @@ class ExploreBase(Context):
     has_command_queue = "command_queue" in dir(ctx)
     has_command_queue and ctx.command_queue.append(move_command)
 
-    move_src = actor.cell if fixed else downscale(actor.pos, TILE_SIZE)
-    move_dest = target_cell if fixed else vector.add(move_src, delta)
     move_duration = duration or MOVE_DURATION
     move_duration = move_duration * 1.5 if jump else move_duration
     move_kind = JumpAnim if jump else StepAnim
@@ -231,7 +230,10 @@ class ExploreBase(Context):
     )
     move_anim.update() # initial update to ensure walk animation loops seamlessly
 
-    move_group = next((g for g in ctx.anims for a in g if isinstance(a, StepAnim) and isinstance(a.target, DungeonActor)), None)
+    move_group = next((g for g in ctx.anims for a in g
+        if isinstance(a, StepAnim)
+        and isinstance(a.target, DungeonActor)
+        and not next((True for a in g if a.target is actor), False)), None)
     not move_group and ctx.anims.append(move_group := [])
     move_group.append(move_anim)
 
@@ -239,7 +241,7 @@ class ExploreBase(Context):
       ctx.anims[-1].append(PauseAnim(duration=move_duration + 5))
 
     ctx.update_bubble()
-    actor.cell = target_cell
+    actor.cell = move_dest
     actor.facing = normalize_direction(delta)
     actor.command = move_command
 
@@ -267,7 +269,7 @@ class ExploreBase(Context):
       elif random() < received_noise * 2:
         actor.alert(cell)
 
-  def handle_push(ctx):
+  def handle_push(ctx, fixed=False):
     target_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
     target_elem = next((e for e in ctx.stage.get_elems_at(target_cell) if e.solid and not e.static), None)
     if not target_elem:
@@ -276,13 +278,14 @@ class ExploreBase(Context):
     return ctx.push(
       actor=ctx.hero,
       target=target_elem,
+      fixed=fixed,
       on_end=lambda: (
         ctx.update_bubble(),
         "step" in dir(ctx) and ctx.step(),
       )
     )
 
-  def push(ctx, actor, target, on_end=None):
+  def push(ctx, actor, target, fixed=False, on_end=None):
     src_cell = target.cell
     dest_cell = vector.add(src_cell, actor.facing)
     dest_elem = next((e for e in ctx.stage.get_elems_at(dest_cell) if e.solid), None)
@@ -293,7 +296,7 @@ class ExploreBase(Context):
       return False
 
     target.cell = dest_cell
-    ctx.move_cell(actor, delta=actor.facing, duration=PUSH_DURATION, fixed=False, on_end=on_end)
+    ctx.move_cell(actor, delta=actor.facing, duration=PUSH_DURATION, fixed=fixed, on_end=on_end)
     not ctx.anims and ctx.anims.append([])
     ctx.anims[-1].extend([
       StepAnim(

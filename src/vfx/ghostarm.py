@@ -66,5 +66,5 @@ class GhostArmVfx(Vfx):
       image=fx_image,
       pos=fx.pos,
       origin=("center", "bottom"),
-      layer="vfx"
+      layer="elems"
     )]

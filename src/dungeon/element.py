@@ -152,9 +152,9 @@ class DungeonElement:
         or not anim.cell):
           continue
         if anims.index(group) > 0:
-          anim_x, anim_y, *anim_z = anim.src
+          anim_x, anim_y, *anim_z = anim.cell
           anim_z = anim_z and anim_z[0] or 0
-          elem_x, elem_y = elem.cell
+          elem_x, elem_y = anim.src
           return (
             (anim_x - elem_x) * TILE_SIZE,
             (anim_y - anim_z - elem_y) * TILE_SIZE
@@ -173,7 +173,7 @@ class DungeonElement:
   def find_step_anim_offset(elem, anim):
     anim_x, anim_y, *anim_z = anim.cell
     anim_z = max(0, anim_z and anim_z[0] or 0)
-    elem_x, elem_y = elem.cell
+    elem_x, elem_y = anim.src
     offset_x = (anim_x - elem_x) * TILE_SIZE
     offset_y = (anim_y - anim_z - elem_y) * TILE_SIZE
     return (offset_x, offset_y)

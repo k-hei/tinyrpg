@@ -293,7 +293,7 @@ class CombatContext(ExploreBase):
       if not moved and button not in ctx.buttons_rejected:
         ctx.buttons_rejected[button] = 0
       elif not moved and ctx.buttons_rejected[button] >= 30:
-        return ctx.handle_push()
+        return ctx.handle_push(fixed=True)
 
       return moved
 
@@ -384,7 +384,7 @@ class CombatContext(ExploreBase):
 
     moved = False
     if delta != (0, 0):
-      moved = ctx.move_cell(actor, delta, run, on_end=on_end)
+      moved = ctx.move_cell(actor, delta, run, fixed=True, on_end=on_end)
 
     if not moved:
       actor.ai_path = ctx.stage.pathfind(start=actor.cell, goal=dest)
