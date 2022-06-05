@@ -712,7 +712,7 @@ def gen_floor(
       if room.data and not room.data.items:
         continue
 
-      if room.data and type(room.data.items) is list:
+      if room.data and isinstance(room.data.items, list):
         room_items = [Vase(contents=i) for i in room.data.items]
       elif room in secrets:
         item_count = min(8, room.get_area() // 16)
@@ -720,6 +720,7 @@ def gen_floor(
       else:
         item_count = max(1, min(3, room.get_area() // 24))
         room_items = [Vase(contents=choice(items)) for _ in range(item_count)]
+
       vases_spawned = gen_elems(stage, room, elems=room_items)
 
     for i, room in enumerate(rooms):

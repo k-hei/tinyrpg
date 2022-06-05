@@ -95,7 +95,8 @@ class Stage:
     stage.tiles[cell] = tile
 
   def is_tile_at_of_type(stage, cell, tile_type):
-    return next((t for t in stage.get_tiles_at(cell) if isinstance(t, type) and issubclass(t, tile_type)), None)
+    return next((t for t in stage.get_tiles_at(cell)
+      if Tile.is_of_type(t, tile_type)), None)
 
   def is_tile_at_solid(stage, cell, scale=0):
     if cell not in stage:

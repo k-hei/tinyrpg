@@ -4,6 +4,7 @@ from lib.cell import add
 from dungeon.features import Feature
 from dungeon.actors import DungeonActor
 from dungeon.props.door import Door
+from locations.default.tile import Tile
 import locations.default.tileset as tileset
 from config import ROOM_WIDTHS, ROOM_HEIGHTS
 
@@ -116,7 +117,7 @@ class Room(Feature):
     return [e for c in room.get_border() for e in stage.get_elems_at(c) if isinstance(e, Door)]
 
   def get_doorways(room, stage):
-    return [e for e in room.get_edges() if not issubclass(stage.get_tile_at(e), tileset.Wall)]
+    return [e for e in room.get_edges() if not Tile.is_of_type(stage.get_tile_at(e), tileset.Wall)]
 
   def get_enemies(room, stage):
     return [e for e in stage.elems if (

@@ -15,6 +15,7 @@ def gen_elems(stage, room, elems):
     )]
   else:
     valid_cells = get_room_bonus_cells(room, stage)
+
   valid_cells = [c for c in valid_cells if stage.is_cell_empty(c)]
 
   shuffle(valid_cells)
@@ -22,13 +23,14 @@ def gen_elems(stage, room, elems):
     cell = valid_cells.pop(0)
     stage.spawn_elem_at(cell, elems.pop(0))
     spawn_count += 1
+
   return spawn_count
 
 def get_room_bonus_cells(room, stage):
   room_cells = room.cells
   room_doorways = room.get_doorways(stage)
-  is_wall = lambda x, y: not stage.is_cell_empty((x, y)) or stage.get_tile_at((x, y)) is tileset.Pit
-  is_floor = lambda x, y: stage.get_tile_at((x, y)) is tileset.Floor
+  is_wall = lambda x, y: not stage.is_cell_empty((x, y)) or stage.is_tile_at_pit((x, y))
+  is_floor = lambda x, y: stage.is_tile_at_of_type((x, y), tileset.Floor)
   bonus_cells = [(x, y) for x, y in room_cells if (
     is_floor(x, y)
     and not next((d for d in room_doorways if is_adjacent(d, (x, y))), None)

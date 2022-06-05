@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 from lib.grid import Grid
 from lib.bounds import find_bounds
 import lib.vector as vector
@@ -128,7 +126,7 @@ def merge_territories(stage, territories):
 
 def spawn_elems(stage, elem_data, offset=(0, 0), tileset=None):
     for elem_cell, elem_name, *elem_props in elem_data:
-        elem_props = deepcopy(elem_props[0]) if elem_props else {}
+        elem_props = elem_props[0] if elem_props else {}
         elem = decode_elem(elem_cell, elem_name, elem_props, tileset)
         if not elem:
             debug.log("Failed to decode elem", elem_name)
