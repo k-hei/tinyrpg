@@ -466,6 +466,7 @@ class DungeonContext(ExploreBase):
         ctx.handle_oasis()
 
       if ctx.find_enemies_in_range() and isinstance(ctx.get_tail(), (ExploreContext, CombatContext)):
+        ctx.refresh_fov()
         ctx.handle_combat(path=True)
 
     ctx.hero_cell = ctx.hero.cell
