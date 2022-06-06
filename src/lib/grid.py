@@ -39,7 +39,7 @@ class Grid:
       return -1
 
     x, y = cell
-    return y * grid.width + x
+    return int(y) * grid.width + int(x)
 
   def enumerate(grid):
     return [((x, y), grid[x, y]) for y in range(grid.height) for x in range(grid.width)]

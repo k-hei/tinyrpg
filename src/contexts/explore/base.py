@@ -189,9 +189,9 @@ class ExploreBase(Context):
 
   def move_cell(ctx, actor, delta, duration=0, jump=False, fixed=True, on_end=None):
     move_src = actor.cell if fixed else downscale(actor.pos, TILE_SIZE)
-    move_dest = vector.add(move_src, delta)
+    move_dest = vector.add(actor.cell, delta)
 
-    if not ctx.stage.is_cell_walkable(move_dest, scale=TILE_SIZE):  # TODO: handle oasis elevation differences
+    if not ctx.stage.is_cell_walkable(move_dest, scale=TILE_SIZE):
       return False
 
     # block player movement outside of enemy territory if adjacent to enemy
@@ -209,6 +209,7 @@ class ExploreBase(Context):
     )
 
     if target_elem and target_elem.solid and not (target_elem is ctx.ally and not ctx.ally.command):
+      print("block move: solid target elem")
       return False
 
     move_command = (actor, (COMMAND_MOVE, delta))
@@ -221,7 +222,7 @@ class ExploreBase(Context):
     move_anim = move_kind(
       target=actor,
       src=move_src,
-      dest=move_dest,
+      dest=vector.add(move_src, delta),
       duration=move_duration,
       on_end=lambda: (
         has_command_queue and move_command in ctx.command_queue and ctx.command_queue.remove(move_command),
