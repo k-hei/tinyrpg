@@ -136,6 +136,9 @@ def manifest_room(room_data):
         enemy.ai_spawn = enemy.cell
         enemy.ai_territory = next((r for r in stage.rooms if enemy.cell in r.cells), None)
 
+    if "on_place" in room_data.hooks:
+        room_data.hooks["on_place"](room, stage)
+
     return stage
 
 def find_territory(stage, cell):
