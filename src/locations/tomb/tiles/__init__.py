@@ -10,6 +10,7 @@ from dungeon.props.door import Door
 from dungeon.props.secretdoor import SecretDoor
 
 from locations.tomb.tiles.walltop import render_walltop
+from locations.tomb.tiles.oasis import render_oasis
 from locations.tileset import Tileset
 from locations.default.tile import Tile
 from locations.default.tileset import (
@@ -108,7 +109,7 @@ class Wall(DefaultWall):
         is_elevated = False
         is_special_room = False
 
-        if (Tile.is_of_type(tile_below, (Floor, Pit, Hallway))
+        if (Tile.is_of_type(tile_below, (Floor, Pit, Hallway, Oasis))
         and (visited_cells is None or (x, y + 1) in visited_cells)
         and not next((e for e in stage.get_elems_at((x, y + 1)) if isinstance(e, Door)), None)):
             if is_special_room:
@@ -154,6 +155,20 @@ class Exit(DefaultExit):
 class Escape(DefaultEscape):
     sprite = assets.sprites["stairs_up"]
 
+class Oasis(DefaultOasis):
+    @classmethod
+    def render(cls, stage, cell, visited_cells):
+        return render_oasis(stage, cell, visited_cells)
+
+class OasisStairs(DefaultOasisStairs):
+    @classmethod
+    def render(cls, stage, cell, _):
+        x, y = cell
+        if stage.is_tile_at_of_type((x, y - 1), Floor):
+            return assets.sprites["oasis_stairs_down"]
+        else:
+            return assets.sprites["oasis_stairs_up"]
+
 
 class TombTileset(Tileset):
     tile_size = TILE_SIZE
@@ -165,8 +180,8 @@ class TombTileset(Tileset):
         "<": Entrance,
         ">": Exit,
         "E": Escape,
-        # "O": Oasis,
-        # "I": OasisStairs,
+        "O": Oasis,
+        "I": OasisStairs,
     }
 
     Floor = Floor
@@ -176,6 +191,8 @@ class TombTileset(Tileset):
     Entrance = Entrance
     Exit = Exit
     Escape = Escape
+    Oasis = Oasis
+    OasisStairs = OasisStairs
 
     @classmethod
     def is_tile_at_solid(cls, tile):
@@ -196,6 +213,10 @@ class TombTileset(Tileset):
     @classmethod
     def is_tile_at_pit(cls, tile):
         return cls.is_tile_at_of_type(tile, Pit)
+
+    @classmethod
+    def is_tile_at_oasis(cls, tile):
+        return cls.is_tile_at_of_type(tile, Oasis)
 
     @staticmethod
     def find_tile_state(tile, stage, cell, visited_cells):

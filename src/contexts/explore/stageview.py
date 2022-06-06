@@ -163,7 +163,7 @@ class StageView:
   def render_cell(view, stage, cell, visited_cells, use_cache=False):
     tiles = stage.get_tile_at(cell)
     if not tiles:
-      return False
+      return None
 
     # get tile state (state of this cell and rendering-relevant neighbors)
     tile_hash = find_tile_hash(stage, cell, visited_cells)
@@ -268,6 +268,8 @@ class StageView:
         try:
           use_cache = cell not in visible_cells or view.darkened
           tile_images = view.render_cell(view.stage, cell, visited_cells, use_cache)
+          if not tile_images:
+            continue
 
           # blit tile image stack onto associated layers
           # view.draw_tile_image_stack(tile_images, cell=vector.subtract(cell, view.tile_offset))

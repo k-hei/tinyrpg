@@ -1,19 +1,18 @@
 from pygame import Surface
 from pygame.transform import flip
 import assets
-import locations.default.tileset as tileset
+from locations.default.tileset import black_square, OasisStairs
 from config import TILE_SIZE
 from colors.palette import BLACK
 
-black_square = Surface((TILE_SIZE, TILE_SIZE))
-black_square.fill(BLACK)
 
 def render_oasis(stage, cell, visited_cells=[]):
   x, y = cell
   o = lambda x, y: (
-    issubclass(stage.get_tile_at((x, y)), tileset.Oasis)
-    or issubclass(stage.get_tile_at((x, y)), tileset.OasisStairs)
+    stage.is_tile_at_oasis((x, y))
+    or stage.is_tile_at_of_type((x, y), OasisStairs)
   )
+
   if o(x, y - 1) and o(x, y + 1) and not o(x - 1, y):
     return assets.sprites["oasis_edge"]
   elif o(x, y - 1) and o(x, y + 1) and not o(x + 1, y):
