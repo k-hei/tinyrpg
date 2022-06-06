@@ -141,6 +141,8 @@ class Minimap:
             color = (0xFFFF00, 0x7F7F00)[blink]
           elif type(elem) is Altar:
             color = (0xFFFF00, 0x7F7F00)[blink]
+          elif isinstance(elem, SecretDoor) and elem.hidden:
+            color = COLOR_WALL if is_cell_visible else COLOR_WALL_DARK
           elif isinstance(elem, Door) and not elem.opened:
             color = COLOR_DOOR if is_cell_visible else COLOR_DOOR_DARK
           elif isinstance(elem, Door) and elem.opened:
@@ -156,16 +158,15 @@ class Minimap:
         elif floor.is_tile_at_pit(cell):
           if is_cell_visible:
             color = None # 0x000000
-        elif floor.is_tile_at_wall(cell):  # (issubclass(tile, tileset.Wall)
-        # or issubclass(tile, tileset.Hallway) and SecretDoor.exists_at(floor, (col, row + 1))
-        # ):
+        elif (floor.is_tile_at_wall(cell)
+        or floor.is_tile_at_of_type(cell, tileset.Hallway) and SecretDoor.exists_at(floor, (col, row + 1))):
           if is_cell_visible:
             if filled:
               continue
             color = COLOR_WALL
           else:
             color = COLOR_WALL_DARK
-        elif floor.is_tile_at_oasis(cell): # issubclass(tile, tileset.Oasis) or issubclass(tile, tileset.OasisStairs):
+        elif floor.is_tile_at_oasis(cell):
           color = COLOR_OASIS if is_cell_visible else COLOR_OASIS_DARK
         else:
           color = COLOR_FLOOR if is_cell_visible else COLOR_FLOOR_DARK
@@ -216,7 +217,7 @@ class Minimap:
     # requires: hero, stage, visited cells, animations?
     # - isn't this identical to what the stage view requires?
     # - if we wanted to coalesce these into an isolated store,
-    #     we'd to name it so it's easier to pass down
+    #     we'd need to name it so it's easier to pass down
     # - could try passing in args on init by reference
     # - hero and stage will change
 
