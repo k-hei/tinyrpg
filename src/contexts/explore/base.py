@@ -22,6 +22,7 @@ from locations.default.tile import Tile
 import locations.default.tileset as tileset
 from vfx.talkbubble import TalkBubble
 from config import MOVE_DURATION, PUSH_DURATION, SKILL_BADGE_POS_SOLO, SKILL_BADGE_POS_ALLY, TILE_SIZE
+import debug
 
 
 COMMAND_MOVE = "move"
@@ -134,10 +135,11 @@ class ExploreBase(Context):
 
   @property
   def facing_elem(ctx):
-    if not ctx.hero:
+    hero = ctx.hero
+    if not hero:
       return None
 
-    facing_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
+    facing_cell = vector.add(hero.cell, hero.facing)
     facing_elems = ctx.stage.get_elems_at(facing_cell, scale=TILE_SIZE)
     facing_elem = next((e for e in facing_elems if (
       e.active
@@ -563,7 +565,8 @@ class ExploreBase(Context):
       ctx.buttons_rejected[button] += 1
 
   def update_bubble(ctx):
-    if not ctx.hero:
+    hero = ctx.hero
+    if not hero:
       if ctx.talkbubble:
         ctx.talkbubble.done = True
       return
@@ -571,7 +574,7 @@ class ExploreBase(Context):
     facing_elem = ctx.facing_elem
     facing_cell = facing_elem and facing_elem.cell
     if not facing_elem:
-      facing_cell = ctx.hero.cell
+      facing_cell = hero.cell
       facing_tile = ctx.stage.get_tile_at(facing_cell)
       if ctx.stage.is_tile_at_port(facing_cell):
         facing_elem = facing_tile
@@ -579,7 +582,7 @@ class ExploreBase(Context):
     pending_anims = [a for g in ctx.anims for a in g if not a.done]
 
     can_show_bubble = (not pending_anims
-      and not ctx.hero.item
+      and not hero.item
       and not (ctx.child and ctx.child.child)
       and not isinstance(ctx.get_tail(), CutsceneContext))
     if ctx.talkbubble and ctx.talkbubble.target is facing_elem and can_show_bubble:

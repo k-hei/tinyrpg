@@ -233,6 +233,9 @@ class Minimap:
 
     game = minimap.parent
     floor = game.stage
+    if floor.is_overworld:
+      return minimap.sprite
+
     hero = game.hero
     if not hero or not hero.cell:
       return minimap.sprite

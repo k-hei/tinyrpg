@@ -128,20 +128,18 @@ class Stage:
     return None
 
   def get_elems_at(stage, cell, scale=0):
-    rescaling = bool(scale)
-    scale = scale or stage.tile_size
 
     def is_elem_at_cell(elem, cell):
-      elem_cell = (downscale(elem.pos, scale, floor=True)
-        if rescaling
-        else elem.cell)
-      return (elem_cell == cell
+      return (elem.cell == cell
         or (elem.size != (1, 1)
-          and Rect(elem_cell, elem.size).collidepoint(cell)
+          and Rect(elem.cell, elem.size).collidepoint(cell)
         )
-      )  # TODO: create separation between element collision and draw rects
+      )
 
-    return [e for e in stage.elems if is_elem_at_cell(e, cell)]
+    return [e for e in stage.elems if is_elem_at_cell(
+      elem=e,
+      cell=cell,
+    )]
 
   def spawn_elem_at(stage, cell, elem):
     elem.spawn(stage, cell)

@@ -482,7 +482,7 @@ class DungeonContext(ExploreBase):
         elem.on_leave(ctx)
 
     is_travelling = False
-    if ctx.hero_cell:
+    if ctx.hero_cell and not ctx.stage.is_overworld:
       old_door = next((e for e in ctx.stage.get_elems_at(ctx.hero_cell) if isinstance(e, Door)), None)
       new_door = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if isinstance(e, Door) and e.opened), None)
       new_tile = ctx.stage.get_tile_at(ctx.hero.cell)
@@ -503,7 +503,7 @@ class DungeonContext(ExploreBase):
       if ctx.stage.is_tile_at_oasis(ctx.hero_cell):
         ctx.handle_oasis()
 
-      if ctx.find_enemies_in_range() and isinstance(ctx.get_tail(), (ExploreContext, CombatContext)):
+      if ctx.find_enemies_in_range() and isinstance(ctx.get_tail(), ExploreContext):
         ctx.refresh_fov()
         ctx.handle_combat(path=True)
 

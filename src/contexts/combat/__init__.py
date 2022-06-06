@@ -218,8 +218,10 @@ class CombatContext(ExploreBase):
     not anim_group in ctx.anims and ctx.anims.append(anim_group)
 
     room = ctx.room
-    room_cells = [c for c in room.cells
-      if ctx.stage.is_cell_walkable(c)]
+    room_cells = room.cells
+    if not ctx.stage.is_overworld:
+      room_cells = [c for c in room_cells
+        if ctx.stage.is_cell_walkable(c, scale=TILE_SIZE)]
 
     room_cells = sorted(room_cells, key=lambda c: c[1] * ctx.stage.width + c[0])
     room_cells_by_dist = {}
@@ -1038,8 +1040,10 @@ class CombatContext(ExploreBase):
     cols = WINDOW_WIDTH // TILE_SIZE + 2
     rows = WINDOW_HEIGHT // TILE_SIZE + 2
 
-    room_cells = [c for c in room.cells
-      if ctx.stage.is_cell_walkable(c)]
+    room_cells = room.cells
+    if not ctx.stage.is_overworld:
+      room_cells = [c for c in room_cells
+        if ctx.stage.is_cell_walkable(c)]
 
     grid_cells = [(x, y)
       for y in range(top_row, top_row + rows)
