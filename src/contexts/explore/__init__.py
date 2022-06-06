@@ -433,11 +433,7 @@ class ExploreContext(ExploreBase):
 
     facing_elem = ctx.facing_elem
     if facing_elem is None:
-      used_stairs = ctx.handle_stairs()
-      if used_stairs:
-        return True
-      else:
-        return False
+      return ctx.handle_stairs()
 
     success = facing_elem.effect(ctx, ctx.hero)
     if success:
@@ -530,7 +526,7 @@ class ExploreContext(ExploreBase):
     dungeon = ctx.parent
     game = dungeon.parent
     app.transition([
-      DissolveIn(on_end=lambda: game.goto_town()),
+      DissolveIn(on_end=lambda: game.goto_town(returning=True)),
       DissolveOut()
     ])
 

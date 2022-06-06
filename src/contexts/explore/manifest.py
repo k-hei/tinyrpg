@@ -116,7 +116,7 @@ def manifest_room(room_data):
     if stage.entrance is None:
         stage.entrance = vector.add(room_data.edges[-1], room.origin)
 
-    if not room_tileset.is_overworld:
+    if not room_tileset.is_overworld and stage.is_tile_at_of_type(stage.entrance, room_tileset.Wall):
         stage.set_tile_at(stage.entrance, room_tileset.Hallway)
         stage.spawn_elem_at(stage.entrance, Door(opened=True))
 

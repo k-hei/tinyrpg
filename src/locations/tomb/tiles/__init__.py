@@ -149,10 +149,10 @@ class Pit(DefaultPit):
             else black_square)
 
 class Entrance(DefaultEntrance):
-    sprite = assets.sprites["stairs_up"]
+    sprite = assets.sprites["stairs_down"]
 
 class Exit(DefaultExit):
-    sprite = assets.sprites["stairs_down"]
+    sprite = assets.sprites["stairs_up"]
 
 class Escape(DefaultEscape):
     sprite = assets.sprites["stairs_up"]
@@ -219,6 +219,10 @@ class TombTileset(Tileset):
     @classmethod
     def is_tile_at_oasis(cls, tile):
         return cls.is_tile_at_of_type(tile, Oasis)
+
+    @classmethod
+    def is_tile_at_port(cls, tile):
+        return cls.is_tile_at_of_type(tile, (Entrance, Exit, Escape))
 
     @staticmethod
     def find_tile_state(tile, stage, cell, visited_cells):

@@ -27,6 +27,7 @@ import debug
 from town.context import TownContext
 from town.topview.stage import Stage as TownTopViewArea
 from town.sideview.stage import Area as TownSideViewArea
+from town.areas.outskirts import OutskirtsArea
 from town.graph import WorldGraph
 
 
@@ -148,7 +149,10 @@ class GameContext(Context):
     app = ctx.get_head()
     not app.transits and app.transition([DissolveOut()])
 
-  def goto_town(ctx, area=None, port=None):
+  def goto_town(ctx, area=None, port=None, returning=False):
+    if returning and area is None and port is None:
+      area, port = OutskirtsArea, "tower"
+
     town = TownContext(store=ctx.store, area=area, port=port)
     ctx.store.place = town
     ctx.open(town)

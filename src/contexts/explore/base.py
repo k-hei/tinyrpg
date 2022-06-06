@@ -133,6 +133,7 @@ class ExploreBase(Context):
   def facing_elem(ctx):
     if not ctx.hero:
       return None
+
     facing_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
     facing_elems = ctx.stage.get_elems_at(facing_cell, scale=TILE_SIZE)
     facing_elem = next((e for e in facing_elems if (
@@ -140,6 +141,7 @@ class ExploreBase(Context):
       and not e.expires
       and (not isinstance(e, DungeonActor) or e.faction == "ally")
     )), None)
+
     return facing_elem
 
   @property
