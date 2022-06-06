@@ -21,7 +21,7 @@ from config import PUSH_DURATION, RUN_DURATION, NUDGE_DURATION
 
 def on_enter(room, game):
   room.mage = game.stage.find_elem(cls="Mage")
-  game.get_tail().open(CutsceneContext([
+  game.open(CutsceneContext([
     *(cutscene(room, game) if (config.CUTSCENES and "minxia" not in game.store.story) else [
       game.stage.remove_elem(room.mage),
       setattr(room, "mage", None),

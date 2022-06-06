@@ -280,7 +280,7 @@ class DungeonContext(ExploreBase):
   def handle_hallway(ctx):
     hallway = ctx.find_hallway(ctx.hero.cell)
     if not hallway:
-      return
+      return False
 
     if not ctx.stage.is_overworld:
       ctx.comps.minimap.exit(),
@@ -355,6 +355,8 @@ class DungeonContext(ExploreBase):
       ctx.anims[0][-1].on_end = handle_end
     else:
       handle_end()
+
+    return True
 
   def find_hallway(ctx, cell):
     if not ctx.stage.is_tile_at_hallway(cell):
@@ -490,8 +492,7 @@ class DungeonContext(ExploreBase):
       if ((ctx.stage.is_tile_at_hallway(ctx.hero_cell) or ctx.stage.is_tile_at_hallway(ctx.hero.cell))
       and (new_door or old_door)
       and not (new_door and old_door)):
-        ctx.handle_hallway()
-        is_travelling = True
+        is_travelling = ctx.handle_hallway()
         step_anim = next((a for g in ctx.anims for a in g if a.target is ctx.hero and isinstance(a, StepAnim)), None)
         if step_anim:
           step_anim.done = True
@@ -520,16 +521,23 @@ class DungeonContext(ExploreBase):
     for comp in ctx.comps:
       comp.update()
 
-    if ctx.hero and ctx.hero_facing != ctx.hero.facing:
-      ctx.hero_facing = ctx.hero.facing
-      ctx.update_bubble()
-
-    if ctx.hero and ctx.hero_cell != ctx.hero.cell:
-      ctx.update_hero_cell()
+    ctx.update_hero()
 
     ctx.camera.update()
     ctx.stage_view.update()
     super().update()
+
+  def update_hero(ctx):
+    hero = ctx.hero
+    if not hero:
+      return
+
+    if hero and ctx.hero_facing != hero.facing:
+      ctx.hero_facing = hero.facing
+      ctx.update_bubble()
+
+    if hero and ctx.hero_cell != hero.cell:
+      ctx.update_hero_cell()
 
   def view(ctx):
     sprites = ctx.stage_view.view(
