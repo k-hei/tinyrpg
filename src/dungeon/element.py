@@ -151,10 +151,11 @@ class DungeonElement:
         or not isinstance(anim, (StepAnim, PathAnim))
         or not anim.cell):
           continue
+
         if anims.index(group) > 0:
           anim_x, anim_y, *anim_z = anim.cell
           anim_z = anim_z and anim_z[0] or 0
-          elem_x, elem_y = anim.src
+          elem_x, elem_y = elem.cell
           return (
             (anim_x - elem_x) * TILE_SIZE,
             (anim_y - anim_z - elem_y) * TILE_SIZE
@@ -188,6 +189,7 @@ class DungeonElement:
 
     if type(sprites) is Surface:
       sprites = Sprite(image=sprites, layer="elems")
+
     if type(sprites) is Sprite:
       sprites = [sprites]
 
@@ -215,14 +217,17 @@ class DungeonElement:
         and not next((a for g in anims for a in g if a.target is elem and type(a) is FlinchAnim), None)
         ):
           elem.facing = tuple(map(int, anim.facing))
+
       if isinstance(anim, MoveAnim):
         elem.pos = anim.pos
+
       if isinstance(anim, (StepAnim, PathAnim)) and anim.cell:
         anim_x, anim_y, *anim_z = anim.cell
         elem.pos = vector.scale(
           vector.add((anim_x, anim_y), (0.5, 0.5)),
           TILE_SIZE
         )
+
       if type(anim) is ItemAnim:
         item_image = anim.item.render()
         item_offset = min(12, 6 + anim.time // 2) + ITEM_OFFSET
