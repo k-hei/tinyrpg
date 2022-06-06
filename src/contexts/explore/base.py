@@ -308,7 +308,7 @@ class ExploreBase(Context):
       if e.solid and e is not target), None)
 
     if (target.static
-    or not is_cell_walkable_to_actor(ctx.stage, cell=dest_cell, actor=target)
+    or not is_tile_walkable_to_actor(ctx.stage, cell=dest_cell, actor=target)
     or dest_elem):
       return False
 

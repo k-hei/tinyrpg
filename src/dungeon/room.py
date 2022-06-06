@@ -175,9 +175,10 @@ class Blob(Room):
     enemies = [e for e in room.get_enemies(stage) if e is not actor]
     pushtile = next((e for e in stage.elems if (
       type(e).__name__ == "PushTile"
-      and not e.completed
-      and e.cell in room.get_cells()
+      and e.cell in room.cells
+      and not e.pushed
     )), None)
+    print(enemies, pushtile)
     return (
       not enemies
       and not pushtile
@@ -232,7 +233,8 @@ class Blob(Room):
   def on_defeat(room, game, actor):
     if room.resolve_hook("on_defeat"):
       result = room.trigger_hook("on_defeat", game, actor)
-      if result is not None: return result
+      if result is not None:
+        return result
 
     elif room.should_unlock(game.stage, actor):
       if game.stage.is_overworld:
