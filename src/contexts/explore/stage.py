@@ -120,6 +120,10 @@ class Stage:
   def is_tile_at_port(stage, cell):
     return stage.tileset.is_tile_at_port(tile=stage.get_tile_at(cell))
 
+  def get_tile_at_elev(stage, cell):
+    tile = stage.get_tile_at(cell)
+    return tile.elev if Tile.is_tile(tile) else 0
+
   def get_elem_at(stage, cell):
     return None
 

@@ -300,13 +300,16 @@ class ExploreContext(ExploreBase):
     cell_ne = (col_e, row_n)
     cell_sw = (col_w, row_s)
     cell_se = (col_e, row_s)
-    tile_c = stage.get_tile_at(vector.floor(vector.scale(rect.center, 1 / stage.tile_size)))
+    actor_cell = vector.floor(vector.scale(rect.center, 1 / stage.tile_size))
+    actor_elev = stage.get_tile_at_elev(actor_cell)
 
+    # TODO: use stage.is_cell_walkable
+    # TODO: handle floating actors
     is_tile_at_walkable = lambda cell: (
       cell in stage
       and not stage.is_tile_at_solid(cell)
       and not stage.is_tile_at_pit(cell)
-      # and abs(tile.elev - tile_c.elev) < 1
+      and abs(stage.get_tile_at_elev(cell) - actor_elev) < 1
     )
 
     collidee = None
