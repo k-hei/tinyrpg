@@ -41,6 +41,7 @@ from dungeon.floors.genericfloor import GenericFloor
 from dungeon.gen.floorgraph import FloorGraph
 from helpers.stage import find_tile
 
+
 FLOOR_SEQUENCE = [Floor1, Floor2, Floor3]
 
 class DungeonContext(ExploreBase):
@@ -437,7 +438,7 @@ class DungeonContext(ExploreBase):
       path=path,
     ), on_close=lambda: (
       ctx.handle_explore(),
-      ctx.refresh_fov(),
+      # ctx.refresh_fov(),
     ))
     ctx.comps.minimap.exit()
     ctx.comps.floor_no.exit()

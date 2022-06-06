@@ -1,5 +1,6 @@
-from config import DEBUG
 from time import time_ns
+import traceback
+from config import DEBUG
 
 buffer = ""
 benches = {}
@@ -38,3 +39,6 @@ def dictify(obj):
     and not key.startswith("__")
     and not callable(getattr(obj, key))
   )}
+
+def print_stack_trace():
+  traceback.print_stack()
