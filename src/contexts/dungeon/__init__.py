@@ -249,6 +249,9 @@ class DungeonContext(ExploreBase):
     if not hallway:
       return
 
+    if not ctx.stage.is_overworld:
+      ctx.comps.minimap.exit(),
+
     room = next((r for r in ctx.stage.rooms if hallway[-1] in r.edges), None)
     door = next((e for e in ctx.stage.get_elems_at(hallway[-1]) if isinstance(e, Door)), None)
     if door:
@@ -283,6 +286,7 @@ class DungeonContext(ExploreBase):
     handle_end = lambda: (
       setattr(ctx.stage_view, "transitioning", False),
       ctx.refresh_fov(),
+      not ctx.stage.is_overworld and ctx.comps.minimap.enter(),
     )
 
     ctx.hero.cell = hallway[-1]
