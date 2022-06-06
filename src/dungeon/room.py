@@ -20,6 +20,7 @@ class Blob(Room):
     room._cells = [subtract_vector(c, rect.topleft) for c in cells]
     room.origin = origin or rect.topleft
     room.data = data
+    room.elem_store = {}
     super().__init__(size=rect.size, cell=room.origin, degree=degree, *args, **kwargs)
 
   @property
@@ -199,19 +200,24 @@ class Blob(Room):
 
   def on_place(room, stage):
     room.lock_special_doors(stage)
+
+    for elem in stage.elems:
+      room.elem_store[elem] = elem.cell
+
     return room.trigger_hook("on_place", stage)
 
   def on_focus(room, game):
-    pushblock = next((e for c in room.cells for e in game.stage.get_elems_at(c) if (
-      type(e).__name__ == "PushBlock"
-      and not e.static
-    )), None)
-    if pushblock and room.data:
-      pushblock_spawn = next((c for c, e in room.data.elems if e == "PushBlock"), None)
-      pushblock.cell = vector.add(room.origin, pushblock_spawn)
     if not super().on_focus(game):
       return False
     return room.trigger_hook("on_focus", game)
+
+  def on_blur(room, game):
+    if not game.stage.is_overworld:
+      for elem, elem_spawn in room.elem_store.items():
+        if elem in game.stage.elems and not elem.static:
+          elem.cell = elem_spawn
+
+    return room.trigger_hook("on_blur", game)
 
   def on_enter(room, game, *args, **kwargs):
     if not super().on_enter(game, *args, **kwargs):

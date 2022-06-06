@@ -49,14 +49,13 @@ class PushTile(DungeonElement):
       tile.sinking = pushblock.SinkAnim.DEPTH
 
     # find_pushtiles(stage, room)
-    pushtiles = []
-    for cell in game.room.get_cells():
-      pushtile = next((e for e in game.stage.get_elems_at(cell) if isinstance(e, PushTile)), None)
-      if pushtile:
-        pushtiles.append(pushtile)
+    pushtiles = [e for c in game.room.cells
+      for e in game.stage.get_elems_at(c)
+        if isinstance(e, PushTile)]
 
     # complete_puzzle(pushtiles)
-    if not tile.completed and len([t for t in pushtiles if t.pushed]) == len(pushtiles):
+    if (not tile.completed
+    and len([t for t in pushtiles if t.pushed]) == len(pushtiles)):
       for t in pushtiles:
         tile.completed = True
       door = None

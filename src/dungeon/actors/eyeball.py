@@ -124,7 +124,7 @@ class Eyeball(DungeonActor):
       facing=facing,
       stats=Stats(
         hp=17,
-        st=12,
+        st=11,
         dx=6,
         ag=6,
         lu=3,

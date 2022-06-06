@@ -211,11 +211,14 @@ class Stage:
 
       for neighbor in neighborhood(cell):
         if neighbor != goal and (neighbor in closed_set
-        or not stage.contains(neighbor, scale=TILE_SIZE)
-        or not stage.is_cell_empty(neighbor, scale=TILE_SIZE)
-          and (not whitelist or neighbor not in whitelist)
-          and (not predicate or predicate(neighbor))
-        ):
+        or not stage.contains(neighbor, scale=TILE_SIZE)):
+          continue
+
+        if predicate and not predicate(neighbor):
+          continue
+
+        if (not stage.is_cell_empty(neighbor, scale=TILE_SIZE)
+        and (not whitelist or neighbor not in whitelist)):
           continue
 
         if neighbor not in open_set or not open_set[neighbor]:

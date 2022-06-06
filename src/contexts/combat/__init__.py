@@ -372,7 +372,7 @@ class CombatContext(ExploreBase):
       goal=dest,
       predicate=lambda cell: (
         not ctx.stage.is_tile_at_solid(cell)
-        and not ctx.stage.is_tile_at_pit(cell) or actor.floating
+        and (not ctx.stage.is_tile_at_pit(cell) or actor.floating)
       )
     )
 

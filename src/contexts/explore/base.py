@@ -289,7 +289,11 @@ class ExploreBase(Context):
   def push(ctx, actor, target, fixed=False, on_end=None):
     src_cell = target.cell
     dest_cell = vector.add(src_cell, actor.facing)
-    dest_elem = next((e for e in ctx.stage.get_elems_at(dest_cell) if e.solid), None)
+
+    # TODO: collide against all target cells
+    dest_elem = next((e for e in ctx.stage.get_elems_at(dest_cell)
+      if e.solid and e is not target), None)
+
     if (target.static
     or dest_cell not in ctx.stage
     or not ctx.stage.is_cell_walkable(dest_cell)

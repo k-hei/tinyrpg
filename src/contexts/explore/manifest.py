@@ -129,8 +129,7 @@ def manifest_room(room_data):
         if isinstance(e, DungeonActor)
         and e.faction == "enemy"]
 
-    if "on_place" in room_data.hooks:
-        room_data.hooks["on_place"](room, stage)
+    room.on_place(stage)
 
     if stage.is_overworld:
         enemy_territories = [find_territory(stage, e.cell) for e in enemies]

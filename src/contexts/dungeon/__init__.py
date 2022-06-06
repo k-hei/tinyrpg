@@ -221,6 +221,8 @@ class DungeonContext(ExploreBase):
     if (ctx.cache_room_focused is not room_focused
     or reset_cache
     or not room_focused):
+      if ctx.cache_room_focused:
+        ctx.cache_room_focused.on_blur(ctx)
       ctx.cache_room_focused = room_focused
       if (len(visible_cells) != len(hero.visible_cells)
       and visible_cells != hero.visible_cells):
