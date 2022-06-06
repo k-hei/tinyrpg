@@ -11,7 +11,7 @@ from colors.palette import BLACK, GRAY, PURPLE, DARKGRAY, DARKBLUE
 from config import PUSH_DURATION
 
 class PushTile(DungeonElement):
-  active = True
+  # active = True
 
   def __init__(tile, pushed=False, completed=False):
     super().__init__(solid=False)
@@ -21,13 +21,13 @@ class PushTile(DungeonElement):
     tile.anim = None
 
   @property
-  def rect(block):
-    if block._rect is None and block.pos:
-      block._rect = Rect(
-        vector.add(block.pos, (-16, -16)),
+  def rect(tile):
+    if tile._rect is None and tile.pos:
+      tile._rect = Rect(
+        vector.add(tile.pos, (-16, -16)),
         (32, 32)
       )
-    return block._rect
+    return tile._rect
 
   def encode(tile):
     [cell, kind, *props] = super().encode()
@@ -70,7 +70,7 @@ class PushTile(DungeonElement):
           )])
           break
 
-  def on_leave(tile, game):
+  def on_leave(tile, *_):
     if not tile.completed:
       tile.pushed = False
 

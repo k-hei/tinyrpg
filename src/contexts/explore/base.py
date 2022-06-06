@@ -209,7 +209,6 @@ class ExploreBase(Context):
     )
 
     if target_elem and target_elem.solid and not (target_elem is ctx.ally and not ctx.ally.command):
-      print("block move: solid target elem")
       return False
 
     move_command = (actor, (COMMAND_MOVE, delta))
@@ -242,6 +241,7 @@ class ExploreBase(Context):
       ctx.anims[-1].append(PauseAnim(duration=move_duration + 5))
 
     ctx.update_bubble()
+
     actor.cell = move_dest
     actor.facing = normalize_direction(delta)
     actor.command = move_command

@@ -448,6 +448,10 @@ class DungeonContext(ExploreBase):
     if ctx.hero_cell == ctx.hero.cell:
       return
 
+    if ctx.hero_cell:
+      for elem in ctx.stage.get_elems_at(ctx.hero_cell):
+        elem.on_leave(ctx)
+
     is_travelling = False
     if ctx.hero_cell:
       old_door = next((e for e in ctx.stage.get_elems_at(ctx.hero_cell) if isinstance(e, Door)), None)
