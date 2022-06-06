@@ -10,8 +10,9 @@ import config
 
 def on_enter(room, game):
   room.waves = [
-    [Eyeball, Mushroom, Mushroom, Mummy],
+    # [Eyeball, Mushroom, Mushroom, Mummy],
   ]
+
   room.lock(game)
   eyeballs = [e for c in room.cells for e in game.stage.get_elems_at(c) if isinstance(e, Eyeball)]
   eyeballs.sort(key=lambda e: (
@@ -19,10 +20,12 @@ def on_enter(room, game):
     else 1 if not e.ailment == "sleep"
     else 2
   ))
+
   if not config.CUTSCENES:
     for eyeball in eyeballs:
       eyeball.alert(cell=game.hero.cell)
     return
+
   game.get_tail().open(CutsceneContext([
     lambda step: (
       setattr(eyeballs[0], "facing", (1, 0)),

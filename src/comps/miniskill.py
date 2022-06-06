@@ -9,6 +9,9 @@ from comps import Component
 from comps.skill import Skill
 import assets
 
+import traceback
+
+
 def render_badge(skill):
   icon = Skill.get_icon(skill)
   icon = outline(icon, BLACK)
@@ -58,8 +61,9 @@ class Miniskill(Component):
     ]
 
   def exit(comp, on_end=None):
-    if next((a for a in comp.anims if type(a) is BadgeEnterAnim and a.delay), None):
+    if next((a for a in comp.anims if isinstance(a, BadgeEnterAnim) and a.time < 0), None):
       return comp.force_exit()
+
     comp.exiting = True
     comp.anims += [
       BadgeExitAnim(),

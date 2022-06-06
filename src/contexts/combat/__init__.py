@@ -270,7 +270,7 @@ class CombatContext(ExploreBase):
       return False
     ctx.comps.skill_badge.exit()
     return super().open(child, on_close=lambda *data: (
-      (type(child) is not SkillContext or data == (None,)) and ctx.reload_skill_badge(),
+      (type(child) is not SkillContext or data == (None,)) and not ctx.exiting and ctx.reload_skill_badge(),
       on_close and on_close(*data), # TODO: clean up skill context output signature
     ))
 

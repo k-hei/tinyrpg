@@ -38,8 +38,12 @@ from town.graph import WorldLink
 
 
 class ExploreContext(ExploreBase):
+  def __init__(ctx, *args, initial=False, **kwargs):
+    super().__init__(*args, **kwargs)
+    ctx.is_initial_load = initial
+
   def enter(ctx):
-    ctx.camera.focus(ctx.hero, instant=True)
+    ctx.camera.focus(ctx.hero, instant=ctx.is_initial_load)
     ctx.debug = False
     ctx.move_buffer = []
     ctx.cache_last_move = 0

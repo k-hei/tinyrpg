@@ -23,13 +23,15 @@ class HpBubble(Component):
       bubble.anim.update()
 
   def view(bubble):
-    if bubble.actor.hp == bubble.actor.hp_max:
+    if bubble.actor.hp >= bubble.actor.hp_max:
       return []
+
     sprites = [Sprite(
       image=replace_color(assets.sprites["hpbubble"], WHITE, bubble.color),
       origin=Sprite.ORIGIN_BOTTOM,
       layer="vfx"
     )]
+
     if bubble.actor.hp < bubble.hp:
       if abs(bubble.actor.hp - bubble.hp) <= DEPLETE_SPEED:
         bubble.hp = bubble.actor.hp
@@ -37,16 +39,19 @@ class HpBubble(Component):
         bubble.hp -= DEPLETE_SPEED
       if bubble.anim == None or bubble.actor.hp != bubble.anim.target:
         bubble.anim = Anim(duration=12, target=bubble.actor.hp)
+
     if bubble.hp != bubble.actor.hp:
       sprites.append(render_bubblefill(
         value=min(1, bubble.hp / bubble.actor.hp_max),
         color=WHITE
       ))
+
     if bubble.hp:
       sprites.append(render_bubblefill(
         value=min(1, bubble.actor.hp / bubble.actor.hp_max),
         color=bubble.color
       ))
+
     bubble.update()
     if bubble.anim and not bubble.anim.done:
       offset = bubble.offset
@@ -55,6 +60,7 @@ class HpBubble(Component):
       bubble.offset = offset
       for sprite in sprites:
         sprite.move(bubble.offset)
+
     return sprites
 
 def render_bubblefill(value, color=WHITE):

@@ -86,7 +86,7 @@ class DungeonContext(ExploreBase):
       ctx.comps.floor_no.exit()
 
     ctx.refresh_fov()
-    ctx.handle_explore()
+    ctx.handle_explore(initial=True)
     ctx.redraw_tiles()
 
   def find_floor_no(ctx):
@@ -408,12 +408,13 @@ class DungeonContext(ExploreBase):
       color=GREEN,
     ))
 
-  def handle_explore(ctx):
+  def handle_explore(ctx, initial=True):
     ctx.open(ExploreContext(
       store=ctx.store,
       stage=ctx.stage,
       stage_view=ctx.stage_view,
       time=ctx.time,
+      initial=initial
     ), on_close=ctx.handle_combat)
     if not ctx.stage.is_overworld:
       ctx.comps.minimap.enter()

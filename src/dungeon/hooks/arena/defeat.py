@@ -11,11 +11,13 @@ def on_defeat(room, game, actor):
   enemies = [e for e in room.get_enemies(game.stage) if e is not actor]
   if actor.faction != "enemy" or game.room is not room:
     return True
+
   if not enemies:
     if room.waves:
       spawn_next_wave(room, game)
     else:
       on_complete(room, game)
+
   return True
 
 def on_complete(room, game):

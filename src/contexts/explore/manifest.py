@@ -129,15 +129,16 @@ def manifest_room(room_data):
         if isinstance(e, DungeonActor)
         and e.faction == "enemy"]
 
-    enemy_territories = [find_territory(stage, e.cell) for e in enemies]
-    enemy_territories = merge_territories(stage, enemy_territories)
-    stage.rooms = [Room(t) for t in enemy_territories] + stage.rooms
-    for enemy in enemies:
-        enemy.ai_spawn = enemy.cell
-        enemy.ai_territory = next((r for r in stage.rooms if enemy.cell in r.cells), None)
-
     if "on_place" in room_data.hooks:
         room_data.hooks["on_place"](room, stage)
+
+    if stage.is_overworld:
+        enemy_territories = [find_territory(stage, e.cell) for e in enemies]
+        enemy_territories = merge_territories(stage, enemy_territories)
+        stage.rooms = [Room(t) for t in enemy_territories] + stage.rooms
+        for enemy in enemies:
+            enemy.ai_spawn = enemy.cell
+            enemy.ai_territory = next((r for r in stage.rooms if enemy.cell in r.cells), None)
 
     return stage
 
