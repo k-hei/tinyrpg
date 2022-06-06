@@ -247,6 +247,14 @@ class ExploreBase(Context):
     actor.facing = normalize_direction(delta)
     actor.command = move_command
 
+    if actor == ctx.hero:
+      prop = next((e for e in ctx.stage.elems if
+        not e.solid
+        and actor.cell == e.cell
+      ), None)
+      if prop:
+        prop.effect(ctx, actor)
+
     if target_elem and target_elem is ctx.ally:
       ctx.move_cell(actor=ctx.ally, delta=invert_direction(delta))
 

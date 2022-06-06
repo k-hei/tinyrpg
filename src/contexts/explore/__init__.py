@@ -171,7 +171,6 @@ class ExploreContext(ExploreBase):
     moved = ctx.move_elem(elem=hero, delta=delta, running=running)
     prop = next((e for e in ctx.stage.elems if
       not e.solid
-      # and e.active
       and hero.cell == e.cell
       and hero.rect.colliderect(e.rect)
     ), None)
