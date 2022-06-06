@@ -9,6 +9,7 @@ from contexts.explore import ExploreContext
 from contexts.explore.base import ExploreBase
 from contexts.explore.stageview import StageView
 from contexts.combat import CombatContext, animate_snap
+from contexts.cutscene import CutsceneContext
 from comps.store import ComponentStore
 from comps.damage import DamageValue
 from comps.hud import Hud
@@ -86,9 +87,14 @@ class DungeonContext(ExploreBase):
     if ctx.stage.is_overworld:
       ctx.comps.floor_no.exit()
 
-    ctx.refresh_fov()
+    # ordering: refresh_fov calls focus hook which triggers cutscenes
     ctx.handle_explore(initial=True)
+    ctx.refresh_fov()
     ctx.redraw_tiles()
+    ctx.reset_camera()
+
+    if not isinstance(ctx.get_tail(), CutsceneContext):
+      ctx.comps.minimap.enter()
 
   def find_floor_no(ctx):
     floor = next((f for f in FLOOR_SEQUENCE if f.__name__ == ctx.stage.generator), None)
@@ -159,12 +165,12 @@ class DungeonContext(ExploreBase):
     ctx.stage_view.reset_cache()
     ctx.comps.minimap.sprite = None
     ctx.time = 0
-    ctx.camera.reset()
-    ctx.camera.focus(ctx.hero)
     ctx.cache_room_focused = None
     ctx.cache_room_entered = None
+
     ctx.refresh_fov()
     ctx.redraw_tiles()
+    ctx.reset_camera()
 
   def refresh_fov(ctx, reset_cache=False):
     hero = ctx.hero
@@ -232,6 +238,22 @@ class DungeonContext(ExploreBase):
         ctx.extend_visited_cells(visible_cells)
         if not ctx.stage_view.transitioning:
           ctx.redraw_tiles(force=True)
+
+  def reset_camera(ctx):
+    # cutscenes may have their own camera controls
+    ctx_tail = ctx.get_tail()
+    if (isinstance(ctx_tail, CutsceneContext)
+    and not ctx_tail.script_index == len(ctx_tail.script) - 1):
+      return
+
+    ctx.camera.reset()
+
+    print(ctx.cache_room_focused, ctx.room, next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells), None))
+    room = ctx.cache_room_focused or ctx.room
+    if room:
+      ctx.camera.focus(room)
+
+    ctx.camera.focus(ctx.hero, instant=True)
 
   def handle_press(ctx, button):
     if input.get_state(pygame.K_LCTRL):
@@ -422,9 +444,9 @@ class DungeonContext(ExploreBase):
       stage=ctx.stage,
       stage_view=ctx.stage_view,
       time=ctx.time,
-      initial=initial
     ), on_close=ctx.handle_combat)
-    if not ctx.stage.is_overworld:
+
+    if not ctx.stage.is_overworld and not initial:
       ctx.comps.minimap.enter()
       ctx.comps.floor_no.enter()
 

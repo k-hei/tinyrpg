@@ -38,12 +38,7 @@ from town.graph import WorldLink
 
 
 class ExploreContext(ExploreBase):
-  def __init__(ctx, *args, initial=False, **kwargs):
-    super().__init__(*args, **kwargs)
-    ctx.is_initial_load = initial
-
   def enter(ctx):
-    ctx.camera.focus(ctx.hero, instant=ctx.is_initial_load)
     ctx.debug = False
     ctx.move_buffer = []
     ctx.cache_last_move = 0
@@ -59,9 +54,19 @@ class ExploreContext(ExploreBase):
     )
 
     context_comps = {
-      InventoryContext: [ctx.comps.hud, ctx.comps.sp_meter, ctx.comps.floor_no],
-      PauseContext: [ctx.comps.minimap, ctx.comps.floor_no],
-      CutsceneContext: [ctx.comps.minimap, ctx.comps.floor_no],
+      InventoryContext: [
+        (ctx.comps.hud, True),
+        (ctx.comps.sp_meter, True),
+        (ctx.comps.floor_no, False)
+      ],
+      PauseContext: [
+        (ctx.comps.minimap, False),
+        (ctx.comps.floor_no, False)
+      ],
+      CutsceneContext: [
+        (ctx.comps.minimap, False),
+        (ctx.comps.floor_no, False)
+      ],
     }
 
     if type(child) not in context_comps.keys():
@@ -72,26 +77,23 @@ class ExploreContext(ExploreBase):
     comps = context_comps[type(child)]
     open = super().open
 
-    # if next((c for c in comps if c.anims), None):
-    #   return super().open(child, _on_close)
-
-    for comp in comps:
+    for comp, active in comps:
       on_end = (lambda: (
         open(child, on_close=lambda: (
           _on_close(),
           [(
-            c.exit()
-              if c.active
-              else c.enter()
-          ) for c in comps]
+            c.exit() if a else c.enter()
+          ) for c, a in comps]
         )),
         ctx.parent.update_bubble(),
-      )) if comp == comps[-1] else None
+      )) if comp == comps[-1][0] else None
 
-      if comp.active:
-        comp.exit(on_end=on_end)
-      else:
+      if comp.active == active:
+        on_end and on_end()
+      elif active:
         comp.enter(on_end=on_end)
+      else:
+        comp.exit(on_end=on_end)
 
   def handle_press(ctx, button):
     if ctx.child:
@@ -488,15 +490,17 @@ class ExploreContext(ExploreBase):
 
     return True
 
-  def follow_port(game, port_id, on_end=None):
+  def follow_port(ctx, port_id, on_end=None):
     Floor = resolve_floor(port_id)
-    game.get_head().transition(
+    ctx.comps.minimap.exit()
+    ctx.get_head().transition(
       transits=(DissolveIn(), DissolveOut()),
-      loader=Floor.generate(game.store),
+      loader=Floor.generate(ctx.store),
       on_end=lambda stage: (
         setattr(stage, "generator", Floor.__name__),
-        game.parent.use_stage(stage),
-        on_end and on_end()
+        ctx.parent.use_stage(stage),
+        setattr(ctx, "time", 0),
+        on_end and on_end(),
       )
     )
 
@@ -593,7 +597,10 @@ class ExploreContext(ExploreBase):
     floor_no = ctx.parent.find_floor_no()
     floor_text = (f"Tomb {floor_no}F"
       if floor_no
-      else ctx.stage.name)
+      else ctx.stage.name or "????")
+
+    if not floor_text:
+      return []
 
     label_image = assets.ttf["normal"].render(floor_text)
     label_image = outline(label_image, BLACK)

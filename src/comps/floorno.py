@@ -19,7 +19,6 @@ class FloorNo(Component):
     ctx.parent = parent
     ctx.active = False
     ctx.anim = None
-    ctx.enter()
 
   def enter(ctx, on_end=None):
     ctx.active = True

@@ -25,7 +25,7 @@ def trigger_cutscene(room, game):
   mage_bump = sequence_mage_bump(room, game)
   if "minxia" in game.store.story or not config.CUTSCENES:
     return
-  game.get_tail().open(CutsceneContext([
+  game.get_tail().open(cutscene := CutsceneContext([
     lambda step: (
       hero.stop_move(),
       game.anims.append([PauseAnim(duration=30, on_end=step)]),
@@ -93,7 +93,7 @@ def trigger_cutscene(room, game):
     ]), on_close=step),
     lambda step: game.anims.append([PauseAnim(duration=5, on_end=step)]),
     lambda step: (
-      altar.effect(game),
+      cutscene.script.extend(altar.effect(game)),
       step(),
     ),
   ]))

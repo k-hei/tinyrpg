@@ -6,7 +6,7 @@ from anims.pause import PauseAnim
 from anims.shake import ShakeAnim
 from dungeon.actors.mage import Mage
 import locations.tomb.tiles as tileset
-from config import TILE_SIZE
+from config import TILE_SIZE, CUTSCENES
 
 def on_collapse(room, game):
   floor = game.stage
@@ -15,7 +15,8 @@ def on_collapse(room, game):
   altar = floor.find_elem(cls="Altar")
   if not altar:
     return False
-  game.get_tail().open(CutsceneContext(script=[
+
+  script = [
     lambda step: (
       game.camera.tween(
         target=upscale(vector.add(altar.cell, (0, 0.5)), game.stage.tile_size),
@@ -82,8 +83,13 @@ def on_collapse(room, game):
       ])
     ),
     lambda step: (
-      # behavior differs when CUTSCENES flag is on/off
-      game.get_tail().parent.follow_port("Floor1", on_end=step)
+      game.get_tail()
+        .get_parent(cls="ExploreContext")
+        .follow_port("Floor1", on_end=step)
     )
-  ]))
-  return True
+  ]
+
+  if not isinstance(game.get_tail(), CutsceneContext):
+    game.get_tail().open(CutsceneContext(script))
+
+  return script

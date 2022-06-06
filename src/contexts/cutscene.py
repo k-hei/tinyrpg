@@ -15,7 +15,7 @@ class CutsceneContext(Context):
   def __init__(ctx, script, *args, **kwargs):
     super().__init__(ctx, *args, **kwargs)
     ctx.script = script
-    ctx.script_idx = -1
+    ctx.script_index = -1
     ctx.anim = TweenAnim(duration=30)
     ctx.cache_bar = None
 
@@ -27,11 +27,11 @@ class CutsceneContext(Context):
     ctx.next()
 
   def next(ctx):
-    ctx.script_idx += 1
-    if ctx.script_idx >= len(ctx.script):
+    ctx.script_index += 1
+    if ctx.script_index >= len(ctx.script):
       ctx.exit()
-    elif callable(ctx.script[ctx.script_idx]):
-      ctx.script[ctx.script_idx](ctx.next)
+    elif callable(ctx.script[ctx.script_index]):
+      ctx.script[ctx.script_index](ctx.next)
     else:
       ctx.next()
 

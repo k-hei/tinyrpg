@@ -26,6 +26,7 @@ from lib.sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE, DEBUG_GEN, ENABLED_MINIMAP
 import debug
 
+
 MARGIN_X = 8
 MARGIN_Y = 6
 ENTER_DURATION = 8
@@ -192,10 +193,14 @@ class Minimap:
     minimap.cache_hero_cell = None
 
   def enter(minimap, on_end=None):
+    if minimap.active and not minimap.anims:
+      return
     minimap.active = True
     minimap.anims.append(EnterAnim(on_end=on_end))
 
   def exit(minimap, on_end=None):
+    if not minimap.active and not minimap.anims:
+      return
     minimap.active = False
     minimap.anims.append(ExitAnim(on_end=on_end))
 

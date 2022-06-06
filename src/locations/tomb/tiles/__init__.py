@@ -70,7 +70,7 @@ class Floor(DefaultFloor):
         and (room := next((r for r in stage.rooms if cell in r.cells), None))
         and (elem := next((e for e in stage.elems
             if e.cell[0] == x
-            and abs(y - e.cell[1]) <= 1
+            and e.cell[1] <= y + 1
             and e.cell in room.cells
         ), None))):
             return Sprite(

@@ -30,8 +30,7 @@ class Altar(DungeonElement):
     if altar.opened:
       return False
     altar.opened = True
-    altar.on_action and altar.on_action(game.room, game)
-    return False
+    return altar.on_action and altar.on_action(game.room, game)
 
   def view(altar, anims):
     altar_image = assets.sprites["altar"]
