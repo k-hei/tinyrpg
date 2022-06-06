@@ -636,7 +636,8 @@ def gen_floor(
     )]
     for secret in secrets:
       neighbor = graph.neighbors(secret)[0]
-      for door in graph.connectors(secret, neighbor):
+      neighbor_connectors = sorted(graph.connectors(secret, neighbor), key=lambda d: manhattan(d.cell, secret.origin))
+      for door in neighbor_connectors:
         doorway = door.cell
         stage.remove_elem(door)
         stage.spawn_elem_at(doorway, SecretDoor())
