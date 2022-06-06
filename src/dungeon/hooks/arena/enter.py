@@ -10,7 +10,7 @@ import config
 
 def on_enter(room, game):
   room.waves = [
-    # [Eyeball, Mushroom, Mushroom, Mummy],
+    [Eyeball, Mushroom, Mushroom, Mummy],
   ]
 
   room.lock(game)

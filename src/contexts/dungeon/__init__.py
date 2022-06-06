@@ -113,8 +113,9 @@ class DungeonContext(ExploreBase):
     if not ctx.stage: # or ctx.stage.generator not in floor_names:
       return
 
-    # TODO: gracefully switch between dungeon and overworld graphs
-    ctx.graph = ctx.graph or FloorGraph()
+    if not isinstance(ctx.graph, FloorGraph) and ctx.stage.generator in floor_names:
+      ctx.graph = FloorGraph()
+
     if not isinstance(ctx.graph, FloorGraph):
       return
 

@@ -22,6 +22,7 @@ import locations.default.tileset as tileset
 from vfx.talkbubble import TalkBubble
 from config import MOVE_DURATION, PUSH_DURATION, SKILL_BADGE_POS_SOLO, SKILL_BADGE_POS_ALLY, TILE_SIZE
 
+
 COMMAND_MOVE = "move"
 COMMAND_MOVE_TO = "move_to"
 COMMAND_ATTACK = "attack"
@@ -75,11 +76,12 @@ class ExploreBase(Context):
   def visited_cells(ctx):
     stage_id = (ctx.graph.nodes.index(ctx.stage)
       if isinstance(ctx.graph, FloorGraph)
-      else 0)
+      else -1)
 
     visited_cells = ctx.memory[stage_id] if stage_id in ctx.memory else None # next((cs for (s, cs) in ctx.memory if s is ctx.stage), None)
     if visited_cells is None:
       ctx.memory[stage_id] = (visited_cells := [])
+
     return visited_cells
 
   def extend_visited_cells(ctx, cells):
