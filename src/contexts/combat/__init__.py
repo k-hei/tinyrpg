@@ -437,6 +437,10 @@ class CombatContext(ExploreBase):
     return (delta_x, delta_y)
 
   def leap(ctx, actor, on_end=None):
+    middle_cell = vector.add(actor.cell, actor.facing)
+    if next((True for e in ctx.stage.get_elems_at(middle_cell) if e.solid), False):
+      return False
+
     delta = vector.scale(actor.facing, 2)
     moved = ctx.move_cell(actor, delta, jump=True, on_end=on_end)
     return moved
