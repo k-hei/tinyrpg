@@ -45,6 +45,9 @@ class Context:
     pass
 
   def open(ctx, child, on_close=None):
+    if ctx.child:
+      ctx.child.exit()
+
     ctx.child = child
     child.parent = ctx
     ctx.child.enter()

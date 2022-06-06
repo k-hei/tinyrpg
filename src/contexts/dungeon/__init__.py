@@ -3,12 +3,14 @@ from copy import deepcopy
 from lib.cell import neighborhood
 import lib.vector as vector
 import lib.input as input
+from lib.sprite import Sprite
 import debug
 
 from contexts.explore import ExploreContext
 from contexts.explore.base import ExploreBase
 from contexts.explore.stageview import StageView
-from contexts.combat import CombatContext, animate_snap
+from contexts.combat import CombatContext
+from helpers.combat import animate_snap
 from contexts.cutscene import CutsceneContext
 from comps.store import ComponentStore
 from comps.damage import DamageValue
@@ -32,8 +34,14 @@ import locations.default.tileset as tileset
 from anims.pause import PauseAnim
 from anims.step import StepAnim
 from anims.warpin import WarpInAnim
-from colors.palette import GREEN, CYAN
-from config import WINDOW_HEIGHT, VISION_RANGE
+
+import assets
+from lib.filters import outline
+from colors.palette import BLACK, WHITE, GREEN, CYAN
+from config import WINDOW_WIDTH, WINDOW_HEIGHT, VISION_RANGE, LABEL_FRAMES
+
+from resolve.floor import resolve_floor
+from transits.dissolve import DissolveIn, DissolveOut
 
 from dungeon.floors.floor1 import Floor1
 from dungeon.floors.floor2 import Floor2
@@ -84,17 +92,7 @@ class DungeonContext(ExploreBase):
       floor_no=FloorNo(parent=ctx),
     )
 
-    if ctx.stage.is_overworld:
-      ctx.comps.floor_no.exit()
-
-    # ordering: refresh_fov calls focus hook which triggers cutscenes
-    ctx.handle_explore(initial=True)
-    ctx.refresh_fov()
-    ctx.redraw_tiles()
-    ctx.reset_camera()
-
-    if not isinstance(ctx.get_tail(), CutsceneContext):
-      ctx.comps.minimap.enter()
+    ctx.reset()
 
   def find_floor_no(ctx):
     floor = next((f for f in FLOOR_SEQUENCE if f.__name__ == ctx.stage.generator), None)
@@ -168,9 +166,19 @@ class DungeonContext(ExploreBase):
     ctx.cache_room_focused = None
     ctx.cache_room_entered = None
 
-    ctx.refresh_fov()
-    ctx.redraw_tiles()
-    ctx.reset_camera()
+    ctx.reset()
+
+  def load_floor_by_id(ctx, floor_id, on_end=None):
+    Floor = resolve_floor(floor_id)
+    ctx.get_head().transition(
+      transits=(DissolveIn(), DissolveOut()),
+      loader=Floor.generate(ctx.store),
+      on_end=lambda stage: (
+        setattr(stage, "generator", floor_id),
+        ctx.use_stage(stage),
+        on_end and on_end(),
+      )
+    )
 
   def refresh_fov(ctx, reset_cache=False):
     hero = ctx.hero
@@ -239,21 +247,19 @@ class DungeonContext(ExploreBase):
         if not ctx.stage_view.transitioning:
           ctx.redraw_tiles(force=True)
 
-  def reset_camera(ctx):
-    # cutscenes may have their own camera controls
-    ctx_tail = ctx.get_tail()
-    if (isinstance(ctx_tail, CutsceneContext)
-    and not ctx_tail.script_index == len(ctx_tail.script) - 1):
-      return
-
+  def reset(ctx):
+    # ordering: refresh_fov calls focus hook which triggers cutscenes
     ctx.camera.reset()
+    ctx.refresh_fov()
+    ctx.redraw_tiles()
 
-    print(ctx.cache_room_focused, ctx.room, next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells), None))
-    room = ctx.cache_room_focused or ctx.room
-    if room:
-      ctx.camera.focus(room)
-
-    ctx.camera.focus(ctx.hero, instant=True)
+    if (isinstance(cutscene := ctx.get_tail(), CutsceneContext)
+    and cutscene.script_index < len(cutscene.script) - 1):
+      ctx.get_tail().on_close = ctx.handle_explore
+    else:
+      room = next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells), None)
+      ctx.camera.focus([room, ctx.hero], force=True, instant=True)
+      ctx.handle_explore()
 
   def handle_press(ctx, button):
     if input.get_state(pygame.K_LCTRL):
@@ -438,17 +444,13 @@ class DungeonContext(ExploreBase):
       color=GREEN,
     ))
 
-  def handle_explore(ctx, initial=False):
+  def handle_explore(ctx):
     ctx.open(ExploreContext(
       store=ctx.store,
       stage=ctx.stage,
       stage_view=ctx.stage_view,
       time=ctx.time,
-    ), on_close=ctx.handle_combat)
-
-    if not ctx.stage.is_overworld and not initial:
-      ctx.comps.minimap.enter()
-      ctx.comps.floor_no.enter()
+    ))
 
   def handle_combat(ctx, path=False):
     if type(ctx.child) is CombatContext:
@@ -509,11 +511,6 @@ class DungeonContext(ExploreBase):
 
     if ctx.room and ctx.room.has_hook("on_walk"):
       ctx.room.on_walk(ctx, cell=ctx.hero_cell)
-      # animate_snap(
-      #   actor=ctx.hero,
-      #   anims=ctx.anims,
-      #   on_end=lambda: ctx.room.on_walk(ctx, cell=ctx.hero_cell)
-      # )
 
   def update(ctx):
     for elem in ctx.stage.elems:
@@ -537,6 +534,32 @@ class DungeonContext(ExploreBase):
     sprites = ctx.stage_view.view(
       hero=ctx.hero,
       visited_cells=ctx.visited_cells,
-    ) + [c.view() for c in ctx.comps] + super().view()
+    )
+    sprites += [c.view() for c in ctx.comps]
+    sprites += super().view()
+    sprites += ctx.view_label()
     sprites.sort(key=ctx.stage_view.order)
     return sprites
+
+  def view_label(ctx):
+    if ctx.time >= LABEL_FRAMES or ctx.child and not isinstance(ctx.child, CutsceneContext):
+      return []
+
+    floor_no = ctx.find_floor_no()
+    floor_text = (f"Tomb {floor_no}F"
+      if floor_no
+      else ctx.stage.name or "????")
+
+    if not floor_text:
+      return []
+
+    label_image = assets.ttf["normal"].render(floor_text)
+    label_image = outline(label_image, BLACK)
+    # label_image = outline(label_image, WHITE)
+
+    return [Sprite(
+      image=label_image,
+      pos=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 4),
+      origin=Sprite.ORIGIN_CENTER,
+      layer="ui"
+    )]

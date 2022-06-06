@@ -3,6 +3,7 @@ from lib.direction import invert as invert_direction
 from dungeon.actors import DungeonActor
 from config import MISS_CHANCE, CRIT_CHANCE
 
+
 def find_damage(attacker, defender, modifier=1):
   attacker_st = attacker.st * modifier
   defender_en = defender.en
@@ -53,3 +54,29 @@ def will_block(attacker, defender):
     and not defender.is_immobile()
     and defender.facing == invert_direction(attacker.facing)
   )
+
+
+from lib.cell import upscale
+from anims.move import MoveAnim
+from config import TILE_SIZE
+
+def animate_snap(actor, anims, speed=2, scale=TILE_SIZE, on_end=None):
+  x, y = actor.pos
+  x += scale / 2
+  y += scale / 2
+  if x % scale or y % scale:
+    actor_dest = upscale(actor.cell, scale)
+    actor.stop_move()
+    if not anims:
+      anims.append([])
+    anims[-1].append(MoveAnim(
+      target=actor,
+      src=actor.pos,
+      dest=actor_dest,
+      speed=speed,
+      on_end=on_end
+    ))
+    return actor.cell
+
+  if on_end:
+    return on_end()

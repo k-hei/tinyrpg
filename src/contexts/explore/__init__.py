@@ -20,17 +20,10 @@ from anims.jump import JumpAnim
 from anims.pause import PauseAnim
 from locations.default.tile import Tile
 import locations.default.tileset as tileset
-from resolve.floor import resolve_floor
 from transits.dissolve import DissolveIn, DissolveOut
 from config import (
   TILE_SIZE, MOVE_DURATION, RUN_DURATION,
-  LABEL_FRAMES,
-  WINDOW_WIDTH, WINDOW_HEIGHT,
 )
-
-import assets
-from colors.palette import BLACK, WHITE
-from lib.filters import outline
 
 # world links
 from contexts.explore.roomdata import RoomData
@@ -38,13 +31,20 @@ from town.graph import WorldLink
 
 
 class ExploreContext(ExploreBase):
+
   def enter(ctx):
     ctx.debug = False
     ctx.move_buffer = []
     ctx.cache_last_move = 0
     ctx.port = None
 
+    if not ctx.stage.is_overworld:
+      ctx.comps.minimap.enter()
+      ctx.comps.floor_no.enter()
+
   def exit(ctx):
+    ctx.comps.minimap.exit()
+    ctx.comps.floor_no.exit()
     ctx.close()
 
   def open(ctx, child, on_close=None):
@@ -490,20 +490,6 @@ class ExploreContext(ExploreBase):
 
     return True
 
-  def follow_port(ctx, port_id, on_end=None):
-    Floor = resolve_floor(port_id)
-    ctx.comps.minimap.exit()
-    ctx.get_head().transition(
-      transits=(DissolveIn(), DissolveOut()),
-      loader=Floor.generate(ctx.store),
-      on_end=lambda stage: (
-        setattr(stage, "generator", Floor.__name__),
-        ctx.parent.use_stage(stage),
-        setattr(ctx, "time", 0),
-        on_end and on_end(),
-      )
-    )
-
   def goto_floor(ctx, floor, stairs):
     app = ctx.get_head()
     if app.transits:
@@ -523,6 +509,7 @@ class ExploreContext(ExploreBase):
         ctx.parent.use_stage(stage, stairs),
       )
     )
+
     return True
 
   def goto_town(ctx):
@@ -587,31 +574,7 @@ class ExploreContext(ExploreBase):
     sprites = super().view()
     if ctx.debug:
       sprites += [view_elem_hitbox(elem=e, camera=ctx.camera) for e in ctx.stage.elems]
-    sprites += ctx.view_label()
     return sprites
-
-  def view_label(ctx):
-    if ctx.time >= LABEL_FRAMES or ctx.child and not isinstance(ctx.child, CutsceneContext):
-      return []
-
-    floor_no = ctx.parent.find_floor_no()
-    floor_text = (f"Tomb {floor_no}F"
-      if floor_no
-      else ctx.stage.name or "????")
-
-    if not floor_text:
-      return []
-
-    label_image = assets.ttf["normal"].render(floor_text)
-    label_image = outline(label_image, BLACK)
-    # label_image = outline(label_image, WHITE)
-
-    return [Sprite(
-      image=label_image,
-      pos=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 4),
-      origin=Sprite.ORIGIN_CENTER,
-      layer="ui"
-    )]
 
 def view_elem_hitbox(elem, camera):
   if not elem.rect:

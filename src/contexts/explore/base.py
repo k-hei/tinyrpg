@@ -7,6 +7,7 @@ from lib.direction import invert as invert_direction, normal as normalize_direct
 from helpers.findactor import find_actor
 from helpers.stage import is_cell_walkable_to_actor
 from contexts import Context
+from contexts.cutscene import CutsceneContext
 from anims.item import ItemAnim
 from anims.step import StepAnim
 from anims.attack import AttackAnim
@@ -577,7 +578,10 @@ class ExploreBase(Context):
 
     pending_anims = [a for g in ctx.anims for a in g if not a.done]
 
-    can_show_bubble = not pending_anims and not ctx.hero.item and not (ctx.child and ctx.child.child)
+    can_show_bubble = (not pending_anims
+      and not ctx.hero.item
+      and not (ctx.child and ctx.child.child)
+      and not isinstance(ctx.get_tail(), CutsceneContext))
     if ctx.talkbubble and ctx.talkbubble.target is facing_elem and can_show_bubble:
       return
 

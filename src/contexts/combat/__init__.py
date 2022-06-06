@@ -2,7 +2,7 @@ import lib.vector as vector
 import lib.input as input
 from lib.direction import invert as invert_direction
 from lib.cell import neighborhood, manhattan, is_adjacent, upscale, downscale
-from helpers.combat import find_damage, will_miss, will_crit, will_block
+from helpers.combat import find_damage, will_miss, will_crit, will_block, animate_snap
 from helpers.stage import is_cell_walkable_to_actor
 from resolve.skill import resolve_skill
 import debug
@@ -50,26 +50,6 @@ from math import inf
 from lib.sprite import Sprite
 from easing.expo import ease_out
 
-
-def animate_snap(actor, anims, speed=2, scale=TILE_SIZE, on_end=None):
-  x, y = actor.pos
-  x += scale / 2
-  y += scale / 2
-  if x % scale or y % scale:
-    actor_dest = upscale(actor.cell, scale)
-    actor.stop_move()
-    not anims and anims.append([])
-    anims[-1].append(MoveAnim(
-      target=actor,
-      src=actor.pos,
-      dest=actor_dest,
-      speed=speed,
-      on_end=on_end
-    ))
-    return actor.cell
-  else:
-    on_end and on_end()
-    return None
 
 def find_damage_text(damage):
   if damage == 0:
@@ -656,8 +636,8 @@ class CombatContext(ExploreBase):
       else None)
 
     if (not ctx.stage.is_tile_at_pit(target_cell)
-    and not ctx.stage.is_cell_empty(target_cell, scale=TILE_SIZE)
-    and not (enemy_territory and target_cell not in enemy_territory.cells)):
+    or not ctx.stage.is_cell_empty(target_cell, scale=TILE_SIZE)
+    or not (enemy_territory and target_cell not in enemy_territory.cells)):
       return False
 
     actor_cell = actor.cell

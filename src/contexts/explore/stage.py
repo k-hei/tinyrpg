@@ -160,7 +160,7 @@ class Stage:
       return False
 
   def is_cell_empty(stage, cell, scale=0):
-    if not stage.is_cell_walkable(cell, scale):
+    if stage.is_tile_at_solid(cell, scale):
       return False
 
     elem = next((e for e in stage.get_elems_at(cell, scale) if e.solid), None)

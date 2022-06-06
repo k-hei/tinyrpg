@@ -5,6 +5,8 @@ import lib.vector as vector
 from dungeon.room import Blob as Room
 from anims.tween import TweenAnim
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
+import debug
+
 
 @dataclass
 class CameraConstraints:

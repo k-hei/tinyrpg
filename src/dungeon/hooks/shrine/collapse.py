@@ -9,6 +9,11 @@ import locations.tomb.tiles as tileset
 from config import TILE_SIZE, CUTSCENES
 
 def on_collapse(room, game):
+  game = (game if type(game).__name__ == "DungeonContext"
+    else game.get_parent(cls="DungeonContext") or None)
+  if game is None:
+    raise TypeError(f"expected DungeonContext, got {game}")
+
   floor = game.stage
   hero = game.hero
   mage = floor.find_elem(Mage)
@@ -82,14 +87,13 @@ def on_collapse(room, game):
         )]
       ])
     ),
-    lambda step: (
-      game.get_tail()
-        .get_parent(cls="ExploreContext")
-        .follow_port("Floor1", on_end=step)
+    lambda step: game.load_floor_by_id(
+      floor_id="Floor1",
+      on_end=step,
     )
   ]
 
   if not isinstance(game.get_tail(), CutsceneContext):
-    game.get_tail().open(CutsceneContext(script))
+    game.open(CutsceneContext(script))
 
   return script

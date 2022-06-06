@@ -24,7 +24,7 @@ def on_focus(room, game):
     room.mage = None
     return
 
-  game.get_tail().open(CutsceneContext(script=[
+  game.open(CutsceneContext(script=[
     lambda step: (
       game.anims.append([PauseAnim(
         duration=1,
