@@ -1,5 +1,6 @@
 from lib.cell import upscale
 from contexts.cutscene import CutsceneContext
+from helpers.combat import animate_snap
 from anims.pause import PauseAnim
 from anims.jump import JumpAnim
 from anims.awaken import AwakenAnim
@@ -26,7 +27,12 @@ def on_enter(room, game):
       eyeball.alert(cell=game.hero.cell)
     return
 
-  game.get_tail().open(CutsceneContext([
+  game.open(CutsceneContext(script=[
+    lambda step: animate_snap(
+      actor=game.hero,
+      anims=game.anims,
+      on_end=step,
+    ),
     lambda step: (
       setattr(eyeballs[0], "facing", (1, 0)),
       game.anims.append([PauseAnim(duration=15, on_end=step)])

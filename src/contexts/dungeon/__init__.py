@@ -191,11 +191,7 @@ class DungeonContext(ExploreBase):
       if room_entered:
         room_entered not in ctx.rooms_entered and ctx.rooms_entered.add(room_entered)
         if room_entered.has_hook("on_enter") or room_entered.get_enemies(ctx.stage):
-          animate_snap(
-            actor=hero,
-            anims=ctx.anims,
-            on_end=lambda: room_entered.on_enter(ctx),
-          )
+          room_entered.on_enter(ctx)
 
     find_room_focus_region = lambda room: (
       room.cells
@@ -505,7 +501,6 @@ class DungeonContext(ExploreBase):
         ctx.handle_oasis()
 
       if ctx.find_enemies_in_range() and isinstance(ctx.get_tail(), ExploreContext):
-        ctx.refresh_fov()
         ctx.handle_combat(path=True)
 
     ctx.hero_cell = ctx.hero.cell
