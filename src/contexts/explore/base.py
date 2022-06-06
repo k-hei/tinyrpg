@@ -226,6 +226,10 @@ class ExploreBase(Context):
       duration=move_duration,
       on_end=lambda: (
         has_command_queue and move_command in ctx.command_queue and ctx.command_queue.remove(move_command),
+        actor == ctx.hero and (prop := next((e for e in ctx.stage.elems if
+          not e.solid
+          and actor.cell == e.cell
+        ), None)) and prop.effect(ctx, actor),
         on_end and on_end(),
       )
     )
@@ -246,14 +250,6 @@ class ExploreBase(Context):
     actor.cell = move_dest
     actor.facing = normalize_direction(delta)
     actor.command = move_command
-
-    if actor == ctx.hero:
-      prop = next((e for e in ctx.stage.elems if
-        not e.solid
-        and actor.cell == e.cell
-      ), None)
-      if prop:
-        prop.effect(ctx, actor)
 
     if target_elem and target_elem is ctx.ally:
       ctx.move_cell(actor=ctx.ally, delta=invert_direction(delta))
