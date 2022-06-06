@@ -16,7 +16,9 @@ def gen_elems(stage, room, elems):
   else:
     valid_cells = get_room_bonus_cells(room, stage)
 
-  valid_cells = [c for c in valid_cells if stage.is_cell_empty(c)]
+  valid_cells = [c for c in valid_cells
+    if stage.is_cell_empty(c)
+    and not stage.is_tile_at_pit(c)]
 
   shuffle(valid_cells)
   while elems and valid_cells:
