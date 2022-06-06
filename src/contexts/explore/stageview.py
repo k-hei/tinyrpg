@@ -174,7 +174,9 @@ class StageView:
       return None
 
     # get tile state (state of this cell and rendering-relevant neighbors)
-    tile_hash = find_tile_hash(stage, cell, visited_cells, cache=tile_hash_cache)
+    tile_hash = (None
+      if stage.is_overworld
+      else find_tile_hash(stage, cell, visited_cells, cache=tile_hash_cache))
 
     # read cached tile data
     cached_state, cached_images, cached_image = (
@@ -198,12 +200,9 @@ class StageView:
         sprite.move(vector.scale(cell, stage.tile_size))
       view.tile_sprites[cell] = tile_sprites
 
-    if not cached_image:
-      if not stage.is_overworld:
-        cached_image = flatten_tile_image_stack(tile_images)
-        cached_image = cached_image and darken_image(cached_image)
-      else:
-        cached_image = None
+    if not cached_image and not stage.is_overworld:
+      cached_image = flatten_tile_image_stack(tile_images)
+      cached_image = cached_image and darken_image(cached_image)
 
     view.tile_cache[cell] = (tile_hash, tile_images, cached_image)
 
@@ -252,13 +251,19 @@ class StageView:
     if not visible_cells:
       return
 
-    viewable_cells = [c
-      for c in visible_cells + visited_cells
-        if tile_rect.collidepoint(c)]
-    visible_cells = set(visible_cells)
-    visited_cells = set(visited_cells)
+    if view.stage.is_overworld:
+      viewable_cells = [(col, row)
+        for row in range(tile_rect.top, tile_rect.bottom + 1)
+          for col in range(tile_rect.left, tile_rect.right + 1)]
+    else:
+      viewable_cells = [c
+        for c in visible_cells + visited_cells
+          if tile_rect.collidepoint(c)]
+      visible_cells = set(visible_cells)
+      visited_cells = set(visited_cells)
 
     tile_hash_cache = {}
+
     for cell in viewable_cells:
       is_cell_visible = view.stage.is_overworld or cell in visible_cells
 
@@ -279,9 +284,8 @@ class StageView:
         continue
 
       try:
-        use_cache = cell not in visible_cells or view.darkened
+        use_cache = view.darkened or (not view.stage.is_overworld and cell not in visible_cells)
         tile_images = view.render_cell(view.stage, cell, visited_cells, use_cache, tile_hash_cache=tile_hash_cache)
-
         if not tile_images:
           continue
 
