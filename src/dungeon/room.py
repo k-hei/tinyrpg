@@ -178,7 +178,6 @@ class Blob(Room):
       and e.cell in room.cells
       and not e.pushed
     )), None)
-    print(enemies, pushtile)
     return (
       not enemies
       and not pushtile

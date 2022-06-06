@@ -543,7 +543,7 @@ class DungeonContext(ExploreBase):
     return sprites
 
   def view_label(ctx):
-    if ctx.time >= LABEL_FRAMES or ctx.child and not isinstance(ctx.child, CutsceneContext):
+    if ctx.time >= LABEL_FRAMES:
       return []
 
     floor_no = ctx.find_floor_no()

@@ -44,8 +44,8 @@ class Context:
   def init(ctx):
     pass
 
-  def open(ctx, child, on_close=None):
-    if ctx.child:
+  def open(ctx, child, overwrite=False, on_close=None):
+    if ctx.child and not overwrite:
       ctx.child.exit()
 
     ctx.child = child

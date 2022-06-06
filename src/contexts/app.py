@@ -93,7 +93,7 @@ class App(Context):
       app.loop()
 
   def open(app, child=None):
-    super().open(child or app.child, on_close=app.close)
+    super().open(child or app.child, overwrite=True, on_close=app.close)
 
   def close(app, *data):
     if data:

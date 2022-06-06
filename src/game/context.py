@@ -43,6 +43,7 @@ class GameContext(Context):
     ctx.floor = floor
     ctx.stage = stage
     ctx.seed = seed
+
     if data is None:
       ctx.open(LoadContext(), on_close=lambda *data: data and ctx.load(*data))
     elif type(data) is GameData:
@@ -51,6 +52,7 @@ class GameContext(Context):
     else:
       ctx.store = GameData.decode(data)
       ctx.savedata = data
+
     ctx.graph = None
 
   def init(ctx):
@@ -119,6 +121,10 @@ class GameContext(Context):
       ctx.goto_dungeon(floors=floor and [floor])
     elif savedata.place == "town":
       ctx.goto_town()
+    else:
+      ctx.goto_dungeon(floors=FloorGraph(
+        nodes=[manifest_room(rooms["tutorial1"])]
+      ))
 
   def save(ctx):
     if gamepad.controls is not controls.TYPE_A:

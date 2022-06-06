@@ -174,7 +174,7 @@ class ExploreContext(ExploreBase):
     prop = next((e for e in ctx.stage.elems if
       not e.solid
       and hero.cell == e.cell
-      and hero.rect.colliderect(e.rect)
+      and e.rect and hero.rect.colliderect(e.rect)
     ), None)
     if prop:
       prop.effect(ctx, hero)

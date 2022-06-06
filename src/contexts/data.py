@@ -137,9 +137,9 @@ class Slot:
         surface.blit(rogue_image, (x, y))
         x += rogue_image.get_width() + slot.ICON_SPACING
 
-      place = (savedata.place == "town"
-        and "Outskirts"
-        or "Dungeon {}F".format(savedata.dungeon.floor_index))
+      place = (f"Dungeon {savedata.dungeon.floor_index}F" if savedata.place == "dungeon"
+        else "Akimor" if savedata.place == "town"
+        else "New Game")
       surface.blit(assets.ttf["english"].render(place), (slot.ICON_X, slot.TIME_Y + slot.TEXT_Y + slot.LABEL_OVERLAP))
       gold_image = assets.sprites["item_gold"].copy()
       gold_image = replace_color(gold_image, BLACK, GOLD)
