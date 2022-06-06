@@ -1,6 +1,6 @@
 import pygame
 from copy import deepcopy
-from lib.cell import neighborhood
+from lib.cell import neighborhood, manhattan
 import lib.vector as vector
 import lib.input as input
 from lib.sprite import Sprite
@@ -258,6 +258,7 @@ class DungeonContext(ExploreBase):
       ctx.get_tail().on_close = ctx.handle_explore
     else:
       room = next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells), None)
+      room = room or sorted(ctx.stage.rooms, key=lambda r: manhattan(ctx.hero.cell, r.origin))[0]
       ctx.camera.focus([room, ctx.hero], force=True, instant=True)
       ctx.handle_explore()
 
@@ -555,7 +556,6 @@ class DungeonContext(ExploreBase):
 
     label_image = assets.ttf["normal"].render(floor_text)
     label_image = outline(label_image, BLACK)
-    # label_image = outline(label_image, WHITE)
 
     return [Sprite(
       image=label_image,

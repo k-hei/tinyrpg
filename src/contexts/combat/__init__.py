@@ -453,12 +453,6 @@ class CombatContext(ExploreBase):
 
     origin_cell = downscale(hero.pos, scale=TILE_SIZE, floor=True)
     facing_cell = vector.add(origin_cell, ctx.hero.facing)
-    # print(
-    #   origin_cell, facing_cell,
-    #   ctx.stage.get_elems_at(facing_cell, scale=TILE_SIZE),
-    #   hero.cell, vector.add(hero.cell, hero.facing),
-    #   ctx.stage.get_elems_at(vector.add(hero.cell, hero.facing))
-    # )
 
     facing_actor = ctx.facing_actor
     itemdrop = next((e for e in ctx.stage.get_elems_at(facing_cell) if isinstance(e, ItemDrop)), None)
@@ -635,9 +629,11 @@ class CombatContext(ExploreBase):
       if actor.faction == "enemy"
       else None)
 
-    if (not ctx.stage.is_tile_at_pit(target_cell)
-    or not ctx.stage.is_cell_empty(target_cell, scale=TILE_SIZE)
-    or not (enemy_territory and target_cell not in enemy_territory.cells)):
+    if enemy_territory and target_cell not in enemy_territory.cells:
+      return False
+
+    if (not ctx.stage.is_cell_empty(target_cell, scale=TILE_SIZE)
+    and not ctx.stage.is_tile_at_pit(target_cell)):
       return False
 
     actor_cell = actor.cell

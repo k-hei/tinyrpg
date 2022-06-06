@@ -229,7 +229,7 @@ class StageView:
       # camera rect is unchanged; no need to redraw
       return
 
-    camera_cell_delta = (vector.subtract(tile_rect, view.cache_tile_rect)
+    camera_cell_delta = (vector.subtract(tile_rect.topleft, view.cache_tile_rect.topleft)
       if view.cache_tile_rect
       else (0, 0))
 
