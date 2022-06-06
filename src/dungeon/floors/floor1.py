@@ -90,7 +90,7 @@ class Floor1(Floor):
           (puzzle_room, key_room),
         ]
       ),
-      enemies=[Eyeball, Eyeball, Mushroom],
+      enemies=[Eyeball, Eyeball, Eyeball, Mushroom],
       extra_room_count=4, # 4 + randint(0, 2),
       seed=seed
     )

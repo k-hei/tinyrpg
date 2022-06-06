@@ -174,6 +174,7 @@ class Blob(Room):
     enemies = [e for e in room.get_enemies(stage) if e is not actor]
     pushtile = next((e for e in stage.elems if (
       type(e).__name__ == "PushTile"
+      and not e.completed
       and e.cell in room.get_cells()
     )), None)
     return (
