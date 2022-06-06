@@ -367,11 +367,17 @@ class CombatContext(ExploreBase):
         on_end and on_end()
         return False
 
-    if not actor.ai_path:
-      actor.ai_path = ctx.stage.pathfind(
-        start=actor.cell,
-        goal=dest,
+    pathfind = lambda: ctx.stage.pathfind(
+      start=actor.cell,
+      goal=dest,
+      predicate=lambda cell: (
+        not ctx.stage.is_tile_at_solid(cell)
+        and not ctx.stage.is_tile_at_pit(cell) or actor.floating
       )
+    )
+
+    if not actor.ai_path:
+      actor.ai_path = pathfind()
 
     delta = ctx.find_move_to_delta(actor, dest)
     if actor.ai_path:
@@ -387,7 +393,7 @@ class CombatContext(ExploreBase):
       moved = ctx.move_cell(actor, delta, run, fixed=True, on_end=on_end)
 
     if not moved:
-      actor.ai_path = ctx.stage.pathfind(start=actor.cell, goal=dest)
+      actor.ai_path = pathfind()
       if not actor.ai_path:
         actor.ai_path = None
         actor.ai_target = None

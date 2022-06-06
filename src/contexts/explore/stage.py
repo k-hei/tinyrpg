@@ -182,7 +182,7 @@ class Stage:
       and not stage.is_tile_at_pit(cell))
 
   # TODO: normalize into grid pathfinder
-  def pathfind(stage, start, goal, whitelist=None):
+  def pathfind(stage, start, goal, whitelist=None, predicate=None):
     if start == goal:
       return [goal]
 
@@ -214,6 +214,7 @@ class Stage:
         or not stage.contains(neighbor, scale=TILE_SIZE)
         or not stage.is_cell_empty(neighbor, scale=TILE_SIZE)
           and (not whitelist or neighbor not in whitelist)
+          and (not predicate or predicate(neighbor))
         ):
           continue
 

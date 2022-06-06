@@ -152,7 +152,14 @@ class DungeonElement:
         or not anim.cell):
           continue
 
-        if anims.index(group) > 0:
+        # TEST: ensure this works with:
+        #    1. multiple queued actors
+        #    2. actors that move multiple spaces per player turn
+        if anims.index(group) == 0:
+          # no offset required (handled elsewhere)
+          return (0, 0)
+        else:
+          # animation is queued: offset element by distance from target cell
           anim_x, anim_y, *anim_z = anim.cell
           anim_z = anim_z and anim_z[0] or 0
           elem_x, elem_y = elem.cell

@@ -375,6 +375,7 @@ class ExploreBase(Context):
 
     facing_cell = vector.add(actor.cell, actor.facing)
     if (Tile.is_solid(ctx.stage.get_tile_at(facing_cell))
+    or ctx.stage.is_tile_at_pit(facing_cell)
     or next((e for e in ctx.stage.get_elems_at(facing_cell) if
       isinstance(e, ItemDrop)
       or not isinstance(e, DungeonActor)
