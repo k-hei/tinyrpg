@@ -85,20 +85,22 @@ class Wall(DefaultWall):
     @staticmethod
     def find_state(stage, cell, visited_cells):
         x, y = cell
+        neighbors = {
+            (x - 1, y - 1),
+            (    x, y - 1),
+            (x + 1, y - 1),
+            (x - 1,     y),
+            (x + 1,     y),
+            (x - 1, y + 1),
+            (    x, y + 1),
+            (x + 1, y + 1),
+        }
         return [
-            stage.get_tile_at(cell),
             stage.get_tile_at((x - 1, y)),
             stage.get_tile_at((x + 1, y)),
             stage.get_tile_at((x, y - 1)),
             stage.get_tile_at((x, y + 1)),
-            (x - 1, y - 1) in visited_cells,
-            (    x, y - 1) in visited_cells,
-            (x + 1, y - 1) in visited_cells,
-            (x - 1,     y) in visited_cells,
-            (x + 1,     y) in visited_cells,
-            (x - 1, y + 1) in visited_cells,
-            (    x, y + 1) in visited_cells,
-            (x + 1, y + 1) in visited_cells,
+            *[n in visited_cells for n in neighbors]
         ]
 
     @classmethod

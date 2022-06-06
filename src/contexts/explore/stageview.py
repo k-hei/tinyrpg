@@ -16,7 +16,7 @@ import debug
 import assets
 
 
-def find_tile_hash(stage, cell, visited_cells):
+def find_tile_hash(stage, cell, visited_cells, cache=None):
   """
   Gets the hash for the tile at the cell on the given stage.
   A tile hash is compared against a previous hash to determine whether or not the tile needs to be
@@ -25,9 +25,17 @@ def find_tile_hash(stage, cell, visited_cells):
   do not change appearance and can thus have their image stacks cached on initial render to avoid
   a significant amount of computational overhead.
   """
+  if cache and cell in cache:
+    return cache[cell]
+
   tileset = stage.tileset
   tiles = stage.get_tiles_at(cell)
-  return tuple([tileset.find_tile_state(t, stage, cell, visited_cells) for t in tiles])
+  tile_hash = tuple([tileset.find_tile_state(t, stage, cell, visited_cells) for t in tiles])
+
+  if cache:
+    cache[cell] = tile_hash
+
+  return tile_hash
 
 def flatten_tile_image_stack(tile_images) -> Surface:
   """
@@ -160,13 +168,13 @@ class StageView:
   def undarken(view):
     view.darkened = False
 
-  def render_cell(view, stage, cell, visited_cells, use_cache=False):
+  def render_cell(view, stage, cell, visited_cells, use_cache=False, tile_hash_cache=None):
     tiles = stage.get_tile_at(cell)
     if not tiles:
       return None
 
     # get tile state (state of this cell and rendering-relevant neighbors)
-    tile_hash = find_tile_hash(stage, cell, visited_cells)
+    tile_hash = find_tile_hash(stage, cell, visited_cells, cache=tile_hash_cache)
 
     # read cached tile data
     cached_state, cached_images, cached_image = (
@@ -190,11 +198,12 @@ class StageView:
         sprite.move(vector.scale(cell, stage.tile_size))
       view.tile_sprites[cell] = tile_sprites
 
-    if not stage.is_overworld:
-      cached_image = flatten_tile_image_stack(tile_images)
-      cached_image = cached_image and darken_image(cached_image)
-    else:
-      cached_image = None
+    if not cached_image:
+      if not stage.is_overworld:
+        cached_image = flatten_tile_image_stack(tile_images)
+        cached_image = cached_image and darken_image(cached_image)
+      else:
+        cached_image = None
 
     view.tile_cache[cell] = (tile_hash, tile_images, cached_image)
 
@@ -240,55 +249,66 @@ class StageView:
 
     view.tile_offset = tile_rect.topleft
     visible_cells = hero.visible_cells if hero else view.cache_visible_cells
+    if not visible_cells:
+      return
 
-    viewable_cells = visible_cells + visited_cells
-    for row in range(tile_rect.top, tile_rect.bottom + 1):
-      for col in range(tile_rect.left, tile_rect.right + 1):
-        cell = (col, row)
+    viewable_cells = [c
+      for c in visible_cells + visited_cells
+        if tile_rect.collidepoint(c)]
+    visible_cells = set(visible_cells)
+    visited_cells = set(visited_cells)
 
-        if (cell not in view.stage
-        or not view.stage.is_overworld and cell not in viewable_cells):
-          # out of bounds/out of sight
+    tile_hash_cache = {}
+    for cell in viewable_cells:
+      is_cell_visible = view.stage.is_overworld or cell in visible_cells
+
+      has_cell_tile_state_changed = (not view.stage.is_overworld
+        and is_cell_visible
+        and cell in view.tile_cache
+        and find_tile_hash(view.stage, cell, visited_cells, cache=tile_hash_cache) != view.tile_cache[cell][0])
+
+      has_cell_visible_state_changed = (not view.stage.is_overworld
+        and (is_cell_visible != (cell in view.cache_visible_cells)
+          or (cell in visited_cells) != (cell in view.cache_visited_cells)))
+
+      has_cell_been_rendered = view.cache_tile_rect and view.cache_tile_rect.collidepoint(cell)
+      if (has_cell_been_rendered
+      and not has_cell_tile_state_changed
+      and not has_cell_visible_state_changed):
+        # ignore previously drawn tiles if state is unchanged
+        continue
+
+      try:
+        use_cache = cell not in visible_cells or view.darkened
+        tile_images = view.render_cell(view.stage, cell, visited_cells, use_cache, tile_hash_cache=tile_hash_cache)
+
+        if not tile_images:
           continue
 
-        has_cell_state_changed = (not view.stage.is_overworld
-          and cell in view.tile_cache
-          and find_tile_hash(view.stage, cell, visited_cells) != view.tile_cache[cell][0])
+        tile_pos = vector.scale(
+          vector.subtract(cell, view.tile_offset),
+          TILE_SIZE
+        )
 
-        has_cell_viewable_state_changed = (not view.stage.is_overworld
-          and ((cell in visible_cells) != (cell in view.cache_visible_cells)
-            or (cell in visited_cells) != (cell in view.cache_visited_cells)))
-
-        if (view.cache_tile_rect and view.cache_tile_rect.collidepoint(cell)
-        and not has_cell_state_changed
-        and not has_cell_viewable_state_changed):
-          # ignore previously drawn tiles if state is unchanged
+        if len(tile_images) == 1:
+          tile_layer = view.tile_layers[0]
+          tile_image = tile_images[0]
+          if tile_image and not isinstance(tile_image, Sprite):
+            tile_layer.blit(tile_image, tile_pos)
           continue
 
-        try:
-          use_cache = cell not in visible_cells or view.darkened
-          tile_images = view.render_cell(view.stage, cell, visited_cells, use_cache)
-          if not tile_images:
+        # blit tile image stack onto associated layers
+        # view.draw_tile_image_stack(tile_images, cell=vector.subtract(cell, view.tile_offset))
+        for tile_layer, tile_image in zip(view.tile_layers, tile_images):
+          if not tile_image or isinstance(tile_image, Sprite):
+            # tile sprites get flattened for dim images, so no need to register a special case
             continue
 
-          # blit tile image stack onto associated layers
-          # view.draw_tile_image_stack(tile_images, cell=vector.subtract(cell, view.tile_offset))
-          for layer, image in zip(view.tile_layers, tile_images):
-            if not image or isinstance(image, Sprite):
-              # tile sprites get flattened for dim images, so no need to register a special case
-              continue
+          tile_layer.blit(tile_image, tile_pos)
 
-            layer.blit(
-              image,
-              vector.scale(
-                vector.subtract(cell, view.tile_offset),
-                TILE_SIZE
-              )
-            )
-
-        except Exception as e:
-          debug.log(f"Failed to render tile {view.stage.get_tile_at(cell).__name__}")
-          raise e
+      except Exception as e:
+        debug.log(f"Failed to render tile {view.stage.get_tile_at(cell).__name__}")
+        raise e
 
     view.cache_camera_cell = snap_vector(view.camera.pos, TILE_SIZE)
     view.cache_tile_rect = tile_rect
