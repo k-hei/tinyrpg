@@ -14,9 +14,9 @@ class Floor3(Floor):
     return gen_floor(
       features=lambda: Graph(
         nodes=[
-          mageboss_room := Room(data=RoomData(**rooms["mageboss"])),
-          emerald_room := Room(data=RoomData(**rooms["emerald"])),
-          hall_room := Room(data=RoomData(**rooms["hall"])),
+          mageboss_room := Room(data=rooms["mageboss"]),
+          emerald_room := Room(data=rooms["emerald"]),
+          hall_room := Room(data=rooms["hall"]),
           entry_room := Room(cells=gen_blob(min_area=60), data=RoomData(
             secret=True,
             terrain=False,

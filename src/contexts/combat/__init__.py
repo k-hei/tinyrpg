@@ -1042,6 +1042,9 @@ class CombatContext(ExploreBase):
     return (ctx.view_grid() if ctx.hero else []) + super().view()
 
   def view_grid(ctx):
+    if ctx.stage_view.darkened:
+      return []
+
     room = ctx.room
     if not room or ctx.stage.is_overworld and room == ctx.stage.rooms[-1]:
       return []

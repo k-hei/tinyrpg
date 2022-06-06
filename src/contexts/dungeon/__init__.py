@@ -415,7 +415,7 @@ class DungeonContext(ExploreBase):
       color=GREEN,
     ))
 
-  def handle_explore(ctx, initial=True):
+  def handle_explore(ctx, initial=False):
     ctx.open(ExploreContext(
       store=ctx.store,
       stage=ctx.stage,

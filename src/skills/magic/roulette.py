@@ -9,6 +9,7 @@ from dungeon.actors.mage import LeapAnim
 from dungeon.actors.mageclone import MageClone
 from vfx.mageclone import MageCloneVfx
 
+
 class Roulette(MagicSkill):
   name = "Illusion"
   desc = "Calls allies to your side"
@@ -29,7 +30,6 @@ class Roulette(MagicSkill):
   def effect(game, user, dest=None, on_start=None, on_end=None):
     NUM_CLONES = 4
     on_start and on_start(user.cell)
-    user.core.anims.append(Mage.CastAnim())
     game.darken()
 
     def jump(fx):
