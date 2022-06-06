@@ -19,7 +19,8 @@
     [[5, 3], "Column"],
     [[1, 6], "Pillar"],
     [[7, 6], "Pillar"],
-    [[2, 4], "PushBlock"]
+    [[2, 4], "PushBlock"],
+    [[3, 2], "Ghost"]
   ],
   "items": false,
   "enemies": false,

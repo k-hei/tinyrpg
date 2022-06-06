@@ -5,6 +5,7 @@ import lib.vector as vector
 import lib.input as input
 from lib.direction import invert as invert_direction, normal as normalize_direction
 from helpers.findactor import find_actor
+from helpers.stage import is_cell_walkable_to_actor
 from contexts import Context
 from anims.item import ItemAnim
 from anims.step import StepAnim
@@ -191,7 +192,7 @@ class ExploreBase(Context):
     move_src = actor.cell if fixed else downscale(actor.pos, TILE_SIZE)
     move_dest = vector.add(actor.cell, delta)
 
-    if not ctx.stage.is_cell_walkable(move_dest, scale=TILE_SIZE):
+    if not is_cell_walkable_to_actor(ctx.stage, move_dest, actor):
       return False
 
     # block player movement outside of enemy territory if adjacent to enemy
@@ -272,6 +273,9 @@ class ExploreBase(Context):
 
   def handle_push(ctx, fixed=False):
     target_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
+    if not is_cell_walkable_to_actor(ctx.stage, cell=target_cell, actor=ctx.hero):
+      return False
+
     target_elem = next((e for e in ctx.stage.get_elems_at(target_cell) if e.solid and not e.static), None)
     if not target_elem:
       return False
@@ -295,8 +299,7 @@ class ExploreBase(Context):
       if e.solid and e is not target), None)
 
     if (target.static
-    or dest_cell not in ctx.stage
-    or not ctx.stage.is_cell_walkable(dest_cell)
+    or not is_cell_walkable_to_actor(ctx.stage, cell=dest_cell, actor=target)
     or dest_elem):
       return False
 

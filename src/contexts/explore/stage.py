@@ -217,7 +217,8 @@ class Stage:
         if predicate and not predicate(neighbor):
           continue
 
-        if (not stage.is_cell_empty(neighbor, scale=TILE_SIZE)
+        if (not predicate
+        and not stage.is_cell_empty(neighbor, scale=TILE_SIZE)
         and (not whitelist or neighbor not in whitelist)):
           continue
 

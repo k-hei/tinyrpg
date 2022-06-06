@@ -3,6 +3,7 @@ import lib.input as input
 from lib.direction import invert as invert_direction
 from lib.cell import neighborhood, manhattan, is_adjacent, upscale, downscale
 from helpers.combat import find_damage, will_miss, will_crit, will_block
+from helpers.stage import is_cell_walkable_to_actor
 from resolve.skill import resolve_skill
 import debug
 
@@ -370,10 +371,7 @@ class CombatContext(ExploreBase):
     pathfind = lambda: ctx.stage.pathfind(
       start=actor.cell,
       goal=dest,
-      predicate=lambda cell: (
-        not ctx.stage.is_tile_at_solid(cell)
-        and (not ctx.stage.is_tile_at_pit(cell) or actor.floating)
-      )
+      predicate=lambda cell: is_cell_walkable_to_actor(ctx.stage, cell, actor)
     )
 
     if not actor.ai_path:
