@@ -17,6 +17,7 @@ from vfx.magiccircle import MagicCircleVfx
 from colors.palette import CYAN
 from config import TILE_SIZE, ATTACK_DURATION, ENABLED_COMBAT_LOG
 
+
 class Congelatio(MagicSkill):
   name = "Congelatio"
   kind = "magic"
@@ -45,12 +46,14 @@ class Congelatio(MagicSkill):
     bump_dest = (hero_x + delta_x, hero_y + delta_y)
     target_cells = Congelatio().find_targets(user, floor, dest)
     target_cells = [c for c in target_cells if (
-      not Tile.is_solid(floor.get_tile_at(c))
-      and not next((e for e in floor.get_elems_at(c) if not isinstance(e, DungeonActor) and e.solid), None)
+      not floor.is_tile_at_solid(c, scale=TILE_SIZE)
+      and not next((e for e in floor.get_elems_at(c, scale=TILE_SIZE)
+        if not isinstance(e, DungeonActor) and e.solid), None)
       and not (user.faction == "player" and c not in game.hero.visible_cells)
     )]
     target_cells = sorted(target_cells, key=lambda cell: 0 if cell == dest else 1 + random())
-    targets = [e for c in target_cells for e in floor.get_elems_at(c) if e and isinstance(e, DungeonActor)]
+    targets = [e for c in target_cells for e in floor.get_elems_at(c, scale=TILE_SIZE)
+      if e and isinstance(e, DungeonActor)]
 
     pause_anim = PauseAnim()
     def on_connect():
@@ -84,7 +87,8 @@ class Congelatio(MagicSkill):
           )) if target in targets else None
         ))(
           cell,
-          target=next((e for e in floor.get_elems_at(cell) if isinstance(e, DungeonActor)), None)
+          target=next((e for e in floor.get_elems_at(cell, scale=TILE_SIZE)
+            if isinstance(e, DungeonActor)), None)
         ) for i, cell in enumerate(target_cells)]
       ])
       if not targets:

@@ -332,7 +332,7 @@ class StageView:
     or view.cache_camera_cell != snap_vector(view.camera.pos, view.stage.tile_size)
     or hero and view.cache_visible_cells != hero.visible_cells
     or view.cache_visited_cells != visited_cells
-    or view.cache_darkened != darkened):
+    or view.cache_darkened != view.darkened):
       view.redraw_tiles(hero, visited_cells)
 
     return [
