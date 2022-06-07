@@ -335,6 +335,11 @@ class NameEntryContext(Context):
       return
 
     controls = input.resolve_control(button)
+    if not controls:
+      return
+
+    if input.CONTROL_MINIMAP in controls or button == pygame.K_ESCAPE:
+      return ctx.handle_cancel()
 
     if input.CONTROL_CONFIRM in controls:
       return ctx.handle_enter()
@@ -344,9 +349,6 @@ class NameEntryContext(Context):
 
     if input.CONTROL_PAUSE in controls:
       return ctx.handle_confirm()
-
-    if input.CONTROL_MINIMAP in controls:
-      return ctx.handle_cancel()
 
   def view(ctx):
     sprites = []

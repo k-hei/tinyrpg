@@ -413,7 +413,8 @@ class DungeonActor(DungeonElement):
       message = message(game)
     if not message:
       game.talkee = None
-      return
+      return False
+
     hero = game.hero
     hero_x, hero_y = hero.cell
     actor_x, actor_y = actor.cell
@@ -441,6 +442,8 @@ class DungeonActor(DungeonElement):
       game.camera.blur(),
       setattr(game, "talkee", None),
     ))
+
+    return True
 
   def start_move(actor, running):
     pass
