@@ -243,7 +243,7 @@ class Stage:
     return [c for c in room.cells if (
       (stage.is_cell_walkable(c)
         and not next((e for e in stage.get_elems_at(c) if e.solid and not isinstance(e, DungeonActor)), None)
-      ) if ignore_actors else stage.is_cell_empty(c)
+      ) if ignore_actors else stage.is_cell_walkable(c)
     )] if room else []
 
   # TODO: relocate into helper

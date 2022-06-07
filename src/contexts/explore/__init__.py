@@ -185,11 +185,10 @@ class ExploreContext(ExploreBase):
         and e.rect and hero.rect.colliderect(e.rect)
       ), None)
       if prop:
-        prop.effect(ctx, hero)
-        ctx.update_bubble()
-        if ctx.child:
+        if prop.effect(ctx, hero):
           hero.stop_move()
           ally and ally.stop_move()
+        ctx.update_bubble()
 
     if ally:
       if moved:
