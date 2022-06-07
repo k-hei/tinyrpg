@@ -3,6 +3,7 @@ import lib.vector as vector
 from lib.sprite import Sprite
 from lib.filters import darken_image
 import assets
+from town.sideview.actor import Actor
 from contexts.dungeon.camera import Camera, CameraConstraints
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE, TILE_SIZE
 
@@ -117,13 +118,16 @@ class Area(metaclass=MetaArea):
     sprites += bg_sprites
 
     port = area.ports[port_id] if port_id else None
+
     for actor in area.actors:
       actor_sprites = actor.view()
-      if actor is hero:
+
+      if isinstance(actor, Actor) and actor.faction == "player":
         actor_sprite = actor_sprites[0]
-        actor_sprite.offset += TILE_SIZE
+        actor_sprite.offset += TILE_SIZE + (1 if actor is hero else 0)
         if port_id and "doorway" in port_id and abs(actor.pos[1] - port.y) >= 16:
           actor_sprite.image = darken_image(actor_sprite.image)
+
       sprites += actor_sprites
 
     for sprite in sprites:
@@ -131,5 +135,5 @@ class Area(metaclass=MetaArea):
         sprite.move(vector.negate(area.camera.rect.topleft))
 
     LAYER_SEQUENCE = ["bg", "tiles", "elems", "fg", "markers"]
-    sprites.sort(key=lambda sprite: sprite.depth(LAYER_SEQUENCE))
+    sprites.sort(key=lambda sprite: sprite.depth(LAYER_SEQUENCE) * WINDOW_HEIGHT + sprite.y)
     return sprites
