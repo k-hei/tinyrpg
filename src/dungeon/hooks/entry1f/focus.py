@@ -19,7 +19,14 @@ import config
 from config import RUN_DURATION
 
 def on_focus(room, game):
-  if not config.CUTSCENES or "minxia" in game.store.story:
+  if "minxia" in game.store.story:
+    return False
+
+  game_ctx = game.get_parent(cls="GameContext")
+  game_ctx.forget_skill(BroadSword)
+  game_ctx.update_skills()
+
+  if not config.CUTSCENES:
     return False
 
   hero = game.hero

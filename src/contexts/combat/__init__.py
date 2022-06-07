@@ -95,8 +95,8 @@ class CombatContext(ExploreBase):
       )
     )
 
-    hero_brandish = create_brandish(ctx.hero)
-    ally_brandish = ctx.ally and create_brandish(ctx.ally)
+    hero_brandish = ctx.hero.weapon and create_brandish(ctx.hero)
+    ally_brandish = ctx.ally and ctx.ally.weapon and create_brandish(ctx.ally)
 
     if ctx.should_path:
       hero_cell = animate_snap(ctx.hero, anims=ctx.anims, speed=walk_speed)
@@ -143,8 +143,11 @@ class CombatContext(ExploreBase):
     elif ctx.ally:
       ctx.anims.append([hero_brandish, ally_brandish])
 
-    else:
+    elif hero_brandish:
       ctx.anims.append([hero_brandish])
+
+    else:
+      ctx.hero.stop_move()
 
     ctx.enter_grid()
 
@@ -491,11 +494,14 @@ class CombatContext(ExploreBase):
     if not target_actor:
       return False
 
-    ctx.store.sp -= 1
-    return ctx.attack(actor=ctx.hero, target=target_actor, on_end=ctx.step)
+    attacked = ctx.attack(actor=ctx.hero, target=target_actor, on_end=ctx.step)
+    if attacked:
+      ctx.store.sp -= 1
+
+    return attacked
 
   def attack(ctx, actor, target=None, modifier=1, animate=True, on_end=None):
-    if actor.dead:
+    if actor.dead or actor.weapon is None:
       return False
 
     miss, crit, block = False, False, False

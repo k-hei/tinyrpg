@@ -112,7 +112,6 @@ class DungeonActor(DungeonElement):
     else:
       actor.reset_charge()
 
-    actor.weapon = actor.find_weapon()
     actor.item = None
     actor.command = None
     actor.turns = 0
@@ -273,7 +272,8 @@ class DungeonActor(DungeonElement):
     }
     return [actor.cell, type(actor).__name__, *(props and [props] or [])]
 
-  def find_weapon(actor):
+  @property
+  def weapon(actor):
     return next((s for s in actor.core.skills if s.kind == "weapon"), None)
 
   def find_shield(actor):

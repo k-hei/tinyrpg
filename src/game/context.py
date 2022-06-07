@@ -205,6 +205,9 @@ class GameContext(Context):
       ctx.store.skills.append(skill)
       ctx.store.skills.sort(key=get_skill_order)
 
+  def forget_skill(ctx, skill):
+    return ctx.store.forget_skill(skill)
+
   def load_build(ctx, actor, build):
     ctx.store.builds[type(actor).__name__] = build
     actor.skills = sorted([skill for skill, cell in build], key=get_skill_order)
