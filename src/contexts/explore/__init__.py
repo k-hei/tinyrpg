@@ -115,10 +115,10 @@ class ExploreContext(ExploreBase):
       elif ctx.buttons_rejected[button] >= 30:
         return ctx.handle_push()
 
-    control = input.resolve_control(button)
+    controls = input.resolve_controls(button)
 
     # TODO(?): move `handle_control_confirm(button)` into base (shared handlers with combat mode)
-    if control == input.CONTROL_CONFIRM:
+    if input.CONTROL_CONFIRM in controls:
       if not ctx.hero.item and input.get_state(button) == 1:
         acted = ctx.handle_action()
         if acted == False:
@@ -133,10 +133,16 @@ class ExploreContext(ExploreBase):
     if input.get_state(pygame.K_LCTRL) and button == pygame.K_h:
       return ctx.handle_debug()
 
-    if control == input.CONTROL_MINIMAP:
+    if input.CONTROL_ITEM in controls:
+      if ctx.hero.item:
+        return ctx.handle_throw()
+      else:
+        return ctx.handle_pickup()
+
+    if input.CONTROL_MINIMAP in controls:
       return ctx.handle_minimap()
 
-    if control == input.CONTROL_ALLY:
+    if input.CONTROL_ALLY in controls:
       return ctx.handle_charswap()
 
   def handle_release(ctx, button):

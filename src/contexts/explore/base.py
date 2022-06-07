@@ -433,13 +433,12 @@ class ExploreBase(Context):
     throwing = True
     while throwing:
       next_cell = vector.add(target_cell, actor.facing)
-      next_tile = ctx.stage.get_tile_at(next_cell)
       next_elem = next((e for e in ctx.stage.get_elems_at(next_cell) if
         e.solid
         and not (ctx.hero and ctx.ally and actor is ctx.hero and e is ctx.ally)
       ), None)
 
-      if (not isinstance(next_tile, tileset.Pit) and Tile.is_solid(next_tile)
+      if (not ctx.stage.is_tile_at_pit(next_cell) and ctx.stage.is_tile_at_solid(next_cell, scale=TILE_SIZE)
       or next((e for e in ctx.stage.get_elems_at(next_cell) if (
         e.solid
         and not isinstance(e, DungeonActor)
@@ -452,10 +451,10 @@ class ExploreBase(Context):
         throwing = False
 
       target_cell = next_cell
-      if not isinstance(next_tile, tileset.Pit):
+      if not ctx.stage.is_tile_at_pit(next_cell):
         nonpit_cell = next_cell
 
-    if not isinstance(ctx.stage.get_tile_at(target_cell), tileset.Pit):
+    if not ctx.stage.is_tile_at_pit(target_cell):
       target_cell = nonpit_cell
 
     return target_cell, target_elem

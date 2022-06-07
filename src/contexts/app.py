@@ -40,7 +40,7 @@ input.config( # TODO: this isn't ideal - do we need to extend a generic wrapper 
     input.CONTROL_MANAGE: [input.BUTTON_Y, pygame.K_r],
     input.CONTROL_RUN: [input.BUTTON_B, pygame.K_RSHIFT, pygame.K_LSHIFT, pygame.K_g],
     input.CONTROL_TURN: [input.BUTTON_R, pygame.K_LCTRL, pygame.K_RCTRL],
-    input.CONTROL_ITEM: [input.BUTTON_R, input.BUTTON_X],
+    input.CONTROL_ITEM: [(input.BUTTON_R, input.BUTTON_X)],
     input.CONTROL_WAIT: [(input.BUTTON_R, input.BUTTON_A), pygame.K_t],
     input.CONTROL_SHORTCUT: [(input.BUTTON_R, input.BUTTON_Y), pygame.K_r],
     input.CONTROL_ALLY: [input.BUTTON_L, pygame.K_TAB],

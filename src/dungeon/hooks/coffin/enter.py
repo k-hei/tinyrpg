@@ -63,6 +63,7 @@ def cutscene(room, game):
     *take_battle_position(room, game),
     lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
     lambda step: (
+      setattr(game.hero, "facing", (0, -1)),
       game.get_tail().open(DialogueContext(script=[
         lambda: game.anims.append([ShakeAnim(target=mage, duration=15)]),
         (hero.name.upper(), "You sure like running, don't you?"),
@@ -296,7 +297,7 @@ def take_battle_position(room, game):
           game.ally.stop_move(),
         )
       )),
-    ),
+    )
   ]
 
 def spawn_enemies(room, game):

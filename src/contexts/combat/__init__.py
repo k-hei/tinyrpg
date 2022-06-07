@@ -295,6 +295,12 @@ class CombatContext(ExploreBase):
       elif input.get_state(button) >= 30 and not button in ctx.buttons_rejected:
         return ctx.handle_throw()
 
+    if input.CONTROL_ITEM in controls:
+      if ctx.hero.item:
+        return ctx.handle_throw()
+      else:
+        return ctx.handle_pickup()
+
     if input.CONTROL_MANAGE in controls and tapping:
       return ctx.handle_skill()
 
