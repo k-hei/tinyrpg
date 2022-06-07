@@ -5,8 +5,11 @@ from dungeon.room import Blob as Room
 from contexts.explore.roomdata import RoomData, rooms
 from dungeon.gen import gen_floor
 from dungeon.gen.blob import gen_blob
-from dungeon.actors.skeleton import Skeleton
+from dungeon.actors.eyeball import Eyeball
+from dungeon.actors.mushroom import Mushroom
+from dungeon.actors.ghost import Ghost
 from dungeon.actors.mummy import Mummy
+from dungeon.actors.skeleton import Skeleton
 
 from items.sets import SPECIAL_ITEMS
 
@@ -60,6 +63,7 @@ class Floor2(Floor):
         ]
       ),
       # extra_room_count=5, # 4 + randint(0, 2),
+      enemies=[Eyeball, Eyeball, Eyeball, Eyeball, Mushroom, Mushroom, Ghost, Mummy],
       seed=seed,
       debug=True
     )
