@@ -148,7 +148,10 @@ class Camera:
 
   def tween(camera, target, duration=None, on_end=None):
     start_pos = camera.pos
-    camera.focus(target, force=True)
+    if isinstance(target, list):
+      camera.target_groups = [target]
+    else:
+      camera.focus(target, force=True)
     goal_pos = Camera.resolve_target_group(camera.target_groups[-1], camera.offset)
 
     if not start_pos:
