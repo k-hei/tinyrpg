@@ -653,9 +653,7 @@ class CombatContext(ExploreBase):
     and not ctx.stage.is_tile_at_pit(target_cell)):
       return False
 
-    actor_cell = actor.cell
-    scale_delta = TILE_SIZE // ctx.stage.tile_size
-    actor.cell = vector.add(actor.cell, vector.scale(direction, scale_delta))
+    actor.cell = vector.add(actor.cell, direction)
 
     not ctx.anims and ctx.anims.append([])
     ctx.anims[0].append(StepAnim(
