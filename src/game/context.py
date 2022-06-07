@@ -225,7 +225,13 @@ class GameContext(Context):
 
     # TODO: only town and dungeon contexts should be able to access pause/inventory
     # what kinds of generic assumptions can we make about potential use cases
-    blocking_contexts = (PauseContext, InventoryContext, LoadContext, ControlsContext)
+    blocking_contexts = (
+      PauseContext,
+      InventoryContext,
+      LoadContext,
+      ControlsContext,
+      LoadingContext,
+    )
     if isinstance(ctx.get_tail(), blocking_contexts) or ctx.get_depth() > 2:
       return
 
