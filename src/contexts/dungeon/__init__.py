@@ -73,7 +73,7 @@ class DungeonContext(ExploreBase):
     ctx.construct_graph()
     ctx.parent.save()
 
-    heroes = [manifest_actor(c) for c in ctx.store.party]
+    heroes = [manifest_actor(c) for c in ctx.store.party if not c.dead]
     stage_entrance = ctx.stage.entrance or find_tile(ctx.stage, tileset.Entrance)
     if stage_entrance:
       for i, hero in enumerate(heroes):
@@ -151,7 +151,7 @@ class DungeonContext(ExploreBase):
     ctx.construct_graph()
     ctx.parent.save()
 
-    heroes = [manifest_actor(c) for c in ctx.store.party]
+    heroes = [manifest_actor(c) for c in ctx.store.party if not c.dead]
     stage_entrance = find_tile(stage, stairs) if stairs else stage.entrance
     if stage_entrance:
       for i, hero in enumerate(heroes):
