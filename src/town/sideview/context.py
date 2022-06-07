@@ -332,8 +332,7 @@ class SideViewContext(Context):
         hero_x, hero_y = hero.pos
         if port.direction == (-1, 0) or port.direction == (1, 0):
           for actor in ctx.party:
-            if abs(actor.pos[0] - port.x) < TILE_SIZE:
-              actor.move(port.direction)
+            actor.move(port.direction)
         else:
           graph = ctx.get_graph()
           src_area = type(ctx.area)
