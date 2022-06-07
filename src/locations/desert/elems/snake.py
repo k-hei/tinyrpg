@@ -93,11 +93,11 @@ class DesertSnake(DungeonActor):
       return None
 
     if random() < 1 / 16 and snake.idle(game):
-      game.anims.append([FrameAnim(
+      game.anims[-1].append(FrameAnim(
         target=snake,
         frames=snake.spritesheet.get_charge_sprites() * 5,
         frames_duration=5,
-      )])
+      ))
       return None
 
     if is_adjacent(snake.cell, enemy.cell):

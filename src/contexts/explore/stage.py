@@ -74,8 +74,8 @@ class Stage:
 
     return cell in stage.tiles
 
-  def get_tile_at(stage, cell):
-    tiles = stage.get_tiles_at(cell)
+  def get_tile_at(stage, cell, scale=0):
+    tiles = stage.get_tiles_at(cell, scale)
     return tiles[0] if tiles else None
 
   def get_tiles_at(stage, cell, scale=0):
@@ -104,6 +104,13 @@ class Stage:
 
     tiles = stage.get_tiles_at(cell, scale)
     return not tiles or next((True for tile in tiles if stage.tileset.is_tile_at_solid(tile)), False)
+
+  def is_tile_at_opaque(stage, cell, scale=0):
+    if cell not in stage:
+      return True
+
+    tiles = stage.get_tiles_at(cell, scale)
+    return not tiles or next((True for tile in tiles if stage.tileset.is_tile_at_opaque(tile)), False)
 
   def is_tile_at_wall(stage, cell):
     return stage.tileset.is_tile_at_wall(tile=stage.get_tile_at(cell))
@@ -169,7 +176,9 @@ class Stage:
 
   def is_cell_opaque(stage, cell):
     tile = stage.get_tile_at(cell)
-    return not tile or stage.tileset.is_tile_at_opaque(tile=stage.get_tile_at(cell)) or next((e for e in stage.get_elems_at(cell) if e.opaque), None)
+    return (not tile
+      or stage.tileset.is_tile_at_opaque(tile)
+      or next((e for e in stage.get_elems_at(cell) if e.opaque), None))
 
   def is_cell_walkable(stage, cell, scale=0):
     if not stage.contains(cell, scale):

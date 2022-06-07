@@ -1,3 +1,4 @@
+from random import random
 from pygame.transform import flip
 from lib.sprite import Sprite
 import assets
@@ -7,7 +8,6 @@ from helpers.actor import Spritesheet
 from cores import Core, Stats
 from skills.weapon.tackle import Tackle
 
-from random import random, choice
 from lib.cell import is_adjacent
 from anims.frame import FrameAnim
 
@@ -96,11 +96,11 @@ class DesertEvilCactus(DungeonActor):
             return None
 
         if random() < 1 / 16 and cactus.idle(game):
-            game.anims.append([FrameAnim(
+            game.anims[-1].append(FrameAnim(
                 target=cactus,
                 frames=cactus.spritesheet.get_charge_sprites() * 5,
                 frames_duration=5,
-            )])
+            ))
             return None
 
         return (("attack", enemy)

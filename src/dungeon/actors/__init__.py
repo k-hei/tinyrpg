@@ -25,6 +25,7 @@ from anims.bounce import BounceAnim
 from anims.frame import FrameAnim
 from anims.drop import DropAnim
 from anims.warpin import WarpInAnim
+from anims.pause import PauseAnim
 from comps.log import Token
 from comps.hpbubble import HpBubble
 from vfx.icepiece import IcePieceVfx
@@ -224,8 +225,18 @@ class DungeonActor(DungeonElement):
       return None
 
     message = choice(actor.idle_messages)
+
+    if isinstance(message, tuple):
+      message = tuple([actor.format_idle_message(m) for m in message])
+    else:
+      message = actor.format_idle_message(message)
+
+    return message
+
+  def format_idle_message(actor, message):
     message = message.split("{enemy}")
-    message.insert(1, actor.token())
+    if len(message) == 2:
+      message.insert(1, actor.token())
     return message
 
   def idle(actor, game):
@@ -233,7 +244,15 @@ class DungeonActor(DungeonElement):
     if not message:
       return False
 
-    game.print(message)
+    if isinstance(message, tuple):
+      game.print(message[0])
+      game.anims.append([PauseAnim(
+        duration=60,
+        on_end=lambda: game.print(message[1])
+      )])
+    else:
+      game.print(message)
+
     return True
 
   def charge(actor, skill, dest=None, turns=0):
