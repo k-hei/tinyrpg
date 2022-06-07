@@ -70,6 +70,7 @@ def spawn_next_wave(room, game):
   enemy_types = room.waves.pop(0)
   valid_cells = [c for c in room.cells if (
     game.stage.is_cell_empty(c)
+    and not game.stage.is_tile_at_pit(c)
     and manhattan(c, game.hero.cell) > 2
     and manhattan(c, game.hero.cell) <= 5
     and len(game.stage.pathfind(
