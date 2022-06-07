@@ -117,7 +117,7 @@ class DungeonContext(ExploreBase):
       memory=deepcopy(ctx.memory) if not is_overworld else [],
     )
 
-  def construct_graph(ctx, prev_floor=None):
+  def construct_graph(ctx, old_floor=None):
     floor_names = [f.__name__ for f in FLOOR_SEQUENCE]
 
     if not ctx.stage: # or ctx.stage.generator not in floor_names:
@@ -135,12 +135,16 @@ class DungeonContext(ExploreBase):
     ctx.graph.nodes.append(ctx.stage)
 
     try:
-      prev_floor = FLOOR_SEQUENCE[floor_names.index(ctx.stage.generator) - 1]
+      prev_floor = (old_floor
+        if old_floor and floor_names.index(old_floor.generator) - floor_names.index(ctx.stage.generator) == -1
+        else FLOOR_SEQUENCE[floor_names.index(ctx.stage.generator) - 1])
     except (ValueError, IndexError):
-      prev_floor = prev_floor or None
+      prev_floor = old_floor or None
 
     try:
-      next_floor = FLOOR_SEQUENCE[floor_names.index(ctx.stage.generator) + 1]
+      next_floor = (old_floor
+        if old_floor and floor_names.index(old_floor.generator) - floor_names.index(ctx.stage.generator) == 1
+        else FLOOR_SEQUENCE[floor_names.index(ctx.stage.generator) + 1])
     except (ValueError, IndexError):
       next_floor = GenericFloor
 
@@ -156,7 +160,7 @@ class DungeonContext(ExploreBase):
 
     stage_old = ctx.stage
     ctx.stage = stage
-    ctx.construct_graph(prev_floor=stage_old)
+    ctx.construct_graph(old_floor=stage_old)
     ctx.parent.save()
 
     heroes = [manifest_actor(c) for c in ctx.store.party if not c.dead]

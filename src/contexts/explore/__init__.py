@@ -465,11 +465,11 @@ class ExploreContext(ExploreBase):
 
     hero_cell = ctx.hero.cell
     hero_tile = ctx.stage.get_tile_at(hero_cell)
-    stairs = hero_tile if issubclass(hero_tile, (tileset.Entrance, tileset.Exit)) else None
+    stairs = hero_tile if ctx.stage.is_tile_at_of_type(hero_cell, (tileset.Entrance, tileset.Exit)) else None
     if not stairs:
       return False
 
-    if issubclass(hero_tile, tileset.Escape):
+    if ctx.stage.is_tile_at_of_type(hero_cell, tileset.Escape):
       return ctx.goto_town()
 
     stairs_edge = ((ctx.graph.connector_edge(ctx.stage, hero_cell)
