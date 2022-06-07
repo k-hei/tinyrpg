@@ -749,26 +749,26 @@ class CombatContext(ExploreBase):
 
     skill_command = (actor, (COMMAND_SKILL, skill, dest))
     ctx.command_queue.append(skill_command)
-    cache_camera_target_count = len(ctx.camera.target_groups)
+
+    target_focus = None
+    def on_start(*target):
+      target = target[0] if target else None
+      if target:
+        nonlocal target_focus
+        target_focus = upscale(target, TILE_SIZE)
+        ctx.camera.focus(target=target_focus, force=True)
+
+      ctx.display_skill(skill, user=actor)
+      actor.faction == "player" and ctx.reload_skill_badge(delay=120)
+
     skill.effect(
       ctx,
       actor,
       dest,
-      on_start=lambda *target: (
-        target and ctx.camera.focus(
-          target=(
-            upscale(target[0], TILE_SIZE)
-              if type(target[0]) is tuple
-              else target[0]
-          ),
-          force=True
-        ),
-        ctx.display_skill(skill, user=actor),
-        actor.faction == "player" and ctx.reload_skill_badge(delay=120),
-      ),
+      on_start=on_start,
       on_end=lambda: (
         skill_command in ctx.command_queue and ctx.command_queue.remove(skill_command),
-        len(ctx.camera.target_groups) > cache_camera_target_count and ctx.camera.blur(),
+        target_focus and ctx.camera.blur(target_focus),
         on_end and on_end(),
       )
     )

@@ -55,6 +55,7 @@ class Mummy(DungeonActor):
         on_start=lambda: (
           on_start and on_start(dest),
           user.core.anims.append(Mummy.ChargeAnim()),
+          game.anims.append([pause_anim := PauseAnim()]),
           game.vfx.append(LinenVfx(
             src=user.cell,
             dest=dest,
@@ -63,14 +64,13 @@ class Mummy(DungeonActor):
               actor=user,
               target=target_actor,
               animate=False,
-              # is_ranged=True,
-              # is_chaining=True,
             )) if target_actor else (lambda: (
               target_elem.crush(game)
             )) if target_elem else None,
             on_end=lambda: (
               user.core.anims.clear(),
-              on_end and on_end()
+              pause_anim.end(),
+              on_end and on_end(),
             )
           ))
         )

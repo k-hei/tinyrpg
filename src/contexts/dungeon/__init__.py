@@ -107,7 +107,9 @@ class DungeonContext(ExploreBase):
         if not is_overworld
           and ctx.stage in ctx.graph.nodes
         else -1,
-      floors=deepcopy(ctx.graph) if not is_overworld else [],
+      floors=deepcopy(ctx.graph
+        if isinstance(ctx.graph, FloorGraph)
+        else FloorGraph(nodes=[ctx.stage])),
       memory=deepcopy(ctx.memory) if not is_overworld else [],
     )
 

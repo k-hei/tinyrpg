@@ -23,6 +23,11 @@ from config import PUSH_DURATION, RUN_DURATION, NUDGE_DURATION
 def on_enter(room, game):
   room.mage = game.stage.find_elem(cls="Mage")
   game.open(CutsceneContext([
+    lambda step: animate_snap(
+      actor=game.hero,
+      anims=game.anims,
+      on_end=step,
+    ),
     *(cutscene(room, game) if (config.CUTSCENES and "minxia" not in game.store.story) else [
       game.stage.remove_elem(room.mage),
       setattr(room, "mage", None),
@@ -50,11 +55,6 @@ def cutscene(room, game):
     door.open()
 
   return [
-    lambda step: animate_snap(
-      actor=hero,
-      anims=game.anims,
-      on_end=step,
-    ),
     lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
     lambda step: (
       game.vfx.append(AlertBubble(hero.cell)),

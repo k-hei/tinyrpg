@@ -129,10 +129,10 @@ class Camera:
   def focus(camera, target, force=False, anim=None, instant=False):
     if type(target) is list and force:
       camera.target_groups = [target]
-    elif target in camera.targets:
-      if not force:
-        return
-      camera.target_groups = [[target]]
+    elif target in camera.targets and not force:
+      return
+    # elif target in camera.targets:
+    #   camera.target_groups = [[target]]
     elif camera.target_groups and not force:
       camera.target_groups[-1].append(target)
     else:
@@ -172,6 +172,18 @@ class Camera:
       camera.target.remove(target)
       if not camera.target:
         camera.target_groups.pop()
+      return
+
+    target_group = None
+    for target_group in camera.target_groups:
+      if target in target_group:
+        target_group.remove(target)
+        break
+    else:
+      target_group = None
+
+    if target_group is not None and not target_group:
+      camera.target_groups.remove(target_group)
 
   def reset(camera):
     camera.pos = None
