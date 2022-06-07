@@ -132,6 +132,7 @@ class StageView:
   def reset_cache(view):
     view.cache_camera_cell = None
     view.cache_tile_rect = None
+    view.cache_darkened = False
     view.cache_visible_cells = []
     view.cache_visited_cells = []
     view.cache_elems = {}
@@ -228,7 +229,8 @@ class StageView:
     if (not force
     and tile_rect == view.cache_tile_rect
     and view.cache_visible_cells
-    and view.cache_visited_cells):
+    and view.cache_visited_cells
+    and view.cache_darkened == view.darkened):
       # camera rect is unchanged; no need to redraw
       return
 
@@ -283,7 +285,8 @@ class StageView:
       has_cell_been_rendered = view.cache_tile_rect and view.cache_tile_rect.collidepoint(cell)
       if (has_cell_been_rendered
       and not has_cell_tile_state_changed
-      and not has_cell_visible_state_changed):
+      and not has_cell_visible_state_changed
+      and view.cache_darkened == view.darkened):
         # ignore previously drawn tiles if state is unchanged
         continue
 
@@ -322,12 +325,14 @@ class StageView:
     view.cache_tile_rect = tile_rect
     view.cache_visible_cells = hero.visible_cells.copy()
     view.cache_visited_cells = visited_cells.copy()
+    view.cache_darkened = view.darkened
 
   def view_tiles(view, hero, visited_cells):
     if (not view.tile_layers
     or view.cache_camera_cell != snap_vector(view.camera.pos, view.stage.tile_size)
     or hero and view.cache_visible_cells != hero.visible_cells
-    or view.cache_visited_cells != visited_cells):
+    or view.cache_visited_cells != visited_cells
+    or view.cache_darkened != darkened):
       view.redraw_tiles(hero, visited_cells)
 
     return [
