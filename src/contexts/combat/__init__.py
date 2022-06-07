@@ -938,11 +938,14 @@ class CombatContext(ExploreBase):
         yield ctx.ally, command
 
     for actor in actors:
-      if not actor.hp:
+      if actor.dead:
         continue
 
       while actor.turns >= 1:
         actor.turns -= 1
+
+        if actor.dead:
+          break
 
         is_actor_enqueued = next((True for a, c in ctx.command_queue if a is actor), False)
         if is_actor_enqueued and actor.charge_turns:
@@ -952,6 +955,9 @@ class CombatContext(ExploreBase):
         command = actor.step_charge()
 
         while not command:
+          if actor.dead:
+            break
+
           command = ctx.step_enemy(actor, force=True)
           if not command:
             break
