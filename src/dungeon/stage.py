@@ -167,6 +167,10 @@ class Stage:
       return False
     return True
 
+  def is_cell_occupied(stage, cell, scale=0):
+    return next((True for e in stage.get_elems_at(cell, scale)
+      if e.solid), False)
+
   def is_cell_opaque(stage, cell):
     if stage.get_tile_at(cell).opaque:
       return True
