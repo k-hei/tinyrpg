@@ -22,7 +22,7 @@ def on_defeat(room, game, actor):
 
 def on_complete(room, game):
   door = sorted(room.get_doors(game.stage), key=lambda d: d.cell[1])[0]
-  game.get_tail().open(CutsceneContext(script=[
+  game.open(CutsceneContext(script=[
     lambda step: (
       game.camera.focus(
         target=upscale(door.cell, game.stage.tile_size),

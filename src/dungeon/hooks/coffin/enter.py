@@ -2,6 +2,7 @@ from math import inf
 
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
+from helpers.combat import animate_snap
 import lib.vector as vector
 from lib.cell import upscale
 
@@ -47,7 +48,13 @@ def cutscene(room, game):
   mage = room.mage
   for door in room.get_doors(game.stage):
     door.open()
+
   return [
+    lambda step: animate_snap(
+      actor=hero,
+      anims=game.anims,
+      on_end=step,
+    ),
     lambda step: game.anims.append([PauseAnim(duration=15, on_end=step)]),
     lambda step: (
       game.vfx.append(AlertBubble(hero.cell)),

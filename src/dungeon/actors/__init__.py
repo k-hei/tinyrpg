@@ -420,20 +420,28 @@ class DungeonActor(DungeonElement):
     facing_x, facing_y = actor.facing
     old_target = (actor_x + facing_x, actor_y + facing_y)
     actor.face(hero.cell)
+
     game.camera.focus(
       target=upscale(((hero_x + actor_x) / 2, (hero_y + actor_y) / 2 + 1), TILE_SIZE),
       force=True
     )
+
     def stop_talk():
       if actor in game.stage.elems:
         actor.face(old_target)
       game.camera.blur()
       game.talkee = None
-    if isinstance(message, Context):
-      context = message
-    else:
-      context = DialogueContext(script=message)
-    game.open(context, on_close=stop_talk)
+
+    context = (message
+      if isinstance(message, Context)
+      else DialogueContext(script=message))
+
+    game.open(context, on_close=lambda: (
+      actor in game.stage.elems and actor.face(old_target),
+      game.camera.blur(),
+      setattr(game, "talkee", None),
+      print(game.camera.target_groups),
+    ))
 
   def start_move(actor, running):
     pass

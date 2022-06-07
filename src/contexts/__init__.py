@@ -50,7 +50,7 @@ class Context:
 
     ctx.child = child
     child.parent = ctx
-    ctx.child.enter()
+    child.enter()
     child.init()
     if on_close:
       if child.on_close:
@@ -60,15 +60,19 @@ class Context:
         )
       else:
         child.on_close = on_close
+
     return True
 
   def close(ctx, *args):
     if ctx.child:
       ctx.child.close()
+
     if ctx.parent:
       ctx.parent.child = None
+
     if ctx.on_close:
       ctx.on_close(*args)
+
     return True
 
   def update(ctx):

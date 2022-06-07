@@ -70,7 +70,7 @@ class ExploreContext(ExploreBase):
     }
 
     if type(child) not in context_comps.keys():
-      super().open(child, _on_close)
+      super().open(child, on_close=_on_close)
       ctx.parent.update_bubble()
       return
 
