@@ -97,6 +97,7 @@ class CombatContext(ExploreBase):
 
     hero_brandish = ctx.hero.weapon and create_brandish(ctx.hero)
     ally_brandish = ctx.ally and ctx.ally.weapon and create_brandish(ctx.ally)
+    print(hero_brandish, ally_brandish)
 
     if ctx.should_path:
       hero_cell = animate_snap(ctx.hero, anims=ctx.anims, speed=walk_speed)
@@ -127,7 +128,7 @@ class CombatContext(ExploreBase):
             whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True)
           ),
           period=TILE_SIZE // walk_speed,
-          on_end=lambda: ctx.anims[0].append(hero_brandish)
+          on_end=lambda: hero_brandish and ctx.anims[0].append(hero_brandish)
         ), PathAnim(
           target=ctx.ally,
           path=ctx.stage.pathfind(
@@ -136,15 +137,15 @@ class CombatContext(ExploreBase):
             whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True) + [ctx.ally.cell]
           ),
           period=TILE_SIZE // walk_speed,
-          on_end=lambda: ctx.anims[0].append(ally_brandish)
+          on_end=lambda: ally_brandish and ctx.anims[0].append(ally_brandish)
         )
       ])
 
-    elif ctx.ally:
-      ctx.anims.append([hero_brandish, ally_brandish])
-
-    elif hero_brandish:
-      ctx.anims.append([hero_brandish])
+    elif hero_brandish or ally_brandish:
+      ctx.anims.append([
+        *([hero_brandish] if hero_brandish else []),
+        *([ally_brandish] if ally_brandish else []),
+      ])
 
     else:
       ctx.hero.stop_move()
