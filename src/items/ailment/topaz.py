@@ -19,4 +19,4 @@ class Topaz(AilmentItem):
     hero = game.hero
     hero.inflict_ailment("invulnerable")
     game.anims.append([PauseAnim(duration=30)])
-    return True, (hero.token(), "'s body is engulfed in a strange light.")
+    return True, (hero.token(), " surges with power!")
