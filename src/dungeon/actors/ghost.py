@@ -14,6 +14,7 @@ from lib.cell import is_adjacent, manhattan
 from skills.ailment.somnus import Somnus
 from items.materials.luckychoker import LuckyChoker
 from vfx.ghostarm import GhostArmVfx
+from locations.desert.elems.snake import DesertSnake
 
 
 class Ghost(DungeonActor):
@@ -92,10 +93,13 @@ class Ghost(DungeonActor):
         ghost.turns = 0
         return ("use_skill", Somnus)
 
-    if manhattan(ghost.cell, enemy.cell) <= 2:
+    if manhattan(ghost.cell, enemy.cell) <= 2 and randint(0, 1):
       return ghost.charge(skill=Ghost.ColdWhip, dest=enemy.cell)
-    else:
+    elif randint(0, 1):
       return ("move_to", enemy.cell)
+    else:
+      delta = DesertSnake.find_move_delta(ghost, goal=enemy.cell)
+      return ("move", delta)
 
   def view(ghost, anims):
     ghost_image = assets.sprites["ghost"]

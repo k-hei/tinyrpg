@@ -61,20 +61,20 @@ class DesertSnake(DungeonActor):
       skills=[Tackle],
     ), *args, **kwargs)
 
-  def find_move_delta(snake, target):
+  def find_move_delta(snake, goal):
     snake_x, snake_y = snake.cell
-    target_x, target_y = target.cell
+    goal_x, goal_y = goal
 
-    if snake_x < target_x:
+    if snake_x < goal_x:
       delta_x = 1
-    elif snake_x > target_x:
+    elif snake_x > goal_x:
       delta_x = -1
     else:
       delta_x = choice([-1, 1])
 
-    if snake_y < target_y:
+    if snake_y < goal_y:
       delta_y = 1
-    elif snake_y > target_y:
+    elif snake_y > goal_y:
       delta_y = -1
     else:
       delta_y = choice([-1, 1])
@@ -103,7 +103,7 @@ class DesertSnake(DungeonActor):
     if is_adjacent(snake.cell, enemy.cell):
       return ("attack", enemy)
 
-    delta = snake.find_move_delta(target=enemy)
+    delta = snake.find_move_delta(goal=enemy.cell)
     return ("move", delta)
 
   def find_image(snake, anims):
