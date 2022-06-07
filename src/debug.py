@@ -11,7 +11,7 @@ def log(*args):
 
   global buffer
   if not buffer.endswith(args[0]):
-    buffer += args[0]
+    buffer += args[0] + "\n"
 
   if DEBUG:
     print("[DEBUG]", *args)

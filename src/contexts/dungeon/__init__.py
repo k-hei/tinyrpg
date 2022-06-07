@@ -172,6 +172,7 @@ class DungeonContext(ExploreBase):
     ctx.stage_view.stage = stage
     ctx.stage_view.reset_cache()
     ctx.comps.minimap.sprite = None
+    ctx.rooms = []
     ctx.time = 0
     ctx.cache_room_focused = None
     ctx.cache_room_entered = None
