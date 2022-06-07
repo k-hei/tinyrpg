@@ -29,10 +29,6 @@ class Pillar(Prop):
     return pillar._rect
 
   def crush(pillar, game):
-    if pillar.broken:
-      return
-    pillar.broken = True
-
     create_pillar_chunk = lambda size: PillarChunkVfx(
       cell=pillar.cell,
       color=pillar.color,
@@ -41,13 +37,15 @@ class Pillar(Prop):
 
     game.stage_view.shake(vertical=True)
     game.vfx.extend([
-      create_pillar_chunk(size=PillarChunkVfx.SIZE_XL),
+      *([create_pillar_chunk(size=PillarChunkVfx.SIZE_XL)] if not pillar.broken else []),
       create_pillar_chunk(size=PillarChunkVfx.SIZE_L),
       create_pillar_chunk(size=PillarChunkVfx.SIZE_M),
       create_pillar_chunk(size=PillarChunkVfx.SIZE_M),
       create_pillar_chunk(size=PillarChunkVfx.SIZE_S),
       create_pillar_chunk(size=PillarChunkVfx.SIZE_S),
     ])
+
+    pillar.broken = True
 
   def view(pillar, anims):
     if pillar.broken:
