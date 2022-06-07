@@ -579,6 +579,8 @@ class ExploreContext(ExploreBase):
 
     if ctx.port:
       hero.move(ctx.port.direction)
+      ally = ctx.ally
+      ally and ally.move(ctx.port.direction)
 
   def view(ctx):
     sprites = super().view()
