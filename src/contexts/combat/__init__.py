@@ -744,6 +744,9 @@ class CombatContext(ExploreBase):
   def use_skill(ctx, actor, skill, dest=None, on_end=None):
     skill = resolve_skill(skill) if isinstance(skill, str) else skill
 
+    if actor.dead:
+      return
+
     if actor.faction == "player":
       ctx.store.sp -= skill.cost
 
