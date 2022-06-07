@@ -1,4 +1,4 @@
-from random import randint
+from random import random, randint
 from lib.cell import is_adjacent, manhattan
 from dungeon.actors import DungeonActor
 from cores import Core, Stats
@@ -17,12 +17,18 @@ from anims.shake import ShakeAnim
 from anims.bounce import BounceAnim
 from config import PUSH_DURATION
 
+
 class Mushroom(DungeonActor):
   skill = Virus
   drops = [RedFerrule]
   COOLDOWN_DURATION = 6
 
   class ChargeAnim(ShakeAnim): pass
+
+  idle_messages = [
+    "The {enemy} lets out a squishy noise.",
+    "The {enemy} stinks!",
+  ]
 
   def __init__(mushroom, name="Fungeye", *args, **kwargs):
     super().__init__(Core(
@@ -54,6 +60,13 @@ class Mushroom(DungeonActor):
     if not mushroom.aggro:
       return super().step(game)
     if not enemy:
+      return None
+
+    if random() < 1 / 16 and mushroom.idle(game):
+      game.anims[-1].append(Mushroom.ChargeAnim(
+          target=mushroom,
+          duration=45,
+      ))
       return None
 
     can_charge = not mushroom.charge_cooldown and (randint(1, 3) == 1 or mushroom.damaged)
