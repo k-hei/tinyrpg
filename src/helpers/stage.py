@@ -13,6 +13,6 @@ def is_tile_walkable_to_actor(stage, cell, actor):
         and not stage.is_tile_at_solid(cell, scale=TILE_SIZE)
         and (not stage.is_tile_at_pit(cell) or actor.floating))
 
-def is_cell_walkable_to_actor(stage, cell, actor):
+def is_cell_walkable_to_actor(stage, cell, actor, ignore_actors=False):
     return (is_tile_walkable_to_actor(stage, cell, actor)
-        and not stage.is_cell_occupied(cell))
+        and not stage.is_cell_occupied(cell, ignore_actors=ignore_actors))

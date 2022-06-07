@@ -490,6 +490,31 @@ class DungeonContext(ExploreBase):
     if type(ctx.get_tail()) is CombatContext:
       ctx.reload_skill_badge(delay=30)
 
+  def update(ctx):
+    for elem in ctx.stage.elems:
+      ctx.vfx.extend(elem.update(ctx) or [])
+
+    for comp in ctx.comps:
+      comp.update()
+
+    ctx.update_hero()
+
+    ctx.camera.update()
+    ctx.stage_view.update()
+    super().update()
+
+  def update_hero(ctx):
+    hero = ctx.hero
+    if not hero:
+      return
+
+    if hero and ctx.hero_facing != hero.facing:
+      ctx.hero_facing = hero.facing
+      ctx.update_bubble()
+
+    if hero and ctx.hero_cell != hero.cell:
+      ctx.update_hero_cell()
+
   def update_hero_cell(ctx):
     if ctx.hero_cell == ctx.hero.cell:
       return
@@ -528,30 +553,6 @@ class DungeonContext(ExploreBase):
     if ctx.room and ctx.room.has_hook("on_walk"):
       ctx.room.on_walk(ctx, cell=ctx.hero_cell)
 
-  def update(ctx):
-    for elem in ctx.stage.elems:
-      ctx.vfx.extend(elem.update(ctx) or [])
-
-    for comp in ctx.comps:
-      comp.update()
-
-    ctx.update_hero()
-
-    ctx.camera.update()
-    ctx.stage_view.update()
-    super().update()
-
-  def update_hero(ctx):
-    hero = ctx.hero
-    if not hero:
-      return
-
-    if hero and ctx.hero_facing != hero.facing:
-      ctx.hero_facing = hero.facing
-      ctx.update_bubble()
-
-    if hero and ctx.hero_cell != hero.cell:
-      ctx.update_hero_cell()
 
   def view(ctx):
     sprites = ctx.stage_view.view(

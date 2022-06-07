@@ -362,7 +362,7 @@ class CombatContext(ExploreBase):
     pathfind = lambda: ctx.stage.pathfind(
       start=actor.cell,
       goal=dest,
-      predicate=lambda cell: is_cell_walkable_to_actor(ctx.stage, cell, actor)
+      predicate=lambda cell: is_cell_walkable_to_actor(ctx.stage, cell, actor, ignore_actors=True)
     )
 
     if not actor.ai_path:

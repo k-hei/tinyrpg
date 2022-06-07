@@ -161,9 +161,11 @@ class Stage:
     return (not stage.is_tile_at_solid(cell, scale)
       and not stage.is_cell_occupied(cell, scale))
 
-  def is_cell_occupied(stage, cell, scale=0):
+  def is_cell_occupied(stage, cell, scale=0, ignore_actors=False):
     return next((True for e in stage.get_elems_at(cell, scale)
-      if e.solid), False)
+      if e.solid
+      and (not ignore_actors or not isinstance(e, DungeonActor))
+    ), False)
 
   def is_cell_opaque(stage, cell):
     tile = stage.get_tile_at(cell)
@@ -190,9 +192,12 @@ class Stage:
     g = { start: 0 }
     parent = {}
 
+    num_visits = 0
+
     while open_cells:
       open_cells.sort(key=lambda c: f[c] if c in f else inf)
       cell = open_cells.pop(0)
+      num_visits += 1
 
       if cell == goal:
         # reconstruct path
@@ -200,6 +205,7 @@ class Stage:
           path.insert(0, cell)
           cell = parent[cell]
         path.insert(0, cell)
+        print("pathfind", start, goal, "in", num_visits, "visits")
         return path
 
       open_set[cell] = False
