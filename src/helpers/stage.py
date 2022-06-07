@@ -15,5 +15,4 @@ def is_tile_walkable_to_actor(stage, cell, actor):
 
 def is_cell_walkable_to_actor(stage, cell, actor):
     return (is_tile_walkable_to_actor(stage, cell, actor)
-        and next((False for e in stage.get_elems_at(cell)
-            if e.solid and not isinstance(e, DungeonActor)), True))
+        and not stage.is_cell_occupied(cell))
