@@ -74,6 +74,7 @@ class DungeonContext(ExploreBase):
     ctx.parent.save()
 
     heroes = [manifest_actor(c) for c in ctx.store.party if not c.dead]
+
     stage_entrance = ctx.stage.entrance or find_tile(ctx.stage, tileset.Entrance)
     if stage_entrance:
       for i, hero in enumerate(heroes):

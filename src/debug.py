@@ -10,7 +10,7 @@ def log(*args):
     return
 
   global buffer
-  if not buffer.endswith(args[0]):
+  if not buffer.endswith(args[0] + "\n"):
     buffer += args[0] + "\n"
 
   if DEBUG:

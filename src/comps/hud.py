@@ -178,7 +178,7 @@ class Hud:
       hud.hp_ally_drawn = ally.get_hp()
     hud.time += 1
 
-  def render(hud):
+  def render(hud, portrait=True):
     hero = hud.party[0] if len(hud.party) >= 1 else None
     ally = hud.party[1] if len(hud.party) >= 2 else None
     anim = hud.anims[0] if hud.anims else None
@@ -201,7 +201,8 @@ class Hud:
     hero_portrait = None
     ally_portrait = None
 
-    if hud.draws_portrait:
+    draws_portrait = portrait and hud.draws_portrait
+    if draws_portrait:
       if (type(hero) is Knight and type(anim) is not SwitchOutAnim
       or type(ally) is Knight and type(anim) is SwitchOutAnim):
         hero_portrait = assets.sprites["circle_knight"]
@@ -222,14 +223,13 @@ class Hud:
       or type(hero) is Rogue and type(anim) is SwitchOutAnim):
         ally_portrait = assets.sprites["circ16_rogue"]
 
-    if hero.dead:
-      hero_portrait = replace_color(hero_portrait, WHITE, BLACK)
-      hero_portrait = replace_color(hero_portrait, BLUE, RED)
-    if ally and ally.dead:
-      ally_portrait = replace_color(ally_portrait, WHITE, BLACK)
-      ally_portrait = replace_color(ally_portrait, BLUE, RED)
+      if hero.dead:
+        hero_portrait = replace_color(hero_portrait, WHITE, BLACK)
+        hero_portrait = replace_color(hero_portrait, BLUE, RED)
+      if ally and ally.dead:
+        ally_portrait = replace_color(ally_portrait, WHITE, BLACK)
+        ally_portrait = replace_color(ally_portrait, BLUE, RED)
 
-    if hud.draws_portrait:
       hero_scaled = hero_portrait
       ally_scaled = ally_portrait
       if type(anim) in (SwitchOutAnim, SwitchInAnim):
@@ -266,7 +266,7 @@ class Hud:
         draw_bar(sprite, hero_hp_pos, percent=hud.hp_hero / hero.get_hp_max(), color=color_fg)
 
     if ally:
-      if hud.draws_portrait:
+      if draws_portrait:
         sprite.blit(ally_scaled, (
           CIRC16_X + ally_portrait.get_width() // 2 - ally_scaled.get_width() // 2,
           CIRC16_Y + ally_portrait.get_height() // 2 - ally_scaled.get_height() // 2
@@ -288,10 +288,11 @@ class Hud:
       sprite.blit(assets.sprites["hp"], (HP_X, HP_Y))
       hptext_image = render_numbers(hero.get_hp(), hero.get_hp_max(), crit_threshold=HP_CRITICAL, time=hud.time)
       sprite.blit(hptext_image, (HP_VALUE_X, HP_VALUE_Y))
+
     return sprite
 
-  def view(hud):
-    hud.image = hud.render()
+  def view(hud, portrait=True):
+    hud.image = hud.render(portrait)
     hud_x, hud_y = hud.pos
     anim = hud.anims[0] if hud.anims else None
     if anim:
