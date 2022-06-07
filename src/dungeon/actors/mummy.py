@@ -2,6 +2,7 @@ from random import randint
 from dungeon.actors import DungeonActor
 from cores import Core, Stats
 from dungeon.stage import Tile
+from helpers.stage import is_cell_walkable_to_actor
 from skills.attack import AttackSkill
 from skills.attack.clawrush import ClawRush
 from skills.support import SupportSkill
@@ -79,7 +80,7 @@ class Mummy(DungeonActor):
   class Backstep(SupportSkill):
     def effect(game, user, dest, on_start=None, on_end=None):
       dest_cell = add_vector(user.cell, invert_direction(user.facing))
-      if game.stage.is_cell_empty(dest_cell):
+      if is_cell_walkable_to_actor(stage=game.stage, cell=dest_cell, actor=user):
         game.anims.append([JumpAnim(
           target=user,
           src=user.cell,

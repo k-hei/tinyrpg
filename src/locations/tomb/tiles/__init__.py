@@ -246,7 +246,6 @@ class TombTileset(Tileset):
 
         stage_color = cls.find_stage_color(stage)
         if cls.tileset_color != stage_color:
-            print("recolor", cls.tileset_color, stage_color)
             cls.recolor_tiles(stage_color)
 
         return tile.render(stage, cell, visited_cells)
