@@ -149,6 +149,16 @@ class Sprite:
     return depth * 1000 + y + sprite.offset
 
 
+class SpriteGroup(Sprite):
+  def __init__(group, children, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    group.children = children
+
+  def draw(group, surface):
+    for sprite in group.children:
+      sprite.draw(surface=surface)
+
+
 class SpriteMask(Sprite):
   def __init__(mask, size, children, pos=(0, 0), *args, **kwargs):
     super().__init__(size=size, pos=pos, *args, **kwargs)

@@ -434,7 +434,7 @@ class DungeonActor(DungeonElement):
 
     context = (message
       if isinstance(message, Context)
-      else DialogueContext(script=message))
+      else DialogueContext(script=message, lite=True))
 
     game.open(context, on_close=lambda: (
       actor in game.stage.elems and actor.face(old_target),

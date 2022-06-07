@@ -145,6 +145,7 @@ def main():
         "elems": room_elems,
         "rooms": room_subrooms,
         "edges": room_edges,
+        "hooks": metadata["hooks"],
     }, separators=(",", ":"))
 
     output_path = f"rooms/{input_filename}"

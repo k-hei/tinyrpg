@@ -59,7 +59,9 @@ class GameData:
       return json.JSONEncoder.default(encoder, obj)
 
   def encode(store):
-    place = type(store.place).__name__.startswith("Town") and "town" or "dungeon"
+    place = ("town" if type(store.place).__name__.startswith("Town")
+      else "dungeon" if not store.place.stage.is_overworld
+      else None)
     builds = {}
     for char, pieces in store.builds.items():
       build = {}

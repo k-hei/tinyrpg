@@ -195,20 +195,24 @@ class DesertProcessor(TilesetProcessor):
             if tile_id == ID_TRIGGER_PLAYER:
                 layer_edges.append(cell)
 
-            if tile_id == ID_TRIGGER_NPC:
+            elif tile_id == ID_TRIGGER_NPC:
+                MARKER_TYPE = "Eyeball"
                 NPC_NAME = "Roko"
                 cell = vector.add(cell, (1, 0))  # TODO: offset tweaks
-                layer_elems.append((cell, NPC_NAME, {
-                    "message": [
-                        (NPC_NAME, "So ya know how to walk already? Did ya know ya can run too, yo?"),
-                        (NPC_NAME, "Hold SHIFT to get some speed in your step!"),
-                    ],
-                }))
+                if next((False for e in layer_elems if e[1] == MARKER_TYPE), True):
+                    layer_elems.append((cell, MARKER_TYPE, {"faction": "ally"}))
+                else:
+                    layer_elems.append((cell, NPC_NAME, {
+                        "message": [
+                            (NPC_NAME, "So ya know how to walk already? Did ya know ya can run too, yo?"),
+                            (NPC_NAME, "Hold SHIFT to get some speed in your step!"),
+                        ],
+                    }))
 
-            if tile_id == ID_TRIGGER_ENEMY:
+            elif tile_id == ID_TRIGGER_ENEMY:
                 layer_elems.append((cell, cls.get_enemy()))
 
-            if tile_id == ID_TRIGGER_CHEST:
+            elif tile_id == ID_TRIGGER_CHEST:
                 layer_elems.append((cell, "Chest", { "contents": cls.get_item() }))
 
         return image, layer_elems, layer_rooms, layer_edges

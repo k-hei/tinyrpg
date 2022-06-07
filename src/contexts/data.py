@@ -22,6 +22,9 @@ from easing.expo import ease_in, ease_out
 import savedata
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
 
+import debug
+
+
 def view_ticks(ticks, ms=False):
   display_ms = ms
   secs = ticks // 1000
@@ -48,6 +51,7 @@ def get_char_spacing(old_char, new_char):
   if old_char == "T" and new_char == "A": return -6
   return -4
 
+
 class EnterAnim(TweenAnim): pass
 class ExitAnim(TweenAnim): pass
 class TitleAnim(TweenAnim): pass
@@ -56,6 +60,7 @@ class TitleExitAnim(TitleAnim): pass
 class TitleBgAnim(TweenAnim): pass
 class TitleBgEnterAnim(TitleBgAnim): pass
 class TitleBgExitAnim(TitleBgAnim): pass
+
 
 class Slot:
   ICON_X = 12
@@ -172,21 +177,27 @@ class Slot:
       anim.update()
 
   def render(slot):
+    if not slot.anim:
+      return slot.cache_surface
+
     if slot.anim:
       t = slot.anim.pos
       if type(slot.anim) is EnterAnim:
         t = ease_out(t)
       elif type(slot.anim) is ExitAnim:
         t = 1 - t
+
       slot_image = assets.sprites["slot"]
       height = slot_image.get_height() * t
       y = slot.LABEL_OVERLAP + slot_image.get_height() // 2 - height // 2
-      slot_image = scale(slot_image, (slot_image.get_width(), int(height)))
+
+      if t != 1:
+        slot_image = scale(slot_image, (slot_image.get_width(), int(height)))
+
       slot.surface.fill(0)
       slot.surface.blit(slot_image, (0, y))
       return slot.surface
-    else:
-      return slot.cache_surface
+
 
 class DataContext(Context):
   SLOT_Y = 52
@@ -231,6 +242,7 @@ class DataContext(Context):
       slot.enter()
     ctx.comps = [ctx.title]
     ctx.cache_surface = Surface(WINDOW_SIZE)
+    ctx.cache_slots_dark = {}
 
   def enter(ctx):
     ctx.exiting = False
@@ -362,7 +374,11 @@ class DataContext(Context):
     sprites = []
     surface_clip = ctx.cache_surface
     surface_clip.fill(0)
+
+
     ctx.bg.draw(surface_clip)
+
+
     slot_image = assets.sprites["slot"]
     slot_x = WINDOW_WIDTH // 2 - slot_image.get_width() // 2
     slot_y = ctx.SLOT_Y
@@ -370,6 +386,7 @@ class DataContext(Context):
     for i, slot in enumerate(ctx.slots):
       slot_image = slot.render()
       slot_anim = next((a for a in ctx.anims if a.target is slot), None)
+
       from_x = -slot_image.get_width()
       to_x = slot_x
       if type(slot_anim) is EnterAnim:
@@ -386,13 +403,17 @@ class DataContext(Context):
         x = None
 
       if x is not None:
-        if i != ctx.index:
-          slot_image = darken_image(slot_image)
+        if i != ctx.index and not slot.anim:
+          if i not in ctx.cache_slots_dark:
+            ctx.cache_slots_dark[i] = darken_image(slot_image)
+          slot_image = ctx.cache_slots_dark[i]
         surface_clip.blit(slot_image, (x, slot_y))
 
       slot_y += slot_image.get_height() + ctx.SLOT_SPACING
 
+
     sprites += ctx.title.view()
+
 
     hand_image = assets.sprites["hand"]
     hand_image = flip(hand_image, True, False)
@@ -404,6 +425,7 @@ class DataContext(Context):
     else:
       ctx.hand_y += (hand_y - ctx.hand_y) / 4
 
+
     anims = [a for a in ctx.anims if type(a) is not TitleEnterAnim]
     if not anims and ctx.child is None and not ctx.get_head().transits:
       surface_clip.blit(hand_image, (hand_x, ctx.hand_y))
@@ -412,6 +434,7 @@ class DataContext(Context):
     elif ctx.banner.active:
       ctx.banner.exit()
     ctx.banner.draw(surface_clip)
+
 
     surface_rect = Rect((0, 0), WINDOW_SIZE)
     ctx_anim = next((a for a in ctx.anims if a.target is ctx), None)
@@ -425,11 +448,13 @@ class DataContext(Context):
       y = WINDOW_HEIGHT // 2 - height // 2
       surface_rect = Rect((0, y), (WINDOW_WIDTH, height))
 
+
     sprites.insert(0, Sprite(
       image=surface_clip,
       pos=(0, surface_rect.top),
       size=surface_rect.size,
     ))
+
 
     for sprite in sprites:
       sprite.layer = "ui"

@@ -553,8 +553,8 @@ class DungeonContext(ExploreBase):
       visited_cells=ctx.visited_cells,
     )
     sprites += [c.view() for c in ctx.comps]
-    sprites += super().view()
     sprites += ctx.view_label()
+    sprites += super().view()
     sprites.sort(key=ctx.stage_view.order)
     return sprites
 

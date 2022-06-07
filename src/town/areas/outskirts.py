@@ -1,14 +1,11 @@
 from town.sideview.stage import Area, AreaPort
 from town.sideview.actor import Actor
 from cores.genie import Genie
+from helpers.npc import handle_menus
 from assets import load as use_assets
 from lib.sprite import Sprite
-from contexts.prompt import PromptContext, Choice
-from contexts.load import LoadContext
-from contexts.save import SaveContext
-from contexts.controls import ControlsContext
-from contexts.nameentry import NameEntryContext
 from config import TILE_SIZE, WINDOW_HEIGHT
+
 
 class OutskirtsArea(Area):
   TOWER_X = 288
@@ -23,59 +20,11 @@ class OutskirtsArea(Area):
 
   def init(area, ctx):
     super().init(ctx)
+    GENIE_NAME = "Joshin"
     area.spawn(Actor(core=Genie(
-      name="Doshin",
+      name=GENIE_NAME,
       facing=(-1, 0),
-      message=lambda ctx: [
-        ("Doshin", "Hail, traveler!"),
-        prompt := lambda: PromptContext("How fares the exploration?", (
-          Choice("Manage data", closing=True),
-          Choice("Edit controls"),
-          Choice("Change name"),
-          Choice("Nothing", closing=True)
-        ), required=True, on_close=lambda choice: (
-          choice.text == "Manage data" and [
-            lambda: PromptContext("What would you like to do?", (
-              Choice("Load data"),
-              Choice("Save data"),
-              Choice("Nothing", closing=True)
-            ), required=True, on_close=lambda choice: (
-              choice.text == "Load data" and [
-                lambda: LoadContext(
-                  on_close=lambda *data: (
-                    data and ctx.get_head().child.load(data[0])
-                    or [prompt]
-                  )
-                )
-              ] or choice.text == "Save data" and [
-                lambda: SaveContext(
-                  data=ctx.get_head().child.save(),
-                  on_close=lambda: [prompt]
-                )
-              ] or choice.text == "Nothing" and [prompt]
-            ))
-          ] or choice.text == "Edit controls" and [
-            lambda: ControlsContext(bg=True)
-          ] or choice.text == "Change name" and [
-            ("Doshin", "Hm? A name change?"),
-            ("Doshin", "Awfully finnicky, aren't we?"),
-            lambda: NameEntryContext(
-              char=ctx.party[0].core,
-              on_close=lambda name: (
-                name != ctx.party[0].core.name and (
-                  ctx.party[0].core.rename(name),
-                  ("Doshin", lambda: ("Oho! So your name is ", ctx.party[0].core.token(), ".")),
-                  ("Doshin", ". . . . ."),
-                  ("Doshin", "...Well, it's certainly something.")
-                ) or (
-                  ("Doshin", "Oh, changed your mind?"),
-                  ("Doshin", "Well, if we ever figure out our little identity crisis, you know where to find me.")
-                )
-              )
-            )
-          ] or choice.text == "Nothing" and []
-        ))
-      ]
+      message=handle_menus(GENIE_NAME),
     )), x=144)
 
   def view(area, hero, port):

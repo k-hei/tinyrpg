@@ -2,6 +2,9 @@
   "name": "Akimor Range",
   "enemies": ["DesertSnake", "DesertSnake", "DesertEvilCactus", "DesertEvilCactus"],
   "items": ["Potion", "Bread"],
+  "hooks": {
+    "on_place": "tutorial1.place"
+  },
   "layers": {
     "bp1": "tile",
     "bp2": "object",

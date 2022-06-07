@@ -2,6 +2,7 @@ from dungeon.hooks.emerald.enter import on_enter as emeraldenter
 from dungeon.hooks.arena.enter import on_enter as arenaenter
 from dungeon.hooks.arena.defeat import on_defeat as arenadefeat
 from dungeon.hooks.arena.place import on_place as arenaplace
+from dungeon.hooks.tutorial1.place import on_place as tutorial1place
 from dungeon.hooks.coffin.enter import on_enter as coffinenter
 from dungeon.hooks.coffin.defeat import on_defeat as coffindefeat
 from dungeon.hooks.shrine.focus import on_focus as shrinefocus
@@ -25,6 +26,7 @@ def resolve_hook(key):
   if key == "arena.enter": return arenaenter
   if key == "arena.defeat": return arenadefeat
   if key == "arena.place": return arenaplace
+  if key == "tutorial1.place": return tutorial1place
   if key == "coffin.enter": return coffinenter
   if key == "coffin.defeat": return coffindefeat
   if key == "shrine.focus": return shrinefocus
