@@ -146,6 +146,7 @@ def main():
         "rooms": room_subrooms,
         "edges": room_edges,
         "hooks": metadata["hooks"],
+        "ports": metadata["ports"],
     }, separators=(",", ":"))
 
     output_path = f"rooms/{input_filename}"
