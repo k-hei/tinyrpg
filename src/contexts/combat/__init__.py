@@ -981,7 +981,7 @@ class CombatContext(ExploreBase):
     on_end = on_end or (lambda: None)
 
     command_name, *command_args = command
-    if actor.is_immobile():
+    if actor.is_immobile() or not actor.hp:
       return on_end()
 
     if command_name == COMMAND_MOVE:
