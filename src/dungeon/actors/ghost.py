@@ -1,4 +1,4 @@
-from random import randint
+from random import random, randint
 from dungeon.actors import DungeonActor
 from cores.ghost import Ghost as GhostCore
 from skills.weapon.tackle import Tackle
@@ -15,9 +15,15 @@ from skills.ailment.somnus import Somnus
 from items.materials.luckychoker import LuckyChoker
 from vfx.ghostarm import GhostArmVfx
 
+
 class Ghost(DungeonActor):
   skill = Somnus
   drops = [LuckyChoker]
+  idle_messages = [
+    "The {enemy} emits a cold aura.",
+    "The {enemy} eyes your wallet.",
+    "The {enemy} giggles.",
+  ]
 
   class ColdWhip(Skill):
     name = "ColdWhip"
@@ -56,7 +62,8 @@ class Ghost(DungeonActor):
       ghost.turns = -1
 
   def charge(ghost, *args, **kwargs):
-    ghost.core.anims.append(GhostCore.ChargeAnim())
+    if next((False for a in ghost.core.anims if isinstance(a, GhostCore.ChargeAnim)), True):
+      ghost.core.anims.append(GhostCore.ChargeAnim())
     return super().charge(*args, **kwargs)
 
   def step(ghost, game):
@@ -65,6 +72,10 @@ class Ghost(DungeonActor):
 
     enemy = game.find_closest_enemy(ghost)
     if not enemy:
+      return None
+
+    if random() < 1 / 16 and ghost.idle(game):
+      ghost.core.anims.append(GhostCore.LaughAnim(duration=45))
       return None
 
     if ghost.damaged:
@@ -85,19 +96,29 @@ class Ghost(DungeonActor):
       return super().view([Sprite(image=assets.sprites["ghost_flinch"])], anims)
     elif ghost.ailment == "sleep" or ghost.get_hp() < ghost.get_hp_max() / 2:
       ghost_image = assets.sprites["ghost_move"]
+
     anim_group = [a for a in anims[0] if a.target is ghost] if anims else []
     anim_group += ghost.core.anims
+
     offset_x, offset_y = (0, 0)
     for anim in anim_group:
       if type(anim) in (StepAnim, AttackAnim):
         ghost_image = assets.sprites["ghost_move"]
-      elif type(anim) in (FlinchAnim, FlickerAnim):
+
+      if type(anim) in (FlinchAnim, FlickerAnim):
         ghost_image = assets.sprites["ghost_flinch"]
+
+      if isinstance(anim, GhostCore.LaughAnim):
+        ghost_image = anim.frame()
+        break
+
       if type(anim) is GhostCore.ChargeAnim:
         ghost_image = assets.sprites["ghost_move"]
         offset_x += anim.offset
+
       if type(anim) is GhostCore.WhipAnim and anim.frame() == anim.frames[-1]:
         offset_x += anim.time // 2 % 2
+
     return ghost.core.view(
       sprites=super().view([Sprite(
         image=ghost_image,

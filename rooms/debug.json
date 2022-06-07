@@ -16,7 +16,7 @@
     [[5, 1], "Pillar"],
     [[1, 5], "Pillar"],
     [[5, 5], "Pillar"],
-    [[3, 3], "Mushroom"]
+    [[3, 3], "Ghost"]
   ],
   "edges": [
     [3, -1]
