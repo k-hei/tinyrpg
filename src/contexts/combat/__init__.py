@@ -97,7 +97,6 @@ class CombatContext(ExploreBase):
 
     hero_brandish = ctx.hero.weapon and create_brandish(ctx.hero)
     ally_brandish = ctx.ally and ctx.ally.weapon and create_brandish(ctx.ally)
-    print(hero_brandish, ally_brandish)
 
     if ctx.should_path:
       hero_cell = animate_snap(ctx.hero, anims=ctx.anims, speed=walk_speed)
