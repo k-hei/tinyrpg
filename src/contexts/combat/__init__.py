@@ -495,6 +495,9 @@ class CombatContext(ExploreBase):
     return ctx.attack(actor=ctx.hero, target=target_actor, on_end=ctx.step)
 
   def attack(ctx, actor, target=None, modifier=1, animate=True, on_end=None):
+    if actor.dead:
+      return False
+
     miss, crit, block = False, False, False
     if target:
       actor.face(target.cell)
