@@ -9,6 +9,7 @@
   "new_skills": ["Buckler", "ShieldBash", "Empower", "Fortify"],
   "selected_skill": {},
   "party": [
+    "Knight",
     "Mage"
   ],
   "builds": {

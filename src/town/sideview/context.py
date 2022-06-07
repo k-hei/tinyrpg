@@ -79,9 +79,11 @@ class SideViewContext(Context):
     ctx.anims = []
 
   def init(ctx):
-    hero, *_ = ctx.party
+    hero, *allies = ctx.party
+    ally = allies[0] if allies else None
     if ctx.spawn:
       hero.face(invert_direction(ctx.spawn.direction))
+      ally and ally.face(invert_direction(ctx.spawn.direction))
       spawn_x = ctx.spawn.x + TILE_SIZE * hero.facing[0]
       spawn_y = ctx.spawn.y
     else:
@@ -99,14 +101,18 @@ class SideViewContext(Context):
 
   def handle_move(ctx, delta):
     hero, *allies = ctx.party
+    ally = allies[0] if allies else None
 
     # adjust origin position to increase collision sensitivity
     old_hero_pos = vector.add(hero.pos, (0, -8))
+    old_ally_pos = ally and vector.add(ally.pos, (0, -8))
 
     hero.move((delta, 0))
     if ctx.area.geometry:
       # angle velocity downwards to catch slopes
       hero.pos = vector.add(hero.pos, (0, 1))
+      if ally:
+        ally.pos = vector.add(ally.pos, (0, 1))
 
     for i, ally in enumerate(allies):
       ally.follow(ctx.party[i])
@@ -145,6 +151,9 @@ class SideViewContext(Context):
         ctx.ground = prev_ground
 
     ctx.collide_hero(hero, old_pos=old_hero_pos)
+    if ally:
+      ally and ctx.collide_hero(ally, old_pos=old_ally_pos)
+
     return True
 
   def collide_hero(ctx, hero, old_pos):
@@ -332,7 +341,9 @@ class SideViewContext(Context):
         hero_x, hero_y = hero.pos
         if port.direction == (-1, 0) or port.direction == (1, 0):
           for actor in ctx.party:
-            actor.move(port.direction)
+            # prevent clipping through links
+            if abs(actor.pos[0] - port.x) < TILE_SIZE:
+              actor.move(port.direction)
         else:
           graph = ctx.get_graph()
           src_area = type(ctx.area)
