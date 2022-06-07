@@ -192,12 +192,9 @@ class Stage:
     g = { start: 0 }
     parent = {}
 
-    num_visits = 0
-
     while open_cells:
       open_cells.sort(key=lambda c: f[c] if c in f else inf)
       cell = open_cells.pop(0)
-      num_visits += 1
 
       if cell == goal:
         # reconstruct path
@@ -205,7 +202,6 @@ class Stage:
           path.insert(0, cell)
           cell = parent[cell]
         path.insert(0, cell)
-        print("pathfind", start, goal, "in", num_visits, "visits")
         return path
 
       open_set[cell] = False

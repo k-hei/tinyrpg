@@ -5,6 +5,7 @@ from lib.sprite import Sprite
 from colors.palette import RED
 import assets
 
+from helpers.actor import Spritesheet
 from dungeon.actors import DungeonActor
 from cores import Core, Stats
 from skills.weapon.tackle import Tackle
@@ -17,6 +18,28 @@ from anims.frame import FrameAnim
 
 
 class DesertSnake(DungeonActor):
+  spritesheet = Spritesheet(
+    idle={
+      (0, -1): assets.sprites["snake_up"],
+      (0, 1): assets.sprites["snake_down"],
+      (-1, 0): assets.sprites["snake_side"],
+      (1, 0): assets.sprites["snake_side"],
+    },
+    move={
+      (0, -1): assets.sprites["snake_move_up"],
+      (0, 1): assets.sprites["snake_move_down"],
+      (-1, 0): assets.sprites["snake_move_side"],
+      (1, 0): assets.sprites["snake_move_side"],
+    },
+    attack={
+      (0, -1): (assets.sprites["snake_bite_open_up"], assets.sprites["snake_bite_closed_side"]),
+      (0, 1): (assets.sprites["snake_bite_open_down"], assets.sprites["snake_bite_closed_side"]),
+      (-1, 0): (assets.sprites["snake_bite_open_side"], assets.sprites["snake_bite_closed_side"]),
+      (1, 0): (assets.sprites["snake_bite_open_side"], assets.sprites["snake_bite_closed_side"]),
+    },
+    charge=assets.sprites["snake_charge"],
+    flinch=assets.sprites["snake_flinch"],
+  )
 
   def __init__(snake, name="King Tuto", *args, **kwargs):
     super().__init__(Core(
@@ -73,7 +96,7 @@ class DesertSnake(DungeonActor):
     if random() < 1 / 16:
       game.anims.append([FrameAnim(
         target=snake,
-        frames=DesertSnakeSpritesheet.get_charge_sprites() * 5,
+        frames=snake.spritesheet.get_charge_sprites() * 5,
         frames_duration=5,
       )])
       game.print(snake.get_message())
@@ -87,15 +110,15 @@ class DesertSnake(DungeonActor):
 
   def find_image(snake, anims):
     if snake.ailment == "freeze":
-      return DesertSnakeSpritesheet.get_flinch_sprite()
+      return snake.spritesheet.get_flinch_sprite()
 
     anim_group = [a for a in anims[0] if a.target is snake] if anims else []
     for anim in anim_group:
       if isinstance(anim, StepAnim):
-        return DesertSnakeSpritesheet.get_move_sprite(snake.facing)
+        return snake.spritesheet.get_move_sprite(snake.facing)
 
       if isinstance(anim, AttackAnim):
-        attack_sprites = DesertSnakeSpritesheet.get_attack_sprite(snake.facing)
+        attack_sprites = snake.spritesheet.get_attack_sprite(snake.facing)
         if (anim.time >= 0
         and anim.time < anim.duration // 2):
           return attack_sprites[0]
@@ -104,80 +127,9 @@ class DesertSnake(DungeonActor):
         break
 
       if isinstance(anim, (FlinchAnim, FlickerAnim)):
-        return DesertSnakeSpritesheet.get_flinch_sprite()
+        return snake.spritesheet.get_flinch_sprite()
 
-    return DesertSnakeSpritesheet.get_idle_sprite(snake.facing)
+    return snake.spritesheet.get_idle_sprite(snake.facing)
 
   def view(snake, anims):
-    return super().view([Sprite(
-      image=snake.find_image(anims)
-    )], anims)
-
-
-class Spritesheet:
-
-  _create_empty_sprite_map = lambda: {
-    (0, -1): None,
-    (0, 1): None,
-    (-1, 0): None,
-    (1, 0): None,
-  }
-
-  @staticmethod
-  def _normalize_facing(facing):
-    if facing[0] and facing[1]:
-      facing = (facing[0], 0)
-
-    return facing
-
-  idle_sprites = _create_empty_sprite_map()
-  @classmethod
-  def get_idle_sprite(cls, facing):
-    return cls.idle_sprites[cls._normalize_facing(facing)]
-
-  move_sprites = _create_empty_sprite_map()
-  @classmethod
-  def get_move_sprite(cls, facing):
-    return cls.move_sprites[cls._normalize_facing(facing)]
-
-  attack_sprites = _create_empty_sprite_map()
-  @classmethod
-  def get_attack_sprite(cls, facing):
-    return cls.attack_sprites[cls._normalize_facing(facing)]
-
-  charge_sprite = None
-  @classmethod
-  def get_charge_sprites(cls):
-    return cls._charge_sprites
-
-  flinch_sprite = None
-  @classmethod
-  def get_flinch_sprite(cls):
-    return cls._flinch_sprite
-
-
-class DesertSnakeSpritesheet(Spritesheet):
-
-  idle_sprites = {
-    (0, -1): assets.sprites["snake_up"],
-    (0, 1): assets.sprites["snake_down"],
-    (-1, 0): assets.sprites["snake_side"],
-    (1, 0): assets.sprites["snake_side"],
-  }
-
-  move_sprites = {
-    (0, -1): assets.sprites["snake_move_up"],
-    (0, 1): assets.sprites["snake_move_down"],
-    (-1, 0): assets.sprites["snake_move_side"],
-    (1, 0): assets.sprites["snake_move_side"],
-  }
-
-  attack_sprites = {
-    (0, -1): (assets.sprites["snake_bite_open_up"], assets.sprites["snake_bite_closed_side"]),
-    (0, 1): (assets.sprites["snake_bite_open_down"], assets.sprites["snake_bite_closed_side"]),
-    (-1, 0): (assets.sprites["snake_bite_open_side"], assets.sprites["snake_bite_closed_side"]),
-    (1, 0): (assets.sprites["snake_bite_open_side"], assets.sprites["snake_bite_closed_side"]),
-  }
-
-  _charge_sprites = assets.sprites["snake_charge"]
-  _flinch_sprite = assets.sprites["snake_flinch"]
+    return super().view([Sprite(image=snake.find_image(anims))], anims)
