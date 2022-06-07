@@ -95,9 +95,13 @@ class DungeonContext(ExploreBase):
     ctx.reset()
 
   def find_floor_no(ctx):
+    if ctx.stage.generator == "GenericFloor":
+      return ctx.graph.nodes.index(ctx.stage) + 1
+
     floor = next((f for f in FLOOR_SEQUENCE if f.__name__ == ctx.stage.generator), None)
-    if floor is None:
+    if not floor:
       return 0
+
     return FLOOR_SEQUENCE.index(floor) + 1
 
   def save(ctx):
@@ -113,7 +117,7 @@ class DungeonContext(ExploreBase):
       memory=deepcopy(ctx.memory) if not is_overworld else [],
     )
 
-  def construct_graph(ctx):
+  def construct_graph(ctx, prev_floor=None):
     floor_names = [f.__name__ for f in FLOOR_SEQUENCE]
 
     if not ctx.stage: # or ctx.stage.generator not in floor_names:
@@ -125,12 +129,15 @@ class DungeonContext(ExploreBase):
     if not isinstance(ctx.graph, FloorGraph):
       return
 
+    if ctx.stage in ctx.graph.nodes:
+      return
+
     ctx.graph.nodes.append(ctx.stage)
 
     try:
       prev_floor = FLOOR_SEQUENCE[floor_names.index(ctx.stage.generator) - 1]
     except (ValueError, IndexError):
-      prev_floor = None
+      prev_floor = prev_floor or None
 
     try:
       next_floor = FLOOR_SEQUENCE[floor_names.index(ctx.stage.generator) + 1]
@@ -147,8 +154,9 @@ class DungeonContext(ExploreBase):
     ctx.hero and ctx.stage.remove_elem(ctx.hero)
     ctx.ally and ctx.stage.remove_elem(ctx.ally)
 
+    stage_old = ctx.stage
     ctx.stage = stage
-    ctx.construct_graph()
+    ctx.construct_graph(prev_floor=stage_old)
     ctx.parent.save()
 
     heroes = [manifest_actor(c) for c in ctx.store.party if not c.dead]
@@ -326,7 +334,11 @@ class DungeonContext(ExploreBase):
       ctx.ally.cell = hallway[-2]
       ctx.ally.facing = vector.subtract(hallway[-1], hallway[-2])
 
-    debug.log(f"hallway transition to room {room.origin} via {hallway}")
+    room_old = next((r for r in ctx.stage.rooms if hallway[0] in r.edges), None)
+    debug.log(f"hallway transition from room {room_old.center if room_old else None}"
+      f" to room {room.center if room else None}"
+      f" via {hallway}")
+
     tween_duration = ctx.camera.tween(target=[*([room] if room else []), ctx.hero])
     if tween_duration:
       not ctx.anims and ctx.anims.append([])
@@ -364,7 +376,7 @@ class DungeonContext(ExploreBase):
 
     hallways = []
     stack = []
-    for neighbor in neighborhood(cell, diagonals=True):
+    for neighbor in neighborhood(cell):
       if ctx.stage.is_tile_at_hallway(neighbor):
         hallway = [cell]
         hallways.append(hallway)
@@ -376,12 +388,9 @@ class DungeonContext(ExploreBase):
     while stack:
       hallway, cell = stack.pop()
       hallway.append(cell)
-      neighbors = [n for n in neighborhood(cell) if (
-        issubclass(ctx.stage.get_tile_at(n), tileset.Hallway)
-        and n not in hallway
-      )]
-      for neighbor in neighbors:
-        stack.append((hallway, neighbor))
+      stack += [(hallway, n) for n in neighborhood(cell)
+        if ctx.stage.is_tile_at_hallway(n)
+        and n not in hallway]
 
     if len(hallways) == 1:
       return hallways[0]

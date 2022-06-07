@@ -476,11 +476,13 @@ class ExploreContext(ExploreBase):
     if issubclass(hero_tile, tileset.Escape):
       return ctx.goto_town()
 
-    stairs_edge = (ctx.graph.connector_edge(ctx.stage, hero_cell)
+    stairs_edge = ((ctx.graph.connector_edge(ctx.stage, hero_cell)
+        or ctx.graph.connector_edge(ctx.stage, (hero_tile, hero_cell)))
       if isinstance(ctx.graph, FloorGraph)
       else None)
     if not stairs_edge:
-      debug.log("Staircase has no connecting edge")
+      debug.log(f"Staircase has no connecting edge from {hero_cell}"
+        f" given graph of type {type(ctx.graph).__name__}")
 
     dest_floor = (next((n for n in stairs_edge if n is not ctx.stage), None)
       if stairs_edge
@@ -491,6 +493,7 @@ class ExploreContext(ExploreBase):
       return True
 
     stairs_dest = tileset.Entrance if issubclass(stairs, tileset.Exit) else tileset.Exit
+    ctx.comps.minimap.exit()
     if type(dest_floor) is type:
       ctx.goto_floor(dest_floor, stairs_dest)
     else:
