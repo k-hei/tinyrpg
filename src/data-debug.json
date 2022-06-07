@@ -19,7 +19,8 @@
     "Mage": {
       "Cudgel": [0, 0],
       "Glacio": [2, 0],
-      "Congelatio": [0, 1]
+      "Congelatio": [0, 1],
+      "HpUp": [3, 3]
     }
   },
   "kills": {},

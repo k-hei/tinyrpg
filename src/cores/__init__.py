@@ -22,7 +22,7 @@ class Core:
     core.name = name
     core.faction = faction
     core.facing = tuple(facing)
-    core.hp = hp or stats.hp
+    core._hp = hp or stats.hp
     core.stats = stats
     core.skills = skills
     core.color = color
@@ -33,14 +33,18 @@ class Core:
   def rename(core, name):
     core.name = name
 
+  @property
+  def hp(core):
+    return core._hp + core.get_skill_hp()
+
   def get_hp(core):
-    return core.hp + core.get_skill_hp()
+    return core.hp
 
   def get_hp_max(core):
     return core.stats.hp + core.get_skill_hp()
 
   def set_hp(core, hp):
-    core.hp = hp - core.get_skill_hp()
+    core._hp = hp - core.get_skill_hp()
 
   def get_skill_hp(core):
     passive_hps = [s.hp for s in core.skills if s.kind == "armor"]
