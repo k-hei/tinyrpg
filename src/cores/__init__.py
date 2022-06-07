@@ -53,7 +53,11 @@ class Core:
   def get_active_skills(core):
     return [s for s in core.skills if s.kind != "armor"]
 
-  def heal(core, hp):
+  def heal(core, hp=None):
+    if not hp:
+      core._hp = core.stats.hp
+      return
+
     core.set_hp(min(core.get_hp_max(), core.get_hp() + hp))
 
   def damage(core, hp):

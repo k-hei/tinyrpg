@@ -134,6 +134,11 @@ class GameData:
   def ally(store):
     return store.party[1] if len(store.party) >= 2 else None
 
+  def restore_party(store):
+    store.sp = store.sp_max
+    for core in store.party:
+      core.heal()
+
   def obtain(store, target):
     if isinstance(target, Item) or type(target) is type and issubclass(target, Item):
       return store.obtain_item(item=target)

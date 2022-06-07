@@ -20,6 +20,7 @@ class TownContext(Context):
         return ctx.parent.graph
 
     def init(ctx):
+        ctx.store.restore_party()
         ctx.load_area(ctx.area, ctx.port)
 
     def load_area(ctx, area, port=None):
