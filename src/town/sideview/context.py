@@ -266,7 +266,6 @@ class SideViewContext(Context):
     return True
 
   def follow_port(ctx, port_id):
-    ctx.comps.minimap.exit()
     ctx.get_head().transition([
       DissolveIn(on_end=lambda: ctx.change_areas(port_id)),
       DissolveOut()

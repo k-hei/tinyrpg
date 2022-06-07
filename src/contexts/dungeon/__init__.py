@@ -172,6 +172,7 @@ class DungeonContext(ExploreBase):
 
   def load_floor_by_id(ctx, floor_id, on_end=None):
     Floor = resolve_floor(floor_id)
+    ctx.comps.minimap.exit()
     ctx.get_head().transition(
       transits=(DissolveIn(), DissolveOut()),
       loader=Floor.generate(ctx.store),
@@ -281,7 +282,7 @@ class DungeonContext(ExploreBase):
       return False
 
     if not ctx.stage.is_overworld:
-      ctx.comps.minimap.exit(),
+      ctx.comps.minimap.exit()
 
     room = next((r for r in ctx.stage.rooms if hallway[-1] in r.edges), None)
     door = next((e for e in ctx.stage.get_elems_at(hallway[-1]) if isinstance(e, Door)), None)
@@ -325,6 +326,7 @@ class DungeonContext(ExploreBase):
       ctx.ally.cell = hallway[-2]
       ctx.ally.facing = vector.subtract(hallway[-1], hallway[-2])
 
+    debug.log(f"hallway transition to room {room.origin} via {hallway}")
     tween_duration = ctx.camera.tween(target=[*([room] if room else []), ctx.hero])
     if tween_duration:
       not ctx.anims and ctx.anims.append([])
