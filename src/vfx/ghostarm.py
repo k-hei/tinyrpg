@@ -10,7 +10,7 @@ import assets
 from vfx.particle import ParticleVfx
 
 class GhostArmVfx(Vfx):
-  def __init__(fx, cell, delay=0, color=RED, on_connect=None, *args, **kwargs):
+  def __init__(fx, cell, delay=0, color=RED, on_connect=None, on_end=None, *args, **kwargs):
     x, y = cell
     super().__init__(
       kind=None,
@@ -21,6 +21,7 @@ class GhostArmVfx(Vfx):
     fx.delay = delay
     fx.color = color
     fx.on_connect = on_connect
+    fx.on_end = on_end
     fx.anims = [
       FrameAnim(
         frames=[
@@ -44,6 +45,7 @@ class GhostArmVfx(Vfx):
     fx_anim = fx.anims[0]
     if fx_anim.done:
       fx.done = True
+      fx.on_end and fx.on_end()
     else:
       fx_anim.update()
       if not fx.connected and fx_anim.frame_index == 1 and fx.on_connect:

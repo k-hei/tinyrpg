@@ -1,3 +1,4 @@
+import pygame
 import lib.vector as vector
 import lib.input as input
 from lib.direction import invert as invert_direction
@@ -269,6 +270,11 @@ class CombatContext(ExploreBase):
 
     tapping = input.get_state(button) == 1
     controls = input.resolve_controls(button)
+    ctrl = (input.get_state(pygame.K_LCTRL)
+      or input.get_state(pygame.K_RCTRL))
+
+    if button == pygame.K_q and ctrl and tapping:
+      return print(ctx.command_queue)
 
     delta = input.resolve_delta(button, fixed_axis=True) if button else (0, 0)
     if delta != (0, 0):
@@ -502,6 +508,7 @@ class CombatContext(ExploreBase):
 
   def attack(ctx, actor, target=None, modifier=1, animate=True, on_end=None):
     if actor.dead or actor.weapon is None:
+      on_end and on_end()
       return False
 
     miss, crit, block = False, False, False
@@ -752,7 +759,7 @@ class CombatContext(ExploreBase):
     skill = resolve_skill(skill) if isinstance(skill, str) else skill
 
     if actor.dead:
-      return
+      return on_end and on_end()
 
     if actor.faction == "player":
       ctx.store.sp -= skill.cost
@@ -875,21 +882,29 @@ class CombatContext(ExploreBase):
       ctx.command_discarded = False
 
     if ctx.command_queue and ctx.command_discarded:
+      print("command previously discarded, waiting for queue to clear...")
       return
 
     if not ctx.command_pending and ctx.command_gen:
       try:
         ctx.command_pending = next(ctx.command_gen)
         if not ctx.command_pending:
+          print("discard command")
           ctx.command_discarded = True
       except StopIteration:
         ctx.command_gen = None
 
     if ctx.command_pending:
       actor, command = ctx.command_pending
-      chain = actor.turns > 1
-      ctx.command_pending = None
-      ctx.step_command(actor, command, chain)
+      actor_enqueued_commands = [c for a, c in ctx.command_queue if a is actor]
+      actor_has_enqueued_action = next((True for c in actor_enqueued_commands
+        if c[0] not in (COMMAND_MOVE, COMMAND_WAIT)
+      ), False)
+
+      if not (ctx.command_queue and actor_has_enqueued_action):
+        chain = actor.turns > 1
+        ctx.command_pending = None
+        ctx.step_command(actor, command, chain)
 
   def step(ctx):
     actors = [e for e in ctx.stage.elems if
@@ -945,10 +960,6 @@ class CombatContext(ExploreBase):
         if actor.dead:
           break
 
-        is_actor_enqueued = next((True for a, c in ctx.command_queue if a is actor), False)
-        if is_actor_enqueued and actor.charge_turns:
-          yield None
-
         actor.step_aggro()
         command = actor.step_charge()
 
@@ -959,11 +970,6 @@ class CombatContext(ExploreBase):
           command = ctx.step_enemy(actor, force=True)
           if not command:
             break
-
-          if (is_actor_enqueued
-          and (command[0] in (COMMAND_ATTACK, COMMAND_SKILL) or actor.charge_turns)):
-            command = None
-            yield None
 
         if command:
           yield actor, command

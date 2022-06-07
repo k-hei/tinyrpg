@@ -29,24 +29,28 @@ class Ghost(DungeonActor):
     name = "ColdWhip"
     charge_turns = 2
     def effect(game, user, dest, on_start=None, on_end=None):
+
       target_actor = next((e for e in game.stage.get_elems_at(dest) if isinstance(e, DungeonActor)), None)
-      user.core.anims = [GhostCore.WhipAnim(on_end=on_end if target_actor is None else None)]
-      game.anims.append([PauseAnim(
-        duration=14,
-        on_start=lambda: on_start and on_start(),
-        on_end=lambda: game.vfx.append(
-          GhostArmVfx(
-            cell=dest,
-            color=user.color(),
-            on_connect=(lambda: game.attack(
-              actor=user,
-              target=target_actor,
-              animate=False,
-              on_end=on_end
-            )) if target_actor else None
+      user.core.anims = [GhostCore.WhipAnim()]
+      game.anims.append([
+        pause_anim := PauseAnim(on_end=on_end),
+        PauseAnim(
+          duration=14,
+          on_start=lambda: on_start and on_start(),
+          on_end=lambda: game.vfx.append(
+            GhostArmVfx(
+              cell=dest,
+              color=user.color(),
+              on_connect=(lambda: game.attack(
+                actor=user,
+                target=target_actor,
+                animate=False,
+              )) if target_actor else None,
+              on_end=pause_anim.end,
+            )
           )
         )
-      )])
+      ])
       return False
 
   def __init__(ghost, *args, **kwargs):
@@ -67,6 +71,9 @@ class Ghost(DungeonActor):
     return super().charge(*args, **kwargs)
 
   def step(ghost, game):
+    if not ghost.can_step():
+      return None
+
     if not ghost.aggro:
       return super().step(game)
 
@@ -75,7 +82,7 @@ class Ghost(DungeonActor):
       return None
 
     if random() < 1 / 16 and ghost.idle(game):
-      ghost.core.anims.append(GhostCore.LaughAnim(duration=45))
+      ghost.core.anims.append(GhostCore.LaughAnim(duration=75))
       return None
 
     if ghost.damaged:

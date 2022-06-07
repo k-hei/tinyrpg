@@ -252,7 +252,9 @@ class DungeonActor(DungeonElement):
       )])
     else:
       game.print(message)
+      game.anims.append([PauseAnim(duration=60)])
 
+    actor.turns = 0
     return True
 
   def charge(actor, skill, dest=None, turns=0):
