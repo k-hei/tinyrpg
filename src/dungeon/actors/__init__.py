@@ -1,4 +1,4 @@
-from random import randint
+from random import randint, choice
 from copy import copy
 from math import sqrt
 
@@ -59,6 +59,7 @@ class DungeonActor(DungeonElement):
   solid = True
   skill = None
   drops = []
+  idle_messages = []
 
   speed = 1.5
 
@@ -217,6 +218,23 @@ class DungeonActor(DungeonElement):
   @property
   def dead(actor):
     return actor.core.dead
+
+  def get_idle_message(actor):
+    if not actor.idle_messages:
+      return None
+
+    message = choice(actor.idle_messages)
+    message = message.split("{enemy}")
+    message.insert(1, actor.token())
+    return message
+
+  def idle(actor, game):
+    message = actor.get_idle_message()
+    if not message:
+      return False
+
+    game.print(message)
+    return True
 
   def charge(actor, skill, dest=None, turns=0):
     actor.charge_skill = skill
@@ -564,11 +582,12 @@ class DungeonActor(DungeonElement):
       and not (attack_anim and len(actor.core.anims) == 1)
       ):
         sprite.image = anim.frame()
-        actor_width, actor_height = sprite.image.get_size()
-        offset_x += (actor_width - TILE_SIZE) / 2
-        offset_y += (actor_height - TILE_SIZE) / 2
-        if actor_height > TILE_SIZE:
-          offset_y += (actor_height - TILE_SIZE) / 2
+        # TEST(cactus): why did we ever need this?
+        # actor_width, actor_height = sprite.image.get_size()
+        # offset_x += (actor_width - TILE_SIZE) / 2
+        # offset_y += (actor_height - TILE_SIZE) / 2
+        # if actor_height > TILE_SIZE:
+        #   offset_y += (actor_height - TILE_SIZE) / 2
 
     warpin_anim = next((a for a in anim_group if type(a) is WarpInAnim), None)
     drop_anim = next((a for a in anim_group if type(a) is DropAnim), None)

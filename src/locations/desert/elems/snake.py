@@ -41,6 +41,12 @@ class DesertSnake(DungeonActor):
     flinch=assets.sprites["snake_flinch"],
   )
 
+  idle_messages = [
+    "The {enemy} lies in wait.",
+    "The {enemy} lets out a mystic hiss.",
+    "The {enemy} sniffs a patch of dirt.",
+  ]
+
   def __init__(snake, name="King Tuto", *args, **kwargs):
     super().__init__(Core(
       name=name,
@@ -54,13 +60,6 @@ class DesertSnake(DungeonActor):
       ),
       skills=[Tackle],
     ), *args, **kwargs)
-
-  def get_message(snake):
-    return choice([
-      ("The ", snake.token(), " lies in wait."),
-      ("The ", snake.token(), " lets out a mystic hiss."),
-      ("The ", snake.token(), " sniffs a patch of dirt."),
-    ])
 
   def find_move_delta(snake, target):
     snake_x, snake_y = snake.cell
@@ -86,20 +85,19 @@ class DesertSnake(DungeonActor):
     if not snake.can_step():
       return None
 
-    enemy = game.find_closest_enemy(snake)
     if not snake.aggro:
       return super().step(game)
 
+    enemy = game.find_closest_enemy(snake)
     if not enemy:
       return None
 
-    if random() < 1 / 16:
+    if random() < 1 / 16 and snake.idle(game):
       game.anims.append([FrameAnim(
         target=snake,
         frames=snake.spritesheet.get_charge_sprites() * 5,
         frames_duration=5,
       )])
-      game.print(snake.get_message())
       return None
 
     if is_adjacent(snake.cell, enemy.cell):
