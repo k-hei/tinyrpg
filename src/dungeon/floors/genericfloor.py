@@ -10,9 +10,9 @@ class GenericFloor(Floor):
   def generate(store=None, seed=None):
     return gen_floor(
       features=lambda: [
-        Room(data=RoomData(**rooms["entry"])),
-        Room(data=RoomData(**rooms["exit"])),
-        *([Room(data=RoomData(**choice(rooms["oasis"])))] if randint(1, 3) == 1 else []),
+        Room(data=rooms["entry"]),
+        Room(data=rooms["exit"]),
+        *([Room(data=choice(rooms["oasis"]))] if randint(1, 3) == 1 else []),
         *([Room(cells=gen_blob(min_area=60), data=RoomData(
           terrain=False,
           degree=1,

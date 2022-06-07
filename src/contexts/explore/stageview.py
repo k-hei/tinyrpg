@@ -125,6 +125,10 @@ class StageView:
     view._stage = stage
     view.reset_cache()
 
+  def find_stage_color(view):
+    stage = view.stage
+    return stage.tileset.find_stage_color(stage)
+
   def reset_cache(view):
     view.cache_camera_cell = None
     view.cache_tile_rect = None

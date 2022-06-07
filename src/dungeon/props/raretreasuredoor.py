@@ -1,7 +1,7 @@
 from dungeon.props.door import Door, SpriteMap
 from contexts.prompt import PromptContext, Choice
 from lib.filters import replace_color
-from colors.palette import SAFFRON, GOLD
+from colors.palette import GOLD
 from items.dungeon.key import Key
 
 class RareTreasureDoor(Door):
@@ -36,5 +36,5 @@ class RareTreasureDoor(Door):
 
   def render(door, anims):
     sprite = super().render(anims)
-    sprite.image = replace_color(sprite.image, SAFFRON, GOLD)
+    sprite.image = replace_color(sprite.image, door.color, GOLD)
     return sprite

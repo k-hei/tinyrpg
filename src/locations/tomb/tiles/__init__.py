@@ -3,7 +3,7 @@ from lib.sprite import Sprite
 from lib.filters import replace_color
 
 import assets
-from colors.palette import WHITE, COLOR_TILE
+from colors.palette import WHITE, COLOR_TILE, COLOR_TILE_ALT
 from config import TILE_SIZE
 
 from dungeon.props.door import Door
@@ -25,33 +25,6 @@ from locations.default.tileset import (
     Oasis as DefaultOasis,
     OasisStairs as DefaultOasisStairs,
 )
-
-
-def recolor_tiles():
-    TILE_SPRITE_IDS = [
-        "tomb_floor",
-        "wall_top",
-        "wall_bottom",
-        "wall_alt",
-        "wall_battle",
-        "wall_battle_alt",
-        "wall_corner",
-        "wall_edge",
-        "wall_link",
-        "stairs_up",
-        "stairs_down",
-        "oasis_edge",
-        "oasis_edge_top",
-        "oasis_edge_bottom",
-        "oasis_corner_top",
-        "oasis_corner_bottom",
-        "oasis_stairs_down",
-        "oasis_stairs_up",
-    ]
-    for tile_sprite_id in TILE_SPRITE_IDS:
-        assets.sprites[tile_sprite_id] = replace_color(assets.sprites[tile_sprite_id], WHITE, COLOR_TILE)
-
-recolor_tiles()
 
 
 class Floor(DefaultFloor):
@@ -149,13 +122,13 @@ class Pit(DefaultPit):
             else black_square)
 
 class Entrance(DefaultEntrance):
-    sprite = assets.sprites["stairs_down"]
+    sprite = "stairs_down"
 
 class Exit(DefaultExit):
-    sprite = assets.sprites["stairs_up"]
+    sprite = "stairs_up"
 
 class Escape(DefaultEscape):
-    sprite = assets.sprites["stairs_up"]
+    sprite = "stairs_up"
 
 class Oasis(DefaultOasis):
     @classmethod
@@ -174,6 +147,7 @@ class OasisStairs(DefaultOasisStairs):
 
 class TombTileset(Tileset):
     tile_size = TILE_SIZE
+    tileset_color = WHITE
     mappings = {
         ".": Floor,
         "#": Wall,
@@ -195,6 +169,40 @@ class TombTileset(Tileset):
     Escape = Escape
     Oasis = Oasis
     OasisStairs = OasisStairs
+
+    @classmethod
+    def recolor_tiles(cls, new_color=COLOR_TILE):
+        TILE_SPRITE_IDS = [
+            "tomb_floor",
+            "wall_top",
+            "wall_bottom",
+            "wall_alt",
+            "wall_battle",
+            "wall_battle_alt",
+            "wall_corner",
+            "wall_edge",
+            "wall_link",
+            "stairs_up",
+            "stairs_down",
+            "oasis_edge",
+            "oasis_edge_top",
+            "oasis_edge_bottom",
+            "oasis_corner_top",
+            "oasis_corner_bottom",
+            "oasis_stairs_down",
+            "oasis_stairs_up",
+        ]
+
+        for tile_sprite_id in TILE_SPRITE_IDS:
+            assets.sprites[tile_sprite_id] = replace_color(assets.sprites[tile_sprite_id],
+                old_color=cls.tileset_color,
+                new_color=new_color)
+
+        cls.tileset_color = new_color
+
+    @staticmethod
+    def find_stage_color(stage):
+        return COLOR_TILE_ALT if stage.generator == "GenericFloor" else COLOR_TILE
 
     @classmethod
     def is_tile_at_solid(cls, tile):
@@ -231,9 +239,14 @@ class TombTileset(Tileset):
 
         return tile.find_state(stage, cell, visited_cells)
 
-    @staticmethod
-    def render_tile(tile, stage, cell, visited_cells):
+    @classmethod
+    def render_tile(cls, tile, stage, cell, visited_cells):
         if not tile:
             return None
+
+        stage_color = cls.find_stage_color(stage)
+        if cls.tileset_color != stage_color:
+            print("recolor", cls.tileset_color, stage_color)
+            cls.recolor_tiles(stage_color)
 
         return tile.render(stage, cell, visited_cells)

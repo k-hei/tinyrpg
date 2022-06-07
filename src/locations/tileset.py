@@ -4,6 +4,7 @@ from enum import Enum, auto
 from pygame import Surface
 from dungeon.element_static import StaticElement
 from dungeon.element_data import ElementData
+from colors.palette import COLOR_TILE
 import assets
 
 
@@ -83,6 +84,10 @@ class Tileset(ABC):
     @staticmethod
     def is_tileset(value):
         return isinstance(value, type) and issubclass(value, Tileset)
+
+    @staticmethod
+    def find_stage_color(stage):
+        return COLOR_TILE
 
     @abstractmethod
     def find_tile_state(tile, stage=None, cell=None, visited_cells=None) -> any:

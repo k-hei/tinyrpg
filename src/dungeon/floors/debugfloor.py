@@ -5,7 +5,6 @@ from dungeon.room import Blob as Room
 from dungeon.gen import gen_floor
 
 
-
 class DebugFloor(Floor):
   def generate(store=None, seed=None):
     return gen_floor(

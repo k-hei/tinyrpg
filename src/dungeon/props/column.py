@@ -5,7 +5,7 @@ from dungeon.props import Prop
 import assets
 from lib.sprite import Sprite
 from lib.filters import replace_color
-from colors.palette import WHITE, SAFFRON
+from colors.palette import WHITE
 
 class Column(Prop):
   solid = True
@@ -23,7 +23,7 @@ class Column(Prop):
 
   def view(column, anims):
     column_image = assets.sprites["column"]
-    column_image = replace_color(column_image, WHITE, SAFFRON)
+    column_image = replace_color(column_image, WHITE, column.color)
     return super().view([Sprite(
       image=column_image,
       layer="elems"

@@ -7,7 +7,7 @@ from lib.sprite import Sprite
 from anims.step import StepAnim
 from anims import Anim
 from lib.filters import replace_color
-from colors.palette import BLACK, WHITE, PURPLE, SAFFRON, DARKBLUE
+from colors.palette import BLACK, WHITE, PURPLE, DARKBLUE
 
 class PushBlock(Prop):
   solid = True
@@ -90,7 +90,7 @@ class PushBlock(Prop):
       block_image = replace_color(block_image, WHITE, PURPLE)
       block_image = replace_color(block_image, BLACK, DARKBLUE)
     else:
-      block_image = replace_color(block_image, WHITE, SAFFRON)
+      block_image = replace_color(block_image, WHITE, block.color)
     if block_z:
       block_image = block_image.subsurface(Rect(
         (0, 0),

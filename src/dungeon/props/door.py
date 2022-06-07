@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from dungeon.props import Prop
 import assets, trace
 from anims.frame import FrameAnim
-from colors.palette import WHITE, SAFFRON, DARKBLUE
+from colors.palette import WHITE, DARKBLUE
 import lib.vector as vector
 from lib.filters import replace_color
 from lib.sprite import Sprite
@@ -139,7 +139,7 @@ class Door(Prop):
       elif not door.opened or will_open:
         image = assets.sprites[door.sprites.closed]
 
-    door_color = DARKBLUE if door.locked is False else SAFFRON
+    door_color = DARKBLUE if door.locked is False else door.color
     image = replace_color(image, WHITE, door_color)
     return super().view([Sprite(
       image=image,

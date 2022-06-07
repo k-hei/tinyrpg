@@ -1,5 +1,5 @@
 from dungeon.props.door import Door, SpriteMap
-from colors.palette import DARKBLUE, SAFFRON
+from colors.palette import DARKBLUE
 from lib.filters import replace_color
 
 class TreasureDoor(Door):
@@ -20,5 +20,5 @@ class TreasureDoor(Door):
     sprites = super().view(anims)
     if door.locked is False and sprites:
       sprite = sprites[0]
-      sprite.image = replace_color(sprite.image, SAFFRON, DARKBLUE)
+      sprite.image = replace_color(sprite.image, door.color, DARKBLUE)
     return sprites

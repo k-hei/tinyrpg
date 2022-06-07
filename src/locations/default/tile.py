@@ -1,5 +1,7 @@
 from pygame import Surface
 from dataclasses import dataclass
+import assets
+
 
 @dataclass
 class Tile:
@@ -26,7 +28,9 @@ class Tile:
 
   @classmethod
   def render(cls, stage, cell, visited_cells):
-    return cls.sprite
+    return (cls.sprite
+      if isinstance(cls.sprite, Surface)
+      else assets.sprites[cls.sprite])
 
   def is_solid(tile):
     return not tile or tile.solid

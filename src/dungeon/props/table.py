@@ -2,15 +2,13 @@ from pygame import Surface, Rect
 from pygame.transform import flip
 import lib.vector as vector
 from lib.filters import replace_color
-from colors.palette import WHITE, SAFFRON
+from colors.palette import WHITE
 
 import assets
 from lib.sprite import Sprite
 from dungeon.props import Prop
 from config import TILE_SIZE
 
-assets.sprites["table_left"] = replace_color(assets.sprites["table_left"], WHITE, SAFFRON)
-assets.sprites["table_middle"] = replace_color(assets.sprites["table_middle"], WHITE, SAFFRON)
 assets.sprites["table_right"] = flip(assets.sprites["table_left"], True, False)
 
 class Table(Prop):
@@ -35,6 +33,7 @@ class Table(Prop):
       table_image.blit(assets.sprites["table_middle"], (x, 0))
     table_image.blit(assets.sprites["table_left"], (0, 0))
     table_image.blit(assets.sprites["table_right"], (table_width - assets.sprites["table_right"].get_width(), 0))
+    table_image = replace_color(table_image, WHITE, table.color)
     return super().view([Sprite(
       image=table_image,
       pos=((table_width - TILE_SIZE) / 2, 0),
