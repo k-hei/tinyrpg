@@ -19,7 +19,8 @@ class RareTreasureDoor(Door):
   def effect(door, game, *args, **kwargs):
     effect = super().effect
     if door.opened:
-      return
+      return False
+
     inventory = game.store.items
     if Key in inventory:
       game.open(PromptContext(("Use the ", Key().token(), "?"), [
@@ -33,6 +34,8 @@ class RareTreasureDoor(Door):
       )))
     else:
       game.comps.minilog.print("The door is locked...")
+
+    return True
 
   def render(door, anims):
     sprite = super().render(anims)
