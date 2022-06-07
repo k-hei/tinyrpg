@@ -1,8 +1,8 @@
-from pygame import Surface, Rect
+from pygame import Surface, Rect, SRCALPHA
 from pygame.transform import flip
 import lib.vector as vector
 from lib.filters import replace_color
-from colors.palette import WHITE
+from colors.palette import WHITE, SAFFRON
 
 import assets
 from lib.sprite import Sprite
@@ -27,13 +27,14 @@ class Table(Prop):
 
   def view(table, anims):
     table_width = TILE_SIZE * table.length
-    table_image = Surface((table_width, TILE_SIZE))
-    ends_width = assets.sprites["table_left"].get_width() + assets.sprites["table_right"].get_width()
+    table_image = Surface((table_width, TILE_SIZE), SRCALPHA)
     for x in range(assets.sprites["table_left"].get_width(), table_width - assets.sprites["table_right"].get_width(), assets.sprites["table_middle"].get_width()):
       table_image.blit(assets.sprites["table_middle"], (x, 0))
     table_image.blit(assets.sprites["table_left"], (0, 0))
     table_image.blit(assets.sprites["table_right"], (table_width - assets.sprites["table_right"].get_width(), 0))
+
     table_image = replace_color(table_image, WHITE, table.color)
+
     return super().view([Sprite(
       image=table_image,
       pos=((table_width - TILE_SIZE) / 2, 0),
