@@ -26,7 +26,7 @@ class DesertEvilCactus(DungeonActor):
         st=12,
         dx=4,
         ag=5,
-        en=4,
+        en=8,
       ),
       skills=[Tackle],
     ), *args, **kwargs)

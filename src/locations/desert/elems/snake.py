@@ -27,7 +27,7 @@ class DesertSnake(DungeonActor):
         st=12,
         dx=8,
         ag=6,
-        en=3,
+        en=7,
       ),
       skills=[Tackle],
     ), *args, **kwargs)
