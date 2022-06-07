@@ -78,6 +78,7 @@ def spawn_next_wave(room, game):
       goal=game.hero.cell
     )) <= 8
   )]
+
   shuffle(valid_cells)
   enemy_spawns = {}
   while enemy_types and valid_cells:

@@ -720,6 +720,9 @@ class CombatContext(ExploreBase):
     if hero.ailment == "freeze":
       return ctx.handle_struggle(actor=hero)
 
+    if hero.item:
+      return False
+
     ctx.open(SkillContext(
       actor=hero,
       skills=hero.get_active_skills(),
@@ -781,6 +784,9 @@ class CombatContext(ExploreBase):
   def handle_shortcut(ctx):
     hero = ctx.hero
     if not hero:
+      return False
+
+    if hero.item:
       return False
 
     skill = ctx.store.get_selected_skill(hero.core)
