@@ -26,6 +26,12 @@ from locations.default.tileset import (
     OasisStairs as DefaultOasisStairs,
 )
 
+import debug
+
+
+tileset_color = WHITE
+tileset_backups = {}
+
 
 class Floor(DefaultFloor):
     @staticmethod
@@ -147,7 +153,6 @@ class OasisStairs(DefaultOasisStairs):
 
 class TombTileset(Tileset):
     tile_size = TILE_SIZE
-    tileset_color = WHITE
     mappings = {
         ".": Floor,
         "#": Wall,
@@ -172,6 +177,10 @@ class TombTileset(Tileset):
 
     @classmethod
     def recolor_tiles(cls, new_color=COLOR_TILE):
+        global tileset_color
+        if tileset_color == new_color:
+            return False
+
         TILE_SPRITE_IDS = [
             "tomb_floor",
             "wall_top",
@@ -179,8 +188,8 @@ class TombTileset(Tileset):
             "wall_alt",
             "wall_battle",
             "wall_battle_alt",
-            "wall_corner",
-            "wall_edge",
+            "wall_corner*",
+            "wall_edge*",
             "wall_link",
             "stairs_up",
             "stairs_down",
@@ -193,12 +202,21 @@ class TombTileset(Tileset):
             "oasis_stairs_up",
         ]
 
+        all_sprite_ids = []
         for tile_sprite_id in TILE_SPRITE_IDS:
+            if tile_sprite_id.endswith("*"):
+                tile_sprite_id = tile_sprite_id[:-1]
+                all_sprite_ids += [s for s in assets.sprites if s.startswith(tile_sprite_id)]
+            all_sprite_ids.append(tile_sprite_id)
+
+        for tile_sprite_id in all_sprite_ids:
             assets.sprites[tile_sprite_id] = replace_color(assets.sprites[tile_sprite_id],
-                old_color=cls.tileset_color,
+                old_color=tileset_color,
                 new_color=new_color)
 
-        cls.tileset_color = new_color
+        debug.log(f"recolor tileset from {tileset_color} to {new_color}")
+        tileset_color = new_color
+        return True
 
     @staticmethod
     def find_stage_color(stage):
@@ -245,7 +263,6 @@ class TombTileset(Tileset):
             return None
 
         stage_color = cls.find_stage_color(stage)
-        if cls.tileset_color != stage_color:
-            cls.recolor_tiles(stage_color)
+        cls.recolor_tiles(stage_color)
 
         return tile.render(stage, cell, visited_cells)

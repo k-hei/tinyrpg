@@ -28,6 +28,7 @@ from config import (
 # world links
 from contexts.explore.roomdata import RoomData
 from town.graph import WorldLink
+from dungeon.gen.floorgraph import FloorGraph
 
 
 class ExploreContext(ExploreBase):
@@ -476,15 +477,19 @@ class ExploreContext(ExploreBase):
     if issubclass(hero_tile, tileset.Escape):
       return ctx.goto_town()
 
-    stairs_edge = ctx.parent.graph and ctx.parent.graph.connector_edge(ctx.stage, hero_cell)
+    stairs_edge = (ctx.graph.connector_edge(ctx.stage, hero_cell)
+      if isinstance(ctx.graph, FloorGraph)
+      else None)
     if not stairs_edge:
       debug.log("Staircase has no connecting edge")
-      return False # port doesn't exist in graph - how to handle besides ignore?
 
-    dest_floor = next((n for n in stairs_edge if n is not ctx.stage), None)
+    dest_floor = (next((n for n in stairs_edge if n is not ctx.stage), None)
+      if stairs_edge
+      else None)
     if not dest_floor:
       debug.log("Staircase has no destination floor")
-      return False # generate random floor in infinite dungeon
+      ctx.parent.load_floor_by_id("GenericFloor")
+      return True
 
     stairs_dest = tileset.Entrance if issubclass(stairs, tileset.Exit) else tileset.Exit
     if type(dest_floor) is type:
@@ -507,8 +512,8 @@ class ExploreContext(ExploreBase):
       loader=floor.generate(ctx.store),
       on_end=lambda stage: (
         setattr(stage, "generator", floor.__name__),
-        ctx.parent.graph.disconnect(ctx.stage, floor),
-        ctx.parent.graph.connect(
+        ctx.graph.disconnect(ctx.stage, floor),
+        ctx.graph.connect(
           ctx.stage, stage,
           (ctx.stage.get_tile_at(ctx.hero.cell), ctx.hero.cell),
           (stairs, find_tile(stage, stairs)),

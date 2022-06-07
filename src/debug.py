@@ -6,14 +6,18 @@ buffer = ""
 benches = {}
 
 def log(*args):
+  if not args:
+    return
+
+  global buffer
+  if not buffer.endswith(args[0]):
+    buffer += args[0]
+
   if DEBUG:
     print("[DEBUG]", *args)
 
 def append(text):
-  global buffer
-  if not buffer.endswith(text):
-    buffer += text
-    log(text)
+  log(text)
 
 def write():
   if not buffer:

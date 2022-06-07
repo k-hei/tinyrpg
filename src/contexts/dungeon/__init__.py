@@ -119,7 +119,7 @@ class DungeonContext(ExploreBase):
     if not ctx.stage: # or ctx.stage.generator not in floor_names:
       return
 
-    if not isinstance(ctx.graph, FloorGraph) and ctx.stage.generator in floor_names:
+    if not isinstance(ctx.graph, FloorGraph):
       ctx.graph = FloorGraph()
 
     if not isinstance(ctx.graph, FloorGraph):
