@@ -325,6 +325,7 @@ class SideViewContext(Context):
       actor.update()
 
     hero, *allies = ctx.party
+    ally = allies[0] if allies else None
 
     for anim in ctx.anims:
       if type(anim) is FollowAnim:
@@ -352,6 +353,7 @@ class SideViewContext(Context):
           dest_area = dest_link.node
           dest_port = dest_link.port
           if dest_area == src_area:
+            ally and ally.move_to(dest=(dest_port.x, dest_port.y), free=True)
             if hero.move_to(dest=(dest_port.x, dest_port.y), free=True):
               ctx.port = None
               ctx.update_interactives()
