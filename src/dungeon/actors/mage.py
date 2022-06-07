@@ -2,9 +2,9 @@ import lib.vector as vector
 from dungeon.actors import DungeonActor
 from cores.mage import Mage as MageCore
 from helpers.mage import step_move
+from skills.weapon.cudgel import Cudgel
 from skills.magic.glacio import Glacio
 from skills.magic.congelatio import Congelatio
-from skills.magic.accerso import Accerso
 from skills.weapon.broadsword import BroadSword
 
 import assets
@@ -24,7 +24,7 @@ class Mage(DungeonActor):
 
   def __init__(mage, core=None, faction="ally", ailment=None, ailment_turns=0, *args, **kwargs):
     super().__init__(
-      core=core or MageCore(faction=faction, skills=[Glacio, Accerso], *args, **kwargs),
+      core=core or MageCore(faction=faction, skills=[Cudgel], *args, **kwargs),
       ailment=ailment,
       ailment_turns=ailment_turns,
       aggro=3,
