@@ -19,3 +19,4 @@ class BattleDoor(Door):
       ], on_close=lambda choice: (
         choice and choice.text == "Yes" and effect(game, *args, **kwargs)
       )))
+      return True
