@@ -177,6 +177,10 @@ class ControlsContext(Context):
       reset_hint = next((c for c in ctx.hints if c.value == "Reset"), None)
       reset_hint and reset_hint.press()
 
+    if button == pygame.K_TAB:
+      ctx.buttons_rejected.add(button)
+      return ctx.handle_multiconfig()
+
     button = input.resolve_button(button) or button
     if (press_time == 1
     or press_time > 30 and press_time % 2):
@@ -207,7 +211,7 @@ class ControlsContext(Context):
     if input.CONTROL_CANCEL in controls:
       return ctx.handle_close()
 
-    if button == pygame.K_TAB or input.CONTROL_PAUSE in controls:
+    if input.CONTROL_PAUSE in controls:
       ctx.buttons_rejected.add(button)
       return ctx.handle_multiconfig()
 
