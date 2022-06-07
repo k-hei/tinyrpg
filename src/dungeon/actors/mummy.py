@@ -128,7 +128,10 @@ class Mummy(DungeonActor):
     if soldier.damaged:
       soldier.damaged = False
       soldier.face(enemy.cell)
-      if randint(0, 1) and game.stage.is_cell_empty(add_vector(soldier.cell, invert_direction(soldier.facing))):
+      rear_cell = add_vector(soldier.cell, invert_direction(soldier.facing))
+      if (randint(0, 1)
+      and game.stage.is_cell_empty(rear_cell)
+      and not game.stage.is_tile_at_pit(rear_cell)):
         return ("use_skill", Mummy.Backstep)
       else:
         return soldier.charge(skill=ClawRush, dest=enemy.cell)

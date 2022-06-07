@@ -1,5 +1,6 @@
 from skills.attack import AttackSkill
 from dungeon.actors import DungeonActor
+from helpers.stage import is_cell_walkable_to_actor
 from cores.knight import Knight as Knight
 from vfx.claw import ClawVfx
 from lib.cell import add as add_vector
@@ -27,7 +28,7 @@ class ClawRush(AttackSkill):
   def effect(game, user, dest=None, on_start=None, on_end=None):
     origin_cell = user.cell
     dest_cell = add_vector(origin_cell, user.facing)
-    if game.stage.is_cell_empty(dest_cell):
+    if is_cell_walkable_to_actor(game.stage, dest_cell, user):
       target_cell = add_vector(dest_cell, user.facing)
     else:
       target_cell = dest_cell

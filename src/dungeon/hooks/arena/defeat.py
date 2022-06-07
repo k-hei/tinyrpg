@@ -51,7 +51,8 @@ def on_complete(room, game):
           cell=room.center,
           inclusive=True,
           radius=2
-        ) if game.stage.is_cell_empty(c)
+        ) if (game.stage.is_cell_empty(c)
+        and not game.stage.is_tile_at_pit(c))
       ), room.center), chest := Chest(Elixir)),
       game.anims.extend([
         [DropAnim(target=chest)],

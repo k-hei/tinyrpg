@@ -77,7 +77,9 @@ class Eyeball(DungeonActor):
     name = "Meyetosis"
     charge_turns = 3
     def effect(game, user, dest, on_start=None, on_end=None):
-      neighbors = [c for c in neighborhood(user.cell) if game.stage.is_cell_empty(c)]
+      neighbors = [c for c in neighborhood(user.cell)
+        if game.stage.is_cell_empty(c)
+        and not game.stage.is_tile_at_pit(c)]
       if neighbors:
         user.clones += 1
         neighbor = choice(neighbors)

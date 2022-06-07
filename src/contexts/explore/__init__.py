@@ -125,8 +125,6 @@ class ExploreContext(ExploreBase):
         if acted == False:
           ctx.buttons_rejected[button] = 0
         return acted
-      elif input.get_state(button) >= 30 and not button in ctx.buttons_rejected:
-        return ctx.handle_throw()
 
     if input.get_state(button) > 1:
       return False
@@ -135,9 +133,7 @@ class ExploreContext(ExploreBase):
       return ctx.handle_debug()
 
     if input.CONTROL_ITEM in controls:
-      if ctx.hero.item:
-        return ctx.handle_throw()
-      else:
+      if not ctx.hero.item:
         return ctx.handle_pickup()
 
     if input.CONTROL_MINIMAP in controls:
