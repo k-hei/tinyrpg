@@ -291,7 +291,8 @@ class StageView:
         continue
 
       try:
-        use_cache = view.darkened or (not view.stage.is_overworld and cell not in visible_cells)
+        # TODO(palette): make darkening possible in overworld
+        use_cache = not view.stage.is_overworld and (view.darkened or cell not in visible_cells)
         tile_images = view.render_cell(view.stage, cell, visited_cells, use_cache, tile_hash_cache=tile_hash_cache)
         if not tile_images:
           continue
@@ -395,7 +396,8 @@ class StageView:
       return []
 
     for elem_sprite in elem_sprites:
-      if view.darkened and not isinstance(elem, DungeonActor):
+      # TODO(palette): make darkening possible in overworld
+      if not view.stage.is_overworld and view.darkened and not isinstance(elem, DungeonActor):
         if elem not in view.cache_elems:
           view.cache_elems[elem] = darken_image(elem_sprite.image)
         elem_sprite.image = view.cache_elems[elem]

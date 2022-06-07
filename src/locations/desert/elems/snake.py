@@ -60,6 +60,9 @@ class DesertSnake(DungeonActor):
     return (delta_x, delta_y)
 
   def step(snake, game):
+    if not snake.can_step():
+      return None
+
     enemy = game.find_closest_enemy(snake)
     if not snake.aggro:
       return super().step(game)
@@ -82,30 +85,32 @@ class DesertSnake(DungeonActor):
     delta = snake.find_move_delta(target=enemy)
     return ("move", delta)
 
-  def view(snake, anims):
-    snake_image = DesertSnakeSpritesheet.get_idle_sprite(snake.facing)
+  def find_image(snake, anims):
+    if snake.ailment == "freeze":
+      return DesertSnakeSpritesheet.get_flinch_sprite()
 
     anim_group = [a for a in anims[0] if a.target is snake] if anims else []
     for anim in anim_group:
       if isinstance(anim, StepAnim):
-        snake_image = DesertSnakeSpritesheet.get_move_sprite(snake.facing)
-        break
+        return DesertSnakeSpritesheet.get_move_sprite(snake.facing)
 
       if isinstance(anim, AttackAnim):
         attack_sprites = DesertSnakeSpritesheet.get_attack_sprite(snake.facing)
         if (anim.time >= 0
         and anim.time < anim.duration // 2):
-          snake_image = attack_sprites[0]
+          return attack_sprites[0]
         elif anim.time >= anim.duration // 2:
-          snake_image = attack_sprites[1]
+          return attack_sprites[1]
         break
 
       if isinstance(anim, (FlinchAnim, FlickerAnim)):
-        snake_image = DesertSnakeSpritesheet.get_flinch_sprite()
-        break
+        return DesertSnakeSpritesheet.get_flinch_sprite()
 
+    return DesertSnakeSpritesheet.get_idle_sprite(snake.facing)
+
+  def view(snake, anims):
     return super().view([Sprite(
-      image=snake_image
+      image=snake.find_image(anims)
     )], anims)
 
 

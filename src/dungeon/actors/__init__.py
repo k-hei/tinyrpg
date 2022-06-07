@@ -440,7 +440,6 @@ class DungeonActor(DungeonElement):
       actor in game.stage.elems and actor.face(old_target),
       game.camera.blur(),
       setattr(game, "talkee", None),
-      print(game.camera.target_groups),
     ))
 
   def start_move(actor, running):
