@@ -1,4 +1,5 @@
 from math import inf
+from random import randint
 import pygame
 
 import lib.vector as vector
@@ -27,6 +28,8 @@ from dungeon.actors import DungeonActor
 from dungeon.actors.mage import Mage
 from dungeon.props.door import Door
 from dungeon.props.soul import Soul
+from dungeon.props.bag import Bag
+from items.gold import Gold
 from dungeon.props.itemdrop import ItemDrop
 from skills.weapon import Weapon
 from locations.default.tile import Tile
@@ -714,15 +717,21 @@ class CombatContext(ExploreBase):
 
     def remove_elem():
       target_skill = type(target).skill
-      if target_skill and target.rare:
-        skill = target_skill
-        if skill not in ctx.store.skills:
-          ctx.stage.spawn_elem_at(target.cell, Soul(contents=skill))
+      if target.rare and target_skill and target_skill not in ctx.store.skills:
+        ctx.stage.spawn_elem_at(target.cell, Soul(contents=target_skill))
+      elif target.rare:
+        ctx.stage.spawn_elem_at(target.cell,
+          Bag(contents=Gold(amount=randint(34, 120))))
+      elif randint(1, 3) == 1:
+        ctx.stage.spawn_elem_at(target.cell,
+          Bag(contents=Gold()))
+
       if target is ctx.hero:
         if ctx.ally:
           ctx.handle_charswap()
         else:
           ctx.handle_gameover()
+
       ctx.stage.remove_elem(target)
       will_exit and not isinstance(ctx.get_tail(), CutsceneContext) and ctx.exit(ally_rejoin=True)
       on_end and on_end()

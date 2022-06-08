@@ -721,10 +721,9 @@ def gen_floor(
         room_items = [Vase(contents=choice(SPECIAL_ITEMS)) for _ in range(item_count)]
       else:
         item_count = max(1, min(3, room.get_area() // 24))
-        room_items = [Vase(contents=Gold(amount=randint(4, 30)))
-        # Vase(contents=choice(items))
-        #   if randint(0, 1)
-        #   else Vase(contents=Gold(amount=randint(4, 30)))
+        room_items = [Vase(contents=choice(items))
+          if randint(0, 1)
+          else Vase(contents=Gold(amount=randint(4, 30)))
             for _ in range(item_count)]
 
 

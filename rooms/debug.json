@@ -16,7 +16,8 @@
     [[5, 1], "Pillar"],
     [[1, 5], "Pillar"],
     [[5, 5], "Pillar"],
-    [[3, 3], "Mushroom"]
+    [[2, 3], "Eyeball", { "rare": true }],
+    [[4, 3], "Eyeball", { "rare": true }]
   ],
   "edges": [
     [3, -1]

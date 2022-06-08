@@ -1,3 +1,5 @@
+from random import randint
+
 from dataclasses import dataclass
 from items import Item
 from comps.log import Token
@@ -16,6 +18,7 @@ class Gold(Item):
 
   def __post_init__(item):
     item.name = f"Gekkel ({item.amount}G)"
+    item.amount = item.amount or randint(4, 30)
 
   def token(item):
     return Token(
