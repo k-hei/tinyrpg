@@ -21,7 +21,7 @@ class Skill:
   color = BLACK
   charge_turns = 1
 
-  def effect(user, dest, game, on_end=None):
+  def effect(user, dest, game, on_start=None, on_end=None):
     user_x, user_y = user.cell
     facing_x, facing_y = user.facing
     target_cell = (user_x + facing_x, user_y + facing_y)
