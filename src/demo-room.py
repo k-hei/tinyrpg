@@ -16,7 +16,7 @@ if argc not in (2, 3):
 
 
 room_name = sys.argv[1]
-room_port = sys.argv[2]
+room_port = sys.argv[2] if len(sys.argv) > 2 else None
 room_data = load_room("rooms/", room_name)
 if isinstance(room_data, list):
   room_data = choice(room_data)

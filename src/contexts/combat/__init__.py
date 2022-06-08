@@ -1,4 +1,6 @@
+from math import inf
 import pygame
+
 import lib.vector as vector
 import lib.input as input
 from lib.direction import invert as invert_direction
@@ -105,48 +107,64 @@ class CombatContext(ExploreBase):
       hero_cell = animate_snap(ctx.hero, anims=ctx.anims, speed=walk_speed)
       if hero_cell:
         actor_cells[ctx.hero] = hero_cell
-      # actor_cells[ctx.hero] = vector.round(ctx.hero.cell)
 
-      if ctx.ally:
-        ally_cell = animate_snap(ctx.ally, anims=ctx.anims, speed=walk_speed)
-        if ally_cell:
-          actor_cells[ctx.ally] = ally_cell
+    if ctx.should_path and ctx.ally:
+      ally_cell = animate_snap(ctx.ally, anims=ctx.anims, speed=walk_speed)
+      if ally_cell:
+        actor_cells[ctx.ally] = ally_cell
 
-    if ctx.ally and ctx.should_path:
-      start_cells = [c for c in neighborhood(ctx.hero.cell, diagonals=True) + [ctx.hero.cell] if
-        not next((e for e in ctx.stage.get_elems_at(c) if
-          isinstance(e, Door)
-          or e.solid and e is not ctx.hero
-        ), None)
-        and not ctx.stage.is_tile_at_solid(c)
-      ]
+      pathable_cells = [c for c in neighborhood(ctx.hero.cell, diagonals=True, inclusive=True)
+        + neighborhood(ctx.ally.cell, diagonals=True, inclusive=True)
+          if is_tile_walkable_to_actor(ctx.stage, c, ctx.hero)]
+
+      start_cells = {c for c in pathable_cells
+        if not (ctx.stage.is_overworld
+          and next((e for e in ctx.stage.get_elems_at(c, scale=TILE_SIZE)
+            if isinstance(e, Door)
+            or e.solid and e is not ctx.hero), None))  # exclude doors and solid elems
+        and not ctx.stage.is_tile_at_solid(c, scale=TILE_SIZE)
+        and c in ctx.room.cells}
+      start_cells = sorted(start_cells,
+        key=lambda c: inf
+          if c == ctx.hero.cell
+          else manhattan(c, ctx.hero.cell) - (c[1] == ctx.hero.cell[1]))
 
       hero_path = ctx.stage.pathfind(
-        start=actor_cells[ctx.hero],
+        start=actor_cells[ctx.hero] if ctx.hero in actor_cells else ctx.hero.cell,
         goal=start_cells.pop(0),
-        whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True)
-      )
+        whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True) + pathable_cells
+      ) if start_cells else None
 
       ally_path = ctx.stage.pathfind(
-        start=actor_cells[ctx.ally],
+        start=actor_cells[ctx.ally] if ctx.ally in actor_cells else ctx.ally.cell,
         goal=start_cells.pop(0),
-        whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True) + [ctx.ally.cell]
-      )
+        whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True) + pathable_cells
+      ) if start_cells else None
 
-      ctx.anims.append([
-        *([PathAnim(
+      anim_group = []
+
+      if hero_path:
+        anim_group.append(PathAnim(
           target=ctx.hero,
           path=hero_path,
           period=TILE_SIZE // walk_speed,
           on_end=lambda: hero_brandish and ctx.anims[0].append(hero_brandish)
-        )] if hero_path else []),
-        *([PathAnim(
+        ))
+      elif hero_brandish:
+        anim_group.append(hero_brandish)
+
+      if ally_path:
+        anim_group.append(PathAnim(
           target=ctx.ally,
           path=ally_path,
           period=TILE_SIZE // walk_speed,
           on_end=lambda: ally_brandish and ctx.anims[0].append(ally_brandish)
-        )] if ally_path else []),
-      ])
+        ))
+      elif ally_brandish:
+        anim_group.append(ally_brandish)
+
+      if anim_group:
+        ctx.anims.append(anim_group)
 
     elif hero_brandish or ally_brandish:
       ctx.anims.append([
@@ -170,9 +188,13 @@ class CombatContext(ExploreBase):
     for actor in ctx.party:
       actor.dispel_ailment()
 
-    hero_adjacents = [n for n in neighborhood(ctx.hero.cell) if ctx.stage.is_cell_empty(n)]
+    hero_adjacents = ([n for n in neighborhood(ctx.hero.cell)
+      if is_cell_walkable_to_actor(ctx.stage, n, ctx.ally)]
+        if ctx.ally else [])
+
     if ally_rejoin and ctx.ally and hero_adjacents:
       target_cell = sorted(hero_adjacents, key=lambda c: manhattan(c, ctx.ally.cell))[0]
+      print(ctx.hero.cell, target_cell)
       ally_path = ctx.stage.pathfind(
         start=ctx.ally.cell,
         goal=target_cell,
@@ -357,7 +379,7 @@ class CombatContext(ExploreBase):
       ctx.update_bubble()
       ctx.make_noise(hero.cell, 0.5)
       if not ctx.find_enemies_in_range():
-        ctx.exit()
+        ctx.exit(ally_rejoin=True)
 
     hero.facing = delta
     moved = ctx.move_cell(hero, delta, on_end=on_move)
