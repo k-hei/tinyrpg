@@ -3,7 +3,6 @@ import traceback
 from os import listdir
 from os.path import isfile, join, splitext
 from dataclasses import dataclass
-from typing import Dict
 import pygame
 from pygame import Surface, Rect
 from text import Font, Ttf
@@ -11,11 +10,12 @@ from config import ASSETS_PATH, WINDOW_SIZE
 
 @dataclass
 class Assets:
-  sprites: Dict[str, Surface] = None
-  fonts: Dict[str, Font] = None
-  ttf: Dict[str, Ttf] = None
+  sprites: dict[str, Surface] = None
+  sprite_rects: dict[str, list[int, int, int, int]] = None
+  fonts: dict[str, Font] = None
+  ttf: dict[str, Ttf] = None
 
-def load_image(path, key, sprites):
+def load_image(path, key, sprites, sprite_rects):
   try:
     sprite = pygame.image.load(join(path, key) + ".png").convert_alpha()
   except FileNotFoundError:
@@ -29,6 +29,7 @@ def load_image(path, key, sprites):
     metafile = None
     key = key.replace("-", "_")
     sprites[key] = sprite
+    sprite_rects[key] = [0, 0, sprite.get_width(), sprite.get_height()]
     return
   finally:
     metafile and metafile.close()
@@ -64,9 +65,11 @@ def load_image(path, key, sprites):
     elif type(value) is list:
       if type(value[0]) is list:
         sprites[key] = [sprite.subsurface(Rect(*r)) for r in value]
+        sprite_rects[key] = value
       else:
         rect = Rect(*value)
         sprites[key] = sprite.subsurface(rect)
+        sprite_rects[key] = rect
 
 def load_pngfont(path, key):
   typeface = pygame.image.load(join(path, key) + ".png").convert_alpha()
@@ -94,7 +97,7 @@ def load():
       item_name, item_ext = splitext(f)
       if item_ext == ".png":
         try:
-          load_image(ASSETS_PATH, item_name, sprites)
+          load_image(ASSETS_PATH, item_name, sprites, sprite_rects)
         except:
           print(f"Failed to load {item_name}: {traceback.format_exc()}")
 
@@ -113,13 +116,15 @@ def load():
   ttf["special"] = load_ttf(ttf_path, "PCPaintSpecialMedium", 12)
 
   assets.sprites = sprites
+  assets.sprite_rects = sprite_rects
   assets.fonts = fonts
   assets.ttf = ttf
 
 sprites = {}
+sprite_rects = {}
 fonts = {}
 ttf = {}
-assets = Assets(sprites, fonts, ttf)
+assets = Assets(sprites, sprite_rects, fonts, ttf)
 load()
 
 def trace(sprite):

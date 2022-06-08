@@ -1,0 +1,28 @@
+{
+  "name": "Akimor Range",
+  "enemies": ["DesertSnake", "DesertSnake", "DesertEvilCactus", "DesertEvilCactus"],
+  "items": ["Potion", "Bread"],
+  "hooks": {
+    "on_place": "tutorial1.place"
+  },
+  "ports": {
+    "up": {
+      "x": 26,
+      "y": 0,
+      "direction": [0,-1]
+    },
+    "right": {
+      "x": 100,
+      "y": 101,
+      "direction": [1, 0]
+    }
+  },
+  "layers": {
+    "bp1": "tile",
+    "bp2": "object",
+    "front1": "object",
+    "front2": "object",
+    "front3": "object",
+    "OBJPLACEMENT": "trigger"
+  }
+}

@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from items.hp import HpItem
 from lib.cell import neighborhood
 from helpers.actor import manifest_actor
+from helpers.stage import is_cell_walkable_to_actor
 
 @dataclass
 class Ankh(HpItem):
@@ -23,12 +24,12 @@ class Ankh(HpItem):
     if game.ally:
       return False, "Your partner is still alive!"
 
+    ally = manifest_actor(store.ally)
     neighbors = neighborhood(hero.cell)
-    neighbor = next((n for n in neighbors if floor.is_cell_empty(n)), None)
+    neighbor = next((n for n in neighbors if is_cell_walkable_to_actor(floor, n, ally)), None)
     if neighbor is None:
       return False, ("There's nowhere for ", store.ally.token(), " to spawn!")
 
-    ally = manifest_actor(store.ally)
     ally.revive(1 / 2)
     floor.spawn_elem_at(neighbor, ally)
     return True, (ally.token(), " was revived.")

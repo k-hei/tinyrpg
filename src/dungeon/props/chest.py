@@ -1,5 +1,7 @@
+from pygame import Rect
 from dungeon.props import Prop
 import assets
+import lib.vector as vector
 from lib.cell import upscale
 from lib.filters import replace_color
 from anims.attack import AttackAnim
@@ -11,6 +13,7 @@ from colors.palette import PINK, GOLD, BLACK
 from contexts.dialogue import DialogueContext
 from lib.sprite import Sprite
 from inventory import Inventory
+from config import TILE_SIZE
 
 class Chest(Prop):
   solid = True
@@ -21,6 +24,15 @@ class Chest(Prop):
     chest.contents = contents
     chest.opened = opened
     chest.rare = rare
+
+  @property
+  def rect(chest):
+    if chest._rect is None and chest.pos:
+      chest._rect = Rect(
+        vector.add(chest.pos, (-10, -4)),
+        (20, 20)
+      )
+    return chest._rect
 
   def encode(chest):
     [cell, kind, *props] = super().encode()
@@ -83,7 +95,7 @@ class Chest(Prop):
       script = ["It's empty..."]
     if anims:
       game.camera.focus(
-        target=upscale(chest.cell, game.stage.tile_size),
+        target=upscale(chest.cell, TILE_SIZE),
         force=True
       )
     else:

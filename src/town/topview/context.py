@@ -18,6 +18,9 @@ from transits.dissolve import DissolveIn, DissolveOut
 from colors.palette import BLACK, WHITE
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT, LABEL_FRAMES
 
+from town.graph import WorldLink
+
+
 def insert_value(mapping, key, value):
   keys = mapping.keys()
   values = [value if v == key else v for k, v in mapping.items()]
@@ -36,7 +39,7 @@ class TopViewContext(Context):
     ctx.stage = area and area(ctx.party)
     ctx.hud = Hud(store.party)
     ctx.elem = None
-    ctx.link = None
+    ctx.port = None
     ctx.anims = []
     ctx.debug = False
     ctx.time = 0
@@ -46,7 +49,7 @@ class TopViewContext(Context):
     if ctx.child:
       return ctx.child.handle_press(button)
 
-    if ctx.anims or ctx.link or ctx.get_head().transits:
+    if ctx.anims or ctx.port or ctx.get_head().transits:
       return None
 
     delta = input.resolve_delta(button)
@@ -181,22 +184,24 @@ class TopViewContext(Context):
     return ctx.parent.graph if "graph" in dir(ctx.parent) else None
 
   def handle_areachange(ctx, delta):
-    ctx.link = delta
+    ctx.port = delta
     ctx.get_head().transition([
-      DissolveIn(on_end=lambda: ctx.change_areas(ctx.area.links["entrance"])),
+      DissolveIn(on_end=lambda: ctx.change_areas("entrance")),
       DissolveOut()
     ])
 
-  def change_areas(ctx, link):
-    if graph := ctx.get_graph():
-      dest_link = graph.tail(head=link)
-      if dest_link:
-        dest_area = graph.link_area(link=dest_link)
-        for actor in ctx.party:
-          actor.stop_move()
-        ctx.parent.load_area(dest_area, dest_link)
-    else:
-      ctx.close()
+  def change_areas(ctx, port_id):
+    if not (graph := ctx.get_graph()):
+      return ctx.close()
+
+    src_link = WorldLink(ctx.area, port_id)
+    dest_link = graph.tail(src_link)
+    if not dest_link:
+      return
+
+    for actor in ctx.party:
+      actor.stop_move()
+    ctx.parent.load_area(dest_link.node, dest_link.port_id)
 
   def switch_chars(ctx):
     ctx.store.switch_chars()
@@ -213,9 +218,10 @@ class TopViewContext(Context):
   def update(ctx):
     super().update()
 
-    if ctx.link:
+    if ctx.port:
+      delta = ctx.port  # TODO: handle other types of links
       for actor in ctx.party:
-        actor.move(ctx.link)
+        actor.move(delta)
 
     for elem in ctx.stage.elems:
       elem.update()
@@ -285,7 +291,7 @@ class TopViewContext(Context):
       else 1
     ))
 
-    if ctx.link or (ctx.child
+    if ctx.port or (ctx.child
       and not isinstance(ctx.child, DialogueContext)
       and not isinstance(ctx.child, InventoryContext)
       and not isinstance(ctx.child.child, ShopContext)

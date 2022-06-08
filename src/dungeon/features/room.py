@@ -4,6 +4,7 @@ from lib.cell import add
 from dungeon.features import Feature
 from dungeon.actors import DungeonActor
 from dungeon.props.door import Door
+from locations.default.tile import Tile
 import locations.default.tileset as tileset
 from config import ROOM_WIDTHS, ROOM_HEIGHTS
 
@@ -41,12 +42,15 @@ class Room(Feature):
     )
 
   def get_cells(room):
-    cells = []
+    try:
+      return room.__cells
+    except AttributeError:
+      pass
+
     col, row = room.cell or (0, 0)
     width, height = room.get_size()
-    for y in range(height):
-      for x in range(width):
-        cells.append((x + col, y + row))
+    cells = [(x + col, y + row) for y in range(height) for x in range(width)]
+    room.__cells = cells
     return cells
 
   def get_edges(room):
@@ -113,11 +117,13 @@ class Room(Feature):
     return [e for c in room.get_border() for e in stage.get_elems_at(c) if isinstance(e, Door)]
 
   def get_doorways(room, stage):
-    return [e for e in room.get_edges() if not issubclass(stage.get_tile_at(e), tileset.Wall)]
+    return [e for e in room.get_edges() if not Tile.is_of_type(stage.get_tile_at(e), tileset.Wall)]
 
   def get_enemies(room, stage):
-    return [e for c in room.get_cells() for e in stage.get_elems_at(c) if (
-      e and isinstance(e, DungeonActor) and e.faction == "enemy"
+    return [e for e in stage.elems if (
+      e and e.cell in room.get_cells()
+      and isinstance(e, DungeonActor)
+      and e.faction == "enemy"
     )]
 
   def get_slots(room, cell=None):

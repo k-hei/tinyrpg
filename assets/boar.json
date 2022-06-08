@@ -1,0 +1,11 @@
+{
+  "boar_right": [0, 0, 48, 48],
+  "boar_walkright0": [48, 0, 48, 48],
+  "boar_walkright1": [96, 0, 48, 48],
+  "boar_down": [0, 48, 48, 48],
+  "boar_walkdown0": [48, 48, 48, 48],
+  "boar_walkdown1": [96, 48, 48, 48],
+  "boar_up": [0, 96, 48, 48],
+  "boar_walkup0": [48, 96, 48, 48],
+  "boar_walkup1": [96, 96, 48, 48]
+}

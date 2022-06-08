@@ -5,6 +5,8 @@ import lib.vector as vector
 from dungeon.room import Blob as Room
 from anims.tween import TweenAnim
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
+import debug
+
 
 @dataclass
 class CameraConstraints:
@@ -124,13 +126,13 @@ class Camera:
     _, camera_y = camera.pos
     return target_y - camera_y <= -WINDOW_HEIGHT / 2 + TILE_SIZE
 
-  def focus(camera, target, force=False, anim=None):
+  def focus(camera, target, force=False, anim=None, instant=False):
     if type(target) is list and force:
       camera.target_groups = [target]
-    elif target in camera.targets:
-      if not force:
-        return
-      camera.target_groups = [[target]]
+    elif target in camera.targets and not force:
+      return
+    # elif target in camera.targets:
+    #   camera.target_groups = [[target]]
     elif camera.target_groups and not force:
       camera.target_groups[-1].append(target)
     else:
@@ -138,7 +140,7 @@ class Camera:
 
     target_pos = Camera.resolve_target_group(camera.target_groups[-1], camera.offset)
 
-    if not camera.pos:
+    if not camera.pos or instant:
       camera.pos = target_pos
     elif anim:
       anim.target = (camera.pos, target_pos)
@@ -146,7 +148,10 @@ class Camera:
 
   def tween(camera, target, duration=None, on_end=None):
     start_pos = camera.pos
-    camera.focus(target, force=True)
+    if isinstance(target, list):
+      camera.target_groups = [target]
+    else:
+      camera.focus(target, force=True)
     goal_pos = Camera.resolve_target_group(camera.target_groups[-1], camera.offset)
 
     if not start_pos:
@@ -162,10 +167,26 @@ class Camera:
     return duration
 
   def blur(camera, target=None):
+    if target is None:
+      camera.target_groups.pop()
+      return
+
     if target in camera.target:
       camera.target.remove(target)
-    elif target is None:
-      camera.target_groups.pop()
+      if not camera.target:
+        camera.target_groups.pop()
+      return
+
+    target_group = None
+    for target_group in camera.target_groups:
+      if target in target_group:
+        target_group.remove(target)
+        break
+    else:
+      target_group = None
+
+    if target_group is not None and not target_group:
+      camera.target_groups.remove(target_group)
 
   def reset(camera):
     camera.pos = None
@@ -192,9 +213,10 @@ class Camera:
     camera_x = camera.pos[0] - camera.offset[0]
     camera_y = camera.pos[1] - camera.offset[1]
 
-
+    # constraints handling
     if camera.constraints and camera.size[0] >= camera.constraints.width:
-      camera.pos = (camera.size[0] / 2, camera_y)
+      camera_x = camera.constraints.width / 2
+      camera.pos = (camera_x, camera_y)
 
     elif camera.constraints:
       constraint_left = camera.constraints.left + camera.size[0] / 2
@@ -207,7 +229,8 @@ class Camera:
 
 
     if camera.constraints and camera.size[1] >= camera.constraints.height:
-      camera.pos = (camera_x, 0)
+      camera_y = camera.constraints.height / 2
+      camera.pos = (camera_x, camera_y)
 
     elif camera.constraints:
       constraint_top = camera.constraints.top + camera.size[1] / 2

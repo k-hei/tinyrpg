@@ -3,6 +3,8 @@ from anims.pause import PauseAnim
 from cores import Core
 from colors.palette import BLACK
 from lib.cell import neighborhood
+from config import TILE_SIZE
+
 
 class Skill:
   name = ""
@@ -19,7 +21,7 @@ class Skill:
   color = BLACK
   charge_turns = 1
 
-  def effect(user, dest, game, on_end=None):
+  def effect(user, dest, game, on_start=None, on_end=None):
     user_x, user_y = user.cell
     facing_x, facing_y = user.facing
     target_cell = (user_x + facing_x, user_y + facing_y)
@@ -65,7 +67,7 @@ class Skill:
       is_blocked = False
       r = 1
       while (not is_blocked or skill.range_max == 2) and r < skill.range_max:
-        if floor and not floor.is_cell_empty(cursor) and skill.range_max != 2:
+        if floor and not floor.is_cell_empty(cursor, scale=TILE_SIZE) and skill.range_max != 2:
           is_blocked = True
         else:
           cursor_x, cursor_y = cursor

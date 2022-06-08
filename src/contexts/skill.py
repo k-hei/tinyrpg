@@ -25,7 +25,11 @@ from anims.sine import SineAnim
 from anims.tween import TweenAnim
 from anims.flicker import FlickerAnim
 
+from locations.default.tile import Tile
 from dungeon.actors import DungeonActor
+
+import debug
+
 
 MARGIN = 8
 OFFSET = 4
@@ -66,7 +70,12 @@ class SkillContext(Context):
     hero = ctx.actor
     stage = ctx.parent.stage
     skill = ctx.skill
-    enemy = ctx.parent.find_closest_enemy(hero, elems=[e for c in hero.visible_cells for e in stage.get_elems_at(c)])
+
+    visible_elems = (stage.elems
+      if stage.is_overworld
+      else [e for c in hero.visible_cells for e in stage.get_elems_at(c)])
+    enemy = ctx.parent.find_closest_enemy(hero, elems=visible_elems)
+
     if enemy:
       hero.face(enemy.cell)
       target_cell = enemy.cell
@@ -77,6 +86,7 @@ class SkillContext(Context):
     if not skill:
       ctx.dest = hero.cell
       return
+
     ctx.skill_range = skill().find_range(hero, stage)
     if skill.range_type == "linear" and skill.range_max > 1:
       ctx.dest = ctx.skill_range[-1]
@@ -288,7 +298,7 @@ class SkillContext(Context):
         square_cells = list(set(skill_range + skill_targets))
         for cell in square_cells:
           tile = stage.get_tile_at(cell)
-          z = tile.elev if tile else 0
+          z = tile.elev if Tile.is_tile(tile) else 0
           x, y = cell
           y -= z
           x, y = scale_up((x, y))
@@ -331,7 +341,8 @@ class SkillContext(Context):
 
       new_cursor_col, new_cursor_row = cursor
       cursor_tile = stage.get_tile_at(cursor)
-      cursor_z = cursor_tile.elev if cursor_tile else 0
+      cursor_z = cursor_tile.elev if Tile.is_tile(cursor_tile) else 0
+
       new_cursor_row -= cursor_z
       if ctx.exiting and not ctx.confirmed:
         new_cursor_col, new_cursor_row = hero.cell

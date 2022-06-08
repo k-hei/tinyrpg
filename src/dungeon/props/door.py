@@ -3,12 +3,12 @@ from dataclasses import dataclass
 from dungeon.props import Prop
 import assets, trace
 from anims.frame import FrameAnim
-from colors.palette import WHITE, SAFFRON, DARKBLUE
+from colors.palette import WHITE, DARKBLUE
 import lib.vector as vector
 from lib.filters import replace_color
 from lib.sprite import Sprite
 from config import TILE_SIZE
-from dungeon.stage import Stage, Tile
+# from dungeon.stage import Stage, Tile
 
 @dataclass
 class SpriteMap:
@@ -33,6 +33,8 @@ class Door(Prop):
     door.vertical = False
     door.focus = None
     door.origin = None
+    if opened:
+      door.open()
 
   @property
   def rect(door):
@@ -64,17 +66,17 @@ class Door(Prop):
       return game.comps.minilog.print("The door is locked...")
     return door.handle_open(game)
 
-  def spawn(door, stage, cell):
-    super().spawn(stage, cell)
-    door_x, door_y = cell
-    door.origin = cell
-    if Tile.get_elev(stage.get_tile_at((door_x - 1, door_y))):
-      door.elev += 1
-    if (Tile.is_solid(stage.get_tile_at((door_x - 1, door_y)))
-    and Tile.is_solid(stage.get_tile_at((door_x + 1, door_y)))
-    and Tile.is_solid(stage.get_tile_at((door_x - 1, door_y + 1)))
-    and Tile.is_solid(stage.get_tile_at((door_x + 1, door_y + 1)))):
-      door.vertical = True
+  # def spawn(door, stage, cell):
+  #   super().spawn(stage, cell)
+  #   door_x, door_y = cell
+  #   door.origin = cell
+  #   # if Tile.get_elev(stage.get_tile_at((door_x - 1, door_y))):
+  #   #   door.elev += 1
+  #   # if (Tile.is_solid(stage.get_tile_at((door_x - 1, door_y)))
+  #   # and Tile.is_solid(stage.get_tile_at((door_x + 1, door_y)))
+  #   # and Tile.is_solid(stage.get_tile_at((door_x - 1, door_y + 1)))
+  #   # and Tile.is_solid(stage.get_tile_at((door_x + 1, door_y + 1)))):
+  #   #   door.vertical = True
 
   def open(door):
     door.solid = False
@@ -137,7 +139,7 @@ class Door(Prop):
       elif not door.opened or will_open:
         image = assets.sprites[door.sprites.closed]
 
-    door_color = DARKBLUE if door.locked is False else SAFFRON
+    door_color = DARKBLUE if door.locked is False else door.color
     image = replace_color(image, WHITE, door_color)
     return super().view([Sprite(
       image=image,

@@ -9,17 +9,21 @@ from config import MOVE_DURATION
 import config
 
 def on_focus(room, game):
-  mage = next((e for c in room.cells for e in game.stage.get_elems_at(c) if type(e) is Mage))
   door = room.get_doors(game.stage)[0]
+  mage = next((e for c in room.cells for e in game.stage.get_elems_at(c) if isinstance(e, Mage)), None)
+  if not mage:
+    return
+
   if not config.CUTSCENES or "minxia" in game.store.story:
     game.stage.remove_elem(mage)
     return
-  game.get_tail().open(CutsceneContext([
+
+  game.open(CutsceneContext([
     lambda step: (
       setattr(mage, "facing", (-1, 0)),
-      game.camera.tween(
+      game.camera.focus(
         target=upscale(mage.cell, game.stage.tile_size),
-        duration=1,
+        instant=True,
       ),
       game.anims.append([PauseAnim(duration=30, on_end=step)])
     ),
@@ -82,7 +86,8 @@ def on_focus(room, game):
     ),
     lambda step: (
       game.camera.blur(),
+      game.camera.focus(game.hero),
       setattr(game.hero, "facing", (0, -1)),
-      step()
+      step(),
     )
   ]))

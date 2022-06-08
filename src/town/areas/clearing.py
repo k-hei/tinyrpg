@@ -1,4 +1,4 @@
-from town.sideview.stage import Area, AreaLink
+from town.sideview.stage import Area, AreaPort
 from town.sideview.actor import Actor
 from cores.rat import Rat
 from cores.radhead import Radhead
@@ -11,8 +11,8 @@ from items.sp.berry import Berry
 class ClearingArea(Area):
   name = "Alleyway"
   bg = "town_clearing"
-  links = {
-    "alley": AreaLink(x=96, direction=(0, 1)),
+  ports = {
+    "alley": AreaPort(x=96, direction=(0, 1)),
   }
 
   def init(area, town):

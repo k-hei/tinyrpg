@@ -20,26 +20,32 @@ from anims.jump import JumpAnim
 from anims.pause import PauseAnim
 from locations.default.tile import Tile
 import locations.default.tileset as tileset
-from resolve.floor import resolve_floor
 from transits.dissolve import DissolveIn, DissolveOut
 from config import (
   TILE_SIZE, MOVE_DURATION, RUN_DURATION,
-  LABEL_FRAMES,
-  WINDOW_WIDTH, WINDOW_HEIGHT,
 )
 
-import assets
-from colors.palette import BLACK, WHITE
-from lib.filters import outline
+# world links
+from contexts.explore.roomdata import RoomData
+from town.graph import WorldLink
+from dungeon.gen.floorgraph import FloorGraph
+
 
 class ExploreContext(ExploreBase):
+
   def enter(ctx):
-    ctx.camera.focus(ctx.hero)
     ctx.debug = False
     ctx.move_buffer = []
     ctx.cache_last_move = 0
+    ctx.port = None
+
+    if not ctx.stage.is_overworld:
+      ctx.comps.minimap.enter()
+      ctx.comps.floor_no.enter()
 
   def exit(ctx):
+    ctx.comps.minimap.exit()
+    ctx.comps.floor_no.exit()
     ctx.close()
 
   def open(ctx, child, on_close=None):
@@ -49,46 +55,53 @@ class ExploreContext(ExploreBase):
     )
 
     context_comps = {
-      InventoryContext: [ctx.comps.hud, ctx.comps.sp_meter, ctx.comps.floor_no],
-      PauseContext: [ctx.comps.minimap, ctx.comps.floor_no],
-      CutsceneContext: [ctx.comps.minimap, ctx.comps.floor_no],
+      InventoryContext: [
+        (ctx.comps.hud, True),
+        (ctx.comps.sp_meter, True),
+        (ctx.comps.floor_no, False)
+      ],
+      PauseContext: [
+        (ctx.comps.minimap, False),
+        (ctx.comps.floor_no, False)
+      ],
+      CutsceneContext: [
+        (ctx.comps.minimap, False),
+        (ctx.comps.floor_no, False)
+      ],
     }
 
     if type(child) not in context_comps.keys():
-      super().open(child, _on_close)
+      super().open(child, on_close=_on_close)
       ctx.parent.update_bubble()
       return
 
     comps = context_comps[type(child)]
     open = super().open
 
-    # if next((c for c in comps if c.anims), None):
-    #   return super().open(child, _on_close)
-
-    for comp in comps:
+    for comp, active in comps:
       on_end = (lambda: (
         open(child, on_close=lambda: (
           _on_close(),
           [(
-            c.exit()
-              if c.active
-              else c.enter()
-          ) for c in comps]
+            c.exit() if a else c.enter()
+          ) for c, a in comps]
         )),
         ctx.parent.update_bubble(),
-      )) if comp == comps[-1] else None
+      )) if comp == comps[-1][0] else None
 
-      if comp.active:
-        comp.exit(on_end=on_end)
-      else:
+      if comp.active == active:
+        on_end and on_end()
+      elif active:
         comp.enter(on_end=on_end)
+      else:
+        comp.exit(on_end=on_end)
 
   def handle_press(ctx, button):
     if ctx.child:
       return ctx.child.handle_press(button)
 
-    if ctx.anims:
-      return
+    if ctx.anims or ctx.port:
+      return False
 
     delta = input.resolve_delta_held()
     if delta != (0, 0) and input.is_delta_button(button):
@@ -103,17 +116,15 @@ class ExploreContext(ExploreBase):
       elif ctx.buttons_rejected[button] >= 30:
         return ctx.handle_push()
 
-    control = input.resolve_control(button)
+    controls = input.resolve_controls(button)
 
     # TODO(?): move `handle_control_confirm(button)` into base (shared handlers with combat mode)
-    if control == input.CONTROL_CONFIRM:
+    if input.CONTROL_CONFIRM in controls:
       if not ctx.hero.item and input.get_state(button) == 1:
         acted = ctx.handle_action()
         if acted == False:
           ctx.buttons_rejected[button] = 0
         return acted
-      elif input.get_state(button) >= 30 and not button in ctx.buttons_rejected:
-        return ctx.handle_throw()
 
     if input.get_state(button) > 1:
       return False
@@ -121,10 +132,14 @@ class ExploreContext(ExploreBase):
     if input.get_state(pygame.K_LCTRL) and button == pygame.K_h:
       return ctx.handle_debug()
 
-    if control == input.CONTROL_MINIMAP:
+    if input.CONTROL_ITEM in controls:
+      if not ctx.hero.item:
+        return ctx.handle_pickup()
+
+    if input.CONTROL_MINIMAP in controls:
       return ctx.handle_minimap()
 
-    if control == input.CONTROL_ALLY:
+    if input.CONTROL_ALLY in controls:
       return ctx.handle_charswap()
 
   def handle_release(ctx, button):
@@ -159,17 +174,17 @@ class ExploreContext(ExploreBase):
     ctx.cache_last_move = ctx.time
 
     moved = ctx.move_elem(elem=hero, delta=delta, running=running)
-    prop = next((e for e in ctx.stage.elems if
-      not e.solid
-      and e.active
-      and hero.rect.colliderect(e.rect)
-    ), None)
-    if prop:
-      prop.effect(ctx, hero)
-      ctx.update_bubble()
-      if ctx.child:
-        hero.stop_move()
-        ally and ally.stop_move()
+    if not ctx.stage.is_overworld:
+      prop = next((e for e in ctx.stage.elems if
+        not e.solid
+        and hero.cell == e.cell
+        and e.rect and hero.rect.colliderect(e.rect)
+      ), None)
+      if prop:
+        if prop.effect(ctx, hero):
+          hero.stop_move()
+          ally and ally.stop_move()
+        ctx.update_bubble()
 
     if ally:
       if moved:
@@ -211,13 +226,18 @@ class ExploreContext(ExploreBase):
     def move_axis(delta):
       nonlocal leaping
       old_pos = elem.pos
-      ctx.move(elem, delta=delta, diagonal=(delta_x and delta_y), running=running)
+
+      is_porting = ctx.move(elem, delta=delta, diagonal=(delta_x and delta_y), running=running)
+      if is_porting:
+        return True
+
       collidee = ctx.collide(elem, delta=delta)
       new_pos = elem.pos
-      if collidee and not leaping and isinstance(elem, DungeonActor) and issubclass(collidee, tileset.Pit):
+      if collidee and not leaping and isinstance(elem, DungeonActor) and Tile.is_of_type(collidee, tileset.Pit):
         if elem is ctx.hero and ctx.ally:
           ctx.ally.stop_move()
         leaping = ctx.leap(actor=elem, running=running)
+
       return new_pos != old_pos
 
     moved_x = delta_x and move_axis((delta_x, 0))
@@ -227,6 +247,25 @@ class ExploreContext(ExploreBase):
 
   def move(ctx, actor, delta, diagonal=False, running=False):
     actor.move(delta, diagonal, running)
+
+    hero = ctx.hero
+    if not hero or actor is not hero:
+      return False
+
+    if not isinstance(ctx.stage.generator, RoomData):
+      return False
+
+    room_data = ctx.stage.generator
+
+    if ("up" in room_data.ports
+    and delta[1] == -1
+    and actor.pos[1] < 0):
+      return ctx.handle_port("up")
+
+    if ("right" in room_data.ports
+    and delta[0] == 1
+    and actor.rect.right > ctx.stage.width * ctx.stage.tile_size):
+      return ctx.handle_port("right")
 
   def move_to(ctx, actor, dest, speed=None, running=False):
     speed = speed or actor.speed
@@ -266,46 +305,51 @@ class ExploreContext(ExploreBase):
     row_n = rect.top // stage.tile_size
     col_e = (rect.right - 1) // stage.tile_size
     row_s = (rect.bottom - 1) // stage.tile_size
-    tile_nw = stage.get_tile_at((col_w, row_n))
-    tile_ne = stage.get_tile_at((col_e, row_n))
-    tile_sw = stage.get_tile_at((col_w, row_s))
-    tile_se = stage.get_tile_at((col_e, row_s))
-    tile_c = stage.get_tile_at(vector.floor(vector.scale(rect.center, 1 / stage.tile_size)))
+    cell_nw = (col_w, row_n)
+    cell_ne = (col_e, row_n)
+    cell_sw = (col_w, row_s)
+    cell_se = (col_e, row_s)
+    actor_cell = vector.floor(vector.scale(rect.center, 1 / stage.tile_size))
+    actor_elev = stage.get_tile_at_elev(actor_cell)
 
-    is_walkable = lambda tile: (
-      Tile.is_walkable(tile)
-      and abs(tile.elev - tile_c.elev) < 1
+    # TODO: use stage.is_cell_walkable
+    # TODO: handle floating actors
+    is_tile_at_walkable = lambda cell: (
+      cell in stage
+      and not stage.is_tile_at_solid(cell)
+      and not stage.is_tile_at_pit(cell)
+      and abs(stage.get_tile_at_elev(cell) - actor_elev) < 1
     )
 
     collidee = None
 
     if delta_x < 0:
-      if not is_walkable(tile_nw) or not is_walkable(tile_sw):
+      if not is_tile_at_walkable(cell_nw) or not is_tile_at_walkable(cell_sw):
         rect.left = (col_w + 1) * stage.tile_size
-        if row_n == row_s and Tile.is_of_type(tile_nw, tileset.Pit):
-          collidee = tile_nw
+        if row_n == row_s and stage.is_tile_at_pit(cell_nw):
+          collidee = stage.get_tile_at(cell_nw)
       elif elem:
         rect.left = elem_rect.right
     elif delta_x > 0:
-      if not is_walkable(tile_ne) or not is_walkable(tile_se):
+      if not is_tile_at_walkable(cell_ne) or not is_tile_at_walkable(cell_se):
         rect.right = col_e * stage.tile_size
-        if row_n == row_s and Tile.is_of_type(tile_se, tileset.Pit):
-          collidee = tile_se
+        if row_n == row_s and stage.is_tile_at_pit(cell_se):
+          collidee = stage.get_tile_at(cell_se)
       elif elem:
         rect.right = elem_rect.left
 
     if delta_y < 0:
-      if not is_walkable(tile_nw) or not is_walkable(tile_ne):
+      if not is_tile_at_walkable(cell_nw) or not is_tile_at_walkable(cell_ne):
         rect.top = (row_n + 1) * stage.tile_size
-        if col_w == col_e and Tile.is_of_type(tile_nw, tileset.Pit):
-          collidee = tile_nw
+        if col_w == col_e and stage.is_tile_at_pit(cell_nw):
+          collidee = stage.get_tile_at(cell_nw)
       elif elem:
         rect.top = elem_rect.bottom
     elif delta_y > 0:
-      if not is_walkable(tile_sw) or not is_walkable(tile_se):
+      if not is_tile_at_walkable(cell_sw) or not is_tile_at_walkable(cell_se):
         rect.bottom = row_s * stage.tile_size
-        if col_w == col_e and Tile.is_of_type(tile_se, tileset.Pit):
-          collidee = tile_se
+        if col_w == col_e and stage.is_tile_at_pit(cell_se):
+          collidee = stage.get_tile_at(cell_se)
       elif elem:
         rect.bottom = elem_rect.top
 
@@ -326,7 +370,7 @@ class ExploreContext(ExploreBase):
     target_cell = downscale_cell(target_pos)
     collision_cell = vector.floor(target_cell)
 
-    if (not ctx.stage.is_tile_walkable(collision_cell)
+    if (not ctx.stage.is_cell_walkable(collision_cell)
     or next((e for e in ctx.stage.get_elems_at(collision_cell)
       if e.solid and not (isinstance(e, DungeonActor) and e.faction == actor.faction)), None)):
       return False
@@ -349,6 +393,38 @@ class ExploreContext(ExploreBase):
 
     return True
 
+  def validate_port(ctx, port_id):
+    graph = ctx.graph
+    if graph is None:
+      return False
+
+    src_area = ctx.stage.generator
+    src_link = WorldLink(src_area, port_id)
+    dest_link = graph.tail(src_link)
+    return dest_link is not None
+
+  def handle_port(ctx, port_id):
+    if not ctx.validate_port(port_id):
+      return False
+
+    src_area = ctx.stage.generator
+    ctx.port = src_area.ports[port_id]
+    ctx.get_head().transition([
+      DissolveIn(on_end=lambda: ctx.use_port(port_id)),
+      DissolveOut()
+    ])
+    return True
+
+  def use_port(ctx, port_id):
+    if not ctx.validate_port(port_id):
+      return False
+
+    graph = ctx.graph
+    src_area = ctx.stage.generator
+    src_link = WorldLink(src_area, port_id)
+    dest_link = graph.tail(src_link)
+    ctx.get_parent(cls="GameContext").load_area(dest_link.node, dest_link.port_id)
+
   def handle_action(ctx):
     if not ctx.hero:
       return False
@@ -362,11 +438,7 @@ class ExploreContext(ExploreBase):
 
     facing_elem = ctx.facing_elem
     if facing_elem is None:
-      used_stairs = ctx.handle_stairs()
-      if used_stairs:
-        return True
-      else:
-        return False
+      return ctx.handle_stairs()
 
     success = facing_elem.effect(ctx, ctx.hero)
     if success:
@@ -393,24 +465,31 @@ class ExploreContext(ExploreBase):
 
     hero_cell = ctx.hero.cell
     hero_tile = ctx.stage.get_tile_at(hero_cell)
-    stairs = hero_tile if issubclass(hero_tile, (tileset.Entrance, tileset.Exit)) else None
+    stairs = hero_tile if ctx.stage.is_tile_at_of_type(hero_cell, (tileset.Entrance, tileset.Exit)) else None
     if not stairs:
       return False
 
-    if issubclass(hero_tile, tileset.Escape):
+    if ctx.stage.is_tile_at_of_type(hero_cell, tileset.Escape):
       return ctx.goto_town()
 
-    stairs_edge = ctx.parent.graph and ctx.parent.graph.connector_edge(ctx.stage, hero_cell)
+    stairs_edge = ((ctx.graph.connector_edge(ctx.stage, hero_cell)
+        or ctx.graph.connector_edge(ctx.stage, (hero_tile, hero_cell)))
+      if isinstance(ctx.graph, FloorGraph)
+      else None)
     if not stairs_edge:
-      debug.log("Staircase has no connecting edge")
-      return False # link doesn't exist in graph - how to handle besides ignore?
+      debug.log(f"Staircase has no connecting edge from {hero_cell}"
+        f" given graph of type {type(ctx.graph).__name__}")
 
-    dest_floor = next((n for n in stairs_edge if n is not ctx.stage), None)
+    dest_floor = (next((n for n in stairs_edge if n is not ctx.stage), None)
+      if stairs_edge
+      else None)
     if not dest_floor:
       debug.log("Staircase has no destination floor")
-      return False # generate random floor in infinite dungeon
+      ctx.parent.load_floor_by_id("GenericFloor")
+      return True
 
     stairs_dest = tileset.Entrance if issubclass(stairs, tileset.Exit) else tileset.Exit
+    ctx.comps.minimap.exit()
     if type(dest_floor) is type:
       ctx.goto_floor(dest_floor, stairs_dest)
     else:
@@ -420,18 +499,6 @@ class ExploreContext(ExploreBase):
       ])
 
     return True
-
-  def follow_link(game, link_id, on_end=None):
-    Floor = resolve_floor(link_id)
-    game.get_head().transition(
-      transits=(DissolveIn(), DissolveOut()),
-      loader=Floor.generate(game.store),
-      on_end=lambda stage: (
-        setattr(stage, "generator", Floor.__name__),
-        game.parent.use_stage(stage),
-        on_end and on_end()
-      )
-    )
 
   def goto_floor(ctx, floor, stairs):
     app = ctx.get_head()
@@ -443,8 +510,8 @@ class ExploreContext(ExploreBase):
       loader=floor.generate(ctx.store),
       on_end=lambda stage: (
         setattr(stage, "generator", floor.__name__),
-        ctx.parent.graph.disconnect(ctx.stage, floor),
-        ctx.parent.graph.connect(
+        ctx.graph.disconnect(ctx.stage, floor),
+        ctx.graph.connect(
           ctx.stage, stage,
           (ctx.stage.get_tile_at(ctx.hero.cell), ctx.hero.cell),
           (stairs, find_tile(stage, stairs)),
@@ -452,6 +519,7 @@ class ExploreContext(ExploreBase):
         ctx.parent.use_stage(stage, stairs),
       )
     )
+
     return True
 
   def goto_town(ctx):
@@ -503,29 +571,27 @@ class ExploreContext(ExploreBase):
     debug.log("Debug mode toggle:", ctx.debug)
     return True
 
+  def update(ctx):
+    super().update()
+
+    if not (hero := ctx.hero):
+      return
+
+    if ctx.port:
+      hero.move(ctx.port.direction)
+      ally = ctx.ally
+      ally and ally.move(ctx.port.direction)
+
   def view(ctx):
     sprites = super().view()
     if ctx.debug:
       sprites += [view_elem_hitbox(elem=e, camera=ctx.camera) for e in ctx.stage.elems]
-    sprites += ctx.view_label()
     return sprites
 
-  def view_label(ctx):
-    if ctx.time >= LABEL_FRAMES or ctx.child and not isinstance(ctx.child, CutsceneContext):
-      return []
-    floor_no = ctx.parent.find_floor_no()
-    floor_text = f"Tomb {floor_no}F" if floor_no else "????"
-    label_image = assets.ttf["normal"].render(floor_text)
-    label_image = outline(label_image, BLACK)
-    # label_image = outline(label_image, WHITE)
-    return [Sprite(
-      image=label_image,
-      pos=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 4),
-      origin=Sprite.ORIGIN_CENTER,
-      layer="ui"
-    )]
-
 def view_elem_hitbox(elem, camera):
+  if not elem.rect:
+    return []
+
   ALPHA = 128
   RED = (255, 0, 0, ALPHA)
   BLUE = (0, 0, 255, ALPHA)

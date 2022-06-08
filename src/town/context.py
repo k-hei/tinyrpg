@@ -1,49 +1,39 @@
 from contexts import Context
-from town.graph import TownGraph
-from town.areas.time_chamber import TimeChamberArea
-from town.areas.akimor_central import AkimorCentralArea
-from town.areas.fortune import FortuneArea
-from town.areas.store import StoreArea as MarketArea
-from town.areas.outskirts import OutskirtsArea
+from contexts.dungeon import DungeonContext
 from town.sideview.context import SideViewContext
 from town.sideview.stage import Area as SideViewArea
 from town.topview.context import TopViewContext
 from town.topview.stage import Stage as TopViewArea
-from contexts.dungeon import DungeonContext
+
+from town.areas.outskirts import OutskirtsArea
+
 
 class TownContext(Context):
-  def __init__(ctx, store, returning=False):
-    super().__init__()
-    ctx.store = store
-    ctx.returning = returning
-    ctx.graph = TownGraph(
-      nodes=[AkimorCentralArea, FortuneArea, MarketArea, OutskirtsArea, TimeChamberArea],
-      edges=[
-        (AkimorCentralArea.links["upper_slope_top"], AkimorCentralArea.links["upper_slope_base"]),
-        (AkimorCentralArea.links["lower_slope_top"], AkimorCentralArea.links["lower_slope_base"]),
-        (AkimorCentralArea.links["market_doorway"], MarketArea.links["entrance"]),
-        (AkimorCentralArea.links["fortune_house_doorway"], FortuneArea.links["entrance"]),
-        (AkimorCentralArea.links["chapel_doorway"], TimeChamberArea.links["left"]),
-        (AkimorCentralArea.links["blacksmith_doorway"], TimeChamberArea.links["right"]),
-        (AkimorCentralArea.links["right"], OutskirtsArea.links["left"]),
-        (OutskirtsArea.links["tower"], DungeonContext),
-      ]
-    )
-    ctx.area = OutskirtsArea if returning else AkimorCentralArea
+    def __init__(ctx, store, area=None, port=None):
+        super().__init__()
+        ctx.store = store
+        ctx.area = area or OutskirtsArea
+        ctx.port = port
 
-  def init(ctx):
-    link = OutskirtsArea.links["tower"] if ctx.returning else None
-    ctx.load_area(ctx.area, link)
+    @property
+    def graph(ctx):
+        return ctx.parent.graph
 
-  def load_area(ctx, area, link=None):
-    for char in ctx.store.party:
-      char.anims.clear()
+    def init(ctx):
+        ctx.store.restore_party()
+        ctx.load_area(ctx.area, ctx.port)
 
-    if area is DungeonContext:
-      return ctx.parent.goto_dungeon()
+    def load_area(ctx, area, port=None):
+        for char in ctx.store.party:
+            char.anims.clear()
 
-    if issubclass(area, SideViewArea):
-      child = SideViewContext(store=ctx.store, area=area, spawn=link)
-    elif issubclass(area, TopViewArea):
-      child = TopViewContext(store=ctx.store, area=area, spawn=link)
-    ctx.open(child)
+        if area is DungeonContext:
+            return ctx.parent.goto_dungeon()
+
+        port = area.ports[port] if port else None
+        if issubclass(area, SideViewArea):
+            child = SideViewContext(store=ctx.store, area=area, spawn=port)
+        elif issubclass(area, TopViewArea):
+            child = TopViewContext(store=ctx.store, area=area, spawn=port)
+
+        ctx.open(child)

@@ -86,7 +86,7 @@ class DungeonElement:
       (col + 0.5) * elem.scale,
       (row + 0.5) * elem.scale
     )
-    elem._cell = cell
+    elem._cell = vector.floor(cell)
 
   @property
   def _cell_derived(elem):
@@ -112,10 +112,18 @@ class DungeonElement:
     elem._rect = Rect(left, top, width, height)
     return elem._rect
 
-  def encode(elem):
-    return [(elem.cell), type(elem).__name__]
+  def __repr__(elem):
+    elem_cell, elem_name, *elem_props = elem.encode()
+    elem_propstr = ", ".join([f"{k}={v}" for k, v in [
+      ("cell", elem_cell),
+      *(elem_props[0] if elem_props else {}).items()
+    ]])
+    return f"{elem_name}({elem_propstr})"
 
-  def effect(elem, game):
+  def encode(elem):
+    return [elem.cell, type(elem).__name__]
+
+  def effect(elem, game, actor):
     pass
 
   def on_nudge(elem, game): pass
@@ -124,11 +132,8 @@ class DungeonElement:
   def on_leave(elem, game): pass
 
   def spawn(elem, stage, cell):
-    elem.scale = stage.tile_size
-    elem.cell = cell
-    tile = stage.get_tile_at(cell)
-    if tile:
-      elem.elev = tile.elev
+    elem.scale = TILE_SIZE
+    elem.cell = vector.floor(vector.scale(cell, stage.tile_size / TILE_SIZE))
 
   def step(elem, game):
     pass
@@ -146,8 +151,16 @@ class DungeonElement:
         or not isinstance(anim, (StepAnim, PathAnim))
         or not anim.cell):
           continue
-        if anims.index(group) > 0:
-          anim_x, anim_y, *anim_z = anim.src
+
+        # TEST: ensure this works with:
+        #    1. multiple queued actors
+        #    2. actors that move multiple spaces per player turn
+        if anims.index(group) == 0:
+          # no offset required (handled elsewhere)
+          return (0, 0)
+        else:
+          # animation is queued: offset element by distance from target cell
+          anim_x, anim_y, *anim_z = anim.cell
           anim_z = anim_z and anim_z[0] or 0
           elem_x, elem_y = elem.cell
           return (
@@ -168,7 +181,7 @@ class DungeonElement:
   def find_step_anim_offset(elem, anim):
     anim_x, anim_y, *anim_z = anim.cell
     anim_z = max(0, anim_z and anim_z[0] or 0)
-    elem_x, elem_y = elem.cell
+    elem_x, elem_y = anim.src
     offset_x = (anim_x - elem_x) * TILE_SIZE
     offset_y = (anim_y - anim_z - elem_y) * TILE_SIZE
     return (offset_x, offset_y)
@@ -180,8 +193,10 @@ class DungeonElement:
     )), None)), None)
     if will_enter:
       return []
+
     if type(sprites) is Surface:
       sprites = Sprite(image=sprites, layer="elems")
+
     if type(sprites) is Sprite:
       sprites = [sprites]
 
@@ -199,8 +214,8 @@ class DungeonElement:
     offset_x, offset_y = elem.find_move_offset(anims)
     item = None
     anim_group = [a for a in anims[0] if a.target is elem] if anims else []
-    # if "core" in dir(elem):
-    #   anim_group += elem.core.anims
+    is_moving = next((True for a in anim_group if isinstance(a, (StepAnim, PathAnim))), False)
+
     for anim in anim_group:
       if (isinstance(anim, StepAnim) or type(anim) is PathAnim) and anim.cell:
         if (isinstance(anim, (StepAnim, PathAnim, JumpAnim))
@@ -209,14 +224,17 @@ class DungeonElement:
         and not next((a for g in anims for a in g if a.target is elem and type(a) is FlinchAnim), None)
         ):
           elem.facing = tuple(map(int, anim.facing))
+
       if isinstance(anim, MoveAnim):
         elem.pos = anim.pos
+
       if isinstance(anim, (StepAnim, PathAnim)) and anim.cell:
         anim_x, anim_y, *anim_z = anim.cell
         elem.pos = vector.scale(
           vector.add((anim_x, anim_y), (0.5, 0.5)),
           TILE_SIZE
         )
+
       if type(anim) is ItemAnim:
         item_image = anim.item.render()
         item_offset = min(12, 6 + anim.time // 2) + ITEM_OFFSET
@@ -245,7 +263,7 @@ class DungeonElement:
         sprite_height *= scale_y
       elif type(anim) is DropAnim:
         offset_y = -anim.y
-      elif isinstance(anim, ShakeAnim):
+      elif isinstance(anim, ShakeAnim) and not is_moving:
         offset_x += anim.offset
       elif type(anim) is FallAnim:
         offset_y = anim.y

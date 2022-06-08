@@ -3,11 +3,12 @@ import lib.vector as vector
 from lib.sprite import Sprite
 from lib.filters import darken_image
 import assets
+from town.sideview.actor import Actor
 from contexts.dungeon.camera import Camera, CameraConstraints
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE, TILE_SIZE
 
 @dataclass
-class AreaLink:
+class AreaPort:
   direction: tuple[int, int]
   x: int
   y: int = 0
@@ -28,7 +29,18 @@ class AreaBgLayer:
         ),
       )
 
-class Area:
+class MetaArea(type):
+  def __hash__(area):
+    return hash(area.key)
+
+  def __str__(area):
+    return str(area.key)
+
+  @property
+  def key(area):
+    return area.__name__
+
+class Area(metaclass=MetaArea):
   ACTOR_Y = 0
   NPC_Y = ACTOR_Y - 16
   DOOR_Y = ACTOR_Y - 20
@@ -37,7 +49,8 @@ class Area:
   HORIZON_SOUTH = 60
   TRANSIT_SOUTH = 30
   width = WINDOW_WIDTH
-  links = {}
+  name = "????"
+  ports = {}
   bg = None
   geometry = None
   camera_lock = (False, False)
@@ -77,7 +90,7 @@ class Area:
   def update(area):
     area.camera.update()
 
-  def view(area, hero, link):
+  def view(area, hero, port_id):
     sprites = []
 
     if not area.camera.target:
@@ -104,18 +117,17 @@ class Area:
     )[0] for layer in area_bg_layers]
     sprites += bg_sprites
 
-    if link:
-      link_name = next((link_name for link_name, l in area.links.items() if l is link), None)
-    else:
-      link_name = None
+    port = area.ports[port_id] if port_id else None
 
     for actor in area.actors:
       actor_sprites = actor.view()
-      if actor is hero:
+
+      if isinstance(actor, Actor) and actor.faction == "player":
         actor_sprite = actor_sprites[0]
-        actor_sprite.offset += TILE_SIZE
-        if link_name and "doorway" in link_name and abs(actor.pos[1] - link.y) >= 16:
+        actor_sprite.offset += TILE_SIZE + (1 if actor is hero else 0)
+        if port_id and "doorway" in port_id and abs(actor.pos[1] - port.y) >= 16:
           actor_sprite.image = darken_image(actor_sprite.image)
+
       sprites += actor_sprites
 
     for sprite in sprites:
@@ -123,5 +135,5 @@ class Area:
         sprite.move(vector.negate(area.camera.rect.topleft))
 
     LAYER_SEQUENCE = ["bg", "tiles", "elems", "fg", "markers"]
-    sprites.sort(key=lambda sprite: sprite.depth(LAYER_SEQUENCE))
+    sprites.sort(key=lambda sprite: sprite.depth(LAYER_SEQUENCE) * WINDOW_HEIGHT + sprite.y)
     return sprites

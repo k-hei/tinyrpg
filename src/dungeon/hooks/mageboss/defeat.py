@@ -13,9 +13,10 @@ def on_defeat(room, game, actor):
     return True
   if "minxia" not in game.store.story:
     game.store.story.append("minxia")
+
   game.anims.append([PauseAnim(
     duration=30,
-    on_end=lambda: game.get_tail().open(CutsceneContext(
+    on_end=lambda: game.open(CutsceneContext(
       script=[
         *postbattle_cutscene_setup(room, game),
         *(postbattle_cutscene(room, game) if config.CUTSCENES else []),

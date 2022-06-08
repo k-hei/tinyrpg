@@ -1,6 +1,9 @@
 DEBUG = True
 DEBUG_GEN = False
-CUTSCENES = False
+CUTSCENES = True
+
+# feature flags
+ENABLED_MINIMAP = True
 
 # dungeon generation
 SEED = None

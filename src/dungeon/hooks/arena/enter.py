@@ -1,5 +1,6 @@
 from lib.cell import upscale
 from contexts.cutscene import CutsceneContext
+from helpers.combat import animate_snap
 from anims.pause import PauseAnim
 from anims.jump import JumpAnim
 from anims.awaken import AwakenAnim
@@ -12,6 +13,7 @@ def on_enter(room, game):
   room.waves = [
     [Eyeball, Mushroom, Mushroom, Mummy],
   ]
+
   room.lock(game)
   eyeballs = [e for c in room.cells for e in game.stage.get_elems_at(c) if isinstance(e, Eyeball)]
   eyeballs.sort(key=lambda e: (
@@ -19,11 +21,18 @@ def on_enter(room, game):
     else 1 if not e.ailment == "sleep"
     else 2
   ))
+
   if not config.CUTSCENES:
     for eyeball in eyeballs:
       eyeball.alert(cell=game.hero.cell)
     return
-  game.get_tail().open(CutsceneContext([
+
+  game.open(CutsceneContext(script=[
+    lambda step: animate_snap(
+      actor=game.hero,
+      anims=game.anims,
+      on_end=step,
+    ),
     lambda step: (
       setattr(eyeballs[0], "facing", (1, 0)),
       game.anims.append([PauseAnim(duration=15, on_end=step)])

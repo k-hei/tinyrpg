@@ -8,6 +8,7 @@ from colors.palette import WHITE, GOLD
 
 class Palm(Prop):
   solid = False
+  image = assets.sprites["oasis_palm"]
 
   def vanish(palm, game):
     game.anims.append([FlickerAnim(

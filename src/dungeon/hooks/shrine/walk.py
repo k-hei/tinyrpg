@@ -3,6 +3,7 @@ from lib.cell import upscale
 from lib.sequence import play_sequence, stop_sequence
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
+from helpers.combat import animate_snap
 from dungeon.hooks.shrine.magestruggle import sequence_mage_struggle
 from dungeon.hooks.shrine.magespin import sequence_mage_spin
 from dungeon.hooks.shrine.magebump import sequence_mage_bump
@@ -25,7 +26,15 @@ def trigger_cutscene(room, game):
   mage_bump = sequence_mage_bump(room, game)
   if "minxia" in game.store.story or not config.CUTSCENES:
     return
-  game.get_tail().open(CutsceneContext([
+
+  game.open(cutscene := CutsceneContext(script=[
+    lambda step: (
+      animate_snap(
+        actor=hero,
+        anims=game.anims,
+        on_end=step,
+      )
+    ),
     lambda step: (
       hero.stop_move(),
       game.anims.append([PauseAnim(duration=30, on_end=step)]),
@@ -93,7 +102,7 @@ def trigger_cutscene(room, game):
     ]), on_close=step),
     lambda step: game.anims.append([PauseAnim(duration=5, on_end=step)]),
     lambda step: (
-      altar.effect(game),
+      cutscene.script.extend(altar.effect(game)),
       step(),
     ),
   ]))

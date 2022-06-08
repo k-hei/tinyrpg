@@ -27,7 +27,7 @@ class PillarChunkVfx(Vfx):
       f"tomb_pillar_{size_map[size]}"
     ) if size in size_map else None
 
-  def __init__(fx, cell, size=SIZE_M, *args, **kwargs):
+  def __init__(fx, cell, size=SIZE_M, color=SAFFRON, *args, **kwargs):
     super().__init__(
       kind=None,
       pos=vector.scale(vector.add(cell, (0.5, 0.5)), TILE_SIZE),
@@ -37,8 +37,9 @@ class PillarChunkVfx(Vfx):
     )
     fx.size = size
     fx.anim = Anim(duration=random.randint(30, 60))
+    fx.color = color
 
-  def update(fx, *_):
+  def update(fx):
     if not fx.anim:
       return []
 
@@ -62,7 +63,7 @@ class PillarChunkVfx(Vfx):
       return []
 
     fx_image = assets.sprites[fx_id]
-    fx_image = replace_color(fx_image, old_color=WHITE, new_color=SAFFRON)
+    fx_image = replace_color(fx_image, old_color=WHITE, new_color=fx.color)
     return [Sprite(
       image=fx_image,
       pos=fx.pos,

@@ -1,4 +1,4 @@
-from random import randint, choice
+from random import random, randint, choice
 import lib.vector as vector
 from lib.cell import is_adjacent, neighborhood, manhattan
 
@@ -19,11 +19,13 @@ from anims.bounce import BounceAnim
 from anims.awaken import AwakenAnim
 from anims.shake import ShakeAnim
 from anims.pause import PauseAnim
+from anims.frame import FrameAnim
 from vfx.alertbubble import AlertBubble
 from lib.sprite import Sprite
 from lib.filters import replace_color
 from colors.palette import BLACK, CYAN
-from config import PUSH_DURATION
+from config import PUSH_DURATION, TILE_SIZE
+
 
 def IdleSprite(facing):
   if facing == (0, 1):
@@ -65,11 +67,25 @@ def SleepSprite(facing):
   elif facing[0]:
     return sprites["eyeball_sleep_right"]
 
+def BlinkSprites(facing):
+  if facing == (0, 1):
+    return (sprites["eyeball_move"], sprites["eyeball_sleep"])
+  elif facing == (0, -1):
+    return (sprites["eyeball_move_up"], sprites["eyeball_sleep_up"])
+  elif facing[0]:
+    return (sprites["eyeball_move_right"], sprites["eyeball_sleep_right"])
+
 class Eyeball(DungeonActor):
   drops = [AngelTears]
   skill = HpUp
   CLONES_MAX = 1
   CLONES_CAN_CLONE = True
+
+  idle_messages = [
+    "The {enemy} quivers.",
+    "The {enemy} stares at you intensely.",
+    ("The {enemy} mimicks a sniffing motion.", "But it has no nose..."),
+  ]
 
   class ChargeAnim(ShakeAnim): pass
   class SplitAnim(StepAnim): pass
@@ -77,13 +93,15 @@ class Eyeball(DungeonActor):
     name = "Meyetosis"
     charge_turns = 3
     def effect(game, user, dest, on_start=None, on_end=None):
-      neighbors = [c for c in neighborhood(user.cell) if game.stage.is_cell_empty(c)]
+      neighbors = [c for c in neighborhood(user.cell)
+        if game.stage.is_cell_empty(c)
+        and not game.stage.is_tile_at_pit(c)]
       if neighbors:
         user.clones += 1
         neighbor = choice(neighbors)
         clone = Eyeball(
           cloned=True,
-          hp=user.hp,
+          hp=user.hp - user.core.get_skill_hp(),
           faction=user.faction,
           facing=user.facing,
           aggro=user.aggro,
@@ -117,14 +135,14 @@ class Eyeball(DungeonActor):
         )])
       return user.cell
 
-  def __init__(eyeball, name="Eyeball", faction="enemy", facing=(0, 1), rare=False, clones=0, cloned=False, *args, **kwargs):
+  def __init__(eyeball, name="Ooclops", faction="enemy", facing=(0, 1), rare=False, clones=0, cloned=False, *args, **kwargs):
     super().__init__(Core(
       name=name,
       faction=faction,
       facing=facing,
       stats=Stats(
         hp=17,
-        st=12,
+        st=11,
         dx=6,
         ag=6,
         lu=3,
@@ -157,7 +175,7 @@ class Eyeball(DungeonActor):
   def find_attack_target(eyeball, game):
     cell = eyeball.cell
     elem = None
-    while (not Tile.is_opaque(game.stage.get_tile_at(cell))
+    while (not game.stage.is_tile_at_opaque(cell, scale=TILE_SIZE)
     and elem is None
     and manhattan(cell, eyeball.cell) <= Eyeball.VISION_RANGE
     ):
@@ -210,6 +228,14 @@ class Eyeball(DungeonActor):
 
     if eyeball.ai_mode == DungeonActor.AI_LOOK or not eyeball.aggro or not eyeball.ai_target:
       return eyeball.step_wander(game)
+
+    if random() < 1 / 16 and eyeball.idle(game):
+      game.anims[-1].append(FrameAnim(
+          target=eyeball,
+          frames=BlinkSprites(eyeball.facing) * 5,
+          frames_duration=5
+      ))
+      return None
 
     if (eyeball.core.hp < eyeball.core.stats.hp
     and eyeball.clones < Eyeball.CLONES_MAX

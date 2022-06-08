@@ -21,8 +21,8 @@ class Altar(DungeonElement):
   def rect(door):
     if door._rect is None and door.pos:
       door._rect = Rect(
-        vector.subtract(door.pos, (16, 16)),
-        (32, 64)
+        vector.subtract(door.pos, (16, 8)),
+        (32, 56)
       )
     return door._rect
 
@@ -30,8 +30,7 @@ class Altar(DungeonElement):
     if altar.opened:
       return False
     altar.opened = True
-    altar.on_action and altar.on_action(game.room, game)
-    return False
+    return altar.on_action and altar.on_action(game.room, game)
 
   def view(altar, anims):
     altar_image = assets.sprites["altar"]

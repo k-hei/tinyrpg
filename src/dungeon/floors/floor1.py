@@ -32,12 +32,14 @@ class Floor1(Floor):
     return gen_floor(
       features=lambda: Graph(
         nodes=[
-          entry_room := Room(data=RoomData(**rooms["entry1f"])),
+          entry_room := Room(data=rooms["entry1f"]),
           exit_room := Room(
-            data=RoomData(**rooms["exit"],
-            doors="RareTreasureDoor",
-          )),
-          puzzle_room := Room(data=RoomData(**rooms["pzlt1"])),
+            data=RoomData(**{
+              **rooms["exit"].__dict__,
+              "doors": "RareTreasureDoor",
+            })
+          ),
+          puzzle_room := Room(data=rooms["pzlt1"]),
           buffer_room := Room(cells=gen_blob(min_area=60, max_area=60), data=RoomData(
             items=[Potion, RustyBlade],
             degree=2
@@ -46,7 +48,7 @@ class Floor1(Floor):
             enemies=[Eyeball(), Eyeball()],
             degree=3,
             hooks={
-              "on_enter": lambda room, game: "minxia" not in game.store.story and not has_weapon_equipped(game) and (
+              "on_enter": lambda room, game: "minxia" not in game.store.story and not game.hero.weapon and (
                 genie_cell := sorted(get_room_bonus_cells(room, game.stage), key=lambda c: manhattan(c, game.hero.cell))[0],
                 game.stage.spawn_elem_at(genie_cell, genie := Genie(
                   name=(genie_name := "Joshin"),
@@ -73,7 +75,7 @@ class Floor1(Floor):
               )
             }
           )),
-          key_room := Room(data=RoomData(**rooms["key"])),
+          key_room := Room(data=rooms["key"]),
           secret_room := Room(cells=gen_blob(min_area=80, max_area=100), data=RoomData(
             enemies=[Eyeball(rare=True), Eyeball(), Eyeball(), Eyeball(), Eyeball()],
             items=True,
@@ -88,7 +90,7 @@ class Floor1(Floor):
           (puzzle_room, key_room),
         ]
       ),
-      enemies=[Eyeball, Eyeball, Mushroom],
+      enemies=[Eyeball, Eyeball, Eyeball, Mushroom],
       extra_room_count=4, # 4 + randint(0, 2),
       seed=seed
     )

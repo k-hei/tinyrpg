@@ -24,7 +24,7 @@ class LovePotion(AilmentItem):
     if actor.faction != "enemy":
       return False
     game.room and game.room.on_defeat(game, actor)
-    not isinstance(game.get_tail(), CutsceneContext) and game.exit(ally_rejoin=True)
+    # not isinstance(game.get_tail(), CutsceneContext) and game.exit(ally_rejoin=True)
     actor.faction = "ally"
     actor.aggro = False
     actor.behavior = "chase"

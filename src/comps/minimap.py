@@ -21,10 +21,12 @@ from anims.warpin import WarpInAnim
 from easing.expo import ease_out, ease_in_out
 from lib.lerp import lerp
 from lib.bounds import find_bounds
+import lib.vector as vector
 from lib.cell import subtract as subtract_vector
 from lib.sprite import Sprite
-from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE, DEBUG_GEN
+from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE, DEBUG_GEN, ENABLED_MINIMAP
 import debug
+
 
 MARGIN_X = 8
 MARGIN_Y = 6
@@ -83,8 +85,8 @@ class Minimap:
     window_right = window_left + sprite_width
     window_bottom = window_top + sprite_height
 
-    for row in range(window_top, window_bottom):
-      for col in range(window_left, window_right):
+    for row in range(window_top, window_bottom + 1):
+      for col in range(window_left, window_right + 1):
         if col < 0 or row < 0 or col >= floor_width or row >= floor_height:
           continue
 
@@ -141,6 +143,8 @@ class Minimap:
             color = (0xFFFF00, 0x7F7F00)[blink]
           elif type(elem) is Altar:
             color = (0xFFFF00, 0x7F7F00)[blink]
+          elif isinstance(elem, SecretDoor) and elem.hidden:
+            color = COLOR_WALL if is_cell_visible else COLOR_WALL_DARK
           elif isinstance(elem, Door) and not elem.opened:
             color = COLOR_DOOR if is_cell_visible else COLOR_DOOR_DARK
           elif isinstance(elem, Door) and elem.opened:
@@ -153,19 +157,18 @@ class Minimap:
           color = (0x00FF00, 0x007F00)[blink]
         elif tile is Stage.STAIRS_DOWN:
           color = 0x007F00
-        elif issubclass(tile, tileset.Pit):
+        elif floor.is_tile_at_pit(cell):
           if is_cell_visible:
             color = None # 0x000000
-        elif (issubclass(tile, tileset.Wall)
-        or issubclass(tile, tileset.Hallway) and SecretDoor.exists_at(floor, (col, row + 1))
-        ):
+        elif (floor.is_tile_at_wall(cell)
+        or floor.is_tile_at_of_type(cell, tileset.Hallway) and SecretDoor.exists_at(floor, (col, row + 1))):
           if is_cell_visible:
             if filled:
               continue
             color = COLOR_WALL
           else:
             color = COLOR_WALL_DARK
-        elif issubclass(tile, tileset.Oasis) or issubclass(tile, tileset.OasisStairs):
+        elif floor.is_tile_at_oasis(cell):
           color = COLOR_OASIS if is_cell_visible else COLOR_OASIS_DARK
         else:
           color = COLOR_FLOOR if is_cell_visible else COLOR_FLOOR_DARK
@@ -175,7 +178,6 @@ class Minimap:
             pixels[x, y] = color
           except IndexError:
             print((x, y), sprite_size)
-            raise
 
     pixels.close()
     return surface
@@ -191,10 +193,14 @@ class Minimap:
     minimap.cache_hero_cell = None
 
   def enter(minimap, on_end=None):
+    if minimap.active and not minimap.anims:
+      return
     minimap.active = True
     minimap.anims.append(EnterAnim(on_end=on_end))
 
   def exit(minimap, on_end=None):
+    if not minimap.active and not minimap.anims:
+      return
     minimap.active = False
     minimap.anims.append(ExitAnim(on_end=on_end))
 
@@ -216,7 +222,7 @@ class Minimap:
     # requires: hero, stage, visited cells, animations?
     # - isn't this identical to what the stage view requires?
     # - if we wanted to coalesce these into an isolated store,
-    #     we'd to name it so it's easier to pass down
+    #     we'd need to name it so it's easier to pass down
     # - could try passing in args on init by reference
     # - hero and stage will change
 
@@ -227,6 +233,9 @@ class Minimap:
 
     game = minimap.parent
     floor = game.stage
+    if floor.is_overworld:
+      return minimap.sprite
+
     hero = game.hero
     if not hero or not hero.cell:
       return minimap.sprite
@@ -261,8 +270,8 @@ class Minimap:
       blink=minimap.time % 60 >= 30
     )
 
-    scaled_width = round(sprite_width * sprite_scale)
-    scaled_height = round(sprite_height * sprite_scale)
+    scaled_width = int(sprite_width * sprite_scale)
+    scaled_height = int(sprite_height * sprite_scale)
     scaled_size = (scaled_width, scaled_height)
 
     surface = Surface(scaled_size)
@@ -284,6 +293,9 @@ class Minimap:
       minimap.sprite = None
 
   def view(minimap):
+    if not ENABLED_MINIMAP:
+      return []
+
     sprites = []
     minimap.time += 1
 

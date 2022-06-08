@@ -377,18 +377,19 @@ class PauseContext(Context):
     hud_x = XMARGIN + choices_width + HUD_XMARGIN
     hud_y = YMARGIN
     for i, hud in enumerate(ctx.huds):
-      hud_image = hud.render()
-      char_view = ctx.party[i].view()
+      hud_image = hud.render(portrait=False)
+      char = ctx.party[i]
+      char_view = char.view()
       sprites += [
         Sprite(image=hud_image, pos=(hud_x, hud_y)),
-        *Sprite.move_all(
+        *(Sprite.move_all(
           sprites=char_view,
           offset=vector.add(
             (hud_x, hud_y - 2),
             vector.scale(assets.sprites["hud_circle"].get_size(), 1 / 2),
           ),
           origin=Sprite.ORIGIN_CENTER,
-        )
+        ) if not char.dead else [])
       ]
       hud_y += hud_image.get_height() + HUD_YMARGIN
 

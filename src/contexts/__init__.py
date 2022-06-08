@@ -44,10 +44,13 @@ class Context:
   def init(ctx):
     pass
 
-  def open(ctx, child, on_close=None):
+  def open(ctx, child, overwrite=False, on_close=None):
+    if ctx.child and not overwrite:
+      ctx.child.exit()
+
     ctx.child = child
     child.parent = ctx
-    ctx.child.enter()
+    child.enter()
     child.init()
     if on_close:
       if child.on_close:
@@ -57,22 +60,26 @@ class Context:
         )
       else:
         child.on_close = on_close
+
     return True
 
   def close(ctx, *args):
     if ctx.child:
       ctx.child.close()
+
     if ctx.parent:
       ctx.parent.child = None
+
     if ctx.on_close:
       ctx.on_close(*args)
+
     return True
 
   def update(ctx):
     if ctx.child:
       try:
         ctx.child.update()
-      except:
+      except Exception:
         raise
 
   def view(ctx):

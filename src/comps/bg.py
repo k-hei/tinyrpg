@@ -55,8 +55,10 @@ class Bg:
   def update(bg):
     if not bg.surface:
       bg.init()
+
     for anim in bg.anims:
       bg.anims.remove(anim) if anim.done else anim.update()
+
     bg.time += 1
 
   def draw(bg, surface):
@@ -71,21 +73,24 @@ class Bg:
     tile_size = assets.sprites[bg.sprite_id].get_width()
     t = bg.time % bg.period / bg.period
     x = -t * tile_size
+
     bg_image = bg.surface
     bg_height = bg_image.get_height()
-    bg_anim = next((a for a in bg.anims), None)
+    bg_anim = bg.anims and next((a for a in bg.anims), None)
     if type(bg_anim) is EnterAnim:
       bg_height *= bg_anim.pos
     elif type(bg_anim) is ExitAnim:
       bg_height *= 1 - bg_anim.pos
     elif bg.exiting:
       return []
+
     bg_sprite = Sprite(
       image=bg_image,
       pos=(x, x + bg.size[1] / 2),
       size=(bg_image.get_width(), bg_height),
       origin=Sprite.ORIGIN_LEFT
     )
+
     return [bg_sprite] if bg.size == WINDOW_SIZE else [SpriteMask(
       size=bg.size,
       children=[bg_sprite],

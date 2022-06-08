@@ -7,12 +7,13 @@ from lib.filters import replace_color
 from dungeon.props import Prop
 from vfx.pillarchunk import PillarChunkVfx
 import assets
-from colors.palette import WHITE, SAFFRON
+from colors.palette import WHITE
 
 class Pillar(Prop):
   solid = True
   static = True
   breakable = True
+  image = assets.sprites["pillar"]
 
   def __init__(pillar, broken=None):
     super().__init__()
@@ -28,25 +29,30 @@ class Pillar(Prop):
     return pillar._rect
 
   def crush(pillar, game):
-    if pillar.broken:
-      return
-    pillar.broken = True
+    create_pillar_chunk = lambda size: PillarChunkVfx(
+      cell=pillar.cell,
+      color=pillar.color,
+      size=size,
+    )
+
     game.stage_view.shake(vertical=True)
     game.vfx.extend([
-      PillarChunkVfx(cell=pillar.cell, size=PillarChunkVfx.SIZE_XL),
-      PillarChunkVfx(cell=pillar.cell, size=PillarChunkVfx.SIZE_L),
-      PillarChunkVfx(cell=pillar.cell, size=PillarChunkVfx.SIZE_M),
-      PillarChunkVfx(cell=pillar.cell, size=PillarChunkVfx.SIZE_M),
-      PillarChunkVfx(cell=pillar.cell, size=PillarChunkVfx.SIZE_S),
-      PillarChunkVfx(cell=pillar.cell, size=PillarChunkVfx.SIZE_S),
+      *([create_pillar_chunk(size=PillarChunkVfx.SIZE_XL)] if not pillar.broken else []),
+      create_pillar_chunk(size=PillarChunkVfx.SIZE_L),
+      create_pillar_chunk(size=PillarChunkVfx.SIZE_M),
+      create_pillar_chunk(size=PillarChunkVfx.SIZE_M),
+      create_pillar_chunk(size=PillarChunkVfx.SIZE_S),
+      create_pillar_chunk(size=PillarChunkVfx.SIZE_S),
     ])
+
+    pillar.broken = True
 
   def view(pillar, anims):
     if pillar.broken:
       pillar_image = assets.sprites["pillar_broken"]
     else:
       pillar_image = assets.sprites["pillar"]
-    pillar_image = replace_color(pillar_image, WHITE, SAFFRON)
+    pillar_image = replace_color(pillar_image, WHITE, pillar.color)
     return super().view([Sprite(
       image=pillar_image,
       pos=(0, 16),

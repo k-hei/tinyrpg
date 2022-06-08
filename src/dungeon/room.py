@@ -20,6 +20,7 @@ class Blob(Room):
     room._cells = [subtract_vector(c, rect.topleft) for c in cells]
     room.origin = origin or rect.topleft
     room.data = data
+    room.elem_store = {}
     super().__init__(size=rect.size, cell=room.origin, degree=degree, *args, **kwargs)
 
   @property
@@ -34,11 +35,14 @@ class Blob(Room):
     room._edges = None
     room._connectors = None
     room._border = None
+    room._rect = None
+    room.__cells = None
     room.connector_deltas = {}
 
   @property
   def cells(room):
-    return [vector.add(c, room.origin) for c in room._cells]
+    room.__cells = room.__cells or [vector.add(c, room.origin) for c in room._cells]
+    return room.__cells
 
   @property
   def border(room):
@@ -102,7 +106,9 @@ class Blob(Room):
 
   @property
   def rect(room):
-    return find_bounds(room.cells)
+    if not room._rect:
+      room._rect = find_bounds(room.cells)
+    return room._rect
 
   @property
   def center(room):
@@ -151,7 +157,7 @@ class Blob(Room):
   def get_tile_at(room, cell):
     if not room.data:
       return None
-    return room.data.tiles.get(*cell)
+    return room.data.tiles[cell]
 
   def lock_special_doors(room, stage):
     if room.should_unlock(stage):
@@ -167,7 +173,11 @@ class Blob(Room):
 
   def should_unlock(room, stage, actor=None):
     enemies = [e for e in room.get_enemies(stage) if e is not actor]
-    pushtile = next((e for c in room.get_cells() for e in stage.get_elems_at(c) if type(e).__name__ == "PushTile"), None)
+    pushtile = next((e for e in stage.elems if (
+      type(e).__name__ == "PushTile"
+      and e.cell in room.cells
+      and not e.pushed
+    )), None)
     return (
       not enemies
       and not pushtile
@@ -190,19 +200,24 @@ class Blob(Room):
 
   def on_place(room, stage):
     room.lock_special_doors(stage)
+
+    for elem in stage.elems:
+      room.elem_store[elem] = elem.cell
+
     return room.trigger_hook("on_place", stage)
 
   def on_focus(room, game):
-    pushblock = next((e for c in room.cells for e in game.stage.get_elems_at(c) if (
-      type(e).__name__ == "PushBlock"
-      and not e.static
-    )), None)
-    if pushblock and room.data:
-      pushblock_spawn = next((c for c, e in room.data.elems if e == "PushBlock"), None)
-      pushblock.cell = vector.add(room.origin, pushblock_spawn)
     if not super().on_focus(game):
       return False
     return room.trigger_hook("on_focus", game)
+
+  def on_blur(room, game):
+    if not game.stage.is_overworld:
+      for elem, elem_spawn in room.elem_store.items():
+        if elem in game.stage.elems and not elem.static:
+          elem.cell = elem_spawn
+
+    return room.trigger_hook("on_blur", game)
 
   def on_enter(room, game, *args, **kwargs):
     if not super().on_enter(game, *args, **kwargs):
@@ -217,8 +232,13 @@ class Blob(Room):
   def on_defeat(room, game, actor):
     if room.resolve_hook("on_defeat"):
       result = room.trigger_hook("on_defeat", game, actor)
-      if result is not None: return result
+      if result is not None:
+        return result
+
     elif room.should_unlock(game.stage, actor):
+      if game.stage.is_overworld:
+        game.stage.rooms.remove(room)
       room.unlock(game)
       return True
+
     return super().on_defeat(game, actor)

@@ -8,8 +8,9 @@ from lib.graph import Graph
 from debug import bench, log
 from config import FPS
 
+from locations.default.tile import Tile
 import locations.default.tileset as tileset
-import locations.tomb.tiles as tomb_tileset
+from locations.tomb.tiles import TombTileset
 from dungeon.floors import Floor
 from dungeon.room import Blob as Room
 from contexts.explore.roomdata import load_rooms
@@ -378,12 +379,14 @@ def gen_loops(tree, graph):
 
 def gen_floor(
   features=[],
-  enemies=[Eyeball, Mushroom, Mummy], # [Eyeball, Mushroom, Ghost, Mummy],
+  enemies=[Eyeball, Mushroom, Mummy],
   items=NORMAL_ITEMS,
   extra_room_count=0,
+  tileset=None,
   seed=None,
   debug=False
 ):
+  tileset = tileset or TombTileset
   seed = seed if seed is not None else getrandbits(32)
   random.seed(seed)
 
@@ -412,7 +415,7 @@ def gen_floor(
         except StopIteration:
           break
         if floor_chunk:
-          stage, stage_offset = manifest_rooms(floor_chunk.nodes, dry=True, seed=seed)
+          stage, stage_offset = manifest_rooms(floor_chunk.nodes, tileset=tileset, dry=True, seed=seed)
       if not floor_chunk:
         if stage:
           for connector in stage.rooms[-1].connectors:
@@ -445,7 +448,7 @@ def gen_floor(
         try:
           extra_graph, message = next(place_gen)
           if extra_graph:
-            stage = manifest_rooms(extra_graph.nodes, dry=True, seed=seed)[0]
+            stage = manifest_rooms(extra_graph.nodes, tileset=tileset, dry=True, seed=seed)[0]
           yield stage, message # f"Placing room {len(extra_graph.nodes)} of {len(extra_rooms)}"
         except StopIteration:
           break
@@ -453,7 +456,12 @@ def gen_floor(
       loops = gen_loops(tree, extra_graph)
       floor_chunks.insert(0, tree)
       if not loops and extra_room_count >= 3:
-        yield manifest_rooms(extra_graph.nodes, dry=True, seed=seed)[0], "Failed to create loops"
+        yield (manifest_rooms(
+          rooms=extra_graph.nodes,
+          tileset=tileset,
+          dry=True,
+          seed=seed
+        )[0], "Failed to create loops")
         continue
 
     # assemble graphs
@@ -467,7 +475,7 @@ def gen_floor(
 
       if graphs_left is False:
         graph = next(assemble_gen)
-        stage = manifest_rooms(graph.nodes, seed=seed)[0] if debug else None
+        stage = manifest_rooms(graph.nodes, tileset=tileset, seed=seed)[0] if debug else None
         if stage and next((x for x in stage.size if x > 100), None):
           stage = None # HACK: need to figure out why failures generate massive stages
         yield stage, "Failed to assemble graphs"
@@ -477,7 +485,7 @@ def gen_floor(
       graph = floor_chunks[0]
 
     rooms = graph.nodes
-    stage, stage_offset = manifest_rooms(rooms)
+    stage, stage_offset = manifest_rooms(rooms, tileset=tileset)
     stage.seed = seed
 
     # DrawConnectors(stage, stage_offset, tree)
@@ -628,7 +636,8 @@ def gen_floor(
     )]
     for secret in secrets:
       neighbor = graph.neighbors(secret)[0]
-      for door in graph.connectors(secret, neighbor):
+      neighbor_connectors = sorted(graph.connectors(secret, neighbor), key=lambda d: manhattan(d.cell, secret.origin))
+      for door in neighbor_connectors:
         doorway = door.cell
         stage.remove_elem(door)
         stage.spawn_elem_at(doorway, SecretDoor())
@@ -704,7 +713,7 @@ def gen_floor(
       if room.data and not room.data.items:
         continue
 
-      if room.data and type(room.data.items) is list:
+      if room.data and isinstance(room.data.items, list):
         room_items = [Vase(contents=i) for i in room.data.items]
       elif room in secrets:
         item_count = min(8, room.get_area() // 16)
@@ -712,27 +721,36 @@ def gen_floor(
       else:
         item_count = max(1, min(3, room.get_area() // 24))
         room_items = [Vase(contents=choice(items)) for _ in range(item_count)]
+
       vases_spawned = gen_elems(stage, room, elems=room_items)
 
     for i, room in enumerate(rooms):
       if room.data and not room.data.enemies:
         continue
+
       if room.data and type(room.data.enemies) is list:
         elems = room.data.enemies
         for enemy in elems:
           if randint(1, 3) == 1:
             enemy.inflict_ailment("sleep")
+
       if not room.data or type(room.data.enemies) is bool:
+        room_area = room.get_area()
+        num_enemies = room_area // 16
+        if room_area < 300:
+          num_enemies = min(5, num_enemies)
+
         elems = [choice(enemies)(
           ailment=("sleep" if randint(1, 3) == 1 else None)
-        ) for _ in range(min(5, room.get_area() // 16))]
+        ) for _ in range(num_enemies)]
+
       enemies_spawned = gen_elems(stage, room, elems)
 
     for room in rooms:
       room.on_place(stage)
 
     if not stage.entrance:
-      stage.entrance = next((c for c in stage.cells if issubclass(stage.get_tile_at(c), tileset.Entrance)), None)
+      stage.entrance = next((c for c in stage.cells if Tile.is_of_type(stage.get_tile_at(c), tileset.Entrance)), None)
 
     if not stage.entrance:
       yield stage, "Failed to spawn entrance"

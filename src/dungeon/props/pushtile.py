@@ -11,7 +11,7 @@ from colors.palette import BLACK, GRAY, PURPLE, DARKGRAY, DARKBLUE
 from config import PUSH_DURATION
 
 class PushTile(DungeonElement):
-  active = True
+  # active = True
 
   def __init__(tile, pushed=False, completed=False):
     super().__init__(solid=False)
@@ -21,13 +21,13 @@ class PushTile(DungeonElement):
     tile.anim = None
 
   @property
-  def rect(block):
-    if block._rect is None and block.pos:
-      block._rect = Rect(
-        vector.add(block.pos, (-16, -16)),
+  def rect(tile):
+    if tile._rect is None and tile.pos:
+      tile._rect = Rect(
+        vector.add(tile.pos, (-16, -16)),
         (32, 32)
       )
-    return block._rect
+    return tile._rect
 
   def encode(tile):
     [cell, kind, *props] = super().encode()
@@ -49,14 +49,13 @@ class PushTile(DungeonElement):
       tile.sinking = pushblock.SinkAnim.DEPTH
 
     # find_pushtiles(stage, room)
-    pushtiles = []
-    for cell in game.room.get_cells():
-      pushtile = next((e for e in game.stage.get_elems_at(cell) if isinstance(e, PushTile)), None)
-      if pushtile:
-        pushtiles.append(pushtile)
+    pushtiles = [e for c in game.room.cells
+      for e in game.stage.get_elems_at(c)
+        if isinstance(e, PushTile)]
 
     # complete_puzzle(pushtiles)
-    if not tile.completed and len([t for t in pushtiles if t.pushed]) == len(pushtiles):
+    if (not tile.completed
+    and len([t for t in pushtiles if t.pushed]) == len(pushtiles)):
       for t in pushtiles:
         tile.completed = True
       door = None
@@ -70,7 +69,7 @@ class PushTile(DungeonElement):
           )])
           break
 
-  def on_leave(tile, game):
+  def on_leave(tile, *_):
     if not tile.completed:
       tile.pushed = False
 

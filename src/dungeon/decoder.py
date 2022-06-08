@@ -1,10 +1,10 @@
+from copy import deepcopy
 from dungeon.stage import Stage
 from dungeon.decor import Decor
 from dungeon.features.room import Room
 from resolve.elem import resolve_elem
 from resolve.item import resolve_item
 from resolve.skill import resolve_skill
-from resolve.elem import resolve_elem
 from resolve.hook import resolve_hook
 import debug
 
@@ -44,22 +44,33 @@ def decode_floor(floor_data):
 
   return floor
 
-def decode_elem(elem_cell, elem_name, elem_props):
+def decode_elem(elem_cell, elem_name, elem_props, tileset=None):
+  elem_props = deepcopy(elem_props)
+
   if "contents" in elem_props and type(elem_props["contents"]) is str:
     elem_props["contents"] = (
       resolve_item(elem_props["contents"])
       or resolve_skill(elem_props["contents"])
       or resolve_elem(elem_props["contents"])
     )
+
   if "on_action" in elem_props and type(elem_props["on_action"]) is str:
     elem_props["on_action"] = resolve_hook(elem_props["on_action"])
+
   # if "message" in elem_props:
   #   message_key = elem_props["message"]
   #   elem_props["message"] = next((s for s in resolve_elem(floor_data["generator"]).scripts if s[0] == message_key), None)
+
   if "charge_skill" in elem_props:
     elem_props["charge_skill"] = resolve_skill(elem_props["charge_skill"])
+
+  if tileset:
+    try:
+      return tileset.resolve_elem(elem_name)(**elem_props)
+    except (AttributeError, KeyError):
+      debug.log(f"WARNING: Failed to resolve {elem_name} in {tileset}")
+
   try:
     return resolve_elem(elem_name)(**elem_props)
-  except Exception:
-    debug.log(f"WARNING: Failed to resolve {elem_name} {elem_props}")
-    raise
+  except BaseException as e:
+    debug.log(f"WARNING: Failed to resolve {elem_name} {elem_props}: {e}")

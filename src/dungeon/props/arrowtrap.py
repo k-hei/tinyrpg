@@ -3,7 +3,7 @@ from pygame.transform import flip
 import lib.vector as vector
 from lib.sprite import Sprite
 from lib.filters import replace_color
-from colors.palette import WHITE, SAFFRON
+from colors.palette import WHITE
 
 from dungeon.props import Prop
 from vfx.arrow import Arrow
@@ -50,11 +50,11 @@ class ArrowTrap(Prop):
       surface = assets.sprites["arrowtrap_right"]
     else:
       surface = assets.sprites["arrowtrap_down"]
-    surface = replace_color(surface, WHITE, SAFFRON)
+    surface = replace_color(surface, WHITE, trap.color)
     return surface
 
   def update(trap, game):
-    pass
+    super().update(game)
     # if not game.room or trap.cell not in game.room.get_cells():
     #   return
     # trap.anim.update()

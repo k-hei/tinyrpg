@@ -25,4 +25,4 @@ class Emerald(DungeonItem):
       game.anims.append([
         PauseAnim(duration=DungeonItem.PAUSE_DURATION, on_end=game.child.goto_town)
       ])
-    return True, "The gem's return magic has activated."
+    return True, "The gem's return magic activates."

@@ -1,18 +1,23 @@
+from time import time_ns
+import traceback
 from config import DEBUG
-from time import time
 
 buffer = ""
 benches = {}
 
 def log(*args):
+  if not args:
+    return
+
+  global buffer
+  if not buffer.endswith(args[0] + "\n"):
+    buffer += args[0] + "\n"
+
   if DEBUG:
     print("[DEBUG]", *args)
 
 def append(text):
-  global buffer
-  if not buffer.endswith(text):
-    buffer += text
-    log(text)
+  log(text)
 
 def write():
   if not buffer:
@@ -23,18 +28,21 @@ def write():
 
 def bench(tag, reset=False, print_threshold=0):
   if tag not in benches or reset:
-    benches[tag] = time()
+    benches[tag] = time_ns()
     return 0
   else:
-    delta = time() - benches[tag]
+    delta = (time_ns() - benches[tag]) / 1e6
     del benches[tag]
     if delta >= print_threshold:
-      log(f"{tag} in {delta * 1000}ms")
+      log(f"{tag} in {delta:.2f}ms")
     return delta
 
 def dictify(obj):
-  {key: getattr(obj, key) for key in dir(obj) if (
+  return {key: getattr(obj, key) for key in dir(obj) if (
     key != key.upper()
     and not key.startswith("__")
     and not callable(getattr(obj, key))
   )}
+
+def print_stack_trace():
+  traceback.print_stack()

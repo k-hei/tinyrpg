@@ -1,0 +1,11 @@
+{
+  "mouse": [0, 0, 32, 32],
+  "mouse_walk": [32, 0, 32, 32],
+  "mouse_talk": [64, 0, 32, 32],
+  "mouse_down": [0, 32, 32, 32],
+  "mouse_walkdown0": [32, 32, 32, 32],
+  "mouse_walkdown1": [64, 32, 32, 32],
+  "mouse_up": [0, 64, 32, 32],
+  "mouse_walkup0": [32, 64, 32, 32],
+  "mouse_walkup1": [64, 64, 32, 32]
+}

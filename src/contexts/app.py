@@ -40,7 +40,7 @@ input.config( # TODO: this isn't ideal - do we need to extend a generic wrapper 
     input.CONTROL_MANAGE: [input.BUTTON_Y, pygame.K_r],
     input.CONTROL_RUN: [input.BUTTON_B, pygame.K_RSHIFT, pygame.K_LSHIFT, pygame.K_g],
     input.CONTROL_TURN: [input.BUTTON_R, pygame.K_LCTRL, pygame.K_RCTRL],
-    input.CONTROL_ITEM: [input.BUTTON_R, input.BUTTON_X],
+    input.CONTROL_ITEM: [(input.BUTTON_R, input.BUTTON_X)],
     input.CONTROL_WAIT: [(input.BUTTON_R, input.BUTTON_A), pygame.K_t],
     input.CONTROL_SHORTCUT: [(input.BUTTON_R, input.BUTTON_Y), pygame.K_r],
     input.CONTROL_ALLY: [input.BUTTON_L, pygame.K_TAB],
@@ -93,7 +93,7 @@ class App(Context):
       app.loop()
 
   def open(app, child=None):
-    super().open(child or app.child, on_close=app.close)
+    super().open(child or app.child, overwrite=True, on_close=app.close)
 
   def close(app, *data):
     if data:
@@ -101,7 +101,7 @@ class App(Context):
     app.done = True
     try:
       super().close()
-    except:
+    except Exception:
       debug.append(traceback.format_exc())
     finally:
       debug.write()
@@ -119,7 +119,7 @@ class App(Context):
         app.clock.tick(app.fps)
         app.update()
         app.redraw()
-    except:
+    except Exception:
       debug.append(traceback.format_exc())
     finally:
       app.close()
@@ -140,7 +140,7 @@ class App(Context):
           app.transits.remove(transit)
         elif not app.loading:
           transit.update()
-    except:
+    except Exception:
       debug.append(traceback.format_exc())
 
   def redraw(app):
@@ -168,7 +168,7 @@ class App(Context):
         sprite.draw(app.surface)
       app.display.blit(scale(app.surface, app.size_scaled), (0, 0))
       pygame.display.flip()
-    except:
+    except Exception:
       debug.append(traceback.format_exc())
 
   def rescale(app, new_scale):

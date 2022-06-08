@@ -4,9 +4,10 @@ from PIL import Image, ImageOps
 MASK_HORIZ = 0x80000000
 MASK_VERT = 0x40000000
 MASK_DIAG = 0x20000000
+
 transform_map = {
     MASK_HORIZ + MASK_VERT + MASK_DIAG: lambda image: (
-        ImageOps.mirror(image).transpose(Image.ROTATE_90)
+        ImageOps.mirror(image).transpose(Image.ROTATE_270)
     ),
     MASK_HORIZ + MASK_VERT: lambda image: (
         image.transpose(Image.ROTATE_180)

@@ -50,8 +50,10 @@ class Knight(DungeonActor):
     else:
       knight_image = assets.sprites["knight"]
     knight_xoffset = 0
+
     anim_group = [a for a in anims[0] if a.target is knight] if anims else []
     anim_group += knight.core.anims
+
     for anim in anim_group:
       if type(anim) is PauseAnim:
         break
@@ -81,7 +83,7 @@ class Knight(DungeonActor):
           ][x4_idx]
         elif anim.time % (anim.period // 2) >= anim.period // 4:
           knight_image = assets.sprites["knight_walk"]
-      elif type(anim) is AttackAnim and anim.time < anim.duration // 2:
+      elif type(anim) is AttackAnim and anim.time < 0:
         if knight.facing == (0, -1):
           knight_image = assets.sprites["knight_up"]
         elif knight.facing == (0, 1):

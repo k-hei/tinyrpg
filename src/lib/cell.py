@@ -47,10 +47,11 @@ def is_odd(cell):
 def upscale(cell, scale):
   return vector.scale(vector.add(cell, (0.5, 0.5)), scale)
 
-def downscale(cell, scale):
-  return vector.subtract(vector.scale(cell, 1 / scale), (0.5, 0.5))
+def downscale(pos, scale, floor=False):
+  cell = vector.subtract(vector.scale(pos, 1 / scale), (0.5, 0.5))
+  return vector.floor(cell) if floor else cell
 
-def neighborhood(cell, radius=1, adjacents=True, diagonals=False, inclusive=False, predicate=None):
+def neighborhood(cell=(0, 0), radius=1, adjacents=True, diagonals=False, inclusive=False, predicate=None):
   if radius == 1:
     x, y = cell
     return [
@@ -68,10 +69,12 @@ def neighborhood(cell, radius=1, adjacents=True, diagonals=False, inclusive=Fals
         (x + 1, y + 1),
       ] if diagonals else [])
     ]
+
   cells = []
   start = cell
   if inclusive:
     cells.append(start)
+
   stack = [(start, 0)]
   while stack:
     cell, steps = stack.pop()
@@ -81,4 +84,5 @@ def neighborhood(cell, radius=1, adjacents=True, diagonals=False, inclusive=Fals
         cells.append(neighbor)
         if steps + 1 < radius:
           stack.append((neighbor, steps + 1))
+
   return cells

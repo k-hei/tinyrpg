@@ -4,16 +4,20 @@ from locations.default.tile import Tile
 from dungeon.actors import DungeonActor
 
 # TODO: relocate pathfinding logic
-from lib.cell import manhattan, neighborhood
+import lib.vector as vector
+from lib.cell import manhattan, neighborhood, downscale
 from math import inf
 
+
 class Stage:
-  def __init__(stage, tiles, elems=None, rooms=None, links=None, tile_size=TILE_SIZE, bg=None):
+  def __init__(stage, tiles, tileset=None, elems=None, rooms=None, ports=None, tile_size=None, bg=None, name="????"):
+    stage.name = name
+    stage.tileset = tileset
     stage.tiles = tiles
     stage.elems = elems or []
-    stage.links = links or []
+    stage.ports = ports or []
     stage.rooms = rooms or []
-    stage.tile_size = tile_size
+    stage.tile_size = tile_size or (tileset and tileset.tile_size) or TILE_SIZE
     stage.bg = bg
     stage.entrance = None
     stage.generator = None
@@ -51,28 +55,97 @@ class Stage:
       ]
     return border
 
-  def contains(stage, cell):
-    return stage.tiles.contains(*cell)
+  @property
+  def num_tile_layers(stage):
+    return stage.tiles.num_layers
 
-  def get_tile_at(stage, cell):
-    return stage.tiles.get(*cell)
+  @property
+  def is_overworld(stage):
+    return stage.tileset.is_overworld
+
+  def __contains__(stage, cell):
+    return stage.contains(cell)
+
+  def contains(stage, cell, scale=0):
+    if scale:
+      scale_delta = scale / stage.tile_size
+      scale_cell = vector.floor(vector.scale(cell, scale_delta))
+      return scale_cell in stage
+
+    return cell in stage.tiles
+
+  def get_tile_at(stage, cell, scale=0):
+    tiles = stage.get_tiles_at(cell, scale)
+    return tiles[0] if tiles else None
+
+  def get_tiles_at(stage, cell, scale=0):
+    if cell not in stage:
+      return []
+
+    if not scale:
+      return stage.tiles[cell]
+
+    scale_delta = scale // stage.tile_size
+    origin_cell = vector.scale(cell, scale_delta)
+    offsets = [(x, y) for y in range(scale_delta) for x in range(scale_delta)]
+    cells = [vector.add(origin_cell, o) for o in offsets]
+    return [t for c in cells for t in stage.get_tiles_at(c)]
 
   def set_tile_at(stage, cell, tile):
-    return stage.tiles.set(*cell, tile)
+    stage.tiles[cell] = tile
 
   def is_tile_at_of_type(stage, cell, tile_type):
-    return Tile.is_of_type(stage.get_tile_at(cell), tile_type)
+    return next((t for t in stage.get_tiles_at(cell)
+      if Tile.is_of_type(t, tile_type)), None)
+
+  def is_tile_at_solid(stage, cell, scale=0):
+    if cell not in stage:
+      return True
+
+    tiles = stage.get_tiles_at(cell, scale)
+    return not tiles or next((True for tile in tiles if stage.tileset.is_tile_at_solid(tile)), False)
+
+  def is_tile_at_opaque(stage, cell, scale=0):
+    if cell not in stage:
+      return True
+
+    tiles = stage.get_tiles_at(cell, scale)
+    return not tiles or next((True for tile in tiles if stage.tileset.is_tile_at_opaque(tile)), False)
+
+  def is_tile_at_wall(stage, cell):
+    return stage.tileset.is_tile_at_wall(tile=stage.get_tile_at(cell))
+
+  def is_tile_at_pit(stage, cell):
+    return stage.tileset.is_tile_at_pit(tile=stage.get_tile_at(cell))
+
+  def is_tile_at_hallway(stage, cell):
+    return stage.tileset.is_tile_at_hallway(tile=stage.get_tile_at(cell))
+
+  def is_tile_at_oasis(stage, cell):
+    return stage.tileset.is_tile_at_oasis(tile=stage.get_tile_at(cell))
+
+  def is_tile_at_port(stage, cell):
+    return stage.tileset.is_tile_at_port(tile=stage.get_tile_at(cell))
+
+  def get_tile_at_elev(stage, cell):
+    tile = stage.get_tile_at(cell)
+    return tile.elev if Tile.is_tile(tile) else 0
 
   def get_elem_at(stage, cell):
     return None
 
-  def get_elems_at(stage, cell):
-    return [e for e in stage.elems if (
-      e.cell == cell
-      or (
-        e.size != (1, 1)
-        and Rect(e.cell, e.size).collidepoint(cell)
+  def get_elems_at(stage, cell, scale=0):
+
+    def is_elem_at_cell(elem, cell):
+      return (elem.cell == cell
+        or (elem.size != (1, 1)
+          and Rect(elem.cell, elem.size).collidepoint(cell)
+        )
       )
+
+    return [e for e in stage.elems if is_elem_at_cell(
+      elem=e,
+      cell=cell,
     )]
 
   def spawn_elem_at(stage, cell, elem):
@@ -91,33 +164,35 @@ class Stage:
     else:
       return False
 
-  def is_cell_empty(stage, cell):
-    tile = stage.get_tile_at(cell)
-    if not tile or tile.solid or tile.pit:
-      return False
+  def is_cell_empty(stage, cell, scale=0):
+    return (not stage.is_tile_at_solid(cell, scale)
+      and not stage.is_cell_occupied(cell, scale))
 
-    elem = next((e for e in stage.get_elems_at(cell) if e.solid), None)
-    if elem:
-      return False
-
-    return True
+  def is_cell_occupied(stage, cell, scale=0, ignore_actors=False):
+    return next((True for e in stage.get_elems_at(cell, scale)
+      if e.solid
+      and (not ignore_actors or not isinstance(e, DungeonActor))
+    ), False)
 
   def is_cell_opaque(stage, cell):
     tile = stage.get_tile_at(cell)
-    return not tile or tile.opaque or next((e for e in stage.get_elems_at(cell) if e.opaque), None)
+    return (not tile
+      or stage.tileset.is_tile_at_opaque(tile)
+      or next((e for e in stage.get_elems_at(cell) if e.opaque), None))
 
-  def is_tile_solid(stage, cell):
-    tile = stage.get_tile_at(cell)
-    return not tile or tile.solid
+  def is_cell_walkable(stage, cell, scale=0):
+    if not stage.contains(cell, scale):
+      return False
 
-  def is_tile_walkable(stage, cell):
-    tile = stage.get_tile_at(cell)
-    return tile and not tile.solid and not tile.pit
+    # TODO: handle floating enemies -- walkability is actor-dependent
+    return (not stage.is_tile_at_solid(cell, scale)
+      and not stage.is_tile_at_pit(cell))
 
   # TODO: normalize into grid pathfinder
-  def pathfind(stage, start, goal, whitelist=None):
+  def pathfind(stage, start, goal, whitelist=None, predicate=None):
     if start == goal:
       return [goal]
+
     path = []
     open_cells = [start]
     open_set = {}
@@ -125,41 +200,59 @@ class Stage:
     f = { start: manhattan(start, goal) }
     g = { start: 0 }
     parent = {}
+
     while open_cells:
       open_cells.sort(key=lambda c: f[c] if c in f else inf)
       cell = open_cells.pop(0)
+
       if cell == goal:
+        # reconstruct path
         while cell != start:
           path.insert(0, cell)
           cell = parent[cell]
         path.insert(0, cell)
         return path
+
       open_set[cell] = False
       closed_set[cell] = True
+
       for neighbor in neighborhood(cell):
-        if (neighbor in closed_set
-        or not stage.contains(neighbor)
-        or (not stage.is_cell_empty(neighbor) and (not whitelist or neighbor not in whitelist))
-        ):
+        if neighbor != goal and (neighbor in closed_set
+        or not stage.contains(neighbor, scale=TILE_SIZE)):
           continue
+
+        if predicate and not predicate(neighbor):
+          continue
+
+        if (not predicate
+        and not stage.is_cell_empty(neighbor, scale=TILE_SIZE)
+        and (not whitelist or neighbor not in whitelist)):
+          continue
+
         if neighbor not in open_set or not open_set[neighbor]:
           open_set[neighbor] = True
           open_cells.insert(0, neighbor)
+
         if neighbor in g and g[cell] + 1 >= g[neighbor]:
           continue
+
         parent[neighbor] = cell
         g[neighbor] = g[cell] + 1
         f[neighbor] = g[neighbor] + manhattan(neighbor, goal)
+
         if whitelist and neighbor in whitelist:
+          # prefer whitelisted cells
           f[neighbor] //= 2
+
+    # no path found
     return []
 
   def find_walkable_room_cells(stage, room=None, cell=None, ignore_actors=False):
     room = room or next((r for r in stage.rooms if cell in r.cells), None)
     return [c for c in room.cells if (
-      (Tile.is_walkable(stage.get_tile_at(c))
+      (stage.is_cell_walkable(c)
         and not next((e for e in stage.get_elems_at(c) if e.solid and not isinstance(e, DungeonActor)), None)
-      ) if ignore_actors else stage.is_cell_empty(c)
+      ) if ignore_actors else stage.is_cell_walkable(c)
     )] if room else []
 
   # TODO: relocate into helper

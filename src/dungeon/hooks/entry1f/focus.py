@@ -19,14 +19,22 @@ import config
 from config import RUN_DURATION
 
 def on_focus(room, game):
-  if not config.CUTSCENES or "minxia" in game.store.story:
+  if "minxia" in game.store.story:
     return False
+
+  game_ctx = game.get_parent(cls="GameContext")
+  game_ctx.forget_skill(BroadSword)
+  game_ctx.update_skills()
+
+  if not config.CUTSCENES:
+    return False
+
   hero = game.hero
   mage = room.mage = Mage()
   game.stage.spawn_elem_at(vector.add(room.center, (1, 0)), mage)
   mage_bump = sequence_mage_bump(room, game)
   door = room.get_doors(game.stage)[0]
-  game.get_tail().open(CutsceneContext([
+  game.open(CutsceneContext([
     lambda step: (
       game.camera.focus(target=room, force=True),
       game.anims.extend([

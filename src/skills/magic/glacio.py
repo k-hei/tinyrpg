@@ -4,11 +4,12 @@ from cores.mage import Mage
 from dungeon.actors import DungeonActor
 from config import ATTACK_DURATION
 from anims.attack import AttackAnim
-from anims.frame import FrameAnim
 from anims.pause import PauseAnim
 from vfx.icespike import IceSpikeVfx
 from vfx.iceemblem import IceEmblemVfx
 from colors.palette import CYAN
+from config import TILE_SIZE
+
 
 class Glacio(MagicSkill):
   name = "Glacio"
@@ -31,7 +32,8 @@ class Glacio(MagicSkill):
     bump_dest = (hero_x + delta_x, hero_y + delta_y)
 
     dest = Glacio().find_targets(user, game.stage)[-1]
-    target = next((e for e in floor.get_elems_at(dest) if isinstance(e, DungeonActor)), None)
+    target = next((e for e in floor.get_elems_at(dest, scale=TILE_SIZE)
+      if isinstance(e, DungeonActor)), None)
     target_cells = []
     cell = user.cell
     dist = 0

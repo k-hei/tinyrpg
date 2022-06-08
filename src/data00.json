@@ -1,16 +1,19 @@
 {
-  "place": "town",
+  "place": null,
   "sp": 50,
   "sp_max": 50,
   "time": 0,
   "gold": 100,
   "items": [],
-  "skills": ["Blitzritter", "Cudgel", "Glacio", "Congelatio", "Sana"],
-  "new_skills": [],
+  "skills": ["BroadSword", "Blitzritter", "Empower", "Fortify", "Cudgel", "Glacio", "Congelatio", "Sana"],
+  "new_skills": ["Empower", "Fortify"],
   "selected_skill": {},
   "party": ["Knight"],
   "builds": {
-    "Knight": {}
+    "Knight": {
+      "BroadSword": [0, 0],
+      "Blitzritter": [0, 2]
+    }
   },
   "kills": {},
   "story": [],

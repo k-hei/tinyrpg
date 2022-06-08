@@ -1,6 +1,10 @@
 import lib.gamepad as gamepad
 import lib.input as input
+import lib.vector as vector
+from lib.direction import invert as invert_direction
+
 import game.controls as controls
+from game.world import construct_world
 from contexts import Context
 from contexts.load import LoadContext
 from contexts.pause import PauseContext
@@ -10,16 +14,23 @@ from contexts.dungeon import DungeonContext
 from contexts.loading import LoadingContext
 from contexts.controls import ControlsContext
 from contexts.explore.manifest import manifest_room
-from contexts.explore.roomdata import load_rooms, rooms
+from contexts.explore.roomdata import load_rooms, rooms, RoomData
+from resolve.floor import resolve_floor
 from dungeon.decoder import decode_floor
 from dungeon.gen.floorgraph import FloorGraph
-from town.context import TownContext
 from skills import get_skill_order
 from skills.weapon import Weapon
 from debug import bench
 from game.data import GameData
 from transits.dissolve import DissolveOut
 import debug
+
+from town.context import TownContext
+from town.topview.stage import Stage as TownTopViewArea
+from town.sideview.stage import Area as TownSideViewArea
+from town.areas.outskirts import OutskirtsArea
+from town.graph import WorldGraph
+
 
 load_rooms()
 gamepad.config(preset=controls.TYPE_A)
@@ -33,6 +44,7 @@ class GameContext(Context):
     ctx.floor = floor
     ctx.stage = stage
     ctx.seed = seed
+
     if data is None:
       ctx.open(LoadContext(), on_close=lambda *data: data and ctx.load(*data))
     elif type(data) is GameData:
@@ -42,7 +54,10 @@ class GameContext(Context):
       ctx.store = GameData.decode(data)
       ctx.savedata = data
 
+    ctx.graph = None
+
   def init(ctx):
+    ctx.graph = construct_world()
     if ctx.savedata or ctx.feature or ctx.floor:
       ctx.load()
 
@@ -63,8 +78,6 @@ class GameContext(Context):
     if ctx.stage:
       stage = ctx.stage
       ctx.stage = None
-      app = ctx.get_head()
-      app.transition([DissolveOut()])
       return ctx.goto_dungeon(floors=FloorGraph(nodes=[stage]))
 
     if ctx.feature:
@@ -81,15 +94,15 @@ class GameContext(Context):
 
     if ctx.floor:
       Floor = ctx.floor
-      # ctx.floor = None
+      ctx.floor = None
       app = ctx.get_head()
       bench("Generate floor")
       return ctx.open(LoadingContext(
         loader=Floor.generate(ctx.store, seed=ctx.seed),
         on_end=lambda floor: (
           bench("Generate floor"),
+          debug.log(f"Using seed {ctx.seed}"),
           ctx.goto_dungeon(floors=FloorGraph(nodes=[floor]), generator=Floor),
-          app.transition([DissolveOut()])
         )
       ))
 
@@ -110,6 +123,10 @@ class GameContext(Context):
       ctx.goto_dungeon(floors=floor and [floor])
     elif savedata.place == "town":
       ctx.goto_town()
+    else:
+      ctx.goto_dungeon(floors=FloorGraph(
+        nodes=[manifest_room(rooms["tutorial1"])]
+      ))
 
   def save(ctx):
     if gamepad.controls is not controls.TYPE_A:
@@ -134,15 +151,41 @@ class GameContext(Context):
       ctx.store.place = dungeon
       ctx.open(dungeon)
     else:
-      app = ctx.get_head()
-      stage = manifest_room(room=rooms["shrine"])
-      ctx.goto_dungeon(floors=FloorGraph(nodes=[stage])),
-      not app.transits and app.transition([DissolveOut()])
+      stage = manifest_room(rooms["shrine"])
+      ctx.goto_dungeon(floors=FloorGraph(nodes=[stage]))
 
-  def goto_town(ctx, returning=False):
-    town = TownContext(store=ctx.store, returning=returning)
+    app = ctx.get_head()
+    not app.transits and app.transition([DissolveOut()])
+
+  def goto_town(ctx, area=None, port=None, returning=False):
+    if returning and area is None and port is None:
+      area, port = OutskirtsArea, "tower"
+
+    town = TownContext(store=ctx.store, area=area, port=port)
     ctx.store.place = town
     ctx.open(town)
+
+  def load_area(ctx, area, port_id=None):
+    debug.log("load area", (area.key, port_id) if port_id else area.key)
+
+    port = area.ports[port_id] if port_id else None
+    hero = ctx.store.hero
+    if hero:
+      hero.facing = invert_direction(port.direction) if port else (0, 1)
+
+    if isinstance(area, RoomData):
+      stage = manifest_room(area)
+      if port:
+        stage.entrance = vector.add(port.cell, hero.facing)
+      dungeon = DungeonContext(
+        store=ctx.store,
+        stage=stage,
+      )
+      ctx.store.place = dungeon
+      ctx.open(dungeon)
+
+    if isinstance(area, type) and issubclass(area, (TownSideViewArea, TownTopViewArea)):
+      ctx.goto_town(area, port_id)
 
   def record_kill(ctx, target):
     target_type = type(target)
@@ -164,6 +207,9 @@ class GameContext(Context):
       ctx.store.skills.append(skill)
       ctx.store.skills.sort(key=get_skill_order)
 
+  def forget_skill(ctx, skill):
+    return ctx.store.forget_skill(skill)
+
   def load_build(ctx, actor, build):
     ctx.store.builds[type(actor).__name__] = build
     actor.skills = sorted([skill for skill, cell in build], key=get_skill_order)
@@ -184,7 +230,13 @@ class GameContext(Context):
 
     # TODO: only town and dungeon contexts should be able to access pause/inventory
     # what kinds of generic assumptions can we make about potential use cases
-    blocking_contexts = (PauseContext, InventoryContext, LoadContext, ControlsContext)
+    blocking_contexts = (
+      PauseContext,
+      InventoryContext,
+      LoadContext,
+      ControlsContext,
+      LoadingContext,
+    )
     if isinstance(ctx.get_tail(), blocking_contexts) or ctx.get_depth() > 2:
       return
 

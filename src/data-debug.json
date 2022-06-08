@@ -1,31 +1,31 @@
 {
-  "place": "town",
+  "place": null,
   "sp": 50,
   "sp_max": 50,
   "time": 215999,
   "gold": 9999,
-  "items": ["Ankh"],
-  "skills": ["RustyBlade", "Blitzritter", "Buckler", "ShieldBash", "Empower", "Fortify", "Cudgel", "Glacio", "Congelatio", "Sana"],
-  "new_skills": [],
+  "items": ["LovePotion"],
+  "skills": ["BroadSword", "Blitzritter", "Buckler", "ShieldBash", "Empower", "Fortify", "Cudgel", "Glacio", "Congelatio", "Sana"],
+  "new_skills": ["Buckler", "ShieldBash", "Empower", "Fortify"],
   "selected_skill": {},
   "party": [
-    "Knight"
+    "Knight",
+    "Mage"
   ],
   "builds": {
     "Knight": {
-      "RustyBlade": [0, 0],
-      "Empower": [1, 0],
-      "Fortify": [2, 1],
-      "Blitzritter": [1, 2]
+      "BroadSword": [0, 0],
+      "Blitzritter": [0, 2]
     },
     "Mage": {
       "Cudgel": [0, 0],
       "Glacio": [2, 0],
-      "Congelatio": [0, 1]
+      "Congelatio": [0, 1],
+      "HpUp": [3, 3]
     }
   },
   "kills": {},
-  "story": [],
+  "story": ["minxia"],
   "quests": {},
   "controls": {
     "LEFT": "l3",

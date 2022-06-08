@@ -22,25 +22,33 @@ class Core:
     core.name = name
     core.faction = faction
     core.facing = tuple(facing)
-    core.hp = hp or stats.hp
+    core._hp = hp or stats.hp
     core.stats = stats
     core.skills = skills
     core.color = color
-    core.message = message
+    core.message = message if not message or callable(message) else [tuple(m) for m in message]
     core.anims = anims or []
     core.dead = False
 
   def rename(core, name):
     core.name = name
 
+  @property
+  def hp(core):
+    return core._hp + core.get_skill_hp()
+
+  @hp.setter
+  def hp(core, hp):
+    core._hp = hp - core.get_skill_hp()
+
   def get_hp(core):
-    return core.hp + core.get_skill_hp()
+    return core.hp
+
+  def set_hp(core, hp):
+    core.hp = hp
 
   def get_hp_max(core):
     return core.stats.hp + core.get_skill_hp()
-
-  def set_hp(core, hp):
-    core.hp = hp - core.get_skill_hp()
 
   def get_skill_hp(core):
     passive_hps = [s.hp for s in core.skills if s.kind == "armor"]
@@ -49,7 +57,11 @@ class Core:
   def get_active_skills(core):
     return [s for s in core.skills if s.kind != "armor"]
 
-  def heal(core, hp):
+  def heal(core, hp=None):
+    if not hp:
+      core._hp = core.stats.hp
+      return
+
     core.set_hp(min(core.get_hp_max(), core.get_hp() + hp))
 
   def damage(core, hp):

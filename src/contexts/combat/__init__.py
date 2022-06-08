@@ -1,11 +1,16 @@
+import pygame
 import lib.vector as vector
 import lib.input as input
 from lib.direction import invert as invert_direction
 from lib.cell import neighborhood, manhattan, is_adjacent, upscale, downscale
-from helpers.combat import find_damage, will_miss, will_crit, will_block
+from helpers.combat import find_damage, will_miss, will_crit, will_block, animate_snap
+from helpers.stage import is_tile_walkable_to_actor, is_cell_walkable_to_actor
 from resolve.skill import resolve_skill
 import debug
 
+import assets
+
+from contexts.combat.grid import CombatGridCellAnim, CombatGridCellEnterAnim, CombatGridCellExitAnim
 from contexts.explore.base import (
   ExploreBase,
   COMMAND_MOVE, COMMAND_MOVE_TO, COMMAND_ATTACK, COMMAND_SKILL, COMMAND_WAIT
@@ -39,31 +44,13 @@ from config import (
   FLINCH_PAUSE_DURATION, FLICKER_DURATION, NUDGE_DURATION, SIDESTEP_DURATION, SIDESTEP_AMPLITUDE,
   CRIT_MODIFIER,
   TILE_SIZE,
+  WINDOW_WIDTH, WINDOW_HEIGHT,
 )
 
-def animate_snap(actor, anims, speed=2, on_end=None):
-  x, y = actor.pos
-  x += actor.scale / 2
-  y += actor.scale / 2
-  if x % actor.scale or y % actor.scale:
-    actor_cell = downscale(vector.add(
-      actor.pos,
-      vector.scale(actor.facing, TILE_SIZE / 2)
-    ), scale=actor.scale)
-    actor_dest = upscale(actor_cell, actor.scale)
-    actor.stop_move()
-    not anims and anims.append([])
-    anims[-1].append(MoveAnim(
-      target=actor,
-      src=actor.pos,
-      dest=actor_dest,
-      speed=speed,
-      on_end=on_end
-    ))
-    return vector.round(actor_cell)
-  else:
-    on_end and on_end()
-    return None
+from math import inf
+from lib.sprite import Sprite
+from easing.expo import ease_out
+
 
 def find_damage_text(damage):
   if damage == 0:
@@ -79,6 +66,7 @@ class CombatContext(ExploreBase):
     ctx.should_path = path
     ctx.exiting = False
     ctx.turns = 0
+    ctx.turns_completed = 0
     ctx.command_queue = []
     ctx.command_pending = None
     ctx.command_gen = None
@@ -109,8 +97,8 @@ class CombatContext(ExploreBase):
       )
     )
 
-    hero_brandish = create_brandish(ctx.hero)
-    ally_brandish = ctx.ally and create_brandish(ctx.ally)
+    hero_brandish = ctx.hero.weapon and create_brandish(ctx.hero)
+    ally_brandish = ctx.ally and ctx.ally.weapon and create_brandish(ctx.ally)
 
     if ctx.should_path:
       hero_cell = animate_snap(ctx.hero, anims=ctx.anims, speed=walk_speed)
@@ -129,36 +117,46 @@ class CombatContext(ExploreBase):
           isinstance(e, Door)
           or e.solid and e is not ctx.hero
         ), None)
-        and not ctx.stage.is_tile_solid(c)
+        and not ctx.stage.is_tile_at_solid(c)
       ]
 
+      hero_path = ctx.stage.pathfind(
+        start=actor_cells[ctx.hero],
+        goal=start_cells.pop(0),
+        whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True)
+      )
+
+      ally_path = ctx.stage.pathfind(
+        start=actor_cells[ctx.ally],
+        goal=start_cells.pop(0),
+        whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True) + [ctx.ally.cell]
+      )
+
       ctx.anims.append([
-        PathAnim(
+        *([PathAnim(
           target=ctx.hero,
-          path=ctx.stage.pathfind(
-            start=actor_cells[ctx.hero],
-            goal=start_cells.pop(0),
-            whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True)
-          ),
+          path=hero_path,
           period=TILE_SIZE // walk_speed,
-          on_end=lambda: ctx.anims[0].append(hero_brandish)
-        ), PathAnim(
+          on_end=lambda: hero_brandish and ctx.anims[0].append(hero_brandish)
+        )] if hero_path else []),
+        *([PathAnim(
           target=ctx.ally,
-          path=ctx.stage.pathfind(
-            start=actor_cells[ctx.ally],
-            goal=start_cells.pop(0),
-            whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True) + [ctx.ally.cell]
-          ),
+          path=ally_path,
           period=TILE_SIZE // walk_speed,
-          on_end=lambda: ctx.anims[0].append(ally_brandish)
-        )
+          on_end=lambda: ally_brandish and ctx.anims[0].append(ally_brandish)
+        )] if ally_path else []),
       ])
 
-    elif ctx.ally:
-      ctx.anims.append([hero_brandish, ally_brandish])
+    elif hero_brandish or ally_brandish:
+      ctx.anims.append([
+        *([hero_brandish] if hero_brandish else []),
+        *([ally_brandish] if ally_brandish else []),
+      ])
 
     else:
-      ctx.anims.append([hero_brandish])
+      ctx.hero.stop_move()
+
+    ctx.enter_grid()
 
   def exit(ctx, ally_rejoin=False):
     if ctx.exiting:
@@ -174,31 +172,103 @@ class CombatContext(ExploreBase):
     hero_adjacents = [n for n in neighborhood(ctx.hero.cell) if ctx.stage.is_cell_empty(n)]
     if ally_rejoin and ctx.ally and hero_adjacents:
       target_cell = sorted(hero_adjacents, key=lambda c: manhattan(c, ctx.ally.cell))[0]
-      ctx.anims.append([PathAnim(
+      ally_path = ctx.stage.pathfind(
+        start=ctx.ally.cell,
+        goal=target_cell,
+        predicate=lambda cell: is_cell_walkable_to_actor(ctx.stage, cell, ctx.ally)
+      ) or ctx.stage.pathfind(
+        start=ctx.ally.cell,
+        goal=target_cell,
+        predicate=lambda cell: is_tile_walkable_to_actor(ctx.stage, cell, ctx.ally)
+      )
+      ally_path and ctx.anims.append([PathAnim(
         target=ctx.ally,
         period=TILE_SIZE / 3,
-        path=ctx.stage.pathfind(
-          start=ctx.ally.cell,
-          goal=target_cell,
-          whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True)
-        )
+        path=ally_path
       )])
 
+    room_enemies = [e for e in ctx.stage.elems
+      if isinstance(e, DungeonActor)
+      and e.faction == "enemy"
+      and e.cell in ctx.room.cells]
+
+    ctx.anims.append([(lambda e: PathAnim(
+      target=e,
+      period=TILE_SIZE / 3,
+      path=ctx.stage.pathfind(
+        start=e.cell,
+        goal=e.ai_spawn,
+        whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True)
+      ),
+      on_end=lambda: (
+        setattr(e, "aggro", 0),
+        ctx.anims[-1].append(PauseAnim(
+          duration=2,  # HACK: prevent path anim from setting facing post on_end
+          on_end=lambda: setattr(e, "facing", (0, 1))
+        )),
+      ),
+    ))(e) for e in room_enemies if e.ai_spawn and e.cell != e.ai_spawn])
+
     ctx.exiting = True
+
     ctx.comps.skill_badge.exit()
     ctx.comps.sp_meter.exit()
     ctx.comps.hud.exit(on_end=lambda: (
       ctx.hero.core.anims.clear(),
       ctx.ally and ctx.ally.core.anims.clear(),
-      ctx.close()
     ))
+    ctx.exit_grid(on_end=ctx.close)
+
+  def enter_grid(ctx, on_end=None):
+    ctx.animate_grid(enter=True, on_end=on_end)
+
+  def exit_grid(ctx, on_end=None):
+    ctx.animate_grid(enter=False, on_end=on_end)
+
+  def animate_grid(ctx, enter=True, on_end=None):
+    if not ctx.room or not ctx.hero:
+      return
+
+    anim_group = ctx.anims[-1 if enter else 0] if ctx.anims else []
+    not anim_group in ctx.anims and ctx.anims.append(anim_group)
+
+    room = ctx.room
+    room_cells = room.cells
+    if not ctx.stage.is_overworld:
+      room_cells = [c for c in room_cells
+        if ctx.stage.is_cell_walkable(c, scale=TILE_SIZE)]
+
+    room_cells = sorted(room_cells, key=lambda c: c[1] * ctx.stage.width + c[0])
+    room_cells_by_dist = {}
+    origin_cell = sorted([room_cells[0], room_cells[-1]],
+      key=lambda c: manhattan(c, ctx.hero.cell))[0]
+
+    for cell in room_cells:
+      dist = manhattan(origin_cell, cell)
+      if dist in room_cells_by_dist:
+        room_cells_by_dist[dist].append(cell)
+      else:
+        room_cells_by_dist[dist] = [cell]
+
+    CombatGridCellAnim = (CombatGridCellEnterAnim
+      if enter
+      else CombatGridCellExitAnim)
+
+    for dist in sorted(room_cells_by_dist.keys()):
+      cells = room_cells_by_dist[dist]
+      anim_group += [CombatGridCellAnim(
+        target=cell,
+        delay=dist * 4
+      ) for cell in cells]
+
+    anim_group[-1].on_end = on_end
 
   def open(ctx, child, on_close=None):
     if type(child) is PauseContext:
       return False
     ctx.comps.skill_badge.exit()
     return super().open(child, on_close=lambda *data: (
-      (type(child) is not SkillContext or data == (None,)) and ctx.reload_skill_badge(),
+      (type(child) is not SkillContext or data == (None,)) and not ctx.exiting and ctx.reload_skill_badge(),
       on_close and on_close(*data), # TODO: clean up skill context output signature
     ))
 
@@ -211,16 +281,23 @@ class CombatContext(ExploreBase):
 
     tapping = input.get_state(button) == 1
     controls = input.resolve_controls(button)
+    ctrl = (input.get_state(pygame.K_LCTRL)
+      or input.get_state(pygame.K_RCTRL))
+
+    if button == pygame.K_q and ctrl and tapping:
+      return print(ctx.command_queue)
 
     delta = input.resolve_delta(button, fixed_axis=True) if button else (0, 0)
     if delta != (0, 0):
       if input.is_control_pressed(input.CONTROL_TURN):
         return ctx.handle_turn(delta)
+
       moved = ctx.handle_move(delta)
       if not moved and button not in ctx.buttons_rejected:
         ctx.buttons_rejected[button] = 0
       elif not moved and ctx.buttons_rejected[button] >= 30:
-        return ctx.handle_push()
+        return ctx.handle_push(fixed=True)
+
       return moved
 
     if input.CONTROL_WAIT in controls and tapping:
@@ -237,6 +314,12 @@ class CombatContext(ExploreBase):
         return acted
       elif input.get_state(button) >= 30 and not button in ctx.buttons_rejected:
         return ctx.handle_throw()
+
+    if input.CONTROL_ITEM in controls:
+      if ctx.hero.item:
+        return ctx.handle_throw()
+      else:
+        return ctx.handle_pickup()
 
     if input.CONTROL_MANAGE in controls and tapping:
       return ctx.handle_skill()
@@ -268,18 +351,19 @@ class CombatContext(ExploreBase):
       return ctx.handle_struggle(actor=hero)
 
     target_cell = vector.add(hero.cell, delta)
-    target_tile = ctx.stage.get_tile_at(target_cell)
 
     def on_move():
       ctx.update_bubble()
       ctx.make_noise(hero.cell, 0.5)
+      if not ctx.find_enemies_in_range():
+        ctx.exit()
 
     hero.facing = delta
     moved = ctx.move_cell(hero, delta, on_end=on_move)
-    if not moved and issubclass(target_tile, tileset.Pit):
+    if not moved and ctx.stage.is_tile_at_pit(target_cell):
       moved = ctx.leap(actor=hero, on_end=on_move)
 
-    moved and ctx.step()
+    moved and ctx.find_enemies_in_range() and ctx.step()
     return moved
 
   def move_to(ctx, actor, dest, run=False, on_end=None):
@@ -292,12 +376,14 @@ class CombatContext(ExploreBase):
         on_end and on_end()
         return False
 
+    pathfind = lambda: ctx.stage.pathfind(
+      start=actor.cell,
+      goal=dest,
+      predicate=lambda cell: is_cell_walkable_to_actor(ctx.stage, cell, actor, ignore_actors=True)
+    )
+
     if not actor.ai_path:
-      actor.ai_path = ctx.stage.pathfind(
-        start=actor.cell,
-        goal=dest,
-        whitelist=ctx.stage.find_walkable_room_cells(cell=actor.cell, ignore_actors=True)
-      )
+      actor.ai_path = pathfind()
 
     delta = ctx.find_move_to_delta(actor, dest)
     if actor.ai_path:
@@ -310,10 +396,10 @@ class CombatContext(ExploreBase):
 
     moved = False
     if delta != (0, 0):
-      moved = ctx.move_cell(actor, delta, run, on_end=on_end)
+      moved = ctx.move_cell(actor, delta, run, fixed=True, on_end=on_end)
 
     if not moved:
-      actor.ai_path = ctx.stage.pathfind(start=actor.cell, goal=dest)
+      actor.ai_path = pathfind()
       if not actor.ai_path:
         actor.ai_path = None
         actor.ai_target = None
@@ -359,6 +445,10 @@ class CombatContext(ExploreBase):
     return (delta_x, delta_y)
 
   def leap(ctx, actor, on_end=None):
+    middle_cell = vector.add(actor.cell, actor.facing)
+    if next((True for e in ctx.stage.get_elems_at(middle_cell) if e.solid), False):
+      return False
+
     delta = vector.scale(actor.facing, 2)
     moved = ctx.move_cell(actor, delta, jump=True, on_end=on_end)
     return moved
@@ -389,7 +479,9 @@ class CombatContext(ExploreBase):
     if hero.ailment == "freeze":
       return ctx.handle_struggle(actor=hero)
 
-    facing_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
+    origin_cell = downscale(hero.pos, scale=TILE_SIZE, floor=True)
+    facing_cell = vector.add(origin_cell, ctx.hero.facing)
+
     facing_actor = ctx.facing_actor
     itemdrop = next((e for e in ctx.stage.get_elems_at(facing_cell) if isinstance(e, ItemDrop)), None)
 
@@ -407,33 +499,43 @@ class CombatContext(ExploreBase):
       not ctx.anims and ctx.anims.append([])
       ctx.anims[0].insert(0, AttackAnim(
         target=ctx.hero,
-        src=ctx.hero.cell,
-        dest=vector.add(ctx.hero.cell, ctx.hero.facing),
+        src=origin_cell,
+        dest=facing_cell,
       ))
       ctx.update_bubble()
 
     return action_result
 
   def handle_attack(ctx):
-    target_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
-    target_actor = next((e for e in ctx.stage.get_elems_at(target_cell) if isinstance(e, DungeonActor)), None)
-    ctx.store.sp -= 1
-    return ctx.attack(actor=ctx.hero, target=target_actor, on_end=ctx.step)
+    target_actor = ctx.facing_actor
+    if not target_actor:
+      return False
 
-  def attack(ctx, actor, target=None, modifier=1, animate=True, on_end=None):
+    attacked = ctx.attack(actor=ctx.hero, target=target_actor, on_end=ctx.step)
+    if attacked:
+      ctx.store.sp -= 1
+
+    return attacked
+
+  def attack(ctx, actor, target=None, atk_mod=1, crit_mod=1, animate=True, on_end=None):
+    if actor.dead or actor.weapon is None:
+      on_end and on_end()
+      return False
+
+    miss, crit, block = False, False, False
     if target:
       actor.face(target.cell)
       miss = will_miss(actor, target)
       block = will_block(actor, target) and not miss
-      crit = will_crit(actor, target) and not block
+      crit = will_crit(actor, target, mod=crit_mod) and not block
       if miss:
         damage = None
       elif block:
-        damage = max(0, find_damage(actor, target, modifier) - target.find_shield().en)
+        damage = max(0, find_damage(actor, target, atk_mod) - target.find_shield().en)
       elif crit:
-        damage = find_damage(actor, target, modifier=modifier * CRIT_MODIFIER)
+        damage = find_damage(actor, target, atk_mod=atk_mod * CRIT_MODIFIER)
       else:
-        damage = find_damage(actor, target, modifier)
+        damage = find_damage(actor, target, atk_mod)
 
     attack_command = (actor, (COMMAND_ATTACK, target))
     ctx.command_queue.append(attack_command)
@@ -449,7 +551,7 @@ class CombatContext(ExploreBase):
         direction=actor.facing,
         on_end=lambda: (
           attack_command in ctx.command_queue and ctx.command_queue.remove(attack_command),
-          on_end and on_end()
+          on_end and on_end(),
         ),
       )
     )
@@ -517,9 +619,9 @@ class CombatContext(ExploreBase):
     cleanup = lambda: (
       ctx.kill(target, on_end=on_end)
         if (
-          (target.is_dead() or issubclass(ctx.stage.get_tile_at(target.cell), tileset.Pit))
+          (target.is_dead() or ctx.stage.is_tile_at_pit(target.cell))
           and (not ctx.room or ctx.room.on_defeat(ctx, target))
-        ) else on_end and on_end()
+          ) else on_end and on_end(),
     )
 
     if damage and target.item:
@@ -556,13 +658,21 @@ class CombatContext(ExploreBase):
       cleanup()
 
   def nudge(ctx, actor, direction, on_end=None):
-    source_cell = actor.cell
+    source_cell = downscale(actor.pos, scale=TILE_SIZE, floor=True)
     target_cell = vector.add(source_cell, direction)
-    target_tile = ctx.stage.get_tile_at(target_cell)
-    if not ctx.stage.is_cell_empty(target_cell) and not issubclass(target_tile, tileset.Pit):
+    enemy_territory = (next((r for r in ctx.stage.rooms if actor.cell in r.cells), None)
+      if actor.faction == "enemy"
+      else None)
+
+    if enemy_territory and target_cell not in enemy_territory.cells:
       return False
 
-    actor.cell = target_cell
+    if (not ctx.stage.is_cell_empty(target_cell, scale=TILE_SIZE)
+    and not ctx.stage.is_tile_at_pit(target_cell)):
+      return False
+
+    actor.cell = vector.add(actor.cell, direction)
+
     not ctx.anims and ctx.anims.append([])
     ctx.anims[0].append(StepAnim(
       duration=NUDGE_DURATION,
@@ -606,7 +716,9 @@ class CombatContext(ExploreBase):
     if not ctx.hero:
       return False
 
-    if not ctx.ally or ctx.ally.dead:
+    if (not ctx.ally
+    or ctx.ally.dead
+    or ctx.room and ctx.ally.cell not in ctx.room.cells):
       ctx.comps.hud.shake()
       return False
 
@@ -630,6 +742,7 @@ class CombatContext(ExploreBase):
       return
     ctx.comps.skill_badge.exit()
     ctx.comps.hud.exit()
+    ctx.comps.sp_meter.exit()
     ctx.open(GameOverContext())
 
   def handle_skill(ctx):
@@ -639,6 +752,9 @@ class CombatContext(ExploreBase):
 
     if hero.ailment == "freeze":
       return ctx.handle_struggle(actor=hero)
+
+    if hero.item:
+      return False
 
     ctx.open(SkillContext(
       actor=hero,
@@ -655,31 +771,34 @@ class CombatContext(ExploreBase):
   def use_skill(ctx, actor, skill, dest=None, on_end=None):
     skill = resolve_skill(skill) if isinstance(skill, str) else skill
 
+    if actor.dead:
+      return on_end and on_end()
+
     if actor.faction == "player":
       ctx.store.sp -= skill.cost
 
     skill_command = (actor, (COMMAND_SKILL, skill, dest))
     ctx.command_queue.append(skill_command)
-    cache_camera_target_count = len(ctx.camera.target_groups)
+
+    target_focus = None
+    def on_start(*target):
+      target = target[0] if target else None
+      if target:
+        nonlocal target_focus
+        target_focus = upscale(target, TILE_SIZE)
+        ctx.camera.focus(target=target_focus, force=True)
+
+      ctx.display_skill(skill, user=actor)
+      actor.faction == "player" and ctx.reload_skill_badge(delay=120)
+
     skill.effect(
       ctx,
       actor,
       dest,
-      on_start=lambda *target: (
-        target and ctx.camera.focus(
-          target=(
-            upscale(target[0], TILE_SIZE)
-              if type(target[0]) is tuple
-              else target[0]
-          ),
-          force=True
-        ),
-        ctx.display_skill(skill, user=actor),
-        actor.faction == "player" and ctx.reload_skill_badge(delay=120),
-      ),
+      on_start=on_start,
       on_end=lambda: (
         skill_command in ctx.command_queue and ctx.command_queue.remove(skill_command),
-        len(ctx.camera.target_groups) > cache_camera_target_count and ctx.camera.blur(),
+        target_focus and ctx.camera.blur(target_focus),
         on_end and on_end(),
       )
     )
@@ -701,6 +820,9 @@ class CombatContext(ExploreBase):
   def handle_shortcut(ctx):
     hero = ctx.hero
     if not hero:
+      return False
+
+    if hero.item:
       return False
 
     skill = ctx.store.get_selected_skill(hero.core)
@@ -769,6 +891,9 @@ class CombatContext(ExploreBase):
     ctx.update_command()
 
   def update_command(ctx):
+    if not ctx.command_gen and not ctx.command_queue and ctx.turns_completed < ctx.turns:
+      ctx.end_step()
+
     if not ctx.command_queue:
       ctx.command_discarded = False
 
@@ -785,16 +910,23 @@ class CombatContext(ExploreBase):
 
     if ctx.command_pending:
       actor, command = ctx.command_pending
-      chain = actor.turns > 1
-      ctx.command_pending = None
-      ctx.step_command(actor, command, chain)
+      queue_has_action = next((True for a, c in ctx.command_queue
+        if c[0] not in (COMMAND_MOVE, COMMAND_WAIT)
+      ), False)
+
+      if not queue_has_action:
+        chain = actor.turns > 1
+        ctx.command_pending = None
+        ctx.step_command(actor, command, chain)
 
   def step(ctx):
+    ctx.turns += 1
     actors = [e for e in ctx.stage.elems if
       isinstance(e, DungeonActor)
       and e is not ctx.hero
       and e is not ctx.ally
       and not e.is_dead()
+      and (not ctx.room or e.cell in ctx.room.cells)
       and e.cell in ctx.hero.visible_cells
     ]
     ctx.step_distribute(actors)
@@ -833,32 +965,28 @@ class CombatContext(ExploreBase):
         yield ctx.ally, command
 
     for actor in actors:
-      if not actor.hp:
+      if actor.dead:
         continue
 
       while actor.turns >= 1:
         actor.turns -= 1
 
-        if actor.charge_turns == 1 and ctx.command_queue:
-          yield None
+        if actor.dead:
+          break
 
         actor.step_aggro()
         command = actor.step_charge()
 
         while not command:
-          command = ctx.step_enemy(actor)
+          if actor.dead:
+            break
 
+          command = ctx.step_enemy(actor, force=True)
           if not command:
             break
 
-          if command[0] in (COMMAND_ATTACK, COMMAND_SKILL) and ctx.command_queue:
-            command = None
-            yield None
-
         if command:
           yield actor, command
-
-    ctx.end_step()
 
   def step_ally(ctx, actor):
     if not ctx.hero or not actor.can_step():
@@ -878,8 +1006,8 @@ class CombatContext(ExploreBase):
       enemy = sorted(enemies, key=lambda e: manhattan(e.cell, ctx.ally.cell) + e.hp / 10)[0]
       return (COMMAND_MOVE_TO, enemy.cell)
 
-  def step_enemy(ctx, actor):
-    if not actor.can_step():
+  def step_enemy(ctx, actor, force=False):
+    if not actor.can_step() and not force:
       return None
     return actor.step(ctx)
 
@@ -887,7 +1015,7 @@ class CombatContext(ExploreBase):
     on_end = on_end or (lambda: None)
 
     command_name, *command_args = command
-    if actor.is_immobile():
+    if actor.is_immobile() or actor.dead:
       return on_end()
 
     if command_name == COMMAND_MOVE:
@@ -926,7 +1054,7 @@ class CombatContext(ExploreBase):
     effect_elem and effect_elem.effect(ctx, actor)
 
   def end_step(ctx):
-    ctx.turns += 1
+    ctx.turns_completed += 1
 
     actors = [e for e in ctx.stage.elems if isinstance(e, DungeonActor)]
     for actor in actors:
@@ -938,3 +1066,80 @@ class CombatContext(ExploreBase):
       elem.step(ctx)
 
     ctx.stage.elems = [e for e in ctx.stage.elems if not e.done]
+
+    hero = ctx.hero
+    if not hero:
+      return
+
+    if hero.ailment == "sleep":
+      ally = ctx.ally
+      if ally and ally.can_step():
+        ctx.handle_charswap()
+      else:
+        ctx.step()
+
+  def view(ctx):
+    return (ctx.view_grid() if ctx.hero else []) + super().view()
+
+  def view_grid(ctx):
+    if ctx.stage_view.darkened:
+      return []
+
+    room = ctx.room
+    if not room or ctx.stage.is_overworld and room == ctx.stage.rooms[-1]:
+      return []
+
+    topleft_pos = ctx.stage_view.camera.rect.topleft
+    topleft_cell = vector.floor(
+      vector.scale(topleft_pos, 1 / TILE_SIZE)
+    )
+    left_col, top_row = topleft_cell
+    cols = WINDOW_WIDTH // TILE_SIZE + 2
+    rows = WINDOW_HEIGHT // TILE_SIZE + 2
+
+    room_cells = room.cells
+    if not ctx.stage.is_overworld:
+      room_cells = [c for c in room_cells
+        if ctx.stage.is_cell_walkable(c)]
+
+    grid_cells = [(x, y)
+      for y in range(top_row, top_row + rows)
+      for x in range(left_col, left_col + cols)
+          if (x, y) in room_cells]
+
+    GRID_CELL_ELEV = 16
+
+    render_grid_cell = lambda image, cell: (
+      will_anim := next((a for g in ctx.stage_view.anims for a in g
+        if isinstance(a, CombatGridCellAnim) and a.target == cell), None),
+      cell_anim := will_anim
+        if will_anim in (ctx.stage_view.anims[0] if ctx.stage_view.anims else [])
+        else None,
+      cell_anim_pos := (ease_out(cell_anim.pos)
+        if isinstance(cell_anim, CombatGridCellEnterAnim)
+        else 1 - cell_anim.pos)
+          if cell_anim and cell_anim.time >= 0
+          else inf if (not ctx.exiting and cell_anim or ctx.exiting and not will_anim) else 1,
+      cell_offset := (-1 + cell_anim_pos) * GRID_CELL_ELEV,
+      Sprite(
+        image=image,
+        pos=vector.subtract(
+          vector.add(
+            tuple([x * TILE_SIZE for x in cell]),
+            (cell_offset, TILE_SIZE + cell_offset)
+          ),
+          topleft_pos,
+        ),
+        layer="markers",
+        origin=Sprite.ORIGIN_BOTTOMLEFT,
+        target=cell,
+      ) if cell_offset != inf
+          and not (cell_anim and cell_anim.time % 2)
+          and not (not ctx.exiting and not cell_anim and will_anim)
+        else None
+    )[-1]
+
+    return [cell_sprite for cell in grid_cells if (cell_sprite := render_grid_cell(
+      image=assets.sprites["combat_grid_cell"],
+      cell=cell,
+    ))]

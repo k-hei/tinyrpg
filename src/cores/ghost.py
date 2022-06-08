@@ -24,12 +24,12 @@ class Ghost(Core):
     frames = assets.sprites["ghost_whip"]
     frames_duration = [7, 7, 40]
 
-  def __init__(ghost, name="Ghost", faction="enemy", *args, **kwargs):
+  def __init__(ghost, name="Greedy Ghost", faction="enemy", *args, **kwargs):
     super().__init__(
       name=name,
       faction=faction,
       stats=Stats(
-        hp=14,
+        hp=17,
         st=13,
         dx=7,
         ag=14,

@@ -11,6 +11,7 @@ def on_place(room, stage):
   if not door_cells:
     debug.log("Failed to place oasis interior elements: No door cells in range")
     return
+
   start = door_cells[0]
   valid_cells = [start]
   stack = [start]
@@ -26,6 +27,7 @@ def on_place(room, stage):
         continue
       stack.append(neighbor)
       valid_cells.append(neighbor)
+
   valid_cells = [c for c in valid_cells if manhattan(c, start) > 2]
   shuffle(valid_cells)
   while palms_left and valid_cells:

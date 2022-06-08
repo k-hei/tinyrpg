@@ -3,8 +3,10 @@ from locations.default.tile import Tile
 from colors.palette import BLACK
 from config import TILE_SIZE
 
+
 black_square = Surface((TILE_SIZE, TILE_SIZE))
 black_square.fill(BLACK)
+
 
 class Floor(Tile):
   pass

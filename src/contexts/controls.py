@@ -15,7 +15,7 @@ from game.controls import TYPE_A
 from comps.control import Control
 from comps.title import Title
 from comps.bg import Bg
-from lib.sprite import Sprite
+from lib.sprite import Sprite, SpriteGroup
 from anims import Anim
 from anims.tween import TweenAnim
 from anims.sine import SineAnim
@@ -177,6 +177,10 @@ class ControlsContext(Context):
       reset_hint = next((c for c in ctx.hints if c.value == "Reset"), None)
       reset_hint and reset_hint.press()
 
+    if button == pygame.K_TAB:
+      ctx.buttons_rejected.add(button)
+      return ctx.handle_multiconfig()
+
     button = input.resolve_button(button) or button
     if (press_time == 1
     or press_time > 30 and press_time % 2):
@@ -207,7 +211,7 @@ class ControlsContext(Context):
     if input.CONTROL_CANCEL in controls:
       return ctx.handle_close()
 
-    if button == pygame.K_TAB or input.CONTROL_PAUSE in controls:
+    if input.CONTROL_PAUSE in controls:
       ctx.buttons_rejected.add(button)
       return ctx.handle_multiconfig()
 
@@ -358,17 +362,18 @@ class ControlsContext(Context):
     scroll_group_id, _ = transpose_index(ctx.scroll_index)
     cursor_group_id, _ = transpose_index(ctx.cursor_index)
 
-    heading_font = assets.ttf["english"]
-    heading_x = OPTIONS_X - heading_font.width([*groups.items()][0][0])
-    heading_y = HEADINGS_Y
-    for i, (heading, group) in enumerate(groups.items()):
-      heading_color = WHITE if i == cursor_group_id else GRAY
-      heading_image = heading_font.render(heading, color=heading_color)
-      sprites.append(Sprite(
-        image=heading_image,
-        pos=(heading_x, heading_y),
-      ))
-      heading_x += heading_image.get_width() + CONTROL_OFFSET
+    if not ctx.exiting:
+      heading_font = assets.ttf["english"]
+      heading_x = OPTIONS_X - heading_font.width([*groups.items()][0][0])
+      heading_y = HEADINGS_Y
+      for i, (heading, group) in enumerate(groups.items()):
+        heading_color = WHITE if i == cursor_group_id else GRAY
+        heading_image = heading_font.render(heading, color=heading_color)
+        sprites.append(Sprite(
+          image=heading_image,
+          pos=(heading_x, heading_y),
+        ))
+        heading_x += heading_image.get_width() + CONTROL_OFFSET
 
     # controls
     max_scroll = min(find_total_control_count(), ctx.scroll_index + CONTROLS_VISIBLE + 1)
@@ -466,11 +471,10 @@ class ControlsContext(Context):
 
     sprites += ctx.title.view()
 
-    for sprite in sprites:
-      if not sprite.layer:
-        sprite.layer = "ui"
-
-    return sprites + super().view()
+    return [SpriteGroup(
+      children=sprites,
+      layer="ui"
+    ), *super().view()]
 
 def render_button(button, mappings=None, color=BLUE):
   if type(button) is str:

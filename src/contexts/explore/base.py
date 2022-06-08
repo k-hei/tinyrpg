@@ -1,11 +1,13 @@
 from math import ceil
 from random import random, randint
-from lib.cell import manhattan, upscale, downscale
+from lib.cell import manhattan, upscale, downscale, is_adjacent
 import lib.vector as vector
 import lib.input as input
 from lib.direction import invert as invert_direction, normal as normalize_direction
 from helpers.findactor import find_actor
+from helpers.stage import is_cell_walkable_to_actor, is_tile_walkable_to_actor
 from contexts import Context
+from contexts.cutscene import CutsceneContext
 from anims.item import ItemAnim
 from anims.step import StepAnim
 from anims.attack import AttackAnim
@@ -15,10 +17,13 @@ from anims.awaken import AwakenAnim
 from items.materials import MaterialItem
 from dungeon.actors import DungeonActor
 from dungeon.props.itemdrop import ItemDrop
+from dungeon.gen.floorgraph import FloorGraph
 from locations.default.tile import Tile
 import locations.default.tileset as tileset
 from vfx.talkbubble import TalkBubble
-from config import MOVE_DURATION, PUSH_DURATION, SKILL_BADGE_POS_SOLO, SKILL_BADGE_POS_ALLY
+from config import MOVE_DURATION, PUSH_DURATION, SKILL_BADGE_POS_SOLO, SKILL_BADGE_POS_ALLY, TILE_SIZE
+import debug
+
 
 COMMAND_MOVE = "move"
 COMMAND_MOVE_TO = "move_to"
@@ -71,10 +76,14 @@ class ExploreBase(Context):
 
   @property
   def visited_cells(ctx):
-    stage_id = ctx.graph.nodes.index(ctx.stage)
+    stage_id = (ctx.graph.nodes.index(ctx.stage)
+      if isinstance(ctx.graph, FloorGraph)
+      else -1)
+
     visited_cells = ctx.memory[stage_id] if stage_id in ctx.memory else None # next((cs for (s, cs) in ctx.memory if s is ctx.stage), None)
     if visited_cells is None:
       ctx.memory[stage_id] = (visited_cells := [])
+
     return visited_cells
 
   def extend_visited_cells(ctx, cells):
@@ -95,7 +104,10 @@ class ExploreBase(Context):
 
   @property
   def graph(ctx):
-    return ctx._graph if "_graph" in dir(ctx) else ctx.parent.graph
+    try:
+      return ctx._graph
+    except AttributeError:
+      return ctx.parent.graph
 
   @graph.setter
   def graph(ctx, graph):
@@ -123,20 +135,28 @@ class ExploreBase(Context):
 
   @property
   def facing_elem(ctx):
-    if not ctx.hero:
+    hero = ctx.hero
+    if not hero:
       return None
-    facing_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
-    facing_elems = ctx.stage.get_elems_at(facing_cell)
-    return next((e for e in facing_elems if (
+
+    facing_cell = vector.add(hero.cell, hero.facing)
+    facing_elems = ctx.stage.get_elems_at(facing_cell, scale=TILE_SIZE)
+    facing_elem = next((e for e in facing_elems if (
       e.active
       and not e.expires
       and (not isinstance(e, DungeonActor) or e.faction == "ally")
     )), None)
 
+    return facing_elem
+
   @property
   def facing_actor(ctx):
-    facing_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
-    facing_elems = ctx.stage.get_elems_at(facing_cell)
+    if not ctx.hero:
+      return None
+
+    origin_cell = downscale(ctx.hero.pos, scale=TILE_SIZE, floor=True)
+    facing_cell = vector.add(origin_cell, ctx.hero.facing)
+    facing_elems = ctx.stage.get_elems_at(facing_cell, scale=TILE_SIZE)
     return next((e for e in facing_elems if isinstance(e, DungeonActor)), None)
 
   def find_closest_enemy(ctx, actor, elems=None):
@@ -154,14 +174,17 @@ class ExploreBase(Context):
 
     return enemies[0]
 
-  def find_enemies_in_range(ctx):
-    room = next((r for r in ctx.stage.rooms if ctx.hero.cell in r.cells), None)
+  def find_enemies(ctx):
     return [e for e in ctx.stage.elems if
       isinstance(e, DungeonActor)
       and e.faction == DungeonActor.FACTION_ENEMY
-      and not e.dead
-      and room and e.cell in room.cells
-    ]
+      and not e.dead]
+
+  def find_enemies_in_range(ctx):
+    room = ctx.find_room(ctx.hero.cell)  # ctx.room
+    return [e for e in ctx.find_enemies()
+      if room and room.size != ctx.stage.size
+      and e.cell in room.cells]
 
   def reload_skill_badge(ctx, delay=0):
     if not ctx.hero:
@@ -169,17 +192,29 @@ class ExploreBase(Context):
     ctx.comps.skill_badge.pos = SKILL_BADGE_POS_ALLY if ctx.store.ally else SKILL_BADGE_POS_SOLO
     ctx.comps.skill_badge.reload(skill=ctx.store.get_selected_skill(ctx.hero.core), delay=delay)
 
+  def print(ctx, message):
+    ctx.comps.minilog.print(message)
+
   def move_cell(ctx, actor, delta, duration=0, jump=False, fixed=True, on_end=None):
-    target_cell = vector.add(actor.cell, delta)
-    target_tile = ctx.stage.get_tile_at(target_cell)
-    origin_tile = ctx.stage.get_tile_at(actor.cell)
-    if (not Tile.is_walkable(target_tile)
-    or abs(target_tile.elev - origin_tile.elev) >= 1):
+    move_src = actor.cell if fixed else downscale(actor.pos, TILE_SIZE)
+    move_dest = vector.add(actor.cell, delta)
+
+    if (not is_cell_walkable_to_actor(ctx.stage, move_dest, actor)
+    and not (ctx.ally and move_dest == ctx.ally.cell)):
+      return False
+
+    # block player movement outside of enemy territory if adjacent to enemy
+    if (move_dest not in ctx.room.cells
+    and [e for e in ctx.find_enemies() if is_adjacent(e.cell, actor.cell)]):
+      return False
+
+    # block enemy movement outside of own territory
+    if actor.ai_territory and move_dest not in actor.ai_territory.cells:
       return False
 
     target_elem = (
-      next((e for e in ctx.stage.get_elems_at(target_cell) if e.solid), None)
-      or next((e for e in ctx.stage.get_elems_at(target_cell)), None)
+      next((e for e in ctx.stage.get_elems_at(move_dest) if e.solid), None)
+      or next((e for e in ctx.stage.get_elems_at(move_dest)), None)
     )
 
     if target_elem and target_elem.solid and not (target_elem is ctx.ally and not ctx.ally.command):
@@ -189,31 +224,38 @@ class ExploreBase(Context):
     has_command_queue = "command_queue" in dir(ctx)
     has_command_queue and ctx.command_queue.append(move_command)
 
-    move_src = actor.cell if fixed else downscale(actor.pos, ctx.stage.tile_size)
-    move_dest = target_cell if fixed else vector.add(move_src, delta)
     move_duration = duration or MOVE_DURATION
     move_duration = move_duration * 1.5 if jump else move_duration
     move_kind = JumpAnim if jump else StepAnim
     move_anim = move_kind(
       target=actor,
       src=move_src,
-      dest=move_dest,
+      dest=vector.add(move_src, delta),
       duration=move_duration,
       on_end=lambda: (
         has_command_queue and move_command in ctx.command_queue and ctx.command_queue.remove(move_command),
+        actor == ctx.hero and (prop := next((e for e in ctx.stage.elems if
+          not e.solid
+          and actor.cell == e.cell
+        ), None)) and prop.effect(ctx, actor),
         on_end and on_end(),
       )
     )
     move_anim.update() # initial update to ensure walk animation loops seamlessly
 
-    move_group = next((g for g in ctx.anims for a in g if isinstance(a, StepAnim) and isinstance(a.target, DungeonActor)), None)
+    move_group = next((g for g in ctx.anims for a in g
+        if isinstance(a, StepAnim)
+        and isinstance(a.target, DungeonActor)
+        and not next((True for a in g if a.target is actor), False)), None)
     not move_group and ctx.anims.append(move_group := [])
     move_group.append(move_anim)
+
     if jump:
       ctx.anims[-1].append(PauseAnim(duration=move_duration + 5))
 
     ctx.update_bubble()
-    actor.cell = target_cell
+
+    actor.cell = move_dest
     actor.facing = normalize_direction(delta)
     actor.command = move_command
 
@@ -232,17 +274,20 @@ class ExploreBase(Context):
       received_noise = max(0, noise_factor - manhattan(cell, actor.cell) + 1)
       if actor.ailment == DungeonActor.AILMENT_SLEEP:
         if random() < received_noise:
-          actor.wake_up()
           actor.alert(cell)
-          ctx.anims.append([AwakenAnim(
-            duration=30,
-            target=actor,
-          )])
+          if actor.wake_up():
+            ctx.anims.append([AwakenAnim(
+              duration=30,
+              target=actor,
+            )])
       elif random() < received_noise * 2:
         actor.alert(cell)
 
-  def handle_push(ctx):
+  def handle_push(ctx, fixed=False):
     target_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
+    if not is_tile_walkable_to_actor(ctx.stage, cell=target_cell, actor=ctx.hero):
+      return False
+
     target_elem = next((e for e in ctx.stage.get_elems_at(target_cell) if e.solid and not e.static), None)
     if not target_elem:
       return False
@@ -250,26 +295,28 @@ class ExploreBase(Context):
     return ctx.push(
       actor=ctx.hero,
       target=target_elem,
+      fixed=fixed,
       on_end=lambda: (
         ctx.update_bubble(),
         "step" in dir(ctx) and ctx.step(),
       )
     )
 
-  def push(ctx, actor, target, on_end=None):
+  def push(ctx, actor, target, fixed=False, on_end=None):
     src_cell = target.cell
     dest_cell = vector.add(src_cell, actor.facing)
-    dest_tile = ctx.stage.get_tile_at(dest_cell)
-    dest_elem = next((e for e in ctx.stage.get_elems_at(dest_cell) if e.solid), None)
+
+    # TODO: collide against all target cells
+    dest_elem = next((e for e in ctx.stage.get_elems_at(dest_cell)
+      if e.solid and e is not target), None)
+
     if (target.static
-    or dest_tile is None
-    or dest_tile.solid
-    or dest_tile.pit
+    or not is_tile_walkable_to_actor(ctx.stage, cell=dest_cell, actor=target)
     or dest_elem):
       return False
 
     target.cell = dest_cell
-    ctx.move_cell(actor, delta=actor.facing, duration=PUSH_DURATION, fixed=False, on_end=on_end)
+    ctx.move_cell(actor, delta=actor.facing, duration=PUSH_DURATION, fixed=fixed, on_end=on_end)
     not ctx.anims and ctx.anims.append([])
     ctx.anims[-1].extend([
       StepAnim(
@@ -347,6 +394,7 @@ class ExploreBase(Context):
 
     facing_cell = vector.add(actor.cell, actor.facing)
     if (Tile.is_solid(ctx.stage.get_tile_at(facing_cell))
+    or ctx.stage.is_tile_at_pit(facing_cell)
     or next((e for e in ctx.stage.get_elems_at(facing_cell) if
       isinstance(e, ItemDrop)
       or not isinstance(e, DungeonActor)
@@ -386,13 +434,12 @@ class ExploreBase(Context):
     throwing = True
     while throwing:
       next_cell = vector.add(target_cell, actor.facing)
-      next_tile = ctx.stage.get_tile_at(next_cell)
       next_elem = next((e for e in ctx.stage.get_elems_at(next_cell) if
         e.solid
         and not (ctx.hero and ctx.ally and actor is ctx.hero and e is ctx.ally)
       ), None)
 
-      if (not isinstance(next_tile, tileset.Pit) and Tile.is_solid(next_tile)
+      if (not ctx.stage.is_tile_at_pit(next_cell) and ctx.stage.is_tile_at_solid(next_cell, scale=TILE_SIZE)
       or next((e for e in ctx.stage.get_elems_at(next_cell) if (
         e.solid
         and not isinstance(e, DungeonActor)
@@ -405,10 +452,10 @@ class ExploreBase(Context):
         throwing = False
 
       target_cell = next_cell
-      if not isinstance(next_tile, tileset.Pit):
+      if not ctx.stage.is_tile_at_pit(next_cell):
         nonpit_cell = next_cell
 
-    if not isinstance(ctx.stage.get_tile_at(target_cell), tileset.Pit):
+    if not ctx.stage.is_tile_at_pit(target_cell):
       target_cell = nonpit_cell
 
     return target_cell, target_elem
@@ -518,7 +565,8 @@ class ExploreBase(Context):
       ctx.buttons_rejected[button] += 1
 
   def update_bubble(ctx):
-    if not ctx.hero:
+    hero = ctx.hero
+    if not hero:
       if ctx.talkbubble:
         ctx.talkbubble.done = True
       return
@@ -526,14 +574,17 @@ class ExploreBase(Context):
     facing_elem = ctx.facing_elem
     facing_cell = facing_elem and facing_elem.cell
     if not facing_elem:
-      facing_cell = ctx.hero.cell
+      facing_cell = hero.cell
       facing_tile = ctx.stage.get_tile_at(facing_cell)
-      if facing_tile and issubclass(facing_tile, (tileset.Entrance, tileset.Exit)):
+      if ctx.stage.is_tile_at_port(facing_cell):
         facing_elem = facing_tile
 
     pending_anims = [a for g in ctx.anims for a in g if not a.done]
 
-    can_show_bubble = not pending_anims and not ctx.hero.item and not (ctx.child and ctx.child.child)
+    can_show_bubble = (not pending_anims
+      and not hero.item
+      and not (ctx.child and ctx.child.child)
+      and not isinstance(ctx.get_tail(), CutsceneContext))
     if ctx.talkbubble and ctx.talkbubble.target is facing_elem and can_show_bubble:
       return
 
@@ -544,7 +595,7 @@ class ExploreBase(Context):
       ctx.vfx.append(TalkBubble(
         target=facing_elem,
         cell=facing_cell,
-        flipped=ctx.camera.is_pos_beyond_yrange(pos=vector.scale(facing_cell, ctx.stage.tile_size)),
+        flipped=ctx.camera.is_pos_beyond_yrange(pos=vector.scale(facing_cell, TILE_SIZE)),
       ))
 
   def darken(ctx):
@@ -555,5 +606,9 @@ class ExploreBase(Context):
     ctx.stage_view.undarken()
     ctx.redraw_tiles()
 
-  def redraw_tiles(ctx):
-    ctx.stage_view.redraw_tiles(hero=ctx.hero, visited_cells=ctx.visited_cells)
+  def redraw_tiles(ctx, force=False):
+    ctx.stage_view.redraw_tiles(
+      hero=ctx.hero,
+      visited_cells=ctx.visited_cells,
+      force=force,
+    )

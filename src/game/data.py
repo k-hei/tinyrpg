@@ -59,7 +59,9 @@ class GameData:
       return json.JSONEncoder.default(encoder, obj)
 
   def encode(store):
-    place = type(store.place).__name__.startswith("Town") and "town" or "dungeon"
+    place = ("town" if type(store.place).__name__.startswith("Town")
+      else "dungeon" if not store.place.stage.is_overworld
+      else None)
     builds = {}
     for char, pieces in store.builds.items():
       build = {}
@@ -132,6 +134,11 @@ class GameData:
   def ally(store):
     return store.party[1] if len(store.party) >= 2 else None
 
+  def restore_party(store):
+    store.sp = store.sp_max
+    for core in store.party:
+      core.heal()
+
   def obtain(store, target):
     if isinstance(target, Item) or type(target) is type and issubclass(target, Item):
       return store.obtain_item(item=target)
@@ -169,8 +176,35 @@ class GameData:
     store.skills.sort(key=get_skill_order)
     return True
 
-  def load_build(store, actor, build):
-    store.builds[type(actor).__name__] = build
+  def forget_skill(store, skill):
+    if skill not in store.skills:
+      return False
+
+    store.skills.remove(skill)
+
+    if skill in store.new_skills:
+      store.new_skills.remove(skill)
+
+    store.unequip_skill(skill)
+    return True
+
+  def unequip_skill(store, skill, actor=None):
+    if actor is None:
+      for actor in store.builds.keys():
+        store.unequip_skill(skill, actor)
+      return
+
+    build = store.builds[actor]
+    piece = next(((s, c) for s, c in build if s is skill), None)
+    if piece:
+      build.remove(piece)
+
+  def load_build(store, actor, build=None):
+    if build:
+      store.builds[type(actor).__name__] = build
+    else:
+      build = store.builds[type(actor).__name__]
+
     actor.skills = sorted([skill for skill, cell in build], key=get_skill_order)
     active_skills = actor.get_active_skills()
     store.set_selected_skill(actor, skill=next((s for s in active_skills if not issubclass(s, Weapon)), None))

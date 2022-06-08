@@ -1,7 +1,7 @@
 from dungeon.props.door import Door, SpriteMap
 from contexts.prompt import PromptContext, Choice
 from lib.filters import replace_color
-from colors.palette import SAFFRON, GOLD
+from colors.palette import GOLD
 from items.dungeon.key import Key
 
 class RareTreasureDoor(Door):
@@ -19,7 +19,8 @@ class RareTreasureDoor(Door):
   def effect(door, game, *args, **kwargs):
     effect = super().effect
     if door.opened:
-      return
+      return False
+
     inventory = game.store.items
     if Key in inventory:
       game.open(PromptContext(("Use the ", Key().token(), "?"), [
@@ -34,7 +35,9 @@ class RareTreasureDoor(Door):
     else:
       game.comps.minilog.print("The door is locked...")
 
+    return True
+
   def render(door, anims):
     sprite = super().render(anims)
-    sprite.image = replace_color(sprite.image, SAFFRON, GOLD)
+    sprite.image = replace_color(sprite.image, door.color, GOLD)
     return sprite

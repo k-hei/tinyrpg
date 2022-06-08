@@ -2,9 +2,12 @@ from os import listdir
 from os.path import isfile, join, splitext, basename
 import re
 
+
+class_pattern = re.compile("class (\w+)\(\w+")
+
+
 def collect_imports(path, prefix="", exclude=[], root=False):
   imports = {}
-  pattern = re.compile("class (\w+)\(\w+")
   if not prefix:
     prefix = []
   elif type(prefix) is str:
@@ -19,7 +22,7 @@ def collect_imports(path, prefix="", exclude=[], root=False):
       name, _ = splitext(item)
       item_file = open(item_path, "r")
       item_contents = item_file.read()
-      match = pattern.search(item_contents)
+      match = class_pattern.search(item_contents)
       if match:
         key = match.group(1)
         imports[key] = ".".join([basename(path), *prefix, name])
@@ -52,17 +55,25 @@ def build_floors(floors):
   write_mapping(name="floor", mapping=floors)
 
 def collect_tilesets(path):
-  tilesets = []
+  tilesets = {}
+
   for f in listdir(path):
     if f.startswith("__"):
       continue
-    hook_path = join(path, f)
-    if isfile(hook_path):
-      hook_key, _ = splitext(f)
-    else:
-      hook_key = f
-    if "tiles" in listdir(hook_path):
-      tilesets.append(hook_key)
+
+    tileset_path = join(path, f)
+    if isfile(tileset_path):
+      continue
+
+    tileset_key = f
+    if "tiles" in listdir(tileset_path):
+      with open(join(tileset_path, "tiles", "__init__.py"), mode="r", encoding="utf-8") as file:
+        file_buffer = file.read()
+      tileset_pattern = re.compile("class (\w+)Tileset\(\w+")
+      match = tileset_pattern.search(file_buffer)
+      tileset_name = match.group(1) if match else None
+      tilesets[tileset_key] = tileset_name
+
   return tilesets
 
 def build_tilesets(path):
@@ -70,9 +81,13 @@ def build_tilesets(path):
   imports_buffer = ""
   body_buffer = "\ndef resolve_tileset(key):\n"
 
-  for key in tilesets:
-    imports_buffer += f"import locations.{key}.tiles as {key}_tileset\n"
-    body_buffer += f"  if key == \"{key}\": return {key}_tileset\n"
+  for tileset_key, tileset_name in tilesets.items():
+    if tileset_name:
+      imports_buffer += f"from locations.{tileset_key}.tiles import {tileset_name}Tileset\n"
+      body_buffer += f"  if key == \"{tileset_key}\": return {tileset_name}Tileset\n"
+    else:
+      imports_buffer += f"import locations.{tileset_key}.tiles as {tileset_key}_tileset\n"
+      body_buffer += f"  if key == \"{tileset_key}\": return {tileset_key}_tileset\n"
 
   output_file = open("src/resolve/tileset.py", "w")
   output_file.write(imports_buffer + body_buffer)

@@ -1,10 +1,19 @@
+import lib.vector as vector
 from dungeon.element import DungeonElement
 from config import TILE_SIZE
+from colors.palette import COLOR_TILE
 from anims.step import StepAnim
 
 class Prop(DungeonElement):
+  def __init__(prop, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    prop.color = COLOR_TILE
+
   def effect(prop, game, actor=None):
     pass
+
+  def update(prop, game):
+    prop.color = game.stage_view.find_stage_color()
 
   def view(prop, sprites, anims):
     if not sprites:

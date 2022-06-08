@@ -13,9 +13,9 @@ class TalkBubble(Vfx):
     frames_duration = 10
     loop = True
 
-  def __init__(bubble, cell, elev=0, duration=None, target=None, flipped=False):
+  def __init__(bubble, cell, scale=TILE_SIZE, elev=0, duration=None, target=None, flipped=False):
     x, y = cell
-    super().__init__(kind=None, pos=(x * TILE_SIZE, (y - elev) * TILE_SIZE))
+    super().__init__(kind=None, pos=(x * scale, (y - elev) * scale))
     bubble.anim = TalkBubble.Anim(duration=duration)
     bubble.target = target
     bubble.flipped = flipped

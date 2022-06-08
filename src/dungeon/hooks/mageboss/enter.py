@@ -2,6 +2,7 @@ from lib.cell import add as add_vector, upscale
 import lib.vector as vector
 from contexts.cutscene import CutsceneContext
 from contexts.dialogue import DialogueContext
+from helpers.combat import animate_snap
 from anims.attack import AttackAnim
 from anims.jump import JumpAnim
 from anims.path import PathAnim
@@ -12,20 +13,27 @@ import config
 def on_enter(room, game):
   if "minxia" in game.store.story:
     return False
-  room.lock(game)
-  game.anims.append([PauseAnim(
-    duration=30,
-    on_end=lambda: game.get_tail().open(CutsceneContext(script=[
-      *prebattle_cutscene_setup(room, game),
-      *(prebattle_cutscene(room, game) if config.CUTSCENES else []),
-      *prebattle_cutscene_teardown(room, game),
-    ]))
-  )])
+
+  game.open(CutsceneContext(script=[
+    *prebattle_cutscene_setup(room, game),
+    *(prebattle_cutscene(room, game) if config.CUTSCENES else []),
+    *prebattle_cutscene_teardown(room, game),
+  ]))
   return True
 
 def prebattle_cutscene_setup(room, game):
   mage = room.mage
+  room.lock(game)
   return [
+    lambda step: animate_snap(
+      actor=game.hero,
+      anims=game.anims,
+      on_end=step,
+    ),
+    lambda step: game.anims.append([PauseAnim(
+      duration=30,
+      on_end=step,
+    )]),
     lambda step: (
       game.camera.focus(
         target=upscale(vector.add(mage.cell, (0, 1)), game.stage.tile_size),

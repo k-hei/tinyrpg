@@ -1,7 +1,8 @@
-from random import randint
+from random import random, randint
 from dungeon.actors import DungeonActor
 from cores import Core, Stats
 from dungeon.stage import Tile
+from helpers.stage import is_cell_walkable_to_actor
 from skills.attack import AttackSkill
 from skills.attack.clawrush import ClawRush
 from skills.support import SupportSkill
@@ -25,6 +26,10 @@ from config import PUSH_DURATION
 class Mummy(DungeonActor):
   drops = [CrownJewel]
   skill = ClawRush
+  idle_messages = [
+    "The {enemy} grunts nastily.",
+    "The {enemy} stands eerily still.",
+  ]
 
   class ChargeAnim(ShakeAnim): pass
 
@@ -41,7 +46,7 @@ class Mummy(DungeonActor):
       delta_y = dist_y // abs(dist_y or 1)
       cell = (user_x + delta_x, user_y + delta_y)
       while (cell != dest
-      and not (Tile.is_solid(game.stage.get_tile_at(cell)) and not game.stage.get_tile_at(cell) is game.stage.PIT)
+      and not (Tile.is_solid(game.stage.get_tile_at(cell)) and not game.stage.is_tile_at_pit(cell))
       and not next((e for e in game.stage.get_elems_at(cell) if e.solid), None)
       ):
         x, y = cell
@@ -55,6 +60,7 @@ class Mummy(DungeonActor):
         on_start=lambda: (
           on_start and on_start(dest),
           user.core.anims.append(Mummy.ChargeAnim()),
+          game.anims.append([pause_anim := PauseAnim()]),
           game.vfx.append(LinenVfx(
             src=user.cell,
             dest=dest,
@@ -63,14 +69,13 @@ class Mummy(DungeonActor):
               actor=user,
               target=target_actor,
               animate=False,
-              # is_ranged=True,
-              # is_chaining=True,
             )) if target_actor else (lambda: (
               target_elem.crush(game)
             )) if target_elem else None,
             on_end=lambda: (
               user.core.anims.clear(),
-              on_end and on_end()
+              pause_anim.end(),
+              on_end and on_end(),
             )
           ))
         )
@@ -79,7 +84,7 @@ class Mummy(DungeonActor):
   class Backstep(SupportSkill):
     def effect(game, user, dest, on_start=None, on_end=None):
       dest_cell = add_vector(user.cell, invert_direction(user.facing))
-      if game.stage.is_cell_empty(dest_cell):
+      if is_cell_walkable_to_actor(stage=game.stage, cell=dest_cell, actor=user):
         game.anims.append([JumpAnim(
           target=user,
           src=user.cell,
@@ -95,7 +100,7 @@ class Mummy(DungeonActor):
       else:
         on_end and on_end()
 
-  def __init__(soldier, name="Mummy", *args, **kwargs):
+  def __init__(soldier, name="Tomb Trooper", *args, **kwargs):
     super().__init__(Core(
       name=name,
       faction="enemy",
@@ -107,7 +112,7 @@ class Mummy(DungeonActor):
         lu=3,
         en=12,
       ),
-      skills=[ Club ],
+      skills=[Club],
       message=[(name, "I-I'm not doing all this because I want to, you know!")]
     ), *args, **kwargs)
     soldier.damaged = False
@@ -118,16 +123,26 @@ class Mummy(DungeonActor):
       soldier.damaged = True
 
   def step(soldier, game):
-    enemy = game.find_closest_enemy(soldier)
+    if not soldier.can_step():
+      return None
+
     if not soldier.aggro:
       return super().step(game)
+
+    enemy = game.find_closest_enemy(soldier)
     if not enemy:
+      return None
+
+    if random() < 1 / 32 and soldier.idle(game):
       return None
 
     if soldier.damaged:
       soldier.damaged = False
       soldier.face(enemy.cell)
-      if randint(0, 1) and game.stage.is_cell_empty(add_vector(soldier.cell, invert_direction(soldier.facing))):
+      rear_cell = add_vector(soldier.cell, invert_direction(soldier.facing))
+      if (randint(0, 1)
+      and game.stage.is_cell_empty(rear_cell)
+      and not game.stage.is_tile_at_pit(rear_cell)):
         return ("use_skill", Mummy.Backstep)
       else:
         return soldier.charge(skill=ClawRush, dest=enemy.cell)
