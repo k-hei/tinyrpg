@@ -445,6 +445,7 @@ class InventoryContext(Context):
       success, message = ctx.parent.drop_item(item)
     else:
       success, message = False, "You can't drop that here!"
+
     if success:
       if ctx.cursor == ctx.find_extra_slot() and ctx.get_hero():
         ctx.get_hero().item = None

@@ -551,6 +551,19 @@ class ExploreBase(Context):
     else:
       return None, ("Used ", item.token(item), "\n", message)
 
+  def drop_item(ctx, item):
+    hero = ctx.hero
+    if not hero:
+      return False, "You can't drop that here!"
+
+    if ctx.stage.is_tile_at_hallway(ctx.hero.cell):
+      return False, "You can't drop that here!"
+
+    ctx.stage.spawn_elem_at(hero.cell, ItemDrop(item))
+    hero.item = None
+    return True, ""
+
+
   def recruit_actor(game, actor):
     actor.reset_charge()
     game.store.recruit(actor.core)
