@@ -82,6 +82,10 @@ class DesertEvilCactus(DungeonActor):
                 en=8,
             ),
             skills=[Tackle],
+            message=[
+                (name, "...And now they're making GhostBusters with only women!"),
+                (name, "What's going on??")
+            ],
         ), *args, **kwargs)
 
     def step(cactus, game):

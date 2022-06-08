@@ -1,4 +1,4 @@
-from random import randint
+from random import random, randint
 from dungeon.actors import DungeonActor
 from cores import Core, Stats
 from dungeon.stage import Tile
@@ -26,6 +26,10 @@ from config import PUSH_DURATION
 class Mummy(DungeonActor):
   drops = [CrownJewel]
   skill = ClawRush
+  idle_messages = [
+    "The {enemy} grunts nastily.",
+    "The {enemy} stands eerily still.",
+  ]
 
   class ChargeAnim(ShakeAnim): pass
 
@@ -96,7 +100,7 @@ class Mummy(DungeonActor):
       else:
         on_end and on_end()
 
-  def __init__(soldier, name="Mummy", *args, **kwargs):
+  def __init__(soldier, name="Tomb Trooper", *args, **kwargs):
     super().__init__(Core(
       name=name,
       faction="enemy",
@@ -108,7 +112,7 @@ class Mummy(DungeonActor):
         lu=3,
         en=12,
       ),
-      skills=[ Club ],
+      skills=[Club],
       message=[(name, "I-I'm not doing all this because I want to, you know!")]
     ), *args, **kwargs)
     soldier.damaged = False
@@ -119,10 +123,17 @@ class Mummy(DungeonActor):
       soldier.damaged = True
 
   def step(soldier, game):
-    enemy = game.find_closest_enemy(soldier)
+    if not soldier.can_step():
+      return None
+
     if not soldier.aggro:
       return super().step(game)
+
+    enemy = game.find_closest_enemy(soldier)
     if not enemy:
+      return None
+
+    if random() < 1 / 32 and soldier.idle(game):
       return None
 
     if soldier.damaged:

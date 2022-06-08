@@ -59,6 +59,7 @@ class DesertSnake(DungeonActor):
         en=7,
       ),
       skills=[Tackle],
+      message=[(name, "Metal.... Gear??")],
     ), *args, **kwargs)
 
   def find_move_delta(snake, goal):

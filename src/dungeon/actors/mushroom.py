@@ -56,9 +56,13 @@ class Mushroom(DungeonActor):
       Virus.effect(user=mushroom, dest=None, game=game)
 
   def step(mushroom, game):
-    enemy = game.find_closest_enemy(mushroom)
+    if not mushroom.can_step():
+      return None
+
     if not mushroom.aggro:
       return super().step(game)
+
+    enemy = game.find_closest_enemy(mushroom)
     if not enemy:
       return None
 
