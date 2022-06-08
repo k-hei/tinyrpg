@@ -199,7 +199,8 @@ class ExploreBase(Context):
     move_src = actor.cell if fixed else downscale(actor.pos, TILE_SIZE)
     move_dest = vector.add(actor.cell, delta)
 
-    if not is_cell_walkable_to_actor(ctx.stage, move_dest, actor):
+    if (not is_cell_walkable_to_actor(ctx.stage, move_dest, actor)
+    and not (ctx.ally and move_dest == ctx.ally.cell)):
       return False
 
     # block player movement outside of enemy territory if adjacent to enemy
