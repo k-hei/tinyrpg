@@ -21,6 +21,7 @@ from anims.warpin import WarpInAnim
 from easing.expo import ease_out, ease_in_out
 from lib.lerp import lerp
 from lib.bounds import find_bounds
+import lib.vector as vector
 from lib.cell import subtract as subtract_vector
 from lib.sprite import Sprite
 from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE, DEBUG_GEN, ENABLED_MINIMAP
@@ -84,8 +85,8 @@ class Minimap:
     window_right = window_left + sprite_width
     window_bottom = window_top + sprite_height
 
-    for row in range(window_top, window_bottom):
-      for col in range(window_left, window_right):
+    for row in range(window_top, window_bottom + 1):
+      for col in range(window_left, window_right + 1):
         if col < 0 or row < 0 or col >= floor_width or row >= floor_height:
           continue
 
@@ -177,7 +178,6 @@ class Minimap:
             pixels[x, y] = color
           except IndexError:
             print((x, y), sprite_size)
-            raise
 
     pixels.close()
     return surface
@@ -270,8 +270,8 @@ class Minimap:
       blink=minimap.time % 60 >= 30
     )
 
-    scaled_width = round(sprite_width * sprite_scale)
-    scaled_height = round(sprite_height * sprite_scale)
+    scaled_width = int(sprite_width * sprite_scale)
+    scaled_height = int(sprite_height * sprite_scale)
     scaled_size = (scaled_width, scaled_height)
 
     surface = Surface(scaled_size)
