@@ -174,17 +174,16 @@ class ExploreContext(ExploreBase):
     ctx.cache_last_move = ctx.time
 
     moved = ctx.move_elem(elem=hero, delta=delta, running=running)
-    if not ctx.stage.is_overworld:
-      prop = next((e for e in ctx.stage.elems if
-        not e.solid
-        and hero.cell == e.cell
-        and e.rect and hero.rect.colliderect(e.rect)
-      ), None)
-      if prop:
-        if prop.effect(ctx, hero):
-          hero.stop_move()
-          ally and ally.stop_move()
-        ctx.update_bubble()
+    prop = next((e for e in ctx.stage.elems if
+      not e.solid
+      and hero.cell == e.cell
+      and e.rect and hero.rect.colliderect(e.rect)
+    ), None)
+    if prop:
+      if prop.effect(ctx, hero):
+        hero.stop_move()
+        ally and ally.stop_move()
+      ctx.update_bubble()
 
     if ally:
       if moved:

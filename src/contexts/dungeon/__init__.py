@@ -554,7 +554,6 @@ class DungeonContext(ExploreBase):
     if ctx.room and ctx.room.has_hook("on_walk"):
       ctx.room.on_walk(ctx, cell=ctx.hero_cell)
 
-
   def view(ctx):
     sprites = ctx.stage_view.view(
       hero=ctx.hero,
