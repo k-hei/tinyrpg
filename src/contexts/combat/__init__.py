@@ -969,7 +969,6 @@ class CombatContext(ExploreBase):
         continue
 
       while actor.turns >= 1:
-        print(type(actor).__name__, actor.turns)
         actor.turns -= 1
 
         if actor.dead:
@@ -987,7 +986,6 @@ class CombatContext(ExploreBase):
             break
 
         if command:
-          print("yield", type(actor).__name__, command)
           yield actor, command
 
   def step_ally(ctx, actor):

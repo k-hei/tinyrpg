@@ -123,16 +123,16 @@ class Ghost(DungeonActor):
     if ghost.damaged:
       ghost.damaged = False
 
-      if random() < 1 / 2:
-        ghost.turns = 0
-        return ("use_skill", Ghost.Warp)
-
       if (is_adjacent(ghost.cell, enemy.cell)
-      and not enemy.ailment == "sleep"
-      and random() < 1 / 5):
+      and not enemy.ailment == "sleep"):
+      # and random() < 1 / 5):
         ghost.face(enemy.cell)
         ghost.turns = 0
         return ("use_skill", Somnus)
+
+      if random() < 1 / 2:
+        ghost.turns = 0
+        return ("use_skill", Ghost.Warp)
 
     if manhattan(ghost.cell, enemy.cell) <= 2 and randint(0, 1):
       skill = choice((Ghost.Warp, Ghost.ColdWhip))

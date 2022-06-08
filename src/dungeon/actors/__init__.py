@@ -572,6 +572,7 @@ class DungeonActor(DungeonElement):
     sprite = sprites[0]
     offset_x, offset_y, offset_z = (0, 0, 0)
     actor_width, actor_height = sprite.image.get_size()
+
     anim_group = [a for a in anims[0] if a.target is actor] if anims else []
     anim_group += actor.core.anims
 
@@ -608,9 +609,9 @@ class DungeonActor(DungeonElement):
       and not (is_flinching or is_charging or is_bouncing or move_anim and (isinstance(move_anim, PathAnim) or move_anim.dest))
       and not (attack_anim and len(actor.core.anims) == 1)
       ):
-        sprite.image = anim.frame()
+        sprite.image = anim.frame() or sprite.image
         # TEST: knight downwards attacks and cactus idle actions
-        if sprite.image.get_size() != (actor_width, actor_height):
+        if sprite.image and sprite.image.get_size() != (actor_width, actor_height):
           actor_width, actor_height = sprite.image.get_size()
           offset_x += (actor_width - TILE_SIZE) / 2
           offset_y += (actor_height - TILE_SIZE) / 2
