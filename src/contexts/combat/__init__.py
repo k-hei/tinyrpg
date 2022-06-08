@@ -507,7 +507,7 @@ class CombatContext(ExploreBase):
 
     return attacked
 
-  def attack(ctx, actor, target=None, modifier=1, animate=True, on_end=None):
+  def attack(ctx, actor, target=None, atk_mod=1, crit_mod=1, animate=True, on_end=None):
     if actor.dead or actor.weapon is None:
       on_end and on_end()
       return False
@@ -517,15 +517,15 @@ class CombatContext(ExploreBase):
       actor.face(target.cell)
       miss = will_miss(actor, target)
       block = will_block(actor, target) and not miss
-      crit = will_crit(actor, target) and not block
+      crit = will_crit(actor, target, mod=crit_mod) and not block
       if miss:
         damage = None
       elif block:
-        damage = max(0, find_damage(actor, target, modifier) - target.find_shield().en)
+        damage = max(0, find_damage(actor, target, atk_mod) - target.find_shield().en)
       elif crit:
-        damage = find_damage(actor, target, modifier=modifier * CRIT_MODIFIER)
+        damage = find_damage(actor, target, atk_mod=atk_mod * CRIT_MODIFIER)
       else:
-        damage = find_damage(actor, target, modifier)
+        damage = find_damage(actor, target, atk_mod)
 
     attack_command = (actor, (COMMAND_ATTACK, target))
     ctx.command_queue.append(attack_command)

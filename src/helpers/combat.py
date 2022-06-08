@@ -4,8 +4,8 @@ from dungeon.actors import DungeonActor
 from config import MISS_CHANCE, CRIT_CHANCE
 
 
-def find_damage(attacker, defender, modifier=1):
-  attacker_st = attacker.st * modifier
+def find_damage(attacker, defender, atk_mod=1):
+  attacker_st = attacker.st * atk_mod
   defender_en = defender.en
   variance = 1
   return max(1, attacker_st - defender_en + randint(-variance, variance))
@@ -34,18 +34,19 @@ def will_miss(attacker, defender):
     and roll_miss(attacker, defender)
   )
 
-def roll_crit(attacker, defender):
+def roll_crit(attacker, defender, mod=1):
+  print("roll crit with chance", CRIT_CHANCE * mod)
   return roll(
     dx=attacker.stats.dx + attacker.stats.lu / 2,
     ag=defender.stats.ag + defender.stats.lu / 2,
-    chance=CRIT_CHANCE
+    chance=CRIT_CHANCE * mod,
   )
 
-def will_crit(attacker, defender):
+def will_crit(attacker, defender, mod=1):
   return defender.ailment != DungeonActor.AILMENT_FREEZE and (
     defender.ailment == DungeonActor.AILMENT_SLEEP
     or attacker.facing == defender.facing
-    or roll_crit(attacker=attacker, defender=defender)
+    or roll_crit(attacker=attacker, defender=defender, mod=mod)
   )
 
 def will_block(attacker, defender):

@@ -52,7 +52,7 @@ class RendingGale(AttackSkill):
       target = targets.pop(0)
       game.flinch(
         target=target,
-        damage=game.find_damage(user, target, modifier=1.25),
+        damage=game.find_damage(user, target, atk_mod=1.25),
         on_end=next_target
       )
 

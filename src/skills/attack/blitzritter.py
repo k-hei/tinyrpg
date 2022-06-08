@@ -44,7 +44,7 @@ class Blitzritter(AttackSkill):
       attack = lambda target, on_end: game.attack(
         actor=user,
         target=target,
-        modifier=1.25,
+        atk_mod=1.25,
         animate=False,
         # is_ranged=True,
         on_end=on_end

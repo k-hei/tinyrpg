@@ -520,8 +520,8 @@ class DungeonActor(DungeonElement):
       target.wake_up()
     return damage
 
-  def find_damage(actor, target, modifier=1):
-    st = actor.st * modifier
+  def find_damage(actor, target, atk_mod=1):
+    st = actor.st * atk_mod
     en = target.en
     variance = 1 if actor.core.faction == "enemy" else 2
     return max(1, st - en + randint(-variance, variance))

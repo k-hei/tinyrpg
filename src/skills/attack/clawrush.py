@@ -49,7 +49,7 @@ class ClawRush(AttackSkill):
         on_connect=(lambda: game.attack(
           actor=user,
           target=target_actor,
-          modifier=1.5,
+          atk_mod=1.5,
           animate=False
         )) if target_actor else (lambda: (
           target_elem.crush(game)

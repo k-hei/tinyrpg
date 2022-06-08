@@ -48,7 +48,7 @@ class ShieldBash(AttackSkill):
           on_connect=lambda: (
             game.flinch(
               target=target_elem,
-              damage=find_damage(user, target_elem, modifier=0.8),
+              damage=find_damage(user, target_elem, atk_mod=0.8),
               direction=user.facing,
               on_end=on_end,
             ),
