@@ -97,7 +97,7 @@ class Mage(DungeonActor):
     if not mage.weapon:
       return True
 
-    mage.core.anims += mage.animate_brandish(delay=15)
+    mage.core.anims += mage.animate_brandish()
     return True
 
   def step(mage, game):

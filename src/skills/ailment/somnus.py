@@ -1,3 +1,6 @@
+import lib.vector as vector
+from lib.cell import is_adjacent
+
 from skills.ailment import AilmentSkill
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
@@ -19,10 +22,16 @@ class Somnus(AilmentSkill):
   )
 
   def effect(game, user, dest=None, on_start=None, on_end=None):
-    source_cell = user.cell
-    hero_x, hero_y = source_cell
-    delta_x, delta_y = user.facing
-    target_cell = (hero_x + delta_x, hero_y + delta_y)
+    target = dest
+    if isinstance(target, DungeonActor):
+      target_cell = target.cell
+      user.face(target_cell)
+    else:
+      target_cell = dest
+
+    if not target_cell or not is_adjacent(user.cell, target_cell):
+      target_cell = vector.add(user.cell, user.facing)
+
     target_elem = next((e for e in game.stage.get_elems_at(target_cell)
       if isinstance(e, DungeonActor)), None)
 

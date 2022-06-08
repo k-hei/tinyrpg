@@ -1,5 +1,5 @@
 from random import random, randint, choice
-from lib.cell import is_adjacent, manhattan
+from lib.cell import is_adjacent, manhattan, neighborhood
 
 from dungeon.actors import DungeonActor
 from cores.ghost import Ghost as GhostCore
@@ -34,27 +34,29 @@ class Ghost(DungeonActor):
   ]
 
   class Warp(SupportSkill):
-    def effect(game, user, dest, on_start=None, on_end=None):
+    def effect(game, user, dest=None, on_start=None, on_end=None):
       hero = game.hero
       if not hero:
         return on_end and on_end()
 
-      valid_cells = [c for c in hero.visible_cells
-        if c != user.cell
-        and is_cell_walkable_to_actor(game.stage, cell=c, actor=user)
-        and c in game.room.cells]
+      if not dest:
+        valid_cells = [c for c in hero.visible_cells
+          if c != user.cell
+          and is_cell_walkable_to_actor(game.stage, cell=c, actor=user)
+          and c in game.room.cells]
 
-      if not valid_cells:
-        return on_end and on_end()
+        if not valid_cells:
+          return on_end and on_end()
 
-      dest_cell = choice(valid_cells)
+        dest = choice(valid_cells)
+
       game.anims.append([FlickerAnim(
         target=user,
         duration=15,
         on_end=lambda: game.anims[-1].append(WarpInAnim(
           target=user,
           on_start=lambda: (
-            setattr(user, "cell", dest_cell),
+            setattr(user, "cell", dest),
           ),
           on_end=on_end
         )),
@@ -62,7 +64,7 @@ class Ghost(DungeonActor):
 
   class ColdWhip(Skill):
     name = "ColdWhip"
-    charge_turns = 2
+    charge_turns = 1
 
     def effect(game, user, dest, on_start=None, on_end=None):
       target_actor = next((e for e in game.stage.get_elems_at(dest) if isinstance(e, DungeonActor)), None)
@@ -96,14 +98,43 @@ class Ghost(DungeonActor):
 
   def damage(ghost, *args, **kwargs):
     super().damage(*args, **kwargs)
-    if not ghost.ailment == "poison":
-      ghost.damaged = True
-      ghost.turns = -1
+
+    if ghost.ailment == "poison":
+      return
+
+    ghost.damaged = True
+    if ghost.charge_skill is not Somnus:
+      ghost.reset_charge()
 
   def charge(ghost, *args, **kwargs):
     if next((False for a in ghost.core.anims if isinstance(a, GhostCore.ChargeAnim)), True):
       ghost.core.anims.append(GhostCore.ChargeAnim())
     return super().charge(*args, **kwargs)
+
+  def find_warp_dest(ghost, game, enemy):
+    valid_cells = [n for n in neighborhood(enemy.cell, radius=randint(1, 2))
+      if n != ghost.cell
+      and is_cell_walkable_to_actor(game.stage, n, ghost)
+      and n in game.room.cells]
+    return choice(valid_cells) if valid_cells else None
+
+  def charge_warp_skill(ghost, game, enemy, warp_dest):
+    skill = choice((
+      *([Somnus]
+        if not enemy.ailment == "sleep"
+          and ghost.hp <= ghost.hp_max / 2
+          and is_adjacent(warp_dest, enemy.cell)
+        else []),
+      Ghost.Warp,
+      Ghost.ColdWhip
+    ))
+    if skill is Somnus:
+      ghost.face(enemy.cell)
+      ghost.charge(skill=Somnus, dest=enemy.cell, turns=1)
+    elif skill is Ghost.Warp:
+      ghost.charge(skill=Ghost.Warp)
+    elif skill is Ghost.ColdWhip:
+      ghost.charge(skill=Ghost.ColdWhip, dest=enemy.cell)
 
   def step(ghost, game):
     if not ghost.can_step():
@@ -122,21 +153,30 @@ class Ghost(DungeonActor):
 
     if ghost.damaged:
       ghost.damaged = False
+      ghost.turns = 0
+      warp_dest = (ghost.find_warp_dest(game, enemy)
+        if random() < 1 / 2
+        else None)
 
-      if (is_adjacent(ghost.cell, enemy.cell)
-      and not enemy.ailment == "sleep"):
-      # and random() < 1 / 5):
-        ghost.face(enemy.cell)
-        ghost.turns = 0
-        return ("use_skill", Somnus)
+      if warp_dest:
+        ghost.charge_warp_skill(game, enemy, warp_dest)
 
+      return ("use_skill", Ghost.Warp, warp_dest)
+
+    if (is_adjacent(ghost.cell, enemy.cell)
+    and ghost.hp <= ghost.hp_max / 2
+    and not enemy.ailment == "sleep"
+    and random() < 1 / 2):
+      ghost.face(enemy.cell)
+      return ghost.charge(skill=Somnus, dest=enemy.cell, turns=1)
+
+    if manhattan(ghost.cell, enemy.cell) <= 2:
       if random() < 1 / 2:
-        ghost.turns = 0
-        return ("use_skill", Ghost.Warp)
-
-    if manhattan(ghost.cell, enemy.cell) <= 2 and randint(0, 1):
-      skill = choice((Ghost.Warp, Ghost.ColdWhip))
-      return ghost.charge(skill=skill, dest=enemy.cell)
+        return ghost.charge(skill=Ghost.ColdWhip, dest=enemy.cell)
+        warp_dest = ghost.find_warp_dest(game, enemy)
+        if warp_dest:
+          ghost.charge_warp_skill(game, enemy, warp_dest)
+        return ("use_skill", Ghost.Warp, warp_dest)
 
     movement_type = choice(("strafe", "strafe", "move_to", "warp"))
     if movement_type == "strafe":

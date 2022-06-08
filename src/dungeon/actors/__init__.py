@@ -194,10 +194,10 @@ class DungeonActor(DungeonElement):
   def is_dead(actor): return actor.core.dead
 
   def can_step(actor):
-    return not actor.is_immobile()
+    return not actor.charge_skill and not actor.is_immobile()
 
   def is_immobile(actor):
-    return actor.dead or actor.ailment in ("sleep", "freeze") or actor.charge_skill
+    return actor.dead or actor.ailment in ("sleep", "freeze")
 
   @property
   def st(actor):
@@ -262,6 +262,7 @@ class DungeonActor(DungeonElement):
     return True
 
   def charge(actor, skill, dest=None, turns=0):
+    actor.turns = 0
     actor.charge_skill = skill
     actor.charge_dest = dest
     actor.charge_turns = turns or skill.charge_turns
