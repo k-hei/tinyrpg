@@ -106,8 +106,8 @@ class Core:
     anim = core.anims[-1] if core.anims else None
     if anim:
       anim.update()
-      if anim.done:
-        core.anims.pop()
+      if anim.done and anim in core.anims:
+        core.anims.remove(anim)
 
   def view(core, sprites):
     if not sprites:

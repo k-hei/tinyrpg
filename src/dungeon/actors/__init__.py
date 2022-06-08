@@ -27,6 +27,7 @@ from anims.frame import FrameAnim
 from anims.drop import DropAnim
 from anims.warpin import WarpInAnim
 from anims.pause import PauseAnim
+from anims.jump import JumpAnim
 from comps.log import Token
 from comps.hpbubble import HpBubble
 from vfx.icepiece import IcePieceVfx
@@ -554,11 +555,11 @@ class DungeonActor(DungeonElement):
 
   def update(actor, game):
     actor.updates += 1
+
+    actor.anims = [a for a in actor.anims if not a.done]
     for anim in actor.anims:
-      if anim.done:
-        actor.anims.remove(anim)
-      else:
-        anim.update()
+      anim.update()
+
     return actor.core.update()
 
   def view(actor, sprites, anims=[]):
@@ -617,6 +618,12 @@ class DungeonActor(DungeonElement):
           offset_y += (actor_height - TILE_SIZE) / 2
           if actor_height > TILE_SIZE:
             offset_y += (actor_height - TILE_SIZE) / 2
+
+      # HACK: element jump anim handler doesn't take core anims into account
+      # TODO: add system for concurrent core anims
+      if isinstance(anim, JumpAnim) and anim in actor.core.anims:
+        offset_y += anim.offset
+
 
     warpin_anim = next((a for a in anim_group if type(a) is WarpInAnim), None)
     drop_anim = next((a for a in anim_group if type(a) is DropAnim), None)
