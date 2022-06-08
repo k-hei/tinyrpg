@@ -155,11 +155,11 @@ class DungeonContext(ExploreBase):
     stage_exit = find_tile(ctx.stage, tileset.Exit)
     stage_exit and next_floor and ctx.graph.connect(ctx.stage, next_floor, stage_exit)
 
-  def use_stage(ctx, stage, stairs=None):
+  def use_stage(ctx, stage, stairs=None, link_previous=True):
     ctx.hero and ctx.stage.remove_elem(ctx.hero)
     ctx.ally and ctx.stage.remove_elem(ctx.ally)
 
-    stage_old = ctx.stage
+    stage_old = ctx.stage if link_previous else None
     ctx.stage = stage
     ctx.construct_graph(old_floor=stage_old)
     ctx.parent.save()
@@ -192,7 +192,7 @@ class DungeonContext(ExploreBase):
       loader=Floor.generate(ctx.store),
       on_end=lambda stage: (
         setattr(stage, "generator", floor_id),
-        ctx.use_stage(stage),
+        ctx.use_stage(stage, link_previous=False),
         on_end and on_end(),
       )
     )

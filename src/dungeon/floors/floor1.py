@@ -48,7 +48,7 @@ class Floor1(Floor):
             enemies=[Eyeball(), Eyeball()],
             degree=3,
             hooks={
-              "on_enter": lambda room, game: "minxia" not in game.store.story and not has_weapon_equipped(game) and (
+              "on_enter": lambda room, game: "minxia" not in game.store.story and not game.hero.weapon and (
                 genie_cell := sorted(get_room_bonus_cells(room, game.stage), key=lambda c: manhattan(c, game.hero.cell))[0],
                 game.stage.spawn_elem_at(genie_cell, genie := Genie(
                   name=(genie_name := "Joshin"),
