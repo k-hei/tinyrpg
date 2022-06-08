@@ -7,8 +7,6 @@ import locations.tomb.tiles as tileset
 def gen_terrain(stage, room, tree=None):
   # carve out all cells in room except for one cell
   room_cells = room.get_cells()
-  for cell in room_cells:
-    stage.set_tile_at(cell, tileset.Pit)
 
   # paint floors from each doorway to pivot
   room_doorways = [next((n for n in neighborhood(d) if n in room_cells), None) for d in room.get_doorways(stage)]

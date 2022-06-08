@@ -727,15 +727,23 @@ def gen_floor(
     for i, room in enumerate(rooms):
       if room.data and not room.data.enemies:
         continue
+
       if room.data and type(room.data.enemies) is list:
         elems = room.data.enemies
         for enemy in elems:
           if randint(1, 3) == 1:
             enemy.inflict_ailment("sleep")
+
       if not room.data or type(room.data.enemies) is bool:
+        room_area = room.get_area()
+        num_enemies = room_area // 16
+        if room_area < 300:
+          num_enemies = min(5, num_enemies)
+
         elems = [choice(enemies)(
           ailment=("sleep" if randint(1, 3) == 1 else None)
-        ) for _ in range(min(5, room.get_area() // 16))]
+        ) for _ in range(num_enemies)]
+
       enemies_spawned = gen_elems(stage, room, elems)
 
     for room in rooms:
