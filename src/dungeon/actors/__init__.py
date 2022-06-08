@@ -21,6 +21,7 @@ from anims.path import PathAnim
 from anims.attack import AttackAnim
 from anims.awaken import AwakenAnim
 from anims.flinch import FlinchAnim
+from anims.flicker import FlickerAnim
 from anims.bounce import BounceAnim
 from anims.frame import FrameAnim
 from anims.drop import DropAnim
@@ -574,6 +575,8 @@ class DungeonActor(DungeonElement):
     is_asleep = actor.ailment == "sleep"
     is_flinching = next((a for a in anim_group if isinstance(a, FlinchAnim)), None)
     is_bouncing = next((a for a in anim_group if isinstance(a, BounceAnim)), None)
+    is_flickering = next((a for a in anim_group if isinstance(a, FlickerAnim)), None)
+    is_warping = next((a for a in anim_group if isinstance(a, WarpInAnim)), None)
     is_charging = "ChargeAnim" in dir(actor.core) and next((a for a in anim_group if isinstance(a, actor.core.ChargeAnim)), None)
 
     move_anim = next((a for a in anim_group if isinstance(a, (StepAnim, PathAnim))), None)
@@ -653,7 +656,9 @@ class DungeonActor(DungeonElement):
       )
 
     # hp bubble
-    if actor.faction != "player" and not (actor.faction == "ally" and actor.behavior == "guard"):
+    if (actor.faction != "player"
+    and not (actor.faction == "ally" and actor.behavior == "guard")
+    and not is_warping and not is_flickering):
       bubble_sprites = Sprite.move_all(
         sprites=actor.bubble.view(),
         offset=vector.add(move_offset, (24, -4 - offset_z))

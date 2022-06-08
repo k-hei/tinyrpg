@@ -1,17 +1,24 @@
-from random import random, randint
+from random import random, randint, choice
+from lib.cell import is_adjacent, manhattan
+
 from dungeon.actors import DungeonActor
 from cores.ghost import Ghost as GhostCore
+
 from skills.weapon.tackle import Tackle
+from skills.support import SupportSkill
+from skills.ailment.somnus import Somnus
+
 from anims.step import StepAnim
 from anims.attack import AttackAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
+from anims.warpin import WarpInAnim
 from anims.pause import PauseAnim
+from helpers.stage import is_cell_walkable_to_actor
+
 from lib.sprite import Sprite
 import assets
 from skills import Skill
-from lib.cell import is_adjacent, manhattan
-from skills.ailment.somnus import Somnus
 from items.materials.luckychoker import LuckyChoker
 from vfx.ghostarm import GhostArmVfx
 from locations.desert.elems.snake import DesertSnake
@@ -26,11 +33,38 @@ class Ghost(DungeonActor):
     "The {enemy} giggles.",
   ]
 
+  class Warp(SupportSkill):
+    def effect(game, user, dest, on_start=None, on_end=None):
+      hero = game.hero
+      if not hero:
+        return on_end and on_end()
+
+      valid_cells = [c for c in hero.visible_cells
+        if c != user.cell
+        and is_cell_walkable_to_actor(game.stage, cell=c, actor=user)
+        and c in game.room.cells]
+
+      if not valid_cells:
+        return on_end and on_end()
+
+      dest_cell = choice(valid_cells)
+      game.anims.append([FlickerAnim(
+        target=user,
+        duration=15,
+        on_end=lambda: game.anims[-1].append(WarpInAnim(
+          target=user,
+          on_start=lambda: (
+            setattr(user, "cell", dest_cell),
+          ),
+          on_end=on_end
+        )),
+      )])
+
   class ColdWhip(Skill):
     name = "ColdWhip"
     charge_turns = 2
-    def effect(game, user, dest, on_start=None, on_end=None):
 
+    def effect(game, user, dest, on_start=None, on_end=None):
       target_actor = next((e for e in game.stage.get_elems_at(dest) if isinstance(e, DungeonActor)), None)
       user.core.anims = [GhostCore.WhipAnim()]
       game.anims.append([
@@ -88,18 +122,29 @@ class Ghost(DungeonActor):
 
     if ghost.damaged:
       ghost.damaged = False
-      if is_adjacent(ghost.cell, enemy.cell) and not enemy.ailment == "sleep" and randint(1, 5) == 1:
+
+      if random() < 1 / 2:
+        ghost.turns = 0
+        return ("use_skill", Ghost.Warp)
+
+      if is_adjacent(ghost.cell, enemy.cell) and not enemy.ailment == "sleep" and random() < 1 / 5:
         ghost.face(enemy.cell)
         ghost.turns = 0
         return ("use_skill", Somnus)
 
     if manhattan(ghost.cell, enemy.cell) <= 2 and randint(0, 1):
-      return ghost.charge(skill=Ghost.ColdWhip, dest=enemy.cell)
-    elif randint(0, 1):
-      return ("move_to", enemy.cell)
-    else:
+      skill = choice((Ghost.Warp, Ghost.ColdWhip))
+      return ghost.charge(skill=skill, dest=enemy.cell)
+
+    movement_type = choice(("strafe", "strafe", "move_to", "warp"))
+    if movement_type == "strafe":
       delta = DesertSnake.find_move_delta(ghost, goal=enemy.cell)
       return ("move", delta)
+    elif movement_type == "move_to":
+      return ("move_to", enemy.cell)
+    elif movement_type == "warp":
+      ghost.turns = 0
+      return ("use_skill", Ghost.Warp)
 
   def view(ghost, anims):
     ghost_image = assets.sprites["ghost"]
@@ -116,7 +161,8 @@ class Ghost(DungeonActor):
       if type(anim) in (StepAnim, AttackAnim):
         ghost_image = assets.sprites["ghost_move"]
 
-      if type(anim) in (FlinchAnim, FlickerAnim):
+      if (isinstance(anim, FlinchAnim)
+      or isinstance(anim, FlickerAnim) and ghost.dead):
         ghost_image = assets.sprites["ghost_flinch"]
 
       if isinstance(anim, GhostCore.LaughAnim):

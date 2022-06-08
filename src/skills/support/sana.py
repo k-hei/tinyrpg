@@ -20,7 +20,7 @@ class Sana(SupportSkill):
     (0, 2),
   )
 
-  def effect(user, dest, game, on_end=None):
+  def effect(user, dest, game, on_start=None, on_end=None):
     source_cell = user.cell
     hero_x, hero_y = source_cell
     delta_x, delta_y = user.facing
@@ -38,6 +38,7 @@ class Sana(SupportSkill):
         result = (target_elem.token(), " restored ", str(amount), " HP.")
       else:
         result = "But nothing happened..."
+
       game.anims[0].append(PauseAnim(
         duration=30,
         on_end=lambda: (
@@ -54,7 +55,9 @@ class Sana(SupportSkill):
         target=user,
         src=user.cell,
         dest=target_cell,
+        on_start=on_start,
         on_end=on_attack_end
       )
     ])
+
     return target_cell
