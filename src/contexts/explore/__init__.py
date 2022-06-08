@@ -552,7 +552,11 @@ class ExploreContext(ExploreBase):
     hud = ctx.comps.hud
     if not hud.active:
       hud.enter()
+
+    if ctx.stage.is_overworld and not ctx.ally.visible_cells:
+      ctx.ally.visible_cells = ctx.hero.visible_cells.copy()
     ctx.store.switch_chars()
+
     hud.update()
     if type(hud.anims[-1]) is PauseAnim:
       hud.anims[-1].time = 0
@@ -562,8 +566,9 @@ class ExploreContext(ExploreBase):
         on_end=lambda: hud.exit()
       ))
 
-    ctx.parent.refresh_fov(reset_cache=True)
+    ctx.parent.refresh_fov(reset_cache=not ctx.stage.is_overworld)
     ctx.camera.focus(target=[*([ctx.room] if ctx.room else []), ctx.hero], force=True)
+
     return True
 
   def handle_debug(ctx):

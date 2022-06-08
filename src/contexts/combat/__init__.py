@@ -194,7 +194,6 @@ class CombatContext(ExploreBase):
 
     if ally_rejoin and ctx.ally and hero_adjacents:
       target_cell = sorted(hero_adjacents, key=lambda c: manhattan(c, ctx.ally.cell))[0]
-      print(ctx.hero.cell, target_cell)
       ally_path = ctx.stage.pathfind(
         start=ctx.ally.cell,
         goal=target_cell,
@@ -748,11 +747,19 @@ class CombatContext(ExploreBase):
     if ctx.comps.hud.anims:
       return False
 
+    if ctx.stage.is_overworld and not ctx.ally.visible_cells:
+      ctx.ally.visible_cells = ctx.hero.visible_cells.copy()
     ctx.store.switch_chars()
-    ctx.parent.refresh_fov(reset_cache=True)
+    ctx.parent.refresh_fov(reset_cache=not ctx.stage.is_overworld)
+
     ctx.reload_skill_badge()
+
     ctx.camera.blur()
-    ctx.camera.focus(target=[ctx.room, ctx.hero], force=True)
+    ctx.camera.focus(target=[
+      *([ctx.room] if ctx.room else []),
+      ctx.hero
+    ], force=True)
+
     return True
 
   def handle_charmenu(ctx):
