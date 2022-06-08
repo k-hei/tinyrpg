@@ -68,6 +68,13 @@ def distance(a, b):
   dx, dy = x2 - x1, y2 - y1
   return sqrt(dx * dx + dy * dy)
 
+def normalize(vector):
+  dist = sqrt(vector[0] * vector[0] + vector[1] * vector[1])
+  return (
+    vector[0] / dist,
+    vector[1] / dist,
+  )
+
 def tangent(vector):
   x, y = vector
   return (-y, x)

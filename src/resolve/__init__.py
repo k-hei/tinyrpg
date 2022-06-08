@@ -5,12 +5,15 @@ import re
 def collect_imports(path, prefix="", exclude=[], root=False):
   imports = {}
   pattern = re.compile("class (\w+)\(\w+")
-  prefix = [prefix] if prefix else []
+  if not prefix:
+    prefix = []
+  elif type(prefix) is str:
+    prefix = [prefix]
   for item in listdir(join(path, *prefix)):
     if item[:2] == "__" or item in exclude: continue
     item_path = join(path, *prefix, item)
     if not isfile(item_path):
-      for key, val in collect_imports(path=path, prefix=join(*prefix, item)).items():
+      for key, val in collect_imports(path=path, prefix=[*prefix, item], exclude=exclude).items():
         imports[key] = val
     elif prefix or root:
       name, _ = splitext(item)
@@ -58,7 +61,8 @@ def collect_tilesets(path):
       hook_key, _ = splitext(f)
     else:
       hook_key = f
-    tilesets.append(hook_key)
+    if "tiles" in listdir(hook_path):
+      tilesets.append(hook_key)
   return tilesets
 
 def build_tilesets(path):
@@ -67,7 +71,7 @@ def build_tilesets(path):
   body_buffer = "\ndef resolve_tileset(key):\n"
 
   for key in tilesets:
-    imports_buffer += f"import tiles.{key} as {key}_tileset\n"
+    imports_buffer += f"import locations.{key}.tiles as {key}_tileset\n"
     body_buffer += f"  if key == \"{key}\": return {key}_tileset\n"
 
   output_file = open("src/resolve/tileset.py", "w")
@@ -171,8 +175,11 @@ if __name__ == "__main__":
   build_items(items=collect_imports("src/items"))
   build_skills(skills=collect_imports("src/skills"))
   build_chars(chars=collect_imports("src/cores", root=True))
-  build_elems(elems=collect_imports("src/dungeon", exclude=["features", "floors", "gen"]))
-  build_tilesets(path="src/tiles")
+  build_elems(elems={
+    **collect_imports("src/dungeon", exclude=["features", "floors", "gen"]),
+    **collect_imports("src/locations", exclude=["default", "tiles"]),
+  })
+  build_tilesets(path="src/locations")
   build_floors(floors=collect_imports("src/dungeon", prefix="floors"))
   build_hooks(path="src/dungeon/hooks")
   build_materials(

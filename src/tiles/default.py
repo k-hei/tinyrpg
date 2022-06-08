@@ -1,1 +1,0 @@
-from tiles.tomb import *

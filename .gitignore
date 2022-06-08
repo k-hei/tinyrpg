@@ -14,3 +14,4 @@ build
 /debug.*
 src/data01.json
 src/untiled/*.json
+src/untiled/*.png

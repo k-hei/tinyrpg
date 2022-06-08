@@ -3,7 +3,7 @@ from os import listdir
 from os.path import join, splitext
 from dataclasses import dataclass, field
 from lib.grid import Grid
-import tiles.default as tileset
+import locations.default.tileset as tileset
 from resolve.hook import resolve_hook
 from resolve.tileset import resolve_tileset
 from config import ROOMS_PATH

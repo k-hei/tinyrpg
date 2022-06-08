@@ -1,10 +1,12 @@
 from random import randint
 from copy import copy
 from math import sqrt
+
 from pygame import Surface, Rect
 from lib.sprite import Sprite
 from lib.cell import is_adjacent, add as add_vector, manhattan, upscale
 from dungeon.fov import shadowcast
+from dungeon.status import Status
 import lib.vector as vector
 
 from dungeon.element import DungeonElement
@@ -28,11 +30,10 @@ from comps.hpbubble import HpBubble
 from vfx.icepiece import IcePieceVfx
 import config
 from config import TILE_SIZE
-
 from contexts import Context
 from contexts.dialogue import DialogueContext
-
 import debug
+
 
 class DungeonActor(DungeonElement):
   POISON_DURATION = 5
@@ -114,7 +115,6 @@ class DungeonActor(DungeonElement):
     actor.weapon = actor.find_weapon()
     actor.item = None
     actor.command = None
-    actor.counter = False
     actor.turns = 0
     actor.updates = 0
     actor.rare = rare
@@ -122,6 +122,7 @@ class DungeonActor(DungeonElement):
     actor.on_defeat = None
     actor.flipped = False
     actor.hidden = False
+    actor._status = Status()
 
     actor.ai_mode = None
     actor.ai_target = None
@@ -193,16 +194,24 @@ class DungeonActor(DungeonElement):
 
   @property
   def st(actor):
-    return actor.stats.st + (actor.weapon.st if actor.weapon else 0)
+    base_st = actor.stats.st
+    weapon_st = actor.weapon.st if actor.weapon else 0
+    status_st = actor._status.get_stat_mask().st # TODO(?): demeter
+    return (base_st + weapon_st) * status_st
 
   @property
   def en(actor):
+    base_en = actor.stats.en
+    status_en = actor._status.get_stat_mask().en # TODO(?): demeter
+    en = base_en * status_en
+
     if actor.ailment == "sleep":
-      return actor.stats.en // 2
-    elif actor.ailment == "freeze":
-      return int(actor.stats.en * 1.5)
-    else:
-      return actor.stats.en
+      return en // 2
+
+    if actor.ailment == "freeze":
+      return int(en * 1.5)
+
+    return en
 
   @property
   def dead(actor):
@@ -297,9 +306,16 @@ class DungeonActor(DungeonElement):
     actor.ailment = ailment
     return True
 
-  def step_status(actor, game):
+  def step_aggro(actor):
     if actor.aggro and not actor.ailment == "freeze":
       actor.aggro += 1
+
+  def apply_status_effect(actor, effect):
+    return actor._status.apply(effect)
+
+  def step_status(actor, game):
+    actor._status.step()
+
     actor.ailment_turns -= 1
     if actor.ailment == "poison":
       damage = int(actor.get_hp_max() * DungeonActor.POISON_STRENGTH)
@@ -325,6 +341,7 @@ class DungeonActor(DungeonElement):
     if actor.ailment == "invulnerable":
       actor.stats = copy(actor.core.stats)
 
+    actor._status.clear()
     actor.ailment = None
     actor.ailment_turns = 0
 
@@ -566,6 +583,14 @@ class DungeonActor(DungeonElement):
           origin=("left", "bottom"),
           layer="vfx"
         ))
+
+    status_badges = actor._status.view()
+    if status_badges:
+      sprites += Sprite.move_all(
+        sprites=status_badges,
+        offset=(4, 4),
+        layer="vfx",
+      )
 
     # hp bubble
     if actor.faction != "player" and not (actor.faction == "ally" and actor.behavior == "guard"):

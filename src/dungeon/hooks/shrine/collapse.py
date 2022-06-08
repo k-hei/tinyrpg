@@ -5,7 +5,7 @@ from anims.fall import FallAnim
 from anims.pause import PauseAnim
 from anims.shake import ShakeAnim
 from dungeon.actors.mage import Mage
-import tiles.default as tileset
+import locations.tomb.tiles as tileset
 from config import TILE_SIZE
 
 def on_collapse(room, game):
@@ -82,7 +82,8 @@ def on_collapse(room, game):
       ])
     ),
     lambda step: (
-      game.get_tail().follow_link("Floor1", on_end=step)
+      # behavior differs when CUTSCENES flag is on/off
+      game.get_tail().parent.follow_link("Floor1", on_end=step)
     )
   ]))
   return True

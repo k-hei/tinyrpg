@@ -1,0 +1,10 @@
+{
+  "time_chamber_ground":        [   0,   0, 768, 216],
+  "time_chamber_sarcophagus":   [ 768,   0, 768, 216],
+  "time_chamber_wheel":         [1536,   0, 768, 216],
+  "time_chamber_pipes":         [   0, 216, 768, 216],
+  "time_chamber_pillars":       [ 768, 216, 768, 216],
+  "time_chamber_roots":         [1536, 216, 768, 216],
+  "time_chamber_doorway_left":  [   0,  48,  48,  48],
+  "time_chamber_doorway_right": [ 720,  48,  48,  48]
+}

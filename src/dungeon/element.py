@@ -21,6 +21,7 @@ import debug
 class DungeonElement:
   HITBOX_SIZE = (TILE_SIZE // 2, TILE_SIZE // 2)
 
+  size = None
   solid = False
   opaque = False
   static = False
@@ -40,6 +41,7 @@ class DungeonElement:
     expires=False,
     breakable=False
   ):
+    if not elem.size: elem.size = size
     if not elem.solid: elem.solid = solid
     if not elem.opaque: elem.opaque = opaque
     if not elem.static: elem.static = static
@@ -47,10 +49,9 @@ class DungeonElement:
     if not elem.hidden: elem.hidden = hidden
     if not elem.expires: elem.expires = expires
     if not elem.breakable: elem.breakable = breakable
-    if type(size) is not tuple:
-      debug.log(f"WARNING: Create element {type(elem).__name__} with size {size}")
-      size = (1, 1)
-    elem.size = size
+    if type(elem.size) is not tuple:
+      debug.log(f"WARNING: Create element {type(elem).__name__} with size {elem.size}")
+      elem.size = (1, 1)
     elem.pos = None
     elem.elev = 0
     elem.done = False

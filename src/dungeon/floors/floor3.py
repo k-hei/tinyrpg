@@ -7,7 +7,7 @@ from contexts.explore.roomdata import RoomData, rooms
 from dungeon.gen import gen_floor
 from dungeon.gen.blob import gen_blob
 from dungeon.props.pillar import Pillar
-import tiles.default as tileset
+import locations.tomb.tiles as tileset
 
 class Floor3(Floor):
   def generate(store=None, seed=None):

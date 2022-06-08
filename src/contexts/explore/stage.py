@@ -1,6 +1,6 @@
 from pygame import Rect
 from config import TILE_SIZE
-from tiles import Tile
+from locations.default.tile import Tile
 from dungeon.actors import DungeonActor
 
 # TODO: relocate pathfinding logic
@@ -59,6 +59,9 @@ class Stage:
 
   def set_tile_at(stage, cell, tile):
     return stage.tiles.set(*cell, tile)
+
+  def is_tile_at_of_type(stage, cell, tile_type):
+    return Tile.is_of_type(stage.get_tile_at(cell), tile_type)
 
   def get_elem_at(stage, cell):
     return None

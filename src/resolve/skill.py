@@ -27,6 +27,8 @@ from skills.magic.fulgur import Fulgur
 from skills.magic.glacio import Glacio
 from skills.magic.congelatio import Congelatio
 from skills.field.detectmana import DetectMana
+from skills.support.fortify import Fortify
+from skills.support.empower import Empower
 from skills.support.anastasis import Anastasis
 from skills.support.counter import Counter
 from skills.support.sana import Sana
@@ -63,6 +65,8 @@ def resolve_skill(key):
   if key == "Glacio": return Glacio
   if key == "Congelatio": return Congelatio
   if key == "DetectMana": return DetectMana
+  if key == "Fortify": return Fortify
+  if key == "Empower": return Empower
   if key == "Anastasis": return Anastasis
   if key == "Counter": return Counter
   if key == "Sana": return Sana

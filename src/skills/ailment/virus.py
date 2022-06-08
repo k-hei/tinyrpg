@@ -1,15 +1,12 @@
-import math
 from skills.ailment import AilmentSkill
 from anims.bounce import BounceAnim
-from anims.flinch import FlinchAnim
 from anims.pause import PauseAnim
 from dungeon.actors import DungeonActor
 from cores.mage import Mage
-from lib.cell import is_adjacent, neighborhood
-import tiles.default as tileset
+from lib.cell import neighborhood
+import locations.default.tileset as tileset
 from dungeon.stage import Tile
 from dungeon.props.poisonpuff import PoisonPuff
-from config import ENABLED_COMBAT_LOG
 
 ATTACK_DURATION = 12
 

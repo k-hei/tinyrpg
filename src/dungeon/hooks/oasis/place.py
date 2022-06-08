@@ -1,8 +1,8 @@
-from random import choice, shuffle
-from lib.cell import subtract as subtract_vector, neighborhood, manhattan
+from random import shuffle
+from lib.cell import neighborhood, manhattan
 from dungeon.props.palm import Palm
 from dungeon.props.door import Door
-import tiles.default as tileset
+import locations.default.tileset as tileset
 import debug
 
 def on_place(room, stage):

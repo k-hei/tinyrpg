@@ -3,21 +3,23 @@ from town.sideview.actor import Actor
 from cores.genie import Genie
 from assets import load as use_assets
 from lib.sprite import Sprite
-from config import TILE_SIZE
 from contexts.prompt import PromptContext, Choice
 from contexts.load import LoadContext
 from contexts.save import SaveContext
 from contexts.controls import ControlsContext
 from contexts.nameentry import NameEntryContext
+from config import TILE_SIZE, WINDOW_HEIGHT
 
 class OutskirtsArea(Area):
-  name = "Outskirts"
   TOWER_X = 224
+
+  name = "Outskirts"
   bg = "town_outskirts"
   links = {
     "left": AreaLink(x=0, direction=(-1, 0)),
     "tower": AreaLink(x=TOWER_X, direction=(1, 0)),
   }
+  actor_offset = 28
 
   def init(area, ctx):
     super().init(ctx)
@@ -83,6 +85,6 @@ class OutskirtsArea(Area):
     sprite_tower = assets.sprites["tower"]
     sprites.append(Sprite(
       image=sprite_tower,
-      pos=(OutskirtsArea.TOWER_X, Area.ACTOR_Y - TILE_SIZE)
+      pos=(OutskirtsArea.TOWER_X, Area.ACTOR_Y + area.actor_offset + WINDOW_HEIGHT / 2 - TILE_SIZE)
     ))
     return sprites

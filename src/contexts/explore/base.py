@@ -1,4 +1,5 @@
-from random import random
+from math import ceil
+from random import random, randint
 from lib.cell import manhattan, upscale, downscale
 import lib.vector as vector
 import lib.input as input
@@ -10,11 +11,12 @@ from anims.step import StepAnim
 from anims.attack import AttackAnim
 from anims.pause import PauseAnim
 from anims.jump import JumpAnim
+from anims.awaken import AwakenAnim
 from items.materials import MaterialItem
 from dungeon.actors import DungeonActor
 from dungeon.props.itemdrop import ItemDrop
-from tiles import Tile
-import tiles.default as tileset
+from locations.default.tile import Tile
+import locations.default.tileset as tileset
 from vfx.talkbubble import TalkBubble
 from config import MOVE_DURATION, PUSH_DURATION, SKILL_BADGE_POS_SOLO, SKILL_BADGE_POS_ALLY
 
@@ -219,6 +221,25 @@ class ExploreBase(Context):
       ctx.move_cell(actor=ctx.ally, delta=invert_direction(delta))
 
     return True
+
+  def make_noise(ctx, cell, noise_factor):
+    actors = [e for e in ctx.stage.elems if (
+      isinstance(e, DungeonActor)
+      and e.faction == "enemy"
+      and manhattan(cell, e.cell) <= ceil(noise_factor)
+    )]
+    for actor in actors:
+      received_noise = max(0, noise_factor - manhattan(cell, actor.cell) + 1)
+      if actor.ailment == DungeonActor.AILMENT_SLEEP:
+        if random() < received_noise:
+          actor.wake_up()
+          actor.alert(cell)
+          ctx.anims.append([AwakenAnim(
+            duration=30,
+            target=actor,
+          )])
+      elif random() < received_noise * 2:
+        actor.alert(cell)
 
   def handle_push(ctx):
     target_cell = vector.add(ctx.hero.cell, ctx.hero.facing)
@@ -507,7 +528,7 @@ class ExploreBase(Context):
     if not facing_elem:
       facing_cell = ctx.hero.cell
       facing_tile = ctx.stage.get_tile_at(facing_cell)
-      if issubclass(facing_tile, (tileset.Entrance, tileset.Exit)):
+      if facing_tile and issubclass(facing_tile, (tileset.Entrance, tileset.Exit)):
         facing_elem = facing_tile
 
     pending_anims = [a for g in ctx.anims for a in g if not a.done]

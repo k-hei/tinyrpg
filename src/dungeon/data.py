@@ -5,7 +5,6 @@ from cores import Core
 from dungeon.stage import Stage, Tile
 from dungeon.decor import Decor
 from dungeon.element import DungeonElement
-from dungeon.features.room import Room
 
 @dataclass
 class DungeonData:
@@ -19,7 +18,7 @@ class DungeonData:
         return Stage.TILES.index(obj) if obj in Stage.TILES else -1
       if type(obj) in (DungeonData, Stage, Decor):
         return obj.__dict__
-      if isinstance(obj, DungeonElement) or isinstance(obj, Room):
+      if isinstance(obj, DungeonElement):
         return obj.encode()
       if isinstance(obj, FunctionType):
         return obj.__name__

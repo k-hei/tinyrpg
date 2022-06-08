@@ -1,6 +1,6 @@
 DEBUG = True
 DEBUG_GEN = False
-CUTSCENES = True
+CUTSCENES = False
 
 # dungeon generation
 SEED = None
@@ -45,6 +45,13 @@ MAGE_BUILD = {}
 ROGUE_NAME = "Fray"
 ROGUE_HP = 19
 ROGUE_BUILD = {}
+
+HUSBAND_NAME = "Thag"
+WIFE_NAME = "Sylvia"
+ORACLE_NAME = "Mira"
+BUNNY_NAME = "Bunji"
+BOAR_NAME = "Grink"
+MOUSE_NAME = "Rossoh"
 
 # generic animations
 WALK_DURATION = 16

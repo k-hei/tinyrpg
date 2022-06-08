@@ -1,4 +1,4 @@
-from random import randint, choice
+from random import choice
 from skills.magic import MagicSkill
 from anims.pause import PauseAnim
 from anims.bounce import BounceAnim
@@ -6,7 +6,7 @@ from anims.warpin import WarpInAnim
 from cores.mage import Mage
 from dungeon.actors.eyeball import Eyeball
 from config import ENABLED_COMBAT_LOG
-import tiles.default as tileset
+import locations.default.tileset as tileset
 
 class Accerso(MagicSkill):
   name = "Accerso"

@@ -4,7 +4,7 @@ from lib.cell import add
 from dungeon.features import Feature
 from dungeon.actors import DungeonActor
 from dungeon.props.door import Door
-import tiles.default as tileset
+import locations.default.tileset as tileset
 from config import ROOM_WIDTHS, ROOM_HEIGHTS
 
 class Room(Feature):

@@ -22,6 +22,8 @@ from dungeon.props.pillar import Pillar
 from dungeon.props.column import Column
 from dungeon.props.raretreasuredoor import RareTreasureDoor
 from dungeon.props.chest import Chest
+from dungeon.status.defense import DefEffect
+from dungeon.status.attack import AtkEffect
 from dungeon.actors.genie import Genie
 from dungeon.actors.mummy import Mummy
 from dungeon.actors.mageclone import MageClone
@@ -35,6 +37,14 @@ from dungeon.actors.knight import Knight
 from dungeon.actors.mushroom import Mushroom
 from dungeon.actors.guard import GuardActor
 from dungeon.actors.ghost import Ghost
+from locations.prejungle.elems.tree import PrejungleTree
+from locations.prejungle.elems.bug import PrejungleBug
+from locations.prejungle.elems.bush import PrejungleBush
+from locations.prejungle.elems.berrytree import PrejungleBerryTree
+from locations.prejungle.elems.grass import PrejungleGrass
+from locations.prejungle.elems.redtree import PrejungleRedTree
+from locations.prejungle.elems.rock import PrejungleRockXL
+from locations.prejungle.elems.mosquito import PrejungleMosquito
 
 def resolve_elem(key):
   if key == "Bag": return Bag
@@ -61,6 +71,8 @@ def resolve_elem(key):
   if key == "Column": return Column
   if key == "RareTreasureDoor": return RareTreasureDoor
   if key == "Chest": return Chest
+  if key == "DefEffect": return DefEffect
+  if key == "AtkEffect": return AtkEffect
   if key == "Genie": return Genie
   if key == "Mummy": return Mummy
   if key == "MageClone": return MageClone
@@ -74,3 +86,11 @@ def resolve_elem(key):
   if key == "Mushroom": return Mushroom
   if key == "GuardActor": return GuardActor
   if key == "Ghost": return Ghost
+  if key == "PrejungleTree": return PrejungleTree
+  if key == "PrejungleBug": return PrejungleBug
+  if key == "PrejungleBush": return PrejungleBush
+  if key == "PrejungleBerryTree": return PrejungleBerryTree
+  if key == "PrejungleGrass": return PrejungleGrass
+  if key == "PrejungleRedTree": return PrejungleRedTree
+  if key == "PrejungleRockXL": return PrejungleRockXL
+  if key == "PrejungleMosquito": return PrejungleMosquito

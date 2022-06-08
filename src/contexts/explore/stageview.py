@@ -19,14 +19,7 @@ def find_tile_state(stage, cell, visited_cells):
 
 def render_tile(stage, cell, visited_cells=[]):
   tile = stage.get_tile_at(cell)
-  if tile is None:
-    return None
-
-  tile_image = tile.sprite
-  if callable(tile_image):
-    tile_image = tile_image(stage, cell, visited_cells)
-
-  return tile_image
+  return tile.render(stage, cell, visited_cells) if tile else None
 
 def snap_vector(vector, tile_size):
   return tuple(map(lambda x: x // tile_size, vector))
@@ -242,7 +235,7 @@ class StageView:
     if type(elem) is SecretDoor and elem.hidden:
       tileset = resolve_tileset(view.stage.bg)
       return [Sprite(
-        image=tileset.Wall.sprite(view.stage, elem.cell, visited_cells),
+        image=tileset.Wall.render(view.stage, elem.cell, visited_cells),
         pos=tuple([x * view.stage.tile_size for x in elem.cell]),
         layer="tiles"
       )]

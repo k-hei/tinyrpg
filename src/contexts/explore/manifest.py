@@ -5,7 +5,7 @@ import lib.vector as vector
 from contexts.explore.stage import Stage
 from contexts.explore.roomdata import RoomData
 from dungeon.room import Blob as Room
-import tiles.default as tileset
+import locations.tomb.tiles as tileset
 from dungeon.decoder import decode_elem
 from helpers.stage import find_tile
 
@@ -33,28 +33,23 @@ def manifest_rooms(rooms, dry=False, seed=None):
         tile = room.get_tile_at(vector.subtract(cell, room.origin))
       else:
         tile = tileset.Floor
-      stage_tiles.set(*vector.add(cell, stage_offset), tile)
+      stage.set_tile_at(vector.add(cell, stage_offset), tile)
 
     if not dry:
       room.origin = vector.add(room.origin, stage_offset)
       room.data and spawn_elems(stage, elem_data=room.data.elems, offset=room.origin)
 
+  print(stage.size)
   return stage, stage_offset
 
 def manifest_room(room):
   room_data = RoomData(**room)
 
-  stage_cells = []
-  stage_tiles = Grid(size=vector.add(room_data.size, (2, 3)))
-  stage_tiles.fill(tileset.Wall)
-  stage_origin = (1, 2)
+  stage_tiles = Grid(size=room_data.size)
   for cell, tile in room_data.tiles.enumerate():
-    stage_cells.append(cell)
-    stage_tiles.set(*vector.add(stage_origin, cell), tile)
+    stage_tiles.set(*cell, tile)
 
   stage_rooms = [Room(cells) for cells in room_data.rooms] or [Room(data=room_data)]
-  for room in stage_rooms:
-    room.origin = vector.add(room.origin, stage_origin)
 
   stage = Stage(
     tiles=stage_tiles,
@@ -69,13 +64,14 @@ def manifest_room(room):
     )
 
   if stage.entrance is None:
-    stage.entrance = vector.add(room_data.edges[-1], stage_origin)
-    stage.set_tile_at(stage.entrance, tileset.Hallway)
+    stage.entrance = tuple(room_data.edges[-1])
+    # if stage.tiles.contains(*stage.entrance):
+    #   stage.set_tile_at(stage.entrance, tileset.Hallway)
 
-  spawn_elems(stage, elem_data=room_data.elems, offset=stage_origin)
+  spawn_elems(stage, elem_data=room_data.elems)
   return stage
 
-def spawn_elems(stage, elem_data, offset):
+def spawn_elems(stage, elem_data, offset=(0, 0)):
   for elem_cell, elem_name, *elem_props in elem_data:
     elem_props = elem_props[0] if elem_props else {}
     elem = decode_elem(elem_cell, elem_name, elem_props)

@@ -3,7 +3,6 @@ all:
 
 imports:
 	python3 src/colors/build.py
-	python3 src/savedata/build.py
 	python3 src/resolve/__init__.py
 
 clean:

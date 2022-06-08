@@ -3,7 +3,7 @@ from lib.cell import manhattan, is_adjacent
 from dungeon.actors import DungeonActor
 from dungeon.stage import Stage
 from dungeon.props.secretdoor import SecretDoor
-import tiles.default as tileset
+import locations.default.tileset as tileset
 
 def gen_elems(stage, room, elems):
   spawn_count = 0

@@ -8,8 +8,8 @@ from lib.graph import Graph
 from debug import bench, log
 from config import FPS
 
-from contexts.explore.stage import Stage
-import tiles.default as tileset
+import locations.default.tileset as tileset
+import locations.tomb.tiles as tomb_tileset
 from dungeon.floors import Floor
 from dungeon.room import Blob as Room
 from contexts.explore.roomdata import load_rooms
@@ -503,8 +503,8 @@ def gen_floor(
           next((e for e in stage.get_elems_at(e) if isinstance(e, GenericDoor)), None)
           or (
             not next((n for n in neighborhood(e) if next((e for e in stage.get_elems_at(n) if isinstance(e, GenericDoor)), None)), None)
-            and len([n for n in neighborhood(e) if stage.get_tile_at(n) is tileset.Wall]) == 3
-            and len([n for n in neighborhood(e, diagonals=True) if stage.get_tile_at(n) is tileset.Wall]) in (5, 6, 7)
+            and len([n for n in neighborhood(e) if stage.is_tile_at_of_type(n, tileset.Wall)]) == 3
+            and len([n for n in neighborhood(e, diagonals=True) if stage.is_tile_at_of_type(n, tileset.Wall)]) in (5, 6, 7)
             # and not next((c for c in [c for r in [r for r in rooms if r is not room] for c in r.outline] if is_adjacent(c, e)), None)
             and not e in stage.border
           )
@@ -514,6 +514,7 @@ def gen_floor(
         if not prev_edges:
           for e in room1.edges:
             stage.spawn_elem_at(e, Eyeball(faction="ally"))
+          print(room1.data)
           yield stage, f"Failed to find usable edges for room {i + 1}"
           connected = False
           break
@@ -523,6 +524,7 @@ def gen_floor(
         if not room_edges:
           for e in room2.edges:
             stage.spawn_elem_at(e, Eyeball(faction="ally"))
+          print(room2.data)
           yield stage, f"Failed to find usable edges for room {i + 2}"
           connected = False
           break
@@ -585,12 +587,12 @@ def gen_floor(
         else GenericDoor)
 
       exit_room = (
-        room1 if next((c for c in room1.cells if stage.get_tile_at(c) is tileset.Exit), None)
-        else room2 if next((c for c in room2.cells if stage.get_tile_at(c) is tileset.Exit), None)
+        room1 if next((c for c in room1.cells if stage.is_tile_at_of_type(c, tileset.Exit)), None)
+        else room2 if next((c for c in room2.cells if stage.is_tile_at_of_type(c, tileset.Exit)), None)
         else None
       )
       if exit_room:
-        entry_room = next((r for r in rooms for c in r.cells if stage.get_tile_at(c) is tileset.Entrance), None)
+        entry_room = next((r for r in rooms for c in r.cells if stage.is_tile_at_of_type(c, tileset.Entrance)), None)
         if entry_room and graph.distance(entry_room, exit_room) == 2:
           Door = RareTreasureDoor
 
@@ -631,7 +633,7 @@ def gen_floor(
         stage.remove_elem(door)
         stage.spawn_elem_at(doorway, SecretDoor())
 
-      neighbor = next((n for n in neighborhood(doorway) if stage.get_tile_at(n) is tileset.Floor), None)
+      neighbor = next((n for n in neighborhood(doorway) if stage.is_tile_at_of_type(n, tileset.Floor)), None)
       if neighbor:
         neighbor_x, neighbor_y = neighbor
         door_delta = subtract_vector(neighbor, doorway)
@@ -640,7 +642,7 @@ def gen_floor(
         and door_delta != (0, -1)
         and stage.is_cell_empty((neighbor_x - door_ydelta, neighbor_y - door_xdelta))
         and stage.is_cell_empty((neighbor_x + door_ydelta, neighbor_y + door_xdelta))
-        and stage.get_tile_at((neighbor_x + door_xdelta * 2, neighbor_y + door_ydelta * 2)) is not tileset.Wall
+        and stage.is_tile_at_of_type((neighbor_x + door_xdelta * 2, neighbor_y + door_ydelta * 2), tileset.Wall)
         and randint(0, 1)
         ):
           stage.spawn_elem_at(neighbor, ArrowTrap(facing=door_delta, delay=inf, static=False))

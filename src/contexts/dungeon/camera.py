@@ -1,16 +1,32 @@
+from dataclasses import dataclass
 from math import ceil
 from pygame import Rect
 import lib.vector as vector
 from dungeon.room import Blob as Room
 from anims.tween import TweenAnim
-from config import TILE_SIZE, WINDOW_HEIGHT
+from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
+
+@dataclass
+class CameraConstraints:
+  left: int = 0
+  right: int = 0
+  top: int = 0
+  bottom: int = 0
+
+  @property
+  def width(constraints):
+    return abs(constraints.right - constraints.left)
+
+  @property
+  def height(constraints):
+    return abs(constraints.bottom - constraints.top)
 
 class Camera:
   SPEED = 8
   MAX_XRADIUS = 3
   MAX_YRADIUS = 2
 
-  def resolve_target_group(target_group):
+  def resolve_target_group(target_group, camera_offset=(0, 0)):
     scale = TILE_SIZE
     room = None
     target = None
@@ -19,7 +35,7 @@ class Camera:
       if isinstance(t, Room):
         room = t
       elif type(t) is tuple:
-        targets.append(t)
+        targets.append(vector.subtract(t, camera_offset))
         target = t
       else:
         targets.append(t.pos)
@@ -40,7 +56,6 @@ class Camera:
     if target:
       target_x, target_y = target
     else:
-      # print("use room focus", (focus_x, focus_y))
       return (focus_x, focus_y)
 
     max_xradius = (ceil(room.width / 2) - Camera.MAX_XRADIUS) * scale
@@ -64,16 +79,20 @@ class Camera:
 
     return (focus_x, focus_y)
 
-  def __init__(camera, size, pos=None):
+  def __init__(camera, size, pos=None, offset=(0, 0), constraints=None):
     camera.size = size
-    camera.pos = pos or None
+    camera.pos = pos
+    camera.offset = offset
+    camera.constraints = constraints
     camera.vel = (0, 0)
     camera.target_groups = []
     camera.anim = None
 
   @property
   def pos(camera):
-    return camera._pos
+    return (vector.add(camera._pos, camera.offset)
+      if camera._pos and camera.offset
+      else camera._pos)
 
   @pos.setter
   def pos(camera, pos):
@@ -117,7 +136,7 @@ class Camera:
     else:
       camera.target_groups.append([target])
 
-    target_pos = Camera.resolve_target_group(camera.target_groups[-1])
+    target_pos = Camera.resolve_target_group(camera.target_groups[-1], camera.offset)
 
     if not camera.pos:
       camera.pos = target_pos
@@ -128,10 +147,10 @@ class Camera:
   def tween(camera, target, duration=None, on_end=None):
     start_pos = camera.pos
     camera.focus(target, force=True)
-    goal_pos = Camera.resolve_target_group(camera.target_groups[-1])
+    goal_pos = Camera.resolve_target_group(camera.target_groups[-1], camera.offset)
 
     if not start_pos:
-      camera.pos = goal_pos
+      camera.pos = vector.add(goal_pos, camera.offset)
       return
 
     duration = duration or int(vector.distance(start_pos, goal_pos) / 4)
@@ -164,7 +183,37 @@ class Camera:
         camera.anim = None
       return
 
-    target_pos = Camera.resolve_target_group(camera.target_groups[-1])
-    target_vel = vector.scale(vector.subtract(target_pos, camera.pos), 1 / Camera.SPEED * 8)
+    target_pos = Camera.resolve_target_group(camera.target_groups[-1], camera.offset)
+    target_vel = vector.scale(vector.subtract(target_pos, vector.subtract(camera.pos, camera.offset)), 1 / Camera.SPEED * 8)
     camera.vel = vector.scale(vector.subtract(target_vel, camera.vel), 1 / 8)
-    camera.pos = vector.add(camera.pos, camera.vel)
+    camera.pos = vector.add(camera.pos, camera.vel, vector.negate(camera.offset))
+
+
+    camera_x = camera.pos[0] - camera.offset[0]
+    camera_y = camera.pos[1] - camera.offset[1]
+
+
+    if camera.constraints and camera.size[0] >= camera.constraints.width:
+      camera.pos = (camera.size[0] / 2, camera_y)
+
+    elif camera.constraints:
+      constraint_left = camera.constraints.left + camera.size[0] / 2
+      if camera.pos[0] < constraint_left:
+        camera.pos = (constraint_left, camera_y)
+
+      constraint_right = camera.constraints.right - camera.size[0] / 2
+      if camera.pos[0] > constraint_right:
+        camera.pos = (constraint_right, camera_y)
+
+
+    if camera.constraints and camera.size[1] >= camera.constraints.height:
+      camera.pos = (camera_x, 0)
+
+    elif camera.constraints:
+      constraint_top = camera.constraints.top + camera.size[1] / 2
+      if camera.pos[1] < constraint_top:
+        camera.pos = (camera_x, constraint_top)
+
+      constraint_bottom = camera.constraints.bottom - camera.size[1] / 2
+      if camera.pos[1] > constraint_bottom:
+        camera.pos = (camera_x, constraint_bottom)
