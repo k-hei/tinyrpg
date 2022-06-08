@@ -38,7 +38,7 @@ def bench(tag, reset=False, print_threshold=0):
     return delta
 
 def dictify(obj):
-  {key: getattr(obj, key) for key in dir(obj) if (
+  return {key: getattr(obj, key) for key in dir(obj) if (
     key != key.upper()
     and not key.startswith("__")
     and not callable(getattr(obj, key))

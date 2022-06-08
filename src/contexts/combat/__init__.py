@@ -886,14 +886,12 @@ class CombatContext(ExploreBase):
       ctx.command_discarded = False
 
     if ctx.command_queue and ctx.command_discarded:
-      print("command previously discarded, waiting for queue to clear...")
       return
 
     if not ctx.command_pending and ctx.command_gen:
       try:
         ctx.command_pending = next(ctx.command_gen)
         if not ctx.command_pending:
-          print("discard command")
           ctx.command_discarded = True
       except StopIteration:
         ctx.command_gen = None
@@ -1063,7 +1061,11 @@ class CombatContext(ExploreBase):
       return
 
     if hero.ailment == "sleep":
-      ctx.step()
+      ally = ctx.ally
+      if ally and ally.can_step():
+        ctx.handle_charswap()
+      else:
+        ctx.step()
 
   def view(ctx):
     return (ctx.view_grid() if ctx.hero else []) + super().view()
