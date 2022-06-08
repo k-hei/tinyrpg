@@ -898,12 +898,11 @@ class CombatContext(ExploreBase):
 
     if ctx.command_pending:
       actor, command = ctx.command_pending
-      actor_enqueued_commands = [c for a, c in ctx.command_queue if a is actor]
-      actor_has_enqueued_action = next((True for c in actor_enqueued_commands
+      queue_has_action = next((True for a, c in ctx.command_queue
         if c[0] not in (COMMAND_MOVE, COMMAND_WAIT)
       ), False)
 
-      if not (ctx.command_queue and actor_has_enqueued_action):
+      if not queue_has_action:
         chain = actor.turns > 1
         ctx.command_pending = None
         ctx.step_command(actor, command, chain)
