@@ -606,12 +606,13 @@ class DungeonActor(DungeonElement):
       and not (attack_anim and len(actor.core.anims) == 1)
       ):
         sprite.image = anim.frame()
-        # TEST(cactus): why did we ever need this?
-        # actor_width, actor_height = sprite.image.get_size()
-        # offset_x += (actor_width - TILE_SIZE) / 2
-        # offset_y += (actor_height - TILE_SIZE) / 2
-        # if actor_height > TILE_SIZE:
-        #   offset_y += (actor_height - TILE_SIZE) / 2
+        # TEST: knight downwards attacks and cactus idle actions
+        if sprite.image.get_size() != (actor_width, actor_height):
+          actor_width, actor_height = sprite.image.get_size()
+          offset_x += (actor_width - TILE_SIZE) / 2
+          offset_y += (actor_height - TILE_SIZE) / 2
+          if actor_height > TILE_SIZE:
+            offset_y += (actor_height - TILE_SIZE) / 2
 
     warpin_anim = next((a for a in anim_group if type(a) is WarpInAnim), None)
     drop_anim = next((a for a in anim_group if type(a) is DropAnim), None)
