@@ -16,8 +16,8 @@ class Empower(SupportSkill):
   users = (Knight),
   blocks = [
     (0, 0),
-    (1, 0),
     (0, 1),
+    (1, 1),
   ]
 
   def effect(game, user, dest=None, on_start=None, on_end=None):

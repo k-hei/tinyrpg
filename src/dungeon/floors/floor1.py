@@ -36,7 +36,7 @@ class Floor1(Floor):
           exit_room := Room(
             data=RoomData(**{
               **rooms["exit"].__dict__,
-              "doors": "RareTreasureDoor",
+              # "doors": "RareTreasureDoor",
             })
           ),
           puzzle_room := Room(data=rooms["pzlt1"]),

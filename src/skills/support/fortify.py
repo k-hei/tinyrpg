@@ -15,8 +15,8 @@ class Fortify(SupportSkill):
   range_max = 0
   users = (Knight),
   blocks = [
+    (0, 0),
     (1, 0),
-    (0, 1),
     (1, 1),
   ]
 

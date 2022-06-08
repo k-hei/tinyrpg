@@ -24,7 +24,7 @@
     }
   },
   "kills": {},
-  "story": [],
+  "story": ["minxia"],
   "quests": {},
   "controls": {
     "LEFT": "l3",

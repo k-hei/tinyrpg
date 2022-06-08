@@ -15,6 +15,7 @@ from contexts.loading import LoadingContext
 from contexts.controls import ControlsContext
 from contexts.explore.manifest import manifest_room
 from contexts.explore.roomdata import load_rooms, rooms, RoomData
+from resolve.floor import resolve_floor
 from dungeon.decoder import decode_floor
 from dungeon.gen.floorgraph import FloorGraph
 from skills import get_skill_order
@@ -93,13 +94,14 @@ class GameContext(Context):
 
     if ctx.floor:
       Floor = ctx.floor
-      # ctx.floor = None
+      ctx.floor = None
       app = ctx.get_head()
       bench("Generate floor")
       return ctx.open(LoadingContext(
         loader=Floor.generate(ctx.store, seed=ctx.seed),
         on_end=lambda floor: (
           bench("Generate floor"),
+          debug.log(f"Using seed {ctx.seed}"),
           ctx.goto_dungeon(floors=FloorGraph(nodes=[floor]), generator=Floor),
         )
       ))
