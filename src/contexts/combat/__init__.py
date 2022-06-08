@@ -66,6 +66,7 @@ class CombatContext(ExploreBase):
     ctx.should_path = path
     ctx.exiting = False
     ctx.turns = 0
+    ctx.turns_completed = 0
     ctx.command_queue = []
     ctx.command_pending = None
     ctx.command_gen = None
@@ -878,6 +879,9 @@ class CombatContext(ExploreBase):
     ctx.update_command()
 
   def update_command(ctx):
+    if not ctx.command_gen and not ctx.command_queue and ctx.turns_completed < ctx.turns:
+      ctx.end_step()
+
     if not ctx.command_queue:
       ctx.command_discarded = False
 
@@ -907,6 +911,7 @@ class CombatContext(ExploreBase):
         ctx.step_command(actor, command, chain)
 
   def step(ctx):
+    ctx.turns += 1
     actors = [e for e in ctx.stage.elems if
       isinstance(e, DungeonActor)
       and e is not ctx.hero
@@ -974,8 +979,6 @@ class CombatContext(ExploreBase):
         if command:
           yield actor, command
 
-    ctx.end_step()
-
   def step_ally(ctx, actor):
     if not ctx.hero or not actor.can_step():
       return None
@@ -1042,7 +1045,7 @@ class CombatContext(ExploreBase):
     effect_elem and effect_elem.effect(ctx, actor)
 
   def end_step(ctx):
-    ctx.turns += 1
+    ctx.turns_completed += 1
 
     actors = [e for e in ctx.stage.elems if isinstance(e, DungeonActor)]
     for actor in actors:
@@ -1054,6 +1057,13 @@ class CombatContext(ExploreBase):
       elem.step(ctx)
 
     ctx.stage.elems = [e for e in ctx.stage.elems if not e.done]
+
+    hero = ctx.hero
+    if not hero:
+      return
+
+    if hero.ailment == "sleep":
+      ctx.step()
 
   def view(ctx):
     return (ctx.view_grid() if ctx.hero else []) + super().view()
