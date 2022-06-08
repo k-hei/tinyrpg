@@ -872,7 +872,7 @@ class CombatContext(ExploreBase):
     not ctx.find_enemies_in_range() and ctx.exit()
 
   def inflict_ailment(ctx, actor, ailment, color, on_end=None):
-    if actor.dead or actor.ailment == ailment:
+    if ctx.exiting or actor.dead or actor.ailment == ailment:
       return False
 
     def inflict():
