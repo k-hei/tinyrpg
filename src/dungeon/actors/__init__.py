@@ -244,6 +244,9 @@ class DungeonActor(DungeonElement):
     return message
 
   def idle(actor, game):
+    if not game.request_idle_action():
+      return False
+
     message = actor.get_idle_message()
     if not message:
       return False

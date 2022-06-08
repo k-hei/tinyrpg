@@ -67,6 +67,7 @@ class CombatContext(ExploreBase):
     ctx.exiting = False
     ctx.turns = 0
     ctx.turns_completed = 0
+    ctx.can_perform_idle_action = True
     ctx.command_queue = []
     ctx.command_pending = None
     ctx.command_gen = None
@@ -1055,6 +1056,7 @@ class CombatContext(ExploreBase):
 
   def end_step(ctx):
     ctx.turns_completed += 1
+    ctx.can_perform_idle_action = True
 
     actors = [e for e in ctx.stage.elems if isinstance(e, DungeonActor)]
     for actor in actors:
@@ -1077,6 +1079,12 @@ class CombatContext(ExploreBase):
         ctx.handle_charswap()
       else:
         ctx.step()
+
+  def request_idle_action(ctx):
+    if ctx.can_perform_idle_action:
+      ctx.can_perform_idle_action = False
+      return True
+    return False
 
   def view(ctx):
     return (ctx.view_grid() if ctx.hero else []) + super().view()
