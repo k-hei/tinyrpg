@@ -409,11 +409,13 @@ class InventoryContext(Context):
       success, message = ctx.parent.use_item(item, discard=not is_using_from_extra_slot)
     else:
       success, message = ctx.parent.store.use_item(item, discard=not is_using_from_extra_slot)
+
     if success is False:
       ctx.box.print(message)
       return False
     else:
       if is_using_from_extra_slot and ctx.get_hero():
+        print("use from extra slot")
         ctx.get_hero().item = None
       if success is True:
         ctx.exit()
@@ -549,6 +551,7 @@ class InventoryContext(Context):
           sprite = sprite_tileright
         else:
           sprite = sprite_tile
+
         anim = next((a for a in ctx.anims if a.target == cell), None)
         if anim and type(anim) is not SelectAnim:
           if ctx.active:
@@ -560,6 +563,7 @@ class InventoryContext(Context):
             sprite = pygame.transform.scale(sprite, (int(width), int(height)))
         elif not ctx.active:
           continue
+
         x = cells_x + tile_width * col + tile_width // 2 - sprite.get_width() // 2
         y = cells_y + tile_height * row + tile_height // 2 - sprite.get_height() // 2
         sprites.append(Sprite(
@@ -591,8 +595,12 @@ class InventoryContext(Context):
           if ctx.selection and cell == ctx.cursor:
             y -= 4
             layer = "selection"
+
+          item_image = (stroke(item().render(), WHITE)
+            if callable(item)
+            else item.render())  # TODO: why does this stroke multiple times for gold instances
           sprites.append(Sprite(
-            image=stroke(item().render(), WHITE),
+            image=item_image,
             pos=(x - 1, y - 1),
             layer=layer,
             offset=16

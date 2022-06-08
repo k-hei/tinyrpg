@@ -34,6 +34,7 @@ from dungeon.actors.ghost import Ghost
 from dungeon.actors.mummy import Mummy
 
 from items.sets import NORMAL_ITEMS, SPECIAL_ITEMS
+from items.gold import Gold
 from items.dungeon.key import Key
 
 from resolve.elem import resolve_elem
@@ -720,7 +721,12 @@ def gen_floor(
         room_items = [Vase(contents=choice(SPECIAL_ITEMS)) for _ in range(item_count)]
       else:
         item_count = max(1, min(3, room.get_area() // 24))
-        room_items = [Vase(contents=choice(items)) for _ in range(item_count)]
+        room_items = [Vase(contents=Gold(amount=randint(4, 30)))
+        # Vase(contents=choice(items))
+        #   if randint(0, 1)
+        #   else Vase(contents=Gold(amount=randint(4, 30)))
+            for _ in range(item_count)]
+
 
       vases_spawned = gen_elems(stage, room, elems=room_items)
 

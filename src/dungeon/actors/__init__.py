@@ -695,7 +695,8 @@ class DungeonActor(DungeonElement):
 
     # item icon
     if actor.item:
-      item_image = actor.item().render()
+      item = actor.item() if callable(actor.item) else actor.item
+      item_image = item.render()
       item_sprite = Sprite(
         image=item_image,
         pos=(0, -16),

@@ -51,8 +51,10 @@ class ItemDrop(Prop):
         offset_x += col * TILE_SIZE
         offset_y += row * TILE_SIZE + (1 - anim.pos) * -16
         offset_layer = "vfx"
+
+    item = drop.item() if callable(drop.item) else drop.item
     return super().view([Sprite(
-      image=drop.item().render(),
+      image=item.render(),
       pos=(offset_x, offset_y),
       offset=-8,
       layer=offset_layer,
