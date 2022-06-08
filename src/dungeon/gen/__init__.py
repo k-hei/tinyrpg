@@ -390,6 +390,7 @@ def gen_floor(
   tileset = tileset or TombTileset
   seed = seed if seed is not None else getrandbits(32)
   random.seed(seed)
+  log(f"Running generator using seed {seed}")
 
   lkg = None
   while lkg is None:
