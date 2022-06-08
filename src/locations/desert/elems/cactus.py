@@ -79,7 +79,7 @@ class DesertEvilCactus(DungeonActor):
 
     class Blowout(AttackSkill):
         name = "Blowout"
-        charge_turns = 2
+        charge_turns = 1
 
         def effect(game, user, dest=None, on_start=None, on_end=None):
 
@@ -130,6 +130,11 @@ class DesertEvilCactus(DungeonActor):
                 (name, "What's going on??")
             ],
         ), *args, **kwargs)
+        cactus.damaged = False
+
+    def damage(cactus, *args, **kwargs):
+        super().damage(*args, **kwargs)
+        cactus.damaged = True
 
     def step(cactus, game):
         if not cactus.can_step():
@@ -153,7 +158,10 @@ class DesertEvilCactus(DungeonActor):
         if not is_adjacent(cactus.cell, enemy.cell):
             return ("move_to", enemy.cell)
 
-        if random() < 1 / 2:
+        blowout_chance = 7 / 8 if cactus.damaged else 1 / 2
+        cactus.damaged = False
+
+        if random() < blowout_chance:
             return cactus.charge(skill=DesertEvilCactus.Blowout, dest=enemy.cell)
         else:
             return ("attack", enemy)
