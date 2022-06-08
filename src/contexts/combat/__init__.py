@@ -619,7 +619,7 @@ class CombatContext(ExploreBase):
     cleanup = lambda: (
       ctx.kill(target, on_end=on_end)
         if (
-          (target.is_dead() or ctx.stage.is_tile_at_pit(target.cell))
+          (target.dead or ctx.stage.is_tile_at_pit(target.cell))
           and (not ctx.room or ctx.room.on_defeat(ctx, target))
           ) else on_end and on_end(),
     )
@@ -842,7 +842,7 @@ class CombatContext(ExploreBase):
     not ctx.find_enemies_in_range() and ctx.exit()
 
   def inflict_ailment(ctx, actor, ailment, color, on_end=None):
-    if actor.is_dead() or actor.ailment == ailment:
+    if actor.dead or actor.ailment == ailment:
       return False
 
     def inflict():
@@ -891,9 +891,6 @@ class CombatContext(ExploreBase):
     ctx.update_command()
 
   def update_command(ctx):
-    if not ctx.command_gen and not ctx.command_queue and ctx.turns_completed < ctx.turns:
-      ctx.end_step()
-
     if not ctx.command_queue:
       ctx.command_discarded = False
 
@@ -919,13 +916,16 @@ class CombatContext(ExploreBase):
         ctx.command_pending = None
         ctx.step_command(actor, command, chain)
 
+    if not ctx.command_gen and not ctx.command_queue and ctx.turns_completed < ctx.turns:
+      ctx.end_step()
+
   def step(ctx):
     ctx.turns += 1
     actors = [e for e in ctx.stage.elems if
       isinstance(e, DungeonActor)
       and e is not ctx.hero
       and e is not ctx.ally
-      and not e.is_dead()
+      and not e.dead
       and (not ctx.room or e.cell in ctx.room.cells)
       and e.cell in ctx.hero.visible_cells
     ]
@@ -969,6 +969,7 @@ class CombatContext(ExploreBase):
         continue
 
       while actor.turns >= 1:
+        print(type(actor).__name__, actor.turns)
         actor.turns -= 1
 
         if actor.dead:
@@ -986,6 +987,7 @@ class CombatContext(ExploreBase):
             break
 
         if command:
+          print("yield", type(actor).__name__, command)
           yield actor, command
 
   def step_ally(ctx, actor):

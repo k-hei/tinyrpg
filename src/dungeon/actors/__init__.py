@@ -191,10 +191,12 @@ class DungeonActor(DungeonElement):
   def get_skills(actor): return actor.core.skills
   def get_active_skills(actor): return actor.core.get_active_skills()
   def is_dead(actor): return actor.core.dead
+
   def can_step(actor):
-    return not actor.command and not actor.is_immobile()
+    return not actor.is_immobile()
+
   def is_immobile(actor):
-    return actor.is_dead() or actor.ailment in ("sleep", "freeze") or actor.charge_skill
+    return actor.dead or actor.ailment in ("sleep", "freeze") or actor.charge_skill
 
   @property
   def st(actor):
@@ -377,6 +379,7 @@ class DungeonActor(DungeonElement):
         ) for _ in range(randint(3, 4))])
       elif actor.ailment == "sleep":
         game.anims.append([AwakenAnim(target=actor)])
+
       actor.dispel_ailment()
 
   def dispel_ailment(actor):

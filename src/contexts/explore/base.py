@@ -162,7 +162,7 @@ class ExploreBase(Context):
   def find_closest_enemy(ctx, actor, elems=None):
     enemies = [e for e in (elems or ctx.stage.elems) if (
       isinstance(e, DungeonActor)
-      and not e.is_dead()
+      and not e.dead
       and not e.allied(actor)
     )]
 

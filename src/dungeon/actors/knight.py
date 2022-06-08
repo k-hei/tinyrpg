@@ -42,6 +42,24 @@ class Knight(DungeonActor):
     else:
       knight.core.anims.append(KnightCore.BlockAnim())
 
+  def wake_up(knight):
+    if not super().wake_up():
+      return False  # not sleeping
+
+    print("wake up", knight.weapon)
+    if not knight.weapon:
+      return True
+
+    knight.core.anims.append(
+      knight.core.BrandishAnim(
+        on_end=lambda: (
+          knight.core.anims.append(knight.core.IdleDownAnim()),
+        )
+      )
+    )
+
+    return True
+
   def view(knight, anims):
     if knight.facing == (0, -1):
       knight_image = assets.sprites["knight_up"]

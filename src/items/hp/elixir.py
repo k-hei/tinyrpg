@@ -23,7 +23,7 @@ class Elixir(HpItem):
     or ally and ally.get_hp() < ally.get_hp_max()
     or game.store.sp < game.store.sp_max):
       hero.set_hp(hero.get_hp_max())
-      ally and not ally.is_dead() and ally.set_hp(ally.get_hp_max())
+      ally and not ally.dead and ally.set_hp(ally.get_hp_max())
       game.store.sp = game.store.sp_max
       return True, "The party restored full HP and SP."
     else:
