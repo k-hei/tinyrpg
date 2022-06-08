@@ -8,7 +8,7 @@ from config import TILE_SIZE
 
 def gen_elems(stage, room, elems):
   spawn_count = 0
-  room_doorways = [c for c in room.get_doorways(stage) if not SecretDoor.exists_at(stage, c)]
+  room_doorways = [c for c in room.get_doorways(stage)]
 
   if next((e for e in elems if isinstance(e, DungeonActor)), None):
     valid_cells = [c for c in room.get_cells() if (
