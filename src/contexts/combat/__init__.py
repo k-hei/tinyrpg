@@ -4,7 +4,7 @@ import lib.input as input
 from lib.direction import invert as invert_direction
 from lib.cell import neighborhood, manhattan, is_adjacent, upscale, downscale
 from helpers.combat import find_damage, will_miss, will_crit, will_block, animate_snap
-from helpers.stage import is_cell_walkable_to_actor
+from helpers.stage import is_tile_walkable_to_actor, is_cell_walkable_to_actor
 from resolve.skill import resolve_skill
 import debug
 
@@ -120,26 +120,31 @@ class CombatContext(ExploreBase):
         and not ctx.stage.is_tile_at_solid(c)
       ]
 
+      hero_path = ctx.stage.pathfind(
+        start=actor_cells[ctx.hero],
+        goal=start_cells.pop(0),
+        whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True)
+      )
+
+      ally_path = ctx.stage.pathfind(
+        start=actor_cells[ctx.ally],
+        goal=start_cells.pop(0),
+        whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True) + [ctx.ally.cell]
+      )
+
       ctx.anims.append([
-        PathAnim(
+        *([PathAnim(
           target=ctx.hero,
-          path=ctx.stage.pathfind(
-            start=actor_cells[ctx.hero],
-            goal=start_cells.pop(0),
-            whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True)
-          ),
+          path=hero_path,
           period=TILE_SIZE // walk_speed,
           on_end=lambda: hero_brandish and ctx.anims[0].append(hero_brandish)
-        ), PathAnim(
+        )] if hero_path else []),
+        *([PathAnim(
           target=ctx.ally,
-          path=ctx.stage.pathfind(
-            start=actor_cells[ctx.ally],
-            goal=start_cells.pop(0),
-            whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True) + [ctx.ally.cell]
-          ),
+          path=ally_path,
           period=TILE_SIZE // walk_speed,
           on_end=lambda: ally_brandish and ctx.anims[0].append(ally_brandish)
-        )
+        )] if ally_path else []),
       ])
 
     elif hero_brandish or ally_brandish:
@@ -167,14 +172,19 @@ class CombatContext(ExploreBase):
     hero_adjacents = [n for n in neighborhood(ctx.hero.cell) if ctx.stage.is_cell_empty(n)]
     if ally_rejoin and ctx.ally and hero_adjacents:
       target_cell = sorted(hero_adjacents, key=lambda c: manhattan(c, ctx.ally.cell))[0]
-      ctx.anims.append([PathAnim(
+      ally_path = ctx.stage.pathfind(
+        start=ctx.ally.cell,
+        goal=target_cell,
+        predicate=lambda cell: is_cell_walkable_to_actor(ctx.stage, cell, ctx.ally)
+      ) or ctx.stage.pathfind(
+        start=ctx.ally.cell,
+        goal=target_cell,
+        predicate=lambda cell: is_tile_walkable_to_actor(ctx.stage, cell, ctx.ally)
+      )
+      ally_path and ctx.anims.append([PathAnim(
         target=ctx.ally,
         period=TILE_SIZE / 3,
-        path=ctx.stage.pathfind(
-          start=ctx.ally.cell,
-          goal=target_cell,
-          whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True)
-        )
+        path=ally_path
       )])
 
     room_enemies = [e for e in ctx.stage.elems
@@ -706,7 +716,9 @@ class CombatContext(ExploreBase):
     if not ctx.hero:
       return False
 
-    if not ctx.ally or ctx.ally.dead:
+    if (not ctx.ally
+    or ctx.ally.dead
+    or ctx.room and ctx.ally.cell not in ctx.room.cells):
       ctx.comps.hud.shake()
       return False
 

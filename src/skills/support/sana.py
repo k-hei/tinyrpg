@@ -32,7 +32,7 @@ class Sana(SupportSkill):
       if target_elem:
         amount = 20 + random.randint(-2, 2)
         target_elem.regen(amount)
-        game.numbers.append(DamageValue(
+        game.vfx.append(DamageValue(
           text=str(amount),
           pos=target_elem.pos,
           color=GREEN
