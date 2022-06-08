@@ -35,7 +35,6 @@ def will_miss(attacker, defender):
   )
 
 def roll_crit(attacker, defender, mod=1):
-  print("roll crit with chance", CRIT_CHANCE * mod)
   return roll(
     dx=attacker.stats.dx + attacker.stats.lu / 2,
     ag=defender.stats.ag + defender.stats.lu / 2,

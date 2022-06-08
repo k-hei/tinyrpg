@@ -20,6 +20,7 @@ from anims.bounce import BounceAnim
 from config import PUSH_DURATION
 
 from skills.attack import AttackSkill
+from vfx.cactus_spine import CactusSpineVfx
 
 
 class DesertEvilCactus(DungeonActor):
@@ -83,6 +84,14 @@ class DesertEvilCactus(DungeonActor):
         def effect(game, user, dest=None, on_start=None, on_end=None):
 
             def blowout():
+                directions = neighborhood((0, 0), diagonals=True)
+                for direction in directions:
+                    game.vfx.append(CactusSpineVfx(
+                        src=user.cell,
+                        color=user.color(),
+                        direction=direction,
+                    ))
+
                 target_cells = neighborhood(user.cell, diagonals=True)
                 target_actors = [e for e in game.stage.elems
                     if isinstance(e, DungeonActor) and e.cell in target_cells]
@@ -91,7 +100,7 @@ class DesertEvilCactus(DungeonActor):
                     game.attack(
                         actor=user,
                         target=target,
-                        atk_mod=0.925,
+                        atk_mod=0.95,
                         crit_mod=50,
                         animate=False,
                     )
