@@ -637,7 +637,7 @@ class CombatContext(ExploreBase):
 
     inflict = lambda: (
       direction and not target.ailment == DungeonActor.AILMENT_FREEZE and setattr(target, "facing", invert_direction(direction)),
-      damage and target.damage(damage),
+      damage and target.damage(damage, ctx),
       show_text(),
     )
 

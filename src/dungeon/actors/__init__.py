@@ -523,7 +523,7 @@ class DungeonActor(DungeonElement):
   def attack(actor):
     pass
 
-  def damage(target, damage):
+  def damage(target, damage, game):
     target.set_hp(target.get_hp() - damage)
     if target.get_hp() <= 0:
       target.kill()

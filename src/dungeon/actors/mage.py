@@ -63,6 +63,11 @@ class Mage(DungeonActor):
     super().charge(*args, **kwargs)
     mage.core.anims.append(MageCore.CastAnim())
 
+  def damage(mage, damage, game, *args, **kwargs):
+    if mage.ailment == "sleep" and not damage >= mage.hp:
+      game.print((mage.token(), ": Oh, that's IT!!"))
+    super().damage(damage, game, *args, **kwargs)
+
   def start_move(actor, running):
     actor.anims = [WalkAnim(period=30 if running else 60)]
     actor.core.anims = actor.anims.copy()

@@ -104,7 +104,8 @@ class Ghost(DungeonActor):
       return
 
     ghost.damaged = True
-    if ghost.charge_skill is not Somnus:
+    if random() < 1 / 2 and not (ghost.charge_skill is Somnus
+    and is_adjacent(ghost.cell, ghost.charge_dest)):
       ghost.reset_charge()
 
   def charge(ghost, *args, **kwargs):
@@ -121,9 +122,8 @@ class Ghost(DungeonActor):
 
   def charge_warp_skill(ghost, game, enemy, warp_dest):
     skill = choice((
-      *([Somnus]
+      *([Somnus] * (3 if enemy.hp <= enemy.hp_max / 2 else 1)
         if not enemy.ailment == "sleep"
-          and ghost.hp <= ghost.hp_max / 2
           and is_adjacent(warp_dest, enemy.cell)
         else []),
       Ghost.Warp,
@@ -148,7 +148,8 @@ class Ghost(DungeonActor):
     if not enemy:
       return None
 
-    if random() < 1 / 16 and ghost.idle(game):
+    idle_chance = 1 / 4 if enemy.ailment == "sleep" else 1 / 16
+    if random() < idle_chance and ghost.idle(game):
       ghost.core.anims.append(GhostCore.LaughAnim(duration=75))
       return None
 
@@ -166,20 +167,20 @@ class Ghost(DungeonActor):
 
     if (is_adjacent(ghost.cell, enemy.cell)
     and ghost.hp <= ghost.hp_max / 2
-    and not enemy.ailment == "sleep"
-    and random() < 1 / 2):
+    and not enemy.ailment == "sleep"):
       ghost.face(enemy.cell)
       return ghost.charge(skill=Somnus, dest=enemy.cell, turns=1)
 
     if manhattan(ghost.cell, enemy.cell) <= 2:
       if random() < 1 / 2:
         return ghost.charge(skill=Ghost.ColdWhip, dest=enemy.cell)
+      else:
         warp_dest = ghost.find_warp_dest(game, enemy)
         if warp_dest:
           ghost.charge_warp_skill(game, enemy, warp_dest)
         return ("use_skill", Ghost.Warp, warp_dest)
 
-    movement_type = choice(("strafe", "strafe", "move_to", "warp"))
+    movement_type = choice(("strafe", "strafe", "move_to", "warp", "wait"))
     if movement_type == "strafe":
       delta = DesertSnake.find_move_delta(ghost, goal=enemy.cell)
       return ("move", delta)
@@ -188,6 +189,8 @@ class Ghost(DungeonActor):
     elif movement_type == "warp":
       ghost.turns = 0
       return ("use_skill", Ghost.Warp)
+    elif movement_type == "wait":
+      return ("wait",)
 
   def view(ghost, anims):
     ghost_image = assets.sprites["ghost"]
