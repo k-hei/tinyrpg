@@ -9,13 +9,13 @@ inputs:
 outputs:
   increment:
     description: 'The version increment resolved from the given commit message'
-    value: ${{ steps.determine_increment.outputs.increment }}
+    value: ${{ steps.determine-increment.outputs.increment }}
 
 runs:
   using: 'composite'
   steps:
     - name: Determine increment
-      id: determine_increment
+      id: determine-increment
       shell: bash
       run: |
         echo "Head commit is \"${{ inputs.commit_message }}\""

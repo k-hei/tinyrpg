@@ -6,7 +6,7 @@ env:
   PYTHON_VERSION: '3.x'
 
 jobs:
-  version_increment:
+  version-increment:
     runs-on: ubuntu-latest
     outputs:
       increment: ${{ steps.determine_increment.outputs.increment }}
@@ -19,12 +19,12 @@ jobs:
         with:
           commit-message: ${{ github.event.head_commit.message }}
 
-  version_bump:
+  version-bump:
     runs-on: ubuntu-latest
-    needs: version_increment
-    if: ${{ needs.version_increment.outputs.increment != 'skip' }}
+    needs: version-increment
+    if: ${{ needs.version-increment.outputs.increment != 'skip' }}
     outputs:
-      version: ${{ steps.version_bump.outputs.new_version }}
+      version: ${{ steps.version-bump.outputs.new_version }}
 
     steps:
       - uses: actions/checkout@v3
@@ -35,10 +35,10 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Bump version
-        id: version_bump
+        id: version-bump
         shell: bash
         run: |
-          NEW_VERSION=$(python3 bin/bump_version.py ${{ needs.version_increment.outputs.increment }})
+          NEW_VERSION=$(python3 bin/bump_version.py ${{ needs.version-increment.outputs.increment }})
           echo "Using new version $NEW_VERSION"
           echo "::set-output name=new_version::$(echo "$NEW_VERSION")"
 
@@ -48,14 +48,14 @@ jobs:
       #     git config --global user.email "semibran@gmail.com"
 
       #     git add -A
-      #     git commit -m ${{ steps.version_bump.outputs.new_version }}
+      #     git commit -m ${{ steps.version-bump.outputs.new_version }}
       #     git push
 
   release:
     runs-on: windows-latest
-    needs: version_bump
+    needs: version-bump
     env:
-      VERSION: ${{ needs.version_bump.outputs.version }}
+      VERSION: ${{ needs.version-bump.outputs.version }}
 
     steps:
       - name: Print increment
@@ -81,7 +81,7 @@ jobs:
             dist/tinyrpg-${{ env.VERSION }}.zip
 
       # - name: Create new release
-      #   id: create_release
+      #   id: create-release
       #   uses: actions/create-release@v1
       #   with:
       #     tag_name: ${{ env.VERSION }}
@@ -96,7 +96,7 @@ jobs:
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       #   with:
-      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     upload_url: ${{ steps.create-release.outputs.upload_url }}
       #     asset_path: dist/tinyrpg-${{ env.VERSION }}.zip
       #     asset_name: tinyrpg-${{ env.VERSION }}.zip
       #     asset_content_type: application/zip
