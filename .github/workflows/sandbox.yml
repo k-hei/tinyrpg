@@ -3,22 +3,30 @@ name: Sandbox
 on: pull_request
 
 jobs:
-  increment:
+  version:
     runs-on: ubuntu-latest
     outputs:
       increment: ${{ steps.determine_increment.outputs.increment }}
     steps:
-    - uses: actions/checkout@v3
-    - name: Determine increment
-      id: determine_increment
-      uses: ./.github/workflows/increment
-      with:
-        commit_message: ${{ github.event.head_commit.message }}
+      - uses: actions/checkout@v3
+      - name: Determine increment
+        id: determine_increment
+        uses: ./.github/workflows/increment
+        with:
+          commit_message: ${{ github.event.head_commit.message }}
 
-  print:
-    runs-on: windows-latest
-    needs: increment
-    steps:
-    - name: Retrieve increment
-      run: |
-        echo "${{ needs.increment.outputs.increment }}"
+      - name: Bump version
+        if: ${{ steps.determine_increment.outputs.increment != 'skip' }}
+        shell: bash
+        run: |
+          NEW_VERSION=$(py bin/bump_version.py ${{ steps.determine_increment.outputs.increment }})
+          echo "Using new version $NEW_VERSION"
+          echo "::set-output name=new_version::$(echo "$NEW_VERSION")"
+
+  # print:
+  #   runs-on: windows-latest
+  #   needs: increment
+  #   steps:
+  #   - name: Retrieve increment
+  #     run: |
+  #       echo "${{ needs.increment.outputs.increment }}"

@@ -4,6 +4,7 @@ inputs:
   commit_message:
     required: true
     type: string
+    default: 'skip'
 
 outputs:
   increment:
@@ -32,7 +33,7 @@ runs:
           INCREMENT="major"
         elif [ ${{ startsWith(inputs.commit_message, '[skip release]') }} == true ]; then
           echo "Skipping semver increment..."
-          INCREMENT="iteration"
+          INCREMENT="skip"
         else
           echo "No commit message flag found, using default increment ($INCREMENT)"
         fi
