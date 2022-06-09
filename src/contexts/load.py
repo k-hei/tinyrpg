@@ -1,3 +1,4 @@
+from os import path
 import pygame
 import lib.keyboard as keyboard
 from contexts.data import DataContext
@@ -11,7 +12,7 @@ import assets
 from lib.sprite import Sprite
 from lib.filters import outline
 from colors.palette import BLACK
-from config import WINDOW_WIDTH
+from config import WINDOW_WIDTH, ROOT_PATH
 
 
 class LoadContext(DataContext):
@@ -28,7 +29,7 @@ class LoadContext(DataContext):
       ctx.EXTRA_CONTROLS = { "esc": "Controls" }
       ctx.version = "STAGING"
       try:
-        with open("VERSION", mode="r", encoding="utf-8") as version_file:
+        with open(path.join(ROOT_PATH, "VERSION"), mode="r", encoding="utf-8") as version_file:
           ctx.version = version_file.read().rstrip()
       except FileNotFoundError:
         pass

@@ -30,15 +30,13 @@ WINDOW_HEIGHT = 216
 WINDOW_SIZE = (WINDOW_WIDTH, WINDOW_HEIGHT)
 WINDOW_SCALE_INIT = 2
 WINDOW_SCALE_MAX = 6
-ASSETS_PATH = "assets/"
-ROOMS_PATH = "rooms/"
 
 # defaults
 KNIGHT_NAME = "Yorgen"
 KNIGHT_HP = 23
 KNIGHT_BUILD = {
-  "Stick": (0, 0),
-  "Blitzritter": (1, 0)
+    "Stick": (0, 0),
+    "Blitzritter": (1, 0)
 }
 
 MAGE_NAME = "Minxia"
@@ -81,3 +79,20 @@ COMBAT_THRESHOLD = 112
 ENABLED_COMBAT_LOG = False
 SKILL_BADGE_POS_SOLO = (46, 42)
 SKILL_BADGE_POS_ALLY = (60, 54)
+
+
+
+import sys
+import os
+from os.path import abspath, dirname, join
+
+
+def resolve_path(*args):
+    return join(dirname(__file__), *args)    
+
+
+ROOT_PATH = resolve_path()
+ASSETS_PATH = resolve_path("assets")
+ROOMS_PATH = resolve_path("rooms")
+SAVEDATA_PATH = resolve_path("src")
+LOCATIONS_PATH = resolve_path("src", "locations")
