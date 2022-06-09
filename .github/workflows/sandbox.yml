@@ -3,7 +3,7 @@ name: Sandbox
 on: pull_request
 
 jobs:
-  version_increment:
+  version-increment:
     runs-on: ubuntu-latest
     outputs:
       increment: ${{ steps.determine_increment.outputs.increment }}
@@ -17,10 +17,10 @@ jobs:
         with:
           commit_message: ${{ github.event.head_commit.message }}
 
-  version_bump:
+  version-bump:
     runs-on: ubuntu-latest
-    needs: version_increment
-    if: ${{ needs.version_increment.outputs.increment != 'skip' }}
+    needs: version-increment
+    if: ${{ needs.version-increment.outputs.increment != 'skip' }}
 
     steps:
       - uses: actions/checkout@v3
@@ -33,7 +33,7 @@ jobs:
       - name: Bump version
         shell: bash
         run: |
-          NEW_VERSION=$(py bin/bump_version.py ${{ needs.version_increment.outputs.increment }})
+          NEW_VERSION=$(python3 bin/bump_version.py ${{ needs.version-increment.outputs.increment }})
           echo "Using new version $NEW_VERSION"
           echo "::set-output name=new_version::$(echo "$NEW_VERSION")"
 
