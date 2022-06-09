@@ -12,6 +12,9 @@ jobs:
       uses: ./.github/workflows/increment
       with:
         commit_message: ${{ github.event.head_commit.message }}
+    - name: Retrieve increment from same job
+      run: |
+        echo ${{ steps.determine_increment.outputs.increment }}
 
   print:
     runs-on: ubuntu-latest
