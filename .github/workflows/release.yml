@@ -1,0 +1,92 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - v0.7
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      head_commit: ${{ github.event.head_commit.message }}
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # required for get-previous-tag
+
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.x'
+
+    - name: Determine increment
+      id: determine_increment
+      shell: bash
+      run: |
+        echo "Head commit is \"${{ env.head_commit }}\""
+        INCREMENT="minor"
+        if [ ${{ startsWith(env.head_commit, 'fix:') }} == true \
+        || ${{ startsWith(env.head_commit, 'patch:') }} == true ]; then
+          echo "Found \"fix\", creating a patch release..."
+          INCREMENT="patch"
+        elif [ ${{ startsWith(env.head_commit, 'feat:') }} == true \
+        || ${{ startsWith(env.head_commit, 'feat(') }} == true ]; then
+          echo "Found \"feat\", creating a minor release..."
+          INCREMENT="minor"
+        elif [ ${{ startsWith(env.head_commit, 'BREAKING CHANGE:') }} == true ]; then
+          echo "Found \"BREAKING CHANGE\", creating a major release..."
+          INCREMENT="major"
+        elif [ ${{ startsWith(env.head_commit, '[skip release]') }} == true ]; then
+          echo "Found [skip release], skipping semver increment..."
+          INCREMENT="iteration"
+        else
+          echo "No commit message flag found, using default increment ($INCREMENT)"
+        fi
+        echo "::set-output name=increment::$(echo "$INCREMENT")"
+
+    - name: Bump version
+      id: bump_version
+      shell: bash
+      run: |
+        NEW_VERSION=$(py bin/bump_version.py ${{ steps.determine_increment.outputs.increment }})
+        echo "Using new version $NEW_VERSION"
+        echo "::set-output name=new_version::$(echo "$NEW_VERSION")"
+
+    - name: Create new release
+      uses: actions/create-release@v1
+      with:
+        tag_name: ${{ steps.bump_version.outputs.new_version }}
+        release_name: ${{ steps.bump_version.outputs.new_version }}
+        commitish: master
+        prerelease: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install dependencies
+      run: |
+        py -m pip install -r requirements.txt
+
+    - name: Build application binary
+      run: |
+        bin/build.sh
+
+    - name: Upload application binary
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: dist/tinyrpg-${{ steps.bump_version.outputs.new_version }}
+        asset_name: tinyrpg-${{ steps.bump_version.outputs.new_version }}
+        tag: ${{ github.ref }}
+        overwrite: true
+
+    - name: Push new version
+      run: |
+        git config --global user.name "Brandon Semilla"
+        git config --global user.email "semibran@gmail.com"
+
+        git add -A
+        git commit -m ${{ steps.bump_version.outputs.new_version }}
+        git push
+
