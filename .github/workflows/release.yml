@@ -54,7 +54,7 @@ jobs:
     #     NEW_VERSION=$(py bin/bump_version.py ${{ steps.determine_increment.outputs.increment }})
     #     echo "Using new version $NEW_VERSION"
     #     echo "::set-output name=new_version::$(echo "$NEW_VERSION")"
-
+    
     # - name: Create new release
     #   uses: actions/create-release@v1
     #   with:
