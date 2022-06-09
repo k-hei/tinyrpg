@@ -1,7 +1,7 @@
 name: Increment
 
 inputs:
-  commit-message:
+  commit_message:
     required: true
     type: string
     default: 'skip'
@@ -9,30 +9,30 @@ inputs:
 outputs:
   increment:
     description: 'The version increment resolved from the given commit message'
-    value: ${{ steps.determine-increment.outputs.increment }}
+    value: ${{ steps.determine_increment.outputs.increment }}
 
 runs:
   using: 'composite'
   steps:
     - name: Determine increment
-      id: determine-increment
+      id: determine_increment
       shell: bash
       run: |
-        echo "Head commit is \"${{ inputs.commit-message }}\""
+        echo "Head commit is \"${{ inputs.commit_message }}\""
         INCREMENT="minor"
-        if [ ${{ startsWith(inputs.commit-message, 'fix:') }} == true ] \
-        || [ ${{ startsWith(inputs.commit-message, 'patch:') }} == true ]; then
+        if [ ${{ startsWith(inputs.commit_message, 'fix:') }} == true ] \
+        || [ ${{ startsWith(inputs.commit_message, 'patch:') }} == true ]; then
           echo "Creating a patch release..."
           INCREMENT="patch"
-        elif [ ${{ startsWith(inputs.commit-message, 'feat:') }} == true ] \
-        || [ ${{ startsWith(inputs.commit-message, 'feat(') }} == true ]; then
+        elif [ ${{ startsWith(inputs.commit_message, 'feat:') }} == true ] \
+        || [ ${{ startsWith(inputs.commit_message, 'feat(') }} == true ]; then
           echo "Creating a minor release..."
           INCREMENT="minor"
-        elif [ ${{ startsWith(inputs.commit-message, 'BREAKING CHANGE:') }} == true ]; then
+        elif [ ${{ startsWith(inputs.commit_message, 'BREAKING CHANGE:') }} == true ]; then
           echo "Creating a major release..."
           INCREMENT="major"
-        elif [ ${{ startsWith(inputs.commit-message, '[skip release]') }} == true ] \
-        || [ ${{ startsWith(inputs.commit-message, 'skip:') }} == true ]; then
+        elif [ ${{ startsWith(inputs.commit_message, '[skip release]') }} == true ] \
+        || [ ${{ startsWith(inputs.commit_message, 'skip:') }} == true ]; then
           echo "Skipping semver increment..."
           INCREMENT="skip"
         else

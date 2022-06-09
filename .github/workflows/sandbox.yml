@@ -2,26 +2,29 @@ name: Sandbox
 
 on: pull_request
 
+env:
+  PYTHON_VERSION: '3.x'
+
 jobs:
-  version-increment:
+  version_increment:
     runs-on: ubuntu-latest
     outputs:
-      increment: ${{ steps.determine-increment.outputs.increment }}
+      increment: ${{ steps.determine_increment.outputs.increment }}
 
     steps:
       - uses: actions/checkout@v3
       - name: Determine increment
-        id: determine-increment
+        id: determine_increment
         uses: ./.github/workflows/increment
         with:
-          commit-message: '[skip release]'  # ${{ github.event.head_commit.message }}
+          commit-message: ${{ github.event.head_commit.message }}
 
-  version-bump:
+  version_bump:
     runs-on: ubuntu-latest
-    needs: version-increment
-    if: ${{ needs.version-increment.outputs.increment != 'skip' }}
+    needs: version_increment
+    if: ${{ needs.version_increment.outputs.increment != 'skip' }}
     outputs:
-      version: ${{ steps.bump-version.outputs.new-version }}
+      version: ${{ steps.version_bump.outputs.new_version }}
 
     steps:
       - uses: actions/checkout@v3
@@ -29,15 +32,15 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
-          python-version: '3.x'
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Bump version
-        id: bump-version
+        id: version_bump
         shell: bash
         run: |
-          NEW_VERSION=$(python3 bin/bump_version.py ${{ needs.version-increment.outputs.increment }})
+          NEW_VERSION=$(python3 bin/bump_version.py ${{ needs.version_increment.outputs.increment }})
           echo "Using new version $NEW_VERSION"
-          echo "::set-output name=new-version::$(echo "$NEW_VERSION")"
+          echo "::set-output name=new_version::$(echo "$NEW_VERSION")"
 
       # - name: Push new version
       #   run: |
@@ -45,13 +48,59 @@ jobs:
       #     git config --global user.email "semibran@gmail.com"
 
       #     git add -A
-      #     git commit -m ${{ steps.bump-version.outputs.new-version }}
+      #     git commit -m ${{ steps.version_bump.outputs.new_version }}
       #     git push
 
   release:
     runs-on: windows-latest
-    needs: version-bump
+    needs: version_bump
+    env:
+      VERSION: ${{ needs.version_bump.outputs.version }}
+
     steps:
       - name: Print increment
         run: |
-          echo "${{ needs.version-bump.outputs.version }}"
+          echo "Building version ${{ env.VERSION }}"
+
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          py -m pip install -r requirements.txt
+
+      - name: Build application binary
+        shell: bash
+        run: |
+          bin/build.sh
+
+      - name: Zip application binary
+        run: |
+          Compress-Archive `
+            dist/tinyrpg-${{ env.VERSION }}.exe `
+            dist/tinyrpg-${{ env.VERSION }}.zip
+
+      # - name: Create new release
+      #   id: create_release
+      #   uses: actions/create-release@v1
+      #   with:
+      #     tag_name: ${{ env.VERSION }}
+      #     release_name: ${{ env.VERSION }}
+      #     commitish: master
+      #     prerelease: true
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # - name: Upload application archive
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: dist/tinyrpg-${{ env.VERSION }}.zip
+      #     asset_name: tinyrpg-${{ env.VERSION }}.zip
+      #     asset_content_type: application/zip
