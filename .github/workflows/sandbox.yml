@@ -9,9 +9,9 @@ jobs:
     - uses: actions/checkout@v3
     - name: Determine increment
       id: determine_increment
-      uses: k-hei/tinyrpg/.github/workflows/increment
-      with:
-        commit_message: ${{ github.event.head_commit.message }}
+      uses: ./.github/workflows/increment
+      # with:
+        # commit_message: ${{ github.event.head_commit.message }}
 
   print:
     runs-on: windows-latest
