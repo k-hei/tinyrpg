@@ -11,14 +11,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0  # required for get-previous-tag
 
     - name: Test zip
-      shell: bash
       run: |
-        zip -r9 readme.md VERSION test.zip
-        ls test.zip
+        Compress-Archive readme.md VERSION test.zip
+        Get-ChildItem -Path test.zip
 
     # - name: Set up Python
     #   uses: actions/setup-python@v3
