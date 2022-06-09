@@ -42,6 +42,7 @@ class Ghost(DungeonActor):
       if not dest:
         valid_cells = [c for c in hero.visible_cells
           if c != user.cell
+          and game.camera.is_cell_visible(c)
           and is_cell_walkable_to_actor(game.stage, cell=c, actor=user)
           and c in game.room.cells]
 

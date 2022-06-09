@@ -4,7 +4,7 @@ from pygame import Rect
 import lib.vector as vector
 from dungeon.room import Blob as Room
 from anims.tween import TweenAnim
-from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT
+from config import TILE_SIZE
 import debug
 
 
@@ -102,6 +102,14 @@ class Camera:
     camera._rect = None
 
   @property
+  def width(camera):
+    return camera.size[0]
+
+  @property
+  def height(camera):
+    return camera.size[1]
+
+  @property
   def rect(camera):
     if not camera._rect and camera.pos:
       camera._rect = Rect(
@@ -121,10 +129,19 @@ class Camera:
   def targets(camera):
     return [t for g in camera.target_groups for t in g]
 
+  def is_cell_visible(camera, cell, scale=TILE_SIZE):
+    camera_x, camera_y = camera.pos
+    target_x, target_y = vector.scale(
+      vector.add(cell, (0.5, 0.5)),
+      scale
+    )
+    return (abs(target_x - camera_x) < camera.width / 2
+      and abs(target_y - camera_y) < camera.height / 2)
+
   def is_pos_beyond_yrange(camera, pos):
     _, target_y = pos
     _, camera_y = camera.pos
-    return target_y - camera_y <= -WINDOW_HEIGHT / 2 + TILE_SIZE
+    return target_y - camera_y <= -camera.height / 2 + TILE_SIZE
 
   def focus(camera, target, force=False, anim=None, instant=False):
     if type(target) is list and force:

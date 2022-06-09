@@ -247,6 +247,9 @@ class DungeonActor(DungeonElement):
     if not game.request_idle_action():
       return False
 
+    if not game.camera.is_cell_visible(actor.cell):
+      return False
+
     message = actor.get_idle_message()
     if not message:
       return False
