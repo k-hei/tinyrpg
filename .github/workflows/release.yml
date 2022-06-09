@@ -27,7 +27,7 @@ jobs:
         || [ ${{ startsWith(env.head_commit, 'patch:') }} == true ]; then
           echo "Creating a patch release..."
           INCREMENT="patch"
-        elif [ ${{ startsWith(env.head_commit, 'feat:') }} == true ]
+        elif [ ${{ startsWith(env.head_commit, 'feat:') }} == true ] \
         || [ ${{ startsWith(env.head_commit, 'feat(') }} == true ]; then
           echo "Creating a minor release..."
           INCREMENT="minor"
