@@ -30,7 +30,7 @@ class Virus(AilmentSkill):
     ))
     targets = [e for e in game.stage.elems if (
       isinstance(e, DungeonActor)
-      and not e.is_dead()
+      and not e.dead
       and e.ailment != "poison"
       and e.cell in target_area
     )]

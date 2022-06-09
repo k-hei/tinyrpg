@@ -266,7 +266,7 @@ class Eyeball(DungeonActor):
       for anim in [a for a in anim_group if a.target is eyeball]:
         if type(anim) is AwakenAnim:
           return super().view(MoveSprite(eyeball.facing), anims)
-    if eyeball.is_dead():
+    if eyeball.dead:
       return super().view(FlinchSprite(eyeball.facing), anims)
     anim_group = [a for a in anims[0] if a.target is eyeball] if anims else []
     anim_group += eyeball.core.anims

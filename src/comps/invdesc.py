@@ -36,7 +36,7 @@ class InventoryDescription:
     box.anim = TweenAnim(duration=DURATION_EXIT)
 
   def print(box, data):
-    if type(data) is type and issubclass(data, Item):
+    if isinstance(data, type) and issubclass(data, Item) or isinstance(data, Item):
       box.message = data
       box.textbox.print(data.desc)
     else:

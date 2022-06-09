@@ -1,4 +1,7 @@
+from math import inf
+from random import randint
 import pygame
+
 import lib.vector as vector
 import lib.input as input
 from lib.direction import invert as invert_direction
@@ -25,6 +28,8 @@ from dungeon.actors import DungeonActor
 from dungeon.actors.mage import Mage
 from dungeon.props.door import Door
 from dungeon.props.soul import Soul
+from dungeon.props.bag import Bag
+from items.gold import Gold
 from dungeon.props.itemdrop import ItemDrop
 from skills.weapon import Weapon
 from locations.default.tile import Tile
@@ -67,6 +72,7 @@ class CombatContext(ExploreBase):
     ctx.exiting = False
     ctx.turns = 0
     ctx.turns_completed = 0
+    ctx.can_perform_idle_action = True
     ctx.command_queue = []
     ctx.command_pending = None
     ctx.command_gen = None
@@ -104,48 +110,64 @@ class CombatContext(ExploreBase):
       hero_cell = animate_snap(ctx.hero, anims=ctx.anims, speed=walk_speed)
       if hero_cell:
         actor_cells[ctx.hero] = hero_cell
-      # actor_cells[ctx.hero] = vector.round(ctx.hero.cell)
 
-      if ctx.ally:
-        ally_cell = animate_snap(ctx.ally, anims=ctx.anims, speed=walk_speed)
-        if ally_cell:
-          actor_cells[ctx.ally] = ally_cell
+    if ctx.should_path and ctx.ally:
+      ally_cell = animate_snap(ctx.ally, anims=ctx.anims, speed=walk_speed)
+      if ally_cell:
+        actor_cells[ctx.ally] = ally_cell
 
-    if ctx.ally and ctx.should_path:
-      start_cells = [c for c in neighborhood(ctx.hero.cell, diagonals=True) + [ctx.hero.cell] if
-        not next((e for e in ctx.stage.get_elems_at(c) if
-          isinstance(e, Door)
-          or e.solid and e is not ctx.hero
-        ), None)
-        and not ctx.stage.is_tile_at_solid(c)
-      ]
+      pathable_cells = [c for c in neighborhood(ctx.hero.cell, diagonals=True, inclusive=True)
+        + neighborhood(ctx.ally.cell, diagonals=True, inclusive=True)
+          if is_tile_walkable_to_actor(ctx.stage, c, ctx.hero)]
+
+      start_cells = {c for c in pathable_cells
+        if not (ctx.stage.is_overworld
+          and next((e for e in ctx.stage.get_elems_at(c, scale=TILE_SIZE)
+            if isinstance(e, Door)
+            or e.solid and e is not ctx.hero), None))  # exclude doors and solid elems
+        and not ctx.stage.is_tile_at_solid(c, scale=TILE_SIZE)
+        and c in ctx.room.cells}
+      start_cells = sorted(start_cells,
+        key=lambda c: inf
+          if c == ctx.hero.cell
+          else manhattan(c, ctx.hero.cell) - (c[1] == ctx.hero.cell[1]))
 
       hero_path = ctx.stage.pathfind(
-        start=actor_cells[ctx.hero],
+        start=actor_cells[ctx.hero] if ctx.hero in actor_cells else ctx.hero.cell,
         goal=start_cells.pop(0),
-        whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True)
-      )
+        whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True) + pathable_cells
+      ) if start_cells else None
 
       ally_path = ctx.stage.pathfind(
-        start=actor_cells[ctx.ally],
+        start=actor_cells[ctx.ally] if ctx.ally in actor_cells else ctx.ally.cell,
         goal=start_cells.pop(0),
-        whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True) + [ctx.ally.cell]
-      )
+        whitelist=ctx.stage.find_walkable_room_cells(room=ctx.room, ignore_actors=True) + pathable_cells
+      ) if start_cells else None
 
-      ctx.anims.append([
-        *([PathAnim(
+      anim_group = []
+
+      if hero_path:
+        anim_group.append(PathAnim(
           target=ctx.hero,
           path=hero_path,
           period=TILE_SIZE // walk_speed,
           on_end=lambda: hero_brandish and ctx.anims[0].append(hero_brandish)
-        )] if hero_path else []),
-        *([PathAnim(
+        ))
+      elif hero_brandish:
+        anim_group.append(hero_brandish)
+
+      if ally_path:
+        anim_group.append(PathAnim(
           target=ctx.ally,
           path=ally_path,
           period=TILE_SIZE // walk_speed,
           on_end=lambda: ally_brandish and ctx.anims[0].append(ally_brandish)
-        )] if ally_path else []),
-      ])
+        ))
+      elif ally_brandish:
+        anim_group.append(ally_brandish)
+
+      if anim_group:
+        ctx.anims.append(anim_group)
 
     elif hero_brandish or ally_brandish:
       ctx.anims.append([
@@ -169,7 +191,10 @@ class CombatContext(ExploreBase):
     for actor in ctx.party:
       actor.dispel_ailment()
 
-    hero_adjacents = [n for n in neighborhood(ctx.hero.cell) if ctx.stage.is_cell_empty(n)]
+    hero_adjacents = ([n for n in neighborhood(ctx.hero.cell)
+      if is_cell_walkable_to_actor(ctx.stage, n, ctx.ally)]
+        if ctx.ally else [])
+
     if ally_rejoin and ctx.ally and hero_adjacents:
       target_cell = sorted(hero_adjacents, key=lambda c: manhattan(c, ctx.ally.cell))[0]
       ally_path = ctx.stage.pathfind(
@@ -356,7 +381,7 @@ class CombatContext(ExploreBase):
       ctx.update_bubble()
       ctx.make_noise(hero.cell, 0.5)
       if not ctx.find_enemies_in_range():
-        ctx.exit()
+        ctx.exit(ally_rejoin=True)
 
     hero.facing = delta
     moved = ctx.move_cell(hero, delta, on_end=on_move)
@@ -612,14 +637,14 @@ class CombatContext(ExploreBase):
 
     inflict = lambda: (
       direction and not target.ailment == DungeonActor.AILMENT_FREEZE and setattr(target, "facing", invert_direction(direction)),
-      damage and target.damage(damage),
+      damage and target.damage(damage, ctx),
       show_text(),
     )
 
     cleanup = lambda: (
       ctx.kill(target, on_end=on_end)
         if (
-          (target.is_dead() or ctx.stage.is_tile_at_pit(target.cell))
+          (target.dead or ctx.stage.is_tile_at_pit(target.cell))
           and (not ctx.room or ctx.room.on_defeat(ctx, target))
           ) else on_end and on_end(),
     )
@@ -692,15 +717,21 @@ class CombatContext(ExploreBase):
 
     def remove_elem():
       target_skill = type(target).skill
-      if target_skill and target.rare:
-        skill = target_skill
-        if skill not in ctx.store.skills:
-          ctx.stage.spawn_elem_at(target.cell, Soul(contents=skill))
+      if target.rare and target_skill and target_skill not in ctx.store.skills:
+        ctx.stage.spawn_elem_at(target.cell, Soul(contents=target_skill))
+      elif target.rare:
+        ctx.stage.spawn_elem_at(target.cell,
+          Bag(contents=Gold(amount=randint(34, 120))))
+      elif randint(1, 3) == 1:
+        ctx.stage.spawn_elem_at(target.cell,
+          Bag(contents=Gold()))
+
       if target is ctx.hero:
         if ctx.ally:
           ctx.handle_charswap()
         else:
           ctx.handle_gameover()
+
       ctx.stage.remove_elem(target)
       will_exit and not isinstance(ctx.get_tail(), CutsceneContext) and ctx.exit(ally_rejoin=True)
       on_end and on_end()
@@ -725,11 +756,19 @@ class CombatContext(ExploreBase):
     if ctx.comps.hud.anims:
       return False
 
+    if ctx.stage.is_overworld and not ctx.ally.visible_cells:
+      ctx.ally.visible_cells = ctx.hero.visible_cells.copy()
     ctx.store.switch_chars()
-    ctx.parent.refresh_fov(reset_cache=True)
+    ctx.parent.refresh_fov(reset_cache=not ctx.stage.is_overworld)
+
     ctx.reload_skill_badge()
+
     ctx.camera.blur()
-    ctx.camera.focus(target=[ctx.room, ctx.hero], force=True)
+    ctx.camera.focus(target=[
+      *([ctx.room] if ctx.room else []),
+      ctx.hero
+    ], force=True)
+
     return True
 
   def handle_charmenu(ctx):
@@ -785,7 +824,7 @@ class CombatContext(ExploreBase):
       target = target[0] if target else None
       if target:
         nonlocal target_focus
-        target_focus = upscale(target, TILE_SIZE)
+        target_focus = upscale(vector.add(target, (0, -0.5)), TILE_SIZE)
         ctx.camera.focus(target=target_focus, force=True)
 
       ctx.display_skill(skill, user=actor)
@@ -842,7 +881,7 @@ class CombatContext(ExploreBase):
     not ctx.find_enemies_in_range() and ctx.exit()
 
   def inflict_ailment(ctx, actor, ailment, color, on_end=None):
-    if actor.is_dead() or actor.ailment == ailment:
+    if ctx.exiting or actor.dead or actor.ailment == ailment:
       return False
 
     def inflict():
@@ -891,9 +930,6 @@ class CombatContext(ExploreBase):
     ctx.update_command()
 
   def update_command(ctx):
-    if not ctx.command_gen and not ctx.command_queue and ctx.turns_completed < ctx.turns:
-      ctx.end_step()
-
     if not ctx.command_queue:
       ctx.command_discarded = False
 
@@ -919,13 +955,16 @@ class CombatContext(ExploreBase):
         ctx.command_pending = None
         ctx.step_command(actor, command, chain)
 
+    if not ctx.command_gen and not ctx.command_queue and ctx.turns_completed < ctx.turns:
+      ctx.end_step()
+
   def step(ctx):
     ctx.turns += 1
     actors = [e for e in ctx.stage.elems if
       isinstance(e, DungeonActor)
       and e is not ctx.hero
       and e is not ctx.ally
-      and not e.is_dead()
+      and not e.dead
       and (not ctx.room or e.cell in ctx.room.cells)
       and e.cell in ctx.hero.visible_cells
     ]
@@ -1055,6 +1094,7 @@ class CombatContext(ExploreBase):
 
   def end_step(ctx):
     ctx.turns_completed += 1
+    ctx.can_perform_idle_action = True
 
     actors = [e for e in ctx.stage.elems if isinstance(e, DungeonActor)]
     for actor in actors:
@@ -1077,6 +1117,12 @@ class CombatContext(ExploreBase):
         ctx.handle_charswap()
       else:
         ctx.step()
+
+  def request_idle_action(ctx):
+    if ctx.can_perform_idle_action:
+      ctx.can_perform_idle_action = False
+      return True
+    return False
 
   def view(ctx):
     return (ctx.view_grid() if ctx.hero else []) + super().view()

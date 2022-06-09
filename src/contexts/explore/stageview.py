@@ -384,6 +384,7 @@ class StageView:
       )]
 
     elem_view = elem.view(anims=view.anims)
+    elem_view = [s for s in elem_view if s] if elem_view else None
     if not elem_view:
       return []
 
