@@ -5,10 +5,15 @@ inputs:
     required: true
     type: string
 
+outputs:
+  increment:
+    value: ${{ steps.determine_increment.outputs.increment }}
+
 runs:
   using: 'composite'
   steps:
     - name: Determine increment
+      id: determine_increment
       shell: bash
       run: |
         echo "Head commit is \"${{ inputs.commit_message }}\""

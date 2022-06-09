@@ -19,4 +19,4 @@ jobs:
     steps:
     - name: Retrieve increment
       run: |
-        echo ${{ needs.increment.steps.determine_increment.outputs.increment }}
+        echo ${{ needs.increment.outputs.increment }}
