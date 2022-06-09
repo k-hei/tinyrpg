@@ -58,11 +58,13 @@ jobs:
       VERSION: ${{ needs.version-bump.outputs.version }}
 
     steps:
-      - name: Print increment
+      - uses: actions/checkout@v3
+
+      - name: Update local version
+        shell: bash
         run: |
           echo "Building version ${{ env.VERSION }}"
-
-      - uses: actions/checkout@v3
+          echo "${{ env.VERSION }}" > VERSION
 
       - name: Set up Python
         uses: actions/setup-python@v3
@@ -78,6 +80,9 @@ jobs:
         run: |
           Compress-Archive `
             dist/tinyrpg-*.exe `
+            dist/tinyrpg-${{ env.VERSION }}.zip
+
+          Get-ChildItem -Path `
             dist/tinyrpg-${{ env.VERSION }}.zip
 
       # - name: Create new release
