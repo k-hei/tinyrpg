@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       head_commit: ${{ github.event.head_commit.message }}
+
     steps:
     - name: Determine increment
       run: |
