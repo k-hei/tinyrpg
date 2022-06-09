@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from math import sin, pi
+from os import path
+
 import pygame
 from pygame import Surface, Rect, SRCALPHA
 from pygame.transform import flip, scale
@@ -20,7 +22,7 @@ from text import render as render_text
 from anims.tween import TweenAnim
 from easing.expo import ease_in, ease_out
 import savedata
-from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE
+from config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_SIZE, SAVEDATA_PATH
 
 import debug
 
@@ -214,8 +216,8 @@ class DataContext(Context):
     super().__init__(on_close=on_close)
     ctx.index = 0
     ctx.slots = [
-      Slot(1, savedata.load("src/data00.json")),
-      Slot(2, savedata.load("src/data01.json"))
+      Slot(1, savedata.load(path.join(SAVEDATA_PATH, "data00.json"))),
+      Slot(2, savedata.load(path.join(SAVEDATA_PATH, "data01.json"))),
     ]
     ctx.hand_y = None
     ctx.bg = None
