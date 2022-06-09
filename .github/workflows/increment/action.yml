@@ -1,9 +1,6 @@
 name: Increment
 
-on:
-  push:
-    branches:
-      master
+on: workflow_call
 
 jobs:
   increment:
