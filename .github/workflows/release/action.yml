@@ -1,0 +1,6 @@
+name: Release
+
+inputs:
+  version:
+    required: true
+    type: string

@@ -1,8 +1,7 @@
-name: Increment
+name: Version increment
 
 inputs:
   commit_message:
-    required: true
     type: string
     default: 'skip'
 

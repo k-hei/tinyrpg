@@ -1,0 +1,42 @@
+name: Version bump
+
+inputs:
+  increment:
+    type: string
+    default: 'iteration'
+
+  python_version:
+    type: string
+    default: '3.x'
+
+outputs:
+  version:
+    description: 'The new version resolved from the given version increment'
+    value: ${{ steps.version-bump.outputs.new_version }}
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ inputs.python_version }}
+
+    - name: Bump version
+      id: version-bump
+      shell: bash
+      run: |
+        NEW_VERSION=$(python3 bin/bump_version.py ${{ inputs.increment }})
+        echo "Using new version $NEW_VERSION"
+        echo "::set-output name=new_version::$(echo "$NEW_VERSION")"
+
+    # - name: Push new version
+    #   run: |
+    #     git config --global user.name "Brandon Semilla"
+    #     git config --global user.email "semibran@gmail.com"
+
+    #     git add -A
+    #     git commit -m ${{ steps.version-bump.outputs.new_version }}
+    #     git push

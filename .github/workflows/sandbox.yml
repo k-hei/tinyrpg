@@ -9,13 +9,13 @@ jobs:
   version-increment:
     runs-on: ubuntu-latest
     outputs:
-      increment: ${{ steps.determine_increment.outputs.increment }}
+      increment: ${{ steps.version-increment.outputs.increment }}
 
     steps:
       - uses: actions/checkout@v3
       - name: Determine increment
-        id: determine_increment
-        uses: ./.github/workflows/increment
+        id: version-increment
+        uses: ./.github/workflows/version-increment
         with:
           commit-message: ${{ github.event.head_commit.message }}
 
@@ -28,28 +28,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
       - name: Bump version
         id: version-bump
-        shell: bash
-        run: |
-          NEW_VERSION=$(python3 bin/bump_version.py ${{ needs.version-increment.outputs.increment }})
-          echo "Using new version $NEW_VERSION"
-          echo "::set-output name=new_version::$(echo "$NEW_VERSION")"
-
-      # - name: Push new version
-      #   run: |
-      #     git config --global user.name "Brandon Semilla"
-      #     git config --global user.email "semibran@gmail.com"
-
-      #     git add -A
-      #     git commit -m ${{ steps.version-bump.outputs.new_version }}
-      #     git push
+        uses: ./.github/workflows/version-bump
+        with:
+          increment: ${{ needs.version-increment.outputs.increment }}
+          python_version: ${{ env.PYTHON_VERSION }}
 
   release:
     runs-on: windows-latest
@@ -82,8 +66,7 @@ jobs:
             dist/tinyrpg-*.exe `
             dist/tinyrpg-${{ env.VERSION }}.zip
 
-          Get-ChildItem -Path `
-            dist/tinyrpg-${{ env.VERSION }}.zip
+          Get-ChildItem -Path dist
 
       # - name: Create new release
       #   id: create-release
