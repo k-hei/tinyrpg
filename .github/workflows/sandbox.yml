@@ -6,6 +6,7 @@ jobs:
   increment:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v3
     - name: Determine increment
       id: determine_increment
       uses: ./.github/workflows/increment
