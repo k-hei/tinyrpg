@@ -13,23 +13,25 @@ jobs:
     steps:
       - name: Determine increment
         run: |
-          echo "Head commit is \"${{ inputs.commit_message }}\""
-          INCREMENT="minor"
-          if [ ${{ startsWith(inputs.commit_message, 'fix:') }} == true ] \
-          || [ ${{ startsWith(inputs.commit_message, 'patch:') }} == true ]; then
-            echo "Creating a patch release..."
-            INCREMENT="patch"
-          elif [ ${{ startsWith(inputs.commit_message, 'feat:') }} == true ] \
-          || [ ${{ startsWith(inputs.commit_message, 'feat(') }} == true ]; then
-            echo "Creating a minor release..."
-            INCREMENT="minor"
-          elif [ ${{ startsWith(inputs.commit_message, 'BREAKING CHANGE:') }} == true ]; then
-            echo "Creating a major release..."
-            INCREMENT="major"
-          elif [ ${{ startsWith(inputs.commit_message, '[skip release]') }} == true ]; then
-            echo "Skipping semver increment..."
-            INCREMENT="iteration"
-          else
-            echo "No commit message flag found, using default increment ($INCREMENT)"
-          fi
-          echo "::set-output name=increment::$(echo "$INCREMENT")"
+          echo ${{ inputs.commit_message }}
+        # run: |
+        #   echo "Head commit is \"${{ inputs.commit_message }}\""
+        #   INCREMENT="minor"
+        #   if [ ${{ startsWith(inputs.commit_message, 'fix:') }} == true ] \
+        #   || [ ${{ startsWith(inputs.commit_message, 'patch:') }} == true ]; then
+        #     echo "Creating a patch release..."
+        #     INCREMENT="patch"
+        #   elif [ ${{ startsWith(inputs.commit_message, 'feat:') }} == true ] \
+        #   || [ ${{ startsWith(inputs.commit_message, 'feat(') }} == true ]; then
+        #     echo "Creating a minor release..."
+        #     INCREMENT="minor"
+        #   elif [ ${{ startsWith(inputs.commit_message, 'BREAKING CHANGE:') }} == true ]; then
+        #     echo "Creating a major release..."
+        #     INCREMENT="major"
+        #   elif [ ${{ startsWith(inputs.commit_message, '[skip release]') }} == true ]; then
+        #     echo "Skipping semver increment..."
+        #     INCREMENT="iteration"
+        #   else
+        #     echo "No commit message flag found, using default increment ($INCREMENT)"
+        #   fi
+        #   echo "::set-output name=increment::$(echo "$INCREMENT")"
