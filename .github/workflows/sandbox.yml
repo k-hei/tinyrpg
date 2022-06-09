@@ -10,6 +10,8 @@ jobs:
     - name: Determine increment
       id: determine_increment
       uses: ./.github/workflows/increment
+      with:
+        commit_message: ${{ github.event.head_commit.message }}
 
   print:
     runs-on: windows-latest
