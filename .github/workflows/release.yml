@@ -1,7 +1,9 @@
 name: Release
 
 on:
-  pull_request
+  push:
+    branches:
+      master
 
 jobs:
   build:
@@ -85,12 +87,12 @@ jobs:
         asset_name: tinyrpg-${{ steps.bump_version.outputs.new_version }}.zip
         asset_content_type: application/zip
 
-    # - name: Push new version
-    #   run: |
-    #     git config --global user.name "Brandon Semilla"
-    #     git config --global user.email "semibran@gmail.com"
+    - name: Push new version
+      run: |
+        git config --global user.name "Brandon Semilla"
+        git config --global user.email "semibran@gmail.com"
 
-    #     git add -A
-    #     git commit -m ${{ steps.bump_version.outputs.new_version }}
-    #     git push
+        git add -A
+        git commit -m ${{ steps.bump_version.outputs.new_version }}
+        git push
 
