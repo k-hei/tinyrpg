@@ -7,6 +7,7 @@ inputs:
 
 outputs:
   increment:
+    description: 'The version increment resolved from the given commit message'
     value: ${{ steps.determine_increment.outputs.increment }}
 
 runs:
