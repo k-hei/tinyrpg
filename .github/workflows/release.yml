@@ -14,7 +14,7 @@ jobs:
 
     - name: Test zip
       run: |
-        Compress-Archive readme.md VERSION test.zip
+        Compress-Archive VERSION test.zip
         Get-ChildItem -Path test.zip
 
     # - name: Set up Python
