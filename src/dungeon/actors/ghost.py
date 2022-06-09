@@ -74,7 +74,7 @@ class Ghost(DungeonActor):
         pause_anim := PauseAnim(on_end=on_end),
         PauseAnim(
           duration=14,
-          on_start=lambda: on_start and on_start(),
+          on_start=lambda: on_start and on_start(dest),
           on_end=lambda: game.vfx.append(
             GhostArmVfx(
               cell=dest,
@@ -96,6 +96,7 @@ class Ghost(DungeonActor):
       skills=[Tackle, Somnus]
     ), floating=True, *args, **kwargs)
     ghost.damaged = False
+    ghost.interrupted = False
 
   def damage(ghost, *args, **kwargs):
     super().damage(*args, **kwargs)
@@ -104,6 +105,10 @@ class Ghost(DungeonActor):
       return
 
     ghost.damaged = True
+
+    if ghost.charge_skill:
+      ghost.interrupted = True
+
     if random() < 1 / 2 and not (ghost.charge_skill is Somnus
     and is_adjacent(ghost.cell, ghost.charge_dest)):
       ghost.reset_charge()
@@ -121,7 +126,7 @@ class Ghost(DungeonActor):
     return choice(valid_cells) if valid_cells else None
 
   def charge_warp_skill(ghost, game, enemy, warp_dest):
-    skill = choice((
+    charge_skill = choice((
       *([Somnus] * (3 if enemy.hp <= enemy.hp_max / 2 else 1)
         if not enemy.ailment == "sleep"
           and is_adjacent(warp_dest, enemy.cell)
@@ -129,13 +134,16 @@ class Ghost(DungeonActor):
       Ghost.Warp,
       Ghost.ColdWhip
     ))
-    if skill is Somnus:
+
+    if charge_skill is Somnus:
       ghost.face(enemy.cell)
       ghost.charge(skill=Somnus, dest=enemy.cell, turns=1)
-    elif skill is Ghost.Warp:
+    elif charge_skill is Ghost.Warp:
       ghost.charge(skill=Ghost.Warp)
-    elif skill is Ghost.ColdWhip:
+    elif charge_skill is Ghost.ColdWhip:
       ghost.charge(skill=Ghost.ColdWhip, dest=enemy.cell)
+
+    ghost.turns = int(ghost.interrupted)
 
   def step(ghost, game):
     if not ghost.can_step():
@@ -163,6 +171,7 @@ class Ghost(DungeonActor):
       if warp_dest:
         ghost.charge_warp_skill(game, enemy, warp_dest)
 
+      ghost.interrupted = False
       return ("use_skill", Ghost.Warp, warp_dest)
 
     if (is_adjacent(ghost.cell, enemy.cell)

@@ -824,7 +824,7 @@ class CombatContext(ExploreBase):
       target = target[0] if target else None
       if target:
         nonlocal target_focus
-        target_focus = upscale(target, TILE_SIZE)
+        target_focus = upscale(vector.add(target, (0, -0.5)), TILE_SIZE)
         ctx.camera.focus(target=target_focus, force=True)
 
       ctx.display_skill(skill, user=actor)

@@ -28,6 +28,7 @@ from anims.drop import DropAnim
 from anims.warpin import WarpInAnim
 from anims.pause import PauseAnim
 from anims.jump import JumpAnim
+from anims.ripple import RippleAnim
 from comps.log import Token
 from comps.hpbubble import HpBubble
 from vfx.icepiece import IcePieceVfx
@@ -597,10 +598,13 @@ class DungeonActor(DungeonElement):
     for anim in anim_group:
       if type(anim) is AwakenAnim and anim.visible:
         is_asleep = True
+
       if type(anim) is AttackAnim and anim.cell:
         offset_x, offset_y = actor.find_move_offset(anim)
+
       if type(anim) is FlinchAnim and anim.time > 0 and anim.time <= 3:
         return []
+
       if type(anim) is FlinchAnim:
         offset_x, offset_y = anim.offset
         if actor.ailment == "freeze" and anim.time % 2:
@@ -609,10 +613,12 @@ class DungeonActor(DungeonElement):
             layer="elems",
             origin=Sprite.ORIGIN_CENTER,
           ))
+
       if type(anim) is BounceAnim:
         anim_xscale, anim_yscale = anim.scale
         actor_width *= anim_xscale
         actor_height *= anim_yscale
+
       if (isinstance(anim, FrameAnim)
       and not (is_flinching or is_charging or is_bouncing or move_anim and (isinstance(move_anim, PathAnim) or move_anim.dest))
       and not (attack_anim and len(actor.core.anims) == 1)
@@ -625,6 +631,12 @@ class DungeonActor(DungeonElement):
           offset_y += (actor_height - TILE_SIZE) / 2
           if actor_height > TILE_SIZE:
             offset_y += (actor_height - TILE_SIZE) / 2
+
+      if isinstance(anim, RippleAnim):
+        sprite.image = anim.ripple(
+          surface=sprite.image,
+          time=anim.time,
+          pinch=False)
 
       # HACK: element jump anim handler doesn't take core anims into account
       # TODO: add system for concurrent core anims
