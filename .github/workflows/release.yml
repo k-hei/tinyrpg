@@ -29,17 +29,17 @@ jobs:
         INCREMENT="minor"
         if [ ${{ startsWith(env.head_commit, 'fix:') }} == true \
         || ${{ startsWith(env.head_commit, 'patch:') }} == true ]; then
-          echo "Creating a patch release..."
+          echo "Found \"fix\", creating a patch release..."
           INCREMENT="patch"
         elif [ ${{ startsWith(env.head_commit, 'feat:') }} == true \
         || ${{ startsWith(env.head_commit, 'feat(') }} == true ]; then
-          echo "Creating a minor release..."
+          echo "Found \"feat\", creating a minor release..."
           INCREMENT="minor"
         elif [ ${{ startsWith(env.head_commit, 'BREAKING CHANGE:') }} == true ]; then
-          echo "Creating a major release..."
+          echo "Found \"BREAKING CHANGE\", creating a major release..."
           INCREMENT="major"
         elif [ ${{ startsWith(env.head_commit, '[skip release]') }} == true ]; then
-          echo "Skipping semver increment..."
+          echo "Found [skip release], skipping semver increment..."
           INCREMENT="iteration"
         else
           echo "No commit message flag found, using default increment ($INCREMENT)"
@@ -69,7 +69,6 @@ jobs:
         py -m pip install -r requirements.txt
 
     - name: Build application binary
-      shell: bash
       run: |
         bin/build.sh
 
@@ -77,8 +76,8 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: dist/tinyrpg-${{ steps.bump_version.outputs.new_version }}.exe
-        asset_name: tinyrpg-${{ steps.bump_version.outputs.new_version }}.exe
+        file: dist/tinyrpg-${{ steps.bump_version.outputs.new_version }}
+        asset_name: tinyrpg-${{ steps.bump_version.outputs.new_version }}
         tag: ${{ github.ref }}
         overwrite: true
 
