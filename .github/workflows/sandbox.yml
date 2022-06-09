@@ -22,4 +22,5 @@ jobs:
     steps:
     - name: Retrieve increment
       run: |
+        echo ${{ toJSON(needs.increment) }}
         echo ${{ needs.increment.outputs.increment }}
