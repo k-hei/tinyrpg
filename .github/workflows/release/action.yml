@@ -4,3 +4,53 @@ inputs:
   version:
     required: true
     type: string
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/checkout@v3
+
+    - name: Update local version
+      shell: bash
+      run: |
+        echo "Building version ${{ inputs.version }}"
+        echo "${{ inputs.version }}" > VERSION
+
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ inputs.PYTHON_VERSION }}
+
+    - name: Build application binary
+      shell: bash
+      run: |
+        bin/build.sh
+
+    - name: Zip application binary
+      run: |
+        Compress-Archive `
+          dist/tinyrpg-*.exe `
+          dist/tinyrpg-${{ inputs.version }}.zip
+
+        Get-ChildItem -Path dist
+
+    # - name: Create new release
+    #   id: create-release
+    #   uses: actions/create-release@v1
+    #   with:
+    #     tag_name: ${{ inputs.version }}
+    #     release_name: ${{ inputs.version }}
+    #     commitish: master
+    #     prerelease: true
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # - name: Upload application archive
+    #   uses: actions/upload-release-asset@v1
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   with:
+    #     upload_url: ${{ steps.create-release.outputs.upload_url }}
+    #     asset_path: dist/tinyrpg-${{ inputs.version }}.zip
+    #     asset_name: tinyrpg-${{ inputs.version }}.zip
+    #     asset_content_type: application/zip

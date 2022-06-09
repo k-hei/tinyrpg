@@ -18,7 +18,7 @@ runs:
       shell: bash
       run: |
         echo "Head commit is \"${{ inputs.commit_message }}\""
-        INCREMENT="minor"
+        INCREMENT="iteration"
         if [ ${{ startsWith(inputs.commit_message, 'fix:') }} == true ] \
         || [ ${{ startsWith(inputs.commit_message, 'patch:') }} == true ]; then
           echo "Creating a patch release..."
