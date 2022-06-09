@@ -6,21 +6,22 @@ jobs:
   version-increment:
     runs-on: ubuntu-latest
     outputs:
-      increment: ${{ steps.determine_increment.outputs.increment }}
+      increment: ${{ steps.determine-increment.outputs.increment }}
 
     steps:
       - uses: actions/checkout@v3
-
       - name: Determine increment
-        id: determine_increment
+        id: determine-increment
         uses: ./.github/workflows/increment
         with:
-          commit_message: ${{ github.event.head_commit.message }}
+          commit-message: '[skip release]'  # ${{ github.event.head_commit.message }}
 
   version-bump:
     runs-on: ubuntu-latest
     needs: version-increment
     if: ${{ needs.version-increment.outputs.increment != 'skip' }}
+    outputs:
+      version: ${{ steps.bump-version.outputs.new-version }}
 
     steps:
       - uses: actions/checkout@v3
@@ -31,16 +32,26 @@ jobs:
           python-version: '3.x'
 
       - name: Bump version
+        id: bump-version
         shell: bash
         run: |
           NEW_VERSION=$(python3 bin/bump_version.py ${{ needs.version-increment.outputs.increment }})
           echo "Using new version $NEW_VERSION"
-          echo "::set-output name=new_version::$(echo "$NEW_VERSION")"
+          echo "::set-output name=new-version::$(echo "$NEW_VERSION")"
 
-  # print:
-  #   runs-on: windows-latest
-  #   needs: increment
-  #   steps:
-  #   - name: Retrieve increment
-  #     run: |
-  #       echo "${{ needs.increment.outputs.increment }}"
+      # - name: Push new version
+      #   run: |
+      #     git config --global user.name "Brandon Semilla"
+      #     git config --global user.email "semibran@gmail.com"
+
+      #     git add -A
+      #     git commit -m ${{ steps.bump-version.outputs.new-version }}
+      #     git push
+
+  release:
+    runs-on: windows-latest
+    needs: version-bump
+    steps:
+      - name: Print increment
+        run: |
+          echo "${{ needs.version-bump.outputs.version }}"
