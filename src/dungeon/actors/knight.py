@@ -42,6 +42,25 @@ class Knight(DungeonActor):
     else:
       knight.core.anims.append(KnightCore.BlockAnim())
 
+  def wake_up(knight):
+    if not super().wake_up():
+      return False  # not sleeping
+
+    if not knight.weapon:
+      return True
+
+    knight.core.anims.append(
+      knight.core.BrandishAnim(
+        target=knight,
+        delay=25,
+        on_end=lambda: (
+          knight.core.anims.insert(0, knight.core.IdleDownAnim()),
+        )
+      )
+    )
+
+    return True
+
   def view(knight, anims):
     if knight.facing == (0, -1):
       knight_image = assets.sprites["knight_up"]
@@ -97,8 +116,10 @@ class Knight(DungeonActor):
       elif type(anim) is KnightCore.ChargeAnim:
         knight_image = assets.sprites["knight_blockdown"][1]
         knight_xoffset = anim.offset
+
     if knight.ailment == "freeze":
       knight_image = assets.sprites["knight_flinch"]
+
     return super().view([Sprite(
       key="knight",
       image=knight_image,

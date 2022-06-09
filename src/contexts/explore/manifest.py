@@ -93,7 +93,7 @@ def manifest_stage_from_dungeon_room(room_data):
         rooms=[room],
     )
 
-def manifest_room(room_data):
+def manifest_room(room_data, port_id=None):
     validate_room_data(room_data)
 
     room_tileset = room_data.bg
@@ -104,6 +104,13 @@ def manifest_room(room_data):
     stage = manifestor(room_data)
     stage.generator = room_data
     room = stage.rooms[0]
+
+    if port_id:
+        port = room_data.ports[port_id]
+        stage.entrance = vector.subtract(
+            port.cell,
+            vector.scale(port.direction, 2)
+        )
 
     # TODO: fix hardcoded edge types
     if stage.entrance is None:

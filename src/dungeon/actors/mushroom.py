@@ -86,7 +86,7 @@ class Mushroom(DungeonActor):
   def view(mushroom, anims):
     mushroom_image = None
     offset_x, offset_y = 0, 0
-    if mushroom.is_dead():
+    if mushroom.dead:
       return super().view(assets.sprites["mushroom_flinch"], anims)
     anim_group = [a for a in anims[0] if a.target is mushroom] if anims else []
     anim_group += mushroom.core.anims

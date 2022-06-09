@@ -248,11 +248,12 @@ class DungeonContext(ExploreBase):
     visible_cells += neighborhood(hero.cell)
 
     if (ctx.cache_room_focused is not room_focused
-    or reset_cache
+    or reset_cache  # TODO: is this still necessary? what was the original intent?
     or not room_focused):
       if ctx.cache_room_focused and not reset_cache:
         ctx.cache_room_focused.on_blur(ctx)
       ctx.cache_room_focused = room_focused
+
       if (len(visible_cells) != len(hero.visible_cells)
       and visible_cells != hero.visible_cells):
         hero.visible_cells = visible_cells
@@ -552,7 +553,6 @@ class DungeonContext(ExploreBase):
 
     if ctx.room and ctx.room.has_hook("on_walk"):
       ctx.room.on_walk(ctx, cell=ctx.hero_cell)
-
 
   def view(ctx):
     sprites = ctx.stage_view.view(

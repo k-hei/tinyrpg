@@ -1,12 +1,12 @@
 from math import pi, sin
 from cores import Core, Stats
 import assets
-from lib.sprite import Sprite
 from lib.filters import ripple
 from anims.frame import FrameAnim
 from anims.flinch import FlinchAnim
 from anims.flicker import FlickerAnim
 from anims.shake import ShakeAnim
+from anims.ripple import RippleAnim
 
 FLOAT_PERIOD = 180
 FLOAT_AMP = 2
@@ -29,7 +29,7 @@ class Ghost(Core):
       name=name,
       faction=faction,
       stats=Stats(
-        hp=17,
+        hp=42,
         st=13,
         dx=7,
         ag=14,
@@ -52,18 +52,24 @@ class Ghost(Core):
   def view(ghost, sprites=[], anims=[]):
     if not sprites:
       return None
+
     is_flinching = next((a for a in anims if type(a) in (FlinchAnim, FlickerAnim)), False)
     is_whipping = next((a for a in ghost.anims if type(a) is Ghost.WhipAnim), False)
+    ripple_anim = next((a for a in anims if isinstance(a, RippleAnim)), None)
+
     ghost_sprite, *other_sprites = sprites
     old_flipped = ghost.flipped
+
     if not ghost.flipped and ghost.facing[0] == -1:
       ghost.flipped = True
     elif ghost.flipped and ghost.facing[0] == 1:
       ghost.flipped = False
+
     if ghost.flipped != old_flipped:
       turn_anim = Ghost.TurnAnim()
       ghost.anims.append(turn_anim)
       ghost_sprite.image = turn_anim.frame()
+
     if not is_whipping:
       ghost_sprite.image = ripple(ghost_sprite.image,
         start=(0 if is_flinching else 16),
@@ -72,6 +78,11 @@ class Ghost(Core):
         period=(45 if is_flinching else 90),
         time=ghost.time,
         pinch=not is_flinching)
+
       ghost_y = sin(ghost.time % FLOAT_PERIOD / FLOAT_PERIOD * 2 * pi) * FLOAT_AMP
       ghost_sprite.move((0, ghost_y))
+
+    if ripple_anim and ripple_anim.time % 2:
+      return [None, *other_sprites]
+
     return super().view([ghost_sprite, *other_sprites])

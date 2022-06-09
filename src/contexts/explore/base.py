@@ -162,7 +162,7 @@ class ExploreBase(Context):
   def find_closest_enemy(ctx, actor, elems=None):
     enemies = [e for e in (elems or ctx.stage.elems) if (
       isinstance(e, DungeonActor)
-      and not e.is_dead()
+      and not e.dead
       and not e.allied(actor)
     )]
 
@@ -342,12 +342,13 @@ class ExploreBase(Context):
       hero_index = ctx.anims.index(hero_group) if hero_group in ctx.anims else -1
       next_anim_group = []
       ctx.anims.insert(hero_index + 1, next_anim_group) if hero_group in ctx.anims else ctx.anims.append(next_anim_group)
+      item = item() if callable(item) else item
       next_anim_group.append(ItemAnim(
         target=target,
-        item=item(),
+        item=item,
         duration=60,
         on_start=lambda: (
-          ctx.comps.minilog.print(message=("Obtained ", item().token(), ".")),
+          ctx.comps.minilog.print(message=("Obtained ", item.token(), ".")),
           on_start and on_start(),
         ),
         on_end=lambda: (
@@ -393,16 +394,15 @@ class ExploreBase(Context):
       return False
 
     facing_cell = vector.add(actor.cell, actor.facing)
-    if (Tile.is_solid(ctx.stage.get_tile_at(facing_cell))
-    or ctx.stage.is_tile_at_pit(facing_cell)
-    or next((e for e in ctx.stage.get_elems_at(facing_cell) if
-      isinstance(e, ItemDrop)
-      or not isinstance(e, DungeonActor)
-      and e.solid
+    if (not is_cell_walkable_to_actor(ctx.stage, facing_cell, actor)
+    or next((e for e in ctx.stage.get_elems_at(facing_cell)
+      if isinstance(e, ItemDrop)
     ), None)):
       return False
 
-    ctx.stage.spawn_elem_at(facing_cell, ItemDrop(actor.item))
+    # TODO: overworld spawn scaling
+    spawn_cell = vector.scale(facing_cell, TILE_SIZE / ctx.stage.tile_size)
+    ctx.stage.spawn_elem_at(spawn_cell, ItemDrop(actor.item))
     actor.item = None
     not ctx.anims and ctx.anims.append([AttackAnim(
       target=actor,
@@ -521,7 +521,7 @@ class ExploreBase(Context):
       return False, "Your hands are full!"
     elif carry_item and not discard:
       item = carry_item
-      hero.item = None
+      # hero.item = None  # why was this here?
 
     if not item:
       return False, "No item to use."
@@ -536,13 +536,15 @@ class ExploreBase(Context):
         PauseAnim(duration=60),
       ])
 
-    if issubclass(item, MaterialItem):
+    if not callable(item) or isinstance(item, type) and issubclass(item, MaterialItem):
+      print("failed to use", item)
       success, message = False, "You can't use this item!"
     else:
       success, message = ctx.store.use_item(item, discard=discard)
 
     if success is False:
-      ctx.anims.pop()
+      if ctx.anims:
+        ctx.anims.pop()
       return False, message
     elif success is True:
       ctx.comps.minilog.print(("Used", item.token(item)))
@@ -550,6 +552,21 @@ class ExploreBase(Context):
       return True, ""
     else:
       return None, ("Used ", item.token(item), "\n", message)
+
+  def drop_item(ctx, item):
+    hero = ctx.hero
+    if not hero:
+      return False, "You can't drop that here!"
+
+    if ctx.stage.is_tile_at_hallway(ctx.hero.cell):
+      return False, "You can't drop that here!"
+
+    # TODO: overworld spawn scaling
+    spawn_cell = vector.scale(hero.cell, TILE_SIZE / ctx.stage.tile_size)
+    ctx.stage.spawn_elem_at(spawn_cell, ItemDrop(item))
+    hero.item = None
+    return True, ""
+
 
   def recruit_actor(game, actor):
     actor.reset_charge()

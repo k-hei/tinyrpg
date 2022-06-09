@@ -174,17 +174,16 @@ class ExploreContext(ExploreBase):
     ctx.cache_last_move = ctx.time
 
     moved = ctx.move_elem(elem=hero, delta=delta, running=running)
-    if not ctx.stage.is_overworld:
-      prop = next((e for e in ctx.stage.elems if
-        not e.solid
-        and hero.cell == e.cell
-        and e.rect and hero.rect.colliderect(e.rect)
-      ), None)
-      if prop:
-        if prop.effect(ctx, hero):
-          hero.stop_move()
-          ally and ally.stop_move()
-        ctx.update_bubble()
+    prop = next((e for e in ctx.stage.elems if
+      not e.solid
+      and hero.cell == e.cell
+      and e.rect and hero.rect.colliderect(e.rect)
+    ), None)
+    if prop:
+      if prop.effect(ctx, hero):
+        hero.stop_move()
+        ally and ally.stop_move()
+      ctx.update_bubble()
 
     if ally:
       if moved:
@@ -552,7 +551,11 @@ class ExploreContext(ExploreBase):
     hud = ctx.comps.hud
     if not hud.active:
       hud.enter()
+
+    if ctx.stage.is_overworld and not ctx.ally.visible_cells:
+      ctx.ally.visible_cells = ctx.hero.visible_cells.copy()
     ctx.store.switch_chars()
+
     hud.update()
     if type(hud.anims[-1]) is PauseAnim:
       hud.anims[-1].time = 0
@@ -562,8 +565,9 @@ class ExploreContext(ExploreBase):
         on_end=lambda: hud.exit()
       ))
 
-    ctx.parent.refresh_fov(reset_cache=True)
+    ctx.parent.refresh_fov(reset_cache=not ctx.stage.is_overworld)
     ctx.camera.focus(target=[*([ctx.room] if ctx.room else []), ctx.hero], force=True)
+
     return True
 
   def handle_debug(ctx):

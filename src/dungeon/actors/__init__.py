@@ -27,6 +27,8 @@ from anims.frame import FrameAnim
 from anims.drop import DropAnim
 from anims.warpin import WarpInAnim
 from anims.pause import PauseAnim
+from anims.jump import JumpAnim
+from anims.ripple import RippleAnim
 from comps.log import Token
 from comps.hpbubble import HpBubble
 from vfx.icepiece import IcePieceVfx
@@ -191,10 +193,12 @@ class DungeonActor(DungeonElement):
   def get_skills(actor): return actor.core.skills
   def get_active_skills(actor): return actor.core.get_active_skills()
   def is_dead(actor): return actor.core.dead
+
   def can_step(actor):
-    return not actor.command and not actor.is_immobile()
+    return not actor.charge_skill and not actor.is_immobile()
+
   def is_immobile(actor):
-    return actor.is_dead() or actor.ailment in ("sleep", "freeze") or actor.charge_skill
+    return actor.dead or actor.ailment in ("sleep", "freeze")
 
   @property
   def st(actor):
@@ -241,6 +245,12 @@ class DungeonActor(DungeonElement):
     return message
 
   def idle(actor, game):
+    if not game.request_idle_action():
+      return False
+
+    if not game.camera.is_cell_visible(actor.cell):
+      return False
+
     message = actor.get_idle_message()
     if not message:
       return False
@@ -259,6 +269,7 @@ class DungeonActor(DungeonElement):
     return True
 
   def charge(actor, skill, dest=None, turns=0):
+    actor.turns = 0
     actor.charge_skill = skill
     actor.charge_dest = dest
     actor.charge_turns = turns or skill.charge_turns
@@ -377,6 +388,7 @@ class DungeonActor(DungeonElement):
         ) for _ in range(randint(3, 4))])
       elif actor.ailment == "sleep":
         game.anims.append([AwakenAnim(target=actor)])
+
       actor.dispel_ailment()
 
   def dispel_ailment(actor):
@@ -512,7 +524,7 @@ class DungeonActor(DungeonElement):
   def attack(actor):
     pass
 
-  def damage(target, damage):
+  def damage(target, damage, game):
     target.set_hp(target.get_hp() - damage)
     if target.get_hp() <= 0:
       target.kill()
@@ -551,11 +563,11 @@ class DungeonActor(DungeonElement):
 
   def update(actor, game):
     actor.updates += 1
+
+    actor.anims = [a for a in actor.anims if not a.done]
     for anim in actor.anims:
-      if anim.done:
-        actor.anims.remove(anim)
-      else:
-        anim.update()
+      anim.update()
+
     return actor.core.update()
 
   def view(actor, sprites, anims=[]):
@@ -569,6 +581,7 @@ class DungeonActor(DungeonElement):
     sprite = sprites[0]
     offset_x, offset_y, offset_z = (0, 0, 0)
     actor_width, actor_height = sprite.image.get_size()
+
     anim_group = [a for a in anims[0] if a.target is actor] if anims else []
     anim_group += actor.core.anims
 
@@ -585,10 +598,13 @@ class DungeonActor(DungeonElement):
     for anim in anim_group:
       if type(anim) is AwakenAnim and anim.visible:
         is_asleep = True
+
       if type(anim) is AttackAnim and anim.cell:
         offset_x, offset_y = actor.find_move_offset(anim)
+
       if type(anim) is FlinchAnim and anim.time > 0 and anim.time <= 3:
         return []
+
       if type(anim) is FlinchAnim:
         offset_x, offset_y = anim.offset
         if actor.ailment == "freeze" and anim.time % 2:
@@ -597,22 +613,36 @@ class DungeonActor(DungeonElement):
             layer="elems",
             origin=Sprite.ORIGIN_CENTER,
           ))
+
       if type(anim) is BounceAnim:
         anim_xscale, anim_yscale = anim.scale
         actor_width *= anim_xscale
         actor_height *= anim_yscale
+
       if (isinstance(anim, FrameAnim)
       and not (is_flinching or is_charging or is_bouncing or move_anim and (isinstance(move_anim, PathAnim) or move_anim.dest))
       and not (attack_anim and len(actor.core.anims) == 1)
       ):
-        sprite.image = anim.frame()
+        sprite.image = anim.frame() or sprite.image
         # TEST: knight downwards attacks and cactus idle actions
-        if sprite.image.get_size() != (actor_width, actor_height):
+        if sprite.image and sprite.image.get_size() != (actor_width, actor_height):
           actor_width, actor_height = sprite.image.get_size()
           offset_x += (actor_width - TILE_SIZE) / 2
           offset_y += (actor_height - TILE_SIZE) / 2
           if actor_height > TILE_SIZE:
             offset_y += (actor_height - TILE_SIZE) / 2
+
+      if isinstance(anim, RippleAnim):
+        sprite.image = anim.ripple(
+          surface=sprite.image,
+          time=anim.time,
+          pinch=False)
+
+      # HACK: element jump anim handler doesn't take core anims into account
+      # TODO: add system for concurrent core anims
+      if isinstance(anim, JumpAnim) and anim in actor.core.anims:
+        offset_y += anim.offset
+
 
     warpin_anim = next((a for a in anim_group if type(a) is WarpInAnim), None)
     drop_anim = next((a for a in anim_group if type(a) is DropAnim), None)
@@ -680,7 +710,8 @@ class DungeonActor(DungeonElement):
 
     # item icon
     if actor.item:
-      item_image = actor.item().render()
+      item = actor.item() if callable(actor.item) else actor.item
+      item_image = item.render()
       item_sprite = Sprite(
         image=item_image,
         pos=(0, -16),

@@ -1,10 +1,14 @@
+from random import random
+import lib.vector as vector
+from lib.cell import is_adjacent
+
 from skills.ailment import AilmentSkill
-from anims.attack import AttackAnim
+from anims.ripple import RippleAnim
 from anims.pause import PauseAnim
-from config import ATTACK_DURATION
 
 from dungeon.actors import DungeonActor
 from cores.mage import Mage
+
 
 class Somnus(AilmentSkill):
   name = "Somnus"
@@ -19,17 +23,26 @@ class Somnus(AilmentSkill):
   )
 
   def effect(game, user, dest=None, on_start=None, on_end=None):
-    source_cell = user.cell
-    hero_x, hero_y = source_cell
-    delta_x, delta_y = user.facing
-    target_cell = (hero_x + delta_x, hero_y + delta_y)
+    target = dest
+    if isinstance(target, DungeonActor):
+      target_cell = target.cell
+      user.face(target_cell)
+    else:
+      target_cell = dest
+
+    if not target_cell or not is_adjacent(user.cell, target_cell):
+      target_cell = vector.add(user.cell, user.facing)
+
     target_elem = next((e for e in game.stage.get_elems_at(target_cell)
       if isinstance(e, DungeonActor)), None)
 
     def on_attack_end():
       if target_elem:
-        target_elem.inflict_ailment("sleep")
-        result = (target_elem.token(), " fell asleep!")
+        if random() < 1 / 5:
+          result = (target_elem.token(), " was unaffected.")
+        else:
+          target_elem.inflict_ailment("sleep")
+          result = (target_elem.token(), " fell asleep!")
       else:
         result = "But nothing happened..."
 
@@ -45,12 +58,10 @@ class Somnus(AilmentSkill):
       ))
 
     game.anims.append([
-      AttackAnim(
-        duration=ATTACK_DURATION,
+      RippleAnim(
+        duration=120,
         target=user,
-        src=user.cell,
-        dest=target_cell,
-        on_start=on_start,
+        on_start=lambda: on_start and on_start(user.cell),
         on_end=on_attack_end
       )
     ])
