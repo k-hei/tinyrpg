@@ -3,6 +3,7 @@ Stores processor logic for parsing the tutorial1 map.
 """
 
 import json
+from os import path
 from PIL import Image
 
 import lib.vector as vector
@@ -23,7 +24,7 @@ TILE_SIZE = 16
 
 tileset = Tileset(
     size=TILE_SIZE,
-    image=Image.open("assets/desert-tiles.png")
+    image=Image.open(path.join('assets', 'desert-tiles.png'))
 )
 
 

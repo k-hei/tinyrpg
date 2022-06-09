@@ -53,7 +53,7 @@ Requires Python 3 and GNU Make 3.8.2+.
 
 To create an .exe on Windows, use [pyinstaller](https://pypi.org/project/pyinstaller/).
 ```sh
-> py -m pip install pygame pyinstaller
+> py -m pip install pygame pyinstaller pillow zstd
 > py -m PyInstaller -Fwn tinyrpg src/demo.py
 ```
 

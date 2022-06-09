@@ -4,17 +4,18 @@ from PIL import Image
 from locations.tileset import Tileset
 from untiled.tileset import find_tile_pos
 from untiled.transform import extract_transform_mask, transform_image
+from config import ASSETS_PATH, LOCATIONS_PATH
 
 
 TILE_SIZE = 16
 _solid_ids = [210, 211, 230, 231, 193, 213, 233, 215, 234, 235]
 _tile_cache = {}
 
-tileset_image = Image.open("assets/desert-tiles.png")
+tileset_image = Image.open(path.join(ASSETS_PATH, "desert-tiles.png"))
 
 class DesertTileset(Tileset):
     tile_size = TILE_SIZE
-    elems_path = path.join(path.dirname(path.dirname(__file__)), "elems.json")
+    elems_path = path.join(LOCATIONS_PATH, "desert", "elems.json")
     is_overworld = True
 
     @staticmethod
