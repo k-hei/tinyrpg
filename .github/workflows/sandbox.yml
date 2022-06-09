@@ -1,0 +1,19 @@
+name: Sandbox
+
+on: pull_request
+
+jobs:
+  increment:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Determine increment
+      id: determine_increment
+      uses: ./.github/workflows/increment.yml
+
+  print:
+    runs-on: windows-latest
+    needs: increment
+    steps:
+    - name: Retrieve increment
+      run: |
+        echo ${{ needs.increment.steps.determine_increment.outputs.increment }}
