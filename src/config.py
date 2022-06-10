@@ -5,7 +5,7 @@ from os.path import dirname, join
 PROD = "_MEIPASS" in dir(sys)
 DEBUG = True
 DEBUG_GEN = False
-CUTSCENES = False
+CUTSCENES = PROD
 
 # feature flags
 ENABLED_MINIMAP = True

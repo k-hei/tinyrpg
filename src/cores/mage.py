@@ -43,6 +43,9 @@ class Mage(BipedCore):
     frames_duration = 10
     loop = True
 
+  class TeaseAnim(FrameAnim):
+    frames = [assets.sprites["mage_tease"]]
+
   class YellAnim(FrameAnim):
     frames = [assets.sprites["mage_yell"]]
 

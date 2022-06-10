@@ -13,7 +13,7 @@ from dungeon.element import DungeonElement
 from cores import Core
 
 from colors import darken_color
-from colors.palette import BLACK, WHITE, GRAY, RED, GREEN, BLUE, CYAN, VIOLET, GOLD, DARKBLUE
+from colors.palette import BLACK, WHITE, GRAY, RED, GREEN, BLUE, CYAN, VIOLET, GOLD, DARKBLUE, LAVENDER
 import assets
 from lib.filters import replace_color, darken_image
 from anims.step import StepAnim
@@ -391,9 +391,7 @@ class DungeonActor(DungeonElement):
 
     if actor.ailment_turns == 0 and old_ailment_turns:
       if actor.ailment == "freeze":
-        game.vfx.extend([IcePieceVfx( # this belongs in actor view
-          pos=tuple([(x + 0.5) * TILE_SIZE for x in actor.cell]),
-        ) for _ in range(randint(3, 4))])
+        actor.shatter(game)
       elif actor.ailment == "sleep":
         game.anims.append([AwakenAnim(target=actor)])
 
@@ -413,6 +411,12 @@ class DungeonActor(DungeonElement):
     actor._status.clear()
     actor.ailment = None
     actor.ailment_turns = 0
+
+  def shatter(actor, game):
+    # TODO: move this into actor view/separate helper
+    game.vfx.extend([IcePieceVfx(
+      pos=tuple([(x + 0.5) * TILE_SIZE for x in actor.cell]),
+    ) for _ in range(randint(3, 4))])
 
   def wake_up(actor):
     if actor.ailment != "sleep":
@@ -534,10 +538,12 @@ class DungeonActor(DungeonElement):
 
   def damage(target, damage, game):
     target.set_hp(target.get_hp() - damage)
+
     if target.get_hp() <= 0:
-      target.kill()
+      target.kill(game)
     elif target.ailment == "sleep":
       target.wake_up()
+
     return damage
 
   def find_damage(actor, target, atk_mod=1):
@@ -744,6 +750,8 @@ class DungeonActor(DungeonElement):
 
     if actor_color != BLACK:
       sprite.image = replace_color(sprite.image, BLACK, actor_color)
+
+    # sprite.image = replace_color(sprite.image, WHITE, LAVENDER)
 
     if is_asleep:
       sprite.image = darken_image(sprite.image)
