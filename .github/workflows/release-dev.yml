@@ -6,9 +6,6 @@ on:
       - dev
       - v*.*
 
-    branches-ignore:
-      - v*.*_**
-
 jobs:
   version:
     uses: ./.github/workflows/version.yml
