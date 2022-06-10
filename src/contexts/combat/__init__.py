@@ -923,7 +923,6 @@ class CombatContext(ExploreBase):
 
   def inflict_freeze(ctx, actor, on_end=None):
     ctx.inflict_ailment(actor, "freeze", color=CYAN, on_end=on_end)
-    actor.reset_charge()
 
   def update(ctx):
     super().update()

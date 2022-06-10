@@ -1,6 +1,6 @@
 DEBUG = True
 DEBUG_GEN = False
-CUTSCENES = True
+CUTSCENES = False
 
 # feature flags
 ENABLED_MINIMAP = True

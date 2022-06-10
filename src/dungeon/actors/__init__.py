@@ -344,6 +344,7 @@ class DungeonActor(DungeonElement):
         return False
       actor.ailment_turns = DungeonActor.POISON_DURATION
       actor.anims = [DungeonActor.PoisonAnim()]
+
     elif ailment == "sleep":
       if actor.ailment == "sleep":
         return False
@@ -351,8 +352,12 @@ class DungeonActor(DungeonElement):
       actor.anims = [DungeonActor.SleepAnim()]
       if "SleepAnim" in dir(actor.core):
         actor.core.anims = [actor.core.SleepAnim()]
+      actor.reset_charge()
+
     elif ailment == "freeze":
       actor.ailment_turns = DungeonActor.FREEZE_DURATION
+      actor.reset_charge()
+
     elif ailment == "invulnerable":
       actor.ailment_turns = DungeonActor.INVULNERABLE_DURATION
       actor.stats.st += 2
@@ -360,6 +365,7 @@ class DungeonActor(DungeonElement):
       actor.stats.ag *= 2
       actor.stats.en += 2
       actor.stats.lu += 10
+
     actor.ailment = ailment
     return True
 
