@@ -7,7 +7,7 @@ from pygame import Surface, Rect, SRCALPHA
 from pygame.transform import flip, scale
 
 import lib.input as input
-from lib.sprite import Sprite
+from lib.sprite import Sprite, SpriteGroup
 from lib.lerp import lerp
 from lib.filters import recolor, replace_color, darken_image, outline, shadow_lite as shadow
 
@@ -457,8 +457,4 @@ class DataContext(Context):
       size=surface_rect.size,
     ))
 
-
-    for sprite in sprites:
-      sprite.layer = "ui"
-
-    return sprites + super().view()
+    return [SpriteGroup(sprites, layer="ui")] + super().view()
