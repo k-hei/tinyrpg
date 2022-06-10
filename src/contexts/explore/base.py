@@ -326,13 +326,17 @@ class ExploreBase(Context):
     src_cell = target.cell
     dest_cell = vector.add(src_cell, actor.facing)
 
-    # TODO: collide against all target cells
+    # TODO: collide against all target cells (for tables)
     dest_elem = next((e for e in ctx.stage.get_elems_at(dest_cell)
       if e.solid and e is not target), None)
 
     if (target.static
     or not is_tile_walkable_to_actor(ctx.stage, cell=dest_cell, actor=target)
     or dest_elem):
+      return False
+
+    # prevent pushing out of current room
+    if ctx.room and dest_cell not in ctx.room.cells:
       return False
 
     target.cell = dest_cell
