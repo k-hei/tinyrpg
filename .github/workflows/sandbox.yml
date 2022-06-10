@@ -9,6 +9,7 @@ jobs:
   release:
     uses: ./.github/workflows/release.yml
     needs: version
+    if: ${{ needs.version.outputs.version != '' }}
     with:
       version: ${{ needs.version.outputs.version }}
       prerelease: true
