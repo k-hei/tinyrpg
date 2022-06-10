@@ -31,7 +31,7 @@ class PoisonPuff(Prop):
       game.inflict_poison(actor) # TODO: figure out how to handle this stuff
     return True
 
-  def dissolve(puff):
+  def dissolve(puff, *_):
     if puff.dissolving:
       return False
     puff.dissolving = True

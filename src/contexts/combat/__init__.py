@@ -186,7 +186,7 @@ class CombatContext(ExploreBase):
 
     for elem in ctx.stage.elems:
       if elem.expires:
-        elem.dissolve()
+        elem.dissolve(ctx)
 
     for actor in ctx.party:
       actor.dispel_ailment()
