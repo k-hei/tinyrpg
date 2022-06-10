@@ -83,16 +83,19 @@ SKILL_BADGE_POS_ALLY = (60, 54)
 
 
 import sys
-import os
-from os.path import abspath, dirname, join
+from os.path import dirname, join
 
 
 def resolve_path(*args):
-    return join(dirname(__file__), *args)
+    return join(
+        dirname(__file__),
+        *([] if "_MEIPASS" in dir(sys) else [".."]),
+        *args
+    )
 
 
 ROOT_PATH = resolve_path()
-ASSETS_PATH = resolve_path("..", "assets")
-ROOMS_PATH = resolve_path("..", "rooms")
+ASSETS_PATH = resolve_path("assets")
+ROOMS_PATH = resolve_path("rooms")
 SAVEDATA_PATH = resolve_path("src")
-LOCATIONS_PATH = resolve_path("..", "src", "locations")
+LOCATIONS_PATH = resolve_path("src", "locations")
