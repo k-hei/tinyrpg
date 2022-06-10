@@ -200,13 +200,12 @@ class DungeonElement:
     if type(sprites) is Sprite:
       sprites = [sprites]
 
-    if sprites:
-      sprite = sprites[0]
+    sprite = sprites[0] if sprites else None
+    if sprite:
       sprite_width, sprite_height = sprite.size or sprite.image.get_size()
       sprite_layer = sprite.layer or "elems"
       sprite_offset = 0
     else:
-      sprite = None
       sprite_width, sprite_height = (0, 0)
       sprite_layer = "elems"
       sprite_offset = 0

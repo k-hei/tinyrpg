@@ -112,6 +112,11 @@ class Core:
   def view(core, sprites):
     if not sprites:
       return []
+
+    sprite = sprites[0]
+    if not sprite:
+      return []
+
     if core.color:
       COLOR = core.color
     elif core.faction == "player":
@@ -120,6 +125,6 @@ class Core:
       COLOR = GREEN
     elif core.faction == "enemy":
       COLOR = RED
-    sprite = sprites[0]
+
     sprite.image = replace_color(sprite.image, BLACK, COLOR)
     return sprites
