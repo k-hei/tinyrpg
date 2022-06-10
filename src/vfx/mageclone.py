@@ -8,7 +8,7 @@ from anims import Anim
 from anims.tween import TweenAnim
 from anims.frame import FrameAnim
 from cores.mage import Mage
-from colors.palette import BLACK
+from colors.palette import BLACK, RED
 
 class MageCloneVfx(Vfx):
   @staticmethod
@@ -26,7 +26,7 @@ class MageCloneVfx(Vfx):
   class PauseAnim(Anim): pass
   class AdjustAnim(TweenAnim): pass
 
-  def __init__(fx, cell, angle, animated=True, on_ready=None, *args, **kwargs):
+  def __init__(fx, cell, angle, color=RED, animated=True, on_ready=None, *args, **kwargs):
     x, y = cell
     super().__init__(
       kind=None,
@@ -37,6 +37,7 @@ class MageCloneVfx(Vfx):
     fx.pos_start = fx.pos
     fx.angle = angle
     fx.cell = cell
+    fx.color = color
     fx.anims = [
       [Mage.CastAnim()],
       [

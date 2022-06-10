@@ -37,7 +37,7 @@ class Soul(Prop):
     super().__init__(solid=False)
     soul.skill = contents
     soul.obtain_target = False
-    soul.anim = Soul.PulsateAnim()
+    soul.anim = Soul.PulsateAnim(delay=randint(0, 120))
     soul.offset = (0, 0)
     soul.norm = (0, 0)
     soul.vel = 0

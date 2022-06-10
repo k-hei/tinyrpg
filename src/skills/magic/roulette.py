@@ -1,5 +1,6 @@
 from math import pi, inf
-from random import randint, choice, shuffle
+from random import choice, shuffle
+from helpers.stage import is_cell_walkable_to_actor
 import lib.vector as vector
 from lib.cell import downscale, neighborhood
 from skills.magic import MagicSkill
@@ -58,14 +59,18 @@ class Roulette(MagicSkill):
                 pause_anim := PauseAnim(
                   duration=15,
                   on_end=lambda: (
-                    clone_cell := choice([c for c in neighborhood(start_cell, radius=3) if game.stage.is_cell_empty(c)]),
-                    clone := (user if f is user_clone else MageClone(aggro=2)),
+                    clone_cell := choice([c for c in neighborhood(start_cell, radius=3)
+                      if is_cell_walkable_to_actor(game.stage, c, user)
+                      and c in game.room.cells] or game.room.cells),
+                    clone := (user
+                      if f is user_clone
+                      else MageClone(aggro=2, faction=user.faction)),
                     (
                       setattr(user, "hidden", False),
                       user.core.anims.pop(),
                     ) if f is user_clone else game.stage.spawn_elem_at(
                       cell=clone_cell,
-                      elem=clone
+                      elem=clone,
                     ),
                     f in game.vfx and game.vfx.remove(f),
                     anim_group := next((g for g in game.anims if pause_anim in g), None),

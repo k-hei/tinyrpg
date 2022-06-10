@@ -10,10 +10,10 @@ class MageClone(DungeonActor):
 
   class ChargeAnim(ShakeAnim): pass
 
-  def __init__(mage, *args, **kwargs):
+  def __init__(mage, faction="enemy", *args, **kwargs):
     super().__init__(Core(
       name="Minxia",
-      faction="enemy",
+      faction=faction,
       stats=Stats(
         hp=1,
         st=14,

@@ -88,11 +88,11 @@ from os.path import abspath, dirname, join
 
 
 def resolve_path(*args):
-    return join(dirname(__file__), *args)    
+    return join(dirname(__file__), *args)
 
 
 ROOT_PATH = resolve_path()
-ASSETS_PATH = resolve_path("assets")
-ROOMS_PATH = resolve_path("rooms")
+ASSETS_PATH = resolve_path("../assets")
+ROOMS_PATH = resolve_path("../rooms")
 SAVEDATA_PATH = resolve_path("src")
 LOCATIONS_PATH = resolve_path("src", "locations")
