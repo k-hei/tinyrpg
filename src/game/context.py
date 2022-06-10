@@ -10,7 +10,7 @@ from contexts.load import LoadContext
 from contexts.pause import PauseContext
 from contexts.inventory import InventoryContext
 from contexts.custom import CustomContext
-from contexts.dungeon import DungeonContext
+from contexts.dungeon.context import DungeonContext
 from contexts.loading import LoadingContext
 from contexts.controls import ControlsContext
 from contexts.explore.manifest import manifest_room

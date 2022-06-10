@@ -4,7 +4,7 @@ from lib.cell import neighborhood
 from dungeon.floors import Floor
 from dungeon.room import Blob as Room
 from contexts.explore.roomdata import RoomData, rooms
-from dungeon.gen import gen_floor
+from dungeon.gen.gen_floor import gen_floor
 from dungeon.gen.blob import gen_blob
 from dungeon.props.pillar import Pillar
 import locations.tomb.tiles as tileset

@@ -2,7 +2,7 @@ import pygame
 from pygame.time import get_ticks
 import debug
 from contexts import Context
-import contexts.dungeon
+import contexts.dungeon.context
 from contexts.data import view_ticks
 from comps.minimap import Minimap
 import assets

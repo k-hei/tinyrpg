@@ -6,6 +6,7 @@ from resolve.elem import resolve_elem
 from resolve.item import resolve_item
 from resolve.skill import resolve_skill
 from resolve.hook import resolve_hook
+from resolve.area import resolve_area
 import debug
 
 def decode_floor(floor_data):
@@ -56,6 +57,9 @@ def decode_elem(elem_cell, elem_name, elem_props, tileset=None):
 
   if "on_action" in elem_props and type(elem_props["on_action"]) is str:
     elem_props["on_action"] = resolve_hook(elem_props["on_action"])
+
+  if "area" in elem_props and isinstance(elem_props["area"], str):
+    elem_props["area"] = resolve_area(elem_props["area"]) or elem_props["area"]
 
   # if "message" in elem_props:
   #   message_key = elem_props["message"]

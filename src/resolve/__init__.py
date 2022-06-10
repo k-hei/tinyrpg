@@ -186,6 +186,33 @@ def build_materials(items, actors, materials):
   output_file.write(imports_buffer + body_buffer)
   output_file.close()
 
+def collect_areas(path):
+  areas = {}
+
+  for f in listdir(path):
+    area_path = join(path, f)
+
+    if not isfile(area_path):
+      area_path = join(area_path, "__init__.py")
+
+    if isfile(area_path):
+      area_key, _ = splitext(f)
+
+      with open(area_path, mode="r", encoding="utf-8") as area_file:
+        area_buffer = area_file.read()
+
+      area_pattern = re.compile("class (\w+Area)\(\w+")
+      match = area_pattern.search(area_buffer)
+
+      area_name = match.group(1) if match else None
+      areas[area_name] = ".".join(path.split("/")[1:] + [area_key])
+
+  return areas
+
+def build_areas(path):
+  areas = collect_areas(path)
+  write_mapping(name="area", mapping=areas)
+
 if __name__ == "__main__":
   build_items(items=collect_imports("src/items"))
   build_skills(skills=collect_imports("src/skills"))
@@ -205,3 +232,4 @@ if __name__ == "__main__":
       actors_path="src/dungeon/actors"
     )
   )
+  build_areas(path="src/town/areas")

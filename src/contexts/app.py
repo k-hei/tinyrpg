@@ -190,6 +190,8 @@ class App(Context):
       transit_in, transit_out = transits
       if loader:
         transit_in.on_end = lambda: app.load(loader, on_end)
+      else:
+        transit_in.on_end = on_end
     app.transits += transits
 
   def load(app, loader, on_end, child=None):
