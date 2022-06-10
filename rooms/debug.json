@@ -25,6 +25,7 @@
     [[5, 1], "Soul", { "contents": "ClawRush" }],
     [[6, 1], "Soul", { "contents": "Virus" }],
     [[7, 1], "Soul", { "contents": "Roulette" }],
+    [[2, 7], "Portal", { "area": "shrine", "name": "Altar Room" }],
     [[4, 7], "Portal", { "area": "Floor1", "name": "Dungeon 1F" }],
     [[6, 7], "Portal", { "area": "Floor2", "name": "Dungeon 2F" }],
     [[8, 7], "Portal", { "area": "Floor3", "name": "Dungeon 3F" }],
