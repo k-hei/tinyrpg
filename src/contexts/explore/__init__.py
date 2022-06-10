@@ -15,6 +15,7 @@ from contexts.minimap import MinimapContext
 from contexts.cutscene import CutsceneContext
 from dungeon.actors import DungeonActor
 from dungeon.props.itemdrop import ItemDrop
+from dungeon.props.portal import Portal
 from anims.attack import AttackAnim
 from anims.jump import JumpAnim
 from anims.pause import PauseAnim
@@ -470,6 +471,10 @@ class ExploreContext(ExploreBase):
 
     if ctx.stage.is_tile_at_of_type(hero_cell, tileset.Escape):
       return ctx.goto_town()
+
+    portal = next((e for e in ctx.stage.get_elems_at(hero_cell)
+      if isinstance(e, Portal)), None)
+    portal and print(portal, portal.area)
 
     stairs_edge = ((ctx.graph.connector_edge(ctx.stage, hero_cell)
         or ctx.graph.connector_edge(ctx.stage, (hero_tile, hero_cell)))

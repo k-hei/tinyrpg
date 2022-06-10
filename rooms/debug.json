@@ -24,6 +24,7 @@
   "elems": [
     [[5, 1], "Soul", { "contents": "ClawRush" }],
     [[6, 1], "Soul", { "contents": "Virus" }],
-    [[7, 1], "Soul", { "contents": "Roulette" }]
+    [[7, 1], "Soul", { "contents": "Roulette" }],
+    [[4, 7], "Portal", { "area": "Floor1", "name": "Dungeon 1F" }]
   ]
 }

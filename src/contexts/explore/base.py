@@ -39,6 +39,7 @@ class ExploreBase(Context):
     ctx.stage_view = stage_view
     ctx.time = time
     ctx.buttons_rejected = {}
+    ctx._label = None
 
   @property
   def hero(ctx):
@@ -158,6 +159,21 @@ class ExploreBase(Context):
     facing_cell = vector.add(origin_cell, ctx.hero.facing)
     facing_elems = ctx.stage.get_elems_at(facing_cell, scale=TILE_SIZE)
     return next((e for e in facing_elems if isinstance(e, DungeonActor)), None)
+
+  @property
+  def label(ctx):
+    try:
+      return ctx.parent.label
+    except AttributeError:
+      return ctx._label
+
+  @label.setter
+  def label(ctx, label):
+    if isinstance(ctx.parent, ExploreBase):
+      ctx.parent.label = label
+      return
+
+    ctx._label = label
 
   def find_closest_enemy(ctx, actor, elems=None):
     enemies = [e for e in (elems or ctx.stage.elems) if (
@@ -626,6 +642,12 @@ class ExploreBase(Context):
   def undarken(ctx):
     ctx.stage_view.undarken()
     ctx.redraw_tiles()
+
+  def show_label(ctx, label):
+    ctx.label = label
+
+  def hide_label(ctx):
+    ctx.label = None
 
   def redraw_tiles(ctx, force=False):
     ctx.stage_view.redraw_tiles(

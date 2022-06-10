@@ -1,6 +1,7 @@
 from dungeon.props.bag import Bag
 from dungeon.props.treasuredoor import TreasureDoor
 from dungeon.props.palm import Palm
+from dungeon.props.portal import Portal
 from dungeon.props.battledoor import BattleDoor
 from dungeon.props.secretdoor import SecretDoor
 from dungeon.props.poisonpuff import PoisonPuff
@@ -54,6 +55,7 @@ def resolve_elem(key):
   if key == "Bag": return Bag
   if key == "TreasureDoor": return TreasureDoor
   if key == "Palm": return Palm
+  if key == "Portal": return Portal
   if key == "BattleDoor": return BattleDoor
   if key == "SecretDoor": return SecretDoor
   if key == "PoisonPuff": return PoisonPuff

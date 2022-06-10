@@ -566,13 +566,16 @@ class DungeonContext(ExploreBase):
     return sprites
 
   def view_label(ctx):
-    if ctx.time >= LABEL_FRAMES:
+    if not ctx.label and ctx.time >= LABEL_FRAMES:
       return []
 
-    floor_no = ctx.find_floor_no()
-    floor_text = (f"Tomb {floor_no}F"
-      if floor_no
-      else ctx.stage.name or "????")
+    if ctx.label:
+      floor_text = ctx.label
+    else:
+      floor_no = ctx.find_floor_no()
+      floor_text = (f"Tomb {floor_no}F"
+        if floor_no
+        else ctx.stage.name or "????")
 
     if not floor_text:
       return []

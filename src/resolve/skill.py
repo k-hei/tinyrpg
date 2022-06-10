@@ -27,10 +27,10 @@ from skills.magic.glacio import Glacio
 from skills.magic.congelatio import Congelatio
 from skills.field.detectmana import DetectMana
 from skills.support.fortify import Fortify
+from skills.support.roulette import Roulette
 from skills.support.empower import Empower
 from skills.support.anastasis import Anastasis
 from skills.support.counter import Counter
-from skills.support.roulette import Roulette
 from skills.support.sana import Sana
 from skills.armor.buckler import Buckler
 from skills.armor.hpup import HpUp
@@ -60,12 +60,12 @@ def resolve_skill(key):
   if key == "Hirudo": return Hirudo
   if key == "Ignis": return Ignis
   if key == "Accerso": return Accerso
-  if key == "Roulette": return Roulette
   if key == "Fulgur": return Fulgur
   if key == "Glacio": return Glacio
   if key == "Congelatio": return Congelatio
   if key == "DetectMana": return DetectMana
   if key == "Fortify": return Fortify
+  if key == "Roulette": return Roulette
   if key == "Empower": return Empower
   if key == "Anastasis": return Anastasis
   if key == "Counter": return Counter
