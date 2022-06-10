@@ -1,15 +1,18 @@
-name: Sandbox
+name: Release (prod)
 
-on: pull_request
+on:
+  push:
+    branches:
+      prod
 
 jobs:
   version:
     uses: ./.github/workflows/version.yml
 
-  release:
+  build:
     uses: ./.github/workflows/release.yml
     needs: version
     if: ${{ needs.version.outputs.version != '' }}
     with:
       version: ${{ needs.version.outputs.version }}
-      prerelease: true
+      prerelease: false

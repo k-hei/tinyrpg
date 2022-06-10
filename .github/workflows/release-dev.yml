@@ -1,0 +1,22 @@
+name: Release (dev)
+
+on:
+  push:
+    branches:
+      - dev
+      - v*.*
+
+    branches-ignore:
+      - v*.*_**
+
+jobs:
+  version:
+    uses: ./.github/workflows/version.yml
+
+  build:
+    uses: ./.github/workflows/release.yml
+    needs: version
+    if: ${{ needs.version.outputs.version != '' }}
+    with:
+      version: ${{ needs.version.outputs.version }}
+      prerelease: true

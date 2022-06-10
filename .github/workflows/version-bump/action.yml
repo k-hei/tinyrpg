@@ -32,11 +32,11 @@ runs:
         echo "Using new version $NEW_VERSION"
         echo "::set-output name=new_version::$(echo "$NEW_VERSION")"
 
-    # - name: Push new version
-    #   run: |
-    #     git config --global user.name "Brandon Semilla"
-    #     git config --global user.email "semibran@gmail.com"
+    - name: Push new version
+      run: |
+        git config --global user.name "Brandon Semilla"
+        git config --global user.email "semibran@gmail.com"
 
-    #     git add -A
-    #     git commit -m ${{ steps.version-bump.outputs.new_version }}
-    #     git push
+        git add -A
+        git commit -m ${{ steps.version-bump.outputs.new_version }}
+        git push
