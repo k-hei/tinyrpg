@@ -151,7 +151,7 @@ class GameOverContext(Context):
         data and (
           game := ctx.get_parent(cls="GameContext"),
           game and game.load(savedata=data[0]) or ctx.close(choice)
-        )
+        ) or setattr(ctx, "chosen", False)
       ))
     )))
     return True
