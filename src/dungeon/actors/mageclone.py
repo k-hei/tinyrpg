@@ -2,15 +2,16 @@ from random import randint
 
 from dungeon.actors import DungeonActor
 from dungeon.actors.mage import Mage
+from dungeon.props.puff_freezing import FreezingPuff
+
 from cores import Core, Stats
 from cores.mage import Mage as MageCore
 from helpers.mage import step_move
+from helpers.cloud import spawn_cloud
 
 from anims.flicker import FlickerAnim
 from anims.shake import ShakeAnim
 from anims.jump import JumpAnim
-
-from skills.ailment.virus import Virus
 
 
 class MageClone(DungeonActor):
@@ -45,7 +46,11 @@ class MageClone(DungeonActor):
     mage.inflict_ailment("freeze")
     mage.core.anims = [MageCore.TeaseAnim()]
     mage.shatter(game)
-    Virus.spawn_cloud(game, mage.cell)
+    spawn_cloud(game,
+      cell=mage.cell,
+      puff_type=FreezingPuff,
+      radius=1,
+      inclusive=True)
 
   def dissolve(mage, game):
     game.anims[-1].append(FlickerAnim(

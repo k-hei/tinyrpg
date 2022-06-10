@@ -254,10 +254,9 @@ class ExploreBase(Context):
       duration=move_duration,
       on_end=lambda: (
         has_command_queue and move_command in ctx.command_queue and ctx.command_queue.remove(move_command),
-        actor == ctx.hero and (prop := next((e for e in ctx.stage.elems if
-          not e.solid
-          and actor.cell == e.cell
-        ), None)) and prop.effect(ctx, actor),
+        # TODO: can all effects be relegated to end of turn?
+        # (prop := next((e for e in ctx.stage.elems if
+        #   not e.solid and actor.cell == e.cell), None)) and prop.effect(ctx, actor),
         on_end and on_end(),
       )
     )
@@ -590,7 +589,6 @@ class ExploreBase(Context):
     ctx.stage.spawn_elem_at(spawn_cell, ItemDrop(item))
     hero.item = None
     return True, ""
-
 
   def recruit_actor(game, actor):
     actor.reset_charge()

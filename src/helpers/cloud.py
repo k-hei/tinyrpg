@@ -5,16 +5,20 @@ from anims.pause import PauseAnim
 from config import TILE_SIZE
 
 
-def spawn_cloud(game, cell, puff_type, inclusive=False, on_end=None):
-    target_cells = neighborhood(cell, radius=2, inclusive=inclusive, predicate=lambda cell: (
-        not game.stage.is_tile_at_solid(cell, scale=TILE_SIZE)
-        and not next((e for e in game.stage.get_elems_at(cell, scale=TILE_SIZE)
-            if not isinstance(e, DungeonActor) and e.solid), None)
-    ))
+def spawn_cloud(game, cell, puff_type, radius=1, inclusive=False, on_end=None):
+    target_cells = neighborhood(cell,
+        radius=radius,
+        inclusive=inclusive,
+        predicate=lambda cell: (
+            not game.stage.is_tile_at_solid(cell, scale=TILE_SIZE)
+            and not next((e for e in game.stage.get_elems_at(cell, scale=TILE_SIZE)
+                if not isinstance(e, DungeonActor) and e.solid), None)
+        ))
     target_actors = [e for c in target_cells
         for e in game.stage.get_elems_at(c, scale=TILE_SIZE) if
             isinstance(e, DungeonActor) and not e.dead]
 
+    # UNUSED: applies cloud effect to each actor sequentially
     def effect():
         if not target_actors:
             if on_end:
@@ -35,7 +39,7 @@ def spawn_cloud(game, cell, puff_type, inclusive=False, on_end=None):
 
     game.anims.extend([
         [PauseAnim(duration=30)],
-        [PauseAnim(duration=1, on_end=effect)],
+        [PauseAnim(duration=1, on_end=on_end)],
     ])
 
     return True

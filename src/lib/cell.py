@@ -54,7 +54,7 @@ def downscale(pos, scale, floor=False):
 def neighborhood(cell=(0, 0), radius=1, adjacents=True, diagonals=False, inclusive=False, predicate=None):
   if radius == 1:
     x, y = cell
-    return [
+    neighbors = [
       *([cell] if inclusive else []),
       *([
         (x - 1, y),
@@ -69,6 +69,9 @@ def neighborhood(cell=(0, 0), radius=1, adjacents=True, diagonals=False, inclusi
         (x + 1, y + 1),
       ] if diagonals else [])
     ]
+    return (neighbors
+      if not predicate
+      else [n for n in neighbors if predicate(n)])
 
   cells = []
   start = cell

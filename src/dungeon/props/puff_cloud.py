@@ -2,7 +2,6 @@ from random import randint
 from dungeon.props import Prop
 from dungeon.actors import DungeonActor
 from vfx.puff_cloud import CloudPuffVfx
-from colors.palette import VIOLET, DARKBLUE
 from config import TILE_SIZE
 
 
@@ -60,7 +59,7 @@ class CloudPuff(Prop):
         create_puff_vfx = lambda size: CloudPuffVfx(
             src, dest,
             elev=puff.elev,
-            colors=(VIOLET, DARKBLUE),
+            colors=puff.colors,
             size=size,
         )
 

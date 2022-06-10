@@ -1,9 +1,11 @@
 from dungeon.status.poison import PoisonImmunityEffect
 from dungeon.props.puff_cloud import CloudPuff
+from colors.palette import VIOLET, DARKBLUE
 
 
 class PoisonPuff(CloudPuff):
     max_turns = 7
+    colors = (VIOLET, DARKBLUE)
 
     def effect(puff, game, trigger=None, on_end=None):
         if not super().effect(game, trigger, on_end):

@@ -1091,7 +1091,8 @@ class CombatContext(ExploreBase):
       return
 
     actor.step_status(ctx)
-    effect_elem = next((e for e in ctx.stage.get_elems_at(actor.cell) if e.active and not e.solid), None)
+    effect_elem = next((e for e in ctx.stage.get_elems_at(actor.cell)
+      if e.active and not e.solid), None)
     effect_elem and effect_elem.effect(ctx, actor)
 
   def end_step(ctx):
