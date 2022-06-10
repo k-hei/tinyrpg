@@ -3,7 +3,7 @@ from contexts.sell import SellContext
 from resolve.item import resolve_item
 from portraits.mira import MiraPortrait as OraclePortrait
 from cores.mira import MiraCore as Oracle
-from game.data import GameData
+from game.store import GameStore
 
 ORACLE_NAME = Oracle.name.upper()
 App(
@@ -16,7 +16,7 @@ App(
       "confirm": Oracle.name.upper() + ": That'll be {gold}G. OK?",
       "thanks": Oracle.name.upper() + ": Thanks!"
     },
-    store=GameData(
+    store=GameStore(
       gold=500,
       items=[resolve_item(i) for i in [
         "Potion",

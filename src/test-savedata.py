@@ -1,13 +1,13 @@
-from game.data import GameData
+from game.store import GameStore
 from savedata import load
 
-store = GameData()
+store = GameStore()
 savedata = load("src/data00.json")
 
 def test_encode():
-  savedata = GameData.encode(store)
+  savedata = GameStore.encode(store)
   assert bool(savedata)
 
 def test_decode():
-  store = GameData.decode(savedata)
+  store = GameStore.decode(savedata)
   assert bool(store)

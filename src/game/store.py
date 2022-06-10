@@ -34,7 +34,7 @@ def decode_build(build_data):
     return build_data
 
 @dataclass
-class GameData:
+class GameStore:
   time: int = 0
   _sp: int = 0
   sp_max: int = MAX_SP
@@ -97,7 +97,7 @@ class GameData:
       for skill, cell in build.items():
         piece = (resolve_skill(skill), cell)
         builds[name].append(piece)
-    return GameData(
+    return GameStore(
       time=savedata.time,
       _sp=savedata.sp,
       sp_max=savedata.sp_max,

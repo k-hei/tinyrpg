@@ -1,6 +1,6 @@
 from contexts.app import App
 from town.areas.store.context import StoreContext
-from game.data import GameData
+from game.store import GameStore
 from savedata.resolve import resolve_item
 from cores.knight import Knight
 from cores.mage import Mage
@@ -8,7 +8,7 @@ from cores.mage import Mage
 App(
   title="shop demo",
   context=StoreContext(
-    store=GameData(
+    store=GameStore(
       party=[Knight(), Mage()],
       items=[resolve_item(i) for i in [
         "Potion",

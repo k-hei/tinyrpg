@@ -25,7 +25,7 @@ from dungeon.gen.floorgraph import FloorGraph
 from skills import get_skill_order
 from skills.weapon import Weapon
 from debug import bench
-from game.data import GameData
+from game.store import GameStore
 from transits.dissolve import DissolveOut
 import debug
 
@@ -51,11 +51,11 @@ class GameContext(Context):
 
     if data is None:
       ctx.open(LoadContext(), on_close=lambda *data: data and ctx.load(*data))
-    elif type(data) is GameData:
+    elif type(data) is GameStore:
       ctx.store = data
-      ctx.savedata = GameData.encode(data)
+      ctx.savedata = GameStore.encode(data)
     else:
-      ctx.store = GameData.decode(data)
+      ctx.store = GameStore.decode(data)
       ctx.savedata = data
 
     ctx.graph = None
@@ -75,7 +75,7 @@ class GameContext(Context):
 
     floor = None
     ctx.savedata = savedata
-    ctx.store = GameData.decode(savedata)
+    ctx.store = GameStore.decode(savedata)
     ctx.update_skills()
     ctx.store.controls and gamepad.config(preset=ctx.store.controls)
 

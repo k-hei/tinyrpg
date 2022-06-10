@@ -1,4 +1,4 @@
-from game.data import GameData
+from game.store import GameStore
 
 def test_buy():
   pass

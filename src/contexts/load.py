@@ -6,7 +6,7 @@ from contexts.dialogue import DialogueContext
 from contexts.prompt import PromptContext, Choice
 from contexts.controls import ControlsContext
 from transits.dissolve import DissolveIn, DissolveOut
-from game.data import GameData
+from game.store import GameStore
 
 import assets
 from lib.sprite import Sprite

@@ -23,7 +23,7 @@ from anims.tween import TweenAnim
 from anims.sine import SineAnim
 from anims.pause import PauseAnim
 from inventory import Inventory
-from game.data import GameData
+from game.store import GameStore
 from resolve.item import resolve_item
 import assets
 from config import WINDOW_WIDTH, WINDOW_HEIGHT
@@ -784,7 +784,7 @@ class GridContext(Context):
 class BuyContext(Context):
   def __init__(ctx, comps, store=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
-    ctx.store = store or GameData(party=[
+    ctx.store = store or GameStore(party=[
       Knight(),
       Mage(),
     ])
