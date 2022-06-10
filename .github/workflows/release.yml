@@ -1,98 +1,67 @@
 name: Release
 
 on:
-  push:
-    branches:
-      master
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        required: true
+
+      prerelease:
+        type: boolean
+        required: true
+
+      python_version:
+        type: string
+        default: '3.x'
 
 jobs:
-  build:
+  release:
     runs-on: windows-latest
-    env:
-      head_commit: ${{ github.event.head_commit.message }}
-
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.x'
+      - name: Update local version
+        shell: bash
+        run: |
+          echo "Building version ${{ inputs.version }}"
+          echo "${{ inputs.version }}" > VERSION
 
-    - name: Determine increment
-      id: determine_increment
-      shell: bash
-      run: |
-        echo "Head commit is \"${{ env.head_commit }}\""
-        INCREMENT="minor"
-        if [ ${{ startsWith(env.head_commit, 'fix:') }} == true ] \
-        || [ ${{ startsWith(env.head_commit, 'patch:') }} == true ]; then
-          echo "Creating a patch release..."
-          INCREMENT="patch"
-        elif [ ${{ startsWith(env.head_commit, 'feat:') }} == true ] \
-        || [ ${{ startsWith(env.head_commit, 'feat(') }} == true ]; then
-          echo "Creating a minor release..."
-          INCREMENT="minor"
-        elif [ ${{ startsWith(env.head_commit, 'BREAKING CHANGE:') }} == true ]; then
-          echo "Creating a major release..."
-          INCREMENT="major"
-        elif [ ${{ startsWith(env.head_commit, '[skip release]') }} == true ]; then
-          echo "Skipping semver increment..."
-          INCREMENT="iteration"
-        else
-          echo "No commit message flag found, using default increment ($INCREMENT)"
-        fi
-        echo "::set-output name=increment::$(echo "$INCREMENT")"
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ inputs.python_version }}
 
-    - name: Bump version
-      id: bump_version
-      shell: bash
-      run: |
-        NEW_VERSION=$(py bin/bump_version.py ${{ steps.determine_increment.outputs.increment }})
-        echo "Using new version $NEW_VERSION"
-        echo "::set-output name=new_version::$(echo "$NEW_VERSION")"
-    
-    - name: Create new release
-      id: create_release
-      uses: actions/create-release@v1
-      with:
-        tag_name: ${{ steps.bump_version.outputs.new_version }}
-        release_name: ${{ steps.bump_version.outputs.new_version }}
-        commitish: master
-        prerelease: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build application binary
+        shell: bash
+        run: |
+          bin/build.sh
 
-    - name: Install dependencies
-      run: |
-        py -m pip install -r requirements.txt
+      - name: Zip application binary
+        run: |
+          Compress-Archive `
+            dist/tinyrpg-*.exe `
+            dist/tinyrpg-${{ inputs.version }}.zip
 
-    - name: Build application binary
-      shell: bash
-      run: |
-        bin/build.sh
+          Get-ChildItem -Path dist
 
-    - name: Zip application binary
-      run: |
-        Compress-Archive dist/tinyrpg-${{ steps.bump_version.outputs.new_version }}.exe dist/tinyrpg-${{ steps.bump_version.outputs.new_version }}.zip
+      - name: Create new release
+        id: create-release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ inputs.version }}
+          release_name: ${{ inputs.version }}
+          commitish: master
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Upload application archive
-      id: upload-release-asset 
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: dist/tinyrpg-${{ steps.bump_version.outputs.new_version }}.zip
-        asset_name: tinyrpg-${{ steps.bump_version.outputs.new_version }}.zip
-        asset_content_type: application/zip
-
-    - name: Push new version
-      run: |
-        git config --global user.name "Brandon Semilla"
-        git config --global user.email "semibran@gmail.com"
-
-        git add -A
-        git commit -m ${{ steps.bump_version.outputs.new_version }}
-        git push
-
+      - name: Upload application archive
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: dist/tinyrpg-${{ inputs.version }}.zip
+          asset_name: tinyrpg-${{ inputs.version }}.zip
+          asset_content_type: application/zip

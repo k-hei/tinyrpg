@@ -1,0 +1,48 @@
+name: Version
+
+on:
+  workflow_call:
+    inputs:
+      default_increment:
+        type: string
+        default: 'iteration'
+
+      python_version:
+        type: string
+        default: '3.x'
+
+    outputs:
+      version:
+        description: 'The new application version, as resolved from the current version and latest commit message'
+        value: ${{ jobs.version-bump.outputs.version }}
+
+jobs:
+  version-increment:
+    runs-on: ubuntu-latest
+    outputs:
+      increment: ${{ steps.version-increment.outputs.increment }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Determine increment
+        id: version-increment
+        uses: ./.github/workflows/version-increment
+        with:
+          default_increment: ${{ inputs.default_increment }}
+          commit_message: ${{ github.event.head_commit.message }}
+
+  version-bump:
+    runs-on: ubuntu-latest
+    needs: version-increment
+    if: ${{ needs.version-increment.outputs.increment != 'skip' }}
+    outputs:
+      version: ${{ steps.version-bump.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Bump version
+        id: version-bump
+        uses: ./.github/workflows/version-bump
+        with:
+          increment: ${{ needs.version-increment.outputs.increment }}
+          python_version: ${{ inputs.python_version }}

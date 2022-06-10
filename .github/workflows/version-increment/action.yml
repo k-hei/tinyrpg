@@ -1,0 +1,44 @@
+name: Version increment
+
+inputs:
+  commit_message:
+    type: string
+    default: '[skip release]'
+
+  default_increment:
+    type: string
+    default: 'iteration'
+
+outputs:
+  increment:
+    description: 'The version increment resolved from the given commit message'
+    value: ${{ steps.determine-increment.outputs.increment }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Determine increment
+      id: determine-increment
+      shell: bash
+      run: |
+        echo "Head commit is \"${{ inputs.commit_message }}\""
+        INCREMENT="${{ inputs.default_increment }}"
+        if [ ${{ startsWith(inputs.commit_message, 'fix:') }} == true ] \
+        || [ ${{ startsWith(inputs.commit_message, 'patch:') }} == true ]; then
+          echo "Creating a patch release..."
+          INCREMENT="patch"
+        elif [ ${{ startsWith(inputs.commit_message, 'feat:') }} == true ] \
+        || [ ${{ startsWith(inputs.commit_message, 'feat(') }} == true ]; then
+          echo "Creating a minor release..."
+          INCREMENT="minor"
+        elif [ ${{ startsWith(inputs.commit_message, 'BREAKING CHANGE:') }} == true ]; then
+          echo "Creating a major release..."
+          INCREMENT="major"
+        elif [ ${{ startsWith(inputs.commit_message, '[skip release]') }} == true ] \
+        || [ ${{ startsWith(inputs.commit_message, 'skip:') }} == true ]; then
+          echo "Skipping semver increment..."
+          INCREMENT="skip"
+        else
+          echo "No commit message flag found, using default increment ($INCREMENT)"
+        fi
+        echo "::set-output name=increment::$(echo "$INCREMENT")"

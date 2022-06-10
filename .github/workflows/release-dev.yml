@@ -1,0 +1,24 @@
+name: Release (dev)
+
+on:
+  push:
+    branches:
+      - dev
+      - v*.*
+
+    branches-ignore:
+      - v*.*_**
+
+jobs:
+  version:
+    uses: ./.github/workflows/version.yml
+    with:
+      default_increment: 'iteration'
+
+  build:
+    uses: ./.github/workflows/release.yml
+    needs: version
+    if: ${{ needs.version.outputs.version != '' }}
+    with:
+      version: ${{ needs.version.outputs.version }}
+      prerelease: true
