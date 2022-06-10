@@ -1,3 +1,8 @@
+import sys
+from os.path import dirname, join
+
+
+PROD = "_MEIPASS" in dir(sys)
 DEBUG = True
 DEBUG_GEN = False
 CUTSCENES = False
@@ -81,17 +86,11 @@ SKILL_BADGE_POS_SOLO = (46, 42)
 SKILL_BADGE_POS_ALLY = (60, 54)
 
 
-
-import sys
-from os.path import dirname, join
-
-
-def resolve_path(*args):
-    return join(
-        dirname(__file__),
-        *([] if "_MEIPASS" in dir(sys) else [".."]),
-        *args
-    )
+resolve_path = lambda *args: join(
+    dirname(__file__),
+    *([] if PROD else [".."]),
+    *args
+)
 
 
 ROOT_PATH = resolve_path()
