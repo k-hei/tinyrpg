@@ -361,7 +361,7 @@ class ExploreContext(ExploreBase):
   def leap(ctx, actor, running=False, on_end=None):
     target_pos = vector.add(
       actor.pos,
-      vector.scale(actor.facing, TILE_SIZE * 1.5)
+      vector.scale(actor.facing, TILE_SIZE * 1.5 + 1)  # HACK: fixes hero getting locked after leap
     )
 
     downscale_cell = lambda pos: vector.scale(pos, 1 / TILE_SIZE)
