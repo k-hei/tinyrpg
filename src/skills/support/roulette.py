@@ -3,21 +3,22 @@ from random import choice, shuffle
 from helpers.stage import is_cell_walkable_to_actor
 import lib.vector as vector
 from lib.cell import downscale, neighborhood
-from skills.magic import MagicSkill
+from skills.support import SupportSkill
 from anims.pause import PauseAnim
 from cores.mage import Mage
 from dungeon.actors.mage import LeapAnim
 from dungeon.actors.mageclone import MageClone
 from vfx.mageclone import MageCloneVfx
+from colors.palette import GREEN  # TODO: un-hardcode this
 
 
-class Roulette(MagicSkill):
+class Roulette(SupportSkill):
   name = "Illusion"
   desc = "Calls allies to your side"
   element = "shield"
-  cost = 12
-  range_min = 1
-  range_max = 2
+  cost = 6
+  range_min = 0
+  range_max = 3
   range_type = "radial"
   charge_turns = 1
   users = [Mage]
@@ -30,6 +31,8 @@ class Roulette(MagicSkill):
 
   def effect(game, user, dest=None, on_start=None, on_end=None):
     NUM_CLONES = 4
+    CLONE_COLOR = GREEN if user.faction == "player" else user.color()
+
     on_start and on_start(user.cell)
     game.darken()
 
@@ -64,7 +67,11 @@ class Roulette(MagicSkill):
                       and c in game.room.cells] or game.room.cells),
                     clone := (user
                       if f is user_clone
-                      else MageClone(aggro=2, faction=user.faction)),
+                      else MageClone(
+                        aggro=2,
+                        faction="ally" if user.faction == "player" else user.faction
+                      )
+                    ),
                     (
                       setattr(user, "hidden", False),
                       user.core.anims.pop(),
@@ -80,6 +87,12 @@ class Roulette(MagicSkill):
                       dest=clone_cell,
                       height=64,
                       duration=45,
+                      on_end=lambda: (
+                        clone is user and not next((True for a in user.core.anims
+                          if isinstance(a, user.core.IdleDownAnim)), False) and (
+                          user.core.anims.append(user.core.IdleDownAnim())
+                        )
+                      )
                     )),
                   )
                 )
@@ -94,10 +107,10 @@ class Roulette(MagicSkill):
       ])
 
     clones = [
-      MageCloneVfx(cell=user.cell, color=user.color(), angle=2 * pi * 0 / 4),
-      MageCloneVfx(cell=user.cell, color=user.color(), angle=2 * pi * 1 / 4),
-      MageCloneVfx(cell=user.cell, color=user.color(), angle=2 * pi * 2 / 4),
-      MageCloneVfx(cell=user.cell, color=user.color(), angle=2 * pi * 3 / 4, on_ready=jump),
+      MageCloneVfx(cell=user.cell, color=CLONE_COLOR, angle=2 * pi * 0 / 4),
+      MageCloneVfx(cell=user.cell, color=CLONE_COLOR, angle=2 * pi * 1 / 4),
+      MageCloneVfx(cell=user.cell, color=CLONE_COLOR, angle=2 * pi * 2 / 4),
+      MageCloneVfx(cell=user.cell, color=CLONE_COLOR, angle=2 * pi * 3 / 4, on_ready=jump),
     ]
     shuffle(clones)
     game.vfx.extend(clones)

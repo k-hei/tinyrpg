@@ -199,8 +199,7 @@ class ExploreBase(Context):
     move_src = actor.cell if fixed else downscale(actor.pos, TILE_SIZE)
     move_dest = vector.add(actor.cell, delta)
 
-    if (not is_cell_walkable_to_actor(ctx.stage, move_dest, actor)
-    and not (ctx.ally and move_dest == ctx.ally.cell)):
+    if not is_tile_walkable_to_actor(ctx.stage, move_dest, actor):
       return False
 
     # block player movement outside of enemy territory if adjacent to enemy
@@ -216,8 +215,13 @@ class ExploreBase(Context):
       next((e for e in ctx.stage.get_elems_at(move_dest) if e.solid), None)
       or next((e for e in ctx.stage.get_elems_at(move_dest)), None)
     )
+    target_elem_is_movable = (target_elem
+      and target_elem is not ctx.hero
+      and isinstance(target_elem, DungeonActor)
+      and target_elem.allied(actor)
+      and target_elem.can_step())
 
-    if target_elem and target_elem.solid and not (target_elem is ctx.ally and not ctx.ally.command):
+    if target_elem and target_elem.solid and not target_elem_is_movable:
       return False
 
     move_command = (actor, (COMMAND_MOVE, delta))
@@ -259,8 +263,8 @@ class ExploreBase(Context):
     actor.facing = normalize_direction(delta)
     actor.command = move_command
 
-    if target_elem and target_elem is ctx.ally:
-      ctx.move_cell(actor=ctx.ally, delta=invert_direction(delta))
+    if target_elem_is_movable:
+      ctx.move_cell(actor=target_elem, delta=invert_direction(delta))
 
     return True
 

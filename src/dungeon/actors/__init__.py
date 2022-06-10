@@ -195,7 +195,9 @@ class DungeonActor(DungeonElement):
   def is_dead(actor): return actor.core.dead
 
   def can_step(actor):
-    return not actor.charge_skill and not actor.is_immobile()
+    return ((not actor.command or actor.turns >= 1)
+      and not actor.charge_skill
+      and not actor.is_immobile())
 
   def is_immobile(actor):
     return actor.dead or actor.ailment in ("sleep", "freeze")

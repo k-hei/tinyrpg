@@ -1,4 +1,5 @@
 {
+  "name": "Debug Hub",
   "bg": ["tileset", "tomb"],
   "tiles": [
     "    .....    ",

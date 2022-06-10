@@ -722,7 +722,7 @@ class CombatContext(ExploreBase):
       elif target.rare:
         ctx.stage.spawn_elem_at(target.cell,
           Bag(contents=Gold(amount=randint(34, 120))))
-      elif randint(1, 3) == 1:
+      elif randint(1, 3) == 1 and target.faction == "enemy":
         ctx.stage.spawn_elem_at(target.cell,
           Bag(contents=Gold()))
 

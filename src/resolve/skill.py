@@ -22,7 +22,6 @@ from skills.magic.vortex import Vortex
 from skills.magic.hirudo import Hirudo
 from skills.magic.ignis import Ignis
 from skills.magic.accerso import Accerso
-from skills.magic.roulette import Roulette
 from skills.magic.fulgur import Fulgur
 from skills.magic.glacio import Glacio
 from skills.magic.congelatio import Congelatio
@@ -31,6 +30,7 @@ from skills.support.fortify import Fortify
 from skills.support.empower import Empower
 from skills.support.anastasis import Anastasis
 from skills.support.counter import Counter
+from skills.support.roulette import Roulette
 from skills.support.sana import Sana
 from skills.armor.buckler import Buckler
 from skills.armor.hpup import HpUp

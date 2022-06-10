@@ -2,7 +2,7 @@ from dungeon.props import Prop
 from assets import load as use_assets
 from lib.sprite import Sprite
 from anims.flicker import FlickerAnim
-from skills import Skill
+from anims.item import ItemAnim
 from contexts.dialogue import DialogueContext
 from helpers.combat import animate_snap
 
@@ -33,15 +33,21 @@ class Bag(Prop):
         if game.store.obtain(bag.contents):
           item = bag.contents() if callable(bag.contents) else bag.contents
           hero.facing = (0, 1)
+          game.anims.append([
+            item_anim := ItemAnim(
+              target=hero,
+              item=item
+            ),
+            FlickerAnim(
+              duration=30,
+              target=bag,
+              on_end=lambda: game.stage.remove_elem(bag)
+            )
+          ])
           game.get_tail().open(child=DialogueContext(
             lite=True,
             script=[("", ("You open the bag\n", "Received ", item.token(), "."))]
-          ))
-          game.anims.append([FlickerAnim(
-            duration=30,
-            target=bag,
-            on_end=lambda: game.stage.remove_elem(bag)
-          )])
+          ), on_close=item_anim.end)
         else:
           game.log.print("You can't carry any more materials...")
 
