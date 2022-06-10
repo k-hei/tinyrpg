@@ -33,6 +33,7 @@ runs:
         echo "::set-output name=new_version::$(echo "$NEW_VERSION")"
 
     - name: Push new version
+      shell: bash
       run: |
         git config --global user.name "Brandon Semilla"
         git config --global user.email "semibran@gmail.com"
