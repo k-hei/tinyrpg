@@ -8,6 +8,8 @@ on:
 jobs:
   version:
     uses: ./.github/workflows/version.yml
+    with:
+      default_increment: 'minor'
 
   build:
     uses: ./.github/workflows/release.yml

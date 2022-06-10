@@ -3,6 +3,10 @@ name: Version
 on:
   workflow_call:
     inputs:
+      default_increment:
+        type: string
+        default: 'iteration'
+
       python_version:
         type: string
         default: '3.x'
@@ -24,6 +28,7 @@ jobs:
         id: version-increment
         uses: ./.github/workflows/version-increment
         with:
+          default_increment: ${{ inputs.default_increment }}
           commit_message: ${{ github.event.head_commit.message }}
 
   version-bump:

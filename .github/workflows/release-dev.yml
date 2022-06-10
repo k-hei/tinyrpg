@@ -12,6 +12,8 @@ on:
 jobs:
   version:
     uses: ./.github/workflows/version.yml
+    with:
+      default_increment: 'iteration'
 
   build:
     uses: ./.github/workflows/release.yml
