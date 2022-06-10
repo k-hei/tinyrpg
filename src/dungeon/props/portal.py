@@ -1,7 +1,7 @@
 from dungeon.props import Prop
 from town.sideview.stage import Area as TownSideViewArea
 from town.topview.stage import Stage as TownTopViewArea
-from transits.dissolve import DissolveIn, DissolveOut
+from config import LABEL_FRAMES
 
 
 class Portal(Prop):
@@ -13,6 +13,7 @@ class Portal(Prop):
         portal.name = name
 
     def effect(portal, game, *_):
+        game.parent.time += LABEL_FRAMES  # HACK: force hide auto-label (can we clean this up?)
         game.show_label(portal.name or portal.area)
 
     def on_leave(portal, game):
@@ -24,22 +25,16 @@ class Portal(Prop):
         if (isinstance(portal.area, type)
         and issubclass(portal.area, (TownSideViewArea, TownTopViewArea))):
             game.comps.minimap.exit()
-            return game.get_head().transition(
-                transits=(DissolveIn(), DissolveOut()),
-                on_end=lambda: (
-                    game.get_parent(cls="GameContext").load_area(portal.area)
-                )
-            )
+            return game.get_head().transition(on_end=lambda: (
+                game.get_parent(cls="GameContext").load_area(portal.area)
+            ))
         elif "Floor" in portal.area:
             return game.parent.load_floor_by_id(portal.area)
         else:
             game.comps.minimap.exit()
-            return game.get_head().transition(
-                transits=(DissolveIn(), DissolveOut()),
-                on_end=lambda: (
-                    game.parent.load_floor_by_id(portal.area, portal.port)
-                )
-            )
+            return game.get_head().transition(on_end=lambda: (
+                game.parent.load_floor_by_id(portal.area, portal.port)
+            ))
 
     def view(portal, anims):
         return []
