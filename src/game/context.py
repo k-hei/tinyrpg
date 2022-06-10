@@ -1,3 +1,4 @@
+import pygame
 import lib.gamepad as gamepad
 import lib.input as input
 import lib.vector as vector
@@ -15,6 +16,7 @@ from contexts.loading import LoadingContext
 from contexts.controls import ControlsContext
 from contexts.dialogue import DialogueContext
 from contexts.cutscene import CutsceneContext
+from contexts.prompt import PromptContext, Choice
 from contexts.explore.manifest import manifest_room
 from contexts.explore.roomdata import load_rooms, rooms, RoomData
 from resolve.floor import resolve_floor
@@ -224,6 +226,12 @@ class GameContext(Context):
       ctx.load_build(actor=core, build=ctx.store.builds[core_id] if core_id in ctx.store.builds else [])
 
   def handle_press(ctx, button):
+    ctrl = (input.get_state(pygame.K_LCTRL)
+      or input.get_state(pygame.K_RCTRL))
+    if button == pygame.K_d and ctrl and input.get_state(button) == 1:
+      if ctx.handle_debug() != None:
+        return False
+
     if super().handle_press(button) != None:
       return False
 
@@ -248,6 +256,7 @@ class GameContext(Context):
     for control in controls:
       if control == input.CONTROL_PAUSE:
         return ctx.handle_pause()
+
       if control == input.CONTROL_INVENTORY:
         return ctx.handle_inventory()
 
@@ -258,6 +267,19 @@ class GameContext(Context):
   def handle_inventory(ctx):
     if not isinstance(ctx.get_tail(), InventoryContext):
       ctx.get_tail().open(InventoryContext(store=ctx.store))
+
+  def handle_debug(ctx):
+    ctx.get_tail().open(PromptContext(
+      message="Open the debug hub?",
+      choices=[
+        Choice(text="Yes"),
+        Choice(text="No", closing=True),
+      ],
+    ), on_close=lambda choice: (
+      choice and choice.text == "Yes" and ctx.get_head().transition(
+        on_end=lambda: ctx.load_area(rooms["debug"])
+      )
+    ))
 
   def handle_custom(ctx):
     ctx.get_tail().open(CustomContext(
