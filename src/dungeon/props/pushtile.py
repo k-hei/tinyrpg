@@ -69,8 +69,13 @@ class PushTile(DungeonElement):
           )])
           break
 
-  def on_leave(tile, *_):
-    if not tile.completed:
+  def on_leave(tile, game):
+    if tile.completed:
+      return
+
+    pushing_elem = next((e for e in game.stage.get_elems_at(tile.cell)
+      if not isinstance(e, PushTile)), False)
+    if not pushing_elem:
       tile.pushed = False
 
   def update(tile, *_):
