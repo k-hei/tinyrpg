@@ -13,6 +13,8 @@ from contexts.custom import CustomContext
 from contexts.dungeon.context import DungeonContext
 from contexts.loading import LoadingContext
 from contexts.controls import ControlsContext
+from contexts.dialogue import DialogueContext
+from contexts.cutscene import CutsceneContext
 from contexts.explore.manifest import manifest_room
 from contexts.explore.roomdata import load_rooms, rooms, RoomData
 from resolve.floor import resolve_floor
@@ -236,6 +238,8 @@ class GameContext(Context):
       LoadContext,
       ControlsContext,
       LoadingContext,
+      CutsceneContext,
+      DialogueContext,
     )
     if isinstance(ctx.get_tail(), blocking_contexts) or ctx.get_depth() > 2:
       return
