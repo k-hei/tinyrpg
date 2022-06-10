@@ -37,7 +37,7 @@ class Portal(Prop):
             return game.get_head().transition(
                 transits=(DissolveIn(), DissolveOut()),
                 on_end=lambda: (
-                    game.parent.load_floor_by_id(portal.area)
+                    game.parent.load_floor_by_id(portal.area, portal.port)
                 )
             )
 

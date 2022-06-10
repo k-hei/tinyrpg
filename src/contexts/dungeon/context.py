@@ -185,9 +185,9 @@ class DungeonContext(ExploreBase):
 
     ctx.reset()
 
-  def load_floor_by_id(ctx, floor_id, on_end=None):
+  def load_floor_by_id(ctx, floor_id, port_id=None, on_end=None):
     if floor_id in rooms:
-      return ctx.get_parent("GameContext").load_area(rooms[floor_id])
+      return ctx.get_parent("GameContext").load_area(rooms[floor_id], port_id=port_id)
 
     Floor = resolve_floor(floor_id)
     ctx.comps.minimap.exit()
