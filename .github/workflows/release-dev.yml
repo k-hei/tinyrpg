@@ -2,12 +2,9 @@ name: Release (dev)
 
 on:
   push:
-    branches:
-      - dev
-      - v*.*
-
     branches-ignore:
-      - v*.*_**
+      - prod
+      - v*.*_*
 
 jobs:
   version:
