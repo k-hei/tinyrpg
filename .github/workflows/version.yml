@@ -2,13 +2,15 @@ name: Version
 
 on:
   workflow_call:
+    inputs:
+      python_version:
+        type: string
+        default: '3.x'
+
     outputs:
       version:
         description: 'The new application version, as resolved from the current version and latest commit message'
         value: ${{ jobs.version-bump.outputs.version }}
-
-env:
-  PYTHON_VERSION: '3.x'
 
 jobs:
   version-increment:
@@ -38,4 +40,4 @@ jobs:
         uses: ./.github/workflows/version-bump
         with:
           increment: ${{ needs.version-increment.outputs.increment }}
-          python_version: ${{ env.PYTHON_VERSION }}
+          python_version: ${{ inputs.python_version }}

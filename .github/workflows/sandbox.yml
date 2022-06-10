@@ -8,60 +8,13 @@ env:
 jobs:
   version:
     uses: ./.github/workflows/version.yml
+    with:
+      python_version: ${{ env.PYTHON_VERSION }}
 
   release:
-    runs-on: windows-latest
+    uses: ./.github/workflows/release.yml
     needs: version
-    env:
-      VERSION: ${{ needs.version.outputs.version }}
-
-    steps:
-      - name: Print build version
-        run: |
-          echo "Building version ${{ env.VERSION }}"
-
-      - uses: actions/checkout@v3
-
-      - name: Update local version
-        shell: bash
-        run: |
-          echo "${{ env.VERSION }}" > VERSION
-
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Build application binary
-        shell: bash
-        run: |
-          bin/build.sh
-
-      - name: Zip application binary
-        run: |
-          Compress-Archive `
-            dist/tinyrpg-*.exe `
-            dist/tinyrpg-${{ env.VERSION }}.zip
-
-          Get-ChildItem -Path dist
-
-      # - name: Create new release
-      #   id: create-release
-      #   uses: actions/create-release@v1
-      #   with:
-      #     tag_name: ${{ env.VERSION }}
-      #     release_name: ${{ env.VERSION }}
-      #     commitish: master
-      #     prerelease: true
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # - name: Upload application archive
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ steps.create-release.outputs.upload_url }}
-      #     asset_path: dist/tinyrpg-${{ env.VERSION }}.zip
-      #     asset_name: tinyrpg-${{ env.VERSION }}.zip
-      #     asset_content_type: application/zip
+    with:
+      version: ${{ needs.version.outputs.version }}
+      python_version: ${{ env.PYTHON_VERSION }}
+      prerelease: true
