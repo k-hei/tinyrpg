@@ -39,6 +39,7 @@ class ExploreBase(Context):
     ctx.stage_view = stage_view
     ctx.time = time
     ctx.buttons_rejected = {}
+    ctx._label = None
 
   @property
   def hero(ctx):
@@ -159,6 +160,21 @@ class ExploreBase(Context):
     facing_elems = ctx.stage.get_elems_at(facing_cell, scale=TILE_SIZE)
     return next((e for e in facing_elems if isinstance(e, DungeonActor)), None)
 
+  @property
+  def label(ctx):
+    try:
+      return ctx.parent.label
+    except AttributeError:
+      return ctx._label
+
+  @label.setter
+  def label(ctx, label):
+    if isinstance(ctx.parent, ExploreBase):
+      ctx.parent.label = label
+      return
+
+    ctx._label = label
+
   def find_closest_enemy(ctx, actor, elems=None):
     enemies = [e for e in (elems or ctx.stage.elems) if (
       isinstance(e, DungeonActor)
@@ -199,8 +215,7 @@ class ExploreBase(Context):
     move_src = actor.cell if fixed else downscale(actor.pos, TILE_SIZE)
     move_dest = vector.add(actor.cell, delta)
 
-    if (not is_cell_walkable_to_actor(ctx.stage, move_dest, actor)
-    and not (ctx.ally and move_dest == ctx.ally.cell)):
+    if not is_tile_walkable_to_actor(ctx.stage, move_dest, actor):
       return False
 
     # block player movement outside of enemy territory if adjacent to enemy
@@ -216,8 +231,13 @@ class ExploreBase(Context):
       next((e for e in ctx.stage.get_elems_at(move_dest) if e.solid), None)
       or next((e for e in ctx.stage.get_elems_at(move_dest)), None)
     )
+    target_elem_is_movable = (target_elem
+      and target_elem is not ctx.hero
+      and isinstance(target_elem, DungeonActor)
+      and target_elem.allied(actor)
+      and target_elem.can_step())
 
-    if target_elem and target_elem.solid and not (target_elem is ctx.ally and not ctx.ally.command):
+    if target_elem and target_elem.solid and not target_elem_is_movable:
       return False
 
     move_command = (actor, (COMMAND_MOVE, delta))
@@ -259,8 +279,8 @@ class ExploreBase(Context):
     actor.facing = normalize_direction(delta)
     actor.command = move_command
 
-    if target_elem and target_elem is ctx.ally:
-      ctx.move_cell(actor=ctx.ally, delta=invert_direction(delta))
+    if target_elem_is_movable:
+      ctx.move_cell(actor=target_elem, delta=invert_direction(delta))
 
     return True
 
@@ -306,13 +326,17 @@ class ExploreBase(Context):
     src_cell = target.cell
     dest_cell = vector.add(src_cell, actor.facing)
 
-    # TODO: collide against all target cells
+    # TODO: collide against all target cells (for tables)
     dest_elem = next((e for e in ctx.stage.get_elems_at(dest_cell)
       if e.solid and e is not target), None)
 
     if (target.static
     or not is_tile_walkable_to_actor(ctx.stage, cell=dest_cell, actor=target)
     or dest_elem):
+      return False
+
+    # prevent pushing out of current room
+    if ctx.room and dest_cell not in ctx.room.cells:
       return False
 
     target.cell = dest_cell
@@ -622,6 +646,12 @@ class ExploreBase(Context):
   def undarken(ctx):
     ctx.stage_view.undarken()
     ctx.redraw_tiles()
+
+  def show_label(ctx, label):
+    ctx.label = label
+
+  def hide_label(ctx):
+    ctx.label = None
 
   def redraw_tiles(ctx, force=False):
     ctx.stage_view.redraw_tiles(

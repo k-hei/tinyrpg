@@ -17,14 +17,15 @@
       "Blitzritter": [0, 2]
     },
     "Mage": {
-      "Cudgel": [0, 0],
-      "Glacio": [2, 0],
-      "Congelatio": [0, 1],
+      "Somnus": [0, 1],
+      "Cudgel": [2, 0],
+      "Glacio": [0, 3],
+      "Congelatio": [1, 1],
       "HpUp": [3, 3]
     }
   },
   "kills": {},
-  "story": ["minxia"],
+  "story": [],
   "quests": {},
   "controls": {
     "LEFT": "l3",

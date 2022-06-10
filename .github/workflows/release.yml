@@ -51,7 +51,7 @@ jobs:
         with:
           tag_name: ${{ inputs.version }}
           release_name: ${{ inputs.version }}
-          commitish: master
+          commitish: ${{ github.ref_name }}
           prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

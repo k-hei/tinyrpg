@@ -3,7 +3,7 @@ from lib.sprite import Sprite
 from lib.filters import replace_color
 
 import assets
-from colors.palette import WHITE, COLOR_TILE, COLOR_TILE_ALT
+from colors.palette import WHITE, COLOR_TILE, COLOR_TILE_ALT, COLOR_TILE_DEBUG
 from config import TILE_SIZE
 
 from dungeon.props.door import Door
@@ -220,7 +220,13 @@ class TombTileset(Tileset):
 
     @staticmethod
     def find_stage_color(stage):
-        return COLOR_TILE_ALT if stage.generator == "GenericFloor" else COLOR_TILE
+        if stage.generator == "GenericFloor":
+            return COLOR_TILE_ALT
+
+        if str(stage.generator) == "debug":
+            return COLOR_TILE_DEBUG
+
+        return COLOR_TILE
 
     @classmethod
     def is_tile_at_solid(cls, tile):

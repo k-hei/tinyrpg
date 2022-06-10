@@ -195,7 +195,9 @@ class DungeonActor(DungeonElement):
   def is_dead(actor): return actor.core.dead
 
   def can_step(actor):
-    return not actor.charge_skill and not actor.is_immobile()
+    return ((not actor.command or actor.turns >= 1)
+      and not actor.charge_skill
+      and not actor.is_immobile())
 
   def is_immobile(actor):
     return actor.dead or actor.ailment in ("sleep", "freeze")
@@ -342,15 +344,20 @@ class DungeonActor(DungeonElement):
         return False
       actor.ailment_turns = DungeonActor.POISON_DURATION
       actor.anims = [DungeonActor.PoisonAnim()]
+
     elif ailment == "sleep":
       if actor.ailment == "sleep":
         return False
       actor.ailment_turns = 16 if actor.faction == "player" else DungeonActor.SLEEP_DURATION
+      actor.reset_charge()
       actor.anims = [DungeonActor.SleepAnim()]
       if "SleepAnim" in dir(actor.core):
         actor.core.anims = [actor.core.SleepAnim()]
+
     elif ailment == "freeze":
       actor.ailment_turns = DungeonActor.FREEZE_DURATION
+      actor.reset_charge()
+
     elif ailment == "invulnerable":
       actor.ailment_turns = DungeonActor.INVULNERABLE_DURATION
       actor.stats.st += 2
@@ -358,6 +365,7 @@ class DungeonActor(DungeonElement):
       actor.stats.ag *= 2
       actor.stats.en += 2
       actor.stats.lu += 10
+
     actor.ailment = ailment
     return True
 
@@ -578,7 +586,7 @@ class DungeonActor(DungeonElement):
       sprites = [Sprite(image=sprites)]
     if type(sprites) is list:
       sprites = [(Sprite(image=s) if type(s) is Surface else s) for s in sprites]
-    sprite = sprites[0]
+    sprite, *other_sprites = sprites
     offset_x, offset_y, offset_z = (0, 0, 0)
     actor_width, actor_height = sprite.image.get_size()
 
@@ -632,20 +640,16 @@ class DungeonActor(DungeonElement):
           if actor_height > TILE_SIZE:
             offset_y += (actor_height - TILE_SIZE) / 2
 
-      if isinstance(anim, RippleAnim):
-        sprite.image = anim.ripple(
-          surface=sprite.image,
-          time=anim.time,
-          pinch=False)
-
       # HACK: element jump anim handler doesn't take core anims into account
       # TODO: add system for concurrent core anims
       if isinstance(anim, JumpAnim) and anim in actor.core.anims:
         offset_y += anim.offset
 
 
+
     warpin_anim = next((a for a in anim_group if type(a) is WarpInAnim), None)
     drop_anim = next((a for a in anim_group if type(a) is DropAnim), None)
+    ripple_anim = next((a for a in anim_group if type(a) is RippleAnim), None)
     move_offset = actor.find_move_offset(anims)
 
     if actor.elev > 0 and not move_anim:
@@ -708,6 +712,15 @@ class DungeonActor(DungeonElement):
       )
       sprites.append(marker_sprite)
 
+    if ripple_anim:
+      if ripple_anim.time % 2:
+        return super().view([None, *sprites[1:]], anims)
+
+      sprite.image = ripple_anim.ripple(
+        surface=sprite.image,
+        time=ripple_anim.time,
+        pinch=False)
+
     # item icon
     if actor.item:
       item = actor.item() if callable(actor.item) else actor.item
@@ -728,8 +741,10 @@ class DungeonActor(DungeonElement):
     and actor.updates % 60 >= 30
     ):
       actor_color = darken_color(actor_color)
+
     if actor_color != BLACK:
       sprite.image = replace_color(sprite.image, BLACK, actor_color)
+
     if is_asleep:
       sprite.image = darken_image(sprite.image)
 

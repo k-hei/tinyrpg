@@ -106,12 +106,16 @@ class Mage(DungeonActor):
     return True
 
   def step(mage, game):
+    if not mage.can_step():
+      return None
+
     if mage.behavior == "guard":
       return None
 
     enemy = game.find_closest_enemy(mage)
     if not mage.aggro:
       return super().step(game)
+
     if enemy is None:
       return None
 
@@ -130,7 +134,7 @@ class Mage(DungeonActor):
         mage.charge(skill=Congelatio, dest=enemy.cell)
         game.comps.minilog.print((mage.token(), " is chanting."))
       elif not next((e for e in game.stage.get_elems_at(vector.add(mage.cell, mage.facing)) if e.solid), None):
-        mage.charge(skill=Glacio)
+        mage.charge(skill=Glacio, dest=enemy.cell)
         game.comps.minilog.print((mage.token(), " is chanting."))
 
     has_allies = next((e for c in game.room.get_cells() for e in game.stage.get_elems_at(c) if (

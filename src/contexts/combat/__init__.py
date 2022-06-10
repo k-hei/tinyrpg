@@ -186,7 +186,7 @@ class CombatContext(ExploreBase):
 
     for elem in ctx.stage.elems:
       if elem.expires:
-        elem.dissolve()
+        elem.dissolve(ctx)
 
     for actor in ctx.party:
       actor.dispel_ailment()
@@ -722,7 +722,7 @@ class CombatContext(ExploreBase):
       elif target.rare:
         ctx.stage.spawn_elem_at(target.cell,
           Bag(contents=Gold(amount=randint(34, 120))))
-      elif randint(1, 3) == 1:
+      elif randint(1, 3) == 1 and target.faction == "enemy":
         ctx.stage.spawn_elem_at(target.cell,
           Bag(contents=Gold()))
 
@@ -923,7 +923,6 @@ class CombatContext(ExploreBase):
 
   def inflict_freeze(ctx, actor, on_end=None):
     ctx.inflict_ailment(actor, "freeze", color=CYAN, on_end=on_end)
-    actor.reset_charge()
 
   def update(ctx):
     super().update()
@@ -1008,8 +1007,6 @@ class CombatContext(ExploreBase):
         continue
 
       while actor.turns >= 1:
-        actor.turns -= 1
-
         if actor.dead:
           break
 
@@ -1024,6 +1021,7 @@ class CombatContext(ExploreBase):
           if not command:
             break
 
+        actor.turns -= 1
         if command:
           yield actor, command
 

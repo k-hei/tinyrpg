@@ -12,6 +12,7 @@ import lib.input as input
 from lib.sprite import Sprite
 import game.controls as controls
 import assets
+from transits.dissolve import DissolveIn, DissolveOut
 from contexts import Context
 from contexts.loading import LoadingContext
 from contexts.debug import DebugContext
@@ -185,11 +186,14 @@ class App(Context):
     app.display = pygame.display.set_mode(app.size_scaled)
     return True
 
-  def transition(app, transits, loader=None, on_end=None):
+  def transition(app, transits=None, loader=None, on_end=None):
+    transits = transits or (DissolveIn(), DissolveOut())
     if len(transits) == 2:
       transit_in, transit_out = transits
       if loader:
         transit_in.on_end = lambda: app.load(loader, on_end)
+      else:
+        transit_in.on_end = on_end
     app.transits += transits
 
   def load(app, loader, on_end, child=None):

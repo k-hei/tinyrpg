@@ -1,5 +1,5 @@
 from contexts import Context
-from contexts.dungeon import DungeonContext
+from contexts.dungeon.context import DungeonContext
 from town.sideview.context import SideViewContext
 from town.sideview.stage import Area as SideViewArea
 from town.topview.context import TopViewContext

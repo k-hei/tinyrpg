@@ -2,7 +2,7 @@ from lib.graph import Graph
 from contexts.explore.roomdata import rooms
 from dungeon.floors import Floor
 from dungeon.room import Blob as Room
-from dungeon.gen import gen_floor
+from dungeon.gen.gen_floor import gen_floor
 
 
 class DebugFloor(Floor):

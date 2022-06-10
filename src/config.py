@@ -1,6 +1,6 @@
 DEBUG = True
 DEBUG_GEN = False
-CUTSCENES = True
+CUTSCENES = False
 
 # feature flags
 ENABLED_MINIMAP = True
@@ -83,12 +83,15 @@ SKILL_BADGE_POS_ALLY = (60, 54)
 
 
 import sys
-import os
-from os.path import abspath, dirname, join
+from os.path import dirname, join
 
 
 def resolve_path(*args):
-    return join(dirname(__file__), *args)    
+    return join(
+        dirname(__file__),
+        *([] if "_MEIPASS" in dir(sys) else [".."]),
+        *args
+    )
 
 
 ROOT_PATH = resolve_path()

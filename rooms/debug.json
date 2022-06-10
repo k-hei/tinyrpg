@@ -1,24 +1,41 @@
 {
+  "name": "Debug Hub",
   "bg": ["tileset", "tomb"],
   "tiles": [
-    "#.....#",
-    ".......",
-    ".......",
-    ".......",
-    ".......",
-    ".......",
-    "#.....#"
+    "    .....    ",
+    "    .....    ",
+    "    .....    ",
+    "      .      ",
+    "      .      ",
+    "      .      ",
+    " ........... ",
+    " .<.>.>.>.>. ",
+    " ........... ",
+    "             ",
+    " ..... ..... ",
+    " .>.>. .>.>. ",
+    " ..... ..... ",
+    "             ",
+    " ..... ...   ",
+    " .>.>. .>.   ",
+    " ..... ...   ",
+    "             "
   ],
   "elems": [
-    [[2, 0], "VCoffin"],
-    [[4, 0], "VCoffin"],
-    [[1, 1], "Pillar"],
-    [[5, 1], "Pillar"],
-    [[1, 5], "Pillar"],
-    [[5, 5], "Pillar"],
-    [[3, 3], "Ghost"]
-  ],
-  "edges": [
-    [3, -1]
+    [[5, 1], "Soul", { "contents": "ClawRush" }],
+    [[6, 1], "Soul", { "contents": "Virus" }],
+    [[7, 1], "Soul", { "contents": "Roulette" }],
+    [[2, 7], "Portal", { "area": "shrine", "name": "Altar Room" }],
+    [[4, 7], "Portal", { "area": "Floor1", "name": "Dungeon 1F" }],
+    [[6, 7], "Portal", { "area": "Floor2", "name": "Dungeon 2F" }],
+    [[8, 7], "Portal", { "area": "Floor3", "name": "Dungeon 3F" }],
+    [[10, 7], "Portal", { "area": "GenericFloor", "name": "Infinite Dungeon" }],
+    [[2, 11], "Portal", { "area": "AkimorCentralArea", "name": "Akimor Central" }],
+    [[4, 11], "Portal", { "area": "OutskirtsArea", "name": "Akimor Outskirts" }],
+    [[8, 11], "Portal", { "area": "StoreArea", "name": "Market" }],
+    [[10, 11], "Portal", { "area": "FortuneArea", "name": "Fortune House" }],
+    [[2, 15], "Portal", { "area": "tutorial1", "name": "Akimor Range (North)" }],
+    [[4, 15], "Portal", { "area": "tutorial1", "port": "right", "name": "Akimor Range (East)" }],
+    [[8, 15], "Portal", { "area": "TimeChamberArea", "name": "Time Chamber" }]
   ]
 }

@@ -1,4 +1,5 @@
 from random import randint
+from lib.cell import upscale
 from skills.magic import MagicSkill
 from cores.mage import Mage
 from dungeon.actors import DungeonActor
@@ -25,8 +26,10 @@ class Glacio(MagicSkill):
     (1, 0),
   )
 
-  def effect(game, user, dest=None, on_start=None, on_end=None):
+  def effect(game, user, dest, on_start=None, on_end=None):
     floor = game.stage
+
+    user.face(dest)
     hero_x, hero_y = user.cell
     delta_x, delta_y = user.facing
     bump_dest = (hero_x + delta_x, hero_y + delta_y)
@@ -43,16 +46,10 @@ class Glacio(MagicSkill):
       target_cells.append(cell)
       dist += 1
 
+    camera_target = target or upscale(dest, TILE_SIZE)
     pause_anim = PauseAnim()
     def on_connect():
       damage = 8 + randint(-2, 2)
-
-      block = False
-      # block = game.can_block(attacker=user, defender=target)
-      # if block:
-      #   target.block()
-      #   damage /= 2
-
       pause_anim.end()
       game.inflict_freeze(target)
       game.flinch(
@@ -60,9 +57,10 @@ class Glacio(MagicSkill):
         damage=damage,
         animate=False,
         on_end=lambda: (
+          game.camera.blur(camera_target),
           game.anims[0].append(PauseAnim(
             duration=30,
-            on_end=on_end
+            on_end=on_end,
           ))
         )
       )
@@ -76,7 +74,8 @@ class Glacio(MagicSkill):
           on_connect=target and cell == target_cells[-1] and on_connect,
           on_end=not target and cell == target_cells[-1] and (lambda: (
             pause_anim.end(),
-            on_end and on_end()
+            on_end and on_end(),
+            game.camera.blur(camera_target),
           ))
         ) for i, cell in enumerate(target_cells)]
       ])
@@ -85,15 +84,19 @@ class Glacio(MagicSkill):
     game.vfx.extend([IceEmblemVfx(cell=user.cell, delay=15)])
 
     game.anims.extend([
-      [PauseAnim(duration=90, on_end=lambda: user.core.anims.pop())],
+      [PauseAnim(duration=90, on_end=user.core.anims.pop)],
       [AttackAnim(
         duration=ATTACK_DURATION,
         target=user,
         src=user.cell,
         dest=bump_dest,
-        on_start=lambda: on_start and on_start(dest),
+        on_start=lambda: game.camera.focus(
+          target=camera_target,
+          force=True
+        ),
         on_connect=on_bump,
       ), pause_anim]
     ])
 
-    return False
+    if on_start:
+      on_start(user.cell)
