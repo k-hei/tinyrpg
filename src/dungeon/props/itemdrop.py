@@ -23,8 +23,8 @@ class ItemDrop(Prop):
       )
     return drop._rect
 
-  def effect(drop, game, actor):
-    if actor is not game.hero:
+  def effect(drop, game, trigger, *args, **kwargs):
+    if trigger is not game.hero:
       return None
 
     if drop.obtained:

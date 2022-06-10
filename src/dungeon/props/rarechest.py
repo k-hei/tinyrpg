@@ -49,7 +49,7 @@ class RareChest(Prop):
     chest.opened = True
     return contents
 
-  def effect(chest, game, *_):
+  def effect(chest, game, *args, **kwargs):
     script = []
     contents = chest.contents
     success = False

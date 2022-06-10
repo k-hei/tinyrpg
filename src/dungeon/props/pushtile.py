@@ -39,7 +39,7 @@ class PushTile(DungeonElement):
     }
     return [cell, kind, *(props and [props] or [])]
 
-  def effect(tile, game, trigger):
+  def effect(tile, game, trigger, *args, **kwargs):
     tile.pushed = True
 
     # find_pushblock(stage, cell)

@@ -64,6 +64,7 @@ class DungeonActor(DungeonElement):
   skill = None
   drops = []
   idle_messages = []
+  status = []
 
   speed = 1.5
 
@@ -126,7 +127,7 @@ class DungeonActor(DungeonElement):
     actor.on_defeat = None
     actor.flipped = False
     actor.hidden = False
-    actor._status = Status()
+    actor._status = Status(effects=[s() for s in actor.status])
 
     actor.ai_mode = None
     actor.ai_target = None
@@ -376,6 +377,9 @@ class DungeonActor(DungeonElement):
   def apply_status_effect(actor, effect):
     return actor._status.apply(effect)
 
+  def has_status_effect(actor, effect):
+    return actor._status.has(effect)
+
   def step_status(actor, game):
     actor._status.step()
 
@@ -463,7 +467,7 @@ class DungeonActor(DungeonElement):
       amount = actor.get_hp_max() / 200
     actor.set_hp(min(actor.get_hp_max(), actor.get_hp() + amount))
 
-  def effect(actor, game, trigger):
+  def effect(actor, game, trigger, on_end=None):
     if actor.is_immobile():
       return None
     return actor.talk(game)

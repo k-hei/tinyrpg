@@ -10,9 +10,11 @@ from anims.flicker import FlickerAnim
 from anims.shake import ShakeAnim
 from anims.jump import JumpAnim
 
+from skills.ailment.virus import Virus
+
 
 class MageClone(DungeonActor):
-  expires = True
+  transient = True
 
   class ChargeAnim(ShakeAnim): pass
 
@@ -43,6 +45,7 @@ class MageClone(DungeonActor):
     mage.inflict_ailment("freeze")
     mage.core.anims = [MageCore.TeaseAnim()]
     mage.shatter(game)
+    Virus.spawn_cloud(game, mage.cell)
 
   def dissolve(mage, game):
     game.anims[-1].append(FlickerAnim(

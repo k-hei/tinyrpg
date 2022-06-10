@@ -185,7 +185,7 @@ class CombatContext(ExploreBase):
       return
 
     for elem in ctx.stage.elems:
-      if elem.expires:
+      if elem.transient:
         elem.dissolve(ctx)
 
     for actor in ctx.party:
@@ -882,6 +882,8 @@ class CombatContext(ExploreBase):
 
   def inflict_ailment(ctx, actor, ailment, color, on_end=None):
     if ctx.exiting or actor.dead or actor.ailment == ailment:
+      if on_end:
+        on_end()
       return False
 
     def inflict():
@@ -889,6 +891,7 @@ class CombatContext(ExploreBase):
         for anim in anims:
           anim.end()
         return
+
       actor.inflict_ailment(ailment),
       ctx.vfx.append(DamageValue(
         text=ailment.upper(),
@@ -911,6 +914,7 @@ class CombatContext(ExploreBase):
       )
     ]
 
+    # TODO: append to actor anim group
     if ailment == DungeonActor.AILMENT_FREEZE:
       ctx.anims[0].extend(anims)
     elif ailment == DungeonActor.AILMENT_POISON:

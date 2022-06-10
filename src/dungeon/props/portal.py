@@ -12,9 +12,13 @@ class Portal(Prop):
         portal.port = port
         portal.name = name
 
-    def effect(portal, game, *_):
+    def effect(portal, game, trigger, *args, **kwargs):
+        if trigger != game.hero:
+            return False
+
         game.parent.time += LABEL_FRAMES  # HACK: force hide auto-label (can we clean this up?)
         game.show_label(portal.name or portal.area)
+        return True
 
     def on_leave(portal, game):
         game.hide_label()

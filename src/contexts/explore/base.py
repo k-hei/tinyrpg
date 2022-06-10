@@ -144,7 +144,7 @@ class ExploreBase(Context):
     facing_elems = ctx.stage.get_elems_at(facing_cell, scale=TILE_SIZE)
     facing_elem = next((e for e in facing_elems if (
       e.active
-      and not e.expires
+      and not e.transient
       and (not isinstance(e, DungeonActor) or e.faction == "ally")
     )), None)
 

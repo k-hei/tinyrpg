@@ -27,7 +27,7 @@ class DungeonElement:
   static = False
   active = False
   hidden = False
-  expires = False
+  transient = False
   breakable = False
 
   def __init__(
@@ -38,7 +38,7 @@ class DungeonElement:
     static=False,
     active=False,
     hidden=False,
-    expires=False,
+    transient=False,
     breakable=False
   ):
     if not elem.size: elem.size = size
@@ -47,7 +47,7 @@ class DungeonElement:
     if not elem.static: elem.static = static
     if not elem.active: elem.active = active
     if not elem.hidden: elem.hidden = hidden
-    if not elem.expires: elem.expires = expires
+    if not elem.transient: elem.transient = transient
     if not elem.breakable: elem.breakable = breakable
     if type(elem.size) is not tuple:
       debug.log(f"WARNING: Create element {type(elem).__name__} with size {elem.size}")
@@ -123,8 +123,9 @@ class DungeonElement:
   def encode(elem):
     return [elem.cell, type(elem).__name__]
 
-  def effect(elem, game, actor):
-    pass
+  def effect(elem, game, trigger=None, on_end=None):
+    if on_end:
+      on_end()
 
   def on_nudge(elem, game): pass
   def on_push(elem, game): pass

@@ -4,13 +4,13 @@ from dungeon.props.palm import Palm
 from dungeon.props.portal import Portal
 from dungeon.props.battledoor import BattleDoor
 from dungeon.props.secretdoor import SecretDoor
-from dungeon.props.poisonpuff import PoisonPuff
 from dungeon.props.coffin import Coffin
 from dungeon.props.vcoffin import VCoffin
 from dungeon.props.vase import Vase
 from dungeon.props.soul import Soul
 from dungeon.props.pushblock import PushBlock
 from dungeon.props.arrowtrap import ArrowTrap
+from dungeon.props.puff_cloud import CloudPuff
 from dungeon.props.altar import Altar
 from dungeon.props.trap import Trap
 from dungeon.props.rarechest import RareChest
@@ -18,12 +18,14 @@ from dungeon.props.door import Door
 from dungeon.props.pushtile import PushTile
 from dungeon.props.itemdrop import ItemDrop
 from dungeon.props.table import Table
+from dungeon.props.puff_poison import PoisonPuff
 from dungeon.props.puzzledoor import PuzzleDoor
 from dungeon.props.pillar import Pillar
 from dungeon.props.column import Column
 from dungeon.props.raretreasuredoor import RareTreasureDoor
 from dungeon.props.chest import Chest
 from dungeon.status.defense import DefEffect
+from dungeon.status.poison import PoisonEffect
 from dungeon.status.attack import AtkEffect
 from dungeon.actors.genie import Genie
 from dungeon.actors.mummy import Mummy
@@ -58,13 +60,13 @@ def resolve_elem(key):
   if key == "Portal": return Portal
   if key == "BattleDoor": return BattleDoor
   if key == "SecretDoor": return SecretDoor
-  if key == "PoisonPuff": return PoisonPuff
   if key == "Coffin": return Coffin
   if key == "VCoffin": return VCoffin
   if key == "Vase": return Vase
   if key == "Soul": return Soul
   if key == "PushBlock": return PushBlock
   if key == "ArrowTrap": return ArrowTrap
+  if key == "CloudPuff": return CloudPuff
   if key == "Altar": return Altar
   if key == "Trap": return Trap
   if key == "RareChest": return RareChest
@@ -72,12 +74,14 @@ def resolve_elem(key):
   if key == "PushTile": return PushTile
   if key == "ItemDrop": return ItemDrop
   if key == "Table": return Table
+  if key == "PoisonPuff": return PoisonPuff
   if key == "PuzzleDoor": return PuzzleDoor
   if key == "Pillar": return Pillar
   if key == "Column": return Column
   if key == "RareTreasureDoor": return RareTreasureDoor
   if key == "Chest": return Chest
   if key == "DefEffect": return DefEffect
+  if key == "PoisonEffect": return PoisonEffect
   if key == "AtkEffect": return AtkEffect
   if key == "Genie": return Genie
   if key == "Mummy": return Mummy

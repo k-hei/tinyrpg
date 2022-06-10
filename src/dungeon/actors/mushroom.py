@@ -1,12 +1,13 @@
 from random import random, randint
 from lib.cell import is_adjacent, manhattan
+from lib.sprite import Sprite
 from dungeon.actors import DungeonActor
+from dungeon.status.poison import PoisonImmunityEffect
 from cores import Core, Stats
 from skills.ailment.virus import Virus
 from skills.weapon.tackle import Tackle
 from items.materials.redferrule import RedFerrule
 import assets
-from lib.sprite import Sprite
 import locations.default.tileset as tileset
 
 from anims.step import StepAnim
@@ -21,6 +22,7 @@ from config import PUSH_DURATION
 class Mushroom(DungeonActor):
   skill = Virus
   drops = [RedFerrule]
+  status = [PoisonImmunityEffect]
   COOLDOWN_DURATION = 6
 
   class ChargeAnim(ShakeAnim): pass

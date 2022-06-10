@@ -61,7 +61,7 @@ class Door(Prop):
   def lock(door):
     door.locked = True
 
-  def effect(door, game, *_):
+  def effect(door, game, *args, **kwargs):
     if door.locked:
       return game.comps.minilog.print("The door is locked...")
     return door.handle_open(game)

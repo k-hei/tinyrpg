@@ -43,19 +43,22 @@ class Vase(Prop):
     vase.active = False
     return vase.contents
 
-  def effect(vase, game, *_):
+  def effect(vase, game, *args, **kwargs):
     if vase.opened:
       return None
+
     item = vase.open(game)
     drop = None
     if item:
       drop = ItemDrop(item)
       game.stage.spawn_elem_at(vase.cell, drop)
+
     not game.anims and game.anims.append([])
     game.anims[0] = [
       Vase.OpenAnim(target=vase),
       *([JumpAnim(target=drop, duration=20)] if drop else [])
     ] + game.anims[0]
+
     vase.anims = [
       PauseAnim(duration=30),
       FlickerAnim(
@@ -63,6 +66,7 @@ class Vase(Prop):
         on_end=lambda: game.stage.remove_elem(vase)
       )
     ]
+
     return True
 
   def crush(vase, game):

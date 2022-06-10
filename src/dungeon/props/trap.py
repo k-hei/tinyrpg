@@ -11,9 +11,10 @@ class Trap(Prop):
     super().__init__(*args, **kwargs)
     trap.triggered = False
 
-  def effect(trap, game, actor):
+  def effect(trap, game, actor, *args, **kwargs):
     if trap.triggered:
       return False
+
     trap.triggered = True
     game.vfx.append(GeyserVfx(cell=trap.cell, delay=15))
     game.anims.extend([

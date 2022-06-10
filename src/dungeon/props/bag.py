@@ -20,12 +20,12 @@ class Bag(Prop):
       "contents": bag.contents.__name__
     }]
 
-  def effect(bag, game, actor):
+  def effect(bag, game, trigger, *args, **kwargs):
     hero = game.hero
     if not hero:
       return False
 
-    if actor != hero:
+    if trigger != hero:
       return False
 
     def pickup_contents():

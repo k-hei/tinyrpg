@@ -26,7 +26,7 @@ class Altar(DungeonElement):
       )
     return door._rect
 
-  def effect(altar, game, *_):
+  def effect(altar, game, *args, **kwargs):
     if altar.opened:
       return False
     altar.opened = True

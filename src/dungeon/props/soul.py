@@ -64,9 +64,10 @@ class Soul(Prop):
     ))
 
   # TODO: more vector helpers
-  def effect(soul, game, actor):
+  def effect(soul, game, actor, *args, **kwargs):
     if actor != game.hero:
       return False
+
     target_x, target_y = tuple([x * TILE_SIZE for x in subtract_vector(actor.cell, soul.cell)])
     pos_x, pos_y = soul.offset
     dist_x = target_x - pos_x

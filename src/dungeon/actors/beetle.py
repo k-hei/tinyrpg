@@ -48,7 +48,7 @@ class Beetle(DungeonActor):
     if delta:
       return ("move", delta)
 
-  def effect(beetle, game):
+  def effect(beetle, game, *args, **kwargs):
     if beetle.is_immobile():
       return None
     game.anims.append([

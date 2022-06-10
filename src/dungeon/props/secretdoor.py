@@ -10,11 +10,11 @@ class SecretDoor(Door):
     super().__init__(opened=opened, *args, **kwargs)
     door.hidden = hidden
 
-  def effect(door, game, *_):
+  def effect(door, game, *args, **kwargs):
     if door.hidden:
       door.hidden = False
       return True
     else:
-      return super().effect(game, *_)
+      return super().effect(game, *args, **kwargs)
 
   # view handled in stageview (do we need to make individual props/elems more context-aware for decentralization?)

@@ -9,9 +9,6 @@ class Prop(DungeonElement):
     super().__init__(*args, **kwargs)
     prop.color = COLOR_TILE
 
-  def effect(prop, game, actor=None):
-    pass
-
   def update(prop, game):
     prop.color = game.stage_view.find_stage_color()
 

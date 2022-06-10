@@ -24,7 +24,7 @@ class Coffin(Prop):
     coffin.unlocked = False
     coffin.opened = False
 
-  def effect(coffin, game, *_):
+  def effect(coffin, game, *args, **kwargs):
     contents = coffin.contents
     script = None
     item_anim = None

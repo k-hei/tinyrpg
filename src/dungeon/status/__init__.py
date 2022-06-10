@@ -1,14 +1,12 @@
-
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from math import inf
 from cores import Stats
-
 from lib.sprite import Sprite
 
 
-class StatusEffect(ABC):
+class StatusEffect:
+    transient = True
 
-    def __init__(effect, turns):
+    def __init__(effect, turns=inf):
         effect._turns = turns
 
     @property
@@ -22,14 +20,13 @@ class StatusEffect(ABC):
     def step(effect):
         effect._turns = max(0, effect._turns - 1)
 
-    @abstractmethod
     def view(effect):
         return []
 
 
 class StatsEffect(StatusEffect):
 
-    def __init__(effect, stat_mask, turns=16, *args, **kwargs):
+    def __init__(effect, stat_mask, *args, turns=16, **kwargs):
         super().__init__(turns=turns, *args, **kwargs)
         effect._stat_mask = stat_mask
 
@@ -38,9 +35,10 @@ class StatsEffect(StatusEffect):
         return effect._stat_mask
 
 
-@dataclass
 class Status:
-    _effects: list[StatusEffect] = field(default_factory=list)
+
+    def __init__(status, effects=None):
+        status._effects = effects or []
 
     def get_stat_mask(status):
         stat_masks = [effect.stat_mask for effect in status._effects
@@ -60,6 +58,9 @@ class Status:
             stat_mask.lu *= mask.lu
 
         return stat_mask
+
+    def has(status, effect_type):
+        return next((True for e in status._effects if isinstance(e, effect_type)), False)
 
     def apply(status, effect):
         effect_family = effect.family
@@ -81,10 +82,10 @@ class Status:
             status._effects.clear()
             return
 
-        if type(effect) is type:
+        if isinstance(effect, type):
             effect_type = effect
             effect = next((effect for effect in status._effects
-                if type(effect) is effect_type), None)
+                if isinstance(effect, effect_type)), None)
 
         if effect:
             status._effects.remove(effect)
@@ -93,7 +94,7 @@ class Status:
         for effect in status._effects:
             effect.step()
 
-        status._effects = [effect for effect in status._effects if effect._turns]
+        status._effects = [effect for effect in status._effects if effect.turns]
 
     def view(status):
         BADGE_SIZE = 16
@@ -102,8 +103,12 @@ class Status:
         sprites = []
         offset = 0
         for effect in status._effects:
+            effect_sprites = effect.view()
+            if not effect_sprites:
+                continue
+
             sprites += Sprite.move_all(
-                sprites=effect.view(),
+                sprites=effect_sprites,
                 offset=(offset, 0),
             )
             offset -= BADGE_SIZE + BADGE_MARGIN
