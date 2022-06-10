@@ -1008,8 +1008,6 @@ class CombatContext(ExploreBase):
         continue
 
       while actor.turns >= 1:
-        actor.turns -= 1
-
         if actor.dead:
           break
 
@@ -1024,6 +1022,7 @@ class CombatContext(ExploreBase):
           if not command:
             break
 
+        actor.turns -= 1
         if command:
           yield actor, command
 
