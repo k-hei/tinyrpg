@@ -275,10 +275,9 @@ class SideViewContext(Context):
     return True
 
   def follow_port(ctx, port_id):
-    ctx.get_head().transition([
-      DissolveIn(on_end=lambda: ctx.change_areas(port_id)),
-      DissolveOut()
-    ])
+    ctx.get_head().transition(
+      on_end=lambda: ctx.change_areas(port_id)
+    )
 
   def change_areas(ctx, port_id):
     graph = ctx.get_graph()
