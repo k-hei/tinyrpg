@@ -1,0 +1,8 @@
+{
+    "tomb_entrance_building": [0, 0, 512, 288],
+    "tomb_entrance_stairs": [0, 288, 896, 144],
+    "tomb_entrance_boxes": [512, 0, 64, 32],
+    "tomb_entrance_sign": [576, 0, 64, 64],
+    "tomb_entrance_banner_left": [640, 0, 32, 80],
+    "tomb_entrance_banner_right": [672, 0, 32, 80]
+}

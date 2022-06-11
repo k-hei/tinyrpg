@@ -5,14 +5,14 @@ from town.sideview.stage import Area as SideViewArea
 from town.topview.context import TopViewContext
 from town.topview.stage import Stage as TopViewArea
 
-from town.areas.outskirts import OutskirtsArea
+from town.areas.tomb_entrance import TombEntranceArea
 
 
 class TownContext(Context):
     def __init__(ctx, store, area=None, port=None):
         super().__init__()
         ctx.store = store
-        ctx.area = area or OutskirtsArea
+        ctx.area = area or TombEntranceArea
         ctx.port = port
 
     @property
@@ -30,7 +30,11 @@ class TownContext(Context):
         if area is DungeonContext:
             return ctx.parent.goto_dungeon()
 
-        port = area.ports[port] if port else None
+        port = (area.ports[port]
+            if port
+            else area.ports[list(area.ports.keys())[0]]
+                if area.ports
+                else None)
         if issubclass(area, SideViewArea):
             child = SideViewContext(store=ctx.store, area=area, spawn=port)
         elif issubclass(area, TopViewArea):
