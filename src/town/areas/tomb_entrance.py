@@ -7,7 +7,7 @@ from town.sideview.stage import Area, AreaPort, AreaBgLayer
 import assets
 
 
-CAMERA_OFFSET = (0, -36)
+CAMERA_OFFSET = (0, -20)
 BG_LAYERGROUP_OFFSET = (160, -164)
 BG_FLOOR_OFFSET_Y = assets.sprites["tomb_entrance_building"].get_height() - 108
 
@@ -18,8 +18,11 @@ class TombEntranceArea(Area):
         AreaBgLayer(sprite=Sprite(
             image=assets.sprites["tomb_entrance_building"],
             layer="bg",
-            pos=BG_LAYERGROUP_OFFSET,
-        )),
+            pos=vector.add(
+                BG_LAYERGROUP_OFFSET,
+                (0, 120)
+            ),
+        ), scaling=(1, 1 / 2), offset=(0, -72)),
         AreaBgLayer(sprite=Sprite(
             image=assets.sprites["tomb_entrance_stairs"],
             layer="bg",
@@ -78,6 +81,7 @@ class TombEntranceArea(Area):
     ]
 
     camera_offset = CAMERA_OFFSET
+    camera_does_lock = False
 
     ports = {
         "town": AreaPort(x=448, y=0, direction=(0, 1)),

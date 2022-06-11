@@ -361,7 +361,7 @@ class SideViewContext(Context):
             if hero_x != port.x:
               hero.move_to((port.x, hero_y))
             else:
-              if not ctx.area.is_camera_locked:
+              if not ctx.area.is_camera_locked and ctx.area.camera_does_lock:
                 ctx.area.lock_camera()
 
               if port.direction == (0, -1):

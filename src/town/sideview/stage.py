@@ -16,6 +16,7 @@ class AreaPort:
 @dataclass
 class AreaBgLayer:
   sprite: Sprite
+  offset: tuple[float, float] = (0, 0)
   scaling: tuple[float, float] = (1, 1)
 
   def __post_init__(layer):
@@ -27,6 +28,7 @@ class AreaBgLayer:
           vector.subtract((1, 1), layer.scaling),
           (-1 / 4, -1 / 4),
         ),
+        layer.offset
       )
 
 class MetaArea(type):
@@ -55,6 +57,7 @@ class Area(metaclass=MetaArea):
   geometry = None
   camera_lock = (False, False)
   camera_offset = (0, 0)
+  camera_does_lock = True
   actor_offset = 0
   elems = []
   buildings = []
@@ -112,7 +115,7 @@ class Area(metaclass=MetaArea):
       sprites=[layer.sprite.copy()],
       offset=(
         (-area.camera.pos[0] + area.camera.size[0] / 2) * layer.scaling[0],
-        -area.camera.pos[1]
+        -area.camera.pos[1] * layer.scaling[1]
       )
     )[0] for layer in area_bg_layers]
     sprites += bg_sprites
