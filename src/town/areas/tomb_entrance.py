@@ -1,9 +1,9 @@
 import lib.vector as vector
+from lib.line import connect_lines
 from lib.sprite import Sprite
 
 from town.sideview.stage import Area, AreaPort, AreaBgLayer
 import assets
-from config import TILE_SIZE
 
 
 CAMERA_OFFSET = (0, -36)
@@ -34,3 +34,7 @@ class TombEntranceArea(Area):
     ports = {
         "town": AreaPort(x=448, y=0, direction=(0, 1)),
     }
+
+    geometry = [
+        *connect_lines([(144, 0), (752, 0)]),
+    ]
