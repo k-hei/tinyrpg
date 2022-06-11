@@ -22,8 +22,15 @@ class TombEntranceArea(Area):
         )),
         AreaBgLayer(sprite=Sprite(
             image=assets.sprites["tomb_entrance_stairs"],
+            layer="bg",
+            pos=vector.add(
+                BG_LAYERGROUP_OFFSET,
+                (-160, assets.sprites["tomb_entrance_building"].get_height()),
+            ),
+        )),
+        AreaBgLayer(sprite=Sprite(
+            image=assets.sprites["tomb_entrance_stairs_statues"],
             layer="fg",
-            offset=assets.sprites["tomb_entrance_stairs"].get_height(),
             pos=vector.add(
                 BG_LAYERGROUP_OFFSET,
                 (-160, assets.sprites["tomb_entrance_building"].get_height() - 72),
