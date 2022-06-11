@@ -383,14 +383,15 @@ class SideViewContext(Context):
                 ctx.area.lock_camera()
 
               if port.direction == (0, -1):
-                TARGET_HORIZON = Area.HORIZON_NORTH
-                EVENT_HORIZON = Area.TRANSIT_NORTH
+                TARGET_HORIZON = port.y + Area.HORIZON_NORTH
+                EVENT_HORIZON = port.y + Area.TRANSIT_NORTH
               elif port.direction == (0, 1):
-                TARGET_HORIZON = Area.HORIZON_SOUTH
-                EVENT_HORIZON = Area.TRANSIT_SOUTH
+                TARGET_HORIZON = port.y + Area.HORIZON_SOUTH
+                EVENT_HORIZON = port.y + Area.TRANSIT_SOUTH
 
+              is_port_door = port.door or "doorway" in port_id
               if hero_y != TARGET_HORIZON:
-                hero.move_to((port.x, TARGET_HORIZON))
+                hero.move_to((port.x, TARGET_HORIZON), door=is_port_door)
 
               if abs(hero_y) >= abs(EVENT_HORIZON) and not ctx.get_head().transits:
                 ctx.follow_port(port_id)

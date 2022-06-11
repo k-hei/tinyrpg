@@ -8,7 +8,7 @@ class Actor:
   YSPEED_NORTH = 0.65
   YSPEED_SOUTH = 0.75
   MOVE_DURATION = 20
-  INDOORS_HORIZON = -18
+  INDOORS_HORIZON = -12
   scale = 1
 
   def __init__(actor, core, color=None, facing=None):
@@ -52,25 +52,30 @@ class Actor:
     elif target_x > actor_x:
       actor.face((1, 0))
 
-  def move(actor, delta):
+  def move(actor, delta, door=False):
     delta_x, delta_y = delta
     actor_x, actor_y = actor.pos
+
     if delta_x:
       actor_x += Actor.XSPEED * delta_x
+
     if delta_y == -1:
-      if actor_y < Actor.INDOORS_HORIZON:
+      if actor_y < Actor.INDOORS_HORIZON or door:
         actor_y -= Actor.YSPEED_NORTH / 2
       else:
         actor_y -= Actor.YSPEED_NORTH
     elif delta_y == 1:
       actor_y += Actor.YSPEED_SOUTH
+
     actor.pos = (actor_x, actor_y)
     actor.face(delta)
+
     if not actor.core.anims:
       actor.start_move()
+
     actor.moved = True
 
-  def move_to(actor, dest, free=False):
+  def move_to(actor, dest, free=False, door=False):
     if free:
       return actor.move_to_free(dest)
 
@@ -81,24 +86,30 @@ class Actor:
     actor_x, actor_y = actor.pos
     dest_x, dest_y = dest
     delta_x, delta_y = 0, 0
+
     if actor_x > dest_x:
       delta_x = -1
     elif actor_x < dest_x:
       delta_x = 1
+
     if actor_y > dest_y:
       delta_y = -1
     elif actor_y < dest_y:
       delta_y = 1
+
     if delta_x or delta_y:
-      actor.move((delta_x, delta_y))
+      actor.move((delta_x, delta_y), door=door)
+
     actor_x, actor_y = actor.pos
     near_x = abs(dest_x - actor_x) < Actor.XSPEED
     near_y = (abs(dest_y - actor_y) < Actor.YSPEED_NORTH and dest_y < actor_y
       or abs(dest_y - actor_y) < Actor.YSPEED_SOUTH and dest_y > actor_y)
+
     if near_x:
       actor.pos = (dest_x, actor_y)
     if near_y:
       actor.pos = (actor_x, dest_y)
+
     return False
 
   def move_to_free(actor, dest):

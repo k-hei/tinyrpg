@@ -130,8 +130,8 @@ class Area(metaclass=MetaArea):
       if isinstance(actor, Actor) and actor.faction == "player":
         actor_sprite = actor_sprites[0]
         actor_sprite.offset += TILE_SIZE + (1 if actor is hero else 0)
-        if (port_id and ("doorway" in port_id or port.door)
-        and abs(actor.pos[1] - port.y) >= 16):
+        if (port_id and (port.door or "doorway" in port_id)
+        and abs(actor.pos[1] - port.y) >= -actor.INDOORS_HORIZON):
           actor_sprite.image = darken_image(actor_sprite.image)
 
       sprites += actor_sprites
