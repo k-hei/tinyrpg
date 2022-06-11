@@ -12,6 +12,7 @@ class AreaPort:
   direction: tuple[int, int]
   x: int
   y: int = 0
+  lock_camera: bool = False
 
 @dataclass
 class AreaBgLayer:

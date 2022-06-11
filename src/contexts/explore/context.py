@@ -474,7 +474,6 @@ class ExploreContext(ExploreBase):
 
     portal = next((e for e in ctx.stage.get_elems_at(hero_cell)
       if isinstance(e, Portal)), None)
-
     if portal:
       portal.enter(ctx)
       return True
@@ -533,10 +532,9 @@ class ExploreContext(ExploreBase):
     app = ctx.get_head()
     dungeon = ctx.parent
     game = dungeon.parent
-    app.transition([
-      DissolveIn(on_end=lambda: game.goto_town(returning=True)),
-      DissolveOut()
-    ])
+    app.transition(
+      on_end=lambda: game.goto_town(returning=True),
+    )
 
   def handle_hallway(ctx):
     if not ctx.ally:

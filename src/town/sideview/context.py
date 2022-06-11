@@ -46,17 +46,23 @@ def find_nearby_port(hero, area, graph=None):
   if not graph:
     return None
 
-  for port_id, port in area.ports.items():
-    dist_x, dist_y = vector.subtract((port.x, port.y), hero.pos)
-    _, direction_y = port.direction
-    if (not direction_y
-    or abs(dist_x) > TILE_SIZE // 2
-    or abs(dist_y) > TILE_SIZE // 2):
-      continue
+  return next((port_id for port_id, port in area.ports.items()
+    if is_port_nearby(hero, area, port_id, port, graph)), None)
 
-    link = WorldLink(type(area), port_id)
-    if graph.tail(link):
-      return port_id
+def is_port_nearby(hero, area, port_id, port, graph=None):
+  if not graph:
+    return False
+
+  dist_x, dist_y = vector.subtract((port.x, port.y), hero.pos)
+  _, direction_y = port.direction
+  if (not direction_y
+  or abs(dist_x) > TILE_SIZE // 2
+  or abs(dist_y) > TILE_SIZE // 2):
+    return False
+
+  link = WorldLink(type(area), port_id)
+  if graph.tail(link):
+    return True
 
 ARROW_Y = Area.ACTOR_Y + 40
 ARROW_PERIOD = 45
@@ -77,6 +83,10 @@ class SideViewContext(Context):
     ctx.hud = Hud(store.party)
     ctx.time = 0
     ctx.anims = []
+
+  @property
+  def hero(ctx):
+    return ctx.party[0] if ctx.party else None
 
   def init(ctx):
     hero, *allies = ctx.party
@@ -167,7 +177,15 @@ class SideViewContext(Context):
     return line, intersection
 
   def handle_zmove(ctx, delta):
-    port_id = ctx.nearby_port
+    port_id = next((port_id for port_id, port in ctx.area.ports.items()
+      if port.direction == (0, delta) and is_port_nearby(
+        hero=ctx.hero,
+        area=ctx.area,
+        port_id=port_id,
+        port=port,
+        graph=ctx.get_graph()
+      )), None)
+
     if not port_id or port_id not in ctx.area.ports:
       return False
 
@@ -360,7 +378,8 @@ class SideViewContext(Context):
             if hero_x != port.x:
               hero.move_to((port.x, hero_y))
             else:
-              if not ctx.area.is_camera_locked and ctx.area.camera_does_lock:
+              if (not ctx.area.is_camera_locked
+              and (ctx.area.camera_does_lock or port.lock_camera)):
                 ctx.area.lock_camera()
 
               if port.direction == (0, -1):
