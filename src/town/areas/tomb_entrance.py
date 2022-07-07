@@ -6,6 +6,10 @@ from town.element import Element
 from town.sideview.stage import Area, AreaPort, AreaBgLayer
 import assets
 
+from town.sideview.actor import Actor
+from cores.genie import Genie
+from helpers.npc import handle_menus
+
 
 CAMERA_OFFSET = (0, -20)
 BG_LAYERGROUP_OFFSET = (160, -164)
@@ -91,3 +95,15 @@ class TombEntranceArea(Area):
     geometry = [
         *connect_lines([(144, 0), (752, 0)]),
     ]
+
+    def init(area, _):
+        super().init(area)
+        area._spawn_genie()
+
+    def _spawn_genie(area):
+        GENIE_NAME = "Joshin"
+        area.spawn(Actor(core=Genie(
+            name=GENIE_NAME,
+            facing=(1, 0),
+            message=handle_menus(GENIE_NAME),
+        )), x=384)
