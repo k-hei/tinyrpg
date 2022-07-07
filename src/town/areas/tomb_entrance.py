@@ -40,7 +40,7 @@ class TombEntranceArea(Area):
             layer="fg",
             pos=vector.add(
                 BG_LAYERGROUP_OFFSET,
-                (-160, assets.sprites["tomb_entrance_building"].get_height() - 72),
+                (-160, assets.sprites["tomb_entrance_building"].get_height() - 64),
             ),
         )),
     ]
