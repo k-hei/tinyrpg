@@ -88,8 +88,8 @@ class TombEntranceArea(Area):
     camera_does_lock = False
 
     ports = {
-        "dungeon": AreaPort(x=448, y=0, direction=(0, -1), lock_camera=True, door=True),
         "town": AreaPort(x=448, y=0, direction=(0, 1)),
+        "dungeon": AreaPort(x=448, y=0, direction=(0, -1), lock_camera=True, door=True),
     }
 
     geometry = [

@@ -6,6 +6,7 @@ from town.topview.context import TopViewContext
 from town.topview.stage import Stage as TopViewArea
 
 from town.areas.tomb_entrance import TombEntranceArea
+# from town.areas.akimor_central import AkimorCentralArea
 
 
 class TownContext(Context):

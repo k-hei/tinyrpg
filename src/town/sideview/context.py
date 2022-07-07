@@ -84,6 +84,11 @@ class SideViewContext(Context):
     ctx.time = 0
     ctx.anims = []
 
+  def _stop_spawn_move(ctx):
+    ctx.spawn = None
+    for actor in ctx.party:
+      actor.stop_move()
+
   @property
   def hero(ctx):
     return ctx.party[0] if ctx.party else None
@@ -92,19 +97,22 @@ class SideViewContext(Context):
     hero, *allies = ctx.party
     ally = allies[0] if allies else None
     if ctx.spawn:
-      hero.face(invert_direction(ctx.spawn.direction))
-      ally and ally.face(invert_direction(ctx.spawn.direction))
-      spawn_x = ctx.spawn.x + TILE_SIZE * hero.facing[0]
-      spawn_y = ctx.spawn.y
+      spawn_direction = ctx.spawn.direction
+      hero_direction = invert_direction(spawn_direction)
+      hero.face(hero_direction)
+      ally and ally.face(hero_direction)
+      spawn_x = ctx.spawn.x + TILE_SIZE / 2 * spawn_direction[0]  # offset position for x-links
+      spawn_y = ctx.spawn.y + TILE_SIZE * 2 * spawn_direction[1]
     else:
       spawn_x = 64
       spawn_y = 0
+
     facing_x, _ = hero.facing
 
     for actor in ctx.party:
       ctx.area and ctx.area.spawn(actor, spawn_x, spawn_y)
       actor.stop_move()
-      spawn_x -= TILE_SIZE * facing_x
+      spawn_x -= TILE_SIZE * facing_x  # space out subsequent actors
 
     ctx.area and ctx.area.init(ctx)
     ctx.hud.enter()
@@ -353,13 +361,23 @@ class SideViewContext(Context):
           ctx.anims.remove(anim)
         break
     else:
-      if ctx.port:
+      if ctx.spawn:
+        port = ctx.spawn
+        hero_direction = invert_direction(port.direction)
+        for actor in ctx.party:
+          actor.move(hero_direction)
+
+        if (port.direction[0] and abs(actor.pos[0] - port.x) >= TILE_SIZE
+        or port.direction[1] and abs(actor.pos[1] - port.y) < 4):
+          ctx._stop_spawn_move()
+
+      elif ctx.port:
         port_id = ctx.port
         port = ctx.area.ports[port_id]
         hero_x, hero_y = hero.pos
-        if port.direction == (-1, 0) or port.direction == (1, 0):
+        if port.direction[0]:
           for actor in ctx.party:
-            # prevent clipping through links
+            # prevent clipping through onscreen horizontal links
             if abs(actor.pos[0] - port.x) < TILE_SIZE:
               actor.move(port.direction)
         else:
