@@ -5,15 +5,15 @@ from town.sideview.stage import Area as SideViewArea
 from town.topview.context import TopViewContext
 from town.topview.stage import Stage as TopViewArea
 
-from town.areas.tomb_entrance import TombEntranceArea
-# from town.areas.akimor_central import AkimorCentralArea
+# from town.areas.tomb_entrance import TombEntranceArea
+from town.areas.akimor_central import AkimorCentralArea
 
 
 class TownContext(Context):
     def __init__(ctx, store, area=None, port=None):
         super().__init__()
         ctx.store = store
-        ctx.area = area or TombEntranceArea
+        ctx.area = area or AkimorCentralArea
         ctx.port = port
 
     @property
