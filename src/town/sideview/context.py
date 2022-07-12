@@ -411,6 +411,12 @@ class SideViewContext(Context):
               if hero_y != TARGET_HORIZON:
                 hero.move_to((port.x, TARGET_HORIZON), door=is_port_door)
 
+              if port.reverse:
+                hero.pos = vector.add(
+                  (port.x, hero_y),
+                  vector.scale(invert_direction(port.direction), 1 / 4)  # TODO: use actor constants
+                )
+
               if abs(hero_y) >= abs(EVENT_HORIZON) and not ctx.get_head().transits:
                 ctx.follow_port(port_id)
 

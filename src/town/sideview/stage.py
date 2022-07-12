@@ -14,6 +14,7 @@ class AreaPort:
   y: int = 0
   door: bool = False
   lock_camera: bool = False
+  reverse: bool = False
 
 @dataclass
 class AreaBgLayer:
@@ -133,6 +134,9 @@ class Area(metaclass=MetaArea):
         if (port_id and (port.door or "doorway" in port_id)
         and abs(actor.pos[1] - port.y) >= -actor.INDOORS_HORIZON):
           actor_sprite.image = darken_image(actor_sprite.image)
+
+        if port and port.reverse:
+          actor_sprite.layer = "bg"
 
       sprites += actor_sprites
 

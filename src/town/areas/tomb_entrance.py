@@ -29,7 +29,7 @@ class TombEntranceArea(Area):
         ), scaling=(1, 1 / 2), offset=(0, -72)),
         AreaBgLayer(sprite=Sprite(
             image=assets.sprites["tomb_entrance_stairs"],
-            layer="bg",
+            layer="tiles",
             pos=vector.add(
                 BG_LAYERGROUP_OFFSET,
                 (-160, assets.sprites["tomb_entrance_building"].get_height()),
@@ -89,7 +89,14 @@ class TombEntranceArea(Area):
 
     ports = {
         "town": AreaPort(x=448, y=0, direction=(0, 1)),
-        "dungeon": AreaPort(x=448, y=0, direction=(0, -1), lock_camera=True, door=True),
+        "dungeon": AreaPort(
+            x=448,
+            y=0,
+            direction=(0, -1),
+            reverse=True,
+            lock_camera=True,
+            door=True
+        ),
     }
 
     geometry = [
