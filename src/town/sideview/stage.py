@@ -89,9 +89,18 @@ class Area(metaclass=MetaArea):
     actor.pos = (x, y)
     area.actors.append(actor)
 
-  def lock_camera(area):
-    area.camera.focus(area.camera.pos, force=True)
+  def lock_camera(area, camera_pos=None):
+    camera_pos = vector.add(
+      camera_pos,
+      area.camera_offset
+    ) if camera_pos else area.camera.pos
+
     area.is_camera_locked = True
+    area.camera.focus(camera_pos, force=True)
+
+  def unlock_camera(area):
+    area.is_camera_locked = False
+    area.camera.blur()
 
   def update(area):
     area.camera.update()
