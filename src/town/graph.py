@@ -23,7 +23,7 @@ class WorldLink:
     """
     Models a link in the game world.
     A link is a uniquely identifiable port.
-    As raw data, standard ports are unable to uniquely identify themselves, and require a node to be
+    As raw data, ports by themselves are unable to uniquely identify themselves, and require a node to be
     specified for contextualization purposes.
     """
     node: WorldNode

@@ -19,6 +19,7 @@ from colors.palette import BLACK, WHITE
 from config import TILE_SIZE, WINDOW_WIDTH, WINDOW_HEIGHT, LABEL_FRAMES
 
 from town.graph import WorldLink
+import debug
 
 
 def insert_value(mapping, key, value):
@@ -185,18 +186,17 @@ class TopViewContext(Context):
 
   def handle_areachange(ctx, delta):
     ctx.port = delta
-    ctx.get_head().transition([
-      DissolveIn(on_end=lambda: ctx.change_areas("entrance")),
-      DissolveOut()
-    ])
+    ctx.get_head().transition(on_end=lambda: ctx.change_areas("entrance"))
 
   def change_areas(ctx, port_id):
     if not (graph := ctx.get_graph()):
+      debug.log(f"No usable graph found")
       return ctx.close()
 
     src_link = WorldLink(ctx.area, port_id)
     dest_link = graph.tail(src_link)
     if not dest_link:
+      debug.log(f"No tail found for port {port_id}")
       return
 
     for actor in ctx.party:

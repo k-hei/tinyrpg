@@ -46,17 +46,23 @@ def find_nearby_port(hero, area, graph=None):
   if not graph:
     return None
 
-  for port_id, port in area.ports.items():
-    dist_x, dist_y = vector.subtract((port.x, port.y), hero.pos)
-    _, direction_y = port.direction
-    if (not direction_y
-    or abs(dist_x) > TILE_SIZE // 2
-    or abs(dist_y) > TILE_SIZE // 2):
-      continue
+  return next((port_id for port_id, port in area.ports.items()
+    if is_port_nearby(hero, area, port_id, port, graph)), None)
 
-    link = WorldLink(type(area), port_id)
-    if graph.tail(link):
-      return port_id
+def is_port_nearby(hero, area, port_id, port, graph=None):
+  if not graph:
+    return False
+
+  dist_x, dist_y = vector.subtract((port.x, port.y), hero.pos)
+  _, direction_y = port.direction
+  if (not direction_y
+  or abs(dist_x) > TILE_SIZE // 2
+  or abs(dist_y) > TILE_SIZE // 2):
+    return False
+
+  link = WorldLink(type(area), port_id)
+  if graph.tail(link):
+    return True
 
 ARROW_Y = Area.ACTOR_Y + 40
 ARROW_PERIOD = 45
@@ -78,23 +84,41 @@ class SideViewContext(Context):
     ctx.time = 0
     ctx.anims = []
 
+  def _stop_spawn_move(ctx):
+    ctx.area.unlock_camera()
+    ctx.spawn = None
+    for actor in ctx.party:
+      actor.stop_move()
+
+  @property
+  def hero(ctx):
+    return ctx.party[0] if ctx.party else None
+
   def init(ctx):
     hero, *allies = ctx.party
     ally = allies[0] if allies else None
     if ctx.spawn:
-      hero.face(invert_direction(ctx.spawn.direction))
-      ally and ally.face(invert_direction(ctx.spawn.direction))
-      spawn_x = ctx.spawn.x + TILE_SIZE * hero.facing[0]
-      spawn_y = ctx.spawn.y
+      spawn_direction = ctx.spawn.direction
+      hero_direction = invert_direction(spawn_direction)
+      hero.face(hero_direction)
+      ally and ally.face(hero_direction)
+
+      spawn_x = ctx.spawn.x + TILE_SIZE / 2 * spawn_direction[0]  # offset position for x-links
+      spawn_y = ctx.spawn.y + TILE_SIZE * 2 * spawn_direction[1]
+
+      if hero_direction[1] > 0:
+        ctx.area.lock_camera(camera_pos=(ctx.spawn.x, ctx.spawn.y))
+
     else:
       spawn_x = 64
       spawn_y = 0
+
     facing_x, _ = hero.facing
 
     for actor in ctx.party:
       ctx.area and ctx.area.spawn(actor, spawn_x, spawn_y)
       actor.stop_move()
-      spawn_x -= TILE_SIZE * facing_x
+      spawn_x -= TILE_SIZE * facing_x  # space out subsequent actors
 
     ctx.area and ctx.area.init(ctx)
     ctx.hud.enter()
@@ -167,7 +191,15 @@ class SideViewContext(Context):
     return line, intersection
 
   def handle_zmove(ctx, delta):
-    port_id = ctx.nearby_port
+    port_id = next((port_id for port_id, port in ctx.area.ports.items()
+      if port.direction == (0, delta) and is_port_nearby(
+        hero=ctx.hero,
+        area=ctx.area,
+        port_id=port_id,
+        port=port,
+        graph=ctx.get_graph()
+      )), None)
+
     if not port_id or port_id not in ctx.area.ports:
       return False
 
@@ -275,10 +307,9 @@ class SideViewContext(Context):
     return True
 
   def follow_port(ctx, port_id):
-    ctx.get_head().transition([
-      DissolveIn(on_end=lambda: ctx.change_areas(port_id)),
-      DissolveOut()
-    ])
+    ctx.get_head().transition(
+      on_end=lambda: ctx.change_areas(port_id)
+    )
 
   def change_areas(ctx, port_id):
     graph = ctx.get_graph()
@@ -336,13 +367,23 @@ class SideViewContext(Context):
           ctx.anims.remove(anim)
         break
     else:
-      if ctx.port:
+      if ctx.spawn:
+        port = ctx.spawn
+        hero_direction = invert_direction(port.direction)
+        for actor in ctx.party:
+          actor.move(hero_direction)
+
+        if (port.direction[0] and abs(actor.pos[0] - port.x) >= TILE_SIZE
+        or port.direction[1] and abs(actor.pos[1] - port.y) < 4):
+          ctx._stop_spawn_move()
+
+      elif ctx.port:
         port_id = ctx.port
         port = ctx.area.ports[port_id]
         hero_x, hero_y = hero.pos
-        if port.direction == (-1, 0) or port.direction == (1, 0):
+        if port.direction[0]:
           for actor in ctx.party:
-            # prevent clipping through links
+            # prevent clipping through onscreen horizontal links
             if abs(actor.pos[0] - port.x) < TILE_SIZE:
               actor.move(port.direction)
         else:
@@ -361,18 +402,26 @@ class SideViewContext(Context):
             if hero_x != port.x:
               hero.move_to((port.x, hero_y))
             else:
-              if not ctx.area.is_camera_locked:
+              if (not ctx.area.is_camera_locked
+              and (ctx.area.camera_does_lock or port.lock_camera)):
                 ctx.area.lock_camera()
 
               if port.direction == (0, -1):
-                TARGET_HORIZON = Area.HORIZON_NORTH
-                EVENT_HORIZON = Area.TRANSIT_NORTH
+                TARGET_HORIZON = port.y + Area.HORIZON_NORTH
+                EVENT_HORIZON = port.y + Area.TRANSIT_NORTH
               elif port.direction == (0, 1):
-                TARGET_HORIZON = Area.HORIZON_SOUTH
-                EVENT_HORIZON = Area.TRANSIT_SOUTH
+                TARGET_HORIZON = port.y + Area.HORIZON_SOUTH
+                EVENT_HORIZON = port.y + Area.TRANSIT_SOUTH
 
+              is_port_door = port.door or "doorway" in port_id
               if hero_y != TARGET_HORIZON:
-                hero.move_to((port.x, TARGET_HORIZON))
+                hero.move_to((port.x, TARGET_HORIZON), door=is_port_door)
+
+              if port.reverse:
+                hero.pos = vector.add(
+                  (port.x, hero_y),
+                  vector.scale(invert_direction(port.direction), 1 / 4)  # TODO: use actor constants
+                )
 
               if abs(hero_y) >= abs(EVENT_HORIZON) and not ctx.get_head().transits:
                 ctx.follow_port(port_id)

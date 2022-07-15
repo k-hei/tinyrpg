@@ -12,10 +12,14 @@ class AreaPort:
   direction: tuple[int, int]
   x: int
   y: int = 0
+  door: bool = False
+  lock_camera: bool = False
+  reverse: bool = False
 
 @dataclass
 class AreaBgLayer:
   sprite: Sprite
+  offset: tuple[float, float] = (0, 0)
   scaling: tuple[float, float] = (1, 1)
 
   def __post_init__(layer):
@@ -27,6 +31,7 @@ class AreaBgLayer:
           vector.subtract((1, 1), layer.scaling),
           (-1 / 4, -1 / 4),
         ),
+        layer.offset
       )
 
 class MetaArea(type):
@@ -55,6 +60,7 @@ class Area(metaclass=MetaArea):
   geometry = None
   camera_lock = (False, False)
   camera_offset = (0, 0)
+  camera_does_lock = True
   actor_offset = 0
   elems = []
   buildings = []
@@ -83,9 +89,18 @@ class Area(metaclass=MetaArea):
     actor.pos = (x, y)
     area.actors.append(actor)
 
-  def lock_camera(area):
-    area.camera.focus(area.camera.pos, force=True)
+  def lock_camera(area, camera_pos=None):
+    camera_pos = vector.add(
+      camera_pos,
+      area.camera_offset
+    ) if camera_pos else area.camera.pos
+
     area.is_camera_locked = True
+    area.camera.focus(camera_pos, force=True)
+
+  def unlock_camera(area):
+    area.is_camera_locked = False
+    area.camera.blur()
 
   def update(area):
     area.camera.update()
@@ -112,7 +127,7 @@ class Area(metaclass=MetaArea):
       sprites=[layer.sprite.copy()],
       offset=(
         (-area.camera.pos[0] + area.camera.size[0] / 2) * layer.scaling[0],
-        -area.camera.pos[1]
+        -area.camera.pos[1] * layer.scaling[1]
       )
     )[0] for layer in area_bg_layers]
     sprites += bg_sprites
@@ -125,8 +140,12 @@ class Area(metaclass=MetaArea):
       if isinstance(actor, Actor) and actor.faction == "player":
         actor_sprite = actor_sprites[0]
         actor_sprite.offset += TILE_SIZE + (1 if actor is hero else 0)
-        if port_id and "doorway" in port_id and abs(actor.pos[1] - port.y) >= 16:
+        if (port_id and (port.door or "doorway" in port_id)
+        and abs(actor.pos[1] - port.y) >= -actor.INDOORS_HORIZON):
           actor_sprite.image = darken_image(actor_sprite.image)
+
+        if port and port.reverse:
+          actor_sprite.layer = "bg"
 
       sprites += actor_sprites
 

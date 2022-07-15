@@ -100,6 +100,8 @@ class AkimorCentralArea(Area):
   ]
 
   ports = {
+    "left": AreaPort(x=0, y=0, direction=(-1, 0)),
+    "right": AreaPort(x=1264, y=176, direction=(1, 0)),
     "upper_slope_top": AreaPort(x=608, y=0, direction=(0, 1)),
     "upper_slope_base": AreaPort(x=528, y=80, direction=(0, -1)),
     "lower_slope_top": AreaPort(x=608, y=80, direction=(0, 1)),
@@ -111,8 +113,6 @@ class AkimorCentralArea(Area):
     "blacksmith_doorway": AreaPort(x=304, y=176, direction=(0, -1)),
     "fortune_house_doorway": AreaPort(x=408, y=176, direction=(0, -1)),
     "bar_doorway": AreaPort(x=768, y=176, direction=(0, -1)),
-    "left": AreaPort(x=0, y=0, direction=(-1, 0)),
-    "right": AreaPort(x=1264, y=176, direction=(1, 0)),
   }
 
   geometry = [
