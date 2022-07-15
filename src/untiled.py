@@ -4,7 +4,7 @@ Entry point for Tiled output conversion.
 
 import sys
 import json
-from enum import Enum, auto
+from enum import Enum
 from dataclasses import dataclass, field
 from os.path import basename, splitext
 from untiled import decode
