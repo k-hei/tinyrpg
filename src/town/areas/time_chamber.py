@@ -107,6 +107,6 @@ class TimeChamberArea(Area):
       faction="enemy",
       facing=(0, 1),
       message=lambda _: [
-        (mook_name, "I'm so horny right now, I could make a brand new hole!"),
+        (mook_name, "This time, I'm really gonna do it!"),
       ],
     )), x=344, y=72)
