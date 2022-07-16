@@ -56,24 +56,6 @@ class TombEntranceArea(Area):
             layer="bg",
         )),
         Element(sprite=Sprite(
-            image=assets.sprites["tomb_entrance_banner_left"],
-            pos=vector.add(
-                BG_LAYERGROUP_OFFSET,
-                (224, BG_FLOOR_OFFSET_Y - 96),
-            ),
-            origin=Sprite.ORIGIN_TOPLEFT,
-            layer="bg",
-        )),
-        Element(sprite=Sprite(
-            image=assets.sprites["tomb_entrance_banner_right"],
-            pos=vector.add(
-                BG_LAYERGROUP_OFFSET,
-                (320, BG_FLOOR_OFFSET_Y - 96),
-            ),
-            origin=Sprite.ORIGIN_TOPLEFT,
-            layer="bg",
-        )),
-        Element(sprite=Sprite(
             image=assets.sprites["tomb_entrance_sign"],
             pos=vector.add(
                 BG_LAYERGROUP_OFFSET,
