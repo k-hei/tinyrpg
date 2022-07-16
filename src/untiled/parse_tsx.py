@@ -13,14 +13,16 @@ def parse_tsx_from_path(tsx_path):
 
 def parse_tsx_from_buffer(tsx_buffer):
     root = ElementTree.fromstring(tsx_buffer)
-    print(root.tag)
+    for child in root[1:]:
+        print(child.tag)
 
 def main(tsx_path):
     parse_tsx_from_path(tsx_path)
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 1:
+    if len(sys.argv) != 2:
         print('usage: python3 src/untiled/parse_tsx.py foo.tsx')
+        sys.exit()
 
     main(tsx_path=sys.argv[1])
