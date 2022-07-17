@@ -29,6 +29,7 @@ class DungeonElement:
   hidden = False
   transient = False
   breakable = False
+  floating = False
 
   def __init__(
     elem,
@@ -39,6 +40,7 @@ class DungeonElement:
     active=False,
     hidden=False,
     transient=False,
+    floating=False,
     breakable=False
   ):
     if not elem.size: elem.size = size
@@ -49,6 +51,7 @@ class DungeonElement:
     if not elem.hidden: elem.hidden = hidden
     if not elem.transient: elem.transient = transient
     if not elem.breakable: elem.breakable = breakable
+    if not elem.floating: elem.floating = floating
     if type(elem.size) is not tuple:
       debug.log(f"WARNING: Create element {type(elem).__name__} with size {elem.size}")
       elem.size = (1, 1)

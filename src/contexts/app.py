@@ -134,7 +134,7 @@ class App(Context):
     try:
       super().update()
       app.handle_events()
-      # app.handle_press()
+      app.handle_press()
       if app.transits:
         transit = app.transits[0]
         if transit.done:

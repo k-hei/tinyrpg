@@ -105,17 +105,9 @@ class ExploreContext(ExploreBase):
       return False
 
     delta = input.resolve_delta_held()
-    if delta != (0, 0) and input.is_delta_button(button):
-      if button not in ctx.buttons_rejected:
-        moved = ctx.handle_move(
-          delta=delta,
-          running=input.get_state(input.CONTROL_RUN) > 0
-        )
-        if moved == False:
-          ctx.buttons_rejected[button] = 0
-        return moved
-      elif ctx.buttons_rejected[button] >= 30:
-        return ctx.handle_push()
+    if delta != (0, 0) and button:
+      ctx.delta_pressed = vector.OR(ctx.delta_pressed, delta)
+      ctx.delta_pressed_button = button
 
     controls = input.resolve_controls(button)
 
@@ -151,10 +143,17 @@ class ExploreContext(ExploreBase):
     if button in ctx.buttons_rejected:
       del ctx.buttons_rejected[button]
 
-    delta = input.resolve_delta(button)
-    if delta != (0, 0):
-      ctx.hero.stop_move()
-      ctx.ally and ctx.ally.stop_move()
+    if button == ctx.delta_pressed_button:
+      ctx.delta_pressed_button = None
+
+    delta_released = input.resolve_delta(button)
+    if ctx.delta_pressed != (0, 0):
+      delta_new = vector.NAND(ctx.delta_pressed, delta_released)
+      if delta_new == (0, 0) and delta_new != ctx.delta_pressed:
+        ctx.hero.stop_move()
+        ctx.ally and ctx.ally.stop_move()
+
+      ctx.delta_pressed = delta_new
 
     control = input.resolve_control(button)
     if control == input.CONTROL_MINIMAP:
@@ -591,6 +590,30 @@ class ExploreContext(ExploreBase):
       hero.move(ctx.port.direction)
       ally = ctx.ally
       ally and ally.move(ctx.port.direction)
+
+    ctx.update_buttons()
+
+  def update_buttons(ctx):
+    if ctx.anims or ctx.port:
+      return False
+
+    delta = ctx.delta_pressed
+    button = ctx.delta_pressed_button
+
+    if delta != (0, 0):
+      if button not in ctx.buttons_rejected:
+        moved = ctx.handle_move(
+          delta=delta,
+          running=input.get_state(input.CONTROL_RUN) > 0
+        )
+
+        if moved == False:
+          ctx.buttons_rejected[button] = 0
+
+        return moved
+      elif ctx.buttons_rejected[button] >= 30:
+        return ctx.handle_push()
+
 
   def view(ctx):
     sprites = super().view()
