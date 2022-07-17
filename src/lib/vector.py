@@ -78,3 +78,12 @@ def normalize(vector):
 def tangent(vector):
   x, y = vector
   return (-y, x)
+
+def OR(a, b):
+  return (a[0] or b[0], a[1] or b[1])
+
+def NAND(a, b):
+  return (
+    max(-1, a[0] ^ b[0]),
+    max(-1, a[1] ^ b[1]),
+  )

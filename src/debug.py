@@ -5,6 +5,9 @@ from config import DEBUG
 buffer = ""
 benches = {}
 
+def time():
+  return time_ns()
+
 def log(*args):
   if not args:
     return

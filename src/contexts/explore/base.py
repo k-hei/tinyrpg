@@ -39,6 +39,8 @@ class ExploreBase(Context):
     ctx.stage_view = stage_view
     ctx.time = time
     ctx.buttons_rejected = {}
+    ctx.delta_pressed = (0, 0)
+    ctx.delta_pressed_button = None
     ctx._label = None
 
   @property
