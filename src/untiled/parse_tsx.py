@@ -13,8 +13,12 @@ def parse_tsx_from_path(tsx_path):
 
 def parse_tsx_from_buffer(tsx_buffer):
     root = ElementTree.fromstring(tsx_buffer)
+
+    objects = []
     for child in root[1:]:
-        print(child.tag)
+        objects.append(child[0].attrib['source'])
+
+    print(objects)
 
 def main(tsx_path):
     parse_tsx_from_path(tsx_path)

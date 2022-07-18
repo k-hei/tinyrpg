@@ -2,4 +2,4 @@
 init-hook="from pylint.config import find_pylintrc; import os, sys; sys.path.append(os.path.dirname(find_pylintrc()))"
 
 [MESSAGES CONTROL]
-disable=import-self, import-error, no-self-argument, no-name-in-module, no-member
+disable=import-self, import-error, no-self-argument, no-name-in-module, no-member, expression-not-assigned

@@ -5,14 +5,14 @@ from untiled.layer import Layer
 
 
 def decode(width, height, layers, **kwargs):
-    layers_data = decode_layers(layers)
+    layers_data = decode_tile_layers(layers)
     return layers_data
 
-def decode_layers(layers):
-    return {layer["name"]: decode_layer(**layer)
+def decode_tile_layers(layers):
+    return {layer["name"]: decode_tile_layer(**layer)
         for layer in layers if layer["type"] == "tilelayer"}
 
-def decode_layer(width, height, data, **kwargs):
+def decode_tile_layer(width, height, data, **kwargs):
     data_bytes = zstd.loads(base64.b64decode(data))
     data_ids = [decode_byte(buffer=data_bytes, address=i) for i in range(0, len(data_bytes), 4)]
     return Layer(
