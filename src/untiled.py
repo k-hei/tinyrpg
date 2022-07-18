@@ -93,12 +93,10 @@ def process_layer(processor, request, layer, layer_type):
     handle_layer = LAYER_TYPE_HANDLER_MAP[layer_type]
     handle_layer(processor, request, layer)
 
-def process_layers(processor, layers, metadata):
+def process_layers(processor, layers):
     """
     Processes layers using the given processor.
     """
-    processor.load_metadata(metadata)
-
     request = LayerProcessingRequest()
     for layer_type, layer in layers:
         process_layer(processor, request, layer, layer_type)
@@ -140,6 +138,9 @@ def main():
         if "tileset" in metadata
         else None)
 
+    processor.load_metadata(metadata)
+    processor.load_room(room_data)
+
     layers = [(
         LayerType(t),
         next((layer for layer in room_data["layers"]
@@ -149,7 +150,6 @@ def main():
     room_image, room_tiles, room_elems, room_subrooms, room_edges = process_layers(
         processor=processor,
         layers=layers,
-        metadata=metadata,
     )
 
     output_dir = input_dir

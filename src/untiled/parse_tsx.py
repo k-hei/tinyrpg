@@ -14,11 +14,8 @@ def parse_tsx_from_path(tsx_path):
 def parse_tsx_from_buffer(tsx_buffer):
     root = ElementTree.fromstring(tsx_buffer)
 
-    objects = []
-    for child in root[1:]:
-        objects.append(child[0].attrib['source'])
-
-    print(objects)
+    image_paths = [child[0].attrib['source'] for child in root[1:]]
+    return image_paths
 
 def main(tsx_path):
     parse_tsx_from_path(tsx_path)

@@ -1,4 +1,5 @@
 from PIL import Image, ImageOps
+import lib.vector as vector
 
 
 MASK_HORIZ = 0x80000000
@@ -30,8 +31,22 @@ transform_map = {
     0: lambda image: image,
 }
 
+rotation_map = {
+    0: (0, -1),
+    180: (-1, 0),
+}
+
 def transform_image(image, mask):
     return transform_map[mask](image)
+
+def rotate_image(image, rotation):
+    return image.rotate(rotation)
+
+def extract_rotation_offset(image, rotation):
+    return vector.multiply(
+        rotation_map[rotation],
+        (image.width, image.height)
+    )
 
 def extract_transform_mask(tile):
     mask = tile & 0xff000000

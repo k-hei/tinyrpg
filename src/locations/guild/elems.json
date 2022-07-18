@@ -1,0 +1,38 @@
+[
+    {
+        "name": "GuildBookcase",
+        "image_id": "guild_bookcase"
+    },
+    {
+        "name": "GuildCandle",
+        "image_id": "guild_candle"
+    },
+    {
+        "name": "GuildMisc",
+        "image_id": "guild_misc"
+    },
+    {
+        "name": "GuildPillar",
+        "image_id": "guild_pillar"
+    },
+    {
+        "name": "GuildPillow",
+        "image_id": "guild_pillow"
+    },
+    {
+        "name": "GuildPillows",
+        "image_id": "guild_pillows"
+    },
+    {
+        "name": "GuildTable",
+        "image_id": "guild_table"
+    },
+    {
+        "name": "GuildInterior",
+        "image_id": "guild_int1"
+    },
+    {
+        "name": "GuildBanner",
+        "image_id": "guild_banner"
+    }
+]
