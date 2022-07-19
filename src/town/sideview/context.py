@@ -104,7 +104,9 @@ class SideViewContext(Context):
       ally and ally.face(hero_direction)
 
       spawn_x = ctx.spawn.x + TILE_SIZE / 2 * spawn_direction[0]  # offset position for x-links
-      spawn_y = ctx.spawn.y + TILE_SIZE * 2 * spawn_direction[1]
+      spawn_y = (ctx.spawn.y
+        if hero_direction[1] == 1
+        else ctx.spawn.y + TILE_SIZE * 2 * spawn_direction[1])
 
       if hero_direction[1] > 0:
         ctx.area.lock_camera(camera_pos=(ctx.spawn.x, ctx.spawn.y))
