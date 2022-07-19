@@ -2,31 +2,39 @@
     {
         "name": "GuildBookcase",
         "image_id": "guild_bookcase",
-        "offset": [8, 0]
+        "offset": [8, 0],
+        "hitbox": [-24, -16, 48, 16]
     },
     {
         "name": "GuildCandle",
-        "image_id": "guild_candle"
+        "image_id": "guild_candle",
+        "hitbox": [-4, -8, 8, 8]
     },
     {
         "name": "GuildMisc",
-        "image_id": "guild_misc"
+        "image_id": "guild_misc",
+        "offset": [8, 0],
+        "hitbox": [-20, -56, 24, 40]
     },
     {
         "name": "GuildPillar",
-        "image_id": "guild_pillar"
+        "image_id": "guild_pillar",
+        "hitbox": [-12, -24, 24, 24]
     },
     {
         "name": "GuildPillow",
-        "image_id": "guild_pillow"
+        "image_id": "guild_pillow",
+        "hitbox": [-8, -24, 16, 16]
     },
     {
         "name": "GuildPillows",
-        "image_id": "guild_pillows"
+        "image_id": "guild_pillows",
+        "hitbox": [-24, -48, 48, 32]
     },
     {
         "name": "GuildTable",
-        "image_id": "guild_table"
+        "image_id": "guild_table",
+        "hitbox": [-16, -12, 32, 4]
     },
     {
         "name": "GuildInterior",
@@ -34,7 +42,8 @@
     },
     {
         "name": "GuildBanner",
-        "image_id": "guild_banner"
+        "image_id": "guild_banner",
+        "layer": "vfx"
     },
     {
         "name": "GuildRug",
