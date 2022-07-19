@@ -34,5 +34,13 @@
     {
         "name": "GuildBanner",
         "image_id": "guild_banner"
+    },
+    {
+        "name": "GuildRug",
+        "image_id": "guild_rug"
+    },
+    {
+        "name": "GuildRugSquare",
+        "image_id": "guild_rug_square"
     }
 ]

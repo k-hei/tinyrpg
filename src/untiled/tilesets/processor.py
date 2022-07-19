@@ -1,3 +1,11 @@
+import json
+
+
+def load_json(json_path):
+    with open(json_path, mode="r", encoding="utf-8") as json_file:
+        return json.loads(json_file.read())
+
+
 class Processor:
 
     @classmethod
