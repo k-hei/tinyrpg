@@ -47,7 +47,7 @@ class AkimorCentralArea(Area):
 
   buildings = [
     TownBuilding(
-      sprite_id=f"{SPRITE_PREFIX}guild_house",
+      sprite_id=f"{SPRITE_PREFIX}guild",
       pos=vector.add(BUILDING_OFFSET, (192, 160))
     ),
     TownBuilding(
@@ -80,8 +80,14 @@ class AkimorCentralArea(Area):
 
   elems = [
     Element(sprite=Sprite(
+      image=assets.sprites[f"{SPRITE_PREFIX}guild_doorway"],
+      pos=(240, -54),
+      origin=Sprite.ORIGIN_TOP,
+      layer="fg",
+    )),
+    Element(sprite=Sprite(
       image=assets.sprites[f"{SPRITE_PREFIX}market_doorway"],
-      pos=(472, -68),
+      pos=(472, -59),
       origin=Sprite.ORIGIN_TOP,
       layer="fg",
     )),
@@ -106,7 +112,7 @@ class AkimorCentralArea(Area):
     "upper_slope_base": AreaPort(x=528, y=80, direction=(0, -1)),
     "lower_slope_top": AreaPort(x=608, y=80, direction=(0, 1)),
     "lower_slope_base": AreaPort(x=512, y=176, direction=(0, -1)),
-    "guild_house_doorway": AreaPort(x=240, y=0, direction=(0, -1)),
+    "guild_doorway": AreaPort(x=240, y=0, direction=(0, -1)),
     "market_doorway": AreaPort(x=472, y=0, direction=(0, -1)),
     "chapel_doorway": AreaPort(x=744, y=-32, direction=(0, -1)),
     "npc_house_doorway": AreaPort(x=112, y=176, direction=(0, -1)),

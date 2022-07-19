@@ -256,6 +256,11 @@ class ExploreContext(ExploreBase):
 
     room_data = ctx.stage.generator
 
+    if ("left" in room_data.ports
+    and delta[0] == -1
+    and actor.pos[0] < 0):
+      return ctx.handle_port("left")
+
     if ("up" in room_data.ports
     and delta[1] == -1
     and actor.pos[1] < 0):
@@ -265,6 +270,11 @@ class ExploreContext(ExploreBase):
     and delta[0] == 1
     and actor.rect.right > ctx.stage.width * ctx.stage.tile_size):
       return ctx.handle_port("right")
+
+    if ("down" in room_data.ports
+    and delta[1] == 1
+    and actor.rect.bottom > ctx.stage.height * ctx.stage.tile_size):
+      return ctx.handle_port("down")
 
   def move_to(ctx, actor, dest, speed=None, running=False):
     speed = speed or actor.speed

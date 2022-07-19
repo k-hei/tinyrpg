@@ -14,6 +14,7 @@ def construct_world():
             (WorldLink(rooms["tutorial1"], "right"), WorldLink(AkimorCentralArea, "left")),
             (WorldLink(AkimorCentralArea, "upper_slope_top"), WorldLink(AkimorCentralArea, "upper_slope_base")),
             (WorldLink(AkimorCentralArea, "lower_slope_top"), WorldLink(AkimorCentralArea, "lower_slope_base")),
+            (WorldLink(AkimorCentralArea, "guild_doorway"), WorldLink(rooms["guild"], "down")),
             (WorldLink(AkimorCentralArea, "market_doorway"), WorldLink(MarketArea, "entrance")),
             (WorldLink(AkimorCentralArea, "fortune_house_doorway"), WorldLink(FortuneArea, "entrance")),
             (WorldLink(AkimorCentralArea, "chapel_doorway"), WorldLink(TimeChamberArea, "left")),
