@@ -239,23 +239,23 @@ class SideViewContext(Context):
       return False
 
     controls = input.resolve_controls(button)
-    button = input.resolve_button(button)
+    button_resolved = input.resolve_button(button)
 
-    if button == input.BUTTON_LEFT:
+    if button_resolved == input.BUTTON_LEFT:
       ctx.handle_move(-1)
 
-    elif button == input.BUTTON_RIGHT:
+    elif button_resolved == input.BUTTON_RIGHT:
       ctx.handle_move(1)
 
     if input.get_state(button) > 1:
       return
 
-    if button == input.BUTTON_UP:
+    if button_resolved == input.BUTTON_UP:
       for actor in ctx.party:
         actor.stop_move()
       return ctx.handle_zmove(-1)
 
-    if button == input.BUTTON_DOWN:
+    if button_resolved == input.BUTTON_DOWN:
       for actor in ctx.party:
         actor.stop_move()
       return ctx.handle_zmove(1)
@@ -434,6 +434,7 @@ class SideViewContext(Context):
       elif not ctx.child:
         ctx.update_interactives()
 
+    ctx.update_buttons_rejected()
     ctx.hud.update(force=True)
     ctx.time += 1
 
