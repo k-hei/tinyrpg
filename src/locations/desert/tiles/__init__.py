@@ -1,7 +1,7 @@
 import pygame.image
 from os import path
 from PIL import Image
-from locations.tileset import Tileset
+from locations.tileset import Tileset, RoomType
 from untiled.tileset import find_tile_pos
 from untiled.transform import extract_transform_mask, transform_image
 from config import ASSETS_PATH, LOCATIONS_PATH
@@ -16,7 +16,7 @@ tileset_image = Image.open(path.join(ASSETS_PATH, "desert-tiles.png"))
 class DesertTileset(Tileset):
     tile_size = TILE_SIZE
     elems_path = path.join(LOCATIONS_PATH, "desert", "elems.json")
-    is_overworld = True
+    room_type = RoomType.OVERWORLD
 
     @staticmethod
     def is_tile_at_solid(tile):

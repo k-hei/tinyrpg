@@ -20,6 +20,7 @@ from dungeon.props.itemdrop import ItemDrop
 from dungeon.props.table import Table
 from dungeon.props.puff_poison import PoisonPuff
 from dungeon.props.puzzledoor import PuzzleDoor
+from dungeon.props.puff_freezing import FreezingPuff
 from dungeon.props.pillar import Pillar
 from dungeon.props.column import Column
 from dungeon.props.raretreasuredoor import RareTreasureDoor
@@ -76,6 +77,7 @@ def resolve_elem(key):
   if key == "Table": return Table
   if key == "PoisonPuff": return PoisonPuff
   if key == "PuzzleDoor": return PuzzleDoor
+  if key == "FreezingPuff": return FreezingPuff
   if key == "Pillar": return Pillar
   if key == "Column": return Column
   if key == "RareTreasureDoor": return RareTreasureDoor

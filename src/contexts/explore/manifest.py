@@ -1,6 +1,7 @@
 from lib.grid import Grid
 from lib.bounds import find_bounds
 import lib.vector as vector
+from lib.cell import neighborhood
 
 from contexts.explore.stage import Stage
 from contexts.explore.roomdata import RoomData
@@ -8,14 +9,12 @@ from contexts.explore.tile_matrix import TileMatrix
 from dungeon.room import Blob as Room
 from dungeon.decoder import decode_elem
 from dungeon.props.door import Door
-import locations.default.tileset as tileset
+from dungeon.actors import DungeonActor
+import locations.default.tileset as default_tileset
 from locations.tileset import Tileset
 from helpers.stage import find_tile
 
-from dungeon.actors import DungeonActor
-from lib.cell import neighborhood
 from config import TILE_SIZE
-
 import debug
 
 
@@ -90,7 +89,18 @@ def manifest_stage_from_dungeon_room(room_data):
         name=room_data.name,
         tileset=room_data.bg,
         tiles=TileMatrix(layers=[stage_tiles]),
-        rooms=[room],
+        rooms=[Room(data=room_data)],
+    )
+
+def manifest_stage_from_town_room(room_data):
+    validate_room_data(room_data)
+    return Stage(
+        name=room_data.name,
+        tileset=room_data.bg,
+        tiles=TileMatrix(layers=[
+            Grid(size=room_data.size)
+        ]),
+        rooms=[Room(data=room_data)],
     )
 
 def manifest_room(room_data, port_id=None):
@@ -115,15 +125,16 @@ def manifest_room(room_data, port_id=None):
     # TODO: fix hardcoded edge types
     if stage.entrance is None:
         stage.entrance = (
-            find_tile(stage, tileset.Escape)
-            or find_tile(stage, tileset.Entrance)
-            or find_tile(stage, tileset.Exit)
+            find_tile(stage, default_tileset.Escape)
+            or find_tile(stage, default_tileset.Entrance)
+            or find_tile(stage, default_tileset.Exit)
         )
 
     if stage.entrance is None:
         stage.entrance = vector.add(room_data.edges[-1], room.origin)
 
-    if not room_tileset.is_overworld and stage.is_tile_at_of_type(stage.entrance, room_tileset.Wall):
+    if (not room_tileset.is_overworld
+    and stage.is_tile_at_of_type(stage.entrance, room_tileset.Wall)):
         stage.set_tile_at(stage.entrance, room_tileset.Hallway)
         stage.spawn_elem_at(stage.entrance, Door(opened=True))
 
@@ -167,7 +178,7 @@ def merge_territories(stage, territories):
         merged = False
         for i, territory in enumerate(merged_territories):
             territory_set = set(territory)
-            for j, other_territory in enumerate(merged_territories[i+1:]):
+            for other_territory in merged_territories[i+1:]:
                 other_territory_set = set(other_territory)
                 if territory_set & other_territory_set:
                     merged_territories[i] = list(territory_set | other_territory_set)

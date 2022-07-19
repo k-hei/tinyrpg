@@ -81,6 +81,9 @@ class RoomData:
         tileset = resolve_tileset("default")
       roomdata.bg = tileset
 
+    if not roomdata.tiles:
+      roomdata.tiles = TileMatrix(layers=[Grid(size=roomdata.size)])
+
     if roomdata.tiles and not isinstance(roomdata.tiles, TileMatrix):
       if isinstance(roomdata.tiles[0], str):
         # string format

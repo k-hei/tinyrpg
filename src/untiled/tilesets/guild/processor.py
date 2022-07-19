@@ -86,10 +86,13 @@ class GuildProcessor(Processor):
 
             elem_name = next((e["name"] for e in cls.elems
                 if e["image_id"] == "guild_" + cls.object_image_ids[obj_id]), None)
-            elems.append((
-                elem_name,
-                (obj_pos[0] // cls.tile_width, obj_pos[1] // cls.tile_height),
-            ))
+
+            elem_cell = (
+                obj_pos[0] // cls.tile_width,
+                obj_pos[1] // cls.tile_height
+            )
+
+            elems.append((elem_cell, elem_name))
 
         obj_sprites.sort(key=lambda sprite: sprite[1][1])
         for obj_image, obj_pos in obj_sprites:

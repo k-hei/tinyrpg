@@ -8,6 +8,11 @@ from colors.palette import COLOR_TILE
 import assets
 
 
+class RoomType(Enum):
+    OVERWORLD = auto()
+    DUNGEON = auto()
+    TOWN = auto()
+
 class TileType(Enum):
     WALL = auto()
     PIT = auto()
@@ -15,9 +20,14 @@ class TileType(Enum):
     OASIS = auto()
     LINK = auto()
 
-class Tileset(ABC):
+class MetaTileset(type):
+    @property
+    def is_overworld(tileset):
+        return tileset.room_type == RoomType.OVERWORLD
+
+class Tileset(MetaTileset, ABC):
     tile_size = 16
-    is_overworld = False
+    room_type = None
 
     @classmethod
     def _preinit_elem_data(cls, elem_data):

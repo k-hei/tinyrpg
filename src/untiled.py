@@ -152,6 +152,9 @@ def main():
         layers=layers,
     )
 
+    if not room_edges:
+        room_edges += metadata["edges"] if "edges" in metadata else []
+
     output_dir = input_dir
     output_filename = f"{room_name}_parsed.json"
     output_path = f"{output_dir}/{output_filename}"
@@ -161,7 +164,7 @@ def main():
     try:
         room_size = layers[0][1].size
     except AttributeError:
-        room_size = None
+        room_size = (room_data["width"], room_data["height"])
 
     output_buffer = json.dumps({
         "name": metadata["name"],
