@@ -32,7 +32,11 @@ class StaticElement(DungeonElement):
         try:
             x, y, width, height = elem._data.hitbox
             elem.__rect = Rect(
-                vector.add(elem.pos, (x, y)),
+                vector.add(
+                    elem.pos,
+                    elem._data.offset,
+                    (x, y)
+                ),
                 (width, height),
             )
             return elem.__rect
@@ -50,6 +54,7 @@ class StaticElement(DungeonElement):
     def view(elem, *args, **kwargs):
         return super().view([Sprite(
             image=elem.image,
+            pos=elem._data.offset,
             origin=Sprite.ORIGIN_BOTTOM,
-            layer="elems",
+            layer=elem._data.layer,
         )], *args, **kwargs)

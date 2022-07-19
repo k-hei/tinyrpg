@@ -13,6 +13,7 @@ from locations.guild.tiles import GuildTileset
 class GuildProcessor(Processor):
     tile_width = 0
     tile_height = 0
+    room_size = None
     layer_offset = (0, 0)
     object_image_ids = []
     object_images = []
@@ -27,7 +28,13 @@ class GuildProcessor(Processor):
 
         image_layer = next((l for l in room["layers"]
             if l["type"] == "imagelayer"), None)
+
         if image_layer:
+            room_bg_image = cls.load_image(image_layer["image"])
+            cls.room_size = (
+                room_bg_image.width // cls.tile_width,
+                room_bg_image.height // cls.tile_height
+            )
             cls.layer_offset = (image_layer["offsetx"], image_layer["offsety"])
 
     @classmethod
@@ -88,8 +95,8 @@ class GuildProcessor(Processor):
                 if e["image_id"] == "guild_" + cls.object_image_ids[obj_id]), None)
 
             elem_cell = (
-                obj_pos[0] // cls.tile_width,
-                obj_pos[1] // cls.tile_height
+                (obj_pos[0] + obj_image.width // 2) // cls.tile_width - 1,
+                (obj_pos[1] + obj_image.height) // cls.tile_height
             )
 
             elems.append((elem_cell, elem_name))

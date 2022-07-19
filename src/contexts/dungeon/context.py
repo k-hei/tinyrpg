@@ -107,16 +107,16 @@ class DungeonContext(ExploreBase):
     return FLOOR_SEQUENCE.index(floor) + 1
 
   def save(ctx):
-    is_overworld = ctx.stage.is_overworld
+    is_overworld_room = ctx.stage.is_overworld_room
     return DungeonData(
       floor_index=ctx.graph.nodes.index(ctx.stage)
-        if not is_overworld
+        if not is_overworld_room
           and ctx.stage in ctx.graph.nodes
         else -1,
       floors=deepcopy(ctx.graph
         if isinstance(ctx.graph, FloorGraph)
         else FloorGraph(nodes=[ctx.stage])),
-      memory=deepcopy(ctx.memory) if not is_overworld else [],
+      memory=deepcopy(ctx.memory) if not is_overworld_room else [],
     )
 
   def construct_graph(ctx, old_floor=None):
@@ -125,7 +125,7 @@ class DungeonContext(ExploreBase):
     if not ctx.stage: # or ctx.stage.generator not in floor_names:
       return
 
-    if not isinstance(ctx.graph, FloorGraph) and not ctx.stage.is_overworld:
+    if not isinstance(ctx.graph, FloorGraph) and not ctx.stage.is_overworld_room:
       ctx.graph = FloorGraph()
 
     if not isinstance(ctx.graph, FloorGraph):
@@ -216,14 +216,14 @@ class DungeonContext(ExploreBase):
 
     find_room_focus_region = lambda room: (
       room.cells
-        if ctx.stage.is_overworld
+        if ctx.stage.is_overworld_room
         else room.cells + room.border
     )
 
     room_focused = next((r for r in ctx.stage.rooms
       if hero.cell in find_room_focus_region(r)), None)
 
-    if ctx.stage.is_overworld:
+    if ctx.stage.is_overworld_room:
       visible_cells = ctx.stage.cells
 
       room_focused_prev = next((t for t in ctx.camera.target if isinstance(t, Room)), None)
@@ -300,7 +300,7 @@ class DungeonContext(ExploreBase):
     if not hallway:
       return False
 
-    if not ctx.stage.is_overworld:
+    if not ctx.stage.is_overworld_room:
       ctx.comps.minimap.exit()
 
     room = next((r for r in ctx.stage.rooms if hallway[-1] in r.edges), None)
@@ -337,7 +337,7 @@ class DungeonContext(ExploreBase):
     handle_end = lambda: (
       setattr(ctx.stage_view, "transitioning", False),
       ctx.refresh_fov(),
-      not ctx.stage.is_overworld and ctx.comps.minimap.enter(),
+      not ctx.stage.is_overworld_room and ctx.comps.minimap.enter(),
     )
 
     ctx.hero.cell = hallway[-1]
@@ -529,7 +529,7 @@ class DungeonContext(ExploreBase):
         elem.on_leave(ctx)
 
     is_travelling = False
-    if ctx.hero_cell and not ctx.stage.is_overworld:
+    if ctx.hero_cell and not ctx.stage.is_overworld_room:
       old_door = next((e for e in ctx.stage.get_elems_at(ctx.hero_cell) if isinstance(e, Door)), None)
       new_door = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if isinstance(e, Door) and e.opened), None)
       new_tile = ctx.stage.get_tile_at(ctx.hero.cell)

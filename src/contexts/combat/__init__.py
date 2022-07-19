@@ -121,7 +121,7 @@ class CombatContext(ExploreBase):
           if is_tile_walkable_to_actor(ctx.stage, c, ctx.hero)]
 
       start_cells = {c for c in pathable_cells
-        if not (ctx.stage.is_overworld
+        if not (ctx.stage.is_overworld_room
           and next((e for e in ctx.stage.get_elems_at(c, scale=TILE_SIZE)
             if isinstance(e, Door)
             or e.solid and e is not ctx.hero), None))  # exclude doors and solid elems
@@ -259,7 +259,7 @@ class CombatContext(ExploreBase):
 
     room = ctx.room
     room_cells = room.cells
-    if not ctx.stage.is_overworld:
+    if not ctx.stage.is_overworld_room:
       room_cells = [c for c in room_cells
         if ctx.stage.is_cell_walkable(c, scale=TILE_SIZE)]
 
@@ -756,10 +756,10 @@ class CombatContext(ExploreBase):
     if ctx.comps.hud.anims:
       return False
 
-    if ctx.stage.is_overworld and not ctx.ally.visible_cells:
+    if ctx.stage.is_overworld_room and not ctx.ally.visible_cells:
       ctx.ally.visible_cells = ctx.hero.visible_cells.copy()
     ctx.store.switch_chars()
-    ctx.parent.refresh_fov(reset_cache=not ctx.stage.is_overworld)
+    ctx.parent.refresh_fov(reset_cache=not ctx.stage.is_overworld_room)
 
     ctx.reload_skill_badge()
 
@@ -1135,7 +1135,7 @@ class CombatContext(ExploreBase):
       return []
 
     room = ctx.room
-    if not room or ctx.stage.is_overworld and room == ctx.stage.rooms[-1]:
+    if not room or ctx.stage.is_overworld_room and room == ctx.stage.rooms[-1]:
       return []
 
     topleft_pos = ctx.stage_view.camera.rect.topleft
@@ -1147,7 +1147,7 @@ class CombatContext(ExploreBase):
     rows = WINDOW_HEIGHT // TILE_SIZE + 2
 
     room_cells = room.cells
-    if not ctx.stage.is_overworld:
+    if not ctx.stage.is_overworld_room:
       room_cells = [c for c in room_cells
         if ctx.stage.is_cell_walkable(c)]
 

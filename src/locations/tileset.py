@@ -22,8 +22,12 @@ class TileType(Enum):
 
 class MetaTileset(type):
     @property
-    def is_overworld(tileset):
+    def is_overworld_room(tileset):
         return tileset.room_type == RoomType.OVERWORLD
+
+    @property
+    def is_town_room(tileset):
+        return tileset.room_type == RoomType.TOWN
 
 class Tileset(MetaTileset, ABC):
     tile_size = 16

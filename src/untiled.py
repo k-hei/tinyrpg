@@ -162,7 +162,7 @@ def main():
     room_image.save(f"{output_dir}/{room_name}.png")
 
     try:
-        room_size = layers[0][1].size
+        room_size = processor.room_size or layers[0][1].size
     except AttributeError:
         room_size = (room_data["width"], room_data["height"])
 

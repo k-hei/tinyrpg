@@ -106,7 +106,7 @@ class StageView:
     view.camera = Camera(WINDOW_SIZE, constraints=CameraConstraints(
       right=stage.width * stage.tile_size,
       bottom=stage.height * stage.tile_size,
-    ) if stage.is_overworld else None)
+    ) if stage.is_overworld_room else None)
     view.anim = None
     view.anims = []
     view.vfx = []
@@ -180,7 +180,7 @@ class StageView:
 
     # get tile state (state of this cell and rendering-relevant neighbors)
     tile_hash = (None
-      if stage.is_overworld
+      if stage.is_overworld_room
       else find_tile_hash(stage, cell, visited_cells, cache=tile_hash_cache))
 
     # read cached tile data
@@ -205,7 +205,7 @@ class StageView:
         sprite.move(vector.scale(cell, stage.tile_size))
       view.tile_sprites[cell] = tile_sprites
 
-    if not cached_image and not stage.is_overworld:
+    if not cached_image and not stage.is_overworld_room:
       cached_image = flatten_tile_image_stack(tile_images)
       cached_image = cached_image and darken_image(cached_image)
 
@@ -257,7 +257,7 @@ class StageView:
     if not visible_cells:
       return
 
-    if view.stage.is_overworld:
+    if view.stage.is_overworld_room:
       viewable_cells = [(col, row)
         for row in range(tile_rect.top, tile_rect.bottom + 1)
           for col in range(tile_rect.left, tile_rect.right + 1)]
@@ -271,14 +271,14 @@ class StageView:
     tile_hash_cache = {}
 
     for cell in viewable_cells:
-      is_cell_visible = view.stage.is_overworld or cell in visible_cells
+      is_cell_visible = view.stage.is_overworld_room or cell in visible_cells
 
-      has_cell_tile_state_changed = (not view.stage.is_overworld
+      has_cell_tile_state_changed = (not view.stage.is_overworld_room
         and is_cell_visible
         and cell in view.tile_cache
         and find_tile_hash(view.stage, cell, visited_cells, cache=tile_hash_cache) != view.tile_cache[cell][0])
 
-      has_cell_visible_state_changed = (not view.stage.is_overworld
+      has_cell_visible_state_changed = (not view.stage.is_overworld_room
         and (is_cell_visible != (cell in view.cache_visible_cells)
           or (cell in visited_cells) != (cell in view.cache_visited_cells)))
 
@@ -292,7 +292,7 @@ class StageView:
 
       try:
         # TODO(palette): make darkening possible in overworld
-        use_cache = not view.stage.is_overworld and (view.darkened or cell not in visible_cells)
+        use_cache = not view.stage.is_overworld_room and (view.darkened or cell not in visible_cells)
         tile_images = view.render_cell(view.stage, cell, visited_cells, use_cache, tile_hash_cache=tile_hash_cache)
         if not tile_images:
           continue
@@ -329,6 +329,18 @@ class StageView:
     view.cache_darkened = view.darkened
 
   def view_tiles(view, hero, visited_cells):
+    if view.stage.is_town_room:
+      bg_image = assets.sprites["guild_int1"]
+      return [Sprite(
+        image=bg_image,
+        pos=vector.add(
+          # vector.scale(bg_image.get_size(), 1 / 2),
+          (view.camera.width / 2, view.camera.height / 2),
+          vector.negate(view.camera.pos),
+        ),
+        layer="tiles",
+      )]
+
     if (not view.tile_layers
     or view.cache_camera_cell != snap_vector(view.camera.pos, view.stage.tile_size)
     or hero and view.cache_visible_cells != hero.visible_cells
@@ -349,7 +361,7 @@ class StageView:
         if not camera_rect.colliderect(sprite.rect):
           continue
 
-        if (view.stage.is_overworld
+        if (view.stage.is_overworld_room
         or not view.darkened and cell in view.cache_visible_cells):
           tile_sprites.append(sprite.copy())
           continue
@@ -398,7 +410,7 @@ class StageView:
 
     for elem_sprite in elem_sprites:
       # TODO(palette): make darkening possible in overworld
-      if not view.stage.is_overworld and view.darkened and not isinstance(elem, DungeonActor):
+      if not view.stage.is_overworld_room and view.darkened and not isinstance(elem, DungeonActor):
         if elem not in view.cache_elems:
           view.cache_elems[elem] = darken_image(elem_sprite.image)
         elem_sprite.image = view.cache_elems[elem]
@@ -415,7 +427,7 @@ class StageView:
       if view.transitioning and not isinstance(elem, Door):
         return False
 
-      if not view.stage.is_overworld and hero and elem.cell not in hero.visible_cells:
+      if not view.stage.is_overworld_room and hero and elem.cell not in hero.visible_cells:
         return False
 
       try:

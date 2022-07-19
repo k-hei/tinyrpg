@@ -60,8 +60,12 @@ class Stage:
     return stage.tiles.num_layers
 
   @property
-  def is_overworld(stage):
-    return stage.tileset.is_overworld
+  def is_overworld_room(stage):
+    return stage.tileset.is_overworld_room
+
+  @property
+  def is_town_room(stage):
+    return stage.tileset.is_town_room
 
   def __contains__(stage, cell):
     return stage.contains(cell)

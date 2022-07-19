@@ -108,7 +108,7 @@ def manifest_room(room_data, port_id=None):
 
     room_tileset = room_data.bg
     manifestor = (manifest_stage_from_overworld_room
-        if room_tileset.is_overworld
+        if room_tileset.is_overworld_room
         else manifest_stage_from_dungeon_room)
 
     stage = manifestor(room_data)
@@ -133,7 +133,7 @@ def manifest_room(room_data, port_id=None):
     if stage.entrance is None:
         stage.entrance = vector.add(room_data.edges[-1], room.origin)
 
-    if (not room_tileset.is_overworld
+    if (not room_tileset.is_overworld_room
     and stage.is_tile_at_of_type(stage.entrance, room_tileset.Wall)):
         stage.set_tile_at(stage.entrance, room_tileset.Hallway)
         stage.spawn_elem_at(stage.entrance, Door(opened=True))
@@ -149,7 +149,7 @@ def manifest_room(room_data, port_id=None):
 
     room.on_place(stage)
 
-    if stage.is_overworld:
+    if stage.is_overworld_room:
         enemy_territories = [find_territory(stage, e.cell) for e in enemies]
         enemy_territories = merge_territories(stage, enemy_territories)
         stage.rooms = [Room(t) for t in enemy_territories] + stage.rooms

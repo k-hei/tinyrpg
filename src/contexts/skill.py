@@ -72,7 +72,7 @@ class SkillContext(Context):
     skill = ctx.skill
 
     visible_elems = (stage.elems
-      if stage.is_overworld
+      if stage.is_overworld_room
       else [e for c in hero.visible_cells for e in stage.get_elems_at(c)])
     enemy = ctx.parent.find_closest_enemy(hero, elems=visible_elems)
 

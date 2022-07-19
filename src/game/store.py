@@ -60,7 +60,7 @@ class GameStore:
 
   def encode(store):
     place = ("town" if type(store.place).__name__.startswith("Town")
-      else "dungeon" if not store.place.stage.is_overworld
+      else "dungeon" if not store.place.stage.is_overworld_room
       else None)
     builds = {}
     for char, pieces in store.builds.items():

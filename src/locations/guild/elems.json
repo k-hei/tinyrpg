@@ -1,7 +1,8 @@
 [
     {
         "name": "GuildBookcase",
-        "image_id": "guild_bookcase"
+        "image_id": "guild_bookcase",
+        "offset": [8, 0]
     },
     {
         "name": "GuildCandle",
@@ -37,10 +38,12 @@
     },
     {
         "name": "GuildRug",
-        "image_id": "guild_rug"
+        "image_id": "guild_rug",
+        "layer": "tiles"
     },
     {
         "name": "GuildRugSquare",
-        "image_id": "guild_rug_square"
+        "image_id": "guild_rug_square",
+        "layer": "tiles"
     }
 ]
