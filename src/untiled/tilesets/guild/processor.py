@@ -32,16 +32,20 @@ class GuildProcessor(Processor):
 
     @classmethod
     def load_room_tilesets(cls, room):
-        object_image_ids = []
+        object_image_filenames = []
         for tileset in room["tilesets"]:
             tileset_path = join(cls.cwd, tileset["source"])
-            object_image_ids += [p for p in parse_tsx_from_path(tileset_path)]
+            object_image_filenames += [p for p in parse_tsx_from_path(tileset_path)]
 
-        cls.object_image_ids = {i + 1: splitext(image_id)[0]
-            for i, image_id in enumerate(object_image_ids)}
+        for object_image_filename in object_image_filenames:
+            object_image = cls.load_image(object_image_filename)
+            object_image.save(join("assets", "guild_" + object_image_filename))
 
-        cls.object_images = {i + 1: cls.load_image(image_id)
-            for i, image_id in enumerate(object_image_ids)}
+        object_image_ids = [splitext(f)[0] for f in object_image_filenames]
+        cls.object_image_ids = {i + 1: image_id for i, image_id in enumerate(object_image_ids)}
+
+        object_images = [cls.load_image(f) for f in object_image_filenames]
+        cls.object_images = {i + 1: image for i, image in enumerate(object_images)}
 
     @classmethod
     def load_metadata(cls, metadata):
