@@ -91,7 +91,7 @@ def manifest_stage_from_dungeon_room(room_data):
         name=room_data.name,
         tileset=room_data.bg,
         tiles=TileMatrix(layers=[stage_tiles]),
-        rooms=[Room(data=room_data)],
+        rooms=[room],
     )
 
 def manifest_room(room_data, port_id=None):
