@@ -177,13 +177,9 @@ class ExploreContext(ExploreBase):
     prop = next((e for e in ctx.stage.elems if
       not e.solid
       and hero.cell == e.cell
-      and e.rect and hero.rect.colliderect(e.rect)
+      and not e.rect or hero.rect.colliderect(e.rect)  # TEST: ensure pushtiles don't unpush
     ), None)
-    if prop:
-      if prop.effect(ctx, hero):
-        hero.stop_move()
-        ally and ally.stop_move()
-      ctx.update_bubble()
+    prop and ctx.handle_effect(prop)
 
     if ally:
       if moved:

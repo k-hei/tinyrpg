@@ -380,6 +380,13 @@ class CombatContext(ExploreBase):
     def on_move():
       ctx.update_bubble()
       ctx.make_noise(hero.cell, 0.5)
+
+      prop = next((e for e in ctx.stage.elems if
+        not e.solid
+        and hero.cell == e.cell
+      ), None)
+      prop and ctx.handle_effect(prop)
+
       if not ctx.find_enemies_in_range():
         ctx.exit(ally_rejoin=True)
 
@@ -722,8 +729,8 @@ class CombatContext(ExploreBase):
       elif target.rare:
         ctx.stage.spawn_elem_at(target.cell,
           Bag(contents=Gold(amount=randint(34, 120))))
-      elif (target.faction == "enemy"
-      and randint(1, 3) == 1):
+      elif (target.faction == "enemy"):
+      # and randint(1, 3) == 1):
         ctx.stage.spawn_elem_at(target.cell,
           Bag(contents=Gold()))
 

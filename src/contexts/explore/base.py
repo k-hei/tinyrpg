@@ -536,6 +536,18 @@ class ExploreBase(Context):
     ])
     return True
 
+  def handle_effect(ctx, prop):
+    hero = ctx.hero
+    if not ctx.hero:
+      return
+
+    ally = ctx.ally
+    if prop:
+      if prop.effect(ctx, hero):
+        hero.stop_move()
+        ally and ally.stop_move()
+      ctx.update_bubble()
+
   def use_item(ctx, item, discard=True):
     hero = ctx.hero
     if not hero:
