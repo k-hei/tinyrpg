@@ -539,14 +539,20 @@ class ExploreBase(Context):
   def handle_effect(ctx, prop):
     hero = ctx.hero
     if not ctx.hero:
-      return
+      return False
 
     ally = ctx.ally
     if prop:
-      if prop.effect(ctx, hero):
+      success = prop.effect(ctx, hero)
+      if success:
         hero.stop_move()
         ally and ally.stop_move()
+        ctx.delta_pressed = (0, 0)
+        ctx.delta_pressed_button = None
+
       ctx.update_bubble()
+
+    return success
 
   def use_item(ctx, item, discard=True):
     hero = ctx.hero

@@ -177,7 +177,7 @@ class ExploreContext(ExploreBase):
     prop = next((e for e in ctx.stage.elems if
       not e.solid
       and hero.cell == e.cell
-      and not e.rect or hero.rect.colliderect(e.rect)  # TEST: ensure pushtiles don't unpush
+      and (not e.rect or hero.rect.colliderect(e.rect))  # TEST: ensure pushtiles don't unpush
     ), None)
     prop and ctx.handle_effect(prop)
 
