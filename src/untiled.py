@@ -171,7 +171,7 @@ def main():
         "bg": ("tileset", metadata["tileset"]),
         "size": room_size,
         "tiles": room_tiles,
-        "elems": room_elems,
+        "elems": room_elems + (metadata["elems"] if "elems" in metadata else []),
         "rooms": room_subrooms,
         "edges": room_edges,
         **({"hooks": metadata["hooks"]} if "hooks" in metadata else {}),

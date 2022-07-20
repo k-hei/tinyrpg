@@ -434,7 +434,6 @@ class SideViewContext(Context):
       elif not ctx.child:
         ctx.update_interactives()
 
-    ctx.update_buttons_rejected()
     ctx.hud.update(force=True)
     ctx.time += 1
 

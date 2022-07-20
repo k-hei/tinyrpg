@@ -36,6 +36,7 @@ from dungeon.actors.mimic import Mimic
 from dungeon.actors.knight import Knight
 from dungeon.actors.mushroom import Mushroom
 from dungeon.actors.guard import GuardActor
+from dungeon.actors.attendant import Attendant
 from dungeon.actors.ghost import Ghost
 
 def resolve_material(material):

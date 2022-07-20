@@ -40,6 +40,7 @@ from dungeon.actors.mimic import Mimic
 from dungeon.actors.knight import Knight
 from dungeon.actors.mushroom import Mushroom
 from dungeon.actors.guard import GuardActor
+from dungeon.actors.attendant import Attendant
 from dungeon.actors.ghost import Ghost
 from locations.prejungle.elems.tree import PrejungleTree
 from locations.prejungle.elems.bug import PrejungleBug
@@ -97,6 +98,7 @@ def resolve_elem(key):
   if key == "Knight": return Knight
   if key == "Mushroom": return Mushroom
   if key == "GuardActor": return GuardActor
+  if key == "Attendant": return Attendant
   if key == "Ghost": return Ghost
   if key == "PrejungleTree": return PrejungleTree
   if key == "PrejungleBug": return PrejungleBug

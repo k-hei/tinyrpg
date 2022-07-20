@@ -11,6 +11,7 @@ from cores.biped import BipedCore
 from cores.knight import Knight
 from cores.radhead import Radhead
 from cores.mouse import Mouse
+from cores.attendant import AttendantCore
 from cores.mira import MiraCore
 from cores.beetless import Beetless
 from cores.ghost import Ghost
@@ -30,6 +31,7 @@ def resolve_char(key):
   if key == "Knight": return Knight
   if key == "Radhead": return Radhead
   if key == "Mouse": return Mouse
+  if key == "AttendantCore": return AttendantCore
   if key == "MiraCore": return MiraCore
   if key == "Beetless": return Beetless
   if key == "Ghost": return Ghost

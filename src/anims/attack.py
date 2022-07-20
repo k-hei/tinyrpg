@@ -28,7 +28,7 @@ class AttackAnim(Anim):
       anim.on_connect and anim.on_connect()
     steps = time if time <= midpoint else midpoint * 2 - time
     t = steps / midpoint
-    x = src_x + norm_x * t * anim.amplitude / TILE_SIZE
-    y = src_y + norm_y * t * anim.amplitude / TILE_SIZE
+    x = src_x + norm_x * 0.75 * t * anim.amplitude / TILE_SIZE
+    y = src_y + norm_y * 0.75 * t * anim.amplitude / TILE_SIZE
     anim.cell = (x, y)
     return anim.cell

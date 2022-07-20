@@ -34,7 +34,7 @@
     {
         "name": "GuildTable",
         "image_id": "guild_table",
-        "hitbox": [-16, -12, 32, 4]
+        "hitbox": [-16, -12, 32, 10]
     },
     {
         "name": "GuildInterior",
