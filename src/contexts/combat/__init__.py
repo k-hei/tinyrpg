@@ -381,14 +381,14 @@ class CombatContext(ExploreBase):
       ctx.update_bubble()
       ctx.make_noise(hero.cell, 0.5)
 
+      if not ctx.find_enemies_in_range():
+        ctx.exit(ally_rejoin=True)
+
       prop = next((e for e in ctx.stage.elems if
         not e.solid
         and hero.cell == e.cell
       ), None)
       prop and ctx.handle_effect(prop)
-
-      if not ctx.find_enemies_in_range():
-        ctx.exit(ally_rejoin=True)
 
     hero.facing = delta
     moved = ctx.move_cell(hero, delta, on_end=on_move)

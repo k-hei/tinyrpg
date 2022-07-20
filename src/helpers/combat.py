@@ -60,12 +60,13 @@ from lib.cell import upscale
 from anims.move import MoveAnim
 from config import TILE_SIZE
 
-def animate_snap(actor, anims, speed=2, scale=TILE_SIZE, on_end=None):
+def animate_snap(actor, anims, speed=2, scale=TILE_SIZE, cell=None, on_end=None):
+  cell = cell or actor.cell
   x, y = actor.pos
   x += scale / 2
   y += scale / 2
   if x % scale or y % scale:
-    actor_dest = upscale(actor.cell, scale)
+    actor_dest = upscale(cell, scale)
     actor.stop_move()
     if not anims:
       anims.append([])

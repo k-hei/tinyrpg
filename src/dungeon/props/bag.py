@@ -53,7 +53,7 @@ class Bag(Prop):
         else:
           game.log.print("You can't carry any more materials...")
 
-    animate_snap(hero, game.anims, on_end=pickup_contents)
+    animate_snap(hero, game.anims, cell=bag.cell, on_end=pickup_contents)
     return True
 
   def view(bag, anims):
