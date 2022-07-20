@@ -20,16 +20,20 @@ class TileType(Enum):
     OASIS = auto()
     LINK = auto()
 
-class MetaTileset(type):
+class MetaTileset(type, ABC):
     @property
     def is_overworld_room(tileset):
         return tileset.room_type == RoomType.OVERWORLD
 
     @property
+    def is_dungeon_room(tileset):
+        return tileset.room_type == RoomType.DUNGEON
+
+    @property
     def is_town_room(tileset):
         return tileset.room_type == RoomType.TOWN
 
-class Tileset(MetaTileset, ABC):
+class Tileset(metaclass=MetaTileset):
     tile_size = 16
     room_type = None
 
