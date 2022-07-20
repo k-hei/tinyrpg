@@ -17,7 +17,9 @@ class Bag(Prop):
     [cell, kind, *props] = super().encode()
     return [cell, kind, {
       **(props[0] if props else {}),
-      "contents": bag.contents.__name__
+      "contents": (bag.contents.__name__
+        if isinstance(bag.contents, type)
+        else type(bag.contents).__name__)
     }]
 
   def effect(bag, game, trigger, *args, **kwargs):
