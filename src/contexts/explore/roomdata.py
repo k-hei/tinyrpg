@@ -83,7 +83,7 @@ class RoomData:
         tileset = resolve_tileset("default")
       roomdata.bg = tileset
 
-    if not roomdata.tiles:
+    if not roomdata.tiles and roomdata.size:
       roomdata.tiles = TileMatrix(layers=[Grid(size=roomdata.size)])
 
     if roomdata.tiles and not isinstance(roomdata.tiles, TileMatrix):
