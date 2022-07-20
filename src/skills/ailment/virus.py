@@ -19,7 +19,7 @@ class Virus(AilmentSkill):
     charge_turns: int = 3
 
     def spawn_cloud(game, cell, inclusive=False, on_end=None):
-        return _spawn_cloud(game, cell, puff_type=PoisonPuff, inclusive=inclusive, on_end=on_end)
+        return _spawn_cloud(game, cell, radius=2, puff_type=PoisonPuff, inclusive=inclusive, on_end=on_end)
 
     def effect(game, user, dest=None, on_start=None, on_end=None):
         spawn_cloud = lambda: Virus.spawn_cloud(
