@@ -521,7 +521,12 @@ class DungeonContext(ExploreBase):
       ctx.update_hero_cell()
 
   def update_hero_cell(ctx):
-    if ctx.hero_cell == ctx.hero.cell:
+    hero = ctx.hero
+    ally = ctx.ally
+    if not hero:
+      return
+
+    if ctx.hero_cell == hero.cell:
       return
 
     if ctx.hero_cell:
@@ -531,10 +536,10 @@ class DungeonContext(ExploreBase):
     is_travelling = False
     if ctx.hero_cell and not ctx.stage.is_overworld_room:
       old_door = next((e for e in ctx.stage.get_elems_at(ctx.hero_cell) if isinstance(e, Door)), None)
-      new_door = next((e for e in ctx.stage.get_elems_at(ctx.hero.cell) if isinstance(e, Door) and e.opened), None)
-      new_tile = ctx.stage.get_tile_at(ctx.hero.cell)
+      new_door = next((e for e in ctx.stage.get_elems_at(hero.cell) if isinstance(e, Door) and e.opened), None)
+      new_tile = ctx.stage.get_tile_at(hero.cell)
 
-      if ((ctx.stage.is_tile_at_hallway(ctx.hero_cell) or ctx.stage.is_tile_at_hallway(ctx.hero.cell))
+      if ((ctx.stage.is_tile_at_hallway(ctx.hero_cell) or ctx.stage.is_tile_at_hallway(hero.cell))
       and (new_door or old_door)
       and not (new_door and old_door)):
         is_travelling = ctx.handle_hallway()
@@ -546,13 +551,13 @@ class DungeonContext(ExploreBase):
       ctx.refresh_fov()
 
     if ctx.hero_cell:
-      if ctx.stage.is_tile_at_oasis(ctx.hero_cell):
-        ctx.handle_oasis()
-
       if ctx.find_enemies_in_range() and isinstance(ctx.get_tail(), ExploreContext):
         ctx.handle_combat(path=True)
 
-    ctx.hero_cell = ctx.hero.cell
+      if ctx.stage.is_tile_at_oasis(ctx.hero_cell):
+        ctx.handle_oasis()
+
+    ctx.hero_cell = hero.cell
     ctx.update_bubble()
 
     if ctx.room and ctx.room.has_hook("on_walk"):

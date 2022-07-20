@@ -17,7 +17,9 @@ class Bag(Prop):
     [cell, kind, *props] = super().encode()
     return [cell, kind, {
       **(props[0] if props else {}),
-      "contents": bag.contents.__name__
+      "contents": (bag.contents.__name__
+        if isinstance(bag.contents, type)
+        else type(bag.contents).__name__)
     }]
 
   def effect(bag, game, trigger, *args, **kwargs):
@@ -51,7 +53,7 @@ class Bag(Prop):
         else:
           game.log.print("You can't carry any more materials...")
 
-    animate_snap(hero, game.anims, on_end=pickup_contents)
+    animate_snap(hero, game.anims, cell=bag.cell, on_end=pickup_contents)
     return True
 
   def view(bag, anims):
