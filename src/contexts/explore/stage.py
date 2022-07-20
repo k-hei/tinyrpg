@@ -22,6 +22,7 @@ class Stage:
     stage.entrance = None
     stage.generator = None
     stage.seed = None
+    stage.collision_whitelist = []
 
   @property
   def size(stage):

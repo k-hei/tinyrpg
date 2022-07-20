@@ -176,6 +176,8 @@ def main():
         "edges": room_edges,
         **({"hooks": metadata["hooks"]} if "hooks" in metadata else {}),
         **({"ports": metadata["ports"]} if "ports" in metadata else {}),
+        **({"collision_whitelist": metadata["collision_whitelist"]}
+            if "collision_whitelist" in metadata else {}),
     }, separators=(",", ":"))
 
     output_path = f"rooms/{input_filename}"

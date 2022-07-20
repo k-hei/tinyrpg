@@ -321,6 +321,13 @@ class ExploreContext(ExploreBase):
     actor_cell = vector.floor(vector.scale(rect.center, 1 / stage.tile_size))
     actor_elev = stage.get_tile_at_elev(actor_cell)
 
+    find_container_at_pos = lambda pos: (
+      next((r for r in stage.collision_whitelist
+        if r.collidepoint(pos)), None)
+    )
+
+    container = find_container_at_pos(rect.center)
+
     # TODO: use stage.is_cell_walkable
     # TODO: handle floating actors
     is_tile_at_walkable = lambda cell: (
@@ -339,6 +346,9 @@ class ExploreContext(ExploreBase):
           collidee = stage.get_tile_at(cell_nw)
       elif elem:
         rect.left = elem_rect.right
+      elif container and rect.left < container.left and not find_container_at_pos(rect.midleft):
+        rect.left = container.left
+
     elif delta_x > 0:
       if not is_tile_at_walkable(cell_ne) or not is_tile_at_walkable(cell_se):
         rect.right = col_e * stage.tile_size
@@ -346,6 +356,8 @@ class ExploreContext(ExploreBase):
           collidee = stage.get_tile_at(cell_se)
       elif elem:
         rect.right = elem_rect.left
+      elif container and rect.right > container.right and not find_container_at_pos(rect.midright):
+        rect.right = container.right
 
     if delta_y < 0:
       if not is_tile_at_walkable(cell_nw) or not is_tile_at_walkable(cell_ne):
@@ -354,6 +366,9 @@ class ExploreContext(ExploreBase):
           collidee = stage.get_tile_at(cell_nw)
       elif elem:
         rect.top = elem_rect.bottom
+      elif container and rect.top < container.top and not find_container_at_pos(rect.midtop):
+        rect.top = container.top
+
     elif delta_y > 0:
       if not is_tile_at_walkable(cell_sw) or not is_tile_at_walkable(cell_se):
         rect.bottom = row_s * stage.tile_size
@@ -361,6 +376,8 @@ class ExploreContext(ExploreBase):
           collidee = stage.get_tile_at(cell_se)
       elif elem:
         rect.bottom = elem_rect.top
+      elif container and rect.bottom > container.bottom and not find_container_at_pos(rect.midbottom):
+        rect.bottom = container.bottom
 
     if rect.center != init_center:
       actor.pos = rect.midtop

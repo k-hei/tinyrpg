@@ -63,12 +63,14 @@ def validate_room_data(room_data):
 
 def manifest_stage_from_overworld_room(room_data):
     validate_room_data(room_data)
-    return Stage(
+    stage = Stage(
         name=room_data.name,
         tileset=room_data.bg,
         tiles=room_data.tiles,
         rooms=[Room(data=room_data)],
     )
+    stage.collision_whitelist = room_data.collision_whitelist
+    return stage
 
 def manifest_stage_from_dungeon_room(room_data):
     validate_room_data(room_data)
@@ -89,17 +91,6 @@ def manifest_stage_from_dungeon_room(room_data):
         name=room_data.name,
         tileset=room_data.bg,
         tiles=TileMatrix(layers=[stage_tiles]),
-        rooms=[Room(data=room_data)],
-    )
-
-def manifest_stage_from_town_room(room_data):
-    validate_room_data(room_data)
-    return Stage(
-        name=room_data.name,
-        tileset=room_data.bg,
-        tiles=TileMatrix(layers=[
-            Grid(size=room_data.size)
-        ]),
         rooms=[Room(data=room_data)],
     )
 

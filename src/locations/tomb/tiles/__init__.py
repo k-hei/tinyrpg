@@ -11,7 +11,7 @@ from dungeon.props.secretdoor import SecretDoor
 
 from locations.tomb.tiles.walltop import render_walltop
 from locations.tomb.tiles.oasis import render_oasis
-from locations.tileset import Tileset
+from locations.tileset import Tileset, RoomType
 from locations.default.tile import Tile
 from locations.default.tileset import (
     black_square,
@@ -153,6 +153,7 @@ class OasisStairs(DefaultOasisStairs):
 
 class TombTileset(Tileset):
     tile_size = TILE_SIZE
+    room_type = RoomType.DUNGEON
     mappings = {
         ".": Floor,
         "#": Wall,

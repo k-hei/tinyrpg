@@ -2,6 +2,7 @@ import json
 from os import listdir
 from os.path import join, splitext
 from dataclasses import dataclass, field
+from pygame import Rect
 from lib.grid import Grid
 
 from locations.tileset import Tileset
@@ -65,6 +66,7 @@ class RoomData:
   items: bool = False                                       # default: no vases spawn
   enemies: bool = False                                     # default: no enemies spawn
   hooks: dict[str, str] = field(default_factory=lambda: {}) # default: no hooks
+  collision_whitelist: list = field(default_factory=list)   # default: no collision whitelist
 
   def __hash__(roomdata):
     return hash(roomdata.key)
@@ -110,6 +112,8 @@ class RoomData:
 
     roomdata.hooks = { k: resolve_hook(h) if type(h) is str else h for k, h in roomdata.hooks.items() }
     roomdata.ports = { n: RoomPort(**l) for n, l in roomdata.ports.items() }
+
+    roomdata.collision_whitelist = [Rect(*r) for r in roomdata.collision_whitelist]
 
   def extract_cells(roomdata):
     return [c for c, t in roomdata.tiles.enumerate()]
