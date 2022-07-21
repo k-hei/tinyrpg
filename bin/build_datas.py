@@ -5,7 +5,7 @@ added_files = {
     'assets/ttf/*': 'assets/ttf',
     'rooms/*': 'rooms',
     'src/data00.json': 'src',
-    'src/locations/desert/elems.json': 'src/locations/desert',
+    'src/locations/elems/*': 'src/locations/elems',
     'VERSION': '.',
 }
 

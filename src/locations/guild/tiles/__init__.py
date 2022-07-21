@@ -4,5 +4,5 @@ from config import LOCATIONS_PATH
 
 
 class GuildTileset(Tileset):
-    elems_path = path.join(LOCATIONS_PATH, "guild", "elems.json")
+    elems_path = path.join(LOCATIONS_PATH, "elems", "guild.json")
     room_type = RoomType.TOWN

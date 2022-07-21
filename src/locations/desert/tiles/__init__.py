@@ -15,7 +15,7 @@ tileset_image = Image.open(path.join(ASSETS_PATH, "desert-tiles.png"))
 
 class DesertTileset(Tileset):
     tile_size = TILE_SIZE
-    elems_path = path.join(LOCATIONS_PATH, "desert", "elems.json")
+    elems_path = path.join(LOCATIONS_PATH, "elems", "desert.json")
     room_type = RoomType.OVERWORLD
 
     @staticmethod
