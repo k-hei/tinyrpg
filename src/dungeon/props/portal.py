@@ -18,7 +18,7 @@ class Portal(Prop):
 
         game.parent.time += LABEL_FRAMES  # HACK: force hide auto-label (can we clean this up?)
         game.show_label(portal.name or portal.area)
-        return True
+        return None
 
     def on_leave(portal, game):
         game.hide_label()
