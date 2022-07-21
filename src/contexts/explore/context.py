@@ -40,7 +40,7 @@ class ExploreContext(ExploreBase):
     ctx.cache_last_move = 0
     ctx.port = None
 
-    if not ctx.stage.is_overworld_room:
+    if ctx.stage.is_dungeon_room:
       ctx.comps.minimap.enter()
       ctx.comps.floor_no.enter()
 
@@ -580,7 +580,7 @@ class ExploreContext(ExploreBase):
     if not hud.active:
       hud.enter()
 
-    if ctx.stage.is_overworld_room and not ctx.ally.visible_cells:
+    if ctx.stage.is_dungeon_room and not ctx.ally.visible_cells:
       ctx.ally.visible_cells = ctx.hero.visible_cells.copy()
     ctx.store.switch_chars()
 
@@ -593,7 +593,7 @@ class ExploreContext(ExploreBase):
         on_end=lambda: hud.exit()
       ))
 
-    ctx.parent.refresh_fov(reset_cache=not ctx.stage.is_overworld_room)
+    ctx.parent.refresh_fov(reset_cache=ctx.stage.is_dungeon_room)
     ctx.camera.focus(target=[*([ctx.room] if ctx.room else []), ctx.hero], force=True)
 
     return True

@@ -65,6 +65,10 @@ class Stage:
     return stage.tileset.is_overworld_room
 
   @property
+  def is_dungeon_room(stage):
+    return stage.tileset.is_dungeon_room
+
+  @property
   def is_town_room(stage):
     return stage.tileset.is_town_room
 
