@@ -16,9 +16,9 @@
     " .>.>. .>.>. ",
     " ..... ..... ",
     "             ",
-    " ..... ...   ",
-    " .>.>. .>.   ",
-    " ..... ...   ",
+    " ..... ..... ",
+    " .>.>. .>.>. ",
+    " ..... ..... ",
     "             "
   ],
   "elems": [
@@ -31,11 +31,12 @@
     [[8, 7], "Portal", { "area": "Floor3", "name": "Dungeon 3F" }],
     [[10, 7], "Portal", { "area": "GenericFloor", "name": "Infinite Dungeon" }],
     [[2, 11], "Portal", { "area": "AkimorCentralArea", "name": "Akimor Central" }],
-    [[4, 11], "Portal", { "area": "OutskirtsArea", "name": "Akimor Outskirts" }],
+    [[4, 11], "Portal", { "area": "TombEntranceArea", "name": "Tomb Entrance" }],
     [[8, 11], "Portal", { "area": "StoreArea", "name": "Market" }],
     [[10, 11], "Portal", { "area": "FortuneArea", "name": "Fortune House" }],
     [[2, 15], "Portal", { "area": "tutorial1", "name": "Akimor Range (North)" }],
     [[4, 15], "Portal", { "area": "tutorial1", "port": "right", "name": "Akimor Range (East)" }],
-    [[8, 15], "Portal", { "area": "TimeChamberArea", "name": "Time Chamber" }]
+    [[8, 15], "Portal", { "area": "guild", "name": "Guild House" }],
+    [[10, 15], "Portal", { "area": "TimeChamberArea", "name": "Time Chamber" }]
   ]
 }
