@@ -1,0 +1,25 @@
+{
+    "name": "Guild House",
+    "tileset": "guild",
+    "elems": [
+        [[8, 9], "Attendant", {}]
+    ],
+    "edges": [[9, 23]],
+    "ports": {
+        "down": {
+            "x": 9,
+            "y": 23,
+            "direction": [0, 1]
+        }
+    },
+    "collision_whitelist": [
+        [80, 96, 128, 160],
+        [96, 256, 96, 128]
+    ],
+    "layers": {
+        "base": "image",
+        "rugs": "object",
+        "decor": "object",
+        "banners": "object"
+    }
+}

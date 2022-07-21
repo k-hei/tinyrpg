@@ -106,7 +106,7 @@ class StageView:
     view.camera = Camera(WINDOW_SIZE, constraints=CameraConstraints(
       right=stage.width * stage.tile_size,
       bottom=stage.height * stage.tile_size,
-    ) if stage.is_overworld_room else None)
+    ) if not stage.is_dungeon_room else None)
     view.anim = None
     view.anims = []
     view.vfx = []
