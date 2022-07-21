@@ -259,7 +259,7 @@ class CombatContext(ExploreBase):
 
     room = ctx.room
     room_cells = room.cells
-    if not ctx.stage.is_overworld_room:
+    if ctx.stage.is_dungeon_room:
       room_cells = [c for c in room_cells
         if ctx.stage.is_cell_walkable(c, scale=TILE_SIZE)]
 
@@ -767,7 +767,7 @@ class CombatContext(ExploreBase):
     if ctx.stage.is_overworld_room and not ctx.ally.visible_cells:
       ctx.ally.visible_cells = ctx.hero.visible_cells.copy()
     ctx.store.switch_chars()
-    ctx.parent.refresh_fov(reset_cache=not ctx.stage.is_overworld_room)
+    ctx.parent.refresh_fov(reset_cache=ctx.stage.is_dungeon_room)
 
     ctx.reload_skill_badge()
 
@@ -1155,7 +1155,7 @@ class CombatContext(ExploreBase):
     rows = WINDOW_HEIGHT // TILE_SIZE + 2
 
     room_cells = room.cells
-    if not ctx.stage.is_overworld_room:
+    if ctx.stage.is_dungeon_room:
       room_cells = [c for c in room_cells
         if ctx.stage.is_cell_walkable(c)]
 

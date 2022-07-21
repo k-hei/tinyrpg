@@ -212,7 +212,7 @@ class Blob(Room):
     return room.trigger_hook("on_focus", game)
 
   def on_blur(room, game):
-    if not game.stage.is_overworld_room:
+    if game.stage.is_dungeon_room:
       for elem, elem_spawn in room.elem_store.items():
         if elem in game.stage.elems and not elem.static:
           elem.cell = elem_spawn
